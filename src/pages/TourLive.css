@@ -1,0 +1,16 @@
+.mask-top {
+    mask-image: linear-gradient(to bottom, transparent, black 20%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 20%);
+}
+
+.shadow-text {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.safe-top {
+    padding-top: max(16px, env(safe-area-inset-top));
+}
+
+.safe-bottom {
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
+}

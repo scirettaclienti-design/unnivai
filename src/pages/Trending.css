@@ -1,0 +1,231 @@
+.trending-container {
+    background: #FDF2F8;
+    min-height: 100vh;
+    padding-bottom: 6rem;
+    font-family: sans-serif;
+    color: #1f2937;
+}
+
+.trending-header {
+    background: linear-gradient(to right, #EC4899, #E11D48);
+    padding: 1rem;
+    padding-top: 3rem;
+    padding-bottom: 2rem;
+    color: white;
+    border-bottom-left-radius: 2.5rem;
+    border-bottom-right-radius: 2.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 10;
+}
+
+.trending-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.icon-btn-bg {
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.trend-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    line-height: 1.25;
+}
+
+.trend-sub {
+    opacity: 0.9;
+}
+
+.stats-grid-wrapper {
+    padding: 0 1rem;
+    margin-top: -2.5rem;
+    position: relative;
+    z-index: 20;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    padding: 1rem;
+    border-radius: 1rem;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    height: 7rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card.red {
+    background-color: #F87171;
+}
+
+.stat-card.purple {
+    background-color: #A855F7;
+}
+
+.stat-card.pink {
+    background-color: #EC4899;
+}
+
+.stat-card.green {
+    background-color: #4ADE80;
+}
+
+.stat-icon {
+    margin-bottom: auto;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+.hot-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+}
+
+.section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding: 0 1rem;
+}
+
+.section-h {
+    font-size: 1.25rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.main-card {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 1rem;
+    margin: 0 1rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid #E7E5E4;
+}
+
+.main-img-wrap {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.main-img {
+    width: 100%;
+    height: 12rem;
+    border-radius: 1rem;
+    object-fit: cover;
+}
+
+.score-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(4px);
+    color: #EC4899;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.card-main-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.flame-icon {
+    color: #F97316;
+    fill: #F97316;
+}
+
+.loc-text {
+    color: #6B7280;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.italic-desc {
+    color: #4B5563;
+    font-size: 0.875rem;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.metrics-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.metric-box {
+    flex: 1;
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.metric-box.red {
+    background: #FEF2F2;
+}
+
+.metric-box.pink {
+    background: #FDF2F8;
+}
+
+.metric-box.yellow {
+    background: #FEFCE8;
+}
+
+.metric-val {
+    font-weight: 700;
+    color: #1f2937;
+    font-size: 0.875rem;
+}

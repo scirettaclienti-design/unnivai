@@ -1,0 +1,398 @@
+/* Global Page Reset */
+.tour-details-page {
+    background-color: #FDF6E3;
+    /* Cream background from screenshot */
+    min-height: 100vh;
+    font-family: 'Quicksand', sans-serif;
+    color: #1a1a1a;
+    position: relative;
+    padding-bottom: 2rem;
+}
+
+/* 1. Hero / Image Header */
+.details-hero {
+    position: relative;
+    width: 100%;
+    height: 350px;
+    /* Large immersive image */
+}
+
+.hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Overlays on Image */
+.hero-overlay-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), transparent);
+}
+
+.hero-overlay-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 1.5rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.btn-circle-glass {
+    width: 2.75rem;
+    height: 2.75rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1f2937;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.btn-circle-glass:active {
+    transform: scale(0.9);
+}
+
+.live-badge {
+    background: #EF4444;
+    /* Red */
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.live-dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    background: white;
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0.4;
+    }
+}
+
+/* 2. Main Content Container */
+.details-content {
+    padding: 1.5rem;
+}
+
+/* Title Header */
+.title-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.main-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.2;
+    flex: 1;
+    margin-right: 1rem;
+    color: #1f2937;
+}
+
+.price-tag-sq {
+    background: #92400E;
+    /* Brown */
+    color: white;
+    padding: 0.75rem;
+    border-radius: 1rem;
+    text-align: center;
+    min-width: 4rem;
+    box-shadow: 0 4px 6px rgba(146, 64, 14, 0.2);
+}
+
+.price-current {
+    font-size: 1.25rem;
+    font-weight: 800;
+    display: block;
+}
+
+.price-old {
+    font-size: 0.75rem;
+    text-decoration: line-through;
+    opacity: 0.7;
+    display: block;
+}
+
+.desc-text {
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+}
+
+/* Guide Card */
+.guide-card {
+    background: #FEF9C3;
+    /* Pale Yellow */
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.guide-header-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: #4b5563;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.guide-profile {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.guide-avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+}
+
+.guide-info h4 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+}
+
+.guide-rating {
+    font-size: 0.85rem;
+    color: #854D0E;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.guide-bio {
+    font-size: 0.85rem;
+    color: #4b5563;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+
+.guide-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-guide-msg {
+    flex: 1;
+    background: #A16207;
+    /* Brown/Dark Gold */
+    color: white;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.btn-guide-profile {
+    flex: 1;
+    background: #65A30D;
+    /* Olive Green */
+    color: white;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Info Grid (4 Boxes) */
+.info-grid-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.white-card {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 1.25rem;
+    text-align: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.icon-label {
+    color: #9ca3af;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.info-val {
+    color: #1f2937;
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.icon-circle {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    margin-bottom: 0.25rem;
+    background: #FFF7ED;
+    /* Light orange tint */
+    color: #C2410C;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* "Cosa ti aspetta" - Highlights */
+.highlights-section {
+    background: #FCE7F3;
+    /* Pinkish bg */
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.section-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: #831843;
+    font-weight: 700;
+}
+
+.highlight-item {
+    background: white;
+    padding: 0.75rem 1rem;
+    border-radius: 9999px;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    color: #374151;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Timeline Program */
+.program-card {
+    background: #FDFBF7;
+    /* Cream/White mix */
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: flex-start;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.time-pill {
+    background: #92400E;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.5rem;
+    white-space: nowrap;
+}
+
+.timeline-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Meeting Point */
+.meeting-card {
+    background: #D1FAE5;
+    /* Mint Green */
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.meeting-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #065F46;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.meeting-box {
+    background: rgba(255, 255, 255, 0.6);
+    padding: 1rem;
+    border-radius: 1rem;
+}
+
+.meeting-text {
+    font-size: 0.9rem;
+    color: #064E3B;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.btn-meeting {
+    background: #10B981;
+    color: white;
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}

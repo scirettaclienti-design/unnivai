@@ -29,22 +29,22 @@ class DataService {
             description: dbTour.description || '',
 
             // Map location fields
-            city: dbTour.city || 'Roma',
+            city: dbTour.city || 'Unknown', // Now a forceful column
             location: dbTour.location || dbTour.city || '',
 
-            // Format duration as text (e.g. "90 min")
-            duration: dbTour.duration_text || '',
-            estimatedTime: dbTour.duration_minutes || 0, // Used for sorting/filtering sometimes
+            // Format duration
+            duration: dbTour.duration_text || (dbTour.duration_minutes ? `${dbTour.duration_minutes} min` : ''),
+            estimatedTime: dbTour.duration_minutes || 0,
 
-            // Pricing
-            price: Number(dbTour.price) || 0,
+            // Pricing (Prioritize price_eur filter column)
+            price: Number(dbTour.price_eur) || Number(dbTour.price) || 0,
             originalPrice: dbTour.original_price ? Number(dbTour.original_price) : null,
 
             // Stats
             rating: Number(dbTour.rating) || 5.0,
-            reviews: Number(dbTour.reviews_count) || 0, // Aggregate count from relation usually
+            reviews: Number(dbTour.reviews_count) || 0,
             participants: Number(dbTour.current_participants) || 0,
-            maxParticipants: Number(dbTour.max_participants) || 12,
+            maxParticipants: Number(dbTour.max_participants) || 10,
 
             // Media
             imageUrl: images[0] || '', // Main image for cards

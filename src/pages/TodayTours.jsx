@@ -12,7 +12,7 @@ const TodayTours = () => {
                 <div className="header-bg-img" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1552832230-c0197dd311b5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80')" }}></div>
                 <div className="header-content">
                     <div className="today-header-row">
-                        <Link to="/" className="icon-blur">
+                        <Link to="/dashboard-user" className="icon-blur">
                             <ArrowLeft size={24} />
                         </Link>
                         <h1 className="text-xl font-bold">In Diretta Oggi</h1>

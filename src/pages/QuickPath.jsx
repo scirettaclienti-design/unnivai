@@ -298,7 +298,7 @@ export default function QuickPathPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                 >
-                    <Link to="/">
+                    <Link to="/dashboard-user">
                         <motion.button
                             className="p-2 rounded-full bg-white/60 backdrop-blur-sm mr-4 hover:bg-white/80 transition-colors"
                             whileHover={{ scale: 1.05 }}

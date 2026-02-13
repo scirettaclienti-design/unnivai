@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { ArrowLeft, MapPin, Clock, Camera, Utensils, Palette, Eye, ShoppingBag, Coffee, Send, Sparkles, Brain, Loader, Heart, Mountain, Waves, Users, Baby, Zap, Sunset, Navigation, CloudRain, Sun, Thermometer, Wind, Star, Calendar, Home, Shuffle, Target, TrendingUp } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Clock, Camera, Utensils, Palette, Eye, ShoppingBag, Coffee, Send, Sparkles, Brain, Loader, Heart, Mountain, Waves, Users, Baby, Zap, Sunset, Navigation, CloudRain, Sun, Thermometer, Wind, Star, Calendar, Home, Shuffle, Target, TrendingUp } from "lucide-react";
 import DemoHint from "../components/DemoHint";
 import { Link } from "react-router-dom";
 import TopBar from "../components/TopBar";
@@ -141,7 +141,7 @@ export default function AIItineraryPage() {
         );
     };
 
-    const { city } = useUserContext();
+    const { city, temperatureC, weatherCondition } = useUserContext();
     const activeCity = city || 'Roma';
     const cityData = DEMO_CITIES[activeCity] || DEMO_CITIES['Roma'];
 
@@ -160,7 +160,11 @@ export default function AIItineraryPage() {
             // Artificial delay for UX
             await new Promise(resolve => setTimeout(resolve, 2000));
 
-            const days = await aiRecommendationService.generateItinerary(activeCity, prefsObject, userPrompt);
+            // Pass current weather context to AI for consistency
+            const days = await aiRecommendationService.generateItinerary(activeCity, prefsObject, userPrompt, {
+                condition: weatherCondition || 'sunny',
+                temperature: temperatureC || 20
+            });
 
             if (!days || days.length === 0) throw new Error("No itinerary generated");
 
@@ -232,7 +236,7 @@ export default function AIItineraryPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6 }}
                 >
-                    <Link to="/">
+                    <Link to="/dashboard-user">
                         <motion.button
                             className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm text-terracotta-600 px-4 py-2 rounded-2xl shadow-lg hover:shadow-xl transition-all group"
                             whileHover={{ scale: 1.05, x: 5 }}
@@ -245,39 +249,51 @@ export default function AIItineraryPage() {
                     </Link>
                 </motion.div>
 
-                {/* Header */}
+                {/* Header - Digital Concierge Avatar */}
                 <motion.div
-                    className="text-center mb-8"
+                    className="text-center mb-10"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                 >
-                    <motion.div
-                        className="text-6xl mb-4"
-                        animate={{ rotateY: [0, 360] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                    >
-                        🤖
-                    </motion.div>
-                    <h1 className="text-2xl font-bold text-gray-800 mb-2">AI Itinerary Planner</h1>
-                    <p className="text-gray-600">La tua guida intelligente per viaggi perfetti</p>
+                    <div className="relative w-24 h-24 mx-auto mb-6">
+                        {/* Pulsing Halo */}
+                        <motion.div
+                            className="absolute inset-0 bg-gradient-to-tr from-orange-300 to-purple-400 rounded-full blur-xl opacity-60"
+                            animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
+                            transition={{ duration: 4, repeat: Infinity }}
+                        />
+                        {/* Avatar Container */}
+                        <div className="relative w-full h-full bg-gradient-to-br from-white to-gray-100 rounded-full shadow-2xl flex items-center justify-center border-4 border-white/50 backdrop-blur-md z-10">
+                            <Brain className="w-12 h-12 text-terracotta-500" />
+                            <motion.div
+                                className="absolute top-1 right-1 bg-green-400 w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                            />
+                        </div>
+                    </div>
+
+                    <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-terracotta-600 to-orange-500 mb-2">
+                        Il Tuo Travel Designer AI
+                    </h1>
+                    <p className="text-gray-600 font-medium">Raccontami il tuo sogno, io lo trasformo in viaggio.</p>
                 </motion.div>
 
                 {/* Step Indicator */}
-                <div className="flex items-center justify-center mb-8">
-                    {['Preferenze', 'Generazione', 'Itinerario'].map((step, index) => (
+                <div className="flex items-center justify-center mb-10">
+                    {['Sogni', 'Magia', 'Realtà'].map((step, index) => (
                         <div key={step} className="flex items-center">
                             <motion.div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${index <= currentStep
-                                    ? 'bg-terracotta-400 text-white'
-                                    : 'bg-gray-300 text-gray-600'
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-md ${index <= currentStep
+                                    ? 'bg-gradient-to-r from-terracotta-400 to-orange-500 text-white scale-110'
+                                    : 'bg-white text-gray-400 border border-gray-200'
                                     }`}
-                                whileHover={{ scale: 1.1 }}
                             >
                                 {index + 1}
                             </motion.div>
                             {index < 2 && (
-                                <div className={`w-12 h-0.5 mx-2 transition-all ${index < currentStep ? 'bg-terracotta-400' : 'bg-gray-300'
+                                <div className={`w-12 h-1 mx-2 rounded-full transition-all ${index < currentStep ? 'bg-terracotta-300' : 'bg-gray-200'
                                     }`} />
                             )}
                         </div>
@@ -287,194 +303,181 @@ export default function AIItineraryPage() {
                 {/* Step 1: Preferences */}
                 {currentStep === 0 && (
                     <motion.div
-                        initial={{ opacity: 0, x: 50 }}
+                        initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -50 }}
-                        transition={{ duration: 0.6 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.5 }}
                     >
-                        <div className="space-y-6">
-                            {/* Campo di testo personalizzato per l'AI */}
+                        <div className="space-y-8">
+                            {/* Pro Input Card */}
                             <motion.div
-                                className="bg-gradient-to-br from-terracotta-100 to-ochre-100 rounded-2xl p-6 shadow-lg border-2 border-terracotta-200"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, delay: 0.1 }}
+                                className="bg-white/60 backdrop-blur-xl rounded-3xl p-1 shadow-2xl shadow-terracotta-500/10 border border-white/80"
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
                             >
-                                <div className="flex items-center space-x-3 mb-4">
-                                    <motion.div
-                                        className="text-3xl"
-                                        animate={{ rotate: [0, 10, -10, 0] }}
-                                        transition={{ duration: 2, repeat: Infinity }}
-                                    >
-                                        ✨
-                                    </motion.div>
-                                    <div>
-                                        <h3 className="font-bold text-lg text-terracotta-700 mb-1">Racconta la tua idea di viaggio</h3>
-                                        <p className="text-sm text-terracotta-600">Descrivi cosa desideri per creare un itinerario su misura</p>
+                                <div className="bg-gradient-to-b from-white/50 to-white/20 rounded-[22px] p-6">
+                                    <div className="flex items-center space-x-3 mb-4">
+                                        <Sparkles className="w-5 h-5 text-orange-400" />
+                                        <h3 className="font-bold text-gray-800">La tua visione</h3>
+                                    </div>
+
+                                    <div className="relative group">
+                                        <textarea
+                                            value={userPrompt}
+                                            onChange={(e) => setUserPrompt(e.target.value)}
+                                            placeholder="Es: 'Voglio perdermi tra i vicoli di Trastevere, mangiare la carbonara migliore e finire la serata in un jazz club nascosto...'"
+                                            className="w-full h-32 bg-white/50 rounded-xl p-4 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-terracotta-300/50 transition-all resize-none shadow-inner border border-transparent focus:bg-white"
+                                            style={{ fontFamily: 'Inter, sans-serif' }}
+                                        />
+                                        <div className="absolute bottom-3 right-3 flex items-center space-x-2">
+                                            <span className="text-xs text-gray-400 font-medium">{userPrompt.length > 0 ? 'Perfetto!' : 'Sii creativo...'}</span>
+                                            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div className="relative">
-                                    <textarea
-                                        value={userPrompt}
-                                        onChange={(e) => setUserPrompt(e.target.value)}
-                                        placeholder="Esempio: Voglio un tour romantico con cena vista mare, oppure esperienze autentiche con artisti locali..."
-                                        className="w-full h-24 p-4 border-2 border-terracotta-200 rounded-xl focus:border-terracotta-400 focus:outline-none resize-none bg-white/90 text-gray-700 placeholder-gray-500"
-                                        style={{ fontFamily: 'Inter, sans-serif' }}
-                                    />
-                                    <DemoHint text="Descrivi il viaggio dei tuoi sogni" className="-top-3 right-4" delay={500} />
-                                    <motion.div
-                                        className="absolute bottom-3 right-3 text-terracotta-400"
-                                        animate={{ scale: [1, 1.2, 1] }}
-                                        transition={{ duration: 2, repeat: Infinity }}
-                                    >
-                                        <Brain className="w-5 h-5" />
-                                    </motion.div>
-                                </div>
-
-                                {userPrompt && (
-                                    <motion.div
-                                        className="mt-3 flex items-center space-x-2 text-sm text-terracotta-600"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                    >
-                                        <Sparkles className="w-4 h-4" />
-                                        <span>Perfetto! L'AI analizzerà la tua richiesta</span>
-                                    </motion.div>
-                                )}
                             </motion.div>
 
-                            <motion.div
-                                className="text-center text-sm text-gray-600 flex items-center justify-center space-x-2"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.3 }}
-                            >
-                                <span>✨</span>
-                                <span>Oppure usa le preselezioni rapide qui sotto</span>
-                                <span>✨</span>
-                            </motion.div>
-                            {userPreferences.map((pref, index) => (
-                                <motion.div
-                                    key={pref.id}
-                                    className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                >
-                                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                                        <span className="text-2xl mr-3">{pref.emoji}</span>
-                                        {pref.title}
-                                    </h3>
+                            {/* Filters "Pills" Style */}
+                            <div className="space-y-6">
+                                {userPreferences.map((pref, index) => (
+                                    <motion.div
+                                        key={pref.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 + 0.2 }}
+                                    >
+                                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 ml-2 flex items-center gap-2">
+                                            <span>{pref.emoji}</span> {pref.title}
+                                        </h3>
 
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {pref.options.map((option) => (
-                                            <motion.button
-                                                key={option}
-                                                onClick={() => {
-                                                    if (pref.id === 'interests') {
-                                                        const current = pref.selected;
-                                                        const newSelection = current.includes(option)
-                                                            ? current.filter(item => item !== option)
-                                                            : [...current, option];
-                                                        updatePreference(pref.id, newSelection);
-                                                    } else {
-                                                        updatePreference(pref.id, option);
-                                                    }
-                                                }}
-                                                className={`p-3 rounded-xl text-sm font-medium transition-all ${(pref.id === 'interests'
+                                        <div className="flex flex-wrap gap-3">
+                                            {pref.options.map((option) => {
+                                                const isSelected = pref.id === 'interests'
                                                     ? pref.selected.includes(option)
-                                                    : pref.selected === option)
-                                                    ? 'bg-terracotta-400 text-white shadow-lg scale-105'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                    }`}
-                                                whileHover={{ scale: 1.02 }}
-                                                whileTap={{ scale: 0.98 }}
-                                            >
-                                                {option}
-                                            </motion.button>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            ))}
+                                                    : pref.selected === option;
+
+                                                return (
+                                                    <motion.button
+                                                        key={option}
+                                                        onClick={() => {
+                                                            if (pref.id === 'interests') {
+                                                                const current = pref.selected;
+                                                                const newSelection = current.includes(option)
+                                                                    ? current.filter(item => item !== option)
+                                                                    : [...current, option];
+                                                                updatePreference(pref.id, newSelection);
+                                                            } else {
+                                                                updatePreference(pref.id, option);
+                                                            }
+                                                        }}
+                                                        className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all border ${isSelected
+                                                            ? 'bg-gradient-to-r from-terracotta-500 to-orange-500 text-white border-transparent shadow-lg shadow-orange-500/30'
+                                                            : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300 hover:bg-orange-50'
+                                                            }`}
+                                                        whileHover={{ scale: 1.05, y: -2 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                    >
+                                                        {option}
+                                                    </motion.button>
+                                                );
+                                            })}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
                         </div>
 
-                        <motion.button
-                            onClick={() => {
-                                setCurrentStep(1);
-                                generateItinerary();
-                            }}
-                            className={`w-full mt-8 py-4 px-6 rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center space-x-2 ${userPrompt.trim() || userPreferences.some(pref =>
-                                pref.selected && (Array.isArray(pref.selected) ? pref.selected.length > 0 : true)
-                            )
-                                ? 'bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            disabled={!userPrompt.trim() && !userPreferences.some(pref =>
-                                pref.selected && (Array.isArray(pref.selected) ? pref.selected.length > 0 : true)
-                            )}
-                        >
-                            <Brain className="w-5 h-5" />
-                            <span>
-                                {userPrompt.trim()
-                                    ? 'Genera Itinerario Personalizzato'
-                                    : 'Genera Itinerario AI'}
-                            </span>
-                        </motion.button>
+                        <motion.div className="mt-12 mb-8">
+                            <motion.button
+                                onClick={() => {
+                                    setCurrentStep(1);
+                                    generateItinerary();
+                                }}
+                                className={`w-full py-5 rounded-2xl font-bold text-lg shadow-xl transition-all flex items-center justify-center space-x-3 relative overflow-hidden group ${userPrompt.trim() || userPreferences.some(pref =>
+                                    pref.selected && (Array.isArray(pref.selected) ? pref.selected.length > 0 : true)
+                                )
+                                    ? 'bg-gray-900 text-white cursor-pointer'
+                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                    }`}
+                                whileHover={userPrompt.trim() ? { scale: 1.02 } : {}}
+                                whileTap={userPrompt.trim() ? { scale: 0.98 } : {}}
+                                disabled={!userPrompt.trim() && !userPreferences.some(pref =>
+                                    pref.selected && (Array.isArray(pref.selected) ? pref.selected.length > 0 : true)
+                                )}
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-pink-500 to-terracotta-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                <div className="relative flex items-center space-x-2 z-10">
+                                    <Brain className="w-6 h-6" />
+                                    <span>Genera Viaggio</span>
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </div>
+                            </motion.button>
+                        </motion.div>
                     </motion.div>
                 )}
 
-                {/* Step 2: Generation */}
+                {/* Step 2: Sophisticated Loading */}
                 {currentStep === 1 && (
                     <motion.div
-                        className="text-center"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.6 }}
+                        className="text-center py-20"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
                     >
-                        <motion.div
-                            className="w-24 h-24 mx-auto mb-8 bg-gradient-to-r from-terracotta-400 to-terracotta-500 rounded-full flex items-center justify-center"
-                            animate={{ rotateY: [0, 360] }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        >
-                            <Brain className="w-12 h-12 text-white" />
-                        </motion.div>
-
-                        <h2 className="text-xl font-bold text-gray-800 mb-4">L'AI sta creando il tuo itinerario perfetto</h2>
-
-                        <div className="space-y-3 mb-8">
-                            {[
-                                "Analizzando le tue preferenze...",
-                                "Selezionando luoghi autentici...",
-                                "Ottimizzando i percorsi...",
-                                "Aggiungendo tocchi locali..."
-                            ].map((text, index) => (
+                        <div className="relative w-32 h-32 mx-auto mb-12">
+                            {/* Orbit Rings */}
+                            {[0, 1, 2].map(i => (
                                 <motion.div
-                                    key={text}
-                                    className="flex items-center space-x-3 bg-white/70 backdrop-blur-sm rounded-xl p-4"
+                                    key={i}
+                                    className="absolute inset-0 border-2 border-orange-300/30 rounded-full"
+                                    animate={{
+                                        rotate: i % 2 === 0 ? 360 : -360,
+                                        scale: [1, 1.1, 1]
+                                    }}
+                                    transition={{
+                                        rotate: { duration: 10 + i * 5, repeat: Infinity, ease: "linear" },
+                                        scale: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+                                    }}
+                                    style={{ borderTopColor: 'rgba(249, 115, 22, 0.8)' }}
+                                />
+                            ))}
+
+                            {/* Core */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <motion.div
+                                    className="bg-gradient-to-tr from-orange-500 to-pink-500 p-4 rounded-xl shadow-lg shadow-orange-500/50"
+                                    animate={{ y: [0, -10, 0] }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                >
+                                    <Brain className="w-8 h-8 text-white" />
+                                </motion.div>
+                            </div>
+                        </div>
+
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Creazione Itinerario...</h2>
+                        <p className="text-gray-500 mb-10">L'IA sta consultando le guide locali e analizzando il meteo.</p>
+
+                        <div className="max-w-xs mx-auto space-y-3">
+                            {[
+                                { text: "Analisi preferenze", color: "bg-blue-400" },
+                                { text: "Selezione gemme nascoste", color: "bg-purple-400" },
+                                { text: "Ottimizzazione percorso", color: "bg-green-400" }
+                            ].map((item, index) => (
+                                <motion.div
+                                    key={index}
+                                    className="flex items-center space-x-3 bg-white/50 rounded-lg p-3"
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.8 }}
                                 >
                                     <motion.div
-                                        className="w-4 h-4 bg-terracotta-400 rounded-full"
-                                        animate={{ scale: [1, 1.2, 1] }}
-                                        transition={{ duration: 1, repeat: Infinity, delay: index * 0.2 }}
+                                        className={`w-2 h-2 rounded-full ${item.color}`}
+                                        animate={{ scale: [1, 1.5, 1] }}
+                                        transition={{ repeat: Infinity, duration: 1 }}
                                     />
-                                    <span className="text-gray-700">{text}</span>
+                                    <span className="text-sm font-medium text-gray-600">{item.text}</span>
                                 </motion.div>
                             ))}
                         </div>
-
-                        <motion.button
-                            onClick={generateItinerary}
-                            className="bg-gray-300 text-gray-700 py-3 px-6 rounded-xl opacity-50 cursor-not-allowed"
-                            disabled
-                        >
-                            Generazione in corso...
-                        </motion.button>
                     </motion.div>
                 )}
 
@@ -650,16 +653,24 @@ export default function AIItineraryPage() {
                             <Link
                                 to="/map"
                                 state={{
-                                    route: generatedItinerary[0].stops.map(s => ({
+                                    route: generatedItinerary.find(d => d.day === currentDay)?.stops.map((s, i) => ({
                                         latitude: s.latitude,
                                         longitude: s.longitude,
-                                        label: s.title
-                                    })),
-                                    customActivities: generatedItinerary[0].stops.map(s => ({
+                                        label: s.title,
+                                        index: i + 1
+                                    })) || [],
+                                    customActivities: generatedItinerary.find(d => d.day === currentDay)?.stops.map((s, i) => ({
                                         ...s,
-                                        category: s.type || 'special', // Ensure category for icon mapping
-                                        level: 'premium' // Ensure visibility on map
-                                    }))
+                                        id: s.id || `gen-${s.day}-${i}`,
+                                        category: s.type || 'special',
+                                        level: 'premium',
+                                        index: i + 1,
+                                        isWaypoint: true
+                                    })) || [],
+                                    tourData: {
+                                        title: generatedItinerary.find(d => d.day === currentDay)?.title || "Itinerario AI",
+                                        type: 'ai-generated'
+                                    }
                                 }}
                                 className="flex-1"
                             >
@@ -673,7 +684,7 @@ export default function AIItineraryPage() {
                                 </motion.button>
                             </Link>
                         </div>
-                    </motion.div>
+                    </motion.div >
                 )}
 
                 {/* Stop Detail Modal */}
@@ -758,9 +769,9 @@ export default function AIItineraryPage() {
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </main>
+            </main >
 
             <BottomNavigation />
-        </div>
+        </div >
     );
 }

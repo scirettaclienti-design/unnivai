@@ -1,44 +1,41 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useUserProfile } from '../hooks/useUserProfile';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * RoleGuard
- * Enforces role-based access to routes.
- * 
- * Behavior:
- * 1. Checks authentication (redirects to / if Guest)
- * 2. Checks role against allowedRoles
- * 3. On mismatch, redirects to the users correct dashboard
+ * Enforces role-based access to routes using AuthContext.
  */
 const RoleGuard = ({ allowedRoles = [] }) => {
-    const { profile, isLoading } = useUserProfile();
+    const { user, role, loading } = useAuth();
 
-    if (isLoading) {
-        return null; // Silent loading state (prevent flash)
+    if (loading) {
+        return <div className="min-h-screen flex items-center justify-center bg-orange-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+        </div>;
     }
 
     // 1. Auth Guard
-    if (!profile?.isAuthenticated) {
-        return <Navigate to="/" replace />;
+    if (!user) {
+        return <Navigate to="/login" replace />;
     }
 
-    // 2. Role Guard
-    const userRole = profile.role || 'user';
-    const normalizedRole = userRole.toLowerCase();
+    // 2. Role Normalization (explorer -> user compatibility if needed, or strict)
+    // The AuthContext returns 'explorer', 'guide', 'business', 'guest'
+    // App.jsx might use 'user' for explorer. Let's handle both.
+    const effectiveRole = role === 'explorer' ? 'user' : role;
+    const normalizedAllowed = allowedRoles.map(r => r === 'explorer' ? 'user' : r);
 
-    if (allowedRoles.includes(normalizedRole)) {
+    if (normalizedAllowed.includes(effectiveRole)) {
         return <Outlet />;
     }
 
-    // 3. Mismatch Redirect (to valid dashboard)
-    // Safety: ensure infinite loops don't happen if role is somehow weird
-    const validRoles = ['user', 'guide', 'business'];
-    const targetDashboard = validRoles.includes(normalizedRole)
-        ? `/dashboard-${normalizedRole}`
-        : '/';
+    // 3. Smart Redirect (Vigile Urbano)
+    if (role === 'guide') return <Navigate to="/dashboard-guide" replace />;
+    if (role === 'business') return <Navigate to="/dashboard-business" replace />;
+    if (role === 'explorer' || role === 'user') return <Navigate to="/dashboard-user" replace />;
 
-    return <Navigate to={targetDashboard} replace />;
+    return <Navigate to="/" replace />;
 };
 
 export default RoleGuard;

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useLocation, Link } from "react-router-dom";
 
 const navItems = [
-    { id: 'home', label: 'Home', icon: Home, path: '/' },
+    { id: 'home', label: 'Home', icon: Home, path: '/dashboard-user' },
     { id: 'explore', label: 'Esplora', icon: Compass, path: '/explore' },
     { id: 'photos', label: 'Foto', icon: Camera, path: '/photos' },
     { id: 'profile', label: 'Profilo', icon: User, path: '/profile' }
@@ -14,6 +14,7 @@ export default function BottomNavigation() {
 
     const getActiveTab = () => {
         if (location === '/') return 'home';
+        if (location === '/dashboard-user') return 'home';
         if (location === '/explore') return 'explore';
         if (location === '/photos') return 'photos';
         if (location === '/profile') return 'profile';

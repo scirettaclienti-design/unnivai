@@ -129,7 +129,7 @@ export default function NotificationsPage() {
                 <div className="relative">
                     <div className="flex items-center justify-between p-4">
                         <div className="flex items-center space-x-3">
-                            <Link to="/">
+                            <Link to="/dashboard-user">
                                 <motion.button
                                     className="p-2 bg-white/50 hover:bg-white rounded-full transition-colors shadow-sm"
                                     whileHover={{ scale: 1.05 }}

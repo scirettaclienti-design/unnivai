@@ -1,76 +1,110 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, Mail, MapPin, Heart, Star, Edit, ArrowLeft, Home, Share2, Facebook, Twitter, Instagram, Link as LinkIcon, Eye, ChevronRight, Award, Target, Users, Compass, Search, Map, Clock, ArrowRight, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
-
-const tourHistory = [
-    {
-        id: 1,
-        title: "Tour delle Cantine Chiantigiane",
-        location: "Siena, Toscana",
-        date: "15 Gen 2024",
-        rating: 5,
-        image: "https://picsum.photos/seed/chianti/400/300",
-        duration: "4 ore",
-        guide: "Lorenzo Bianchi",
-        highlights: ["Degustazione di 6 vini", "Pranzo tipico toscano", "Visita alle cantine storiche"],
-        description: "Un'esperienza indimenticabile tra le colline del Chianti, con degustazioni di vini pregiati e una cena tradizionale immersa nei vigneti secolari.",
-        photos: [
-            "https://picsum.photos/seed/wine1/400/300",
-            "https://picsum.photos/seed/wine2/400/300",
-            "https://picsum.photos/seed/wine3/400/300",
-            "https://picsum.photos/seed/wine4/400/300",
-            "https://picsum.photos/seed/wine5/400/300"
-        ]
-    },
-    {
-        id: 2,
-        title: "Passeggiata nei Borghi Medievali",
-        location: "Montepulciano",
-        date: "8 Gen 2024",
-        rating: 4,
-        image: "https://picsum.photos/seed/borgo/400/300",
-        duration: "3 ore",
-        guide: "Giulia Rossi",
-        highlights: ["Palazzo Comunale", "Chiesa di San Biagio", "Degustazione Vino Nobile"],
-        description: "Camminata tra le vie medievali di uno dei borghi più belli d'Italia, con soste per scoprire l'arte e la storia locale.",
-        photos: [
-            "https://picsum.photos/seed/borgo1/400/300",
-            "https://picsum.photos/seed/borgo2/400/300",
-            "https://picsum.photos/seed/borgo3/400/300",
-            "https://picsum.photos/seed/borgo4/400/300"
-        ]
-    },
-    {
-        id: 3,
-        title: "Lezione di Cucina Tradizionale",
-        location: "Firenze",
-        date: "22 Dic 2023",
-        rating: 5,
-        image: "https://picsum.photos/seed/cook/400/300",
-        duration: "5 ore",
-        guide: "Nonna Maria",
-        highlights: ["Pasta fatta a mano", "Ragù della nonna", "Tiramisù originale"],
-        description: "Una mattina in cucina con una vera nonna fiorentina per imparare i segreti della cucina toscana autentica.",
-        photos: [
-            "https://picsum.photos/seed/cook1/400/300",
-            "https://picsum.photos/seed/cook2/400/300",
-            "https://picsum.photos/seed/cook3/400/300",
-            "https://picsum.photos/seed/cook4/400/300",
-            "https://picsum.photos/seed/cook5/400/300",
-            "https://picsum.photos/seed/cook6/400/300"
-        ]
-    }
-];
+import { useUserContext } from "../hooks/useUserContext";
+import { supabase } from "../lib/supabase";
 
 export default function ProfilePage() {
-    const [editName, setEditName] = useState("Marco Rossi");
+    const { userId, firstName, city } = useUserContext();
+    const [editName, setEditName] = useState(firstName || "Viaggiatore");
     const [selectedTour, setSelectedTour] = useState(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [showExploreZones, setShowExploreZones] = useState(false);
+
+    // Dynamic Data State
+    const [stats, setStats] = useState({ tours: 0, guides: 0, rating: 5.0 });
+    const [tourHistory, setTourHistory] = useState([]);
+
+    // Sync local state when context loads real name
+    useEffect(() => {
+        if (firstName && firstName !== 'Ospite') {
+            setEditName(firstName);
+        }
+    }, [firstName]);
+
+    useEffect(() => {
+        if (!userId) return;
+
+        const fetchProfileData = async () => {
+            try {
+                // 1. Fetch Stats from Explorers
+                const { data: explorer, error: explorerError } = await supabase
+                    .from('explorers')
+                    .select('tours_completed, km_walked') // Add other fields if available
+                    .eq('id', userId)
+                    .single();
+
+                if (!explorerError && explorer) {
+                    setStats(prev => ({
+                        ...prev,
+                        tours: explorer.tours_completed || 0,
+                        // Guides and Rating could be fetched if tables exist, keeping mocks/defaults for now or could query 'follows' table
+                    }));
+                }
+
+                // 2. Fetch Memories (Photos joined with Tours)
+                const { data: photos, error: photoError } = await supabase
+                    .from('user_photos')
+                    .select(`
+                        id,
+                        media_url,
+                        created_at,
+                        tour_id,
+                        tours (
+                            id,
+                            title,
+                            city,
+                            rating,
+                            duration
+                        )
+                    `)
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false });
+
+                if (photoError) console.error("Error fetching photos:", photoError);
+
+                if (photos && photos.length > 0) {
+                    // Group photos by Tour ID to reconstruct "History"
+                    const historyMap = {};
+
+                    photos.forEach(photo => {
+                        const tour = photo.tours;
+                        if (!tour) return; // Skip orphaned photos
+
+                        if (!historyMap[tour.id]) {
+                            historyMap[tour.id] = {
+                                id: tour.id,
+                                title: tour.title || "Tour Senza Nome",
+                                location: tour.city || "Italia",
+                                date: new Date(photo.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' }),
+                                rating: tour.rating || 5, // Fallback rating
+                                image: photo.media_url, // Use first found photo as cover
+                                duration: tour.duration || "2 ore", // Fallback
+                                guide: "Guide Expert", // Mock for now
+                                highlights: ["Esperienza Autentica", "Vista Panoramica"], // Mock
+                                description: `Hai esplorato ${tour.city || 'questo luogo'} catturando ${photos.filter(p => p.tour_id === tour.id).length} momenti speciali.`,
+                                photos: []
+                            };
+                        }
+                        historyMap[tour.id].photos.push(photo.media_url);
+                    });
+
+                    setTourHistory(Object.values(historyMap));
+                } else {
+                    setTourHistory([]); // clear if no photos
+                }
+
+            } catch (err) {
+                console.error("Profile fetch error:", err);
+            }
+        };
+
+        fetchProfileData();
+    }, [userId]);
 
     const shareTour = (platform, tour) => {
         const message = `Ho appena completato un fantastico tour: "${tour.title}" a ${tour.location}! 🌟 Rating: ${tour.rating}/5 ⭐`;
@@ -107,7 +141,7 @@ export default function ProfilePage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6 }}
                 >
-                    <Link to="/">
+                    <Link to="/dashboard-user">
                         <motion.button
                             className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm text-terracotta-600 px-4 py-2 rounded-2xl shadow-lg hover:shadow-xl transition-all group"
                             whileHover={{ scale: 1.05, x: 5 }}
@@ -135,11 +169,11 @@ export default function ProfilePage() {
                             <h2 className="text-xl font-bold text-gray-800">{editName}</h2>
                             <p className="text-gray-600 flex items-center text-sm mb-1">
                                 <Mail className="w-3 h-3 mr-1 text-terracotta-500" />
-                                marco.rossi@email.it
+                                {firstName?.toLowerCase()}@unnivai.it
                             </p>
                             <p className="text-gray-600 flex items-center text-sm">
                                 <MapPin className="w-3 h-3 mr-1 text-terracotta-500" />
-                                Roma, Italia
+                                {city || 'Italia'}
                             </p>
                         </div>
                     </div>
@@ -147,15 +181,15 @@ export default function ProfilePage() {
                     {/* Simplified Stats */}
                     <div className="flex justify-around pt-4 border-t border-gray-200">
                         <div className="text-center">
-                            <div className="text-lg font-bold text-terracotta-600">12</div>
+                            <div className="text-lg font-bold text-terracotta-600">{stats.tours}</div>
                             <div className="text-xs text-gray-600">Tour</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-lg font-bold text-terracotta-600">8</div>
+                            <div className="text-lg font-bold text-terracotta-600">{stats.guides}</div>
                             <div className="text-xs text-gray-600">Guide</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-lg font-bold text-terracotta-600">4.8</div>
+                            <div className="text-lg font-bold text-terracotta-600">{stats.rating}</div>
                             <div className="text-xs text-gray-600">Rating</div>
                         </div>
                     </div>

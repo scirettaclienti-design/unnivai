@@ -218,7 +218,7 @@ export default function TrendingPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6 }}
                 >
-                    <Link to="/">
+                    <Link to="/dashboard-user">
                         <motion.button
                             className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm text-red-600 px-4 py-2 rounded-2xl shadow-lg hover:shadow-xl transition-all group"
                             whileHover={{ scale: 1.05, x: 5 }}

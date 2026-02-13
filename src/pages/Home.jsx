@@ -21,7 +21,19 @@ const generateCityExperiences = (cityName) => [
         duration: "3h",
         image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop&q=80",
         category: "food",
-        emoji: "👵🍝"
+        emoji: "👵🍝",
+        description: `Immergiti nella tradizione culinaria di ${cityName} con un'esperienza autentica e indimenticabile. Preparerai piatti tipici con ingredienti freschi locali sotto la guida esperta di una vera "Nonna". Un viaggio nei sapori e nei segreti della cucina casalinga.`,
+        highlights: ["Lezione di cucina privata", "Pranzo incluso con vino locale", "Ricettario segreto in omaggio", "Attestato di partecipazione"],
+        itinerary: [
+            { time: "10:00", activity: "Incontro e spesa al mercato", emoji: "🥦" },
+            { time: "11:00", activity: "Inizio lezione di cucina", emoji: "👩‍🍳" },
+            { time: "13:00", activity: "Pranzo conviviale", emoji: "🍷" }
+        ],
+        meetingPoint: "Piazza del Mercato Centrale",
+        included: ["Ingredienti", "Grembiule", "Pranzo", "Vino"],
+        notIncluded: ["Trasporto all'alloggio"],
+        guide: "Nonna Maria",
+        guideAvatar: "👵"
     },
     {
         id: 2,
@@ -34,7 +46,19 @@ const generateCityExperiences = (cityName) => [
         duration: "2h",
         image: "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=600&h=400&fit=crop&q=80",
         category: "art",
-        emoji: "🎨"
+        emoji: "🎨",
+        description: `Scopri il lato urbano e creativo di ${cityName}. Un tour a piedi tra murales giganti, graffiti nascosti e storie di artisti che hanno colorato la città. Perfetto per amanti dell'arte e della fotografia.`,
+        highlights: ["Murales famosi e nascosti", "Storie degli artisti locali", "Foto shooting urbano", "Aperitivo finale"],
+        itinerary: [
+            { time: "16:00", activity: "Partenza dal centro sociale", emoji: "🚩" },
+            { time: "16:45", activity: "Visita ai Grandi Muri", emoji: "🎨" },
+            { time: "17:45", activity: "Aperitivo street", emoji: "🍻" }
+        ],
+        meetingPoint: "Ingresso Metro Artisti",
+        included: ["Guida esperta", "Mappa street art", "Drink"],
+        notIncluded: ["Mance"],
+        guide: "Alex 'Spray'",
+        guideAvatar: "🎨"
     },
     {
         id: 3,
@@ -47,7 +71,19 @@ const generateCityExperiences = (cityName) => [
         duration: "1.5h",
         image: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=600&h=400&fit=crop&q=80",
         category: "romance",
-        emoji: "🌅"
+        emoji: "🌅",
+        description: `Goditi la vista più bella di ${cityName} al calare del sole. Un'esperienza romantica e rilassante, accompagnata da musica dal vivo e un calice di bollicine, mentre la città si illumina sotto di te.`,
+        highlights: ["Vista mozzafiato a 360°", "Musica acustica dal vivo", "Brindisi al tramonto", "Atmosfera esclusiva"],
+        itinerary: [
+            { time: "18:30", activity: "Ritrovo alla funicolare", emoji: "🚠" },
+            { time: "19:00", activity: "Arrivo al Belvedere", emoji: "👀" },
+            { time: "19:30", activity: "Brindisi al tramonto", emoji: "🥂" }
+        ],
+        meetingPoint: "Stazione Funicolare Valle",
+        included: ["Biglietto funicolare", "Prosecco", "Snack"],
+        notIncluded: ["Cena"],
+        guide: "Luca Verdi",
+        guideAvatar: "🎻"
     },
     {
         id: 4,
@@ -60,7 +96,19 @@ const generateCityExperiences = (cityName) => [
         duration: "1h",
         image: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=600&h=400&fit=crop&q=80",
         category: "walking",
-        emoji: "👣"
+        emoji: "👣",
+        description: `Un tour rapido ma intenso alla scoperta delle leggende e dei misteri che si celano dietro i portoni e nei vicoli meno battuti di ${cityName}. Ideale per chi vuole scoprire curiosità inedite.`,
+        highlights: ["Leggende urbane", "Cortili segreti", "Architettura nascosta", "Gruppi piccoli"],
+        itinerary: [
+            { time: "10:00", activity: "Piazza del Mistero", emoji: "👻" },
+            { time: "10:30", activity: "Il Vicolo Stretto", emoji: "🧱" },
+            { time: "11:00", activity: "Saluti finali", emoji: "👋" }
+        ],
+        meetingPoint: "Statua del Poeta",
+        included: ["Guida narratrice", "Piccolo souvenir"],
+        notIncluded: [],
+        guide: "Giulia Storica",
+        guideAvatar: "📚"
     },
     {
         id: 5,
@@ -73,7 +121,19 @@ const generateCityExperiences = (cityName) => [
         duration: "1.5h",
         image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&h=400&fit=crop&q=80",
         category: "food",
-        emoji: "🍷"
+        emoji: "🍷",
+        description: `Vivi il rito dell'aperitivo come un vero locale. Un tour tra i migliori bar della piazza principale, assaggiando cocktail signature e stuzzichini tipici, in un'atmosfera vibrante e festosa.`,
+        highlights: ["3 Drink inclusi", "Buffet illimitato", "Socializzazione", "Musica lounge"],
+        itinerary: [
+            { time: "18:00", activity: "Primo Bar: Spritz time", emoji: "🍹" },
+            { time: "18:45", activity: "Secondo Bar: Vini locali", emoji: "🍷" },
+            { time: "19:30", activity: "Terzo Bar: Cocktail signature", emoji: "🍸" }
+        ],
+        meetingPoint: "Fontana Vecchia",
+        included: ["3 Consumazioni", "Cibo a buffet"],
+        notIncluded: [],
+        guide: "Marco Barman",
+        guideAvatar: "🕺"
     }
 ];
 

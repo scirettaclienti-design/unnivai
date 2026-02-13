@@ -16,7 +16,8 @@ const sampleExperiences = [
         participants: 12,
         price: 85,
         image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&h=400&fit=crop&q=80",
-        category: "Vino e Gastronomia"
+        category: "Vino e Gastronomia",
+        availableDays: [1, 3, 5, 6] // Mon, Wed, Fri, Sat
     },
     {
         id: 2,
@@ -27,7 +28,8 @@ const sampleExperiences = [
         participants: 8,
         price: 45,
         image: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=600&h=400&fit=crop&q=80",
-        category: "Storia e Cultura"
+        category: "Storia e Cultura",
+        availableDays: [0, 2, 4, 6] // Sun, Tue, Thu, Sat
     },
     {
         id: 3,
@@ -38,7 +40,8 @@ const sampleExperiences = [
         participants: 15,
         price: 120,
         image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop&q=80",
-        category: "Cucina Locale"
+        category: "Cucina Locale",
+        availableDays: [0, 1, 2, 3, 4, 5, 6] // Daily
     },
     {
         id: 4,
@@ -49,7 +52,8 @@ const sampleExperiences = [
         participants: 20,
         price: 75,
         image: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&h=400&fit=crop&q=80",
-        category: "Natura e Avventura"
+        category: "Natura e Avventura",
+        availableDays: [0, 6] // Weekends only
     },
     {
         id: 5,
@@ -60,7 +64,8 @@ const sampleExperiences = [
         participants: 25,
         price: 65,
         image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=600&h=400&fit=crop&q=80",
-        category: "Arte e Cultura"
+        category: "Arte e Cultura",
+        availableDays: [1, 2, 3, 4, 5, 6] // Closed Sunday
     },
     {
         id: 6,
@@ -71,7 +76,8 @@ const sampleExperiences = [
         participants: 2,
         price: 150,
         image: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=600&h=400&fit=crop&q=80",
-        category: "Romantico"
+        category: "Romantico",
+        availableDays: [0, 1, 2, 3, 4, 5, 6]
     },
     {
         id: 7,
@@ -82,7 +88,8 @@ const sampleExperiences = [
         participants: 6,
         price: 55,
         image: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=600&h=400&fit=crop&q=80",
-        category: "Arte e Cultura"
+        category: "Arte e Cultura",
+        availableDays: [1, 3, 5]
     },
     {
         id: 8,
@@ -93,7 +100,8 @@ const sampleExperiences = [
         participants: 12,
         price: 90,
         image: "https://images.unsplash.com/photo-1533038590840-1cde6e668a91?w=600&h=400&fit=crop&q=80",
-        category: "Natura e Avventura"
+        category: "Natura e Avventura",
+        availableDays: [0, 1, 2, 3, 4, 5, 6]
     },
     {
         id: 9,
@@ -104,7 +112,8 @@ const sampleExperiences = [
         participants: 15,
         price: 40,
         image: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=600&h=400&fit=crop&q=80",
-        category: "Vino e Gastronomia"
+        category: "Vino e Gastronomia",
+        availableDays: [4, 5, 6, 0] // Thu-Sun
     },
     {
         id: 10,
@@ -115,7 +124,8 @@ const sampleExperiences = [
         participants: 20,
         price: 35,
         image: "https://images.unsplash.com/photo-1504198266287-1659872e6597?w=600&h=400&fit=crop&q=80",
-        category: "Storia e Cultura"
+        category: "Storia e Cultura",
+        availableDays: [0, 5, 6] // Weekend + Fri
     }
 ];
 
@@ -132,7 +142,7 @@ export default function ExplorePage() {
         return saved ? new Set(JSON.parse(saved)) : new Set();
     });
 
-    const [visibleCount, setVisibleCount] = useState(4); // Start with 4 items visible
+    const [visibleCount, setVisibleCount] = useState(4);
 
     const toggleFavorite = (id) => {
         const newFavorites = new Set(favoriteItems);
@@ -142,21 +152,32 @@ export default function ExplorePage() {
             newFavorites.add(id);
         }
         setFavoriteItems(newFavorites);
-        // Persist to localStorage
         localStorage.setItem('unnivai_favorites', JSON.stringify([...newFavorites]));
     };
 
     const filteredExperiences = sampleExperiences.filter(exp => {
-        // Search Filter
-        const matchesSearch = exp.title.toLowerCase().includes(searchQuery.toLowerCase());
+        // 1. Enhanced Search Filter (Title, Location, Category)
+        const q = searchQuery.toLowerCase();
+        const matchesSearch = exp.title.toLowerCase().includes(q) ||
+            exp.location.toLowerCase().includes(q) ||
+            exp.category.toLowerCase().includes(q);
 
-        // Category Filter
+        // 2. Category Filter
         let matchesCategory = true;
         if (activeFilter !== "Tutti") {
             matchesCategory = exp.category.includes(activeFilter);
         }
 
-        return matchesSearch && matchesCategory;
+        // 3. Date Filter (New Logic)
+        let matchesDate = true;
+        if (selectedDate) {
+            const dayOfWeek = new Date(selectedDate).getDay(); // 0 (Sun) - 6 (Sat)
+            if (exp.availableDays && !exp.availableDays.includes(dayOfWeek)) {
+                matchesDate = false;
+            }
+        }
+
+        return matchesSearch && matchesCategory && matchesDate;
     });
 
     return (
@@ -171,7 +192,7 @@ export default function ExplorePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                 >
-                    <Link to="/" className="inline-flex items-center text-gray-500 text-sm mb-4 hover:text-black transition-colors">
+                    <Link to="/dashboard-user" className="inline-flex items-center text-gray-500 text-sm mb-4 hover:text-black transition-colors">
                         <ArrowLeft size={16} className="mr-1" /> Torna alla Home
                     </Link>
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">Esplora</h1>
@@ -189,7 +210,7 @@ export default function ExplorePage() {
                         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <input
                             type="text"
-                            placeholder="Cerca attività, luoghi..."
+                            placeholder="Cerca attività, luoghi, categorie..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-12 pr-4 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 focus:outline-none focus:ring-2 focus:ring-black/5"
@@ -204,6 +225,21 @@ export default function ExplorePage() {
                             className="w-full pl-12 pr-4 py-3 bg-white/50 rounded-xl border border-transparent focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm text-gray-600"
                         />
                     </div>
+                    {/* Active Filters Summary */}
+                    {(searchQuery || selectedDate) && (
+                        <div className="flex gap-2 flex-wrap">
+                            {searchQuery && (
+                                <span className="bg-black text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                                    "{searchQuery}" <button onClick={() => setSearchQuery('')}><X size={12} /></button>
+                                </span>
+                            )}
+                            {selectedDate && (
+                                <span className="bg-black text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                                    {new Date(selectedDate).toLocaleDateString('it-IT')} <button onClick={() => setSelectedDate('')}><X size={12} /></button>
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </motion.div>
 
                 {/* Map Preview Section - Click to Expand */}
@@ -218,19 +254,18 @@ export default function ExplorePage() {
                         <Link to="/map" className="text-xs font-bold text-terracotta-600 hover:underline">Apri a schermo intero</Link>
                     </div>
 
-                    {/* The entire card is now a link to the full map */}
                     <Link to="/map">
                         <div className="h-64 rounded-3xl overflow-hidden shadow-xl border-4 border-white relative group cursor-pointer transform transition-transform hover:scale-[1.02]">
                             <div className="absolute inset-0 z-0 pointer-events-none">
                                 <UnnivaiMap
                                     height="100%"
                                     width="100%"
-                                    zoom={11} // Slightly zoomed out to show more context
-                                    interactive={false} // Disable interaction so the click goes to the parent Link
+                                    zoom={11}
+                                    interactive={false}
                                     showUserLocation={false}
                                     initialLat={41.9028}
                                     initialLng={12.4964}
-                                    activities={sampleExperiences.map((e, idx) => ({
+                                    activities={filteredExperiences.map((e, idx) => ({ // Show FILTERED items on map preview
                                         id: `${e.id}`,
                                         latitude: 41.9028 + (idx * 0.02) - 0.05,
                                         longitude: 12.4964 + (idx * 0.02) - 0.05,
@@ -240,15 +275,9 @@ export default function ExplorePage() {
                                     }))}
                                 />
                             </div>
-
-                            {/* Overlay Gradient for better text visibility if needed, or just interactions */}
                             <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors pointer-events-none" />
-
-                            {/* Floating CTA Button */}
                             <div className="absolute bottom-4 right-4 z-10">
-                                <span
-                                    className="bg-white/90 backdrop-blur text-gray-800 px-4 py-2 rounded-full font-bold shadow-lg text-xs flex items-center gap-2 group-hover:scale-105 transition-transform"
-                                >
+                                <span className="bg-white/90 backdrop-blur text-gray-800 px-4 py-2 rounded-full font-bold shadow-lg text-xs flex items-center gap-2 group-hover:scale-105 transition-transform">
                                     <Map size={14} /> Espandi Mappa
                                 </span>
                             </div>
@@ -290,33 +319,27 @@ export default function ExplorePage() {
                         >
                             <Link to={`/tour-details/${experience.id}`} state={{ tourData: experience }}>
                                 <div className="group bg-white rounded-3xl p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                                    {/* Image Container */}
                                     <div className="relative h-48 rounded-2xl overflow-hidden mb-3">
-                                        <div className="absolute inset-0 bg-gray-200 animate-pulse" /> {/* Placeholder */}
+                                        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                                         <img
                                             src={experience.image}
                                             alt={experience.title}
                                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                         />
-
-                                        {/* Badges */}
                                         <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm">
                                             <Star size={12} className="text-yellow-400 fill-current" /> {experience.rating}
                                         </div>
-
                                         <button
                                             onClick={(e) => { e.preventDefault(); toggleFavorite(experience.id); }}
                                             className="absolute top-3 left-3 p-2.5 bg-black/20 backdrop-blur-md rounded-full text-white hover:bg-white hover:text-red-500 transition-all shadow-sm"
                                         >
                                             <Heart size={16} className={favoriteItems.has(experience.id) ? "fill-red-500 text-red-500" : ""} />
                                         </button>
-
                                         <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur px-3 py-1 rounded-lg text-white text-[10px] font-bold uppercase tracking-wide">
                                             {experience.category}
                                         </div>
                                     </div>
 
-                                    {/* Content */}
                                     <div className="px-2 pb-2">
                                         <div className="flex justify-between items-start mb-2">
                                             <h3 className="font-bold text-gray-900 text-lg leading-tight w-2/3">{experience.title}</h3>
@@ -347,24 +370,25 @@ export default function ExplorePage() {
 
                 {filteredExperiences.length === 0 && (
                     <div className="text-center py-12 opacity-50">
-                        <p>{activeFilter === "Preferiti" ? "Non hai ancora aggiunto preferiti." : "Nessuna esperienza trovata."}</p>
+                        <p className="mb-2">Nessuna esperienza trovata.</p>
+                        <button onClick={() => { setSearchQuery(''); setSelectedDate(''); setActiveFilter('Tutti'); }} className="text-sm text-blue-500 underline">Resetta filtri</button>
                     </div>
                 )}
 
-                {/* Load More Button */}
                 {visibleCount < filteredExperiences.length && (
                     <div className="mt-8 text-center">
-                        <button
-                            onClick={() => setVisibleCount(prev => prev + 4)}
-                            className="bg-white border border-gray-200 text-gray-800 px-8 py-3 rounded-full font-bold shadow-sm hover:bg-gray-50 hover:shadow-md transition-all active:scale-95"
-                        >
+                        <button onClick={() => setVisibleCount(prev => prev + 4)} className="bg-white border text-gray-800 px-8 py-3 rounded-full font-bold shadow-sm hover:bg-gray-50">
                             Carica altro
                         </button>
                     </div>
                 )}
             </main>
-
             <BottomNavigation />
         </div>
     );
+}
+
+// Helper: X icon was missing in import, adding it securely
+function X({ size = 16, className = "" }) {
+    return <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
 }

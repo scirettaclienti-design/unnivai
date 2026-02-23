@@ -75,6 +75,43 @@ class WeatherService {
         if (code >= 51 && code <= 67) return 'Pioggia';
         return 'Variabile';
     }
+    async getWeather(city, lat, lng) {
+        // 1. If we have exact coords, use them (Best precision)
+        if (lat && lng) {
+            return this.getCurrentWeather(lat, lng);
+        }
+
+        // 2. If we have a City Name, try to Geocode it ourselves (OpenMeteo is free)
+        if (city && typeof city === 'string') {
+            try {
+                const coords = await this.getCoordsFromCity(city);
+                if (coords) {
+                    return this.getCurrentWeather(coords.latitude, coords.longitude);
+                }
+            } catch (e) {
+                console.warn(`Weather Geocoding failed for ${city}`, e);
+            }
+        }
+
+        // 3. Fallback
+        return this.getFallbackWeather();
+    }
+
+    async getCoordsFromCity(city) {
+        try {
+            const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=it&format=json`);
+            const data = await response.json();
+            if (data.results && data.results.length > 0) {
+                return {
+                    latitude: data.results[0].latitude,
+                    longitude: data.results[0].longitude
+                };
+            }
+        } catch (e) {
+            return null;
+        }
+        return null;
+    }
 }
 
 export const weatherService = new WeatherService();

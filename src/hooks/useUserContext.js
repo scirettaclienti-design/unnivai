@@ -2,16 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { userContextService } from "../services/userContextService";
 import { useEnhancedGeolocation } from "./useEnhancedGeolocation";
 import { useAuth } from "../context/AuthContext";
+import { useCity } from "../context/CityContext";
 
 export function useUserContext() {
     // We still use the geolocation hook to get the browser's GPS signal
     // This feeds into our context service
     const { location: gpsLocation, loading: gpsLoading } = useEnhancedGeolocation();
     const { user } = useAuth(); // Get authenticated user
+    const { city: manualCity, isManual } = useCity();
+
+    // Effective City Logic
+    const effectiveCity = isManual ? manualCity : (gpsLocation?.city || 'Roma');
 
     const { data: userContext, isLoading: contextLoading } = useQuery({
-        queryKey: ['userContext', gpsLocation?.city], // Re-fetch if GPS updates city
-        queryFn: () => userContextService.getUserContext(gpsLocation),
+        queryKey: ['userContext', effectiveCity], // Re-fetch if city changes
+        queryFn: () => userContextService.getUserContext(gpsLocation, isManual ? manualCity : null),
         initialData: {
             userId: null,
             firstName: 'Ospite',
@@ -36,6 +41,7 @@ export function useUserContext() {
         firstName: realFirstName, // Override with real name
         email: user?.email,      //  expose email
         isGuest: !user,           // Correct guest status
+        city: effectiveCity,      // Override city
         isLoading: gpsLoading || contextLoading
     };
 }

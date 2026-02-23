@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Users, Brain, Zap, Sparkles, MapPin, Clock, Star, Gamepad2, Gift, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import TopBar from "@/components/TopBar";
+import { getItemImage, imgOnError } from "../utils/imageUtils";
+
 import BottomNavigation from "@/components/BottomNavigation";
 import PersonalizedWelcome from "@/components/PersonalizedWelcome";
 import { useUserContext } from "@/hooks/useUserContext";
@@ -334,10 +336,10 @@ export default function Home() {
                                     whileHover={{ y: -5 }}
                                 >
                                     <img
-                                        src={exp.image || 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&h=400&fit=crop&q=80'}
+                                        src={getItemImage(exp)}
+                                        onError={imgOnError()}
                                         alt={exp.title}
                                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                        onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&h=400&fit=crop&q=80'; }}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" />
 

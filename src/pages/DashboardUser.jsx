@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2 } from 'lucide-react';
+import { aiRecommendationService } from '@/services/aiRecommendationService';
 import { useUserContext } from '../hooks/useUserContext';
 import BottomNavigation from '../components/BottomNavigation';
 import TopBar from "@/components/TopBar";
@@ -25,7 +27,7 @@ const generateCityExperiences = (cityName) => [
     {
         id: 2,
         type: "guide",
-        title: `Street Art di ${cityName} `,
+        title: `Street Art - ${cityName}`,
         location: `${cityName}, Quartiere Artistico`,
         rating: 4.8,
         reviews: 89,
@@ -38,7 +40,7 @@ const generateCityExperiences = (cityName) => [
     {
         id: 3,
         type: "guide",
-        title: `Tramonto Panoramico`,
+        title: `Tramonto su ${cityName}`,
         location: `${cityName}, Belvedere`,
         rating: 4.9,
         reviews: 215,
@@ -64,7 +66,7 @@ const generateCityExperiences = (cityName) => [
     {
         id: 5,
         type: "guide",
-        title: `Aperitivo Locale`,
+        title: `Aperitivo a ${cityName}`,
         location: `${cityName}, Piazza Principale`,
         rating: 4.5,
         reviews: 110,
@@ -79,8 +81,90 @@ const generateCityExperiences = (cityName) => [
 const DashboardUser = () => {
     const { firstName, city, temperatureC, weatherCondition, isLoading } = useUserContext();
     const navigate = useNavigate();
-    const [showQuickOptions, setShowQuickOptions] = useState(false);
+    const [showCustomOptions, setShowCustomOptions] = useState(false);
     const [showNotificationPreview, setShowNotificationPreview] = useState(false);
+    const [toast, setToast] = useState(null); // { title, message, type }
+    const toastTimerRef = useRef(null);
+
+    // Realtime subscription for notifications (guide actions)
+    useEffect(() => {
+        let channel;
+        const setupSubscription = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            channel = supabase
+                .channel(`user_notifications_${user.id}`)
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'notifications',
+                    filter: `user_id=eq.${user.id}`
+                }, (payload) => {
+                    const n = payload.new;
+                    // Show in-app toast
+                    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+                    setToast({ title: n.title, message: n.message, type: n.type });
+                    toastTimerRef.current = setTimeout(() => setToast(null), 5500);
+                })
+                .subscribe();
+        };
+        setupSubscription();
+        return () => { if (channel) supabase.removeChannel(channel); };
+    }, []);
+
+    const [showRequestModal, setShowRequestModal] = useState(false);
+    const [requestText, setRequestText] = useState('');
+    const [requestStatus, setRequestStatus] = useState('idle'); // idle, submitting, success, error
+    const [requestCity, setRequestCity] = useState('Roma'); // City chosen for the tour request
+
+    const handleGuideRequest = () => {
+        setRequestStatus('idle');
+        setRequestCity(city || 'Roma'); // pre-set to user's current city
+        setShowRequestModal(true);
+    };
+
+    const submitGuideRequest = async () => {
+        if (!requestText.trim()) return;
+
+        setRequestStatus('submitting');
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) throw new Error('Devi effettuare il login per inviare una richiesta.');
+
+            // Create request with .select() to detect silent RLS failures
+            const { data: insertedData, error } = await supabase
+                .from('guide_requests')
+                .insert({
+                    user_id: user.id,
+                    user_name: firstName || 'Ospite',
+                    city: requestCity,
+                    status: 'open',
+                    category: 'custom',
+                    duration: 3,
+                    request_text: requestText,
+                    created_at: new Date().toISOString()
+                })
+                .select();
+
+            if (error) {
+                console.error('[submitGuideRequest] DB Error:', error);
+                throw error;
+            }
+
+            if (!insertedData || insertedData.length === 0) {
+                console.error('[submitGuideRequest] Silent RLS block: insert returned empty');
+                throw new Error('Permesso negato dal database. Verifica di essere loggato come utente.');
+            }
+
+            console.log('[submitGuideRequest] Success! Request inserted:', insertedData[0]);
+            setRequestStatus('success');
+        } catch (e) {
+            console.error('[submitGuideRequest] Exception:', e);
+            setRequestStatus('error');
+        }
+    };
 
     // Fetch Experiences
     const { data: experiences } = useQuery({
@@ -113,28 +197,52 @@ const DashboardUser = () => {
 
             <main className="max-w-md mx-auto px-6 space-y-6 pt-6">
 
-                {/* Custom Tour Block */}
-                <Link to="/ai-itinerary">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="bg-white rounded-3xl p-5 shadow-lg border border-gray-50 flex items-center justify-between relative overflow-hidden group"
-                    >
-                        <div className="relative z-10">
-                            <h3 className="font-bold text-gray-800 text-lg leading-tight">Il tuo tour personalizzato<br />è pronto</h3>
-                            <p className="text-xs text-gray-500 mt-1 font-medium bg-gray-100 px-2 py-0.5 rounded-full w-fit">Basato sui tuoi interessi</p>
-                        </div>
 
-                        <div className="relative z-10 bg-orange-50 p-3 rounded-full group-hover:bg-orange-100 transition-colors">
-                            <Compass className="w-7 h-7 text-orange-500" />
-                        </div>
 
-                        {/* Decorative background element */}
-                        <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-orange-50/50 to-transparent skew-x-12" />
-                    </motion.div>
-                </Link>
+                {/* Custom Tour Block - EXPANDABLE */}
+                <motion.div
+                    className="bg-white rounded-3xl p-5 shadow-lg border border-gray-50 relative overflow-hidden group cursor-pointer"
+                    initial={{ height: 'auto' }}
+                    onClick={() => setShowCustomOptions(!showCustomOptions)}
+                >
+                    <div className="flex items-center justify-between relative z-10">
+                        <div>
+                            <h3 className="font-bold text-gray-800 text-lg leading-tight">Crea il tuo Tour</h3>
+                            <p className="text-xs text-gray-500 mt-1 font-medium bg-gray-100 px-2 py-0.5 rounded-full w-fit">Su misura per te</p>
+                        </div>
+                        <div className={`transition-transform duration-300 ${showCustomOptions ? 'rotate-180' : ''}`}>
+                            <div className="bg-orange-50 p-3 rounded-full group-hover:bg-orange-100 transition-colors">
+                                <Compass className="w-7 h-7 text-orange-500" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Decorative background */}
+                    <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-orange-50/50 to-transparent skew-x-12 pointer-events-none" />
+
+                    {/* Expanded Options */}
+                    <AnimatePresence>
+                        {showCustomOptions && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginTop: 20 }}
+                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                className="grid grid-cols-2 gap-3"
+                            >
+                                <div onClick={handleGuideRequest} className="cursor-pointer bg-orange-50 hover:bg-orange-100 p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-colors">
+                                    <Users size={24} className="text-orange-600 mb-2" />
+                                    <span className="text-xs font-bold text-gray-800 leading-tight">Con Guida</span>
+                                    <span className="text-[10px] text-gray-500 mt-1">Trova un esperto locale</span>
+                                </div>
+                                <Link to="/surprise-tour" className="bg-pink-50 hover:bg-pink-100 p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-colors">
+                                    <Gift size={24} className="text-pink-600 mb-2" />
+                                    <span className="text-xs font-bold text-gray-800 leading-tight">Sorprendimi</span>
+                                    <span className="text-[10px] text-gray-500 mt-1">Lasciati sorprendere</span>
+                                </Link>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
 
                 {/* Core Section - SMART GLASS BUTTONS */}
                 <section className="flex flex-col space-y-5">
@@ -204,73 +312,39 @@ const DashboardUser = () => {
                         </motion.div>
                     </Link>
 
-                    {/* Button 3: Quick Path / Surprise */}
+                    {/* Button 3: Quick Quiz (Previously 'Ispirami Ora') */}
                     <div className="relative">
-                        <motion.div
-                            onClick={() => setShowQuickOptions(!showQuickOptions)}
-                            whileHover={{ scale: 1.02, y: -2 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="relative bg-gradient-to-r from-amber-400 to-orange-500 rounded-3xl p-1 shadow-xl shadow-amber-500/20 overflow-hidden group cursor-pointer"
-                        >
-                            {/* Inner Glass Container */}
-                            <div className="relative bg-white/10 backdrop-blur-sm rounded-[20px] p-5 h-full flex items-center justify-between border border-white/20">
-                                {/* Subtle Texture Overlay */}
-                                <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80')] bg-cover bg-center mix-blend-overlay" />
+                        <Link to="/quick-path" className="block">
+                            <motion.div
+                                whileHover={{ scale: 1.02, y: -2 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="relative bg-gradient-to-r from-amber-400 to-orange-500 rounded-3xl p-1 shadow-xl shadow-amber-500/20 overflow-hidden group cursor-pointer"
+                            >
+                                {/* Inner Glass Container */}
+                                <div className="relative bg-white/10 backdrop-blur-sm rounded-[20px] p-5 h-full flex items-center justify-between border border-white/20">
+                                    {/* Subtle Texture Overlay */}
+                                    <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80')] bg-cover bg-center mix-blend-overlay" />
 
-                                <div className="relative z-10 flex items-center space-x-4">
-                                    <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md shadow-inner border border-white/30">
-                                        <Zap className="w-8 h-8 text-white drop-shadow-md" />
-                                    </div>
-                                    <div>
-                                        {/* Speaking Badge */}
-                                        <div className="mb-1">
-                                            <span className="bg-white/90 text-amber-600 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm flex w-fit items-center">
-                                                <Clock className="w-3 h-3 mr-1" />
-                                                30 Secondi
-                                            </span>
+                                    <div className="relative z-10 flex items-center space-x-4">
+                                        <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md shadow-inner border border-white/30">
+                                            <Gamepad2 className="w-8 h-8 text-white drop-shadow-md" />
                                         </div>
-                                        <h3 className="text-xl font-bold font-playfair text-white leading-tight">Ispirami Ora</h3>
-                                        <p className="text-amber-50 text-xs font-medium mt-0.5 opacity-90">Lasciati guidare dal destino</p>
-                                    </div>
-                                </div>
-                                <div className={`transition-transform duration-300 ${showQuickOptions ? 'rotate-90' : ''}`}>
-                                    <ChevronRight className="w-5 h-5 text-white/80" />
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Quick Options Expansion */}
-                        <AnimatePresence>
-                            {showQuickOptions && (
-                                <motion.div
-                                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                                    animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
-                                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button
-                                            onClick={() => navigate('/quick-path')}
-                                            className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-sm border border-orange-100 flex flex-col items-center justify-center space-y-2 active:scale-95 transition-transform hover:bg-white"
-                                        >
-                                            <div className="bg-amber-100 p-2 rounded-full">
-                                                <Gamepad2 className="w-6 h-6 text-amber-500" />
+                                        <div>
+                                            {/* Speaking Badge */}
+                                            <div className="mb-1">
+                                                <span className="bg-white/90 text-amber-600 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm flex w-fit items-center">
+                                                    <Brain className="w-3 h-3 mr-1" />
+                                                    AI Powered
+                                                </span>
                                             </div>
-                                            <span className="font-bold text-gray-800 text-xs">Quiz Veloce</span>
-                                        </button>
-                                        <button
-                                            onClick={() => navigate('/surprise-tour')}
-                                            className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl shadow-sm border border-pink-100 flex flex-col items-center justify-center space-y-2 active:scale-95 transition-transform hover:bg-white"
-                                        >
-                                            <div className="bg-pink-100 p-2 rounded-full">
-                                                <Gift className="w-6 h-6 text-pink-500" />
-                                            </div>
-                                            <span className="font-bold text-gray-800 text-xs">Sorprendimi</span>
-                                        </button>
+                                            <h3 className="text-xl font-bold font-playfair text-white leading-tight">Quiz Veloce</h3>
+                                            <p className="text-amber-50 text-xs font-medium mt-0.5 opacity-90">Scopri il tuo stile di viaggio</p>
+                                        </div>
                                     </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                    <ChevronRight className="w-5 h-5 text-white/50 group-hover:translate-x-1 transition-transform" />
+                                </div>
+                            </motion.div>
+                        </Link>
                     </div>
 
                 </section>
@@ -327,6 +401,172 @@ const DashboardUser = () => {
                 </section>
 
             </main>
+
+            {/* Custom Request Modal */}
+            <AnimatePresence>
+                {showRequestModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                            onClick={() => setShowRequestModal(false)}
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="bg-white w-full max-w-md rounded-3xl p-6 relative z-10 shadow-2xl overflow-hidden"
+                        >
+                            <button
+                                onClick={() => setShowRequestModal(false)}
+                                className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors z-20"
+                            >
+                                <X size={20} className="text-gray-500" />
+                            </button>
+
+                            {requestStatus === 'success' ? (
+                                <motion.div
+                                    initial={{ scale: 0.8, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    className="pt-6 pb-2 text-center flex flex-col items-center"
+                                >
+                                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 relative">
+                                        <motion.div
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                                        >
+                                            <CheckCircle className="w-10 h-10 text-green-500" />
+                                        </motion.div>
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Richiesta Inviata!</h3>
+                                    <p className="text-gray-500 text-sm mb-8 leading-relaxed px-4">
+                                        Fantastico! Le guide locali su <strong>{city || 'Roma'}</strong> hanno appena ricevuto la tua ispirazione.<br /><br />Ti contatteranno presto con una proposta personalizzata.
+                                    </p>
+                                    <button
+                                        onClick={() => {
+                                            setShowRequestModal(false);
+                                            setRequestText('');
+                                            setRequestStatus('idle');
+                                        }}
+                                        className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-black transition-all shadow-lg active:scale-95"
+                                    >
+                                        Chiudi e prosegui
+                                    </button>
+                                </motion.div>
+                            ) : (
+                                <>
+                                    <div className="text-center mb-6">
+                                        <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Compass className="w-8 h-8 text-orange-600" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-gray-800">Tour su Misura</h3>
+                                        <p className="text-gray-500 text-sm mt-1">Le guide riceveranno la tua richiesta in base alla città scelta.</p>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {/* City Selector */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Città del Tour</label>
+                                            <select
+                                                value={requestCity}
+                                                onChange={(e) => setRequestCity(e.target.value)}
+                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
+                                                disabled={requestStatus === 'submitting'}
+                                            >
+                                                <option value="Roma">📍 Roma</option>
+                                                <option value="Milano">📍 Milano</option>
+                                                <option value="Firenze">📍 Firenze</option>
+                                                <option value="Venezia">📍 Venezia</option>
+                                                <option value="Napoli">📍 Napoli</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-400 uppercase mb-2">La tua idea</label>
+                                            <textarea
+                                                value={requestText}
+                                                onChange={(e) => setRequestText(e.target.value)}
+                                                placeholder="Vorrei visitare i mercati storici e assaggiare lo street food locale..."
+                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all resize-none text-gray-700 disabled:opacity-50"
+                                                autoFocus
+                                                disabled={requestStatus === 'submitting'}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {requestStatus === 'error' && (
+                                        <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center font-bold">
+                                            Si è verificato un errore. Riprova.
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={submitGuideRequest}
+                                        disabled={requestStatus === 'submitting' || requestText.trim().length === 0}
+                                        className="w-full bg-orange-600 text-white font-bold py-4 rounded-xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        {requestStatus === 'submitting' ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" /> Invio in corso...
+                                            </>
+                                        ) : (
+                                            `Invia alle Guide di ${requestCity}`
+                                        )}
+                                    </button>
+                                </>
+                            )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* ===== IN-APP TOAST NOTIFICATION ===== */}
+            <AnimatePresence>
+                {toast && (
+                    <motion.div
+                        initial={{ y: -80, opacity: 0, scale: 0.95 }}
+                        animate={{ y: 0, opacity: 1, scale: 1 }}
+                        exit={{ y: -80, opacity: 0, scale: 0.95 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                        className="fixed top-4 left-4 right-4 z-[100] max-w-md mx-auto"
+                    >
+                        <div className={`flex items-start gap-3 p-4 rounded-2xl shadow-2xl border backdrop-blur-md ${toast.type === 'request_declined'
+                                ? 'bg-gray-900/95 border-gray-700'
+                                : toast.type === 'price_offer'
+                                    ? 'bg-orange-600/95 border-orange-500'
+                                    : 'bg-green-600/95 border-green-500'
+                            }`}>
+                            {/* Icon */}
+                            <div className="text-2xl flex-shrink-0 mt-0.5">
+                                {toast.type === 'request_declined' ? '💬' : toast.type === 'price_offer' ? '💶' : '🎉'}
+                            </div>
+                            {/* Text */}
+                            <div className="flex-1 min-w-0">
+                                <p className="text-white font-bold text-sm leading-tight">{toast.title}</p>
+                                <p className="text-white/80 text-xs mt-0.5 leading-relaxed">{toast.message}</p>
+                            </div>
+                            {/* Close */}
+                            <button
+                                onClick={() => setToast(null)}
+                                className="text-white/60 hover:text-white transition-colors flex-shrink-0 mt-0.5"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                        {/* Progress bar */}
+                        <motion.div
+                            initial={{ scaleX: 1 }}
+                            animate={{ scaleX: 0 }}
+                            transition={{ duration: 5.5, ease: 'linear' }}
+                            className={`h-0.5 rounded-full origin-left mt-1 ${toast.type === 'request_declined' ? 'bg-gray-500' :
+                                    toast.type === 'price_offer' ? 'bg-orange-300' : 'bg-green-300'
+                                }`}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <BottomNavigation />
         </div>

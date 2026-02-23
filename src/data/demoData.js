@@ -146,7 +146,12 @@ export const DEMO_CITIES = {
                 tag: '🏛️ Storia',
                 tagColor: 'from-yellow-400 to-orange-500',
                 category: 'culture',
-                emoji: '🏛️'
+                emoji: '🏛️',
+                waypoints: [
+                    [41.8902, 12.4922], // Colosseo
+                    [41.8925, 12.4853], // Fori Imperiali
+                    [41.8890, 12.4870]  // Arco di Costantino
+                ]
             },
             {
                 id: 'tour_rom_2',
@@ -160,7 +165,13 @@ export const DEMO_CITIES = {
                 tag: '🍝 Cibo',
                 tagColor: 'from-orange-400 to-red-500',
                 category: 'food',
-                emoji: '🍝'
+                emoji: '🍝',
+                waypoints: [
+                    [41.8893, 12.4708], // Piazza Santa Maria in Trastevere
+                    [41.8880, 12.4690], // Via della Lungaretta
+                    [41.8860, 12.4720], // Piazza di San Cosimato
+                    [41.8900, 12.4730]  // Ponte Sisto
+                ]
             },
             {
                 id: 'tour_rom_3',
@@ -174,7 +185,13 @@ export const DEMO_CITIES = {
                 tag: '🛵 Fun',
                 tagColor: 'from-blue-400 to-cyan-500',
                 category: 'fun',
-                emoji: '🛵'
+                emoji: '🛵',
+                waypoints: [
+                    [41.8902, 12.4922], // Colosseo
+                    [41.8860, 12.4850], // Circo Massimo
+                    [41.8960, 12.4820], // Piazza Venezia
+                    [41.9010, 12.4940]  // Termini (Return)
+                ]
             },
             {
                 id: 'tour_rom_4',
@@ -188,7 +205,13 @@ export const DEMO_CITIES = {
                 tag: '🕵️ Mistero',
                 tagColor: 'from-purple-400 to-indigo-500',
                 category: 'mystery',
-                emoji: '🕵️'
+                emoji: '🕵️',
+                waypoints: [
+                    [41.9022, 12.4539], // San Pietro
+                    [41.9030, 12.4663], // Castel Sant'Angelo
+                    [41.8992, 12.4732], // Piazza Navona
+                    [41.8986, 12.4769]  // Pantheon
+                ]
             },
             {
                 id: 'tour_rom_5',
@@ -202,7 +225,13 @@ export const DEMO_CITIES = {
                 tag: '🎨 Arte',
                 tagColor: 'from-pink-400 to-rose-500',
                 category: 'art',
-                emoji: '🎨'
+                emoji: '🎨',
+                waypoints: [
+                    [41.8992, 12.4732], // Piazza Navona
+                    [41.8986, 12.4769], // Pantheon
+                    [41.9009, 12.4833], // Fontana di Trevi
+                    [41.9060, 12.4820]  // Piazza di Spagna
+                ]
             }
         ],
         guides: [
@@ -246,6 +275,41 @@ export const DEMO_CITIES = {
                 link: '/tour-details/4'
             }
         ]
+    },
+    'Milano': {
+        center: { latitude: 45.4642, longitude: 9.1900 },
+        tours: [],
+        activities: []
+    },
+    'Firenze': {
+        center: { latitude: 43.7696, longitude: 11.2558 },
+        tours: [],
+        activities: []
+    },
+    'Venezia': {
+        center: { latitude: 45.4408, longitude: 12.3155 },
+        tours: [],
+        activities: []
+    },
+    'Napoli': {
+        center: { latitude: 40.8518, longitude: 14.2681 },
+        tours: [],
+        activities: []
+    },
+    'Torino': {
+        center: { latitude: 45.0703, longitude: 7.6869 },
+        tours: [],
+        activities: []
+    },
+    'Bologna': {
+        center: { latitude: 44.4949, longitude: 11.3426 },
+        tours: [],
+        activities: []
+    },
+    'Palermo': {
+        center: { latitude: 38.1157, longitude: 13.3615 },
+        tours: [],
+        activities: []
     }
 };
 
@@ -263,9 +327,27 @@ export const MOCK_ROUTES = {
         { latitude: 38.1130, longitude: 13.3600, label: 'End: Ballarò' }
     ],
     'Roma': [
-        { latitude: 41.9000, longitude: 12.4900, label: 'Start' },
-        { latitude: 41.9010, longitude: 12.4940, label: 'Tappa 1' },
-        { latitude: 41.9025, longitude: 12.4960, label: 'Tappa 2' },
-        { latitude: 41.9035, longitude: 12.4975, label: 'End' }
+        { latitude: 41.9000, longitude: 12.4900, label: 'Start: Colosseo' },
+        { latitude: 41.9010, longitude: 12.4940, label: 'Fori Imperiali' },
+        { latitude: 41.9025, longitude: 12.4960, label: 'Pantheon' },
+        { latitude: 41.9035, longitude: 12.4975, label: 'End: Piazza Navona' }
+    ],
+    'Milano': [
+        { latitude: 45.4641, longitude: 9.1919, label: 'Start: Duomo' },
+        { latitude: 45.4654, longitude: 9.1905, label: 'Galleria' },
+        { latitude: 45.4669, longitude: 9.1900, label: 'Teatro alla Scala' },
+        { latitude: 45.4706, longitude: 9.1795, label: 'End: Castello Sforzesco' }
+    ],
+    'Napoli': [
+        { latitude: 40.8359, longitude: 14.2486, label: 'Start: Plebiscito' },
+        { latitude: 40.8384, longitude: 14.2530, label: 'Maschio Angioino' },
+        { latitude: 40.8499, longitude: 14.2596, label: 'Spaccanapoli' },
+        { latitude: 40.8518, longitude: 14.2681, label: 'End: Duomo' }
+    ],
+    'Perugia': [
+        { latitude: 43.1122, longitude: 12.3888, label: 'Start: Piazza IV Novembre' },
+        { latitude: 43.1118, longitude: 12.3890, label: 'Palazzo dei Priori' },
+        { latitude: 43.1110, longitude: 12.3895, label: 'Corso Vannucci' },
+        { latitude: 43.1090, longitude: 12.3900, label: 'End: Rocca Paolina' }
     ]
 };

@@ -1,0 +1,7 @@
+{
+  "agent": {
+    "provider": "anthropic",
+    "model": "claude-4.6-sonnet",
+    "api_key": "sk-ant-api03-MdKqMpWXrzDDZ48FqEu3bQr43u4FES5swERMGbuNMe6llDdmBvws3WPTSWUpXh6lbiWAU2SLimhAHMWpjQ-Mzo6UQAa"
+  }
+}

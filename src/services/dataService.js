@@ -13,72 +13,89 @@ class DataService {
     mapTourToUI(dbTour) {
         if (!dbTour) return null;
 
-        // Ensure we default to empty arrays if jsonb fields represent arrays but are null
-        const images = Array.isArray(dbTour.images) ? dbTour.images : [];
-        const highlights = Array.isArray(dbTour.highlights) ? dbTour.highlights : [];
-        const itinerary = Array.isArray(dbTour.itinerary) ? dbTour.itinerary : [];
-        const included = Array.isArray(dbTour.included) ? dbTour.included : [];
-        const notIncluded = Array.isArray(dbTour.not_included) ? dbTour.not_included : [];
+        try {
+            // Ensure we default to empty arrays if jsonb fields represent arrays but are null
+            const rawImages = dbTour.image_urls || dbTour.images || [];
+            const images = Array.isArray(rawImages) ? rawImages : (rawImages ? [rawImages] : []);
+            // Fallback for main image if array is empty but 'image' column exists
+            if (images.length === 0 && dbTour.image) images.push(dbTour.image);
+            // Final fallback
+            if (images.length === 0) images.push("https://images.unsplash.com/photo-1516483638261-f4dbaf036963");
 
-        // Fetch guide info from relation if available, otherwise mock or extract
-        const guideInfo = dbTour.profiles || {}; // Assuming join on 'guide_id' -> 'profiles'
+            const highlights = Array.isArray(dbTour.highlights) ? dbTour.highlights : [];
+            const itinerary = Array.isArray(dbTour.itinerary) ? dbTour.itinerary : [];
+            const included = Array.isArray(dbTour.included) ? dbTour.included : [];
+            const notIncluded = Array.isArray(dbTour.not_included) ? dbTour.not_included : [];
+            const tags = Array.isArray(dbTour.tags) ? dbTour.tags : [];
 
-        return {
-            id: dbTour.id,
-            title: dbTour.title || '',
-            description: dbTour.description || '',
+            // Fetch guide info from relation if available, otherwise mock or extract
+            const guideInfo = dbTour.profiles || {}; // Assuming join on 'guide_id' -> 'profiles'
 
-            // Map location fields
-            city: dbTour.city || 'Unknown', // Now a forceful column
-            location: dbTour.location || dbTour.city || '',
+            return {
+                id: dbTour.id,
+                title: dbTour.title || '',
+                description: dbTour.description || '',
 
-            // Format duration
-            duration: dbTour.duration_text || (dbTour.duration_minutes ? `${dbTour.duration_minutes} min` : ''),
-            estimatedTime: dbTour.duration_minutes || 0,
+                // Map location fields
+                city: dbTour.city || 'Unknown', // Now a forceful column
+                location: dbTour.location || dbTour.city || '',
 
-            // Pricing (Prioritize price_eur filter column)
-            price: Number(dbTour.price_eur) || Number(dbTour.price) || 0,
-            originalPrice: dbTour.original_price ? Number(dbTour.original_price) : null,
+                // Format duration
+                duration: dbTour.duration_text || (dbTour.duration_minutes ? `${dbTour.duration_minutes} min` : ''),
+                estimatedTime: dbTour.duration_minutes || 0,
 
-            // Stats
-            rating: Number(dbTour.rating) || 5.0,
-            reviews: Number(dbTour.reviews_count) || 0,
-            participants: Number(dbTour.current_participants) || 0,
-            maxParticipants: Number(dbTour.max_participants) || 10,
+                // Pricing (Prioritize price_eur filter column)
+                price: Number(dbTour.price_eur) || Number(dbTour.price) || 0,
+                originalPrice: dbTour.original_price ? Number(dbTour.original_price) : null,
 
-            // Media
-            imageUrl: images[0] || '', // Main image for cards
-            images: images,             // Full gallery for details
+                // Stats
+                rating: Number(dbTour.rating) || 5.0,
+                reviews: Number(dbTour.reviews_count) || 0,
+                participants: Number(dbTour.current_participants) || 0,
+                maxParticipants: Number(dbTour.max_participants) || 10,
 
-            // Guide (Flattened for UI)
-            guide: guideInfo.full_name || guideInfo.username || 'Guida Unnivai',
-            guideAvatar: guideInfo.avatar_emoji || '👋', // Use emoji if url not present or as logic dictates
-            guideBio: guideInfo.bio || 'Esperto locale appassionato.',
+                // Media
+                imageUrl: images[0] || '', // Main image for cards
+                images: images,             // Full gallery for details
 
-            // Rich Content
-            highlights: highlights,
-            itinerary: itinerary.map(item => ({
-                time: item.time || '',
-                activity: item.activity || '',
-                emoji: item.emoji || '📍' // Fallback emoji
-            })),
-            meetingPoint: dbTour.meeting_point || '',
+                // Guide (Flattened for UI)
+                guide: guideInfo.full_name || guideInfo.username || 'Guida DoveVai',
+                guideAvatar: guideInfo.avatar_emoji || '👋', // Use emoji if url not present or as logic dictates
+                guideBio: guideInfo.bio || 'Esperto locale appassionato.',
 
-            // Lists
-            included: included,
-            notIncluded: notIncluded,
+                // Rich Content
+                highlights: highlights,
+                tags: tags,
+                itinerary: itinerary.map(item => ({
+                    time: item.time || '',
+                    activity: item.activity || '',
+                    emoji: item.emoji || '📍' // Fallback emoji
+                })),
+                meetingPoint: dbTour.meeting_point || '',
 
-            // Logic Flags
-            live: !!dbTour.is_live,
-            startsSoon: !!dbTour.is_upcoming,
-            category: dbTour.category || 'culture',
-            type: dbTour.category || 'culture', // Keep strict type if needed by others
-            difficulty: dbTour.difficulty || 'facile',
+                // Lists
+                included: included,
+                notIncluded: notIncluded,
 
-            // Meta Labels
-            startPoint: dbTour.start_point || dbTour.meeting_point || '',
-            nextStart: dbTour.next_start_label || 'A breve'
-        };
+                // Logic Flags
+                live: !!dbTour.is_live,
+                startsSoon: !!dbTour.is_upcoming,
+                category: dbTour.category || 'culture',
+                type: dbTour.category || 'culture', // Keep strict type if needed by others
+                difficulty: dbTour.difficulty || 'facile',
+
+                // Meta Labels
+                startPoint: dbTour.start_point || dbTour.meeting_point || '',
+                nextStart: dbTour.next_start_label || 'A breve',
+
+                // Technical data for Map
+                steps: dbTour.steps || [],
+                routePath: dbTour.route_path || null
+            };
+        } catch (e) {
+            console.error("Mapping Error for Tour:", dbTour, e);
+            return null;
+        }
     }
 
     /**
@@ -359,6 +376,7 @@ class DataService {
                 longitude: curr.longitude,
                 level: curr.tier || curr.level || 'base', // DB 'tier' -> UI 'level'
                 category: curr.category || 'culture',
+                tags: curr.vibe_tags || curr.tags || [],
                 description: curr.description || ''
             }));
 
@@ -441,6 +459,169 @@ class DataService {
             console.warn('DataService guide bookings error (silent):', err);
             return [];
         }
+    }
+    /**
+     * Fetch businesses matching city and tags
+     * Used for AI Injection in QuickPath
+     */
+    async getBusinessesByCityAndTags(city, tags = [], targetPace = null) {
+        if (!city) return [];
+
+        // Tour tag → business category mapping (reverse of BIZ_TO_TOUR_TAGS)
+        const TOUR_TAG_TO_BIZ_CAT = {
+            'cibo': 'Ristorazione', 'food': 'Ristorazione', 'sapori': 'Ristorazione',
+            'gastronomia': 'Ristorazione', 'carbonara': 'Ristorazione', 'street': 'Ristorazione',
+            'pizza': 'Ristorazione', 'trattoria': 'Ristorazione', 'ristorante': 'Ristorazione',
+            'cultura': 'Cultura', 'arte': 'Cultura', 'musei': 'Cultura', 'barocco': 'Cultura',
+            'storia': 'Storia', 'patrimonio': 'Storia', 'imperiale': 'Storia',
+            'shopping': 'Shopping', 'moda': 'Shopping', 'lusso': 'Lusso',
+            'nightlife': 'Nightlife', 'aperitivo': 'Nightlife', 'navigli': 'Nightlife',
+            'relax': 'Relax', 'spa': 'Relax', 'benessere': 'Relax',
+            'natura': 'Relax', 'parco': 'Relax', 'avventura': 'Avventura',
+            'artigianato': 'Artigianato', 'tradizione': 'Artigianato',
+            'romantico': 'Ospitalità', 'ospitalità': 'Ospitalità',
+        };
+
+        try {
+            console.log(`🔎 Seeking businesses in "${city}" with tags:`, tags, 'Pace:', targetPace);
+
+            const { data, error } = await supabase
+                .from('businesses_profile')
+                .select('*')
+                .ilike('city', city);
+
+            if (error) throw error;
+            if (!data || data.length === 0) {
+                console.warn(`⚠️ No businesses found in city "${city}"`);
+                return [];
+            }
+            console.log(`📋 Found ${data.length} businesses in ${city} to score`);
+
+            // ─── AFFINITY SCORING ────────────────────────────────────────────
+            const scored = data.map(b => {
+                let score = 0;
+                const ai = b.ai_metadata || {};
+                const vibes = (Array.isArray(ai.vibe) ? ai.vibe : (ai.vibe ? [ai.vibe] : []))
+                    .map(v => v.toLowerCase());
+                const bizCats = (b.category_tags || []).map(c => c.toLowerCase());
+                const pace = (ai.pace || 'normal').toLowerCase();
+
+                tags.forEach(t => {
+                    const tag = t.toLowerCase();
+
+                    // A. Vibe AI direct match (+3 exact, +1 partial)
+                    if (vibes.includes(tag)) {
+                        score += 3;
+                    } else if (vibes.some(v => v.includes(tag) || tag.includes(v))) {
+                        score += 1;
+                    }
+
+                    // B. Category_tags direct match (+2) — e.g. tag "cibo" → cat "ristorazione"
+                    const mappedCat = (TOUR_TAG_TO_BIZ_CAT[tag] || '').toLowerCase();
+                    if (mappedCat && bizCats.includes(mappedCat)) {
+                        score += 2;
+                        console.log(`  ✅ Cat match: tag "${tag}" → cat "${mappedCat}" for ${b.company_name}`);
+                    }
+
+                    // C. Raw tag in category_tags (+1)
+                    if (bizCats.includes(tag)) score += 1;
+                });
+
+                // D. Pace match (+1)
+                if (targetPace && pace === targetPace.toLowerCase()) score += 1;
+
+                // E. Guaranteed minimum if category is relevant to any tour tag
+                const anyRelevantCat = tags.some(t => {
+                    const mapped = (TOUR_TAG_TO_BIZ_CAT[t.toLowerCase()] || '').toLowerCase();
+                    return mapped && bizCats.includes(mapped);
+                });
+                if (anyRelevantCat && score === 0) score = 1; // floor to include
+
+                console.log(`  📊 Score for ${b.company_name}: ${score}`);
+                return { business: b, score };
+            });
+
+            // ─── FILTER & RESOLVE COORDINATES ────────────────────────────────
+            const relevant = scored
+                .filter(item => item.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3); // max 3 businesses per tour
+
+            console.log(`🏆 ${relevant.length} relevant businesses after scoring`);
+
+            // Geocode any that are missing coordinates
+            const resolved = await Promise.all(relevant.map(async ({ business }) => {
+                const stop = this.mapBusinessToItineraryStop(business);
+
+                // If no valid coords → try geocoding address on-the-fly
+                if (!stop._hasCoords && business.address) {
+                    console.log(`📍 Geocoding "${business.company_name}" from address: ${business.address}`);
+                    try {
+                        const res = await fetch(
+                            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(business.address + ', ' + business.city + ', Italy')}&limit=1`
+                        );
+                        const geo = await res.json();
+                        if (geo && geo.length > 0) {
+                            stop.latitude = parseFloat(geo[0].lat);
+                            stop.longitude = parseFloat(geo[0].lon);
+                            stop._hasCoords = true;
+                            console.log(`✅ Geocoded "${business.company_name}": ${stop.latitude.toFixed(4)}, ${stop.longitude.toFixed(4)}`);
+                            // Also save coords back to DB for next time
+                            supabase.from('businesses_profile')
+                                .update({
+                                    location: `POINT(${stop.longitude} ${stop.latitude})`,
+                                    latitude: stop.latitude,
+                                    longitude: stop.longitude,
+                                })
+                                .eq('id', business.id)
+                                .then(({ error }) => { if (error) console.warn('Could not cache coords:', error.message); });
+                        } else {
+                            console.warn(`⚠️ Could not geocode "${business.company_name}"`);
+                        }
+                    } catch (geoErr) {
+                        console.warn(`⚠️ Geocoding failed for "${business.company_name}":`, geoErr.message);
+                    }
+                }
+
+                // Apply AI story hook to description
+                const hook = business.ai_metadata?.story_hook;
+                if (hook) stop.description = `✨ ${hook}`;
+
+                return stop;
+            }));
+
+            const finalMatches = resolved.filter(s => s._hasCoords);
+            console.log(`✅ ${finalMatches.length} businesses ready for injection (with valid coords)`);
+            return finalMatches;
+
+        } catch (err) {
+            console.warn('Error fetching businesses for itinerary:', err);
+            return [];
+        }
+    }
+
+
+
+
+    mapBusinessToItineraryStop(business) {
+        let lat = business.latitude ? parseFloat(business.latitude) : null;
+        let lng = business.longitude ? parseFloat(business.longitude) : null;
+        if ((!lat || !lng) && business.location && typeof business.location === 'string' && business.location.startsWith('POINT')) {
+            const parts = business.location.replace('POINT(', '').replace(')', '').trim().split(/\s+/);
+            if (parts.length >= 2) { lng = parseFloat(parts[0]); lat = parseFloat(parts[1]); }
+        }
+        const hasValidCoords = !!(lat && lng && !isNaN(lat) && !isNaN(lng));
+        const imageUrl = (business.image_urls && business.image_urls.length > 0) ? business.image_urls[0] : null;
+        return {
+            id: `biz-${business.id}`, title: business.company_name,
+            description: business.description || `Scopri ${business.company_name} a ${business.city}`,
+            image: imageUrl, imageUrl,
+            latitude: hasValidCoords ? lat : null, longitude: hasValidCoords ? lng : null,
+            _hasCoords: hasValidCoords, isSponsored: true,
+            tier: business.subscription_tier, tags: business.category_tags,
+            address: business.address, website: business.website,
+            menu_url: business.menu_url, city: business.city,
+        };
     }
 }
 

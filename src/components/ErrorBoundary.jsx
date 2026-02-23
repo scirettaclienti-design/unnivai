@@ -13,7 +13,7 @@ class ErrorBoundary extends React.Component {
 
     componentDidCatch(error, errorInfo) {
         // You can also log the error to an error reporting service
-        console.error("Unnivai Critical Error:", error, errorInfo);
+        console.error("DoveVai Critical Error:", error, errorInfo);
     }
 
     render() {

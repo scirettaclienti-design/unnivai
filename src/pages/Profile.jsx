@@ -169,7 +169,7 @@ export default function ProfilePage() {
                             <h2 className="text-xl font-bold text-gray-800">{editName}</h2>
                             <p className="text-gray-600 flex items-center text-sm mb-1">
                                 <Mail className="w-3 h-3 mr-1 text-terracotta-500" />
-                                {firstName?.toLowerCase()}@unnivai.it
+                                {firstName?.toLowerCase()}@dovevai.it
                             </p>
                             <p className="text-gray-600 flex items-center text-sm">
                                 <MapPin className="w-3 h-3 mr-1 text-terracotta-500" />

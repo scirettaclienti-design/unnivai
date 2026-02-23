@@ -237,7 +237,7 @@ export default function BecomeGuide() {
                                 </div>
 
                                 <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 text-left">
-                                    <h4 className="font-bold text-yellow-800 text-sm mb-1">🚀 Perché Unnivai?</h4>
+                                    <h4 className="font-bold text-yellow-800 text-sm mb-1">🚀 Perché DoveVai?</h4>
                                     <ul className="text-xs text-yellow-700 space-y-1 list-disc list-inside">
                                         <li>Guadagna condividendo le tue passioni</li>
                                         <li>Flessibilità totale sugli orari</li>

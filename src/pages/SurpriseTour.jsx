@@ -2,49 +2,103 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { MapPin, Star, Clock, Users, Shuffle, ArrowLeft, Sparkles, Gift, Dice1, Zap, Calendar, Heart, ArrowRight, Timer, FileText } from "lucide-react";
 import DemoHint from "../components/DemoHint";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
 
-const surpriseExperiences = [
+// 🧠 ADAPTIVE IMAGE LOGIC
+const CITY_IMAGES = {
+    'Roma': {
+        food: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500", // Carbonara/Roman Food
+        art: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=500", // Colosseum/Art
+        nature: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=500", // Villa Borghese
+        view: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=500",
+        default: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800"
+    },
+    'Firenze': {
+        food: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500",
+        art: "https://images.unsplash.com/photo-1543429388-662bd3d76722?w=500", // Florence Duomo/Art
+        nature: "https://images.unsplash.com/photo-1533621985392-563d8109d3b8?w=500", // Tuscany Hills
+        view: "https://images.unsplash.com/photo-1534237191398-90407a51c969?w=500",
+        default: "https://images.unsplash.com/photo-1543429388-662bd3d76722?w=800"
+    },
+    'Milano': {
+        food: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500",
+        art: "https://images.unsplash.com/photo-1547464333-28f0de20b8f9?w=500", // Duomo
+        nature: "https://images.unsplash.com/photo-1579290076295-a226bc40b543?w=500", // Parco Sempioneish
+        view: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500",
+        default: "https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800"
+    },
+    'Napoli': {
+        food: "https://images.unsplash.com/photo-1574868233905-25916053805b?w=500", // Pizza
+        art: "https://images.unsplash.com/photo-1548625361-9877484df6c5?w=500",
+        nature: "https://images.unsplash.com/photo-1536417724282-598284687593?w=500", // Vesuvio
+        view: "https://images.unsplash.com/photo-1498394467144-8cb38902d184?w=500",
+        default: "https://images.unsplash.com/photo-1534720993072-cb99b397d415?w=800"
+    },
+    // Fallback generic
+    'default': {
+        food: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=500",
+        art: "https://images.unsplash.com/photo-1548625361-9877484df6c5?w=500",
+        nature: "https://images.unsplash.com/photo-1501854140884-074bf222b866?w=500",
+        view: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=500",
+        default: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800"
+    }
+};
+
+const getAdaptiveImage = (city, category) => {
+    const cityData = CITY_IMAGES[city] || CITY_IMAGES['default'];
+    // Normalize category
+    const catKey = (category || '').toLowerCase();
+
+    if (catKey.includes('cibo') || catKey.includes('gastronomia') || catKey.includes('food')) return cityData.food;
+    if (catKey.includes('arte') || catKey.includes('cultura') || catKey.includes('storia')) return cityData.art;
+    if (catKey.includes('natura') || catKey.includes('parco') || catKey.includes('sport')) return cityData.nature;
+    if (catKey.includes('vista') || catKey.includes('panorama')) return cityData.view;
+
+    return cityData.default;
+};
+
+// 🌟 DYNAMIC EXPERIENCES GENERATOR
+const getSurpriseExperiences = (city = 'Roma') => [
     {
         id: 1,
-        title: "Avventura Gastronomica a Sorpresa",
-        location: "Zona Trastevere, Roma",
+        title: `Avventura Gastronomica a ${city}`,
+        location: `Centro Storico, ${city}`,
         duration: "3-4 ore",
         rating: 4.9,
         participants: "2-8 persone",
         price: 75,
-        image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop",
-        description: "Un tour culinario misterioso tra le strade di Trastevere",
+        image: getAdaptiveImage(city, 'Gastronomia'),
+        description: `Un tour culinario misterioso tra le delizie di ${city}`,
         surprise: "🍝",
         category: "Gastronomia",
         tags: ["Cibo", "Storia"]
     },
     {
         id: 2,
-        title: "Mistero Artistico Rinascimentale",
-        location: "Centro Storico, Firenze",
+        title: `Mistero Artistico di ${city}`,
+        location: `Zona Arte, ${city}`,
         duration: "2-3 ore",
         rating: 4.8,
         participants: "1-6 persone",
         price: 85,
-        image: "https://images.unsplash.com/photo-1529260830199-42c24126f198?w=400&h=300&fit=crop",
-        description: "Scopri tesori nascosti dell'arte fiorentina",
+        image: getAdaptiveImage(city, 'Arte'),
+        description: `Scopri i tesori nascosti dell'arte di ${city}`,
         surprise: "🎨",
         category: "Arte",
         tags: ["Arte", "Cultura"]
     },
     {
         id: 3,
-        title: "Avventura nella Natura Selvaggia",
-        location: "Parco Nazionale, Abruzzo",
+        title: `Natura Incontaminata a ${city}`,
+        location: `Dintorni di ${city}`,
         duration: "4-6 ore",
         rating: 4.7,
         participants: "3-12 persone",
         price: 95,
-        image: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=400&h=300&fit=crop",
-        description: "Un'escursione sorprendente tra paesaggi incontaminati",
+        image: getAdaptiveImage(city, 'Natura'),
+        description: `Un'escursione sorprendente nei paesaggi verdi vicino a ${city}`,
         surprise: "🏔️",
         category: "Natura",
         tags: ["Natura", "Sport"]
@@ -94,13 +148,14 @@ import { useUserContext } from "@/hooks/useUserContext";
 import { aiRecommendationService } from "@/services/aiRecommendationService";
 
 export default function SurpriseTourPage() {
-    const { city, userId } = useUserContext();
+    const { city, userId, firstName } = useUserContext(); // Assuming bio/age might be in context or fetched
+    const navigate = useNavigate();
     const [selectedSurprise, setSelectedSurprise] = useState(null);
     const [isShuffling, setIsShuffling] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
 
-    // Mock User Interests for "Ad-Hoc" Simulation
-    const userInterests = ["Arte", "Cibo"];
+    // Dynamic filtered list based on ACTIVE CITY
+    const currentExperiences = getSurpriseExperiences(city || 'Roma');
 
     const filterMap = {
         1: "Gastronomia",
@@ -110,55 +165,90 @@ export default function SurpriseTourPage() {
     };
 
     const getFilteredExperiences = () => {
-        if (!selectedFilter) return surpriseExperiences;
-        return surpriseExperiences.filter(exp => exp.category === selectedFilter);
+        if (!selectedFilter) return currentExperiences;
+        return currentExperiences.filter(exp => exp.category === selectedFilter);
     };
 
     const shuffleExperience = async () => {
         setIsShuffling(true);
 
-        // Simulate AI "Thinking" and Interest Analysis
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // Simulate initial delay for effect
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // 1. Determine constraints (Filter or Interests)
-        const activeCategory = selectedFilter;
+        try {
+            // 1. Prepare User Context
+            // In a real app, fetch detailed profile. Here we mock or use what we have.
+            const userProfile = {
+                bio: "Viaggiatore curioso amante delle esperienze autentiche",
+                age: 30, // Mock or fetch
+                interests: selectedFilter ? [selectedFilter] : ["Arte", "Cibo", "Avventura"]
+            };
 
-        // 2. Mock Generation Logic
-        let generatedTour;
-        const emojiMap = { food: '🍝', culture: '🎨', adventure: '🏔️', nature: '🌿', art: '🎨' };
+            const prompt = `Genera un'esperienza a sorpresa unica a ${city || 'Roma'}. 
+            Dati Utente: {interessi: ${userProfile.interests.join(',')}, età: ${userProfile.age}, bio: ${userProfile.bio}} + Posizione: ${city || 'Roma'}.
+            Categoria richiesta: ${selectedFilter || 'Misto'}.
+            L'esperienza deve essere fuori dai soliti schemi turistici.
+            
+            IMPORTANTE: Genera SOLO luoghi REALI ed ESISTENTI entro un raggio di 20km da ${city || 'Roma'}.
+            Se non sei sicuro della posizione esatta, scarta il luogo. 
+            NON inventare coordinate.`;
 
-        // Try to find a match from "Repo" or Generate New
-        // In a real app, this calls the AI Service with the specific prompt: "Create tour based on [Interests]"
+            // 2. Call AI Service
+            // We use a special flag or just the standard generation
+            const itinerary = await aiRecommendationService.generateItinerary(city || 'Roma', {
+                interests: userProfile.interests,
+                duration: 'Mezza Giornata',
+                budget: 'Medio'
+            }, prompt);
 
-        // For demo, we select a "Perfect Match" from the list or create a variation
-        let candidatePool = surpriseExperiences;
-        if (activeCategory) {
-            candidatePool = surpriseExperiences.filter(e => e.category === activeCategory);
-        } else {
-            // "Ad-Hoc" Logic: Prioritize User Interests if no filter
-            candidatePool = surpriseExperiences.filter(e => e.tags?.some(tag => userInterests.includes(tag)));
-        }
+            if (!itinerary || itinerary.length === 0) throw new Error("AI Generation Failed");
 
-        // Fallback to random if pool is empty
-        if (candidatePool.length === 0) candidatePool = surpriseExperiences;
+            // 3. Map to Tour Data Format
+            const surpriseTour = itinerary[0]; // Take 1st day as the experience
 
-        const forcedMatch = candidatePool[Math.floor(Math.random() * candidatePool.length)];
+            // Generate Route Path (Linear approximation for now, or use mapService if available)
+            // Just connecting dots for visual feedback
+            const routeCoords = surpriseTour.stops.map(s => `${s.longitude} ${s.latitude}`).join(', ');
+            const routeWKT = `LINESTRING(${routeCoords})`;
 
-        const uiSurprise = {
-            ...forcedMatch,
-            id: forcedMatch.id + Date.now(), // Make it unique "Instance"
-            description: activeCategory
-                ? forcedMatch.description
-                : `Selezionato per te basandosi sulla tua passione per ${userInterests.join(' e ')}.`,
-            matchReason: activeCategory ? `Categoria: ${activeCategory}` : "❤️ Compatibilità 98%",
-            isAdHoc: !activeCategory // It's "Ad Hoc" if purely interest-based
-        };
+            const mappedTour = {
+                id: 'surprise-' + Date.now(),
+                title: surpriseTour.title || "Avventura a Sorpresa",
+                description: `Un'esperienza unica generata per te: ${userProfile.interests.join(', ')}.`,
+                city: city || 'Roma',
+                duration_minutes: 180,
+                price_eur: 0,
+                rating: 5.0,
+                steps: surpriseTour.stops.map(s => ({
+                    title: s.title,
+                    description: s.description,
+                    lat: s.latitude,
+                    lng: s.longitude,
+                    type: s.type || 'place',
+                    image: getAdaptiveImage(city || 'Roma', s.type || s.category)
+                })),
+                waypoints: surpriseTour.stops.map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]),
+                routePath: routeWKT, // 🆕 Add Immediate Route Path
+                isAiGenerated: true,
+                tags: ['Sorpresa', selectedFilter || 'Mix']
+            };
 
-        // Artificial delay for "Generation" suspense
-        setTimeout(() => {
-            setSelectedSurprise(uiSurprise);
+            // 4. Navigate to Tour Details
+            navigate(`/tour-details/${mappedTour.id}`, { state: { tourData: mappedTour, isAiGenerated: true } });
+
+        } catch (error) {
+            console.error("Surprise Logic Error:", error);
+            // Fallback: Just select a random one from local list (Legacy Logic)
+            const fallback = currentExperiences[Math.floor(Math.random() * currentExperiences.length)];
+            const mappedFallback = {
+                ...fallback,
+                steps: [], // Simple object, no steps in this mock
+                isAiGenerated: false
+            };
+            navigate(`/tour-details/${fallback.id}`, { state: { tourData: mappedFallback } });
+        } finally {
             setIsShuffling(false);
-        }, 800);
+        }
     };
 
     const handleFilterClick = (typeId) => {

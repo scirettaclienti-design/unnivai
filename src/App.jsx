@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CityProvider } from './context/CityContext';
 import RoleGuard from './components/RoleGuard';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -23,6 +24,7 @@ const QuickPath = lazy(() => import('./pages/QuickPath'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const TourLive = lazy(() => import('./pages/TourLive'));
 const SurpriseTour = lazy(() => import('./pages/SurpriseTour'));
+const UpdatePassword = lazy(() => import('./pages/UpdatePassword')); // Added import
 const Trending = lazy(() => import('./pages/Trending'));
 const Photos = lazy(() => import('./pages/Photos'));
 const GuidePlaceholder = lazy(() => import('./pages/GuidePlaceholder'));
@@ -43,17 +45,21 @@ const GlobalLoading = () => (
   <div className="flex items-center justify-center min-h-screen bg-white">
     <div className="flex flex-col items-center gap-4">
       <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-      <p className="text-gray-500 font-medium animate-pulse">Caricamento Unnivai...</p>
+      <p className="text-gray-500 font-medium animate-pulse">Caricamento DoveVai...</p>
     </div>
   </div>
 );
 
 // 🛡️ ROOT DISPATCHER: Handles "Instant Redirect" Logic
+// 52. Modified RootDispatcher
 const RootDispatcher = () => {
-  const { user, loading, role } = useAuth();
+  const { user, loading, role, isPasswordRecovery } = useAuth(); // Add isPasswordRecovery
 
   // 1. Block until Auth Checked
   if (loading) return <GlobalLoading />;
+
+  // 1.5 Handle Password Recovery Flow
+  if (isPasswordRecovery) return <Navigate to="/update-password" replace />;
 
   // 2. Immediate Redirect if Logged In
   if (user) {
@@ -70,57 +76,60 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router>
-          <ErrorBoundary>
-            <Suspense fallback={<GlobalLoading />}>
-              <Routes>
-                {/* THE GATEKEEPER */}
-                <Route path="/" element={<RootDispatcher />} />
+        <CityProvider>
+          <Router>
+            <ErrorBoundary>
+              <Suspense fallback={<GlobalLoading />}>
+                <Routes>
+                  {/* THE GATEKEEPER */}
+                  <Route path="/" element={<RootDispatcher />} />
 
-                {/* PUBLIC */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/explore" element={<Explore />} />
-                <Route path="/tour-details" element={<TourDetails />} />
-                <Route path="/tour-details/:id" element={<TourDetails />} />
+                  {/* PUBLIC */}
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/update-password" element={<UpdatePassword />} />
+                  <Route path="/explore" element={<Explore />} />
+                  <Route path="/tour-details" element={<TourDetails />} />
+                  <Route path="/tour-details/:id" element={<TourDetails />} />
 
-                {/* PROTECTED USER ROUTES */}
-                <Route element={<RoleGuard allowedRoles={['explorer', 'user']} />}>
-                  <Route path="/dashboard-user" element={<DashboardUser />} />
-                  <Route path="/app/*" element={<DashboardUser />} />
-                  <Route path="/home" element={<Home />} />
-                  <Route path="/photos" element={<Photos />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/ai-itinerary" element={<AiItinerary />} />
-                  <Route path="/map" element={<MapPage />} />
-                  <Route path="/quick-path" element={<QuickPath />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/tour-live" element={<TourLive />} />
-                  <Route path="/surprise-tour" element={<SurpriseTour />} />
-                  <Route path="/trending" element={<Trending />} />
-                  <Route path="/become-guide" element={<BecomeGuide />} />
-                </Route>
+                  {/* PROTECTED USER ROUTES */}
+                  <Route element={<RoleGuard allowedRoles={['explorer', 'user']} />}>
+                    <Route path="/dashboard-user" element={<DashboardUser />} />
+                    <Route path="/app/*" element={<DashboardUser />} />
+                    <Route path="/home" element={<Home />} />
+                    <Route path="/photos" element={<Photos />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/ai-itinerary" element={<AiItinerary />} />
+                    <Route path="/map" element={<MapPage />} />
+                    <Route path="/quick-path" element={<QuickPath />} />
+                    <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/tour-live" element={<TourLive />} />
+                    <Route path="/surprise-tour" element={<SurpriseTour />} />
+                    <Route path="/trending" element={<Trending />} />
+                    <Route path="/become-guide" element={<BecomeGuide />} />
+                  </Route>
 
-                {/* GUIDE ROUTES */}
-                <Route element={<RoleGuard allowedRoles={['guide']} />}>
-                  <Route path="/dashboard-guide" element={<DashboardGuide />} />
-                  <Route path="/guide/create-tour" element={<TourBuilder />} />
-                  <Route path="/guide/*" element={<DashboardGuide />} />
-                  <Route path="/chat/guide/:id" element={<GuidePlaceholder type="chat" />} />
-                  <Route path="/profile/guide/:id" element={<GuidePlaceholder type="profile" />} />
-                </Route>
+                  {/* GUIDE ROUTES */}
+                  <Route element={<RoleGuard allowedRoles={['guide']} />}>
+                    <Route path="/dashboard-guide" element={<DashboardGuide />} />
+                    <Route path="/guide/create-tour" element={<TourBuilder />} />
+                    <Route path="/guide/*" element={<DashboardGuide />} />
+                    <Route path="/chat/guide/:id" element={<GuidePlaceholder type="chat" />} />
+                    <Route path="/profile/guide/:id" element={<GuidePlaceholder type="profile" />} />
+                  </Route>
 
-                {/* BUSINESS ROUTES */}
-                <Route element={<RoleGuard allowedRoles={['business']} />}>
-                  <Route path="/dashboard-business" element={<DashboardBusiness />} />
-                  <Route path="/business/*" element={<DashboardBusiness />} />
-                </Route>
+                  {/* BUSINESS ROUTES */}
+                  <Route element={<RoleGuard allowedRoles={['business']} />}>
+                    <Route path="/dashboard-business" element={<DashboardBusiness />} />
+                    <Route path="/business/*" element={<DashboardBusiness />} />
+                  </Route>
 
-              </Routes>
-            </Suspense>
-          </ErrorBoundary>
-        </Router>
+                </Routes>
+              </Suspense>
+            </ErrorBoundary>
+          </Router>
+        </CityProvider>
       </AuthProvider>
-    </QueryClientProvider>
+    </QueryClientProvider >
   );
 }
 

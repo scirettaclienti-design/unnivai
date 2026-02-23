@@ -1,13 +1,19 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, MapPin, Clock, Star, Play, Heart, Share2, Users, Calendar, MessageCircle, Navigation, CheckCircle, XCircle } from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { ArrowLeft, MapPin, Clock, Star, Play, Heart, Share2, Users, Calendar, MessageCircle, Navigation, CheckCircle, XCircle, Sparkles, Brain } from "lucide-react";
 import { Link, useParams, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import TopBar from "../components/TopBar";
+import { getItemImage, imgOnError } from "../utils/imageUtils";
+
+import { useAuth } from "../context/AuthContext";
 import BottomNavigation from "../components/BottomNavigation";
 import BookingModal from "../components/BookingSystem";
+
 import { Toast } from "../components/ToastNotification";
 import { useQuery } from "@tanstack/react-query";
 import { dataService } from "../services/dataService";
+import { mapService } from "../services/mapService";
 
 // --- MOCK DATA (Original Rich Data) ---
 const tourDetailsMock = {
@@ -42,7 +48,14 @@ const tourDetailsMock = {
         notIncluded: ["Trasporti", "Cena completa", "Acquisto prodotti"],
         live: true,
         type: 'guide',
-        nextStart: "Tra 2 ore"
+        nextStart: "Tra 2 ore",
+        // Waypoints for Trastevere Tour
+        waypoints: [
+            [41.8893, 12.4708], // Piazza Santa Maria in Trastevere
+            [41.8880, 12.4690], // Via della Lungaretta
+            [41.8860, 12.4720], // Piazza di San Cosimato
+            [41.8900, 12.4730]  // Ponte Sisto
+        ]
     },
     2: {
         id: 2,
@@ -91,7 +104,13 @@ const tourDetailsMock = {
         included: ["Biglietto", "Guida"],
         notIncluded: ["Pranzo"],
         guide: "Marco Aurelio",
-        guideAvatar: "🏛️"
+        guideAvatar: "🏛️",
+        // Waypoints for Colosseo Tour
+        waypoints: [
+            [41.8902, 12.4922], // Colosseo
+            [41.8925, 12.4853], // Fori Imperiali
+            [41.8890, 12.4870]  // Arco di Costantino
+        ]
     },
     3: {
         id: 3,
@@ -202,13 +221,46 @@ const tourDetailsMock = {
 };
 
 // --- INTERNAL MODAL COMPONENT ---
-const RequestModal = ({ isOpen, onClose, guideName, tourTitle }) => {
+const RequestModal = ({ isOpen, onClose, guideName, tourTitle, guideId, tourId }) => {
+    const { user } = useAuth(); // Get authenticated user
     if (!isOpen) return null;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        alert(`Richiesta inviata con successo a ${guideName}! \nRiceverai una conferma via email.`);
-        onClose();
+
+        if (!user) {
+            alert("Devi effettuare il login per inviare una richiesta.");
+            return;
+        }
+
+        try {
+            const date = formData.get('date');
+            const guests = formData.get('guests');
+            const rawMessage = formData.get('message');
+
+            // Construct a rich message ensuring all data is visible even if metadata is ignored
+            const richMessage = `Richiesta per: ${tourTitle}\nData: ${date}\nOspiti: ${guests}\n\n${rawMessage || ''}`;
+
+            const { error } = await supabase
+                .from('guide_requests')
+                .insert([{
+                    user_id: user.id || null, // Allow null if RLS permits, but check above prevents it
+                    guide_id: guideId,
+                    tour_id: tourId,
+                    request_text: richMessage,
+                    status: 'pending',
+                    // Optional: keep unstructured data for validation/dashboard
+                    metadata: { date, guests, tourTitle }
+                }]);
+
+            if (error) throw error;
+
+            alert(`Richiesta inviata con successo a ${guideName}! \nRiceverai una conferma via email.`);
+            onClose();
+        } catch (err) {
+            console.error("Error sending request:", err);
+            alert("Errore nell'invio della richiesta: " + err.message);
+        }
     };
 
     return (
@@ -234,17 +286,17 @@ const RequestModal = ({ isOpen, onClose, guideName, tourTitle }) => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Data Desiderata</label>
-                        <input type="date" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta-400" />
+                        <input type="date" name="date" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta-400" />
                     </div>
 
                     <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Numero Persone</label>
-                        <input type="number" min="1" max="20" required defaultValue="2" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta-400" />
+                        <input type="number" name="guests" min="1" max="20" required defaultValue="2" className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta-400" />
                     </div>
 
                     <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Messaggio (Opzionale)</label>
-                        <textarea rows="2" placeholder="Ciao! Siamo interessati a..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta-400" />
+                        <textarea name="message" rows="2" placeholder="Ciao! Siamo interessati a..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta-400" />
                     </div>
 
                     <button
@@ -300,7 +352,7 @@ const GuideProfileModal = ({ isOpen, onClose, guideName, guideAvatar, bio, ratin
                     </div>
 
                     <h2 className="text-2xl font-black text-gray-800 mb-1">{guideName}</h2>
-                    <p className="text-xs font-bold text-olive-600 uppercase tracking-widest mb-4">Guida Ufficiale Unnivai</p>
+                    <p className="text-xs font-bold text-olive-600 uppercase tracking-widest mb-4">Guida Ufficiale DoveVai</p>
 
                     {/* Stats */}
                     <div className="flex justify-center space-x-6 mb-6">
@@ -394,7 +446,7 @@ const GuideChatModal = ({ isOpen, onClose, guideName, guideAvatar }) => {
                     {/* System Message */}
                     <div className="flex justify-center">
                         <div className="bg-yellow-50 text-yellow-800 text-xs px-4 py-2 rounded-xl border border-yellow-100 shadow-sm max-w-[85%] text-center leading-relaxed">
-                            🔒 Questa è una chat sicura e crittografata con la tua guida ufficiale Unnivai.
+                            🔒 Questa è una chat sicura e crittografata con la tua guida ufficiale DoveVai.
                         </div>
                     </div>
 
@@ -539,10 +591,26 @@ export default function TourDetailsPage() {
     const [localTour, setLocalTour] = useState(null);
 
     // Initial Data Load
+    // Initial Data Load
     useEffect(() => {
-        if (location.state?.tourData) {
+        let incoming = location.state?.tourData;
+
+        // 🛡️ RECOVERY: If no state, check LocalStorage for AI Tours
+        // This fixes the "Something went wrong" error when data isn't passed via navigation state
+        if (!incoming && id && id.startsWith('ai-quiz-')) {
+            try {
+                const stored = localStorage.getItem(id);
+                if (stored) {
+                    incoming = JSON.parse(stored);
+                    console.log("♻️ Recovered AI Tour from LocalStorage:", incoming);
+                }
+            } catch (e) {
+                console.error("Failed to recover AI tour", e);
+            }
+        }
+
+        if (incoming) {
             // Normalize incoming data to match the Rich UI expectations
-            const incoming = location.state.tourData;
 
             // Map MapPage 'category' to TourDetails 'type' if missing
             // Map categories: 'food' -> 'food', 'shop' -> 'shop', 'service' -> 'service'
@@ -556,13 +624,23 @@ export default function TourDetailsPage() {
             if (['shop', 'store', 'craft'].includes(rawType)) finalType = 'shop';
             if (['service', 'facility'].includes(rawType)) finalType = 'service';
 
+            // ANTI-HIJACK: If it's clearly a Tour (has title "Tour" or has waypoints), force type back to guide
+            const isTour = (incoming.title && incoming.title.toLowerCase().includes('tour')) ||
+                (incoming.waypoints && incoming.waypoints.length > 0) ||
+                (incoming.steps && incoming.steps.length > 1);
+
+            if (isTour) {
+                finalType = 'guide';
+            }
+
             setLocalTour({
                 ...incoming,
                 type: finalType,
                 // Ensure array for images
-                images: incoming.images || (incoming.imageUrl ? [incoming.imageUrl] : []),
+                images: incoming.images || (incoming.image_urls && incoming.image_urls.length > 0 ? incoming.image_urls : null) || (incoming.image ? [incoming.image] : []) || (incoming.imageUrl ? [incoming.imageUrl] : []),
                 // Defaults for rich fields if missing
-                guide: incoming.guide || "Unnivai Guide",
+                guide: incoming.guide || "DoveVai Guide",
+                guideId: incoming.guideId || incoming.author_id || incoming.guide_id || "admin-guide", // Ensure guideId is captured
                 guideAvatar: incoming.guideAvatar || "🤖",
                 guideBio: incoming.guideBio || "Guida virtuale intelligente selezionata per te.",
                 rating: incoming.rating || 4.5,
@@ -570,15 +648,24 @@ export default function TourDetailsPage() {
                 location: incoming.location || "Destinazione Tour",
                 participants: incoming.participants || 0,
                 maxParticipants: incoming.maxParticipants || 10,
+                language: incoming.language || "Italiano", // Map language
                 highlights: incoming.highlights || ["✨ Esperienza autentica", "📍 Tappe esclusive"],
-                itinerary: incoming.itinerary || (incoming.waypoints ? incoming.waypoints.map((_, i) => ({ time: `Step ${i + 1}`, activity: `Tappa ${i + 1}`, emoji: "📍" })) : []),
+                // ITINERARY MAPPING from Steps
+                itinerary: (incoming.steps && incoming.steps.length > 0)
+                    ? incoming.steps.map((s, i) => ({
+                        time: `Tappa ${i + 1}`,
+                        activity: s.title || `Punto ${i + 1}`,
+                        emoji: "📍",
+                        description: s.description
+                    }))
+                    : (incoming.itinerary || []),
                 meetingPoint: incoming.meetingPoint || incoming.startPoint || "Punto di partenza sulla mappa",
                 included: incoming.included || ["Itinerario digitale", "Supporto 24/7"],
                 notIncluded: incoming.notIncluded || ["Biglietti musei (se non spec.)"],
                 nextStart: incoming.nextStart || "Sempre disponibile"
             });
         }
-    }, [location.state]);
+    }, [location.state, id]);
 
     // Query for ID-based lookup if no state passed
     const tourId = id || 1;
@@ -600,6 +687,41 @@ export default function TourDetailsPage() {
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showChatModal, setShowChatModal] = useState(false); // New state for Chat Modal
+    const [nearbyPartners, setNearbyPartners] = useState([]);
+
+    useEffect(() => {
+        if (!tour.id) return;
+
+        // SKIP RPC FOR AI TOURS (They don't exist in DB)
+        if (typeof tour.id === 'string' && tour.id.startsWith('ai-quiz-')) {
+            console.log("🚫 Skipping Partner RPC for AI Tour");
+            return;
+        }
+
+        const fetchPartners = async () => {
+            // ... existing logic ...
+            if (tour.routePath) {
+                // Use new Map Service for precise filtering
+                const nearby = await mapService.fetchNearbyActivities(tour.routePath, tour.city || tour.location);
+                // Map to existing UI structure
+                const mapped = nearby.map(n => ({
+                    business_id: n.id,
+                    company_name: n.name,
+                    dist_meters: n.dist_meters,
+                    category_tags: [n.category],
+                    subscription_tier: n.level,
+                    latitude: n.latitude,
+                    longitude: n.longitude,
+                    category: n.category
+                }));
+                setNearbyPartners(mapped);
+            } else {
+                const { data, error } = await supabase.rpc('get_nearby_partners_for_tour', { tour_id: tour.id, radius_meters: 1000 });
+                if (data) setNearbyPartners(data);
+            }
+        };
+        fetchPartners();
+    }, [tour.id, tour.routePath, tour.city]);
 
     // --- RENDER PLACE VIEW OR TOUR VIEW ---
     const isPlace = ['hotel', 'food', 'shop', 'service'].includes(tour.type);
@@ -614,7 +736,9 @@ export default function TourDetailsPage() {
     };
 
     // --- SMART CTA LOGIC ---
-    const isGuideTour = tour.type !== 'self-guided';
+    // Update logic to exclude AI tours from Guide categorization
+    const isAiTour = tour.isAiGenerated || tour.is_ai || (tour.tags && tour.title.includes('Sorpresa'));
+    const isGuideTour = tour.type !== 'self-guided' && !isAiTour;
 
     // Mock Participants for Group Mode
     const groupParticipants = [
@@ -626,33 +750,53 @@ export default function TourDetailsPage() {
     ];
 
     const navigateToMap = () => {
-        const safeWaypoints = (tour.waypoints && tour.waypoints.length > 0)
-            ? tour.waypoints
-            : [
-                [41.9028, 12.4964],
-                [41.9020, 12.4950],
-                [41.9010, 12.4940]
-            ];
+        // 🛡️ ROBUST WAYPOINT PARSING
+        let safeWaypoints = [];
+        let mapSteps = [];
 
+        // Log for Debugging
+        console.log("Navigating to Map with Tour Data:", tour);
+
+        if (tour.waypoints && Array.isArray(tour.waypoints) && tour.waypoints.length > 0) {
+            safeWaypoints = tour.waypoints;
+        } else if (tour.steps && Array.isArray(tour.steps) && tour.steps.length > 0) {
+            // Fallback: Build waypoints from steps (Handle both lat/lng and latitude/longitude)
+            safeWaypoints = tour.steps.map(s => {
+                const lat = s.latitude || s.lat;
+                const lng = s.longitude || s.lng;
+                return [parseFloat(lat), parseFloat(lng)];
+            });
+            mapSteps = tour.steps;
+        }
+
+        // 🛡️ NULL CHECK: If no valid path found, don't crash, just warn.
+        if (safeWaypoints.length === 0 || safeWaypoints.some(pt => isNaN(pt[0]) || isNaN(pt[1]))) {
+            console.error("❌ Tour has INVALID waypoints or steps!", tour);
+            alert("Attenzione: Impossibile generare il percorso sulla mappa per questo tour.");
+            return;
+        }
+
+        // Construct Tour Markers for Map
         const tourMarkers = safeWaypoints.map((point, index) => {
             const [lat, lng] = Array.isArray(point) ? point : [point.latitude, point.longitude];
-            const itineraryItem = tour.itinerary && tour.itinerary[index];
+            // Try to find step details
+            const stepDetail = mapSteps[index] || (tour.steps && tour.steps[index]);
 
             return {
                 id: `${tour.id}-step-${index}`,
-                name: itineraryItem ? itineraryItem.activity : `Tappa ${index + 1}`,
+                name: stepDetail ? stepDetail.title : `Tappa ${index + 1}`,
                 latitude: lat,
                 longitude: lng,
                 category: 'tour_step',
-                isWaypoint: true,
-                index: index + 1,
-                total: safeWaypoints.length,
-                description: itineraryItem ? `${itineraryItem.emoji || '📍'} ${itineraryItem.time} - Parte del tour "${tour.title}"` : "Punto chiave del percorso.",
-                image: tour.images[index % tour.images.length] || tour.imageUrl,
-                vibe: 'culture',
-                tier: 'base'
+                type: 'tour_step', // Ensure type is set for icon mapping
+                index: index,
+                description: stepDetail?.description || `Tappa numero ${index + 1}`,
+                image: (tour.images && tour.images[0]) || tour.image || "https://via.placeholder.com/150",
             };
         });
+
+        // Map Nearby Partners to Markers
+        // ... (Partner mapping logic remains same or similar)
 
         navigate('/map', {
             state: {
@@ -660,8 +804,12 @@ export default function TourDetailsPage() {
                     id: tour.id,
                     title: tour.title,
                     waypoints: safeWaypoints,
-                    mode: isGroupMode ? 'group_tour' : 'tour'
+                    steps: tour.steps, // Pass full steps 
+                    mode: isGroupMode ? 'group_tour' : 'tour',
+                    routePath: tour.routePath, // Pass route path
+                    center: tour.center // ⚡ CRITICAL: Pass explicit center for Map Page
                 },
+                // Pass markers explicitly so MapPage doesn't have to guess
                 customActivities: tourMarkers
             }
         });
@@ -689,132 +837,158 @@ export default function TourDetailsPage() {
             <TopBar />
 
             <main className="max-w-md mx-auto pb-24">
-                {/* --- HERO SECTION (Original Rich Look) --- */}
-                <div className="relative">
-                    <motion.img
-                        src={tour.images[0] || tour.imageUrl}
-                        alt={tour.title}
-                        className="w-full h-80 object-cover"
-                        initial={{ scale: 1.2, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ duration: 0.8 }}
-                    />
+                {/* --- HERO SECTION (Hidden for AI Tours) --- */}
+                {!isAiTour && (
+                    <>
+                        <div className="relative">
+                            <motion.img
+                                src={getItemImage(tour, tour.city)}
+                                onError={imgOnError(tour.city)}
+                                alt={tour.title}
+                                className="w-full h-80 object-cover"
+                                initial={{ scale: 1.2, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ duration: 0.8 }}
+                            />
 
-                    {/* Overlay Controls */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent">
-                        <div className="absolute top-4 left-4">
-                            <motion.button
-                                onClick={() => navigate(-1)}
-                                className="p-3 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                            >
-                                <ArrowLeft className="w-6 h-6 text-gray-700" />
-                            </motion.button>
-                        </div>
+                            {/* Overlay Controls */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent">
+                                <div className="absolute top-4 left-4">
+                                    <motion.button
+                                        onClick={() => navigate(-1)}
+                                        className="p-3 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                    >
+                                        <ArrowLeft className="w-6 h-6 text-gray-700" />
+                                    </motion.button>
+                                </div>
 
-                        <div className="absolute top-4 right-4 flex space-x-2">
-                            <motion.button
-                                className="p-3 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
-                                whileHover={{ scale: 1.1, rotate: 15 }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => dataService.toggleFavorite(tour.id)}
-                            >
-                                <Heart className="w-6 h-6 text-red-400" />
-                            </motion.button>
-                            <motion.button
-                                className="p-3 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
-                                whileHover={{ scale: 1.1, rotate: -15 }}
-                                whileTap={{ scale: 0.9 }}
-                            >
-                                <Share2 className="w-6 h-6 text-gray-700" />
-                            </motion.button>
-                        </div>
+                                <div className="absolute top-4 right-4 flex space-x-2">
+                                    <motion.button
+                                        className="p-3 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
+                                        whileHover={{ scale: 1.1, rotate: 15 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => {
+                                            const heart = document.getElementById('heart-icon');
+                                            heart.classList.toggle('text-red-500');
+                                            heart.classList.toggle('fill-current');
+                                            alert("❤️ Aggiunto ai preferiti!");
+                                        }}
+                                    >
+                                        <Heart id="heart-icon" className="w-6 h-6 text-gray-700" />
+                                    </motion.button>
+                                    <motion.button
+                                        className="p-3 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
+                                        whileHover={{ scale: 1.1, rotate: -15 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => {
+                                            if (navigator.share) {
+                                                navigator.share({
+                                                    title: tour.title,
+                                                    text: `Guarda questo tour a ${tour.city}: ${tour.title}`,
+                                                    url: window.location.href,
+                                                });
+                                            } else {
+                                                navigator.clipboard.writeText(window.location.href);
+                                                alert("🔗 Link copiato negli appunti!");
+                                            }
+                                        }}
+                                    >
+                                        <Share2 className="w-6 h-6 text-gray-700" />
+                                    </motion.button>
+                                </div>
 
-                        {/* Live/Type Badge */}
-                        {tour.live && (
-                            <motion.div
-                                className="absolute bottom-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full flex items-center space-x-2"
-                                animate={{ scale: [1, 1.05, 1] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                            >
-                                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                                <span className="font-bold">🔴 LIVE</span>
-                            </motion.div>
-                        )}
-                        {!tour.live && (
-                            <div className="absolute bottom-4 left-4 bg-white/90 text-terracotta-600 px-4 py-2 rounded-full font-bold text-sm shadow-lg">
-                                {isGroupMode ? '👥 Gruppo Privato' : (isGuideTour ? '👤 Tour Guidato' : '🗺️ Self-Guided')}
+                                {/* Live/Type Badge */}
+                                {tour.live && (
+                                    <motion.div
+                                        className="absolute bottom-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full flex items-center space-x-2"
+                                        animate={{ scale: [1, 1.05, 1] }}
+                                        transition={{ duration: 2, repeat: Infinity }}
+                                    >
+                                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                                        <span className="font-bold">🔴 LIVE</span>
+                                    </motion.div>
+                                )}
+                                {!tour.live && (
+                                    <div className="absolute bottom-4 left-4 bg-white/90 text-terracotta-600 px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+                                        {isGroupMode ? '👥 Gruppo Privato' : (isGuideTour ? '👤 Tour Guidato' : '🗺️ Self-Guided')}
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-                </div>
+                        </div>
 
-                <div className="px-4 py-6 space-y-8">
-                    {/* Title and Price */}
+                        <div className="px-4 py-6 space-y-8">
+                            {/* Title and Price */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.6 }}
+                            >
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex-1 mr-4">
+                                        <h1 className="text-2xl font-bold text-gray-800 mb-2">{tour.title}</h1>
+                                        <p className="text-gray-600 leading-relaxed text-sm">{tour.description}</p>
+                                    </div>
+                                    {/* Price Button REMOVED as requested */}
+                                </div>
+
+                                {/* Real Data Badges */}
+                                <div className="flex gap-4 text-xs font-bold text-gray-500 mb-2">
+                                    <span className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
+                                        <Users size={14} className="text-gray-400" /> Max {tour.maxParticipants} Pers
+                                    </span>
+                                    <span className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
+                                        <MessageCircle size={14} className="text-gray-400" /> {tour.language}
+                                    </span>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </>
+                )}
+
+                {/* --- SOCIAL BLOCK (Group Mode Only) --- */}
+                {isGroupMode && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-purple-50 border-2 border-purple-200 rounded-3xl p-6 relative overflow-hidden"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.6 }}
                     >
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex-1 mr-4">
-                                <h1 className="text-2xl font-bold text-gray-800 mb-2">{tour.title}</h1>
-                                <p className="text-gray-600 leading-relaxed text-sm">{tour.description}</p>
-                            </div>
-                            <motion.div
-                                className="bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white px-5 py-3 rounded-2xl text-center shadow-lg min-w-[90px]"
-                                whileHover={{ scale: 1.05, rotateY: 5 }}
-                            >
-                                <div className="text-xl font-bold">{tour.price}€</div>
-                                {tour.originalPrice && (
-                                    <div className="text-xs line-through opacity-70">{tour.originalPrice}€</div>
-                                )}
-                            </motion.div>
-                        </div>
-                    </motion.div>
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-purple-100 rounded-bl-full -mr-4 -mt-4 opacity-50" />
 
-                    {/* --- SOCIAL BLOCK (Group Mode Only) --- */}
-                    {isGroupMode && (
-                        <motion.div
-                            className="bg-purple-50 border-2 border-purple-200 rounded-3xl p-6 relative overflow-hidden"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.6 }}
-                        >
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-purple-100 rounded-bl-full -mr-4 -mt-4 opacity-50" />
+                        <h3 className="font-bold text-gray-800 mb-4 flex items-center relative z-10">
+                            <span className="text-2xl mr-2">💌</span>
+                            Invito Speciale
+                        </h3>
 
-                            <h3 className="font-bold text-gray-800 mb-4 flex items-center relative z-10">
-                                <span className="text-2xl mr-2">💌</span>
-                                Invito Speciale
-                            </h3>
+                        <p className="text-sm text-gray-700 font-medium mb-4 relative z-10">
+                            Ti stai unendo a <span className="font-bold text-purple-700">{groupParticipants[0].name}</span> e altri {groupParticipants.length - 1} esploratori per vivere questa storia dal vivo.
+                        </p>
 
-                            <p className="text-sm text-gray-700 font-medium mb-4 relative z-10">
-                                Ti stai unendo a <span className="font-bold text-purple-700">{groupParticipants[0].name}</span> e altri {groupParticipants.length - 1} esploratori per vivere questa storia dal vivo.
-                            </p>
-
-                            <div className="flex items-center justify-between relative z-10">
-                                <div className="flex space-x-2">
-                                    {/* Simple Avatar Stack */}
-                                    <div className="flex -space-x-3">
-                                        {groupParticipants.map((p, i) => (
-                                            <div key={p.id} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden" style={{ zIndex: 10 - i }}>
-                                                <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
-                                            </div>
-                                        ))}
-                                        <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500" style={{ zIndex: 0 }}>
-                                            +2
+                        <div className="flex items-center justify-between relative z-10">
+                            <div className="flex space-x-2">
+                                {/* Simple Avatar Stack */}
+                                <div className="flex -space-x-3">
+                                    {groupParticipants.map((p, i) => (
+                                        <div key={p.id} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden" style={{ zIndex: 10 - i }}>
+                                            <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
                                         </div>
+                                    ))}
+                                    <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500" style={{ zIndex: 0 }}>
+                                        +2
                                     </div>
                                 </div>
-                                <div className="text-xs font-bold text-purple-600 bg-white px-3 py-1 rounded-full shadow-sm">
-                                    Confermati
-                                </div>
                             </div>
-                        </motion.div>
-                    )}
+                            <div className="text-xs font-bold text-purple-600 bg-white px-3 py-1 rounded-full shadow-sm">
+                                Confermati
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
 
-                    {/* Guide Section */}
+                {/* --- GUIDE OR AI SUMMARY SECTION --- */}
+                {isGuideTour ? (
                     <motion.div
                         className="bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-sm rounded-3xl p-6"
                         initial={{ opacity: 0, x: -20 }}
@@ -843,230 +1017,385 @@ export default function TourDetailsPage() {
                                     </div>
                                 </div>
                                 <p className="text-gray-600 text-sm leading-relaxed">{tour.guideBio}</p>
-                                {/* Buttons to contact guide - only relevant if it IS a guide tour or at least has a real guide */}
-                                {isGuideTour && (
-                                    <div className="flex space-x-2 mt-4">
-                                        <button
-                                            onClick={handleChatClick}
-                                            className="flex-1 bg-terracotta-400 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-terracotta-500 transition-colors flex justify-center gap-1"
-                                        >
-                                            <MessageCircle size={14} /> Chat
-                                        </button>
-                                        <button
-                                            onClick={() => setShowProfileModal(true)}
-                                            className="flex-1 bg-olive-400 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-olive-500 transition-colors flex justify-center gap-1"
-                                        >
-                                            <Users size={14} /> Profilo
-                                        </button>
-                                    </div>
-                                )}
+                                <div className="flex space-x-2 mt-4">
+                                    <button
+                                        onClick={handleChatClick}
+                                        className="flex-1 bg-terracotta-400 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-terracotta-500 transition-colors flex justify-center gap-1"
+                                    >
+                                        <MessageCircle size={14} /> Chat
+                                    </button>
+                                    <button
+                                        onClick={() => setShowProfileModal(true)}
+                                        className="flex-1 bg-olive-400 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-olive-500 transition-colors flex justify-center gap-1"
+                                    >
+                                        <Users size={14} /> Profilo
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
-
-                    {/* GUIDE PROFILE MODAL */}
-                    <GuideProfileModal
-                        isOpen={showProfileModal}
-                        onClose={() => setShowProfileModal(false)}
-                        guideName={tour.guide}
-                        guideAvatar={tour.guideAvatar}
-                        bio={tour.guideBio}
-                        rating={tour.rating}
-                        reviews={tour.reviews}
-                    />
-
-                    {/* GUIDE CHAT MODAL */}
-                    <GuideChatModal
-                        isOpen={showChatModal}
-                        onClose={() => setShowChatModal(false)}
-                        guideName={tour.guide}
-                        guideAvatar={tour.guideAvatar}
-                    />
-
-                    {/* Info Grid */}
+                ) : (isAiTour ? (
                     <motion.div
-                        className="grid grid-cols-2 gap-4"
+                        className="relative overflow-hidden bg-white/95 backdrop-blur-xl rounded-[2.5rem] p-0 shadow-2xl border border-white/60"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.4 }}
+                        transition={{ duration: 0.6 }}
                     >
-                        <div className="bg-white/70 rounded-2xl p-4 text-center">
-                            <MapPin className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
-                            <div className="text-xs text-gray-500 mb-1">Dove</div>
-                            <div className="font-bold text-gray-800 text-sm">{tour.location}</div>
-                        </div>
-                        <div className="bg-white/70 rounded-2xl p-4 text-center">
-                            <Clock className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
-                            <div className="text-xs text-gray-500 mb-1">Durata</div>
-                            <div className="font-bold text-gray-800 text-sm">{tour.duration}</div>
-                        </div>
-                        <div className="bg-white/70 rounded-2xl p-4 text-center">
-                            <Users className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
-                            <div className="text-xs text-gray-500 mb-1">Partecipanti</div>
-                            <div className="font-bold text-gray-800 text-sm">{tour.participants}/{tour.maxParticipants}</div>
-                        </div>
-                        <div className="bg-white/70 rounded-2xl p-4 text-center">
-                            <Calendar className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
-                            <div className="text-xs text-gray-500 mb-1">Prossimo</div>
-                            <div className="font-bold text-gray-800 text-sm">{tour.nextStart}</div>
-                        </div>
-                    </motion.div>
+                        {/* Header Gradient */}
+                        <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 px-4 py-6 flex justify-between items-center text-white relative overflow-hidden">
+                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30" />
 
-                    {/* Highlights */}
-                    <motion.div
-                        className="bg-gradient-to-r from-ochre-100 to-terracotta-100 rounded-3xl p-6"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 0.6 }}
-                    >
-                        <h3 className="font-bold text-gray-800 mb-4 flex items-center">
-                            <span className="text-2xl mr-2">✨</span>
-                            Cosa ti aspetta
-                        </h3>
-                        <div className="grid grid-cols-1 gap-3">
-                            {tour.highlights.map((highlight, index) => (
-                                <motion.div
-                                    key={index}
-                                    className="bg-white/60 rounded-xl p-3 flex items-center space-x-3"
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
+                            {/* Left: Title */}
+                            <div className="flex items-center gap-2 relative z-10">
+                                <Sparkles size={18} className="animate-pulse text-yellow-300" />
+                                <span className="font-extrabold tracking-widest uppercase text-[10px] sm:text-xs">AI PERCORSO VELOCE</span>
+                            </div>
+
+                            {/* Right: Controls & Premium Badge */}
+                            <div className="flex items-center gap-3 relative z-10">
+                                {/* Heart Button */}
+                                <button
+                                    onClick={() => {
+                                        const heart = document.getElementById('ai-heart-icon');
+                                        if (heart) {
+                                            heart.classList.toggle('text-red-400');
+                                            heart.classList.toggle('fill-current');
+                                        }
+                                        alert("❤️ Itinerario salvato nella lista dei desideri!");
+                                    }}
+                                    className="text-white hover:text-red-200 transition-colors"
                                 >
-                                    <div className="text-xl">✨</div>
-                                    <span className="font-medium text-gray-700 text-sm">{highlight.replace(/^[^\s]+\s/, '')}</span>
-                                    {/* Strip emoji if double present in mock data */}
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
+                                    <Heart id="ai-heart-icon" size={20} />
+                                </button>
 
-                    {/* Itinerary */}
-                    <motion.div
-                        className="bg-white/80 rounded-3xl p-6"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.8 }}
-                    >
-                        <h3 className="font-bold text-gray-800 mb-6 flex items-center">
-                            <span className="text-2xl mr-2">🗓️</span>
-                            Programma del tour
-                        </h3>
-                        <div className="space-y-4">
-                            {tour.itinerary.map((item, index) => (
-                                <motion.div
-                                    key={index}
-                                    className="flex items-center space-x-4 p-3 bg-gradient-to-r from-terracotta-50 to-ochre-50 rounded-xl"
-                                    initial={{ opacity: 0, x: -30 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ duration: 0.6, delay: 1 + index * 0.1 }}
+                                {/* Share Button (Popup) */}
+                                <button
+                                    onClick={() => {
+                                        if (navigator.share) {
+                                            navigator.share({
+                                                title: tour.title,
+                                                text: `Guarda il mio itinerario AI a ${tour.city}!`,
+                                                url: window.location.href,
+                                            });
+                                        } else {
+                                            alert("🔗 Popup Condivisione: Link copiato!");
+                                        }
+                                    }}
+                                    className="text-white hover:text-blue-200 transition-colors"
                                 >
-                                    <div className="bg-terracotta-400 text-white px-3 py-1 rounded-lg font-bold text-xs whitespace-nowrap">
-                                        {item.time}
-                                    </div>
-                                    <div className="text-xl">{item.emoji}</div>
-                                    <div className="flex-1 font-medium text-gray-700 text-sm">{item.activity}</div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
+                                    <Share2 size={20} />
+                                </button>
 
-                    {/* Meeting Point & Map Preview */}
-                    <motion.div
-                        className="bg-gradient-to-r from-green-100 to-green-200 rounded-3xl p-6"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 1.2 }}
-                    >
-                        <h3 className="font-bold text-gray-800 mb-4 flex items-center">
-                            <span className="text-2xl mr-2">📍</span>
-                            Mappatura
-                        </h3>
-                        <div className="bg-white/60 rounded-xl p-4">
-                            <p className="font-medium text-gray-700 mb-3">{tour.meetingPoint === "Punto di partenza sulla mappa" ? "Percorso completo sulla mappa interattiva" : tour.meetingPoint}</p>
-                            {/* Small Map Button - also uses safe nav logic */}
-                            <button
-                                onClick={navigateToMap}
-                                className="w-full bg-green-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-green-600 transition-colors flex items-center justify-center space-x-2"
-                            >
-                                <Navigation className="w-4 h-4" />
-                                <span>Guarda la Mappa</span>
-                            </button>
-                        </div>
-                    </motion.div>
-
-                    {/* Included/Not Included */}
-                    <motion.div
-                        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 1.4 }}
-                    >
-                        <div className="bg-white/80 rounded-2xl p-6">
-                            <h4 className="font-bold text-gray-800 mb-4 flex items-center text-sm"><CheckCircle size={16} className="mr-2 text-green-500" /> Incluso</h4>
-                            <div className="space-y-2">
-                                {tour.included.map((item, i) => (
-                                    <div key={i} className="flex items-center space-x-2 text-xs text-gray-700">
-                                        <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-                                        <span>{item}</span>
-                                    </div>
-                                ))}
+                                {/* Premium Badge */}
+                                <div className="bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-full text-[9px] font-bold tracking-widest border border-white/10 shadow-lg">
+                                    PREMIUM
+                                </div>
                             </div>
                         </div>
-                        <div className="bg-white/80 rounded-2xl p-6">
-                            <h4 className="font-bold text-gray-800 mb-4 flex items-center text-sm"><XCircle size={16} className="mr-2 text-red-500" /> Non Incluso</h4>
-                            <div className="space-y-2">
-                                {tour.notIncluded.map((item, i) => (
-                                    <div key={i} className="flex items-center space-x-2 text-xs text-gray-700">
-                                        <div className="w-1.5 h-1.5 bg-red-400 rounded-full" />
-                                        <span>{item}</span>
-                                    </div>
+
+                        <div className="p-8">
+                            <h3 className="text-3xl font-black text-gray-900 mb-3 leading-tight tracking-tight">
+                                Il tuo itinerario a {tour.city || 'Destinazione'}
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-8 leading-relaxed font-medium">
+                                Un'esperienza unica curata dall'AI basata sul tuo stile.
+                            </p>
+
+                            {/* 🏷️ Tags Grid */}
+                            <div className="flex flex-wrap gap-2 mb-8">
+                                {tour.tags && tour.tags.map(tag => (
+                                    <span key={tag} className="px-3 py-1.5 bg-gray-50 text-gray-600 text-[11px] font-bold uppercase tracking-wide rounded-lg border border-gray-100 shadow-sm">
+                                        #{tag}
+                                    </span>
                                 ))}
+                            </div>
+
+                            {/* 📍 PLACES SUMMARY (Horizontal Scroll) */}
+                            <div className="mb-8">
+                                <h4 className="font-bold text-gray-800 mb-4 flex items-center text-sm uppercase tracking-wide">
+                                    <MapPin size={16} className="mr-2 text-purple-500" />
+                                    Luoghi da visitare
+                                </h4>
+                                <div className="flex overflow-x-auto pb-4 gap-4 scrollbar-hide -mx-2 px-2">
+                                    {tour.steps && tour.steps.map((step, idx) => (
+                                        <div key={idx} className="flex-none w-32 group">
+                                            <div className="w-32 h-32 rounded-2xl overflow-hidden mb-3 relative shadow-md">
+                                                <img
+                                                    src={getItemImage(step, tour?.city)}
+                                                    onError={imgOnError(tour?.city)}
+                                                    alt={step.title}
+                                                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                                                />
+                                                <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                                                    {idx + 1}
+                                                </div>
+                                            </div>
+                                            <div className="text-xs font-bold text-gray-800 leading-tight truncate">{step.title}</div>
+                                            <div className="text-[10px] text-gray-500 truncate">{step.type === 'food' ? 'Gusto' : 'Luogo'}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* 🗺️ INTEGRATED MAPPING ACTION */}
+                            <div className="pt-6 border-t border-gray-100">
+                                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-1 border border-gray-200">
+                                    <button
+                                        onClick={navigateToMap}
+                                        className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold hover:bg-black transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 group relative overflow-hidden"
+                                    >
+                                        <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
+                                        <Navigation size={18} className="text-purple-400 group-hover:text-white transition-colors" />
+                                        <span className="tracking-wide">APRI MAPPA</span>
+                                    </button>
+                                </div>
+                                <p className="text-center text-[10px] text-gray-400 mt-3 font-medium uppercase tracking-wider">
+                                    Navigazione GPS inclusa
+                                </p>
                             </div>
                         </div>
                     </motion.div>
+                ) : null)}
 
-                    {/* --- SMART CTA BUTTONS (Replaces old 'Prenota' logic) --- */}
-                    <motion.div
-                        className="pt-4"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 2 }}
-                    >
-                        <button
-                            onClick={handleSmartAction}
-                            className={`w-full py-4 rounded-2xl font-bold text-white shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2 text-lg transform active:scale-95 ${isGroupMode
-                                ? "bg-gradient-to-r from-purple-500 to-indigo-600 shadow-purple-500/30"
-                                : (isGuideTour ? "bg-gray-800 hover:bg-black" : "bg-gradient-to-r from-terracotta-400 to-terracotta-600")
-                                }`}
+                {/* GUIDE PROFILE MODAL */}
+                <GuideProfileModal
+                    isOpen={showProfileModal}
+                    onClose={() => setShowProfileModal(false)}
+                    guideName={tour.guide}
+                    guideAvatar={tour.guideAvatar}
+                    bio={tour.guideBio}
+                    rating={tour.rating}
+                    reviews={tour.reviews}
+                />
+
+                {/* GUIDE CHAT MODAL */}
+                <GuideChatModal
+                    isOpen={showChatModal}
+                    onClose={() => setShowChatModal(false)}
+                    guideName={tour.guide}
+                    guideAvatar={tour.guideAvatar}
+                />
+
+                {/* ⬇️ STANDARD SECTIONS: HIDDEN FOR AI TOURS ⬇️ */}
+                {!isAiTour && (
+                    <>
+                        {/* Info Grid */}
+                        <motion.div
+                            className="grid grid-cols-2 gap-4"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.4 }}
                         >
-                            {isGroupMode ? (
-                                <>
-                                    <Users className="w-6 h-6" />
-                                    <span>Unisciti al Gruppo</span>
-                                </>
-                            ) : (
-                                isGuideTour ? (
+                            <div className="bg-white/70 rounded-2xl p-4 text-center">
+                                <MapPin className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
+                                <div className="text-xs text-gray-500 mb-1">Dove</div>
+                                <div className="font-bold text-gray-800 text-sm">{tour.location}</div>
+                            </div>
+                            <div className="bg-white/70 rounded-2xl p-4 text-center">
+                                <Clock className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
+                                <div className="text-xs text-gray-500 mb-1">Durata</div>
+                                <div className="font-bold text-gray-800 text-sm">{tour.duration}</div>
+                            </div>
+                            <div className="bg-white/70 rounded-2xl p-4 text-center">
+                                <Users className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
+                                <div className="text-xs text-gray-500 mb-1">Partecipanti</div>
+                                <div className="font-bold text-gray-800 text-sm">{tour.participants}/{tour.maxParticipants}</div>
+                            </div>
+                            <div className="bg-white/70 rounded-2xl p-4 text-center">
+                                <Calendar className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
+                                <div className="text-xs text-gray-500 mb-1">Prossimo</div>
+                                <div className="font-bold text-gray-800 text-sm">{tour.nextStart}</div>
+                            </div>
+                        </motion.div>
+
+                        {/* Highlights */}
+                        <motion.div
+                            className="bg-gradient-to-r from-ochre-100 to-terracotta-100 rounded-3xl p-6"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.8, delay: 0.6 }}
+                        >
+                            <h3 className="font-bold text-gray-800 mb-4 flex items-center">
+                                <span className="text-2xl mr-2">✨</span>
+                                Cosa ti aspetta
+                            </h3>
+                            <div className="grid grid-cols-1 gap-3">
+                                {tour.highlights.map((highlight, index) => (
+                                    <motion.div
+                                        key={index}
+                                        className="bg-white/60 rounded-xl p-3 flex items-center space-x-3"
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
+                                    >
+                                        <div className="text-xl">✨</div>
+                                        <span className="font-medium text-gray-700 text-sm">{highlight.replace(/^[^\s]+\s/, '')}</span>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
+
+                        {/* Itinerary */}
+                        <motion.div
+                            className="bg-white/80 rounded-3xl p-6"
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.8 }}
+                        >
+                            <h3 className="font-bold text-gray-800 mb-6 flex items-center">
+                                <span className="text-2xl mr-2">🗓️</span>
+                                Programma del tour
+                            </h3>
+                            <div className="space-y-4">
+                                {tour.itinerary.map((item, index) => (
+                                    <motion.div
+                                        key={index}
+                                        className="flex items-center space-x-4 p-3 bg-gradient-to-r from-terracotta-50 to-ochre-50 rounded-xl"
+                                        initial={{ opacity: 0, x: -30 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.6, delay: 1 + index * 0.1 }}
+                                    >
+                                        <div className="bg-terracotta-400 text-white px-3 py-1 rounded-lg font-bold text-xs whitespace-nowrap">
+                                            {item.time}
+                                        </div>
+                                        <div className="text-xl">{item.emoji}</div>
+                                        <div className="flex-1 font-medium text-gray-700 text-sm">{item.activity}</div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
+
+                        {/* Nearby Partners Section */}
+                        {nearbyPartners.length > 0 && (
+                            <motion.div
+                                className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-6 mb-6"
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.8 }}
+                            >
+                                <h3 className="font-bold text-gray-800 mb-4 flex items-center">
+                                    <span className="text-2xl mr-2">🤝</span>
+                                    Consigliati nei dintorni
+                                </h3>
+                                <div className="space-y-3">
+                                    {nearbyPartners.map((partner) => (
+                                        <div key={partner.business_id} className="bg-white p-4 rounded-xl flex items-center justify-between shadow-sm">
+                                            <div>
+                                                <h4 className="font-bold text-gray-900">{partner.company_name}</h4>
+                                                <div className="flex gap-2 text-xs mt-1">
+                                                    {partner.category_tags && partner.category_tags.map(tag => (
+                                                        <span key={tag} className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">{tag}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="block font-bold text-blue-600 text-sm">{(partner.dist_meters).toFixed(0)}m</span>
+                                                {partner.subscription_tier === 'elite' && <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded uppercase font-bold">Consigliato</span>}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Meeting Point & Map Preview */}
+                        <motion.div
+                            className="bg-gradient-to-r from-green-100 to-green-200 rounded-3xl p-6"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.8, delay: 1.2 }}
+                        >
+                            <h3 className="font-bold text-gray-800 mb-4 flex items-center">
+                                <span className="text-2xl mr-2">📍</span>
+                                Mappatura
+                            </h3>
+                            <div className="bg-white/60 rounded-xl p-4">
+                                <p className="font-medium text-gray-700 mb-3">{tour.meetingPoint === "Punto di partenza sulla mappa" ? "Percorso completo sulla mappa interattiva" : tour.meetingPoint}</p>
+                                <button
+                                    onClick={navigateToMap}
+                                    className="w-full bg-green-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-green-600 transition-colors flex items-center justify-center space-x-2"
+                                >
+                                    <Navigation className="w-4 h-4" />
+                                    <span>Guarda la Mappa</span>
+                                </button>
+                            </div>
+                        </motion.div>
+
+                        {/* Included/Not Included */}
+                        <motion.div
+                            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 1.4 }}
+                        >
+                            <div className="bg-white/80 rounded-2xl p-6">
+                                <h4 className="font-bold text-gray-800 mb-4 flex items-center text-sm"><CheckCircle size={16} className="mr-2 text-green-500" /> Incluso</h4>
+                                <div className="space-y-2">
+                                    {tour.included.map((item, i) => (
+                                        <div key={i} className="flex items-center space-x-2 text-xs text-gray-700">
+                                            <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+                                            <span>{item}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="bg-white/80 rounded-2xl p-6">
+                                <h4 className="font-bold text-gray-800 mb-4 flex items-center text-sm"><XCircle size={16} className="mr-2 text-red-500" /> Non Incluso</h4>
+                                <div className="space-y-2">
+                                    {tour.notIncluded.map((item, i) => (
+                                        <div key={i} className="flex items-center space-x-2 text-xs text-gray-700">
+                                            <div className="w-1.5 h-1.5 bg-red-400 rounded-full" />
+                                            <span>{item}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* --- SMART CTA BUTTONS --- */}
+                        <motion.div
+                            className="pt-4"
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 2 }}
+                        >
+                            <button
+                                onClick={handleSmartAction}
+                                className={`w-full py-4 rounded-2xl font-bold text-white shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2 text-lg transform active:scale-95 ${isGroupMode
+                                    ? "bg-gradient-to-r from-purple-500 to-indigo-600 shadow-purple-500/30"
+                                    : (isGuideTour ? "bg-gray-800 hover:bg-black" : "bg-gradient-to-r from-terracotta-400 to-terracotta-600")
+                                    }`}
+                            >
+                                {isGroupMode ? (
                                     <>
-                                        <MessageCircle className="w-6 h-6" />
-                                        <span>Richiedi Guida</span>
+                                        <Users className="w-6 h-6" />
+                                        <span>Unisciti al Gruppo</span>
                                     </>
                                 ) : (
-                                    <>
-                                        <Play className="w-6 h-6 fill-current" />
-                                        <span>Avvia Itinerario</span>
-                                    </>
-                                )
-                            )}
-                        </button>
-                        <p className="text-center text-xs text-gray-500 mt-2">
-                            {isGroupMode
-                                ? "Ti unirai ufficialmente alla lista dei partecipanti."
-                                : (isGuideTour ? "Invierai una richiesta non vincolante alla guida." : "Navigazione GPS inclusa. Clicca per iniziare.")}
-                        </p>
-                    </motion.div>
+                                    isGuideTour ? (
+                                        <>
+                                            <MessageCircle className="w-6 h-6" />
+                                            <span>Richiedi Guida</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play className="w-6 h-6 fill-current" />
+                                            <span>Avvia Itinerario</span>
+                                        </>
+                                    )
+                                )}
+                            </button>
+                            <p className="text-center text-xs text-gray-500 mt-2">
+                                {isGroupMode
+                                    ? "Ti unirai ufficialmente alla lista dei partecipanti."
+                                    : (isGuideTour ? "Invierai una richiesta non vincolante alla guida." : "Navigazione GPS inclusa. Clicca per iniziare.")}
+                            </p>
+                        </motion.div>
+                    </>
+                )}
 
-                </div>
-            </main>
+
+            </main >
 
             <BottomNavigation />
 
@@ -1076,7 +1405,10 @@ export default function TourDetailsPage() {
                 onClose={() => setShowRequestModal(false)}
                 guideName={tour.guide}
                 tourTitle={tour.title}
+                guideId={tour.guideId || tour.guide_id || 'admin'} // Pass guideId
+                tourId={tour.id} // Pass tourId
             />
-        </div>
+        </div >
     );
 }
+

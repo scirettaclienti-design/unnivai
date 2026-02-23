@@ -161,14 +161,19 @@ export default function AIItineraryPage() {
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             // Pass current weather context to AI for consistency
-            const days = await aiRecommendationService.generateItinerary(activeCity, prefsObject, userPrompt, {
+            const result = await aiRecommendationService.generateItinerary(activeCity, prefsObject, userPrompt, {
                 condition: weatherCondition || 'sunny',
                 temperature: temperatureC || 20
             });
 
-            if (!days || days.length === 0) throw new Error("No itinerary generated");
+            // Handle new structure { summary, days }
+            const itineraryDays = result.days || result;
 
-            setGeneratedItinerary(days);
+            if (!itineraryDays || !Array.isArray(itineraryDays) || itineraryDays.length === 0) {
+                throw new Error("No itinerary generated");
+            }
+
+            setGeneratedItinerary(itineraryDays);
             setCurrentStep(2);
         } catch (error) {
             console.error("AI Generation Error", error);
@@ -549,82 +554,83 @@ export default function AIItineraryPage() {
                                         </div>
 
                                         {/* Stops Timeline */}
-                                        <div className="space-y-4">
+                                        <div className="space-y-3">
                                             {day.stops.map((stop, index) => {
                                                 const IconComponent = (typeof stop.icon === 'string'
                                                     ? { Camera, ShoppingBag, Utensils, Eye, Coffee, MapPin }[stop.icon] || MapPin
                                                     : stop.icon) || MapPin;
 
+                                                const typeColors = {
+                                                    cultura: 'bg-purple-100 text-purple-700',
+                                                    culture: 'bg-purple-100 text-purple-700',
+                                                    food: 'bg-red-100 text-red-700',
+                                                    shopping: 'bg-green-100 text-green-700',
+                                                    relax: 'bg-blue-100 text-blue-700',
+                                                    storia: 'bg-amber-100 text-amber-800',
+                                                    natura: 'bg-emerald-100 text-emerald-700',
+                                                };
+
                                                 return (
                                                     <motion.div
                                                         key={index}
-                                                        className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg relative"
+                                                        className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
                                                         initial={{ opacity: 0, y: 20 }}
                                                         animate={{ opacity: 1, y: 0 }}
-                                                        transition={{ delay: index * 0.1 }}
-                                                        whileHover={{ scale: 1.02 }}
+                                                        transition={{ delay: index * 0.08 }}
+                                                        whileHover={{ scale: 1.01 }}
                                                     >
-                                                        {/* Timeline connector */}
-                                                        {index < day.stops.length - 1 && (
-                                                            <div className="absolute left-12 top-16 w-0.5 h-12 bg-gradient-to-b from-terracotta-400 to-terracotta-300 z-10" />
-                                                        )}
-
-                                                        <div className="flex space-x-4">
-                                                            <div className="flex-shrink-0">
-                                                                <div className="w-12 h-12 bg-gradient-to-br from-terracotta-300 to-terracotta-400 rounded-full flex items-center justify-center relative z-20">
-                                                                    <IconComponent className="w-6 h-6 text-white" />
-                                                                </div>
-                                                                <div className="text-center mt-2">
-                                                                    <span className="text-xs font-bold text-terracotta-600">{stop.time}</span>
+                                                        <div className="flex">
+                                                            {/* Left color bar + Icon */}
+                                                            <div className="flex flex-col items-center justify-start bg-gradient-to-b from-terracotta-400 to-terracotta-500 px-3 py-4 min-w-[64px]">
+                                                                <span className="text-white font-bold text-xs mb-2 whitespace-nowrap">{stop.time || '--:--'}</span>
+                                                                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                                                    <IconComponent className="w-5 h-5 text-white" />
                                                                 </div>
                                                             </div>
 
-                                                            <div className="flex-1">
-                                                                <div className="flex items-center justify-between mb-2">
-                                                                    <h4 className="font-bold text-gray-800">{stop.title}</h4>
+                                                            {/* Content */}
+                                                            <div className="flex-1 p-4">
+                                                                <div className="flex items-start justify-between gap-2 mb-1">
+                                                                    <h4 className="font-bold text-gray-900 text-sm leading-tight">{stop.title}</h4>
                                                                     {stop.rating && (
-                                                                        <div className="flex items-center space-x-1">
-                                                                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                                                            <span className="text-sm font-medium text-gray-700">{stop.rating}</span>
+                                                                        <div className="flex items-center gap-0.5 flex-shrink-0 bg-yellow-50 px-2 py-0.5 rounded-full">
+                                                                            <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                                                                            <span className="text-xs font-bold text-gray-700">{stop.rating}</span>
                                                                         </div>
                                                                     )}
                                                                 </div>
 
-                                                                <p className="text-sm text-gray-600 mb-3">{stop.description}</p>
-
-                                                                {stop.location && (
-                                                                    <p className="text-xs text-gray-500 flex items-center mb-2">
-                                                                        <MapPin className="w-3 h-3 mr-1" />
-                                                                        {stop.location}
-                                                                    </p>
-                                                                )}
+                                                                <p className="text-xs text-gray-500 mb-2 line-clamp-2">{stop.description}</p>
 
                                                                 <div className="flex items-center justify-between">
-                                                                    <div className="flex items-center space-x-4">
+                                                                    <div className="flex items-center gap-2">
                                                                         {stop.price !== undefined && (
-                                                                            <span className="text-sm font-medium text-terracotta-600">
+                                                                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${stop.price === 0 ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'
+                                                                                }`}>
                                                                                 {stop.price === 0 ? 'Gratuito' : `€${stop.price}`}
                                                                             </span>
                                                                         )}
-                                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${stop.type === 'cultura' ? 'bg-purple-100 text-purple-700' :
-                                                                            stop.type === 'food' ? 'bg-red-100 text-red-700' :
-                                                                                stop.type === 'shopping' ? 'bg-green-100 text-green-700' :
-                                                                                    stop.type === 'relax' ? 'bg-blue-100 text-blue-700' :
-                                                                                        'bg-gray-100 text-gray-700'
-                                                                            }`}>
+                                                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${typeColors[stop.type] || 'bg-gray-100 text-gray-600'}`}>
                                                                             {stop.type}
                                                                         </span>
                                                                     </div>
 
                                                                     <motion.button
                                                                         onClick={() => setSelectedStop(stop)}
-                                                                        className="text-terracotta-600 hover:text-terracotta-700 text-sm font-medium"
+                                                                        className="text-terracotta-500 hover:text-terracotta-700 text-xs font-bold"
                                                                         whileHover={{ scale: 1.05 }}
                                                                         whileTap={{ scale: 0.95 }}
                                                                     >
                                                                         Dettagli →
                                                                     </motion.button>
                                                                 </div>
+
+                                                                {stop.location && (
+                                                                    <p className="text-[11px] text-gray-400 flex items-center mt-1.5">
+                                                                        <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                                                                        {stop.location}
+                                                                    </p>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </motion.div>
@@ -657,19 +663,21 @@ export default function AIItineraryPage() {
                                         latitude: s.latitude,
                                         longitude: s.longitude,
                                         label: s.title,
-                                        index: i + 1
-                                    })) || [],
-                                    customActivities: generatedItinerary.find(d => d.day === currentDay)?.stops.map((s, i) => ({
-                                        ...s,
-                                        id: s.id || `gen-${s.day}-${i}`,
-                                        category: s.type || 'special',
-                                        level: 'premium',
+                                        title: s.title, // Ensure title is passed
                                         index: i + 1,
-                                        isWaypoint: true
+                                        type: 'waypoint'
                                     })) || [],
                                     tourData: {
                                         title: generatedItinerary.find(d => d.day === currentDay)?.title || "Itinerario AI",
-                                        type: 'ai-generated'
+                                        type: 'ai-generated',
+                                        steps: generatedItinerary.find(d => d.day === currentDay)?.stops.map((s, i) => ({
+                                            lat: s.latitude,
+                                            lng: s.longitude,
+                                            title: s.title,
+                                            description: s.description,
+                                            image: s.photos?.[0] || null,
+                                            type: s.type
+                                        })) || []
                                     }
                                 }}
                                 className="flex-1"

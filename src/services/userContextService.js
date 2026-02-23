@@ -4,7 +4,7 @@ import { dataService } from './dataService';
 import { weatherService } from './weatherService';
 
 class UserContextService {
-    async getUserContext(gpsLocation = null) {
+    async getUserContext(gpsLocation = null, manualCity = null) {
         // 1. Auth: Get User Profile
         let profile = {
             userId: null,
@@ -30,32 +30,45 @@ class UserContextService {
         }
 
 
-        // 2. Location: GPS > Supabase Profile (if logged) > localStorage > Fallback
+        // 2. Location logic
         let city = 'Roma'; // Fallback Default
         let lat = null;
         let lng = null;
         let source = 'fallback';
 
-        // A. Check GPS
-        if (gpsLocation?.latitude && gpsLocation?.longitude) {
+        // 🚀 PRIORITY 1: MANUAL OVERRIDE (From TopBar/CityContext)
+        if (manualCity) {
+            city = manualCity;
+            source = 'manual';
+            // Fetch coords for manual city
+            const coords = await this.getCoordinatesForCity(city);
+            if (coords) {
+                lat = coords.lat;
+                lng = coords.lng;
+            } else {
+                // If geocoding fails, maybe nullify lat/lng to force fallbacks or keep null
+                // We'll keep them null, weather service handles fallback via city name
+                console.warn(`Could not geocode manual city: ${city}`);
+            }
+        }
+        // PRIORITY 2: GPS (Only if no manual override)
+        else if (gpsLocation?.latitude && gpsLocation?.longitude) {
             city = gpsLocation.city || await this.reverseGeocodeCity(gpsLocation.latitude, gpsLocation.longitude);
             lat = gpsLocation.latitude;
             lng = gpsLocation.longitude;
             source = 'gps';
 
-            // Persist GPS location to Supabase if logged in
             if (!profile.isGuest && profile.userId) {
                 this.updateSupabaseProfileCity(profile.userId, city);
             }
         }
-        // B. Check Supabase Profile (if logged in and no GPS override)
+        // PRIORITY 3: Supabase Profile (Logged in)
         else if (!profile.isGuest && profile.userId) {
             const savedProfileCity = await this.getSupabaseProfileCity(profile.userId);
             if (savedProfileCity) {
                 city = savedProfileCity;
-                source = 'manual'; // Treated as manual persistence
+                source = 'manual';
             } else {
-                // Check localStorage as fallback for logged user too if new device
                 const localCity = localStorage.getItem('user_city');
                 if (localCity) {
                     city = localCity;
@@ -63,7 +76,7 @@ class UserContextService {
                 }
             }
         }
-        // C. Check localStorage (Guest)
+        // PRIORITY 4: localStorage (Guest)
         else {
             const savedCity = localStorage.getItem('user_city');
             if (savedCity) {
@@ -72,20 +85,50 @@ class UserContextService {
             }
         }
 
+        // 🛡️ RE-VERIFY COORDS FOR PERSISTED MANUAL (Priority 3 & 4)
+        // If we picked a manual city from profile/storage (and didn't have specific manual override above), make sure we have coords
+        if (source === 'manual' && city && !lat && !manualCity) {
+            const coords = await this.getCoordinatesForCity(city);
+            if (coords) {
+                lat = coords.lat;
+                lng = coords.lng;
+            }
+        }
+
         // 3. Weather
         let temperatureC = 24; // Default MVP
         let weatherCondition = 'sunny';
-        try {
-            // Priority: Real API (if lat/lng) > Fallback Service
+
+        // 🛡️ SANITIZATION: Ensure City is a Name, NOT Coordinates
+        // If city looks like specific coordinates or "Lat:", trigger failover
+        if (city && (city.includes('Lat') || city.includes(':') || (city.match(/\d/) && city.length > 20))) {
+            console.warn(`⚠️ Detected Coordinate String in City Context: ${city}. Forcing Reverse Geocode/Fallback.`);
             if (lat && lng) {
-                const realWeather = await weatherService.getCurrentWeather(lat, lng);
-                temperatureC = realWeather.temperature;
-                weatherCondition = realWeather.condition;
+                try {
+                    const realName = await this.reverseGeocodeCity(lat, lng);
+                    console.log(`✅ Recovered Real City Name: ${realName}`);
+                    city = realName;
+                } catch (e) {
+                    city = 'Roma';
+                }
             } else {
-                // Fallback via AI Service (Mock) if no coords
-                const weather = await aiRecommendationService.getCurrentWeather(city);
-                temperatureC = weather.temperature;
-                weatherCondition = weather.condition;
+                city = 'Roma';
+            }
+        }
+
+        // Final Capitalization
+        if (city && typeof city === 'string') {
+            city = city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
+        } else {
+            city = 'Roma';
+        }
+
+        // Fetch Weather for Final City
+        try {
+            const w = await weatherService.getWeather(city, lat, lng); // Pass lat/lng for weather service to prioritize
+            if (w) {
+                temperatureC = w.temperature;
+                weatherCondition = w.condition;
             }
         } catch (e) {
             console.warn('Weather fetch failed', e);
@@ -121,7 +164,7 @@ class UserContextService {
         };
     }
 
-    // Helper for consistency if gpsLocation lacks city name
+    // Helper: Reverse Geocoding (Lat/Lng -> City)
     async reverseGeocodeCity(lat, lng) {
         try {
             const response = await fetch(
@@ -138,6 +181,45 @@ class UserContextService {
             console.warn('Service geocoding failed, falling back to cached or default');
             return 'Roma';
         }
+    }
+
+    // Helper: Direct Geocoding (City -> Lat/Lng)
+    async getCoordinatesForCity(cityName) {
+        // ⚡ FAST PATH: Hardcoded Coords for Major Cities (No API Lag)
+        const CITY_COORDS = {
+            'Roma': { lat: 41.9028, lng: 12.4964 },
+            'Milano': { lat: 45.4642, lng: 9.1900 },
+            'Napoli': { lat: 40.8518, lng: 14.2681 },
+            'Firenze': { lat: 43.7696, lng: 11.2558 },
+            'Venezia': { lat: 45.4408, lng: 12.3155 },
+            'Torino': { lat: 45.0703, lng: 7.6869 },
+            'Palermo': { lat: 38.1157, lng: 13.3615 },
+            'Bologna': { lat: 44.4949, lng: 11.3426 },
+            'Genova': { lat: 44.4056, lng: 8.9463 },
+            'Bari': { lat: 41.1171, lng: 16.8719 },
+            'Catania': { lat: 37.5079, lng: 15.0830 },
+            'Perugia': { lat: 43.1107, lng: 12.3908 }
+        };
+
+        const normalized = cityName.charAt(0).toUpperCase() + cityName.slice(1).toLowerCase();
+        if (CITY_COORDS[normalized]) {
+            console.log(`📍 Using Fast Coords for ${normalized}`);
+            return CITY_COORDS[normalized];
+        }
+
+        try {
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`
+            );
+            if (!response.ok) throw new Error('City Search Failed');
+            const data = await response.json();
+            if (data && data.length > 0) {
+                return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+            }
+        } catch (e) {
+            console.warn('City coords fetch failed', e);
+        }
+        return null;
     }
 
     // Helper: Update city in Supabase profile (for authenticated users)

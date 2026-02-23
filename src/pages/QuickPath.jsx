@@ -1,5 +1,9 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { aiRecommendationService } from "@/services/aiRecommendationService";
+import { dataService } from "@/services/dataService";
+import { Brain } from "lucide-react";
 import { ArrowLeft, Waves, Mountain, Building2, Trees, ArrowRight, RotateCcw, Home, Sunrise, Sun, Sunset, Zap, Clock, Target, User, Heart, Users, UserCheck, MapPin, Calendar, Timer, UsersIcon } from "lucide-react";
 import DemoHint from "@/components/DemoHint";
 import { Link } from "react-router-dom";
@@ -8,131 +12,107 @@ import BottomNavigation from "@/components/BottomNavigation";
 import { useUserContext } from "@/hooks/useUserContext";
 import { DEMO_CITIES, MOCK_ROUTES } from "@/data/demoData";
 
-const mainOptions = [
-    {
-        id: 'mare',
-        title: 'Mare',
-        emoji: '🌊',
-        icon: Waves,
-        color: 'from-blue-400 to-cyan-400'
+// 🌍 ADAPTIVE DATA ENGINE
+const CITY_CONFIG = {
+    'Roma': {
+        main: ['citta', 'natura', 'storia', 'cibo'],
+        sub: {
+            citta: [
+                { id: 'rione', title: 'Rioni Storici', image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=300', description: 'Perditi tra i vicoli di Trastevere o Monti', emoji: '🛵' },
+                { id: 'piazze', title: 'Piazze Eterne', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=300', description: 'La dolce vita tra Piazza Navona e Spagna', emoji: '⛲' },
+                { id: 'shopping', title: 'Via del Corso', image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300', description: 'Shopping tra vetrine e palazzi storici', emoji: '🛍️' }
+            ],
+            natura: [
+                { id: 'villa', title: 'Ville Nobiliari', image: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=300', description: 'Relax a Villa Borghese o Doria Pamphilj', emoji: '🌳' },
+                { id: 'tevere', title: 'Lungo il Tevere', image: 'https://images.unsplash.com/photo-1565618244030-h200?w=300', description: 'Passeggiata ciclabile sulle sponde del fiume', emoji: '🚴' }
+            ],
+            storia: [
+                { id: 'imperiale', title: 'Roma Imperiale', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=300', description: 'Colosseo e Fori Imperiali al tramonto', emoji: '⚔️' },
+                { id: 'barocco', title: 'Roma Barocca', image: 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=300', description: 'Bernini, Borromini e le cupole', emoji: '⛪' }
+            ],
+            cibo: [
+                { id: 'street', title: 'Street Food', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300', description: 'Supplì, Pizza al taglio e Maritozzo', emoji: '🍕' },
+                { id: 'carbonara', title: 'Carbonara Tour', image: 'https://images.unsplash.com/photo-1574868233905-25916053805b?w=300', description: 'Alla ricerca della pasta perfetta', emoji: '🍝' }
+            ]
+        }
     },
-    {
-        id: 'montagna',
-        title: 'Montagna',
-        emoji: '⛰️',
-        icon: Mountain,
-        color: 'from-green-400 to-emerald-400'
+    'Milano': {
+        main: ['citta', 'moda', 'parchi', 'canali'],
+        sub: {
+            citta: [
+                { id: 'duomo', title: 'Zona Duomo', image: 'https://images.unsplash.com/photo-1547464333-28f0de20b8f9?w=300', description: 'Il cuore pulsante tra madonnina e galleria', emoji: '⛪' },
+                { id: 'grattacieli', title: 'Skyline Gae Aulenti', image: 'https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=300', description: 'La Milano moderna del Bosco Verticale', emoji: '🏙️' }
+            ],
+            moda: [
+                { id: 'quadrilatero', title: 'Quadrilatero', image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300', description: 'Fashion district e vetrine di lusso', emoji: '👠' },
+                { id: 'vintage', title: 'Vintage Brera', image: 'https://images.unsplash.com/photo-1520006403909-838d6b92c22e?w=300', description: 'Botteghe storiche e design', emoji: '🕶️' }
+            ],
+            parchi: [
+                { id: 'sempione', title: 'Parco Sempione', image: 'https://images.unsplash.com/photo-1579290076295-a226bc40b543?w=300', description: 'Relax vista Castello Sforzesco', emoji: '🏰' }
+            ],
+            canali: [
+                { id: 'navigli', title: 'I Navigli', image: 'https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=300', description: 'Aperitivo e passeggiata sui canali', emoji: '🥂' }
+            ]
+        }
     },
-    {
-        id: 'citta',
-        title: 'Città',
-        emoji: '🏙️',
-        icon: Building2,
-        color: 'from-purple-400 to-indigo-400'
+    'Napoli': {
+        main: ['mare', 'citta', 'vulcano', 'cibo'],
+        sub: {
+            mare: [
+                { id: 'lungomare', title: 'Lungomare', image: 'https://images.unsplash.com/photo-1498394467144-8cb38902d184?w=300', description: 'Castel dell\'Ovo e vista Capri', emoji: '🌊' },
+                { id: 'posillipo', title: 'Posillipo', image: 'https://images.unsplash.com/photo-1534720993072-cb99b397d415?w=300', description: 'Panorami mozzafiato dall\'alto', emoji: '📸' }
+            ],
+            citta: [
+                { id: 'spaccanapoli', title: 'Spaccanapoli', image: 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=300', description: 'Il cuore verace e i presepi', emoji: '🌶️' },
+                { id: 'quartieri', title: 'Quartieri Spagnoli', image: 'https://images.unsplash.com/photo-1574868233905-25916053805b?w=300', description: 'Murales, vicoli e vitalità', emoji: '🎭' }
+            ],
+            vulcano: [
+                { id: 'vesuvio', title: 'Vesuvio View', image: 'https://images.unsplash.com/photo-1536417724282-598284687593?w=300', description: 'Punti panoramici sul vulcano', emoji: '🌋' }
+            ],
+            cibo: [
+                { id: 'pizza', title: 'Vera Pizza', image: 'https://images.unsplash.com/photo-1574868233905-25916053805b?w=300', description: 'Le pizzerie storiche', emoji: '🍕' },
+                { id: 'dolci', title: 'Sfogliatella', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300', description: 'Pasticceria napoletana', emoji: '🧁' }
+            ]
+        }
     },
-    {
-        id: 'natura',
-        title: 'Natura',
-        emoji: '🌿',
-        icon: Trees,
-        color: 'from-emerald-400 to-green-400'
+    // Default Fallback
+    'default': {
+        main: ['citta', 'natura', 'storia', 'relax'],
+        sub: {
+            citta: [{ id: 'centro', title: 'Centro Storico', image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300', description: 'Monumenti e piazze principali', emoji: '🏰' }],
+            natura: [{ id: 'parco', title: 'Parchi e Verde', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=300', description: 'Aree verdi e relax', emoji: '🌳' }],
+            storia: [{ id: 'musei', title: 'Cultura e Musei', image: 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=300', description: 'Arte e storia locale', emoji: '🏛️' }],
+            relax: [{ id: 'spa', title: 'Benessere', image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=300', description: 'Terme e relax', emoji: '🧖' }]
+        }
     }
-];
+};
 
-// Step 2: Sub-categories based on main selection
-const subOptions = {
-    mare: [
-        {
-            id: 'spiaggia-segreta',
-            title: 'Spiaggia segreta',
-            image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300&h=200&fit=crop',
-            description: 'Una piccola baia nascosta tra le rocce, accessibile solo a piedi attraverso un sentiero panoramico',
-            emoji: '🏖️'
-        },
-        {
-            id: 'passeggiata-porto',
-            title: 'Passeggiata sul porto',
-            image: 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?w=300&h=200&fit=crop',
-            description: 'Cammina tra i pescatori e scopri la vita marina del porto storico',
-            emoji: '⚓'
-        },
-        {
-            id: 'aperitivo-faro',
-            title: 'Aperitivo vista faro',
-            image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop',
-            description: 'Goditi un aperitivo al tramonto con vista sul faro e le barche dei pescatori',
-            emoji: '🌅'
+// HELPER: Component-ready options generator
+const getAdaptiveOptions = (city) => {
+    const config = CITY_CONFIG[city] || CITY_CONFIG['default'];
+
+    // Map main keys to full option objects
+    const mainOptions = config.main.map(key => {
+        switch (key) {
+            case 'citta': return { id: 'citta', title: 'Città', emoji: '🏙️', color: 'from-purple-400 to-indigo-400' };
+            case 'natura': return { id: 'natura', title: 'Natura', emoji: '🌿', color: 'from-emerald-400 to-green-400' };
+            case 'mare': return { id: 'mare', title: 'Mare', emoji: '🌊', color: 'from-blue-400 to-cyan-400' };
+            case 'montagna': return { id: 'montagna', title: 'Montagna', emoji: '⛰️', color: 'from-green-400 to-emerald-400' };
+            case 'storia': return { id: 'storia', title: 'Storia', emoji: '🏛️', color: 'from-amber-400 to-orange-400' };
+            case 'cibo': return { id: 'cibo', title: 'Gusto', emoji: '🍝', color: 'from-red-400 to-orange-400' };
+            case 'moda': return { id: 'moda', title: 'Fashion', emoji: '👠', color: 'from-pink-400 to-rose-400' };
+            case 'parchi': return { id: 'parchi', title: 'Parchi', emoji: '🌳', color: 'from-green-400 to-teal-400' };
+            case 'canali': return { id: 'canali', title: 'Navigli', emoji: '🛶', color: 'from-blue-500 to-indigo-500' };
+            case 'vulcano': return { id: 'vulcano', title: 'Vulcano', emoji: '🌋', color: 'from-red-600 to-orange-600' };
+            case 'relax': return { id: 'relax', title: 'Relax', emoji: '🧖', color: 'from-teal-300 to-cyan-300' };
+            default: return { id: key, title: key, emoji: '✨', color: 'from-gray-400 to-gray-500' };
         }
-    ],
-    montagna: [
-        {
-            id: 'panorama-tramonto',
-            title: 'Panorama al tramonto',
-            image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop',
-            description: 'Raggiungi un punto panoramico per ammirare il tramonto sulle valli circostanti',
-            emoji: '🌄'
-        },
-        {
-            id: 'fontana-nascosta',
-            title: 'Fontana nascosta',
-            image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=200&fit=crop',
-            description: 'Scopri una fontana naturale immersa nel bosco, perfetta per una pausa rinfrescante',
-            emoji: '💧'
-        },
-        {
-            id: 'rifugio-locale',
-            title: 'Rifugio locale',
-            image: 'https://images.unsplash.com/photo-1586996292898-71f4036c4e07?w=300&h=200&fit=crop',
-            description: 'Visita un rifugio gestito da una famiglia locale che serve prodotti tipici',
-            emoji: '🏔️'
-        }
-    ],
-    citta: [
-        {
-            id: 'mercato-artigiano',
-            title: 'Mercato artigiano',
-            image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&h=200&fit=crop',
-            description: 'Esplora un mercato di artigiani locali e scopri prodotti unici fatti a mano',
-            emoji: '🎨'
-        },
-        {
-            id: 'street-art-tour',
-            title: 'Street art tour',
-            image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=200&fit=crop',
-            description: 'Segui un percorso attraverso i murales più belli del quartiere artistico',
-            emoji: '🎭'
-        },
-        {
-            id: 'caffe-storico',
-            title: 'Caffè storico',
-            image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=300&h=200&fit=crop',
-            description: 'Rilassati in un caffè con oltre 100 anni di storia nel cuore della città',
-            emoji: '☕'
-        }
-    ],
-    natura: [
-        {
-            id: 'giardino-botanico',
-            title: 'Giardino botanico',
-            image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=300&h=200&fit=crop',
-            description: 'Passeggia tra piante rare e scopri la biodiversità locale in un ambiente tranquillo',
-            emoji: '🌺'
-        },
-        {
-            id: 'sentiero-fiume',
-            title: 'Sentiero del fiume',
-            image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=200&fit=crop',
-            description: 'Segui un sentiero costeggiando un fiume cristallino tra la vegetazione rigogliosa',
-            emoji: '🌊'
-        },
-        {
-            id: 'osservatorio-uccelli',
-            title: 'Osservatorio uccelli',
-            image: 'https://images.unsplash.com/photo-1520637836862-4d197d17c91a?w=300&h=200&fit=crop',
-            description: 'Scopri la fauna locale in un punto di osservazione privilegiato per il birdwatching',
-            emoji: '🦅'
-        }
-    ]
+    });
+
+    return {
+        mainOptions,
+        subOptions: config.sub
+    };
 };
 
 // Step 3: Time preferences
@@ -237,18 +217,43 @@ const groupOptions = [
     }
 ];
 
+// ⚠️ FIXED ARCHITECTURE: PARENT-CONTROLLED GENERATION
 export default function QuickPathPage() {
-    const { city } = useUserContext();
-    const activeCity = city || 'Roma';
+    const { city, lat, lng, weatherCondition, temperatureC } = useUserContext();
+    const activeCityRaw = city || 'Roma';
+    // ⚡ Normalize & Sanitize City
+    let activeCity = activeCityRaw.charAt(0).toUpperCase() + activeCityRaw.slice(1).toLowerCase();
+
+    // 🛡️ RECOVERY: If city is coordinates (e.g. "Lat: 41...") or invalid, default to Roma
+    if (activeCity.includes('Lat') || activeCity.includes(':') || activeCity.length > 25) {
+        console.warn("⚠️ Invalid City detected:", activeCity, "Defaulting to Roma");
+        activeCity = 'Roma';
+    }
+    const navigate = useNavigate();
 
     // Fallback route for QuickPath
     const quickRoute = MOCK_ROUTES[activeCity] ? MOCK_ROUTES[activeCity].slice(0, 2) : MOCK_ROUTES['Roma'];
+
+    // 🧠 ADAPTIVE OPTIONS
+    const { mainOptions, subOptions } = getAdaptiveOptions(activeCity);
+
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedOption, setSelectedOption] = useState(null);
     const [selectedSubOption, setSelectedSubOption] = useState(null);
     const [selectedTime, setSelectedTime] = useState(null);
     const [selectedDuration, setSelectedDuration] = useState(null);
     const [selectedGroup, setSelectedGroup] = useState(null);
+
+    // GENERATION STATE (LIFTED UP)
+    const [generationStatus, setGenerationStatus] = useState('idle'); // idle, loading, success, error
+    const [generationError, setGenerationError] = useState(null);
+    const [readyTourData, setReadyTourData] = useState(null);
+
+    // 🧠 MEMOIZE CONTEXT TO PREVENT INFINITE LOOPS
+    const weatherContext = useMemo(() => ({
+        condition: weatherCondition,
+        temperature: temperatureC
+    }), [weatherCondition, temperatureC]);
 
     const handleMainSelection = (optionId) => {
         setSelectedOption(optionId);
@@ -272,8 +277,484 @@ export default function QuickPathPage() {
 
     const handleGroupSelection = (groupOption) => {
         setSelectedGroup(groupOption);
-        setCurrentStep(6);
+        setCurrentStep(6); // Move to loading step
+        // TRIGGER GENERATION IMMEDIATELY ON FINAL SELECTION
+        generateItinerary(groupOption);
     };
+
+    const generateItinerary = async (group) => {
+        console.log("🚀 STARTING GENERATION IN PARENT COMPONENT");
+        setGenerationStatus('loading');
+
+        try {
+            // 1. Prepare Data
+            const quizAnswers = {
+                environment: selectedSubOption?.title || 'Generico',
+                activity: selectedSubOption?.description || 'Esplorazione',
+                time: selectedTime?.title || 'Giorno',
+                duration: selectedDuration?.title || 'Medio',
+                group: group?.title || 'Solo'
+            };
+
+            // 2. TIMEOUT / MOCK FALLBACK
+            console.log("⏳ Waiting 2s...");
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            console.log("✅ Wait complete");
+
+            // 3. BUILD MOCK DATA WITH CONTEXT
+            let stops = [];
+
+            // 📍 CITY COORDS MAP (needed by dynamic fallback)
+            const CITY_COORDS_MAP = {
+                'Roma': { latitude: 41.9028, longitude: 12.4964 },
+                'Milano': { latitude: 45.4642, longitude: 9.1900 },
+                'Napoli': { latitude: 40.8518, longitude: 14.2681 },
+                'Firenze': { latitude: 43.7696, longitude: 11.2558 },
+                'Venezia': { latitude: 45.4408, longitude: 12.3155 },
+                'Torino': { latitude: 45.0703, longitude: 7.6869 },
+                'Palermo': { latitude: 38.1157, longitude: 13.3615 },
+                'Perugia': { latitude: 43.1107, longitude: 12.3908 },
+                'Catania': { latitude: 37.5079, longitude: 15.0830 },
+                'Bari': { latitude: 41.1177, longitude: 16.8719 },
+                'Bologna': { latitude: 44.4949, longitude: 11.3426 },
+                'Genova': { latitude: 44.4056, longitude: 8.9463 },
+                'Verona': { latitude: 45.4384, longitude: 10.9916 },
+                'Siena': { latitude: 43.3186, longitude: 11.3305 },
+                'Lecce': { latitude: 40.3516, longitude: 18.1750 },
+                'Cagliari': { latitude: 39.2150, longitude: 9.1100 },
+            };
+
+            // 🧠 CONTEXT-AWARE ROUTES (city-prefixed to avoid cross-city contamination)
+            const SPECIFIC_ROUTES = {
+                // --- ROMA ---
+                'Roma_parco': [
+                    { label: 'Villa Borghese', lat: 41.9135, lng: 12.4912, image: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800' },
+                    { label: 'Pincio', lat: 41.9109, lng: 12.4795, image: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800' }
+                ],
+                'Roma_centro': [
+                    { label: 'Piazza Navona', lat: 41.8992, lng: 12.4731, image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800' },
+                    { label: 'Pantheon', lat: 41.8986, lng: 12.4769, image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800' }
+                ],
+                'Roma_musei': [
+                    { label: 'Musei Vaticani', lat: 41.9067, lng: 12.4547, image: 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=800' },
+                    { label: 'Galleria Borghese', lat: 41.9142, lng: 12.4921, image: 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=800' }
+                ],
+                'carbonara': [
+                    { label: "Roscioli Salumeria", lat: 41.8936, lng: 12.4727, image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800", description: "La carbonara leggendaria." },
+                    { label: "Da Enzo al 29", lat: 41.8885, lng: 12.4764, image: "https://images.unsplash.com/photo-1574868233905-25916053805b?w=800", description: "Cucina romana verace." }
+                ],
+                'street': [
+                    { label: "Forno Roscioli", lat: 41.8936, lng: 12.4727, image: "https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800", description: "Pizza rossa scrocchiarella." },
+                    { label: "Supplizio", lat: 41.8988, lng: 12.4674, image: "https://images.unsplash.com/photo-1541529086526-db283c563270?w=800", description: "Il re dei supplì." }
+                ],
+                'imperiale': [
+                    { label: 'Colosseo', lat: 41.8902, lng: 12.4922, image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800', description: "L'anfiteatro eterno." },
+                    { label: 'Fori Imperiali', lat: 41.8925, lng: 12.4853, image: "https://images.unsplash.com/photo-1515542622106-78bda8ba30c6?w=800", description: "Passeggiata nella storia." }
+                ],
+                'rione': [
+                    { label: 'Trastevere', lat: 41.8883, lng: 12.4690, image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800' },
+                    { label: 'Monti', lat: 41.8950, lng: 12.4920, image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800' }
+                ],
+                'piazze': [
+                    { label: 'Piazza Navona', lat: 41.8992, lng: 12.4731, image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800' },
+                    { label: 'Piazza di Spagna', lat: 41.9057, lng: 12.4823, image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800' }
+                ],
+                'shopping': [
+                    { label: 'Via del Corso', lat: 41.9038, lng: 12.4794, image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800' },
+                    { label: 'Via Condotti', lat: 41.9051, lng: 12.4816, image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800' }
+                ],
+                'villa': [
+                    { label: 'Villa Borghese', lat: 41.9135, lng: 12.4912, image: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800' },
+                    { label: 'Pincio', lat: 41.9109, lng: 12.4795, image: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800' }
+                ],
+                'tevere': [
+                    { label: 'Isola Tiberina', lat: 41.8899, lng: 12.4789, image: 'https://images.unsplash.com/photo-1565618244030-h200?w=800' },
+                    { label: 'Castel Sant\'Angelo', lat: 41.9031, lng: 12.4663, image: 'https://images.unsplash.com/photo-1565618244030-h200?w=800' }
+                ],
+                'barocco': [
+                    { label: 'Fontana di Trevi', lat: 41.9009, lng: 12.4833, image: 'https://images.unsplash.com/photo-1555992336-749746e30129?w=800' },
+                    { label: 'San Pietro', lat: 41.9022, lng: 12.4572, image: 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=800' }
+                ],
+
+                // MILANO
+                'duomo': [
+                    { label: 'Duomo di Milano', lat: 45.4641, lng: 9.1919, image: 'https://images.unsplash.com/photo-1547464333-28f0de20b8f9?w=800' },
+                    { label: 'Galleria', lat: 45.4654, lng: 9.1905, image: 'https://images.unsplash.com/photo-1520440229-646911495c4b?w=800' }
+                ],
+                'grattacieli': [
+                    { label: 'Piazza Gae Aulenti', lat: 45.4842, lng: 9.1856, image: 'https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800' },
+                    { label: 'Bosco Verticale', lat: 45.4858, lng: 9.1905, image: 'https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800' }
+                ],
+                'quadrilatero': [
+                    { label: 'Via Montenapoleone', lat: 45.4691, lng: 9.1945, image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800' },
+                    { label: 'Via della Spiga', lat: 45.4703, lng: 9.1963, image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800' }
+                ],
+                'vintage': [
+                    { label: 'Brera', lat: 45.4716, lng: 9.1878, image: 'https://images.unsplash.com/photo-1520006403909-838d6b92c22e?w=800' },
+                    { label: 'Corso Como', lat: 45.4828, lng: 9.1887, image: 'https://images.unsplash.com/photo-1520006403909-838d6b92c22e?w=800' }
+                ],
+                'sempione': [
+                    { label: 'Parco Sempione', lat: 45.4727, lng: 9.1764, image: 'https://images.unsplash.com/photo-1579290076295-a226bc40b543?w=800' },
+                    { label: 'Arco della Pace', lat: 45.4764, lng: 9.1725, image: 'https://images.unsplash.com/photo-1579290076295-a226bc40b543?w=800' }
+                ],
+                'navigli': [
+                    { label: 'Darsena', lat: 45.4534, lng: 9.1772, image: 'https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800' },
+                    { label: 'Naviglio Grande', lat: 45.4513, lng: 9.1726, image: 'https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800' }
+                ],
+
+                // NAPOLI
+                'lungomare': [
+                    { label: 'Castel dell\'Ovo', lat: 40.8280, lng: 14.2475, image: 'https://images.unsplash.com/photo-1498394467144-8cb38902d184?w=800' },
+                    { label: 'Via Caracciolo', lat: 40.8315, lng: 14.2373, image: 'https://images.unsplash.com/photo-1498394467144-8cb38902d184?w=800' }
+                ],
+                'posillipo': [
+                    { label: 'Parco Virgiliano', lat: 40.7979, lng: 14.1866, image: 'https://images.unsplash.com/photo-1534720993072-cb99b397d415?w=800' },
+                    { label: 'Marechiaro', lat: 40.7963, lng: 14.1950, image: 'https://images.unsplash.com/photo-1534720993072-cb99b397d415?w=800' }
+                ],
+                'spaccanapoli': [
+                    { label: 'San Gregorio Armeno', lat: 40.8507, lng: 14.2588, image: 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=800' },
+                    { label: 'Cappella Sansevero', lat: 40.8493, lng: 14.2555, image: 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=800' }
+                ],
+                'quartieri': [
+                    { label: 'Murales Maradona', lat: 40.8415, lng: 14.2464, image: 'https://images.unsplash.com/photo-1574868233905-25916053805b?w=800' },
+                    { label: 'Vico Totò', lat: 40.8420, lng: 14.2470, image: 'https://images.unsplash.com/photo-1574868233905-25916053805b?w=800' }
+                ],
+                'vesuvio': [
+                    { label: 'Gran Cono', lat: 40.8217, lng: 14.4266, image: 'https://images.unsplash.com/photo-1536417724282-598284687593?w=800' },
+                    { label: 'Osservatorio', lat: 40.8291, lng: 14.4030, image: 'https://images.unsplash.com/photo-1536417724282-598284687593?w=800' }
+                ],
+                'pizza': [
+                    { label: 'Sorbillo', lat: 40.8510, lng: 14.2560, image: 'https://images.unsplash.com/photo-1574868233905-25916053805b?w=800' },
+                    { label: 'Da Michele', lat: 40.8498, lng: 14.2633, image: 'https://images.unsplash.com/photo-1574868233905-25916053805b?w=800' }
+                ],
+                'dolci': [
+                    { label: 'Scaturchio', lat: 40.8490, lng: 14.2570, image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800' },
+                    { label: 'Gambrinus', lat: 40.8368, lng: 14.2492, image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800' }
+                ]
+            };
+
+            // 📸 CITY IMAGES MAP
+            const CITY_IMAGES = {
+                'Roma': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800',
+                'Milano': 'https://images.unsplash.com/photo-1476493279419-b785d41e38d8?w=800',
+                'Firenze': 'https://images.unsplash.com/photo-1543429258-135a96c348d6?w=800',
+                'Venezia': 'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800',
+                'Napoli': 'https://images.unsplash.com/photo-1563211545-c397120a3b2b?w=800',
+                'Perugia': 'https://images.unsplash.com/photo-1563211545-c397120a3b2b?w=800' // Generic
+            };
+
+            // 🧠 AI INJECTION: Fetch Matching Businesses
+            const MAP_QUIZ_TO_TAGS = {
+                'citta': ['Cultura', 'Storia', 'Shopping'],
+                'natura': ['Relax', 'Avventura', 'Ospitalità'],
+                'storia': ['Storia', 'Cultura'],
+                'cibo': ['Ristorazione'],
+                'relax': ['Relax', 'Ospitalità'],
+                'moda': ['Shopping', 'Lusso'],
+                'nightlife': ['Nightlife', 'Ristorazione'],
+                // Sub-options
+                'carbonara': ['Ristorazione'],
+                'pizza': ['Ristorazione'],
+                'street': ['Ristorazione'],
+                'shopping': ['Shopping'],
+                'musei': ['Cultura'],
+                'spa': ['Relax', 'Ospitalità'],
+                'romantico': ['Romantico', 'Ospitalità']
+            };
+
+            const currentState = {
+                option: selectedOption?.id,
+                subOption: selectedSubOption?.id,
+                time: selectedTime?.id,
+                duration: selectedDuration?.id,
+                group: group?.id,
+                // Assuming mood can be derived from subOption if it's a vibe
+                mood: selectedSubOption?.id // e.g., 'romantico'
+            };
+
+            const uniqueTags = new Set();
+            let targetPace = 'normal';
+
+            Object.values(currentState).forEach(val => {
+                if (!val) return;
+                const lowVal = val.toString().toLowerCase();
+
+                // Map to Tags
+                if (MAP_QUIZ_TO_TAGS[lowVal]) {
+                    MAP_QUIZ_TO_TAGS[lowVal].forEach(t => uniqueTags.add(t));
+                }
+
+                // Add direct vibe keywords as tags (for Vibe Matching)
+                if (['romantico', 'relax', 'avventura', 'lusso', 'vintage'].includes(lowVal)) {
+                    uniqueTags.add(val); // Keep original casing or Capitalize
+                }
+
+                // Map Pattern to Pace
+                if (lowVal.includes('relax') || lowVal.includes('lento') || lowVal.includes('tranquillo')) targetPace = 'slow';
+                if (lowVal.includes('avventura') || lowVal.includes('sport') || lowVal.includes('nightlife')) targetPace = 'active';
+            });
+
+            // If "Romantico" is selected, ensure it's in the uniqueTags for Vibe check
+            if (currentState.mood === 'romantico') uniqueTags.add('Romantico'); // Use 'romantico' for comparison, add 'Romantico' as tag
+
+            const activeTags = Array.from(uniqueTags);
+            console.log("🧬 AI Matching Profile:", { city: activeCity, tags: activeTags, pace: targetPace });
+
+            // Fetch from Supabase
+            const injectedBusinesses = await dataService.getBusinessesByCityAndTags(activeCity, activeTags, targetPace);
+
+            // 🔑 City-prefixed lookup first, then generic (for Roma only)
+            const subId = selectedSubOption?.id || '';
+            let contextRoute =
+                SPECIFIC_ROUTES[`${activeCity}_${subId}`] || // e.g. 'Roma_carbonara'
+                (activeCity === 'Roma' ? SPECIFIC_ROUTES[subId] : null) || // Roma fallback for old non-prefixed keys
+                null;
+
+            if (!contextRoute) {
+                // Try MOCK_ROUTES for known cities
+                if (MOCK_ROUTES[activeCity]) {
+                    contextRoute = MOCK_ROUTES[activeCity];
+                } else {
+                    // ⚠️ DYNAMIC FALLBACK: generate city-accurate route
+                    console.log(`🗺️ Generating Dynamic Route for: ${activeCity}`);
+
+                    let routeLat, routeLng;
+                    const cityCenter = CITY_COORDS_MAP[activeCity];
+
+                    if (cityCenter) {
+                        routeLat = cityCenter.latitude;
+                        routeLng = cityCenter.longitude;
+                    }
+                    // Use Context Coords if we are "in" that city (Best for Manual Entry like "Sondrio")
+                    else if (activeCity.toLowerCase() === city?.toLowerCase() && lat && lng) {
+                        routeLat = lat;
+                        routeLng = lng;
+                    }
+
+                    // IF we still have no coords, default to Rome but warn.
+                    if (!routeLat) {
+                        routeLat = 41.9028; routeLng = 12.4964; // Roma
+                    }
+
+                    // GENERATE 3 GENERIC POINTS
+                    contextRoute = [
+                        {
+                            label: `Centro Storico di ${activeCity}`,
+                            latitude: routeLat,
+                            longitude: routeLng,
+                            description: `Esplora le meraviglie di ${activeCity}.`,
+                            image: `https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800`
+                        },
+                        {
+                            label: `Passeggiata a ${activeCity}`,
+                            latitude: routeLat + 0.003,
+                            longitude: routeLng + 0.003,
+                            description: "Viste panoramiche e atmosfera locale.",
+                            image: `https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800`
+                        },
+                        {
+                            label: `Sapori di ${activeCity}`,
+                            latitude: routeLat - 0.002,
+                            longitude: routeLng - 0.002,
+                            description: "Scopri la cucina tradizionale.",
+                            image: `https://images.unsplash.com/photo-1498579150354-977475b7ea0b?w=800`
+                        }
+                    ];
+                }
+            }
+
+            // 💉 INJECT BUSINESSES INTO ROUTE
+            if (injectedBusinesses.length > 0 && contextRoute) {
+                contextRoute = [...contextRoute];
+
+                // Only inject businesses that have valid GPS coordinates
+                const validBusinesses = injectedBusinesses.filter(biz => {
+                    const hasCoords = biz._hasCoords || (biz.latitude && biz.longitude);
+                    if (!hasCoords) {
+                        console.warn(`⚠️ Skipping ${biz.title} — no valid GPS coordinates`);
+                    }
+                    return hasCoords;
+                });
+
+                validBusinesses.forEach((biz, index) => {
+                    let insertPos = 1;
+                    if (index === 1) insertPos = 3;
+                    if (insertPos > contextRoute.length) insertPos = contextRoute.length;
+                    console.log(`💉 Injecting ${biz.title} at pos ${insertPos} [${biz.latitude?.toFixed(4)}, ${biz.longitude?.toFixed(4)}]`);
+                    contextRoute.splice(insertPos, 0, {
+                        ...biz,
+                        label: biz.title,
+                        isSponsored: true,
+                    });
+                });
+            }
+
+            if (contextRoute) {
+                // 📸 CITY IMAGES MAP — covers all major + minor Italian cities
+                const CITY_IMAGES_RESOLVER = {
+                    'Roma': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800',
+                    'Milano': 'https://images.unsplash.com/photo-1476493279419-b785d41e38d8?w=800',
+                    'Firenze': 'https://images.unsplash.com/photo-1543429258-135a96c348d6?w=800',
+                    'Venezia': 'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=800',
+                    'Napoli': 'https://images.unsplash.com/photo-1563211545-c397120a3b2b?w=800',
+                    'Torino': 'https://images.unsplash.com/photo-1587982153163-e8e0d0a39e4b?w=800',
+                    'Palermo': 'https://images.unsplash.com/photo-1528659556196-18e3856b3793?w=800',
+                    'Bari': 'https://images.unsplash.com/photo-1507501336603-6a2a6f5fc6ff?w=800',
+                    'Bologna': 'https://images.unsplash.com/photo-1570168008011-b87a8c15a7f6?w=800',
+                    'Genova': 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800',
+                    'Verona': 'https://images.unsplash.com/photo-1529154036614-a60975f5c760?w=800',
+                    'Perugia': 'https://images.unsplash.com/photo-1626127117105-098555e094c9?w=800',
+                    'Catania': 'https://images.unsplash.com/photo-1669229875416-654db55dc03f?w=800',
+                    // Nord Italia
+                    'Treviso': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+                    'Padova': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+                    'Vicenza': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+                    'Udine': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+                    'Trieste': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+                    'Trento': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+                    'Bolzano': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+                    'Bergamo': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+                    'Brescia': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+                    'Como': 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800',
+                    'Mantova': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800',
+                    'Modena': 'https://images.unsplash.com/photo-1570168008011-b87a8c15a7f6?w=800',
+                    'Parma': 'https://images.unsplash.com/photo-1570168008011-b87a8c15a7f6?w=800',
+                    'Ravenna': 'https://images.unsplash.com/photo-1570168008011-b87a8c15a7f6?w=800',
+                    'Ferrara': 'https://images.unsplash.com/photo-1570168008011-b87a8c15a7f6?w=800',
+                    // Centro
+                    'Siena': 'https://images.unsplash.com/photo-1520635565-e7a2cedc8d4b?w=800',
+                    'Pisa': 'https://images.unsplash.com/photo-1543429258-135a96c348d6?w=800',
+                    'Lucca': 'https://images.unsplash.com/photo-1543429258-135a96c348d6?w=800',
+                    'Assisi': 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=800',
+                    'Ancona': 'https://images.unsplash.com/photo-1507501336603-6a2a6f5fc6ff?w=800',
+                    'Arezzo': 'https://images.unsplash.com/photo-1543429258-135a96c348d6?w=800',
+                    // Sud & Isole
+                    'Lecce': 'https://images.unsplash.com/photo-1507501336603-6a2a6f5fc6ff?w=800',
+                    'Matera': 'https://images.unsplash.com/photo-1529154036614-a60975f5c760?w=800',
+                    'Salerno': 'https://images.unsplash.com/photo-1534720993072-cb99b397d415?w=800',
+                    'Cagliari': 'https://images.unsplash.com/photo-1507501336603-6a2a6f5fc6ff?w=800',
+                    'Agrigento': 'https://images.unsplash.com/photo-1528659556196-18e3856b3793?w=800',
+                    'Reggio Calabria': 'https://images.unsplash.com/photo-1563211545-c397120a3b2b?w=800',
+                };
+                // Generic Italian piazza image — NEVER the Colosseum, used for any unlisted city
+                const ITALIAN_GENERIC_IMG = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800';
+
+                const SPECIFIC_IMAGES_DB = {
+                    'Catania_Pescheria': 'https://images.unsplash.com/photo-1555685812-4b943f3e99a9?w=800',
+                    'Catania_Duomo': 'https://images.unsplash.com/photo-1669229875416-654db55dc03f?w=800',
+                    'Catania_Anfiteatro': 'https://images.unsplash.com/photo-1560364966-235079a0b94b?w=800',
+                    'Perugia_Piazza IV Novembre': 'https://images.unsplash.com/photo-1626127117105-098555e094c9?w=800',
+                    'Palermo_Teatro Massimo': 'https://images.unsplash.com/photo-1574352662283-c28859bd7084?w=800',
+                    'Palermo_Cattedrale': 'https://images.unsplash.com/photo-1528659556196-18e3856b3793?w=800',
+                };
+
+                const getSmartImage = (city, stepLabel, existingImage) => {
+                    // 0. Already has a real image? Use it (not a broken URL)
+                    if (existingImage &&
+                        !existingImage.includes('photo-1565618244030-h200') &&
+                        existingImage.startsWith('http')) {
+                        return existingImage;
+                    }
+                    const cleanLabel = (stepLabel || '').replace(/Start: |End: /g, '').trim();
+                    const key = `${city}_${cleanLabel}`;
+                    // 1. Specific DB
+                    if (SPECIFIC_IMAGES_DB[key]) return SPECIFIC_IMAGES_DB[key];
+                    // 2. Keyword match
+                    const lowerLabel = cleanLabel.toLowerCase();
+                    if (lowerLabel.includes('duomo') || lowerLabel.includes('cattedrale') || lowerLabel.includes('basilica'))
+                        return 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=800';
+                    if (lowerLabel.includes('mercato') || lowerLabel.includes('pescheria'))
+                        return 'https://images.unsplash.com/photo-1555685812-4b943f3e99a9?w=800';
+                    if (lowerLabel.includes('parco') || lowerLabel.includes('villa') || lowerLabel.includes('giardino'))
+                        return 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800';
+                    if (lowerLabel.includes('pizza') || lowerLabel.includes('ristorante') || lowerLabel.includes('trattoria'))
+                        return 'https://images.unsplash.com/photo-1574868233905-25916053805b?w=800';
+                    if (lowerLabel.includes('museo') || lowerLabel.includes('galleria') || lowerLabel.includes('palazzo'))
+                        return 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=800';
+                    if (lowerLabel.includes('porto') || lowerLabel.includes('mare') || lowerLabel.includes('lungomare'))
+                        return 'https://images.unsplash.com/photo-1507501336603-6a2a6f5fc6ff?w=800';
+                    // 3. City fallback — uses resolver, then NEVER-Colosseum generic
+                    return CITY_IMAGES_RESOLVER[city] || ITALIAN_GENERIC_IMG;
+                };
+
+                stops = contextRoute.map((p, i) => {
+                    // Only use the stop's own image if it's genuinely city-specific (not our Roma fallback)
+                    const stopOwnImage = (p.image && !p.image.includes('1552832230')) ? p.image : null;
+                    const smartImage = getSmartImage(
+                        activeCity,
+                        p.label || p.title || '',
+                        stopOwnImage // pass null for unknown-city stops → forces keyword/city lookup
+                    );
+
+                    return {
+                        title: p.label || p.title || `Tappa ${i + 1}`,
+                        description: p.description || "Punto d'interesse consigliato.",
+                        latitude: parseFloat(p.latitude ?? p.lat ?? 0) || null,
+                        longitude: parseFloat(p.longitude ?? p.lng ?? 0) || null,
+                        type: p.isSponsored ? 'business_partner'
+                            : ['carbonara', 'street', 'cibo'].includes(selectedSubOption?.id) ? 'food' : 'viewpoint',
+                        image: smartImage,
+                        imageUrl: smartImage,
+                        isSponsored: p.isSponsored || false,
+                        address: p.address || null,
+                        website: p.website || null,
+                    };
+                });
+            }
+
+            const defaultCityImage =
+                CITY_IMAGES_RESOLVER[activeCity] ||
+                ITALIAN_GENERIC_IMG;
+
+            const mainImage = stops.length > 0 && stops[0].image ? stops[0].image : defaultCityImage;
+
+            const tourData = {
+                id: 'ai-quiz-' + Date.now(),
+                title: `Esplora ${activeCity}`,
+                description: "Esperienza personalizzata.",
+                city: activeCity,
+                duration_minutes: selectedDuration?.id === 'veloce' ? 90 : 180,
+                price_eur: 0,
+                rating: 5.0,
+                steps: stops.map(s => ({
+                    title: s.title,
+                    description: s.description,
+                    lat: s.latitude,
+                    lng: s.longitude,
+                    latitude: s.latitude,
+                    longitude: s.longitude,
+                    image: s.image || 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800',
+                    type: 'place'
+                })),
+                waypoints: stops.map(s => [s.latitude, s.longitude]),
+                isAiGenerated: true,
+                tags: ['AI', group?.title, 'QuickPath'],
+
+                // 🛡️ CRITICAL FIXES FOR TOUR DETAILS CRASH
+                images: [mainImage],
+                imageUrl: mainImage,
+                guide: "Guida Virtuale",
+                guideAvatar: "🤖",
+                guideBio: "Itinerario generato su misura per te dall'intelligenza artificiale.",
+                highlights: ["⚡ Percorso Veloce", "🏙️ " + activeCity, "🎯 Esperienza Custom"],
+                included: ["Navigazione GPS", "Supporto Virtuale"],
+                notIncluded: ["Biglietti", "Trasporti"],
+
+                // ⚡ CRITICAL: Inject Explicit City Center for Map Page
+                center: CITY_COORDS_MAP[activeCity] || ((stops.length > 0) ? { latitude: stops[0].latitude, longitude: stops[0].longitude } : CITY_COORDS_MAP['Roma'])
+            };
+
+            setReadyTourData(tourData);
+            setGenerationStatus('success');
+            console.log("🔥 SUCCESS: TOUR DATA SET");
+
+        } catch (e) {
+            console.error("❌ GENERATION ERROR:", e?.message || e);
+            setGenerationError(e?.message || String(e));
+            setGenerationStatus('error');
+        }
+    };
+
 
     const resetSelection = () => {
         setCurrentStep(1);
@@ -282,9 +763,9 @@ export default function QuickPathPage() {
         setSelectedTime(null);
         setSelectedDuration(null);
         setSelectedGroup(null);
+        setGenerationStatus('idle');
+        setReadyTourData(null);
     };
-
-
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
@@ -334,15 +815,14 @@ export default function QuickPathPage() {
                     {currentStep === 1 && (
                         <motion.div
                             key="step1"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.6 }}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
+                            transition={{ duration: 0.5 }}
                         >
-                            <div className="text-center mb-8">
-                                <h2 className="text-xl font-bold text-gray-800 mb-2">Che tipo di ambiente preferisci?</h2>
-                                <p className="text-gray-600 text-sm">Scegli dove ti piacerebbe trascorrere del tempo</p>
-                                <DemoHint text="Inizia selezionando un ambiente" className="top-16 right-4" delay={500} />
+                            <div className="text-center mb-10">
+                                <h2 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">Il tuo mood oggi?</h2>
+                                <p className="text-gray-500 font-medium">L'ambiente perfetto per iniziare</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
@@ -350,15 +830,23 @@ export default function QuickPathPage() {
                                     <motion.button
                                         key={option.id}
                                         onClick={() => handleMainSelection(option.id)}
-                                        className={`bg-gradient-to-br ${option.color} text-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-center`}
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ duration: 0.6, delay: index * 0.1 }}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
+                                        className="relative bg-white p-6 rounded-[2rem] shadow-sm border-2 border-transparent hover:border-gray-100 hover:shadow-xl transition-all duration-300 group overflow-hidden text-left h-48 flex flex-col justify-between"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
                                     >
-                                        <div className="text-3xl mb-2">{option.emoji}</div>
-                                        <h3 className="font-bold text-lg">{option.title}</h3>
+                                        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${option.color} opacity-10 rounded-bl-[4rem] group-hover:scale-150 transition-transform duration-500`} />
+
+                                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${option.color} flex items-center justify-center text-2xl shadow-lg group-hover:rotate-12 transition-transform`}>
+                                            {option.emoji}
+                                        </div>
+
+                                        <div>
+                                            <h3 className="font-bold text-xl text-gray-900">{option.title}</h3>
+                                            <div className="h-1 w-0 group-hover:w-full bg-gray-900 mt-2 transition-all duration-500 rounded-full" />
+                                        </div>
                                     </motion.button>
                                 ))}
                             </div>
@@ -369,43 +857,42 @@ export default function QuickPathPage() {
                     {currentStep === 2 && selectedOption && (
                         <motion.div
                             key="step2"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.6 }}
+                            initial={{ opacity: 0, x: 50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -50 }}
+                            transition={{ duration: 0.5 }}
                         >
                             <div className="text-center mb-8">
-                                <h2 className="text-xl font-bold text-gray-800 mb-2">Cosa ti piacerebbe fare?</h2>
-                                <p className="text-gray-600 text-sm">Scegli l'attività che più ti incuriosisce</p>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Cosa ti ispira?</h2>
+                                <p className="text-gray-500">Scegli l'esperienza che fa per te</p>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-4">
-                                {subOptions[selectedOption].map((subOption, index) => (
+                            <div className="space-y-4">
+                                {subOptions[selectedOption]?.map((subOption, index) => (
                                     <motion.button
                                         key={subOption.id}
                                         onClick={() => handleSubSelection(subOption)}
-                                        className="bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-sm rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20"
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ duration: 0.6, delay: index * 0.1 }}
-                                        whileHover={{ scale: 1.05, rotateY: 5 }}
-                                        whileTap={{ scale: 0.95 }}
+                                        className="w-full bg-white rounded-[2rem] p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-terracotta-200 transition-all flex items-center gap-5 group text-left relative overflow-hidden"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        whileHover={{ x: 5 }}
                                     >
-                                        <div className="flex flex-col items-center text-center space-y-3">
-                                            <motion.div
-                                                className="text-6xl"
-                                                whileHover={{ scale: 1.2, rotate: 10 }}
-                                                transition={{ type: "spring", stiffness: 300 }}
-                                            >
+                                        <div className="relative w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden shadow-inner">
+                                            <img src={subOption.image} alt={subOption.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+                                            <div className="absolute bottom-1 right-1 bg-white/90 backdrop-blur rounded-lg px-2 py-1 text-lg shadow-sm">
                                                 {subOption.emoji}
-                                            </motion.div>
-                                            <h3 className="font-bold text-xl text-gray-800">{subOption.title}</h3>
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: '60px' }}
-                                                transition={{ duration: 0.8, delay: index * 0.1 + 0.3 }}
-                                                className="h-1 bg-gradient-to-r from-terracotta-400 to-ochre-400 rounded-full"
-                                            />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex-1 pr-4">
+                                            <h3 className="font-bold text-lg text-gray-900 mb-1 group-hover:text-terracotta-600 transition-colors">{subOption.title}</h3>
+                                            <p className="text-xs text-gray-500 leading-relaxed font-medium line-clamp-2">{subOption.description}</p>
+                                        </div>
+
+                                        <div className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity text-terracotta-500">
+                                            <ArrowRight />
                                         </div>
                                     </motion.button>
                                 ))}
@@ -417,46 +904,38 @@ export default function QuickPathPage() {
                     {currentStep === 3 && (
                         <motion.div
                             key="step3"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.6 }}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.1 }}
+                            transition={{ duration: 0.5 }}
                         >
-                            <div className="text-center mb-8">
-                                <h2 className="text-xl font-bold text-gray-800 mb-2">In che momento della giornata?</h2>
-                                <p className="text-gray-600 text-sm">Ogni momento ha la sua magia</p>
+                            <div className="text-center mb-10">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Quando partiamo?</h2>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 gap-4">
                                 {timeOptions.map((timeOption, index) => (
                                     <motion.button
                                         key={timeOption.id}
                                         onClick={() => handleTimeSelection(timeOption)}
-                                        className={`bg-gradient-to-br ${timeOption.color} text-white p-6 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 text-center`}
-                                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                                        transition={{ duration: 0.6, delay: index * 0.2, type: "spring" }}
-                                        whileHover={{ scale: 1.1, rotateZ: 5 }}
-                                        whileTap={{ scale: 0.9 }}
+                                        className="relative bg-white overflow-hidden rounded-[2.5rem] p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all group"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        whileTap={{ scale: 0.98 }}
                                     >
-                                        <div className="flex flex-col items-center space-y-3">
-                                            <motion.div
-                                                whileHover={{ rotate: 15, scale: 1.2 }}
-                                                transition={{ type: "spring", stiffness: 300 }}
-                                            >
-                                                <timeOption.icon className="w-10 h-10" />
-                                            </motion.div>
-                                            <motion.div
-                                                className="text-4xl"
-                                                whileHover={{ scale: 1.3 }}
-                                                transition={{ type: "spring", stiffness: 400 }}
-                                            >
-                                                {timeOption.emoji}
-                                            </motion.div>
-                                            <div>
-                                                <h3 className="font-bold text-sm">{timeOption.title}</h3>
-                                                <p className="text-xs opacity-90">{timeOption.time}</p>
+                                        <div className={`absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b ${timeOption.color}`} />
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${timeOption.color} bg-opacity-10 flex items-center justify-center text-3xl shadow-sm text-white`}>
+                                                    {timeOption.emoji}
+                                                </div>
+                                                <div className="text-left">
+                                                    <h3 className="font-bold text-xl text-gray-900">{timeOption.title}</h3>
+                                                    <p className="text-gray-400 text-xs font-bold tracking-wider uppercase mt-1">{timeOption.time}</p>
+                                                </div>
                                             </div>
+                                            <div className="w-8 h-8 rounded-full border-2 border-gray-100 group-hover:bg-gray-900 group-hover:border-gray-900 transition-colors" />
                                         </div>
                                     </motion.button>
                                 ))}
@@ -468,57 +947,32 @@ export default function QuickPathPage() {
                     {currentStep === 4 && (
                         <motion.div
                             key="step4"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.6 }}
+                            initial={{ opacity: 0, x: 50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -50 }}
+                            transition={{ duration: 0.5 }}
                         >
-                            <div className="text-center mb-8">
-                                <h2 className="text-xl font-bold text-gray-800 mb-2">Quanto tempo hai a disposizione?</h2>
-                                <p className="text-gray-600 text-sm">Personalizza l'esperienza sulla tua disponibilità</p>
+                            <div className="text-center mb-10">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Quanto tempo hai?</h2>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-3 gap-3">
                                 {durationOptions.map((durationOption, index) => (
                                     <motion.button
                                         key={durationOption.id}
                                         onClick={() => handleDurationSelection(durationOption)}
-                                        className={`bg-gradient-to-br ${durationOption.color} text-white p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 text-center relative overflow-hidden`}
-                                        initial={{ opacity: 0, scale: 0.8, rotateY: -90 }}
-                                        animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                                        transition={{ duration: 0.8, delay: index * 0.15, type: "spring" }}
-                                        whileHover={{ scale: 1.1, rotateY: 10 }}
-                                        whileTap={{ scale: 0.9 }}
+                                        className="bg-white rounded-[2rem] p-4 py-8 shadow-sm border border-gray-200 hover:border-gray-900 hover:shadow-xl transition-all flex flex-col items-center gap-3 group"
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        whileHover={{ y: -5 }}
                                     >
-                                        <motion.div
-                                            className="absolute inset-0 bg-white/10 rounded-3xl"
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            transition={{ duration: 1, delay: index * 0.15 + 0.5 }}
-                                        />
-                                        <div className="relative flex flex-col items-center space-y-4">
-                                            <motion.div
-                                                whileHover={{ rotate: 360, scale: 1.3 }}
-                                                transition={{ duration: 0.6, type: "spring" }}
-                                            >
-                                                <durationOption.icon className="w-12 h-12" />
-                                            </motion.div>
-                                            <motion.div
-                                                className="text-5xl"
-                                                whileHover={{ scale: 1.4, y: -5 }}
-                                                transition={{ type: "spring", stiffness: 300 }}
-                                            >
-                                                {durationOption.emoji}
-                                            </motion.div>
-                                            <div>
-                                                <h3 className="font-bold text-lg">{durationOption.title}</h3>
-                                                <motion.div
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: '100%' }}
-                                                    transition={{ duration: 1, delay: index * 0.15 + 0.8 }}
-                                                    className="h-0.5 bg-white/60 rounded-full mt-2"
-                                                />
-                                            </div>
+                                        <div className="text-4xl group-hover:scale-125 transition-transform duration-300 filter grayscale group-hover:grayscale-0">
+                                            {durationOption.emoji}
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="font-bold text-gray-900 text-sm">{durationOption.title}</h3>
+                                            <p className="text-[10px] text-gray-400 mt-1">{durationOption.duration}</p>
                                         </div>
                                     </motion.button>
                                 ))}
@@ -530,62 +984,35 @@ export default function QuickPathPage() {
                     {currentStep === 5 && (
                         <motion.div
                             key="step5"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.6 }}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.1 }}
+                            transition={{ duration: 0.5 }}
                         >
-                            <div className="text-center mb-8">
-                                <h2 className="text-xl font-bold text-gray-800 mb-2">Con chi condividerai l'esperienza?</h2>
-                                <p className="text-gray-600 text-sm">Ogni compagnia rende l'esperienza unica</p>
+                            <div className="text-center mb-10">
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Chi c'è con te?</h2>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-2 gap-4">
                                 {groupOptions.map((groupOption, index) => (
                                     <motion.button
                                         key={groupOption.id}
                                         onClick={() => handleGroupSelection(groupOption)}
-                                        className={`bg-gradient-to-br ${groupOption.color} text-white p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 text-center relative overflow-hidden`}
-                                        initial={{ opacity: 0, scale: 0.7, rotate: -180 }}
-                                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                                        transition={{ duration: 0.8, delay: index * 0.2, type: "spring" }}
-                                        whileHover={{ scale: 1.08, rotateX: 10 }}
-                                        whileTap={{ scale: 0.92 }}
+                                        className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:border-terracotta-100 transition-all text-left relative overflow-hidden group"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        whileTap={{ scale: 0.95 }}
                                     >
-                                        <motion.div
-                                            className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl"
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            transition={{ duration: 1, delay: index * 0.2 + 0.4 }}
-                                        />
-                                        <div className="relative flex flex-col items-center space-y-4">
-                                            <motion.div
-                                                className="bg-white/20 p-4 rounded-2xl"
-                                                whileHover={{ rotate: [0, -10, 10, 0], scale: 1.2 }}
-                                                transition={{ duration: 0.5 }}
-                                            >
-                                                <groupOption.icon className="w-10 h-10" />
-                                            </motion.div>
-                                            <motion.div
-                                                className="text-6xl"
-                                                whileHover={{ scale: 1.3, y: -8 }}
-                                                transition={{ type: "spring", stiffness: 400 }}
-                                            >
-                                                {groupOption.emoji}
-                                            </motion.div>
-                                            <div>
-                                                <h3 className="font-bold text-xl mb-2">{groupOption.title}</h3>
-                                                <motion.div
-                                                    className="flex justify-center"
-                                                    initial={{ scale: 0 }}
-                                                    animate={{ scale: 1 }}
-                                                    transition={{ duration: 0.6, delay: index * 0.2 + 0.8 }}
-                                                >
-                                                    <div className="bg-white/30 px-3 py-1 rounded-full">
-                                                        <span className="text-sm font-medium">{groupOption.size}</span>
-                                                    </div>
-                                                </motion.div>
+                                        <div className="absolute top-0 right-0 p-4 opacity-10 font-bold text-6xl group-hover:opacity-20 transition-opacity">
+                                            {groupOption.emoji}
+                                        </div>
+                                        <div className="relative z-10">
+                                            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${groupOption.color} flex items-center justify-center text-white shadow-md mb-4`}>
+                                                <groupOption.icon size={20} />
                                             </div>
+                                            <h3 className="font-bold text-lg text-gray-900">{groupOption.title}</h3>
+                                            <p className="text-xs text-gray-500 mt-1 font-medium">{groupOption.size}</p>
                                         </div>
                                     </motion.button>
                                 ))}
@@ -593,262 +1020,64 @@ export default function QuickPathPage() {
                         </motion.div>
                     )}
 
-                    {/* Step 6: Final Personalized Experience */}
+                    {/* Step 6: GENERATION STATE */}
                     {currentStep === 6 && (
                         <motion.div
                             key="step6"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.6 }}
-                            className="space-y-6"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
                         >
-                            {/* Header con confetti animati */}
-                            <motion.div
-                                className="relative bg-gradient-to-r from-terracotta-400 to-ochre-400 text-white rounded-3xl p-8 shadow-xl overflow-hidden"
-                                initial={{ opacity: 0, scale: 0.8, rotateX: 15 }}
-                                animate={{ opacity: 1, scale: 1, rotateX: 0 }}
-                                transition={{ duration: 0.8 }}
-                                style={{ perspective: 1000 }}
-                            >
-                                {/* Confetti decorativi */}
-                                <div className="absolute inset-0 overflow-hidden">
-                                    {[...Array(8)].map((_, i) => (
+                            {generationStatus === 'loading' && (
+                                <div className="flex flex-col items-center justify-center py-20 text-center">
+                                    <div className="relative w-32 h-32 mb-8">
                                         <motion.div
-                                            key={i}
-                                            className="absolute w-2 h-2 bg-white/30 rounded-full"
-                                            initial={{ x: Math.random() * 300, y: -10, opacity: 0 }}
-                                            animate={{
-                                                y: 200,
-                                                opacity: [0, 1, 0],
-                                                rotate: 360 * 3,
-                                                scale: [0, 1, 0]
-                                            }}
-                                            transition={{
-                                                duration: 2,
-                                                delay: i * 0.2,
-                                                repeat: Infinity,
-                                                repeatDelay: 3
-                                            }}
+                                            className="absolute inset-0 border-4 border-t-terracotta-500 border-r-transparent border-b-orange-300 border-l-transparent rounded-full"
+                                            animate={{ rotate: 360 }}
+                                            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
                                         />
-                                    ))}
-                                </div>
-
-                                <div className="relative text-center">
-                                    <motion.div
-                                        className="text-6xl mb-4"
-                                        animate={{
-                                            rotate: [0, 10, -10, 0],
-                                            scale: [1, 1.1, 1]
-                                        }}
-                                        transition={{
-                                            duration: 2,
-                                            repeat: Infinity,
-                                            repeatType: "reverse"
-                                        }}
-                                    >
-                                        🎉
-                                    </motion.div>
-                                    <h2 className="text-2xl font-bold mb-2">Perfetto!</h2>
-                                    <p className="text-white/90">La tua esperienza personalizzata è pronta</p>
-                                </div>
-                            </motion.div>
-
-                            {/* Esperienza principale */}
-                            {selectedSubOption && (
-                                <motion.div
-                                    className="bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-xl relative overflow-hidden"
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.6, delay: 0.2 }}
-                                >
-                                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-terracotta-200/30 to-transparent rounded-full -translate-y-6 translate-x-6" />
-
-                                    <motion.img
-                                        src={selectedSubOption.image}
-                                        alt={selectedSubOption.title}
-                                        className="w-full h-48 rounded-2xl object-cover mb-6 shadow-lg"
-                                        whileHover={{ scale: 1.03, rotateY: 5 }}
-                                        transition={{ duration: 0.3 }}
-                                    />
-
-                                    <div className="text-center mb-6 relative z-10">
-                                        <motion.div
-                                            className="text-7xl mb-4"
-                                            whileHover={{ scale: 1.2, rotate: 15 }}
-                                            transition={{ type: "spring", stiffness: 300 }}
-                                        >
-                                            {selectedSubOption.emoji}
-                                        </motion.div>
-                                        <h3 className="text-2xl font-bold text-gray-800 mb-2">{selectedSubOption.title}</h3>
-                                        <p className="text-gray-600 text-sm leading-relaxed">{selectedSubOption.description}</p>
-                                    </div>
-
-                                    {/* Dettagli personalizzati */}
-                                    <div className="grid grid-cols-2 gap-4 mb-6">
-                                        {selectedTime && (
-                                            <motion.div
-                                                className={`bg-gradient-to-br ${selectedTime.color} text-white p-4 rounded-2xl text-center relative overflow-hidden`}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ duration: 0.6, delay: 0.4 }}
-                                                whileHover={{ scale: 1.05 }}
-                                            >
-                                                <div className="absolute top-0 right-0 w-8 h-8 bg-white/10 rounded-full -translate-y-1 translate-x-1" />
-                                                <selectedTime.icon className="w-6 h-6 mx-auto mb-2" />
-                                                <p className="font-bold text-sm">{selectedTime.title}</p>
-                                                <p className="text-xs opacity-90">{selectedTime.time}</p>
-                                            </motion.div>
-                                        )}
-
-                                        {selectedDuration && (
-                                            <motion.div
-                                                className={`bg-gradient-to-br ${selectedDuration.color} text-white p-4 rounded-2xl text-center relative overflow-hidden`}
-                                                initial={{ opacity: 0, x: 20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ duration: 0.6, delay: 0.5 }}
-                                                whileHover={{ scale: 1.05 }}
-                                            >
-                                                <div className="absolute top-0 right-0 w-8 h-8 bg-white/10 rounded-full -translate-y-1 translate-x-1" />
-                                                <selectedDuration.icon className="w-6 h-6 mx-auto mb-2" />
-                                                <p className="font-bold text-sm">{selectedDuration.title}</p>
-                                                <p className="text-xs opacity-90">{selectedDuration.duration}</p>
-                                            </motion.div>
-                                        )}
-                                    </div>
-
-                                    {selectedGroup && (
-                                        <motion.div
-                                            className={`bg-gradient-to-br ${selectedGroup.color} text-white p-6 rounded-2xl text-center relative overflow-hidden mb-6`}
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.6, delay: 0.6 }}
-                                            whileHover={{ scale: 1.02 }}
-                                        >
-                                            <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-4 translate-x-4" />
-                                            <div className="relative flex items-center justify-center space-x-4">
-                                                <selectedGroup.icon className="w-8 h-8" />
-                                                <div>
-                                                    <p className="font-bold text-lg">{selectedGroup.title}</p>
-                                                    <p className="text-sm opacity-90">{selectedGroup.description}</p>
-                                                </div>
-                                                <motion.span
-                                                    className="text-4xl"
-                                                    whileHover={{ scale: 1.3, rotate: 15 }}
-                                                >
-                                                    {selectedGroup.emoji}
-                                                </motion.span>
-                                            </div>
-                                        </motion.div>
-                                    )}
-
-                                    {/* Informazioni aggiuntive */}
-                                    <motion.div
-                                        className="bg-gradient-to-r from-ochre-100 to-terracotta-100 p-4 rounded-2xl mb-6"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: 0.6, delay: 0.7 }}
-                                    >
-                                        <div className="flex items-start space-x-3">
-                                            <motion.div
-                                                className="bg-ochre-400 text-white p-2 rounded-xl"
-                                                whileHover={{ rotate: 360 }}
-                                                transition={{ duration: 0.6 }}
-                                            >
-                                                <MapPin className="w-5 h-5" />
-                                            </motion.div>
-                                            <div className="flex-1">
-                                                <h4 className="font-bold text-gray-800 mb-1">Punto di ritrovo</h4>
-                                                <p className="text-gray-600 text-sm">Ti invieremo la posizione esatta 30 minuti prima dell'inizio</p>
-                                            </div>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <Brain className="w-10 h-10 text-terracotta-600 animate-pulse" />
                                         </div>
-                                    </motion.div>
-
-                                    <motion.div
-                                        className="bg-gradient-to-r from-terracotta-100 to-ochre-100 p-4 rounded-2xl mb-6"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: 0.6, delay: 0.8 }}
-                                    >
-                                        <div className="flex items-start space-x-3">
-                                            <motion.div
-                                                className="bg-terracotta-400 text-white p-2 rounded-xl"
-                                                whileHover={{ scale: 1.1 }}
-                                            >
-                                                <Calendar className="w-5 h-5" />
-                                            </motion.div>
-                                            <div className="flex-1">
-                                                <h4 className="font-bold text-gray-800 mb-1">Disponibilità</h4>
-                                                <p className="text-gray-600 text-sm">Disponibile oggi e nei prossimi 7 giorni con prenotazione istantanea</p>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-
-                                    {/* Pulsanti di azione */}
-                                    <div className="flex space-x-3 mb-4">
-                                        <Link
-                                            to="/map"
-                                            state={{
-                                                route: quickRoute,
-                                                focusedActivity: {
-                                                    ...selectedSubOption,
-                                                    id: selectedSubOption.id || 'qp-result',
-                                                    latitude: quickRoute?.[quickRoute.length - 1]?.latitude || 41.9028,
-                                                    longitude: quickRoute?.[quickRoute.length - 1]?.longitude || 12.4964,
-                                                    category: 'adventure',
-                                                    level: 'premium'
-                                                }
-                                            }}
-                                            className="flex-1"
-                                        >
-                                            <motion.button
-                                                className="w-full bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white py-4 px-6 rounded-2xl font-bold hover:from-terracotta-500 hover:to-terracotta-600 transition-all shadow-lg flex items-center justify-center space-x-2"
-                                                whileHover={{ scale: 1.02, boxShadow: "0 8px 25px rgba(0,0,0,0.15)" }}
-                                                whileTap={{ scale: 0.98 }}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ duration: 0.6, delay: 0.9 }}
-                                            >
-                                                <Zap className="w-5 h-5" />
-                                                <span>Vai alla Mappa</span>
-                                            </motion.button>
-                                        </Link>
-
-                                        <Link to="/tour-details">
-                                            <motion.button
-                                                className="bg-white text-terracotta-500 border-2 border-terracotta-400 py-4 px-6 rounded-2xl font-bold hover:bg-terracotta-50 transition-all shadow-lg flex items-center justify-center"
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ duration: 0.6, delay: 1 }}
-                                            >
-                                                <Timer className="w-5 h-5" />
-                                            </motion.button>
-                                        </Link>
                                     </div>
+                                    <h2 className="text-xl font-bold text-gray-800 mb-2">Creazione itinerario a {activeCity}...</h2>
+                                    <p className="text-gray-500 text-sm">Stiamo disegnando la tua esperienza...</p>
+                                </div>
+                            )}
 
-                                    {/* Pulsante ricomincia */}
-                                    <motion.button
-                                        onClick={resetSelection}
-                                        className="w-full bg-gray-200 text-gray-700 py-3 px-6 rounded-2xl font-medium hover:bg-gray-300 transition-colors flex items-center justify-center space-x-2"
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ duration: 0.6, delay: 1.1 }}
-                                    >
-                                        <RotateCcw className="w-4 h-4" />
-                                        <span>Ricomincia la selezione</span>
-                                    </motion.button>
-                                </motion.div>
+                            {generationStatus === 'success' && readyTourData && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                                    <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full text-center border-4 border-terracotta-400 animate-in fade-in zoom-in duration-300">
+                                        <h2 className="text-3xl font-bold text-terracotta-600 mb-2">Itinerario Pronto! 🎒</h2>
+                                        <p className="text-gray-600 mb-6">Abbiamo creato un percorso su misura per te.</p>
+
+                                        <button
+                                            onClick={() => navigate(`/map`, { state: { tourData: readyTourData, isAiGenerated: true } })}
+                                            className="w-full bg-gradient-to-r from-terracotta-500 to-orange-500 hover:from-terracotta-600 hover:to-orange-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg transform hover:scale-105 transition-all mb-4"
+                                        >
+                                            SCOPRI ORA 🗺️
+                                        </button>
+
+                                        <p className="text-xs text-gray-400">ID: {readyTourData.id}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {generationStatus === 'error' && (
+                                <div className="text-center py-20">
+                                    <h3 className="text-xl font-bold text-red-600">Errore Generazione</h3>
+                                    <button onClick={() => window.location.reload()} className="mt-4 px-6 py-2 bg-gray-200 rounded-lg">Riprova</button>
+                                </div>
                             )}
                         </motion.div>
                     )}
+
+
                 </AnimatePresence>
             </main>
 
             <BottomNavigation />
-        </div>
+        </div >
     );
 }
+

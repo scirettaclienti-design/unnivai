@@ -192,7 +192,7 @@ export default function TrendingPage() {
         ...item,
         // Ensure properties exist, falling back to mock-like values if needed
         trendScore: item.trendScore || Math.floor(Math.random() * 20) + 80, // Fake score if missing from DB
-        host: item.host || item.guide || "Unnivai Guide",
+        host: item.host || item.guide || "DoveVai Guide",
         tags: item.tags || (item.highlights ? item.highlights.slice(0, 3) : ["Popular", "Featured"]),
         image: item.image || item.imageUrl
     }));

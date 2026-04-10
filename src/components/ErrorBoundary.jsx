@@ -29,6 +29,13 @@ class ErrorBoundary extends React.Component {
                         <p className="text-gray-500 mb-6">
                             Abbiamo riscontrato un errore imprevisto. Il team tecnico è stato notificato.
                         </p>
+                        {this.state.error && (
+                            <pre className="text-left text-xs bg-gray-100 text-red-600 p-4 rounded mb-6 overflow-auto max-h-48 border border-red-200">
+                                {this.state.error.toString()}
+                                {'\n'}
+                                {this.state.error.stack}
+                            </pre>
+                        )}
                         <div className="space-y-3">
                             <button
                                 onClick={() => window.location.href = '/'}

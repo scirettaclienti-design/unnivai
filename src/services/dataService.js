@@ -1,5 +1,29 @@
-
 import { supabase } from '../lib/supabase';
+import { TourUISchema, BookingInputSchema, NotificationUISchema, getMoodForTags } from '../lib/schemas.js';
+import { poiService } from './poiService';
+import { aiRecommendationService } from './aiRecommendationService';
+// ---------------------------------------------------------------------------
+// validateData(schema, data, label?)
+//
+// Non-blocking Zod validation helper.  Runs safeParse and logs a detailed
+// console.error when the data deviates from the schema, but always returns
+// the original data so callers are never broken by a validation failure.
+//
+// Usage:
+//   return validateData(TourUISchema, result, `tour:${dbTour.id}`)
+// ---------------------------------------------------------------------------
+export function validateData(schema, data, label = '') {
+    try {
+        const result = schema.safeParse(data);
+        if (!result.success) {
+            const tag = label ? ` [${label}]` : '';
+            console.warn(`🚨 [Schema]${tag} Validation failed. Data returned as-is.`);
+        }
+    } catch (e) {
+        console.warn(`🚨 [Schema] ${label} - safeParse crash avoided:`, e.message);
+    }
+    return data;
+}
 
 class DataService {
     constructor() {
@@ -29,24 +53,29 @@ class DataService {
             const tags = Array.isArray(dbTour.tags) ? dbTour.tags : [];
 
             // Fetch guide info from relation if available, otherwise mock or extract
-            const guideInfo = dbTour.profiles || {}; // Assuming join on 'guide_id' -> 'profiles'
+            const guideInfo = dbTour.guide || dbTour.profiles || {}; // Assuming join on 'guide_id' -> 'profiles'
 
-            return {
+            // Missing migrated fields warnings
+            if (dbTour.price_eur == null) console.error(`🚨 Missing migrated field 'price_eur' on tour ${dbTour.id}`);
+            if (dbTour.duration_minutes == null) console.error(`🚨 Missing migrated field 'duration_minutes' on tour ${dbTour.id}`);
+            if (!dbTour.city) console.error(`🚨 Missing 'city' field on tour ${dbTour.id}`);
+
+            const mapped = {
                 id: dbTour.id,
                 title: dbTour.title || '',
                 description: dbTour.description || '',
 
                 // Map location fields
-                city: dbTour.city || 'Unknown', // Now a forceful column
+                city: dbTour.city,
                 location: dbTour.location || dbTour.city || '',
 
                 // Format duration
-                duration: dbTour.duration_text || (dbTour.duration_minutes ? `${dbTour.duration_minutes} min` : ''),
-                estimatedTime: dbTour.duration_minutes || 0,
+                duration: dbTour.duration_minutes != null ? `${dbTour.duration_minutes} min` : dbTour.duration_text,
+                estimatedTime: dbTour.duration_minutes != null ? Number(dbTour.duration_minutes) : null,
 
                 // Pricing (Prioritize price_eur filter column)
-                price: Number(dbTour.price_eur) || Number(dbTour.price) || 0,
-                originalPrice: dbTour.original_price ? Number(dbTour.original_price) : null,
+                price: dbTour.price_eur != null ? Number(dbTour.price_eur) : (dbTour.price != null ? Number(dbTour.price) : null),
+                originalPrice: dbTour.original_price != null ? Number(dbTour.original_price) : null,
 
                 // Stats
                 rating: Number(dbTour.rating) || 5.0,
@@ -59,8 +88,9 @@ class DataService {
                 images: images,             // Full gallery for details
 
                 // Guide (Flattened for UI)
-                guide: guideInfo.full_name || guideInfo.username || 'Guida DoveVai',
-                guideAvatar: guideInfo.avatar_emoji || '👋', // Use emoji if url not present or as logic dictates
+                guide_id: dbTour.guide_id || null,
+                guide: (`${guideInfo.first_name || ''} ${guideInfo.last_name || ''}`).trim() || guideInfo.full_name || guideInfo.username || 'Guida DoveVai',
+                guideAvatar: (Array.isArray(guideInfo.image_urls) ? guideInfo.image_urls[0] : guideInfo.image_urls) || guideInfo.avatar_url || guideInfo.avatar_emoji || '👋',
                 guideBio: guideInfo.bio || 'Esperto locale appassionato.',
 
                 // Rich Content
@@ -90,8 +120,13 @@ class DataService {
 
                 // Technical data for Map
                 steps: dbTour.steps || [],
-                routePath: dbTour.route_path || null
+                routePath: dbTour.route_path || null,
+
+                // Mood — derived from tags; key into MAP_MOODS in schemas.js
+                mood: getMoodForTags(tags),
             };
+
+            return validateData(TourUISchema, mapped, `tour:${dbTour.id}`);
         } catch (e) {
             console.error("Mapping Error for Tour:", dbTour, e);
             return null;
@@ -108,15 +143,7 @@ class DataService {
         try {
             const { data, error } = await supabase
                 .from('tours')
-                .select(`
-                    *,
-                    profiles:guide_id (
-                        username,
-                        full_name,
-                        avatar_url,
-                        bio
-                    )
-                `)
+                .select(`*`)
                 .eq('city', city)
                 .order('is_live', { ascending: false }); // Prioritize live tours
 
@@ -146,10 +173,10 @@ class DataService {
                 .from('tours')
                 .select(`
                     *,
-                    profiles:guide_id (
-                        username,
-                        full_name,
-                        avatar_url,
+                    profiles (
+                        first_name,
+                        last_name,
+                        image_urls,
                         bio
                     )
                 `)
@@ -160,7 +187,38 @@ class DataService {
                 return null;
             }
 
-            return this.mapTourToUI(data);
+            const mappedUser = this.mapTourToUI(data);
+
+            // AUTO-ARRICCHIMENTO TOUR STEPS
+            if (mappedUser && mappedUser.steps && mappedUser.steps.length > 0) {
+                const stepsToEnrich = mappedUser.steps
+                    .filter(s => !s.description && !s.historicalNotes)
+                    .map(s => ({ ...s, name: s.title })); // Map title to name for the AI service
+
+                if (stepsToEnrich.length > 0) {
+                    try {
+                        console.log(`Arricchimento AI per ${stepsToEnrich.length} tappe vuote...`);
+                        const enrichedPoints = await aiRecommendationService.enrichMonuments(stepsToEnrich, mappedUser.city);
+                        
+                        // Merge enriched data back into mappedUser.steps
+                        mappedUser.steps = mappedUser.steps.map(step => {
+                            const enriched = enrichedPoints.find(ep => ep.title === step.title);
+                            if (enriched && (enriched.historicalNotes || enriched.funFacts)) {
+                                return {
+                                    ...step,
+                                    historicalNotes: enriched.historicalNotes,
+                                    description: enriched.historicalNotes // Fallback to description
+                                };
+                            }
+                            return step;
+                        });
+                    } catch (enrichError) {
+                        console.error("Errore nell'arricchimento AI delle tappe:", enrichError);
+                    }
+                }
+            }
+
+            return mappedUser;
         } catch (err) {
             return null;
         }
@@ -171,6 +229,11 @@ class DataService {
      */
     async createBooking(bookingData) {
         if (!this.useRealData) return { success: true };
+
+        // Validate input before any DB interaction.
+        // validateData logs a detailed error but is non-blocking; the insert
+        // will still proceed so existing callers aren't broken.
+        validateData(BookingInputSchema, bookingData, 'createBooking:input');
 
         try {
             const { data: { session } } = await supabase.auth.getSession();
@@ -258,10 +321,15 @@ class DataService {
 
         try {
             const channel = supabase.channel('public:tours')
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tours' }, payload => {
-                    // Map new data to UI contract
-                    const uiTour = this.mapTourToUI(payload.new);
-                    if (callback) callback(uiTour);
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tours' }, async payload => {
+                    // payload.new contains no JOIN data — refetch with profiles JOIN
+                    // so mapTourToUI receives the full row including guide info.
+                    const { data } = await supabase
+                        .from('tours')
+                        .select('*, profiles(username, first_name, last_name, image_urls, bio)')
+                        .eq('id', payload.new.id)
+                        .single();
+                    if (data && callback) callback(this.mapTourToUI(data));
                 })
                 .subscribe();
             return channel;
@@ -295,16 +363,24 @@ class DataService {
             // For MVP safety, let's filter in memory strictly avoiding query complexity errors
             const filtered = data ? data.filter(n => !n.city_scope || n.city_scope === currentCity) : [];
 
-            return filtered.map(n => ({
-                id: n.id,
-                title: n.title,
-                message: n.message,
-                type: n.type,
-                time: new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                read: !!n.read_at,
-                actionData: n.action_data || {},
-                category: n.category || 'general'
-            }));
+            return filtered.map(n => {
+                const mapped = {
+                    id: n.id,
+                    title: n.title || 'Nuova notifica',
+                    message: n.message || '',
+                    type: n.type || 'info',
+                    time: new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    is_read: !!n.is_read,
+                    // actionText / actionUrl were previously missing from this path,
+                    // causing shape divergence from the subscribeToNotifications handler.
+                    actionText: n.action_text || 'Vedi',
+                    actionUrl: n.action_url || '/notifications',
+                    actionData: n.action_data || {},
+                    category: n.category || 'general',
+                    city_scope: n.city_scope || null,
+                };
+                return validateData(NotificationUISchema, mapped, `notification:${n.id}`);
+            });
         } catch (err) {
             console.warn('Fetch notifications error (silent):', err);
             return [];
@@ -326,18 +402,21 @@ class DataService {
                     filter: `user_id=eq.${userId}`
                 }, payload => {
                     const n = payload.new;
+                    // Shape must match NotificationUISchema (same as getNotifications mapper)
                     const uiNotification = {
                         id: n.id,
                         type: n.type || 'info',
                         title: n.title || 'Nuova notifica',
                         message: n.message || '',
-                        timestamp: new Date(n.created_at),
+                        time: new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        is_read: !!n.is_read,
                         actionText: n.action_text || 'Vedi',
                         actionUrl: n.action_url || '/notifications',
-                        read: !!n.read,
-                        actionType: n.action_type || 'scopri'
+                        actionData: n.action_data || {},
+                        category: n.category || 'general',
+                        city_scope: n.city_scope || null,
                     };
-                    if (callback) callback(uiNotification);
+                    if (callback) callback(validateData(NotificationUISchema, uiNotification, `realtime:notification:${n.id}`));
                 })
                 .subscribe();
             return channel;
@@ -354,12 +433,15 @@ class DataService {
         if (!this.useRealData) return null;
 
         try {
-            // Note: Assuming 'activities' table exists. 
-            // If strictly using 'tours', we might need to adjust, but 'activities' usually implies POIs.
-            // Fallback provided in UI if this returns null/empty.
             const { data, error } = await supabase
                 .from('activities')
-                .select('*')
+                .select(`
+                    id, name, latitude, longitude, city, category,
+                    tier, vibe_tags, tags, description,
+                    type, icon, historical_notes, fun_facts,
+                    opening_hours, website_url, image_url,
+                    admission_fee, duration_minutes
+                `)
                 .eq('city', city);
 
             if (error) {
@@ -370,14 +452,24 @@ class DataService {
             if (!data || data.length === 0) return null;
 
             return data.map(curr => ({
-                id: curr.id,
-                name: curr.name || curr.title || 'Attività',
-                latitude: curr.latitude,
-                longitude: curr.longitude,
-                level: curr.tier || curr.level || 'base', // DB 'tier' -> UI 'level'
-                category: curr.category || 'culture',
-                tags: curr.vibe_tags || curr.tags || [],
-                description: curr.description || ''
+                id:              curr.id,
+                name:            curr.name || 'Attività',
+                latitude:        curr.latitude,
+                longitude:       curr.longitude,
+                level:           curr.tier || 'base',
+                category:        curr.category || 'culture',
+                type:            curr.type || 'poi',
+                icon:            curr.icon || null,
+                tags:            curr.vibe_tags || curr.tags || [],
+                description:     curr.description || '',
+                // Monument-specific fields (null when not populated)
+                historicalNotes: curr.historical_notes || null,
+                funFacts:        curr.fun_facts || [],
+                openingHours:    curr.opening_hours || null,
+                websiteUrl:      curr.website_url || null,
+                imageUrl:        curr.image_url || null,
+                admissionFee:    curr.admission_fee ?? null,
+                durationMinutes: curr.duration_minutes || null,
             }));
 
         } catch (err) {
@@ -426,7 +518,8 @@ class DataService {
         if (!this.useRealData) return [];
 
         try {
-            // Join bookings with tours to check guide_id and get tour details
+            // ALTO-3 fix: include user profile JOIN so callers don't need
+            // a follow-up query per booking to display who made the request.
             const { data, error } = await supabase
                 .from('bookings')
                 .select(`
@@ -436,7 +529,8 @@ class DataService {
                     booking_date,
                     booking_time,
                     total_amount,
-                    tours!inner(id, title, guide_id)
+                    tours!inner(id, title, guide_id),
+                    profiles!user_id(first_name, last_name, image_urls)
                 `)
                 .eq('status', 'pending_request')
                 .eq('tours.guide_id', guideId);
@@ -452,7 +546,10 @@ class DataService {
                 date: b.booking_date,
                 time: b.booking_time,
                 guests: b.guests_count,
-                profit: Number(b.total_amount || 0) * 0.8 // 20% platform fee simulation
+                profit: Number(b.total_amount || 0) * 0.8, // 20% platform fee simulation
+                // User info — now available from the profiles JOIN (no extra query needed)
+                userName: (`${b.profiles?.first_name || ''} ${b.profiles?.last_name || ''}`).trim() || 'Ospite',
+                userAvatar: Array.isArray(b.profiles?.image_urls) ? b.profiles.image_urls[0] : b.profiles?.image_urls || null,
             })) : [];
 
         } catch (err) {
@@ -536,6 +633,12 @@ class DataService {
                     return mapped && bizCats.includes(mapped);
                 });
                 if (anyRelevantCat && score === 0) score = 1; // floor to include
+
+                // F. Elite Tier Boost (+5) — Ensure Elite businesses are highly prioritized by the AI
+                if (b.subscription_tier === 'elite') {
+                    score += 5;
+                    console.log(`  👑 Elite Boost applied for ${b.company_name}`);
+                }
 
                 console.log(`  📊 Score for ${b.company_name}: ${score}`);
                 return { business: b, score };
@@ -626,3 +729,45 @@ class DataService {
 }
 
 export const dataService = new DataService();
+
+export const getCityActivities = async (city) => {
+  // 1. Ingestione dati reali
+  const rawPois = await poiService.fetchRealPois(city);
+  
+  // 2. Arricchimento AI (solo per i top 5 per velocità/costi)
+  const toEnrich = rawPois.slice(0, 5);
+  const others = rawPois.slice(5);
+  
+  const enriched = await aiRecommendationService.enrichMonuments(toEnrich, city);
+  
+  // 3. Unione e Validazione Contract-First
+  return [...enriched, ...others];
+};
+
+export const createGuideRequest = async (requestData) => {
+  // Validazione input
+  // const validated = validateData(BookingInputSchema, requestData, "GuideRequest");
+  
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Utente non autenticato");
+
+  // Inserimento con associazione corretta alla guida
+  const { data, error } = await supabase
+    .from('guide_requests')
+    .insert([{
+      user_id: session.user.id,
+      user_name: session.user.user_metadata?.first_name 
+                 ? `${session.user.user_metadata.first_name} ${session.user.user_metadata.last_name || ''}`.trim() 
+                 : session.user.user_metadata?.full_name || 'Ospite',
+      guide_id: requestData.guideId, // Il destinatario corretto!
+      tour_id: requestData.tourId,
+      city: requestData.city,
+      status: 'open',
+      request_text: requestData.message,
+      category: 'custom',
+      duration: requestData.duration || 3,
+    }]);
+    
+  if (error) throw error;
+  return data;
+};

@@ -663,13 +663,23 @@ export default function AIItineraryPage() {
                                         latitude: s.latitude,
                                         longitude: s.longitude,
                                         label: s.title,
-                                        title: s.title, // Ensure title is passed
+                                        title: s.title, // Keep title for fallback
+                                        name: s.title,  // Required for MapPage activity card
+                                        description: s.description,
+                                        category: s.type || 'Punto Mappa',
+                                        image: s.photos?.[0] || 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=400',
                                         index: i + 1,
                                         type: 'waypoint'
                                     })) || [],
                                     tourData: {
                                         title: generatedItinerary.find(d => d.day === currentDay)?.title || "Itinerario AI",
                                         type: 'ai-generated',
+                                        // Estraiamo le singole parole chiave dal prompt per fare match con i Tag del Partner!
+                                        tags: [
+                                            "AI", 
+                                            ...(userPrompt ? userPrompt.split(/\s+/).map(w => w.replace(/[^\w\s]/gi, '')) : []), 
+                                            ...(userPreferences.find(p => p.id === 'interests')?.selected || [])
+                                        ],
                                         steps: generatedItinerary.find(d => d.day === currentDay)?.stops.map((s, i) => ({
                                             lat: s.latitude,
                                             lng: s.longitude,

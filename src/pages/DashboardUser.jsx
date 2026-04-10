@@ -1,85 +1,198 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2 } from 'lucide-react';
+import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2, Award, Crosshair } from 'lucide-react';
 import { aiRecommendationService } from '@/services/aiRecommendationService';
 import { useUserContext } from '../hooks/useUserContext';
 import BottomNavigation from '../components/BottomNavigation';
 import TopBar from "@/components/TopBar";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from "@tanstack/react-query";
-import { dataService } from "@/services/dataService";
+import { dataService, createGuideRequest } from "@/services/dataService";
+import { useAILearning } from '../hooks/useAILearning';
+import { placesDiscoveryService } from '@/services/placesDiscoveryService';
+import { getItemImage, GENERIC, CITY_IMAGES } from '@/utils/imageUtils';
+// 🧠 AI-POWERED EXPERIENCE GENERATOR (REAL POI DISCOVERY)
 
-const generateCityExperiences = (cityName) => [
-    {
-        id: 1,
-        type: "guide",
-        title: `Cucina con Nonna a ${cityName} `,
-        location: `${cityName}, Centro`,
-        rating: 4.9,
-        reviews: 127,
-        price: 45,
-        duration: "3h",
-        image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=400&fit=crop&q=80",
-        category: "food",
-        emoji: "👵🍝"
-    },
-    {
-        id: 2,
-        type: "guide",
-        title: `Street Art - ${cityName}`,
-        location: `${cityName}, Quartiere Artistico`,
-        rating: 4.8,
-        reviews: 89,
-        price: 25,
-        duration: "2h",
-        image: "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=600&h=400&fit=crop&q=80",
-        category: "art",
-        emoji: "🎨"
-    },
-    {
-        id: 3,
-        type: "guide",
-        title: `Tramonto su ${cityName}`,
-        location: `${cityName}, Belvedere`,
-        rating: 4.9,
-        reviews: 215,
-        price: 30,
-        duration: "1.5h",
-        image: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=600&h=400&fit=crop&q=80",
-        category: "romance",
-        emoji: "🌅"
-    },
-    {
-        id: 4,
-        type: "guide",
-        title: `Segreti di ${cityName}`,
-        location: `${cityName}, Vicoli Nascosti`,
-        rating: 4.7,
-        reviews: 64,
-        price: 15,
-        duration: "1h",
-        image: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=600&h=400&fit=crop&q=80",
-        category: "walking",
-        emoji: "👣"
-    },
-    {
-        id: 5,
-        type: "guide",
-        title: `Aperitivo a ${cityName}`,
-        location: `${cityName}, Piazza Principale`,
-        rating: 4.5,
-        reviews: 110,
-        price: 20,
-        duration: "1.5h",
-        image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&h=400&fit=crop&q=80",
-        category: "food",
-        emoji: "🍷"
-    }
+// Theme-aware fallback images (city-neutral, topic-relevant)
+const THEME_FALLBACK_IMAGES = {
+    food: GENERIC.food,
+    walking: GENERIC.piazza,
+    romance: GENERIC.park,
+    art: GENERIC.church,
+    nature: GENERIC.park,
+};
+
+const THEME_EMOJIS = {
+    food: '🍽️',
+    walking: '👣',
+    romance: '🌅',
+    art: '🎨',
+    nature: '🌿',
+};
+
+const THEME_CONFIGS = [
+    { type: 'food',    titleFn: (c) => `Assapora ${c}`,               duration: '2h',   price: 35, highlights: ['Gastronomia Locale', 'Sapori Tipici', 'Degustazione'] },
+    { type: 'walking', titleFn: (c) => `I segreti di ${c}`,           duration: '1.5h', price: 15, highlights: ['Centro Storico', 'Vicoli Caratteristici', 'Scoperte'] },
+    { type: 'romance', titleFn: (c) => `Magia al tramonto a ${c}`,    duration: '2h',   price: 25, highlights: ['Panorami', 'Atmosfera Unica', 'Tramonto'] },
+    { type: 'art',     titleFn: (c) => `Tesori Artistici a ${c}`,     duration: '3h',   price: 40, highlights: ['Architettura', 'Arte Sacra', 'Storia Locale'] },
+    { type: 'nature',  titleFn: (c) => `Verde e Relax a ${c}`,        duration: '2.5h', price: 20, highlights: ['Aria Aperta', 'Natura', 'Percorsi Verdi'] },
 ];
 
+// ─── Type-aware image fallback for POI types ─────────────────────────
+const getPoiTypeImage = (poiType, cityName) => {
+    const t = (poiType || '').toLowerCase();
+    if (t.includes('church') || t.includes('chiesa') || t.includes('basilica')) return GENERIC.church;
+    if (t.includes('restaurant') || t.includes('food') || t.includes('trattoria') || t.includes('ristorante')) return GENERIC.food;
+    if (t.includes('park') || t.includes('garden') || t.includes('villa')) return GENERIC.park;
+    if (t.includes('museum') || t.includes('museo') || t.includes('galleria')) return GENERIC.museum;
+    if (t.includes('piazza') || t.includes('monument')) return GENERIC.piazza;
+    if (t.includes('viewpoint') || t.includes('panoram')) return GENERIC.sea;
+    if (t.includes('palazzo')) return GENERIC.museum;
+    // City-specific fallback
+    return CITY_IMAGES[cityName] || GENERIC.piazza;
+};
+
+/**
+ * Build smart experiences using REAL POIs discovered by AI.
+ * Async — calls placesDiscoveryService to get real place names and coordinates.
+ */
+const buildSmartExperiencesAsync = async (cityName, userLat, userLng, userDNA = []) => {
+    // 1. DNA preferences for ordering
+    const likesFood = userDNA.some(d => d.inspiration?.includes('Cibo') || d.mood?.includes('Cibo') || d.mood?.includes('Street'));
+    const likesNature = userDNA.some(d => d.inspiration?.includes('Natura') || d.mood?.includes('Natura'));
+    const likesArts = userDNA.some(d => d.inspiration?.includes('Arte') || d.inspiration?.includes('Storia') || d.mood?.includes('Cultura'));
+
+    // 2. Get coordinates (use user GPS if available, else geocode)
+    const centerLat = userLat || 41.9028;
+    const centerLng = userLng || 12.4964;
+
+    // 3. Discover real POIs for all themes (runs in parallel — cached after first call)
+    let allPOIs = {};
+    try {
+        allPOIs = await placesDiscoveryService.discoverAllThemes(cityName, centerLat, centerLng);
+    } catch (e) {
+        console.warn('[buildSmartExperiences] Discovery failed, using fallback:', e);
+    }
+
+    // 4. Build ordered theme list (DNA-aware)
+    let themes = [...THEME_CONFIGS];
+    if (userDNA.length > 0) {
+        if (likesFood) themes[0] = { ...themes[0], titleFn: (c) => `Street Food Tour su misura - ${c}` };
+        if (likesNature) themes[4] = { ...themes[4], titleFn: (c) => `Escursione Panoramica a ${c}` };
+        if (likesArts) themes[3] = { ...themes[3], titleFn: (c) => `Esplorazione Storica di ${c}` };
+
+        themes.sort((a, b) => {
+            if (likesFood && a.type === 'food') return -1;
+            if (likesNature && a.type === 'nature') return -1;
+            if (likesArts && a.type === 'art') return -1;
+            return 0;
+        });
+    }
+
+    // 5. Build experience objects with REAL POI data
+    return themes.slice(0, 5).map((theme, index) => {
+        const pois = allPOIs[theme.type] || [];
+        const title = theme.titleFn(cityName);
+
+        // Use real POIs if available, else create basic steps
+        const generatedSteps = pois.length > 0
+            ? pois.slice(0, 4).map((poi, i) => ({
+                title: poi.name || poi.title,
+                description: poi.description || `Luogo di interesse a ${cityName}`,
+                lat: poi.lat || poi.latitude,
+                lng: poi.lng || poi.longitude,
+                latitude: poi.lat || poi.latitude,
+                longitude: poi.lng || poi.longitude,
+                image: poi.image || poi.photo || getPoiTypeImage(poi.type, cityName),
+                type: poi.type || 'place',
+                city: cityName,
+            }))
+            : Array.from({ length: 4 }).map((_, i) => ({
+                title: i === 0 ? `Punto di Ritrovo - ${cityName}` : `Tappa ${i + 1} - ${cityName}`,
+                description: `Punto di interesse a ${cityName}`,
+                lat: centerLat + (Math.random() - 0.5) * 0.008,
+                lng: centerLng + (Math.random() - 0.5) * 0.008,
+                latitude: centerLat + (Math.random() - 0.5) * 0.008,
+                longitude: centerLng + (Math.random() - 0.5) * 0.008,
+                image: getPoiTypeImage(theme.type, cityName),
+                type: 'place',
+                city: cityName,
+            }));
+
+        // Experience card image: first POI's image or theme-specific fallback
+        const mainImage = generatedSteps[0]?.image || THEME_FALLBACK_IMAGES[theme.type] || CITY_IMAGES[cityName] || GENERIC.piazza;
+        const emoji = THEME_EMOJIS[theme.type] || '📍';
+        const highlights = pois.length > 0
+            ? pois.slice(0, 3).map(p => p.name || p.title)
+            : theme.highlights;
+
+        return {
+            id: `smart-${index}-${Date.now()}`,
+            type: 'ai-memory',
+            title,
+            location: `${cityName}, Esperienza Locale`,
+            rating: (4.7 + Math.random() * 0.3).toFixed(1),
+            reviews: Math.floor(Math.random() * 200) + 20,
+            price: theme.price,
+            duration: theme.duration,
+            image: mainImage,
+            images: [mainImage],
+            category: (index === 0 && userDNA.length > 0) ? 'Cucito sui tuoi gusti' : "Consigliato dall'AI",
+            emoji,
+            isAiGenerated: true,
+            highlights,
+            included: ['Percorso con luoghi reali', "Esplorazione Guidata dall'AI", 'Assistenza Virtuale'],
+            notIncluded: ["Biglietti d'ingresso non specificati", 'Trasporti privati'],
+            guide: 'Intelligenza DoveVai',
+            guideAvatar: '🤖',
+            guideBio: `Ho assemblato questa esperienza basandomi su luoghi reali di ${cityName} e le tue preferenze.`,
+            center: { latitude: centerLat, longitude: centerLng },
+            steps: generatedSteps,
+            itinerary: generatedSteps.map((s, i) => ({
+                time: `Tappa ${i + 1}`,
+                emoji: '📍',
+                activity: s.title,
+                description: s.description,
+            })),
+            waypoints: generatedSteps.map(s => [s.lat, s.lng]),
+        };
+    });
+};
+
+// Sync fallback for placeholder data (while async loads)
+const buildSmartExperiencesFallback = (cityName) => {
+    return THEME_CONFIGS.slice(0, 3).map((theme, index) => {
+        const fallbackImage = CITY_IMAGES[cityName] || GENERIC.piazza;
+        return {
+            id: `smart-loading-${index}`,
+            type: 'ai-memory',
+            title: theme.titleFn(cityName),
+            location: `${cityName}, Esperienza Locale`,
+            rating: '4.8',
+            reviews: 0,
+            price: theme.price,
+            duration: theme.duration,
+            image: fallbackImage,
+            images: [fallbackImage],
+            category: "Consigliato dall'AI",
+            emoji: THEME_EMOJIS[theme.type],
+            isAiGenerated: true,
+            highlights: theme.highlights,
+            included: [],
+            notIncluded: [],
+            guide: 'Intelligenza DoveVai',
+            guideAvatar: '🤖',
+            center: { latitude: 41.9028, longitude: 12.4964 },
+            steps: [],
+            itinerary: [],
+            waypoints: [],
+        };
+    });
+};
+
 const DashboardUser = () => {
-    const { firstName, city, temperatureC, weatherCondition, isLoading } = useUserContext();
+    const { firstName, city, lat, lng, temperatureC, weatherCondition, isLoading } = useUserContext();
     const navigate = useNavigate();
     const [showCustomOptions, setShowCustomOptions] = useState(false);
     const [showNotificationPreview, setShowNotificationPreview] = useState(false);
@@ -92,6 +205,7 @@ const DashboardUser = () => {
         const setupSubscription = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
+            localStorage.setItem('unnivai_mode', 'user');
 
             channel = supabase
                 .channel(`user_notifications_${user.id}`)
@@ -133,32 +247,17 @@ const DashboardUser = () => {
 
             if (!user) throw new Error('Devi effettuare il login per inviare una richiesta.');
 
-            // Create request with .select() to detect silent RLS failures
-            const { data: insertedData, error } = await supabase
-                .from('guide_requests')
-                .insert({
-                    user_id: user.id,
-                    user_name: firstName || 'Ospite',
-                    city: requestCity,
-                    status: 'open',
-                    category: 'custom',
-                    duration: 3,
-                    request_text: requestText,
-                    created_at: new Date().toISOString()
-                })
-                .select();
+            // Use the centralized service that handles RLS and formatting correctly
+            await createGuideRequest({
+                date: 'Oggi', 
+                guests: 2,
+                message: requestText,
+                guideId: null, // "A pioggia"
+                tourId: null,
+                city: requestCity
+            });
 
-            if (error) {
-                console.error('[submitGuideRequest] DB Error:', error);
-                throw error;
-            }
-
-            if (!insertedData || insertedData.length === 0) {
-                console.error('[submitGuideRequest] Silent RLS block: insert returned empty');
-                throw new Error('Permesso negato dal database. Verifica di essere loggato come utente.');
-            }
-
-            console.log('[submitGuideRequest] Success! Request inserted:', insertedData[0]);
+            console.log('[submitGuideRequest] Success! Request submitted via service');
             setRequestStatus('success');
         } catch (e) {
             console.error('[submitGuideRequest] Exception:', e);
@@ -166,21 +265,45 @@ const DashboardUser = () => {
         }
     };
 
-    // Fetch Experiences
+    const { userDNAPreferences } = useAILearning();
+
+    // Fetch Experiences (now async with real POI discovery)
     const { data: experiences } = useQuery({
-        queryKey: ['home-experiences', city],
+        queryKey: ['home-experiences', city, lat, lng, userDNAPreferences?.length],
         queryFn: async () => {
             const currentCity = city || 'Roma';
+            let finalTours = [];
+            
             try {
                 const tours = await dataService.getToursByCity(currentCity);
-                if (tours && tours.length > 0) return tours.slice(0, 5);
+                if (tours && tours.length > 0) {
+                    finalTours = tours;
+                }
             } catch (e) {
                 console.warn("Failed to fetch tours, using fallback", e);
             }
-            return generateCityExperiences(currentCity);
+            
+            // 🧠 Se non ci sono tour nel DB per la città, usiamo il discovery AI con POI reali
+            if (finalTours.length === 0) {
+                finalTours = await buildSmartExperiencesAsync(currentCity, lat, lng, userDNAPreferences);
+            }
+
+            return finalTours.slice(0, 5);
         },
-        initialData: generateCityExperiences('Roma')
+        placeholderData: () => buildSmartExperiencesFallback(city || 'Roma')
     });
+
+    const [tourHistory, setTourHistory] = useState([]);
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem('user_tour_history');
+            if (saved) {
+                setTourHistory(JSON.parse(saved));
+            }
+        } catch (e) {
+            console.warn('Could not load tour history', e);
+        }
+    }, []);
 
     if (isLoading) {
         return (
@@ -197,7 +320,45 @@ const DashboardUser = () => {
 
             <main className="max-w-md mx-auto px-6 space-y-6 pt-6">
 
+                {/* USER PROGRESS / HISTORY MODULE */}
+                {tourHistory.length > 0 && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-[2rem] p-6 shadow-xl border border-gray-100 flex flex-col gap-4 relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 rounded-full blur-3xl -z-0"></div>
+                        <div className="flex items-center justify-between z-10">
+                            <div>
+                                <h3 className="text-xl font-black text-gray-900 drop-shadow-sm flex items-center gap-2">
+                                    <Award size={20} className="text-yellow-500"/> Il tuo Diario
+                                </h3>
+                                <p className="text-sm text-gray-500 font-medium">Tappe e Scoperte</p>
+                            </div>
+                            <div className="bg-yellow-50 text-yellow-700 font-black px-3 py-1.5 rounded-xl border border-yellow-200">
+                                {tourHistory.length} Tour
+                            </div>
+                        </div>
 
+                        <div className="space-y-3 mt-2 z-10 w-full overflow-x-auto pb-2 no-scrollbar flex snap-x">
+                            {tourHistory.slice(0, 5).map(tour => {
+                                const tourDate = new Date(tour.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+                                return (
+                                    <div key={tour.id} className="min-w-[240px] shrink-0 bg-gray-50 rounded-2xl p-4 border border-gray-100 snap-center mr-3 shadow-sm">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-xs font-bold text-gray-400 bg-white px-2 py-0.5 rounded-md border border-gray-100">{tourDate}</span>
+                                            <span className="p-1 bg-yellow-100 text-yellow-600 rounded-lg"><Star fill="currentColor" size={14}/></span>
+                                        </div>
+                                        <h4 className="font-bold text-gray-900 truncate mb-1">{tour.title}</h4>
+                                        <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
+                                            <span className="flex items-center gap-1"><MapPin size={12}/> {tour.distance}</span>
+                                            <span className="flex items-center gap-1 bg-orange-50 text-orange-600 px-1.5 rounded"><Crosshair size={10} className="hidden"/> {tour.completedCount} Tappe</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* Custom Tour Block - EXPANDABLE */}
                 <motion.div
@@ -370,12 +531,19 @@ const DashboardUser = () => {
                                     className="group relative h-64 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
                                     whileHover={{ y: -5 }}
                                 >
-                                    <img
-                                        src={exp.image || 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&h=400&fit=crop&q=80'}
-                                        alt={exp.title}
-                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                        onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&h=400&fit=crop&q=80'; }}
-                                    />
+                                    <AnimatePresence mode="popLayout">
+                                        <motion.img
+                                            key={exp.image} // Forces animation when image changes
+                                            initial={{ opacity: 0, scale: 1.05 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.5 }}
+                                            src={exp.image || 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&h=400&fit=crop&q=80'}
+                                            alt={exp.title}
+                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                            onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&h=400&fit=crop&q=80'; }}
+                                        />
+                                    </AnimatePresence>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" />
 
                                     <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold text-white flex items-center">

@@ -682,8 +682,8 @@ const Landing = () => {
                         </span>
                     </motion.div>
                     <motion.h1 variants={stagger.item} className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-[1.05] tracking-tight">
-                        Scopri l'Italia<br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500">come un locale.</span>
+                        Vivi l'Italia<br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500">con gli occhi di chi ci vive.</span>
                     </motion.h1>
                     <motion.div variants={stagger.item} className="flex items-center gap-2 mb-5">
                         <MapPin className="w-4 h-4 text-orange-400 flex-shrink-0" />

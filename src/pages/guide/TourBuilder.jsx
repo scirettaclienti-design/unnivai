@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import Map, { Marker, Source, Layer, Popup } from 'react-map-gl';
+import UnnivaiMap from '../../components/UnnivaiMap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Upload, ChevronRight, Check, Search, Trash2, Users, Globe } from 'lucide-react';
 import { Toast } from '../../components/ToastNotification';
 import { validateTourSteps } from '../../config/tourSchema';
 import { mapService } from '../../services/mapService';
+import { aiRecommendationService } from '../../services/aiRecommendationService';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -122,7 +123,9 @@ export default function TourBuilder() {
 
     // --- STEP 2 LOGIC (MAP) ---
     const addStepOnMap = (e) => {
-        const { lng, lat } = e.lngLat;
+        const lat = e.detail?.latLng?.lat ?? e.lngLat?.lat;
+        const lng = e.detail?.latLng?.lng ?? e.lngLat?.lng;
+        if (lat === undefined || lng === undefined) return;
         const newStep = {
             id: crypto.randomUUID(),
             order: steps.length + 1,
@@ -143,6 +146,29 @@ export default function TourBuilder() {
         const newSteps = [...steps];
         newSteps[index][field] = value;
         setSteps(newSteps);
+    };
+
+    const enrichStep = async (index) => {
+        const currentStep = steps[index];
+        // Only enrich if there is a title and no description yet
+        if (!currentStep.title || currentStep.description || currentStep.title.startsWith('Tappa ')) return;
+        
+        showToast('Generazione AI in corso per ' + currentStep.title + '...', 'info');
+        try {
+            const enriched = await aiRecommendationService.enrichMonuments([currentStep]);
+            if (enriched && enriched.length > 0 && enriched[0].historicalNotes) {
+                const newSteps = [...steps];
+                newSteps[index].description = enriched[0].historicalNotes;
+                if (enriched[0].funFacts && enriched[0].funFacts.length > 0) {
+                     newSteps[index].tags = enriched[0].funFacts; // Or store it in a specific field
+                }
+                setSteps(newSteps);
+                showToast('Descrizione generata con successo!', 'success');
+            }
+        } catch (e) {
+            console.error('AI Enrichment Failed:', e);
+            // Optionally notify user or just fail silently
+        }
     };
 
     const removeStep = (index) => {
@@ -555,6 +581,7 @@ export default function TourBuilder() {
                                                         className="w-full text-sm border-gray-300 rounded p-2"
                                                         value={s.title}
                                                         onChange={(e) => updateStep(idx, 'title', e.target.value)}
+                                                        onBlur={() => enrichStep(idx)}
                                                         placeholder="Nome Tappa" // Auto-filled by partner
                                                     />
                                                     {/* Smart Partner Search */}
@@ -623,50 +650,17 @@ export default function TourBuilder() {
 
                             {/* Map Surface */}
                             <div className="flex-1 relative">
-                                <Map
-                                    {...viewState}
-                                    onMove={evt => setViewState(evt.viewState)}
-                                    mapStyle="mapbox://styles/mapbox/streets-v12"
-                                    mapboxAccessToken={MAPBOX_TOKEN}
+                                <UnnivaiMap
+                                    initialCenter={{ latitude: viewState.latitude, longitude: viewState.longitude }}
+                                    defaultZoom={viewState.zoom}
+                                    activities={steps.map(s => ({ ...s, category: 'Tour Step' }))}
+                                    routePoints={steps}
                                     onClick={addStepOnMap}
-                                    cursor="crosshair"
-                                >
-                                    {/* Route Line */}
-                                    {steps.length > 1 && (
-                                        <Source id="route" type="geojson" data={routeGeoJSON}>
-                                            <Layer
-                                                id="route-layer"
-                                                type="line"
-                                                paint={{
-                                                    'line-color': '#ea580c',
-                                                    'line-width': 4,
-                                                    'line-dasharray': [2, 1]
-                                                }}
-                                            />
-                                        </Source>
-                                    )}
-
-                                    {/* Markers */}
-                                    {steps.map((s, idx) => (
-                                        <Marker
-                                            key={idx}
-                                            latitude={s.coordinates.lat}
-                                            longitude={s.coordinates.lng}
-                                            anchor="bottom"
-                                            onClick={(e) => {
-                                                e.originalEvent.stopPropagation();
-                                                setSelectedStepIndex(idx);
-                                            }}
-                                        >
-                                            <div className={`
-                                            flex items-center justify-center w-8 h-8 rounded-full border-2 shadow-lg cursor-pointer transform transition-transform hover:scale-110
-                                            ${selectedStepIndex === idx ? 'bg-orange-600 border-white text-white scale-125 z-50' : 'bg-white border-orange-600 text-orange-600'}
-                                        `}>
-                                                <span className="font-bold text-sm">{idx + 1}</span>
-                                            </div>
-                                        </Marker>
-                                    ))}
-                                </Map>
+                                    onActivityClick={(item) => {
+                                        const originalIndex = steps.findIndex(s => s.id === item.id);
+                                        if (originalIndex !== -1) setSelectedStepIndex(originalIndex);
+                                    }}
+                                />
 
                                 {/* Overlay Instructions */}
                                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-lg shadow-md border border-gray-200 text-sm font-medium z-10 pointer-events-none">

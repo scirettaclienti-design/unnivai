@@ -11,8 +11,10 @@ export function useUserContext() {
     const { user } = useAuth(); // Get authenticated user
     const { city: manualCity, isManual } = useCity();
 
-    // Effective City Logic
-    const effectiveCity = isManual ? manualCity : (gpsLocation?.city || 'Roma');
+    // Effective City Logic: mai mostrare "Lat: ... Lon: ..." in UI
+    const rawCity = isManual ? manualCity : (gpsLocation?.city || 'Roma');
+    const looksLikeCoords = typeof rawCity === 'string' && (rawCity.startsWith('Lat:') || rawCity.includes('Lon:'));
+    const effectiveCity = looksLikeCoords ? 'Roma' : rawCity;
 
     const { data: userContext, isLoading: contextLoading } = useQuery({
         queryKey: ['userContext', effectiveCity], // Re-fetch if city changes

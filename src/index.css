@@ -85,6 +85,11 @@
         @apply border-border;
     }
 
+    html, body {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: auto;
+    }
+
     body {
         @apply font-quicksand antialiased bg-gradient-to-b from-ochre-100 to-ochre-200 text-foreground;
     }

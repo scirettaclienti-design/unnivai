@@ -75,17 +75,26 @@ class WeatherService {
         if (code >= 51 && code <= 67) return 'Pioggia';
         return 'Variabile';
     }
-    async getWeather(city, lat, lng) {
-        // 1. If we have exact coords, use them (Best precision)
+    // Bust the cache for a specific lat/lng pair — called on manual city change
+    clearCacheForCoords(lat, lng) {
+        if (!lat || !lng) return;
+        this.cache.delete(`${parseFloat(lat).toFixed(4)},${parseFloat(lng).toFixed(4)}`);
+    }
+
+    // forceRefresh=true skips the 30-min cache and fetches live data
+    async getWeather(city, lat, lng, forceRefresh = false) {
+        // 1. If we have exact coords, use them (best precision)
         if (lat && lng) {
+            if (forceRefresh) this.clearCacheForCoords(lat, lng);
             return this.getCurrentWeather(lat, lng);
         }
 
-        // 2. If we have a City Name, try to Geocode it ourselves (OpenMeteo is free)
+        // 2. Geocode the city name (OpenMeteo geocoding — free, no key needed)
         if (city && typeof city === 'string') {
             try {
                 const coords = await this.getCoordsFromCity(city);
                 if (coords) {
+                    if (forceRefresh) this.clearCacheForCoords(coords.latitude, coords.longitude);
                     return this.getCurrentWeather(coords.latitude, coords.longitude);
                 }
             } catch (e) {

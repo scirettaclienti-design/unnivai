@@ -9,8 +9,42 @@ import DemoHint from "@/components/DemoHint";
 import { Link } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import BottomNavigation from "@/components/BottomNavigation";
+import { QuickPathSummary } from "@/components/Map/QuickPathSummary";
 import { useUserContext } from "@/hooks/useUserContext";
+import { useAILearning } from "@/hooks/useAILearning";
 import { DEMO_CITIES, MOCK_ROUTES } from "@/data/demoData";
+import PaywallModal from "@/components/PaywallModal";
+
+// Immagine fallback generica (NON Colosseo: piazza italiana generica)
+const GENERIC_ITALY_IMAGE = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300';
+// Solo per Roma: Colosseo/centro
+const ROMA_IMAGE = 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=300';
+
+/** Restituisce l'immagine della città corretta; mai Colosseo per altre città */
+const getCityFallbackImage = (city) => {
+    if (!city || typeof city !== 'string') return GENERIC_ITALY_IMAGE;
+    const key = city.trim();
+    const byCity = {
+        'Roma': ROMA_IMAGE,
+        'Milano': 'https://images.unsplash.com/photo-1476493279419-b785d41e38d8?w=300',
+        'Napoli': 'https://images.unsplash.com/photo-1563211545-c397120a3b2b?w=300',
+        'Firenze': 'https://images.unsplash.com/photo-1543429258-135a96c348d6?w=300',
+        'Venezia': 'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=300',
+        'Torino': 'https://images.unsplash.com/photo-1587982153163-e8e0d0a39e4b?w=300',
+        'Palermo': 'https://images.unsplash.com/photo-1528659556196-18e3856b3793?w=300',
+        'Bari': 'https://images.unsplash.com/photo-1507501336603-6a2a6f5fc6ff?w=300',
+        'Bologna': 'https://images.unsplash.com/photo-1570168008011-b87a8c15a7f6?w=300',
+        'Catania': 'https://images.unsplash.com/photo-1669229875416-654db55dc03f?w=300',
+        'Perugia': 'https://images.unsplash.com/photo-1626127117105-098555e094c9?w=300',
+        'Genova': 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=300',
+        'Verona': 'https://images.unsplash.com/photo-1529154036614-a60975f5c760?w=300',
+        'Siena': 'https://images.unsplash.com/photo-1520635565-e7a2cedc8d4b?w=300',
+    };
+    return byCity[key] || GENERIC_ITALY_IMAGE;
+};
+
+// Per compatibilità dove serve un fallback "card" (step 2): usa città se disponibile
+const FALLBACK_CARD_IMAGE = GENERIC_ITALY_IMAGE;
 
 // 🌍 ADAPTIVE DATA ENGINE
 const CITY_CONFIG = {
@@ -109,9 +143,18 @@ const getAdaptiveOptions = (city) => {
         }
     });
 
+    // Garantire che ogni sotto-opzione abbia sempre un'immagine (mai box senza foto; fallback = città corretta)
+    const cityImg = getCityFallbackImage(city);
+    const subWithImages = {};
+    Object.keys(config.sub).forEach(key => {
+        subWithImages[key] = (config.sub[key] || []).map(item => ({
+            ...item,
+            image: item?.image && item.image.startsWith('http') ? item.image : cityImg
+        }));
+    });
     return {
         mainOptions,
-        subOptions: config.sub
+        subOptions: subWithImages
     };
 };
 
@@ -244,6 +287,9 @@ export default function QuickPathPage() {
     const [selectedDuration, setSelectedDuration] = useState(null);
     const [selectedGroup, setSelectedGroup] = useState(null);
 
+    const { trackGeneratedTour, hasHitPaywall, unlockPremium } = useAILearning();
+    const [showPaywall, setShowPaywall] = useState(false);
+
     // GENERATION STATE (LIFTED UP)
     const [generationStatus, setGenerationStatus] = useState('idle'); // idle, loading, success, error
     const [generationError, setGenerationError] = useState(null);
@@ -277,6 +323,13 @@ export default function QuickPathPage() {
 
     const handleGroupSelection = (groupOption) => {
         setSelectedGroup(groupOption);
+        
+        // 🔒 Intercettazione Premium Gate
+        if (hasHitPaywall) {
+            setShowPaywall(true);
+            return;
+        }
+
         setCurrentStep(6); // Move to loading step
         // TRIGGER GENERATION IMMEDIATELY ON FINAL SELECTION
         generateItinerary(groupOption);
@@ -285,6 +338,31 @@ export default function QuickPathPage() {
     const generateItinerary = async (group) => {
         console.log("🚀 STARTING GENERATION IN PARENT COMPONENT");
         setGenerationStatus('loading');
+
+        // Timeout di sicurezza: se dopo 12s non abbiamo risposta, forziamo completamento con itinerario fallback
+        let safetyTimeoutId = setTimeout(() => {
+            console.warn("⏱️ QuickPath: safety timeout, applying fallback completion");
+            const cityCenter = { latitude: 41.9028, longitude: 12.4964 };
+            const cityImg = getCityFallbackImage(activeCity);
+            setReadyTourData({
+                id: 'ai-quiz-fallback-' + Date.now(),
+                title: `Esplora ${activeCity}`,
+                description: "Esperienza personalizzata.",
+                city: activeCity,
+                steps: [{ title: 'Centro', description: 'Punto di partenza', lat: cityCenter.latitude, lng: cityCenter.longitude, latitude: cityCenter.latitude, longitude: cityCenter.longitude, image: cityImg, type: 'place' }],
+                waypoints: [[cityCenter.latitude, cityCenter.longitude]],
+                isAiGenerated: true,
+                images: [cityImg],
+                imageUrl: cityImg,
+                center: cityCenter,
+                guide: "Guida Virtuale",
+                guideAvatar: "🤖",
+                highlights: ["Percorso Veloce"],
+                included: [],
+                notIncluded: [],
+            });
+            setGenerationStatus('success');
+        }, 12000);
 
         try {
             // 1. Prepare Data
@@ -536,14 +614,15 @@ export default function QuickPathPage() {
                         routeLat = 41.9028; routeLng = 12.4964; // Roma
                     }
 
-                    // GENERATE 3 GENERIC POINTS
+                    // GENERATE 3 GENERIC POINTS (immagine città corretta, mai Colosseo per altre città)
+                    const cityImage800 = getCityFallbackImage(activeCity).replace('w=300', 'w=800');
                     contextRoute = [
                         {
                             label: `Centro Storico di ${activeCity}`,
                             latitude: routeLat,
                             longitude: routeLng,
                             description: `Esplora le meraviglie di ${activeCity}.`,
-                            image: `https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800`
+                            image: cityImage800
                         },
                         {
                             label: `Passeggiata a ${activeCity}`,
@@ -688,7 +767,7 @@ export default function QuickPathPage() {
 
                     return {
                         title: p.label || p.title || `Tappa ${i + 1}`,
-                        description: p.description || "Punto d'interesse consigliato.",
+                        description: p.description || null,
                         latitude: parseFloat(p.latitude ?? p.lat ?? 0) || null,
                         longitude: parseFloat(p.longitude ?? p.lng ?? 0) || null,
                         type: p.isSponsored ? 'business_partner'
@@ -700,58 +779,116 @@ export default function QuickPathPage() {
                         website: p.website || null,
                     };
                 });
+                const defaultCityImage =
+                    CITY_IMAGES_RESOLVER[activeCity] ||
+                    ITALIAN_GENERIC_IMG;
+                const mainImage = stops.length > 0 && stops[0].image ? stops[0].image : defaultCityImage;
+                const tourData = {
+                    id: 'ai-quiz-' + Date.now(),
+                    title: `Esplora ${activeCity}`,
+                    description: "Esperienza personalizzata.",
+                    city: activeCity,
+                    duration_minutes: selectedDuration?.id === 'veloce' ? 90 : 180,
+                    price_eur: 0,
+                    rating: 5.0,
+                    steps: stops.map(s => ({
+                        title: s.title,
+                        description: s.description,
+                        lat: s.latitude,
+                        lng: s.longitude,
+                        latitude: s.latitude,
+                        longitude: s.longitude,
+                        image: s.image || 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800',
+                        type: 'place'
+                    })),
+                    itinerary: stops.map((s, i) => ({
+                        time: `Tappa ${i + 1}`,
+                        emoji: '📍',
+                        activity: s.title || `Destinazione ${i + 1}`,
+                    })),
+                    waypoints: stops.map(s => [s.latitude, s.longitude]),
+                    isAiGenerated: true,
+                    tags: ['AI', group?.title, 'QuickPath', ...activeTags],
+                    images: [mainImage],
+                    imageUrl: mainImage,
+                    guide: "Guida Virtuale",
+                    guideAvatar: "🤖",
+                    guideBio: "Itinerario generato su misura per te dall'intelligenza artificiale.",
+                    highlights: ["⚡ Percorso Veloce", "🏙️ " + activeCity, "🎯 Esperienza Custom"],
+                    included: ["Navigazione GPS", "Supporto Virtuale"],
+                    notIncluded: ["Biglietti", "Trasporti"],
+                    center: CITY_COORDS_MAP[activeCity] || ((stops.length > 0) ? { latitude: stops[0].latitude, longitude: stops[0].longitude } : CITY_COORDS_MAP['Roma'])
+                };
+                clearTimeout(safetyTimeoutId);
+
+                // TRACCIAMENTO INTELLIGENZA AI (SALVA GUSTI)
+                try {
+                    trackGeneratedTour({
+                        mood: selectedSubOption?.title || 'Generico',
+                        inspiration: selectedSubOption?.description || 'Esplorazione',
+                        time: selectedTime?.title || 'Giorno',
+                        duration: selectedDuration?.title || 'Medio',
+                        group: group?.title || 'Solo',
+                        city: activeCity
+                    });
+                } catch (e) { console.error("Tracking Error", e); }
+
+                setReadyTourData(tourData);
+                setGenerationStatus('success');
+                console.log("🔥 SUCCESS: TOUR DATA SET");
+            } else {
+                // contextRoute mancante: completamento con itinerario fallback (stessa scheda Recap)
+                clearTimeout(safetyTimeoutId);
+                const cityCenter = { latitude: 41.9028, longitude: 12.4964 };
+                const cityImg = getCityFallbackImage(activeCity);
+                setReadyTourData({
+                    id: 'ai-quiz-fallback-' + Date.now(),
+                    title: `Esplora ${activeCity}`,
+                    description: "Esperienza personalizzata.",
+                    city: activeCity,
+                    steps: [{ title: 'Centro', description: 'Punto di partenza', lat: cityCenter.latitude, lng: cityCenter.longitude, latitude: cityCenter.latitude, longitude: cityCenter.longitude, image: cityImg, type: 'place' }],
+                    itinerary: [{
+                        time: `Tappa 1`,
+                        emoji: '📍',
+                        activity: 'Centro',
+                    }],
+                    waypoints: [[cityCenter.latitude, cityCenter.longitude]],
+                    isAiGenerated: true,
+                    images: [cityImg],
+                    imageUrl: cityImg,
+                    center: cityCenter,
+                    guide: "Guida Virtuale",
+                    guideAvatar: "🤖",
+                    highlights: ["Percorso Veloce"],
+                    included: [],
+                    notIncluded: [],
+                });
+                setGenerationStatus('success');
             }
 
-            const defaultCityImage =
-                CITY_IMAGES_RESOLVER[activeCity] ||
-                ITALIAN_GENERIC_IMG;
-
-            const mainImage = stops.length > 0 && stops[0].image ? stops[0].image : defaultCityImage;
-
-            const tourData = {
-                id: 'ai-quiz-' + Date.now(),
+        } catch (e) {
+            clearTimeout(safetyTimeoutId);
+            console.warn("⚠️ Generazione con fallback:", e?.message || e);
+            const cityCenter = { latitude: 41.9028, longitude: 12.4964 };
+            const cityImg = getCityFallbackImage(activeCity);
+            setReadyTourData({
+                id: 'ai-quiz-fallback-' + Date.now(),
                 title: `Esplora ${activeCity}`,
                 description: "Esperienza personalizzata.",
                 city: activeCity,
-                duration_minutes: selectedDuration?.id === 'veloce' ? 90 : 180,
-                price_eur: 0,
-                rating: 5.0,
-                steps: stops.map(s => ({
-                    title: s.title,
-                    description: s.description,
-                    lat: s.latitude,
-                    lng: s.longitude,
-                    latitude: s.latitude,
-                    longitude: s.longitude,
-                    image: s.image || 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800',
-                    type: 'place'
-                })),
-                waypoints: stops.map(s => [s.latitude, s.longitude]),
+                steps: [{ title: 'Centro', description: 'Punto di partenza', lat: cityCenter.latitude, lng: cityCenter.longitude, latitude: cityCenter.latitude, longitude: cityCenter.longitude, image: cityImg, type: 'place' }],
+                waypoints: [[cityCenter.latitude, cityCenter.longitude]],
                 isAiGenerated: true,
-                tags: ['AI', group?.title, 'QuickPath'],
-
-                // 🛡️ CRITICAL FIXES FOR TOUR DETAILS CRASH
-                images: [mainImage],
-                imageUrl: mainImage,
+                images: [cityImg],
+                imageUrl: cityImg,
+                center: cityCenter,
                 guide: "Guida Virtuale",
                 guideAvatar: "🤖",
-                guideBio: "Itinerario generato su misura per te dall'intelligenza artificiale.",
-                highlights: ["⚡ Percorso Veloce", "🏙️ " + activeCity, "🎯 Esperienza Custom"],
-                included: ["Navigazione GPS", "Supporto Virtuale"],
-                notIncluded: ["Biglietti", "Trasporti"],
-
-                // ⚡ CRITICAL: Inject Explicit City Center for Map Page
-                center: CITY_COORDS_MAP[activeCity] || ((stops.length > 0) ? { latitude: stops[0].latitude, longitude: stops[0].longitude } : CITY_COORDS_MAP['Roma'])
-            };
-
-            setReadyTourData(tourData);
+                highlights: ["Percorso Veloce"],
+                included: [],
+                notIncluded: [],
+            });
             setGenerationStatus('success');
-            console.log("🔥 SUCCESS: TOUR DATA SET");
-
-        } catch (e) {
-            console.error("❌ GENERATION ERROR:", e?.message || e);
-            setGenerationError(e?.message || String(e));
-            setGenerationStatus('error');
         }
     };
 
@@ -794,14 +931,14 @@ export default function QuickPathPage() {
                     </div>
                 </motion.div>
 
-                {/* Progress Indicator */}
+                {/* Progress Indicator: 6 step (ultimo = riepilogo/completamento) */}
                 <motion.div
                     className="flex items-center justify-center space-x-2 mb-8"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                    {[1, 2, 3, 4, 5].map((step) => (
+                    {[1, 2, 3, 4, 5, 6].map((step) => (
                         <div
                             key={step}
                             className={`w-3 h-3 rounded-full transition-all duration-300 ${currentStep >= step ? 'bg-terracotta-400' : 'bg-gray-300'
@@ -878,8 +1015,13 @@ export default function QuickPathPage() {
                                         transition={{ delay: index * 0.1 }}
                                         whileHover={{ x: 5 }}
                                     >
-                                        <div className="relative w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden shadow-inner">
-                                            <img src={subOption.image} alt={subOption.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                        <div className="relative w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden shadow-inner bg-gray-200">
+                                            <img
+                                                src={subOption.image || getCityFallbackImage(activeCity)}
+                                                alt={subOption.title || 'Esperienza'}
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                onError={(e) => { e.target.onerror = null; e.target.src = getCityFallbackImage(activeCity); }}
+                                            />
                                             <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
                                             <div className="absolute bottom-1 right-1 bg-white/90 backdrop-blur rounded-lg px-2 py-1 text-lg shadow-sm">
                                                 {subOption.emoji}
@@ -1046,21 +1188,33 @@ export default function QuickPathPage() {
                             )}
 
                             {generationStatus === 'success' && readyTourData && (
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-                                    <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full text-center border-4 border-terracotta-400 animate-in fade-in zoom-in duration-300">
-                                        <h2 className="text-3xl font-bold text-terracotta-600 mb-2">Itinerario Pronto! 🎒</h2>
-                                        <p className="text-gray-600 mb-6">Abbiamo creato un percorso su misura per te.</p>
-
-                                        <button
-                                            onClick={() => navigate(`/map`, { state: { tourData: readyTourData, isAiGenerated: true } })}
-                                            className="w-full bg-gradient-to-r from-terracotta-500 to-orange-500 hover:from-terracotta-600 hover:to-orange-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg transform hover:scale-105 transition-all mb-4"
-                                        >
-                                            SCOPRI ORA 🗺️
-                                        </button>
-
-                                        <p className="text-xs text-gray-400">ID: {readyTourData.id}</p>
-                                    </div>
-                                </div>
+                                <QuickPathSummary
+                                    tourData={readyTourData}
+                                    choices={{
+                                        mood: mainOptions.find(o => o.id === selectedOption)?.title || selectedOption,
+                                        inspiration: selectedSubOption?.title,
+                                        time: selectedTime?.title,
+                                        duration: selectedDuration?.title,
+                                        group: selectedGroup?.title
+                                    }}
+                                    onViewMap={() => {
+                                        const tour = { ...readyTourData };
+                                        if (tour.steps?.length) {
+                                            tour.steps = tour.steps.map(s => ({
+                                                ...s,
+                                                lat: typeof s.lat === 'number' ? s.lat : parseFloat(s.latitude),
+                                                lng: typeof s.lng === 'number' ? s.lng : parseFloat(s.longitude),
+                                                latitude: typeof s.latitude === 'number' ? s.latitude : parseFloat(s.lat),
+                                                longitude: typeof s.longitude === 'number' ? s.longitude : parseFloat(s.lng),
+                                            }));
+                                        }
+                                        navigate('/map', { state: { tourData: tour, isAiGenerated: true } });
+                                    }}
+                                    onHome={() => {
+                                        resetSelection();
+                                        navigate('/dashboard-user');
+                                    }}
+                                />
                             )}
 
                             {generationStatus === 'error' && (

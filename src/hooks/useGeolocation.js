@@ -147,7 +147,7 @@ export function useGeolocation(options = {}) {
                 data.address?.county ||
                 data.address?.state ||
                 data.display_name?.split(',')[0] ||
-                'Posizione rilevata';
+                'Roma';
 
             const detectedCountry = data.address?.country || 'Italia';
 

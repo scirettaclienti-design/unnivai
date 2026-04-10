@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'; // Added useEffect
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { useUserContext } from "@/hooks/useUserContext"; // Added Context
+import { useUserContext } from "@/hooks/useUserContext";
+import { useUserNotifications } from '@/hooks/useUserNotifications';
+import { supabase } from '@/lib/supabase';
+import { sanitizeMessage } from '@/utils/chatSanitizer';
 import {
     ArrowLeft,
     Bell,
@@ -12,6 +15,8 @@ import {
     Settings,
     Check,
     X,
+    Shield,
+    AlertTriangle,
     MessageCircle,
     Camera,
     Gift,
@@ -19,67 +24,109 @@ import {
     CloudRain,
     Users,
     Search,
-    ArrowRight
+    ArrowRight,
+    Archive,
+    Trash2
 } from 'lucide-react';
 import BottomNavigation from '@/components/BottomNavigation';
 
 export default function NotificationsPage() {
-    const { city, temperatureC } = useUserContext(); // Consume context
+    const { userId, city, firstName } = useUserContext();
     const [filter, setFilter] = useState('all');
 
-    // Dynamic Mock Data Generation
-    const [notifications, setNotifications] = useState([]);
+    const { notifications: rawNotifications, unreadCount, markAsRead, deleteNotification, markAllAsRead } = useUserNotifications(userId, city, firstName);
 
-    useEffect(() => {
-        // Mock data now adapts to the cityContext
-        const currentCity = city || 'Roma';
-        const currentTemp = temperatureC || 20;
+    const notifications = rawNotifications.map(n => ({
+        ...n,
+        unread: n.is_read !== true,
+        time: n.created_at ? new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (n.timestamp ? new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Ora'),
+        action: (n.actionType || n.actionText || 'dettagli').toLowerCase(),
+        link: n.actionUrl || n.link || '#',
+        category: (n.type === 'tour_recommendation' || n.type === 'location' || n.type === 'recommendation') ? 'tours' :
+            (n.type === 'weather' || n.type === 'weather_alert') ? 'weather' :
+                (n.type === 'social_activity' || n.type === 'group_invite') ? 'social' :
+                    (n.type === 'guide_message' || n.type === 'price_offer' || n.type === 'request_accepted' || n.type === 'request_declined') ? 'messages' : 'altro'
+    }));
 
-        const initialNotifications = [
-            {
-                id: 1,
-                type: 'tour_recommendation',
-                title: 'Nuovo Tour Perfetto per Te!',
-                message: `Tour gastronomico "Sapori di ${currentCity}" - Basato sui tuoi tour precedenti`,
-                location: `${currentCity}, Centro`,
-                time: '10 min fa',
-                unread: true,
-                image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop',
-                action: 'prenota',
-                link: '/tour-details/1',
-                price: '€45',
-                category: 'tours'
-            },
-            {
-                id: 2,
-                type: 'weather_alert',
-                title: 'Tempo Perfetto per Esplorare!',
-                message: `Sole e ${currentTemp}°C a ${currentCity} - Ideale per il tour "Panorami Cittadini"`,
-                location: currentCity,
-                time: 'Oggi',
-                unread: true,
-                image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-                action: 'scopri',
-                link: '/tour-details/2',
-                category: 'weather'
-            },
-            {
-                id: 5,
-                type: 'group_invite',
-                title: 'Invito Tour di Gruppo',
-                message: `Sofia ti ha invitato al tour "Walking ${currentCity}" del 15 febbraio`,
-                location: currentCity,
-                time: '4 ore fa',
-                unread: false,
-                image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=400&h=300&fit=crop',
-                action: 'rispondi',
-                link: '/tour-details/3?mode=group',
-                category: 'social'
+    const [selectedNotification, setSelectedNotification] = useState(null);
+    const [replyText, setReplyText] = useState('');
+    const [isReplying, setIsReplying] = useState(false);
+
+    const handleNotificationClick = (notification) => {
+        if (notification.unread) {
+            markAsRead(notification.id);
+        }
+        setSelectedNotification(notification);
+        setReplyText(''); // Reset reply on open
+    };
+
+    const handleReplySubmit = async () => {
+        if (!replyText.trim() || !selectedNotification?.actionData?.guide_id) return;
+
+        setIsReplying(true);
+        const { sanitizedText, hasViolations } = sanitizeMessage(replyText.trim());
+
+        try {
+            const { error } = await supabase.from('notifications').insert({
+                user_id: selectedNotification.actionData.guide_id,
+                type: 'user_reply',
+                title: `💬 Risposta da ${firstName || 'Utente'}`,
+                message: sanitizedText,
+                action_url: '/dashboard-guide',
+                action_data: { request_id: selectedNotification.actionData.request_id },
+                is_read: false,
+                created_at: new Date().toISOString()
+            });
+
+            if (error) throw error;
+
+            // Success
+            if (hasViolations) {
+                // Keep the modal open to show the sanitization warning, just update text
+                setReplyText(sanitizedText);
+            } else {
+                setReplyText('');
+                setSelectedNotification(null);
             }
-        ];
+        } catch (err) {
+            console.error('Errore invio risposta:', err.message);
+        } finally {
+            setIsReplying(false);
+        }
+    };
 
-        setNotifications(initialNotifications);
-    }, [city, temperatureC]);
+    const handleAcceptOffer = async () => {
+        if (!selectedNotification?.actionData?.guide_id || !selectedNotification?.actionData?.request_id) return;
+        
+        try {
+            // Update the guide request status to signify acceptance
+            const { error: updateError } = await supabase
+                .from('guide_requests')
+                .update({ status: 'payment_pending' })
+                .eq('id', selectedNotification.actionData.request_id);
+                
+            if (updateError) throw updateError;
+            
+            // Notify the guide
+            await supabase.from('notifications').insert({
+                user_id: selectedNotification.actionData.guide_id,
+                type: 'request_accepted',
+                title: `✅ Offerta Accettata da ${firstName || 'Utente'}`,
+                message: `L'utente ha accettato la tua offerta. A breve riceverà il link di pagamento.`,
+                action_url: '/dashboard-guide',
+                action_data: { request_id: selectedNotification.actionData.request_id },
+                is_read: false,
+                created_at: new Date().toISOString()
+            });
+            
+            // Placeholder per integrazione Stripe futura
+            alert('Offerta accettata! In futuro qui avvieremo il pagamento con Stripe.');
+            setSelectedNotification(null);
+        } catch (err) {
+            console.error('Errore accettazione offerta:', err.message);
+            alert("Errore durante l'accettazione. Riprova.");
+        }
+    };
 
     const getNotificationIcon = (type) => {
         switch (type) {
@@ -89,6 +136,10 @@ export default function NotificationsPage() {
             case 'social_activity': return <Heart className="w-5 h-5 text-red-500" />;
             case 'tour_reminder': return <Clock className="w-5 h-5 text-green-500" />;
             case 'group_invite': return <Users className="w-5 h-5 text-purple-500" />;
+            case 'guide_message': return <MessageCircle className="w-5 h-5 text-blue-500" />;
+            case 'price_offer': return <Gift className="w-5 h-5 text-green-500" />;
+            case 'request_accepted': return <Check className="w-5 h-5 text-teal-500" />;
+            case 'request_declined': return <X className="w-5 h-5 text-red-500" />;
             default: return <Bell className="w-5 h-5 text-gray-500" />;
         }
     };
@@ -105,21 +156,12 @@ export default function NotificationsPage() {
         }
     };
 
-    const filteredNotifications = filter === 'all'
-        ? notifications
-        : notifications.filter(n => n.category === filter);
+    const filteredNotifications = filter === 'archivio'
+        ? notifications.filter(n => !n.unread)
+        : filter === 'all'
+            ? notifications // Show all in 'Tutte', maybe sort unread first (already sorted by time)
+            : notifications.filter(n => n.category === filter); // Show read and unread for specific categories
 
-    const unreadCount = notifications.filter(n => n.unread).length;
-
-    const markAsRead = (id) => {
-        setNotifications(prev =>
-            prev.map(n => n.id === id ? { ...n, unread: false } : n)
-        );
-    };
-
-    const markAllAsRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
-    };
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 pb-20 font-quicksand">
@@ -170,9 +212,11 @@ export default function NotificationsPage() {
                         <div className="flex space-x-3 overflow-x-auto scrollbar-hide py-1">
                             {[
                                 { key: 'all', label: 'Tutte', icon: Bell },
+                                { key: 'messages', label: 'Messaggi', icon: MessageCircle },
                                 { key: 'tours', label: 'Tour', icon: MapPin },
                                 { key: 'social', label: 'Social', icon: Heart },
-                                { key: 'weather', label: 'Meteo', icon: Sun }
+                                { key: 'weather', label: 'Meteo', icon: Sun },
+                                { key: 'archivio', label: 'Lette', icon: Archive }
                             ].map(({ key, label, icon: Icon }) => (
                                 <motion.button
                                     key={key}
@@ -249,11 +293,12 @@ export default function NotificationsPage() {
                                         </div>
                                     </div>
 
-                                    {/* Action Button Area */}
-                                    <div className="mt-4 flex items-center justify-end">
-                                        <Link to={notification.link}>
+                                    <div className="mt-4 flex items-center justify-between">
+                                        {/* Action Button Area */}
+                                        <div className="flex-1">
                                             <motion.button
-                                                className={`px-5 py-2 rounded-xl text-sm font-bold shadow-md flex items-center space-x-2 ${notification.action === 'prenota' ? 'bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white' :
+                                                onClick={() => handleNotificationClick(notification)}
+                                                className={`px-5 py-2 rounded-xl text-sm font-bold shadow-md flex items-center space-x-2 w-max ${notification.action === 'prenota' ? 'bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white' :
                                                     notification.action === 'scopri' ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white' :
                                                         notification.action === 'rispondi' ? 'bg-gradient-to-r from-purple-400 to-purple-500 text-white' :
                                                             'bg-white text-gray-700 border border-gray-100'
@@ -264,7 +309,21 @@ export default function NotificationsPage() {
                                                 <span>{notification.action.charAt(0).toUpperCase() + notification.action.slice(1)}</span>
                                                 <ArrowRight className="w-3 h-3" />
                                             </motion.button>
-                                        </Link>
+                                        </div>
+
+                                        {/* Delete Button */}
+                                        <motion.button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                deleteNotification(notification.id);
+                                            }}
+                                            className="p-2 ml-2 text-gray-400 hover:text-red-500 bg-white hover:bg-red-50 border border-gray-100 hover:border-red-100 rounded-xl transition-colors"
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            title="Elimina notifica"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </motion.button>
                                     </div>
                                 </div>
                             </div>
@@ -281,6 +340,118 @@ export default function NotificationsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Modal Dettaglio Notifica */}
+            <AnimatePresence>
+                {selectedNotification && (
+                    <motion.div
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setSelectedNotification(null)}
+                    >
+                        <motion.div
+                            className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl"
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${selectedNotification.category === 'messages' ? 'bg-blue-100 text-blue-600' :
+                                        selectedNotification.category === 'tours' ? 'bg-orange-100 text-orange-600' :
+                                            'bg-gray-100 text-gray-600'
+                                        }`}>
+                                        {getNotificationIcon(selectedNotification.type)}
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectedNotification(null)}
+                                        className="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <h2 className="text-xl font-bold text-gray-900 mb-2">{selectedNotification.title}</h2>
+                                <p className="text-gray-600 mb-6 leading-relaxed whitespace-pre-wrap">
+                                    {selectedNotification.message}
+                                </p>
+
+                                <div className="flex items-center space-x-3 text-sm text-gray-500 mb-6 bg-gray-50 p-3 rounded-xl">
+                                    <Clock className="w-4 h-4" />
+                                    <span>Ricevuta alle {selectedNotification.time}</span>
+                                </div>
+
+                                <div className="flex space-x-3 mt-4">
+                                    {selectedNotification.category === 'messages' && selectedNotification.actionData?.guide_id ? (
+                                        <div className="w-full">
+                                            <textarea
+                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta-500/50 mb-3 resize-none"
+                                                rows="3"
+                                                placeholder="Scrivi la tua risposta qui..."
+                                                value={replyText}
+                                                onChange={(e) => setReplyText(e.target.value)}
+                                            ></textarea>
+                                            
+                                            {(replyText.includes('[Numero Nascosto]') || replyText.includes('[Email Nascosta]')) ? (
+                                                <div className="mb-3 flex gap-2 items-start bg-red-50 p-3 rounded-lg border border-red-100 text-red-700 text-xs">
+                                                    <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />
+                                                    <p><strong>Dati Sensibili Trovati:</strong> Per tutelare te e la Guida, non è consentito scambiarsi numeri o email fuori piattaforma prima della prenotazione. Cerca di non inserire numeri di telefono o email.</p>
+                                                </div>
+                                            ) : (
+                                                <div className="mb-3 flex items-center gap-1.5 text-[10px] text-gray-400">
+                                                    <Shield size={10} /> I dati di contatto personali saranno sbloccati ad avvenuta chiusura della prenotazione.
+                                                </div>
+                                            )}
+
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={handleReplySubmit}
+                                                    disabled={isReplying || !replyText.trim()}
+                                                    className="flex-1 py-3 bg-terracotta-500 hover:bg-terracotta-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl font-bold text-center shadow-md transition-colors flex items-center justify-center gap-2"
+                                                >
+                                                    <span>{isReplying ? 'Invio...' : 'INVIA RISPOSTA'}</span>
+                                                    <ArrowRight className="w-4 h-4" />
+                                                </button>
+                                                {selectedNotification.type === 'price_offer' ? (
+                                                    <button
+                                                        onClick={handleAcceptOffer}
+                                                        className="flex-none py-3 px-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold text-center transition-colors shadow-md"
+                                                    >
+                                                        ACCETTA E PAGA
+                                                    </button>
+                                                ) : selectedNotification.action !== 'dettagli' ? (
+                                                    <Link
+                                                        to={selectedNotification.link}
+                                                        state={selectedNotification.actionData?.request_id ? { openChatRequestId: selectedNotification.actionData.request_id } : {}}
+                                                        className="flex-none py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-center transition-colors"
+                                                        onClick={() => setSelectedNotification(null)}
+                                                    >
+                                                        {selectedNotification.action.toUpperCase()}
+                                                    </Link>
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <Link
+                                            to={selectedNotification.link}
+                                            className="flex-1"
+                                            onClick={() => setSelectedNotification(null)}
+                                        >
+                                            <div className="w-full py-3 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-xl font-bold text-center shadow-md transition-colors flex items-center justify-center gap-2">
+                                                <span>{selectedNotification.action.toUpperCase()}</span>
+                                                <ArrowRight className="w-4 h-4" />
+                                            </div>
+                                        </Link>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <BottomNavigation />
         </div>

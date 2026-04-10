@@ -4,9 +4,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { Plus, BarChart, Users, Star, Map, Edit, Eye, Trash2, CheckCircle, AlertTriangle, Upload, MessageCircle, Clock, MapPin, LogOut, MoreVertical, Send, DollarSign, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import NotificationBell from '@/components/NotificationBell';
+import { Plus, BarChart, Users, Star, Map, Edit, Eye, Trash2, CheckCircle, AlertTriangle, Upload, MessageCircle, Clock, MapPin, LogOut, MoreVertical, Send, DollarSign, ChevronRight, Shield } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { sanitizeMessage } from '@/utils/chatSanitizer';
 
 // --- VERSION CONTROL MARKER: FIX_BIO_2.1 ---
 console.log("[DashboardGuide] Component Loaded - Version 2.1 (BIO FIELD FIX)");
@@ -14,6 +16,7 @@ console.log("[DashboardGuide] Component Loaded - Version 2.1 (BIO FIELD FIX)");
 export default function DashboardGuide() {
     const { user, signOut } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [guideProfile, setGuideProfile] = useState(null);
     const [tours, setTours] = useState([]);
     const [requests, setRequests] = useState([]);
@@ -36,13 +39,21 @@ export default function DashboardGuide() {
     const [offerPrice, setOfferPrice] = useState('');
     const [chatSent, setChatSent] = useState(false);
     const [offerSent, setOfferSent] = useState(false);
+    /** Se il fetch richieste fallisce (es. colonna guide_id mancante), messaggio da mostrare in Richieste Live */
+    const [requestsError, setRequestsError] = useState(null);
 
-    // 🛑 Persistent set of request IDs this guide declined during this session
-    // useRef survives tab switches and re-renders without causing re-renders itself
-    const declinedIdsRef = useRef(new Set());
+    // Chat History State
+    const [chatHistory, setChatHistory] = useState([]);
+    const [loadingHistory, setLoadingHistory] = useState(false);
+
+    // 🛑 Persistent set of request IDs this guide declined
+    const declinedKey = `declined_requests_${user?.id}`;
+    const persistedDeclines = JSON.parse(localStorage.getItem(declinedKey) || '[]');
+    const declinedIdsRef = useRef(new Set(persistedDeclines));
 
     useEffect(() => {
         if (!user) return;
+        localStorage.setItem('unnivai_mode', 'guide'); // Track mode to prevent AI tips for guides
 
         // Get Location for Requests
         navigator.geolocation.getCurrentPosition(
@@ -107,32 +118,44 @@ export default function DashboardGuide() {
     useEffect(() => {
         if (activeTab === 'requests' && guideProfile) {
             const fetchRequests = async () => {
+                setRequestsError(null); // Svuota cache errore prima di ritentare
+                // Richieste indirizzate a questa guida (guide_id = user.id) OR richieste "a pioggia" (guide_id is null)
                 const { data, error } = await supabase
                     .from('guide_requests')
-                    .select('*')
-                    .in('status', ['open'])         // only open — never re-show declined/accepted
+                    .select(`
+                        id, status, guide_id, user_id, city, category,
+                        duration, request_text, notes, created_at, user_name,
+                        tour_id,
+                        author:profiles!guide_requests_user_id_profiles_fk(first_name, last_name, image_urls),
+                        tour:tours!guide_requests_tour_id_fkey(title)
+                    `)
+                    .or(`guide_id.eq.${user.id},guide_id.is.null`)
+                    .in('status', ['open'])
                     .order('created_at', { ascending: false });
 
                 if (error) {
                     console.error('Error fetching requests:', error);
+                    const msg = error?.message || '';
+                    if (msg.includes('relationship') || msg.includes('profiles')) {
+                        setRequestsError('Relazione DB mancante. Esegui supabase/migrations/20260304_fix_guide_requests_fk.sql nel SQL Editor di Supabase.');
+                    } else if (msg.includes('guide_id') || msg.includes('column') || msg.includes('does not exist')) {
+                        setRequestsError('Schema incompleto. Esegui supabase/migrations/20240223_guide_requests_tour_flow.sql nel SQL Editor di Supabase.');
+                    } else {
+                        setRequestsError('Errore nel caricamento delle richieste: ' + msg);
+                    }
+                    setRequests([]);
                     return;
                 }
+                setRequestsError(null);
 
-                let filteredRequests = data || [];
-                const opsCities = guideProfile?.operating_cities || [];
-
-                // Filter by the guide's declared operating cities
-                if (opsCities.length > 0) {
-                    const lcCities = opsCities.map(c => c.toLowerCase());
-                    filteredRequests = filteredRequests.filter(req =>
-                        req.city && lcCities.includes(req.city.toLowerCase())
-                    );
-                }
-
-                // Filter out any IDs this guide already declined in this session
-                const finalRequests = filteredRequests.filter(
-                    r => !declinedIdsRef.current.has(r.id)
-                );
+                // Se la richiesta è indirizzata direttamente, mostrala.
+                // Se è una richiesta a pioggia (guide_id == null), mostrala solo se rientra nelle città operative
+                const finalRequests = (data || []).filter(r => {
+                    if (declinedIdsRef.current.has(r.id)) return false;
+                    const isDirect = r.guide_id === user.id;
+                    const isMyCity = Boolean(r.city && (guideProfile.operating_cities || []).includes(r.city));
+                    return isDirect || isMyCity;
+                });
                 setRequests(finalRequests);
             };
 
@@ -166,14 +189,15 @@ export default function DashboardGuide() {
                 status: 'verified'
             };
 
-            const { error } = await supabase
+            const { data: updated, error } = await supabase
                 .from('guides_profile')
                 .update(updatePayload)
-                .eq('user_id', user.id);
+                .eq('user_id', user.id)
+                .select()
+                .single();
 
             if (error) throw error;
 
-            const { data: updated } = await supabase.from('guides_profile').select('*').eq('user_id', user.id).single();
             setGuideProfile(prev => ({ ...prev, ...updated }));
             alert(`Profilo aggiornato! Sei un ${updated.type === 'pro' ? 'PROFESSIONISTA 🎓' : 'LOCAL HOST 🏠'}`);
 
@@ -216,13 +240,15 @@ export default function DashboardGuide() {
     };
 
     // Helper: Insert a notification for the user
-    const sendNotification = async ({ userId, type, title, message, actionUrl = '/dashboard' }) => {
+    const sendNotification = async ({ userId, type, title, message, actionUrl = '/dashboard', actionData = null, cityScope = null }) => {
         const { error } = await supabase.from('notifications').insert({
             user_id: userId,
             type,
             title,
             message,
             action_url: actionUrl,
+            action_data: actionData,
+            city_scope: cityScope, // Assicura che la notifica arrivi nella città corretta
             is_read: false,
             created_at: new Date().toISOString()
         });
@@ -233,7 +259,7 @@ export default function DashboardGuide() {
         try {
             const { error } = await supabase
                 .from('guide_requests')
-                .update({ status: 'accepted' })
+                .update({ status: 'accepted', guide_id: user.id })
                 .eq('id', req.id);
             if (error) throw error;
             // Notify the user
@@ -242,7 +268,9 @@ export default function DashboardGuide() {
                 type: 'request_accepted',
                 title: '🎉 Richiesta Accettata!',
                 message: `Una guida locale ha accettato il tuo tour a ${req.city}. Ti contatterà a breve!`,
-                actionUrl: '/dashboard'
+                actionUrl: '/dashboard',
+                actionData: { guide_id: user.id, request_id: req.id },
+                cityScope: req.city
             });
             setRequests(prev => prev.filter(r => r.id !== req.id));
         } catch (err) {
@@ -253,17 +281,22 @@ export default function DashboardGuide() {
     const declineRequest = async (req) => {
         // ⚡ 1. Add to the persistent declined set IMMEDIATELY
         declinedIdsRef.current.add(req.id);
+        localStorage.setItem(declinedKey, JSON.stringify(Array.from(declinedIdsRef.current)));
         // ⚡ 2. Remove from UI immediately (no waiting for DB)
         setRequests(prev => prev.filter(r => r.id !== req.id));
         try {
-            // 3. Attempt to update DB (may fail due to RLS — that's OK, UI is already correct)
-            await supabase.from('guide_requests').update({ status: 'declined' }).eq('id', req.id);
+            // 3. Attempt to update DB ONLY se la richiesta è specifica per questa guida
+            if (req.guide_id === user.id) {
+                await supabase.from('guide_requests').update({ status: 'declined' }).eq('id', req.id);
+            }
             await sendNotification({
                 userId: req.user_id,
                 type: 'request_declined',
                 title: '💬 Guida non disponibile',
-                message: `Una guida non è disponibile per il tuo tour a ${req.city}. Prova a inviare di nuovo la richiesta.`,
-                actionUrl: '/dashboard'
+                message: `${guideProfile?.full_name} non è disponibile per il tour a ${req.city}. Prova a inviare di nuovo la richiesta.`,
+                actionUrl: '/dashboard',
+                actionData: { guide_id: user.id, request_id: req.id },
+                cityScope: req.city
             });
         } catch (err) {
             console.warn('Declina DB update failed (RLS?):', err.message);
@@ -274,12 +307,17 @@ export default function DashboardGuide() {
     const sendPriceOffer = async () => {
         if (!offerPrice || Number(offerPrice) <= 0) return;
         try {
+            if (!priceModal.guide_id) {
+                await supabase.from('guide_requests').update({ guide_id: user.id }).eq('id', priceModal.id);
+            }
             await sendNotification({
                 userId: priceModal.user_id,
                 type: 'price_offer',
-                title: `💶 Offerta ricevuta: €${offerPrice}`,
-                message: `Una guida ti ha proposto un tour a ${priceModal.city} per €${offerPrice} (${priceModal.duration || 3}h). Rispondi per confermare!`,
-                actionUrl: '/dashboard'
+                title: `💶 Offerta da ${guideProfile?.full_name}: €${offerPrice}`,
+                message: `${guideProfile?.full_name} ti ha proposto un tour a ${priceModal.city} per €${offerPrice} (${priceModal.duration || 3}h). Rispondi per confermare!`,
+                actionUrl: '/dashboard',
+                actionData: { guide_id: user.id, request_id: priceModal.id },
+                cityScope: priceModal.city
             });
             setOfferSent(true);
         } catch (err) {
@@ -289,10 +327,29 @@ export default function DashboardGuide() {
     };
 
     // ✅ Opens the chat modal for a specific request
-    const handleContactUser = (req) => {
+    const handleContactUser = async (req) => {
         setChatMessage('');
         setChatSent(false);
         setChatModal(req);
+        setLoadingHistory(true);
+        setChatHistory([]);
+        
+        // Fetch chat history for this specific request
+        try {
+            const { data, error } = await supabase
+                .from('notifications')
+                .select('*')
+                .eq('action_data->>request_id', req.id)
+                .in('type', ['guide_message', 'user_reply'])
+                .order('created_at', { ascending: true });
+                
+            if (error) throw error;
+            setChatHistory(data || []);
+        } catch (err) {
+            console.error('Error fetching chat history:', err);
+        } finally {
+            setLoadingHistory(false);
+        }
     };
 
     // ✅ Opens the price proposal modal for a specific request
@@ -305,20 +362,69 @@ export default function DashboardGuide() {
     // ✅ Sends the chat message notification to the user
     const sendChatMessage = async () => {
         if (!chatMessage.trim() || !chatModal) return;
+
+        // Applicazione Anti-Disintermediazione
+        const { sanitizedText, hasViolations } = sanitizeMessage(chatMessage.trim());
+
         try {
+            if (!chatModal.guide_id) {
+                await supabase.from('guide_requests').update({ guide_id: user.id }).eq('id', chatModal.id);
+            }
             await sendNotification({
                 userId: chatModal.user_id,
                 type: 'guide_message',
-                title: '💬 Messaggio dalla guida',
-                message: chatMessage.trim(),
-                actionUrl: '/dashboard'
+                title: `💬 Messaggio da ${guideProfile?.full_name}`,
+                message: sanitizedText,
+                actionUrl: '/dashboard',
+                actionData: { guide_id: user.id, request_id: chatModal.id },
+                cityScope: chatModal.city
             });
-            setChatSent(true);
+            
+            // Append message locally so user sees it
+            setChatHistory(prev => [...prev, {
+                id: Date.now().toString(),
+                type: 'guide_message',
+                message: sanitizedText,
+                created_at: new Date().toISOString()
+            }]);
+
+            if(hasViolations) {
+                // Modificare temporaneamente il testo per mostrare all'utente come è stato inviato
+                setChatMessage(sanitizedText);
+            } else {
+                setChatMessage('');
+            }
+
         } catch (err) {
             console.error('[sendChatMessage] Error:', err.message);
-            setChatSent(true); // show success feedback anyway
         }
     };
+
+    // Auto-open chat from notification click
+    useEffect(() => {
+        if (location.state?.openChatRequestId) {
+            const reqId = location.state.openChatRequestId;
+            const reqToOpen = requests.find(r => r.id === reqId);
+            
+            if (reqToOpen && (!chatModal || chatModal.id !== reqToOpen.id)) {
+                handleContactUser(reqToOpen);
+                navigate(location.pathname, { replace: true, state: {} });
+            } else if (!reqToOpen && requests.length > 0) {
+                // If not in local open requests, fetch it directly (it might be accepted/payment_pending)
+                supabase.from('guide_requests')
+                    .select('*, author:profiles!guide_requests_user_id_profiles_fk(first_name, last_name, image_urls)')
+                    .eq('id', reqId)
+                    .single()
+                    .then(({ data }) => {
+                        if (data && (!chatModal || chatModal.id !== data.id)) {
+                            handleContactUser(data);
+                            navigate(location.pathname, { replace: true, state: {} });
+                        }
+                    });
+            }
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.state?.openChatRequestId, requests]);
 
     if (loading) {
         return (
@@ -398,6 +504,7 @@ export default function DashboardGuide() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <NotificationBell theme="light" />
                     <Link to="/guide/create-tour" className="bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors shadow-md text-sm font-bold">
                         <Plus size={18} /> <span className="hidden sm:inline">Crea Tour</span>
                     </Link>
@@ -444,7 +551,13 @@ export default function DashboardGuide() {
                 {/* CONTENT AREA */}
                 {activeTab === 'requests' ? (
                     <div className="space-y-4">
-                        {requests.length === 0 ? (
+                        {requestsError && (
+                            <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-left">
+                                <p className="font-semibold text-amber-800 mb-1">Configurazione richiesta</p>
+                                <p className="text-sm text-amber-700">{requestsError}</p>
+                            </div>
+                        )}
+                        {!requestsError && requests.length === 0 && (
                             <div className="text-center py-16 text-gray-400">
                                 <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <MessageCircle size={36} className="opacity-30" />
@@ -452,94 +565,116 @@ export default function DashboardGuide() {
                                 <p className="font-semibold text-gray-500 mb-1">Nessuna richiesta attiva</p>
                                 <p className="text-sm">Le richieste per le tue città operative appariranno qui in tempo reale.</p>
                             </div>
-                        ) : (
-                            requests.map(req => (
-                                <motion.div
-                                    key={req.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
-                                >
-                                    {/* Top accent bar */}
-                                    <div className="h-1 bg-gradient-to-r from-orange-400 to-terracotta-500" />
-
-                                    <div className="p-5">
-                                        {/* Header row */}
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className="flex items-center gap-3">
-                                                {/* Avatar */}
-                                                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-300 to-terracotta-400 flex items-center justify-center flex-shrink-0">
-                                                    <span className="text-white font-bold text-lg">{(req.user_name || 'U')[0].toUpperCase()}</span>
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-bold text-gray-900 leading-tight">{req.user_name || 'Utente'}</h3>
-                                                    <div className="flex items-center gap-2 mt-0.5">
-                                                        <span className="text-[11px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full uppercase tracking-wide">{req.category}</span>
-                                                        <span className="flex items-center gap-1 text-[11px] text-gray-400">
-                                                            <MapPin size={10} />{req.city || 'N/D'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <span className="text-[11px] text-gray-400 flex items-center gap-1 flex-shrink-0">
-                                                <Clock size={11} />
-                                                {new Date(req.created_at).toLocaleTimeString('it', { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                        </div>
-
-                                        {/* Quote text */}
-                                        {req.request_text && (
-                                            <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-l-4 border-orange-300 rounded-r-xl pl-4 pr-3 py-3 mb-4">
-                                                <p className="text-sm text-gray-700 italic leading-relaxed">"​{req.request_text}​"</p>
-                                            </div>
-                                        )}
-
-                                        {/* Meta row */}
-                                        <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
-                                            <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-lg">
-                                                <Clock size={11} /> {req.duration || 3} ore richieste
-                                            </span>
-                                        </div>
-
-                                        {/* Accept / Decline primary row */}
-                                        <div className="flex gap-2 mb-2">
-                                            <motion.button
-                                                onClick={() => acceptRequest(req)}
-                                                whileHover={{ scale: 1.02 }}
-                                                whileTap={{ scale: 0.97 }}
-                                                className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-sm shadow-green-200"
-                                            >
-                                                <CheckCircle size={15} /> Accetta
-                                            </motion.button>
-                                            <motion.button
-                                                onClick={() => declineRequest(req)}
-                                                whileHover={{ scale: 1.02 }}
-                                                whileTap={{ scale: 0.97 }}
-                                                className="flex-1 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500 border border-gray-200 hover:border-red-200 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
-                                            >
-                                                ✕ Declina
-                                            </motion.button>
-                                        </div>
-
-                                        {/* Secondary actions row */}
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleContactUser(req)}
-                                                className="flex-1 bg-gray-900 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-black transition-all flex items-center justify-center gap-2 shadow-sm"
-                                            >
-                                                <MessageCircle size={15} /> Contatta
-                                            </button>
-                                            <button
-                                                onClick={() => handleProposePrice(req)}
-                                                className="flex-1 bg-orange-50 text-orange-700 border border-orange-200 py-2.5 rounded-xl font-bold text-sm hover:bg-orange-100 transition-all flex items-center justify-center gap-2"
-                                            >
-                                                <DollarSign size={15} /> Proponi €
-                                            </button>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            ))
                         )}
+                        {!requestsError && requests.length > 0 && requests.map(req => (
+                            <motion.div
+                                key={req.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                            >
+                                {/* Top accent bar — blue for booking, orange for custom */}
+                                <div className={`h-1 bg-gradient-to-r ${req.tour_id ? 'from-blue-400 to-indigo-500' : 'from-orange-400 to-terracotta-500'}`} />
+
+                                <div className="p-5">
+                                    {/* Header row */}
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            {/* Avatar — real image when profile is joined, initial-letter badge fallback */}
+                                            {req.author?.image_urls && req.author?.image_urls.length > 0 ? (
+                                                <img
+                                                    src={Array.isArray(req.author.image_urls) ? req.author.image_urls[0] : req.author.image_urls}
+                                                    alt=""
+                                                    className="w-11 h-11 rounded-full object-cover flex-shrink-0"
+                                                />
+                                            ) : (
+                                                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-300 to-terracotta-400 flex items-center justify-center flex-shrink-0">
+                                                    <span className="text-white font-bold text-lg">
+                                                        {((req.author?.first_name || req.user_name || 'U')[0]).toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <div>
+                                                <h3 className="font-bold text-gray-900 leading-tight">
+                                                    {(`${req.author?.first_name || ''} ${req.author?.last_name || ''}`).trim() || req.user_name || 'Utente'}
+                                                </h3>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    {/* Request-type badge: Prenotazione (blue) vs Tour su Misura (orange) */}
+                                                    {req.tour_id ? (
+                                                        <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1">
+                                                            <CheckCircle size={9} /> Prenotazione
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[11px] font-bold text-orange-600 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1">
+                                                            <Star size={9} /> Tour su Misura
+                                                        </span>
+                                                    )}
+                                                    <span className="flex items-center gap-1 text-[11px] text-gray-400">
+                                                        <MapPin size={10} />{req.city || 'N/D'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span className="text-[11px] text-gray-400 flex items-center gap-1 flex-shrink-0">
+                                            <Clock size={11} />
+                                            {new Date(req.created_at).toLocaleTimeString('it', { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    </div>
+
+                                    {/* Tour title pill — only for direct bookings */}
+                                    {req.tour_id && req.tour?.title && (
+                                        <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 mb-3 flex items-center gap-2">
+                                            <Map size={12} className="text-blue-500 flex-shrink-0" />
+                                            <span className="text-xs font-bold text-blue-700 truncate">
+                                                {req.tour.title}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Quote text */}
+                                    {(req.request_text || req.notes) && (
+                                        <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-l-4 border-orange-300 rounded-r-xl pl-4 pr-3 py-3 mb-4">
+                                            <p className="text-sm text-gray-700 italic leading-relaxed">"​{req.request_text || req.notes}​"</p>
+                                        </div>
+                                    )}
+
+                                    {/* Meta row */}
+                                    <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
+                                        <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-lg">
+                                            <Clock size={11} /> {req.duration || 3} ore richieste
+                                        </span>
+                                    </div>
+
+                                    {/* Primary Action: Chat and Proposal */}
+                                    <div className="flex gap-2 mb-2">
+                                        <button
+                                            onClick={() => handleContactUser(req)}
+                                            className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-xl font-bold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2 shadow-[0_4px_15px_-3px_rgba(59,130,246,0.3)]"
+                                        >
+                                            <MessageCircle size={16} /> Contatta
+                                        </button>
+                                        <button
+                                            onClick={() => handleProposePrice(req)}
+                                            className="flex-1 bg-gradient-to-r from-orange-400 to-terracotta-500 text-white py-3 rounded-xl font-bold text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2 shadow-[0_4px_15px_-3px_rgba(249,115,22,0.3)]"
+                                        >
+                                            <DollarSign size={16} /> Invia Preventivo
+                                        </button>
+                                    </div>
+
+                                    {/* Secondary Action: Decline */}
+                                    <div className="flex gap-2">
+                                        <motion.button
+                                            onClick={() => declineRequest(req)}
+                                            whileHover={{ scale: 1.01 }}
+                                            whileTap={{ scale: 0.99 }}
+                                            className="flex-1 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-100 hover:border-red-100 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <Trash2 size={14} /> Passa Oltre
+                                        </motion.button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
                 ) : activeTab === 'profile' ? (
                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 max-w-2xl mx-auto">
@@ -672,41 +807,68 @@ export default function DashboardGuide() {
                                     </div>
                                 </div>
                             )}
-                            {chatSent ? (
-                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                                    className="flex flex-col items-center py-4 text-center"
-                                >
-                                    <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-3">
-                                        <CheckCircle className="w-7 h-7 text-green-500" />
+                            
+                            {/* CHAT HISTORY */}
+                            <div className="bg-white rounded-2xl mb-4 p-4 border border-gray-100 shadow-inner h-64 overflow-y-auto flex flex-col gap-3">
+                                {loadingHistory ? (
+                                    <div className="flex-1 flex justify-center items-center text-gray-400">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
                                     </div>
-                                    <p className="font-bold text-gray-800">Messaggio inviato!</p>
-                                    <p className="text-sm text-gray-500 mt-1">{chatModal.user_name} riceverà la tua risposta.</p>
-                                    <button onClick={() => setChatModal(null)} className="mt-4 text-sm font-bold text-gray-400 hover:text-gray-600 underline">Chiudi</button>
-                                </motion.div>
-                            ) : (
-                                <>
-                                    <div className="flex items-end gap-2">
-                                        <div className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
-                                            <textarea
-                                                value={chatMessage}
-                                                onChange={e => setChatMessage(e.target.value)}
-                                                placeholder={`Scrivi a ${chatModal.user_name}...`}
-                                                className="w-full bg-transparent resize-none text-sm text-gray-700 placeholder-gray-400 focus:outline-none min-h-[80px]"
-                                                autoFocus
-                                            />
+                                ) : chatHistory.length === 0 ? (
+                                    <div className="flex-1 flex flex-col justify-center items-center text-gray-400 text-sm">
+                                        <MessageCircle size={24} className="mb-2 opacity-30" />
+                                        Nessun messaggio precedente.
+                                    </div>
+                                ) : (
+                                    chatHistory.map((msg) => {
+                                        const isGuide = msg.type === 'guide_message';
+                                        return (
+                                            <div key={msg.id} className={`flex flex-col max-w-[85%] ${isGuide ? 'self-end items-end' : 'self-start items-start'}`}>
+                                                <span className="text-[10px] text-gray-400 mb-1 ml-1">
+                                                    {isGuide ? 'Tu' : chatModal.user_name} • {new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                </span>
+                                                <div className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm ${
+                                                    isGuide 
+                                                        ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-tr-sm' 
+                                                        : 'bg-gray-100 text-gray-800 rounded-tl-sm border border-gray-200'
+                                                }`}>
+                                                    {msg.message}
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
+                                    <textarea
+                                        value={chatMessage}
+                                        onChange={e => setChatMessage(e.target.value)}
+                                        placeholder={`Scrivi a ${chatModal.user_name}...`}
+                                        className="w-full bg-transparent resize-none text-sm text-gray-700 placeholder-gray-400 focus:outline-none min-h-[40px]"
+                                        autoFocus
+                                    />
+                                </div>
+                                <div className="flex justify-between items-center mt-1">
+                                    {(chatMessage.includes('[Numero Nascosto]') || chatMessage.includes('[Email Nascosta]')) ? (
+                                        <div className="flex items-center gap-1.5 text-xs text-red-600 bg-red-50 px-2 py-1 rounded-md flex-1 mr-2">
+                                            <AlertTriangle size={12} /> Dati nascosti (policy).
                                         </div>
-                                        <motion.button
-                                            onClick={sendChatMessage}
-                                            disabled={!chatMessage.trim()}
-                                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                                            className="w-11 h-11 bg-gray-900 text-white rounded-full flex items-center justify-center disabled:opacity-40 shadow-lg flex-shrink-0"
-                                        >
-                                            <Send size={16} />
-                                        </motion.button>
-                                    </div>
-                                    <p className="text-xs text-gray-400 mt-2 text-center">Il messaggio aprirà la conversazione con l’utente</p>
-                                </>
-                            )}
+                                    ) : (
+                                        <div className="text-[10px] text-gray-400 flex items-center gap-1 flex-1 mr-2">
+                                            <Shield size={10} /> Dati sbloccati a preventivo pagato.
+                                        </div>
+                                    )}
+                                    <motion.button
+                                        onClick={sendChatMessage}
+                                        disabled={!chatMessage.trim()}
+                                        whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                        className="w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center disabled:opacity-40 shadow-lg flex-shrink-0"
+                                    >
+                                        <Send size={14} />
+                                    </motion.button>
+                                </div>
+                            </div>
                         </div>
                     </motion.div>
                 </div>

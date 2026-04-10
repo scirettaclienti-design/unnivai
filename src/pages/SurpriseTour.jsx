@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { MapPin, Star, Clock, Users, Shuffle, ArrowLeft, Sparkles, Gift, Dice1, Zap, Calendar, Heart, ArrowRight, Timer, FileText } from "lucide-react";
 import DemoHint from "../components/DemoHint";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
 
@@ -145,11 +145,15 @@ const surpriseTypes = [
 ];
 
 import { useUserContext } from "@/hooks/useUserContext";
+import { useAILearning } from "@/hooks/useAILearning";
 import { aiRecommendationService } from "@/services/aiRecommendationService";
 
 export default function SurpriseTourPage() {
     const { city, userId, firstName } = useUserContext(); // Assuming bio/age might be in context or fetched
+    const { userDNAPreferences } = useAILearning();
+
     const navigate = useNavigate();
+    const location = useLocation();
     const [selectedSurprise, setSelectedSurprise] = useState(null);
     const [isShuffling, setIsShuffling] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
@@ -169,25 +173,45 @@ export default function SurpriseTourPage() {
         return currentExperiences.filter(exp => exp.category === selectedFilter);
     };
 
-    const shuffleExperience = async () => {
+    // 🚀 INNESCO AUTOMATICO (se si arriva da una Card Inconscia)
+    useEffect(() => {
+        if (location.state?.autoSuggest && !isShuffling && !selectedSurprise) {
+            // Eseguiamo la simulazione grafica per 1.5 secondi prima di triggerare davvero, o triggeriamo subito.
+            // Puliamo lo state per non ciclare se torna indietro
+            const suggestion = location.state.autoSuggest;
+            window.history.replaceState({ ...window.history.state, usr: { ...location.state, autoSuggest: null } }, '');
+            
+            // Aspettiamo che la pagina si renderizzi e poi inneschiamo
+            setTimeout(() => {
+                shuffleExperience(suggestion);
+            }, 600);
+        }
+    }, [location.state?.autoSuggest]);
+
+    const shuffleExperience = async (suggestedTheme = null) => {
         setIsShuffling(true);
 
         // Simulate initial delay for effect
         await new Promise(resolve => setTimeout(resolve, 1500));
 
         try {
-            // 1. Prepare User Context
-            // In a real app, fetch detailed profile. Here we mock or use what we have.
+            // 1. Prepare User Context using AI History
+            const pastInterests = userDNAPreferences.map(p => `${p.inspiration} (${p.mood})`).filter(Boolean).slice(0, 3);
+            const pastPace = userDNAPreferences.find(p => p.duration)?.duration || 'Medio';
+            const pastGroup = userDNAPreferences.find(p => p.group)?.group || 'Solo';
+
             const userProfile = {
-                bio: "Viaggiatore curioso amante delle esperienze autentiche",
-                age: 30, // Mock or fetch
-                interests: selectedFilter ? [selectedFilter] : ["Arte", "Cibo", "Avventura"]
+                bio: "Profilo vettoriale estratto dalle generazioni passate.",
+                interests: suggestedTheme ? [suggestedTheme] : selectedFilter ? [selectedFilter] : (pastInterests.length > 0 ? pastInterests : ["Arte", "Cibo", "Scoperte Urbane"]),
+                expectedPace: pastPace,
+                expectedGroup: pastGroup
             };
 
-            const prompt = `Genera un'esperienza a sorpresa unica a ${city || 'Roma'}. 
-            Dati Utente: {interessi: ${userProfile.interests.join(',')}, età: ${userProfile.age}, bio: ${userProfile.bio}} + Posizione: ${city || 'Roma'}.
-            Categoria richiesta: ${selectedFilter || 'Misto'}.
-            L'esperienza deve essere fuori dai soliti schemi turistici.
+            const prompt = `Sei l'intelligenza di Unnivai. Genera un'esperienza a sorpresa esaltante a ${city || 'Roma'}. 
+            Dati Storici Inconsci Utente: Cerca ritmi di viaggio [${userProfile.expectedPace}] in compagnia di [${userProfile.expectedGroup}].
+            Interessi storici calcolati: ${userProfile.interests.join(', ')}.
+            Categoria di oggi: ${suggestedTheme ? suggestedTheme : selectedFilter || 'Mix delle sue più profonde passioni storiche'}.
+            L'esperienza DEVE essere fuori dai soliti schemi turistici commerciali e sembrare magia pura, calzando i suoi gusti inconsci.
             
             IMPORTANTE: Genera SOLO luoghi REALI ed ESISTENTI entro un raggio di 20km da ${city || 'Roma'}.
             Se non sei sicuro della posizione esatta, scarta il luogo. 
@@ -195,16 +219,16 @@ export default function SurpriseTourPage() {
 
             // 2. Call AI Service
             // We use a special flag or just the standard generation
-            const itinerary = await aiRecommendationService.generateItinerary(city || 'Roma', {
+            const result = await aiRecommendationService.generateItinerary(city || 'Roma', {
                 interests: userProfile.interests,
                 duration: 'Mezza Giornata',
                 budget: 'Medio'
             }, prompt);
 
-            if (!itinerary || itinerary.length === 0) throw new Error("AI Generation Failed");
+            if (!result || !result.days || result.days.length === 0) throw new Error("AI Generation Failed");
 
             // 3. Map to Tour Data Format
-            const surpriseTour = itinerary[0]; // Take 1st day as the experience
+            const surpriseTour = result.days[0]; // Take 1st day as the experience
 
             // Generate Route Path (Linear approximation for now, or use mapService if available)
             // Just connecting dots for visual feedback

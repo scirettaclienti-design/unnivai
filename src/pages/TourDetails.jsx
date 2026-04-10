@@ -12,7 +12,7 @@ import BookingModal from "../components/BookingSystem";
 
 import { Toast } from "../components/ToastNotification";
 import { useQuery } from "@tanstack/react-query";
-import { dataService } from "../services/dataService";
+import { dataService, createGuideRequest } from "../services/dataService";
 import { mapService } from "../services/mapService";
 
 // --- MOCK DATA (Original Rich Data) ---
@@ -220,46 +220,64 @@ const tourDetailsMock = {
     // ... add others if needed or rely on default fallback
 };
 
+// UUID semplice: 8-4-4-4-12 caratteri esadecimali
+const isValidGuideId = (id) => typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
 // --- INTERNAL MODAL COMPONENT ---
-const RequestModal = ({ isOpen, onClose, guideName, tourTitle, guideId, tourId }) => {
-    const { user } = useAuth(); // Get authenticated user
+const RequestModal = ({ isOpen, onClose, guideName, tourTitle, guideId, tourId, city }) => {
+    const { user } = useAuth();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [feedback, setFeedback] = useState(null); // { type: 'success'|'error', message: string }
+    useEffect(() => { if (isOpen) setFeedback(null); }, [isOpen]);
     if (!isOpen) return null;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setFeedback(null);
 
         if (!user) {
-            alert("Devi effettuare il login per inviare una richiesta.");
+            setFeedback({ type: 'error', message: 'Devi effettuare il login per inviare una richiesta.' });
+            return;
+        }
+        if (isSubmitting) return;
+
+        if (!guideId || !isValidGuideId(guideId)) {
+            setFeedback({ type: 'error', message: 'Questo tour non ha una guida associata. Apri il tour da "I Miei Tour" della guida o da Esplora (tour con guida reale).' });
             return;
         }
 
+        const formData = new FormData(e.target);
+        const date = formData.get('date');
+        const guests = formData.get('guests');
+        const rawMessage = formData.get('message');
+        const richMessage = `Richiesta per: ${tourTitle}\nData: ${date}\nOspiti: ${guests}\n\n${rawMessage || ''}`;
+
+        const userName = (`${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`).trim() || user.user_metadata?.name || user.email?.split('@')[0] || 'Utente';
+
+        setIsSubmitting(true);
         try {
-            const date = formData.get('date');
-            const guests = formData.get('guests');
-            const rawMessage = formData.get('message');
+            const requestPayload = {
+               date,
+               guests,
+               message: richMessage,
+               guideId,
+               tourId: tourId || null,
+            };
 
-            // Construct a rich message ensuring all data is visible even if metadata is ignored
-            const richMessage = `Richiesta per: ${tourTitle}\nData: ${date}\nOspiti: ${guests}\n\n${rawMessage || ''}`;
+            await createGuideRequest(requestPayload);
 
-            const { error } = await supabase
-                .from('guide_requests')
-                .insert([{
-                    user_id: user.id || null, // Allow null if RLS permits, but check above prevents it
-                    guide_id: guideId,
-                    tour_id: tourId,
-                    request_text: richMessage,
-                    status: 'pending',
-                    // Optional: keep unstructured data for validation/dashboard
-                    metadata: { date, guests, tourTitle }
-                }]);
-
-            if (error) throw error;
-
-            alert(`Richiesta inviata con successo a ${guideName}! \nRiceverai una conferma via email.`);
-            onClose();
+            setFeedback({ type: 'success', message: `Richiesta inviata a ${guideName}! La guida la vedrà in Richieste Live.` });
+            setTimeout(() => { onClose(); setFeedback(null); }, 2000);
         } catch (err) {
             console.error("Error sending request:", err);
-            alert("Errore nell'invio della richiesta: " + err.message);
+            const msg = err?.message || String(err);
+            if (msg.includes('column') || msg.includes('does not exist')) {
+                setFeedback({ type: 'error', message: 'Errore database: esegui in Supabase (SQL Editor) lo script supabase/migrations/20240223_guide_requests_tour_flow.sql' });
+            } else {
+                setFeedback({ type: 'error', message: 'Errore invio: ' + msg });
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -299,11 +317,24 @@ const RequestModal = ({ isOpen, onClose, guideName, tourTitle, guideId, tourId }
                         <textarea name="message" rows="2" placeholder="Ciao! Siamo interessati a..." className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-terracotta-400" />
                     </div>
 
+                    {feedback && (
+                        <div
+                            className={`rounded-xl px-4 py-3 text-sm font-medium ${feedback.type === 'success'
+                                ? 'bg-green-50 text-green-800 border border-green-200'
+                                : 'bg-red-50 text-red-800 border border-red-200'
+                                }`}
+                            role="alert"
+                        >
+                            {feedback.message}
+                        </div>
+                    )}
+
                     <button
                         type="submit"
-                        className="w-full bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-colors shadow-lg mt-2"
+                        disabled={isSubmitting}
+                        className="w-full bg-black text-white py-4 rounded-xl font-bold text-lg hover:bg-gray-800 disabled:opacity-70 disabled:cursor-not-allowed transition-colors shadow-lg mt-2"
                     >
-                        Invia Richiesta
+                        {isSubmitting ? 'Invio in corso...' : 'Invia Richiesta'}
                     </button>
 
                     <button
@@ -640,7 +671,8 @@ export default function TourDetailsPage() {
                 images: incoming.images || (incoming.image_urls && incoming.image_urls.length > 0 ? incoming.image_urls : null) || (incoming.image ? [incoming.image] : []) || (incoming.imageUrl ? [incoming.imageUrl] : []),
                 // Defaults for rich fields if missing
                 guide: incoming.guide || "DoveVai Guide",
-                guideId: incoming.guideId || incoming.author_id || incoming.guide_id || "admin-guide", // Ensure guideId is captured
+                guide_id: incoming.guide_id || incoming.guideId || incoming.author_id || null,
+                guideId: incoming.guide_id || incoming.guideId || incoming.author_id || null,
                 guideAvatar: incoming.guideAvatar || "🤖",
                 guideBio: incoming.guideBio || "Guida virtuale intelligente selezionata per te.",
                 rating: incoming.rating || 4.5,
@@ -668,26 +700,81 @@ export default function TourDetailsPage() {
     }, [location.state, id]);
 
     // Query for ID-based lookup if no state passed
-    const tourId = id || 1;
+    // Se l'URL contiene uno slug tipo "dovevai-...-d79f-4fdb-905a-c6381ce7683a", estrai l'UUID per getTourById
+    const rawId = id || 1;
+    const uuidMatch = typeof rawId === 'string' && rawId.length > 36 && rawId.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    const tourId = uuidMatch ? uuidMatch[0] : rawId;
     const fallbackData = tourDetailsMock[tourId] || tourDetailsMock[1];
 
-    // Combine local state with query data
+    // Sempre fare fetch dal DB quando l'id è un UUID, così abbiamo guide_id anche se si arriva da Home/Esplora con state
+    const isLikelyDbId = typeof tourId === 'string' && (tourId.length === 36 || /^[0-9a-f-]{36}$/i.test(tourId));
     const { data: queryTour } = useQuery({
         queryKey: ['tour', tourId],
         queryFn: async () => {
-            // If we already have localTour from state, we technically don't need this, but good for refresh
-            // Here we simulate fetching
             return dataService.getTourById(tourId) || fallbackData;
         },
-        enabled: !localTour, // Only fetch if we didn't get data from navigation
+        enabled: isLikelyDbId,
         initialData: fallbackData
     });
 
-    const tour = localTour || queryTour || fallbackData;
+    // Se abbiamo localTour (da Esplora/Home) ma queryTour ha guide_id, usiamo quello così "Richiedi Guida" funziona
+    const hasGuideFromDb = queryTour && (queryTour.guide_id || queryTour.guideId);
+    const tour = (localTour && hasGuideFromDb)
+        ? { ...localTour, guide_id: queryTour.guide_id ?? queryTour.guideId, guide: queryTour.guide, guideAvatar: queryTour.guideAvatar, guideBio: queryTour.guideBio }
+        : (localTour || queryTour || fallbackData);
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showChatModal, setShowChatModal] = useState(false); // New state for Chat Modal
     const [nearbyPartners, setNearbyPartners] = useState([]);
+
+    // Auto-open chat modal when navigating back from MapPage with openChat flag
+    useEffect(() => {
+        if (location.state?.openChat) {
+            setShowChatModal(true);
+            // Clear the flag so back/forward navigation doesn't re-trigger
+            window.history.replaceState({ ...window.history.state, usr: { ...location.state, openChat: false } }, '');
+        }
+    }, [location.state?.openChat]);
+
+    // Ensure guide info (nome, avatar, bio) sempre presi dalla guida reale che ha pubblicato il tour
+    useEffect(() => {
+        if (!tour?.guide_id) return;
+
+        // Se abbiamo già un nome/avatar "reale", non fare nulla
+        const genericNames = ['DoveVai Guide', 'Guida locale'];
+        const hasRealName = tour.guide && !genericNames.includes(tour.guide);
+        const hasRealAvatar = tour.guideAvatar && tour.guideAvatar !== '🤖';
+        if (hasRealName && hasRealAvatar) return;
+
+        let cancelled = false;
+        const fetchGuideProfile = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('first_name, last_name, username, image_urls, bio')
+                    .eq('id', tour.guide_id)
+                    .single();
+
+                if (cancelled || error || !data) return;
+
+                setLocalTour(prev => {
+                    const base = prev || tour;
+                    return {
+                        ...base,
+                        guide: (`${data.first_name || ''} ${data.last_name || ''}`).trim() || data.username || base.guide || 'Guida locale',
+                        guideAvatar: (Array.isArray(data.image_urls) ? data.image_urls[0] : data.image_urls) || base.guideAvatar || '👤',
+                        guideBio: data.bio || base.guideBio,
+                        guide_id: tour.guide_id,
+                    };
+                });
+            } catch (e) {
+                console.error('Failed to load guide profile', e);
+            }
+        };
+
+        fetchGuideProfile();
+        return () => { cancelled = true; };
+    }, [tour?.guide_id, tour?.guide, tour?.guideAvatar]);
 
     useEffect(() => {
         if (!tour.id) return;
@@ -731,14 +818,9 @@ export default function TourDetailsPage() {
     }
 
     // --- STANDARD TOUR LOGIC ---
-    const handleChatClick = () => {
-        setShowChatModal(true);
-    };
-
     // --- SMART CTA LOGIC ---
-    // Update logic to exclude AI tours from Guide categorization
-    const isAiTour = tour.isAiGenerated || tour.is_ai || (tour.tags && tour.title.includes('Sorpresa'));
-    const isGuideTour = tour.type !== 'self-guided' && !isAiTour;
+    // Abbiamo rimosso isAiTour per permettere ai tour generati su misura di godere della stessa bellissima interfaccia Full-Immersive
+    const isGuideTour = tour.type !== 'self-guided' && !tour.isAiGenerated;
 
     // Mock Participants for Group Mode
     const groupParticipants = [
@@ -791,7 +873,10 @@ export default function TourDetailsPage() {
                 type: 'tour_step', // Ensure type is set for icon mapping
                 index: index,
                 description: stepDetail?.description || `Tappa numero ${index + 1}`,
-                image: (tour.images && tour.images[0]) || tour.image || "https://via.placeholder.com/150",
+                // 🔑 Use step-level image (real photo) instead of tour-level image
+                image: stepDetail?.image || (tour.images && tour.images[0]) || tour.image || null,
+                // Pass city info for Google Places photo resolution on map popup
+                city: tour.city || tour.location?.split(',')[0]?.trim() || '',
             };
         });
 
@@ -804,10 +889,15 @@ export default function TourDetailsPage() {
                     id: tour.id,
                     title: tour.title,
                     waypoints: safeWaypoints,
-                    steps: tour.steps, // Pass full steps 
+                    steps: tour.steps, // Pass full steps
                     mode: isGroupMode ? 'group_tour' : 'tour',
                     routePath: tour.routePath, // Pass route path
-                    center: tour.center // ⚡ CRITICAL: Pass explicit center for Map Page
+                    center: tour.center, // ⚡ CRITICAL: Pass explicit center for Map Page
+                    // Guide contact context — needed for "Contatta Guida" button in MapPage
+                    guide_id: tour.guide_id || tour.guideId || null,
+                    guide: tour.guide || null,
+                    guideAvatar: tour.guideAvatar || null,
+                    tourId: tour.id,
                 },
                 // Pass markers explicitly so MapPage doesn't have to guess
                 customActivities: tourMarkers
@@ -832,16 +922,18 @@ export default function TourDetailsPage() {
         alert("✨ Funzione in arrivo!\nStiamo finalizzando la chat diretta con le guide.");
     };
 
+    const handleChatClick = () => {
+        setShowChatModal(true);
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
             <TopBar />
 
             <main className="max-w-md mx-auto pb-24">
-                {/* --- HERO SECTION (Hidden for AI Tours) --- */}
-                {!isAiTour && (
-                    <>
-                        <div className="relative">
-                            <motion.img
+                {/* --- HERO SECTION --- */}
+                <div className="relative">
+                    <motion.img
                                 src={getItemImage(tour, tour.city)}
                                 onError={imgOnError(tour.city)}
                                 alt={tour.title}
@@ -944,8 +1036,6 @@ export default function TourDetailsPage() {
                                 </div>
                             </motion.div>
                         </div>
-                    </>
-                )}
 
                 {/* --- SOCIAL BLOCK (Group Mode Only) --- */}
                 {isGroupMode && (
@@ -1034,128 +1124,7 @@ export default function TourDetailsPage() {
                             </div>
                         </div>
                     </motion.div>
-                ) : (isAiTour ? (
-                    <motion.div
-                        className="relative overflow-hidden bg-white/95 backdrop-blur-xl rounded-[2.5rem] p-0 shadow-2xl border border-white/60"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                    >
-                        {/* Header Gradient */}
-                        <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 px-4 py-6 flex justify-between items-center text-white relative overflow-hidden">
-                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30" />
-
-                            {/* Left: Title */}
-                            <div className="flex items-center gap-2 relative z-10">
-                                <Sparkles size={18} className="animate-pulse text-yellow-300" />
-                                <span className="font-extrabold tracking-widest uppercase text-[10px] sm:text-xs">AI PERCORSO VELOCE</span>
-                            </div>
-
-                            {/* Right: Controls & Premium Badge */}
-                            <div className="flex items-center gap-3 relative z-10">
-                                {/* Heart Button */}
-                                <button
-                                    onClick={() => {
-                                        const heart = document.getElementById('ai-heart-icon');
-                                        if (heart) {
-                                            heart.classList.toggle('text-red-400');
-                                            heart.classList.toggle('fill-current');
-                                        }
-                                        alert("❤️ Itinerario salvato nella lista dei desideri!");
-                                    }}
-                                    className="text-white hover:text-red-200 transition-colors"
-                                >
-                                    <Heart id="ai-heart-icon" size={20} />
-                                </button>
-
-                                {/* Share Button (Popup) */}
-                                <button
-                                    onClick={() => {
-                                        if (navigator.share) {
-                                            navigator.share({
-                                                title: tour.title,
-                                                text: `Guarda il mio itinerario AI a ${tour.city}!`,
-                                                url: window.location.href,
-                                            });
-                                        } else {
-                                            alert("🔗 Popup Condivisione: Link copiato!");
-                                        }
-                                    }}
-                                    className="text-white hover:text-blue-200 transition-colors"
-                                >
-                                    <Share2 size={20} />
-                                </button>
-
-                                {/* Premium Badge */}
-                                <div className="bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-full text-[9px] font-bold tracking-widest border border-white/10 shadow-lg">
-                                    PREMIUM
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-8">
-                            <h3 className="text-3xl font-black text-gray-900 mb-3 leading-tight tracking-tight">
-                                Il tuo itinerario a {tour.city || 'Destinazione'}
-                            </h3>
-                            <p className="text-sm text-gray-500 mb-8 leading-relaxed font-medium">
-                                Un'esperienza unica curata dall'AI basata sul tuo stile.
-                            </p>
-
-                            {/* 🏷️ Tags Grid */}
-                            <div className="flex flex-wrap gap-2 mb-8">
-                                {tour.tags && tour.tags.map(tag => (
-                                    <span key={tag} className="px-3 py-1.5 bg-gray-50 text-gray-600 text-[11px] font-bold uppercase tracking-wide rounded-lg border border-gray-100 shadow-sm">
-                                        #{tag}
-                                    </span>
-                                ))}
-                            </div>
-
-                            {/* 📍 PLACES SUMMARY (Horizontal Scroll) */}
-                            <div className="mb-8">
-                                <h4 className="font-bold text-gray-800 mb-4 flex items-center text-sm uppercase tracking-wide">
-                                    <MapPin size={16} className="mr-2 text-purple-500" />
-                                    Luoghi da visitare
-                                </h4>
-                                <div className="flex overflow-x-auto pb-4 gap-4 scrollbar-hide -mx-2 px-2">
-                                    {tour.steps && tour.steps.map((step, idx) => (
-                                        <div key={idx} className="flex-none w-32 group">
-                                            <div className="w-32 h-32 rounded-2xl overflow-hidden mb-3 relative shadow-md">
-                                                <img
-                                                    src={getItemImage(step, tour?.city)}
-                                                    onError={imgOnError(tour?.city)}
-                                                    alt={step.title}
-                                                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                                                />
-                                                <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
-                                                    {idx + 1}
-                                                </div>
-                                            </div>
-                                            <div className="text-xs font-bold text-gray-800 leading-tight truncate">{step.title}</div>
-                                            <div className="text-[10px] text-gray-500 truncate">{step.type === 'food' ? 'Gusto' : 'Luogo'}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* 🗺️ INTEGRATED MAPPING ACTION */}
-                            <div className="pt-6 border-t border-gray-100">
-                                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-1 border border-gray-200">
-                                    <button
-                                        onClick={navigateToMap}
-                                        className="w-full bg-gray-900 text-white py-4 rounded-xl font-bold hover:bg-black transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 group relative overflow-hidden"
-                                    >
-                                        <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
-                                        <Navigation size={18} className="text-purple-400 group-hover:text-white transition-colors" />
-                                        <span className="tracking-wide">APRI MAPPA</span>
-                                    </button>
-                                </div>
-                                <p className="text-center text-[10px] text-gray-400 mt-3 font-medium uppercase tracking-wider">
-                                    Navigazione GPS inclusa
-                                </p>
-                            </div>
-                        </div>
-                    </motion.div>
-                ) : null)}
+                ) : null}
 
                 {/* GUIDE PROFILE MODAL */}
                 <GuideProfileModal
@@ -1176,9 +1145,8 @@ export default function TourDetailsPage() {
                     guideAvatar={tour.guideAvatar}
                 />
 
-                {/* ⬇️ STANDARD SECTIONS: HIDDEN FOR AI TOURS ⬇️ */}
-                {!isAiTour && (
-                    <>
+                {/* ⬇️ STANDARD SECTIONS ⬇️ */}
+                <>
                         {/* Info Grid */}
                         <motion.div
                             className="grid grid-cols-2 gap-4"
@@ -1247,7 +1215,7 @@ export default function TourDetailsPage() {
                                 Programma del tour
                             </h3>
                             <div className="space-y-4">
-                                {tour.itinerary.map((item, index) => (
+                                {(tour.itinerary || (tour.steps ? tour.steps.map((s,i) => ({ time: `Tappa ${i+1}`, emoji: '📍', activity: s.title || s.label || `Destinazione ${i+1}`})) : [])).map((item, index) => (
                                     <motion.div
                                         key={index}
                                         className="flex items-center space-x-4 p-3 bg-gradient-to-r from-terracotta-50 to-ochre-50 rounded-xl"
@@ -1392,7 +1360,6 @@ export default function TourDetailsPage() {
                             </p>
                         </motion.div>
                     </>
-                )}
 
 
             </main >
@@ -1405,8 +1372,9 @@ export default function TourDetailsPage() {
                 onClose={() => setShowRequestModal(false)}
                 guideName={tour.guide}
                 tourTitle={tour.title}
-                guideId={tour.guideId || tour.guide_id || 'admin'} // Pass guideId
-                tourId={tour.id} // Pass tourId
+                guideId={tour.guide_id || tour.guideId}
+                tourId={tour.id}
+                city={tour.city || tour.location}
             />
         </div >
     );

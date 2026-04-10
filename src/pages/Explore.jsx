@@ -1,17 +1,20 @@
 
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MapPin, Star, Clock, Users, Search, Calendar, Map, Heart, ArrowLeft, ArrowRight, Filter } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import BottomNavigation from "@/components/BottomNavigation";
 import UnnivaiMap from "@/components/UnnivaiMap";
 import { supabase } from "@/lib/supabase";
+import { dataService } from "@/services/dataService";
 import { useUserContext } from "@/hooks/useUserContext";
+import { useCity } from "@/context/CityContext";
 import { DEMO_CITIES } from "@/data/demoData";
 const categories = ["Tutti", "Gastronomia", "Cultura", "Natura", "Arte", "Romantico"];
 
 export default function ExplorePage() {
+    const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
     const [activeFilter, setActiveFilter] = useState("Tutti");
@@ -21,12 +24,47 @@ export default function ExplorePage() {
 
     // Use Global Context for Location Sync
     const { city, lat, lng } = useUserContext();
+    const { isManual } = useCity();
 
-    // Determine Map Center based on Context or Demo Data
-    const mapCenter = {
-        lat: lat || DEMO_CITIES[city]?.center?.latitude || 41.9028,
-        lng: lng || DEMO_CITIES[city]?.center?.longitude || 12.4964
+    // Determine Map Center based on Local GPS (priority), Context, or Demo Data
+    const [localMapCenter, setLocalMapCenter] = useState(null);
+
+    // Se l'utente ha inserito una città manualmente (es. "Milano"), ignora il GPS locale di default
+    const mapCenter = (!isManual && localMapCenter) ? localMapCenter : {
+        lat: isManual ? (lat || DEMO_CITIES[city]?.center?.latitude || 41.9028) : (lat || DEMO_CITIES[city]?.center?.latitude || 41.9028),
+        lng: isManual ? (lng || DEMO_CITIES[city]?.center?.longitude || 12.4964) : (lng || DEMO_CITIES[city]?.center?.longitude || 12.4964)
     };
+
+    // Auto-Geolocate on Mount (Task 2 Phase 5)
+    useEffect(() => {
+        const fetchRealLocation = async () => {
+            const fallbackIP = async () => {
+                try {
+                    const res = await fetch('https://ipapi.co/json/');
+                    const data = await res.json();
+                    if (data?.latitude && data?.longitude) {
+                        setLocalMapCenter({ lat: data.latitude, lng: data.longitude });
+                    }
+                } catch (e) {
+                    console.warn('IP-Geolocation fallback fallito', e);
+                }
+            };
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => setLocalMapCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                    (err) => {
+                        console.warn('GPS negato o in timeout, fallback su IP:', err);
+                        fallbackIP();
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            } else {
+                fallbackIP();
+            }
+        };
+        fetchRealLocation();
+    }, []);
 
     // Initialize favorites from localStorage
     const [favoriteItems, setFavoriteItems] = useState(() => {
@@ -41,11 +79,16 @@ export default function ExplorePage() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                let data = [];
-                // Primary fetch: all live tours for the current context city
+                let rawRows = [];
+
+                // CRITICO-1 fix: include profiles JOIN so guide name/avatar are
+                // available without a follow-up query per tour.
                 let query = supabase
                     .from('tours')
-                    .select('*')
+                    .select(`
+                        *,
+                        profiles(username, first_name, last_name, image_urls, bio)
+                    `)
                     .eq('is_live', true);
 
                 if (city) {
@@ -54,41 +97,37 @@ export default function ExplorePage() {
 
                 const { data: dbData, error: dbError } = await query.order('created_at', { ascending: false });
 
-                if (!dbError && dbData) {
-                    data = dbData;
-                }
-
-                // If DB empty/error, filter DEMO tours by city if available
-                if (!data || data.length === 0) {
+                if (!dbError && dbData?.length > 0) {
+                    rawRows = dbData;
+                } else {
+                    // Fallback to demo data, adapted to DB-like field names so
+                    // mapTourToUI can normalise them through the same code path.
                     const demoTours = DEMO_CITIES[city]?.tours || [];
-                    // Adapt demo tours to format
-                    data = demoTours.map(t => ({
+                    rawRows = demoTours.map(t => ({
                         ...t,
                         price_eur: t.price,
                         duration_minutes: parseInt(t.duration) * 60,
-                        city: city
+                        city,
                     }));
                 }
 
-
-                // Transform data to match UI
-                const formatted = (data || []).map(t => ({
-                    id: t.id,
-                    title: t.title,
-                    location: t.city || t.location || "Italia",
-                    duration: t.duration_minutes ? `${t.duration_minutes} min` : t.duration || "2 ore",
-                    rating: t.rating || 4.8,
-                    participants: t.current_participants || 0,
-                    maxParticipants: t.max_participants || 10,
-                    language: t.language || 'Italiano',
-                    price: t.price_eur || t.price || 0,
-                    image: (t.image_urls && t.image_urls.length > 0) ? t.image_urls[0] : (t.imageUrl || t.image || t.steps?.[0]?.image || `https://source.unsplash.com/800x600/?${t.city || 'Italy'},travel`),
-                    category: (t.tags && t.tags[0]) ? t.tags[0] : t.category || "Cultura",
-                    availableDays: [0, 1, 2, 3, 4, 5, 6],
-                    distance: t.dist_meters ? (t.dist_meters / 1000).toFixed(1) + ' km' : null,
-                    steps: t.steps || [],
-                    description: t.description
-                }));
+                // Use the canonical mapper so TourUISchema validation runs for
+                // every item and guide data from the profiles JOIN is included.
+                const formatted = rawRows
+                    .map(t => {
+                        const ui = dataService.mapTourToUI(t);
+                        if (!ui) return null;
+                        return {
+                            ...ui,
+                            // availableDays is Explore-specific (date picker filter).
+                            availableDays: [0, 1, 2, 3, 4, 5, 6],
+                            // distance is only set by geo-aware queries; keep null here.
+                            distance: t.dist_meters
+                                ? (t.dist_meters / 1000).toFixed(1) + ' km'
+                                : null,
+                        };
+                    })
+                    .filter(Boolean);
 
                 setExperiences(formatted);
             } catch (err) {
@@ -129,30 +168,54 @@ export default function ExplorePage() {
         localStorage.setItem('unnivai_favorites', JSON.stringify([...newFavorites]));
     };
 
-    const filteredExperiences = experiences.filter(exp => {
-        // 1. Enhanced Search Filter (Title, Location, Category)
-        const q = searchQuery.toLowerCase();
-        const matchesSearch = exp.title.toLowerCase().includes(q) ||
-            exp.location.toLowerCase().includes(q) ||
-            exp.category.toLowerCase().includes(q);
+    const filteredExperiences = useMemo(() => {
+        return experiences.filter(exp => {
+            // 1. Enhanced Search Filter (Title, Location, Category)
+            const q = searchQuery.toLowerCase();
+            const matchesSearch = exp.title.toLowerCase().includes(q) ||
+                exp.location.toLowerCase().includes(q) ||
+                exp.category.toLowerCase().includes(q);
 
-        // 2. Category Filter
-        let matchesCategory = true;
-        if (activeFilter !== "Tutti") {
-            matchesCategory = exp.category.includes(activeFilter);
-        }
-
-        // 3. Date Filter (New Logic)
-        let matchesDate = true;
-        if (selectedDate) {
-            const dayOfWeek = new Date(selectedDate).getDay(); // 0 (Sun) - 6 (Sat)
-            if (exp.availableDays && !exp.availableDays.includes(dayOfWeek)) {
-                matchesDate = false;
+            // 2. Category Filter
+            let matchesCategory = true;
+            if (activeFilter !== "Tutti") {
+                matchesCategory = exp.category.includes(activeFilter);
             }
-        }
 
-        return matchesSearch && matchesCategory && matchesDate;
-    });
+            // 3. Date Filter (New Logic)
+            let matchesDate = true;
+            if (selectedDate) {
+                const dayOfWeek = new Date(selectedDate).getDay(); // 0 (Sun) - 6 (Sat)
+                if (exp.availableDays && !exp.availableDays.includes(dayOfWeek)) {
+                    matchesDate = false;
+                }
+            }
+
+            return matchesSearch && matchesCategory && matchesDate;
+        });
+    }, [experiences, searchQuery, activeFilter, selectedDate]);
+
+    // ⚡ Memoize map activities to prevent infinite React re-renders and Maps Virtual DOM trashing
+    // By using pseudo-random deterministic seeds from IDs, we prevent markers from jumping around!
+    const mapActivities = useMemo(() => {
+        return filteredExperiences.map((e) => {
+            // Deterministic pseudo-random offset based on ID to freeze marker positions across re-renders
+            const charCodeSum = String(e.id).split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+            const stableOffsetLat = ((charCodeSum % 100) / 100 * 0.02) - 0.01;
+            const stableOffsetLng = (((charCodeSum * 3) % 100) / 100 * 0.02) - 0.01;
+            
+            return {
+                ...e,
+                id: `${e.id}`,
+                latitude: mapCenter.lat + stableOffsetLat,
+                longitude: mapCenter.lng + stableOffsetLng,
+                name: e.title,
+                image: e.image || e.imageUrl,
+                category: e.category || 'culture',
+                tier: 'base'
+            };
+        });
+    }, [filteredExperiences, mapCenter.lat, mapCenter.lng]);
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-ochre-50 to-ochre-100 font-quicksand">
@@ -207,19 +270,19 @@ export default function ExplorePage() {
                 {/* Map Preview Section - Click to Expand */}
                 <motion.div
                     className="mb-8"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
                 >
                     <div className="flex justify-between items-end mb-3 px-1">
                         <h2 className="font-bold text-lg text-gray-800">Mappa Interattiva</h2>
                         <Link to="/map" className="text-xs font-bold text-terracotta-600 hover:underline">Apri a schermo intero</Link>
                     </div>
-
-                    <Link to="/map">
-                        <div className="h-64 rounded-3xl overflow-hidden shadow-xl border-4 border-white relative group cursor-pointer transform transition-transform hover:scale-[1.02]">
+                    <div onClick={() => navigate('/map', { state: { initialCenter: mapCenter } })} className="block">
+                        <div className="h-64 rounded-3xl overflow-hidden shadow-xl border-4 border-white relative group cursor-pointer">
                             <div className="absolute inset-0 z-0 pointer-events-none">
                                 <UnnivaiMap
+                                    key={`${mapCenter.lat}-${mapCenter.lng}`}
                                     height="100%"
                                     width="100%"
                                     zoom={12}
@@ -228,14 +291,8 @@ export default function ExplorePage() {
                                     initialCenter={{ latitude: mapCenter.lat, longitude: mapCenter.lng }}
                                     viewCenter={{ latitude: mapCenter.lat, longitude: mapCenter.lng }} // ⚡ Use viewCenter for flyTo updates
                                     activeCity={city}
-                                    routePoints={filteredExperiences.map((e, idx) => ({
-                                        id: `${e.id}`,
-                                        latitude: mapCenter.lat + (Math.random() * 0.02 - 0.01), // Use map center + jitter
-                                        longitude: mapCenter.lng + (Math.random() * 0.02 - 0.01),
-                                        name: e.title,
-                                        category: 'culture',
-                                        tier: 'base'
-                                    }))}
+                                    activities={mapActivities}
+                                    mapMood="default"
                                 />
                             </div>
                             <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors pointer-events-none" />
@@ -245,7 +302,7 @@ export default function ExplorePage() {
                                 </span>
                             </div>
                         </div>
-                    </Link>
+                    </div>
                 </motion.div>
 
                 {/* Loading State */}
@@ -271,7 +328,7 @@ export default function ExplorePage() {
                                         <div className="relative h-48 rounded-2xl overflow-hidden mb-3">
                                             <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                                             <img
-                                                src={experience.image}
+                                                src={experience.imageUrl}
                                                 alt={experience.title}
                                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 onError={(e) => e.target.src = 'https://placehold.co/600x400?text=Tour'}

@@ -195,3 +195,11 @@
     color: #6B7280;
     font-size: 0.875rem;
 }
+
+/* Fix Google Maps UI Collision */
+.gm-style .gmnoprint, .gm-control-active {
+    z-index: 1000 !important;
+}
+.gm-iv-address {
+    z-index: 1000 !important;
+}

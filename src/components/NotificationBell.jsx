@@ -1,211 +1,36 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, MapPin, Sun, Heart, Clock, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { aiRecommendationService } from '@/services/aiRecommendationService';
 import { locationTourService } from '@/services/locationTourService';
 import { useUserContext } from '@/hooks/useUserContext';
 
 import { dataService } from '@/services/dataService';
 import { supabase } from '@/lib/supabase';
+import { useUserNotifications } from '@/hooks/useUserNotifications';
 
 export default function NotificationBell({ theme = 'dark' }) {
     const { userId, city, firstName, isGuest } = useUserContext();
-    const [generatedNotifications, setGeneratedNotifications] = useState([]);
-    const [realNotifications, setRealNotifications] = useState([]);
     const [showPreview, setShowPreview] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useUserNotifications(userId, city, firstName);
+    const navigate = useNavigate();
 
-    // Derived state: combine real and generated
-    const notifications = [...realNotifications, ...generatedNotifications].sort((a, b) => b.timestamp - a.timestamp);
+    const handleNotificationClick = (notification) => {
+        setShowPreview(false);
+        const url = notification.actionUrl || notification.action_url;
+        const data = notification.actionData || notification.action_data;
 
-    // Initial load and subscription for Realtime Notifications
-    useEffect(() => {
-        if (!userId) return;
-
-        const loadRealData = async () => {
-            const data = await dataService.getNotifications(userId, city); // Pass city
-            setRealNotifications(data);
-        };
-        loadRealData();
-
-        // Subscription remains global for user, but we could client-filter if needed. 
-        // For now, new incoming notifs are just shown. 
-        // Logic refinement: ideally subscription should allow filtering too but RLS is cleaner.
-        const channel = dataService.subscribeToNotifications(userId, (newNotif) => {
-            // Optional: Client-side filter for realtime events if strict city scope required
-            if (!newNotif.city_scope || newNotif.city_scope === city) {
-                setRealNotifications(prev => [newNotif, ...prev]);
+        if (url) {
+            if (data?.request_id) {
+                navigate(url, { state: { openChatRequestId: data.request_id } });
+            } else {
+                navigate(url);
             }
-        });
-
-        return () => {
-            if (channel) supabase.removeChannel(channel);
-        };
-    }, [userId, city]);
-
-    // Load smart notifications based on real location and user profile
-    useEffect(() => {
-        if (city) { // simplified check
-            loadSmartNotifications();
-            const interval = setInterval(loadSmartNotifications, 10 * 60 * 1000);
-            return () => clearInterval(interval);
-        }
-    }, [userId, city, firstName]);
-
-    // Update internal usage of profile/location to use context variables
-    const loadSmartNotifications = async () => {
-        setIsLoading(true);
-        try {
-            // Preferences Mock directly or fetch
-            const preferences = {
-                categories: ['food', 'history', 'art', 'adventure', 'romance'],
-                budgetRange: 'medium',
-                travelStyle: 'balanced',
-                groupSize: 'small',
-                weatherSensitivity: 3
-            };
-
-            const smartNotifs = await aiRecommendationService.generateSmartNotifications(
-                userId || 'guest',
-                preferences,
-                city // Use city from context
-            );
-
-            // Enhance with UI properties
-            const enhancedCalls = await generateLocationEnhancedNotifications(
-                smartNotifs,
-                null, // gps raw not needed if city is string
-                city,
-                firstName
-            );
-
-            setGeneratedNotifications(enhancedCalls);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
+        } else {
+            navigate('/notifications');
         }
     };
-
-    // Generate enhanced notifications with location-specific data
-    const generateLocationEnhancedNotifications = async (
-        baseNotifications,
-        locationData,
-        city,
-        userName
-    ) => {
-        const currentHour = new Date().getHours();
-        const isWeekend = [0, 6].includes(new Date().getDay());
-
-        const enhancedNotifications = [...baseNotifications];
-
-        // Add location-specific time-based notifications
-        if (currentHour >= 9 && currentHour <= 11) {
-            enhancedNotifications.unshift({
-                id: `morning-${city}-${Date.now()}`,
-                type: 'location',
-                priority: 'high',
-                title: `Buongiorno ${userName}! 🌅`,
-                message: `Perfetto momento per esplorare ${city}. Ho trovato 3 tour mattutini ideali per te.`,
-                timestamp: new Date(),
-                actionText: 'Scopri i tour',
-                actionUrl: '/tour-live',
-                locationBased: true,
-                weatherAdaptive: true
-            });
-        }
-
-        // Weekend special notifications
-        if (isWeekend && currentHour >= 10 && currentHour <= 16) {
-            enhancedNotifications.unshift({
-                id: `weekend-${city}-${Date.now()}`,
-                type: 'special',
-                priority: 'high',
-                title: `Weekend a ${city}! 🎉`,
-                message: `Esperienze esclusive del weekend disponibili. Tour con 20% di sconto.`,
-                timestamp: new Date(),
-                actionText: 'Offerte weekend',
-                actionUrl: '/surprise-tour',
-                locationBased: true,
-                isPromotion: true
-            });
-        }
-
-        // Quick tours available nearby
-        if (locationData && locationData.quickTours && locationData.quickTours.length > 0) {
-            const quickTour = locationData.quickTours[0];
-            enhancedNotifications.push({
-                id: `quick-tour-${quickTour.id}`,
-                type: 'recommendation',
-                priority: 'medium',
-                title: `${quickTour.title} - Inizia ora!`,
-                message: `Tour di ${quickTour.duration} a solo €${quickTour.price}. Parti dal ${quickTour.startPoint}`,
-                timestamp: new Date(),
-                actionText: 'Inizia tour',
-                actionUrl: '/tour-live',
-                locationBased: true,
-                tourData: quickTour
-            });
-        }
-
-        // Weather-based recommendations
-        if (city) {
-            try {
-                const weather = await aiRecommendationService.getCurrentWeather(city);
-                if (weather.condition === 'rainy') {
-                    enhancedNotifications.unshift({
-                        id: `weather-${city}-${Date.now()}`,
-                        type: 'weather',
-                        priority: 'medium',
-                        title: `Pioggia a ${city} ☔`,
-                        message: `Ho selezionato tour al coperto perfetti per oggi. Musei e luoghi storici ti aspettano!`,
-                        timestamp: new Date(),
-                        actionText: 'Tour al coperto',
-                        actionUrl: '/explore',
-                        locationBased: true,
-                        weatherAdaptive: true
-                    });
-                } else if (weather.condition === 'sunny') {
-                    enhancedNotifications.push({
-                        id: `sunny-${city}-${Date.now()}`,
-                        type: 'weather',
-                        priority: 'low',
-                        title: `Sole splendente! ☀️`,
-                        message: `Giornata perfetta per tour all'aperto a ${city}. Parchi e passeggiate panoramiche disponibili.`,
-                        timestamp: new Date(),
-                        actionText: 'Tour all\'aperto',
-                        actionUrl: '/explore',
-                        locationBased: true,
-                        weatherAdaptive: true
-                    });
-                }
-            } catch (e) {
-                console.warn('Failed to fetch weather for notifications');
-            }
-        }
-
-        // Local tips as notifications
-        if (locationData && locationData.localTips && locationData.localTips.length > 0) {
-            const randomTip = locationData.localTips[Math.floor(Math.random() * locationData.localTips.length)];
-            enhancedNotifications.push({
-                id: `tip-${city}-${Date.now()}`,
-                type: 'tip',
-                priority: 'low',
-                title: `Consiglio da locale 💡`,
-                message: randomTip,
-                timestamp: new Date(),
-                actionText: 'Altri consigli',
-                actionUrl: '/profile',
-                locationBased: true,
-                isLocalTip: true
-            });
-        }
-
-        return enhancedNotifications.slice(0, 5); // Limit to 5 most relevant notifications
-    };
-
-    const unreadCount = notifications.length;
 
     const getNotificationIcon = (type) => {
         switch (type) {
@@ -235,10 +60,10 @@ export default function NotificationBell({ theme = 'dark' }) {
     const iconColor = isLight ? "text-gray-700" : "text-white";
 
     return (
-        <div className="relative">
+        <div className="relative"
+             onMouseEnter={() => setShowPreview(true)}
+             onMouseLeave={() => setShowPreview(false)}>
             <motion.div
-                onHoverStart={() => setShowPreview(true)}
-                onHoverEnd={() => setShowPreview(false)}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
             >
@@ -355,7 +180,8 @@ export default function NotificationBell({ theme = 'dark' }) {
                             {notifications.slice(0, 3).map((notification, index) => (
                                 <motion.div
                                     key={index}
-                                    className="group relative bg-gradient-to-r from-white/80 to-white/60 rounded-2xl p-4 hover:shadow-lg transition-all duration-300 border border-white/50"
+                                    className="group relative bg-gradient-to-r from-white/80 to-white/60 rounded-2xl p-4 hover:shadow-lg transition-all duration-300 border border-white/50 cursor-pointer"
+                                    onClick={() => handleNotificationClick(notification)}
                                     initial={{ opacity: 0, x: -30, scale: 0.9 }}
                                     animate={{ opacity: 1, x: 0, scale: 1 }}
                                     transition={{

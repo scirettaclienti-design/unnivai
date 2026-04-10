@@ -1,9 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { User, Mail, MapPin, Heart, Star, Edit, ArrowLeft, Home, Share2, Facebook, Twitter, Instagram, Link as LinkIcon, Eye, ChevronRight, Award, Target, Users, Compass, Search, Map, Clock, ArrowRight, X } from "lucide-react";
+import { User, Mail, MapPin, Heart, Star, Edit, ArrowLeft, Home, Share2, Facebook, Twitter, Instagram, Link as LinkIcon, Eye, ChevronRight, Award, Target, Users, Compass, Search, Map, Clock, ArrowRight, X, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
+import ChatModalUser from "../components/ChatModalUser";
 import { useUserContext } from "../hooks/useUserContext";
 import { supabase } from "../lib/supabase";
 
@@ -14,8 +15,11 @@ export default function ProfilePage() {
     const [showShareModal, setShowShareModal] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [showExploreZones, setShowExploreZones] = useState(false);
+    const [showMyRequests, setShowMyRequests] = useState(false);
+    const [chatModalRequest, setChatModalRequest] = useState(null);
 
     // Dynamic Data State
+    const [myRequests, setMyRequests] = useState([]);
     const [stats, setStats] = useState({ tours: 0, guides: 0, rating: 5.0 });
     const [tourHistory, setTourHistory] = useState([]);
 
@@ -96,6 +100,18 @@ export default function ProfilePage() {
                     setTourHistory(Object.values(historyMap));
                 } else {
                     setTourHistory([]); // clear if no photos
+                }
+
+                // 3. Fetch Active Requests
+                const { data: requests, error: reqError } = await supabase
+                    .from('guide_requests')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .neq('status', 'completed')
+                    .order('created_at', { ascending: false });
+
+                if (!reqError && requests) {
+                    setMyRequests(requests);
                 }
 
             } catch (err) {
@@ -203,36 +219,108 @@ export default function ProfilePage() {
                     transition={{ duration: 0.6, delay: 0.2 }}
                 >
                     <h3 className="text-lg font-bold text-gray-800 mb-4">Azioni Rapide</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-3">
                         <motion.button
-                            onClick={() => setShowResults(!showResults)}
-                            className={`p-4 rounded-2xl shadow-lg relative overflow-hidden transition-all border ${showResults ? 'bg-yellow-500 text-white border-yellow-400 ring-2 ring-yellow-300' : 'bg-white text-gray-800 border-gray-100'}`}
+                            onClick={() => setShowMyRequests(!showMyRequests)}
+                            className={`p-3 rounded-2xl shadow-lg relative overflow-hidden transition-all border ${showMyRequests ? 'bg-indigo-600 text-white border-indigo-500 ring-2 ring-indigo-300' : 'bg-white text-gray-800 border-gray-100'}`}
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-2xl filter drop-shadow">🏆</span>
-                                <Award className={`w-5 h-5 ${showResults ? 'text-white' : 'text-yellow-500'}`} />
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xl filter drop-shadow">📨</span>
+                                <MessageCircle className={`w-4 h-4 ${showMyRequests ? 'text-white' : 'text-indigo-600'}`} />
                             </div>
-                            <h4 className={`font-bold text-sm ${showResults ? 'text-white' : 'text-gray-800'}`}>I Miei Risultati</h4>
-                            <p className={`text-[10px] mt-1 ${showResults ? 'text-yellow-100' : 'text-gray-500'}`}>Visualizza statistiche</p>
+                            <h4 className={`font-bold text-[11px] leading-tight ${showMyRequests ? 'text-white' : 'text-gray-800'}`}>Richieste</h4>
+                            {myRequests.length > 0 && (
+                                <span className="absolute top-2 right-2 flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500 border border-white"></span>
+                                </span>
+                            )}
+                        </motion.button>
+
+                        <motion.button
+                            onClick={() => setShowResults(!showResults)}
+                            className={`p-3 rounded-2xl shadow-lg relative overflow-hidden transition-all border ${showResults ? 'bg-yellow-500 text-white border-yellow-400 ring-2 ring-yellow-300' : 'bg-white text-gray-800 border-gray-100'}`}
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xl filter drop-shadow">🏆</span>
+                                <Award className={`w-4 h-4 ${showResults ? 'text-white' : 'text-yellow-500'}`} />
+                            </div>
+                            <h4 className={`font-bold text-[11px] leading-tight ${showResults ? 'text-white' : 'text-gray-800'}`}>Risultati</h4>
                         </motion.button>
 
                         <motion.button
                             onClick={() => setShowExploreZones(!showExploreZones)}
-                            className={`p-4 rounded-2xl shadow-lg relative overflow-hidden transition-all border ${showExploreZones ? 'bg-green-600 text-white border-green-500 ring-2 ring-green-300' : 'bg-white text-gray-800 border-gray-100'}`}
+                            className={`p-3 rounded-2xl shadow-lg relative overflow-hidden transition-all border ${showExploreZones ? 'bg-green-600 text-white border-green-500 ring-2 ring-green-300' : 'bg-white text-gray-800 border-gray-100'}`}
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            <div className="flex items-center justify-between mb-3">
-                                <span className="text-2xl filter drop-shadow">🗺️</span>
-                                <Map className={`w-5 h-5 ${showExploreZones ? 'text-white' : 'text-green-600'}`} />
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xl filter drop-shadow">🗺️</span>
+                                <Map className={`w-4 h-4 ${showExploreZones ? 'text-white' : 'text-green-600'}`} />
                             </div>
-                            <h4 className={`font-bold text-sm ${showExploreZones ? 'text-white' : 'text-gray-800'}`}>Esplora Zone</h4>
-                            <p className={`text-[10px] mt-1 ${showExploreZones ? 'text-green-100' : 'text-gray-500'}`}>Scopri nuove mete</p>
+                            <h4 className={`font-bold text-[11px] leading-tight ${showExploreZones ? 'text-white' : 'text-gray-800'}`}>Mete</h4>
                         </motion.button>
                     </div>
                 </motion.div>
+
+                {/* My Requests Section */}
+                <AnimatePresence>
+                    {showMyRequests && (
+                        <motion.div
+                            className="mb-6 bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                                <MessageCircle className="w-5 h-5 mr-2 text-indigo-500" />
+                                Richieste Attive
+                            </h3>
+
+                            <div className="space-y-3">
+                                {myRequests.length === 0 ? (
+                                    <p className="text-sm text-gray-500 italic">Non hai richieste attive al momento.</p>
+                                ) : (
+                                    myRequests.map((req) => (
+                                        <div key={req.id} className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm flex flex-col space-y-2">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="font-bold text-gray-800 text-sm">Tour a {req.city}</h4>
+                                                    <p className="text-xs text-gray-500">{new Date(req.created_at).toLocaleDateString()} • {req.duration || 3} ore</p>
+                                                </div>
+                                                <span className={`px-2 py-1 text-[10px] font-bold rounded-lg ${req.status === 'pending' ? 'bg-orange-100 text-orange-600' :
+                                                    req.status === 'accepted' ? 'bg-green-100 text-green-600' :
+                                                        'bg-gray-100 text-gray-600'
+                                                    }`}>
+                                                    {req.status === 'pending' ? 'In attesa' : req.status === 'accepted' ? 'Accettata' : req.status}
+                                                </span>
+                                            </div>
+                                            {req.guide_id && (
+                                                <div className="mt-2 pt-2 border-t border-indigo-50 flex items-center justify-between">
+                                                    <p className="text-xs text-terracotta-500 font-medium flex items-center">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5"></span>
+                                                        Assegnata a una guida locale
+                                                    </p>
+                                                    <button
+                                                        onClick={() => setChatModalRequest(req)}
+                                                        className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors px-3 py-1.5 rounded-lg text-xs font-bold flex items-center"
+                                                    >
+                                                        <MessageCircle className="w-3 h-3 mr-1" /> Apri Chat
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Results Section */}
                 <AnimatePresence>
@@ -734,6 +822,14 @@ export default function ProfilePage() {
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+                <ChatModalUser
+                    isOpen={!!chatModalRequest}
+                    onClose={() => setChatModalRequest(null)}
+                    request={chatModalRequest}
+                    userId={userId}
+                    userName={firstName || 'Utente'}
+                />
             </main>
 
             <BottomNavigation />

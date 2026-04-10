@@ -5,6 +5,9 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CityProvider } from './context/CityContext';
 import RoleGuard from './components/RoleGuard';
 import ErrorBoundary from './components/ErrorBoundary';
+import { APIProvider } from '@vis.gl/react-google-maps';
+
+const MAP_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 // ⚡️ LAZY LOADING: Performance Optimization for heavy bundles
 const Landing = lazy(() => import('./pages/Landing'));
@@ -77,56 +80,58 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CityProvider>
-          <Router>
-            <ErrorBoundary>
-              <Suspense fallback={<GlobalLoading />}>
-                <Routes>
-                  {/* THE GATEKEEPER */}
-                  <Route path="/" element={<RootDispatcher />} />
+          <APIProvider apiKey={MAP_API_KEY} libraries={['places']}>
+            <Router>
+              <ErrorBoundary>
+                <Suspense fallback={<GlobalLoading />}>
+                  <Routes>
+                    {/* THE GATEKEEPER */}
+                    <Route path="/" element={<RootDispatcher />} />
 
-                  {/* PUBLIC */}
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/update-password" element={<UpdatePassword />} />
-                  <Route path="/explore" element={<Explore />} />
-                  <Route path="/tour-details" element={<TourDetails />} />
-                  <Route path="/tour-details/:id" element={<TourDetails />} />
+                    {/* PUBLIC */}
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/update-password" element={<UpdatePassword />} />
+                    <Route path="/explore" element={<Explore />} />
+                    <Route path="/tour-details" element={<TourDetails />} />
+                    <Route path="/tour-details/:id" element={<TourDetails />} />
 
-                  {/* PROTECTED USER ROUTES */}
-                  <Route element={<RoleGuard allowedRoles={['explorer', 'user']} />}>
-                    <Route path="/dashboard-user" element={<DashboardUser />} />
-                    <Route path="/app/*" element={<DashboardUser />} />
-                    <Route path="/home" element={<Home />} />
-                    <Route path="/photos" element={<Photos />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/ai-itinerary" element={<AiItinerary />} />
-                    <Route path="/map" element={<MapPage />} />
-                    <Route path="/quick-path" element={<QuickPath />} />
-                    <Route path="/notifications" element={<Notifications />} />
-                    <Route path="/tour-live" element={<TourLive />} />
-                    <Route path="/surprise-tour" element={<SurpriseTour />} />
-                    <Route path="/trending" element={<Trending />} />
-                    <Route path="/become-guide" element={<BecomeGuide />} />
-                  </Route>
+                    {/* PROTECTED USER ROUTES */}
+                    <Route element={<RoleGuard allowedRoles={['explorer', 'user']} />}>
+                      <Route path="/dashboard-user" element={<DashboardUser />} />
+                      <Route path="/app/*" element={<DashboardUser />} />
+                      <Route path="/home" element={<Home />} />
+                      <Route path="/photos" element={<Photos />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/ai-itinerary" element={<AiItinerary />} />
+                      <Route path="/map" element={<MapPage />} />
+                      <Route path="/quick-path" element={<QuickPath />} />
+                      <Route path="/notifications" element={<Notifications />} />
+                      <Route path="/tour-live" element={<TourLive />} />
+                      <Route path="/surprise-tour" element={<SurpriseTour />} />
+                      <Route path="/trending" element={<Trending />} />
+                      <Route path="/become-guide" element={<BecomeGuide />} />
+                    </Route>
 
-                  {/* GUIDE ROUTES */}
-                  <Route element={<RoleGuard allowedRoles={['guide']} />}>
-                    <Route path="/dashboard-guide" element={<DashboardGuide />} />
-                    <Route path="/guide/create-tour" element={<TourBuilder />} />
-                    <Route path="/guide/*" element={<DashboardGuide />} />
-                    <Route path="/chat/guide/:id" element={<GuidePlaceholder type="chat" />} />
-                    <Route path="/profile/guide/:id" element={<GuidePlaceholder type="profile" />} />
-                  </Route>
+                    {/* GUIDE ROUTES */}
+                    <Route element={<RoleGuard allowedRoles={['guide']} />}>
+                      <Route path="/dashboard-guide" element={<DashboardGuide />} />
+                      <Route path="/guide/create-tour" element={<TourBuilder />} />
+                      <Route path="/guide/*" element={<DashboardGuide />} />
+                      <Route path="/chat/guide/:id" element={<GuidePlaceholder type="chat" />} />
+                      <Route path="/profile/guide/:id" element={<GuidePlaceholder type="profile" />} />
+                    </Route>
 
-                  {/* BUSINESS ROUTES */}
-                  <Route element={<RoleGuard allowedRoles={['business']} />}>
-                    <Route path="/dashboard-business" element={<DashboardBusiness />} />
-                    <Route path="/business/*" element={<DashboardBusiness />} />
-                  </Route>
+                    {/* BUSINESS ROUTES */}
+                    <Route element={<RoleGuard allowedRoles={['business']} />}>
+                      <Route path="/dashboard-business" element={<DashboardBusiness />} />
+                      <Route path="/business/*" element={<DashboardBusiness />} />
+                    </Route>
 
-                </Routes>
-              </Suspense>
-            </ErrorBoundary>
-          </Router>
+                  </Routes>
+                </Suspense>
+              </ErrorBoundary>
+            </Router>
+          </APIProvider>
         </CityProvider>
       </AuthProvider>
     </QueryClientProvider >

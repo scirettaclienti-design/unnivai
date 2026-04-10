@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { aiRecommendationService } from './aiRecommendationService';
 import { dataService } from './dataService';
 import { weatherService } from './weatherService';
 
@@ -25,8 +24,8 @@ class UserContextService {
                     isGuest: false
                 };
             }
-        } catch (e) {
-            console.warn('Auth context fetch failed', e);
+        } catch {
+            console.warn('Auth context fetch failed');
         }
 
 
@@ -108,7 +107,7 @@ class UserContextService {
                     const realName = await this.reverseGeocodeCity(lat, lng);
                     console.log(`✅ Recovered Real City Name: ${realName}`);
                     city = realName;
-                } catch (e) {
+                } catch {
                     city = 'Roma';
                 }
             } else {
@@ -123,15 +122,17 @@ class UserContextService {
             city = 'Roma';
         }
 
-        // Fetch Weather for Final City
+        // Fetch Weather for Final City.
+        // forceRefresh=true when the user manually picked a city so we bypass
+        // the 30-minute in-memory cache and always show live data.
         try {
-            const w = await weatherService.getWeather(city, lat, lng); // Pass lat/lng for weather service to prioritize
+            const w = await weatherService.getWeather(city, lat, lng, !!manualCity);
             if (w) {
                 temperatureC = w.temperature;
                 weatherCondition = w.condition;
             }
-        } catch (e) {
-            console.warn('Weather fetch failed', e);
+        } catch {
+            console.warn('Weather fetch failed');
         }
 
         // 4. Tours Count
@@ -147,7 +148,7 @@ class UserContextService {
                     toursCount = count;
                 }
             }
-        } catch (e) {
+        } catch {
             // Silent fallback to mock count
         }
 
@@ -167,16 +168,25 @@ class UserContextService {
     // Helper: Reverse Geocoding (Lat/Lng -> City)
     async reverseGeocodeCity(lat, lng) {
         try {
+            const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=it`
+                `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}&language=it`
             );
             if (!response.ok) throw new Error('Geocoding failed');
             const data = await response.json();
-            return data.address?.city ||
-                data.address?.town ||
-                data.address?.village ||
-                data.address?.municipality ||
-                'Posizione rilevata';
+
+            if (data.results && data.results.length > 0) {
+                const components = data.results[0].address_components;
+                const locality = components.find(c => c.types.includes('locality'));
+                if (locality) return locality.long_name;
+                
+                const admin_level_3 = components.find(c => c.types.includes('administrative_area_level_3'));
+                if (admin_level_3) return admin_level_3.long_name;
+                
+                const admin_level_2 = components.find(c => c.types.includes('administrative_area_level_2'));
+                if (admin_level_2) return admin_level_2.long_name;
+            }
+            return 'Roma';
         } catch (e) {
             console.warn('Service geocoding failed, falling back to cached or default');
             return 'Roma';
@@ -208,13 +218,15 @@ class UserContextService {
         }
 
         try {
+            const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1`
+                `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityName)}&key=${apiKey}&language=it`
             );
             if (!response.ok) throw new Error('City Search Failed');
             const data = await response.json();
-            if (data && data.length > 0) {
-                return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+            if (data.results && data.results.length > 0) {
+                const location = data.results[0].geometry.location;
+                return { lat: location.lat, lng: location.lng };
             }
         } catch (e) {
             console.warn('City coords fetch failed', e);
@@ -226,7 +238,7 @@ class UserContextService {
     async updateSupabaseProfileCity(userId, city) {
         try {
             await supabase.from('profiles').upsert({ id: userId, current_city: city });
-        } catch (e) {
+        } catch {
             // silent fail
         }
     }
@@ -236,7 +248,7 @@ class UserContextService {
         try {
             const { data } = await supabase.from('profiles').select('current_city').eq('id', userId).single();
             return data?.current_city;
-        } catch (e) {
+        } catch {
             return null;
         }
     }

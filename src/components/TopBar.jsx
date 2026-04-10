@@ -13,6 +13,7 @@ import { Edit2 } from "lucide-react";
 export default function TopBar() {
     // Unified Context Source
     const {
+        userId,
         city: currentCity,
         temperatureC,
         firstName,
@@ -83,7 +84,7 @@ export default function TopBar() {
 
                     <div className="flex items-center gap-3">
                         <NotificationBell
-                            userId={1}
+                            userId={userId}
                             currentLocation={currentCity || "Roma"}
                             theme="light"
                         />

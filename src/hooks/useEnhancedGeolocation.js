@@ -40,7 +40,7 @@ export function useEnhancedGeolocation(options = {}) {
     const getCurrentLocationWithBackend = async () => {
         if (!navigator.geolocation) {
             console.log('❌ Geolocalizzazione non supportata dal browser');
-            setSimulatedLocation();
+            triggerIpFallback();
             return;
         }
 
@@ -156,10 +156,36 @@ export function useEnhancedGeolocation(options = {}) {
                 }
             }
 
-            // In development, usa subito il fallback senza aspettare
-            console.log('🏙️ Attivando fallback location per development environment');
-            setSimulatedLocation();
+            // Tentativo fallback IP reale e poi simulata
+            console.log('🏙️ Attivando fallback location IP (ipapi.co)...');
+            triggerIpFallback();
         }
+    };
+
+    const triggerIpFallback = async () => {
+        try {
+            const res = await fetch('https://ipapi.co/json/');
+            const data = await res.json();
+            if (data?.latitude && data?.longitude && data?.city) {
+                console.log('✅ IP Fallback Location rilevata:', data.city);
+                setState({
+                    location: {
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                        city: data.city,
+                        country: data.country_name || 'Italia'
+                    },
+                    loading: false,
+                    error: null,
+                    nearbyData: [],
+                    savedToDatabase: false
+                });
+                return;
+            }
+        } catch (e) {
+            console.warn('IP Fallback fallito, ripiego su simulata', e);
+        }
+        setSimulatedLocation();
     };
 
     const setSimulatedLocation = () => {
@@ -205,6 +231,39 @@ export function useEnhancedGeolocation(options = {}) {
     const reverseGeocode = async (lat, lon) => {
         try {
             console.log('🔍 Ricerca città per coordinate:', { lat, lon });
+            
+            const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+            if (MAPS_KEY) {
+                try {
+                    const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${MAPS_KEY}&result_type=locality|administrative_area_level_3`);
+                    const data = await res.json();
+                    
+                    if (data.status === 'OK' && data.results.length > 0) {
+                        const addressComponents = data.results[0].address_components;
+                        let city = '';
+                        let country = 'Italia';
+                        let region = '';
+                        
+                        addressComponents.forEach(component => {
+                            const types = component.types;
+                            if (types.includes('locality') || types.includes('administrative_area_level_3')) {
+                                if (!city) city = component.long_name;
+                            } else if (types.includes('administrative_area_level_1')) {
+                                region = component.long_name;
+                            } else if (types.includes('country')) {
+                                country = component.long_name;
+                            }
+                        });
+                        
+                        if (city && city.trim() !== '') {
+                            console.log('✅ Città rilevata da Google:', city, country);
+                            return { city, country, region };
+                        }
+                    }
+                } catch (googleErr) {
+                    console.warn('⚠️ Google Reverse Geocoding fallito, tento Nominatim', googleErr);
+                }
+            }
 
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=it&addressdetails=1`
@@ -222,7 +281,7 @@ export function useEnhancedGeolocation(options = {}) {
                 data.address?.county ||
                 data.address?.state ||
                 data.display_name?.split(',')[0] ||
-                'Posizione rilevata';
+                'Roma';
 
             const detectedCountry = data.address?.country || 'Italia';
             const detectedRegion = data.address?.state || data.address?.region;
@@ -237,8 +296,8 @@ export function useEnhancedGeolocation(options = {}) {
         } catch (error) {
             console.warn('❌ Reverse geocoding fallito:', error);
             return {
-                city: `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`,
-                country: 'Posizione GPS',
+                city: 'Roma',
+                country: 'Italia',
                 region: null
             };
         }

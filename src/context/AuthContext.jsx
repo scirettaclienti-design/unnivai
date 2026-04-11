@@ -54,9 +54,11 @@ export const AuthProvider = ({ children }) => {
         );
     }
 
-    // 🎭 ROLE HELPER (Minimalista)
-    // Se c'è metadata, usalo. Altrimenti fallback storage o 'user'.
-    const role = user?.user_metadata?.role || localStorage.getItem('unnivai_role') || (user ? 'user' : null);
+    // DVAI-008: Il ruolo viene letto ESCLUSIVAMENTE da user_metadata.role.
+    // Rimosso il fallback localStorage: un utente non può più modificare il proprio
+    // ruolo via DevTools per accedere a dashboard non autorizzate.
+    // Le RLS Supabase proteggono i dati; questa modifica protegge anche l'UI.
+    const role = user?.user_metadata?.role || (user ? 'user' : null);
 
     // 3. ACTIONS
     const signOut = async () => {

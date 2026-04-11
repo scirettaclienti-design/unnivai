@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo } from 'react';
 import { useMap, AdvancedMarker } from '@vis.gl/react-google-maps';
-import GoogleMapContainer from './map/GoogleMapContainer';
-import MapMarker from './map/MapMarker';
-import TourRoute from './map/TourRoute';
+import GoogleMapContainer from './Map/GoogleMapContainer';
+import MapMarker from './Map/MapMarker';
+import TourRoute from './Map/TourRoute';
 import { MAP_MOODS } from '../lib/schemas';
 
 const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userLocation, onActivityClick, onRouteStats }) => {

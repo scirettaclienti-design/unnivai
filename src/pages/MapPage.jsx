@@ -633,12 +633,35 @@ const MapPage = () => {
         setIsRoutePlannerOpen(true);
     };
 
+    // ─── FULLSCREEN NAVIGATION (Google Maps style) ────────────────────────────
+    const requestNavFullscreen = () => {
+        try {
+            const el = document.documentElement;
+            if (el.requestFullscreen) el.requestFullscreen();
+            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+            else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+        } catch { /* ignora se il browser nega il fullscreen */ }
+    };
+
+    const exitNavFullscreen = () => {
+        try {
+            if (document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement) {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+            }
+        } catch { /* ignora */ }
+    };
+
     const handleEndNavigation = () => {
         setIsNavigating(false);
         setFollowing(false);
         setLiveRoute(null);
         if (watchId) navigator.geolocation.clearWatch(watchId);
         mapRef.current?.flyTo({ pitch: 0, bearing: 0, zoom: 14 });
+        exitNavFullscreen(); // Esci dal fullscreen quando la navigazione termina
         if (completedSteps.length > 0) {
             setTimeout(() => setIsSummaryModalOpen(true), 300);
         }
@@ -648,6 +671,7 @@ const MapPage = () => {
         setIsRoutePlannerOpen(false);
         setIsNavigating(true);
         setFollowing(true);
+        requestNavFullscreen(); // Entra in fullscreen come Google Maps
         if (plannerPreviewRoute) {
             // Guarantee immediate polyline render even if GPS fails
             setLiveRoute([...plannerPreviewRoute]);
@@ -710,7 +734,10 @@ const MapPage = () => {
                     setWatchId(wId);
                 },
                 () => {
-                    alert('Impossibile rilevare la tua posizione. La navigazione partirà dalla prima tappa.');
+                    // DVAI-039: sostituito alert() con toast event
+                    window.dispatchEvent(new CustomEvent('dvai-toast', {
+                        detail: { type: 'warning', message: 'Posizione non rilevata. Navigazione dalla prima tappa.' }
+                    }));
                     if (activeRoute?.length && mapRef.current) {
                         mapRef.current.flyTo({ center: [activeRoute[0].longitude, activeRoute[0].latitude], zoom: 17, pitch: 45 });
                     }

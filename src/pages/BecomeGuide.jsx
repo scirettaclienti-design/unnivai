@@ -5,10 +5,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import TopBar from '@/components/TopBar';
 import BottomNavigation from '@/components/BottomNavigation';
 import { useUserContext } from '@/hooks/useUserContext';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 export default function BecomeGuide() {
     const navigate = useNavigate();
     const { firstName, city } = useUserContext();
+    const { user } = useAuth();
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         name: firstName || '',
@@ -32,16 +35,45 @@ export default function BecomeGuide() {
         }));
     };
 
+    const [submitError, setSubmitError] = useState(null);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
+        setSubmitError(null);
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+            // DVAI-015: Salvataggio reale su Supabase guide_applications
+            const payload = {
+                user_id: user?.id ?? null,
+                name: formData.name.trim(),
+                surname: formData.surname.trim(),
+                email: formData.email.trim(),
+                phone: formData.phone?.trim() || null,
+                city: formData.city?.trim() || null,
+                experience: formData.experience?.trim() || null,
+                motivation: formData.motivation?.trim() || null,
+                languages: formData.languages?.length ? formData.languages : null,
+                status: 'pending',
+            };
 
-        setIsSubmitting(false);
-        setIsSuccess(true);
-        // In a real app, we would send this data to Supabase/Backend
+            const { error } = await supabase
+                .from('guide_applications')
+                .insert(payload);
+
+            if (error) throw error;
+
+            setIsSuccess(true);
+        } catch (err) {
+            console.error('[BecomeGuide] submit error:', err.message);
+            setSubmitError(
+                err.message?.includes('does not exist')
+                    ? 'Tabella guide_applications non trovata. Esegui la migration DVAI-015 su Supabase.'
+                    : 'Si è verificato un errore. Riprova tra qualche istante.'
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (isSuccess) {
@@ -245,6 +277,11 @@ export default function BecomeGuide() {
                                     </ul>
                                 </div>
 
+                                {submitError && (
+                                    <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-2">
+                                        ⚠️ {submitError}
+                                    </div>
+                                )}
                                 <motion.button
                                     type="submit"
                                     disabled={isSubmitting}

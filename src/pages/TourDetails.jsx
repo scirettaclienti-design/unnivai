@@ -819,7 +819,12 @@ export default function TourDetailsPage() {
 
     // --- STANDARD TOUR LOGIC ---
     // --- SMART CTA LOGIC ---
-    // Abbiamo rimosso isAiTour per permettere ai tour generati su misura di godere della stessa bellissima interfaccia Full-Immersive
+    // DVAI-012: Un tour è "mock" se il suo id è numerico (1,2,3) o una stringa tipo "a1"
+    // oppure se non ha un guide_id UUID valido. I tour reali vengono dal DB con UUID v4.
+    const isMockTour = !isValidGuideId(tour.guide_id || tour.guideId || '') &&
+        (typeof tour.id === 'number' ||
+         (typeof tour.id === 'string' && !(/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(tour.id))));
+
     const isGuideTour = tour.type !== 'self-guided' && !tour.isAiGenerated;
 
     // Mock Participants for Group Mode
@@ -1019,8 +1024,21 @@ export default function TourDetailsPage() {
                             >
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex-1 mr-4">
+                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                            {/* DVAI-012: Badge Demo per tour senza guida reale */}
+                                            {isMockTour && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-700 text-[10px] font-black uppercase tracking-widest">
+                                                    🎭 Demo
+                                                </span>
+                                            )}
+                                        </div>
                                         <h1 className="text-2xl font-bold text-gray-800 mb-2">{tour.title}</h1>
                                         <p className="text-gray-600 leading-relaxed text-sm">{tour.description}</p>
+                                        {isMockTour && (
+                                            <p className="text-amber-600 text-xs mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                                ℹ️ Tour di esempio — prenotazione e contatto guida non disponibili. Esplora i tour reali nella sezione Esplora.
+                                            </p>
+                                        )}
                                     </div>
                                     {/* Price Button REMOVED as requested */}
                                 </div>
@@ -1327,37 +1345,53 @@ export default function TourDetailsPage() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 2 }}
                         >
-                            <button
-                                onClick={handleSmartAction}
-                                className={`w-full py-4 rounded-2xl font-bold text-white shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2 text-lg transform active:scale-95 ${isGroupMode
-                                    ? "bg-gradient-to-r from-purple-500 to-indigo-600 shadow-purple-500/30"
-                                    : (isGuideTour ? "bg-gray-800 hover:bg-black" : "bg-gradient-to-r from-terracotta-400 to-terracotta-600")
-                                    }`}
-                            >
-                                {isGroupMode ? (
-                                    <>
-                                        <Users className="w-6 h-6" />
-                                        <span>Unisciti al Gruppo</span>
-                                    </>
-                                ) : (
-                                    isGuideTour ? (
-                                        <>
-                                            <MessageCircle className="w-6 h-6" />
-                                            <span>Richiedi Guida</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Play className="w-6 h-6 fill-current" />
-                                            <span>Avvia Itinerario</span>
-                                        </>
-                                    )
-                                )}
-                            </button>
-                            <p className="text-center text-xs text-gray-500 mt-2">
-                                {isGroupMode
-                                    ? "Ti unirai ufficialmente alla lista dei partecipanti."
-                                    : (isGuideTour ? "Invierai una richiesta non vincolante alla guida." : "Navigazione GPS inclusa. Clicca per iniziare.")}
-                            </p>
+                            {/* DVAI-012: Tour mock → CTA disabilitato con messaggio chiaro */}
+                            {isMockTour ? (
+                                <div className="text-center">
+                                    <div className="w-full py-4 rounded-2xl font-bold text-gray-400 bg-gray-100 border-2 border-dashed border-gray-200 flex items-center justify-center space-x-2 text-base cursor-not-allowed">
+                                        <span>🎭</span>
+                                        <span>Tour di esempio</span>
+                                    </div>
+                                    <p className="text-xs text-amber-600 mt-2">
+                                        Questo è un tour demo. Per prenotare, esplora i tour reali delle nostre guide locali nella sezione{' '}
+                                        <a href="/explore" className="font-bold underline">Esplora</a>.
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={handleSmartAction}
+                                        className={`w-full py-4 rounded-2xl font-bold text-white shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2 text-lg transform active:scale-95 ${isGroupMode
+                                            ? "bg-gradient-to-r from-purple-500 to-indigo-600 shadow-purple-500/30"
+                                            : (isGuideTour ? "bg-gray-800 hover:bg-black" : "bg-gradient-to-r from-terracotta-400 to-terracotta-600")
+                                            }`}
+                                    >
+                                        {isGroupMode ? (
+                                            <>
+                                                <Users className="w-6 h-6" />
+                                                <span>Unisciti al Gruppo</span>
+                                            </>
+                                        ) : (
+                                            isGuideTour ? (
+                                                <>
+                                                    <MessageCircle className="w-6 h-6" />
+                                                    <span>Richiedi Guida</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Play className="w-6 h-6 fill-current" />
+                                                    <span>Avvia Itinerario</span>
+                                                </>
+                                            )
+                                        )}
+                                    </button>
+                                    <p className="text-center text-xs text-gray-500 mt-2">
+                                        {isGroupMode
+                                            ? "Ti unirai ufficialmente alla lista dei partecipanti."
+                                            : (isGuideTour ? "Invierai una richiesta non vincolante alla guida." : "Navigazione GPS inclusa. Clicca per iniziare.")}
+                                    </p>
+                                </>
+                            )}
                         </motion.div>
                     </>
 

@@ -31,6 +31,7 @@ const UpdatePassword = lazy(() => import('./pages/UpdatePassword')); // Added im
 const Trending = lazy(() => import('./pages/Trending'));
 const Photos = lazy(() => import('./pages/Photos'));
 const GuidePlaceholder = lazy(() => import('./pages/GuidePlaceholder'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
 
 // Optimized Query Client
 const queryClient = new QueryClient({
@@ -66,6 +67,11 @@ const RootDispatcher = () => {
 
   // 2. Immediate Redirect if Logged In
   if (user) {
+    // DVAI-011: Nuovi utenti → onboarding wizard (una sola volta)
+    const onboardingDone = localStorage.getItem('dvai_onboarding_done');
+    if (!onboardingDone && role !== 'guide' && role !== 'business') {
+      return <Navigate to="/onboarding" replace />;
+    }
     if (role === 'guide') return <Navigate to="/dashboard-guide" replace />;
     if (role === 'business') return <Navigate to="/dashboard-business" replace />;
     return <Navigate to="/dashboard-user" replace />;
@@ -90,6 +96,7 @@ function App() {
 
                     {/* PUBLIC */}
                     <Route path="/login" element={<Login />} />
+                    <Route path="/onboarding" element={<Onboarding />} />
                     <Route path="/update-password" element={<UpdatePassword />} />
                     <Route path="/explore" element={<Explore />} />
                     <Route path="/tour-details" element={<TourDetails />} />

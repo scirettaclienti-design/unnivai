@@ -4,7 +4,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Flag, Store, ArrowRight, User, Mail, Lock, Briefcase, CheckCircle, Compass, ChevronLeft, Sparkles, Star } from 'lucide-react';
+import { MapPin, Flag, Store, ArrowRight, User, Mail, Lock, Briefcase, CheckCircle, Compass, ChevronLeft, Sparkles, Star, Eye, EyeOff } from 'lucide-react';
+import { LoginSchema, SignupSchema, validateForm } from '../lib/validationSchemas';
 
 const ROLES = [
     {
@@ -63,8 +64,10 @@ const Login = () => {
     const [businessName, setBusinessName] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [fieldErrors, setFieldErrors] = useState({});
     const [emailSent, setEmailSent] = useState(false);
     const [resetMode, setResetMode] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
     const { refreshRole, user, role, resetPassword } = useAuth();
@@ -81,9 +84,26 @@ const Login = () => {
 
     const handleAuth = async (e) => {
         e.preventDefault();
-        setLoading(true);
         setError(null);
+        setFieldErrors({});
         setEmailSent(false);
+
+        // DVAI-019: Validazione Zod prima di chiamare Supabase
+        const schema = authMode === 'login' ? LoginSchema : SignupSchema;
+        const formPayload = authMode === 'login'
+            ? { email, password }
+            : { email, password, fullName, role: selectedRole, businessName };
+
+        const validation = validateForm(schema, formPayload);
+        if (!validation.ok) {
+            setFieldErrors(validation.errors);
+            // Mostra il primo errore generale
+            const firstError = Object.values(validation.errors)[0];
+            setError(firstError);
+            return;
+        }
+
+        setLoading(true);
         try {
             if (authMode === 'login') {
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -381,11 +401,43 @@ const Login = () => {
                                                     onChange={e => setEmail(e.target.value)} required
                                                     className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all text-sm" />
                                             </div>
-                                            <div className="relative">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 w-4 h-4" />
-                                                <input type="password" placeholder="Password" value={password}
-                                                    onChange={e => setPassword(e.target.value)} required
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all text-sm" />
+                                            {/* Password field con show/hide + Zod validation */}
+                                            <div className="space-y-1">
+                                                <div className="relative">
+                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 w-4 h-4" />
+                                                    <input
+                                                        type={showPassword ? 'text' : 'password'}
+                                                        placeholder="Password"
+                                                        value={password}
+                                                        onChange={e => { setPassword(e.target.value); setFieldErrors(prev => ({ ...prev, password: undefined })); }}
+                                                        required
+                                                        className={`w-full bg-white/5 border rounded-xl pl-11 pr-11 py-3.5 text-white placeholder-white/30 focus:outline-none transition-all text-sm ${fieldErrors.password ? 'border-red-500/60 focus:ring-red-500/20 focus:border-red-500/50' : 'border-white/10 focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20'}`}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPassword(v => !v)}
+                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+                                                        tabIndex={-1}
+                                                    >
+                                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                    </button>
+                                                </div>
+                                                {fieldErrors.password && (
+                                                    <p className="text-red-400 text-xs pl-1">{fieldErrors.password}</p>
+                                                )}
+                                                {/* Indicatore forza password in signup */}
+                                                {authMode === 'signup' && password.length > 0 && (
+                                                    <div className="flex gap-1 mt-1">
+                                                        {[
+                                                            password.length >= 8,
+                                                            /[A-Z]/.test(password),
+                                                            /[0-9]/.test(password),
+                                                            /[^A-Za-z0-9]/.test(password),
+                                                        ].map((met, i) => (
+                                                            <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${met ? 'bg-green-400' : 'bg-white/10'}`} />
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {authMode === 'login' && (

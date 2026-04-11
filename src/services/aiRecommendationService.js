@@ -324,37 +324,58 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
     },
 
     // ─── DYNAMIC WEATHER & SOCIAL TIP ─────────────────────────────────────────
-    async generateWeatherSocialTip(city, userName) {
-        const fallback = {
-            title: `Voglia di uscire a ${city}? 🌟`,
-            message: `Esplora ${city} oggi! Condividi i tuoi scatti migliori con #DoveVai${city.replace(/\s+/g, '')}`
+    /**
+     * DVAI-002 (notifiche): Genera un consiglio AI contestuale all'orario reale.
+     * @param {string} city
+     * @param {string} userName
+     * @param {'morning'|'midday'|'afternoon'|'evening'|'night'} slot - fascia oraria da useUserNotifications
+     */
+    async generateWeatherSocialTip(city, userName, slot = 'afternoon') {
+        // Descrizione human-readable dello slot per il prompt
+        const slotLabels = {
+            morning:   'mattina (06-10), poca folla, luce bella',
+            midday:    'mezzogiorno (11-13), ora di pranzo',
+            afternoon: 'pomeriggio (14-17), caldo, ideale per musei e gallerie',
+            evening:   'sera (18-21), aperitivo e cena',
+            night:     'notte (22-05), tutto chiuso tranne locali notturni',
+        };
+        const slotActivities = {
+            morning:   'passeggiate, mercati del mattino, tour con poca folla, colazione tipica',
+            midday:    'ristoranti, trattorie, osterie, street food, pranzo tipico locale',
+            afternoon: 'musei, gallerie d\'arte, tour culturali, laboratori artigianali',
+            evening:   'aperitivo, ristoranti romantici, esperienze gastronomiche serali, vista panoramica',
+            night:     'pianificazione del giorno dopo, itinerari AI per domani mattina',
         };
 
         try {
-            const prompt = `Sei un esperto locale di ${city}. Scrivi un breve consiglio (max 150 caratteri) per ${userName || 'il viaggiatore'} basato sul meteo di oggi a ${city} (immagina una condizione realistica) suggerendo un'attività appropriata e aggiungi un piccolo consiglio o hashtag per i social.
-Formato JSON richiesto:
+            const prompt = `Sei un esperto locale di ${city}. Ora è: ${slotLabels[slot] || slotLabels.afternoon}.
+Scrivi UN breve consiglio (max 140 caratteri) per ${userName || 'il viaggiatore'} suggerendo SOLO attività adatte a questo orario: ${slotActivities[slot] || slotActivities.afternoon}.
+REGOLA FONDAMENTALE: NON suggerire il sole, passeggiate all'aperto o attività esterne di notte. NON suggerire ristoranti o bar alle 7 del mattino.
+Aggiungi #DoveVAI alla fine.
+
+Formato JSON:
 {
-  "title": "Titolo accattivante con emoji",
-  "message": "Il messaggio con il consiglio e l'hashtag"
+  "title": "Titolo breve con emoji adatta all'orario (max 50 car)",
+  "message": "Consiglio coerente con l'orario con hashtag (max 140 car)"
 }`;
 
             const data = await callOpenAIProxy({
-                model: 'gpt-4o-mini',  // DVAI-020
+                model: 'gpt-4o-mini',
                 messages: [
-                    { role: 'system', content: 'Sei un travel advisor locale amichevole e moderno. Rispondi solo in JSON.' },
+                    { role: 'system', content: 'Sei un travel advisor locale amichevole. Rispondi SOLO in JSON valido. Rispetta rigorosamente il contesto orario.' },
                     { role: 'user', content: prompt }
                 ],
                 response_format: { type: 'json_object' },
+                max_tokens: 200,
             });
 
             if (!data.choices?.[0]) throw new Error('No AI response');
-            return JSON.parse(data.choices[0].message.content);
+            const parsed = JSON.parse(data.choices[0].message.content);
+            if (!parsed.title || !parsed.message) throw new Error('Incomplete AI response');
+            return parsed;
         } catch (e) {
             console.warn('[AI] generateWeatherSocialTip failed:', e.message);
-            return {
-                title: `Scopri ${city}! 📸`,
-                message: `Un'ottima giornata per passeggiare a ${city}. Taggaci nelle tue storie con #DoveVai${city.replace(/\s+/g, '')}`
-            };
+            return null; // null → useUserNotifications usa il fallback statico coerente
         }
     },
 

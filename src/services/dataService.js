@@ -259,21 +259,18 @@ class DataService {
                     created_at: new Date().toISOString()
                 });
 
+            // DVAI-005: propagazione errore reale invece di fallback silenzioso
             if (error) {
-                // If table doesn't exist or schema mismatch, fallback silently
-                console.warn('Supabase booking write failed (silent fallback):', error);
-                return { success: true };
+                console.error('[createBooking] Supabase insert failed:', error.message);
+                return { success: false, error: error.message };
             }
-
-            // Simulate notification to guide (Real backend would use Database Triggers or Edge Function)
-            // insertNotification(guide_id, "Nuova richiesta di prenotazione")
-            console.log('🔔 Guide notification dispatched for booking:', bookingData.tourId);
 
             return { success: true };
 
         } catch (err) {
-            console.error('DataService booking error (silent):', err);
-            return { success: true }; // Always return success to UI
+            // DVAI-005: errori di rete o sessione propagati correttamente
+            console.error('[createBooking] Unexpected error:', err.message);
+            return { success: false, error: err.message ?? 'Errore imprevisto durante la prenotazione.' };
         }
     }
 

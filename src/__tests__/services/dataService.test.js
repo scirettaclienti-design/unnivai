@@ -559,7 +559,7 @@ describe('createBooking', () => {
     )
   })
 
-  it('returns { success: true } even when DB insert fails (silent fallback)', async () => {
+  it('returns { success: false, error } when DB insert fails (DVAI-005)', async () => {
     vi.mocked(supabase.auth.getSession).mockResolvedValue(createSessionMock())
 
     const failingBuilder = createQueryBuilder({ error: { message: 'insert failed' } })
@@ -570,7 +570,8 @@ describe('createBooking', () => {
       time: '10:00', guests: 1, totalPrice: 59,
     })
 
-    // Intentional design: the UI is never shown a booking error
-    expect(result).toEqual({ success: true })
+    // DVAI-005: errore propagato correttamente invece di silent fallback
+    expect(result.success).toBe(false)
+    expect(result.error).toBeTruthy()
   })
 })

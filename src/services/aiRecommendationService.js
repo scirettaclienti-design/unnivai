@@ -1,8 +1,53 @@
 // src/services/aiRecommendationService.js
+//
+// DVAI-001 — Tutte le chiamate OpenAI ora passano per la Supabase Edge Function
+// /functions/v1/openai-proxy in modo che la API key non sia mai nel bundle client.
+// DVAI-010 — Aggiunta analyzeBusinessDescription() mancante.
+// DVAI-020 — Modello aggiornato da gpt-3.5-turbo a gpt-4o-mini.
+
+import { supabase } from '../lib/supabase';
 
 const DOVEVAI_NARRATOR_PROMPT = `Sei la voce di DoveVai. Scrivi curiosità storiche ironiche e colte.
 Evita i cliché come 'storia millenaria'. Focus su aneddoti bizzarri.
 Max 150 car per la nota, 80 car per il fun fact.`;
+
+// ─── Proxy helper ─────────────────────────────────────────────────────────────
+/**
+ * Chiama la Supabase Edge Function openai-proxy invece di OpenAI direttamente.
+ * La API key rimane sul server; il bundle client non la contiene mai.
+ *
+ * @param {object} payload - Stesso body che manderesti ad OpenAI + { endpoint }
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<object>} La risposta JSON di OpenAI
+ */
+const callOpenAIProxy = async (payload, signal) => {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const anonKey     = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'apikey': anonKey,
+  };
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`;
+  }
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/openai-proxy`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ endpoint: '/chat/completions', ...payload }),
+    ...(signal ? { signal } : {}),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    throw new Error(`Proxy ${response.status}: ${errBody?.error ?? response.statusText}`);
+  }
+
+  return response.json();
+};
 
 // ─── HARDCODED CITY POIs (local fallback — no API needed) ─────────────────────
 const CITY_POIS = {
@@ -45,8 +90,6 @@ const CITY_POIS = {
 const generateItineraryLocal = (city, prefs, weather) => {
     const pois = CITY_POIS[city] || [];
     if (pois.length === 0) {
-        // No hardcoded POIs for this city — return a minimal itinerary
-        // The AI generation path (with OpenAI) will handle unknown cities
         return {
             days: [{
                 day: 1,
@@ -106,11 +149,6 @@ export const aiRecommendationService = {
 
     // ─── ITINERARY GENERATION ────────────────────────────────────────────────
     async generateItinerary(city, prefs = {}, userPrompt = '', weather = {}) {
-        const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-
-        // No API key → local fallback immediately, zero network cost
-        if (!apiKey) return generateItineraryLocal(city, prefs, weather);
-
         const weatherIcon = weather?.condition === 'sunny' ? '☀️'
             : weather?.condition === 'rainy' ? '🌧️' : '⛅';
 
@@ -141,8 +179,8 @@ Segui ESATTAMENTE questo schema JSON (nessun campo aggiuntivo):
   ]
 }
 Regole aggiuntive:
-- "suggestedTransit": scegli il mezzo di trasporto principale per il giorno tra "bus", "metro" e "walking". Usa "walking" se le tappe sono a piedi, "metro" per spostamenti veloci in città, "bus" altrimenti.
-- "mapMood": associa al giorno un mood scegliendo tra: romantico, storia, avventura, natura, cibo, shopping, arte, sorpresa, sport. Scegli in base al contesto della richiesta e alle tappe del giorno.
+- "suggestedTransit": scegli il mezzo di trasporto principale per il giorno tra "bus", "metro" e "walking".
+- "mapMood": associa al giorno un mood scegliendo tra: romantico, storia, avventura, natura, cibo, shopping, arte, sorpresa, sport.
 Usa SEMPRE coordinate reali e precise per ${city}. Rispondi SOLO con il JSON, nessun testo aggiuntivo.`;
 
         const lines = [
@@ -159,51 +197,34 @@ Usa SEMPRE coordinate reali e precise per ${city}. Rispondi SOLO con il JSON, ne
 
         const numDays = prefs?.duration === '2-3 Giorni' ? 2 : 1;
 
-        // 35-second timeout — complex queries like "bar iconici di Roma" need extra time
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 35_000);
 
         try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                signal: controller.signal,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`,
-                },
-                body: JSON.stringify({
-                    model: 'gpt-3.5-turbo',
-                    messages: [
-                        { role: 'system', content: systemPrompt },
-                        {
-                            role: 'user',
-                            content: `Genera un itinerario di ${numDays} giorno/i con 4-5 tappe per giorno.\n${lines.join('\n')}`,
-                        },
-                    ],
-                    response_format: { type: 'json_object' },
-                    temperature: 0.7,
-                    max_tokens: 2000,
-                }),
-            });
+            // DVAI-001: chiamata tramite proxy, mai diretta ad OpenAI dal client
+            const data = await callOpenAIProxy({
+                model: 'gpt-4o-mini',  // DVAI-020: aggiornato da gpt-3.5-turbo
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    {
+                        role: 'user',
+                        content: `Genera un itinerario di ${numDays} giorno/i con 4-5 tappe per giorno.\n${lines.join('\n')}`,
+                    },
+                ],
+                response_format: { type: 'json_object' },
+                temperature: 0.7,
+                max_tokens: 2000,
+            }, controller.signal);
 
             clearTimeout(timeoutId);
 
-            if (!response.ok) {
-                const errBody = await response.json().catch(() => ({}));
-                throw new Error(`OpenAI ${response.status}: ${errBody?.error?.message ?? response.statusText}`);
-            }
-
-            const data = await response.json();
             const raw = data.choices?.[0]?.message?.content;
             if (!raw) throw new Error('Empty AI response');
 
             const parsed = JSON.parse(raw);
-
-            // Accept both { days: [...] } and bare array
             const days = Array.isArray(parsed) ? parsed : (parsed.days ?? []);
             if (!Array.isArray(days) || days.length === 0) throw new Error('AI returned no days');
 
-            // Sanitize — ensure numeric types, real coordinates, non-empty stops
             const VALID_MOODS = new Set(['romantico','storia','avventura','natura','cibo','shopping','arte','sorpresa','sport']);
             const VALID_TRANSIT = new Set(['bus','metro','walking']);
             const sanitized = days.map((day, di) => ({
@@ -244,40 +265,31 @@ Usa SEMPRE coordinate reali e precise per ${city}. Rispondi SOLO con il JSON, ne
 
     // ─── MONUMENT ENRICHMENT ─────────────────────────────────────────────────
     async enrichMonuments(pois, city) {
-        const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-        if (!apiKey) return pois;
-
         try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                body: JSON.stringify({
-                    model: 'gpt-3.5-turbo',
-                    messages: [
-                        { role: 'system', content: DOVEVAI_NARRATOR_PROMPT },
-                        { role: 'user', content: `Arricchisci questi POI di ${city || 'questa città'}: ${pois.map(p => p.name || p.title || 'Punto di interesse').join(', ')}` },
-                    ],
-                    response_format: { type: 'json_object' },
-                }),
+            const data = await callOpenAIProxy({
+                model: 'gpt-4o-mini',  // DVAI-020
+                messages: [
+                    { role: 'system', content: DOVEVAI_NARRATOR_PROMPT },
+                    { role: 'user', content: `Arricchisci questi POI di ${city || 'questa città'}: ${pois.map(p => p.name || p.title || 'Punto di interesse').join(', ')}` },
+                ],
+                response_format: { type: 'json_object' },
             });
-            const result = await response.json();
-            const enriched = JSON.parse(result.choices[0].message.content).data;
+            const enriched = JSON.parse(data.choices[0].message.content).data;
 
             return pois.map(p => {
                 const targetName = p.name || p.title;
-                const data = enriched?.find(d => d.name === targetName || (d.name && targetName && d.name.includes(targetName)));
-                return { ...p, historicalNotes: data?.note || p.historicalNotes, funFacts: [data?.fun_fact] };
+                const item = enriched?.find(d => d.name === targetName || (d.name && targetName && d.name.includes(targetName)));
+                return { ...p, historicalNotes: item?.note || p.historicalNotes, funFacts: [item?.fun_fact] };
             });
-        } catch (e) { return pois; }
+        } catch (e) {
+            console.warn('[AI] enrichMonuments failed:', e.message);
+            return pois;
+        }
     },
+
     // ─── GEMINI / AI CHAT GUIDE ──────────────────────────────────────────────
     async chatWithGuide(messages, contextPayload) {
-        const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-        const fallbackResponse = "Sono una versione limitata offline. Non ho abbastanza dati satellitari o la chiave API non è configurata correttamente.";
-        
-        if (!apiKey) {
-            return new Promise(resolve => setTimeout(() => resolve(fallbackResponse), 1000));
-        }
+        const fallbackResponse = "Sono una versione limitata offline. Il proxy AI non è raggiungibile.";
 
         const { city, poiName } = contextPayload;
         const contextStr = poiName ? `${poiName} a ${city}` : `${city}`;
@@ -286,7 +298,6 @@ Usa SEMPRE coordinate reali e precise per ${city}. Rispondi SOLO con il JSON, ne
 Il tuo compito è fare da guida turistica esperta, ironica e sintetica per l'utente, che sta esplorando in questo momento: ${contextStr}.
 Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri). Fai emergere verità storiche nascoste, aneddoti divertenti o consigli unici. Se ti chiedono indicazioni stradali complesse, ricordagli gentilmente di seguire la scia arancione sulla mappa.`;
 
-        // Format user messages for OpenAI. `messages` is an array of { role: 'user'|'assistant', content: '...' }
         const openAiMessages = [
             { role: 'system', content: systemPrompt },
             ...messages.filter(m => m.role === 'user' || m.role === 'assistant')
@@ -294,79 +305,114 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout for chat
+            const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                signal: controller.signal,
-                body: JSON.stringify({
-                    model: 'gpt-3.5-turbo',
-                    messages: openAiMessages,
-                    temperature: 0.7,
-                    max_tokens: 350
-                }),
-            });
+            const data = await callOpenAIProxy({
+                model: 'gpt-4o-mini',  // DVAI-020
+                messages: openAiMessages,
+                temperature: 0.7,
+                max_tokens: 350
+            }, controller.signal);
 
             clearTimeout(timeoutId);
 
-            if (!response.ok) {
-                console.warn("OpenAI response non-ok", response.status);
-                return fallbackResponse;
-            }
-
-            const data = await response.json();
             return data.choices?.[0]?.message?.content || fallbackResponse;
         } catch (e) {
-            console.warn("Error in chatWithGuide:", e);
+            console.warn('[AI] chatWithGuide failed:', e.message);
             return fallbackResponse;
         }
     },
 
     // ─── DYNAMIC WEATHER & SOCIAL TIP ─────────────────────────────────────────
     async generateWeatherSocialTip(city, userName) {
-        const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-        if (!apiKey) {
-            // Fallback locale in miniatura se non c'è la chiave
-            return {
-                title: `Voglia di uscire a ${city}? 🌟`,
-                message: `Esplora ${city} oggi! Condividi i tuoi scatti migliori con #DoveVai${city.replace(/\s+/g, '')}`
-            };
-        }
+        const fallback = {
+            title: `Voglia di uscire a ${city}? 🌟`,
+            message: `Esplora ${city} oggi! Condividi i tuoi scatti migliori con #DoveVai${city.replace(/\s+/g, '')}`
+        };
 
         try {
-            const prompt = `Sei un esperto locale di ${city}. Scrivi un breve consiglio (max 150 caratteri) per ${userName || 'il viaggiatore'} basato sul meteo di oggi a ${city} (immagina una condizione realistica) suggerendo un'attività appropriata e aggiungi un piccolo consiglio o hashtag per i social. 
+            const prompt = `Sei un esperto locale di ${city}. Scrivi un breve consiglio (max 150 caratteri) per ${userName || 'il viaggiatore'} basato sul meteo di oggi a ${city} (immagina una condizione realistica) suggerendo un'attività appropriata e aggiungi un piccolo consiglio o hashtag per i social.
 Formato JSON richiesto:
 {
   "title": "Titolo accattivante con emoji",
   "message": "Il messaggio con il consiglio e l'hashtag"
 }`;
 
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                body: JSON.stringify({
-                    model: 'gpt-3.5-turbo',
-                    messages: [
-                        { role: 'system', content: 'Sei un travel advisor locale amichevole e moderno. Rispondi solo in JSON.' },
-                        { role: 'user', content: prompt }
-                    ],
-                    response_format: { type: 'json_object' },
-                }),
+            const data = await callOpenAIProxy({
+                model: 'gpt-4o-mini',  // DVAI-020
+                messages: [
+                    { role: 'system', content: 'Sei un travel advisor locale amichevole e moderno. Rispondi solo in JSON.' },
+                    { role: 'user', content: prompt }
+                ],
+                response_format: { type: 'json_object' },
             });
-            const result = await response.json();
-            if(!result.choices || !result.choices[0]) throw new Error("No AI response");
-            const tip = JSON.parse(result.choices[0].message.content);
-            return tip;
+
+            if (!data.choices?.[0]) throw new Error('No AI response');
+            return JSON.parse(data.choices[0].message.content);
         } catch (e) {
-            console.warn('AI Weather Tip failed', e);
+            console.warn('[AI] generateWeatherSocialTip failed:', e.message);
             return {
                 title: `Scopri ${city}! 📸`,
                 message: `Un'ottima giornata per passeggiare a ${city}. Taggaci nelle tue storie con #DoveVai${city.replace(/\s+/g, '')}`
             };
         }
-    }
+    },
+
+    // ─── DVAI-010: ANALYZE BUSINESS DESCRIPTION ───────────────────────────────
+    /**
+     * Analizza la descrizione di un'attività business e restituisce
+     * metadati AI per ottimizzare il profilo sulla piattaforma.
+     *
+     * @param {{ description: string, website?: string, instagram?: string, image_urls?: string[] }} context
+     * @returns {Promise<object|null>} ai_metadata o null in caso di errore
+     */
+    async analyzeBusinessDescription(context) {
+        const { description, website, instagram, image_urls } = context ?? {};
+
+        if (!description || description.trim().length < 20) {
+            console.warn('[AI] analyzeBusinessDescription: descrizione troppo corta o assente');
+            return null;
+        }
+
+        const systemPrompt = `Sei un esperto di marketing turistico italiano. Analizza la descrizione di un'attività commerciale
+e restituisci un JSON con metadati utili per posizionamento sulla piattaforma DoveVai.
+Rispondi SOLO con JSON valido, nessun testo aggiuntivo.`;
+
+        const userPrompt = `Analizza questa attività e restituisci:
+{
+  "tags": ["tag1", "tag2"],
+  "target_audience": "Descrizione del pubblico ideale (max 80 car)",
+  "best_hours": "Fascia oraria consigliata (es. 'Mattina 9-12, Sera 18-22')",
+  "tour_compatibility": ["tipo_tour1", "tipo_tour2"],
+  "highlight": "Punto di forza principale (max 100 car)",
+  "category": "food|cultura|shopping|relax|arte|natura|sport",
+  "seo_keywords": ["keyword1", "keyword2", "keyword3"]
+}
+
+Descrizione: ${description}
+${website ? `Sito web: ${website}` : ''}
+${instagram ? `Instagram: ${instagram}` : ''}
+${image_urls?.length ? `Immagini disponibili: ${image_urls.length}` : ''}`;
+
+        try {
+            const data = await callOpenAIProxy({
+                model: 'gpt-4o-mini',  // DVAI-020
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                response_format: { type: 'json_object' },
+                temperature: 0.4,
+                max_tokens: 500,
+            });
+
+            const raw = data.choices?.[0]?.message?.content;
+            if (!raw) throw new Error('Empty response from AI');
+
+            return JSON.parse(raw);
+        } catch (err) {
+            console.warn('[AI] analyzeBusinessDescription failed:', err.message);
+            return null;
+        }
+    },
 };

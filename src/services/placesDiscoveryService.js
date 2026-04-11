@@ -1,15 +1,17 @@
 /**
  * 📍 placesDiscoveryService.js — Real POI Discovery + Google Places Photos
  *
+ * DVAI-001 — Le chiamate OpenAI ora passano per la Edge Function openai-proxy.
+ *            La VITE_OPENAI_API_KEY non viene mai letta nel client.
+ * DVAI-020 — Modello aggiornato a gpt-4o-mini.
+ *
  * Strategy:
- *   1. Use OpenAI to discover REAL POI names + coordinates for any Italian city
+ *   1. Use OpenAI (via proxy) to discover REAL POI names + coordinates
  *   2. Use Google Maps JS SDK (PlacesService) to enrich each POI with a REAL photo
  *   3. Cache everything in localStorage (1-hour TTL) to minimise API calls
- *
- * Photo flow:
- *   OpenAI gives us names → Google Places "findPlaceFromQuery" gives us photos
- *   This uses the already-loaded Google Maps JS SDK (no CORS issues)
  */
+
+import { supabase } from '../lib/supabase';
 
 const CACHE_PREFIX = 'unnivai_poiv2_';
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
@@ -36,6 +38,36 @@ const saveToCache = (key, data) => {
   } catch { /* localStorage full */ }
 };
 
+// ─── Proxy helper ────────────────────────────────────────────────────────────────
+const callOpenAIProxy = async (payload, signal) => {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const anonKey     = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'apikey': anonKey,
+  };
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`;
+  }
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/openai-proxy`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ endpoint: '/chat/completions', ...payload }),
+    ...(signal ? { signal } : {}),
+  });
+
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    throw new Error(`Proxy ${response.status}: ${errBody?.error ?? response.statusText}`);
+  }
+
+  return response.json();
+};
+
 // ─── THEME DEFINITIONS ──────────────────────────────────────────────────────────
 const THEME_PROMPTS = {
   food: 'ristoranti tipici, trattorie storiche, panifici artigianali, mercati alimentari, pizzerie locali',
@@ -46,11 +78,6 @@ const THEME_PROMPTS = {
 };
 
 // ─── GOOGLE PLACES SDK PHOTO ENRICHMENT ─────────────────────────────────────────
-
-/**
- * Wait for the Google Maps JS SDK to be fully loaded.
- * Returns the `google.maps.places` namespace or null after timeout.
- */
 const waitForGoogleMaps = () => new Promise((resolve) => {
   if (window.google?.maps?.places) {
     resolve(window.google.maps.places);
@@ -63,21 +90,13 @@ const waitForGoogleMaps = () => new Promise((resolve) => {
       clearInterval(interval);
       resolve(window.google.maps.places);
     }
-    if (elapsed > 12000) { // 12s timeout
+    if (elapsed > 12000) {
       clearInterval(interval);
       resolve(null);
     }
   }, 300);
 });
 
-/**
- * Fetch a real Google Places photo URL for a given place name + city.
- * Uses the JS SDK's PlacesService with a temporary div (no map needed).
- *
- * @param {string} placeName - e.g. "Trattoria da Peppino"
- * @param {string} cityName  - e.g. "Orta Nova"
- * @returns {Promise<string|null>} Photo URL or null
- */
 const fetchPlacePhoto = async (placeName, cityName) => {
   const places = await waitForGoogleMaps();
   if (!places) {
@@ -85,7 +104,6 @@ const fetchPlacePhoto = async (placeName, cityName) => {
     return null;
   }
 
-  // PlacesService needs a DOM element (can be a hidden div, no map required)
   const tempDiv = document.createElement('div');
   const service = new places.PlacesService(tempDiv);
 
@@ -108,25 +126,15 @@ const fetchPlacePhoto = async (placeName, cityName) => {
   });
 };
 
-/**
- * Enrich an array of POIs with real Google Places photos.
- * Runs photo lookups in parallel (max 5 concurrent) to respect quota.
- *
- * @param {Array} pois     - POI objects with at least { name }
- * @param {string} cityName
- * @returns {Promise<Array>} Same POIs with .image populated
- */
 const enrichWithPhotos = async (pois, cityName) => {
   if (!pois || pois.length === 0) return pois;
 
-  // Check if Google Maps SDK is available before attempting
   const places = await waitForGoogleMaps();
   if (!places) {
     console.warn('[PlacesPhoto] Cannot enrich — SDK not loaded');
     return pois;
   }
 
-  // Run photo lookups for up to 5 POIs (respecting API quota)
   const enrichPromises = pois.slice(0, 5).map(async (poi) => {
     try {
       const photoUrl = await fetchPlacePhoto(poi.name || poi.title, cityName);
@@ -138,36 +146,15 @@ const enrichWithPhotos = async (pois, cityName) => {
   });
 
   const enriched = await Promise.all(enrichPromises);
-  // Keep any remaining POIs beyond slice(0,5) as-is
   return [...enriched, ...pois.slice(5)];
 };
 
-// ─── POI DISCOVERY VIA OPENAI ───────────────────────────────────────────────────
-
-/**
- * Discover real POIs for a specific city + theme via OpenAI,
- * then enrich each one with a real Google Places photo.
- *
- * @param {string} cityName - e.g. "Orta Nova"
- * @param {number} lat - City center latitude
- * @param {number} lng - City center longitude
- * @param {string} themeType - 'food' | 'walking' | 'romance' | 'art' | 'nature'
- * @returns {Promise<Array>} POI objects with real photos
- */
+// ─── POI DISCOVERY VIA OPENAI PROXY ─────────────────────────────────────────────
 const discoverPOIs = async (cityName, lat, lng, themeType = 'walking') => {
   const cacheKey = `${cityName.replace(/\s+/g, '_')}_${themeType}`;
   const cached = loadFromCache(cacheKey);
   if (cached) {
-    console.log(`📍 [Discovery] Cache hit: ${cacheKey} (${cached.length} POIs)`);
     return cached;
-  }
-
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    console.warn('[Discovery] No OpenAI API key — returning local fallback');
-    const fallback = buildLocalFallback(cityName, lat, lng, themeType);
-    // Still try to enrich fallback with Google Places photos
-    return enrichWithPhotos(fallback, cityName);
   }
 
   const themeDesc = THEME_PROMPTS[themeType] || THEME_PROMPTS.walking;
@@ -202,29 +189,20 @@ Formato JSON richiesto:
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.4,
-        max_tokens: 1200,
-      }),
-    });
+    // DVAI-001: proxy invece di chiamata diretta OpenAI
+    const data = await callOpenAIProxy({
+      model: 'gpt-4o-mini',  // DVAI-020
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.4,
+      max_tokens: 1200,
+    }, controller.signal);
 
     clearTimeout(timeoutId);
-    if (!response.ok) throw new Error(`OpenAI ${response.status}`);
 
-    const data = await response.json();
     const raw = data.choices?.[0]?.message?.content;
     if (!raw) throw new Error('Empty response');
 
@@ -243,7 +221,7 @@ Formato JSON richiesto:
         type: p.type || 'place',
         rating: typeof p.rating === 'number' ? p.rating : 4.5,
         city: cityName,
-        image: null, // Will be enriched by Google Places below
+        image: null,
       }));
 
     if (pois.length === 0) {
@@ -253,25 +231,18 @@ Formato JSON richiesto:
       return enriched;
     }
 
-    // 🔑 ENRICH WITH REAL GOOGLE PLACES PHOTOS
     const enriched = await enrichWithPhotos(pois, cityName);
-
     saveToCache(cacheKey, enriched);
-    console.log(`📍 [Discovery] Discovered ${enriched.length} POIs with photos for ${cityName}/${themeType}`);
     return enriched;
 
   } catch (err) {
     clearTimeout(timeoutId);
-    console.warn(`[Discovery] OpenAI failed for ${cityName}/${themeType}:`, err.message);
+    console.warn(`[Discovery] OpenAI proxy failed for ${cityName}/${themeType}:`, err.message);
     const fallback = buildLocalFallback(cityName, lat, lng, themeType);
     return enrichWithPhotos(fallback, cityName);
   }
 };
 
-/**
- * Local fallback when OpenAI is unavailable.
- * Generates plausible POI names based on common Italian town features.
- */
 const buildLocalFallback = (cityName, lat, lng, themeType) => {
   const templates = {
     food: [
@@ -319,23 +290,16 @@ const buildLocalFallback = (cityName, lat, lng, themeType) => {
     type: item.type,
     rating: 4.5,
     city: cityName,
-    image: null, // Will be enriched by Google Places
+    image: null,
   }));
 };
 
-/**
- * Discover POIs for all 5 experience themes at once.
- * @returns {Promise<Object>} Map: { food: [...], walking: [...], romance: [...], art: [...], nature: [...] }
- */
 const discoverAllThemes = async (cityName, lat, lng) => {
   const themes = ['food', 'walking', 'romance', 'art', 'nature'];
   const results = {};
-
-  // Run all in parallel
   await Promise.all(themes.map(async (theme) => {
     results[theme] = await discoverPOIs(cityName, lat, lng, theme);
   }));
-
   return results;
 };
 

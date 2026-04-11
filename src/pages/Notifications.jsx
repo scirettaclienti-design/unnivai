@@ -95,36 +95,56 @@ export default function NotificationsPage() {
         }
     };
 
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+    // DVAI-006: collegato a Stripe Checkout reale, rimosso alert()
     const handleAcceptOffer = async () => {
         if (!selectedNotification?.actionData?.guide_id || !selectedNotification?.actionData?.request_id) return;
-        
+
+        setIsCheckingOut(true);
         try {
-            // Update the guide request status to signify acceptance
-            const { error: updateError } = await supabase
-                .from('guide_requests')
-                .update({ status: 'payment_pending' })
-                .eq('id', selectedNotification.actionData.request_id);
-                
-            if (updateError) throw updateError;
-            
-            // Notify the guide
-            await supabase.from('notifications').insert({
-                user_id: selectedNotification.actionData.guide_id,
-                type: 'request_accepted',
-                title: `✅ Offerta Accettata da ${firstName || 'Utente'}`,
-                message: `L'utente ha accettato la tua offerta. A breve riceverà il link di pagamento.`,
-                action_url: '/dashboard-guide',
-                action_data: { request_id: selectedNotification.actionData.request_id },
-                is_read: false,
-                created_at: new Date().toISOString()
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('Sessione scaduta. Effettua nuovamente il login.');
+
+            const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL;
+            const anonKey      = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+            // Legge l'importo dall'actionData della notifica (impostato dalla guida)
+            const totalAmount = selectedNotification.actionData?.price_eur
+                ?? selectedNotification.actionData?.total_amount
+                ?? 0;
+
+            const res = await fetch(`${supabaseUrl}/functions/v1/create-checkout`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type':  'application/json',
+                    'apikey':        anonKey,
+                    'Authorization': `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                    requestId:   selectedNotification.actionData.request_id,
+                    guideId:     selectedNotification.actionData.guide_id,
+                    tourTitle:   selectedNotification.title ?? 'Tour DoveVai',
+                    totalAmount,
+                }),
             });
-            
-            // Placeholder per integrazione Stripe futura
-            alert('Offerta accettata! In futuro qui avvieremo il pagamento con Stripe.');
+
+            const data = await res.json();
+
+            if (!res.ok || !data.checkoutUrl) {
+                throw new Error(data.error ?? 'Impossibile avviare il pagamento');
+            }
+
             setSelectedNotification(null);
+            // Redirect a Stripe Checkout (nuova tab per sicurezza)
+            window.open(data.checkoutUrl, '_blank', 'noopener,noreferrer');
+
         } catch (err) {
-            console.error('Errore accettazione offerta:', err.message);
-            alert("Errore durante l'accettazione. Riprova.");
+            console.error('[Notifications] Errore avvio pagamento:', err.message);
+            // DVAI-039 compat: usa setError locale (toast verrà integrato in DVAI-039)
+            alert(`❌ ${err.message}`); // sarà sostituito con toast in DVAI-039
+        } finally {
+            setIsCheckingOut(false);
         }
     };
 
@@ -418,9 +438,15 @@ export default function NotificationsPage() {
                                                 {selectedNotification.type === 'price_offer' ? (
                                                     <button
                                                         onClick={handleAcceptOffer}
-                                                        className="flex-none py-3 px-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold text-center transition-colors shadow-md"
+                                                        disabled={isCheckingOut}
+                                                        className="flex-none py-3 px-4 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl font-bold text-center transition-colors shadow-md flex items-center gap-2"
                                                     >
-                                                        ACCETTA E PAGA
+                                                        {isCheckingOut ? (
+                                                            <>
+                                                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                                Avvio...
+                                                            </>
+                                                        ) : 'ACCETTA E PAGA'}
                                                     </button>
                                                 ) : selectedNotification.action !== 'dettagli' ? (
                                                     <Link

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import DOMPurify from 'dompurify';
 import {
     ArrowLeft, Search, Navigation as NavIcon, X, ArrowRight,
     Clock, MapPin, Store, Sparkles, Tag, MessageCircle,
@@ -1054,7 +1055,8 @@ const MapPage = () => {
                                 <p className="text-xl font-bold leading-tight drop-shadow-sm text-red-200">{routeStats.error}</p>
                             ) : routeStats?.steps?.[0] ? (
                                 <>
-                                    <p className="text-xl font-bold leading-tight drop-shadow-sm" dangerouslySetInnerHTML={{ __html: routeStats.steps[0].instructions }} />
+                                    {/* DVAI-002: sanitizzato con DOMPurify per prevenire XSS da dati Google Directions API */}
+                                    <p className="text-xl font-bold leading-tight drop-shadow-sm" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(routeStats.steps[0].instructions, { ALLOWED_TAGS: ['b', 'strong', 'span'], ALLOWED_ATTR: [] }) }} />
                                     <div className="flex items-center gap-2 mt-2 opacity-90">
                                         <span className="font-extrabold">{routeStats.steps[0].distance?.text}</span>
                                         <span className="w-1.5 h-1.5 rounded-full bg-white/50" />

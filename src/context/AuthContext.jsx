@@ -74,6 +74,22 @@ export const AuthProvider = ({ children }) => {
         });
     };
 
+    /**
+     * DVAI-007: refreshRole — forza il re-fetch della sessione aggiornata.
+     * Utile dopo signup/login quando user_metadata.role potrebbe non essere
+     * ancora sincronizzato. Rimuove il fallback localStorage.
+     */
+    const refreshRole = async () => {
+        try {
+            const { data } = await supabase.auth.refreshSession();
+            if (data?.session?.user) {
+                setUser(data.session.user);
+            }
+        } catch (err) {
+            console.error('[AuthContext] refreshRole failed:', err.message);
+        }
+    };
+
     const value = {
         user,
         role,
@@ -81,6 +97,7 @@ export const AuthProvider = ({ children }) => {
         loading: false, // UI is blocked anyway if true
         signOut,
         resetPassword,
+        refreshRole,
         isPasswordRecovery
     };
 

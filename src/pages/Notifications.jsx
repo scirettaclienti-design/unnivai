@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useUserContext } from "@/hooks/useUserContext";
@@ -32,6 +33,7 @@ import BottomNavigation from '@/components/BottomNavigation';
 
 export default function NotificationsPage() {
     const { userId, city, firstName } = useUserContext();
+    const { toast } = useToast();
     const [filter, setFilter] = useState('all');
 
     const { notifications: rawNotifications, unreadCount, markAsRead, deleteNotification, markAllAsRead } = useUserNotifications(userId, city, firstName);
@@ -142,7 +144,7 @@ export default function NotificationsPage() {
         } catch (err) {
             console.error('[Notifications] Errore avvio pagamento:', err.message);
             // DVAI-039 compat: usa setError locale (toast verrà integrato in DVAI-039)
-            alert(`❌ ${err.message}`); // sarà sostituito con toast in DVAI-039
+            toast({ title: err.message, type: 'error' });
         } finally {
             setIsCheckingOut(false);
         }

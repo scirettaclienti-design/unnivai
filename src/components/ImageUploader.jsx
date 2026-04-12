@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Upload, X, Image as ImageIcon, Loader } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useToast } from '../hooks/use-toast';
 
 export default function ImageUploader({ images = [], onImagesChange, bucketName = 'business-media', userId }) {
     const [uploading, setUploading] = useState(false);
+    const { toast } = useToast();
 
     const uploadImage = async (event) => {
         try {
@@ -59,7 +61,7 @@ export default function ImageUploader({ images = [], onImagesChange, bucketName 
 
         } catch (error) {
             console.error("Upload Failed:", error);
-            alert('Errore caricamento: ' + error.message);
+            toast({ title: 'Errore caricamento: ' + error.message, type: 'error' });
         } finally {
             setUploading(false);
         }
@@ -74,7 +76,7 @@ export default function ImageUploader({ images = [], onImagesChange, bucketName 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {images.map((url, index) => (
                     <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group">
-                        <img src={url} alt={`Upload ${index}`} className="w-full h-full object-cover" />
+                        <img loading="lazy" src={url} alt={`Upload ${index}`} className="w-full h-full object-cover" />
                         <button
                             onClick={() => removeImage(index)}
                             className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full text-red-500 hover:bg-white transition-colors opacity-0 group-hover:opacity-100"

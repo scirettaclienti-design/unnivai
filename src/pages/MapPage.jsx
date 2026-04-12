@@ -13,7 +13,7 @@ import { WeatherAirBadge } from '../components/Map/WeatherAirBadge';
 import { POIDetailDrawer } from '../components/Map/POIDetailDrawer';
 import { TourSummaryModal } from '../components/Map/TourSummaryModal';
 import { CitySearchBar } from '../components/Map/CitySearchBar';
-import { GeminiDrawer } from '../components/Map/GeminiDrawer';
+import { AIDrawer } from '../components/Map/AIDrawer';
 import React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMap, useMapsLibrary, InfoWindow } from '@vis.gl/react-google-maps';
@@ -127,7 +127,7 @@ const fetchMatchingBusinesses = async (lat, lng, tourTags = [], radiusM = 2500, 
         // because we want to include `ai_metadata.vibe` and `ai_metadata.style`
         // which cannot easily be queried in a PostgREST array overlap on JSONB array.
 
-        const { data, error } = await query;
+        const { data, error } = await query.limit(100); // DVAI-024
         if (error || !data) return [];
 
         return data
@@ -1322,7 +1322,7 @@ const MapPage = () => {
             </button>
 
             {/* 12. GEMINI DRAWER */}
-            <GeminiDrawer 
+            <AIDrawer 
                 isOpen={isGeminiOpen} 
                 onClose={() => setIsGeminiOpen(false)} 
                 selectedPOI={selectedPOI} 
@@ -1332,4 +1332,11 @@ const MapPage = () => {
     );
 };
 
-export default MapPage;
+// DVAI-022: Wrappa MapPage con APIProvider solo quando necessario
+import MapAPIWrapper from '../components/MapAPIWrapper';
+const MapPageWrapped = (props) => (
+    <MapAPIWrapper>
+        <MapPage {...props} />
+    </MapAPIWrapper>
+);
+export default MapPageWrapped;

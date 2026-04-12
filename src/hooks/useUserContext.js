@@ -28,7 +28,7 @@ export function useUserContext() {
             isGuest: true,
             source: 'fallback'
         },
-        staleTime: 0, // Always fresh
+        staleTime: 60_000, // DVAI-025: 60 s di cache per evitare refetch eccessivi
     });
 
     // Determine the Real First Name from Auth (if available) or fallback to Context/Default

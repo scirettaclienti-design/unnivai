@@ -1,11 +1,12 @@
 /**
  * DVAI-001 — OpenAI Proxy Edge Function
+ * DVAI-044 — Streaming SSE supportato
  *
- * Tutte le chiamate OpenAI dal client passano qui.
- * La OPENAI_API_KEY rimane esclusivamente sul server Supabase
- * (impostata via: supabase secrets set OPENAI_API_KEY=sk-...)
- * e NON viene mai esposta nel bundle JS del client.
+ * Se il payload contiene `stream: true`, la risposta viene inoltrata
+ * come Server-Sent Events al client, consentendo la visualizzazione
+ * progressiva del testo senza aspettare 35 s.
  *
+ * La OPENAI_API_KEY rimane esclusivamente sul server Supabase.
  * Deploy: supabase functions deploy openai-proxy --no-verify-jwt
  */
 
@@ -62,6 +63,7 @@ serve(async (req: Request) => {
 
   // Estrai il payload da inviare ad OpenAI (tutto tranne `endpoint`)
   const { endpoint: _removed, ...openAiPayload } = body;
+  const isStreaming = openAiPayload.stream === true;
 
   try {
     const upstream = await fetch(`${OPENAI_BASE}${endpoint}`, {
@@ -73,12 +75,34 @@ serve(async (req: Request) => {
       body: JSON.stringify(openAiPayload),
     });
 
-    const data = await upstream.json();
+    if (!upstream.ok) {
+      const errData = await upstream.json().catch(() => ({}));
+      return new Response(JSON.stringify({ error: errData }), {
+        status: upstream.status,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
 
+    // DVAI-044: Se stream=true, inoltriamo il body SSE direttamente al client
+    if (isStreaming && upstream.body) {
+      return new Response(upstream.body, {
+        status: 200,
+        headers: {
+          ...CORS_HEADERS,
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'X-Accel-Buffering': 'no',
+        },
+      });
+    }
+
+    // Risposta JSON standard (non-streaming)
+    const data = await upstream.json();
     return new Response(JSON.stringify(data), {
       status: upstream.status,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
     });
+
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Upstream OpenAI request failed', detail: String(err) }), {
       status: 502,

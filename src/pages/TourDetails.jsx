@@ -11,9 +11,9 @@ import BottomNavigation from "../components/BottomNavigation";
 import BookingModal from "../components/BookingSystem";
 
 import { Toast } from "../components/ToastNotification";
+import { useToast } from "../hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { dataService, createGuideRequest } from "../services/dataService";
-import { mapService } from "../services/mapService";
 
 // --- MOCK DATA (Original Rich Data) ---
 const tourDetailsMock = {
@@ -226,6 +226,7 @@ const isValidGuideId = (id) => typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{
 // --- INTERNAL MODAL COMPONENT ---
 const RequestModal = ({ isOpen, onClose, guideName, tourTitle, guideId, tourId, city }) => {
     const { user } = useAuth();
+    const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [feedback, setFeedback] = useState(null); // { type: 'success'|'error', message: string }
     useEffect(() => { if (isOpen) setFeedback(null); }, [isOpen]);
@@ -595,13 +596,13 @@ const PlaceDetailsView = ({ place, onBack }) => {
             {/* Bottom Action Bar */}
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 flex gap-3 z-50">
                 <button
-                    onClick={() => alert(`📞 Chiamata in corso verso ${place.title}...`)}
+                    onClick={() => toast({ title: `📞 Chiamata in corso verso ${place.title}...`, type: 'info' })}
                     className="flex-1 bg-gray-100 text-gray-800 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors"
                 >
                     Chiama
                 </button>
                 <button
-                    onClick={() => alert(`✅ Azione avviata: ${place.type === 'food' ? 'Prenotazione Tavolo' : place.type === 'hotel' ? 'Verifica Disponibilità' : 'Visita Sito Web'}`)}
+                    onClick={() => toast({ title: `✅ Azione avviata: ${place.type === 'food' ? 'Prenotazione Tavolo' : place.type === 'hotel' ? 'Verifica Disponibilità' : 'Visita Sito Web'}`, type: 'success' })}
                     className="flex-[2] bg-black text-white py-3.5 rounded-xl font-bold text-sm hover:bg-gray-800 transition-colors shadow-lg"
                 >
                     {place.type === 'food' ? 'Prenota Tavolo' : place.type === 'hotel' ? 'Vedi Disponibilità' : 'Visita Sito'}
@@ -786,26 +787,9 @@ export default function TourDetailsPage() {
         }
 
         const fetchPartners = async () => {
-            // ... existing logic ...
-            if (tour.routePath) {
-                // Use new Map Service for precise filtering
-                const nearby = await mapService.fetchNearbyActivities(tour.routePath, tour.city || tour.location);
-                // Map to existing UI structure
-                const mapped = nearby.map(n => ({
-                    business_id: n.id,
-                    company_name: n.name,
-                    dist_meters: n.dist_meters,
-                    category_tags: [n.category],
-                    subscription_tier: n.level,
-                    latitude: n.latitude,
-                    longitude: n.longitude,
-                    category: n.category
-                }));
-                setNearbyPartners(mapped);
-            } else {
-                const { data, error } = await supabase.rpc('get_nearby_partners_for_tour', { tour_id: tour.id, radius_meters: 1000 });
-                if (data) setNearbyPartners(data);
-            }
+            // DVAI-029: mapService rimosso — usa sempre RPC Supabase
+            const { data } = await supabase.rpc('get_nearby_partners_for_tour', { tour_id: tour.id, radius_meters: 1000 });
+            if (data) setNearbyPartners(data);
         };
         fetchPartners();
     }, [tour.id, tour.routePath, tour.city]);
@@ -859,7 +843,7 @@ export default function TourDetailsPage() {
         // 🛡️ NULL CHECK: If no valid path found, don't crash, just warn.
         if (safeWaypoints.length === 0 || safeWaypoints.some(pt => isNaN(pt[0]) || isNaN(pt[1]))) {
             console.error("❌ Tour has INVALID waypoints or steps!", tour);
-            alert("Attenzione: Impossibile generare il percorso sulla mappa per questo tour.");
+            toast({ title: 'Attenzione: Impossibile generare il percorso sulla mappa per questo tour.', type: 'warning' });
             return;
         }
 
@@ -912,7 +896,7 @@ export default function TourDetailsPage() {
 
     const handleSmartAction = () => {
         if (isGroupMode) {
-            alert(`Ti sei unito al gruppo di ${groupParticipants[0].name}! \nCi vediamo al punto di incontro.`);
+            toast({ title: `Ti sei unito al gruppo di ${groupParticipants[0].name}! Ci vediamo al punto di incontro.`, type: 'success' });
             navigateToMap();
         } else if (isGuideTour) {
             setShowRequestModal(true);
@@ -924,7 +908,7 @@ export default function TourDetailsPage() {
     if (!localTour && !queryTour && !tourDetailsMock[tourId]) return <div>Caricamento...</div>;
 
     const handleFeatureIncoming = () => {
-        alert("✨ Funzione in arrivo!\nStiamo finalizzando la chat diretta con le guide.");
+        toast({ title: '✨ Funzione in arrivo! Stiamo finalizzando la chat diretta con le guide.', type: 'info' });
     };
 
     const handleChatClick = () => {
@@ -970,7 +954,7 @@ export default function TourDetailsPage() {
                                             const heart = document.getElementById('heart-icon');
                                             heart.classList.toggle('text-red-500');
                                             heart.classList.toggle('fill-current');
-                                            alert("❤️ Aggiunto ai preferiti!");
+                                            toast({ title: '❤️ Aggiunto ai preferiti!', type: 'success' });
                                         }}
                                     >
                                         <Heart id="heart-icon" className="w-6 h-6 text-gray-700" />
@@ -988,7 +972,7 @@ export default function TourDetailsPage() {
                                                 });
                                             } else {
                                                 navigator.clipboard.writeText(window.location.href);
-                                                alert("🔗 Link copiato negli appunti!");
+                                                toast({ title: '🔗 Link copiato negli appunti!', type: 'success' });
                                             }
                                         }}
                                     >
@@ -1080,7 +1064,7 @@ export default function TourDetailsPage() {
                                 <div className="flex -space-x-3">
                                     {groupParticipants.map((p, i) => (
                                         <div key={p.id} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden" style={{ zIndex: 10 - i }}>
-                                            <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
+                                            <img loading="lazy" src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
                                         </div>
                                     ))}
                                     <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500" style={{ zIndex: 0 }}>
@@ -1208,7 +1192,7 @@ export default function TourDetailsPage() {
                             <div className="grid grid-cols-1 gap-3">
                                 {tour.highlights.map((highlight, index) => (
                                     <motion.div
-                                        key={index}
+                                        key={highlight ?? index}
                                         className="bg-white/60 rounded-xl p-3 flex items-center space-x-3"
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
@@ -1235,7 +1219,7 @@ export default function TourDetailsPage() {
                             <div className="space-y-4">
                                 {(tour.itinerary || (tour.steps ? tour.steps.map((s,i) => ({ time: `Tappa ${i+1}`, emoji: '📍', activity: s.title || s.label || `Destinazione ${i+1}`})) : [])).map((item, index) => (
                                     <motion.div
-                                        key={index}
+                                        key={item.time ?? index}
                                         className="flex items-center space-x-4 p-3 bg-gradient-to-r from-terracotta-50 to-ochre-50 rounded-xl"
                                         initial={{ opacity: 0, x: -30 }}
                                         animate={{ opacity: 1, x: 0 }}

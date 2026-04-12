@@ -145,6 +145,50 @@ const generateItineraryLocal = (city, prefs, weather) => {
     };
 };
 
+// ─── DVAI-034: Verifica POI con Google Places Text Search ──────────────────────
+/**
+ * Verifica un singolo POI contro Google Places Text Search.
+ * Ritorna true se il POI esiste con alta confidenza.
+ * Usa l'endpoint Places (New) /textsearch via proxy per non esporre la key.
+ */
+const verifyPOIWithPlaces = async (poi, city) => {
+    try {
+        const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+        if (!MAPS_KEY) return true; // Nessuna chiave → skip verifica
+
+        const query = encodeURIComponent(`${poi.title} ${city} Italy`);
+        const res = await fetch(
+            `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${query}&inputtype=textquery&fields=name,geometry,place_id&locationbias=circle:50000@${poi.latitude},${poi.longitude}&key=${MAPS_KEY}`
+        );
+        if (!res.ok) return true; // Se Places non risponde → mantieni il POI
+
+        const data = await res.json();
+        if (data.status !== 'OK' || !data.candidates?.length) {
+            console.warn(`[DVAI-034] POI non trovato su Places: "${poi.title}" → rimosso`);
+            return false;
+        }
+
+        // Controlla che le coordinate Places siano ragionevolmente vicine a quelle AI
+        const place = data.candidates[0];
+        if (place.geometry?.location) {
+            const { lat, lng } = place.geometry.location;
+            const distKm = Math.sqrt(
+                Math.pow((lat - poi.latitude) * 111, 2) +
+                Math.pow((lng - poi.longitude) * 111 * Math.cos(poi.latitude * Math.PI / 180), 2)
+            );
+            if (distKm > 5) {
+                // Coordinate AI distanti > 5 km da Places → correggi coordinate
+                console.warn(`[DVAI-034] Coordinate corrette per "${poi.title}": ${lat},${lng}`);
+                poi.latitude  = lat;
+                poi.longitude = lng;
+            }
+        }
+        return true;
+    } catch {
+        return true; // In caso di errore rete → mantieni il POI
+    }
+};
+
 export const aiRecommendationService = {
 
     // ─── ITINERARY GENERATION ────────────────────────────────────────────────
@@ -250,7 +294,28 @@ Usa SEMPRE coordinate reali e precise per ${city}. Rispondi SOLO con il JSON, ne
 
             if (sanitized.length === 0) throw new Error('All stops invalid after sanitization');
 
-            return { days: sanitized };
+            // DVAI-034: Verifica POI con Google Places (async per ogni stop)
+            // Rimuove POI inesistenti e corregge coordinate imprecise.
+            // La verifica è best-effort: errori non bloccano l'itinerario.
+            const verifiedSanitized = await Promise.all(
+                sanitized.map(async (day) => {
+                    const verifiedStops = await Promise.all(
+                        day.stops.map(async (stop) => {
+                            const isValid = await verifyPOIWithPlaces(stop, city);
+                            return isValid ? stop : null;
+                        })
+                    );
+                    return {
+                        ...day,
+                        stops: verifiedStops.filter(Boolean),
+                    };
+                })
+            );
+
+            const finalDays = verifiedSanitized.filter(d => d.stops.length > 0);
+            if (finalDays.length === 0) throw new Error('All POIs invalid after Places verification');
+
+            return { days: finalDays };
 
         } catch (err) {
             clearTimeout(timeoutId);

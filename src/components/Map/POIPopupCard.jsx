@@ -47,7 +47,7 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
             {/* Header Image */}
             {displayImage ? (
                 <div className="h-32 relative shrink-0 bg-gray-100">
-                    <img src={displayImage} alt={poi.name || poi.title} className="w-full h-full object-cover transition-opacity duration-700 opacity-100" />
+                    <img loading="lazy" src={displayImage} alt={poi.name || poi.title} className="w-full h-full object-cover transition-opacity duration-700 opacity-100" />
                     <button 
                         onClick={(e) => { e.stopPropagation(); onClose(); }}
                         className="absolute top-2 right-2 p-1.5 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-colors"

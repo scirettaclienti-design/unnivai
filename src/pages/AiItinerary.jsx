@@ -8,6 +8,7 @@ import BottomNavigation from "../components/BottomNavigation";
 import { useUserContext } from "../hooks/useUserContext";
 import { DEMO_CITIES } from "../data/demoData";
 import { aiRecommendationService } from "../services/aiRecommendationService";
+import { useAILearning } from "../hooks/useAILearning"; // DVAI-045
 
 const preferences = [
     { id: 'budget', title: 'Budget', options: ['Economico', 'Medio', 'Lusso'], emoji: '💰', selected: '' },
@@ -145,42 +146,59 @@ export default function AIItineraryPage() {
     const activeCity = city || 'Roma';
     const cityData = DEMO_CITIES[activeCity] || DEMO_CITIES['Roma'];
 
+    // DVAI-045: leggi le preferenze apprese dall'AI
+    const { userDNAPreferences, trackGeneratedTour } = useAILearning();
+
     const generateItinerary = async () => {
         setIsGenerating(true);
-        // Reset previous state
         setGeneratedItinerary(null);
 
-        // Map preferences array to object
         const prefsObject = userPreferences.reduce((acc, pref) => {
             acc[pref.id] = pref.selected;
             return acc;
         }, {});
 
-        try {
-            // Artificial delay for UX
-            await new Promise(resolve => setTimeout(resolve, 2000));
+        // DVAI-045: costruisci contesto DNA dalle ultime 5 preferenze apprese
+        let dnaContext = '';
+        if (userDNAPreferences && userDNAPreferences.length > 0) {
+            const last5 = userDNAPreferences.slice(0, 5);
+            const moodsSeen = [...new Set(last5.map(p => p.mood).filter(Boolean))];
+            const citiesSeen = [...new Set(last5.map(p => p.city).filter(Boolean))];
+            const durationsSeen = [...new Set(last5.map(p => p.duration).filter(Boolean))];
+            dnaContext = [
+                moodsSeen.length   ? `Humor preferiti: ${moodsSeen.join(', ')}.`    : '',
+                citiesSeen.length  ? `Città visitate: ${citiesSeen.join(', ')}.`      : '',
+                durationsSeen.length ? `Durate preferite: ${durationsSeen.join(', ')}.` : '',
+            ].filter(Boolean).join(' ');
+        }
 
-            // Pass current weather context to AI for consistency
-            const result = await aiRecommendationService.generateItinerary(activeCity, prefsObject, userPrompt, {
+        const enrichedPrompt = [
+            userPrompt,
+            dnaContext ? `[Profilo AI: ${dnaContext}]` : '',
+        ].filter(Boolean).join(' ');
+
+        try {
+            const result = await aiRecommendationService.generateItinerary(activeCity, prefsObject, enrichedPrompt, {
                 condition: weatherCondition || 'sunny',
                 temperature: temperatureC || 20
             });
 
-            // Handle new structure { summary, days }
             const itineraryDays = result.days || result;
-
             if (!itineraryDays || !Array.isArray(itineraryDays) || itineraryDays.length === 0) {
                 throw new Error("No itinerary generated");
             }
 
             setGeneratedItinerary(itineraryDays);
             setCurrentStep(2);
+
+            // DVAI-045: traccia le preferenze usate per l'apprendimento futuro
+            trackGeneratedTour({ ...prefsObject, city: activeCity, date: new Date().toISOString() });
+
         } catch (error) {
             console.error("AI Generation Error", error);
-            // FAIL-SAFE FALLBACK: Load a static itinerary so the user ALWAYS sees something
             const fallbackItinerary = [{
                 day: 1,
-                title: "Giorno 1 - Alla scoperta della città (Fallback)",
+                title: "Giorno 1 - Alla scoperta della città",
                 weather: { condition: "Soleggiato", temperature: 25, icon: "☀️" },
                 stops: [
                     {
@@ -216,17 +234,34 @@ export default function AIItineraryPage() {
         }
     };
 
-    const regenerateDay = (dayNumber) => {
+    // DVAI-028: Rigenerazione giorno reale via AI (era setTimeout mock)
+    const regenerateDay = async (dayNumber) => {
         if (!generatedItinerary) return;
-
         setIsGenerating(true);
-        setTimeout(() => {
-            // Simula rigenerazione di un singolo giorno
-            const newItinerary = [...generatedItinerary];
-            // Qui potresti modificare il giorno specifico
-            setGeneratedItinerary(newItinerary);
+
+        const prefsObject = userPreferences.reduce((acc, pref) => {
+            acc[pref.id] = pref.selected;
+            return acc;
+        }, {});
+
+        try {
+            const result = await aiRecommendationService.generateItinerary(
+                activeCity,
+                { ...prefsObject, duration: 'Mezza Giornata' },
+                `Rigenera solo il giorno ${dayNumber} con varianti diverse rispetto al precedente.`,
+                { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 }
+            );
+            const newDay = result.days?.[0];
+            if (newDay) {
+                setGeneratedItinerary(prev =>
+                    prev.map(d => d.day === dayNumber ? { ...newDay, day: dayNumber } : d)
+                );
+            }
+        } catch (err) {
+            console.warn('[AI] regenerateDay failed:', err.message);
+        } finally {
             setIsGenerating(false);
-        }, 2000);
+        }
     };
 
     return (
@@ -466,9 +501,9 @@ export default function AIItineraryPage() {
                                 { text: "Analisi preferenze", color: "bg-blue-400" },
                                 { text: "Selezione gemme nascoste", color: "bg-purple-400" },
                                 { text: "Ottimizzazione percorso", color: "bg-green-400" }
-                            ].map((item, index) => (
+                            ].map((item) => (
                                 <motion.div
-                                    key={index}
+                                    key={item.text}
                                     className="flex items-center space-x-3 bg-white/50 rounded-lg p-3"
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -572,7 +607,7 @@ export default function AIItineraryPage() {
 
                                                 return (
                                                     <motion.div
-                                                        key={index}
+                                                        key={stop.title ?? index}
                                                         className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
                                                         initial={{ opacity: 0, y: 20 }}
                                                         animate={{ opacity: 1, y: 0 }}

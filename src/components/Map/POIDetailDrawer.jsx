@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Info, Sparkles, MapPin, Navigation, Globe, PhoneCall, CalendarCheck, Volume2, Square, BookOpen, Lightbulb, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { useToast } from '../../hooks/use-toast';
 
 export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavigate }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const { toast } = useToast();
 
   // Define premium status: Monument (0) or Subscribed Business
   const isPremium = poi?.level === 0 || poi?.is_premium === true || poi?.subscription_status === 'active';
@@ -85,7 +87,7 @@ export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavig
         
         {displayImage && (
             <div className="w-full h-40 shrink-0 relative mt-0">
-                <img src={displayImage} className="w-full h-full object-cover transition-opacity duration-700 opacity-100" alt={poi.name || poi.title} />
+                <img loading="lazy" src={displayImage} className="w-full h-full object-cover transition-opacity duration-700 opacity-100" alt={poi.name || poi.title} />
                 <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent mix-blend-normal" />
             </div>
         )}
@@ -203,7 +205,7 @@ export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavig
                 </button>
               ) : poi.level === 1 ? (
                 <button 
-                  onClick={() => alert('Prenotazione non disponibile per questa struttura.')}
+                  onClick={() => toast({ title: 'Prenotazione non disponibile per questa struttura.', type: 'info' })}
                   className="flex-[1.5] bg-gray-900 text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:bg-black active:scale-95 transition-all text-sm uppercase tracking-wide"
                 >
                   Dettagli

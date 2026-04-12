@@ -3,12 +3,14 @@ import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { Lock, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useToast } from '../hooks/use-toast';
 
 export default function UpdatePassword() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const { toast } = useToast();
 
     const handleUpdate = async (e) => {
         e.preventDefault();
@@ -18,7 +20,7 @@ export default function UpdatePassword() {
         try {
             const { error } = await supabase.auth.updateUser({ password });
             if (error) throw error;
-            alert('Password aggiornata con successo!');
+            toast({ title: 'Password aggiornata con successo!', type: 'success' });
             navigate('/login');
         } catch (err) {
             setError(err.message);

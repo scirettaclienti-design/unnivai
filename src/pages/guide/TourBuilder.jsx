@@ -8,10 +8,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Upload, ChevronRight, Check, Search, Trash2, Users, Globe } from 'lucide-react';
 import { Toast } from '../../components/ToastNotification';
 import { validateTourSteps } from '../../config/tourSchema';
-import { mapService } from '../../services/mapService';
 import { aiRecommendationService } from '../../services/aiRecommendationService';
-
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+import MapAPIWrapper from '../../components/MapAPIWrapper';
+// DVAI-029: mapService rimosso (usava Mapbox Directions, ora non necessario)
 
 // Default city coordinates if API fails
 const CITY_COORDS = {
@@ -22,8 +21,7 @@ const CITY_COORDS = {
     'Venezia': { lat: 45.4408, lng: 12.3155 }
 };
 
-export default function TourBuilder() {
-    const { user } = useAuth();
+function TourBuilder() {    const { user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [step, setStep] = useState(1);
@@ -236,22 +234,12 @@ export default function TourBuilder() {
 
         setLoading(true);
         try {
-            // 2. Route Path Generation (Mapbox Directions)
+            // 2. Route Path Generation — linee rette (DVAI-029: Mapbox rimosso)
             let routeWKT;
-            const routeData = await mapService.getRoute(steps);
-
-            if (routeData && routeData.geometry) {
-                // Convert GeoJSON LineString to WKT
-                const coords = routeData.geometry.coordinates.map(c => `${c[0]} ${c[1]}`).join(', ');
-                routeWKT = `LINESTRING(${coords})`;
-            } else {
-                // Fallback to straight lines if Mapbox fails
-                console.warn("Mapbox route generation failed, using straight lines.");
-                const coordsString = steps
-                    .map(s => `${s.lng} ${s.lat}`)
-                    .join(', ');
-                routeWKT = `LINESTRING(${coordsString})`;
-            }
+            const coordsString = steps
+                .map(s => `${s.lng} ${s.lat}`)
+                .join(', ');
+            routeWKT = `LINESTRING(${coordsString})`;
 
             // Geo-Tagging Start Location
             const startStep = steps[0];
@@ -268,17 +256,7 @@ export default function TourBuilder() {
                 linked_business_id: s.linked_business_id || null
             }));
 
-            // 4. Fetch Nearby Activities (Action 3 - Verification)
-            // Ideally we could save these or just verify the function works here
-            if (routeData && routeData.geometry) {
-                const nearby = await mapService.fetchNearbyActivities(routeData.geometry, formData.city);
-                console.log("Nearby Activities Found:", nearby.length);
-                // We could attach these to the tour payload if there's a column, 
-                // e.g., 'cached_activities', but for now we stick to the requested prompt 
-                // which says "Implement a function...". The "appear on map" part 
-                // likely implies the viewing-side logic.
-            }
-
+            // Geo-Tagging Start Location
             const tourPayload = {
                 guide_id: user.id,
                 title: formData.title,
@@ -769,3 +747,14 @@ export default function TourBuilder() {
         </div >
     );
 }
+
+// DVAI-022: Wrappa con APIProvider (Google Maps) solo questa pagina
+function TourBuilderWithMap(props) {
+    return (
+        <MapAPIWrapper>
+            <TourBuilder {...props} />
+        </MapAPIWrapper>
+    );
+}
+// Re-export come default per lazy import
+export { TourBuilderWithMap as default };

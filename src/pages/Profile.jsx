@@ -6,10 +6,14 @@ import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
 import ChatModalUser from "../components/ChatModalUser";
 import { useUserContext } from "../hooks/useUserContext";
+import { useAuth } from "../context/AuthContext";
+import { useToast } from "../hooks/use-toast";
 import { supabase } from "../lib/supabase";
 
 export default function ProfilePage() {
     const { userId, firstName, city } = useUserContext();
+    const { user } = useAuth();
+    const { toast } = useToast();
     const [editName, setEditName] = useState(firstName || "Viaggiatore");
     const [selectedTour, setSelectedTour] = useState(null);
     const [showShareModal, setShowShareModal] = useState(false);
@@ -67,7 +71,8 @@ export default function ProfilePage() {
                         )
                     `)
                     .eq('user_id', userId)
-                    .order('created_at', { ascending: false });
+                    .order('created_at', { ascending: false })
+                    .limit(100); // DVAI-024
 
                 if (photoError) console.error("Error fetching photos:", photoError);
 
@@ -108,7 +113,8 @@ export default function ProfilePage() {
                     .select('*')
                     .eq('user_id', userId)
                     .neq('status', 'completed')
-                    .order('created_at', { ascending: false });
+                    .order('created_at', { ascending: false })
+                    .limit(100); // DVAI-024
 
                 if (!reqError && requests) {
                     setMyRequests(requests);
@@ -135,11 +141,11 @@ export default function ProfilePage() {
                 break;
             case 'instagram':
                 navigator.clipboard.writeText(message);
-                alert('Messaggio copiato! Incollalo su Instagram Stories');
+                toast({ title: 'Messaggio copiato! Incollalo su Instagram Stories', type: 'success' });
                 break;
             case 'copy':
                 navigator.clipboard.writeText(`${message} ${url}`);
-                alert('Link copiato negli appunti!');
+                toast({ title: 'Link copiato negli appunti!', type: 'success' });
                 break;
         }
         setShowShareModal(false);
@@ -185,7 +191,7 @@ export default function ProfilePage() {
                             <h2 className="text-xl font-bold text-gray-800">{editName}</h2>
                             <p className="text-gray-600 flex items-center text-sm mb-1">
                                 <Mail className="w-3 h-3 mr-1 text-terracotta-500" />
-                                {firstName?.toLowerCase()}@dovevai.it
+                                {user?.email ?? `${firstName?.toLowerCase()}@dovevai.it`}
                             </p>
                             <p className="text-gray-600 flex items-center text-sm">
                                 <MapPin className="w-3 h-3 mr-1 text-terracotta-500" />

@@ -131,17 +131,23 @@ export const ActivityUISchema = z.object({
 // Used by UnnivaiMap (to switch the basemap aesthetic) and MapPage (to tint
 // the transport-mode selector and Start Tour Bar accent).
 //
-// Google Cloud Map Style IDs (configure in Google Cloud Console → Map Styles):
-//   28861a61c07876f819652d2d → standard warm default (app brand)
-//   GOOGLE_MAP_ID_ROMANTIC   → soft warm tones for romantic routes
-//   GOOGLE_MAP_ID_VINTAGE    → muted sepia for cultural/historic walks
-//   GOOGLE_MAP_ID_OUTDOOR    → terrain-focused for adventure & nature
-//   GOOGLE_MAP_ID_LIGHT      → clean minimal for food & shopping
-//   GOOGLE_MAP_ID_DARK       → dramatic cinematic for surprise tours
-//   GOOGLE_MAP_ID_SATELLITE  → hybrid satellite for sport & outdoor
+// DVAI-030: I valori 'style' con prefisso GOOGLE_MAP_ID_* sono PLACEHOLDER.
+// Per attivarli: creare gli stili in Google Cloud Console → Map Styles,
+// poi sostituire ogni placeholder con il Map ID reale (es. '28861a61c07876f8').
+// Finché non configurati, tutti i mood usano il Map ID di default.
 //
-// Keys are intentionally lowercase ASCII so components can store them in
-// state/localStorage without worrying about accent normalisation.
+// Map IDs reali da configurare:
+//   romantico  → GOOGLE_MAP_ID_ROMANTIC   → toni caldi per percorsi romantici
+//   storia     → GOOGLE_MAP_ID_VINTAGE    → seppia muto per passeggiate storiche
+//   avventura  → GOOGLE_MAP_ID_OUTDOOR    → terrain-focused per avventura
+//   natura     → GOOGLE_MAP_ID_OUTDOOR    → idem avventura
+//   cibo       → GOOGLE_MAP_ID_LIGHT      → minimal clean per food & shopping
+//   shopping   → GOOGLE_MAP_ID_LIGHT      → idem cibo
+//   arte       → GOOGLE_MAP_ID_ROMANTIC   → idem romantico
+//   sorpresa   → GOOGLE_MAP_ID_DARK       → cinematografico drammatico
+//   sport      → GOOGLE_MAP_ID_SATELLITE  → satellite ibrido
+//
+// Keys in lowercase ASCII — no accent normalisation needed.
 //
 export const MAP_MOODS = {
   romantico: {

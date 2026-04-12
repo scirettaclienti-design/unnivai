@@ -1,4 +1,5 @@
-
+// DVAI-022: APIProvider solo per questa pagina (via MapAPIWrapper)
+import MapAPIWrapper from '@/components/MapAPIWrapper';
 import { motion } from "framer-motion";
 import { useState, useEffect, useMemo } from "react";
 import { MapPin, Star, Clock, Users, Search, Calendar, Map, Heart, ArrowLeft, ArrowRight, Filter } from "lucide-react";
@@ -13,7 +14,7 @@ import { useCity } from "@/context/CityContext";
 import { DEMO_CITIES } from "@/data/demoData";
 const categories = ["Tutti", "Gastronomia", "Cultura", "Natura", "Arte", "Romantico"];
 
-export default function ExplorePage() {
+function ExplorePage() {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
@@ -95,7 +96,7 @@ export default function ExplorePage() {
                     query = query.ilike('city', `%${city}%`);
                 }
 
-                const { data: dbData, error: dbError } = await query.order('created_at', { ascending: false });
+                const { data: dbData, error: dbError } = await query.order('created_at', { ascending: false }).limit(100); // DVAI-024
 
                 if (!dbError && dbData?.length > 0) {
                     rawRows = dbData;
@@ -385,4 +386,13 @@ export default function ExplorePage() {
 
 function X({ size = 16, className = "" }) {
     return <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+}
+
+// DVAI-022
+export default function ExplorePageWithMap(props) {
+    return (
+        <MapAPIWrapper>
+            <ExplorePage {...props} />
+        </MapAPIWrapper>
+    );
 }

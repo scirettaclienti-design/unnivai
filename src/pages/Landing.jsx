@@ -223,7 +223,7 @@ const Step3Phone = ({ active }) => {
                 className="px-3 pt-1 pb-2.5 border-b border-white/8 bg-gradient-to-b from-[#1a0f00] to-transparent">
                 <div className="flex items-center gap-2.5">
                     <div className="relative flex-shrink-0">
-                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-orange-500/40" />
+                        <img loading="lazy" src="https://randomuser.me/api/portraits/women/44.jpg" alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-orange-500/40" />
                         <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 2 }}
                             className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-[#0d0d14]" />
                     </div>
@@ -720,7 +720,7 @@ const Landing = () => {
                         <div className="flex -space-x-2">
                             {['https://randomuser.me/api/portraits/women/44.jpg', 'https://randomuser.me/api/portraits/men/32.jpg',
                                 'https://randomuser.me/api/portraits/women/68.jpg', 'https://randomuser.me/api/portraits/men/54.jpg'].map((src, i) => (
-                                    <img key={i} src={src} alt="" className="w-8 h-8 rounded-full border-2 border-gray-900 object-cover" />
+                                    <img loading="lazy" key={i} src={src} alt="" className="w-8 h-8 rounded-full border-2 border-gray-900 object-cover" />
                                 ))}
                         </div>
                         <div className="text-left">

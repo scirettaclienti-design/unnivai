@@ -145,7 +145,8 @@ class DataService {
                 .from('tours')
                 .select(`*`)
                 .eq('city', city)
-                .order('is_live', { ascending: false }); // Prioritize live tours
+                .order('is_live', { ascending: false })
+                .limit(100); // DVAI-024
 
             if (error) {
                 console.warn('Supabase fetch error:', error);
@@ -439,7 +440,8 @@ class DataService {
                     opening_hours, website_url, image_url,
                     admission_fee, duration_minutes
                 `)
-                .eq('city', city);
+                .eq('city', city)
+                .limit(100); // DVAI-024
 
             if (error) {
                 console.warn('Supabase activities fetch error:', error);
@@ -582,7 +584,8 @@ class DataService {
             const { data, error } = await supabase
                 .from('businesses_profile')
                 .select('*')
-                .ilike('city', city);
+                .ilike('city', city)
+                .limit(100); // DVAI-024
 
             if (error) throw error;
             if (!data || data.length === 0) {

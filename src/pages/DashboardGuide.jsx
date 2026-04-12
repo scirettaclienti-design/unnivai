@@ -9,12 +9,11 @@ import { Plus, BarChart, Users, Star, Map, Edit, Eye, Trash2, CheckCircle, Alert
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { sanitizeMessage } from '@/utils/chatSanitizer';
-
-// --- VERSION CONTROL MARKER: FIX_BIO_2.1 ---
-console.log("[DashboardGuide] Component Loaded - Version 2.1 (BIO FIELD FIX)");
+import { useToast } from '@/hooks/use-toast';
 
 export default function DashboardGuide() {
     const { user, signOut } = useAuth();
+    const { toast } = useToast();
     const navigate = useNavigate();
     const location = useLocation();
     const [guideProfile, setGuideProfile] = useState(null);
@@ -199,10 +198,10 @@ export default function DashboardGuide() {
             if (error) throw error;
 
             setGuideProfile(prev => ({ ...prev, ...updated }));
-            alert(`Profilo aggiornato! Sei un ${updated.type === 'pro' ? 'PROFESSIONISTA 🎓' : 'LOCAL HOST 🏠'}`);
+            toast({ title: `Profilo aggiornato! Sei un ${updated.type === 'pro' ? 'PROFESSIONISTA 🎓' : 'LOCAL HOST 🏠'}`, type: 'success' });
 
         } catch (err) {
-            alert('Errore: ' + err.message);
+            toast({ title: 'Errore: ' + err.message, type: 'error' });
         } finally {
             setSubmitting(false);
         }
@@ -232,10 +231,10 @@ export default function DashboardGuide() {
             setTours(prev => prev.filter(t => t.id !== tourId));
 
             // Optional: Show a success toast or alert if needed, but list update is usually enough
-            alert("Tour eliminato con successo.");
+            toast({ title: 'Tour eliminato con successo.', type: 'success' });
         } catch (err) {
             console.error("Delete Error:", err);
-            alert("Errore durante l'eliminazione: " + err.message);
+            toast({ title: "Errore durante l'eliminazione: " + err.message, type: 'error' });
         }
     };
 

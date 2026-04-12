@@ -729,6 +729,7 @@ export default function TourDetailsPage() {
     const [showChatModal, setShowChatModal] = useState(false);
     const [nearbyPartners, setNearbyPartners] = useState([]);
     const [guideRating, setGuideRating] = useState({ avg: 0, count: 0 });
+    const [reviews, setReviews] = useState([]);
     const { trackTourView } = useAILearning();
 
     // Track tour view per il preference graph
@@ -785,11 +786,12 @@ export default function TourDetailsPage() {
         return () => { cancelled = true; };
     }, [tour?.guide_id, tour?.guide, tour?.guideAvatar]);
 
-    // Fetch rating reale dalla tabella reviews
+    // Fetch rating + recensioni reali dalla tabella reviews
     useEffect(() => {
         const guideId = tour?.guide_id || tour?.guideId;
         if (!guideId || !isValidGuideId(guideId)) return;
         dataService.getGuideRatingAvg(guideId).then(setGuideRating);
+        dataService.getReviewsByGuide(guideId).then(r => setReviews(r?.slice(0, 5) || []));
     }, [tour?.guide_id, tour?.guideId]);
 
     useEffect(() => {
@@ -1161,6 +1163,61 @@ export default function TourDetailsPage() {
                     guideName={tour.guide}
                     guideAvatar={tour.guideAvatar}
                 />
+
+                {/* --- SEZIONE RECENSIONI REALI --- */}
+                {reviews.length > 0 && (
+                    <motion.div
+                        className="bg-white/80 rounded-3xl p-6"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                    >
+                        <h3 className="font-bold text-gray-800 mb-4 flex items-center">
+                            <span className="text-2xl mr-2">⭐</span>
+                            Recensioni ({guideRating.count})
+                        </h3>
+
+                        {/* Rating summary */}
+                        <div className="flex items-center gap-3 mb-5 p-3 bg-orange-50 rounded-xl">
+                            <div className="text-3xl font-black text-orange-600">{guideRating.avg}</div>
+                            <div className="flex-1">
+                                <div className="flex gap-0.5 mb-1">
+                                    {[1,2,3,4,5].map(s => (
+                                        <Star key={s} className={`w-4 h-4 ${s <= Math.round(guideRating.avg) ? 'fill-orange-400 text-orange-400' : 'text-gray-300'}`} />
+                                    ))}
+                                </div>
+                                <p className="text-xs text-gray-500">{guideRating.count} recensioni verificate</p>
+                            </div>
+                        </div>
+
+                        {/* Review cards */}
+                        <div className="space-y-3">
+                            {reviews.map(review => (
+                                <div key={review.id} className="border-b border-gray-100 pb-3 last:border-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-600">
+                                            {(review.profiles?.full_name || 'U').charAt(0)}
+                                        </div>
+                                        <span className="text-sm font-medium text-gray-800">
+                                            {review.profiles?.full_name || 'Utente'}
+                                        </span>
+                                        <div className="flex gap-0.5 ml-auto">
+                                            {[1,2,3,4,5].map(s => (
+                                                <Star key={s} className={`w-3 h-3 ${s <= review.rating ? 'fill-orange-400 text-orange-400' : 'text-gray-200'}`} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    {review.comment && (
+                                        <p className="text-sm text-gray-600 leading-relaxed ml-9">{review.comment}</p>
+                                    )}
+                                    <p className="text-[10px] text-gray-400 ml-9 mt-1">
+                                        {new Date(review.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* ⬇️ STANDARD SECTIONS ⬇️ */}
                 <>

@@ -1094,16 +1094,28 @@ const MapPage = () => {
                             )}
                         </div>
                     </div>
-                    {/* Termina Button Footer */}
+                    {/* Mini-HUD: tappa corrente + progress + termina */}
                     <div className="bg-green-700/80 backdrop-blur px-5 py-3 flex justify-between items-center">
-                        <div className="text-green-50 text-xs font-semibold">
-                            {routeStats?.distanceM ? `${(routeStats.distanceM / 1000).toFixed(1)} km al traguardo` : ''}
+                        <div className="flex-1">
+                            {activeRoute?.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                    <span className="bg-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                                        {completedSteps.length + 1}/{activeRoute.length}
+                                    </span>
+                                    <span className="text-green-50 text-xs font-semibold truncate max-w-[140px]">
+                                        {activeRoute[Math.min(completedSteps.length, activeRoute.length - 1)]?.name || 'Prossima tappa'}
+                                    </span>
+                                </div>
+                            )}
+                            <div className="text-green-200 text-[10px] mt-0.5">
+                                {routeStats?.distanceM ? `${(routeStats.distanceM / 1000).toFixed(1)} km · ~${Math.round((routeStats.durationSec || 0) / 60)} min` : ''}
+                            </div>
                         </div>
-                        <button 
+                        <button
                             onClick={handleEndNavigation}
-                            className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-[0_4px_12px_rgba(239,68,68,0.3)] transition-all hover:scale-105 active:scale-95"
+                            className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full text-xs font-bold shadow-[0_4px_12px_rgba(239,68,68,0.3)] transition-all hover:scale-105 active:scale-95"
                         >
-                            Termina
+                            Fine
                         </button>
                     </div>
                 </div>

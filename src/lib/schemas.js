@@ -149,67 +149,100 @@ export const ActivityUISchema = z.object({
 //
 // Keys in lowercase ASCII — no accent normalisation needed.
 //
+// MAP_MOODS — stili mappa adattivi al tipo di tour
+// Usa il Map ID di default con colorScheme/mapTypeId per variare l'estetica.
+// Per stili avanzati: creare Map Styles nella Google Cloud Console e sostituire 'style' con Map ID reali.
+const DEFAULT_MAP_ID = '28861a61c07876f819652d2d';
+
 export const MAP_MOODS = {
   romantico: {
     tags:         ['Romantico'],
-    style:        'GOOGLE_MAP_ID_ROMANTIC',
-    primaryColor: '#E11D48',   // rose-600
+    style:        DEFAULT_MAP_ID,
+    primaryColor: '#E11D48',
     label:        'Romantico',
+    colorScheme:  'FOLLOW_SYSTEM',
+    tilt:         45,
   },
   storia: {
     tags:         ['Storia', 'Cultura'],
-    style:        'GOOGLE_MAP_ID_VINTAGE',
-    primaryColor: '#92400E',   // amber-800
+    style:        DEFAULT_MAP_ID,
+    primaryColor: '#92400E',
     label:        'Cultura & Storia',
+    colorScheme:  'FOLLOW_SYSTEM',
+    tilt:         30,
   },
   avventura: {
     tags:         ['Avventura'],
-    style:        'GOOGLE_MAP_ID_OUTDOOR',
-    primaryColor: '#047857',   // emerald-700
+    style:        DEFAULT_MAP_ID,
+    primaryColor: '#047857',
     label:        'Avventura',
+    colorScheme:  'LIGHT',
+    tilt:         60,
   },
   natura: {
     tags:         ['Natura'],
-    style:        'GOOGLE_MAP_ID_OUTDOOR',
-    primaryColor: '#059669',   // emerald-600
+    style:        DEFAULT_MAP_ID,
+    primaryColor: '#059669',
     label:        'Natura',
+    colorScheme:  'LIGHT',
+    tilt:         45,
   },
   cibo: {
     tags:         ['Cibo', 'Gastronomia'],
-    style:        'GOOGLE_MAP_ID_LIGHT',
-    primaryColor: '#EA580C',   // orange-600
+    style:        DEFAULT_MAP_ID,
+    primaryColor: '#EA580C',
     label:        'Gastronomia',
+    colorScheme:  'LIGHT',
+    tilt:         0,
   },
   shopping: {
     tags:         ['Shopping'],
-    style:        'GOOGLE_MAP_ID_LIGHT',
-    primaryColor: '#7C3AED',   // violet-700
+    style:        DEFAULT_MAP_ID,
+    primaryColor: '#7C3AED',
     label:        'Shopping',
+    colorScheme:  'LIGHT',
+    tilt:         0,
   },
   arte: {
     tags:         ['Arte'],
-    style:        'GOOGLE_MAP_ID_ROMANTIC',
-    primaryColor: '#9333EA',   // purple-600
+    style:        DEFAULT_MAP_ID,
+    primaryColor: '#9333EA',
     label:        'Arte',
+    colorScheme:  'FOLLOW_SYSTEM',
+    tilt:         30,
   },
   sorpresa: {
     tags:         ['Sorpresa'],
-    style:        'GOOGLE_MAP_ID_DARK',
-    primaryColor: '#F59E0B',   // amber-400
+    style:        DEFAULT_MAP_ID,
+    primaryColor: '#F59E0B',
     label:        'Sorpresa',
+    colorScheme:  'DARK',
+    tilt:         55,
   },
   sport: {
     tags:         ['Sport'],
-    style:        'GOOGLE_MAP_ID_SATELLITE',
-    primaryColor: '#0EA5E9',   // sky-500
+    style:        DEFAULT_MAP_ID,
+    primaryColor: '#0EA5E9',
     label:        'Sport & Attività',
+    colorScheme:  'LIGHT',
+    tilt:         60,
   },
-  // Fallback — matches when no tour tag overlaps with the entries above.
+  // Notturno: attivato automaticamente dopo le 20
+  notturno: {
+    tags:         [],
+    style:        DEFAULT_MAP_ID,
+    primaryColor: '#6366F1',
+    label:        'Notturno',
+    colorScheme:  'DARK',
+    tilt:         45,
+  },
   default: {
     tags:         [],
-    style:        '28861a61c07876f819652d2d',
-    primaryColor: '#F97316',   // orange-500 (app brand colour)
+    style:        DEFAULT_MAP_ID,
+    primaryColor: '#F97316',
     label:        'Esplora',
+    colorScheme:  'FOLLOW_SYSTEM',
+    tilt:         0,
   },
 }
 
@@ -223,9 +256,13 @@ export const MAP_MOODS = {
 //   const { style, primaryColor } = MAP_MOODS[mood]
 //
 export const getMoodForTags = (tags = []) => {
+  // Auto notturno dopo le 20
+  const hour = new Date().getHours()
+  if (hour >= 20 || hour < 6) return 'notturno'
+
   if (!Array.isArray(tags) || tags.length === 0) return 'default'
   for (const [key, mood] of Object.entries(MAP_MOODS)) {
-    if (key === 'default') continue
+    if (key === 'default' || key === 'notturno') continue
     if (tags.some(t => mood.tags.includes(t))) return key
   }
   return 'default'

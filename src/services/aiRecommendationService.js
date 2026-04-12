@@ -189,6 +189,24 @@ const verifyPOIWithPlaces = async (poi, city) => {
     }
 };
 
+// Ordina tappe per prossimità (nearest-neighbor greedy)
+function sortByProximity(stops) {
+    if (stops.length <= 2) return stops;
+    const result = [stops[0]]; // Parti dalla prima tappa (perla nascosta)
+    const remaining = stops.slice(1);
+    while (remaining.length > 0) {
+        const last = result[result.length - 1];
+        let closest = 0;
+        let minDist = Infinity;
+        for (let i = 0; i < remaining.length; i++) {
+            const d = Math.hypot(remaining[i].latitude - last.latitude, remaining[i].longitude - last.longitude);
+            if (d < minDist) { minDist = d; closest = i; }
+        }
+        result.push(remaining.splice(closest, 1)[0]);
+    }
+    return result;
+}
+
 export const aiRecommendationService = {
 
     // ─── ITINERARY GENERATION ────────────────────────────────────────────────
@@ -196,47 +214,61 @@ export const aiRecommendationService = {
         const weatherIcon = weather?.condition === 'sunny' ? '☀️'
             : weather?.condition === 'rainy' ? '🌧️' : '⛅';
 
-        const systemPrompt = `Sei un esperto di turismo italiano. Genera itinerari in JSON puro, senza commenti né markdown.
-Segui ESATTAMENTE questo schema JSON (nessun campo aggiuntivo):
+        const hour = new Date().getHours();
+        const timeContext = hour >= 6 && hour < 11 ? 'mattina presto — le tappe devono includere colazione/bar e posti che aprono la mattina'
+            : hour >= 11 && hour < 14 ? 'ora di pranzo — includi un ristorante locale (non turistico) come tappa centrale'
+            : hour >= 14 && hour < 18 ? 'pomeriggio — musei, gallerie, panorami, passeggiate'
+            : hour >= 18 && hour < 22 ? 'sera — aperitivi, ristoranti, panorami al tramonto, locali con atmosfera'
+            : 'notte — locali, jazz bar, piazze illuminate, passeggiate notturne';
+
+        const systemPrompt = `Sei un insider locale italiano — non una guida turistica, non un'enciclopedia. Sei l'amico che vive a ${city} da sempre e sa dove portare la gente per farla innamorare della città.
+
+REGOLE ASSOLUTE:
+1. Rispondi SOLO con JSON valido. Zero testo fuori dal JSON. Zero commenti. Zero markdown.
+2. Ogni coordinata DEVE essere reale e verificabile su Google Maps per ${city}. Latitudine tra 36-47, Longitudine tra 6-19 (Italia).
+3. MAI iniziare con la tappa più ovvia/turistica della città. La prima tappa è una perla nascosta.
+4. Il tour ha una NARRATIVA — non è una lista. Ogni tappa porta logicamente alla successiva.
+5. Tra una tappa e l'altra, aggiungi nel campo "transition" cosa si vede camminando (es: "5 min a piedi, passerai per vicolo dei Serpenti dove c'è un murales degli anni '70").
+6. Per ogni tappa: perché vale la pena andarci ORA (${timeContext}).
+7. Le descrizioni sono evocative, dirette, mai da Wikipedia. Max 120 caratteri.
+
+Schema JSON ESATTO:
 {
-  "days": [
-    {
-      "day": 1,
-      "title": "Titolo del giorno in italiano",
-      "weather": { "condition": "Soleggiato", "temperature": 22, "icon": "☀️" },
-      "suggestedTransit": "bus|metro|walking",
-      "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
-      "stops": [
-        {
-          "time": "HH:MM",
-          "title": "Nome del posto",
-          "description": "Descrizione breve (max 100 caratteri)",
-          "type": "cultura|storia|food|shopping|relax|arte|natura",
-          "location": "Indirizzo o zona",
-          "latitude": 41.9028,
-          "longitude": 12.4964,
-          "price": 0,
-          "rating": 4.5
-        }
-      ]
-    }
-  ]
-}
-Regole aggiuntive:
-- "suggestedTransit": scegli il mezzo di trasporto principale per il giorno tra "bus", "metro" e "walking".
-- "mapMood": associa al giorno un mood scegliendo tra: romantico, storia, avventura, natura, cibo, shopping, arte, sorpresa, sport.
-Usa SEMPRE coordinate reali e precise per ${city}. Rispondi SOLO con il JSON, nessun testo aggiuntivo.`;
+  "days": [{
+    "day": 1,
+    "title": "Titolo evocativo (non 'Giorno 1 a Roma')",
+    "weather": { "condition": "${weather?.condition || 'Soleggiato'}", "temperature": ${weather?.temperature || 22}, "icon": "${weatherIcon}" },
+    "suggestedTransit": "walking|bus|metro",
+    "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
+    "stops": [{
+      "time": "HH:MM",
+      "title": "Nome REALE del posto (deve esistere su Google Maps)",
+      "description": "Descrizione evocativa, diretta, da insider",
+      "transition": "Come arrivi alla prossima tappa (distanza, cosa vedi camminando)",
+      "insiderTip": "Consiglio da local (es: 'chiedi il tavolo sul terrazzo nascosto')",
+      "bestTime": "Perché questo è il momento giusto per questa tappa",
+      "suggestedMinutes": 30,
+      "type": "cultura|storia|food|shopping|relax|arte|natura",
+      "location": "Indirizzo reale o quartiere",
+      "latitude": 41.9028,
+      "longitude": 12.4964,
+      "price": 0,
+      "rating": 4.5
+    }]
+  }]
+}`;
 
         const lines = [
             `Città: ${city}`,
-            `Meteo attuale: ${weather?.condition ?? 'sunny'}, ${weather?.temperature ?? 20}°C`,
-            prefs?.duration   ? `Durata: ${prefs.duration}` : '',
+            `Orario attuale: ${hour}:00 — ${timeContext}`,
+            `Meteo: ${weather?.condition ?? 'soleggiato'}, ${weather?.temperature ?? 20}°C`,
+            prefs?.duration   ? `Durata tour: ${prefs.duration}` : '',
             prefs?.budget     ? `Budget: ${prefs.budget}` : '',
             prefs?.interests?.length
                 ? `Interessi: ${Array.isArray(prefs.interests) ? prefs.interests.join(', ') : prefs.interests}` : '',
-            prefs?.group      ? `Tipo di gruppo: ${prefs.group}` : '',
+            prefs?.group      ? `Gruppo: ${prefs.group}` : '',
             prefs?.pace       ? `Ritmo: ${prefs.pace}` : '',
-            userPrompt        ? `Richiesta specifica: ${userPrompt}` : '',
+            userPrompt        ? `Richiesta: ${userPrompt}` : '',
         ].filter(Boolean);
 
         const numDays = prefs?.duration === '2-3 Giorni' ? 2 : 1;
@@ -271,26 +303,51 @@ Usa SEMPRE coordinate reali e precise per ${city}. Rispondi SOLO con il JSON, ne
 
             const VALID_MOODS = new Set(['romantico','storia','avventura','natura','cibo','shopping','arte','sorpresa','sport']);
             const VALID_TRANSIT = new Set(['bus','metro','walking']);
-            const sanitized = days.map((day, di) => ({
-                day: day.day ?? di + 1,
-                title: day.title ?? `Giorno ${di + 1} a ${city}`,
-                weather: day.weather ?? {
-                    condition: 'Soleggiato',
-                    temperature: weather?.temperature ?? 22,
-                    icon: weatherIcon,
-                },
-                suggestedTransit: VALID_TRANSIT.has(day.suggestedTransit) ? day.suggestedTransit : 'walking',
-                mapMood: VALID_MOODS.has(day.mapMood) ? day.mapMood : 'default',
-                stops: (day.stops ?? [])
-                    .map(s => ({
-                        ...s,
-                        latitude:  parseFloat(s.latitude)  || null,
-                        longitude: parseFloat(s.longitude) || null,
-                        price:     typeof s.price  === 'number' ? s.price  : 0,
-                        rating:    typeof s.rating === 'number' ? s.rating : 4.5,
-                    }))
-                    .filter(s => s.title && s.latitude !== null && s.longitude !== null),
-            })).filter(d => d.stops.length > 0);
+            const sanitized = days.map((day, di) => {
+                const rawStops = (day.stops ?? [])
+                    .map(s => {
+                        const lat = parseFloat(s.latitude);
+                        const lng = parseFloat(s.longitude);
+                        // Validazione stretta: coordinate reali in Italia, titolo e descrizione presenti
+                        if (!s.title || !lat || !lng || isNaN(lat) || isNaN(lng)) return null;
+                        if (lat < 36 || lat > 47 || lng < 6 || lng > 19) {
+                            console.warn(`[AI] Scartata tappa "${s.title}": coordinate fuori Italia (${lat},${lng})`);
+                            return null;
+                        }
+                        if ((s.description || '').length < 10) {
+                            console.warn(`[AI] Scartata tappa "${s.title}": descrizione troppo corta`);
+                            return null;
+                        }
+                        return {
+                            ...s,
+                            latitude: lat,
+                            longitude: lng,
+                            price: typeof s.price === 'number' ? s.price : 0,
+                            rating: typeof s.rating === 'number' ? Math.min(s.rating, 5) : 4.5,
+                            suggestedMinutes: s.suggestedMinutes || 30,
+                            transition: s.transition || null,
+                            insiderTip: s.insiderTip || null,
+                            bestTime: s.bestTime || null,
+                        };
+                    })
+                    .filter(Boolean);
+
+                // Ordina le tappe per prossimità geografica (nearest-neighbor greedy)
+                const ordered = sortByProximity(rawStops);
+
+                return {
+                    day: day.day ?? di + 1,
+                    title: day.title ?? `Giorno ${di + 1} a ${city}`,
+                    weather: day.weather ?? {
+                        condition: 'Soleggiato',
+                        temperature: weather?.temperature ?? 22,
+                        icon: weatherIcon,
+                    },
+                    suggestedTransit: VALID_TRANSIT.has(day.suggestedTransit) ? day.suggestedTransit : 'walking',
+                    mapMood: VALID_MOODS.has(day.mapMood) ? day.mapMood : 'default',
+                    stops: ordered,
+                };
+            }).filter(d => d.stops.length > 0);
 
             if (sanitized.length === 0) throw new Error('All stops invalid after sanitization');
 

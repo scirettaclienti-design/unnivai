@@ -202,43 +202,13 @@ export default function AIItineraryPage() {
         } catch (error) {
             console.error("AI Generation Error", error);
             toast({
-                title: 'Generazione AI non disponibile',
-                description: 'Ti mostriamo un itinerario suggerito. Riprova più tardi per un percorso personalizzato.',
+                title: "L'AI sta avendo un momento difficile",
+                description: 'Riprova tra qualche secondo — il tuo itinerario personalizzato è quasi pronto.',
                 variant: 'warning',
             });
-            const fallbackItinerary = [{
-                day: 1,
-                title: "Giorno 1 - Alla scoperta della città",
-                weather: { condition: "Soleggiato", temperature: 25, icon: "☀️" },
-                stops: [
-                    {
-                        time: "09:00",
-                        title: "Centro Storico",
-                        description: "Inizio del tour dal cuore pulsante della città.",
-                        icon: "MapPin",
-                        type: "culture",
-                        location: activeCity,
-                        latitude: cityData.center.latitude,
-                        longitude: cityData.center.longitude,
-                        price: 0,
-                        rating: 4.5
-                    },
-                    {
-                        time: "13:00",
-                        title: "Pranzo Tipico",
-                        description: "Pausa pranzo in un ristorante tradizionale.",
-                        icon: "Utensils",
-                        type: "food",
-                        location: activeCity,
-                        latitude: cityData.center.latitude + 0.002,
-                        longitude: cityData.center.longitude + 0.002,
-                        price: 30,
-                        rating: 4.8
-                    }
-                ]
-            }];
-            setGeneratedItinerary(fallbackItinerary);
-            setCurrentStep(2);
+            // Non mostriamo un fallback statico — l'utente può riprovare
+            setGeneratedItinerary(null);
+            setCurrentStep(0); // Torna alla schermata di input con il pulsante visibile
         } finally {
             setIsGenerating(false);
         }

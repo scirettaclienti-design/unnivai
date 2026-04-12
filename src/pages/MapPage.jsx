@@ -168,9 +168,8 @@ const fetchMatchingBusinesses = async (lat, lng, tourTags = [], radiusM = 2500, 
                 
                 // Tier-based logic for inclusion
                 const isElite = b.subscription_tier === 'elite';
-                // TEMPORANEO: Aumentiamo il raggio per il piano BASE a 20km per far apparire la tua Trattoria (Via Tiburtina) nei test!
-                // Normalmente il piano BASE (gratuito) è limitato a 2.5km dal centro del tour.
-                const dynamicRadius = isElite ? 15000 : 20000; 
+                // ELITE: 15km di visibilità, BASE: 2.5km dal centro del tour
+                const dynamicRadius = isElite ? 15000 : 2500; 
                 if (dist > dynamicRadius) return null;
 
                 const bTags = b.category_tags || [];

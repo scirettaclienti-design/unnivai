@@ -466,13 +466,16 @@ Rispondi SOLO con JSON valido, nessun testo aggiuntivo.`;
 
         const userPrompt = `Analizza questa attività e restituisci:
 {
+  "vibe": ["aggettivo1", "aggettivo2", "aggettivo3"],
+  "style": ["stile1", "stile2"],
+  "pace": "Rilassato|Dinamico|Avventuroso|Contemplativo",
+  "story_hook": "Frase accattivante di 15-20 parole che descrive l'esperienza unica",
   "tags": ["tag1", "tag2"],
   "target_audience": "Descrizione del pubblico ideale (max 80 car)",
   "best_hours": "Fascia oraria consigliata (es. 'Mattina 9-12, Sera 18-22')",
   "tour_compatibility": ["tipo_tour1", "tipo_tour2"],
   "highlight": "Punto di forza principale (max 100 car)",
-  "category": "food|cultura|shopping|relax|arte|natura|sport",
-  "seo_keywords": ["keyword1", "keyword2", "keyword3"]
+  "category": "food|cultura|shopping|relax|arte|natura|sport"
 }
 
 Descrizione: ${description}

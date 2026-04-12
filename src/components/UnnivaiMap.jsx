@@ -1,6 +1,7 @@
 /**
  * DVAI-023 — Marker clustering con @googlemaps/markerclusterer
- * Raggruppa i marker a zoom bassi per migliorare le performance con >50 POI.
+ * Usa i MapMarker 3D personalizzati per default.
+ * Attiva il clustering nativo solo con >50 POI per performance.
  */
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useMap, AdvancedMarker } from '@vis.gl/react-google-maps';
@@ -10,65 +11,45 @@ import MapMarker from './Map/MapMarker';
 import TourRoute from './Map/TourRoute';
 import { MAP_MOODS } from '../lib/schemas';
 
-// ─── Cluster-aware markers ────────────────────────────────────────────────────
-const ClusteredMarkers = ({ validActivities, onActivityClick }) => {
+const CLUSTER_THRESHOLD = 50;
+
+// ─── Cluster nativo (solo per >50 POI) ───────────────────────────────────────
+const NativeClusteredMarkers = ({ validActivities, onActivityClick }) => {
     const map = useMap();
     const clustererRef = useRef(null);
-    const markersRef   = useRef({});
 
-    // Inizializza o distruggi il clusterer al cambio della map
     useEffect(() => {
         if (!map) return;
-
         clustererRef.current = new MarkerClusterer({ map });
-
         return () => {
-            if (clustererRef.current) {
-                clustererRef.current.clearMarkers();
-                clustererRef.current = null;
-            }
+            clustererRef.current?.clearMarkers();
+            clustererRef.current = null;
         };
     }, [map]);
 
-    // Aggiorna i marker quando cambiano le attività
     useEffect(() => {
         if (!clustererRef.current || !map) return;
-
-        // Rimuovi tutti i marker precedenti
         clustererRef.current.clearMarkers();
 
-        // Guard: aspetta che AdvancedMarkerElement sia disponibile
         const AME = window.google?.maps?.marker?.AdvancedMarkerElement;
-        if (!AME) {
-            // Fallback: riprova dopo il caricamento della libreria marker
-            const retryTimeout = setTimeout(() => {
-                if (window.google?.maps?.marker?.AdvancedMarkerElement) {
-                    clustererRef.current?.clearMarkers();
-                }
-            }, 1000);
-            return () => clearTimeout(retryTimeout);
-        }
+        if (!AME) return;
 
-        // Crea nuovi marker Google Maps nativi (compatibili con MarkerClusterer)
         const newMarkers = validActivities.map((act) => {
-            const lat = act.latitude  ?? act.lat;
+            const lat = act.latitude ?? act.lat;
             const lng = act.longitude ?? act.lng;
             if (!lat || !lng) return null;
 
             const marker = new AME({
                 position: { lat, lng },
-                title:    act.name || act.title || 'POI',
+                title: act.name || act.title || 'POI',
             });
-
             marker.addListener('click', () => onActivityClick?.(act));
-            markersRef.current[act.id] = marker;
             return marker;
         }).filter(Boolean);
 
         clustererRef.current.addMarkers(newMarkers);
     }, [validActivities, map, onActivityClick]);
 
-    // Questo componente gestisce i marker tramite ref — nessun JSX da renderizzare
     return null;
 };
 
@@ -77,9 +58,11 @@ const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userL
     const map = useMap();
     if (!map) return null;
 
+    const useNativeClustering = validActivities.length > CLUSTER_THRESHOLD;
+
     return (
         <>
-            {/* Marker posizione utente (sempre visibile, non clusterizzato) */}
+            {/* Marker posizione utente (sempre visibile) */}
             {userLocation && (
                 <AdvancedMarker
                     position={{ lat: userLocation.latitude || userLocation.lat, lng: userLocation.longitude || userLocation.lng }}
@@ -94,11 +77,21 @@ const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userL
                 </AdvancedMarker>
             )}
 
-            {/* DVAI-023: marker clusterizzati per performance con >50 POI */}
-            <ClusteredMarkers
-                validActivities={validActivities}
-                onActivityClick={onActivityClick}
-            />
+            {/* Marker: 3D personalizzati (<=50) o clustering nativo (>50) */}
+            {useNativeClustering ? (
+                <NativeClusteredMarkers
+                    validActivities={validActivities}
+                    onActivityClick={onActivityClick}
+                />
+            ) : (
+                validActivities.map((act, index) => (
+                    <MapMarker
+                        key={act.id || `marker-${index}-${act.latitude || act.lat}-${act.longitude || act.lng}`}
+                        activity={act}
+                        onClick={onActivityClick}
+                    />
+                ))
+            )}
 
             {/* Percorso del tour */}
             {routePoints && routePoints.length > 1 && (

@@ -192,6 +192,45 @@ const buildSmartExperiencesFallback = (cityName) => {
     });
 };
 
+/**
+ * Riordina tour/esperienze in base al preference graph dell'utente.
+ * Tour con categorie che matchano le preferenze vengono promossi in cima.
+ */
+const rankByPreferences = (tours, graph) => {
+    if (!graph || Object.keys(graph).length === 0) return tours;
+
+    return [...tours].sort((a, b) => {
+        const scoreA = getAffinityScore(a, graph);
+        const scoreB = getAffinityScore(b, graph);
+        return scoreB - scoreA; // Score più alto → più in alto
+    });
+};
+
+const getAffinityScore = (tour, graph) => {
+    let score = 0;
+    const cat = (tour.category || tour.type || '').toLowerCase();
+    const city = (tour.city || '').toLowerCase();
+    const tags = tour.category_tags || [];
+
+    // Match per categoria/tipo
+    for (const [key, val] of Object.entries(graph)) {
+        if (key.startsWith('cat:') && cat.includes(key.replace('cat:', '').toLowerCase())) score += val * 2;
+        if (key.startsWith('type:') && cat.includes(key.replace('type:', '').toLowerCase())) score += val;
+        if (key.startsWith('city:') && city.includes(key.replace('city:', '').toLowerCase())) score += val;
+    }
+
+    // Match per tag
+    for (const tag of tags) {
+        const tagLow = tag.toLowerCase();
+        if (graph[`cat:${tagLow}`]) score += graph[`cat:${tagLow}`];
+    }
+
+    // Boost per tour reali (non AI-generated)
+    if (!tour.isAiGenerated) score += 3;
+
+    return score;
+};
+
 const DashboardUser = () => {
     const { firstName, city, lat, lng, temperatureC, weatherCondition, isLoading } = useUserContext();
     const navigate = useNavigate();
@@ -266,32 +305,48 @@ const DashboardUser = () => {
         }
     };
 
-    const { userDNAPreferences } = useAILearning();
+    const { userDNAPreferences, preferenceGraph, totalInteractions, getAIContext } = useAILearning();
+    const hasPreferences = totalInteractions >= 3;
 
-    // Fetch Experiences (now async with real POI discovery)
+    // Fetch Experiences — personalizzate con il preference graph
     const { data: experiences } = useQuery({
-        queryKey: ['home-experiences', city, lat, lng, userDNAPreferences?.length],
+        queryKey: ['home-experiences', city, lat, lng, totalInteractions, hasPreferences],
         queryFn: async () => {
             const currentCity = city || 'Roma';
             let finalTours = [];
-            
+
             try {
                 const tours = await dataService.getToursByCity(currentCity);
                 if (tours && tours.length > 0) {
                     finalTours = tours;
+
+                    // Utente con preferenze: riordina per affinità
+                    if (hasPreferences && preferenceGraph) {
+                        finalTours = rankByPreferences(finalTours, preferenceGraph);
+                    }
                 }
             } catch (e) {
                 console.warn("Failed to fetch tours, using fallback", e);
             }
-            
-            // 🧠 Se non ci sono tour nel DB per la città, usiamo il discovery AI con POI reali
+
+            // Se non ci sono tour nel DB, genera con AI discovery
             if (finalTours.length === 0) {
                 finalTours = await buildSmartExperiencesAsync(currentCity, lat, lng, userDNAPreferences);
+
+                if (hasPreferences) {
+                    finalTours = rankByPreferences(finalTours, preferenceGraph);
+                }
             }
 
-            return finalTours.slice(0, 5);
+            // Arricchisci la categoria per l'utente
+            return finalTours.slice(0, 5).map((t, i) => ({
+                ...t,
+                category: hasPreferences && i === 0
+                    ? 'Scelto per te'
+                    : (t.category || (hasPreferences ? 'Basato sui tuoi gusti' : 'Popolare a ' + currentCity)),
+            }));
         },
-        placeholderData: () => buildSmartExperiencesFallback(city || 'Roma')
+        placeholderData: () => buildSmartExperiencesFallback(city || 'Roma'),
     });
 
     const [tourHistory, setTourHistory] = useState([]);
@@ -514,7 +569,9 @@ const DashboardUser = () => {
                 {/* Footer Section - Magazine Style Experiences */}
                 <section>
                     <div className="flex items-center justify-between mb-4 px-1">
-                        <h3 className="text-xl font-bold text-gray-800 font-playfair">Esperienze Uniche</h3>
+                        <h3 className="text-xl font-bold text-gray-800 font-playfair">
+                            {hasPreferences ? 'Per Te' : 'Esperienze Uniche'}
+                        </h3>
                         <Link to="/explore" className="text-xs font-bold text-gray-500 hover:text-terracotta-500 uppercase tracking-widest transition-colors">
                             Vedi tutte
                         </Link>

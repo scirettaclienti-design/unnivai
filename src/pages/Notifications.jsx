@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useUserContext } from "@/hooks/useUserContext";
 import { useUserNotifications } from '@/hooks/useUserNotifications';
+import { useAILearning } from '@/hooks/useAILearning';
+import { aiRecommendationService } from '@/services/aiRecommendationService';
+import { getTimeSlot } from '@/hooks/useUserNotifications';
 import { supabase } from '@/lib/supabase';
 import { sanitizeMessage } from '@/utils/chatSanitizer';
 import {
@@ -27,16 +30,74 @@ import {
     Search,
     ArrowRight,
     Archive,
-    Trash2
+    Trash2,
+    Sparkles,
+    Loader
 } from 'lucide-react';
 import BottomNavigation from '@/components/BottomNavigation';
 import ReviewModal from '@/components/ReviewModal';
 
 export default function NotificationsPage() {
-    const { userId, city, firstName } = useUserContext();
+    const { userId, city, firstName, temperatureC, weatherCondition } = useUserContext();
     const { toast } = useToast();
+    const navigate = useNavigate();
     const [filter, setFilter] = useState('all');
     const [reviewModal, setReviewModal] = useState(null);
+    const [isGeneratingTour, setIsGeneratingTour] = useState(false);
+    const { getAIContext, trackInteraction } = useAILearning();
+
+    // Genera mini-tour AI in tempo reale dalla notifica
+    const handleGenerateAITour = async (notification) => {
+        setIsGeneratingTour(true);
+        const slot = getTimeSlot();
+        const slotHints = {
+            morning: 'cultura, monumenti, passeggiate panoramiche',
+            midday: 'gastronomia, mercati, street food',
+            afternoon: 'musei, gallerie, shopping',
+            evening: 'ristoranti, aperitivi, nightlife, panorami serali',
+            night: 'locali, jazz bar, passeggiata notturna',
+        };
+
+        const aiProfile = getAIContext();
+        const prompt = [
+            `Mini-tour rapido di 3 tappe per ${slot === 'evening' ? 'questa sera' : 'adesso'} a ${city}.`,
+            `Orario: ${slot} — focus su ${slotHints[slot] || 'esperienze locali'}.`,
+            notification.title ? `Ispirazione: "${notification.title}"` : '',
+            aiProfile ? `[Profilo utente: ${aiProfile}]` : '',
+        ].filter(Boolean).join(' ');
+
+        try {
+            const result = await aiRecommendationService.generateItinerary(
+                city,
+                { duration: 'Mezza Giornata', interests: slotHints[slot] },
+                prompt,
+                { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 }
+            );
+
+            const stops = (result.days || result)?.[0]?.stops || [];
+            if (stops.length === 0) throw new Error('Nessuna tappa generata');
+
+            const route = stops.map((s, i) => ({
+                latitude: s.latitude,
+                longitude: s.longitude,
+                name: s.title,
+                title: s.title,
+                description: s.description,
+                category: s.type || 'Punto Mappa',
+                type: 'waypoint',
+                index: i + 1,
+            }));
+
+            trackInteraction('notification_ai_tour', { city, slot, stopsCount: route.length });
+            setSelectedNotification(null);
+            navigate('/map', { state: { route, tourData: { title: `Tour ${slot === 'evening' ? 'Serale' : 'Rapido'} — ${city}`, city } } });
+        } catch (err) {
+            console.warn('[Notifications] AI tour generation failed:', err.message);
+            toast({ title: 'Tour non disponibile', description: 'Riprova tra qualche secondo.', variant: 'warning' });
+        } finally {
+            setIsGeneratingTour(false);
+        }
+    };
 
     const { notifications: rawNotifications, unreadCount, markAsRead, deleteNotification, markAllAsRead } = useUserNotifications(userId, city, firstName);
 
@@ -465,6 +526,24 @@ export default function NotificationsPage() {
                                                             </>
                                                         ) : 'ACCETTA E PAGA'}
                                                     </button>
+                                                ) : selectedNotification.category === 'tours' ? (
+                                                    <button
+                                                        onClick={() => handleGenerateAITour(selectedNotification)}
+                                                        disabled={isGeneratingTour}
+                                                        className="flex-none py-3 px-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold text-center transition-all shadow-md flex items-center gap-2"
+                                                    >
+                                                        {isGeneratingTour ? (
+                                                            <>
+                                                                <Loader className="w-4 h-4 animate-spin" />
+                                                                Genero...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Sparkles className="w-4 h-4" />
+                                                                TOUR AI
+                                                            </>
+                                                        )}
+                                                    </button>
                                                 ) : selectedNotification.action !== 'dettagli' ? (
                                                     <Link
                                                         to={selectedNotification.link}
@@ -476,6 +555,27 @@ export default function NotificationsPage() {
                                                     </Link>
                                                 ) : null}
                                             </div>
+                                        </div>
+                                    ) : selectedNotification.category === 'tours' ? (
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleGenerateAITour(selectedNotification)}
+                                                disabled={isGeneratingTour}
+                                                className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-2"
+                                            >
+                                                {isGeneratingTour ? (
+                                                    <><Loader className="w-4 h-4 animate-spin" /> Genero tour...</>
+                                                ) : (
+                                                    <><Sparkles className="w-4 h-4" /> GENERA TOUR AI</>
+                                                )}
+                                            </button>
+                                            <Link
+                                                to={selectedNotification.link}
+                                                className="flex-none py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-center transition-colors"
+                                                onClick={() => setSelectedNotification(null)}
+                                            >
+                                                ESPLORA
+                                            </Link>
                                         </div>
                                     ) : (
                                         <Link

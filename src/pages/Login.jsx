@@ -117,7 +117,7 @@ const Login = () => {
                     }
                 });
                 if (signUpError) throw signUpError;
-                if (user && !user.identities?.length) throw new Error('Email già registrata. Prova ad accedere.');
+                if (user && (!user.identities || user.identities.length === 0)) throw new Error('Email già registrata. Prova ad accedere.');
                 if (user && selectedRole === 'business') {
                     await supabase.from('activities').insert({
                         owner_id: user.id,

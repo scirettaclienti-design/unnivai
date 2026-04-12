@@ -9,6 +9,7 @@ import { useUserContext } from "../hooks/useUserContext";
 import { DEMO_CITIES } from "../data/demoData";
 import { aiRecommendationService } from "../services/aiRecommendationService";
 import { useAILearning } from "../hooks/useAILearning"; // DVAI-045
+import { useToast } from "../hooks/use-toast";
 
 const preferences = [
     { id: 'budget', title: 'Budget', options: ['Economico', 'Medio', 'Lusso'], emoji: '💰', selected: '' },
@@ -148,6 +149,7 @@ export default function AIItineraryPage() {
 
     // DVAI-045: leggi le preferenze apprese dall'AI
     const { userDNAPreferences, trackGeneratedTour } = useAILearning();
+    const { toast } = useToast();
 
     const generateItinerary = async () => {
         setIsGenerating(true);
@@ -196,6 +198,11 @@ export default function AIItineraryPage() {
 
         } catch (error) {
             console.error("AI Generation Error", error);
+            toast({
+                title: 'Generazione AI non disponibile',
+                description: 'Ti mostriamo un itinerario suggerito. Riprova più tardi per un percorso personalizzato.',
+                variant: 'warning',
+            });
             const fallbackItinerary = [{
                 day: 1,
                 title: "Giorno 1 - Alla scoperta della città",

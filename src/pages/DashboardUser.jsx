@@ -58,10 +58,11 @@ const getPoiTypeImage = (poiType, cityName) => {
  * Async — calls placesDiscoveryService to get real place names and coordinates.
  */
 const buildSmartExperiencesAsync = async (cityName, userLat, userLng, userDNA = []) => {
-    // 1. DNA preferences for ordering
-    const likesFood = userDNA.some(d => d.inspiration?.includes('Cibo') || d.mood?.includes('Cibo') || d.mood?.includes('Street'));
-    const likesNature = userDNA.some(d => d.inspiration?.includes('Natura') || d.mood?.includes('Natura'));
-    const likesArts = userDNA.some(d => d.inspiration?.includes('Arte') || d.inspiration?.includes('Storia') || d.mood?.includes('Cultura'));
+    // 1. DNA preferences for ordering (guard against null/undefined)
+    const dna = Array.isArray(userDNA) ? userDNA : [];
+    const likesFood = dna.some(d => d.inspiration?.includes('Cibo') || d.mood?.includes('Cibo') || d.mood?.includes('Street'));
+    const likesNature = dna.some(d => d.inspiration?.includes('Natura') || d.mood?.includes('Natura'));
+    const likesArts = dna.some(d => d.inspiration?.includes('Arte') || d.inspiration?.includes('Storia') || d.mood?.includes('Cultura'));
 
     // 2. Get coordinates (use user GPS if available, else geocode)
     const centerLat = userLat || 41.9028;
@@ -77,7 +78,7 @@ const buildSmartExperiencesAsync = async (cityName, userLat, userLng, userDNA = 
 
     // 4. Build ordered theme list (DNA-aware)
     let themes = [...THEME_CONFIGS];
-    if (userDNA.length > 0) {
+    if (dna.length > 0) {
         if (likesFood) themes[0] = { ...themes[0], titleFn: (c) => `Street Food Tour su misura - ${c}` };
         if (likesNature) themes[4] = { ...themes[4], titleFn: (c) => `Escursione Panoramica a ${c}` };
         if (likesArts) themes[3] = { ...themes[3], titleFn: (c) => `Esplorazione Storica di ${c}` };

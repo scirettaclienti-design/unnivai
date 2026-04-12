@@ -33,6 +33,7 @@ export default function DashboardGuide() {
 
     // Modal states
     const [chatModal, setChatModal] = useState(null);   // { req } or null
+    const [myRating, setMyRating] = useState({ avg: 0, count: 0 });
     const [priceModal, setPriceModal] = useState(null); // { req } or null
     const [chatMessage, setChatMessage] = useState('');
     const [offerPrice, setOfferPrice] = useState('');
@@ -111,6 +112,21 @@ export default function DashboardGuide() {
 
         fetchData();
     }, [user]);
+
+    // Fetch guide rating from reviews table
+    useEffect(() => {
+        if (!user?.id) return;
+        const fetchRating = async () => {
+            try {
+                const { data } = await supabase.from('reviews').select('rating').eq('guide_id', user.id);
+                if (data && data.length > 0) {
+                    const sum = data.reduce((acc, r) => acc + r.rating, 0);
+                    setMyRating({ avg: Math.round((sum / data.length) * 10) / 10, count: data.length });
+                }
+            } catch {}
+        };
+        fetchRating();
+    }, [user?.id]);
 
     // Fetch Requests & Subscribe to real-time updates
     // NOTE: filtering is done client-side via operating_cities — GPS not required
@@ -498,6 +514,12 @@ export default function DashboardGuide() {
                                 }`}>
                                 {guideProfile?.type === 'pro' ? 'GUIDA PRO 🎓' : 'LOCAL HOST 🏠'}
                             </span>
+                            {myRating.count > 0 && (
+                                <span className="flex items-center gap-1 text-xs text-orange-600 font-bold">
+                                    <Star size={12} className="fill-orange-400 text-orange-400" />
+                                    {myRating.avg} ({myRating.count})
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>

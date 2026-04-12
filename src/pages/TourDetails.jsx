@@ -725,8 +725,9 @@ export default function TourDetailsPage() {
         : (localTour || queryTour || fallbackData);
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
-    const [showChatModal, setShowChatModal] = useState(false); // New state for Chat Modal
+    const [showChatModal, setShowChatModal] = useState(false);
     const [nearbyPartners, setNearbyPartners] = useState([]);
+    const [guideRating, setGuideRating] = useState({ avg: 0, count: 0 });
 
     // Auto-open chat modal when navigating back from MapPage with openChat flag
     useEffect(() => {
@@ -776,6 +777,13 @@ export default function TourDetailsPage() {
         fetchGuideProfile();
         return () => { cancelled = true; };
     }, [tour?.guide_id, tour?.guide, tour?.guideAvatar]);
+
+    // Fetch rating reale dalla tabella reviews
+    useEffect(() => {
+        const guideId = tour?.guide_id || tour?.guideId;
+        if (!guideId || !isValidGuideId(guideId)) return;
+        dataService.getGuideRatingAvg(guideId).then(setGuideRating);
+    }, [tour?.guide_id, tour?.guideId]);
 
     useEffect(() => {
         if (!tour.id) return;
@@ -1104,8 +1112,8 @@ export default function TourDetailsPage() {
                                 <div className="flex items-center space-x-3 mb-3">
                                     <div className="flex items-center">
                                         <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                                        <span className="font-medium">{tour.rating}</span>
-                                        <span className="text-xs text-gray-500 ml-1">({tour.reviews} recensioni)</span>
+                                        <span className="font-medium">{guideRating.count > 0 ? guideRating.avg : (tour.rating || '—')}</span>
+                                        <span className="text-xs text-gray-500 ml-1">({guideRating.count > 0 ? guideRating.count : (tour.reviews || 0)} recensioni)</span>
                                     </div>
                                 </div>
                                 <p className="text-gray-600 text-sm leading-relaxed">{tour.guideBio}</p>
@@ -1135,8 +1143,8 @@ export default function TourDetailsPage() {
                     guideName={tour.guide}
                     guideAvatar={tour.guideAvatar}
                     bio={tour.guideBio}
-                    rating={tour.rating}
-                    reviews={tour.reviews}
+                    rating={guideRating.count > 0 ? guideRating.avg : (tour.rating || 4.5)}
+                    reviews={guideRating.count > 0 ? guideRating.count : (tour.reviews || 0)}
                 />
 
                 {/* GUIDE CHAT MODAL */}

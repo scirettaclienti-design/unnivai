@@ -556,6 +556,80 @@ class DataService {
             return [];
         }
     }
+    // ─── REVIEWS ────────────────────────────────────────────────────────────────
+
+    async getReviewsByGuide(guideId) {
+        if (!guideId) return [];
+        try {
+            const { data, error } = await supabase
+                .from('reviews')
+                .select('*, profiles:user_id(full_name, avatar_url)')
+                .eq('guide_id', guideId)
+                .order('created_at', { ascending: false })
+                .limit(50);
+            if (error) throw error;
+            return data || [];
+        } catch (err) {
+            console.warn('[dataService] getReviewsByGuide error:', err.message);
+            return [];
+        }
+    }
+
+    async getReviewsByTour(tourId) {
+        if (!tourId) return [];
+        try {
+            const { data, error } = await supabase
+                .from('reviews')
+                .select('*, profiles:user_id(full_name, avatar_url)')
+                .eq('tour_id', tourId)
+                .order('created_at', { ascending: false })
+                .limit(50);
+            if (error) throw error;
+            return data || [];
+        } catch (err) {
+            console.warn('[dataService] getReviewsByTour error:', err.message);
+            return [];
+        }
+    }
+
+    async getGuideRatingAvg(guideId) {
+        if (!guideId) return { avg: 0, count: 0 };
+        try {
+            const { data, error } = await supabase
+                .from('reviews')
+                .select('rating')
+                .eq('guide_id', guideId);
+            if (error) throw error;
+            if (!data || data.length === 0) return { avg: 0, count: 0 };
+            const sum = data.reduce((acc, r) => acc + r.rating, 0);
+            return { avg: Math.round((sum / data.length) * 10) / 10, count: data.length };
+        } catch (err) {
+            console.warn('[dataService] getGuideRatingAvg error:', err.message);
+            return { avg: 0, count: 0 };
+        }
+    }
+
+    async createReview({ tour_id, guide_id, booking_id, rating, comment }) {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return { success: false, error: 'Devi essere autenticato per lasciare una recensione.' };
+
+            const { error } = await supabase.from('reviews').insert({
+                tour_id,
+                guide_id,
+                user_id: session.user.id,
+                booking_id: booking_id || null,
+                rating,
+                comment: comment || null,
+            });
+
+            if (error) return { success: false, error: error.message };
+            return { success: true };
+        } catch (err) {
+            return { success: false, error: err.message ?? 'Errore imprevisto.' };
+        }
+    }
+
     /**
      * Fetch businesses matching city and tags
      * Used for AI Injection in QuickPath

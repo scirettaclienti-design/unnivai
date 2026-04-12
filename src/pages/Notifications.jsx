@@ -30,11 +30,13 @@ import {
     Trash2
 } from 'lucide-react';
 import BottomNavigation from '@/components/BottomNavigation';
+import ReviewModal from '@/components/ReviewModal';
 
 export default function NotificationsPage() {
     const { userId, city, firstName } = useUserContext();
     const { toast } = useToast();
     const [filter, setFilter] = useState('all');
+    const [reviewModal, setReviewModal] = useState(null);
 
     const { notifications: rawNotifications, unreadCount, markAsRead, deleteNotification, markAllAsRead } = useUserNotifications(userId, city, firstName);
 
@@ -437,7 +439,20 @@ export default function NotificationsPage() {
                                                     <span>{isReplying ? 'Invio...' : 'INVIA RISPOSTA'}</span>
                                                     <ArrowRight className="w-4 h-4" />
                                                 </button>
-                                                {selectedNotification.type === 'price_offer' ? (
+                                                {selectedNotification.type === 'payment_confirmed' && selectedNotification.actionData?.guide_id ? (
+                                                    <button
+                                                        onClick={() => setReviewModal({
+                                                            tourId: selectedNotification.actionData?.tour_id || null,
+                                                            guideId: selectedNotification.actionData?.guide_id,
+                                                            bookingId: selectedNotification.actionData?.reference_id || null,
+                                                            guideName: selectedNotification.title?.match(/guida (.+)/i)?.[1] || '',
+                                                            tourTitle: selectedNotification.message?.match(/tour (.+?)[\.\!]/i)?.[1] || '',
+                                                        })}
+                                                        className="flex-none py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-center transition-colors shadow-md flex items-center gap-2"
+                                                    >
+                                                        <Star className="w-4 h-4" /> RECENSISCI
+                                                    </button>
+                                                ) : selectedNotification.type === 'price_offer' ? (
                                                     <button
                                                         onClick={handleAcceptOffer}
                                                         disabled={isCheckingOut}
@@ -482,6 +497,18 @@ export default function NotificationsPage() {
             </AnimatePresence>
 
             <BottomNavigation />
+
+            {reviewModal && (
+                <ReviewModal
+                    isOpen={!!reviewModal}
+                    onClose={() => setReviewModal(null)}
+                    tourId={reviewModal.tourId}
+                    guideId={reviewModal.guideId}
+                    bookingId={reviewModal.bookingId}
+                    guideName={reviewModal.guideName}
+                    tourTitle={reviewModal.tourTitle}
+                />
+            )}
         </div>
     );
 }

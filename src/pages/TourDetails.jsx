@@ -14,6 +14,7 @@ import { Toast } from "../components/ToastNotification";
 import { useToast } from "../hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { dataService, createGuideRequest } from "../services/dataService";
+import { useAILearning } from "../hooks/useAILearning";
 
 // --- MOCK DATA (Original Rich Data) ---
 const tourDetailsMock = {
@@ -728,6 +729,12 @@ export default function TourDetailsPage() {
     const [showChatModal, setShowChatModal] = useState(false);
     const [nearbyPartners, setNearbyPartners] = useState([]);
     const [guideRating, setGuideRating] = useState({ avg: 0, count: 0 });
+    const { trackTourView } = useAILearning();
+
+    // Track tour view per il preference graph
+    useEffect(() => {
+        if (tour?.id && tour?.city) trackTourView(tour);
+    }, [tour?.id]);
 
     // Auto-open chat modal when navigating back from MapPage with openChat flag
     useEffect(() => {

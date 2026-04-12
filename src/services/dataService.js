@@ -556,6 +556,42 @@ class DataService {
             return [];
         }
     }
+    // ─── USER PREFERENCES (Preference Graph) ────────────────────────────────────
+
+    async getUserPreferences(userId) {
+        if (!userId) return null;
+        try {
+            const { data, error } = await supabase
+                .from('user_preferences')
+                .select('*')
+                .eq('user_id', userId)
+                .single();
+            if (error && error.code !== 'PGRST116') throw error; // PGRST116 = not found
+            return data || null;
+        } catch (err) {
+            console.warn('[dataService] getUserPreferences error:', err.message);
+            return null;
+        }
+    }
+
+    async upsertUserPreferences(userId, preferenceData, interactions, totalInteractions) {
+        if (!userId) return { success: false, error: 'No user ID' };
+        try {
+            const { error } = await supabase
+                .from('user_preferences')
+                .upsert({
+                    user_id: userId,
+                    preference_data: preferenceData,
+                    interactions: interactions,
+                    total_interactions: totalInteractions,
+                }, { onConflict: 'user_id' });
+            if (error) return { success: false, error: error.message };
+            return { success: true };
+        } catch (err) {
+            return { success: false, error: err.message };
+        }
+    }
+
     // ─── REVIEWS ────────────────────────────────────────────────────────────────
 
     async getReviewsByGuide(guideId) {

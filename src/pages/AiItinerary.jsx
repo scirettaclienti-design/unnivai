@@ -148,7 +148,7 @@ export default function AIItineraryPage() {
     const cityData = DEMO_CITIES[activeCity] || DEMO_CITIES['Roma'];
 
     // DVAI-045: leggi le preferenze apprese dall'AI
-    const { userDNAPreferences, trackGeneratedTour } = useAILearning();
+    const { userDNAPreferences, trackGeneratedTour, getAIContext } = useAILearning();
     const { toast } = useToast();
 
     const generateItinerary = async () => {
@@ -160,9 +160,11 @@ export default function AIItineraryPage() {
             return acc;
         }, {});
 
-        // DVAI-045: costruisci contesto DNA dalle ultime 5 preferenze apprese
+        // Preference Graph: contesto AI dal grafo preferenze + DNA legacy
+        const graphContext = getAIContext();
         let dnaContext = '';
-        if (userDNAPreferences && userDNAPreferences.length > 0) {
+        if (!graphContext && userDNAPreferences && userDNAPreferences.length > 0) {
+            // Fallback al vecchio sistema DNA se il graph è vuoto
             const last5 = userDNAPreferences.slice(0, 5);
             const moodsSeen = [...new Set(last5.map(p => p.mood).filter(Boolean))];
             const citiesSeen = [...new Set(last5.map(p => p.city).filter(Boolean))];
@@ -174,9 +176,10 @@ export default function AIItineraryPage() {
             ].filter(Boolean).join(' ');
         }
 
+        const aiProfile = graphContext || dnaContext;
         const enrichedPrompt = [
             userPrompt,
-            dnaContext ? `[Profilo AI: ${dnaContext}]` : '',
+            aiProfile ? `[Profilo utente: ${aiProfile}]` : '',
         ].filter(Boolean).join(' ');
 
         try {

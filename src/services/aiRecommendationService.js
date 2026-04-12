@@ -231,6 +231,9 @@ REGOLE ASSOLUTE:
 5. Tra una tappa e l'altra, aggiungi nel campo "transition" cosa si vede camminando (es: "5 min a piedi, passerai per vicolo dei Serpenti dove c'è un murales degli anni '70").
 6. Per ogni tappa: perché vale la pena andarci ORA (${timeContext}).
 7. Le descrizioni sono evocative, dirette, mai da Wikipedia. Max 120 caratteri.
+8. CONTESTO GRUPPO: se "coppia" → posti intimi, tramonti, tavoli per due, atmosfera romantica. Se "amici" → locali vivaci, street food, piazze sociali. Se "famiglia" → posti kid-friendly, gelato, parchi. Se "solo" → caffè con vista, librerie, angoli tranquilli.
+9. Per città meno conosciute (non Roma/Milano/Firenze/Napoli/Venezia): usa POI verificabili, NON inventare nomi. Se non sei sicuro di un posto, usa la categoria ("un'enoteca storica nel centro") piuttosto che un nome falso.
+10. Per tour multi-giorno: il giorno 2 riprende dove finisce il giorno 1. Narrativa continua, non ripartire da zero.
 
 Schema JSON ESATTO:
 {

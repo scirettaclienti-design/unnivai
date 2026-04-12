@@ -47,13 +47,30 @@ const queryClient = new QueryClient({
   },
 });
 
-// Minimal Loading Component
+// DoveVAI Branded Loading
 const GlobalLoading = () => (
-  <div className="flex items-center justify-center min-h-screen bg-white">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-      <p className="text-gray-500 font-medium animate-pulse">Caricamento DoveVai...</p>
+  <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-orange-50 to-white">
+    <div className="flex flex-col items-center gap-5">
+      <div className="relative">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200">
+          <span className="text-3xl">🗺️</span>
+        </div>
+        <div className="absolute -inset-2 rounded-3xl border-2 border-orange-300/40 animate-ping" />
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <h2 className="text-lg font-bold text-gray-800" style={{ fontFamily: 'Quicksand, sans-serif' }}>DoveVAI</h2>
+        <div className="flex gap-1">
+          {[0, 1, 2].map(i => (
+            <div
+              key={i}
+              className="w-2 h-2 rounded-full bg-orange-400"
+              style={{ animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite` }}
+            />
+          ))}
+        </div>
+      </div>
     </div>
+    <style>{`@keyframes pulse { 0%,80%,100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1.2); } }`}</style>
   </div>
 );
 

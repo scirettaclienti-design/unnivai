@@ -36,21 +36,27 @@ export default function BottomNavigation() {
                                 <motion.button
                                     className={`flex flex-col items-center space-y-1 transition-colors duration-300 ${isActive ? 'text-terracotta-500' : 'text-gray-400 hover:text-gray-600'
                                         }`}
-                                    whileTap={{ scale: 0.9 }}
+                                    whileTap={{ scale: 0.92 }}
+                                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                                 >
                                     <div className="relative">
-                                        <IconComponent className={`w-6 h-6 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+                                        <motion.div animate={{ scale: isActive ? 1.15 : 1 }} transition={{ type: 'spring', stiffness: 500, damping: 20 }}>
+                                            <IconComponent className={`w-6 h-6 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+                                        </motion.div>
                                         {isActive && (
                                             <motion.div
                                                 layoutId="nav-glow"
                                                 className="absolute inset-0 bg-terracotta-400/20 blur-lg rounded-full"
-                                                transition={{ duration: 0.3 }}
+                                                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                                             />
                                         )}
                                     </div>
-                                    <span className={`text-[10px] font-medium tracking-wide ${isActive ? 'opacity-100' : 'opacity-80'}`}>
+                                    <motion.span
+                                        animate={{ opacity: isActive ? 1 : 0.6 }}
+                                        transition={{ duration: 0.2 }}
+                                        className={`text-[10px] font-medium tracking-wide`}>
                                         {item.label}
-                                    </span>
+                                    </motion.span>
                                 </motion.button>
                             </Link>
                         );

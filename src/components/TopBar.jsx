@@ -158,7 +158,7 @@ function CityModal({ isOpen, onClose, initialCity, onSave }) {
                         type="text"
                         value={tempCity}
                         onChange={(e) => setTempCity(e.target.value)}
-                        onFocus={() => setTempCity('')} // ⚡ Auto-clear on click
+                        onFocus={(e) => e.target.select()} // Select-all on focus
                         onKeyDown={(e) => { if (e.key === 'Enter') onSave(tempCity); }}
                         placeholder="Cerca una città..."
                         className="w-full bg-gray-50 border border-gray-200 text-gray-800 font-bold rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta-500/50 transition-all placeholder:font-normal"

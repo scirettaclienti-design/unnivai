@@ -26,3 +26,4 @@ dist-ssr
 
 # DVAI-003: file di test legacy con chiavi hardcoded — non deployare mai in produzione
 tests/legacy-root/
+.vercel

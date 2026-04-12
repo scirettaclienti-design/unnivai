@@ -358,6 +358,9 @@ const MapPage = () => {
 
     // NEW STATES: Tour Completion Tracking
     const [completedSteps, setCompletedSteps] = useState([]);
+    const [flyToLabel, setFlyToLabel] = useState(null);
+    const lastSurprisePos = useRef(null);
+    const surpriseCount = useRef(0);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
     
     // Mostriamo la "route" solo se c'è un tour e NON siamo appena sbarcati dall'Explore con un focus città
@@ -443,6 +446,8 @@ const MapPage = () => {
         try {
             if (tourData?.steps?.length > 0) {
                 return tourData.steps.map((s, i) => ({
+                    id: s.id || `step-${i}`,
+                    name: s.title || `Tappa ${i + 1}`,
                     latitude: parseFloat(s.lat || s.latitude),
                     longitude: parseFloat(s.lng || s.longitude),
                     label: s.title || `Tappa ${i + 1}`,
@@ -456,6 +461,8 @@ const MapPage = () => {
             }
             if (tourData?.waypoints) {
                 return tourData.waypoints.map((p, i) => ({
+                    id: `wp-${i}`,
+                    name: `Tappa ${i + 1}`,
                     latitude: Array.isArray(p) ? p[0] : p.latitude,
                     longitude: Array.isArray(p) ? p[1] : p.longitude,
                     label: `Tappa ${i + 1}`,
@@ -713,18 +720,46 @@ const MapPage = () => {
                         (pos) => {
                             const { latitude, longitude, heading } = pos.coords;
                             setLocalCenter({ latitude, longitude });
-                            
+
                             const now = Date.now();
-                            // Throttle updates to max 2FPS for camera to avoid micro-stutters,
-                            // unless you're moving very fast (we keep it smooth via internal WebGL engine)
                             if (followingRef.current && map && (now - lastUpdateTime > 500)) {
                                 lastUpdateTime = now;
                                 map.moveCamera({
                                     center: { lat: latitude, lng: longitude },
-                                    zoom: 19, // Street-level high-fidelity 3D follow mode
+                                    zoom: 19,
                                     tilt: 60,
                                     heading: heading !== null ? heading : undefined
                                 });
+                            }
+
+                            // Cultural Surprise: ogni ~300m sblocca curiosità
+                            if (lastSurprisePos.current) {
+                                const d = Math.hypot(
+                                    (latitude - lastSurprisePos.current.lat) * 111320,
+                                    (longitude - lastSurprisePos.current.lng) * 111320 * Math.cos(latitude * Math.PI / 180)
+                                );
+                                if (d > 300) {
+                                    lastSurprisePos.current = { lat: latitude, lng: longitude };
+                                    surpriseCount.current += 1;
+                                    const surprises = [
+                                        '🏛️ Lo sapevi? Molti palazzi storici italiani hanno cortili segreti — prova ad affacciarti dal portone!',
+                                        '🎨 Curiosità: gli artisti di strada in Italia devono avere un permesso comunale. Ogni esibizione è certificata!',
+                                        '🍝 Tip locale: le trattorie con i menù scritti a mano sono quasi sempre le migliori.',
+                                        '⛲ Fun fact: Roma ha più di 2.000 fontanelle pubbliche — tutte potabili!',
+                                        '🌅 I locali del posto sanno che il tramonto migliore non è dal punto panoramico, ma dal bar accanto.',
+                                        '🏪 Le botteghe artigiane che trovi nei vicoli spesso esistono da generazioni — chiedi la loro storia!',
+                                        '🎵 In molte piazze italiane, la musica che senti non è casuale — è programmata dal comune.',
+                                    ];
+                                    window.dispatchEvent(new CustomEvent('dvai:toast', {
+                                        detail: {
+                                            message: surprises[surpriseCount.current % surprises.length],
+                                            type: 'info',
+                                            duration: 5000,
+                                        }
+                                    }));
+                                }
+                            } else {
+                                lastSurprisePos.current = { lat: latitude, lng: longitude };
                             }
                         },
                         (err) => console.warn("Errore Inseguimento Navigazione:", err),
@@ -751,10 +786,38 @@ const MapPage = () => {
             const newCompleted = [...completedSteps, poiObj.id];
             setCompletedSteps(newCompleted);
 
-            // Se tutte le tappe del tour sono completate (ignoriamo i partner)
-            const tourStepsCount = activeRoute.length;
-            if (newCompleted.length >= tourStepsCount) {
-                setTimeout(() => setIsSummaryModalOpen(true), 1500); 
+            // Feedback visivo: toast celebrativo
+            const stepNum = newCompleted.length;
+            const totalSteps = activeRoute.length;
+            window.dispatchEvent(new CustomEvent('dvai:toast', {
+                detail: {
+                    message: stepNum >= totalSteps
+                        ? `🎉 Tour completato! ${totalSteps} tappe esplorate!`
+                        : `✨ Tappa ${stepNum}/${totalSteps} completata — ${poiObj.name || poiObj.title || 'Avanti!'}`,
+                    type: stepNum >= totalSteps ? 'success' : 'info',
+                    duration: 3000,
+                }
+            }));
+
+            // Fly-to cinematico alla prossima tappa con overlay nome
+            if (stepNum < totalSteps && map) {
+                const next = activeRoute[stepNum];
+                if (next?.latitude && next?.longitude) {
+                    setFlyToLabel(next.name || next.title || `Tappa ${stepNum + 1}`);
+                    setTimeout(() => {
+                        map.moveCamera({
+                            center: { lat: next.latitude, lng: next.longitude },
+                            zoom: 18,
+                            tilt: 55,
+                        });
+                    }, 500);
+                    setTimeout(() => setFlyToLabel(null), 3000);
+                }
+            }
+
+            // Se tutte le tappe completate
+            if (newCompleted.length >= totalSteps) {
+                setTimeout(() => setIsSummaryModalOpen(true), 2000);
             }
         }
     };
@@ -1070,8 +1133,26 @@ const MapPage = () => {
             )}
 
             {/* ACTIVE NAVIGATION HUD (Top Center) */}
+            {/* Fly-to overlay cinematico */}
+            <AnimatePresence>
+                {flyToLabel && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[80] pointer-events-none"
+                    >
+                        <div className="bg-black/70 backdrop-blur-md px-8 py-4 rounded-2xl shadow-2xl text-center">
+                            <p className="text-white/60 text-xs font-medium uppercase tracking-widest mb-1">Prossima tappa</p>
+                            <h2 className="text-white text-xl font-bold" style={{ fontFamily: 'Quicksand, sans-serif' }}>{flyToLabel}</h2>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {isNavigating && (
-                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-md bg-green-600 rounded-[28px] shadow-2xl overflow-hidden animate-in slide-in-from-top-6 fade-in duration-500">
+                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[70] w-[95%] max-w-md bg-green-600 rounded-[28px] shadow-2xl overflow-hidden animate-in slide-in-from-top-6 fade-in duration-500">
                     <div className="p-5 flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0 text-white">
                             <NavIcon size={24} />

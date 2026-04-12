@@ -15,6 +15,74 @@ import { useAILearning } from "@/hooks/useAILearning";
 import { DEMO_CITIES, MOCK_ROUTES } from "@/data/demoData";
 import PaywallModal from "@/components/PaywallModal";
 
+// ─── Loading Sub-Steps animati ─────────────────────────────────────────────
+const LOADING_STEPS = [
+    { emoji: '🔍', text: 'Analizzo le tue preferenze...' },
+    { emoji: '🏙️', text: 'Cerco i posti migliori...' },
+    { emoji: '🗺️', text: 'Disegno il percorso perfetto...' },
+    { emoji: '🤝', text: 'Cerco partner locali...' },
+    { emoji: '✨', text: 'Ultimi ritocchi...' },
+];
+
+const LoadingSubSteps = ({ city }) => {
+    const [step, setStep] = useState(0);
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setStep(prev => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
+        }, 2200);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="relative w-28 h-28 mb-8">
+                <motion.div
+                    className="absolute inset-0 border-4 border-t-terracotta-500 border-r-transparent border-b-orange-300 border-l-transparent rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <motion.span
+                        key={step}
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="text-4xl"
+                    >
+                        {LOADING_STEPS[step].emoji}
+                    </motion.span>
+                </div>
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 mb-3">Il tuo tour a {city}</h2>
+            <AnimatePresence mode="wait">
+                <motion.p
+                    key={step}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="text-gray-500 text-sm font-medium"
+                >
+                    {LOADING_STEPS[step].text}
+                </motion.p>
+            </AnimatePresence>
+            {/* Progress dots */}
+            <div className="flex gap-1.5 mt-6">
+                {LOADING_STEPS.map((_, i) => (
+                    <motion.div
+                        key={i}
+                        className="w-2 h-2 rounded-full"
+                        animate={{
+                            backgroundColor: i <= step ? '#f97316' : '#e5e7eb',
+                            scale: i === step ? 1.3 : 1,
+                        }}
+                        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
 // Immagine fallback generica (NON Colosseo: piazza italiana generica)
 const GENERIC_ITALY_IMAGE = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300';
 // Solo per Roma: Colosseo/centro
@@ -1171,20 +1239,7 @@ export default function QuickPathPage() {
                             exit={{ opacity: 0 }}
                         >
                             {generationStatus === 'loading' && (
-                                <div className="flex flex-col items-center justify-center py-20 text-center">
-                                    <div className="relative w-32 h-32 mb-8">
-                                        <motion.div
-                                            className="absolute inset-0 border-4 border-t-terracotta-500 border-r-transparent border-b-orange-300 border-l-transparent rounded-full"
-                                            animate={{ rotate: 360 }}
-                                            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                                        />
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <Brain className="w-10 h-10 text-terracotta-600 animate-pulse" />
-                                        </div>
-                                    </div>
-                                    <h2 className="text-xl font-bold text-gray-800 mb-2">Creazione itinerario a {activeCity}...</h2>
-                                    <p className="text-gray-500 text-sm">Stiamo disegnando la tua esperienza...</p>
-                                </div>
+                                <LoadingSubSteps city={activeCity} />
                             )}
 
                             {generationStatus === 'success' && readyTourData && (

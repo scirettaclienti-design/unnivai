@@ -10,7 +10,7 @@ const MAP_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 export default function MapAPIWrapper({ children }) {
     return (
-        <APIProvider apiKey={MAP_API_KEY} libraries={['places']}>
+        <APIProvider apiKey={MAP_API_KEY} libraries={['places', 'marker']}>
             {children}
         </APIProvider>
     );

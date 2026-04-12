@@ -37,13 +37,25 @@ const ClusteredMarkers = ({ validActivities, onActivityClick }) => {
         // Rimuovi tutti i marker precedenti
         clustererRef.current.clearMarkers();
 
+        // Guard: aspetta che AdvancedMarkerElement sia disponibile
+        const AME = window.google?.maps?.marker?.AdvancedMarkerElement;
+        if (!AME) {
+            // Fallback: riprova dopo il caricamento della libreria marker
+            const retryTimeout = setTimeout(() => {
+                if (window.google?.maps?.marker?.AdvancedMarkerElement) {
+                    clustererRef.current?.clearMarkers();
+                }
+            }, 1000);
+            return () => clearTimeout(retryTimeout);
+        }
+
         // Crea nuovi marker Google Maps nativi (compatibili con MarkerClusterer)
         const newMarkers = validActivities.map((act) => {
             const lat = act.latitude  ?? act.lat;
             const lng = act.longitude ?? act.lng;
             if (!lat || !lng) return null;
 
-            const marker = new window.google.maps.marker.AdvancedMarkerElement({
+            const marker = new AME({
                 position: { lat, lng },
                 title:    act.name || act.title || 'POI',
             });

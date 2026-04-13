@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2, Award, Crosshair } from 'lucide-react';
 import { aiRecommendationService } from '@/services/aiRecommendationService';
 import { useUserContext } from '../hooks/useUserContext';
+import { useCity } from '../context/CityContext';
 import BottomNavigation from '../components/BottomNavigation';
 import TopBar from "@/components/TopBar";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -233,6 +234,7 @@ const getAffinityScore = (tour, graph) => {
 
 const DashboardUser = () => {
     const { firstName, city, lat, lng, temperatureC, weatherCondition, isLoading } = useUserContext();
+    const { gpsPromptNeeded, requestGPS } = useCity();
     const navigate = useNavigate();
     const [showCustomOptions, setShowCustomOptions] = useState(false);
     const [showNotificationPreview, setShowNotificationPreview] = useState(false);
@@ -394,6 +396,25 @@ const DashboardUser = () => {
             <TopBar />
 
             <main className="max-w-md mx-auto px-6 space-y-6 pt-6">
+
+                {/* Banner GPS — richiedi permesso con user gesture (necessario su iOS Safari) */}
+                {gpsPromptNeeded && (
+                    <motion.button
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        onClick={requestGPS}
+                        className="w-full flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-2xl p-4 text-left"
+                    >
+                        <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0">
+                            <MapPin className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-bold text-blue-800">Attiva la tua posizione</p>
+                            <p className="text-xs text-blue-600">Per tour personalizzati nella tua zona</p>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-blue-400" />
+                    </motion.button>
+                )}
 
                 {/* USER PROGRESS / HISTORY MODULE */}
                 {tourHistory.length > 0 && (

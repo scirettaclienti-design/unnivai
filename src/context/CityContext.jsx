@@ -1,8 +1,9 @@
-import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef, useCallback } from 'react';
 
 const CityContext = createContext();
 
 const STORAGE_KEY = 'user_city';
+const GPS_GRANTED_KEY = 'dvai_gps_granted';
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/reverse';
 
 async function reverseGeocodeCity(lat, lon) {
@@ -31,13 +32,11 @@ export function CityProvider({ children }) {
     const [isManual, setIsManual] = useState(false);
     const [gpsResolved, setGpsResolved] = useState(false);
     const [gpsDenied, setGpsDenied] = useState(false);
+    const [gpsPromptNeeded, setGpsPromptNeeded] = useState(false);
     const gpsAttempted = useRef(false);
 
-    // GPS-first: chiedi SEMPRE la posizione al mount
-    useEffect(() => {
-        if (gpsAttempted.current) return;
-        gpsAttempted.current = true;
-
+    // Funzione riusabile per tentare il GPS
+    const attemptGPS = useCallback(() => {
         if (!navigator.geolocation) {
             setGpsResolved(true);
             setGpsDenied(true);
@@ -51,6 +50,10 @@ export function CityProvider({ children }) {
                     setGpsResolved(true);
                     return;
                 }
+                // Segna come granted per futuri mount
+                try { localStorage.setItem(GPS_GRANTED_KEY, '1'); } catch {}
+                setGpsPromptNeeded(false);
+
                 const gpsCity = await reverseGeocodeCity(latitude, longitude);
                 if (gpsCity && typeof gpsCity === 'string' && gpsCity.trim()) {
                     const clean = gpsCity.trim();
@@ -61,13 +64,57 @@ export function CityProvider({ children }) {
                 setGpsDenied(false);
             },
             (err) => {
-                // GPS negato → segnala per mostrare selector manuale
                 setGpsResolved(true);
-                setGpsDenied(err.code === 1); // PERMISSION_DENIED
+                setGpsDenied(err.code === 1);
+                setGpsPromptNeeded(false);
+                try { localStorage.removeItem(GPS_GRANTED_KEY); } catch {}
             },
-            { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
         );
     }, []);
+
+    // Al mount: controlla se il permesso è già stato granted in passato
+    useEffect(() => {
+        if (gpsAttempted.current) return;
+        gpsAttempted.current = true;
+
+        if (!navigator.geolocation) {
+            setGpsResolved(true);
+            setGpsDenied(true);
+            return;
+        }
+
+        // Check Permissions API (non disponibile ovunque — Safari la supporta parzialmente)
+        const checkAndAttempt = async () => {
+            try {
+                if (navigator.permissions) {
+                    const status = await navigator.permissions.query({ name: 'geolocation' });
+                    if (status.state === 'granted') {
+                        attemptGPS();
+                        return;
+                    }
+                    if (status.state === 'denied') {
+                        setGpsResolved(true);
+                        setGpsDenied(true);
+                        return;
+                    }
+                }
+            } catch {}
+
+            // Permesso non ancora deciso — su iOS serve user gesture
+            // Se il permesso era stato dato in una sessione precedente, prova
+            const wasGranted = localStorage.getItem(GPS_GRANTED_KEY);
+            if (wasGranted) {
+                attemptGPS();
+            } else {
+                // Mostra banner per richiedere il permesso con click
+                setGpsPromptNeeded(true);
+                setGpsResolved(true); // Non bloccare il rendering
+            }
+        };
+
+        checkAndAttempt();
+    }, [attemptGPS]);
 
     const updateCity = (newCity) => {
         if (!newCity || typeof newCity !== 'string') return;
@@ -75,6 +122,7 @@ export function CityProvider({ children }) {
         if (!clean) return;
         setCity(clean);
         setIsManual(true);
+        setGpsPromptNeeded(false);
         try { localStorage.setItem(STORAGE_KEY, clean); } catch {}
     };
 
@@ -83,10 +131,20 @@ export function CityProvider({ children }) {
         setGpsDenied(false);
         gpsAttempted.current = false;
         try { localStorage.removeItem(STORAGE_KEY); } catch {}
+        attemptGPS();
     };
 
+    // requestGPS: chiamato da un onClick (user gesture) per triggherare il prompt iOS
+    const requestGPS = useCallback(() => {
+        setGpsPromptNeeded(false);
+        attemptGPS();
+    }, [attemptGPS]);
+
     return (
-        <CityContext.Provider value={{ city, setCity: updateCity, isManual, gpsResolved, gpsDenied, resetToGPS }}>
+        <CityContext.Provider value={{
+            city, setCity: updateCity, isManual, gpsResolved, gpsDenied,
+            gpsPromptNeeded, requestGPS, resetToGPS
+        }}>
             {children}
         </CityContext.Provider>
     );

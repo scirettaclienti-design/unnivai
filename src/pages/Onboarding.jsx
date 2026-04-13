@@ -31,9 +31,8 @@ const INTERESTS = [
 
 const STEP_CONFIG = [
     { id: 'welcome',   title: 'Benvenuto su DoveVAI',   subtitle: 'Il turismo italiano, reinventato' },
-    { id: 'city',      title: 'Dove ti trovi?',          subtitle: 'Scegli la tua città di partenza' },
     { id: 'interests', title: 'Cosa ti appassiona?',     subtitle: 'Seleziona almeno un interesse' },
-    { id: 'ready',     title: 'Tutto pronto!',            subtitle: 'Inizia la tua avventura italiana' },
+    { id: 'ready',     title: 'Tutto pronto!',            subtitle: 'La tua posizione è stata rilevata automaticamente' },
 ];
 
 const slideVariants = {
@@ -71,14 +70,10 @@ export default function Onboarding() {
     const handleComplete = async () => {
         setIsSaving(true);
         try {
-            // Aggiorna CityContext immediatamente
-            setCity(selectedCity);
-
-            // Salva preferenze su Supabase profiles
+            // Salva solo preferenze/interessi — la città viene dal GPS
             if (user?.id) {
                 await supabase.from('profiles').upsert({
                     id: user.id,
-                    current_city: selectedCity,
                     interests: selectedInterests,
                     onboarding_complete: true,
                     updated_at: new Date().toISOString(),
@@ -97,7 +92,7 @@ export default function Onboarding() {
     };
 
     const canProceed = () => {
-        if (step === 2) return selectedInterests.length > 0;
+        if (step === 1) return selectedInterests.length > 0; // step interessi
         return true;
     };
 
@@ -176,34 +171,8 @@ export default function Onboarding() {
                         )}
 
                         {/* Step 1: Città */}
+                        {/* Step 1: Interessi (città viene dal GPS) */}
                         {step === 1 && (
-                            <div>
-                                <div className="text-center mb-5">
-                                    <MapPin className="w-10 h-10 text-terracotta-500 mx-auto mb-2" />
-                                    <h2 className="text-xl font-black text-gray-800">{STEP_CONFIG[1].title}</h2>
-                                    <p className="text-gray-500 text-xs mt-1">{STEP_CONFIG[1].subtitle}</p>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
-                                    {ITALIAN_CITIES.map(city => (
-                                        <motion.button
-                                            key={city}
-                                            onClick={() => setSelectedCity(city)}
-                                            className={`px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                                                selectedCity === city
-                                                    ? 'bg-terracotta-500 text-white shadow-lg shadow-terracotta-200'
-                                                    : 'bg-gray-50 text-gray-600 hover:bg-terracotta-50 hover:text-terracotta-600'
-                                            }`}
-                                            whileTap={{ scale: 0.95 }}
-                                        >
-                                            {city}
-                                        </motion.button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Step 2: Interessi */}
-                        {step === 2 && (
                             <div>
                                 <div className="text-center mb-4">
                                     <Compass className="w-10 h-10 text-terracotta-500 mx-auto mb-2" />
@@ -244,7 +213,7 @@ export default function Onboarding() {
                         )}
 
                         {/* Step 3: Pronto */}
-                        {step === 3 && (
+                        {step === 2 && (
                             <div className="text-center">
                                 <motion.div
                                     initial={{ scale: 0 }}

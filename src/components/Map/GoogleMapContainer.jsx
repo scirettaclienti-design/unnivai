@@ -71,10 +71,10 @@ export default function GoogleMapContainer({
                 defaultHeading={heading}
                 defaultTilt={tilt}
                 
-                zoomControl={true}
-                mapTypeControl={true}
-                streetViewControl={true}
-                fullscreenControl={true}
+                zoomControl={window.innerWidth > 768}
+                mapTypeControl={false}
+                streetViewControl={false}
+                fullscreenControl={false}
                 {...props}
             >
                 {children}

@@ -5,10 +5,6 @@ const CityContext = createContext();
 const STORAGE_KEY = 'user_city';
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/reverse';
 
-/**
- * Reverse geocode coordinate GPS → nome città via Nominatim (OSM).
- * Ritorna null se fallisce.
- */
 async function reverseGeocodeCity(lat, lon) {
     try {
         const res = await fetch(
@@ -28,25 +24,23 @@ async function reverseGeocodeCity(lat, lon) {
 }
 
 export function CityProvider({ children }) {
-    // Inizializza da localStorage come fallback, poi il GPS sovrascriverà
     const [city, setCity] = useState(() => {
-        try {
-            return localStorage.getItem(STORAGE_KEY) || 'Roma';
-        } catch {
-            return 'Roma';
-        }
+        try { return localStorage.getItem(STORAGE_KEY) || 'Roma'; }
+        catch { return 'Roma'; }
     });
     const [isManual, setIsManual] = useState(false);
     const [gpsResolved, setGpsResolved] = useState(false);
+    const [gpsDenied, setGpsDenied] = useState(false);
     const gpsAttempted = useRef(false);
 
-    // Al mount, chiedi SEMPRE la posizione GPS
+    // GPS-first: chiedi SEMPRE la posizione al mount
     useEffect(() => {
         if (gpsAttempted.current) return;
         gpsAttempted.current = true;
 
         if (!navigator.geolocation) {
             setGpsResolved(true);
+            setGpsDenied(true);
             return;
         }
 
@@ -64,16 +58,17 @@ export function CityProvider({ children }) {
                     try { localStorage.setItem(STORAGE_KEY, clean); } catch {}
                 }
                 setGpsResolved(true);
+                setGpsDenied(false);
             },
-            () => {
-                // GPS negato o errore — usa il fallback localStorage/Roma
+            (err) => {
+                // GPS negato → segnala per mostrare selector manuale
                 setGpsResolved(true);
+                setGpsDenied(err.code === 1); // PERMISSION_DENIED
             },
             { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
         );
     }, []);
 
-    // Selezione manuale dell'utente (TopBar, onboarding)
     const updateCity = (newCity) => {
         if (!newCity || typeof newCity !== 'string') return;
         const clean = newCity.trim();
@@ -85,12 +80,13 @@ export function CityProvider({ children }) {
 
     const resetToGPS = () => {
         setIsManual(false);
+        setGpsDenied(false);
         gpsAttempted.current = false;
         try { localStorage.removeItem(STORAGE_KEY); } catch {}
     };
 
     return (
-        <CityContext.Provider value={{ city, setCity: updateCity, isManual, gpsResolved, resetToGPS }}>
+        <CityContext.Provider value={{ city, setCity: updateCity, isManual, gpsResolved, gpsDenied, resetToGPS }}>
             {children}
         </CityContext.Provider>
     );

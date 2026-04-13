@@ -977,7 +977,7 @@ const MapPage = () => {
                             <>
                                 <WeatherAirBadge onClick={() => setIsGeminiOpen(true)} city={activeCity} center={activeTourData?.center || passedCenter || localCenter || (lat && lng ? { latitude: lat, longitude: lng } : null)} />
 
-                                <div className="absolute top-6 left-1/2 -translate-x-1/2 md:top-4 md:left-[4.5rem] md:translate-x-0 z-40 w-[90%] md:w-96 max-w-sm pointer-events-auto animate-in slide-in-from-top-6 fade-in duration-500">
+                                <div className="absolute top-6 left-1/2 -translate-x-1/2 md:top-4 md:left-[4.5rem] md:translate-x-0 z-40 w-[85%] md:w-96 max-w-sm pointer-events-auto animate-in slide-in-from-top-6 fade-in duration-500" style={{ top: 'max(1.5rem, env(safe-area-inset-top))' }}>
                                     <CitySearchBar 
                                         activeCity={activeCity}
                                         onCitySelect={(selection) => {
@@ -1215,7 +1215,7 @@ const MapPage = () => {
 
             {/* 5. EXPLORE DRAWER */}
             {viewMode === 'tours' && !selectedActivity && !selectedPartner && !isNavigating && (
-                <div className="absolute bottom-8 left-0 w-full z-40 px-4 pointer-events-none">
+                <div className="absolute left-0 w-full z-40 px-4 pointer-events-none" style={{ bottom: 'max(2rem, calc(env(safe-area-inset-bottom) + 0.5rem))' }}>
                     {/* Background-refetch indicator (city changed, stale data still showing) */}
                     {isFetchingTours && !isLoadingTours && (
                         <div className="flex justify-center mb-2 pointer-events-none">

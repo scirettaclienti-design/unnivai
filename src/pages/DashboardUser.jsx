@@ -318,11 +318,12 @@ const DashboardUser = () => {
             try {
                 const tours = await dataService.getToursByCity(currentCity);
                 if (tours && tours.length > 0) {
-                    finalTours = tours;
-
-                    // Utente con preferenze: riordina per affinità
                     if (hasPreferences && preferenceGraph) {
-                        finalTours = rankByPreferences(finalTours, preferenceGraph);
+                        // Utente con preferenze: ordina per affinità col preference graph
+                        finalTours = rankByPreferences(tours, preferenceGraph);
+                    } else {
+                        // Utente nuovo: ordina per rating (migliori prima)
+                        finalTours = [...tours].sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
                     }
                 }
             } catch (e) {

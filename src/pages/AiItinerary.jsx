@@ -481,13 +481,13 @@ export default function AIItineraryPage() {
                                 { text: "Analisi preferenze", color: "bg-blue-400" },
                                 { text: "Selezione gemme nascoste", color: "bg-purple-400" },
                                 { text: "Ottimizzazione percorso", color: "bg-green-400" }
-                            ].map((item) => (
+                            ].map((item, idx) => (
                                 <motion.div
                                     key={item.text}
                                     className="flex items-center space-x-3 bg-white/50 rounded-lg p-3"
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: index * 0.8 }}
+                                    transition={{ delay: idx * 0.8 }}
                                 >
                                     <motion.div
                                         className={`w-2 h-2 rounded-full ${item.color}`}

@@ -92,7 +92,7 @@ export default function ChatModalUser({ isOpen, onClose, request, userId, userNa
                     initial={{ y: 60, opacity: 0 }} 
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 60, opacity: 0 }}
-                    className="relative z-10 bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl"
+                    className="relative z-10 bg-white w-full max-w-md max-h-[85vh] rounded-3xl overflow-hidden overflow-y-auto shadow-2xl"
                 >
                     {/* MODAL HEADER */}
                     <div className="bg-gradient-to-r from-terracotta-500 to-terracotta-600 px-5 py-4 flex items-center gap-3">

@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Previeni scroll orizzontale su mobile */
+html, body, #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
 /* Utility per troncamento testo mobile-friendly */
 .line-clamp-2 {
     display: -webkit-box;

@@ -565,12 +565,12 @@ export default function NotificationsPage() {
                                             <button
                                                 onClick={() => handleGenerateAITour(selectedNotification)}
                                                 disabled={isGeneratingTour}
-                                                className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-2"
+                                                className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-1.5 text-sm whitespace-nowrap"
                                             >
                                                 {isGeneratingTour ? (
-                                                    <><Loader className="w-4 h-4 animate-spin" /> Genero tour...</>
+                                                    <><Loader className="w-4 h-4 animate-spin" /> Genero...</>
                                                 ) : (
-                                                    <><Sparkles className="w-4 h-4" /> GENERA TOUR AI</>
+                                                    <><Sparkles className="w-4 h-4" /> TOUR AI</>
                                                 )}
                                             </button>
                                             <Link

@@ -42,12 +42,29 @@ export const sanitizeMessage = (text) => {
         sanitizedText = sanitizedText.replace(testualeChiocciolaRegex, '[Email Nascosta]');
     }
 
-    // 4. Regex base per Link Esterni (Facebook, Instagram, ecc) esclusi domini unnivai
-    // const urlRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi;
-    const socialRegex = /(?:instagram\.com|ig:|facebook\.com|fb\.com|wa\.me|t\.me)\/[a-zA-Z0-9_.-]+/gi;
+    // 4. URL generici (http, https, www, .com, .it, .org)
+    const urlRegex = /(?:https?:\/\/|www\.)[^\s]+/gi;
+    if (urlRegex.test(sanitizedText)) {
+        hasViolations = true;
+        sanitizedText = sanitizedText.replace(urlRegex, '[Link Nascosto]');
+    }
+
+    // 5. Social links e handles specifici
+    const socialRegex = /(?:instagram\.com|ig:|facebook\.com|fb\.com|wa\.me|t\.me|whatsapp\.com)\/[a-zA-Z0-9_.-]+/gi;
     if (socialRegex.test(sanitizedText)) {
         hasViolations = true;
         sanitizedText = sanitizedText.replace(socialRegex, '[Link Nascosto]');
+    }
+
+    // 6. Social handles (@username) — ma non @dominio (già coperto da email)
+    const handleRegex = /@[a-zA-Z0-9_]{3,30}\b/g;
+    const handleTest = sanitizedText.match(handleRegex);
+    if (handleTest && handleTest.some(h => !h.includes('.'))) {
+        hasViolations = true;
+        sanitizedText = sanitizedText.replace(handleRegex, (match) => {
+            if (match.includes('.')) return match; // è una email già gestita
+            return '[Handle Nascosto]';
+        });
     }
 
     return {

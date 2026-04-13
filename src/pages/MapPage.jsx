@@ -377,6 +377,8 @@ const MapPage = () => {
     const [completedSteps, setCompletedSteps] = useState([]);
     const [flyToLabel, setFlyToLabel] = useState(null);
     const [reviewModalData, setReviewModalData] = useState(null);
+    const [voiceEnabled, setVoiceEnabled] = useState(true);
+    const lastSpokenRef = useRef('');
     const lastSurprisePos = useRef(null);
     const surpriseCount = useRef(0);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
@@ -396,6 +398,19 @@ const MapPage = () => {
     const [routeStats, setRouteStats] = useState(null); // { durationSec, distanceM, mode }
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
     const [isGeminiOpen, setIsGeminiOpen] = useState(false);
+
+    // Voice navigation: leggi le indicazioni stradali con SpeechSynthesis
+    useEffect(() => {
+        if (!voiceEnabled || !isNavigating || !routeStats?.steps?.[0]?.instructions) return;
+        const text = routeStats.steps[0].instructions.replace(/<[^>]*>/g, ''); // strip HTML
+        if (text === lastSpokenRef.current || !window.speechSynthesis) return;
+        lastSpokenRef.current = text;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'it-IT';
+        utterance.rate = 1.0;
+        window.speechSynthesis.speak(utterance);
+    }, [voiceEnabled, isNavigating, routeStats?.steps?.[0]?.instructions]);
 
     useEffect(() => {
         const handleOnline = () => setIsOffline(false);
@@ -1020,7 +1035,7 @@ const MapPage = () => {
                         ) : (isRoutePlannerOpen || isNavigating) ? (
                             <>
                                 {/* GOOGLE MAPS STYLE ROUTE PLANNER (SIDEBAR ON DESKTOP, TOP ON MOBILE) */}
-                                <div className={`fixed md:absolute inset-x-0 bottom-0 md:inset-x-auto md:top-4 md:left-4 z-[60] bg-white md:rounded-[24px] rounded-t-[32px] shadow-2xl md:w-[400px] flex flex-col transition-transform duration-500 ease-in-[cubic-bezier(0.32,0.72,0,1)] ${isRoutePlannerOpen && !isNavigating ? 'translate-y-0 md:h-[calc(100vh-32px)] md:max-h-[800px] h-[55vh] max-h-[50vh]' : 'translate-y-full md:-translate-x-[120%] md:translate-y-0'}`}>
+                                <div className={`fixed md:absolute inset-x-0 bottom-0 md:inset-x-auto md:top-4 md:left-4 z-[60] bg-white md:rounded-[24px] rounded-t-[32px] shadow-2xl md:w-[400px] flex flex-col transition-transform duration-500 ease-in-[cubic-bezier(0.32,0.72,0,1)] ${isRoutePlannerOpen && !isNavigating ? 'translate-y-0 md:h-[calc(100vh-32px)] md:max-h-[800px] h-[45vh] max-h-[45vh]' : 'translate-y-full md:-translate-x-[120%] md:translate-y-0'}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
                                     {/* Header / Back */}
                                     <div className="flex items-start gap-3 p-4 pt-12 md:pt-6">
                                         <button onClick={() => setIsRoutePlannerOpen(false)} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors text-gray-700">
@@ -1213,6 +1228,12 @@ const MapPage = () => {
                                 {routeStats?.distanceM ? `${(routeStats.distanceM / 1000).toFixed(1)} km · ~${Math.round((routeStats.durationSec || 0) / 60)} min` : ''}
                             </div>
                         </div>
+                        <button
+                            onClick={() => { setVoiceEnabled(v => !v); window.speechSynthesis?.cancel(); }}
+                            className={`px-3 py-2 rounded-full text-xs font-bold transition-all ${voiceEnabled ? 'bg-white/20 text-white' : 'bg-white/10 text-white/40'}`}
+                        >
+                            {voiceEnabled ? '🔊' : '🔇'}
+                        </button>
                         <button
                             onClick={handleEndNavigation}
                             className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full text-xs font-bold shadow-[0_4px_12px_rgba(239,68,68,0.3)] transition-all hover:scale-105 active:scale-95"

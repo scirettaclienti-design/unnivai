@@ -351,7 +351,12 @@ const MapPage = () => {
             },
             (err) => {
                 console.warn('MapPage GPS Fallback failed:', err);
-                setIsLocating(false); // Timeout/Deny fallback
+                setIsLocating(false);
+                if (err.code === 1) { // PERMISSION_DENIED
+                    window.dispatchEvent(new CustomEvent('dvai:toast', {
+                        detail: { message: `📍 Geolocalizzazione non attiva. Sto usando ${activeCity} come punto di partenza.`, type: 'info', duration: 5000 }
+                    }));
+                }
             },
             { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
@@ -1062,7 +1067,10 @@ const MapPage = () => {
                                                         </span>
                                                     </div>
                                                 ) : (
-                                                    <div className="mt-2 h-6 w-32 bg-gray-100 rounded animate-pulse" />
+                                                    <div className="mt-2 flex items-center gap-2">
+                                                        <div className="h-6 w-24 bg-gray-100 rounded animate-pulse" />
+                                                        <span className="text-xs text-gray-400">Calcolo percorso...</span>
+                                                    </div>
                                                 )}
                                             </div>
                                     </div>

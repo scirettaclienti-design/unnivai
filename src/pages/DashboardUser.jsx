@@ -361,10 +361,28 @@ const DashboardUser = () => {
         }
     }, []);
 
-    if (isLoading) {
+    // Timeout safety: se isLoading dura > 8s, mostra comunque il contenuto
+    const [loadingTimeout, setLoadingTimeout] = useState(false);
+    useEffect(() => {
+        if (isLoading) {
+            const t = setTimeout(() => setLoadingTimeout(true), 8000);
+            return () => clearTimeout(t);
+        }
+        setLoadingTimeout(false);
+    }, [isLoading]);
+
+    if (isLoading && !loadingTimeout) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-orange-50 to-white gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200">
+                    <span className="text-2xl">🗺️</span>
+                </div>
+                <div className="flex gap-1">
+                    {[0, 1, 2].map(i => (
+                        <div key={i} className="w-2 h-2 rounded-full bg-orange-400" style={{ animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite` }} />
+                    ))}
+                </div>
+                <style>{`@keyframes pulse { 0%,80%,100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1.2); } }`}</style>
             </div>
         );
     }

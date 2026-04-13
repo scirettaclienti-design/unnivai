@@ -396,10 +396,14 @@ export default function NotificationsPage() {
                                             </motion.button>
                                         </div>
 
-                                        {/* Delete Button */}
+                                        {/* Delete Button with confirmation */}
                                         <motion.button
                                             onClick={(e) => {
                                                 e.stopPropagation();
+                                                if (notification.type === 'price_offer' || notification.type === 'payment_confirmed') {
+                                                    // Conferma per notifiche importanti
+                                                    if (!window.confirm('Eliminare questa notifica?')) return;
+                                                }
                                                 deleteNotification(notification.id);
                                             }}
                                             className="p-2 ml-2 text-gray-400 hover:text-red-500 bg-white hover:bg-red-50 border border-gray-100 hover:border-red-100 rounded-xl transition-colors"

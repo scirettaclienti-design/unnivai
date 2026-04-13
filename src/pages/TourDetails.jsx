@@ -730,6 +730,7 @@ export default function TourDetailsPage() {
     const [nearbyPartners, setNearbyPartners] = useState([]);
     const [guideRating, setGuideRating] = useState({ avg: 0, count: 0 });
     const [reviews, setReviews] = useState([]);
+    const [ctaDisabled, setCtaDisabled] = useState(false);
     const { trackTourView } = useAILearning();
 
     // Track tour view per il preference graph
@@ -912,6 +913,10 @@ export default function TourDetailsPage() {
     };
 
     const handleSmartAction = () => {
+        if (ctaDisabled) return;
+        setCtaDisabled(true);
+        setTimeout(() => setCtaDisabled(false), 2000); // debounce 2s
+
         if (isGroupMode) {
             toast({ title: `Ti sei unito al gruppo di ${groupParticipants[0].name}! Ci vediamo al punto di incontro.`, type: 'success' });
             navigateToMap();
@@ -939,11 +944,14 @@ export default function TourDetailsPage() {
             <main className="max-w-md mx-auto pb-24">
                 {/* --- HERO SECTION --- */}
                 <div className="relative">
+                    {/* Placeholder blur gradient while image loads */}
+                    <div className="absolute inset-0 h-80 bg-gradient-to-br from-orange-200 via-orange-100 to-amber-100" />
                     <motion.img
+                                loading="eager"
                                 src={getItemImage(tour, tour.city)}
                                 onError={imgOnError(tour.city)}
                                 alt={tour.title}
-                                className="w-full h-80 object-cover"
+                                className="relative w-full h-80 object-cover"
                                 initial={{ scale: 1.2, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ duration: 0.8 }}

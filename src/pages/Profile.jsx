@@ -26,7 +26,7 @@ export default function ProfilePage() {
 
     // Dynamic Data State
     const [myRequests, setMyRequests] = useState([]);
-    const [stats, setStats] = useState({ tours: 0, guides: 0, rating: 5.0 });
+    const [stats, setStats] = useState({ tours: 0, guides: 0, rating: null });
     const [tourHistory, setTourHistory] = useState([]);
 
     // Sync local state when context loads real name
@@ -193,7 +193,7 @@ export default function ProfilePage() {
                             <h2 className="text-xl font-bold text-gray-800">{editName}</h2>
                             <p className="text-gray-600 flex items-center text-sm mb-1">
                                 <Mail className="w-3 h-3 mr-1 text-terracotta-500" />
-                                {user?.email ?? `${firstName?.toLowerCase()}@dovevai.it`}
+                                {user?.email || 'Email non verificata'}
                             </p>
                             <p className="text-gray-600 flex items-center text-sm">
                                 <MapPin className="w-3 h-3 mr-1 text-terracotta-500" />
@@ -213,7 +213,7 @@ export default function ProfilePage() {
                             <div className="text-xs text-gray-600">Guide</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-lg font-bold text-terracotta-600">{stats.rating}</div>
+                            <div className="text-lg font-bold text-terracotta-600">{stats.rating ?? '—'}</div>
                             <div className="text-xs text-gray-600">Rating</div>
                         </div>
                     </div>

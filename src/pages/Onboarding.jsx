@@ -90,10 +90,10 @@ export default function Onboarding() {
 
         } catch (err) {
             console.warn('[Onboarding] save failed:', err.message);
-        } finally {
-            setIsSaving(false);
-            navigate('/dashboard-user', { replace: true });
+            // Salva comunque il flag locale e procedi — l'utente non deve rimanere bloccato
         }
+        setIsSaving(false);
+        navigate('/dashboard-user', { replace: true });
     };
 
     const canProceed = () => {

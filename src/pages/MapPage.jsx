@@ -361,6 +361,16 @@ const MapPage = () => {
             },
             { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
+
+        // watchPosition continuo per pallino blu sempre aggiornato
+        const bgWatchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                setLocalCenter({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+            },
+            () => {},
+            { enableHighAccuracy: false, maximumAge: 5000 }
+        );
+        return () => navigator.geolocation.clearWatch(bgWatchId);
     }, []);
 
     // NEW STATES: Tour Completion Tracking

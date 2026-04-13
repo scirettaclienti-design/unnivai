@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import DOMPurify from 'dompurify';
 import {
     ArrowLeft, Search, Navigation as NavIcon, X, ArrowRight,

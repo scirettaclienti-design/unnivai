@@ -633,11 +633,13 @@ const Landing = () => {
 
             {/* VIDEO BG */}
             <motion.div className="absolute inset-0 z-0" style={{ scale: heroScale, opacity: heroOpacity }}>
+                {/* Video solo su desktop — troppo pesante su mobile */}
                 <video autoPlay loop muted playsInline onCanPlayThrough={() => setVideoLoaded(true)}
-                    className={`w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}>
+                    className={`hidden md:block w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}>
                     <source src="https://videos.pexels.com/video-files/4456997/4456997-uhd_2560_1440_25fps.mp4" type="video/mp4" />
                 </video>
-                {!videoLoaded && <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=2096" alt="" className="absolute inset-0 w-full h-full object-cover" />}
+                {/* Immagine statica su mobile + fallback desktop se video non carica */}
+                <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1200" alt="Italia" className={`absolute inset-0 w-full h-full object-cover ${videoLoaded ? 'md:opacity-0' : 'opacity-100'}`} />
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/50 to-gray-950/20" />
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-950/60 via-transparent to-gray-950/20" />
                 <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(3,7,18,0.7) 100%)' }} />

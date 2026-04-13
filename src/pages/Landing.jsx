@@ -453,7 +453,8 @@ const HowItWorksModal = ({ onClose }) => {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 250, damping: 28 }}
-                className="relative z-10 w-full h-full md:h-auto md:max-h-[92vh] md:max-w-5xl md:rounded-3xl overflow-hidden overflow-y-auto flex flex-col"
+                className="relative z-10 w-full h-full md:h-auto md:max-h-[92vh] md:max-w-5xl md:rounded-3xl overflow-y-scroll flex flex-col"
+                style={{ WebkitOverflowScrolling: 'touch' }}
                 style={{ background: '#090910' }}
                 onMouseEnter={pauseTimer}
                 onMouseLeave={() => goTo(step)} // restart timer on mouse leave
@@ -640,9 +641,8 @@ const Landing = () => {
                 </video>
                 {/* Immagine statica su mobile + fallback desktop se video non carica */}
                 <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1200" alt="Italia" className={`absolute inset-0 w-full h-full object-cover ${videoLoaded ? 'md:opacity-0' : 'opacity-100'}`} />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/50 to-gray-950/20" />
-                <div className="absolute inset-0 bg-gradient-to-r from-gray-950/60 via-transparent to-gray-950/20" />
-                <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(3,7,18,0.7) 100%)' }} />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-950/40 via-transparent to-gray-950/10 hidden md:block" />
             </motion.div>
 
             {/* PARTICLES */}

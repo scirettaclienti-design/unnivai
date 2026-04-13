@@ -8,12 +8,14 @@ import ChatModalUser from "../components/ChatModalUser";
 import { useUserContext } from "../hooks/useUserContext";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/use-toast";
+import { useAILearning } from "../hooks/useAILearning";
 import { supabase } from "../lib/supabase";
 
 export default function ProfilePage() {
     const { userId, firstName, city } = useUserContext();
     const { user } = useAuth();
     const { toast } = useToast();
+    const { preferenceGraph, totalInteractions } = useAILearning();
     const [editName, setEditName] = useState(firstName || "Viaggiatore");
     const [selectedTour, setSelectedTour] = useState(null);
     const [showShareModal, setShowShareModal] = useState(false);
@@ -216,6 +218,48 @@ export default function ProfilePage() {
                         </div>
                     </div>
                 </motion.div>
+
+                {/* Tour DNA */}
+                {totalInteractions >= 3 && preferenceGraph && Object.keys(preferenceGraph).length > 0 && (() => {
+                    const cats = Object.entries(preferenceGraph)
+                        .filter(([k]) => k.startsWith('cat:'))
+                        .sort(([, a], [, b]) => b - a)
+                        .slice(0, 4);
+                    const total = cats.reduce((s, [, v]) => s + v, 0) || 1;
+                    const DNA_COLORS = ['bg-orange-500', 'bg-blue-500', 'bg-emerald-500', 'bg-purple-500'];
+                    const DNA_EMOJIS = { food: '🍝', cultura: '🏛️', storia: '📜', arte: '🎨', natura: '🌿', shopping: '🛍️', relax: '☕', sport: '⚽' };
+
+                    return (
+                        <motion.div
+                            className="mb-6 bg-white rounded-2xl p-5 shadow-sm"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                        >
+                            <h3 className="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
+                                <span className="text-lg">🧬</span> Il tuo Tour DNA
+                            </h3>
+                            <div className="flex h-3 rounded-full overflow-hidden mb-3">
+                                {cats.map(([k, v], i) => (
+                                    <div key={k} className={`${DNA_COLORS[i]} transition-all`} style={{ width: `${(v / total) * 100}%` }} />
+                                ))}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {cats.map(([k, v], i) => {
+                                    const label = k.replace('cat:', '');
+                                    const pct = Math.round((v / total) * 100);
+                                    return (
+                                        <span key={k} className="flex items-center gap-1 text-xs font-medium text-gray-600 bg-gray-50 px-2.5 py-1 rounded-lg">
+                                            <span className={`w-2 h-2 rounded-full ${DNA_COLORS[i]}`} />
+                                            {DNA_EMOJIS[label] || '📍'} {label} {pct}%
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-[10px] text-gray-400 mt-2">{totalInteractions} interazioni analizzate</p>
+                        </motion.div>
+                    );
+                })()}
 
                 {/* Quick Actions */}
                 <motion.div

@@ -154,13 +154,14 @@ const generateItineraryLocal = (city, prefs, weather) => {
 const verifyPOIWithPlaces = async (poi, city) => {
     try {
         const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-        if (!MAPS_KEY) return true; // Nessuna chiave → skip verifica
+        if (!MAPS_KEY) return true;
 
-        const query = encodeURIComponent(`${poi.title} ${city} Italy`);
+        const searchQuery = poi.photo_query || `${poi.title} ${city} Italy`;
+        const query = encodeURIComponent(searchQuery);
         const res = await fetch(
-            `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${query}&inputtype=textquery&fields=name,geometry,place_id&locationbias=circle:50000@${poi.latitude},${poi.longitude}&key=${MAPS_KEY}`
+            `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${query}&inputtype=textquery&fields=name,geometry,place_id,rating,opening_hours,photos&locationbias=circle:50000@${poi.latitude},${poi.longitude}&key=${MAPS_KEY}`
         );
-        if (!res.ok) return true; // Se Places non risponde → mantieni il POI
+        if (!res.ok) return true;
 
         const data = await res.json();
         if (data.status !== 'OK' || !data.candidates?.length) {
@@ -168,8 +169,9 @@ const verifyPOIWithPlaces = async (poi, city) => {
             return false;
         }
 
-        // Controlla che le coordinate Places siano ragionevolmente vicine a quelle AI
         const place = data.candidates[0];
+
+        // Correggi coordinate se distanti > 5km
         if (place.geometry?.location) {
             const { lat, lng } = place.geometry.location;
             const distKm = Math.sqrt(
@@ -177,15 +179,22 @@ const verifyPOIWithPlaces = async (poi, city) => {
                 Math.pow((lng - poi.longitude) * 111 * Math.cos(poi.latitude * Math.PI / 180), 2)
             );
             if (distKm > 5) {
-                // Coordinate AI distanti > 5 km da Places → correggi coordinate
-                console.warn(`[DVAI-034] Coordinate corrette per "${poi.title}": ${lat},${lng}`);
-                poi.latitude  = lat;
+                poi.latitude = lat;
                 poi.longitude = lng;
             }
         }
+
+        // Arricchisci con dati Google Places
+        if (place.place_id) poi.googlePlaceId = place.place_id;
+        if (place.rating) poi.googleRating = place.rating;
+        if (place.opening_hours?.open_now !== undefined) poi.openNow = place.opening_hours.open_now;
+        if (place.photos?.[0]?.photo_reference) {
+            poi.googlePhoto = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=${place.photos[0].photo_reference}&key=${MAPS_KEY}`;
+        }
+
         return true;
     } catch {
-        return true; // In caso di errore rete → mantieni il POI
+        return true;
     }
 };
 
@@ -225,31 +234,35 @@ export const aiRecommendationService = {
 
 REGOLE ASSOLUTE:
 1. Rispondi SOLO con JSON valido. Zero testo fuori dal JSON. Zero commenti. Zero markdown.
-2. Ogni coordinata DEVE essere reale e verificabile su Google Maps per ${city}. Latitudine tra 36-47, Longitudine tra 6-19 (Italia).
+2. Le coordinate DEVONO essere precise al punto esatto del POI (ingresso principale), non al centro della strada. Latitudine tra 36-47, Longitudine tra 6-19 (Italia).
 3. MAI iniziare con la tappa più ovvia/turistica della città. La prima tappa è una perla nascosta.
 4. Il tour ha una NARRATIVA — non è una lista. Ogni tappa porta logicamente alla successiva.
 5. Tra una tappa e l'altra, aggiungi nel campo "transition" cosa si vede camminando (es: "5 min a piedi, passerai per vicolo dei Serpenti dove c'è un murales degli anni '70").
 6. Per ogni tappa: perché vale la pena andarci ORA (${timeContext}).
 7. Le descrizioni sono evocative, dirette, mai da Wikipedia. Max 120 caratteri.
-8. CONTESTO GRUPPO: se "coppia" → posti intimi, tramonti, tavoli per due, atmosfera romantica. Se "amici" → locali vivaci, street food, piazze sociali. Se "famiglia" → posti kid-friendly, gelato, parchi. Se "solo" → caffè con vista, librerie, angoli tranquilli.
-9. Per città meno conosciute (non Roma/Milano/Firenze/Napoli/Venezia): usa POI verificabili, NON inventare nomi. Se non sei sicuro di un posto, usa la categoria ("un'enoteca storica nel centro") piuttosto che un nome falso.
-10. Per tour multi-giorno: il giorno 2 riprende dove finisce il giorno 1. Narrativa continua, non ripartire da zero.
+8. CONTESTO GRUPPO: se "coppia" → posti intimi, tramonti, tavoli per due. Se "amici" → locali vivaci, street food, piazze sociali. Se "famiglia" → posti kid-friendly, gelato, parchi. Se "solo" → caffè con vista, librerie, angoli tranquilli.
+9. Non suggerire MAI posti chiusi. I musei chiudono alle 19. I ristoranti aprono alle 12 e 19. I bar aprono alle 7. Adatta al contesto orario.
+10. Per città NON top-6 (Roma/Milano/Firenze/Napoli/Venezia/Torino): sii conservativo. Suggerisci SOLO posti che sei CERTO esistano. Meglio 3 tappe sicure che 5 inventate. Se non conosci un posto specifico, usa la categoria ("un'enoteca storica nel centro") piuttosto che un nome falso.
+11. Per tour multi-giorno: il giorno 2 riprende dove finisce il giorno 1. Narrativa continua, non ripartire da zero.
+12. Il TITOLO del tour deve essere evocativo e unico. Es: "La Roma che non dorme mai" non "Tour serale di Roma". Es: "I vicoli segreti di Bari vecchia" non "Tour di Bari".
+13. Includi "photo_query" per ogni tappa: la stringa di ricerca Google Places più precisa per trovare la foto reale del posto (es: "Caffè Greco Via Condotti Roma").
 
 Schema JSON ESATTO:
 {
   "days": [{
     "day": 1,
-    "title": "Titolo evocativo (non 'Giorno 1 a Roma')",
+    "title": "Titolo evocativo unico (NON 'Giorno 1 a ${city}')",
     "weather": { "condition": "${weather?.condition || 'Soleggiato'}", "temperature": ${weather?.temperature || 22}, "icon": "${weatherIcon}" },
     "suggestedTransit": "walking|bus|metro",
     "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
     "stops": [{
       "time": "HH:MM",
       "title": "Nome REALE del posto (deve esistere su Google Maps)",
-      "description": "Descrizione evocativa, diretta, da insider",
+      "description": "Descrizione evocativa, diretta, da insider (max 120 car)",
       "transition": "Come arrivi alla prossima tappa (distanza, cosa vedi camminando)",
-      "insiderTip": "Consiglio da local (es: 'chiedi il tavolo sul terrazzo nascosto')",
+      "insiderTip": "Consiglio da local",
       "bestTime": "Perché questo è il momento giusto per questa tappa",
+      "photo_query": "Nome Posto Indirizzo Città (per ricerca Google Places foto)",
       "suggestedMinutes": 30,
       "type": "cultura|storia|food|shopping|relax|arte|natura",
       "location": "Indirizzo reale o quartiere",

@@ -12,6 +12,7 @@ import UnnivaiMap from '../components/UnnivaiMap';
 import { WeatherAirBadge } from '../components/Map/WeatherAirBadge';
 import { POIDetailDrawer } from '../components/Map/POIDetailDrawer';
 import { TourSummaryModal } from '../components/Map/TourSummaryModal';
+import ReviewModal from '../components/ReviewModal';
 import { CitySearchBar } from '../components/Map/CitySearchBar';
 import { AIDrawer } from '../components/Map/AIDrawer';
 import React from 'react';
@@ -359,6 +360,7 @@ const MapPage = () => {
     // NEW STATES: Tour Completion Tracking
     const [completedSteps, setCompletedSteps] = useState([]);
     const [flyToLabel, setFlyToLabel] = useState(null);
+    const [reviewModalData, setReviewModalData] = useState(null);
     const lastSurprisePos = useRef(null);
     const surpriseCount = useRef(0);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
@@ -1392,6 +1394,12 @@ const MapPage = () => {
                 isOpen={isSummaryModalOpen}
                 onClose={() => setIsSummaryModalOpen(false)}
                 titleName={tourData?.title || "Storico Urbano"}
+                guideId={tourData?.guide_id || null}
+                guideName={tourData?.guide || null}
+                tourId={tourData?.id || tourData?.tourId || null}
+                onReview={({ tourId: tid, guideId: gid, guideName: gn }) => {
+                    setReviewModalData({ tourId: tid, guideId: gid, guideName: gn });
+                }}
                 stats={{
                     duration: routeStats ? `${Math.round(routeStats.durationSec / 60)} min` : (tourData?.duration || '1h 20m'),
                     distance: routeStats ? (routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m') : '2.4 km',
@@ -1420,6 +1428,16 @@ const MapPage = () => {
                 selectedPOI={selectedPOI} 
                 activeCity={activeCity} 
             />
+            {reviewModalData && (
+                <ReviewModal
+                    isOpen={!!reviewModalData}
+                    onClose={() => setReviewModalData(null)}
+                    tourId={reviewModalData.tourId}
+                    guideId={reviewModalData.guideId}
+                    guideName={reviewModalData.guideName}
+                    tourTitle={tourData?.title}
+                />
+            )}
         </div>
     );
 };

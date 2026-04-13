@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Award, MapPin, Clock, MessageCircle } from 'lucide-react';
+import { X, Award, MapPin, Clock, MessageCircle, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-export const TourSummaryModal = ({ isOpen, onClose, stats, titleName }) => {
+export const TourSummaryModal = ({ isOpen, onClose, stats, titleName, guideId, guideName, tourId, onReview }) => {
     if (!isOpen) return null;
 
     useEffect(() => {
@@ -112,9 +112,18 @@ export const TourSummaryModal = ({ isOpen, onClose, stats, titleName }) => {
                             <MessageCircle size={18} /> Condividi su WhatsApp
                         </button>
 
-                        <button 
+                        {guideId && onReview && (
+                            <button
+                                onClick={() => { onClose(); onReview({ tourId, guideId, guideName }); }}
+                                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all text-sm uppercase tracking-wide"
+                            >
+                                <Star size={18} /> Lascia una Recensione
+                            </button>
+                        )}
+
+                        <button
                             onClick={onClose}
-                            className="w-full mt-3 bg-gray-100 text-gray-600 hover:bg-gray-200 py-4 rounded-2xl font-bold transition-colors text-sm"
+                            className="w-full mt-2 bg-gray-100 text-gray-600 hover:bg-gray-200 py-4 rounded-2xl font-bold transition-colors text-sm"
                         >
                             Torna alla Navigazione
                         </button>

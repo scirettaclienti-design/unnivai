@@ -34,8 +34,11 @@ export function createQueryBuilder(resolveValue = { data: null, error: null }) {
     limit:  vi.fn().mockReturnThis(),
     filter: vi.fn().mockReturnThis(),
 
+    // --- chainable ordering/limiting (Supabase allows chaining after order/limit) ---
+    order:  vi.fn().mockReturnThis(),
+
     // --- terminal read methods ---
-    order:       resolveTerminal,
+    then:        (...args) => Promise.resolve(resolveValue).then(...args),
     single:      resolveTerminal,
     maybeSingle: resolveTerminal,
 

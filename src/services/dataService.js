@@ -155,7 +155,7 @@ class DataService {
 
             if (!data || data.length === 0) return null;
 
-            return data.map(tour => this.mapTourToUI(tour));
+            return data.map(tour => tour ? this.mapTourToUI(tour) : null);
 
         } catch (err) {
             console.error('DataService unexpected error:', err);

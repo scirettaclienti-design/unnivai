@@ -572,26 +572,30 @@ const MapPage = () => {
         }
     }, [activeCity, lat, lng, cityData, showRoute, activeTourData, selectedActivity, isMapReady, localCenter, isLocating, isManual]);
 
-    // ─── AUTO-FIT TO ROUTE (PREVIEW & TOURS ONLY) ────────────────────────────
+    // ─── AUTO-FIT TO ROUTE (TOURS ONLY — NOT route planner) ────────────────────
     useEffect(() => {
-        // Only auto-fit when previewing a route or viewing a tour. DO NOT auto-fit during active navigation!
-        if (isNavigating || !mapRef.current) return;
+        // Only fit when viewing a tour route. NOT during navigation, NOT when route planner opens.
+        if (isNavigating || isRoutePlannerOpen || !mapRef.current || !showRoute) return;
 
-        const pointsToFit = showRoute ? (liveRoute || activeRoute) : (isRoutePlannerOpen && plannerPreviewRoute ? plannerPreviewRoute : []);
-        
+        const pointsToFit = liveRoute || activeRoute;
         if (!pointsToFit || pointsToFit.length < 2) return;
 
         try {
-            const lngs = pointsToFit.map(p => p.longitude || p.lng).filter(v => typeof v === 'number' && !isNaN(v));
-            const lats = pointsToFit.map(p => p.latitude || p.lat).filter(v => typeof v === 'number' && !isNaN(v));
-            if (lngs.length && lats.length) {
-                mapRef.current.fitBounds(
-                    [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
-                    { padding: { top: 100, bottom: 400, left: 50, right: 400 }, duration: 1500, maxZoom: 15 }
-                );
+            const lngs = pointsToFit.map(p => p.longitude || p.lng).filter(v => typeof v === 'number' && !isNaN(v) && Math.abs(v) > 0.1);
+            const lats = pointsToFit.map(p => p.latitude || p.lat).filter(v => typeof v === 'number' && !isNaN(v) && Math.abs(v) > 0.1);
+            if (lngs.length >= 2 && lats.length >= 2) {
+                const lngSpread = Math.max(...lngs) - Math.min(...lngs);
+                const latSpread = Math.max(...lats) - Math.min(...lats);
+                // Sanity check: se i bounds coprono > 2 gradi, qualcosa è sbagliato
+                if (lngSpread < 2 && latSpread < 2) {
+                    mapRef.current.fitBounds(
+                        [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
+                        { padding: { top: 100, bottom: 300, left: 50, right: 50 }, duration: 1500, maxZoom: 15 }
+                    );
+                }
             }
         } catch (e) { console.warn('fitBounds failed', e); }
-    }, [activeRoute, showRoute, plannerPreviewRoute, isRoutePlannerOpen, isNavigating]);
+    }, [activeRoute, showRoute, liveRoute, isNavigating, isRoutePlannerOpen]);
 
     // ─── GLOBAL TOURS QUERY ──────────────────────────────────────────────────
     const { data: globalTours, isLoading: isLoadingTours, isFetching: isFetchingTours } = useQuery({
@@ -688,7 +692,8 @@ const MapPage = () => {
             setRouteStats(null);
             setCompletedSteps([]);
         }
-        // Apri pannello selezione mezzo (AUTO/MEZZI/PIEDI/BICI)
+        // Chiudi la card POI/Activity detail (non sovrapporre)
+        // Il selectedPOI/selectedActivity resta per il calcolo del percorso
         setIsRoutePlannerOpen(true);
     };
 
@@ -1337,7 +1342,7 @@ const MapPage = () => {
             )}
 
             {/* 6. TOUR DETAIL CARD — visible during navigation too */}
-            {selectedActivity && (
+            {selectedActivity && !isRoutePlannerOpen && (
                 <div className={`absolute z-[50] animate-in slide-in-from-bottom-5 duration-300 ${isNavigating ? 'bottom-4 left-4 right-4' : 'bottom-0 left-0 right-0 lg:bottom-8 lg:left-8 lg:w-[400px]'}`}>
                     <div className={`bg-white shadow-2xl overflow-hidden ring-1 ring-black/5 ${isNavigating ? 'rounded-2xl' : 'rounded-t-3xl lg:rounded-3xl'}`}>
                         {/* Image section — compact during navigation */}

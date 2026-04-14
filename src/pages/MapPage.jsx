@@ -665,12 +665,15 @@ const MapPage = () => {
 
     const handleStartNavigationClick = () => {
         if (isNavigating) {
-            setIsNavigating(false); // Terminate current navigation to calculate new route
+            setIsNavigating(false);
             setLiveRoute(null);
             setRouteStats(null);
             setCompletedSteps([]);
+            setIsRoutePlannerOpen(true);
+            return;
         }
-        setIsRoutePlannerOpen(true);
+        // Avvia direttamente la navigazione (1 clic, non 2)
+        handleStartNavigationReal();
     };
 
     // ─── FULLSCREEN NAVIGATION (Google Maps style) ────────────────────────────
@@ -711,18 +714,36 @@ const MapPage = () => {
         setIsRoutePlannerOpen(false);
         setIsNavigating(true);
         setFollowing(true);
-        requestNavFullscreen(); // Entra in fullscreen come Google Maps
-        if (plannerPreviewRoute) {
-            // Guarantee immediate polyline render even if GPS fails
+        requestNavFullscreen();
+        setCompletedSteps([]);
+
+        // Imposta subito il percorso dal tour
+        if (activeRoute?.length > 0) {
+            const initialRoute = activeRoute.map(step => ({
+                lat: parseFloat(step.latitude || step.lat),
+                lng: parseFloat(step.longitude || step.lng),
+                title: step.name || step.title
+            }));
+            setLiveRoute(initialRoute);
+        } else if (plannerPreviewRoute) {
             setLiveRoute([...plannerPreviewRoute]);
         }
-        setCompletedSteps([]); // Reset tracking when restarting
+
+        window.dispatchEvent(new CustomEvent('dvai:toast', {
+            detail: { message: '🧭 Navigazione avviata! Segui il percorso.', type: 'success', duration: 3000 }
+        }));
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 ({ coords }) => {
-                    if (mapRef.current) {
-                        mapRef.current.flyTo({ center: [coords.longitude, coords.latitude], zoom: 18, pitch: 45 });
-                        mapRef.current.startTracking?.();
+                    // Zoom sulla posizione reale dell'utente
+                    if (map) {
+                        map.moveCamera({
+                            center: { lat: coords.latitude, lng: coords.longitude },
+                            zoom: 18,
+                            tilt: 55,
+                            heading: 0,
+                        });
                     }
                     
                     const remainingRoute = activeRoute?.filter(step => !completedSteps.includes(step.id)) || [];
@@ -806,8 +827,11 @@ const MapPage = () => {
                     window.dispatchEvent(new CustomEvent('dvai-toast', {
                         detail: { type: 'warning', message: 'Posizione non rilevata. Navigazione dalla prima tappa.' }
                     }));
-                    if (activeRoute?.length && mapRef.current) {
-                        mapRef.current.flyTo({ center: [activeRoute[0].longitude, activeRoute[0].latitude], zoom: 17, pitch: 45 });
+                    if (activeRoute?.length && map) {
+                        map.moveCamera({
+                            center: { lat: activeRoute[0].latitude, lng: activeRoute[0].longitude },
+                            zoom: 17, tilt: 45
+                        });
                     }
                 },
                 { enableHighAccuracy: true, timeout: 5000 }

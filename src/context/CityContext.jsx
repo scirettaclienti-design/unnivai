@@ -35,9 +35,16 @@ export function CityProvider({ children }) {
     const [gpsPromptNeeded, setGpsPromptNeeded] = useState(false);
     const gpsAttempted = useRef(false);
 
+    const toast = (msg) => {
+        try { window.dispatchEvent(new CustomEvent('dvai:toast', { detail: { message: msg, type: 'info', duration: 4000 } })); } catch {}
+    };
+
     // Funzione riusabile per tentare il GPS
     const attemptGPS = useCallback(() => {
-        if (!navigator.geolocation) {
+        const hasGeo = !!navigator.geolocation;
+        toast(`📍 GPS: ${hasGeo ? 'richiesta in corso...' : 'non disponibile'} (${typeof navigator.geolocation})`);
+
+        if (!hasGeo) {
             setGpsResolved(true);
             setGpsDenied(true);
             return;
@@ -46,17 +53,19 @@ export function CityProvider({ children }) {
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const { latitude, longitude } = position.coords;
+                toast(`✅ GPS trovato: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+
                 if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
                     setGpsResolved(true);
                     return;
                 }
-                // Segna come granted per futuri mount
                 try { localStorage.setItem(GPS_GRANTED_KEY, '1'); } catch {}
                 setGpsPromptNeeded(false);
 
                 const gpsCity = await reverseGeocodeCity(latitude, longitude);
                 if (gpsCity && typeof gpsCity === 'string' && gpsCity.trim()) {
                     const clean = gpsCity.trim();
+                    toast(`🏙️ Città rilevata: ${clean}`);
                     setCity(clean);
                     try { localStorage.setItem(STORAGE_KEY, clean); } catch {}
                 }
@@ -64,9 +73,10 @@ export function CityProvider({ children }) {
                 setGpsDenied(false);
             },
             (err) => {
+                toast(`❌ GPS errore: code=${err.code} ${err.message}`);
                 setGpsResolved(true);
                 setGpsDenied(err.code === 1);
-                setGpsPromptNeeded(false);
+                setGpsPromptNeeded(err.code === 1);
                 try { localStorage.removeItem(GPS_GRANTED_KEY); } catch {}
             },
             { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
@@ -84,11 +94,15 @@ export function CityProvider({ children }) {
             return;
         }
 
-        // Check Permissions API (non disponibile ovunque — Safari la supporta parzialmente)
         const checkAndAttempt = async () => {
+            // Safari NON supporta navigator.permissions.query per geolocation
+            // Il tentativo causa un TypeError che dobbiamo gestire
+            let permState = 'unknown';
             try {
                 if (navigator.permissions) {
                     const status = await navigator.permissions.query({ name: 'geolocation' });
+                    permState = status.state;
+                    toast(`🔐 Permesso GPS: ${permState}`);
                     if (status.state === 'granted') {
                         attemptGPS();
                         return;
@@ -99,17 +113,19 @@ export function CityProvider({ children }) {
                         return;
                     }
                 }
-            } catch {}
+            } catch (e) {
+                toast(`⚠️ Permissions API: ${e.message || 'non supportata'}`);
+            }
 
             // Permesso non ancora deciso — su iOS serve user gesture
-            // Se il permesso era stato dato in una sessione precedente, prova
             const wasGranted = localStorage.getItem(GPS_GRANTED_KEY);
             if (wasGranted) {
+                toast('🔄 GPS: permesso precedente trovato, riprovo...');
                 attemptGPS();
             } else {
-                // Mostra banner per richiedere il permesso con click
+                toast('👆 GPS: mostra banner — serve click per iOS');
                 setGpsPromptNeeded(true);
-                setGpsResolved(true); // Non bloccare il rendering
+                setGpsResolved(true);
             }
         };
 

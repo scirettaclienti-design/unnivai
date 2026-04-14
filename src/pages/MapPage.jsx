@@ -1077,8 +1077,12 @@ const MapPage = () => {
                             <>
                                 {/* GOOGLE MAPS STYLE ROUTE PLANNER (SIDEBAR ON DESKTOP, TOP ON MOBILE) */}
                                 <div className={`fixed md:absolute inset-x-0 bottom-0 md:inset-x-auto md:top-4 md:left-4 z-[60] bg-white md:rounded-[24px] rounded-t-[32px] shadow-2xl md:w-[400px] flex flex-col transition-transform duration-500 ease-in-[cubic-bezier(0.32,0.72,0,1)] ${isRoutePlannerOpen && !isNavigating ? 'translate-y-0 md:h-[calc(100vh-32px)] md:max-h-[800px] h-[55vh] max-h-[60vh]' : 'translate-y-full md:-translate-x-[120%] md:translate-y-0'}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+                                    {/* Drag handle mobile */}
+                                    <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
+                                        <div className="w-10 h-1 bg-gray-300 rounded-full" />
+                                    </div>
                                     {/* Header / Back */}
-                                    <div className="flex items-start gap-3 p-4 pt-12 md:pt-6">
+                                    <div className="flex items-start gap-3 p-4 pt-2 md:pt-6 shrink-0">
                                         <button onClick={() => setIsRoutePlannerOpen(false)} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors text-gray-700">
                                             <ArrowLeft size={22} />
                                         </button>
@@ -1122,8 +1126,8 @@ const MapPage = () => {
                                         ))}
                                     </div>
 
-                                    {/* Route Options */}
-                                    <div className="flex flex-1 flex-col px-4 pt-2 pb-4 overflow-y-auto bg-white/50">
+                                    {/* Route Options — scrollable */}
+                                    <div className="flex-1 overflow-y-auto px-4 pt-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
                                             <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100 flex flex-col gap-0.5">
                                                 <h4 className="font-bold text-gray-900 text-sm">Percorso Consigliato</h4>
                                                 {routeStats ? (
@@ -1142,8 +1146,8 @@ const MapPage = () => {
                                             </div>
                                     </div>
 
-                                    {/* Floating Start Nav Button */}
-                                    <div className="p-4 pt-2 md:pb-6 bg-white md:border-t border-gray-50">
+                                    {/* Start Nav Button — sticky bottom */}
+                                    <div className="shrink-0 p-4 pt-2 md:pb-6 bg-white border-t border-gray-100">
                                         <button 
                                             onClick={handleStartNavigationReal}
                                             className="w-full bg-blue-600 text-white font-black text-lg py-4 rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-3"
@@ -1372,12 +1376,13 @@ const MapPage = () => {
                                 </Link>
                             ) : (
                                 <button onClick={isNavigating ? () => setSelectedActivity(null) : handleStartNavigationClick}
-                                    className={`w-full text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg transition-all text-sm ${
-                                        isNavigating 
-                                            ? 'bg-gradient-to-r from-green-500 to-emerald-600 shadow-green-200' 
-                                            : 'bg-gradient-to-r from-orange-500 to-red-500 shadow-orange-200'
-                                    }`}>
-                                    {isNavigating ? <><MapPin size={16} /> Chiudi Anteprima</> : <><NavIcon size={16} /> Naviga Qui</>}
+                                    className={`w-full text-white py-3 rounded-full font-bold flex items-center justify-center gap-2 shadow-lg transition-all text-sm min-h-[44px] active:scale-95 ${
+                                        isNavigating
+                                            ? 'bg-gradient-to-r from-green-500 to-emerald-600 shadow-green-200'
+                                            : 'shadow-orange-300/40'
+                                    }`}
+                                    style={!isNavigating ? { background: 'linear-gradient(135deg, #C2703E, #D4A843)' } : undefined}>
+                                    {isNavigating ? <><MapPin size={16} /> Chiudi</> : <><NavIcon size={16} /> Naviga</>}
                                 </button>
                             )}
                         </div>

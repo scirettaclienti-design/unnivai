@@ -277,8 +277,9 @@ export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavig
           ) : (
             <button
               onClick={() => onNavigate && onNavigate(poi)}
-              className="w-full bg-gradient-to-r from-orange-500 to-terracotta-500 text-white py-4.5 rounded-[1.25rem] font-black flex items-center justify-center gap-3 shadow-xl shadow-orange-500/30 active:scale-95 transition-all text-sm tracking-widest uppercase">
-              <Navigation size={18} /> Naviga Qui
+              className="w-full text-white py-3.5 rounded-full font-bold flex items-center justify-center gap-2 shadow-lg shadow-orange-400/30 active:scale-95 transition-all text-sm min-h-[44px]"
+              style={{ background: 'linear-gradient(135deg, #C2703E, #D4A843)' }}>
+              <Navigation size={18} /> Naviga
             </button>
           )}
 

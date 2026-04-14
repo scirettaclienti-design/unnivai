@@ -400,16 +400,34 @@ const MapPage = () => {
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
     const [isGeminiOpen, setIsGeminiOpen] = useState(false);
 
-    // Voice navigation: leggi le indicazioni stradali con SpeechSynthesis
+    // Voice navigation: leggi le indicazioni stradali con voce italiana naturale
+    const italianVoiceRef = useRef(null);
+    useEffect(() => {
+        const findVoice = () => {
+            const voices = window.speechSynthesis?.getVoices() || [];
+            italianVoiceRef.current =
+                voices.find(v => v.lang === 'it-IT' && v.name.includes('Google')) ||
+                voices.find(v => v.lang === 'it-IT' && !v.localService) ||
+                voices.find(v => v.lang.startsWith('it')) ||
+                null;
+        };
+        findVoice();
+        // iOS carica le voci async
+        window.speechSynthesis?.addEventListener?.('voiceschanged', findVoice);
+        return () => window.speechSynthesis?.removeEventListener?.('voiceschanged', findVoice);
+    }, []);
+
     useEffect(() => {
         if (!voiceEnabled || !isNavigating || !routeStats?.steps?.[0]?.instructions) return;
-        const text = routeStats.steps[0].instructions.replace(/<[^>]*>/g, ''); // strip HTML
+        const text = routeStats.steps[0].instructions.replace(/<[^>]*>/g, '');
         if (text === lastSpokenRef.current || !window.speechSynthesis) return;
         lastSpokenRef.current = text;
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'it-IT';
-        utterance.rate = 1.0;
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        if (italianVoiceRef.current) utterance.voice = italianVoiceRef.current;
         window.speechSynthesis.speak(utterance);
     }, [voiceEnabled, isNavigating, routeStats?.steps?.[0]?.instructions]);
 
@@ -669,11 +687,9 @@ const MapPage = () => {
             setLiveRoute(null);
             setRouteStats(null);
             setCompletedSteps([]);
-            setIsRoutePlannerOpen(true);
-            return;
         }
-        // Avvia direttamente la navigazione (1 clic, non 2)
-        handleStartNavigationReal();
+        // Apri pannello selezione mezzo (AUTO/MEZZI/PIEDI/BICI)
+        setIsRoutePlannerOpen(true);
     };
 
     // ─── FULLSCREEN NAVIGATION (Google Maps style) ────────────────────────────
@@ -1060,7 +1076,7 @@ const MapPage = () => {
                         ) : (isRoutePlannerOpen || isNavigating) ? (
                             <>
                                 {/* GOOGLE MAPS STYLE ROUTE PLANNER (SIDEBAR ON DESKTOP, TOP ON MOBILE) */}
-                                <div className={`fixed md:absolute inset-x-0 bottom-0 md:inset-x-auto md:top-4 md:left-4 z-[60] bg-white md:rounded-[24px] rounded-t-[32px] shadow-2xl md:w-[400px] flex flex-col transition-transform duration-500 ease-in-[cubic-bezier(0.32,0.72,0,1)] ${isRoutePlannerOpen && !isNavigating ? 'translate-y-0 md:h-[calc(100vh-32px)] md:max-h-[800px] h-[45vh] max-h-[45vh]' : 'translate-y-full md:-translate-x-[120%] md:translate-y-0'}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+                                <div className={`fixed md:absolute inset-x-0 bottom-0 md:inset-x-auto md:top-4 md:left-4 z-[60] bg-white md:rounded-[24px] rounded-t-[32px] shadow-2xl md:w-[400px] flex flex-col transition-transform duration-500 ease-in-[cubic-bezier(0.32,0.72,0,1)] ${isRoutePlannerOpen && !isNavigating ? 'translate-y-0 md:h-[calc(100vh-32px)] md:max-h-[800px] h-[55vh] max-h-[60vh]' : 'translate-y-full md:-translate-x-[120%] md:translate-y-0'}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
                                     {/* Header / Back */}
                                     <div className="flex items-start gap-3 p-4 pt-12 md:pt-6">
                                         <button onClick={() => setIsRoutePlannerOpen(false)} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors text-gray-700">

@@ -14,6 +14,7 @@ import { WeatherAirBadge } from '../components/Map/WeatherAirBadge';
 import { POIDetailDrawer } from '../components/Map/POIDetailDrawer';
 import { TourSummaryModal } from '../components/Map/TourSummaryModal';
 import ReviewModal from '../components/ReviewModal';
+import GpsActivationBanner from '../components/GpsActivationBanner';
 import { CitySearchBar } from '../components/Map/CitySearchBar';
 import { AIDrawer } from '../components/Map/AIDrawer';
 import React from 'react';
@@ -1137,6 +1138,13 @@ const MapPage = () => {
                     </button>
                 )}
             </div>
+
+            {/* GPS Activation Banner (se non attivo) */}
+            {!isNavigating && !isRoutePlannerOpen && (
+                <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 w-[85%] max-w-sm pointer-events-auto">
+                    <GpsActivationBanner />
+                </div>
+            )}
 
             {/* 3. START TOUR BAR & STOP BUTTON */}
             {showRoute && !selectedActivity && !selectedPartner && tourData && !isNavigating && (

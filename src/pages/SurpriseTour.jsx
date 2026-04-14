@@ -196,7 +196,10 @@ export default function SurpriseTourPage() {
 
         try {
             // 1. Prepare User Context using AI History
-            const pastInterests = userDNAPreferences.map(p => `${p.inspiration} (${p.mood})`).filter(Boolean).slice(0, 3);
+            const pastInterests = userDNAPreferences.map(p => {
+                const parts = [p.inspiration, p.mood, p.category].filter(Boolean);
+                return parts.length > 0 ? parts.join(' ') : null;
+            }).filter(Boolean).slice(0, 3);
             const pastPace = userDNAPreferences.find(p => p.duration)?.duration || 'Medio';
             const pastGroup = userDNAPreferences.find(p => p.group)?.group || 'Solo';
 
@@ -238,7 +241,7 @@ export default function SurpriseTourPage() {
             const mappedTour = {
                 id: 'surprise-' + Date.now(),
                 title: surpriseTour.title || "Avventura a Sorpresa",
-                description: `Un'esperienza unica generata per te: ${userProfile.interests.join(', ')}.`,
+                description: `Un'esperienza unica generata per te: ${userProfile.interests.map(i => typeof i === 'string' ? i : JSON.stringify(i)).join(', ')}.`,
                 city: city || 'Roma',
                 duration_minutes: 180,
                 price_eur: 0,
@@ -510,7 +513,8 @@ export default function SurpriseTourPage() {
                             <motion.div
                                 layout
                                 key={experience.id}
-                                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex space-x-4 cursor-pointer"
+                                onClick={() => shuffleExperience(experience.category)}
+                                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex space-x-4 cursor-pointer active:scale-[0.98]"
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, scale: 0.9 }}

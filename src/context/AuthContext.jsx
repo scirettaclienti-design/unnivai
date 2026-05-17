@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext({});
@@ -61,12 +62,20 @@ export const AuthProvider = ({ children }) => {
     const role = user?.user_metadata?.role || (user ? 'user' : null);
 
     // 3. ACTIONS
+    const queryClient = useQueryClient();
+
     const signOut = async () => {
         setLoading(true);
         await supabase.auth.signOut();
+        // Reset completo dello stato client
         localStorage.removeItem('unnivai_role');
+        localStorage.removeItem('unnivai_ai_learning_brain');
+        localStorage.removeItem('dvai_gps_data');
+        localStorage.removeItem('dvai_onboarding_done');
+        localStorage.removeItem('user_tour_history');
+        queryClient.clear(); // Svuota tutta la cache React Query
         setUser(null);
-        setIsPasswordRecovery(false); // Reset recovery state on logout
+        setIsPasswordRecovery(false);
         setLoading(false);
     };
 

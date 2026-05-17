@@ -313,9 +313,18 @@ const DashboardUser = () => {
 
     const { userDNAPreferences, preferenceGraph, totalInteractions, getAIContext } = useAILearning();
     const hasPreferences = totalInteractions >= 3;
+    const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+    useEffect(() => {
+        const goOffline = () => setIsOffline(true);
+        const goOnline = () => setIsOffline(false);
+        window.addEventListener('offline', goOffline);
+        window.addEventListener('online', goOnline);
+        return () => { window.removeEventListener('offline', goOffline); window.removeEventListener('online', goOnline); };
+    }, []);
 
     // Fetch Experiences — personalizzate con il preference graph
-    const { data: experiences } = useQuery({
+    const { data: experiences, isError: experiencesError, refetch: refetchExperiences } = useQuery({
         queryKey: ['home-experiences', city, lat, lng, totalInteractions, hasPreferences],
         queryFn: async () => {
             const currentCity = city || 'Roma';
@@ -405,6 +414,13 @@ const DashboardUser = () => {
             <TopBar />
 
             <main className="max-w-md mx-auto px-6 space-y-6 pt-6">
+
+                {/* Offline Banner */}
+                {isOffline && (
+                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-2xl p-3 text-red-700 text-sm font-medium">
+                        <span>📡</span> Sei offline. Alcune funzioni potrebbero non essere disponibili.
+                    </div>
+                )}
 
                 <GpsActivationBanner />
 
@@ -610,7 +626,12 @@ const DashboardUser = () => {
                     </div>
 
                     <div className="flex overflow-x-auto space-x-5 pb-8 -mx-6 px-6 scrollbar-hide">
-                        {experiences?.map((exp) => (
+                        {experiencesError ? (
+                            <div className="flex flex-col items-center justify-center py-8 w-full text-center">
+                                <p className="text-gray-500 text-sm mb-3">Non riesco a caricare le esperienze</p>
+                                <button onClick={() => refetchExperiences()} className="px-4 py-2 bg-orange-500 text-white rounded-xl text-sm font-bold active:scale-95 transition-transform">Riprova</button>
+                            </div>
+                        ) : experiences?.map((exp) => (
                             <Link
                                 to={`/tour-details/${exp.id}`}
                                 state={{ tourData: exp }}

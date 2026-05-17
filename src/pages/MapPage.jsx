@@ -794,22 +794,29 @@ const MapPage = () => {
                     let lastUpdateTime = 0;
                     const wId = navigator.geolocation.watchPosition(
                         (pos) => {
-                            const { latitude, longitude, heading } = pos.coords;
+                            const { latitude, longitude, heading, speed } = pos.coords;
                             setLocalCenter({ latitude, longitude });
 
                             const now = Date.now();
-                            if (followingRef.current && map && (now - lastUpdateTime > 500)) {
+                            // Adatta camera al mezzo di trasporto
+                            const isWalking = pageTransportMode === 'walking' || pageTransportMode === 'bicycling';
+                            const isDriving = pageTransportMode === 'driving';
+                            const throttleMs = isWalking ? 400 : isDriving ? 300 : 500;
+                            const navZoom = isWalking ? 19 : isDriving ? 16 : 17;
+                            const navTilt = isWalking ? 60 : isDriving ? 45 : 50;
+
+                            if (followingRef.current && map && (now - lastUpdateTime > throttleMs)) {
                                 lastUpdateTime = now;
                                 map.moveCamera({
                                     center: { lat: latitude, lng: longitude },
-                                    zoom: 19,
-                                    tilt: 60,
+                                    zoom: navZoom,
+                                    tilt: navTilt,
                                     heading: heading !== null ? heading : undefined
                                 });
                             }
 
-                            // Cultural Surprise: ogni ~300m sblocca curiosità
-                            if (lastSurprisePos.current) {
+                            // Cultural Surprise: solo A PIEDI, ogni ~300m
+                            if (isWalking && lastSurprisePos.current) {
                                 const d = Math.hypot(
                                     (latitude - lastSurprisePos.current.lat) * 111320,
                                     (longitude - lastSurprisePos.current.lng) * 111320 * Math.cos(latitude * Math.PI / 180)

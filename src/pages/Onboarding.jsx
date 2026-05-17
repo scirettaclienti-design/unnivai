@@ -107,7 +107,7 @@ export default function Onboarding() {
                         Passo {step + 1} di {STEP_CONFIG.length}
                     </span>
                     <span className="text-xs text-terracotta-500 font-bold">
-                        {STEP_CONFIG[step].id !== 'ready' ? `${Math.round(progress)}%` : '✓'}
+                        {STEP_CONFIG[step]?.id !== 'ready' ? `${Math.round(progress)}%` : '✓'}
                     </span>
                 </div>
                 <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -176,8 +176,8 @@ export default function Onboarding() {
                             <div>
                                 <div className="text-center mb-4">
                                     <Compass className="w-10 h-10 text-terracotta-500 mx-auto mb-2" />
-                                    <h2 className="text-xl font-black text-gray-800">{STEP_CONFIG[2].title}</h2>
-                                    <p className="text-gray-500 text-xs mt-1">{STEP_CONFIG[2].subtitle}</p>
+                                    <h2 className="text-xl font-black text-gray-800">{STEP_CONFIG[1]?.title}</h2>
+                                    <p className="text-gray-500 text-xs mt-1">{STEP_CONFIG[1]?.subtitle}</p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2">
                                     {INTERESTS.map(interest => {
@@ -223,8 +223,8 @@ export default function Onboarding() {
                                 >
                                     <CheckCircle className="w-10 h-10 text-green-500" />
                                 </motion.div>
-                                <h2 className="text-2xl font-black text-gray-800 mb-2">{STEP_CONFIG[3].title}</h2>
-                                <p className="text-gray-500 text-sm mb-5">{STEP_CONFIG[3].subtitle}</p>
+                                <h2 className="text-2xl font-black text-gray-800 mb-2">{STEP_CONFIG[2]?.title || 'Tutto pronto!'}</h2>
+                                <p className="text-gray-500 text-sm mb-5">{STEP_CONFIG[2]?.subtitle || 'Inizia la tua avventura'}</p>
 
                                 {/* Riepilogo scelte */}
                                 <div className="space-y-2 text-left mb-5">

@@ -290,6 +290,7 @@ const MapPage = () => {
     const [isMapReady, setIsMapReady] = useState(false);
     const [watchId, setWatchId] = useState(null);
     const [localCenter, setLocalCenter] = useState(null);
+    const [customOriginAddress, setCustomOriginAddress] = useState('');
     const [isLocating, setIsLocating] = useState(!passedCenter && !activeTourData);
 
     const [isCameraFollowing, setIsCameraFollowing] = useState(false);
@@ -1049,7 +1050,13 @@ const MapPage = () => {
                             height="100%"
                             width="100%"
                             activities={showRoute ? allMapMarkers : mapDisplayItems}
-                            routePoints={showRoute ? (liveRoute || activeRoute) : (isRoutePlannerOpen && plannerPreviewRoute ? plannerPreviewRoute : [])}
+                            routePoints={showRoute
+                                ? (localCenter && !customOriginAddress
+                                    // GPS attivo: il percorso parte dalla posizione reale dell'utente
+                                    ? [{ lat: localCenter.latitude, lng: localCenter.longitude, title: 'Tu' }, ...(liveRoute || activeRoute || [])]
+                                    : (liveRoute || activeRoute))
+                                : (isRoutePlannerOpen && plannerPreviewRoute ? plannerPreviewRoute : [])
+                            }
                             onActivityClick={handleMarkerClick}
                             onClick={handleNativePOIClick}
                             onDragStart={() => {
@@ -1141,7 +1148,13 @@ const MapPage = () => {
                                                 {localCenter ? (
                                                     <>
                                                         <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]" />
-                                                        <input type="text" defaultValue="La tua posizione attuale" readOnly className="flex-1 bg-transparent text-sm font-medium text-gray-800 outline-none min-w-0" />
+                                                        <input
+                                                            type="text"
+                                                            value={customOriginAddress || (localCenter ? 'La tua posizione GPS' : '')}
+                                                            onChange={(e) => setCustomOriginAddress(e.target.value)}
+                                                            placeholder={isLocating ? 'Rilevamento GPS...' : 'Scrivi indirizzo di partenza'}
+                                                            className="flex-1 bg-transparent text-sm font-medium text-gray-800 placeholder:text-gray-400 outline-none min-w-0"
+                                                        />
                                                     </>
                                                 ) : isLocating ? (
                                                     <>
@@ -1281,11 +1294,12 @@ const MapPage = () => {
                             <h3 className="font-bold text-gray-900 text-lg leading-tight truncate">{tourData?.title || 'Il tuo Itinerario'}</h3>
                             <p className="text-xs text-gray-500 flex items-center gap-1 mt-1 font-medium flex-wrap">
                                 <Clock size={12} className="text-orange-500" />
-                                {routeStats
-                                    ? `${Math.round(routeStats.durationSec / 60)} min · ${routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m'}`
-                                    : tourData?.duration || '2.5 ore'
+                                {routeStats && !routeStats.error && routeStats.durationSec > 0
+                                    ? `${Math.round(routeStats.durationSec / 60)} min · ${routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m'} · `
+                                    : routeStats?.error ? 'Percorso non calcolato · '
+                                    : (tourData?.duration ? `${tourData.duration} · ` : '')
                                 }
-                                {' · '}{activeRoute.length} Tappe
+                                {activeRoute.length} Tappe
                                 {businessPartners.length > 0 && (
                                     <span className="ml-1 text-orange-500 font-bold flex items-center gap-0.5">
                                         <Store size={10} /> {businessPartners.length} partner

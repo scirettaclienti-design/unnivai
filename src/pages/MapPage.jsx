@@ -645,11 +645,18 @@ const MapPage = () => {
         return [];
     }, [viewMode, globalTours]);
 
-    // All markers when route active: tour stops + business partners (Removed backgroundMonuments to prevent clutter)
+    // All markers when route active: tour stops (con isCurrentStep) + business partners
     const allMapMarkers = useMemo(() => {
-        if (showRoute) return [...(activeRoute || []), ...businessPartners];
+        if (showRoute) {
+            const nextStepIndex = completedSteps.length;
+            const markedRoute = (activeRoute || []).map((step, i) => ({
+                ...step,
+                isCurrentStep: i === nextStepIndex, // Pulse sul prossimo step da raggiungere
+            }));
+            return [...markedRoute, ...businessPartners];
+        }
         return mapDisplayItems;
-    }, [showRoute, activeRoute, businessPartners, mapDisplayItems]);
+    }, [showRoute, activeRoute, businessPartners, mapDisplayItems, completedSteps.length]);
 
     // Drawer items (bounded)
     const visibleDrawerItems = useMemo(() => {
@@ -815,7 +822,7 @@ const MapPage = () => {
                                 });
                             }
 
-                            // Cultural Surprise: solo A PIEDI, ogni ~300m
+                            // Cultural Surprise: solo A PIEDI, ogni ~300m + audioguida
                             if (isWalking && lastSurprisePos.current) {
                                 const d = Math.hypot(
                                     (latitude - lastSurprisePos.current.lat) * 111320,
@@ -825,21 +832,27 @@ const MapPage = () => {
                                     lastSurprisePos.current = { lat: latitude, lng: longitude };
                                     surpriseCount.current += 1;
                                     const surprises = [
-                                        '🏛️ Lo sapevi? Molti palazzi storici italiani hanno cortili segreti — prova ad affacciarti dal portone!',
-                                        '🎨 Curiosità: gli artisti di strada in Italia devono avere un permesso comunale. Ogni esibizione è certificata!',
-                                        '🍝 Tip locale: le trattorie con i menù scritti a mano sono quasi sempre le migliori.',
-                                        '⛲ Fun fact: Roma ha più di 2.000 fontanelle pubbliche — tutte potabili!',
-                                        '🌅 I locali del posto sanno che il tramonto migliore non è dal punto panoramico, ma dal bar accanto.',
-                                        '🏪 Le botteghe artigiane che trovi nei vicoli spesso esistono da generazioni — chiedi la loro storia!',
-                                        '🎵 In molte piazze italiane, la musica che senti non è casuale — è programmata dal comune.',
+                                        'Molti palazzi storici italiani hanno cortili segreti. Prova ad affacciarti dal portone più bello che vedi!',
+                                        'Gli artisti di strada in Italia devono avere un permesso comunale. Ogni esibizione che vedi è certificata.',
+                                        'Le trattorie con i menù scritti a mano sono quasi sempre le migliori. Segui la calligrafia!',
+                                        'Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!',
+                                        'I locali del posto sanno che il tramonto migliore non è dal punto panoramico, ma dal bar accanto.',
+                                        'Le botteghe artigiane nei vicoli spesso esistono da generazioni. Chiedi la loro storia, ti sorprenderanno.',
+                                        'In molte piazze italiane, la musica che senti non è casuale. È programmata dal comune per creare atmosfera.',
                                     ];
+                                    const text = surprises[surpriseCount.current % surprises.length];
                                     window.dispatchEvent(new CustomEvent('dvai:toast', {
-                                        detail: {
-                                            message: surprises[surpriseCount.current % surprises.length],
-                                            type: 'info',
-                                            duration: 5000,
-                                        }
+                                        detail: { message: `🎧 ${text}`, type: 'info', duration: 6000 }
                                     }));
+                                    // Audioguida: leggi la curiosità ad alta voce se voce attiva
+                                    if (voiceEnabled && window.speechSynthesis) {
+                                        window.speechSynthesis.cancel();
+                                        const utterance = new SpeechSynthesisUtterance(text);
+                                        utterance.lang = 'it-IT';
+                                        utterance.rate = 0.9;
+                                        if (italianVoiceRef.current) utterance.voice = italianVoiceRef.current;
+                                        window.speechSynthesis.speak(utterance);
+                                    }
                                 }
                             } else {
                                 lastSurprisePos.current = { lat: latitude, lng: longitude };

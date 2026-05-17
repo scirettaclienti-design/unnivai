@@ -61,7 +61,15 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
             zIndex={baseZIndex}
         >
             <div className={`group relative cursor-pointer ${isStep ? 'animate-in zoom-in slide-in-from-bottom-2 duration-300' : ''}`} style={{ transformOrigin: 'bottom center', transform: 'translate(0, -50%)' }}>
-                
+
+                {/* Pulse radar — tappa corrente o utente vicino (<20m) */}
+                {activity.isCurrentStep && (
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-[-1]">
+                        <div className="w-16 h-16 rounded-full border-2 border-orange-400/50 animate-ping" />
+                        <div className="absolute inset-2 rounded-full bg-orange-400/10 animate-pulse" />
+                    </div>
+                )}
+
                 {/* 3D Counter / Badge Shape */}
                 <div 
                     className="relative flex items-center justify-center transition-transform duration-300 group-hover:-translate-y-2 group-hover:scale-110"

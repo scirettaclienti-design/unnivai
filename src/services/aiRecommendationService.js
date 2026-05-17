@@ -26,6 +26,10 @@ const callOpenAIProxy = async (payload, signal) => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const anonKey     = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+  if (!supabaseUrl || !anonKey) {
+    throw new Error('Configurazione mancante: VITE_SUPABASE_URL o VITE_SUPABASE_ANON_KEY non impostati');
+  }
+
   const headers = {
     'Content-Type': 'application/json',
     'apikey': anonKey,
@@ -33,6 +37,8 @@ const callOpenAIProxy = async (payload, signal) => {
   if (session?.access_token) {
     headers['Authorization'] = `Bearer ${session.access_token}`;
   }
+
+  console.log('[AI Proxy] Chiamata →', `${supabaseUrl}/functions/v1/openai-proxy`, session ? '(autenticato)' : '(anonimo)');
 
   const response = await fetch(`${supabaseUrl}/functions/v1/openai-proxy`, {
     method: 'POST',
@@ -43,7 +49,9 @@ const callOpenAIProxy = async (payload, signal) => {
 
   if (!response.ok) {
     const errBody = await response.json().catch(() => ({}));
-    throw new Error(`Proxy ${response.status}: ${errBody?.error ?? response.statusText}`);
+    const errMsg = `Proxy ${response.status}: ${errBody?.error ?? response.statusText}`;
+    console.error('[AI Proxy] Errore:', errMsg);
+    throw new Error(errMsg);
   }
 
   return response.json();
@@ -392,12 +400,21 @@ Schema JSON ESATTO:
 
         } catch (err) {
             clearTimeout(timeoutId);
-            if (err.name === 'AbortError') {
-                console.warn('[AI] Itinerary request timed out (35 s) → local fallback');
-            } else {
-                console.warn('[AI] Itinerary generation failed → local fallback:', err.message);
+            const reason = err.name === 'AbortError' ? 'timeout (35s)' : err.message;
+            console.warn(`[AI] Itinerary failed (${reason}) → fallback locale per "${city}"`);
+
+            // Fallback locale consapevole dell'input utente
+            const localResult = generateItineraryLocal(city, prefs, weather);
+            // Marca come fallback per la UI
+            if (localResult?.days?.[0]) {
+                localResult.days[0]._isFallback = true;
+                localResult.days[0]._failReason = reason;
+                // Adatta il titolo all'input utente se disponibile
+                if (userPrompt && userPrompt.length > 5) {
+                    localResult.days[0].title = `${city} — Percorso suggerito`;
+                }
             }
-            return generateItineraryLocal(city, prefs, weather);
+            return localResult;
         }
     },
 

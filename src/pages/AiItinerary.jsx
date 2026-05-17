@@ -193,6 +193,15 @@ export default function AIItineraryPage() {
                 throw new Error("No itinerary generated");
             }
 
+            // Rileva se è un fallback locale
+            if (itineraryDays[0]?._isFallback) {
+                toast({
+                    title: 'Itinerario suggerito',
+                    description: `L'AI non è disponibile al momento. Ti mostriamo un percorso classico a ${activeCity}. Riprova tra poco per un tour personalizzato.`,
+                    variant: 'warning',
+                });
+            }
+
             setGeneratedItinerary(itineraryDays);
             setCurrentStep(2);
 

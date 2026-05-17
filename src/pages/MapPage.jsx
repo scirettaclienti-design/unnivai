@@ -530,21 +530,21 @@ const MapPage = () => {
     // ─── PLANNER PREVIEW ROUTE (BEFORE NAVIGATING) ───────────────────────────
     const plannerPreviewRoute = useMemo(() => {
         if (!isRoutePlannerOpen || isNavigating) return null;
-        
-        const locLat = localCenter?.latitude || cityData?.center?.latitude;
-        const locLng = localCenter?.longitude || cityData?.center?.longitude;
-        
+
         const destLat = selectedPOI?.latitude || selectedPOI?.lat || selectedActivity?.latitude;
         const destLng = selectedPOI?.longitude || selectedPOI?.lng || selectedActivity?.longitude;
-        
-        if (locLat && locLng && destLat && destLng) {
-            return [
-                { lat: locLat, lng: locLng, title: 'La tua posizione' },
-                { lat: destLat, lng: destLng, title: selectedPOI?.name || selectedActivity?.name || 'Destinazione' }
-            ];
-        }
-        return null;
-    }, [isRoutePlannerOpen, isNavigating, localCenter, cityData, selectedPOI, selectedActivity]);
+        if (!destLat || !destLng) return null;
+
+        // Posizione utente: GPS reale o fallback prima tappa del tour
+        const locLat = localCenter?.latitude || activeRoute?.[0]?.latitude || cityData?.center?.latitude;
+        const locLng = localCenter?.longitude || activeRoute?.[0]?.longitude || cityData?.center?.longitude;
+        if (!locLat || !locLng) return null;
+
+        return [
+            { lat: locLat, lng: locLng, title: localCenter ? 'La tua posizione' : 'Punto di partenza' },
+            { lat: destLat, lng: destLng, title: selectedPOI?.name || selectedActivity?.name || 'Destinazione' }
+        ];
+    }, [isRoutePlannerOpen, isNavigating, localCenter, activeRoute, cityData, selectedPOI, selectedActivity]);
 
     // ─── CITY FLY-TO ─────────────────────────────────────────────────────────
     useEffect(() => {
@@ -1092,10 +1092,27 @@ const MapPage = () => {
                                             <ArrowLeft size={22} />
                                         </button>
                                         <div className="flex-1 flex flex-col gap-2 relative">
-                                            {/* Origin input */}
+                                            {/* Origin input — mostra posizione reale o pulsante attivazione */}
                                             <div className="bg-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 border border-gray-200">
-                                                <div className="w-2 h-2 rounded-full border-[2px] border-blue-500"></div>
-                                                <span className="text-sm font-medium text-gray-600">La tua posizione</span>
+                                                <div className={`w-2 h-2 rounded-full border-[2px] ${localCenter ? 'border-blue-500 bg-blue-500' : 'border-gray-400'}`}></div>
+                                                {localCenter ? (
+                                                    <span className="text-sm font-medium text-gray-800">La tua posizione</span>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            if (navigator.geolocation) {
+                                                                navigator.geolocation.getCurrentPosition(
+                                                                    (pos) => setLocalCenter({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+                                                                    () => window.dispatchEvent(new CustomEvent('dvai:toast', { detail: { message: '📍 Attiva il GPS nelle impostazioni del browser', type: 'warning', duration: 4000 } })),
+                                                                    { enableHighAccuracy: true, timeout: 8000 }
+                                                                );
+                                                            }
+                                                        }}
+                                                        className="text-sm font-medium text-blue-600 underline"
+                                                    >
+                                                        📍 Attiva posizione
+                                                    </button>
+                                                )}
                                             </div>
                                             {/* Destination input */}
                                             <div className="bg-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 border border-gray-200">

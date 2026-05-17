@@ -1141,7 +1141,7 @@ const MapPage = () => {
                                                 {localCenter ? (
                                                     <>
                                                         <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]" />
-                                                        <span className="text-sm font-medium text-gray-800">La tua posizione attuale</span>
+                                                        <input type="text" defaultValue="La tua posizione attuale" readOnly className="flex-1 bg-transparent text-sm font-medium text-gray-800 outline-none min-w-0" />
                                                     </>
                                                 ) : isLocating ? (
                                                     <>
@@ -1200,7 +1200,7 @@ const MapPage = () => {
                                             >
                                                 <mode.icon size={22} className="mb-1" />
                                                 <span className={`text-[9px] font-bold uppercase tracking-wider ${pageTransportMode === mode.id ? 'text-blue-700' : ''}`}>{mode.label}</span>
-                                                {pageTransportMode === mode.id && routeStats && !routeStats.error && (
+                                                {pageTransportMode === mode.id && routeStats && !routeStats.error && routeStats.durationSec > 0 && (
                                                     <span className="text-[11px] font-black mt-0.5">{Math.round(routeStats.durationSec / 60)} min</span>
                                                 )}
                                             </button>
@@ -1211,13 +1211,15 @@ const MapPage = () => {
                                     <div className="flex-1 overflow-y-auto px-4 pt-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
                                             <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100 flex flex-col gap-0.5">
                                                 <h4 className="font-bold text-gray-900 text-sm">Percorso Consigliato</h4>
-                                                {routeStats ? (
+                                                {routeStats && !routeStats.error && routeStats.durationSec > 0 ? (
                                                     <div className="mt-1 flex items-baseline gap-2">
                                                         <span className="text-2xl font-black text-green-600">{Math.round(routeStats.durationSec / 60)} min</span>
                                                         <span className="text-sm font-bold text-gray-500">
                                                             ({routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m'})
                                                         </span>
                                                     </div>
+                                                ) : routeStats?.error ? (
+                                                    <p className="mt-1 text-sm text-amber-600 font-medium">Percorso non disponibile per questo mezzo</p>
                                                 ) : (
                                                     <div className="mt-2 flex items-center gap-2">
                                                         <div className="h-6 w-24 bg-gray-100 rounded animate-pulse" />

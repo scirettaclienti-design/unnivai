@@ -102,16 +102,20 @@ export default function useTourRouting(waypoints, travelModePreference) {
                 directionsRendererInner.setDirections(response);
 
                 let totalDistM = 0, totalDurSec = 0;
-                response.routes[0].legs.forEach(leg => {
-                    totalDistM += leg.distance.value;
-                    totalDurSec += leg.duration.value;
+                response.routes[0]?.legs?.forEach(leg => {
+                    totalDistM += leg?.distance?.value || 0;
+                    totalDurSec += leg?.duration?.value || 0;
                 });
 
-                const steps = response.routes[0].legs[0]?.steps || [];
+                // Protezione NaN
+                if (isNaN(totalDistM)) totalDistM = 0;
+                if (isNaN(totalDurSec)) totalDurSec = 0;
+
+                const steps = response.routes[0]?.legs?.[0]?.steps || [];
                 setRouteInfo({ distanceM: totalDistM, durationSec: totalDurSec, mode: resolveMode(travelModePreference), steps });
             } else {
                 console.error('Directions failed:', status);
-                setRouteInfo({ error: status });
+                setRouteInfo({ error: status, distanceM: 0, durationSec: 0 });
             }
         });
     }, [directionsService, directionsRendererOutline, directionsRendererInner, waypoints, routesLibrary, travelModePreference]);

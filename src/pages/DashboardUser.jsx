@@ -110,9 +110,11 @@ const buildSmartExperiencesAsync = async (cityName, userLat, userLng, userDNA = 
                 type: poi.type || 'place',
                 city: cityName,
             }))
-            : Array.from({ length: 4 }).map((_, i) => ({
-                title: i === 0 ? `Punto di Ritrovo - ${cityName}` : `Tappa ${i + 1} - ${cityName}`,
-                description: `Punto di interesse a ${cityName}`,
+            : Array.from({ length: 4 }).map((_, i) => {
+                const stepNames = ['Piazza principale', 'Punto panoramico', 'Quartiere storico', 'Angolo locale'];
+                return {
+                title: `${stepNames[i] || 'Tappa'} — ${cityName}`,
+                description: `Esplora ${stepNames[i]?.toLowerCase() || 'un angolo nascosto'} di ${cityName}`,
                 lat: centerLat + (Math.random() - 0.5) * 0.008,
                 lng: centerLng + (Math.random() - 0.5) * 0.008,
                 latitude: centerLat + (Math.random() - 0.5) * 0.008,
@@ -120,7 +122,7 @@ const buildSmartExperiencesAsync = async (cityName, userLat, userLng, userDNA = 
                 image: getPoiTypeImage(theme.type, cityName),
                 type: 'place',
                 city: cityName,
-            }));
+            }; });
 
         // Experience card image: priorità → POI reale → tema + città → cover città → generico
         const mainImage = generatedSteps[0]?.image

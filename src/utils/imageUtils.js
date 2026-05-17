@@ -148,8 +148,12 @@ export const getItemImage = (item = {}, city = '') => {
     const byKeyword = keywordImage(label);
     if (byKeyword) return byKeyword;
 
-    // City cover
-    if (city && CITY_IMAGES[city]) return CITY_IMAGES[city];
+    // City cover (normalizzato case-insensitive)
+    if (city) {
+        const normalizedCity = city.trim();
+        const cityKey = Object.keys(CITY_IMAGES).find(k => k.toLowerCase() === normalizedCity.toLowerCase());
+        if (cityKey) return CITY_IMAGES[cityKey];
+    }
 
     // Ultimate safe fallback — warm Italian piazza, never the Colosseum
     return GENERIC.piazza;
@@ -160,8 +164,10 @@ export const getItemImage = (item = {}, city = '') => {
  * @param {string} city
  * @returns {string}
  */
-export const getCityImage = (city = '') =>
-    CITY_IMAGES[city] || GENERIC.piazza;
+export const getCityImage = (city = '') => {
+    const key = Object.keys(CITY_IMAGES).find(k => k.toLowerCase() === city.toLowerCase().trim());
+    return key ? CITY_IMAGES[key] : GENERIC.piazza;
+};
 
 /**
  * onError handler for <img> tags — replaces broken images in real-time.

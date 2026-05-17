@@ -1103,26 +1103,41 @@ const MapPage = () => {
                                             <ArrowLeft size={22} />
                                         </button>
                                         <div className="flex-1 flex flex-col gap-2 relative">
-                                            {/* Origin input — mostra posizione reale o pulsante attivazione */}
-                                            <div className="bg-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 border border-gray-200">
-                                                <div className={`w-2 h-2 rounded-full border-[2px] ${localCenter ? 'border-blue-500 bg-blue-500' : 'border-gray-400'}`}></div>
+                                            {/* Origin — 3 stati: loading, success, fallback */}
+                                            <div className="bg-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 border border-gray-200 min-h-[48px]">
                                                 {localCenter ? (
-                                                    <span className="text-sm font-medium text-gray-800">La tua posizione</span>
+                                                    <>
+                                                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]" />
+                                                        <span className="text-sm font-medium text-gray-800">La tua posizione attuale</span>
+                                                    </>
+                                                ) : isLocating ? (
+                                                    <>
+                                                        <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                                                        <span className="text-sm font-medium text-gray-500">Rilevamento posizione...</span>
+                                                    </>
                                                 ) : (
-                                                    <button
-                                                        onClick={() => {
-                                                            if (navigator.geolocation) {
+                                                    <>
+                                                        <div className="w-2 h-2 rounded-full border-2 border-amber-400 bg-amber-100" />
+                                                        <button
+                                                            onClick={() => {
+                                                                if (!navigator.geolocation) return;
+                                                                setIsLocating(true);
                                                                 navigator.geolocation.getCurrentPosition(
-                                                                    (pos) => setLocalCenter({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
-                                                                    () => window.dispatchEvent(new CustomEvent('dvai:toast', { detail: { message: '📍 Attiva il GPS nelle impostazioni del browser', type: 'warning', duration: 4000 } })),
+                                                                    (pos) => { setLocalCenter({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }); setIsLocating(false); },
+                                                                    () => {
+                                                                        setIsLocating(false);
+                                                                        // Fallback: usa centro città
+                                                                        if (cityData?.center) setLocalCenter({ latitude: cityData.center.latitude, longitude: cityData.center.longitude });
+                                                                        window.dispatchEvent(new CustomEvent('dvai:toast', { detail: { message: `📍 GPS non disponibile. Partenza da ${activeCity}.`, type: 'info', duration: 4000 } }));
+                                                                    },
                                                                     { enableHighAccuracy: true, timeout: 8000 }
                                                                 );
-                                                            }
                                                         }}
-                                                        className="text-sm font-medium text-blue-600 underline"
-                                                    >
-                                                        📍 Attiva posizione
-                                                    </button>
+                                                            className="text-sm font-medium text-blue-600 underline"
+                                                        >
+                                                            📍 Attiva posizione
+                                                        </button>
+                                                    </>
                                                 )}
                                             </div>
                                             {/* Destination input */}

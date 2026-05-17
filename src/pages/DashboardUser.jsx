@@ -122,8 +122,13 @@ const buildSmartExperiencesAsync = async (cityName, userLat, userLng, userDNA = 
                 city: cityName,
             }));
 
-        // Experience card image: first POI's image or theme-specific fallback
-        const mainImage = generatedSteps[0]?.image || THEME_FALLBACK_IMAGES[theme.type] || CITY_IMAGES[cityName] || GENERIC.piazza;
+        // Experience card image: priorità → POI reale → tema + città → cover città → generico
+        const mainImage = generatedSteps[0]?.image
+            || THEME_FALLBACK_IMAGES[theme.type]
+            || CITY_IMAGES[cityName]
+            || GENERIC.piazza;
+        // Per le card, se l'immagine è la piazza generica E abbiamo una cover città, usa la cover
+        const cardImage = (mainImage === GENERIC.piazza && CITY_IMAGES[cityName]) ? CITY_IMAGES[cityName] : mainImage;
         const emoji = THEME_EMOJIS[theme.type] || '📍';
         const highlights = pois.length > 0
             ? pois.slice(0, 3).map(p => p.name || p.title)
@@ -138,8 +143,8 @@ const buildSmartExperiencesAsync = async (cityName, userLat, userLng, userDNA = 
             reviews: Math.floor(Math.random() * 200) + 20,
             price: theme.price,
             duration: theme.duration,
-            image: mainImage,
-            images: [mainImage],
+            image: cardImage,
+            images: [cardImage],
             category: (index === 0 && userDNA.length > 0) ? 'Cucito sui tuoi gusti' : "Consigliato dall'AI",
             emoji,
             isAiGenerated: true,
@@ -340,15 +345,20 @@ const DashboardUser = () => {
                 }
             }
 
-            // Arricchisci la categoria per l'utente
+            // Arricchisci categoria + garantisci immagine coerente con la città
+            const cityFallbackImg = CITY_IMAGES[currentCity] || GENERIC.piazza;
             return finalTours.slice(0, 5).map((t, i) => ({
                 ...t,
+                image: t.image || t.imageUrl || cityFallbackImg,
+                images: (t.images?.length > 0) ? t.images : [t.image || t.imageUrl || cityFallbackImg],
                 category: hasPreferences && i === 0
                     ? 'Scelto per te'
                     : (t.category || (hasPreferences ? 'Basato sui tuoi gusti' : 'Popolare a ' + currentCity)),
             }));
         },
         placeholderData: () => buildSmartExperiencesFallback(city || 'Roma'),
+        // Invalida cache e refetch quando la città cambia
+        staleTime: 120_000, // 2 min — permette refetch rapido al cambio città
     });
 
     const [tourHistory, setTourHistory] = useState([]);

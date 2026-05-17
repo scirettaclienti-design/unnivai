@@ -311,7 +311,7 @@ const DashboardUser = () => {
         }
     };
 
-    const { userDNAPreferences, preferenceGraph, totalInteractions, getAIContext } = useAILearning();
+    const { userDNAPreferences, preferenceGraph, totalInteractions, getAIContext, getTourAffinity } = useAILearning();
     const hasPreferences = totalInteractions >= 3;
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -333,9 +333,9 @@ const DashboardUser = () => {
             try {
                 const tours = await dataService.getToursByCity(currentCity);
                 if (tours && tours.length > 0) {
-                    if (hasPreferences && preferenceGraph) {
-                        // Utente con preferenze: ordina per affinità col preference graph
-                        finalTours = rankByPreferences(tours, preferenceGraph);
+                    if (hasPreferences) {
+                        // Ranking con Preference Engine: score affinità 0-100
+                        finalTours = [...tours].sort((a, b) => getTourAffinity(b) - getTourAffinity(a));
                     } else {
                         // Utente nuovo: ordina per rating (migliori prima)
                         finalTours = [...tours].sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0));
@@ -350,7 +350,7 @@ const DashboardUser = () => {
                 finalTours = await buildSmartExperiencesAsync(currentCity, lat, lng, userDNAPreferences);
 
                 if (hasPreferences) {
-                    finalTours = rankByPreferences(finalTours, preferenceGraph);
+                    finalTours = [...finalTours].sort((a, b) => getTourAffinity(b) - getTourAffinity(a));
                 }
             }
 

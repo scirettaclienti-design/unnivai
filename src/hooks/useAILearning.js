@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { dataService } from '../services/dataService';
+import { computeWeights, weightsToAIProfile, tourAffinityScore, applyEvent } from '../services/preferenceEngine';
 
 const STORAGE_KEY = 'unnivai_ai_learning_brain';
 const MAX_INTERACTIONS = 30;
@@ -179,44 +180,34 @@ export function useAILearning() {
         trackInteraction('search', { query, city });
     }, [trackInteraction]);
 
-    // ─── Build AI context string from preference graph ────────────────────────
+    // ─── Pesi normalizzati dal Preference Engine ────────────────────────────────
+    const weights = useMemo(() => {
+        return computeWeights(learningState.preferenceGraph, []);
+    }, [learningState.preferenceGraph]);
+
+    // ─── Build AI context string da pesi strutturati ─────────────────────────
     const getAIContext = useCallback(() => {
+        // Usa il preference engine per generare un profilo preciso
+        const engineProfile = weightsToAIProfile(weights);
+        if (engineProfile) return engineProfile;
+
+        // Fallback legacy se engine non ha abbastanza dati
         const graph = learningState.preferenceGraph;
         if (!graph || Object.keys(graph).length === 0) return '';
 
-        // Estrai top preferenze per tipo
         const topCategories = Object.entries(graph)
             .filter(([k]) => k.startsWith('cat:'))
             .sort(([, a], [, b]) => b - a)
             .slice(0, 3)
             .map(([k]) => k.replace('cat:', ''));
 
-        const topMoods = Object.entries(graph)
-            .filter(([k]) => k.startsWith('mood:'))
-            .sort(([, a], [, b]) => b - a)
-            .slice(0, 3)
-            .map(([k]) => k.replace('mood:', ''));
+        return topCategories.length > 0 ? `Categorie preferite: ${topCategories.join(', ')}.` : '';
+    }, [weights, learningState.preferenceGraph]);
 
-        const topCities = Object.entries(graph)
-            .filter(([k]) => k.startsWith('city:'))
-            .sort(([, a], [, b]) => b - a)
-            .slice(0, 3)
-            .map(([k]) => k.replace('city:', ''));
-
-        const prefDuration = Object.entries(graph)
-            .filter(([k]) => k.startsWith('duration:'))
-            .sort(([, a], [, b]) => b - a)[0];
-
-        const parts = [
-            topCategories.length ? `Categorie preferite: ${topCategories.join(', ')}.` : '',
-            topMoods.length ? `Mood preferiti: ${topMoods.join(', ')}.` : '',
-            topCities.length ? `Città esplorate: ${topCities.join(', ')}.` : '',
-            prefDuration ? `Durata preferita: ${prefDuration[0].replace('duration:', '')}.` : '',
-            learningState.totalInteractions > 5 ? `Utente esperto (${learningState.totalInteractions} interazioni).` : '',
-        ].filter(Boolean);
-
-        return parts.length > 0 ? parts.join(' ') : '';
-    }, [learningState.preferenceGraph, learningState.totalInteractions]);
+    // ─── Score affinità per ranking tour ─────────────────────────────────────
+    const getTourAffinity = useCallback((tour) => {
+        return tourAffinityScore(tour, weights);
+    }, [weights]);
 
     const unlockPremium = useCallback(() => {
         setLearningState(prev => ({ ...prev, hasUnlockedPremium: true }));
@@ -226,12 +217,14 @@ export function useAILearning() {
 
     return {
         ...learningState,
+        weights, // Pesi normalizzati 0.0-1.0 per categorie
         trackGeneratedTour,
         trackTourView,
         trackCategoryClick,
         trackSearch,
         trackInteraction,
         getAIContext,
+        getTourAffinity, // Score affinità tour (0-100)
         unlockPremium,
         hasHitPaywall,
     };

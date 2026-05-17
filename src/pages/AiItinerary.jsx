@@ -148,7 +148,7 @@ export default function AIItineraryPage() {
     const cityData = DEMO_CITIES[activeCity] || DEMO_CITIES['Roma'];
 
     // DVAI-045: leggi le preferenze apprese dall'AI
-    const { userDNAPreferences, trackGeneratedTour, getAIContext } = useAILearning();
+    const { userDNAPreferences, trackGeneratedTour, trackInteraction, getAIContext } = useAILearning();
     const { toast } = useToast();
 
     const generateItinerary = async () => {
@@ -183,10 +183,13 @@ export default function AIItineraryPage() {
         ].filter(Boolean).join(' ');
 
         try {
-            const result = await aiRecommendationService.generateItinerary(activeCity, prefsObject, enrichedPrompt, {
-                condition: weatherCondition || 'sunny',
-                temperature: temperatureC || 20
-            });
+            const result = await aiRecommendationService.generateItinerary(
+                activeCity,
+                prefsObject,
+                enrichedPrompt,
+                { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
+                aiProfile // Tour DNA iniettato nel system prompt
+            );
 
             const itineraryDays = result.days || result;
             if (!itineraryDays || !Array.isArray(itineraryDays) || itineraryDays.length === 0) {
@@ -640,7 +643,7 @@ export default function AIItineraryPage() {
                                                                     </div>
 
                                                                     <motion.button
-                                                                        onClick={() => setSelectedStop(stop)}
+                                                                        onClick={() => { setSelectedStop(stop); trackInteraction?.('stop_detail_view', { category: stop.type, city: activeCity, title: stop.title }); }}
                                                                         className="text-terracotta-500 hover:text-terracotta-700 text-xs font-bold"
                                                                         whileHover={{ scale: 1.05 }}
                                                                         whileTap={{ scale: 0.95 }}

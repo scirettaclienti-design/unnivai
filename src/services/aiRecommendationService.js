@@ -227,7 +227,7 @@ function sortByProximity(stops) {
 export const aiRecommendationService = {
 
     // ─── ITINERARY GENERATION ────────────────────────────────────────────────
-    async generateItinerary(city, prefs = {}, userPrompt = '', weather = {}) {
+    async generateItinerary(city, prefs = {}, userPrompt = '', weather = {}, aiProfile = '') {
         const weatherIcon = weather?.condition === 'sunny' ? '☀️'
             : weather?.condition === 'rainy' ? '🌧️' : '⛅';
 
@@ -253,7 +253,8 @@ REGOLE ASSOLUTE:
 10. Per città NON top-6 (Roma/Milano/Firenze/Napoli/Venezia/Torino): sii conservativo. Suggerisci SOLO posti che sei CERTO esistano. Meglio 3 tappe sicure che 5 inventate. Se non conosci un posto specifico, usa la categoria ("un'enoteca storica nel centro") piuttosto che un nome falso.
 11. Per tour multi-giorno: il giorno 2 riprende dove finisce il giorno 1. Narrativa continua, non ripartire da zero.
 12. Il TITOLO del tour deve essere evocativo e unico. Es: "La Roma che non dorme mai" non "Tour serale di Roma". Es: "I vicoli segreti di Bari vecchia" non "Tour di Bari".
-13. Includi "photo_query" per ogni tappa: la stringa di ricerca Google Places più precisa per trovare la foto reale del posto (es: "Caffè Greco Via Condotti Roma").
+13. Includi "photo_query" per ogni tappa: la stringa di ricerca Google Places più precisa per trovare la foto reale del posto (es: "Caffè Greco Via Condotti Roma").${aiProfile ? `
+14. PROFILO UTENTE IMPLICITO (adatta il tour a questi gusti senza menzionarli esplicitamente): ${aiProfile}` : ''}
 
 Schema JSON ESATTO:
 {

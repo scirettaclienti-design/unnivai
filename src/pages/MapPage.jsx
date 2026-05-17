@@ -844,10 +844,21 @@ const MapPage = () => {
                     setWatchId(wId);
                 },
                 () => {
-                    // DVAI-039: sostituito alert() con toast event
-                    window.dispatchEvent(new CustomEvent('dvai-toast', {
-                        detail: { type: 'warning', message: 'Posizione non rilevata. Navigazione dalla prima tappa.' }
+                    window.dispatchEvent(new CustomEvent('dvai:toast', {
+                        detail: { type: 'info', message: '📍 GPS non disponibile — navigazione dalla prima tappa.', duration: 4000 }
                     }));
+                    if (activeRoute?.length) {
+                        // Usa prima tappa come ancora di partenza
+                        const firstStep = activeRoute[0];
+                        setLocalCenter({ latitude: firstStep.latitude, longitude: firstStep.longitude });
+                        // Costruisci liveRoute completa per l'HUD
+                        const fallbackRoute = activeRoute.map(s => ({
+                            lat: parseFloat(s.latitude || s.lat),
+                            lng: parseFloat(s.longitude || s.lng),
+                            title: s.name || s.title
+                        }));
+                        setLiveRoute(fallbackRoute);
+                    }
                     if (activeRoute?.length && map) {
                         map.moveCamera({
                             center: { lat: activeRoute[0].latitude, lng: activeRoute[0].longitude },

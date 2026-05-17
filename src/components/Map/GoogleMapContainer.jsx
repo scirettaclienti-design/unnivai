@@ -3,30 +3,32 @@ import { Map } from '@vis.gl/react-google-maps';
 
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAP_ID;
 
-const HIDE_POI_STYLES = [
-    {
-        featureType: "poi.business",
-        elementType: "labels",
-        stylers: [{ visibility: "off" }]
-    },
-    {
-        featureType: "poi.medical",
-        elementType: "labels",
-        stylers: [{ visibility: "off" }]
-    },
-    {
-        featureType: "poi.school",
-        elementType: "labels",
-        stylers: [{ visibility: "off" }]
-    },
-    {
-        featureType: "poi.attraction",
-        stylers: [{ visibility: "on" }]
-    },
-    {
-        featureType: "poi.park",
-        stylers: [{ visibility: "on" }]
-    }
+// DoveVAI Premium Map Style — toni caldi, minimalista, brand-first
+const DOVEVAI_MAP_STYLES = [
+    // Nascondi POI commerciali Google (dare risalto ai NOSTRI marker)
+    { featureType: "poi.business", elementType: "labels", stylers: [{ visibility: "off" }] },
+    { featureType: "poi.medical", elementType: "labels", stylers: [{ visibility: "off" }] },
+    { featureType: "poi.school", elementType: "labels", stylers: [{ visibility: "off" }] },
+    { featureType: "poi.government", elementType: "labels", stylers: [{ visibility: "off" }] },
+    { featureType: "poi.sports_complex", elementType: "labels", stylers: [{ visibility: "off" }] },
+    // Mantieni attrazioni e parchi
+    { featureType: "poi.attraction", stylers: [{ visibility: "on" }] },
+    { featureType: "poi.park", stylers: [{ visibility: "on" }] },
+    // Sfondo caldo crema (landscape)
+    { featureType: "landscape.man_made", elementType: "geometry.fill", stylers: [{ color: "#faf5ef" }] },
+    { featureType: "landscape.natural", elementType: "geometry.fill", stylers: [{ color: "#f5efe6" }] },
+    // Strade pulite e minimaliste
+    { featureType: "road.highway", elementType: "geometry.fill", stylers: [{ color: "#f0e4d4" }] },
+    { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#e6d5c3" }] },
+    { featureType: "road.arterial", elementType: "geometry.fill", stylers: [{ color: "#ffffff" }] },
+    { featureType: "road.local", elementType: "geometry.fill", stylers: [{ color: "#ffffff" }] },
+    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#8a7968" }] },
+    // Acqua calma
+    { featureType: "water", elementType: "geometry.fill", stylers: [{ color: "#c9dbe8" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#7b9baa" }] },
+    // Transit discreto
+    { featureType: "transit", elementType: "labels", stylers: [{ visibility: "simplified" }] },
+    { featureType: "transit.station", elementType: "labels.icon", stylers: [{ saturation: -60 }] },
 ];
 
 export default function GoogleMapContainer({
@@ -75,6 +77,7 @@ export default function GoogleMapContainer({
                 mapTypeControl={false}
                 streetViewControl={false}
                 fullscreenControl={false}
+                styles={DOVEVAI_MAP_STYLES}
                 {...props}
             >
                 {children}

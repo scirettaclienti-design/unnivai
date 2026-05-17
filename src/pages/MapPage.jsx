@@ -730,13 +730,26 @@ const MapPage = () => {
         setIsNavigating(false);
         setFollowing(false);
         setLiveRoute(null);
-        if (watchId) navigator.geolocation.clearWatch(watchId);
-        mapRef.current?.flyTo({ pitch: 0, bearing: 0, zoom: 14 });
-        exitNavFullscreen(); // Esci dal fullscreen quando la navigazione termina
+        // Pulizia GPS tracking navigazione
+        if (watchId) { navigator.geolocation.clearWatch(watchId); setWatchId(null); }
+        // Pulizia SpeechSynthesis
+        window.speechSynthesis?.cancel();
+        lastSpokenRef.current = '';
+        // Reset camera
+        if (map) map.moveCamera({ tilt: 0, zoom: 14 });
+        exitNavFullscreen();
         if (completedSteps.length > 0) {
             setTimeout(() => setIsSummaryModalOpen(true), 300);
         }
     };
+
+    // Cleanup globale all'unmount: ferma GPS, speech, watch
+    useEffect(() => {
+        return () => {
+            window.speechSynthesis?.cancel();
+            // watchId nel ref verrà pulito dal clearWatch del bgWatch (riga 374)
+        };
+    }, []);
 
     const handleStartNavigationReal = () => {
         setIsRoutePlannerOpen(false);

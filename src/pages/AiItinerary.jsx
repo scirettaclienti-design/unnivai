@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, ArrowRight, MapPin, Clock, Camera, Utensils, Palette, Eye, ShoppingBag, Coffee, Send, Sparkles, Brain, Loader, Heart, Mountain, Waves, Users, Baby, Zap, Sunset, Navigation, CloudRain, Sun, Thermometer, Wind, Star, Calendar, Home, Shuffle, Target, TrendingUp } from "lucide-react";
 import DemoHint from "../components/DemoHint";
 import { Link } from "react-router-dom";
@@ -130,6 +130,7 @@ export default function AIItineraryPage() {
     const [userPrompt, setUserPrompt] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedItinerary, setGeneratedItinerary] = useState(null);
+    const abortRef = useRef(null);
     const [selectedStop, setSelectedStop] = useState(null);
     const [currentDay, setCurrentDay] = useState(1);
 
@@ -151,7 +152,14 @@ export default function AIItineraryPage() {
     const { userDNAPreferences, trackGeneratedTour, trackInteraction, getAIContext } = useAILearning();
     const { toast } = useToast();
 
+    // Cleanup: aborta chiamata AI se utente lascia la pagina
+    useEffect(() => () => { abortRef.current?.abort(); }, []);
+
     const generateItinerary = async () => {
+        // Aborta eventuale chiamata precedente ancora in corso
+        abortRef.current?.abort();
+        abortRef.current = new AbortController();
+
         setIsGenerating(true);
         setGeneratedItinerary(null);
 

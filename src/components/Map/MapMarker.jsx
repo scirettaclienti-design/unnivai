@@ -117,7 +117,9 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
     const prevLng = prevProps.activity?.longitude || prevProps.activity?.lng;
     const nextLng = nextProps.activity?.longitude || nextProps.activity?.lng;
     
-    return prevId === nextId && prevLat === nextLat && prevLng === nextLng && prevProps.sequenceNumber === nextProps.sequenceNumber;
+    return prevId === nextId && prevLat === nextLat && prevLng === nextLng
+        && prevProps.sequenceNumber === nextProps.sequenceNumber
+        && prevProps.activity?.isCurrentStep === nextProps.activity?.isCurrentStep;
 });
 
 export default MapMarker;

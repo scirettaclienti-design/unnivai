@@ -12,6 +12,10 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
+    // Hooks chiamati incondizionatamente PRIMA di qualsiasi early-return
+    // (Rules of Hooks). queryClient serve a signOut() per pulire la cache.
+    const queryClient = useQueryClient();
+
     useEffect(() => {
         // 1. CHECK SESSIONE STRICT
         const initAuth = async () => {
@@ -62,8 +66,6 @@ export const AuthProvider = ({ children }) => {
     const role = user?.user_metadata?.role || (user ? 'user' : null);
 
     // 3. ACTIONS
-    const queryClient = useQueryClient();
-
     const signOut = async () => {
         setLoading(true);
         await supabase.auth.signOut();

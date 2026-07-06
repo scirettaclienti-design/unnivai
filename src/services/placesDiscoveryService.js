@@ -12,9 +12,16 @@
  */
 
 import { supabase } from '../lib/supabase';
+import { buildPlacesProxyUrl, isPlacesProxyEnabled } from './aiRecommendationService';
 
-const CACHE_PREFIX = 'unnivai_poiv2_';
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+// DVAI-055-b: prefix bumped da 'unnivai_poiv2_' per invalidare i POI tematici
+// cached prima del filtro raggio centralizzato nel normalizer. I tour tematici
+// pre-fix contenevano tappe a 50-70 km da borghi.
+const CACHE_PREFIX = 'unnivai_poiv3_';
+// DVAI-050 — TTL esteso a 24h per ridurre re-fetch OpenAI/Places.
+// Stessa city+tema → riusato 1 giorno. Trade-off accettabile: meteo cambia
+// poco in 24h, POI tematici sono stabili.
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 // ─── Cache helpers ──────────────────────────────────────────────────────────────
 const loadFromCache = (key) => {
@@ -97,44 +104,39 @@ const waitForGoogleMaps = () => new Promise((resolve) => {
   }, 300);
 });
 
+// DVAI-049 — Places via REST proxy server-side: niente dipendenza dal JS SDK,
+// funziona anche su pagine senza MapAPIWrapper (es. dashboard).
 const fetchPlacePhoto = async (placeName, cityName) => {
-  const places = await waitForGoogleMaps();
-  if (!places) {
-    console.warn('[PlacesPhoto] Google Maps JS SDK not loaded');
+  // DVAI-050: se il proxy Places è OFF (es. prod senza secret), skip silenzioso.
+  if (!isPlacesProxyEnabled()) return null;
+  try {
+    const searchQuery = `${placeName} ${cityName} Italia`;
+    const findUrl = buildPlacesProxyUrl({
+      path: 'place/findplacefromtext',
+      input: searchQuery,
+      inputtype: 'textquery',
+      fields: 'photos,name',
+    });
+    const res = await fetch(findUrl);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const ref = data?.candidates?.[0]?.photos?.[0]?.photo_reference;
+    if (!ref) return null;
+    return buildPlacesProxyUrl({
+      path: 'place/photo',
+      maxwidth: '600',
+      photo_reference: ref,
+    });
+  } catch (e) {
+    console.warn('[PlacesPhoto] fetch failed:', e.message);
     return null;
   }
-
-  const tempDiv = document.createElement('div');
-  const service = new places.PlacesService(tempDiv);
-
-  return new Promise((resolve) => {
-    const query = `${placeName} ${cityName} Italia`;
-    service.findPlaceFromQuery(
-      { query, fields: ['photos', 'name'] },
-      (results, status) => {
-        if (
-          status === places.PlacesServiceStatus.OK &&
-          results?.[0]?.photos?.[0]
-        ) {
-          const photoUrl = results[0].photos[0].getUrl({ maxWidth: 600 });
-          resolve(photoUrl);
-        } else {
-          resolve(null);
-        }
-      }
-    );
-  });
 };
 
 const enrichWithPhotos = async (pois, cityName) => {
   if (!pois || pois.length === 0) return pois;
 
-  const places = await waitForGoogleMaps();
-  if (!places) {
-    console.warn('[PlacesPhoto] Cannot enrich — SDK not loaded');
-    return pois;
-  }
-
+  // DVAI-049: niente dipendenza JS SDK; fetchPlacePhoto va via proxy REST.
   const enrichPromises = pois.slice(0, 5).map(async (poi) => {
     try {
       const photoUrl = await fetchPlacePhoto(poi.name || poi.title, cityName);

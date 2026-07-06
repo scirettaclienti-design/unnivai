@@ -1201,8 +1201,9 @@ const MapPage = () => {
                                     {/* Transport Modes */}
                                     <div className="flex px-4 gap-2 mt-2 pb-4 border-b border-gray-100">
                                         {[
+                                            // DVAI-052: V1 nasconde "Mezzi pubblici" — Google Directions con waypoints
+                                            // multipli non supporta TRANSIT (INVALID_REQUEST). Fix vero in V1.1.
                                             { id: 'driving', icon: Car, label: 'Auto' },
-                                            { id: 'transit', icon: BusFront, label: 'Mezzi' },
                                             { id: 'walking', icon: Footprints, label: 'Piedi' },
                                             { id: 'cycling', icon: Bike, label: 'Bici' }
                                         ].map((mode) => (

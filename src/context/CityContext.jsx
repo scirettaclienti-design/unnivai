@@ -1,4 +1,6 @@
 import React, { createContext, useState, useContext, useCallback } from 'react';
+import { useAuth } from './AuthContext';
+import { userContextService } from '../services/userContextService';
 
 const CityContext = createContext();
 
@@ -14,7 +16,17 @@ export function CityProvider({ children }) {
             return localStorage.getItem(STORAGE_KEY) || 'Roma';
         } catch { return 'Roma'; }
     });
-    const [isManual, setIsManual] = useState(false);
+    // isManual=true al boot se localStorage ha una città salvata e il GPS cached è scaduto/assente.
+    // Senza, la priority 1 di getUserContext non vede la scelta manuale dopo un reload.
+    const [isManual, setIsManual] = useState(() => {
+        try {
+            const gps = JSON.parse(localStorage.getItem(GPS_KEY) || 'null');
+            const validGps = gps?.city && gps?.ts && (Date.now() - gps.ts < 3600000);
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return !validGps && !!stored;
+        } catch { return false; }
+    });
+    const { user } = useAuth();
     const [gpsActive, setGpsActive] = useState(() => {
         try {
             const gps = JSON.parse(localStorage.getItem(GPS_KEY) || 'null');
@@ -81,6 +93,11 @@ export function CityProvider({ children }) {
         setCity(clean);
         setIsManual(true);
         try { localStorage.setItem(STORAGE_KEY, clean); } catch {}
+        // Persisti la scelta manuale anche sul profilo Supabase (cross-device).
+        // Fire-and-forget: il helper ha già il try/catch interno.
+        if (user?.id) {
+            userContextService.updateSupabaseProfileCity(user.id, clean);
+        }
     };
 
     const resetToGPS = () => {

@@ -8,6 +8,7 @@ import BottomNavigation from "../components/BottomNavigation";
 import { useUserContext } from "../hooks/useUserContext";
 import { DEMO_CITIES } from "../data/demoData";
 import { aiRecommendationService } from "../services/aiRecommendationService";
+import { normalizeTour } from "../services/tourShape";
 import { useAILearning } from "../hooks/useAILearning"; // DVAI-045
 import { useToast } from "../hooks/use-toast";
 
@@ -144,7 +145,8 @@ export default function AIItineraryPage() {
         );
     };
 
-    const { city, temperatureC, weatherCondition } = useUserContext();
+    // DVAI-055: estraggo lat/lng dal userContext per il vincolo geografico
+    const { city, temperatureC, weatherCondition, lat, lng } = useUserContext();
     const activeCity = city || 'Roma';
     const cityData = DEMO_CITIES[activeCity] || DEMO_CITIES['Roma'];
 
@@ -196,7 +198,9 @@ export default function AIItineraryPage() {
                 prefsObject,
                 enrichedPrompt,
                 { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
-                aiProfile // Tour DNA iniettato nel system prompt
+                aiProfile, // Tour DNA iniettato nel system prompt
+                // DVAI-055: cityCenter per vincolo geografico
+                Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null
             );
 
             const itineraryDays = result.days || result;
@@ -221,11 +225,23 @@ export default function AIItineraryPage() {
 
         } catch (error) {
             console.error("AI Generation Error", error);
-            toast({
-                title: "L'AI sta avendo un momento difficile",
-                description: 'Riprova tra qualche secondo — il tuo itinerario personalizzato è quasi pronto.',
-                variant: 'warning',
-            });
+            // DVAI-050 — cap anti-abuso 10/giorno: messaggio gentile, non paywall
+            if (error?.code === 'QUOTA_EXCEEDED') {
+                // DVAI-056: copy locked — voce DoveVAI, non punitiva. Type info + 5s.
+                toast({
+                    title: 'Hai esplorato tanto oggi',
+                    description: 'Le tue esperienze di oggi sono esaurite. Domani ne troverai di nuove, cucite su di te.',
+                    type: 'info',
+                    duration: 5000,
+                });
+            } else {
+                toast({
+                    title: "L'AI sta avendo un momento difficile",
+                    description: 'Riprova tra qualche secondo — il tuo itinerario personalizzato è quasi pronto.',
+                    type: 'warning',
+                    duration: 5000,
+                });
+            }
             // Non mostriamo un fallback statico — l'utente può riprovare
             setGeneratedItinerary(null);
             setCurrentStep(0); // Torna alla schermata di input con il pulsante visibile
@@ -249,7 +265,10 @@ export default function AIItineraryPage() {
                 activeCity,
                 { ...prefsObject, duration: 'Mezza Giornata' },
                 `Rigenera solo il giorno ${dayNumber} con varianti diverse rispetto al precedente.`,
-                { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 }
+                { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
+                '',
+                // DVAI-055: cityCenter per vincolo geografico
+                Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null
             );
             const newDay = result.days?.[0];
             if (newDay) {
@@ -706,24 +725,30 @@ export default function AIItineraryPage() {
                                         index: i + 1,
                                         type: 'waypoint'
                                     })) || [],
-                                    tourData: {
+                                    // DVAI-053: normalizer unificato — passo i raw stops e il city,
+                                    // il normalizer estrae title/description/transition/insiderTip/bestTime,
+                                    // entrambe le forme di coord, image da googlePhoto.
+                                    tourData: normalizeTour({
+                                        id: `ai-itinerary-${Date.now()}`,
                                         title: generatedItinerary.find(d => d.day === currentDay)?.title || "Itinerario AI",
                                         type: 'ai-generated',
-                                        // Estraiamo le singole parole chiave dal prompt per fare match con i Tag del Partner!
+                                        isAiGenerated: true,
+                                        city: activeCity || 'Roma',
                                         tags: [
-                                            "AI", 
-                                            ...(userPrompt ? userPrompt.split(/\s+/).map(w => w.replace(/[^\w\s]/gi, '')) : []), 
+                                            "AI",
+                                            ...(userPrompt ? userPrompt.split(/\s+/).map(w => w.replace(/[^\w\s]/gi, '')) : []),
                                             ...(userPreferences.find(p => p.id === 'interests')?.selected || [])
                                         ],
-                                        steps: generatedItinerary.find(d => d.day === currentDay)?.stops.map((s, i) => ({
-                                            lat: s.latitude,
-                                            lng: s.longitude,
-                                            title: s.title,
-                                            description: s.description,
-                                            image: s.photos?.[0] || null,
-                                            type: s.type
-                                        })) || []
-                                    }
+                                        // stops grezzi dall'AI: il normalizer fa tutto il resto.
+                                        stops: generatedItinerary.find(d => d.day === currentDay)?.stops || [],
+                                    }, {
+                                        cityFallback: activeCity || 'Roma',
+                                        // DVAI-055-b: doppio filtro innocuo — generateItinerary ha già filtrato con
+                                        // cityCenter, il normalizer riapplica per uniformità.
+                                        cityCenter: Number.isFinite(lat) && Number.isFinite(lng)
+                                            ? { latitude: lat, longitude: lng }
+                                            : null,
+                                    })
                                 }}
                                 className="flex-1"
                             >

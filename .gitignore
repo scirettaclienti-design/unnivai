@@ -27,3 +27,12 @@ dist-ssr
 # DVAI-003: file di test legacy con chiavi hardcoded — non deployare mai in produzione
 tests/legacy-root/
 .vercel
+
+# DVAI-053→059: doc di lavoro interne + screenshot QA restano fuori dal repo
+qa-screenshots/
+DOVEVAI_*.md
+DOVEVAI_*.txt
+BUGS.md
+PROGRESS.md
+V1.1_BACKLOG.md
+COST_PER_TOUR.md

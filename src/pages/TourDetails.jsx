@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
-import { ArrowLeft, MapPin, Clock, Star, Play, Heart, Share2, Users, Calendar, MessageCircle, Navigation, CheckCircle, XCircle, Sparkles, Brain } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Clock, Star, Play, Heart, Share2, Users, Calendar, MessageCircle, Navigation, CheckCircle, XCircle, Sparkles, Brain } from "lucide-react";
 import { Link, useParams, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import TopBar from "../components/TopBar";
@@ -14,6 +14,7 @@ import { Toast } from "../components/ToastNotification";
 import { useToast } from "../hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { dataService, createGuideRequest } from "../services/dataService";
+import { normalizeTour } from "../services/tourShape";
 import { useAILearning } from "../hooks/useAILearning";
 
 // --- MOCK DATA (Original Rich Data) ---
@@ -666,37 +667,37 @@ export default function TourDetailsPage() {
                 finalType = 'guide';
             }
 
+            // DVAI-053: passo l'incoming al normalizer unificato. steps, itinerary,
+            // image/images, guide vengono coerentemente settati dal normalizer
+            // qualunque sia la sorgente (Per Te, SurpriseTour, AiItinerary, QuickPath, DB).
+            // DVAI-055-b: `enforceRadius: !!incoming.isAiGenerated` — filtro raggio
+            // solo sui tour AI. I tour DB di guida (V2) NON vengono filtrati: una
+            // guida vera può disegnare "Roma → Ostia Antica" (~25 km) legittimamente.
+            const normalized = normalizeTour(incoming, {
+                cityFallback: incoming.city || 'Roma',
+                enforceRadius: !!incoming.isAiGenerated,
+                cityCenter: incoming.isAiGenerated && Number.isFinite(incoming.center?.latitude)
+                    ? { latitude: incoming.center.latitude, longitude: incoming.center.longitude }
+                    : null,
+            });
             setLocalTour({
-                ...incoming,
+                ...normalized,
                 type: finalType,
-                // Ensure array for images
-                images: incoming.images || (incoming.image_urls && incoming.image_urls.length > 0 ? incoming.image_urls : null) || (incoming.image ? [incoming.image] : []) || (incoming.imageUrl ? [incoming.imageUrl] : []),
-                // Defaults for rich fields if missing
-                guide: incoming.guide || "DoveVai Guide",
+                // Solo i default specifici di TourDetails che non sono nel normalizer.
                 guide_id: incoming.guide_id || incoming.guideId || incoming.author_id || null,
                 guideId: incoming.guide_id || incoming.guideId || incoming.author_id || null,
-                guideAvatar: incoming.guideAvatar || "🤖",
-                guideBio: incoming.guideBio || "Guida virtuale intelligente selezionata per te.",
-                rating: incoming.rating || 4.5,
-                reviews: incoming.reviews || 0,
-                location: incoming.location || "Destinazione Tour",
-                participants: incoming.participants || 0,
-                maxParticipants: incoming.maxParticipants || 10,
-                language: incoming.language || "Italiano", // Map language
-                highlights: incoming.highlights || ["✨ Esperienza autentica", "📍 Tappe esclusive"],
-                // ITINERARY MAPPING from Steps
-                itinerary: (incoming.steps && incoming.steps.length > 0)
-                    ? incoming.steps.map((s, i) => ({
-                        time: `Tappa ${i + 1}`,
-                        activity: s.title || `Punto ${i + 1}`,
-                        emoji: "📍",
-                        description: s.description
-                    }))
-                    : (incoming.itinerary || []),
-                meetingPoint: incoming.meetingPoint || incoming.startPoint || "Punto di partenza sulla mappa",
-                included: incoming.included || ["Itinerario digitale", "Supporto 24/7"],
-                notIncluded: incoming.notIncluded || ["Biglietti musei (se non spec.)"],
-                nextStart: incoming.nextStart || "Sempre disponibile"
+                guideBio: normalized.guideBio || "Guida virtuale intelligente selezionata per te.",
+                rating: normalized.rating ?? 4.5,
+                reviews: normalized.reviews ?? 0,
+                location: normalized.location || "Destinazione Tour",
+                participants: normalized.participants ?? 0,
+                maxParticipants: normalized.maxParticipants ?? 10,
+                language: normalized.language || "Italiano",
+                highlights: normalized.highlights || ["✨ Esperienza autentica", "📍 Tappe esclusive"],
+                meetingPoint: normalized.meetingPoint || normalized.startPoint || "Punto di partenza sulla mappa",
+                included: normalized.included || ["Itinerario digitale", "Supporto 24/7"],
+                notIncluded: normalized.notIncluded || ["Biglietti musei (se non spec.)"],
+                nextStart: normalized.nextStart || "Sempre disponibile",
             });
         }
     }, [location.state, id]);
@@ -721,9 +722,20 @@ export default function TourDetailsPage() {
 
     // Se abbiamo localTour (da Esplora/Home) ma queryTour ha guide_id, usiamo quello così "Richiedi Guida" funziona
     const hasGuideFromDb = queryTour && (queryTour.guide_id || queryTour.guideId);
-    const tour = (localTour && hasGuideFromDb)
+    const rawTour = (localTour && hasGuideFromDb)
         ? { ...localTour, guide_id: queryTour.guide_id ?? queryTour.guideId, guide: queryTour.guide, guideAvatar: queryTour.guideAvatar, guideBio: queryTour.guideBio }
         : (localTour || queryTour || fallbackData);
+    // DVAI-053: il `tour` consumato dal render passa SEMPRE per il normalizer.
+    // Garantisce che le 3 sorgenti (location.state, queryTour DB, fallback mock)
+    // espongano la stessa shape: steps[], itinerary[], image/imageUrl/images[].
+    // DVAI-055-b: idem gated — filtro raggio solo su AI. Guide DB intatti.
+    const tour = rawTour ? normalizeTour(rawTour, {
+        cityFallback: rawTour.city || 'Roma',
+        enforceRadius: !!rawTour.isAiGenerated,
+        cityCenter: rawTour.isAiGenerated && Number.isFinite(rawTour.center?.latitude)
+            ? { latitude: rawTour.center.latitude, longitude: rawTour.center.longitude }
+            : null,
+    }) : rawTour;
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showChatModal, setShowChatModal] = useState(false);
@@ -821,9 +833,13 @@ export default function TourDetailsPage() {
 
     // --- STANDARD TOUR LOGIC ---
     // --- SMART CTA LOGIC ---
-    // DVAI-012: Un tour è "mock" se il suo id è numerico (1,2,3) o una stringa tipo "a1"
-    // oppure se non ha un guide_id UUID valido. I tour reali vengono dal DB con UUID v4.
-    const isMockTour = !isValidGuideId(tour.guide_id || tour.guideId || '') &&
+    // DVAI-012 / DVAI-049: Un tour è "mock" se il suo id è numerico (1,2,3) o una
+    // stringa tipo "a1" oppure se non ha un guide_id UUID valido. ECCEZIONE: i tour
+    // generati dall'AI (isAiGenerated=true) con steps reali NON sono mock — sono
+    // tour-storia self-guided generati dal motore, non esche fake.
+    const hasRealSteps = Array.isArray(tour.steps) && tour.steps.length > 0;
+    const isAiSelfGuided = !!tour.isAiGenerated && hasRealSteps;
+    const isMockTour = !isAiSelfGuided && !isValidGuideId(tour.guide_id || tour.guideId || '') &&
         (typeof tour.id === 'number' ||
          (typeof tour.id === 'string' && !(/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(tour.id))));
 
@@ -1034,10 +1050,16 @@ export default function TourDetailsPage() {
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex-1 mr-4">
                                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                            {/* DVAI-012: Badge Demo per tour senza guida reale */}
+                                            {/* DVAI-012: Badge Demo per tour senza guida reale e SENZA contenuto AI */}
                                             {isMockTour && (
                                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-700 text-[10px] font-black uppercase tracking-widest">
                                                     🎭 Demo
+                                                </span>
+                                            )}
+                                            {/* DVAI-049: Tour AI self-guided con narrativa: badge informativo, non warning */}
+                                            {isAiSelfGuided && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 border border-indigo-300 text-indigo-700 text-[10px] font-black uppercase tracking-widest">
+                                                    🤖 Tour AI
                                                 </span>
                                             )}
                                         </div>
@@ -1285,34 +1307,176 @@ export default function TourDetailsPage() {
                             </div>
                         </motion.div>
 
-                        {/* Itinerary */}
+                        {/* DVAI-054 — Programma del tour: rendering editoriale per ogni tappa.
+                            Fonte primaria: tour.steps (shape canonica DVAI-053).
+                            Fallback: tour.itinerary quando steps è assente/vuoto. Mai lettura parallela.
+                            Regole anti-campo-vuoto: ogni blocco condizionato al proprio campo.
+                            DVAI-059 — CTA "Apri sulla mappa" per-tappa rimosso: era il primo dei 3
+                            CTA mappa duplicati nella scheda. L'unica CTA mappa vive ora in
+                            "Avvia Itinerario" (SMART CTA BUTTONS in fondo). */}
                         <motion.div
-                            className="bg-white/80 rounded-3xl p-6"
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.8 }}
                         >
-                            <h3 className="font-bold text-gray-800 mb-6 flex items-center">
-                                <span className="text-2xl mr-2">🗓️</span>
-                                Programma del tour
-                            </h3>
-                            <div className="space-y-4">
-                                {(tour.itinerary || (tour.steps ? tour.steps.map((s,i) => ({ time: `Tappa ${i+1}`, emoji: '📍', activity: s.title || s.label || `Destinazione ${i+1}`})) : [])).map((item, index) => (
-                                    <motion.div
-                                        key={item.time ?? index}
-                                        className="flex items-center space-x-4 p-3 bg-gradient-to-r from-terracotta-50 to-ochre-50 rounded-xl"
-                                        initial={{ opacity: 0, x: -30 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ duration: 0.6, delay: 1 + index * 0.1 }}
-                                    >
-                                        <div className="bg-terracotta-400 text-white px-3 py-1 rounded-lg font-bold text-xs whitespace-nowrap">
-                                            {item.time}
-                                        </div>
-                                        <div className="text-xl">{item.emoji}</div>
-                                        <div className="flex-1 font-medium text-gray-700 text-sm">{item.activity}</div>
-                                    </motion.div>
-                                ))}
-                            </div>
+                            {(() => {
+                                const source = (Array.isArray(tour.steps) && tour.steps.length > 0)
+                                    ? tour.steps
+                                    : (Array.isArray(tour.itinerary) ? tour.itinerary : []);
+                                const totalSteps = source.length;
+                                if (totalSteps === 0) return null;
+                                return source.map((step, index) => {
+                                    const next = source[index + 1] || null;
+                                    const stepTitle = step.title || step.activity || `Tappa ${index + 1}`;
+                                    const stepImage = step.image || null;
+                                    const stepCategory = step.category && step.category !== 'place' ? step.category : null;
+                                    const stepMinutes = Number.isFinite(step.suggestedMinutes) && step.suggestedMinutes > 0 ? step.suggestedMinutes : null;
+                                    const stepPrice = Number.isFinite(step.price) && step.price > 0 ? step.price : null;
+                                    const stepInsider = step.insiderTip || null;
+                                    const stepDesc = step.description || null;
+                                    const stepRating = Number.isFinite(step.googleRating) && step.googleRating > 0 ? step.googleRating : null;
+                                    const stepBestTime = step.bestTime || null;
+                                    const stepTransition = step.transition || null;
+                                    const nextTitle = next ? (next.title || next.activity || null) : null;
+                                    const nextImage = next ? (next.image || null) : null;
+
+                                    return (
+                                        <article key={step.id ?? index} className="mb-14 last:mb-0">
+                                            {/* 1. HERO FOTOGRAFICO */}
+                                            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl mb-5">
+                                                {stepImage ? (
+                                                    <img
+                                                        src={stepImage}
+                                                        alt={stepTitle}
+                                                        className="absolute inset-0 w-full h-full object-cover"
+                                                        loading="lazy"
+                                                        onError={(e) => {
+                                                            // Fallback: nascondo l'img rotta, il placeholder geometrico sotto resta visibile
+                                                            e.currentTarget.style.display = 'none';
+                                                        }}
+                                                    />
+                                                ) : null}
+                                                {/* Placeholder geometrico sempre presente sotto — visibile se img manca o rompe */}
+                                                <div className={`absolute inset-0 bg-gradient-to-br from-stone-200 via-stone-300 to-stone-400 ${stepImage ? '-z-10' : ''}`}>
+                                                    <svg className="absolute inset-0 w-full h-full opacity-15" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                                        <defs>
+                                                            <pattern id={`grid-${index}`} width="24" height="24" patternUnits="userSpaceOnUse">
+                                                                <path d="M 24 0 L 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-stone-700" />
+                                                            </pattern>
+                                                        </defs>
+                                                        <rect width="100%" height="100%" fill={`url(#grid-${index})`} />
+                                                    </svg>
+                                                </div>
+                                                {/* overlay scuro dal basso */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+                                                {/* meta in overlay */}
+                                                <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+                                                    <div className="text-[11px] uppercase tracking-[0.18em] opacity-80 mb-2">
+                                                        Tappa {index + 1} di {totalSteps}
+                                                    </div>
+                                                    <h2 className="text-[22px] font-medium leading-tight mb-3">{stepTitle}</h2>
+                                                    {(stepCategory || stepMinutes || stepPrice) && (
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            {stepCategory && (
+                                                                <span className="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] uppercase tracking-wider">
+                                                                    {stepCategory}
+                                                                </span>
+                                                            )}
+                                                            {stepMinutes && (
+                                                                <span className="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px]">
+                                                                    {stepMinutes} min
+                                                                </span>
+                                                            )}
+                                                            {stepPrice && (
+                                                                <span className="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px]">
+                                                                    €{stepPrice}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* 2. PERCHÉ QUI (insider) — momento editoriale, unico elemento serif italic */}
+                                            {stepInsider && (
+                                                <blockquote className="border-l-[3px] border-stone-900 pl-4 py-1 mb-5">
+                                                    <p className="font-serif italic text-[17px] leading-snug text-stone-800">
+                                                        {stepInsider}
+                                                    </p>
+                                                </blockquote>
+                                            )}
+
+                                            {/* 3. DESCRIZIONE */}
+                                            {stepDesc && (
+                                                <p className="text-[15px] leading-relaxed text-stone-600 mb-5">
+                                                    {stepDesc}
+                                                </p>
+                                            )}
+
+                                            {/* 4. RIGA META: rating Google + prezzo */}
+                                            {(stepRating || stepPrice) && (
+                                                <div className="flex items-center gap-5 text-[13px] text-stone-500 mb-5">
+                                                    {stepRating && (
+                                                        <span>
+                                                            <strong className="text-stone-800">{stepRating}</strong>
+                                                            <span className="ml-1 text-stone-500">Google</span>
+                                                        </span>
+                                                    )}
+                                                    {stepPrice && (
+                                                        <span>
+                                                            <strong className="text-stone-800">€{stepPrice}</strong>
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* 5. MEGLIO VISITARE */}
+                                            {stepBestTime && (
+                                                <div className="mb-5">
+                                                    <div className="text-[11px] uppercase tracking-[0.16em] text-stone-500 mb-1">
+                                                        Meglio visitare
+                                                    </div>
+                                                    <p className="text-[14px] text-stone-700">{stepBestTime}</p>
+                                                </div>
+                                            )}
+
+                                            {/* 6. TRANSIZIONE — icona movimento + testo narrativo. Solo se c'è una prossima tappa */}
+                                            {stepTransition && next && (
+                                                <div className="flex items-start gap-3 mb-5 text-stone-600">
+                                                    <ArrowRight className="w-4 h-4 mt-1 flex-shrink-0" strokeWidth={1.5} />
+                                                    <p className="text-[14px] leading-relaxed">{stepTransition}</p>
+                                                </div>
+                                            )}
+
+                                            {/* 7. PREVIEW PROSSIMA TAPPA */}
+                                            {next && (
+                                                <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-xl mb-5">
+                                                    {nextImage ? (
+                                                        <img
+                                                            src={nextImage}
+                                                            alt=""
+                                                            className="w-14 h-14 object-cover rounded-lg flex-shrink-0"
+                                                            loading="lazy"
+                                                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-stone-200 to-stone-400 flex-shrink-0" />
+                                                    )}
+                                                    <div className="min-w-0">
+                                                        <div className="text-[11px] uppercase tracking-[0.14em] text-stone-500">Poi</div>
+                                                        <div className="text-[14px] text-stone-800 truncate">
+                                                            {nextTitle || `Tappa ${index + 2}`}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* DVAI-059 — Rimosso "Apri sulla mappa" per-tappa (era CTA mappa duplicato).
+                                                L'unica CTA mappa nella scheda è "Avvia Itinerario" in fondo. */}
+                                        </article>
+                                    );
+                                });
+                            })()}
                         </motion.div>
 
                         {/* Nearby Partners Section */}
@@ -1348,28 +1512,8 @@ export default function TourDetailsPage() {
                             </motion.div>
                         )}
 
-                        {/* Meeting Point & Map Preview */}
-                        <motion.div
-                            className="bg-gradient-to-r from-green-100 to-green-200 rounded-3xl p-6"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.8, delay: 1.2 }}
-                        >
-                            <h3 className="font-bold text-gray-800 mb-4 flex items-center">
-                                <span className="text-2xl mr-2">📍</span>
-                                Mappatura
-                            </h3>
-                            <div className="bg-white/60 rounded-xl p-4">
-                                <p className="font-medium text-gray-700 mb-3">{tour.meetingPoint === "Punto di partenza sulla mappa" ? "Percorso completo sulla mappa interattiva" : tour.meetingPoint}</p>
-                                <button
-                                    onClick={navigateToMap}
-                                    className="w-full bg-green-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-green-600 transition-colors flex items-center justify-center space-x-2"
-                                >
-                                    <Navigation className="w-4 h-4" />
-                                    <span>Guarda la Mappa</span>
-                                </button>
-                            </div>
-                        </motion.div>
+                        {/* DVAI-059 — Rimosso intero box "Mappatura" con "Guarda la Mappa" (2° CTA mappa duplicato).
+                            L'unica CTA mappa vive in "Avvia Itinerario" (SMART CTA in fondo). */}
 
                         {/* Included/Not Included */}
                         <motion.div

@@ -13,6 +13,8 @@ import { dataService, createGuideRequest } from "@/services/dataService";
 import { useAILearning } from '../hooks/useAILearning';
 import { placesDiscoveryService } from '@/services/placesDiscoveryService';
 import { getItemImage, GENERIC, CITY_IMAGES } from '@/utils/imageUtils';
+import { normalizeTour } from '@/services/tourShape';
+import TourCover from '@/components/TourCover';
 // 🧠 AI-POWERED EXPERIENCE GENERATOR (REAL POI DISCOVERY)
 
 // Theme-aware fallback images (city-neutral, topic-relevant)
@@ -158,15 +160,18 @@ const buildSmartExperiencesAsync = async (cityName, userLat, userLng, userDNA = 
             guideBio: `Ho assemblato questa esperienza basandomi su luoghi reali di ${cityName} e le tue preferenze.`,
             center: { latitude: centerLat, longitude: centerLng },
             steps: generatedSteps,
-            itinerary: generatedSteps.map((s, i) => ({
-                time: `Tappa ${i + 1}`,
-                emoji: '📍',
-                activity: s.title,
-                description: s.description,
-            })),
             waypoints: generatedSteps.map(s => [s.lat, s.lng]),
+            isAiGenerated: true,
         };
-    });
+    // DVAI-055-b: cityCenter passato al normalizer → filtro raggio anche sui tour
+    // tematici (la falla che il fix DVAI-055 nel solo generateItinerary non copriva).
+    // Se userLat/userLng assenti, cityCenter è null → nessun filtro (retrocompat).
+    }).map(t => normalizeTour(t, {
+        cityFallback: cityName,
+        cityCenter: Number.isFinite(userLat) && Number.isFinite(userLng)
+            ? { latitude: userLat, longitude: userLng }
+            : null,
+    }));
 };
 
 // Sync fallback for placeholder data (while async loads)
@@ -347,12 +352,76 @@ const DashboardUser = () => {
                 console.warn("Failed to fetch tours, using fallback", e);
             }
 
-            // Se non ci sono tour nel DB, genera con AI discovery
+            // Se non ci sono tour nel DB, genera con AI discovery + narrativa insider
             if (finalTours.length === 0) {
-                finalTours = await buildSmartExperiencesAsync(currentCity, lat, lng, userDNAPreferences);
+                // Lancia in parallelo: 5 tour tematici (placesDiscoveryService) +
+                // 1 tour narrativo "insider locale" (aiRecommendationService).
+                // Il featured insider va in cima alle card di "Per Te".
+                const [smartTours, insiderResult] = await Promise.all([
+                    buildSmartExperiencesAsync(currentCity, lat, lng, userDNAPreferences),
+                    aiRecommendationService.generateItinerary(
+                        currentCity,
+                        { duration: '1 Giorno', group: 'solo', pace: 'rilassato' },
+                        `Itinerario insider per scoprire ${currentCity} oggi`,
+                        {},
+                        getAIContext?.() || '',
+                        // DVAI-055: cityCenter per vincolo geografico. lat/lng dal userContext (GPS o manuale).
+                        Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null
+                    ).catch(err => {
+                        console.warn('[Per Te] insider narrativa fallback:', err.message);
+                        return null;
+                    }),
+                ]);
+
+                let featured = null;
+                if (insiderResult?.days?.[0]?.stops?.length > 0) {
+                    const day = insiderResult.days[0];
+                    const firstStop = day.stops[0];
+                    // DVAI-053: passo l'oggetto raw al normalizer — cover, images,
+                    // steps[], itinerary derivata e guide default sono settati lì.
+                    featured = normalizeTour({
+                        id: `ai-insider-${Date.now()}`,
+                        type: 'ai-insider',
+                        title: day.title || `Insider · ${currentCity}`,
+                        location: `${currentCity}, Tour AI Insider`,
+                        rating: 4.9,
+                        reviews: 0,
+                        price: 0,
+                        duration: `${day.stops.reduce((acc, s) => acc + (s.suggestedMinutes || 30), 0)} min`,
+                        // image/images li lascio scegliere al normalizer (priorità prima foto Places)
+                        image: firstStop.googlePhoto || CITY_IMAGES[currentCity] || GENERIC.piazza,
+                        category: '✨ Insider AI',
+                        emoji: '🧭',
+                        isAiGenerated: true,
+                        isInsiderNarrative: true,
+                        highlights: day.stops.slice(0, 3).map(s => s.title),
+                        included: ['Tour-storia con narrativa', 'Suggerimenti insider per ogni tappa', "Quando andare per il momento giusto"],
+                        notIncluded: ['Guida fisica', 'Biglietti musei'],
+                        guideBio: `Itinerario "insider" generato per oggi a ${currentCity}.`,
+                        center: { latitude: firstStop.latitude, longitude: firstStop.longitude },
+                        // Passo gli stops grezzi: il normalizer estrae title/description/transition/...
+                        // e mappa googlePhoto → image.
+                        stops: day.stops,
+                        suggestedTransit: day.suggestedTransit || 'walking',
+                        mapMood: day.mapMood || 'default',
+                    }, {
+                        cityFallback: currentCity,
+                        // DVAI-055-b: doppio filtro innocuo — generateItinerary ha già filtrato,
+                        // il normalizer riapplica per uniformità. Idempotente.
+                        cityCenter: Number.isFinite(lat) && Number.isFinite(lng)
+                            ? { latitude: lat, longitude: lng }
+                            : null,
+                    });
+                }
+
+                finalTours = featured ? [featured, ...smartTours] : smartTours;
 
                 if (hasPreferences) {
-                    finalTours = [...finalTours].sort((a, b) => getTourAffinity(b) - getTourAffinity(a));
+                    // Il featured rimane in cima a prescindere — sortiamo solo gli smart
+                    const head = featured ? [featured] : [];
+                    const tail = (featured ? finalTours.slice(1) : finalTours)
+                        .sort((a, b) => getTourAffinity(b) - getTourAffinity(a));
+                    finalTours = [...head, ...tail];
                 }
             }
 
@@ -644,37 +713,31 @@ const DashboardUser = () => {
                                     className="group relative h-64 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
                                     whileHover={{ y: -5 }}
                                 >
-                                    <AnimatePresence mode="popLayout">
-                                        <motion.img
-                                            key={exp.image} // Forces animation when image changes
-                                            initial={{ opacity: 0, scale: 1.05 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            transition={{ duration: 0.5 }}
-                                            src={exp.image || 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&h=400&fit=crop&q=80'}
-                                            alt={exp.title}
-                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                            onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&h=400&fit=crop&q=80'; }}
-                                        />
-                                    </AnimatePresence>
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" />
-
-                                    <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold text-white flex items-center">
-                                        <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
-                                        {exp.rating}
-                                    </div>
-
-                                    <div className="absolute bottom-0 left-0 p-5 w-full text-white">
-                                        <div className="text-[10px] font-bold text-gray-300 uppercase tracking-wider mb-1">{exp.category}</div>
-                                        <h4 className="font-playfair font-bold text-lg leading-tight mb-2 line-clamp-2">{exp.title}</h4>
-                                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/20">
-                                            <div className="flex items-center text-xs font-medium opacity-90">
-                                                <Clock className="w-3 h-3 mr-1" />
-                                                {exp.duration}
-                                            </div>
-                                            <span className="font-bold text-base">€{exp.price}</span>
+                                    {/* DVAI-058 — Copertina unificata (ramo A foto Places brand-uniformi / ramo B illustrato per categoria) */}
+                                    <TourCover
+                                        cover={exp.image}
+                                        category={exp.category || exp.type}
+                                        type={exp.type}
+                                        title={exp.title}
+                                        animateKey={exp.image}
+                                    >
+                                        <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold text-white flex items-center">
+                                            <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
+                                            {exp.rating}
                                         </div>
-                                    </div>
+
+                                        <div className="absolute bottom-0 left-0 p-5 w-full text-white">
+                                            <div className="text-[10px] font-bold text-gray-300 uppercase tracking-wider mb-1">{exp.category}</div>
+                                            <h4 className="font-playfair font-bold text-lg leading-tight mb-2 line-clamp-2">{exp.title}</h4>
+                                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/20">
+                                                <div className="flex items-center text-xs font-medium opacity-90">
+                                                    <Clock className="w-3 h-3 mr-1" />
+                                                    {exp.duration}
+                                                </div>
+                                                <span className="font-bold text-base">€{exp.price}</span>
+                                            </div>
+                                        </div>
+                                    </TourCover>
                                 </motion.div>
                             </Link>
                         ))}

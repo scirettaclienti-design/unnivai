@@ -23,11 +23,7 @@ export function useAILearning() {
     const userId = user?.id;
 
     const [learningState, setLearningState] = useState(() => {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) return JSON.parse(saved);
-        } catch {}
-        return {
+        const defaults = {
             generatedToursCount: 0,
             userDNAPreferences: [],
             hasUnlockedPremium: false,
@@ -36,6 +32,23 @@ export function useAILearning() {
             totalInteractions: 0,
             lastSyncedAt: null,
         };
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return defaults;
+            const parsed = JSON.parse(saved);
+            // Merge con i default per tollerare versioni vecchie dello schema
+            return {
+                ...defaults,
+                ...parsed,
+                userDNAPreferences: Array.isArray(parsed?.userDNAPreferences) ? parsed.userDNAPreferences : [],
+                interactions: Array.isArray(parsed?.interactions) ? parsed.interactions : [],
+                preferenceGraph: (parsed?.preferenceGraph && typeof parsed.preferenceGraph === 'object') ? parsed.preferenceGraph : {},
+                totalInteractions: Number.isFinite(parsed?.totalInteractions) ? parsed.totalInteractions : 0,
+                generatedToursCount: Number.isFinite(parsed?.generatedToursCount) ? parsed.generatedToursCount : 0,
+            };
+        } catch {
+            return defaults;
+        }
     });
 
     const syncTimerRef = useRef(null);
@@ -53,7 +66,9 @@ export function useAILearning() {
             setLearningState(prev => {
                 // Merge: DB ha priorità se più recente, ma non perdiamo dati locali
                 const dbInteractions = Array.isArray(dbPrefs.interactions) ? dbPrefs.interactions : [];
-                const localInteractions = prev.interactions || [];
+                const localInteractions = Array.isArray(prev.interactions) ? prev.interactions : [];
+                const localDNA = Array.isArray(prev.userDNAPreferences) ? prev.userDNAPreferences : [];
+                const localGraph = (prev.preferenceGraph && typeof prev.preferenceGraph === 'object') ? prev.preferenceGraph : {};
 
                 // Unisci interazioni, deduplicando per timestamp
                 const allInteractions = [...dbInteractions, ...localInteractions];
@@ -65,11 +80,11 @@ export function useAILearning() {
                     return true;
                 }).slice(0, MAX_INTERACTIONS);
 
-                const mergedGraph = { ...(dbPrefs.preference_data || {}), ...prev.preferenceGraph };
+                const mergedGraph = { ...(dbPrefs.preference_data || {}), ...localGraph };
                 // Somma i conteggi per chiavi comuni
                 for (const [key, val] of Object.entries(dbPrefs.preference_data || {})) {
-                    if (typeof val === 'number' && typeof prev.preferenceGraph[key] === 'number') {
-                        mergedGraph[key] = Math.max(val, prev.preferenceGraph[key]);
+                    if (typeof val === 'number' && typeof localGraph[key] === 'number') {
+                        mergedGraph[key] = Math.max(val, localGraph[key]);
                     }
                 }
 
@@ -77,10 +92,10 @@ export function useAILearning() {
                     ...prev,
                     preferenceGraph: mergedGraph,
                     interactions: merged,
-                    totalInteractions: Math.max(dbPrefs.total_interactions || 0, prev.totalInteractions),
+                    totalInteractions: Math.max(dbPrefs.total_interactions || 0, prev.totalInteractions || 0),
                     // Mantieni DNA locale se più ricco
-                    userDNAPreferences: prev.userDNAPreferences.length >= dbInteractions.length
-                        ? prev.userDNAPreferences
+                    userDNAPreferences: localDNA.length >= dbInteractions.length
+                        ? localDNA
                         : merged.filter(i => i.type === 'tour_generated').map(i => i.data).slice(0, 10),
                     lastSyncedAt: new Date().toISOString(),
                 };

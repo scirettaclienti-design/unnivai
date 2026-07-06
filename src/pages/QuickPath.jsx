@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { aiRecommendationService } from "@/services/aiRecommendationService";
+import { normalizeTour } from "@/services/tourShape";
 import { dataService } from "@/services/dataService";
 import { Brain } from "lucide-react";
 import { ArrowLeft, Waves, Mountain, Building2, Trees, ArrowRight, RotateCcw, Home, Sunrise, Sun, Sunset, Zap, Clock, Target, User, Heart, Users, UserCheck, MapPin, Calendar, Timer, UsersIcon } from "lucide-react";
@@ -412,23 +413,20 @@ export default function QuickPathPage() {
             console.warn("⏱️ QuickPath: safety timeout, applying fallback completion");
             const cityCenter = { latitude: 41.9028, longitude: 12.4964 };
             const cityImg = getCityFallbackImage(activeCity);
-            setReadyTourData({
+            setReadyTourData(normalizeTour({
                 id: 'ai-quiz-fallback-' + Date.now(),
                 title: `Esplora ${activeCity}`,
                 description: "Esperienza personalizzata.",
                 city: activeCity,
-                steps: [{ title: 'Centro', description: 'Punto di partenza', lat: cityCenter.latitude, lng: cityCenter.longitude, latitude: cityCenter.latitude, longitude: cityCenter.longitude, image: cityImg, type: 'place' }],
+                steps: [{ title: 'Centro', description: 'Punto di partenza', latitude: cityCenter.latitude, longitude: cityCenter.longitude, image: cityImg, type: 'place' }],
                 waypoints: [[cityCenter.latitude, cityCenter.longitude]],
                 isAiGenerated: true,
-                images: [cityImg],
-                imageUrl: cityImg,
+                image: cityImg,
                 center: cityCenter,
-                guide: "Guida Virtuale",
-                guideAvatar: "🤖",
                 highlights: ["Percorso Veloce"],
                 included: [],
                 notIncluded: [],
-            });
+            }, { cityFallback: activeCity, enforceRadius: false })); // DVAI-055-b: mock hardcoded — filtro spento. Vedi V1.1_BACKLOG #13.
             setGenerationStatus('success');
         }, 12000);
 
@@ -851,7 +849,8 @@ export default function QuickPathPage() {
                     CITY_IMAGES_RESOLVER[activeCity] ||
                     ITALIAN_GENERIC_IMG;
                 const mainImage = stops.length > 0 && stops[0].image ? stops[0].image : defaultCityImage;
-                const tourData = {
+                // DVAI-053: normalizer unificato — passo gli stops grezzi e il city.
+                const tourData = normalizeTour({
                     id: 'ai-quiz-' + Date.now(),
                     title: `Esplora ${activeCity}`,
                     description: "Esperienza personalizzata.",
@@ -859,34 +858,17 @@ export default function QuickPathPage() {
                     duration_minutes: selectedDuration?.id === 'veloce' ? 90 : 180,
                     price_eur: 0,
                     rating: 5.0,
-                    steps: stops.map(s => ({
-                        title: s.title,
-                        description: s.description,
-                        lat: s.latitude,
-                        lng: s.longitude,
-                        latitude: s.latitude,
-                        longitude: s.longitude,
-                        image: s.image || 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800',
-                        type: 'place'
-                    })),
-                    itinerary: stops.map((s, i) => ({
-                        time: `Tappa ${i + 1}`,
-                        emoji: '📍',
-                        activity: s.title || `Destinazione ${i + 1}`,
-                    })),
+                    stops,
                     waypoints: stops.map(s => [s.latitude, s.longitude]),
                     isAiGenerated: true,
                     tags: ['AI', group?.title, 'QuickPath', ...activeTags],
-                    images: [mainImage],
-                    imageUrl: mainImage,
-                    guide: "Guida Virtuale",
-                    guideAvatar: "🤖",
+                    image: mainImage,
                     guideBio: "Itinerario generato su misura per te dall'intelligenza artificiale.",
                     highlights: ["⚡ Percorso Veloce", "🏙️ " + activeCity, "🎯 Esperienza Custom"],
                     included: ["Navigazione GPS", "Supporto Virtuale"],
                     notIncluded: ["Biglietti", "Trasporti"],
                     center: CITY_COORDS_MAP[activeCity] || ((stops.length > 0) ? { latitude: stops[0].latitude, longitude: stops[0].longitude } : CITY_COORDS_MAP['Roma'])
-                };
+                }, { cityFallback: activeCity, enforceRadius: false }); // DVAI-055-b: mock hardcoded — filtro spento. Vedi V1.1_BACKLOG #13.
                 clearTimeout(safetyTimeoutId);
 
                 // TRACCIAMENTO INTELLIGENZA AI (SALVA GUSTI)
@@ -909,28 +891,20 @@ export default function QuickPathPage() {
                 clearTimeout(safetyTimeoutId);
                 const cityCenter = { latitude: 41.9028, longitude: 12.4964 };
                 const cityImg = getCityFallbackImage(activeCity);
-                setReadyTourData({
+                setReadyTourData(normalizeTour({
                     id: 'ai-quiz-fallback-' + Date.now(),
                     title: `Esplora ${activeCity}`,
                     description: "Esperienza personalizzata.",
                     city: activeCity,
-                    steps: [{ title: 'Centro', description: 'Punto di partenza', lat: cityCenter.latitude, lng: cityCenter.longitude, latitude: cityCenter.latitude, longitude: cityCenter.longitude, image: cityImg, type: 'place' }],
-                    itinerary: [{
-                        time: `Tappa 1`,
-                        emoji: '📍',
-                        activity: 'Centro',
-                    }],
+                    steps: [{ title: 'Centro', description: 'Punto di partenza', latitude: cityCenter.latitude, longitude: cityCenter.longitude, image: cityImg, type: 'place' }],
                     waypoints: [[cityCenter.latitude, cityCenter.longitude]],
                     isAiGenerated: true,
-                    images: [cityImg],
-                    imageUrl: cityImg,
+                    image: cityImg,
                     center: cityCenter,
-                    guide: "Guida Virtuale",
-                    guideAvatar: "🤖",
                     highlights: ["Percorso Veloce"],
                     included: [],
                     notIncluded: [],
-                });
+                }, { cityFallback: activeCity, enforceRadius: false })); // DVAI-055-b: mock hardcoded — filtro spento. Vedi V1.1_BACKLOG #13.
                 setGenerationStatus('success');
             }
 
@@ -939,23 +913,20 @@ export default function QuickPathPage() {
             console.warn("⚠️ Generazione con fallback:", e?.message || e);
             const cityCenter = { latitude: 41.9028, longitude: 12.4964 };
             const cityImg = getCityFallbackImage(activeCity);
-            setReadyTourData({
+            setReadyTourData(normalizeTour({
                 id: 'ai-quiz-fallback-' + Date.now(),
                 title: `Esplora ${activeCity}`,
                 description: "Esperienza personalizzata.",
                 city: activeCity,
-                steps: [{ title: 'Centro', description: 'Punto di partenza', lat: cityCenter.latitude, lng: cityCenter.longitude, latitude: cityCenter.latitude, longitude: cityCenter.longitude, image: cityImg, type: 'place' }],
+                steps: [{ title: 'Centro', description: 'Punto di partenza', latitude: cityCenter.latitude, longitude: cityCenter.longitude, image: cityImg, type: 'place' }],
                 waypoints: [[cityCenter.latitude, cityCenter.longitude]],
                 isAiGenerated: true,
-                images: [cityImg],
-                imageUrl: cityImg,
+                image: cityImg,
                 center: cityCenter,
-                guide: "Guida Virtuale",
-                guideAvatar: "🤖",
                 highlights: ["Percorso Veloce"],
                 included: [],
                 notIncluded: [],
-            });
+            }, { cityFallback: activeCity, enforceRadius: false })); // DVAI-055-b: mock hardcoded — filtro spento. Vedi V1.1_BACKLOG #13.
             setGenerationStatus('success');
         }
     };

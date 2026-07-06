@@ -1,11 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Footprints, Bike, Car, BusFront } from 'lucide-react';
 
+// DVAI-052: V1 nasconde "Mezzi pubblici" — Google Directions con waypoints multipli
+// non supporta TRANSIT (INVALID_REQUEST). Fix vero in V1.1 (spezzare in segmenti).
 const VEHICLES = [
   { id: 'walking', label: 'A piedi', icon: Footprints, color: '#f97316' }, // Brand Orange
   { id: 'cycling', label: 'In bici', icon: Bike, color: '#22c55e' },
   { id: 'driving', label: 'In auto', icon: Car, color: '#3b82f6' },
-  { id: 'transit', label: 'Mezzi pubblici', icon: BusFront, color: '#A855F7' } // Colore richiesto
 ];
 
 export const VehicleSelectionDrawer = ({ isOpen, onSelect, onClose }) => {

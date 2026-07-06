@@ -37,6 +37,17 @@ import {
 import BottomNavigation from '@/components/BottomNavigation';
 import ReviewModal from '@/components/ReviewModal';
 
+// DVAI-056 — rifinitura estetica notifica meteo.
+// Rimuove emoji dal titolo per lasciare la gerarchia pulita (time·città → titolo → descrizione → CTA).
+const stripEmojis = (str = '') => str.replace(/\p{Extended_Pictographic}/gu, '').replace(/\s+/g, ' ').trim();
+
+// Icona meteo coerente con la condizione meteo corrente.
+const getWeatherIconByCondition = (condition = '') => {
+    const c = condition.toLowerCase();
+    if (['rain', 'drizzle', 'storm', 'cloud', 'piog', 'nuv'].some(k => c.includes(k))) return CloudRain;
+    return Sun;
+};
+
 export default function NotificationsPage() {
     const { userId, city, firstName, temperatureC, weatherCondition } = useUserContext();
     const { toast } = useToast();
@@ -441,37 +452,93 @@ export default function NotificationsPage() {
                         onClick={() => setSelectedNotification(null)}
                     >
                         <motion.div
-                            className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl"
+                            className="bg-white rounded-[28px] w-full max-w-sm overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)]"
                             initial={{ scale: 0.9, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.9, y: 20 }}
                             onClick={e => e.stopPropagation()}
                         >
                             <div className="p-6">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${selectedNotification.category === 'messages' ? 'bg-blue-100 text-blue-600' :
-                                        selectedNotification.category === 'tours' ? 'bg-orange-100 text-orange-600' :
-                                            'bg-gray-100 text-gray-600'
-                                        }`}>
-                                        {getNotificationIcon(selectedNotification.type)}
-                                    </div>
-                                    <button
-                                        onClick={() => setSelectedNotification(null)}
-                                        className="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
+                                {(() => {
+                                    // DVAI-056 — rifinitura estetica per notifica meteo/tour.
+                                    // Nuova gerarchia: header meteo → time·città (piccolo) → titolo → descrizione → CTA scura.
+                                    const isWeatherLike = selectedNotification.category === 'tours' || selectedNotification.category === 'weather';
+                                    if (!isWeatherLike) return null;
+                                    const WeatherIcon = getWeatherIconByCondition(weatherCondition);
+                                    const cleanTitle = stripEmojis(selectedNotification.title);
+                                    return (
+                                        <>
+                                            {/* Header: icona meteo + temperatura + città a sinistra, X a destra. Discreto. */}
+                                            <div className="flex justify-between items-center mb-4">
+                                                <div className="flex items-center gap-2 text-gray-600">
+                                                    <WeatherIcon className="w-5 h-5" style={{ color: '#E8833A' }} />
+                                                    {typeof temperatureC === 'number' && (
+                                                        <span className="text-sm font-semibold text-gray-800">{Math.round(temperatureC)}°</span>
+                                                    )}
+                                                    {city && (
+                                                        <span className="text-sm text-gray-500">· {city}</span>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    onClick={() => setSelectedNotification(null)}
+                                                    className="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
+                                                    aria-label="Chiudi"
+                                                >
+                                                    <X className="w-5 h-5" />
+                                                </button>
+                                            </div>
 
-                                <h2 className="text-xl font-bold text-gray-900 mb-2">{selectedNotification.title}</h2>
-                                <p className="text-gray-600 mb-6 leading-relaxed whitespace-pre-wrap">
-                                    {selectedNotification.message}
-                                </p>
+                                            {/* Micro-caption: time·città (piccolo) */}
+                                            <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-gray-400 font-medium mb-2">
+                                                <Clock className="w-3 h-3" />
+                                                <span>{selectedNotification.time}</span>
+                                                {selectedNotification.location && (
+                                                    <>
+                                                        <span>·</span>
+                                                        <span>{selectedNotification.location}</span>
+                                                    </>
+                                                )}
+                                            </div>
 
-                                <div className="flex items-center space-x-3 text-sm text-gray-500 mb-6 bg-gray-50 p-3 rounded-xl">
-                                    <Clock className="w-4 h-4" />
-                                    <span>Ricevuta alle {selectedNotification.time}</span>
-                                </div>
+                                            {/* Titolo pulito (senza emoji) */}
+                                            <h2 className="text-xl font-bold text-gray-900 mb-2 leading-tight">{cleanTitle}</h2>
+
+                                            {/* Descrizione */}
+                                            <p className="text-gray-600 mb-6 leading-relaxed whitespace-pre-wrap">
+                                                {selectedNotification.message}
+                                            </p>
+                                        </>
+                                    );
+                                })()}
+
+                                {/* Fallback: layout originale per notifiche non meteo/tour */}
+                                {!(selectedNotification.category === 'tours' || selectedNotification.category === 'weather') && (
+                                    <>
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${selectedNotification.category === 'messages' ? 'bg-blue-100 text-blue-600' :
+                                                'bg-gray-100 text-gray-600'
+                                                }`}>
+                                                {getNotificationIcon(selectedNotification.type)}
+                                            </div>
+                                            <button
+                                                onClick={() => setSelectedNotification(null)}
+                                                className="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+
+                                        <h2 className="text-xl font-bold text-gray-900 mb-2">{selectedNotification.title}</h2>
+                                        <p className="text-gray-600 mb-6 leading-relaxed whitespace-pre-wrap">
+                                            {selectedNotification.message}
+                                        </p>
+
+                                        <div className="flex items-center space-x-3 text-sm text-gray-500 mb-6 bg-gray-50 p-3 rounded-xl">
+                                            <Clock className="w-4 h-4" />
+                                            <span>Ricevuta alle {selectedNotification.time}</span>
+                                        </div>
+                                    </>
+                                )}
 
                                 <div className="flex space-x-3 mt-4">
                                     {selectedNotification.category === 'messages' && selectedNotification.actionData?.guide_id ? (
@@ -561,25 +628,29 @@ export default function NotificationsPage() {
                                             </div>
                                         </div>
                                     ) : selectedNotification.category === 'tours' ? (
+                                        // DVAI-056 — CTA primaria scura "Scopri il tuo giro" (era "ESPLORA"),
+                                        // "Tour AI" resta come opzione secondaria (feature esistente).
                                         <div className="flex gap-2">
+                                            <Link
+                                                to={selectedNotification.link}
+                                                className="flex-1 py-3 text-white rounded-xl font-semibold text-center shadow-md transition-all flex items-center justify-center gap-1.5 text-sm whitespace-nowrap hover:opacity-95"
+                                                style={{ backgroundColor: '#E8833A' }}
+                                                onClick={() => setSelectedNotification(null)}
+                                            >
+                                                Scopri il tuo giro
+                                                <ArrowRight className="w-4 h-4" />
+                                            </Link>
                                             <button
                                                 onClick={() => handleGenerateAITour(selectedNotification)}
                                                 disabled={isGeneratingTour}
-                                                className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold text-center shadow-md transition-all flex items-center justify-center gap-1.5 text-sm whitespace-nowrap"
+                                                className="flex-none py-3 px-4 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 text-gray-700 rounded-xl font-semibold text-center transition-colors flex items-center justify-center gap-1.5 text-sm"
                                             >
                                                 {isGeneratingTour ? (
-                                                    <><Loader className="w-4 h-4 animate-spin" /> Genero...</>
+                                                    <><Loader className="w-4 h-4 animate-spin" /></>
                                                 ) : (
-                                                    <><Sparkles className="w-4 h-4" /> TOUR AI</>
+                                                    <><Sparkles className="w-4 h-4" /> Tour AI</>
                                                 )}
                                             </button>
-                                            <Link
-                                                to={selectedNotification.link}
-                                                className="flex-none py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-center transition-colors"
-                                                onClick={() => setSelectedNotification(null)}
-                                            >
-                                                ESPLORA
-                                            </Link>
                                         </div>
                                     ) : (
                                         <Link

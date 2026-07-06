@@ -147,9 +147,13 @@ const surpriseTypes = [
 import { useUserContext } from "@/hooks/useUserContext";
 import { useAILearning } from "@/hooks/useAILearning";
 import { aiRecommendationService } from "@/services/aiRecommendationService";
+import { normalizeTour } from "@/services/tourShape";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SurpriseTourPage() {
-    const { city, userId, firstName } = useUserContext(); // Assuming bio/age might be in context or fetched
+    // DVAI-055: estraggo lat/lng dal userContext per il vincolo geografico
+    const { city, userId, firstName, lat, lng } = useUserContext();
+    const { toast } = useToast();
     const { userDNAPreferences } = useAILearning();
 
     const navigate = useNavigate();
@@ -210,23 +214,31 @@ export default function SurpriseTourPage() {
                 expectedGroup: pastGroup
             };
 
-            const prompt = `Sei l'intelligenza di Unnivai. Genera un'esperienza a sorpresa esaltante a ${city || 'Roma'}. 
+            // DVAI-055: rimosso il "20 km" mal collocato dal userPrompt — il vincolo
+            // geografico è ora nel system prompt (regola 15) via cityCenter, e il
+            // filtro Haversine a valle lo garantisce anche se l'AI non lo rispetta.
+            const prompt = `Sei l'intelligenza di Unnivai. Genera un'esperienza a sorpresa esaltante a ${city || 'Roma'}.
             Dati Storici Inconsci Utente: Cerca ritmi di viaggio [${userProfile.expectedPace}] in compagnia di [${userProfile.expectedGroup}].
             Interessi storici calcolati: ${userProfile.interests.join(', ')}.
             Categoria di oggi: ${suggestedTheme ? suggestedTheme : selectedFilter || 'Mix delle sue più profonde passioni storiche'}.
             L'esperienza DEVE essere fuori dai soliti schemi turistici commerciali e sembrare magia pura, calzando i suoi gusti inconsci.
-            
-            IMPORTANTE: Genera SOLO luoghi REALI ed ESISTENTI entro un raggio di 20km da ${city || 'Roma'}.
-            Se non sei sicuro della posizione esatta, scarta il luogo. 
             NON inventare coordinate.`;
 
             // 2. Call AI Service
-            // We use a special flag or just the standard generation
-            const result = await aiRecommendationService.generateItinerary(city || 'Roma', {
-                interests: userProfile.interests,
-                duration: 'Mezza Giornata',
-                budget: 'Medio'
-            }, prompt);
+            const result = await aiRecommendationService.generateItinerary(
+                city || 'Roma',
+                {
+                    interests: userProfile.interests,
+                    duration: 'Mezza Giornata',
+                    budget: 'Medio'
+                },
+                prompt,
+                {},
+                '',
+                // DVAI-055: cityCenter dal userContext. Se lat/lng assenti, no filtro
+                // (retrocompat: fallback al comportamento precedente).
+                Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null
+            );
 
             if (!result || !result.days || result.days.length === 0) throw new Error("AI Generation Failed");
 
@@ -238,41 +250,71 @@ export default function SurpriseTourPage() {
             const routeCoords = surpriseTour.stops.map(s => `${s.longitude} ${s.latitude}`).join(', ');
             const routeWKT = `LINESTRING(${routeCoords})`;
 
-            const mappedTour = {
+            // DVAI-051: cover reale dal primo POI (Google Places) o fallback tematico città.
+            // Mantiene gli stessi campi narrativi del tour insider per renderizzare
+            // "💡 Insider", "Quando:", "→ transizione" nella scheda.
+            const stop0 = surpriseTour.stops[0] || {};
+            const firstCat = stop0.type || (selectedFilter || '').toLowerCase() || 'default';
+            const cover = stop0.googlePhoto || getAdaptiveImage(city || 'Roma', firstCat);
+
+            // DVAI-053: normalizer unificato — stessa shape di Per Te e AiItinerary.
+            const mappedTour = normalizeTour({
                 id: 'surprise-' + Date.now(),
                 title: surpriseTour.title || "Avventura a Sorpresa",
-                description: `Un'esperienza unica generata per te: ${userProfile.interests.map(i => typeof i === 'string' ? i : JSON.stringify(i)).join(', ')}.`,
+                // DVAI-051: serializzazione safe — userProfile.interests può contenere
+                // selectedFilter/suggestedTheme che a volte sono React elements (e
+                // JSON.stringify cicla su FiberNode → TypeError). Estraiamo solo testo.
+                description: `Un'esperienza unica generata per te: ${userProfile.interests.map(i => {
+                    if (typeof i === 'string') return i;
+                    if (i?.title) return i.title;
+                    if (i?.name) return i.name;
+                    return 'Sorpresa';
+                }).join(', ')}.`,
                 city: city || 'Roma',
                 duration_minutes: 180,
                 price_eur: 0,
                 rating: 5.0,
-                steps: surpriseTour.stops.map(s => ({
-                    title: s.title,
-                    description: s.description,
-                    lat: s.latitude,
-                    lng: s.longitude,
-                    type: s.type || 'place',
-                    image: getAdaptiveImage(city || 'Roma', s.type || s.category)
-                })),
-                waypoints: surpriseTour.stops.map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]),
-                routePath: routeWKT, // 🆕 Add Immediate Route Path
+                image: cover, // cover esplicito → vince sul calcolo del normalizer
                 isAiGenerated: true,
-                tags: ['Sorpresa', selectedFilter || 'Mix']
-            };
+                tags: ['Sorpresa', selectedFilter || 'Mix'],
+                routePath: routeWKT,
+                waypoints: surpriseTour.stops.map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]),
+                // Passo gli stops grezzi: il normalizer estrae title/description/transition/...
+                // e mappa googlePhoto → image, lat/lng/latitude/longitude entrambi.
+                stops: surpriseTour.stops,
+            }, {
+                cityFallback: city || 'Roma',
+                // DVAI-055-b: doppio filtro innocuo — generateItinerary ha già filtrato con
+                // cityCenter, il normalizer riapplica per uniformità con gli altri path.
+                cityCenter: Number.isFinite(lat) && Number.isFinite(lng)
+                    ? { latitude: lat, longitude: lng }
+                    : null,
+            });
 
             // 4. Navigate to Tour Details
             navigate(`/tour-details/${mappedTour.id}`, { state: { tourData: mappedTour, isAiGenerated: true } });
 
         } catch (error) {
             console.error("Surprise Logic Error:", error);
-            // Fallback: Just select a random one from local list (Legacy Logic)
-            const fallback = currentExperiences[Math.floor(Math.random() * currentExperiences.length)];
-            const mappedFallback = {
-                ...fallback,
-                steps: [], // Simple object, no steps in this mock
-                isAiGenerated: false
-            };
-            navigate(`/tour-details/${fallback.id}`, { state: { tourData: mappedFallback } });
+            if (error?.code === 'QUOTA_EXCEEDED') {
+                // DVAI-050 / DVAI-056: cap anti-abuso — toast in-app (no window.alert).
+                // Copy locked, voce DoveVAI, non punitiva.
+                toast({
+                    title: 'Hai esplorato tanto oggi',
+                    description: 'Le tue esperienze di oggi sono esaurite. Domani ne troverai di nuove, cucite su di te.',
+                    type: 'info',
+                    duration: 5000,
+                });
+            } else {
+                // DVAI-051: NON cadere più su mock numerico. Toast in-app coerente.
+                toast({
+                    title: "L'AI sta avendo un momento difficile",
+                    description: 'Riprova tra qualche secondo.',
+                    type: 'warning',
+                    duration: 5000,
+                });
+            }
+            setIsShuffling(false);
         } finally {
             setIsShuffling(false);
         }
@@ -344,7 +386,7 @@ export default function SurpriseTourPage() {
                     transition={{ duration: 0.6, delay: 0.2 }}
                 >
                     <motion.button
-                        onClick={shuffleExperience}
+                        onClick={() => shuffleExperience()}
                         disabled={isShuffling}
                         className={`relative w-full bg-gradient-to-r from-orange-400 to-orange-500 text-white py-6 px-8 rounded-3xl font-bold shadow-xl hover:shadow-2xl transition-all flex items-center justify-center space-x-3 ${isShuffling ? 'opacity-75 cursor-not-allowed' : ''
                             }`}

@@ -60,7 +60,7 @@ const stubAuth = (userId = 'user-123') =>
 /** Stub supabase.from so getSupabaseProfileCity resolves to a given city (or null) */
 const stubProfileCity = (city) =>
   vi.mocked(supabase.from).mockReturnValue(
-    createQueryBuilder({ data: { current_city: city }, error: null })
+    createQueryBuilder({ data: { current_city_override: city }, error: null })
   )
 
 /** GPS object with an explicit city name — no reverse-geocode fetch needed */

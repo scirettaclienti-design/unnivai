@@ -11,6 +11,28 @@ const DOVEVAI_NARRATOR_PROMPT = `Sei la voce di DoveVai. Scrivi curiosità stori
 Evita i cliché come 'storia millenaria'. Focus su aneddoti bizzarri.
 Max 150 car per la nota, 80 car per il fun fact.`;
 
+// DVAI-049 / DVAI-050 — Places proxy URL.
+// In dev: middleware Vite su /__dev/places-proxy (sempre attivo).
+// In prod: Edge Function Supabase places-proxy, gated da VITE_PLACES_PROXY_ENABLED.
+// Quando il flag prod è OFF, isPlacesProxyEnabled() ritorna false e i caller
+// (verifyPOIWithPlaces / fetchPlacePhoto) saltano la chiamata senza bloccare l'UI.
+export const isPlacesProxyEnabled = () => {
+    if (import.meta.env.DEV) return true;
+    const flag = import.meta.env.VITE_PLACES_PROXY_ENABLED;
+    return flag === 'true' || flag === true;
+};
+
+export const getPlacesProxyBase = () => {
+    if (import.meta.env.VITE_PLACES_PROXY_URL) return import.meta.env.VITE_PLACES_PROXY_URL;
+    if (import.meta.env.DEV) return '/__dev/places-proxy';
+    return `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/places-proxy`;
+};
+
+export const buildPlacesProxyUrl = (params) => {
+    const qs = new URLSearchParams(params).toString();
+    return `${getPlacesProxyBase()}?${qs}`;
+};
+
 // ─── Proxy helper ─────────────────────────────────────────────────────────────
 /**
  * Chiama la Supabase Edge Function openai-proxy invece di OpenAI direttamente.
@@ -153,22 +175,66 @@ const generateItineraryLocal = (city, prefs, weather) => {
     };
 };
 
-// ─── DVAI-034: Verifica POI con Google Places Text Search ──────────────────────
+// ─── DVAI-034 / DVAI-051: Verifica POI con Google Places + type-check ───────────
 /**
  * Verifica un singolo POI contro Google Places Text Search.
- * Ritorna true se il POI esiste con alta confidenza.
- * Usa l'endpoint Places (New) /textsearch via proxy per non esporre la key.
+ * Ritorna true se il POI esiste E il suo tipo è coerente con quanto detto dall'AI.
+ *
+ * Type-check (DVAI-051): l'AI può fornire un nome che esiste su Google ma di tipo
+ * completamente diverso (es. "Fratelli Puglisi gelateria" mentre il vero locale è
+ * un'officina). Mappiamo poi.type → set di Google `types` attesi; se l'intersezione
+ * è vuota scartiamo il POI.
  */
-const verifyPOIWithPlaces = async (poi, city) => {
-    try {
-        const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-        if (!MAPS_KEY) return true;
+// DVAI-051: i types `establishment` e `point_of_interest` sono ~universali su Google,
+// quindi NON vanno mai usati come whitelist (porterebbero a falsi positivi).
+const EXPECTED_GOOGLE_TYPES = {
+    food:       ['restaurant','cafe','bakery','meal_takeaway','meal_delivery','food','bar','ice_cream','night_club','liquor_store'],
+    cibo:       ['restaurant','cafe','bakery','meal_takeaway','meal_delivery','food','bar','ice_cream'],
+    // DVAI-051: cultura/storia/arte/natura accettano `point_of_interest` perché Google
+    // spesso lo usa come unico type su attrazioni minori (es. teatri, palazzi storici).
+    // La blacklist negativa resta a tagliare officine/banche/uffici comunali.
+    cultura:    ['museum','art_gallery','tourist_attraction','church','place_of_worship','library','university','synagogue','hindu_temple','mosque','point_of_interest'],
+    storia:     ['museum','tourist_attraction','church','place_of_worship','cemetery','synagogue','hindu_temple','mosque','point_of_interest'],
+    arte:       ['museum','art_gallery','tourist_attraction','point_of_interest'],
+    natura:     ['park','natural_feature','tourist_attraction','campground','zoo','aquarium','point_of_interest'],
+    shopping:   ['store','shopping_mall','clothing_store','jewelry_store','book_store','home_goods_store','department_store','supermarket'],
+    // permissivo: non blocchiamo
+    relax:      [],
+    place:      [],
+    default:    [],
+};
 
+// DVAI-051: blacklist sempre attiva — se Google classifica il candidato come uno di
+// questi tipi, lo scartiamo a prescindere dal type richiesto. Sono attività che non
+// hanno senso come tappa turistica di un tour AI.
+const BLACKLIST_TYPES = new Set([
+    'car_repair','car_dealer','car_rental','car_wash','gas_station',
+    'hospital','doctor','dentist','physiotherapist','pharmacy','veterinary_care',
+    'bank','atm','insurance_agency','accounting','lawyer','real_estate_agency',
+    'funeral_home','storage','parking','moving_company','locksmith',
+    'roofing_contractor','electrician','plumber','painter','general_contractor',
+    'embassy','post_office','local_government_office','courthouse','police',
+    'school','primary_school','secondary_school',
+]);
+
+// DVAI-057: export nominato per test unitari (rimane usato internamente sotto).
+export const verifyPOIWithPlaces = async (poi, city) => {
+    try {
+        // DVAI-050: se il proxy Places è OFF in prod, skip silenzioso (best-effort)
+        if (!isPlacesProxyEnabled()) return true;
+        // DVAI-049: Places via proxy (CORS bloccato sull'endpoint REST diretto)
         const searchQuery = poi.photo_query || `${poi.title} ${city} Italy`;
-        const query = encodeURIComponent(searchQuery);
-        const res = await fetch(
-            `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${query}&inputtype=textquery&fields=name,geometry,place_id,rating,opening_hours,photos&locationbias=circle:50000@${poi.latitude},${poi.longitude}&key=${MAPS_KEY}`
-        );
+        const proxyUrl = buildPlacesProxyUrl({
+            path: 'place/findplacefromtext',
+            input: searchQuery,
+            inputtype: 'textquery',
+            // DVAI-051: aggiunto `types` (Basic Data, gratis) per il type-check.
+            // DVAI-057: aggiunto `business_status` per scartare CLOSED_TEMPORARILY / CLOSED_PERMANENTLY
+            // ("esiste su Google" ≠ "aperto oggi"). Senza il campo nella field mask Google non lo ritorna.
+            fields: 'name,geometry,place_id,rating,opening_hours,photos,types,business_status',
+            locationbias: `circle:50000@${poi.latitude},${poi.longitude}`,
+        });
+        const res = await fetch(proxyUrl);
         if (!res.ok) return true;
 
         const data = await res.json();
@@ -178,6 +244,37 @@ const verifyPOIWithPlaces = async (poi, city) => {
         }
 
         const place = data.candidates[0];
+        const placeTypes = Array.isArray(place.types) ? place.types : [];
+
+        // DVAI-057: scarta luoghi che Google conosce ma che non sono più operativi
+        // (CLOSED_TEMPORARILY / CLOSED_PERMANENTLY). Se il campo manca (proxy vecchio
+        // o Google non lo ritorna) → tratta come OPERATIONAL per compat (non peggiora
+        // il baseline: prima non c'era filtro affatto).
+        if (place.business_status && place.business_status !== 'OPERATIONAL') {
+            console.warn(`[DVAI-057] POI "${poi.title}" → business_status=${place.business_status} → scartato (chiuso)`);
+            return false;
+        }
+
+        // DVAI-051: blacklist sempre attiva — se il candidato è un servizio commerciale
+        // non turistico (officina, banca, ospedale…), scarta a prescindere.
+        const hitBlacklist = placeTypes.find(t => BLACKLIST_TYPES.has(t));
+        if (hitBlacklist) {
+            console.warn(`[DVAI-051] POI "${poi.title}" → Google=${placeTypes.join('|')} (${hitBlacklist}) → scartato (blacklist)`);
+            return false;
+        }
+
+        // DVAI-051: type-check positivo. Se l'AI ha dichiarato una famiglia (es. food,
+        // cultura, natura) verifico che il candidato Google contenga almeno un tipo
+        // della famiglia attesa.
+        const aiType = (poi.type || '').toLowerCase();
+        const expected = EXPECTED_GOOGLE_TYPES[aiType];
+        if (expected && expected.length > 0) {
+            const hasMatch = placeTypes.some(t => expected.includes(t));
+            if (!hasMatch) {
+                console.warn(`[DVAI-051] POI "${poi.title}": AI=${aiType}, Google=${placeTypes.join('|')} → scartato (no match)`);
+                return false;
+            }
+        }
 
         // Correggi coordinate se distanti > 5km
         if (place.geometry?.location) {
@@ -197,7 +294,11 @@ const verifyPOIWithPlaces = async (poi, city) => {
         if (place.rating) poi.googleRating = place.rating;
         if (place.opening_hours?.open_now !== undefined) poi.openNow = place.opening_hours.open_now;
         if (place.photos?.[0]?.photo_reference) {
-            poi.googlePhoto = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=600&photo_reference=${place.photos[0].photo_reference}&key=${MAPS_KEY}`;
+            poi.googlePhoto = buildPlacesProxyUrl({
+                path: 'place/photo',
+                maxwidth: '600',
+                photo_reference: place.photos[0].photo_reference,
+            });
         }
 
         return true;
@@ -205,6 +306,91 @@ const verifyPOIWithPlaces = async (poi, city) => {
         return true;
     }
 };
+
+// DVAI-050 — Cache TTL 24h del tour insider per (city + dna_hash) e quota.
+// DVAI-055-b: prefix bumped da 'unnivai_insider_' per invalidare i tour cached
+// generati prima del filtro raggio centralizzato (i "cattivi" con tappe a 50-70 km).
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf2_';
+const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+const djb2 = (s) => {
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) + h) ^ s.charCodeAt(i);
+    return (h >>> 0).toString(36);
+};
+
+const insiderCacheKey = (city, prefs, userPrompt, aiProfile) => {
+    const parts = [city, prefs?.duration, prefs?.group, prefs?.pace, userPrompt, aiProfile].filter(Boolean).join('|');
+    return INSIDER_CACHE_PREFIX + city.replace(/\s+/g, '_') + '_' + djb2(parts);
+};
+
+const loadInsiderFromCache = (key) => {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const { ts, data } = JSON.parse(raw);
+        if (Date.now() - ts > INSIDER_CACHE_TTL_MS) {
+            localStorage.removeItem(key);
+            return null;
+        }
+        return data;
+    } catch { return null; }
+};
+
+const saveInsiderToCache = (key, data) => {
+    try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch {}
+};
+
+// DVAI-050 — Quota anti-abuso: max 10 generazioni AI nuove (cache-miss) al giorno per utente.
+// Tabella public.ai_quota_daily (user_id, day, count). Cache miss → +1.
+const DAILY_QUOTA = 10;
+export class AiQuotaExceededError extends Error {
+    constructor(remaining = 0) { super('AI daily quota exceeded'); this.code = 'QUOTA_EXCEEDED'; this.remaining = remaining; }
+}
+
+const todayStr = () => new Date().toISOString().slice(0, 10);
+
+const checkAndIncrementQuota = async () => {
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+        if (!userId) return; // guest: niente quota, niente DB
+
+        const day = todayStr();
+        const { data: row } = await supabase
+            .from('ai_quota_daily')
+            .select('count')
+            .eq('user_id', userId)
+            .eq('day', day)
+            .maybeSingle();
+
+        const current = row?.count ?? 0;
+        if (current >= DAILY_QUOTA) {
+            throw new AiQuotaExceededError(0);
+        }
+
+        await supabase
+            .from('ai_quota_daily')
+            .upsert({ user_id: userId, day, count: current + 1 }, { onConflict: 'user_id,day' });
+    } catch (e) {
+        if (e instanceof AiQuotaExceededError) throw e;
+        // Su errori di rete/RLS non blocchiamo l'utente: log e proseguiamo.
+        console.warn('[ai-quota] check failed, proseguo:', e?.message || e);
+    }
+};
+
+// DVAI-055 / DVAI-055-b — Vincolo geografico "tappe dentro il raggio della città".
+//
+// Bug bloccante Layer A: SurpriseTour a Troina generava tappe a Taormina.
+// Fix DVAI-055 aveva filtro solo qui (generateItinerary insider). I tour tematici
+// di "Per Te" (discoverPOIs) sfuggivano.
+//
+// DVAI-055-b sposta le utility geografiche in tourShape.js perché TUTTE le
+// sorgenti passano dal normalizer. Qui le importiamo per uso locale (regola 15
+// del prompt + filtro pre-verifyPOIWithPlaces che risparmia chiamate Google $)
+// E le re-esportiamo per non rompere aiRadius.test.js.
+import { isSmallTown, applyRadiusFilter } from './tourShape';
+export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 
 // Ordina tappe per prossimità (nearest-neighbor greedy)
 function sortByProximity(stops) {
@@ -227,7 +413,23 @@ function sortByProximity(stops) {
 export const aiRecommendationService = {
 
     // ─── ITINERARY GENERATION ────────────────────────────────────────────────
-    async generateItinerary(city, prefs = {}, userPrompt = '', weather = {}, aiProfile = '') {
+    // DVAI-055 — cityCenter opzionale: { latitude, longitude, radiusKm?, isSmallTown? }.
+    // Se passato, attiva il vincolo geografico A monte (regola 15 nel prompt) e A
+    // valle (filtro Haversine PRE sortByProximity). Se null: retrocompat, no filtro.
+    async generateItinerary(city, prefs = {}, userPrompt = '', weather = {}, aiProfile = '', cityCenter = null) {
+        // DVAI-055 — la cache key include cityCenter perché il filtro raggio cambia
+        // il risultato salvato. Firmato con lat/lng arrotondati a 3 decimali (~110 m).
+        const centerFingerprint = cityCenter && Number.isFinite(cityCenter.latitude)
+            ? `${cityCenter.latitude.toFixed(3)},${cityCenter.longitude.toFixed(3)},r55f2`
+            : 'noRadius';
+        const cacheKey = insiderCacheKey(city, prefs, userPrompt, aiProfile) + '_' + centerFingerprint;
+        const cached = loadInsiderFromCache(cacheKey);
+        if (cached) return cached;
+
+        // DVAI-050 — Cache MISS: prima di chiamare OpenAI controlla la quota giornaliera.
+        // Lancia AiQuotaExceededError se >= 10 generazioni oggi (gestita dalla UI).
+        await checkAndIncrementQuota();
+
         const weatherIcon = weather?.condition === 'sunny' ? '☀️'
             : weather?.condition === 'rainy' ? '🌧️' : '⛅';
 
@@ -254,7 +456,8 @@ REGOLE ASSOLUTE:
 11. Per tour multi-giorno: il giorno 2 riprende dove finisce il giorno 1. Narrativa continua, non ripartire da zero.
 12. Il TITOLO del tour deve essere evocativo e unico. Es: "La Roma che non dorme mai" non "Tour serale di Roma". Es: "I vicoli segreti di Bari vecchia" non "Tour di Bari".
 13. Includi "photo_query" per ogni tappa: la stringa di ricerca Google Places più precisa per trovare la foto reale del posto (es: "Caffè Greco Via Condotti Roma").${aiProfile ? `
-14. PROFILO UTENTE IMPLICITO (adatta il tour a questi gusti senza menzionarli esplicitamente): ${aiProfile}` : ''}
+14. PROFILO UTENTE IMPLICITO (adatta il tour a questi gusti senza menzionarli esplicitamente): ${aiProfile}` : ''}${cityCenter && Number.isFinite(cityCenter.latitude) ? `
+15. VINCOLO GEOGRAFICO ASSOLUTO: tutte le tappe DEVONO trovarsi entro ${(cityCenter.radiusKm ?? ((cityCenter.isSmallTown ?? isSmallTown(city)) ? 5 : 10))} km dal centro (${cityCenter.latitude.toFixed(4)}, ${cityCenter.longitude.toFixed(4)}), che è ${city}. ${(cityCenter.isSmallTown ?? isSmallTown(city)) ? `Trattandosi di un borgo piccolo, resta ENTRO il territorio comunale di ${city}. NON aggiungere località vicine famose (es. Taormina, Cefalù, Amalfi) anche se pensi arricchiscano il tour: l'utente vuole scoprire ${city}, non altrove.` : `Non spostarti in comuni vicini né in provincia.`} Meglio 3 tappe reali dentro ${city} che 5 sparse nel raggio provinciale.` : ''}
 
 Schema JSON ESATTO:
 {
@@ -357,8 +560,12 @@ Schema JSON ESATTO:
                     })
                     .filter(Boolean);
 
+                // DVAI-055: filtro raggio PRIMA del sort. Se sort venisse prima,
+                // ottimizzerebbe una sequenza di tappe che poi verrebbero scartate.
+                const withinRadius = applyRadiusFilter(rawStops, cityCenter, city);
+
                 // Ordina le tappe per prossimità geografica (nearest-neighbor greedy)
-                const ordered = sortByProximity(rawStops);
+                const ordered = sortByProximity(withinRadius);
 
                 return {
                     day: day.day ?? di + 1,
@@ -397,9 +604,17 @@ Schema JSON ESATTO:
             const finalDays = verifiedSanitized.filter(d => d.stops.length > 0);
             if (finalDays.length === 0) throw new Error('All POIs invalid after Places verification');
 
-            return { days: finalDays };
+            const result = { days: finalDays };
+            // DVAI-050: persisti in cache 24h. Il fallback locale NON viene cachato.
+            saveInsiderToCache(cacheKey, result);
+            return result;
 
         } catch (err) {
+            // Lascia passare la quota — la UI gestisce il messaggio gentile.
+            if (err instanceof AiQuotaExceededError) {
+                clearTimeout(timeoutId);
+                throw err;
+            }
             clearTimeout(timeoutId);
             const reason = err.name === 'AbortError' ? 'timeout (35s)' : err.message;
             console.warn(`[AI] Itinerary failed (${reason}) → fallback locale per "${city}"`);

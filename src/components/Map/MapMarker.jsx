@@ -1,42 +1,8 @@
 import React from 'react';
 import { AdvancedMarker } from '@vis.gl/react-google-maps';
-
-const getCategoryStyles = (category, type) => {
-    const typeStr = (type || '').toLowerCase();
-    
-    // 1. Force styles based on functional TYPE first to avoid confusion
-    if (typeStr === 'waypoint' || typeStr === 'tour_step') {
-        return { bg: '#1f2937', border: '#030712', icon: '📍', isStep: true }; // Dark Slate/Black for Route Steps
-    }
-    if (typeStr === 'business_partner') {
-        return { bg: '#eab308', border: '#a16207', icon: '⭐' }; // Yellow for Partners
-    }
-
-    // 2. Thematic fallback via CATEGORY
-    const catLower = (category || '').toLowerCase();
-    
-    if (catLower.includes('food') || catLower.includes('cibo') || catLower.includes('ristorazione') || catLower.includes('restaurant')) {
-        return { bg: '#f97316', border: '#c2410c', icon: '🍝' }; // Orange
-    }
-    if (catLower.includes('shopping') || catLower.includes('negozio')) {
-        return { bg: '#ec4899', border: '#be185d', icon: '🛍️' }; // Pink
-    }
-    if (catLower.includes('coffee') || catLower.includes('bar') || catLower.includes('cafe')) {
-        return { bg: '#8b5cf6', border: '#6d28d9', icon: '☕' }; // Purple
-    }
-    if (catLower.includes('storia') || catLower.includes('history') || catLower.includes('museo') || catLower.includes('museum')) {
-        return { bg: '#3b82f6', border: '#1d4ed8', icon: '🏛️' }; // Blue
-    }
-    if (catLower.includes('art') || catLower.includes('arte')) {
-        return { bg: '#10b981', border: '#047857', icon: '🎨' }; // Green
-    }
-    if (catLower.includes('natura') || catLower.includes('parco') || catLower.includes('park')) {
-        return { bg: '#84cc16', border: '#4d7c0f', icon: '🌲' }; // Lime
-    }
-
-    // 3. Absolute default
-    return { bg: '#ef4444', border: '#b91c1c', icon: '📌' }; // Red default for POIs
-};
+// DVAI-058: palette estratta in src/lib/categoryPalette.js per essere condivisa
+// tra MapMarker (pin mappa) e TourCover (copertine card "Per Te").
+import { getCategoryStyles } from '@/lib/categoryPalette';
 
 export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
     const lat = Number(activity?.latitude || activity?.lat);

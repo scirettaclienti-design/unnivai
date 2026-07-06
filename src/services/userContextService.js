@@ -234,10 +234,13 @@ class UserContextService {
         return null;
     }
 
-    // Helper: Update city in Supabase profile (for authenticated users)
+    // Helper: Update city in Supabase profile (for authenticated users).
+    // UPDATE (non upsert): la riga del profilo è creata dal trigger auto_create_profiles
+    // al signup. Upsert farebbe scattare il NOT NULL su `role` (codice 23502) perché
+    // PostgREST valuta il tentativo di INSERT prima del DO UPDATE on conflict.
     async updateSupabaseProfileCity(userId, city) {
         try {
-            await supabase.from('profiles').upsert({ id: userId, current_city: city });
+            await supabase.from('profiles').update({ current_city_override: city }).eq('id', userId);
         } catch {
             // silent fail
         }
@@ -246,8 +249,8 @@ class UserContextService {
     // Helper: Get city from Supabase profile
     async getSupabaseProfileCity(userId) {
         try {
-            const { data } = await supabase.from('profiles').select('current_city').eq('id', userId).single();
-            return data?.current_city;
+            const { data } = await supabase.from('profiles').select('current_city_override').eq('id', userId).single();
+            return data?.current_city_override;
         } catch {
             return null;
         }

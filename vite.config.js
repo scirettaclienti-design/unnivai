@@ -6,7 +6,8 @@ import path from 'path'
 // In prod il client chiama ${VITE_SUPABASE_URL}/functions/v1/places-proxy.
 // In dev (vite serve) intercettiamo /__dev/places-proxy e replichiamo
 // la stessa logica server-side, così possiamo testare senza deploy.
-const ALLOWED_PATHS = new Set(['place/findplacefromtext', 'place/photo', 'place/details'])
+// DVAI-060: allineato con supabase/functions/places-proxy/index.ts (textsearch + nearbysearch)
+const ALLOWED_PATHS = new Set(['place/findplacefromtext', 'place/photo', 'place/details', 'place/textsearch', 'place/nearbysearch'])
 const GOOGLE_BASE = 'https://maps.googleapis.com/maps/api'
 
 function devPlacesProxyPlugin(env) {

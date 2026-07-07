@@ -224,6 +224,11 @@ export const verifyPOIWithPlaces = async (poi, city) => {
     try {
         // DVAI-050: se il proxy Places è OFF in prod, skip silenzioso (best-effort)
         if (!isPlacesProxyEnabled()) return true;
+        // DVAI-060 F2: skip la verifica se il POI viene dal motore Google-first —
+        // ha già `googlePlaceId` (canonicizzato da discoverRealPOIs con textsearch
+        // + business_status + soglia qualità). Rifare findplacefromtext qui è pura
+        // ridondanza + costo Google inutile. Vantaggio: -5 chiamate per tour AI.
+        if (poi.googlePlaceId) return true;
         // DVAI-049: Places via proxy (CORS bloccato sull'endpoint REST diretto)
         const searchQuery = poi.photo_query || `${poi.title} ${city} Italy`;
         const proxyUrl = buildPlacesProxyUrl({
@@ -312,7 +317,11 @@ export const verifyPOIWithPlaces = async (poi, city) => {
 // DVAI-050 — Cache TTL 24h del tour insider per (city + dna_hash) e quota.
 // DVAI-055-b: prefix bumped da 'unnivai_insider_' per invalidare i tour cached
 // generati prima del filtro raggio centralizzato (i "cattivi" con tappe a 50-70 km).
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf2_';
+// DVAI-060 F2: prefix bumped da 'unnivai_insiderf2_' — nuovo motore selettore-narratore
+// (AI riceve luoghi reali da Google e li racconta, invece di inventarli). Shape stops
+// arricchita con `googlePlaceId`, `googlePhoto` canonicizzati; description/insiderTip
+// ora hanno guardrail voce più stretti.
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf3_gf_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -394,6 +403,116 @@ const checkAndIncrementQuota = async () => {
 import { isSmallTown, applyRadiusFilter } from './tourShape';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 
+// ─── DVAI-060 F2 — derive theme + fetch candidati reali ──────────────────────
+//
+// generateItinerary passa da GENERATORE (inventa nomi) a SELETTORE (riceve
+// luoghi reali dalla textsearch Google e li racconta con voce insider).
+//
+// derivePrimaryThemes: dai prefs utente ai temi textsearch (max 3, con
+// fallback mix walking+art+food se nessuno).
+// fetchRealPOICandidates: chiama placesDiscoveryService.discoverRealPOIs in
+// parallelo su tutti i temi, mescola, deduplica per place_id, ordina per QS,
+// tronca a top-N per non gonfiare il prompt AI.
+
+const INTEREST_TO_THEME = {
+    // Mapping case-insensitive delle etichette UI (AiItinerary picker + DNA quiz)
+    // ai temi supportati da discoverRealPOIs.
+    'cibo':          'food',
+    'food':          'food',
+    'gastronomia':   'food',
+    'ristoranti':    'food',
+    'arte':          'art',
+    'art':           'art',
+    'storia':        'art',
+    'cultura':       'art',
+    'musei':         'art',
+    'natura':        'nature',
+    'nature':        'nature',
+    'parchi':        'nature',
+    'outdoor':       'nature',
+    'shopping':      'shopping',
+    'vita notturna': 'nightlife',
+    'nightlife':     'nightlife',
+    'aperitivo':     'nightlife',
+    'romantico':     'romance',
+    'romance':       'romance',
+    'tramonto':      'romance',
+};
+
+// DVAI-060 F2: se prefs non ha interessi (featured insider, DashboardUser
+// passa solo duration+group+pace), uso un mix curato "tour insider classico":
+// una piazza/monumento, un palazzo o museo, una trattoria. Il giro tipico.
+const DEFAULT_MIX_THEMES = ['walking', 'art', 'food'];
+
+// Case-insensitive lookup. Tokens possono essere stringhe libere o oggetti UI.
+const extractInterestTokens = (prefs) => {
+    if (!prefs) return [];
+    const raw = Array.isArray(prefs.interests) ? prefs.interests : [prefs.interests];
+    return raw
+        .filter(Boolean)
+        .map(v => {
+            if (typeof v === 'string') return v;
+            if (v?.title) return v.title;
+            if (v?.name) return v.name;
+            if (v?.label) return v.label;
+            return '';
+        })
+        .filter(s => typeof s === 'string' && s.trim().length > 0)
+        .map(s => s.toLowerCase().trim());
+};
+
+export function derivePrimaryThemes(prefs) {
+    const tokens = extractInterestTokens(prefs);
+    if (tokens.length === 0) return [...DEFAULT_MIX_THEMES];
+    const themes = tokens
+        .map(t => {
+            // Prima match esatto, poi substring per catturare "Vita notturna" etc.
+            if (INTEREST_TO_THEME[t]) return INTEREST_TO_THEME[t];
+            for (const [key, val] of Object.entries(INTEREST_TO_THEME)) {
+                if (t.includes(key)) return val;
+            }
+            return null;
+        })
+        .filter(Boolean);
+    const unique = [...new Set(themes)].slice(0, 3);
+    return unique.length > 0 ? unique : [...DEFAULT_MIX_THEMES];
+}
+
+// Fetch candidati reali per i temi derivati e li mescola in una singola lista
+// ordinata per qualityScore. Cache lato discoverRealPOIs (24h).
+// Se cityCenter non ha lat/lng, ritorna [] → generateItinerary attiva il
+// fallback AI-first (retrocompat totale).
+const fetchRealPOICandidates = async (cityName, cityCenter, prefs) => {
+    const lat = cityCenter?.latitude;
+    const lng = cityCenter?.longitude;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return [];
+    // Import dinamico per rompere il ciclo aiRecomm → placesDiscovery → aiRecomm.
+    const { placesDiscoveryService } = await import('./placesDiscoveryService');
+    const themes = derivePrimaryThemes(prefs);
+    const lists = await Promise.all(
+        themes.map(t => placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t))
+    );
+    // Dedup by place_id (o title come fallback), poi ordino per QS decrescente.
+    const merged = new Map();
+    for (const list of lists) {
+        if (!Array.isArray(list)) continue;
+        for (const p of list) {
+            const key = p.place_id || p.googlePlaceId || p.title;
+            if (!merged.has(key)) merged.set(key, p);
+        }
+    }
+    const all = [...merged.values()];
+    // qualityScore locale identico a placesDiscoveryService per coerenza.
+    all.sort((a, b) => {
+        const qsA = (a.rating || 0) * Math.log(1 + (a.user_ratings_total || 0));
+        const qsB = (b.rating || 0) * Math.log(1 + (b.user_ratings_total || 0));
+        return qsB - qsA;
+    });
+    // Tronco a top-20: abbastanza per far scegliere all'AI, non troppo per non
+    // gonfiare il prompt (ogni candidato costa ~40 token).
+    return all.slice(0, 20);
+};
+
 // Ordina tappe per prossimità (nearest-neighbor greedy)
 function sortByProximity(stops) {
     if (stops.length <= 2) return stops;
@@ -412,12 +531,153 @@ function sortByProximity(stops) {
     return result;
 }
 
+// ─── DVAI-060 F2 — Prompt selettore-narratore ────────────────────────────────
+//
+// Il sistema NON invita più l'AI a inventare i nomi. Le passa una lista di
+// luoghi REALI di ${city} già verificati (rating/tipo/foto Google). L'AI:
+// 1. SCEGLIE 4-5 tra questi coerenti col contesto (orario/gruppo/richiesta).
+// 2. ORDINA in narrativa.
+// 3. RACCONTA ognuno con voce da local (description/insiderTip/bestTime/transition).
+//
+// Guardrail voce (parole vietate + esempi ✓/✗) preservano il tono insider che
+// era il valore emotivo di DoveVAI e che era il criterio #1 di successo.
+const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, cityCenter, candidates, userPrompt }) => {
+    const candidatesLite = candidates.map(p => ({
+        place_id: p.place_id || p.googlePlaceId,
+        name: p.name,
+        rating: p.rating,
+        user_ratings_total: p.user_ratings_total,
+        types: (p.types || []).slice(0, 5),
+        address: p.address || null,
+    }));
+    const N = candidatesLite.length;
+    const groupLabel = prefs?.group || 'chiunque';
+    const transitHint = prefs?.pace === 'intenso' ? 'con qualche mezzo' : 'a piedi';
+    const radiusInfo = cityCenter && Number.isFinite(cityCenter.latitude)
+        ? ` Tutte le tappe devono restare entro ${(cityCenter.radiusKm ?? ((cityCenter.isSmallTown ?? isSmallTown(city)) ? 5 : 10))} km dal centro di ${city}.`
+        : '';
+
+    return `SEI L'INSIDER DI ${city} — un local che ti mostra la sua città, non una guida turistica, non Wikipedia, non un elenco.
+
+⚠️ NON scegli tu i luoghi. Io ti do una lista di ${N} luoghi REALI di ${city}, già verificati su Google (rating, tipo, foto).${radiusInfo}
+
+Il tuo lavoro in 3 mosse:
+
+1. SCELTA — 4-5 luoghi tra i ${N} disponibili, quelli più adatti a:
+   • orario: ${timeContext}
+   • gruppo: ${groupLabel}
+   • richiesta utente: "${(userPrompt || '').slice(0, 300)}"${aiProfile ? `
+   • profilo implicito: ${aiProfile}` : ''}
+
+2. ORDINE — costruisci un percorso che ${transitHint} abbia senso NARRATIVO,
+   non solo geometrico. La prima tappa è una perla, non l'ovvio (es. una piazza
+   secondaria o una chiesa poco battuta, non il monumento più famoso).
+
+3. VOCE — per ogni tappa, racconta come un local sussurra un segreto:
+
+   description (max 120 car): un dettaglio sensoriale specifico, cosa vedi/senti/odori.
+     ✓ "Il pavimento è consumato dai piedi di 300 anni di parrocchiani"
+     ✗ "Chiesa barocca del XVIII secolo, patrimonio della città"
+
+   insiderTip (max 100 car): un consiglio pratico che solo chi ci vive sa.
+     ✓ "Chiedi il caffè al bancone, seduto costa il doppio"
+     ✓ "Entra dalla porta laterale, quella principale è chiusa lun/mar"
+     ✗ "Consigliata visita mattutina"
+
+   bestTime (max 100 car): perché ORA. Non un orario generico, un motivo specifico.
+     ✓ "Alle 17 la luce entra dalla vetrata sud e colpisce l'altare"
+     ✗ "Momento migliore: pomeriggio"
+
+   transition (max 80 car): cosa vedi camminando alla prossima tappa. Un dettaglio.
+     ✓ "Girando per Via delle Cisterne c'è un balcone tutto edera"
+     ✗ "Prosegui verso la prossima tappa a 5 min a piedi"
+
+REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
+"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",
+"affascinante", "magico", "imperdibile" — usate sole senza contesto.
+
+REGOLE STRUTTURA:
+- MAI suggerire posti chiusi ora (contesto: ${timeContext}).
+- Adatta il TIPO di posto al gruppo: coppia→intimo, amici→vivace, famiglia→kid-friendly, solo→contemplativo.
+- Il TITOLO del tour è evocativo: "La ${city} che non dorme mai", "I vicoli segreti di ${city}" — non "Tour di ${city}".
+
+FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
+{
+  "days": [{
+    "day": 1,
+    "title": "Titolo evocativo unico",
+    "weather": { "condition": "${weather?.condition || 'Soleggiato'}", "temperature": ${weather?.temperature || 22}, "icon": "${weatherIcon}" },
+    "suggestedTransit": "walking|bus|metro",
+    "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
+    "stops": [{
+      "place_id": "ChIJ...",
+      "time": "HH:MM",
+      "description": "voce insider sensoriale (max 120 car)",
+      "insiderTip": "consiglio da local (max 100 car)",
+      "bestTime": "perché ORA (max 100 car)",
+      "transition": "cosa vedi camminando (max 80 car)",
+      "suggestedMinutes": 30,
+      "type": "cultura|storia|food|shopping|relax|arte|natura"
+    }]
+  }]
+}
+
+⚠️ NON produrre: title/latitude/longitude/rating/googlePhoto/address.
+Li ho già io e li prenderò dal candidato che tu identifichi con place_id.
+Il place_id DEVE essere uno di quelli della lista qui sotto — altri id verranno scartati.
+
+Ecco i ${N} luoghi REALI (usa i place_id da qui):
+${JSON.stringify(candidatesLite, null, 2)}`;
+};
+
+// Post-processing: prende gli stop AI (con place_id) e li canonizza dai candidati
+// reali. Riscrive title/lat/lng/rating/googlePhoto/type dal record Google, tiene
+// dall'AI description/insiderTip/bestTime/transition/time/suggestedMinutes.
+// Se AI ha inventato un place_id inesistente, quello stop viene scartato.
+// Exported per test.
+export const canonicalizeStopsFromCandidates = (aiStops, candidates) => {
+    const byId = new Map();
+    for (const c of candidates) {
+        const k = c.place_id || c.googlePlaceId;
+        if (k) byId.set(k, c);
+    }
+    return aiStops.map(s => {
+        const c = byId.get(s.place_id);
+        if (!c) {
+            console.warn(`[DVAI-060 F2] AI ha proposto place_id sconosciuto: ${s.place_id} → scarto stop`);
+            return null;
+        }
+        return {
+            time: s.time || null,
+            title: c.name,
+            description: s.description || null,
+            insiderTip: s.insiderTip || null,
+            bestTime: s.bestTime || null,
+            transition: s.transition || null,
+            suggestedMinutes: s.suggestedMinutes || 30,
+            type: s.type || c.type || 'place',
+            latitude: c.latitude ?? c.lat,
+            longitude: c.longitude ?? c.lng,
+            price: typeof s.price === 'number' ? s.price : 0,
+            rating: c.rating || null,
+            googlePlaceId: c.place_id || c.googlePlaceId,
+            googlePhoto: c.googlePhoto || null,
+            image: c.googlePhoto || c.image || null,
+            place_id: c.place_id || c.googlePlaceId,
+            city: c.city || null,
+        };
+    }).filter(Boolean);
+};
+
 export const aiRecommendationService = {
 
     // ─── ITINERARY GENERATION ────────────────────────────────────────────────
     // DVAI-055 — cityCenter opzionale: { latitude, longitude, radiusKm?, isSmallTown? }.
     // Se passato, attiva il vincolo geografico A monte (regola 15 nel prompt) e A
     // valle (filtro Haversine PRE sortByProximity). Se null: retrocompat, no filtro.
+    // DVAI-060 F2 — Google-first: se cityCenter presente, chiama discoverRealPOIs
+    // per ottenere candidati reali. L'AI diventa selettore-narratore. Se meno di 3
+    // candidati o cityCenter assente, fallback al vecchio flusso AI-first.
     async generateItinerary(city, prefs = {}, userPrompt = '', weather = {}, aiProfile = '', cityCenter = null) {
         // DVAI-055 — la cache key include cityCenter perché il filtro raggio cambia
         // il risultato salvato. Firmato con lat/lng arrotondati a 3 decimali (~110 m).
@@ -441,6 +701,84 @@ export const aiRecommendationService = {
             : hour >= 14 && hour < 18 ? 'pomeriggio — musei, gallerie, panorami, passeggiate'
             : hour >= 18 && hour < 22 ? 'sera — aperitivi, ristoranti, panorami al tramonto, locali con atmosfera'
             : 'notte — locali, jazz bar, piazze illuminate, passeggiate notturne';
+
+        // ─── DVAI-060 F2 — RAMO GOOGLE-FIRST (motore selettore-narratore) ───────
+        // Prova a ottenere candidati REALI da Google. Se >=3, usa il nuovo prompt
+        // in cui l'AI sceglie e racconta, non inventa. Se <3 (borgo micro o
+        // cityCenter mancante) cade al vecchio flusso AI-first sotto (retrocompat).
+        try {
+            const candidates = await fetchRealPOICandidates(city, cityCenter, prefs);
+            if (candidates.length >= 3) {
+                const selectorPrompt = buildSelectorSystemPrompt({
+                    city, timeContext, weather, weatherIcon,
+                    prefs, aiProfile, cityCenter, candidates, userPrompt,
+                });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 35_000);
+                try {
+                    const data = await callOpenAIProxy({
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            { role: 'system', content: selectorPrompt },
+                            { role: 'user', content: `Costruisci il tour, ${candidates.length} luoghi disponibili. Ricorda: place_id dalla lista, voce insider concreta.` },
+                        ],
+                        response_format: { type: 'json_object' },
+                        temperature: 0.7,
+                        max_tokens: 2000,
+                    }, controller.signal);
+                    clearTimeout(timeoutId);
+
+                    const raw = data.choices?.[0]?.message?.content;
+                    if (!raw) throw new Error('Empty AI response (F2)');
+                    const parsed = JSON.parse(raw);
+                    const days = Array.isArray(parsed) ? parsed : (parsed.days ?? []);
+                    if (!Array.isArray(days) || days.length === 0) throw new Error('AI returned no days (F2)');
+
+                    const VALID_MOODS = new Set(['romantico','storia','avventura','natura','cibo','shopping','arte','sorpresa','sport']);
+                    const VALID_TRANSIT = new Set(['bus','metro','walking']);
+
+                    const finalDays = days.map((day, di) => {
+                        const aiStops = Array.isArray(day.stops) ? day.stops : [];
+                        // Canonicizza: title/lat/lng/rating/googlePhoto dai candidati.
+                        // Scarta stop con place_id non appartenente ai candidati (AI-halluc).
+                        const canonized = canonicalizeStopsFromCandidates(aiStops, candidates);
+                        // Applica il filtro raggio come safety (DVAI-055-b): quasi no-op
+                        // perché discoverRealPOIs ha già filtrato per prossimità query.
+                        const withinRadius = applyRadiusFilter(canonized, cityCenter, city);
+                        // Ordina per prossimità geografica dopo la canonizzazione.
+                        const ordered = sortByProximity(withinRadius);
+                        return {
+                            day: day.day ?? di + 1,
+                            title: day.title ?? `Giorno ${di + 1} a ${city}`,
+                            weather: day.weather ?? { condition: weather?.condition || 'Soleggiato', temperature: weather?.temperature ?? 22, icon: weatherIcon },
+                            suggestedTransit: VALID_TRANSIT.has(day.suggestedTransit) ? day.suggestedTransit : 'walking',
+                            mapMood: VALID_MOODS.has(day.mapMood) ? day.mapMood : 'default',
+                            stops: ordered,
+                        };
+                    }).filter(d => d.stops.length > 0);
+
+                    // Almeno una giornata con almeno 3 tappe canoniche → success.
+                    // Se meno (troppe halluc, o filtri hanno tagliato) → fall-through
+                    // al vecchio flusso invece di consegnare un tour dimezzato.
+                    if (finalDays.length > 0 && finalDays[0].stops.length >= 3) {
+                        const result = { days: finalDays, _source: 'google-first' };
+                        saveInsiderToCache(cacheKey, result);
+                        return result;
+                    }
+                    console.warn(`[DVAI-060 F2] Google-first ha prodotto <3 tappe canoniche per "${city}", fallback AI-first`);
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    if (err instanceof AiQuotaExceededError) throw err;
+                    console.warn(`[DVAI-060 F2] Selettore fallito (${err.name === 'AbortError' ? 'timeout' : err.message}) → fallback AI-first`);
+                }
+            } else if (candidates.length > 0) {
+                console.info(`[DVAI-060 F2] "${city}" solo ${candidates.length} candidati Google → fallback AI-first`);
+            }
+        } catch (err) {
+            if (err instanceof AiQuotaExceededError) throw err;
+            console.warn(`[DVAI-060 F2] fetchRealPOICandidates ha errore, fallback AI-first: ${err.message}`);
+        }
+        // ─── FINE RAMO GOOGLE-FIRST — sotto: vecchio flusso AI-first (fallback) ─
 
         const systemPrompt = `Sei un insider locale italiano — non una guida turistica, non un'enciclopedia. Sei l'amico che vive a ${city} da sempre e sa dove portare la gente per farla innamorare della città.
 

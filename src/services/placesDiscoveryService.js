@@ -319,12 +319,17 @@ const QUALITY_THRESHOLDS = {
 };
 
 // ─── Mapping tema utente → query textsearch + kind di soglia ────────────────────
+// DVAI-060 F2: aggiunti shopping e nightlife per coprire il picker AiItinerary.
+// Shopping usa soglia CULTURA (permissiva su rating: boutique piccole a 4.0 ok).
+// Nightlife usa soglia FOOD (rating alto = filtro anti-catena su bar/pub).
 const THEME_TEXTSEARCH = {
-  food:    { query: 'trattoria ristorante pizzeria osteria', kind: 'FOOD' },
-  walking: { query: 'piazza chiesa monumento centro storico', kind: 'CULTURA' },
-  romance: { query: 'belvedere panorama tramonto giardino',   kind: 'CULTURA' },
-  art:     { query: 'museo chiesa palazzo storico galleria',  kind: 'CULTURA' },
-  nature:  { query: 'parco villa comunale giardino botanico', kind: 'NATURA' },
+  food:      { query: 'trattoria ristorante pizzeria osteria',     kind: 'FOOD' },
+  walking:   { query: 'piazza chiesa monumento centro storico',    kind: 'CULTURA' },
+  romance:   { query: 'belvedere panorama tramonto giardino',      kind: 'CULTURA' },
+  art:       { query: 'museo chiesa palazzo storico galleria',     kind: 'CULTURA' },
+  nature:    { query: 'parco villa comunale giardino botanico',    kind: 'NATURA' },
+  shopping:  { query: 'artigianato boutique mercato negozi tipici', kind: 'CULTURA' },
+  nightlife: { query: 'bar cocktail pub locale musica vino',       kind: 'FOOD' },
 };
 
 // Google `types` → tipo interno DoveVAI usato dai motori (rendering marker/cover).

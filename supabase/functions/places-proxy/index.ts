@@ -29,10 +29,15 @@ const CORS_HEADERS = {
 };
 
 // Whitelist dei path Places consentiti. Qualsiasi altro path → 403.
+// DVAI-060 (Fase 1 passo 0): abilitati textsearch e nearbysearch per il motore
+// Google-first. Ritornano liste di candidati reali (fino a 20) con rating,
+// user_ratings_total, business_status, types, price_level in una singola call.
 const ALLOWED_PATHS = new Set([
   'place/findplacefromtext',
   'place/photo',
   'place/details',
+  'place/textsearch',
+  'place/nearbysearch',
 ]);
 
 serve(async (req: Request) => {

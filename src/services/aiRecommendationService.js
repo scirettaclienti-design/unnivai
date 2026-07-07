@@ -207,7 +207,9 @@ const EXPECTED_GOOGLE_TYPES = {
 // DVAI-051: blacklist sempre attiva — se Google classifica il candidato come uno di
 // questi tipi, lo scartiamo a prescindere dal type richiesto. Sono attività che non
 // hanno senso come tappa turistica di un tour AI.
-const BLACKLIST_TYPES = new Set([
+// DVAI-060: esportata per essere riusata dal motore Google-first
+// (placesDiscoveryService.discoverRealPOIs) prima della soglia qualità.
+export const BLACKLIST_TYPES = new Set([
     'car_repair','car_dealer','car_rental','car_wash','gas_station',
     'hospital','doctor','dentist','physiotherapist','pharmacy','veterinary_care',
     'bank','atm','insurance_agency','accounting','lawyer','real_estate_agency',

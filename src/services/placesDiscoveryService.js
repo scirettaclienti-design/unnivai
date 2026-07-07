@@ -12,7 +12,8 @@
  */
 
 import { supabase } from '../lib/supabase';
-import { buildPlacesProxyUrl, isPlacesProxyEnabled } from './aiRecommendationService';
+import { buildPlacesProxyUrl, isPlacesProxyEnabled, BLACKLIST_TYPES } from './aiRecommendationService';
+import { isSmallTown } from './tourShape';
 
 // DVAI-055-b: prefix bumped da 'unnivai_poiv2_' per invalidare i POI tematici
 // cached prima del filtro raggio centralizzato nel normalizer. I tour tematici
@@ -296,18 +297,217 @@ const buildLocalFallback = (cityName, lat, lng, themeType) => {
   }));
 };
 
+// ─── DVAI-060 — MOTORE GOOGLE-FIRST ─────────────────────────────────────────────
+//
+// Inversione del flusso: invece di "AI inventa nomi → Google verifica singolo POI",
+// ora "Google textsearch → filtri di qualità → (Fase 2: AI seleziona/racconta)".
+//
+// Soglie tarate su dati reali Troina (borgo, ~9k ab) + Enna (città media, ~26k ab).
+// Vedi report P0 in chat + PROGRESS.md per il razionale numeri.
+//
+// La firma di output è compatibile con il vecchio discoverPOIs → nessun refactor
+// downstream (buildSmartExperiencesAsync in DashboardUser resta invariato).
+
+// ─── SOGLIE per tema × dimensione posto ─────────────────────────────────────────
+// FOOD: rating alto = filtro anti-catena implicito (Burger Sicily 4.0 esce).
+// CULTURA/NATURA: rating 4.0 accetta musei/chiese piccole legittime.
+// Tarate su Troina + Enna reali, non su ipotesi.
+const QUALITY_THRESHOLDS = {
+  FOOD:    { small: { minRating: 4.2, minTotal: 3 }, large: { minRating: 4.2, minTotal: 50 } },
+  CULTURA: { small: { minRating: 4.0, minTotal: 3 }, large: { minRating: 4.0, minTotal: 20 } },
+  NATURA:  { small: { minRating: 4.0, minTotal: 3 }, large: { minRating: 4.0, minTotal: 20 } },
+};
+
+// ─── Mapping tema utente → query textsearch + kind di soglia ────────────────────
+const THEME_TEXTSEARCH = {
+  food:    { query: 'trattoria ristorante pizzeria osteria', kind: 'FOOD' },
+  walking: { query: 'piazza chiesa monumento centro storico', kind: 'CULTURA' },
+  romance: { query: 'belvedere panorama tramonto giardino',   kind: 'CULTURA' },
+  art:     { query: 'museo chiesa palazzo storico galleria',  kind: 'CULTURA' },
+  nature:  { query: 'parco villa comunale giardino botanico', kind: 'NATURA' },
+};
+
+// Google `types` → tipo interno DoveVAI usato dai motori (rendering marker/cover).
+const mapGoogleTypeToOurType = (types = []) => {
+  const set = new Set(types);
+  if (set.has('museum') || set.has('art_gallery')) return 'museum';
+  if (set.has('church') || set.has('place_of_worship') ||
+      set.has('mosque') || set.has('synagogue') || set.has('hindu_temple')) return 'church';
+  if (set.has('park') || set.has('natural_feature') || set.has('campground')) return 'park';
+  if (set.has('restaurant') || set.has('cafe') || set.has('bar') ||
+      set.has('bakery') || set.has('meal_takeaway') || set.has('food')) return 'restaurant';
+  if (set.has('tourist_attraction')) return 'monument';
+  return 'place';
+};
+
+// ─── FILTRI ────────────────────────────────────────────────────────────────────
+const passesHardExclusions = (c) => {
+  // DVAI-057: solo attività operative.
+  if (c.business_status && c.business_status !== 'OPERATIONAL') return false;
+  // DVAI-051: nessuna officina/banca/ospedale/etc.
+  if (Array.isArray(c.types) && c.types.some(t => BLACKLIST_TYPES.has(t))) return false;
+  // Rumore garantito: 1 sola recensione e rating basso.
+  const r = c.rating || 0;
+  const t = c.user_ratings_total || 0;
+  if (r < 3.5 && t <= 2) return false;
+  // Assenza totale di dati (Google conosce il posto ma nessuno l'ha mai giudicato).
+  if (r === 0 && t === 0) return false;
+  return true;
+};
+
+// Scale-down progressivo: se troppo pochi passano, allargo la soglia. Meglio
+// avere 3 candidati borderline che 0 candidati "perfetti".
+const applyQualityThreshold = (candidates, kind, isSmall) => {
+  const t = QUALITY_THRESHOLDS[kind][isSmall ? 'small' : 'large'];
+  const level1 = candidates.filter(c =>
+    (c.rating || 0) >= t.minRating && (c.user_ratings_total || 0) >= t.minTotal);
+  if (level1.length >= 3) return { pois: level1, scaleLevel: 1 };
+
+  const level2 = candidates.filter(c =>
+    (c.rating || 0) >= 3.8 && (c.user_ratings_total || 0) >= 1);
+  if (level2.length >= 3) {
+    console.warn(`[DVAI-060] ${kind} scale-down livello 2 attivo (borderline)`);
+    return { pois: level2, scaleLevel: 2 };
+  }
+
+  console.warn(`[DVAI-060] ${kind} scale-down livello 3 (permissivo, pochi luoghi disponibili)`);
+  return { pois: candidates, scaleLevel: 3 };
+};
+
+// qualityScore standard: enfatizza rating alto senza dimenticare popolarità.
+const qualityScore = (c) =>
+  (c.rating || 0) * Math.log(1 + (c.user_ratings_total || 0));
+
+// ─── Costruzione POI dallo shape textsearch ────────────────────────────────────
+const buildPOIFromCandidate = (place, cityName) => {
+  const lat = place.geometry?.location?.lat;
+  const lng = place.geometry?.location?.lng;
+  const photoRef = place.photos?.[0]?.photo_reference;
+  const photoUrl = photoRef
+    ? buildPlacesProxyUrl({ path: 'place/photo', maxwidth: '600', photo_reference: photoRef })
+    : null;
+  return {
+    id: `google-${place.place_id}`,
+    name: place.name,
+    title: place.name,
+    description: '',                       // sarà scritta dall'AI in Fase 2
+    lat, lng,
+    latitude: lat, longitude: lng,
+    type: mapGoogleTypeToOurType(place.types),
+    rating: place.rating || 0,
+    user_ratings_total: place.user_ratings_total || 0,
+    business_status: place.business_status || 'OPERATIONAL',
+    price_level: place.price_level ?? null,
+    types: place.types || [],
+    city: cityName,
+    place_id: place.place_id,
+    googlePlaceId: place.place_id,          // segnala a verifyPOIWithPlaces: già verificato
+    googlePhoto: photoUrl,
+    image: photoUrl,
+    address: place.formatted_address || null,
+  };
+};
+
+/**
+ * DVAI-060 — Discovery Google-first di POI reali per (cityName, themeType).
+ *
+ * @param {string} cityName    città target (usata anche come contesto per la query)
+ * @param {number} lat         latitudine centro
+ * @param {number} lng         longitudine centro
+ * @param {string} themeType   'food' | 'walking' | 'romance' | 'art' | 'nature'
+ * @param {object} [opts]      { radiusMeters, maxResults, forceSmallTown }
+ * @returns {Promise<Array>}   lista di POI (compatibile con discoverPOIs)
+ */
+const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts = {}) => {
+  const {
+    radiusMeters,
+    maxResults = 12,
+    forceSmallTown,
+  } = opts;
+
+  // Se il proxy Places è OFF (dev senza middleware, prod senza flag) → fallback al
+  // vecchio motore AI-first. Non peggiora nulla e mantiene UX funzionante.
+  if (!isPlacesProxyEnabled()) {
+    return discoverPOIs(cityName, lat, lng, themeType);
+  }
+
+  const themeCfg = THEME_TEXTSEARCH[themeType] || THEME_TEXTSEARCH.walking;
+  const isSmall = forceSmallTown ?? isSmallTown(cityName);
+  const radius = radiusMeters ?? (isSmall ? 3000 : 5000);
+
+  // Cache key: (city, theme, kind di soglia) — non lat/lng perché città stessa
+  // = centro stabile. Prefix v1 Google-first, invalida i vecchi cache tematici.
+  const cacheKey = `gg1_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}`;
+  const cached = loadFromCache(cacheKey);
+  if (cached) return cached;
+
+  try {
+    const url = buildPlacesProxyUrl({
+      path: 'place/textsearch',
+      query: `${themeCfg.query} ${cityName}`,
+      location: `${lat},${lng}`,
+      radius: String(radius),
+    });
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`textsearch HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.status !== 'OK' || !Array.isArray(data.results)) {
+      throw new Error(`textsearch status=${data.status}`);
+    }
+
+    // 1. Esclusioni hard (business_status, blacklist types, rumore).
+    const cleaned = data.results.filter(passesHardExclusions);
+    // 2. Soglia qualità differenziata per tema, con scale-down se pochi.
+    const { pois: qualified, scaleLevel } = applyQualityThreshold(cleaned, themeCfg.kind, isSmall);
+    // 3. Ordinamento per qualityScore (rating × ln(1+total)).
+    const ranked = qualified
+      .map(p => ({ ...p, _qs: qualityScore(p) }))
+      .sort((a, b) => b._qs - a._qs)
+      .slice(0, maxResults);
+
+    // 4. Se dopo tutto abbiamo 0 candidati, fallback al vecchio motore. Meglio
+    //    un tour AI-first che nessun tour.
+    if (ranked.length === 0) {
+      console.warn(`[DVAI-060] ${cityName}/${themeType}: 0 candidati Google-first, fallback AI-first`);
+      return discoverPOIs(cityName, lat, lng, themeType);
+    }
+
+    // 5. Rimuovo _qs (era solo per debug) e salvo in cache.
+    const finalPois = ranked.map(p => { const { _qs, ...rest } = p; return buildPOIFromCandidate(rest, cityName); });
+    saveToCache(cacheKey, finalPois);
+    if (scaleLevel > 1) {
+      console.info(`[DVAI-060] ${cityName}/${themeType} scale-down livello ${scaleLevel}, ${finalPois.length} POI`);
+    }
+    return finalPois;
+  } catch (err) {
+    console.warn(`[DVAI-060] textsearch fallita per ${cityName}/${themeType}: ${err.message} → fallback AI-first`);
+    return discoverPOIs(cityName, lat, lng, themeType);
+  }
+};
+
 const discoverAllThemes = async (cityName, lat, lng) => {
   const themes = ['food', 'walking', 'romance', 'art', 'nature'];
   const results = {};
+  // DVAI-060: motore primario Google-first; fallback a discoverPOIs interno.
   await Promise.all(themes.map(async (theme) => {
-    results[theme] = await discoverPOIs(cityName, lat, lng, theme);
+    results[theme] = await discoverRealPOIs(cityName, lat, lng, theme);
   }));
   return results;
 };
 
 export const placesDiscoveryService = {
-  discoverPOIs,
+  discoverPOIs,           // legacy AI-first (usato come fallback interno)
+  discoverRealPOIs,       // DVAI-060 Google-first
   discoverAllThemes,
   enrichWithPhotos,
   fetchPlacePhoto,
+};
+
+// Export nominato per test unitari senza toccare la superficie del service.
+export {
+  discoverRealPOIs,
+  qualityScore,
+  passesHardExclusions,
+  applyQualityThreshold,
+  QUALITY_THRESHOLDS,
 };

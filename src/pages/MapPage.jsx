@@ -419,13 +419,32 @@ const MapPage = () => {
         return () => window.speechSynthesis?.removeEventListener?.('voiceschanged', findVoice);
     }, []);
 
+    // DVAI-064 B — Voce: parla UNA volta per STEP logico, non a ogni tick.
+    // Google Directions include la distanza nell'HTML instructions (es. "In
+    // <b>300 m</b> gira a destra"). Ogni tick GPS la distanza scende
+    // (300 → 250 → 200), la stringa cambia, il useEffect re-runs, la voce
+    // ripete l'istruzione tutta intera. Il gate `text === lastSpokenRef` era
+    // sempre falso perché comparava stringhe complete.
+    //
+    // Fix: identity = HTML stripped + numeri/distanze rimossi + normalizzato.
+    // Confronto sull'identity ("gira a destra su via roma") — la distanza
+    // resta nel TESTO PRONUNCIATO (utile) ma non nell'identity (bloccante).
+    const stepIdentity = (rawHtml) => (rawHtml || '')
+        .replace(/<[^>]*>/g, '')                                    // strip HTML
+        .replace(/\d+(?:[.,]\d+)?\s*(?:m|km|mt|metri|chilometri)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+
     useEffect(() => {
         if (!voiceEnabled || !isNavigating || !routeStats?.steps?.[0]?.instructions) return;
-        const text = routeStats.steps[0].instructions.replace(/<[^>]*>/g, '');
-        if (text === lastSpokenRef.current || !window.speechSynthesis) return;
-        lastSpokenRef.current = text;
+        const rawHtml = routeStats.steps[0].instructions;
+        const identity = stepIdentity(rawHtml);
+        if (!identity || identity === lastSpokenRef.current || !window.speechSynthesis) return;
+        lastSpokenRef.current = identity;
+        const spokenText = rawHtml.replace(/<[^>]*>/g, '');
         window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
+        const utterance = new SpeechSynthesisUtterance(spokenText);
         utterance.lang = 'it-IT';
         utterance.rate = 0.9;
         utterance.pitch = 1.0;
@@ -551,6 +570,14 @@ const MapPage = () => {
     // ─── CITY FLY-TO ─────────────────────────────────────────────────────────
     useEffect(() => {
         if (!mapRef.current || !isMapReady) return;
+        // DVAI-064 A — gate isNavigating: durante la navigazione la camera è
+        // gestita dal watchPosition callback (moveCamera istantaneo, throttled
+        // 400ms). Senza questo gate, ogni tick GPS aggiornava `localCenter`
+        // (dep), ri-eseguiva l'effect, che se `activeTourData?.center` era
+        // presente lanciava flyTo animato 2s verso il centro tour zoom 13 →
+        // camera "strappata" ogni ~500ms tra utente (zoom 19) e centro tour
+        // (zoom 13). Ora durante nav questo effect è no-op.
+        if (isNavigating) return;
         if (activeTourData?.center?.latitude && activeTourData?.center?.longitude) {
             mapRef.current.flyTo({
                 center: [activeTourData.center.longitude, activeTourData.center.latitude],
@@ -572,7 +599,7 @@ const MapPage = () => {
             mapRef.current.flyTo({ center: [targetLng, targetLat], zoom: targetZoom, duration: 2000, essential: true });
             setShowSearchHere(false);
         }
-    }, [activeCity, lat, lng, cityData, showRoute, activeTourData, selectedActivity, isMapReady, localCenter, isLocating, isManual]);
+    }, [activeCity, lat, lng, cityData, showRoute, activeTourData, selectedActivity, isMapReady, localCenter, isLocating, isManual, isNavigating]);
 
     // ─── AUTO-FIT TO ROUTE (TOURS ONLY — NOT route planner) ────────────────────
     useEffect(() => {

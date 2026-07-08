@@ -39,12 +39,21 @@ export default function useTourRouting(waypoints, travelModePreference) {
         if (!routesLibrary || !map) return;
         setDirectionsService(new routesLibrary.DirectionsService());
 
+        // DVAI-065 Fix 1a — preserveViewport: true CRITICO.
+        // Il default Google `preserveViewport: false` fa sì che ogni chiamata
+        // a setDirections() esegua map.fitBounds() sui waypoint AUTOMATICAMENTE.
+        // Durante nav, con waypoints che cambiano a ogni tick GPS (perché
+        // includevano la posizione utente), questo era il vero writer del
+        // "gioco dello zoom": camera zoom-out sul percorso, poi watchPosition
+        // moveCamera zoom-in su utente, ripeti. Con preserveViewport la
+        // polyline continua a essere disegnata correttamente, ma la camera
+        // non viene toccata dal renderer. Un solo owner camera durante nav.
         const style = ROUTE_STYLES.WALKING;
         setDirectionsRendererOutline(new routesLibrary.DirectionsRenderer({
-            map, suppressMarkers: true, polylineOptions: style.outer
+            map, suppressMarkers: true, preserveViewport: true, polylineOptions: style.outer
         }));
         setDirectionsRendererInner(new routesLibrary.DirectionsRenderer({
-            map, suppressMarkers: true, polylineOptions: style.inner
+            map, suppressMarkers: true, preserveViewport: true, polylineOptions: style.inner
         }));
     }, [routesLibrary, map]);
 

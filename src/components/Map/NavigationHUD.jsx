@@ -118,10 +118,13 @@ export default function NavigationHUD({
         })
         : null;
 
-    // DVAI-063 B — Contenitore SEMPRE dentro viewport mobile.
-    // w-[calc(100%-16px)] max-w-md invece di w-[95%]: garantisce 8px per lato,
-    // evita overflow con -translate-x-1/2 + contenuto largo (istruzioni Google
-    // con "Via/SP102" senza spazi). overflow-hidden sul wrapper esterno come safety.
+    // DVAI-065 Fix HUD — Inset assoluto (left-2 right-2) invece di
+    // left-1/2 + -translate-x-1/2 + w-[calc(...)]. Nessuna matematica di
+    // centraggio, nessun transform: la card è ancorata a 8px da entrambi
+    // i lati per costruzione. Robusto contro qualsiasi variazione di
+    // safe-area indotta da iOS Chrome (URL bar dinamica, fullscreen).
+    // Su desktop max-w-md + mx-auto centra l'elemento nel box definito
+    // da left-2/right-2.
     return (
         <AnimatePresence>
             <motion.div
@@ -130,8 +133,8 @@ export default function NavigationHUD({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-                className="fixed left-1/2 -translate-x-1/2 z-[70] w-[calc(100%-16px)] max-w-md pointer-events-auto overflow-hidden"
-                style={{ top: 'max(1rem, env(safe-area-inset-top))' }}
+                className="fixed left-2 right-2 z-[70] max-w-md mx-auto pointer-events-auto"
+                style={{ top: 'max(0.5rem, env(safe-area-inset-top))' }}
             >
                 <div
                     className="bg-white/95 backdrop-blur-xl rounded-[28px] overflow-hidden ring-1 ring-black/5"

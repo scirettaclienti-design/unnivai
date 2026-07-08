@@ -335,9 +335,10 @@ const MapPage = () => {
     const setFollowing = useCallback((val) => {
         setIsCameraFollowing(val);
         followingRef.current = val;
-        
+
         // Se riattiviamo il following, facciamo un fly-to immediato all'ultima posizione nota
         if (val && localCenter && mapRef.current) {
+            console.log('[DVAI-Nav] writer#2 setFollowing(true): flyTo zoom 19 pitch 60');
             mapRef.current.flyTo({ center: [localCenter.longitude, localCenter.latitude], zoom: 19, pitch: 60 });
         }
     }, [localCenter]);
@@ -766,6 +767,10 @@ const MapPage = () => {
         lastSpokenRef.current = '';
         // Reset camera
         if (map) map.moveCamera({ tilt: 0, zoom: 14 });
+        // DVAI-065 Fix HUD — accoppiato a rimozione requestNavFullscreen sopra:
+        // se non entriamo in fullscreen, non serve uscirne. Lascio la chiamata
+        // come no-op safety (gestisce il caso in cui fullscreen fosse stato
+        // attivato manualmente dall'utente su desktop).
         exitNavFullscreen();
         if (completedSteps.length > 0) {
             setTimeout(() => setIsSummaryModalOpen(true), 300);
@@ -781,10 +786,16 @@ const MapPage = () => {
     }, []);
 
     const handleStartNavigationReal = () => {
+        console.log('[DVAI-Nav] handleStartNavigationReal: click Avvia');
         setIsRoutePlannerOpen(false);
         setIsNavigating(true);
         setFollowing(true);
-        requestNavFullscreen();
+        // DVAI-065 Fix HUD — requestNavFullscreen() rimosso: su iOS Chrome
+        // il cambio a fullscreen alterava env(safe-area-inset-*) rompendo il
+        // centraggio dell'HUD. iOS Chrome nasconde comunque la URL bar quando
+        // l'utente scrolla o interagisce, non serve forzare fullscreen (che
+        // può anche non essere concesso da iOS su un tap non-user-initiated).
+        // requestNavFullscreen();
         setCompletedSteps([]);
 
         // Imposta subito il percorso dal tour
@@ -857,6 +868,7 @@ const MapPage = () => {
 
                     // Traking Posizione e Auto-Flight
                     let lastUpdateTime = 0;
+                    let writer3Ticks = 0;
                     const wId = navigator.geolocation.watchPosition(
                         (pos) => {
                             const { latitude, longitude, heading, speed } = pos.coords;
@@ -872,6 +884,11 @@ const MapPage = () => {
 
                             if (followingRef.current && map && (now - lastUpdateTime > throttleMs)) {
                                 lastUpdateTime = now;
+                                writer3Ticks += 1;
+                                // Log ogni ~10 tick (~4s a piedi) per non spammare la console
+                                if (writer3Ticks % 10 === 1) {
+                                    console.log(`[DVAI-Nav] writer#3 watchPosition moveCamera (tick #${writer3Ticks}, zoom ${navZoom}, tilt ${navTilt})`);
+                                }
                                 map.moveCamera({
                                     center: { lat: latitude, lng: longitude },
                                     zoom: navZoom,
@@ -980,6 +997,7 @@ const MapPage = () => {
                 if (next?.latitude && next?.longitude) {
                     setFlyToLabel(next.name || next.title || `Tappa ${stepNum + 1}`);
                     setTimeout(() => {
+                        console.log(`[DVAI-Nav] writer#6 handlePOIUnlock moveCamera → prossima tappa "${next.name || next.title}", zoom 18 tilt 55`);
                         map.moveCamera({
                             center: { lat: next.latitude, lng: next.longitude },
                             zoom: 18,
@@ -1102,10 +1120,20 @@ const MapPage = () => {
                             width="100%"
                             activities={showRoute ? allMapMarkers : mapDisplayItems}
                             routePoints={showRoute
-                                ? (localCenter && !customOriginAddress
-                                    // GPS attivo: il percorso parte dalla posizione reale dell'utente
-                                    ? [{ lat: localCenter.latitude, lng: localCenter.longitude, title: 'Tu' }, ...(liveRoute || activeRoute || [])]
-                                    : (liveRoute || activeRoute))
+                                // DVAI-065 Fix 1b — Durante nav i waypoints sono STABILI (il tour
+                                // completo, senza posizione utente come primo waypoint). Senza
+                                // questo fix, localCenter cambiava ogni tick GPS → routePoints
+                                // nuovo ref → useTourRouting ri-eseguiva → directionsService.route()
+                                // chiamato di nuovo → setDirections() → fitBounds automatico.
+                                // Bonus: taglia ~100+ chiamate Google Directions per tour.
+                                // La posizione utente resta visibile via userLocation prop
+                                // (marker blu separato in UnnivaiMap:66-78).
+                                ? (isNavigating
+                                    ? (liveRoute || activeRoute)
+                                    : (localCenter && !customOriginAddress
+                                        // Preview pre-nav: percorso parte da posizione utente
+                                        ? [{ lat: localCenter.latitude, lng: localCenter.longitude, title: 'Tu' }, ...(liveRoute || activeRoute || [])]
+                                        : (liveRoute || activeRoute)))
                                 : (isRoutePlannerOpen && plannerPreviewRoute ? plannerPreviewRoute : [])
                             }
                             onActivityClick={handleMarkerClick}

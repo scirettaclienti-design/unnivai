@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MapPin, Star, Clock, Users, Shuffle, ArrowLeft, Sparkles, Gift, Dice1, Zap, Calendar, Heart, ArrowRight, Timer, FileText } from "lucide-react";
 import DemoHint from "../components/DemoHint";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -161,6 +161,21 @@ export default function SurpriseTourPage() {
     const [selectedSurprise, setSelectedSurprise] = useState(null);
     const [isShuffling, setIsShuffling] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
+    // DVAI-061 B — Flash pulsante "Domani nuove esperienze 🌅" per 3s quando
+    // quota esaurita. Feedback dove l'utente sta guardando (il pulsante), non
+    // solo il toast in basso (banner blindness + fuori viewport iPhone).
+    const [quotaExhaustedFlash, setQuotaExhaustedFlash] = useState(false);
+    const quotaFlashTimerRef = useRef(null);
+
+    const triggerQuotaFlash = () => {
+        setQuotaExhaustedFlash(true);
+        if (quotaFlashTimerRef.current) clearTimeout(quotaFlashTimerRef.current);
+        quotaFlashTimerRef.current = setTimeout(() => setQuotaExhaustedFlash(false), 3000);
+    };
+
+    useEffect(() => () => {
+        if (quotaFlashTimerRef.current) clearTimeout(quotaFlashTimerRef.current);
+    }, []);
 
     // Dynamic filtered list based on ACTIVE CITY
     const currentExperiences = getSurpriseExperiences(city || 'Roma');
@@ -193,10 +208,34 @@ export default function SurpriseTourPage() {
     }, [location.state?.autoSuggest]);
 
     const shuffleExperience = async (suggestedTheme = null) => {
-        setIsShuffling(true);
+        console.log('[DVAI-061] shuffleExperience: click received', { suggestedTheme, city, hasGps: Number.isFinite(lat) && Number.isFinite(lng) });
 
-        // Simulate initial delay for effect
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // DVAI-061 C — Preflight quota lato client. Se già a limite: feedback
+        // immediato sul pulsante (B) + toast, ZERO spinner, ZERO delay.
+        // Non blocca guest (authenticated=false → exceeded=false).
+        try {
+            const quotaStatus = await aiRecommendationService.getDailyQuotaStatus();
+            console.log('[DVAI-061] shuffleExperience: quota preflight =', quotaStatus);
+            if (quotaStatus.exceeded) {
+                console.log('[DVAI-061] shuffleExperience: quota exceeded → flash pulsante + toast (no spinner, no delay)');
+                triggerQuotaFlash();
+                toast({
+                    title: 'Hai esplorato tanto oggi',
+                    description: 'Le tue esperienze di oggi sono esaurite. Domani ne troverai di nuove, cucite su di te.',
+                    type: 'info',
+                    duration: 5000,
+                });
+                return;
+            }
+        } catch (preflightErr) {
+            console.warn('[DVAI-061] shuffleExperience: preflight failed, proseguo con generation', preflightErr?.message);
+        }
+
+        // DVAI-061 A — Feedback immediato: parte lo spinner ora, senza il vecchio
+        // await 1500ms hardcoded. Se generateItinerary fallisce in <500ms, il
+        // toast/flash arriva subito senza far attendere l'utente sotto finto spinner.
+        setIsShuffling(true);
+        console.log('[DVAI-061] shuffleExperience: generation started');
 
         try {
             // 1. Prepare User Context using AI History
@@ -292,13 +331,17 @@ export default function SurpriseTourPage() {
             });
 
             // 4. Navigate to Tour Details
+            console.log('[DVAI-061] shuffleExperience: generation success →', mappedTour.id);
             navigate(`/tour-details/${mappedTour.id}`, { state: { tourData: mappedTour, isAiGenerated: true } });
 
         } catch (error) {
-            console.error("Surprise Logic Error:", error);
+            console.error('[DVAI-061] shuffleExperience: generation failed', error);
             if (error?.code === 'QUOTA_EXCEEDED') {
                 // DVAI-050 / DVAI-056: cap anti-abuso — toast in-app (no window.alert).
-                // Copy locked, voce DoveVAI, non punitiva.
+                // DVAI-061 B: SEMPRE flash pulsante come backup se preflight ha sbagliato
+                // (RLS, race con altre schede, whatever). L'utente vede il feedback
+                // dove ha cliccato, sempre.
+                triggerQuotaFlash();
                 toast({
                     title: 'Hai esplorato tanto oggi',
                     description: 'Le tue esperienze di oggi sono esaurite. Domani ne troverai di nuove, cucite su di te.',
@@ -387,22 +430,44 @@ export default function SurpriseTourPage() {
                 >
                     <motion.button
                         onClick={() => shuffleExperience()}
-                        disabled={isShuffling}
-                        className={`relative w-full bg-gradient-to-r from-orange-400 to-orange-500 text-white py-6 px-8 rounded-3xl font-bold shadow-xl hover:shadow-2xl transition-all flex items-center justify-center space-x-3 ${isShuffling ? 'opacity-75 cursor-not-allowed' : ''
-                            }`}
-                        whileHover={!isShuffling ? { scale: 1.02, rotateX: 5 } : {}}
-                        whileTap={!isShuffling ? { scale: 0.98 } : {}}
+                        disabled={isShuffling || quotaExhaustedFlash}
+                        // DVAI-061 B — Il pulsante cambia stato/colore/testo in TRE modalità:
+                        //  1. quotaExhaustedFlash → soft peach + "Domani nuove esperienze 🌅" per 3s
+                        //  2. isShuffling         → arancione opacità 0.75 + spinner + "Analizzando..."
+                        //  3. default             → arancione pieno + "Genera Esperienza Unica"
+                        className={`relative w-full bg-gradient-to-r text-white py-6 px-8 rounded-3xl font-bold shadow-xl hover:shadow-2xl transition-all duration-500 flex items-center justify-center space-x-3 ${
+                            quotaExhaustedFlash
+                                ? 'from-orange-200 to-orange-300 opacity-90 cursor-not-allowed'
+                                : isShuffling
+                                    ? 'from-orange-400 to-orange-500 opacity-75 cursor-not-allowed'
+                                    : 'from-orange-400 to-orange-500'
+                        }`}
+                        whileHover={!isShuffling && !quotaExhaustedFlash ? { scale: 1.02, rotateX: 5 } : {}}
+                        whileTap={!isShuffling && !quotaExhaustedFlash ? { scale: 0.98 } : {}}
                     >
                         <motion.div
                             animate={isShuffling ? { rotate: 360 } : {}}
                             transition={isShuffling ? { duration: 0.5, repeat: Infinity, ease: "linear" } : {}}
                         >
-                            <Sparkles className="w-6 h-6" />
+                            {quotaExhaustedFlash ? <span className="text-2xl">🌅</span> : <Sparkles className="w-6 h-6" />}
                         </motion.div>
-                        <span className="text-xl">
-                            {isShuffling ? "Analizzando i tuoi interessi..." : (selectedFilter ? `Genera Sorpresa ${selectedFilter}` : "Genera Esperienza Unica")}
-                        </span>
-                        {!isShuffling && (
+                        <AnimatePresence mode="wait">
+                            <motion.span
+                                key={quotaExhaustedFlash ? 'quota' : isShuffling ? 'loading' : 'idle'}
+                                className="text-xl"
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                transition={{ duration: 0.25 }}
+                            >
+                                {quotaExhaustedFlash
+                                    ? 'Domani nuove esperienze'
+                                    : isShuffling
+                                        ? 'Analizzando i tuoi interessi...'
+                                        : (selectedFilter ? `Genera Sorpresa ${selectedFilter}` : 'Genera Esperienza Unica')}
+                            </motion.span>
+                        </AnimatePresence>
+                        {!isShuffling && !quotaExhaustedFlash && (
                             <motion.div
                                 className="text-2xl"
                                 whileHover={{ scale: 1.3, rotate: 15 }}

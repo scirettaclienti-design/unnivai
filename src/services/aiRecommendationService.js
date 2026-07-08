@@ -361,6 +361,45 @@ export class AiQuotaExceededError extends Error {
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
+// DVAI-061 — Preflight della quota lato client. Legge SENZA incrementare.
+// Serve per feedback immediato sul pulsante (SurpriseTour "click morto"):
+// se l'utente è già a quota, mostriamo subito il messaggio invece di far
+// partire uno spinner finto per 1.5s + toast in area invisibile.
+//
+// Contract:
+//   { authenticated: bool, count: number, remaining: number, exceeded: bool }
+//
+// Su errore (RLS/rete): ritorna { exceeded: false } — NON blocchiamo l'utente
+// per un errore infrastrutturale. checkAndIncrementQuota poi rifà il controllo
+// autoritativo nel path di generazione.
+export const getDailyQuotaStatus = async () => {
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+        if (!userId) {
+            // Guest: bypass quota (come in checkAndIncrementQuota).
+            return { authenticated: false, count: 0, remaining: DAILY_QUOTA, exceeded: false };
+        }
+        const day = todayStr();
+        const { data: row } = await supabase
+            .from('ai_quota_daily')
+            .select('count')
+            .eq('user_id', userId)
+            .eq('day', day)
+            .maybeSingle();
+        const count = row?.count ?? 0;
+        return {
+            authenticated: true,
+            count,
+            remaining: Math.max(0, DAILY_QUOTA - count),
+            exceeded: count >= DAILY_QUOTA,
+        };
+    } catch (e) {
+        console.warn('[ai-quota] preflight failed, non blocco:', e?.message || e);
+        return { authenticated: false, count: 0, remaining: DAILY_QUOTA, exceeded: false };
+    }
+};
+
 const checkAndIncrementQuota = async () => {
     try {
         const { data: { session } } = await supabase.auth.getSession();

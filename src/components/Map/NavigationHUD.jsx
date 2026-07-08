@@ -118,6 +118,10 @@ export default function NavigationHUD({
         })
         : null;
 
+    // DVAI-063 B — Contenitore SEMPRE dentro viewport mobile.
+    // w-[calc(100%-16px)] max-w-md invece di w-[95%]: garantisce 8px per lato,
+    // evita overflow con -translate-x-1/2 + contenuto largo (istruzioni Google
+    // con "Via/SP102" senza spazi). overflow-hidden sul wrapper esterno come safety.
     return (
         <AnimatePresence>
             <motion.div
@@ -126,7 +130,7 @@ export default function NavigationHUD({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-                className="fixed left-1/2 -translate-x-1/2 z-[70] w-[95%] max-w-md pointer-events-auto"
+                className="fixed left-1/2 -translate-x-1/2 z-[70] w-[calc(100%-16px)] max-w-md pointer-events-auto overflow-hidden"
                 style={{ top: 'max(1rem, env(safe-area-inset-top))' }}
             >
                 <div
@@ -146,27 +150,35 @@ export default function NavigationHUD({
                         </div>
                         <div className="flex-1 min-w-0">
                             {routeStats?.error ? (
-                                <p className="text-[15px] font-semibold text-amber-600 leading-snug">
+                                <p className="text-[15px] font-semibold text-amber-600 leading-snug break-words">
                                     {routeStats.error}
                                 </p>
                             ) : instructionHtml ? (
                                 <>
+                                    {/* DVAI-063 B — break-words + hyphens: le istruzioni Google
+                                        possono contenere stringhe lunghe non separate
+                                        (es. "Via Ancipa/SP102") che il line-clamp non spezza
+                                        e forzano overflow orizzontale. break-words permette il
+                                        break dentro le parole se necessario. */}
                                     <p
-                                        className="text-[17px] font-bold text-gray-900 leading-tight line-clamp-2"
-                                        style={{ fontFamily: 'Quicksand, sans-serif' }}
+                                        className="text-[17px] font-bold text-gray-900 leading-tight line-clamp-2 break-words"
+                                        style={{ fontFamily: 'Quicksand, sans-serif', wordBreak: 'break-word', hyphens: 'auto' }}
                                         dangerouslySetInnerHTML={{ __html: instructionHtml }}
                                     />
-                                    <div className="flex items-center gap-2 mt-1.5">
+                                    {/* DVAI-063 B — flex-wrap sul chip: se distanza + tempo
+                                        sono lunghi (es. "1.5 km · 35 min rimasti"), la seconda
+                                        parte va a capo invece di uscire dallo schermo. */}
+                                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                         {step0.distance?.text && (
-                                            <span className="text-[13px] font-bold text-orange-600">
+                                            <span className="text-[13px] font-bold text-orange-600 whitespace-nowrap">
                                                 {step0.distance.text}
                                             </span>
                                         )}
                                         {step0.distance?.text && durationText && (
-                                            <span className="w-1 h-1 rounded-full bg-gray-300" />
+                                            <span className="w-1 h-1 rounded-full bg-gray-300 shrink-0" />
                                         )}
                                         {durationText && (
-                                            <span className="text-[13px] font-semibold text-gray-500">
+                                            <span className="text-[13px] font-semibold text-gray-500 whitespace-nowrap">
                                                 {durationText} rimasti
                                             </span>
                                         )}

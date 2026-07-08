@@ -1312,8 +1312,13 @@ const MapPage = () => {
                 </div>
             )}
 
-            {/* 3. START TOUR BAR & STOP BUTTON */}
-            {showRoute && !selectedActivity && !selectedPartner && tourData && !isNavigating && (
+            {/* 3. START TOUR BAR & STOP BUTTON
+                DVAI-063 A — nascosta quando il Route Planner è aperto: la card arancione
+                (bottom-6 z-40) e il drawer veicolo (bottom-0 z-[60], 55dvh) si sovrapponevano
+                nel fondo del pannello — visibile durante le transizioni e in edge z-stacking.
+                Il pulsante "Avvia Navigazione" dentro il drawer è già il CTA primario:
+                serve una sola CTA in quel momento. */}
+            {showRoute && !selectedActivity && !selectedPartner && tourData && !isNavigating && !isRoutePlannerOpen && (
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 w-[95%] max-w-md animate-in slide-in-from-bottom-10 pointer-events-auto">
                     <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border border-white/40 flex items-center justify-between gap-3 ring-1 ring-black/5">
                         <div className="flex-1 min-w-0">

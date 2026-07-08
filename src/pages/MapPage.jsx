@@ -17,6 +17,7 @@ import ReviewModal from '../components/ReviewModal';
 import GpsActivationBanner from '../components/GpsActivationBanner';
 import { CitySearchBar } from '../components/Map/CitySearchBar';
 import { AIDrawer } from '../components/Map/AIDrawer';
+import NavigationHUD from '../components/Map/NavigationHUD';
 import React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMap, useMapsLibrary, InfoWindow } from '@vis.gl/react-google-maps';
@@ -776,18 +777,34 @@ const MapPage = () => {
         }));
 
         if (navigator.geolocation) {
+            console.log('[DVAI-Nav] start: getCurrentPosition richiesto');
             navigator.geolocation.getCurrentPosition(
                 ({ coords }) => {
-                    // Zoom sulla posizione reale dell'utente
-                    if (map) {
-                        map.moveCamera({
-                            center: { lat: coords.latitude, lng: coords.longitude },
-                            zoom: 18,
-                            tilt: 55,
-                            heading: 0,
-                        });
-                    }
-                    
+                    console.log('[DVAI-Nav] start: GPS ok', { lat: coords.latitude, lng: coords.longitude });
+                    // Layer C Fix 2 — Zoom sulla posizione utente all'avvio.
+                    // Uso mapRef.current.flyTo (wrapper testato) invece di map.moveCamera diretto.
+                    // Retry con backoff se il wrapper non è pronto (max 300ms), poi warn esplicito.
+                    const flyToUser = (attempt = 0) => {
+                        const ref = mapRef.current;
+                        if (ref?.flyTo) {
+                            console.log(`[DVAI-Nav] flyTo su utente (attempt ${attempt})`);
+                            ref.flyTo({
+                                center: [coords.longitude, coords.latitude],
+                                zoom: 18,
+                                pitch: 55,
+                                bearing: 0,
+                            });
+                            return true;
+                        }
+                        if (attempt < 3) {
+                            setTimeout(() => flyToUser(attempt + 1), 100);
+                        } else {
+                            console.warn('[DVAI-Nav] mapRef non pronto dopo 300ms: skip flyTo iniziale');
+                        }
+                        return false;
+                    };
+                    flyToUser();
+
                     const remainingRoute = activeRoute?.filter(step => !completedSteps.includes(step.id)) || [];
                     let newLiveRoute = [];
                     
@@ -877,9 +894,16 @@ const MapPage = () => {
                     );
                     setWatchId(wId);
                 },
-                () => {
+                (err) => {
+                    console.warn('[DVAI-Nav] start: GPS fallito', err?.code, err?.message);
+                    // Layer C Fix 2 — messaggio più informativo. Distinguo permission
+                    // denied (utente ha detto no) da altri errori (timeout, unavailable).
+                    const isPermissionDenied = err?.code === 1;
+                    const msg = isPermissionDenied
+                        ? '📍 Posizione non condivisa. Partiamo dalla prima tappa del tour.'
+                        : '📍 GPS non disponibile ora. Partiamo dalla prima tappa — poi ti raggiungeremo appena il segnale c\'è.';
                     window.dispatchEvent(new CustomEvent('dvai:toast', {
-                        detail: { type: 'info', message: '📍 GPS non disponibile — navigazione dalla prima tappa.', duration: 4000 }
+                        detail: { type: 'info', message: msg, duration: 5000 }
                     }));
                     if (activeRoute?.length) {
                         // Usa prima tappa come ancora di partenza
@@ -1077,15 +1101,9 @@ const MapPage = () => {
                             userLocation={localCenter}
                         />
 
-                        {/* Riprendi Navigazione Button (Free Mode) */}
-                        {isNavigating && !isCameraFollowing && (
-                            <button
-                                onClick={() => setFollowing(true)}
-                                className="absolute bottom-40 right-4 z-50 bg-white shadow-xl px-4 py-3 rounded-2xl flex items-center justify-center gap-2 font-bold text-orange-600 ring-2 ring-orange-100 hover:scale-105 active:scale-95 transition-transform"
-                            >
-                                <NavIcon size={18} fill="currentColor" /> Riprendi
-                            </button>
-                        )}
+                        {/* Layer C Fix 3 — Il "Riprendi Navigazione" fluttuante è stato integrato
+                            nel NavigationHUD come pulsante "Centra" (icona LocateFixed) che appare
+                            solo quando !isCameraFollowing. Riduce il rumore visivo sulla mappa. */}
 
                         {/* Partner count badge */}
                         {(showRoute || isRoutePlannerOpen) && businessPartners.length > 0 && (
@@ -1132,7 +1150,14 @@ const MapPage = () => {
                         ) : (isRoutePlannerOpen || isNavigating) ? (
                             <>
                                 {/* GOOGLE MAPS STYLE ROUTE PLANNER (SIDEBAR ON DESKTOP, TOP ON MOBILE) */}
-                                <div className={`fixed md:absolute inset-x-0 bottom-0 md:inset-x-auto md:top-4 md:left-4 z-[60] bg-white md:rounded-[24px] rounded-t-[32px] shadow-2xl md:w-[400px] flex flex-col transition-transform duration-500 ease-in-[cubic-bezier(0.32,0.72,0,1)] ${isRoutePlannerOpen && !isNavigating ? 'translate-y-0 md:h-[calc(100vh-32px)] md:max-h-[800px] h-[55vh] max-h-[60vh]' : 'translate-y-full md:-translate-x-[120%] md:translate-y-0'}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+                                {/* Layer C Fix 1 — Drawer altezza mobile: uso `dvh` (dynamic viewport height)
+                                    invece di `vh`. iOS Safari/Chrome contano l'URL bar dinamica dentro
+                                    100vh: con `55vh` il drawer sforava sotto la URL bar, spingendo il
+                                    pulsante "Avvia Navigazione" fuori schermo. `dvh` si aggiorna automaticamente
+                                    al toggle URL bar. Fallback `svh` (small viewport height) per browser che
+                                    non supportano dvh (Safari <15.4). Padding-bottom aumentato di 8px per
+                                    respiro tattile sotto il pulsante. */}
+                                <div className={`fixed md:absolute inset-x-0 bottom-0 md:inset-x-auto md:top-4 md:left-4 z-[60] bg-white md:rounded-[24px] rounded-t-[32px] shadow-2xl md:w-[400px] flex flex-col transition-transform duration-500 ease-in-[cubic-bezier(0.32,0.72,0,1)] ${isRoutePlannerOpen && !isNavigating ? 'translate-y-0 md:h-[calc(100vh-32px)] md:max-h-[800px] h-[55dvh] max-h-[60dvh] supports-[not(height:100dvh)]:h-[55svh] supports-[not(height:100dvh)]:max-h-[60svh]' : 'translate-y-full md:-translate-x-[120%] md:translate-y-0'}`} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }}>
                                     {/* Drag handle mobile */}
                                     <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
                                         <div className="w-10 h-1 bg-gray-300 rounded-full" />
@@ -1337,61 +1362,21 @@ const MapPage = () => {
                 )}
             </AnimatePresence>
 
+            {/* Layer C Fix 3 — HUD navigazione ridisegnato (arancione DoveVAI, presenter puro).
+                Il vecchio JSX inline (verde-Google, emoji 🔊/🔇, senza progress bar) è stato
+                estratto in <NavigationHUD/> per pulizia + estetica coerente col brand.
+                La logica routing/tracking non è toccata. */}
             {isNavigating && (
-                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[70] w-[95%] max-w-md bg-green-600 rounded-[28px] shadow-2xl overflow-hidden animate-in slide-in-from-top-6 fade-in duration-500">
-                    <div className="p-5 flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0 text-white">
-                            <NavIcon size={24} />
-                        </div>
-                        <div className="flex-1 text-white">
-                            {routeStats?.error ? (
-                                <p className="text-xl font-bold leading-tight drop-shadow-sm text-red-200">{routeStats.error}</p>
-                            ) : routeStats?.steps?.[0] ? (
-                                <>
-                                    {/* DVAI-002: sanitizzato con DOMPurify per prevenire XSS da dati Google Directions API */}
-                                    <p className="text-xl font-bold leading-tight drop-shadow-sm" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(routeStats.steps[0].instructions, { ALLOWED_TAGS: ['b', 'strong', 'span'], ALLOWED_ATTR: [] }) }} />
-                                    <div className="flex items-center gap-2 mt-2 opacity-90">
-                                        <span className="font-extrabold">{routeStats.steps[0].distance?.text}</span>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-white/50" />
-                                        <span className="font-semibold text-sm">{Math.round(routeStats.durationSec / 60)} min rimanenti</span>
-                                    </div>
-                                </>
-                            ) : (
-                                <p className="text-lg font-bold">Ricalcolo in corso...</p>
-                            )}
-                        </div>
-                    </div>
-                    {/* Mini-HUD: tappa corrente + progress + termina */}
-                    <div className="bg-green-700/80 backdrop-blur px-5 py-3 flex justify-between items-center">
-                        <div className="flex-1">
-                            {activeRoute?.length > 0 && (
-                                <div className="flex items-center gap-2">
-                                    <span className="bg-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
-                                        {completedSteps.length + 1}/{activeRoute.length}
-                                    </span>
-                                    <span className="text-green-50 text-xs font-semibold truncate max-w-[140px]">
-                                        {activeRoute[Math.min(completedSteps.length, activeRoute.length - 1)]?.name || 'Prossima tappa'}
-                                    </span>
-                                </div>
-                            )}
-                            <div className="text-green-200 text-[10px] mt-0.5">
-                                {routeStats?.distanceM ? `${(routeStats.distanceM / 1000).toFixed(1)} km · ~${Math.round((routeStats.durationSec || 0) / 60)} min` : ''}
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => { setVoiceEnabled(v => !v); window.speechSynthesis?.cancel(); }}
-                            className={`px-3 py-2 rounded-full text-xs font-bold transition-all ${voiceEnabled ? 'bg-white/20 text-white' : 'bg-white/10 text-white/40'}`}
-                        >
-                            {voiceEnabled ? '🔊' : '🔇'}
-                        </button>
-                        <button
-                            onClick={handleEndNavigation}
-                            className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full text-xs font-bold shadow-[0_4px_12px_rgba(239,68,68,0.3)] transition-all hover:scale-105 active:scale-95"
-                        >
-                            Fine
-                        </button>
-                    </div>
-                </div>
+                <NavigationHUD
+                    routeStats={routeStats}
+                    activeRoute={activeRoute}
+                    completedSteps={completedSteps}
+                    voiceEnabled={voiceEnabled}
+                    onToggleVoice={() => { setVoiceEnabled(v => !v); window.speechSynthesis?.cancel(); }}
+                    onEndNavigation={handleEndNavigation}
+                    isCameraFollowing={isCameraFollowing}
+                    onRecenterCamera={() => setFollowing(true)}
+                />
             )}
 
             {/* 5. EXPLORE DRAWER */}

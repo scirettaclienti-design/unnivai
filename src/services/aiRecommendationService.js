@@ -292,6 +292,20 @@ export const getDailyQuotaStatus = async () => {
             // Guest: bypass quota (come in checkAndIncrementQuota).
             return { authenticated: false, count: 0, remaining: DAILY_QUOTA, exceeded: false };
         }
+
+        // Task 3 — account is_unlimited (settato server-side via service_role)
+        // bypassa il cap. Serve per test end-to-end senza esaurire quota. Il
+        // trigger protect_profile_is_unlimited impedisce all'utente di scriverlo
+        // dal client. Vedi migration 20260711_is_unlimited_profiles.sql.
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_unlimited')
+            .eq('id', userId)
+            .maybeSingle();
+        if (profile?.is_unlimited === true) {
+            return { authenticated: true, unlimited: true, count: 0, remaining: Infinity, exceeded: false };
+        }
+
         const day = todayStr();
         const { data: row } = await supabase
             .from('ai_quota_daily')
@@ -317,6 +331,15 @@ const checkAndIncrementQuota = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         const userId = session?.user?.id;
         if (!userId) return; // guest: niente quota, niente DB
+
+        // Task 3 — account is_unlimited (settato server-side via service_role)
+        // salta conteggio e upsert. Vedi migration 20260711_is_unlimited_profiles.sql.
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_unlimited')
+            .eq('id', userId)
+            .maybeSingle();
+        if (profile?.is_unlimited === true) return;
 
         const day = todayStr();
         const { data: row } = await supabase

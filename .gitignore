@@ -36,3 +36,9 @@ BUGS.md
 PROGRESS.md
 V1.1_BACKLOG.md
 COST_PER_TOUR.md
+
+
+# Gate F — Playwright E2E artifacts
+/playwright-report/
+/test-results/
+/.playwright/

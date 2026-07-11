@@ -14,6 +14,15 @@ export default defineConfig({
     // Runs before every test file
     setupFiles: ['./src/test/setup.js'],
 
+    // Gate F: escludi la suite Playwright (e2e/*.spec.ts) — Vitest la
+    // considererebbe un test file per il glob default e la caricherebbe con
+    // errore (import da @playwright/test non risolve nell'ambiente jsdom).
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      'e2e/**',
+    ],
+
     // Isolate module state between test files (prevents singleton contamination)
     isolate: true,
 

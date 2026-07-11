@@ -22,11 +22,13 @@ export function useAILearning() {
     const { user } = useAuth();
     const userId = user?.id;
 
+    // Gate E-2: rimossi generatedToursCount + hasUnlockedPremium dallo state.
+    // Servivano SOLO al paywall gate (hasHitPaywall = count>=10 && !unlocked).
+    // Modello di lancio locked: nessun paywall in V1. L'unico limite è la
+    // quota giornaliera (DAILY_QUOTA=10, DVAI-050) con messaggio onesto.
     const [learningState, setLearningState] = useState(() => {
         const defaults = {
-            generatedToursCount: 0,
             userDNAPreferences: [],
-            hasUnlockedPremium: false,
             preferenceGraph: {},  // { category: count, mood: count, ... }
             interactions: [],     // ultime 30 interazioni
             totalInteractions: 0,
@@ -44,7 +46,6 @@ export function useAILearning() {
                 interactions: Array.isArray(parsed?.interactions) ? parsed.interactions : [],
                 preferenceGraph: (parsed?.preferenceGraph && typeof parsed.preferenceGraph === 'object') ? parsed.preferenceGraph : {},
                 totalInteractions: Number.isFinite(parsed?.totalInteractions) ? parsed.totalInteractions : 0,
-                generatedToursCount: Number.isFinite(parsed?.generatedToursCount) ? parsed.generatedToursCount : 0,
             };
         } catch {
             return defaults;
@@ -161,6 +162,7 @@ export function useAILearning() {
     }, [syncToDb]);
 
     // ─── Track tour generation (retrocompatibile) ─────────────────────────────
+    // Gate E-2: rimosso incremento generatedToursCount (serviva solo al paywall).
     const trackGeneratedTour = useCallback((preferences) => {
         trackInteraction('tour_generated', preferences);
 
@@ -169,7 +171,6 @@ export function useAILearning() {
             const updatedDNA = [newPrefs, ...prev.userDNAPreferences].slice(0, 10);
             return {
                 ...prev,
-                generatedToursCount: prev.generatedToursCount + 1,
                 userDNAPreferences: updatedDNA,
             };
         });
@@ -224,11 +225,9 @@ export function useAILearning() {
         return tourAffinityScore(tour, weights);
     }, [weights]);
 
-    const unlockPremium = useCallback(() => {
-        setLearningState(prev => ({ ...prev, hasUnlockedPremium: true }));
-    }, []);
-
-    const hasHitPaywall = !learningState.hasUnlockedPremium && learningState.generatedToursCount >= 10;
+    // Gate E-2: unlockPremium + hasHitPaywall rimossi. Il paywall gate è morto:
+    // modello di lancio locked = nessun paywall in V1. Il PaywallModal component
+    // resta nel repo per V2/V3 ma non è più raggiungibile da nessun codepath.
 
     return {
         ...learningState,
@@ -240,7 +239,5 @@ export function useAILearning() {
         trackInteraction,
         getAIContext,
         getTourAffinity, // Score affinità tour (0-100)
-        unlockPremium,
-        hasHitPaywall,
     };
 }

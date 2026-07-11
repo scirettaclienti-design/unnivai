@@ -23,7 +23,8 @@ import { QuickPathSummary } from "@/components/Map/QuickPathSummary";
 import { useUserContext } from "@/hooks/useUserContext";
 import { useAILearning } from "@/hooks/useAILearning";
 import { DEMO_CITIES } from "@/data/demoData";
-import PaywallModal from "@/components/PaywallModal";
+// Gate E-2: import PaywallModal rimosso. Il paywall gate è morto (modello di
+// lancio locked: nessun paywall V1). Il componente resta nel repo per V2/V3.
 
 // ─── Loading Sub-Steps animati ─────────────────────────────────────────────
 // Gate B — Microcopy loading a 3 fasi (approvato Ivano). Narra l'attesa
@@ -496,8 +497,12 @@ export default function QuickPathPage() {
     const [selectedDuration, setSelectedDuration] = useState(null);
     const [selectedGroup, setSelectedGroup] = useState(null);
 
-    const { trackGeneratedTour, hasHitPaywall, unlockPremium } = useAILearning();
-    const [showPaywall, setShowPaywall] = useState(false);
+    const { trackGeneratedTour } = useAILearning();
+    // Gate E-2: hasHitPaywall + unlockPremium + showPaywall rimossi (paywall
+    // morto). Prima: dopo 10 tour vita hasHitPaywall=true → click su gruppo
+    // apriva showPaywall, ma <PaywallModal> non era MAI renderizzato nel JSX,
+    // e l'utente restava fermo silenzioso. Bug preesistente, non causato da
+    // Gate D — Gate E-2 lo ha ucciso alla radice.
 
     // GENERATION STATE (LIFTED UP)
     // Gate 2 FASE 3 + Gate D-6 — status esteso con reason per messaggi distinti.
@@ -539,13 +544,11 @@ export default function QuickPathPage() {
 
     const handleGroupSelection = (groupOption) => {
         setSelectedGroup(groupOption);
-        
-        // 🔒 Intercettazione Premium Gate
-        if (hasHitPaywall) {
-            setShowPaywall(true);
-            return;
-        }
-
+        // Gate E-2: rimosso il paywall gate silenzioso qui. Prima
+        // hasHitPaywall (>=10 tour vita) faceva setShowPaywall(true)+return,
+        // ma <PaywallModal> non era mai renderizzato → utente bloccato senza
+        // spiegazione. Ora il wizard prosegue sempre. Il cap 10/giorno server
+        // (checkAndIncrementQuota → error-quota) è l'unico limite in V1.
         setCurrentStep(6); // Move to loading step
         // TRIGGER GENERATION IMMEDIATELY ON FINAL SELECTION
         generateItinerary(groupOption);

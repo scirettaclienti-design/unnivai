@@ -21,6 +21,28 @@ import { useAILearning } from "../hooks/useAILearning";
 // UUID semplice: 8-4-4-4-12 caratteri esadecimali
 const isValidGuideId = (id) => typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
+// Gate E-1 — Funzione pura per decidere quale UI mostrare quando tour non c'è.
+// Estratta per essere testabile senza montare il componente (che dipende da
+// AuthProvider, QueryClient, Router, useAILearning, dataService, ecc.).
+//
+// Ritorna:
+//   'ready'     — c'è un tour, renderizza la scheda normale
+//   'skeleton'  — id valido (UUID) + fetch in corso, non-crash friendly
+//   'not-found' — id inesistente o fetch finita senza risultato
+//
+// Chiamata dal componente principale con:
+//   getTourRenderState({
+//     hasTour:        !!tour,
+//     isLikelyDbId,   // UUID nell'URL
+//     isQueryLoading, // useQuery in fetch
+//     isQueryError,   // useQuery ha fallito
+//   })
+export function getTourRenderState({ hasTour, isLikelyDbId, isQueryLoading, isQueryError }) {
+    if (hasTour) return 'ready';
+    if (isLikelyDbId && isQueryLoading && !isQueryError) return 'skeleton';
+    return 'not-found';
+}
+
 // --- INTERNAL MODAL COMPONENT ---
 const RequestModal = ({ isOpen, onClose, guideName, tourTitle, guideId, tourId, city }) => {
     const { user } = useAuth();
@@ -604,7 +626,11 @@ export default function TourDetailsPage() {
     }, [tour?.guide_id, tour?.guideId]);
 
     useEffect(() => {
-        if (!tour.id) return;
+        // Gate E-1: optional chaining su tour.* — senza fallbackData (killed in
+        // Gate D-1) tour può essere null durante il primo render (fetch in corso
+        // o id inesistente). Prima di Gate D-1, tourDetailsMock lo teneva sempre
+        // truthy. Ora tour può essere null → l'effect deve tollerarlo.
+        if (!tour?.id) return;
 
         // SKIP RPC FOR AI TOURS (They don't exist in DB)
         if (typeof tour.id === 'string' && tour.id.startsWith('ai-quiz-')) {
@@ -618,7 +644,54 @@ export default function TourDetailsPage() {
             if (data) setNearbyPartners(data);
         };
         fetchPartners();
-    }, [tour.id, tour.routePath, tour.city]);
+    }, [tour?.id, tour?.routePath, tour?.city]);
+
+    // Gate E-1: early return per tour=null (bug reintrodotto da Gate D-1 che ha
+    // ucciso il fallbackData). Sta QUI, dopo l'ultimo useEffect e prima delle
+    // espressioni body (isPlace/hasRealSteps/isMockTour/...) che leggono
+    // tour.type/tour.steps/tour.id senza optional chaining.
+    // Logica in getTourRenderState (funzione pura testabile).
+    const renderState = getTourRenderState({
+        hasTour: !!tour,
+        isLikelyDbId,
+        isQueryLoading: isQueryLoading,
+        isQueryError: isQueryError,
+    });
+    if (renderState !== 'ready') {
+        if (renderState === 'skeleton') {
+            return (
+                <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
+                    <TopBar />
+                    <main className="max-w-md mx-auto px-4 py-8 pb-24">
+                        <div className="animate-pulse space-y-4">
+                            <div className="w-full h-56 bg-black/5 rounded-2xl" />
+                            <div className="h-6 w-3/4 bg-black/5 rounded" />
+                            <div className="h-4 w-1/2 bg-black/5 rounded" />
+                            <div className="h-32 w-full bg-black/5 rounded-2xl mt-6" />
+                        </div>
+                    </main>
+                    <BottomNavigation />
+                </div>
+            );
+        }
+        return (
+            <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
+                <TopBar />
+                <main className="max-w-md mx-auto px-4 py-16 pb-24 text-center">
+                    <div className="text-6xl mb-4">🕰️</div>
+                    <h1 className="text-2xl font-bold text-ochre-900 mb-2">Questo tour non esiste più.</h1>
+                    <p className="text-ochre-700 mb-8">Forse è stato rimosso, o il link è cambiato. Torna alla home per scoprire cosa c'è oggi.</p>
+                    <button
+                        onClick={() => navigate('/dashboard-user')}
+                        className="px-6 py-3 rounded-2xl bg-ochre-900 text-white font-semibold"
+                    >
+                        Torna alla home
+                    </button>
+                </main>
+                <BottomNavigation />
+            </div>
+        );
+    }
 
     // --- RENDER PLACE VIEW OR TOUR VIEW ---
     const isPlace = ['hotel', 'food', 'shop', 'service'].includes(tour.type);
@@ -739,46 +812,10 @@ export default function TourDetailsPage() {
         }
     };
 
-    // Gate D-1: due schermate oneste al posto del vecchio placeholder mock.
-    // A) Skeleton: id valido (UUID) + sta ancora fetchando + nessun localTour.
-    // B) Not-found: nessuna fonte tour disponibile (fetch conclusa senza risultato,
-    //    id non-UUID senza state, o query in errore).
-    if (!localTour && !queryTour) {
-        const isFetchingRealTour = isLikelyDbId && isQueryLoading && !isQueryError;
-        if (isFetchingRealTour) {
-            return (
-                <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
-                    <TopBar />
-                    <main className="max-w-md mx-auto px-4 py-8 pb-24">
-                        <div className="animate-pulse space-y-4">
-                            <div className="w-full h-56 bg-black/5 rounded-2xl" />
-                            <div className="h-6 w-3/4 bg-black/5 rounded" />
-                            <div className="h-4 w-1/2 bg-black/5 rounded" />
-                            <div className="h-32 w-full bg-black/5 rounded-2xl mt-6" />
-                        </div>
-                    </main>
-                    <BottomNavigation />
-                </div>
-            );
-        }
-        return (
-            <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
-                <TopBar />
-                <main className="max-w-md mx-auto px-4 py-16 pb-24 text-center">
-                    <div className="text-6xl mb-4">🕰️</div>
-                    <h1 className="text-2xl font-bold text-ochre-900 mb-2">Questo tour non esiste più.</h1>
-                    <p className="text-ochre-700 mb-8">Forse è stato rimosso, o il link è cambiato. Torna alla home per scoprire cosa c'è oggi.</p>
-                    <button
-                        onClick={() => navigate('/dashboard-user')}
-                        className="px-6 py-3 rounded-2xl bg-ochre-900 text-white font-semibold"
-                    >
-                        Torna alla home
-                    </button>
-                </main>
-                <BottomNavigation />
-            </div>
-        );
-    }
+    // Gate E-1: schermata di errore spostata via da qui (era sotto handleCTAClick
+    // ma dopo gli accessi non-optional a tour.type/tour.steps/tour.id che
+    // crashavano con tour=null). Ora è subito dopo l'ultimo useEffect e prima
+    // di qualsiasi espressione body che legga tour.*. Vedi ~riga 620.
 
     const handleFeatureIncoming = () => {
         toast({ title: '✨ Funzione in arrivo! Stiamo finalizzando la chat diretta con le guide.', type: 'info' });

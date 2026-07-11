@@ -11,6 +11,11 @@ import { aiRecommendationService } from "../services/aiRecommendationService";
 import { normalizeTour } from "../services/tourShape";
 import { useAILearning } from "../hooks/useAILearning"; // DVAI-045
 import { useToast } from "../hooks/use-toast";
+// Gate 2 FASE 3 — resolveCityCenter come sorgente unica del centro città.
+// Sostituisce il vecchio pattern `{ latitude: lat, longitude: lng }` che usava
+// il GPS UTENTE (buco #3 diagnosi Gate 1: il raggio inseguiva l'utente invece
+// della città). QuickPath e AiItinerary condividono la stessa risoluzione.
+import { resolveCityCenter, CityCenterUnresolvedError } from "../services/cityCenterService";
 
 const preferences = [
     { id: 'budget', title: 'Budget', options: ['Economico', 'Medio', 'Lusso'], emoji: '💰', selected: '' },
@@ -145,14 +150,31 @@ export default function AIItineraryPage() {
         );
     };
 
-    // DVAI-055: estraggo lat/lng dal userContext per il vincolo geografico
-    const { city, temperatureC, weatherCondition, lat, lng } = useUserContext();
+    // Gate 2 FASE 3 — lat/lng dell'utente restano disponibili nel contesto per
+    // usi non-cityCenter (es. UI location badge). Il centro del filtro raggio
+    // NON viene più derivato da questi valori (buco #3 chiuso).
+    const { city, temperatureC, weatherCondition } = useUserContext();
     const activeCity = city || 'Roma';
     const cityData = DEMO_CITIES[activeCity] || DEMO_CITIES['Roma'];
 
     // DVAI-045: leggi le preferenze apprese dall'AI
     const { userDNAPreferences, trackGeneratedTour, trackInteraction, getAIContext } = useAILearning();
     const { toast } = useToast();
+
+    // Gate 2 FASE 3 — cityCenter risolto autoritativamente da resolveCityCenter
+    // e mantenuto in state per essere disponibile ai code path sincroni (JSX del
+    // link "Vedi su Mappa" che passa cityCenter a normalizeTour). Si aggiorna
+    // quando activeCity cambia. Null finché la risoluzione non completa; se
+    // fallisce, resta null e normalizeTour non applica il raggio (retrocompat
+    // safety: il tour è già stato generato con il centro giusto nel flusso async).
+    const [resolvedCityCenter, setResolvedCityCenter] = useState(null);
+    useEffect(() => {
+        let cancelled = false;
+        resolveCityCenter(activeCity)
+            .then(c => { if (!cancelled) setResolvedCityCenter(c); })
+            .catch(err => { console.warn('[AiItinerary] resolveCityCenter (link path):', err?.reason || err?.message); });
+        return () => { cancelled = true; };
+    }, [activeCity]);
 
     // Cleanup: aborta chiamata AI se utente lascia la pagina
     useEffect(() => () => { abortRef.current?.abort(); }, []);
@@ -193,14 +215,36 @@ export default function AIItineraryPage() {
         ].filter(Boolean).join(' ');
 
         try {
+            // Gate 2 FASE 3 — cityCenter dalla città target, mai dal GPS utente.
+            // Se resolveCityCenter fallisce (proxy giù o città non trovata su
+            // Google), il flusso si interrompe con toast tecnico — nessun tour
+            // finto. Chiude il buco #3 diagnosi Gate 1.
+            let cityCenter;
+            try {
+                cityCenter = await resolveCityCenter(activeCity);
+            } catch (ccErr) {
+                if (ccErr instanceof CityCenterUnresolvedError) {
+                    console.warn('[AiItinerary] resolveCityCenter failed:', ccErr.reason, ccErr.message);
+                    toast({
+                        title: 'Non riesco a raggiungere i posti.',
+                        description: 'Riprova tra un attimo.',
+                        type: 'warning',
+                        duration: 5000,
+                    });
+                    setGeneratedItinerary(null);
+                    setCurrentStep(0);
+                    return;
+                }
+                throw ccErr;
+            }
+
             const result = await aiRecommendationService.generateItinerary(
                 activeCity,
                 prefsObject,
                 enrichedPrompt,
                 { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
                 aiProfile, // Tour DNA iniettato nel system prompt
-                // DVAI-055: cityCenter per vincolo geografico
-                Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null
+                cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)
             );
 
             const itineraryDays = result.days || result;
@@ -261,14 +305,24 @@ export default function AIItineraryPage() {
         }, {});
 
         try {
+            // Gate 2 FASE 3 — cityCenter dalla città target, mai dal GPS utente.
+            // Silent fail su regenerate (l'utente ha già un tour valido, non lo
+            // sostituiamo con nulla). Se resolve fallisce, il regenerate viene
+            // saltato con warn — comportamento voluto per non rompere il tour esistente.
+            let cityCenter;
+            try {
+                cityCenter = await resolveCityCenter(activeCity);
+            } catch (ccErr) {
+                console.warn('[AI] regenerateDay: resolveCityCenter failed, skip:', ccErr?.reason || ccErr?.message);
+                return;
+            }
             const result = await aiRecommendationService.generateItinerary(
                 activeCity,
                 { ...prefsObject, duration: 'Mezza Giornata' },
                 `Rigenera solo il giorno ${dayNumber} con varianti diverse rispetto al precedente.`,
                 { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
                 '',
-                // DVAI-055: cityCenter per vincolo geografico
-                Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null
+                cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)
             );
             const newDay = result.days?.[0];
             if (newDay) {
@@ -743,11 +797,13 @@ export default function AIItineraryPage() {
                                         stops: generatedItinerary.find(d => d.day === currentDay)?.stops || [],
                                     }, {
                                         cityFallback: activeCity || 'Roma',
-                                        // DVAI-055-b: doppio filtro innocuo — generateItinerary ha già filtrato con
-                                        // cityCenter, il normalizer riapplica per uniformità.
-                                        cityCenter: Number.isFinite(lat) && Number.isFinite(lng)
-                                            ? { latitude: lat, longitude: lng }
-                                            : null,
+                                        // Gate 2 FASE 3 — cityCenter dalla città target (mai GPS utente).
+                                        // resolvedCityCenter è null se resolveCityCenter non ha ancora
+                                        // risposto o è fallita: il normalizer applica il filtro solo se
+                                        // il centro è presente. Il tour è stato generato con il centro
+                                        // giusto nel flusso async, quindi il doppio filtro qui è
+                                        // idempotente quando presente.
+                                        cityCenter: resolvedCityCenter,
                                     })
                                 }}
                                 className="flex-1"

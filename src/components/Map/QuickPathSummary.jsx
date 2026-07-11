@@ -69,8 +69,10 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                         </div>
                     </div>
 
-                    {/* Stats */}
-                    <div className="flex items-center justify-between px-2">
+                    {/* Stats — Gate 2 FASE 3: rimosso "100% MATCH".
+                        Non c'era alcun calcolo dietro; era un numero autorevole senza
+                        sostanza — esattamente il pattern che il gate estirpa. */}
+                    <div className="flex items-center justify-around px-2">
                         <div className="text-center">
                             <p className="text-3xl font-black text-gray-900">{tourData.steps?.length || 0}</p>
                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Tappe</p>
@@ -79,11 +81,6 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                         <div className="text-center">
                             <p className="text-3xl font-black text-gray-900">{tourData.duration_minutes ? Math.floor(tourData.duration_minutes/60) + 'h ' + (tourData.duration_minutes%60 || '') + 'm' : '~2h'}</p>
                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Durata</p>
-                        </div>
-                        <div className="w-px h-10 bg-gray-200" />
-                        <div className="text-center">
-                            <p className="text-3xl font-black text-gray-900">100%</p>
-                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Match</p>
                         </div>
                     </div>
 

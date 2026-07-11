@@ -17,210 +17,6 @@ import { dataService, createGuideRequest } from "../services/dataService";
 import { normalizeTour } from "../services/tourShape";
 import { useAILearning } from "../hooks/useAILearning";
 
-// --- MOCK DATA (Original Rich Data) ---
-const tourDetailsMock = {
-    1: {
-        id: 1,
-        title: "Sapori nascosti di Trastevere",
-        guide: "Maria Benedetti",
-        guideAvatar: "👩‍🍳",
-        guideBio: "Chef appassionata con 15 anni di esperienza. Nata e cresciuta a Trastevere, conosce ogni vicolo.",
-        location: "Roma, Trastevere",
-        duration: "90 min",
-        price: 18,
-        originalPrice: 25,
-        rating: 4.8,
-        reviews: 47,
-        participants: 8,
-        maxParticipants: 12,
-        images: [
-            "https://images.unsplash.com/photo-1555992336-03a23c7b20ee?w=400&h=300&fit=crop",
-            "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop"
-        ],
-        description: "Scopri i sapori autentici del quartiere più caratteristico di Roma, dove ogni pietra racconta una storia.",
-        highlights: ["🍝 Pasta fresca fatta a mano", "🍷 Degustazione vini locali", "📸 Foto ricordo", "🧀 Formaggi tipici"],
-        itinerary: [
-            { time: "19:30", activity: "Incontro in Piazza Santa Maria", emoji: "👋" },
-            { time: "19:45", activity: "Visita trattoria storica", emoji: "🍝" },
-            { time: "20:15", activity: "Degustazione vini", emoji: "🍷" },
-            { time: "21:00", activity: "Dolce finale", emoji: "🍰" }
-        ],
-        meetingPoint: "Piazza Santa Maria in Trastevere, presso la fontana centrale",
-        included: ["Degustazioni", "Foto ricordo", "Guida esperta", "Assicurazione"],
-        notIncluded: ["Trasporti", "Cena completa", "Acquisto prodotti"],
-        live: true,
-        type: 'guide',
-        nextStart: "Tra 2 ore",
-        // Waypoints for Trastevere Tour
-        waypoints: [
-            [41.8893, 12.4708], // Piazza Santa Maria in Trastevere
-            [41.8880, 12.4690], // Via della Lungaretta
-            [41.8860, 12.4720], // Piazza di San Cosimato
-            [41.8900, 12.4730]  // Ponte Sisto
-        ]
-    },
-    2: {
-        id: 2,
-        title: "Palermo tra mercati e street art",
-        guide: "Giuseppe Torrisi",
-        guideAvatar: "🎨",
-        guideBio: "Artista e fotografo palermitano, esperto di arte urbana e culture del Mediterraneo.",
-        location: "Palermo, Centro storico",
-        duration: "2 ore",
-        price: 22,
-        originalPrice: 30,
-        rating: 4.9,
-        reviews: 63,
-        participants: 15,
-        maxParticipants: 20,
-        images: [
-            "https://images.unsplash.com/photo-1526392060635-9d6019884377?w=400&h=300&fit=crop",
-            "https://images.unsplash.com/photo-1580500722723-e2dc6e1b7bb8?w=400&h=300&fit=crop"
-        ],
-        description: "Un viaggio tra i colori e i sapori dei mercati storici palermitani.",
-        highlights: ["🎨 Murales nascosti", "🛒 Mercati storici", "🍊 Degustazioni", "📱 Workshop fotografico"],
-        itinerary: [
-            { time: "16:00", activity: "Mercato di Ballarò", emoji: "🛒" },
-            { time: "16:30", activity: "Street art tour", emoji: "🎨" },
-            { time: "17:30", activity: "Degustazione arancine", emoji: "🍊" }
-        ],
-        meetingPoint: "Ingresso principale Mercato di Ballarò",
-        included: ["Tour guidato", "Degustazioni", "Workshop", "Mappa artistica"],
-        notIncluded: ["Trasporti", "Cena", "Materiale fotografico"],
-        live: true,
-        type: 'guide',
-        nextStart: "In corso"
-    },
-    "demo1": {
-        id: "demo1",
-        title: "Tour del Colosseo VIP",
-        type: 'guide',
-        live: false,
-        price: 45,
-        rating: 4.9,
-        images: ["https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&h=300&fit=crop"],
-        description: "Accesso esclusivo alle aree riservate del Colosseo.",
-        highlights: ["🎟️ Accesso senza code", "🏛️ Aree riservate"],
-        itinerary: [{ time: "09:00", activity: "Incontro", emoji: "🤝" }],
-        meetingPoint: "Metro Colosseo",
-        included: ["Biglietto", "Guida"],
-        notIncluded: ["Pranzo"],
-        guide: "Marco Aurelio",
-        guideAvatar: "🏛️",
-        // Waypoints for Colosseo Tour
-        waypoints: [
-            [41.8902, 12.4922], // Colosseo
-            [41.8925, 12.4853], // Fori Imperiali
-            [41.8890, 12.4870]  // Arco di Costantino
-        ]
-    },
-    3: {
-        id: 3,
-        title: "Walking Catania: Barocco & Street Food",
-        location: "Catania, Centro Storico",
-        guide: "Giuseppe Rossi",
-        guideAvatar: "🌋",
-        guideBio: "Vulcanologo e amante della cucina. Vi mostrerò la vera anima di Catania.",
-        duration: "3 ore",
-        price: 35,
-        originalPrice: 45,
-        rating: 5.0,
-        reviews: 120,
-        participants: 12,
-        maxParticipants: 15,
-        images: [
-            "https://images.unsplash.com/photo-1516629986345-0d046c31969a?w=400&h=300&fit=crop",
-            "https://images.unsplash.com/photo-1548612984-63d1981fb91f?w=400&h=300&fit=crop"
-        ],
-        description: "Un tour a piedi nel cuore di Catania, tra mercati storici, architettura barocca e sapori unici.",
-        highlights: ["🐟 Mercato del Pesce", "🏰 Castello Ursino", "🐘 Elephant Symbol", "🍋 Granita Tasting"],
-        itinerary: [
-            { time: "10:00", activity: "Piazza Duomo", emoji: "🐘" },
-            { time: "10:45", activity: "Pescheria Market", emoji: "🐟" },
-            { time: "11:30", activity: "Castello Ursino", emoji: "🏰" },
-            { time: "12:30", activity: "Granita a Villa Bellini", emoji: "🍧" }
-        ],
-        meetingPoint: "Piazza del Duomo, sotto l'Elefante",
-        included: ["Guida locale", "Granita & Brioche", "Mappa digitale"],
-        notIncluded: ["Pranzo completo", "Souvenir"],
-        live: true,
-        type: 'guide',
-        nextStart: "Domani, 10:00",
-        // Distinct waypoints for Catania
-        // Distinct waypoints for Catania
-        waypoints: [[37.5027, 15.0872], [37.5020, 15.0860], [37.4993, 15.0838], [37.5090, 15.0845]]
-    },
-    // --- MAP ACTIVITY MOCKS ---
-    "a1": {
-        id: "a1",
-        title: "Fontanella Pubblica",
-        type: "service",
-        live: false,
-        price: "Gratis",
-        rating: 5.0,
-        description: "Antica fontanella di acqua potabile, nota come 'Nasone'. Acqua fresca e gratuita sempre disponibile.",
-        images: ["https://images.unsplash.com/photo-1542459800-9831d102e332?w=500"],
-        highlights: ["💧 Acqua Potabile", "🆓 Gratuito", "🏛️ Storico"],
-        itinerary: [],
-        meetingPoint: "Via dei Fori Imperiali",
-        included: ["Acqua a volontà"],
-        notIncluded: [],
-        guide: "Comune di Roma",
-        guideAvatar: "🐺"
-    },
-    "a2": {
-        id: "a2",
-        title: "Souvenir Roma",
-        type: "shop",
-        live: true, // Open now
-        price: "Variabile",
-        rating: 4.2,
-        description: "Negozio artigianale storico con prodotti tipici, ceramiche e ricordi autentici della città.",
-        images: ["https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=500"],
-        highlights: ["🏺 Ceramiche", "🎁 Idee Regalo", "🇮🇹 Made in Italy"],
-        itinerary: [],
-        meetingPoint: "Via del Corso",
-        included: ["Confezione regalo"],
-        notIncluded: [],
-        guide: "Mario Rossi",
-        guideAvatar: "🏪"
-    },
-    "a3": {
-        id: "a3",
-        title: "Trattoria Romana",
-        type: "food",
-        live: true,
-        price: 35,
-        rating: 4.7,
-        description: "Cucina tradizionale romana in un ambiente caldo e accogliente. Specialità: Carbonara e Amatriciana.",
-        images: ["https://images.unsplash.com/photo-1574868233905-25916053805b?w=500"],
-        highlights: ["🍝 Pasta Fresca", "🍷 Vini Locali", "🔥 Atmosfera"],
-        itinerary: [],
-        meetingPoint: "Vicolo del Cinque",
-        included: ["Coperto", "Pane", "Acqua"],
-        notIncluded: ["Vini pregiati"],
-        guide: "Chef Luigi",
-        guideAvatar: "👨‍🍳"
-    },
-    "a4": {
-        id: "a4",
-        title: "Hotel Imperiale",
-        type: "hotel",
-        live: true,
-        price: 250,
-        rating: 5.0,
-        description: "Lusso e comfort nel cuore della città eterna. Terrazza panoramica e spa esclusiva per gli ospiti.",
-        images: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500"],
-        highlights: ["🛏️ Suite di Lusso", "🧖‍♀️ SPA", "🍸 Rooftop Bar"],
-        itinerary: [],
-        meetingPoint: "Via Veneto",
-        included: ["Colazione", "Wi-Fi", "Accesso SPA"],
-        notIncluded: ["Tassa di soggiorno"],
-        guide: "Concierge",
-        guideAvatar: "🛎️"
-    }
-    // ... add others if needed or rely on default fallback
-};
 
 // UUID semplice: 8-4-4-4-12 caratteri esadecimali
 const isValidGuideId = (id) => typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -702,32 +498,32 @@ export default function TourDetailsPage() {
         }
     }, [location.state, id]);
 
-    // Query for ID-based lookup if no state passed
-    // Se l'URL contiene uno slug tipo "dovevai-...-d79f-4fdb-905a-c6381ce7683a", estrai l'UUID per getTourById
+    // Query for ID-based lookup if no state passed.
+    // Se l'URL contiene uno slug tipo "dovevai-...-d79f-4fdb-905a-c6381ce7683a", estrai l'UUID per getTourById.
+    // Gate D-1: nessun fallback mock. Se il DB non trova → null → schermata not-found onesta.
     const rawId = id || 1;
     const uuidMatch = typeof rawId === 'string' && rawId.length > 36 && rawId.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
     const tourId = uuidMatch ? uuidMatch[0] : rawId;
-    const fallbackData = tourDetailsMock[tourId] || tourDetailsMock[1];
 
     // Sempre fare fetch dal DB quando l'id è un UUID, così abbiamo guide_id anche se si arriva da Home/Esplora con state
     const isLikelyDbId = typeof tourId === 'string' && (tourId.length === 36 || /^[0-9a-f-]{36}$/i.test(tourId));
-    const { data: queryTour } = useQuery({
+    const { data: queryTour, isLoading: isQueryLoading, isError: isQueryError } = useQuery({
         queryKey: ['tour', tourId],
         queryFn: async () => {
-            return dataService.getTourById(tourId) || fallbackData;
+            const t = await dataService.getTourById(tourId);
+            return t || null;
         },
         enabled: isLikelyDbId,
-        initialData: fallbackData
     });
 
     // Se abbiamo localTour (da Esplora/Home) ma queryTour ha guide_id, usiamo quello così "Richiedi Guida" funziona
     const hasGuideFromDb = queryTour && (queryTour.guide_id || queryTour.guideId);
     const rawTour = (localTour && hasGuideFromDb)
         ? { ...localTour, guide_id: queryTour.guide_id ?? queryTour.guideId, guide: queryTour.guide, guideAvatar: queryTour.guideAvatar, guideBio: queryTour.guideBio }
-        : (localTour || queryTour || fallbackData);
+        : (localTour || queryTour || null);
     // DVAI-053: il `tour` consumato dal render passa SEMPRE per il normalizer.
-    // Garantisce che le 3 sorgenti (location.state, queryTour DB, fallback mock)
-    // espongano la stessa shape: steps[], itinerary[], image/imageUrl/images[].
+    // Garantisce che le 2 sorgenti reali (location.state, queryTour DB) espongano
+    // la stessa shape: steps[], itinerary[], image/imageUrl/images[].
     // DVAI-055-b: idem gated — filtro raggio solo su AI. Guide DB intatti.
     const tour = rawTour ? normalizeTour(rawTour, {
         cityFallback: rawTour.city || 'Roma',
@@ -943,7 +739,46 @@ export default function TourDetailsPage() {
         }
     };
 
-    if (!localTour && !queryTour && !tourDetailsMock[tourId]) return <div>Caricamento...</div>;
+    // Gate D-1: due schermate oneste al posto del vecchio placeholder mock.
+    // A) Skeleton: id valido (UUID) + sta ancora fetchando + nessun localTour.
+    // B) Not-found: nessuna fonte tour disponibile (fetch conclusa senza risultato,
+    //    id non-UUID senza state, o query in errore).
+    if (!localTour && !queryTour) {
+        const isFetchingRealTour = isLikelyDbId && isQueryLoading && !isQueryError;
+        if (isFetchingRealTour) {
+            return (
+                <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
+                    <TopBar />
+                    <main className="max-w-md mx-auto px-4 py-8 pb-24">
+                        <div className="animate-pulse space-y-4">
+                            <div className="w-full h-56 bg-black/5 rounded-2xl" />
+                            <div className="h-6 w-3/4 bg-black/5 rounded" />
+                            <div className="h-4 w-1/2 bg-black/5 rounded" />
+                            <div className="h-32 w-full bg-black/5 rounded-2xl mt-6" />
+                        </div>
+                    </main>
+                    <BottomNavigation />
+                </div>
+            );
+        }
+        return (
+            <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
+                <TopBar />
+                <main className="max-w-md mx-auto px-4 py-16 pb-24 text-center">
+                    <div className="text-6xl mb-4">🕰️</div>
+                    <h1 className="text-2xl font-bold text-ochre-900 mb-2">Questo tour non esiste più.</h1>
+                    <p className="text-ochre-700 mb-8">Forse è stato rimosso, o il link è cambiato. Torna alla home per scoprire cosa c'è oggi.</p>
+                    <button
+                        onClick={() => navigate('/dashboard-user')}
+                        className="px-6 py-3 rounded-2xl bg-ochre-900 text-white font-semibold"
+                    >
+                        Torna alla home
+                    </button>
+                </main>
+                <BottomNavigation />
+            </div>
+        );
+    }
 
     const handleFeatureIncoming = () => {
         toast({ title: '✨ Funzione in arrivo! Stiamo finalizzando la chat diretta con le guide.', type: 'info' });

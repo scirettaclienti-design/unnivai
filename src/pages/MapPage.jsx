@@ -27,7 +27,7 @@ import { POIPopupCard } from '../components/Map/POIPopupCard';
 import { supabase } from '../lib/supabase';
 import './MapPage.css';
 
-import { DEMO_CITIES, MOCK_ROUTES } from '../data/demoData';
+import { DEMO_CITIES } from '../data/demoData';
 
 const DEFAULT_CITY = 'Roma';
 
@@ -545,7 +545,10 @@ const MapPage = () => {
                 }));
             }
             if (location.state?.route) return location.state.route;
-            return MOCK_ROUTES[activeCity] || MOCK_ROUTES['Roma'];
+            // Gate D-3: MOCK_ROUTES rimosso. Nessun tour → nessuna route.
+            // Il rendering della mappa gestirà activeRoute=[] con un messaggio
+            // onesto ("Nessun percorso attivo") o la vista città vuota.
+            return [];
         } catch { return []; }
     }, [tourData, location.state, activeCity]);
 

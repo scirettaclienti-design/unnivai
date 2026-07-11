@@ -79,101 +79,13 @@ const callOpenAIProxy = async (payload, signal) => {
   return response.json();
 };
 
-// ─── HARDCODED CITY POIs (local fallback — no API needed) ─────────────────────
-const CITY_POIS = {
-    Roma: [
-        { title: 'Colosseo', location: 'Piazza del Colosseo', type: 'cultura', latitude: 41.8902, longitude: 12.4922, price: 16, rating: 4.8 },
-        { title: 'Foro Romano', location: 'Via Sacra', type: 'storia', latitude: 41.8925, longitude: 12.4853, price: 12, rating: 4.6 },
-        { title: 'Pantheon', location: 'Piazza della Rotonda', type: 'cultura', latitude: 41.8986, longitude: 12.4769, price: 5, rating: 4.9 },
-        { title: 'Trastevere', location: 'Trastevere', type: 'food', latitude: 41.8896, longitude: 12.4700, price: 20, rating: 4.7 },
-        { title: 'Piazza Navona', location: 'Piazza Navona', type: 'relax', latitude: 41.8992, longitude: 12.4730, price: 0, rating: 4.7 },
-        { title: "Campo de' Fiori", location: "Campo de' Fiori", type: 'food', latitude: 41.8956, longitude: 12.4722, price: 0, rating: 4.5 },
-    ],
-    Milano: [
-        { title: 'Duomo di Milano', location: 'Piazza del Duomo', type: 'cultura', latitude: 45.4641, longitude: 9.1919, price: 15, rating: 4.8 },
-        { title: 'Galleria Vittorio Emanuele II', location: 'Centro Storico', type: 'shopping', latitude: 45.4654, longitude: 9.1900, price: 0, rating: 4.7 },
-        { title: 'Castello Sforzesco', location: 'Parco Sempione', type: 'storia', latitude: 45.4706, longitude: 9.1796, price: 10, rating: 4.5 },
-        { title: 'Navigli', location: 'Naviglio Grande', type: 'food', latitude: 45.4506, longitude: 9.1728, price: 0, rating: 4.4 },
-        { title: 'Pinacoteca di Brera', location: 'Via Brera', type: 'cultura', latitude: 45.4722, longitude: 9.1869, price: 15, rating: 4.6 },
-    ],
-    Firenze: [
-        { title: 'Duomo di Firenze', location: 'Piazza del Duomo', type: 'cultura', latitude: 43.7731, longitude: 11.2560, price: 18, rating: 4.9 },
-        { title: 'Uffizi', location: 'Piazzale degli Uffizi', type: 'cultura', latitude: 43.7677, longitude: 11.2553, price: 20, rating: 4.7 },
-        { title: 'Ponte Vecchio', location: 'Arno', type: 'relax', latitude: 43.7680, longitude: 11.2531, price: 0, rating: 4.8 },
-        { title: 'Mercato Centrale', location: 'San Lorenzo', type: 'food', latitude: 43.7763, longitude: 11.2536, price: 0, rating: 4.6 },
-    ],
-    Venezia: [
-        { title: 'Piazza San Marco', location: 'San Marco', type: 'cultura', latitude: 45.4341, longitude: 12.3388, price: 0, rating: 4.8 },
-        { title: 'Palazzo Ducale', location: 'Riva degli Schiavoni', type: 'storia', latitude: 45.4338, longitude: 12.3407, price: 25, rating: 4.7 },
-        { title: 'Rialto', location: 'Ponte di Rialto', type: 'shopping', latitude: 45.4380, longitude: 12.3358, price: 0, rating: 4.6 },
-        { title: 'Dorsoduro', location: 'Fondamenta Zattere', type: 'food', latitude: 45.4296, longitude: 12.3265, price: 0, rating: 4.5 },
-    ],
-    Napoli: [
-        { title: 'Spaccanapoli', location: 'Centro Storico', type: 'cultura', latitude: 40.8493, longitude: 14.2530, price: 0, rating: 4.7 },
-        { title: 'Pizzeria Da Michele', location: 'Via Cesare Sersale', type: 'food', latitude: 40.8530, longitude: 14.2638, price: 5, rating: 4.9 },
-        { title: 'Castel Nuovo', location: 'Piazza Municipio', type: 'storia', latitude: 40.8382, longitude: 14.2532, price: 6, rating: 4.4 },
-        { title: 'Quartieri Spagnoli', location: 'Via Toledo', type: 'relax', latitude: 40.8434, longitude: 14.2467, price: 0, rating: 4.5 },
-    ],
-};
-
-// ─── LOCAL FALLBACK (no API, no "(Fallback)" label) ───────────────────────────
-const generateItineraryLocal = (city, prefs, weather) => {
-    const pois = CITY_POIS[city] || [];
-    if (pois.length === 0) {
-        return {
-            days: [{
-                day: 1,
-                title: `Alla scoperta di ${city}`,
-                weather: { condition: weather?.condition === 'sunny' ? 'Soleggiato' : weather?.condition === 'rainy' ? 'Pioggia' : 'Variabile', temperature: weather?.temperature ?? 22, icon: weather?.condition === 'sunny' ? '☀️' : weather?.condition === 'rainy' ? '🌧️' : '⛅' },
-                suggestedTransit: 'walking',
-                mapMood: 'default',
-                stops: [{
-                    time: '09:00',
-                    title: `Centro di ${city}`,
-                    description: `Esplora il centro storico di ${city}`,
-                    type: 'cultura',
-                    location: `Centro di ${city}`,
-                    latitude: null,
-                    longitude: null,
-                    price: 0,
-                    rating: 4.5,
-                }],
-            }],
-        };
-    }
-    const duration = prefs?.duration || 'Mezza Giornata';
-    const numStops = duration === '2-3 Giorni' ? 6 : duration === '1 Giorno' ? 5 : 3;
-    const selected = pois.slice(0, numStops);
-
-    const TIMES = ['09:00', '10:30', '12:30', '14:00', '15:30', '17:00'];
-    const weatherIcon = weather?.condition === 'sunny' ? '☀️'
-        : weather?.condition === 'rainy' ? '🌧️' : '⛅';
-    const weatherLabel = weather?.condition === 'sunny' ? 'Soleggiato'
-        : weather?.condition === 'rainy' ? 'Pioggia' : 'Variabile';
-
-    const stops = selected.map((poi, i) => ({
-        time: TIMES[i] || '09:00',
-        title: poi.title,
-        description: `Visita a ${poi.title}, uno dei luoghi più affascinanti di ${city}.`,
-        type: poi.type,
-        location: poi.location,
-        latitude: poi.latitude,
-        longitude: poi.longitude,
-        price: poi.price,
-        rating: poi.rating,
-    }));
-
-    return {
-        days: [{
-            day: 1,
-            title: `Alla scoperta di ${city}`,
-            weather: { condition: weatherLabel, temperature: weather?.temperature ?? 22, icon: weatherIcon },
-            suggestedTransit: 'walking',
-            mapMood: 'default',
-            stops,
-        }],
-    };
-};
+// Gate D-5: CITY_POIS + generateItineraryLocal RIMOSSI.
+// Prima erano un fallback statico attivato per errori non-quota nel motore
+// (timeout OpenAI 35s, rete, JSON parse). Restituiva tour da CITY_POIS
+// hardcoded con `_isFallback = true`, ma 3 chiamanti su 4 (QuickPath,
+// SurpriseTour, DashboardUser) NON leggevano quel flag e lo mostravano
+// come tour reale. Ora ogni fallimento del motore rilancia un errore onesto:
+// la UI mostra un messaggio, mai un tour finto.
 
 // ─── DVAI-034 / DVAI-051: Verifica POI con Google Places + type-check ───────────
 /**
@@ -1289,27 +1201,16 @@ Schema JSON ESATTO:
             return result;
 
         } catch (err) {
-            // Lascia passare la quota — la UI gestisce il messaggio gentile.
-            if (err instanceof AiQuotaExceededError) {
-                clearTimeout(timeoutId);
-                throw err;
-            }
             clearTimeout(timeoutId);
+            // Gate D-5: nessun fallback statico. Ogni errore risale al chiamante
+            // che mostra un messaggio onesto ("L'AI sta avendo un momento
+            // difficile. Riprova."). Prima cadeva su generateItineraryLocal
+            // che tirava fuori Colosseo/Pantheon anche per città Sicilia.
             const reason = err.name === 'AbortError' ? 'timeout (35s)' : err.message;
-            console.warn(`[AI] Itinerary failed (${reason}) → fallback locale per "${city}"`);
-
-            // Fallback locale consapevole dell'input utente
-            const localResult = generateItineraryLocal(city, prefs, weather);
-            // Marca come fallback per la UI
-            if (localResult?.days?.[0]) {
-                localResult.days[0]._isFallback = true;
-                localResult.days[0]._failReason = reason;
-                // Adatta il titolo all'input utente se disponibile
-                if (userPrompt && userPrompt.length > 5) {
-                    localResult.days[0].title = `${city} — Percorso suggerito`;
-                }
+            if (!(err instanceof AiQuotaExceededError)) {
+                console.warn(`[AI] Itinerary failed (${reason}) → rethrow onesto (no static fallback)`);
             }
-            return localResult;
+            throw err;
         }
     },
 

@@ -174,36 +174,10 @@ const buildSmartExperiencesAsync = async (cityName, userLat, userLng, userDNA = 
     }));
 };
 
-// Sync fallback for placeholder data (while async loads)
-const buildSmartExperiencesFallback = (cityName) => {
-    return THEME_CONFIGS.slice(0, 3).map((theme, index) => {
-        const fallbackImage = CITY_IMAGES[cityName] || GENERIC.piazza;
-        return {
-            id: `smart-loading-${index}`,
-            type: 'ai-memory',
-            title: theme.titleFn(cityName),
-            location: `${cityName}, Esperienza Locale`,
-            rating: '4.8',
-            reviews: 0,
-            price: theme.price,
-            duration: theme.duration,
-            image: fallbackImage,
-            images: [fallbackImage],
-            category: "Consigliato dall'AI",
-            emoji: THEME_EMOJIS[theme.type],
-            isAiGenerated: true,
-            highlights: theme.highlights,
-            included: [],
-            notIncluded: [],
-            guide: 'Intelligenza DoveVai',
-            guideAvatar: '🤖',
-            center: { latitude: 41.9028, longitude: 12.4964 },
-            steps: [],
-            itinerary: [],
-            waypoints: [],
-        };
-    });
-};
+// Gate D-2: buildSmartExperiencesFallback rimosso. Prima serviva 3 tour finti
+// con rating "4.8", coord Roma hardcoded, guida "🤖 Intelligenza DoveVai"
+// come placeholderData react-query — spacciati per reali. Ora la UI ha
+// skeleton (isPending) + empty state onesto + errore, non tour inventati.
 
 /**
  * Riordina tour/esperienze in base al preference graph dell'utente.
@@ -331,7 +305,7 @@ const DashboardUser = () => {
     }, []);
 
     // Fetch Experiences — personalizzate con il preference graph
-    const { data: experiences, isError: experiencesError, refetch: refetchExperiences } = useQuery({
+    const { data: experiences, isError: experiencesError, isPending: experiencesLoading, refetch: refetchExperiences } = useQuery({
         queryKey: ['home-experiences', city, lat, lng, totalInteractions, hasPreferences],
         queryFn: async () => {
             const currentCity = city || 'Roma';
@@ -436,7 +410,10 @@ const DashboardUser = () => {
                     : (t.category || (hasPreferences ? 'Basato sui tuoi gusti' : 'Popolare a ' + currentCity)),
             }));
         },
-        placeholderData: () => buildSmartExperiencesFallback(city || 'Roma'),
+        // Gate D-2: placeholderData rimosso. Prima serviva 3 tour finti con
+        // rating "4.8" e coordinate Roma spacciati per reali. Ora la UI mostra
+        // uno skeleton (isPending) mentre carica, empty state se non c'è nulla,
+        // errore se la fetch fallisce.
         // Invalida cache e refetch quando la città cambia
         staleTime: 120_000, // 2 min — permette refetch rapido al cambio città
     });
@@ -702,7 +679,13 @@ const DashboardUser = () => {
                                 <p className="text-gray-500 text-sm mb-3">Non riesco a caricare le esperienze</p>
                                 <button onClick={() => refetchExperiences()} className="px-4 py-2 bg-orange-500 text-white rounded-xl text-sm font-bold active:scale-95 transition-transform">Riprova</button>
                             </div>
-                        ) : experiences?.map((exp) => (
+                        ) : experiencesLoading ? (
+                            // Gate D-2: skeleton onesto al posto dei tour finti. Card grigie,
+                            // non cliccabili, nessun testo/rating che potrebbe sembrare reale.
+                            [0, 1, 2].map(i => (
+                                <div key={`skel-${i}`} className="min-w-[260px] h-64 rounded-2xl bg-black/5 animate-pulse" />
+                            ))
+                        ) : (experiences && experiences.length > 0) ? experiences.map((exp) => (
                             <Link
                                 to={`/tour-details/${exp.id}`}
                                 state={{ tourData: exp }}
@@ -740,7 +723,14 @@ const DashboardUser = () => {
                                     </TourCover>
                                 </motion.div>
                             </Link>
-                        ))}
+                        )) : (
+                            // Gate D-2: empty state onesto al posto dei 3 tour finti.
+                            <div className="flex flex-col items-center justify-center py-10 w-full text-center">
+                                <div className="text-4xl mb-3">🌱</div>
+                                <p className="text-gray-700 text-sm mb-1 font-semibold">Non ci sono ancora tour a {city || 'questa città'}.</p>
+                                <p className="text-gray-500 text-xs">Ne stiamo aggiungendo nuovi ogni settimana. Torna presto.</p>
+                            </div>
+                        )}
                     </div>
                 </section>
 

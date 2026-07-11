@@ -313,41 +313,7 @@ export const DEMO_CITIES = {
     }
 };
 
-export const MOCK_ROUTES = {
-    'Catania': [
-        { latitude: 37.5020, longitude: 15.0860, label: 'Start: Pescheria' },
-        { latitude: 37.5027, longitude: 15.0872, label: 'Duomo' },
-        { latitude: 37.5042, longitude: 15.0855, label: 'Anfiteatro' },
-        { latitude: 37.5090, longitude: 15.0845, label: 'End: Villa Bellini' }
-    ],
-    'Palermo': [
-        { latitude: 38.1202, longitude: 13.3562, label: 'Start: Teatro Massimo' },
-        { latitude: 38.1158, longitude: 13.3614, label: 'Quattro Canti' },
-        { latitude: 38.1146, longitude: 13.3561, label: 'Cattedrale' },
-        { latitude: 38.1130, longitude: 13.3600, label: 'End: Ballarò' }
-    ],
-    'Roma': [
-        { latitude: 41.9000, longitude: 12.4900, label: 'Start: Colosseo' },
-        { latitude: 41.9010, longitude: 12.4940, label: 'Fori Imperiali' },
-        { latitude: 41.9025, longitude: 12.4960, label: 'Pantheon' },
-        { latitude: 41.9035, longitude: 12.4975, label: 'End: Piazza Navona' }
-    ],
-    'Milano': [
-        { latitude: 45.4641, longitude: 9.1919, label: 'Start: Duomo' },
-        { latitude: 45.4654, longitude: 9.1905, label: 'Galleria' },
-        { latitude: 45.4669, longitude: 9.1900, label: 'Teatro alla Scala' },
-        { latitude: 45.4706, longitude: 9.1795, label: 'End: Castello Sforzesco' }
-    ],
-    'Napoli': [
-        { latitude: 40.8359, longitude: 14.2486, label: 'Start: Plebiscito' },
-        { latitude: 40.8384, longitude: 14.2530, label: 'Maschio Angioino' },
-        { latitude: 40.8499, longitude: 14.2596, label: 'Spaccanapoli' },
-        { latitude: 40.8518, longitude: 14.2681, label: 'End: Duomo' }
-    ],
-    'Perugia': [
-        { latitude: 43.1122, longitude: 12.3888, label: 'Start: Piazza IV Novembre' },
-        { latitude: 43.1118, longitude: 12.3890, label: 'Palazzo dei Priori' },
-        { latitude: 43.1110, longitude: 12.3895, label: 'Corso Vannucci' },
-        { latitude: 43.1090, longitude: 12.3900, label: 'End: Rocca Paolina' }
-    ]
-};
+// Gate D-3: MOCK_ROUTES rimosso. Prima esponeva route hardcoded per Catania/
+// Palermo/Roma/Milano/Napoli/Perugia usate come fallback nella mappa quando
+// non c'era tour attivo. La UI ora mostra activeRoute=[] con messaggio onesto,
+// mai un percorso inventato spacciato per reale.

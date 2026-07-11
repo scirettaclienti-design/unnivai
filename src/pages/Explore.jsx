@@ -100,17 +100,11 @@ function ExplorePage() {
 
                 if (!dbError && dbData?.length > 0) {
                     rawRows = dbData;
-                } else {
-                    // Fallback to demo data, adapted to DB-like field names so
-                    // mapTourToUI can normalise them through the same code path.
-                    const demoTours = DEMO_CITIES[city]?.tours || [];
-                    rawRows = demoTours.map(t => ({
-                        ...t,
-                        price_eur: t.price,
-                        duration_minutes: parseInt(t.duration) * 60,
-                        city,
-                    }));
                 }
+                // Gate D-4: nessun fallback DEMO_CITIES.tours. Se il DB non ha
+                // tour per la città, la lista resta vuota e il JSX mostra
+                // un empty state onesto ("Non ci sono ancora tour a {city}.").
+                // Meglio vuoto che demo mescolato al reale senza badge.
 
                 // Use the canonical mapper so TourUISchema validation runs for
                 // every item and guide data from the profiles JOIN is included.
@@ -373,9 +367,21 @@ function ExplorePage() {
                 )}
 
                 {!loading && filteredExperiences.length === 0 && (
-                    <div className="text-center py-12 opacity-50">
-                        <p className="mb-2">Nessuna esperienza trovata.</p>
-                        <button onClick={() => { setSearchQuery(''); setSelectedDate(''); setActiveFilter('Tutti'); }} className="text-sm text-blue-500 underline">Resetta filtri</button>
+                    <div className="text-center py-12 opacity-60">
+                        {experiences.length === 0 ? (
+                            // Gate D-4: città senza tour reali. Empty state onesto (mai demo).
+                            <>
+                                <div className="text-4xl mb-3">🌱</div>
+                                <p className="mb-1 font-semibold text-gray-700">Non ci sono ancora tour a {city || 'questa città'}.</p>
+                                <p className="text-xs text-gray-500">Ne stiamo aggiungendo nuovi ogni settimana.</p>
+                            </>
+                        ) : (
+                            // Filtri troppo restrittivi.
+                            <>
+                                <p className="mb-2">Nessuna esperienza trovata con questi filtri.</p>
+                                <button onClick={() => { setSearchQuery(''); setSelectedDate(''); setActiveFilter('Tutti'); }} className="text-sm text-blue-500 underline">Resetta filtri</button>
+                            </>
+                        )}
                     </div>
                 )}
             </main>

@@ -1,6 +1,18 @@
 import '@testing-library/jest-dom'
 
 // ---------------------------------------------------------------------------
+// Gate D CI fix — Stub import.meta.env per i test.
+// In locale Vite carica .env → VITE_SUPABASE_URL/ANON_KEY definiti.
+// In CI (GitHub Actions) senza .env → sono undefined → i test che chiamano
+// callOpenAIProxy lanciano "Configurazione mancante" prima ancora di
+// raggiungere il fetch mockato.
+// Il stub globale garantisce che la guardia passi. Test che vogliono valori
+// custom possono ri-stubbare per-test.
+// ---------------------------------------------------------------------------
+vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
+vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-anon-key')
+
+// ---------------------------------------------------------------------------
 // DVAI-060 CI fix — Global supabase mock.
 //
 // In locale i test caricano .env → import.meta.env.VITE_SUPABASE_URL definito

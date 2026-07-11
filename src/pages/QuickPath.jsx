@@ -500,10 +500,13 @@ export default function QuickPathPage() {
     const [showPaywall, setShowPaywall] = useState(false);
 
     // GENERATION STATE (LIFTED UP)
-    // Gate 2 FASE 3 — status esteso con reason per distinguere i due messaggi.
-    //   idle | loading | success | 'error-nothing' | 'error-technical'
-    // "error-nothing" → messaggio brand ("Non basta per un tour.")
+    // Gate 2 FASE 3 + Gate D-6 — status esteso con reason per messaggi distinti.
+    //   idle | loading | success | 'error-nothing' | 'error-technical' | 'error-quota'
+    // "error-nothing"   → messaggio brand ("Non basta per un tour.")
     // "error-technical" → messaggio infra ("Non riesco a raggiungere i posti.")
+    // "error-quota"     → cap 10/giorno onesto ("Hai esplorato tanto oggi.")
+    //                     coerente con AiItinerary + SurpriseTour. Prima era
+    //                     confuso con "technical" e mentiva sui "posti".
     const [generationStatus, setGenerationStatus] = useState('idle');
     const [generationError, setGenerationError] = useState(null);
     const [readyTourData, setReadyTourData] = useState(null);
@@ -553,7 +556,7 @@ export default function QuickPathPage() {
     // - Safety timeout 20s → 'error-technical' (guardia, mai un tour).
     // - resolveCityCenter fail → 'error-technical'.
     // - Motore ritorna 0 tappe → 'error-nothing'.
-    // - Quota esaurita → 'error-technical' (con messaggio dedicato via toast).
+    // - Quota esaurita → 'error-quota' (Gate D-6 — copy onesto dedicato).
     // - Qualsiasi altro throw → 'error-technical'.
     // Zero coordinate hardcoded. Zero Unsplash. Zero enforceRadius:false.
     const generateItinerary = async (group) => {
@@ -690,19 +693,22 @@ export default function QuickPathPage() {
 
             console.warn('[QuickPath] generation error:', err?.name, err?.message);
 
-            // Distinzione errori:
-            // - CityCenterUnresolvedError con reason='proxy' → tecnico
-            // - CityCenterUnresolvedError con reason='not_found' → tecnico (città non risolvibile)
-            // - Quota esaurita → tecnico (l'utente non può fare nulla ora)
+            // Gate D-6 — distinzione errori:
+            // - Quota esaurita → 'error-quota' con copy onesto ("Hai esplorato
+            //   tanto oggi."). Coerente con AiItinerary + SurpriseTour.
+            // - CityCenterUnresolvedError → tecnico (città non risolvibile / proxy giù)
             // - Altro → tecnico (rete, timeout OpenAI, etc.)
-            const isCityCenterErr = err instanceof CityCenterUnresolvedError;
             const isQuotaErr = err?.code === 'QUOTA_EXCEEDED';
-            const reason = 'technical';
-            const detail = isCityCenterErr ? `cityCenter/${err.reason}`
-                         : isQuotaErr      ? 'quota_exceeded'
-                         : (err?.message || 'unknown');
-
-            setGenerationError({ reason, detail });
+            if (isQuotaErr) {
+                setGenerationError({ reason: 'quota', detail: 'quota_exceeded' });
+                setGenerationStatus('error-quota');
+                return;
+            }
+            const isCityCenterErr = err instanceof CityCenterUnresolvedError;
+            const detail = isCityCenterErr
+                ? `cityCenter/${err.reason}`
+                : (err?.message || 'unknown');
+            setGenerationError({ reason: 'technical', detail });
             setGenerationStatus('error-technical');
         }
     };
@@ -1073,6 +1079,25 @@ export default function QuickPathPage() {
                                         className="px-6 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-colors"
                                     >
                                         Riprova
+                                    </button>
+                                </div>
+                            )}
+
+                            {generationStatus === 'error-quota' && (
+                                // Gate D-6: cap 10/giorno onesto. Copy locked coerente con
+                                // AiItinerary + SurpriseTour. Non è un errore tecnico, non
+                                // c'è un pulsante "Riprova" — l'utente riproverà domani.
+                                <div className="text-center py-16 px-6 max-w-md mx-auto">
+                                    <div className="text-5xl mb-4">🌅</div>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-3">Hai esplorato tanto oggi.</h3>
+                                    <p className="text-gray-600 leading-relaxed mb-8">
+                                        Domani nuove esperienze.
+                                    </p>
+                                    <button
+                                        onClick={() => navigate('/dashboard-user')}
+                                        className="px-6 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-colors"
+                                    >
+                                        Torna alla home
                                     </button>
                                 </div>
                             )}

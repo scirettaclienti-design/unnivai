@@ -268,15 +268,10 @@ export default function AIItineraryPage() {
                 throw new Error("No itinerary generated");
             }
 
-            // Rileva se è un fallback locale
-            if (itineraryDays[0]?._isFallback) {
-                toast({
-                    title: 'Itinerario suggerito',
-                    description: `L'AI non è disponibile al momento. Ti mostriamo un percorso classico a ${activeCity}. Riprova tra poco per un tour personalizzato.`,
-                    variant: 'warning',
-                });
-            }
-
+            // Gate D-5: rimosso il check _isFallback. Il motore non produce
+            // più tour statici da CITY_POIS: ogni errore rilancia e il catch
+            // sotto mostra il messaggio onesto ("L'AI sta avendo un momento
+            // difficile"). Nessun fallback silente qui.
             setGeneratedItinerary(itineraryDays);
             setCurrentStep(2);
 

@@ -247,6 +247,22 @@ export default function AIItineraryPage() {
                 cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)
             );
 
+            // Gate B — Path A no-results: il motore ha risolto oggetto_umano dal
+            // traduttore d'intento. Toast onesto con "A ${city} non troviamo ${oggetto}".
+            if (result?._source === 'no-results' || result?._source === 'no-results-error' || result?._source === 'no-results-safety') {
+                const oggetto = result?._oggetto_umano || 'quello che hai chiesto';
+                console.warn(`[AiItinerary] path A no-results (source=${result._source}, oggetto="${oggetto}")`);
+                toast({
+                    title: `A ${activeCity} non troviamo ${oggetto}.`,
+                    description: 'Cambia richiesta e riprovo.',
+                    type: 'info',
+                    duration: 6000,
+                });
+                setGeneratedItinerary(null);
+                setCurrentStep(0);
+                return;
+            }
+
             const itineraryDays = result.days || result;
             if (!itineraryDays || !Array.isArray(itineraryDays) || itineraryDays.length === 0) {
                 throw new Error("No itinerary generated");

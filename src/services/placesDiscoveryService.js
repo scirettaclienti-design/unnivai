@@ -423,33 +423,52 @@ const buildPOIFromCandidate = (place, cityName) => {
  * @param {object} [opts]      { radiusMeters, maxResults, forceSmallTown }
  * @returns {Promise<Array>}   lista di POI (compatibile con discoverPOIs)
  */
+// Gate B — Slugify per cache key con customQuery (evita chars invalidi nel prefix).
+const slugForCache = (s) => String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
+
 const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts = {}) => {
   const {
     radiusMeters,
     maxResults = 12,
     forceSmallTown,
+    // Gate B — customQuery: sovrascrive THEME_TEXTSEARCH[themeType].query e il kind
+    // di soglia. Usato dal path A (free-text) di generateItinerary quando il
+    // traduttore ha prodotto queries specifiche. Non c'è fallback automatico:
+    // se il proxy fallisce, il chiamante decide (nel path A non ricadremo mai
+    // sul vecchio AI-first — quello sarebbe il bug rieducato).
+    customQuery,
+    // customKind: soglia da usare quando la query non è mappata (default CULTURA).
+    customKind = 'CULTURA',
+    // skipLegacyFallback: se true, discoverRealPOIs NON cade su discoverPOIs
+    // (vecchio motore AI-first che inventa nomi) su nessun cammino di errore.
+    // Ritorna [] onestamente. Usato dal path A.
+    skipLegacyFallback = false,
   } = opts;
 
-  // Se il proxy Places è OFF (dev senza middleware, prod senza flag) → fallback al
-  // vecchio motore AI-first. Non peggiora nulla e mantiene UX funzionante.
+  const isSmall = forceSmallTown ?? isSmallTown(cityName);
+
+  // Se il proxy Places è OFF: path B tollera il fallback storico, path A no.
   if (!isPlacesProxyEnabled()) {
+    if (skipLegacyFallback) return [];
     return discoverPOIs(cityName, lat, lng, themeType);
   }
 
   const themeCfg = THEME_TEXTSEARCH[themeType] || THEME_TEXTSEARCH.walking;
-  const isSmall = forceSmallTown ?? isSmallTown(cityName);
+  const effectiveQuery = customQuery ? String(customQuery).trim() : themeCfg.query;
+  const effectiveKind = customQuery ? customKind : themeCfg.kind;
   const radius = radiusMeters ?? (isSmall ? 3000 : 5000);
 
-  // Cache key: (city, theme, kind di soglia) — non lat/lng perché città stessa
-  // = centro stabile. Prefix v1 Google-first, invalida i vecchi cache tematici.
-  const cacheKey = `gg1_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}`;
+  // Cache key differenziata: customQuery ha suo namespace (non collide con temi).
+  const cacheKey = customQuery
+    ? `gg1_${cityName.replace(/\s+/g, '_')}_q_${slugForCache(effectiveQuery)}_${isSmall ? 's' : 'l'}`
+    : `gg1_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}`;
   const cached = loadFromCache(cacheKey);
   if (cached) return cached;
 
   try {
     const url = buildPlacesProxyUrl({
       path: 'place/textsearch',
-      query: `${themeCfg.query} ${cityName}`,
+      query: `${effectiveQuery} ${cityName}`,
       location: `${lat},${lng}`,
       radius: String(radius),
     });
@@ -463,17 +482,18 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
     // 1. Esclusioni hard (business_status, blacklist types, rumore).
     const cleaned = data.results.filter(passesHardExclusions);
     // 2. Soglia qualità differenziata per tema, con scale-down se pochi.
-    const { pois: qualified, scaleLevel } = applyQualityThreshold(cleaned, themeCfg.kind, isSmall);
+    const { pois: qualified, scaleLevel } = applyQualityThreshold(cleaned, effectiveKind, isSmall);
     // 3. Ordinamento per qualityScore (rating × ln(1+total)).
     const ranked = qualified
       .map(p => ({ ...p, _qs: qualityScore(p) }))
       .sort((a, b) => b._qs - a._qs)
       .slice(0, maxResults);
 
-    // 4. Se dopo tutto abbiamo 0 candidati, fallback al vecchio motore. Meglio
-    //    un tour AI-first che nessun tour.
     if (ranked.length === 0) {
-      console.warn(`[DVAI-060] ${cityName}/${themeType}: 0 candidati Google-first, fallback AI-first`);
+      // Gate B — Path A: 0 candidati REALI significa "la richiesta non ha risposta
+      // in questa città". Errore onesto. Non cadere sul vecchio motore.
+      if (skipLegacyFallback) return [];
+      console.warn(`[DVAI-060] ${cityName}/${effectiveQuery}: 0 candidati Google-first, fallback AI-first`);
       return discoverPOIs(cityName, lat, lng, themeType);
     }
 
@@ -481,11 +501,16 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
     const finalPois = ranked.map(p => { const { _qs, ...rest } = p; return buildPOIFromCandidate(rest, cityName); });
     saveToCache(cacheKey, finalPois);
     if (scaleLevel > 1) {
-      console.info(`[DVAI-060] ${cityName}/${themeType} scale-down livello ${scaleLevel}, ${finalPois.length} POI`);
+      console.info(`[DVAI-060] ${cityName}/${effectiveQuery} scale-down livello ${scaleLevel}, ${finalPois.length} POI`);
     }
     return finalPois;
   } catch (err) {
-    console.warn(`[DVAI-060] textsearch fallita per ${cityName}/${themeType}: ${err.message} → fallback AI-first`);
+    // Gate B — Path A: errori di rete NON diventano tour finti. Ritorna [].
+    if (skipLegacyFallback) {
+      console.warn(`[DVAI-060] ${cityName}/${effectiveQuery} textsearch fallita: ${err.message} — path A, no fallback`);
+      return [];
+    }
+    console.warn(`[DVAI-060] textsearch fallita per ${cityName}/${effectiveQuery}: ${err.message} → fallback AI-first`);
     return discoverPOIs(cityName, lat, lng, themeType);
   }
 };

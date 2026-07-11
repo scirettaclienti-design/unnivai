@@ -517,20 +517,240 @@ export function derivePrimaryThemes(prefs) {
     return unique.length > 0 ? unique : [...DEFAULT_MIX_THEMES];
 }
 
-// Fetch candidati reali per i temi derivati e li mescola in una singola lista
-// ordinata per qualityScore. Cache lato discoverRealPOIs (24h).
-// Se cityCenter non ha lat/lng, ritorna [] → generateItinerary attiva il
-// fallback AI-first (retrocompat totale).
-const fetchRealPOICandidates = async (cityName, cityCenter, prefs) => {
+// ─── Gate B — Traduttore di intenti (free-text → query Places + vincoli) ────
+//
+// Ruolo: capire cosa l'utente vuole dire e produrre input per una textsearch
+// Places nella città indicata + vincoli che il selettore-narratore rispetterà.
+//
+// Non genera tappe. Non inventa nomi. Traduce soltanto.
+// Fallimento della cache o del proxy → throw. Il chiamante decide (nel motore,
+// il path A ritorna errore onesto senza mai ricadere sul vecchio AI-first).
+
+const INTENT_CACHE_PREFIX = 'unnivai_intent_v1_';
+const INTENT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+
+const intentCacheKey = (userPrompt, cityName) => {
+    const parts = `${String(cityName || '').toLowerCase().trim()}|${String(userPrompt || '').toLowerCase().trim()}`;
+    return INTENT_CACHE_PREFIX + djb2(parts);
+};
+
+const loadIntentFromCache = (key) => {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const { ts, data } = JSON.parse(raw);
+        if (Date.now() - ts > INTENT_CACHE_TTL_MS) {
+            localStorage.removeItem(key);
+            return null;
+        }
+        return data;
+    } catch { return null; }
+};
+
+const saveIntentToCache = (key, data) => {
+    try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch { /* localStorage pieno */ }
+};
+
+// System prompt del traduttore — voce del brand + regole locked Ivano.
+// Correzioni acquisite:
+// - `escludi` accetta SOLO categorie concrete (chiese, musei, spiagge), MAI
+//   giudizi qualitativi ("luoghi turistici", "il solito"). I giudizi vanno in `note`.
+// - `escludi` in ITALIANO, MAI Google types (place_of_worship non deve mai comparire).
+// - `note` max 150 char (un vincolo, non un discorso).
+// - Il traduttore produce anche `oggetto_umano` (1-3 parole, come lo direbbe una
+//   persona) — usato dal messaggio d'errore onesto quando 0 candidati trovati.
+const INTENT_TRANSLATOR_PROMPT = `Sei il traduttore di intenti di DoveVAI.
+Il tuo unico compito: leggere una frase in italiano scritta da un turista, e produrre in JSON gli input per una ricerca di luoghi reali su Google Places nella città indicata.
+
+⚠️ NON generi tappe. NON scrivi descrizioni. NON inventi nomi di posti.
+Traduci soltanto: intento umano → parole per un motore di ricerca + vincoli.
+
+FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori dal JSON:
+{
+  "queries": ["...", "...", "..."],
+  "categoria": "...",
+  "oggetto_umano": "...",
+  "vincoli": {
+    "tempo": null | "mattina" | "pomeriggio" | "sera" | "notte",
+    "escludi": ["...", ...],
+    "note": null | "..."
+  }
+}
+
+REGOLE SU queries (array di 1 a 3 stringhe):
+- Ogni query è breve (2-4 parole), da usare come query textsearch di Google Places nella lingua italiana. Esempi validi: "spiagge", "trattoria tipica", "museo archeologico", "belvedere panorama".
+- Ogni query descrive UNA categoria di luoghi.
+- Se una singola query cattura l'intento, usane 1. Se serve espandere per coprire sfumature, usane 2 o 3. MAI più di 3.
+- Le query DEVONO essere sinonimi/varianti dello STESSO tipo di luogo o di tipi strettamente correlati. Se l'utente chiede più categorie diverse ("spiagge e dove mangiare"), una query per ciascuna: ["spiagge", "trattoria tipica"].
+- Zero parole vuote: NIENTE "posti belli", "cose da vedere", "esperienze autentiche". Solo sostantivi concreti.
+- Zero nome città nella query. La città la aggiunge il chiamante.
+
+REGOLE SU categoria (una sola stringa):
+- Sintetizza il tipo dominante di luoghi richiesti.
+- Valori suggeriti: "natura" | "cibo" | "storia" | "arte" | "cultura" | "shopping" | "nightlife" | "relax" | "famiglia" | "romantico" | "misto"
+- Usa "misto" solo se le query coprono davvero più famiglie diverse.
+
+REGOLE SU oggetto_umano (1-3 parole):
+- Come lo direbbe una persona, non come parola di una query di ricerca.
+- Esempi:
+    queries: ["spiagge", "lidi balneari", "cale"]      → oggetto_umano: "spiagge"
+    queries: ["museo archeologico", "sito greco"]       → oggetto_umano: "musei archeologici"
+    queries: ["parco giochi", "gelateria"]              → oggetto_umano: "posti per bambini"
+    queries: ["trattoria tipica"]                       → oggetto_umano: "trattorie"
+- Serve al messaggio d'errore: "A {city} non troviamo {oggetto_umano}."
+
+REGOLE SU vincoli.tempo:
+- Estrai il momento del giorno se ESPLICITO nel testo.
+  "di mattina" → "mattina". "verso sera" → "sera". "in nottata" → "notte".
+- Se non esplicito → null. NON inferire ("con i bambini" non implica mattina).
+
+REGOLE SU vincoli.escludi (le più importanti):
+- Elenco di TIPI DI LUOGO che l'utente NON vuole, in ITALIANO.
+- Accetta SOLO categorie concrete: "chiese", "musei", "ristoranti", "bar", "spiagge", "negozi", "discoteche", "parchi", "cattedrali", "luoghi di culto".
+- VIETATI in escludi (sono giudizi, non tipi di luogo):
+    "luoghi turistici", "posti per turisti", "trappole per turisti", "cose banali", "il solito", "posti scontati", "roba per turisti".
+- VIETATI in escludi (sono Google types, non italiano):
+    "place_of_worship", "tourist_attraction", "restaurant", "point_of_interest".
+- Se l'utente esprime un giudizio (autenticità, non-turistico, poco affollato), quello va in \`note\`, MAI in \`escludi\`.
+- Se l'utente non esclude nessun tipo → [].
+
+REGOLE SU vincoli.note:
+- MAX 150 caratteri. Un vincolo, non un discorso.
+- Vincoli qualitativi che non entrano nelle query, ma che il selettore deve rispettare. Esempi:
+  "con bambini piccoli: evita percorsi lunghi e luoghi che richiedono silenzio"
+  "budget basso: preferisci luoghi gratuiti o economici"
+  "cerca autenticità: preferisci posti nei quartieri residenziali"
+- Se non ci sono vincoli qualitativi → null.
+
+REGOLA SPECIALE — INPUT VAGO:
+- Se l'utente scrive qualcosa di generico ("sorprendimi", "fai tu", "un bel giro", "qualcosa di carino"), DEGRADA su un mix insider curato:
+    queries: ["piazza storica", "trattoria tipica", "belvedere panorama"]
+    categoria: "misto"
+    oggetto_umano: "un giro insider"
+    vincoli: { tempo: null, escludi: [], note: "l'utente si è affidato a te: scegli un mix di storia, cibo e vista, evita il più turistico" }
+- Zero errore. Zero rifiuto. La vaghezza è un'occasione.
+
+REGOLA SPECIALE — INPUT IN LINGUA STRANIERA:
+- Se il testo è in inglese o altra lingua, traducilo mentalmente in italiano e produci queries in italiano. Google Places con language=it lavora meglio.
+
+ZERO PROSA. ZERO SPIEGAZIONI FUORI JSON.`;
+
+/**
+ * Traduce il free-text dell'utente in { queries, categoria, oggetto_umano, vincoli }.
+ * NON consuma la quota giornaliera (10/day) — è pre-processing, non generazione.
+ *
+ * @param {string} userPrompt   frase in italiano dell'utente
+ * @param {string} cityName     città target (contesto per il modello)
+ * @returns {Promise<object>}   { queries[], categoria, oggetto_umano, vincoli }
+ * @throws                       se OpenAI proxy fallisce o JSON non parsabile
+ */
+export async function translateIntentToQueries(userPrompt, cityName) {
+    const prompt = String(userPrompt || '').trim();
+    if (!prompt) {
+        throw new Error('translateIntentToQueries: userPrompt vuoto');
+    }
+    const key = intentCacheKey(prompt, cityName);
+    const cached = loadIntentFromCache(key);
+    if (cached) return { ...cached, _source: 'cache' };
+
+    const data = await callOpenAIProxy({
+        model: 'gpt-4o-mini',
+        messages: [
+            { role: 'system', content: INTENT_TRANSLATOR_PROMPT },
+            { role: 'user', content: `Città: ${cityName}\nFrase dell'utente: "${prompt}"` },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.3, // locked: determinismo
+        max_tokens: 200,
+    });
+    const raw = data?.choices?.[0]?.message?.content;
+    if (!raw) throw new Error('translateIntentToQueries: no AI response');
+
+    const parsed = JSON.parse(raw);
+    // Sanitize per resistere a AI approssimativa.
+    const queries = Array.isArray(parsed.queries) ? parsed.queries.filter(q => typeof q === 'string' && q.trim()).slice(0, 3) : [];
+    const categoria = typeof parsed.categoria === 'string' && parsed.categoria.trim() ? parsed.categoria.trim() : 'misto';
+    const oggetto_umano = typeof parsed.oggetto_umano === 'string' && parsed.oggetto_umano.trim() ? parsed.oggetto_umano.trim() : categoria;
+    const vincoliRaw = parsed.vincoli || {};
+    const tempo = ['mattina', 'pomeriggio', 'sera', 'notte'].includes(vincoliRaw.tempo) ? vincoliRaw.tempo : null;
+    const escludi = Array.isArray(vincoliRaw.escludi) ? vincoliRaw.escludi.filter(e => typeof e === 'string' && e.trim()).slice(0, 10) : [];
+    const note = typeof vincoliRaw.note === 'string' && vincoliRaw.note.trim() ? vincoliRaw.note.trim().slice(0, 150) : null;
+
+    if (queries.length === 0) {
+        throw new Error('translateIntentToQueries: 0 queries (traduzione vuota)');
+    }
+    const result = {
+        queries,
+        categoria,
+        oggetto_umano,
+        vincoli: { tempo, escludi, note },
+    };
+    saveIntentToCache(key, result);
+    return { ...result, _source: 'ai' };
+}
+
+// Fetch candidati reali per i temi derivati (Path B) o per le query prodotte
+// dal traduttore d'intento (Path A, Gate B). Mescola/deduplica/ordina per QS.
+// Cache lato discoverRealPOIs (24h).
+//
+// Gate B — Path A (userPrompt presente):
+//   1. translateIntentToQueries → { queries[], categoria, oggetto_umano, vincoli }
+//   2. discoverRealPOIs con customQuery per ogni query (skipLegacyFallback=true)
+//   3. Merge + top-20
+//   Ritorna { candidates, intent }. Se 0 candidati o traduttore fallisce, intent
+//   può contenere info per errore onesto (o essere null).
+//
+// Path B (userPrompt vuoto o assente):
+//   derivePrimaryThemes(prefs) → discoverRealPOIs con tema hardcoded (invariato)
+//   Ritorna { candidates, intent: null }.
+//
+// Se cityCenter non ha lat/lng, ritorna { candidates: [], intent: null }.
+const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = '') => {
     const lat = cityCenter?.latitude;
     const lng = cityCenter?.longitude;
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return [];
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { candidates: [], intent: null };
     // Import dinamico per rompere il ciclo aiRecomm → placesDiscovery → aiRecomm.
     const { placesDiscoveryService } = await import('./placesDiscoveryService');
-    const themes = derivePrimaryThemes(prefs);
-    const lists = await Promise.all(
-        themes.map(t => placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t))
-    );
+
+    const isFreeText = !!(userPrompt && String(userPrompt).trim());
+    let lists = [];
+    let intent = null;
+
+    if (isFreeText) {
+        // Path A — Gate B: free-text guida la ricerca.
+        try {
+            intent = await translateIntentToQueries(userPrompt, cityName);
+            console.info(`[Gate B] intent tradotto: queries=${JSON.stringify(intent.queries)} categoria=${intent.categoria} oggetto="${intent.oggetto_umano}" source=${intent._source}`);
+        } catch (translatorErr) {
+            console.warn(`[Gate B] translateIntentToQueries fallito: ${translatorErr.message}`);
+            // Traduttore giù → path A resta path A (fail-closed), NON ricadere su path B.
+            // Ritorna intent minimo con oggetto_umano generico per il messaggio d'errore.
+            return {
+                candidates: [],
+                intent: {
+                    queries: [],
+                    categoria: 'sconosciuta',
+                    oggetto_umano: 'quello che hai chiesto',
+                    vincoli: { tempo: null, escludi: [], note: null },
+                    _source: 'error-translator',
+                },
+            };
+        }
+        const queriesToRun = intent.queries.slice(0, 3);
+        lists = await Promise.all(
+            queriesToRun.map(q => placesDiscoveryService.discoverRealPOIs(
+                cityName, lat, lng, null,
+                { customQuery: q, skipLegacyFallback: true }
+            ))
+        );
+    } else {
+        // Path B — comportamento invariato: temi hardcoded da prefs.
+        const themes = derivePrimaryThemes(prefs);
+        lists = await Promise.all(
+            themes.map(t => placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t))
+        );
+    }
+
     // Dedup by place_id (o title come fallback), poi ordino per QS decrescente.
     const merged = new Map();
     for (const list of lists) {
@@ -549,7 +769,7 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs) => {
     });
     // Tronco a top-20: abbastanza per far scegliere all'AI, non troppo per non
     // gonfiare il prompt (ogni candidato costa ~40 token).
-    return all.slice(0, 20);
+    return { candidates: all.slice(0, 20), intent };
 };
 
 // Ordina tappe per prossimità (nearest-neighbor greedy)
@@ -580,7 +800,7 @@ function sortByProximity(stops) {
 //
 // Guardrail voce (parole vietate + esempi ✓/✗) preservano il tono insider che
 // era il valore emotivo di DoveVAI e che era il criterio #1 di successo.
-const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, cityCenter, candidates, userPrompt }) => {
+const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, cityCenter, candidates, userPrompt, intent }) => {
     const candidatesLite = candidates.map(p => ({
         place_id: p.place_id || p.googlePlaceId,
         name: p.name,
@@ -596,9 +816,24 @@ const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherIcon, pr
         ? ` Tutte le tappe devono restare entro ${(cityCenter.radiusKm ?? ((cityCenter.isSmallTown ?? isSmallTown(city)) ? 5 : 10))} km dal centro di ${city}.`
         : '';
 
+    // Gate B — clausole DURE dal traduttore d'intento. Se path B (no free-text),
+    // intent è null e le clausole non vengono aggiunte (retrocompat).
+    const intentBlock = (intent && (intent.categoria || intent.vincoli))
+        ? `\n\n⚠️ VINCOLI DELL'UTENTE (rispetta ALLA LETTERA):
+   • categoria richiesta: "${intent.categoria || 'sconosciuta'}"
+     TUTTE le tappe che scegli devono appartenere a questa categoria.
+     NON introdurre tappe di categorie diverse (es. se la categoria è "natura",
+     NON aggiungere ristoranti, chiese o musei anche se ti sembrerebbero utili).
+     Se i candidati non hanno abbastanza tappe della categoria, usane meno.${intent.vincoli?.tempo ? `
+   • momento del giorno: solo tappe adatte a "${intent.vincoli.tempo}".` : ''}${intent.vincoli?.escludi && intent.vincoli.escludi.length ? `
+   • categorie da ESCLUDERE (nessuna tappa di questi tipi): ${intent.vincoli.escludi.map(e => `"${e}"`).join(', ')}.` : ''}${intent.vincoli?.note ? `
+   • nota qualitativa: ${intent.vincoli.note}` : ''}
+   Questi vincoli sono NON NEGOZIABILI. Meglio consegnare meno tappe che tradire la richiesta.`
+        : '';
+
     return `SEI L'INSIDER DI ${city} — un local che ti mostra la sua città, non una guida turistica, non Wikipedia, non un elenco.
 
-⚠️ NON scegli tu i luoghi. Io ti do una lista di ${N} luoghi REALI di ${city}, già verificati su Google (rating, tipo, foto).${radiusInfo}
+⚠️ NON scegli tu i luoghi. Io ti do una lista di ${N} luoghi REALI di ${city}, già verificati su Google (rating, tipo, foto).${radiusInfo}${intentBlock}
 
 Il tuo lavoro in 3 mosse:
 
@@ -745,12 +980,18 @@ export const aiRecommendationService = {
         // Prova a ottenere candidati REALI da Google. Se >=3, usa il nuovo prompt
         // in cui l'AI sceglie e racconta, non inventa. Se <3 (borgo micro o
         // cityCenter mancante) cade al vecchio flusso AI-first sotto (retrocompat).
+        //
+        // Gate B — se userPrompt è presente (path A), il traduttore d'intento
+        // guida la textsearch. Path A NON cade mai sul vecchio AI-first: se 0
+        // candidati, errore onesto con oggetto_umano.
+        const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
         try {
-            const candidates = await fetchRealPOICandidates(city, cityCenter, prefs);
+            const { candidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt);
             if (candidates.length >= 3) {
                 const selectorPrompt = buildSelectorSystemPrompt({
                     city, timeContext, weather, weatherIcon,
                     prefs, aiProfile, cityCenter, candidates, userPrompt,
+                    intent, // Gate B — clausole dure (categoria/escludi/tempo/note) nel prompt
                 });
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 35_000);
@@ -804,20 +1045,79 @@ export const aiRecommendationService = {
                         saveInsiderToCache(cacheKey, result);
                         return result;
                     }
+                    // Gate B — Path A: se selettore produce <3 tappe, errore onesto (no fallback).
+                    if (isFreeTextIntent) {
+                        console.warn(`[Gate B] path A "${city}" — <3 tappe canoniche → errore onesto (no fallback AI-first)`);
+                        return {
+                            days: [{ stops: [] }],
+                            _source: 'no-results',
+                            _query: intent?.queries || [],
+                            _categoria: intent?.categoria || 'sconosciuta',
+                            _oggetto_umano: intent?.oggetto_umano || 'quello che hai chiesto',
+                        };
+                    }
                     console.warn(`[DVAI-060 F2] Google-first ha prodotto <3 tappe canoniche per "${city}", fallback AI-first`);
                 } catch (err) {
                     clearTimeout(timeoutId);
                     if (err instanceof AiQuotaExceededError) throw err;
+                    // Gate B — Path A: selettore fallito → errore tecnico onesto (no fallback).
+                    if (isFreeTextIntent) {
+                        console.warn(`[Gate B] path A selettore fallito (${err.name === 'AbortError' ? 'timeout' : err.message}) → errore onesto (no fallback AI-first)`);
+                        return {
+                            days: [{ stops: [] }],
+                            _source: 'no-results-error',
+                            _query: intent?.queries || [],
+                            _categoria: intent?.categoria || 'sconosciuta',
+                            _oggetto_umano: intent?.oggetto_umano || 'quello che hai chiesto',
+                        };
+                    }
                     console.warn(`[DVAI-060 F2] Selettore fallito (${err.name === 'AbortError' ? 'timeout' : err.message}) → fallback AI-first`);
                 }
-            } else if (candidates.length > 0) {
-                console.info(`[DVAI-060 F2] "${city}" solo ${candidates.length} candidati Google → fallback AI-first`);
+            } else {
+                // Gate B — Path A: <3 candidati Places → errore onesto. MAI ricadere sul vecchio motore.
+                if (isFreeTextIntent) {
+                    console.info(`[Gate B] path A "${city}" — ${candidates.length} candidati Places < 3 → errore onesto (no fallback AI-first)`);
+                    return {
+                        days: [{ stops: [] }],
+                        _source: 'no-results',
+                        _query: intent?.queries || [],
+                        _categoria: intent?.categoria || 'sconosciuta',
+                        _oggetto_umano: intent?.oggetto_umano || 'quello che hai chiesto',
+                    };
+                }
+                if (candidates.length > 0) {
+                    console.info(`[DVAI-060 F2] "${city}" solo ${candidates.length} candidati Google → fallback AI-first`);
+                }
             }
         } catch (err) {
             if (err instanceof AiQuotaExceededError) throw err;
+            // Gate B — Path A: qualunque errore in fetch → errore onesto (no fallback).
+            if (isFreeTextIntent) {
+                console.warn(`[Gate B] path A fetchRealPOICandidates errore "${err.message}" → errore onesto (no fallback AI-first)`);
+                return {
+                    days: [{ stops: [] }],
+                    _source: 'no-results-error',
+                    _query: [],
+                    _categoria: 'sconosciuta',
+                    _oggetto_umano: 'quello che hai chiesto',
+                };
+            }
             console.warn(`[DVAI-060 F2] fetchRealPOICandidates ha errore, fallback AI-first: ${err.message}`);
         }
         // ─── FINE RAMO GOOGLE-FIRST — sotto: vecchio flusso AI-first (fallback) ─
+        // ⚠️ Gate B — SAFETY BELT: se isFreeTextIntent=true e siamo arrivati qui,
+        //     è un bug logico (una via non prevista sopra). Bloccare hard con
+        //     errore onesto invece di far girare il vecchio motore che INVENTA nomi.
+        if (isFreeTextIntent) {
+            console.error('[Gate B] SAFETY BELT: raggiunto vecchio AI-first con userPrompt presente. Blocco.');
+            return {
+                days: [{ stops: [] }],
+                _source: 'no-results-safety',
+                _query: [],
+                _categoria: 'sconosciuta',
+                _oggetto_umano: 'quello che hai chiesto',
+            };
+        }
 
         const systemPrompt = `Sei un insider locale italiano — non una guida turistica, non un'enciclopedia. Sei l'amico che vive a ${city} da sempre e sa dove portare la gente per farla innamorare della città.
 

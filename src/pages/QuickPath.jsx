@@ -26,22 +26,24 @@ import { DEMO_CITIES } from "@/data/demoData";
 import PaywallModal from "@/components/PaywallModal";
 
 // ─── Loading Sub-Steps animati ─────────────────────────────────────────────
-// Gate 2 FASE 3 — microcopy loading approvato: "Cerco i posti veri di ${city}...".
-// Il testo è ora costruito dinamicamente col nome della città (vedi
-// LoadingSubSteps sotto). Manteniamo comunque una progressione emoji per il
-// feedback visivo su chiamate reali che impiegano 5-15 secondi.
+// Gate B — Microcopy loading a 3 fasi (approvato Ivano). Narra l'attesa
+// con quello che il motore FA davvero (soglia rating 4.2 + review), non con
+// promesse marketing tipo "scarto quelli per turisti" (bugia: non c'è filtro).
 const LOADING_STEPS = [
     { emoji: '🔍', textFn: (city) => `Cerco i posti veri di ${city}...` },
-    { emoji: '🗺️', textFn: (city) => `Cerco i posti veri di ${city}...` },
-    { emoji: '✨', textFn: (city) => `Cerco i posti veri di ${city}...` },
+    { emoji: '⭐', textFn: () => 'Controllo cosa dicono quelli che ci sono stati...' },
+    { emoji: '✨', textFn: () => 'Ci siamo quasi.' },
 ];
 
 const LoadingSubSteps = ({ city }) => {
     const [step, setStep] = useState(0);
     useEffect(() => {
+        // Gate B — Il safety timeout QuickPath è 35s. Tre stringhe che cambiano ogni
+        // ~4s: fase 1 (~0-4s), fase 2 (~4-8s), fase 3 (~8-35s) — l'ultima fa da
+        // "ci siamo quasi" per i tour realmente lenti (10-15s tipici + margine).
         const interval = setInterval(() => {
             setStep(prev => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
-        }, 2200);
+        }, 4000);
         return () => clearInterval(interval);
     }, []);
 
@@ -535,16 +537,17 @@ export default function QuickPathPage() {
         setGenerationError(null);
         setReadyTourData(null);
 
-        // Safety timeout 20s — la chiamata reale al motore (textsearch + OpenAI +
-        // photo) impiega tipicamente 5-15s. Sopra 20s è probabile problema di
-        // rete/proxy: cadiamo su errore, mai su un tour finto.
+        // Gate B — Safety timeout 35s (era 20s). Con Path A c'è una chiamata AI
+        // extra (traduttore) prima del textsearch + selettore: latenza totale
+        // può arrivare a 20-25s realistici (su 4G di un turista). 35s dà margine
+        // senza far scattare un errore falso su un tour che sta per arrivare.
         let timedOut = false;
         const safetyTimeoutId = setTimeout(() => {
             timedOut = true;
-            console.warn('[QuickPath] safety timeout 20s → error-technical');
-            setGenerationError({ reason: 'technical', detail: 'timeout 20s' });
+            console.warn('[QuickPath] safety timeout 35s → error-technical');
+            setGenerationError({ reason: 'technical', detail: 'timeout 35s' });
             setGenerationStatus('error-technical');
-        }, 20000);
+        }, 35000);
 
         try {
             // 1. Costruisci prompt dalle 5 selezioni (buildPromptFromSelections).
@@ -584,12 +587,15 @@ export default function QuickPathPage() {
 
             if (timedOut) return; // il timeout ha già gestito l'errore
 
-            // 6. Estrai tappe del giorno 1. Se zero → nessun tour, errore onesto.
+            // Gate B — Path A no-results: il motore ha risolto _oggetto_umano
+            // dal traduttore d'intento. Passa in errore con quella parola per
+            // messaggio onesto ("A ${city} non troviamo spiagge.").
             const rawStops = result?.days?.[0]?.stops || [];
             if (!Array.isArray(rawStops) || rawStops.length === 0) {
-                console.warn('[QuickPath] motore ha ritornato 0 tappe → error-nothing');
+                const oggetto = result?._oggetto_umano || null;
+                console.warn(`[QuickPath] motore 0 tappe → error-nothing (oggetto="${oggetto || 'n/a'}", source=${result?._source || 'unknown'})`);
                 clearTimeout(safetyTimeoutId);
-                setGenerationError({ reason: 'nothing' });
+                setGenerationError({ reason: 'nothing', oggetto_umano: oggetto });
                 setGenerationStatus('error-nothing');
                 return;
             }
@@ -1000,11 +1006,20 @@ export default function QuickPathPage() {
 
                             {/* Gate 2 FASE 3 — Due messaggi distinti per due cause distinte.
                                 Voce brand locked Ivano. */}
+                            {/* Gate B — Se il motore ha risolto oggetto_umano dal traduttore
+                                (path A: free-text), il messaggio è specifico. Altrimenti fallback
+                                al testo generico (path B: solo checkbox). */}
                             {generationStatus === 'error-nothing' && (
                                 <div className="text-center py-16 px-6 max-w-md mx-auto">
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-3">Non basta per un tour.</h3>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                                        {generationError?.oggetto_umano
+                                            ? `A ${activeCity} non troviamo ${generationError.oggetto_umano}.`
+                                            : 'Non basta per un tour.'}
+                                    </h3>
                                     <p className="text-gray-600 leading-relaxed mb-8">
-                                        A {activeCity} non ci sono abbastanza posti veri per quello che hai chiesto. Cambia una scelta e riprovo.
+                                        {generationError?.oggetto_umano
+                                            ? 'Cambia richiesta e riprovo.'
+                                            : `A ${activeCity} non ci sono abbastanza posti veri per quello che hai chiesto. Cambia una scelta e riprovo.`}
                                     </p>
                                     <button
                                         onClick={() => { setGenerationStatus('idle'); resetSelection(); }}

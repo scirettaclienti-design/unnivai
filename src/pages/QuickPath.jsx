@@ -101,11 +101,14 @@ const LoadingSubSteps = ({ city }) => {
 // FALLBACK_CARD_IMAGE. Il motore fake basato su Unsplash generici è morto.
 // QuickPath userà TourCover (DVAI-058) come tutto il resto dell'app in FASE 3.
 
-// ─── Gate 2 FASE 3 — buildPromptFromSelections ──────────────────────────────
-// Traduce le 5 selezioni del wizard in un prompt naturale per il motore
-// Google-first. CATEGORIA DOMINANTE = query concreta ("musei, siti archeologici
-// e luoghi storici"), non prosa. time/duration/group = contesto morbido.
-// Vincolo numerico tappe (STOP_COUNT) e clausola di esclusione food espliciti.
+// ─── Gate 2 FASE 3 + Gate C Task 1 — buildPromptFromSelections ──────────────
+// Traduce le 5 selezioni del wizard in un BRIEF OPERATIVO per il traduttore
+// Gate B (translateIntentToQueries), non in prosa turistica. La differenza è
+// visibile: "Voglio scoprire Siracusa attraverso luoghi tranquilli, giardini e
+// caffè letterari" (vecchio) → il traduttore capisce "attrazioni vaghe" e pesca
+// il Duomo. "A Siracusa cerco: spa, hammam, terme, centri benessere. Escludi:
+// cattedrali, musei" (nuovo) → queries concrete + escludi espliciti. Sub-key
+// mappati (relax.benessere→spa/hammam/terme). EXCLUDE_HINTS_BY_MAIN come rinforzo.
 
 const DOMINANT_CATEGORIES = {
     citta: {
@@ -168,9 +171,30 @@ const DOMINANT_CATEGORIES = {
         navigli:  'canali storici, ponti e locali dei Navigli',
     },
     relax: {
-        _default: 'luoghi tranquilli, giardini e caffè letterari',
-        spa:      'terme, centri benessere e luoghi di quiete',
+        _default:  'spa, giardini panoramici, spiagge tranquille',
+        spa:       'spa, hammam, terme, centri benessere',
+        benessere: 'spa, hammam, terme, centri benessere',
+        terme:     'terme, stabilimenti termali, spa',
+        giardino:  'giardini panoramici, parchi tranquilli, ville storiche',
     },
+};
+
+// Gate C Task 1 — clausola di esclusione per macro-categoria. Rinforza il
+// prompt del traduttore rendendo esplicito cosa NON è la richiesta, così
+// vincoli.escludi arriva popolato al selettore-narratore e la textsearch
+// non pesca fuori-tema. Es. per "relax", "cattedrali" e "musei" non ci vanno.
+const EXCLUDE_HINTS_BY_MAIN = {
+    relax:    'cattedrali, musei, monumenti turistici',
+    natura:   'chiese, musei, monumenti storici',
+    mare:     'chiese, musei, monumenti storici',
+    montagna: 'chiese, musei, monumenti storici',
+    parchi:   'chiese, musei, monumenti storici',
+    canali:   'musei, chiese',
+    cibo:     'musei, chiese, monumenti turistici',
+    moda:     'chiese, musei, monumenti storici',
+    vulcano:  'chiese, musei del centro',
+    // Categorie storiche/urbane: nessuna esclusione hardcoded (il dominant
+    // già seleziona bene). "arte", "storia", "citta" non compaiono qui.
 };
 
 const TIME_LABEL = {
@@ -195,7 +219,7 @@ const GROUP_LABEL = {
 const EXCLUSION_CLAUSE = 'Solo tappe di questa categoria: non aggiungere ristoranti, bar o caffè se non li ho chiesti esplicitamente.';
 const FOOD_MAIN_KEYS = new Set(['cibo']);
 
-function buildPromptFromSelections({ main, sub, time, duration, group, city }) {
+export function buildPromptFromSelections({ main, sub, time, duration, group, city }) {
     const mainKey  = String(main  || '').toLowerCase().trim();
     const subKey   = String(sub   || '').toLowerCase().trim();
     const timeKey  = String(time  || '').toLowerCase().trim();
@@ -211,14 +235,22 @@ function buildPromptFromSelections({ main, sub, time, duration, group, city }) {
     const groupLabel = GROUP_LABEL[groupKey] || '';
     const stopCount  = STOP_COUNT[durKey]   || '';
     const isFoodMain = FOOD_MAIN_KEYS.has(mainKey);
+    const excludeHint = EXCLUDE_HINTS_BY_MAIN[mainKey] || '';
 
-    const sentence1 = `Voglio scoprire ${cityName} attraverso ${dominant}.`;
+    // Gate C Task 1 — Brief operativo, non prosa. Prima frase: cosa cercare
+    // (query concrete). Seconda: cosa escludere (rinforza vincoli.escludi).
+    // Terza: contesto (tempo, gruppo, numero tappe).
+    const sentence1 = cityName ? `A ${cityName} cerco: ${dominant}.` : `Cerco: ${dominant}.`;
+    const sentence2 = excludeHint ? `Escludi: ${excludeHint}.` : '';
     const contextParts = [timeLabel, groupLabel].filter(Boolean);
-    const sentence2 = contextParts.length > 0 ? contextParts.join(', ') + '.' : '';
-    const sentence3 = stopCount;
-    const sentence4 = isFoodMain ? '' : EXCLUSION_CLAUSE;
+    const sentence3 = contextParts.length > 0 ? contextParts.join(', ') + '.' : '';
+    const sentence4 = stopCount;
+    // EXCLUSION_CLAUSE (no food se non richiesto) va SOLO quando la categoria
+    // non è già coperta da EXCLUDE_HINTS_BY_MAIN. Se il main è "citta"/"storia"/
+    // "arte" (nessun exclude hint), la clausola food generica compare come prima.
+    const sentence5 = (!isFoodMain && !excludeHint) ? EXCLUSION_CLAUSE : '';
 
-    return [sentence1, sentence2, sentence3, sentence4].filter(Boolean).join(' ');
+    return [sentence1, sentence2, sentence3, sentence4, sentence5].filter(Boolean).join(' ');
 }
 
 // 🌍 ADAPTIVE DATA ENGINE

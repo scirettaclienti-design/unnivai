@@ -16,9 +16,12 @@ const Profile        = lazy(() => import('./pages/Profile'));
 const TourDetails    = lazy(() => import('./pages/TourDetails'));
 const AiItinerary    = lazy(() => import('./pages/AiItinerary'));
 const DashboardUser  = lazy(() => import('./pages/DashboardUser'));
-const DashboardGuide = lazy(() => import('./pages/DashboardGuide'));
-const DashboardBusiness = lazy(() => import('./pages/DashboardBusiness'));
-const BecomeGuide    = lazy(() => import('./pages/BecomeGuide'));
+// Gate J1: DashboardGuide, DashboardBusiness, BecomeGuide, GuidePlaceholder,
+// TourBuilder — pagine Guide/Business V2/V3. Il codice resta nel repo ma
+// nessuna rotta le raggiunge in V1: modello di lancio locked = viaggiatore +
+// motore AI. Le dashboard con analytics/chat/messaggi finti (audit anti-fake
+// 15 CRITICA) sarebbero peggio che assenti — un partner vede €2450 di
+// guadagni inventati e capisce che stiamo bluffando. Meglio spegnerle.
 const QuickPath      = lazy(() => import('./pages/QuickPath'));
 const Notifications  = lazy(() => import('./pages/Notifications'));
 const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
@@ -27,13 +30,11 @@ const SurpriseTour   = lazy(() => import('./pages/SurpriseTour'));
 const UpdatePassword = lazy(() => import('./pages/UpdatePassword'));
 const Trending       = lazy(() => import('./pages/Trending'));
 const Photos         = lazy(() => import('./pages/Photos'));
-const GuidePlaceholder = lazy(() => import('./pages/GuidePlaceholder'));
 const Onboarding     = lazy(() => import('./pages/Onboarding'));
 const NotFound       = lazy(() => import('./pages/NotFound'));
 
 // DVAI-022: Pagine con Google Maps — wrapped con MapAPIWrapper internamente
 const MapPage    = lazy(() => import('./pages/MapPage'));
-const TourBuilder = lazy(() => import('./pages/guide/TourBuilder'));
 const Explore    = lazy(() => import('./pages/Explore'));
 
 // Optimized Query Client
@@ -83,11 +84,11 @@ const RootDispatcher = () => {
 
   if (user) {
     const onboardingDone = localStorage.getItem('dvai_onboarding_done');
-    if (!onboardingDone && role !== 'guide' && role !== 'business') {
+    if (!onboardingDone) {
       return <Navigate to="/onboarding" replace />;
     }
-    if (role === 'guide')    return <Navigate to="/dashboard-guide" replace />;
-    if (role === 'business') return <Navigate to="/dashboard-business" replace />;
+    // Gate J1: in V1 tutti i ruoli finiscono su /dashboard-user.
+    // Dashboard guide/business spente (V2/V3).
     return <Navigate to="/dashboard-user" replace />;
   }
 
@@ -133,23 +134,13 @@ function App() {
                     <Route path="/tour-live"       element={<TourLive />} />
                     <Route path="/surprise-tour"   element={<SurpriseTour />} />
                     <Route path="/trending"        element={<Trending />} />
-                    <Route path="/become-guide"    element={<BecomeGuide />} />
                   </Route>
 
-                  {/* GUIDE ROUTES */}
-                  <Route element={<RoleGuard allowedRoles={['guide']} />}>
-                    <Route path="/dashboard-guide"    element={<DashboardGuide />} />
-                    <Route path="/guide/create-tour"  element={<TourBuilder />} />
-                    <Route path="/guide/*"            element={<DashboardGuide />} />
-                    <Route path="/chat/guide/:id"     element={<GuidePlaceholder type="chat" />} />
-                    <Route path="/profile/guide/:id"  element={<GuidePlaceholder type="profile" />} />
-                  </Route>
-
-                  {/* BUSINESS ROUTES */}
-                  <Route element={<RoleGuard allowedRoles={['business']} />}>
-                    <Route path="/dashboard-business" element={<DashboardBusiness />} />
-                    <Route path="/business/*"         element={<DashboardBusiness />} />
-                  </Route>
+                  {/* Gate J1: GUIDE ROUTES + BUSINESS ROUTES + /become-guide
+                      RIMOSSE dal router. Le pagine (DashboardGuide, TourBuilder,
+                      DashboardBusiness, BecomeGuide, GuidePlaceholder) restano
+                      nel repo per V2/V3 ma nessuna rotta le raggiunge.
+                      Chi digita /dashboard-guide/etc. cade sul catch-all 404. */}
 
                   {/* DVAI-042: Catch-all 404 */}
                   <Route path="*" element={<NotFound />} />

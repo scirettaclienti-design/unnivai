@@ -74,9 +74,8 @@ const Login = () => {
 
     React.useEffect(() => {
         if (user && role && role !== 'guest') {
-            const dest = role === 'guide' ? '/dashboard-guide' :
-                role === 'business' ? '/dashboard-business' : '/dashboard-user';
-            navigate(dest, { replace: true });
+            // Gate J1: dashboard guide/business spente in V1 — tutti su /dashboard-user.
+            navigate('/dashboard-user', { replace: true });
         }
     }, [user, role, navigate]);
 

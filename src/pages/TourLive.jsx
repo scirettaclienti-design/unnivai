@@ -491,40 +491,9 @@ export default function TourLivePage() {
                         </Link>
                     </div>
 
-                    {/* Create Tour CTA */}
-                    <motion.div
-                        className="bg-gradient-to-r from-purple-400 to-pink-400 rounded-3xl p-8 text-white text-center relative overflow-hidden"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 1.6 }}
-                    >
-                        <motion.div
-                            className="absolute inset-0 bg-white/10 rounded-3xl"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 1, delay: 1.8 }}
-                        />
-                        <div className="relative">
-                            <motion.div
-                                className="text-6xl mb-4"
-                                whileHover={{ scale: 1.2, rotate: 10 }}
-                                transition={{ type: "spring", stiffness: 300 }}
-                            >
-                                🌟
-                            </motion.div>
-                            <h3 className="text-xl font-bold mb-2">Diventa anche tu una guida!</h3>
-                            <p className="opacity-90 mb-6">Condividi la tua passione e crea esperienze uniche</p>
-                            <Link to="/become-guide">
-                                <motion.button
-                                    className="bg-white/20 text-white px-8 py-4 rounded-2xl font-bold hover:bg-white/30 transition-colors"
-                                    whileHover={{ scale: 1.05, rotateX: 5 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    ✨ Inizia il tuo tour
-                                </motion.button>
-                            </Link>
-                        </div>
-                    </motion.div>
+                    {/* Gate J1: CTA "Diventa guida" rimossa. Il signup guida
+                        è disattivato in V1 (dashboard guide con analytics finte
+                        muore con Gate J1). Riappare in V2. */}
                 </motion.div>
             </main>
 

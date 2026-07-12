@@ -30,12 +30,10 @@ const RoleGuard = ({ allowedRoles = [] }) => {
         return <Outlet />;
     }
 
-    // 3. Smart Redirect (Vigile Urbano)
-    if (role === 'guide') return <Navigate to="/dashboard-guide" replace />;
-    if (role === 'business') return <Navigate to="/dashboard-business" replace />;
-    if (role === 'explorer' || role === 'user') return <Navigate to="/dashboard-user" replace />;
-
-    return <Navigate to="/" replace />;
+    // 3. Smart Redirect — Gate J1: guide/business dashboards spente in V1.
+    // Chi ha ruolo guide/business finisce su /dashboard-user come tutti gli
+    // altri finché non lanciamo V2/V3.
+    return <Navigate to="/dashboard-user" replace />;
 };
 
 export default RoleGuard;

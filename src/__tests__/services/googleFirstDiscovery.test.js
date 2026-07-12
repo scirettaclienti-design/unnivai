@@ -224,8 +224,8 @@ describe('DVAI-060 — scale-down progressivo (borghi micro con pochi POI)', () 
 // ─── CONFIG THRESHOLDS ──────────────────────────────────────────────────────────
 
 describe('DVAI-060 — QUALITY_THRESHOLDS shape', () => {
-    it('food/cultura/natura definiti con small e large', () => {
-        for (const kind of ['FOOD', 'CULTURA', 'NATURA']) {
+    it('food/cultura/natura/relax definiti con small e large', () => {
+        for (const kind of ['FOOD', 'CULTURA', 'NATURA', 'RELAX']) {
             expect(QUALITY_THRESHOLDS[kind]).toBeDefined();
             expect(QUALITY_THRESHOLDS[kind].small).toMatchObject({ minRating: expect.any(Number), minTotal: expect.any(Number) });
             expect(QUALITY_THRESHOLDS[kind].large).toMatchObject({ minRating: expect.any(Number), minTotal: expect.any(Number) });
@@ -238,8 +238,29 @@ describe('DVAI-060 — QUALITY_THRESHOLDS shape', () => {
     });
 
     it('città ha soglia total più alta di borgo per lo stesso tema', () => {
-        for (const kind of ['FOOD', 'CULTURA', 'NATURA']) {
+        for (const kind of ['FOOD', 'CULTURA', 'NATURA', 'RELAX']) {
             expect(QUALITY_THRESHOLDS[kind].large.minTotal).toBeGreaterThan(QUALITY_THRESHOLDS[kind].small.minTotal);
         }
+    });
+
+    // Gate I: natura/relax hanno soglia recensioni ridotta perché quel tipo di
+    // luogo non accumula recensioni come food/culture (Villa Bellini 148 rec,
+    // un belvedere 30, un ristorante 800). 50 su un parco lo cancella.
+    it('natura large ha soglia recensioni < culture large (parchi non fanno traffico come musei)', () => {
+        expect(QUALITY_THRESHOLDS.NATURA.large.minTotal).toBeLessThan(QUALITY_THRESHOLDS.CULTURA.large.minTotal);
+    });
+
+    it('relax large ha soglia recensioni < culture large (belvedere non fanno traffico come musei)', () => {
+        expect(QUALITY_THRESHOLDS.RELAX.large.minTotal).toBeLessThan(QUALITY_THRESHOLDS.CULTURA.large.minTotal);
+    });
+
+    // Gate I regression — Villa Bellini a Catania: 4.4 rating, 148 recensioni.
+    // Prima veniva scartata da soglia CULTURA large (4.0/50) usata per errore su
+    // customQuery di natura. Con NATURA large (4.0/20) passa.
+    it('Villa Bellini (4.4★, 148 rec) passa NATURA large ma verrebbe scartata da CULTURA large=50', () => {
+        const VILLA_BELLINI = [{ name: 'Villa Bellini', rating: 4.4, user_ratings_total: 148, business_status: 'OPERATIONAL', types: ['park', 'tourist_attraction'] }];
+        const natura = applyQualityThreshold(VILLA_BELLINI, 'NATURA', false); // isSmall=false → città
+        expect(natura.pois).toHaveLength(1);
+        expect(natura.pois[0].name).toBe('Villa Bellini');
     });
 });

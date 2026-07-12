@@ -658,10 +658,18 @@ export default function QuickPathPage() {
             //    è AI e il raggio si applica (il motore ha già filtrato in
             //    generateItinerary, il normalizer riapplica per uniformità).
             const dayTitle = result?.days?.[0]?.title || `Esplora ${activeCity}`;
+            // Gate I — se il motore ha trovato UN SOLO posto vero che valeva
+            // per la richiesta, la description si trasforma in messaggio onesto
+            // ("un solo posto"). Meglio 1 tappa vera + spiegazione che 0 tappe
+            // + errore bugiardo su una città che il posto ce l'ha (Villa Bellini).
+            const singleStop = !!result?._singleStop;
+            const tourDescription = singleStop
+                ? `A ${activeCity} abbiamo trovato un solo posto che vale per questa richiesta. Te lo mostriamo com'è.`
+                : "Esperienza personalizzata generata dal motore AI DoveVAI.";
             const tourData = normalizeTour({
                 id: 'ai-quiz-' + Date.now(),
                 title: dayTitle,
-                description: "Esperienza personalizzata generata dal motore AI DoveVAI.",
+                description: tourDescription,
                 city: activeCity,
                 duration_minutes: selectedDuration?.id === 'veloce' ? 90
                     : selectedDuration?.id === 'lungo' ? 300

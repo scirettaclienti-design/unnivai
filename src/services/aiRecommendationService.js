@@ -237,7 +237,15 @@ export const verifyPOIWithPlaces = async (poi, city) => {
 // dal bug selectedOption string vs .id undefined: il prompt collassava sempre
 // sul dominant di default → gli utenti vedevano lo stesso tour per ogni scelta
 // nel wizard QuickPath. Senza bump, i tour vecchi restano cached 24h dopo il fix.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf6_qp_';
+// Gate I: prefix bumped da 'unnivai_insiderf6_qp_' — soglie per categoria
+// (NATURA/RELAX 4.0/20, CULTURA 4.0/50 large) + soglia candidati 1 (era 3) +
+// query traduttore con termini reali Google Maps (villa/orto botanico) + flag
+// _singleStop. I tour cached col vecchio motore sono probabilmente vuoti
+// ("non troviamo parchi") per query di natura — bumpiamo per non servirli.
+// Bumpato anche il prefisso intent cache: le queries del traduttore possono
+// cambiare col nuovo prompt e i cached "parchi giardini aree verdi" ora sono
+// da rifare.
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf7_soglia_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -465,7 +473,9 @@ export function derivePrimaryThemes(prefs) {
 // Fallimento della cache o del proxy → throw. Il chiamante decide (nel motore,
 // il path A ritorna errore onesto senza mai ricadere sul vecchio AI-first).
 
-const INTENT_CACHE_PREFIX = 'unnivai_intent_v1_';
+// Gate I: bump v1 → v2 (nuovo prompt con termini reali Google Maps → queries
+// diverse per gli stessi prompt utente).
+const INTENT_CACHE_PREFIX = 'unnivai_intent_v2_';
 const INTENT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
 const intentCacheKey = (userPrompt, cityName) => {
@@ -523,6 +533,24 @@ REGOLE SU queries (array di 1 a 3 stringhe):
 - Le query DEVONO essere sinonimi/varianti dello STESSO tipo di luogo o di tipi strettamente correlati. Se l'utente chiede più categorie diverse ("spiagge e dove mangiare"), una query per ciascuna: ["spiagge", "trattoria tipica"].
 - Zero parole vuote: NIENTE "posti belli", "cose da vedere", "esperienze autentiche". Solo sostantivi concreti.
 - Zero nome città nella query. La città la aggiunge il chiamante.
+
+REGOLA CRITICA — TERMINI COME LI USA GOOGLE MAPS (non come li usa un dizionario):
+- Le queries devono usare i termini con cui i luoghi sono REALMENTE registrati su Google Maps, non le categorie astratte.
+- I luoghi si registrano col loro NOME PROPRIO tipico. In Italia:
+    parchi urbani     → si chiamano quasi sempre "villa" (Villa Bellini, Villa Comunale, Villa Borghese, Villa Sciarra).
+                        Solo raramente "parco" (Parco Sempione, Parco della Musica).
+                        Query giusta per natura urbana: ["villa comunale parco", "orto botanico", "giardino pubblico"].
+                        Query debole: ["parchi", "giardini", "aree verdi"] — non matcha nomi propri veri.
+    giardini botanici → "orto botanico" (non "giardino botanico").
+    belvedere         → "belvedere panorama" o "terrazza panoramica".
+    trattorie tipiche → "trattoria tipica" o "osteria" (non "cucina tradizionale", troppo generico).
+    spiagge           → "spiagge", "lidi", "cale" — tutti termini nativi Google Maps.
+    musei archeologici → "museo archeologico" (non "archeologia").
+- Esempio applicato:
+    input: "un giro nei parchi di Catania"
+    queries: ["villa comunale parco", "orto botanico", "giardino pubblico"]  ✓
+    queries: ["parchi", "giardini", "aree verdi"]                            ✗ (nomi generici non matchano su Google)
+- Regola generale: pensa al nome PROPRIO che una persona darebbe al posto trovandolo su Google Maps, non alla categoria che ci mette un dizionario.
 
 REGOLE SU categoria (una sola stringa):
 - Sintetizza il tipo dominante di luoghi richiesti.
@@ -676,10 +704,21 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
             };
         }
         const queriesToRun = intent.queries.slice(0, 3);
+        // Gate I — customKind derivato da intent.categoria: la soglia qualità
+        // deve rispettare il tipo di luogo (parchi hanno meno recensioni di
+        // ristoranti — chiedere 50 recensioni a un parco lo cancella).
+        const CATEGORIA_TO_KIND = {
+            natura: 'NATURA',
+            relax:  'RELAX',
+            cibo:   'FOOD',
+            // arte, cultura, storia, misto, sconosciuta, shopping, nightlife,
+            // famiglia, romantico → CULTURA (soglia media)
+        };
+        const customKind = CATEGORIA_TO_KIND[String(intent.categoria || '').toLowerCase()] || 'CULTURA';
         lists = await Promise.all(
             queriesToRun.map(q => placesDiscoveryService.discoverRealPOIs(
                 cityName, lat, lng, null,
-                { customQuery: q, skipLegacyFallback: true }
+                { customQuery: q, customKind, skipLegacyFallback: true }
             ))
         );
     } else {
@@ -926,7 +965,10 @@ export const aiRecommendationService = {
         const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
         try {
             const { candidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt);
-            if (candidates.length >= 3) {
+            // Gate I — soglia minima 1 candidato (era 3). Un posto vero è meglio
+            // di zero. Un tour di 1 tappa con Villa Bellini > messaggio bugiardo
+            // "A Catania non troviamo parchi" (Catania ha Villa Bellini).
+            if (candidates.length >= 1) {
                 const selectorPrompt = buildSelectorSystemPrompt({
                     city, timeContext, weather, weatherIcon,
                     prefs, aiProfile, cityCenter, candidates, userPrompt,
@@ -976,17 +1018,18 @@ export const aiRecommendationService = {
                         };
                     }).filter(d => d.stops.length > 0);
 
-                    // Almeno una giornata con almeno 3 tappe canoniche → success.
-                    // Se meno (troppe halluc, o filtri hanno tagliato) → fall-through
-                    // al vecchio flusso invece di consegnare un tour dimezzato.
-                    if (finalDays.length > 0 && finalDays[0].stops.length >= 3) {
-                        const result = { days: finalDays, _source: 'google-first' };
+                    // Gate I — soglia minima 1 tappa (era 3). Un posto vero è
+                    // meglio di zero. Se 1 tappa, il flag _singleStop segnala
+                    // alla UI di mostrare un banner onesto ("un solo posto").
+                    if (finalDays.length > 0 && finalDays[0].stops.length >= 1) {
+                        const singleStop = finalDays[0].stops.length === 1;
+                        const result = { days: finalDays, _source: 'google-first', _singleStop: singleStop };
                         saveInsiderToCache(cacheKey, result);
                         return result;
                     }
-                    // Gate B — Path A: se selettore produce <3 tappe, errore onesto (no fallback).
+                    // Gate B/I — Path A: 0 tappe canoniche → errore onesto (no fallback).
                     if (isFreeTextIntent) {
-                        console.warn(`[Gate B] path A "${city}" — <3 tappe canoniche → errore onesto (no fallback AI-first)`);
+                        console.warn(`[Gate B] path A "${city}" — 0 tappe canoniche → errore onesto (no fallback AI-first)`);
                         return {
                             days: [{ stops: [] }],
                             _source: 'no-results',
@@ -995,7 +1038,7 @@ export const aiRecommendationService = {
                             _oggetto_umano: intent?.oggetto_umano || 'quello che hai chiesto',
                         };
                     }
-                    console.warn(`[DVAI-060 F2] Google-first ha prodotto <3 tappe canoniche per "${city}", fallback AI-first`);
+                    console.warn(`[DVAI-060 F2] Google-first ha prodotto 0 tappe canoniche per "${city}", fallback AI-first`);
                 } catch (err) {
                     clearTimeout(timeoutId);
                     if (err instanceof AiQuotaExceededError) throw err;
@@ -1013,9 +1056,10 @@ export const aiRecommendationService = {
                     console.warn(`[DVAI-060 F2] Selettore fallito (${err.name === 'AbortError' ? 'timeout' : err.message}) → fallback AI-first`);
                 }
             } else {
-                // Gate B — Path A: <3 candidati Places → errore onesto. MAI ricadere sul vecchio motore.
+                // Gate B/I — Path A: 0 candidati Places → errore onesto (no fallback).
+                // Con soglia >= 1, questo ramo scatta solo per candidates === 0.
                 if (isFreeTextIntent) {
-                    console.info(`[Gate B] path A "${city}" — ${candidates.length} candidati Places < 3 → errore onesto (no fallback AI-first)`);
+                    console.info(`[Gate B] path A "${city}" — 0 candidati Places → errore onesto (no fallback AI-first)`);
                     return {
                         days: [{ stops: [] }],
                         _source: 'no-results',
@@ -1024,9 +1068,7 @@ export const aiRecommendationService = {
                         _oggetto_umano: intent?.oggetto_umano || 'quello che hai chiesto',
                     };
                 }
-                if (candidates.length > 0) {
-                    console.info(`[DVAI-060 F2] "${city}" solo ${candidates.length} candidati Google → fallback AI-first`);
-                }
+                // Path B: 0 candidati → fallback AI-first (retrocompat).
             }
         } catch (err) {
             if (err instanceof AiQuotaExceededError) throw err;

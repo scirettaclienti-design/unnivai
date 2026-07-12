@@ -309,13 +309,19 @@ const buildLocalFallback = (cityName, lat, lng, themeType) => {
 // downstream (buildSmartExperiencesAsync in DashboardUser resta invariato).
 
 // ─── SOGLIE per tema × dimensione posto ─────────────────────────────────────────
-// FOOD: rating alto = filtro anti-catena implicito (Burger Sicily 4.0 esce).
-// CULTURA/NATURA: rating 4.0 accetta musei/chiese piccole legittime.
-// Tarate su Troina + Enna reali, non su ipotesi.
+// Gate I — differenziate per categoria perché il volume di recensioni Google
+// varia molto per tipo di luogo:
+//   food/culture: alto traffico (una pizzeria 800, un museo 500)
+//   nature/relax: basso traffico (Villa Bellini 148, un belvedere 30)
+// Chiedere 50 recensioni a un parco è come chiedere 800 a un belvedere:
+// lo cancelli. Il rating (4.0) resta a garantire la qualità.
+// FOOD: rating alto (4.2) = filtro anti-catena implicito (Burger Sicily 4.0 esce).
+// CULTURA/NATURA/RELAX: rating 4.0 accetta musei/chiese/parchi piccoli legittimi.
 const QUALITY_THRESHOLDS = {
   FOOD:    { small: { minRating: 4.2, minTotal: 3 }, large: { minRating: 4.2, minTotal: 50 } },
-  CULTURA: { small: { minRating: 4.0, minTotal: 3 }, large: { minRating: 4.0, minTotal: 20 } },
+  CULTURA: { small: { minRating: 4.0, minTotal: 3 }, large: { minRating: 4.0, minTotal: 50 } },
   NATURA:  { small: { minRating: 4.0, minTotal: 3 }, large: { minRating: 4.0, minTotal: 20 } },
+  RELAX:   { small: { minRating: 4.0, minTotal: 3 }, large: { minRating: 4.0, minTotal: 20 } },
 };
 
 // ─── Mapping tema utente → query textsearch + kind di soglia ────────────────────

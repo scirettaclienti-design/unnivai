@@ -99,4 +99,48 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
         expect(p).toMatch(/^Cerco:/);
         expect(p).not.toMatch(/A\s+\.\s+cerco/);
     });
+
+    // Gate H — REGRESSION TEST del bug scoperto da Ivano su device (Catania,
+    // Natura+Parchi vs Città → stesso identico tour). Causa: selectedOption
+    // era una STRING ma il codice la trattava come oggetto (.id/.title) → main
+    // sempre undefined → prompt sempre = dominant di default → cache hit.
+    // Questi 3 test avrebbero preso il bug in CI.
+
+    it('selezioni diverse → prompt diversi (regression Gate H)', () => {
+        const natura = buildPromptFromSelections({
+            main: 'natura', sub: 'parco', time: '', duration: 'medio',
+            group: '', city: 'Catania',
+        });
+        const citta = buildPromptFromSelections({
+            main: 'citta', sub: 'centro', time: '', duration: 'medio',
+            group: '', city: 'Catania',
+        });
+        const cibo = buildPromptFromSelections({
+            main: 'cibo', sub: 'street', time: '', duration: 'medio',
+            group: '', city: 'Catania',
+        });
+        expect(natura).not.toBe(citta);
+        expect(natura).not.toBe(cibo);
+        expect(citta).not.toBe(cibo);
+    });
+
+    it('main "natura" → prompt contiene parole di natura, non "monumenti principali"', () => {
+        const p = buildPromptFromSelections({
+            main: 'natura', sub: 'parco', time: '', duration: 'medio',
+            group: '', city: 'Catania',
+        });
+        expect(p).toMatch(/parchi|giardini|aree verdi/i);
+        // Il dominant di default ("monumenti principali") NON deve comparire
+        // — se compare, il main è collassato su undefined come nel bug Gate H.
+        expect(p).not.toMatch(/monumenti principali/);
+    });
+
+    it('main "cibo" → prompt contiene "street food"/"trattorie", non "monumenti"', () => {
+        const p = buildPromptFromSelections({
+            main: 'cibo', sub: 'street', time: '', duration: 'medio',
+            group: '', city: 'Roma',
+        });
+        expect(p).toMatch(/street food|mercati|cucina di strada/i);
+        expect(p).not.toMatch(/monumenti principali/);
+    });
 });

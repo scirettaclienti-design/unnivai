@@ -563,9 +563,16 @@ export default function QuickPathPage() {
     // - Qualsiasi altro throw → 'error-technical'.
     // Zero coordinate hardcoded. Zero Unsplash. Zero enforceRadius:false.
     const generateItinerary = async (group) => {
+        // Gate H — selectedOption è la STRING id (settata via
+        // handleMainSelection(option.id) al click sulla box). Gli altri 4
+        // (sub/time/duration/group) sono OGGETTI (i loro onClick passano
+        // l'oggetto intero). Prima il codice qui leggeva selectedOption?.id
+        // che restituiva undefined → main=undefined → buildPromptFromSelections
+        // cadeva sul dominant di default per ogni scelta → prompt sempre
+        // identico → cache hit → stesso tour indipendentemente dalla scelta.
         console.log('[QuickPath] START generation:', {
             city: activeCity,
-            main: selectedOption?.id,
+            main: selectedOption,
             sub: selectedSubOption?.id,
             time: selectedTime?.id,
             duration: selectedDuration?.id,
@@ -589,8 +596,9 @@ export default function QuickPathPage() {
 
         try {
             // 1. Costruisci prompt dalle 5 selezioni (buildPromptFromSelections).
+            // Gate H: selectedOption è STRING (vedi commento in generateItinerary).
             const prompt = buildPromptFromSelections({
-                main:     selectedOption?.id,
+                main:     selectedOption,
                 sub:      selectedSubOption?.id,
                 time:     selectedTime?.id,
                 duration: selectedDuration?.id,
@@ -604,10 +612,12 @@ export default function QuickPathPage() {
 
             // 3. Prefs: usa la stessa shape che AiItinerary passa al motore
             //    (duration/group testuali + interests come coppia main+sub).
+            // Gate H: selectedOption è STRING → risolviamo title via mainOptions.find.
+            const mainTitle = mainOptions.find(o => o.id === selectedOption)?.title;
             const prefsObject = {
                 duration: selectedDuration?.title || '',
                 group:    group?.title || '',
-                interests: [selectedOption?.title, selectedSubOption?.title].filter(Boolean),
+                interests: [mainTitle, selectedSubOption?.title].filter(Boolean),
             };
 
             // 4. aiProfile dal graph learning (come fa AiItinerary).
@@ -661,7 +671,7 @@ export default function QuickPathPage() {
                 stops: rawStops,
                 isAiGenerated: true,
                 tags: ['AI', group?.title, 'QuickPath',
-                    selectedOption?.title, selectedSubOption?.title].filter(Boolean),
+                    mainTitle, selectedSubOption?.title].filter(Boolean),
                 guideBio: "Itinerario cucito su misura dal motore AI DoveVAI.",
                 highlights: [selectedSubOption?.title, activeCity, group?.title].filter(Boolean),
                 included: [],

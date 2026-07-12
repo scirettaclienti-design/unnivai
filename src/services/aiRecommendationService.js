@@ -233,7 +233,11 @@ export const verifyPOIWithPlaces = async (poi, city) => {
 // (AI riceve luoghi reali da Google e li racconta, invece di inventarli). Shape stops
 // arricchita con `googlePlaceId`, `googlePhoto` canonicizzati; description/insiderTip
 // ora hanno guardrail voce più stretti.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf3_gf_';
+// Gate H: prefix bumped da 'unnivai_insiderf3_gf_' per invalidare i tour cached
+// dal bug selectedOption string vs .id undefined: il prompt collassava sempre
+// sul dominant di default → gli utenti vedevano lo stesso tour per ogni scelta
+// nel wizard QuickPath. Senza bump, i tour vecchi restano cached 24h dopo il fix.
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf6_qp_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {

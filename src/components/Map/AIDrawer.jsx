@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, MessageSquare, ArrowUp, X, MapPin } from 'lucide-react';
 import { aiRecommendationService } from '../../services/aiRecommendationService';
+import { useToast } from '../../hooks/use-toast';
 
 export const AIDrawer = ({ isOpen, onClose, selectedPOI, activeCity }) => {
     const [query, setQuery] = useState('');
@@ -9,10 +10,16 @@ export const AIDrawer = ({ isOpen, onClose, selectedPOI, activeCity }) => {
         { role: 'assistant', content: `Ciao! Sono l'assistente di DoveVai. Chiedimi curiosità, storie nascoste o consigli su ${selectedPOI?.name || selectedPOI?.title || activeCity}!` }
     ]);
     const [isTyping, setIsTyping] = useState(false);
+    const { toast } = useToast();
 
     const handleSend = async () => {
-        if (!query.trim()) return;
-        
+        // Gate J3: gate NON silenzioso. Se l'utente preme Enter con input vuoto
+        // (il bottone è già disabled ma Enter arriva lo stesso), feedback esplicito.
+        if (!query.trim()) {
+            toast({ title: 'Scrivi qualcosa prima di inviare.', type: 'info', duration: 2500 });
+            return;
+        }
+
         const newMsg = { role: 'user', content: query };
         const currentMessages = [...messages, newMsg];
         setMessages(currentMessages);

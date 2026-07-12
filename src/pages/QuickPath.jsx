@@ -351,15 +351,16 @@ const getAdaptiveOptions = (city) => {
         }
     });
 
-    // Gate 2 FASE 3 — nessuna Unsplash di fallback. Le sub-opzioni che hanno
-    // già una URL http (dal CITY_CONFIG) la mantengono per ora (Gate C riderà
-    // anche il CITY_CONFIG). Quelle senza URL avranno `image: null` e il JSX
-    // sotto (:795 area) userà il gradient categoryPalette come fallback.
+    // Gate J2 — Nessuna Unsplash nel wizard. Tutti gli `image` dei sub sono
+    // FORZATI a null qui, ignorando ciò che sta scritto nel CITY_CONFIG. Il JSX
+    // sotto renderizza il gradient categoryPalette (getCoverPalette) come cover
+    // deterministica per ogni sub. I 26 Unsplash hardcoded in CITY_CONFIG.sub
+    // sono ora inerti (potranno essere rimossi in un cleanup successivo).
     const subWithImages = {};
     Object.keys(config.sub).forEach(key => {
         subWithImages[key] = (config.sub[key] || []).map(item => ({
             ...item,
-            image: item?.image && item.image.startsWith('http') ? item.image : null,
+            image: null,
         }));
     });
     return {

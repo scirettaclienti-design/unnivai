@@ -413,21 +413,12 @@ const PlaceDetailsView = ({ place, onBack }) => {
                 </div>
             </div>
 
-            {/* Bottom Action Bar */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 flex gap-3 z-50">
-                <button
-                    onClick={() => toast({ title: `📞 Chiamata in corso verso ${place.title}...`, type: 'info' })}
-                    className="flex-1 bg-gray-100 text-gray-800 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors"
-                >
-                    Chiama
-                </button>
-                <button
-                    onClick={() => toast({ title: `✅ Azione avviata: ${place.type === 'food' ? 'Prenotazione Tavolo' : place.type === 'hotel' ? 'Verifica Disponibilità' : 'Visita Sito Web'}`, type: 'success' })}
-                    className="flex-[2] bg-black text-white py-3.5 rounded-xl font-bold text-sm hover:bg-gray-800 transition-colors shadow-lg"
-                >
-                    {place.type === 'food' ? 'Prenota Tavolo' : place.type === 'hotel' ? 'Vedi Disponibilità' : 'Visita Sito'}
-                </button>
-            </div>
+            {/* Gate J2: rimossi bottoni "Chiama" e "Prenota Tavolo/Vedi Disponibilità/
+                Visita Sito". Facevano toast falsi (📞 Chiamata in corso...) senza
+                mai chiamare/prenotare davvero. Meglio nessun bottone che uno
+                bugiardo (regola locked Ivano). Se il place ha un phone_number o
+                booking_url reale (POIDetailDrawer li supporta già con window.open),
+                l'azione va lì, non qui. */}
         </div>
     );
 };

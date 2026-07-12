@@ -59,51 +59,10 @@ const getAdaptiveImage = (city, category) => {
     return cityData.default;
 };
 
-// 🌟 DYNAMIC EXPERIENCES GENERATOR
-const getSurpriseExperiences = (city = 'Roma') => [
-    {
-        id: 1,
-        title: `Avventura Gastronomica a ${city}`,
-        location: `Centro Storico, ${city}`,
-        duration: "3-4 ore",
-        rating: 4.9,
-        participants: "2-8 persone",
-        price: 75,
-        image: getAdaptiveImage(city, 'Gastronomia'),
-        description: `Un tour culinario misterioso tra le delizie di ${city}`,
-        surprise: "🍝",
-        category: "Gastronomia",
-        tags: ["Cibo", "Storia"]
-    },
-    {
-        id: 2,
-        title: `Mistero Artistico di ${city}`,
-        location: `Zona Arte, ${city}`,
-        duration: "2-3 ore",
-        rating: 4.8,
-        participants: "1-6 persone",
-        price: 85,
-        image: getAdaptiveImage(city, 'Arte'),
-        description: `Scopri i tesori nascosti dell'arte di ${city}`,
-        surprise: "🎨",
-        category: "Arte",
-        tags: ["Arte", "Cultura"]
-    },
-    {
-        id: 3,
-        title: `Natura Incontaminata a ${city}`,
-        location: `Dintorni di ${city}`,
-        duration: "4-6 ore",
-        rating: 4.7,
-        participants: "3-12 persone",
-        price: 95,
-        image: getAdaptiveImage(city, 'Natura'),
-        description: `Un'escursione sorprendente nei paesaggi verdi vicino a ${city}`,
-        surprise: "🏔️",
-        category: "Natura",
-        tags: ["Natura", "Sport"]
-    }
-];
+// Gate J2: getSurpriseExperiences rimossa. Prima serviva 3 "esperienze"
+// hardcoded (€75-95, 4.7-4.9★, foto Unsplash) come tour reali cliccabili.
+// Il vero SurpriseTour parte dal pulsante "Genera Esperienza Unica" che
+// chiama shuffleExperience → motore AI reale.
 
 const surpriseTypes = [
     {
@@ -178,7 +137,7 @@ export default function SurpriseTourPage() {
     }, []);
 
     // Dynamic filtered list based on ACTIVE CITY
-    const currentExperiences = getSurpriseExperiences(city || 'Roma');
+    // Gate J2: currentExperiences + getFilteredExperiences rimossi (lista finta).
 
     const filterMap = {
         1: "Gastronomia",
@@ -187,10 +146,8 @@ export default function SurpriseTourPage() {
         4: null
     };
 
-    const getFilteredExperiences = () => {
-        if (!selectedFilter) return currentExperiences;
-        return currentExperiences.filter(exp => exp.category === selectedFilter);
-    };
+    // Gate J2: getFilteredExperiences rimossa (era la funzione che ritornava
+    // le 3 esperienze finte filtrate).
 
     // 🚀 INNESCO AUTOMATICO (se si arriva da una Card Inconscia)
     useEffect(() => {
@@ -599,70 +556,13 @@ export default function SurpriseTourPage() {
                     </div>
                 </motion.div>
 
-                {/* All Surprise Experiences (Filtered List) */}
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-bold text-gray-800">
-                            {selectedFilter ? `Esperienze ${selectedFilter}` : "Ispirazioni del Momento"}
-                        </h2>
-                        {selectedFilter && (
-                            <button
-                                onClick={() => setSelectedFilter(null)}
-                                className="text-xs font-bold text-orange-500 uppercase tracking-wider"
-                            >
-                                Mostra Tutto
-                            </button>
-                        )}
-                    </div>
-
-                    <AnimatePresence mode="popLayout">
-                        {getFilteredExperiences().map((experience, index) => (
-                            <motion.div
-                                layout
-                                key={experience.id}
-                                onClick={() => shuffleExperience(experience.category)}
-                                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex space-x-4 cursor-pointer active:scale-[0.98]"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ duration: 0.4 }}
-                            >
-                                <img
-                                    src={experience.image}
-                                    alt={experience.title}
-                                    className="w-20 h-20 rounded-xl object-cover shadow-sm bg-gray-100"
-                                />
-                                <div className="flex-1 min-w-0 py-1">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <span className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full uppercase tracking-wide">
-                                                {experience.category}
-                                            </span>
-                                            <h3 className="font-bold text-gray-800 leading-tight mt-1 truncate pr-2">
-                                                {experience.title}
-                                            </h3>
-                                        </div>
-                                        <span className="text-sm font-bold text-gray-900">€{experience.price}</span>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{experience.description}</p>
-                                    <div className="flex items-center mt-2 text-xs text-gray-400">
-                                        <Clock className="w-3 h-3 mr-1" /> {experience.duration}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-
-                    {getFilteredExperiences().length === 0 && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-center py-12"
-                        >
-                            <p className="text-gray-500">Nessuna esperienza trovata per questa categoria.</p>
-                        </motion.div>
-                    )}
-                </div>
+                {/* Gate J2: rimossa lista "Ispirazioni del Momento" con 3 esperienze
+                    hardcoded ("Avventura Gastronomica" €75 4.9★, "Mistero Artistico"
+                    €85 4.8★, "Natura Incontaminata" €95 4.7★) — foto Unsplash + prezzi
+                    e rating inventati mostrati come tour reali. La vera esperienza
+                    parte solo dal pulsante grande "Genera Esperienza Unica" sopra
+                    (shuffleExperience → motore AI reale con quota 10/day).
+                    I chip categoria sopra restano come pre-selezione del tema. */}
             </main>
 
             <BottomNavigation />

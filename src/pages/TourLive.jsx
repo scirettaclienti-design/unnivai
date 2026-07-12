@@ -8,74 +8,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { dataService } from "../services/dataService";
 import { supabase } from "../lib/supabase";
 
-const liveToursMock = [
-    {
-        id: 1,
-        title: "Sapori nascosti di Trastevere",
-        guide: "Maria Benedetti",
-        guideAvatar: "👩‍🍳",
-        location: "Roma, Trastevere",
-        duration: "90 min",
-        price: 18,
-        originalPrice: 25,
-        rating: 4.8,
-        reviews: 47,
-        participants: 8,
-        maxParticipants: 12,
-        image: "https://images.unsplash.com/photo-1555992336-03a23c7b20ee?w=400&h=300&fit=crop",
-        description: "Scopri i sapori autentici del quartiere più caratteristico di Roma",
-        highlights: ["🍝 Pasta fresca", "🍷 Vini locali", "📸 Foto ricordo"],
-        category: "food",
-        categoryIcon: Utensils,
-        live: true,
-        startTime: "19:30",
-        nextStart: "Tra 2 ore"
-    },
-    {
-        id: 2,
-        title: "Palermo tra mercati e street art",
-        guide: "Giuseppe Torrisi",
-        guideAvatar: "🎨",
-        location: "Palermo, Centro storico",
-        duration: "2 ore",
-        price: 22,
-        originalPrice: 30,
-        rating: 4.9,
-        reviews: 63,
-        participants: 15,
-        maxParticipants: 20,
-        image: "https://images.unsplash.com/photo-1526392060635-9d6019884377?w=400&h=300&fit=crop",
-        description: "Un viaggio tra i colori e i sapori dei mercati storici palermitani",
-        highlights: ["🎨 Arte urbana", "🛒 Mercati", "🍊 Degustazioni"],
-        category: "culture",
-        categoryIcon: Camera,
-        live: true,
-        startTime: "16:00",
-        nextStart: "In corso"
-    },
-    {
-        id: 3,
-        title: "Venezia segreta: calli e bacari",
-        guide: "Andrea Morosini",
-        guideAvatar: "🚤",
-        location: "Venezia, Cannaregio",
-        duration: "2.5 ore",
-        price: 25,
-        originalPrice: 35,
-        rating: 4.7,
-        reviews: 38,
-        participants: 6,
-        maxParticipants: 10,
-        image: "https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=400&h=300&fit=crop",
-        description: "Esplora la Venezia autentica lontano dalle folle turistiche",
-        highlights: ["🍷 Spritz", "🦐 Cicchetti", "🗺️ Calli nascoste"],
-        category: "adventure",
-        categoryIcon: Eye,
-        live: false,
-        startTime: "20:00",
-        nextStart: "Domani"
-    }
-];
+// Gate J2: liveToursMock RIMOSSO. Prima serviva 3 tour finti (Maria Benedetti a
+// Roma €18 4.8★, Giuseppe Torrisi a Palermo €22 4.9★, Andrea Morosini a Venezia
+// €25 4.7★) con foto Unsplash come fallback quando il DB non aveva tour per
+// la città corrente. Meglio empty state onesto ("Nessun tour live oggi") che
+// tour inventati con guide inesistenti (Maria Benedetti era già uccisa in
+// Gate D-1 tourDetailsMock, era rientrata qui).
 
 import { useUserContext } from "@/hooks/useUserContext";
 
@@ -125,19 +63,9 @@ export default function TourLivePage() {
             // Let's keep strict behavior: If DB yields nothing, return empty or fallback subset.
             // Current Mock Data is hardcoded for Roma/Palermo/Venezia.
 
-            if (tours && tours.length > 0) return tours;
-
-            // Fallback Logic (Client Side Filtering of Mocks)
-            // Allows testing "Palermo" via manual switch if mock data exists
-            const cityFilteredMocks = liveToursMock.filter(t => t.location.includes(currentCity));
-
-            // If we have mocks for this city, return them.
-            if (cityFilteredMocks.length > 0) return cityFilteredMocks;
-
-            // Strict fallback: if we are in a supported MVP city (Roma) but DB failed, show complete mock.
-            if (currentCity === 'Roma') return liveToursMock;
-
-            return []; // No tours found for this city
+            // Gate J2: nessun fallback liveToursMock. Se il DB non ha tour per
+            // la città, la lista resta vuota e la UI mostra empty state onesto.
+            return tours || [];
         },
         initialData: [], // Start empty, let query resolve
         staleTime: 60 * 1000 * 5

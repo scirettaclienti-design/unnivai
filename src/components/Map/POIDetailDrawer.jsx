@@ -188,29 +188,29 @@ export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavig
                   <Globe size={18} /> Sito
                 </button>
               )}
+              {/* Gate K: numero di telefono come TESTO, non link tel: né bottone.
+                  Regola Ivano: "Zero tel: link, zero bottoni." Se Places restituisce
+                  poi.phone_number è un dato vero → lo mostriamo, ma senza azione
+                  simulata. L'utente copia il numero e chiama dal suo telefono. */}
               {poi.phone_number && (
-                <button 
-                  onClick={() => window.open(`tel:${poi.phone_number}`, '_self')}
-                  className="flex-1 bg-gray-50 text-gray-700 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors border border-gray-200 shadow-sm text-sm"
-                >
-                  <PhoneCall size={18} /> Chiama
-                </button>
+                <div className="flex-1 bg-gray-50 text-gray-700 py-3.5 rounded-2xl flex items-center justify-center gap-2 border border-gray-200 text-sm select-all">
+                  <PhoneCall size={16} className="text-gray-500" />
+                  <span className="font-semibold tabular-nums">{poi.phone_number}</span>
+                </div>
               )}
-              {poi.booking_url ? (
-                <button 
+              {/* Gate K: bottone "Prenota" fallback (level=1) RIMOSSO. Prima faceva
+                  toast "Prenotazione non disponibile per questa struttura." — un
+                  bottone che dichiara di non funzionare è una funzione che finge.
+                  Se poi.booking_url esiste, mostriamo il bottone Prenota reale
+                  (window.open a link vero); altrimenti nessun bottone. */}
+              {poi.booking_url && (
+                <button
                   onClick={() => window.open(poi.booking_url, '_blank')}
                   className="flex-[1.5] bg-gradient-to-r from-[#d4af37] to-[#eaaa00] text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/30 hover:shadow-xl active:scale-95 transition-all text-sm uppercase tracking-wide"
                 >
                   <CalendarCheck size={18} /> Prenota
                 </button>
-              ) : poi.level === 1 ? (
-                <button 
-                  onClick={() => toast({ title: 'Prenotazione non disponibile per questa struttura.', type: 'info' })}
-                  className="flex-[1.5] bg-gray-900 text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg hover:bg-black active:scale-95 transition-all text-sm uppercase tracking-wide"
-                >
-                  Dettagli
-                </button>
-              ) : null}
+              )}
             </div>
           )}
 

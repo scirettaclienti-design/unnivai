@@ -7,6 +7,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Flag, Store, ArrowRight, User, Mail, Lock, Briefcase, CheckCircle, Compass, ChevronLeft, Sparkles, Star, Eye, EyeOff } from 'lucide-react';
 import { LoginSchema, SignupSchema, validateForm } from '../lib/validationSchemas';
 
+// Gate K — In V1 il selettore ruolo mostra SOLO "Viaggiatore".
+// Le opzioni "Sono una Guida" e "Ho un'Attività" sono commentate ma restano nel
+// file (torneranno in V2/V3 togliendo un commento). Un signup che porta a
+// dashboard bloccate è una trappola — meglio non offrire la scelta.
 const ROLES = [
     {
         id: 'tourist',
@@ -23,36 +27,9 @@ const ROLES = [
         accent: '#10b981',
         perks: ['Itinerari AI personalizzati', 'Guide locali verificate', 'Mappa interattiva live'],
     },
-    {
-        id: 'guide',
-        icon: Flag,
-        emoji: '🏛️',
-        title: 'Sono una Guida',
-        subtitle: 'Local Expert',
-        desc: 'Trasforma la tua conoscenza in guadagno. Crea itinerari, gestisci tour e fatti conoscere da migliaia di viaggiatori.',
-        gradient: 'from-orange-500 to-amber-600',
-        glow: 'shadow-orange-500/25',
-        border: 'border-orange-500/40',
-        bg: 'from-orange-500/10 to-amber-600/5',
-        ring: 'ring-orange-500/30',
-        accent: '#f97316',
-        perks: ['Dashboard guida completa', 'Richieste live in tempo reale', 'Pagamenti integrati'],
-    },
-    {
-        id: 'business',
-        icon: Store,
-        emoji: '🏪',
-        title: 'Ho un\'Attività',
-        subtitle: 'Business Partner',
-        desc: 'Attira nuovi clienti diventando tappa ufficiale dei tour DoveVai. Aumenta la visibilità del tuo locale.',
-        gradient: 'from-blue-500 to-indigo-600',
-        glow: 'shadow-blue-500/25',
-        border: 'border-blue-500/40',
-        bg: 'from-blue-500/10 to-indigo-600/5',
-        ring: 'ring-blue-500/30',
-        accent: '#3b82f6',
-        perks: ['Profilo business premium', 'Visibilità su tutti i tour', 'Statistiche e analytics'],
-    },
+    // Gate K: guide e business RIMOSSE dal selettore. V2/V3.
+    // { id: 'guide', ... }
+    // { id: 'business', ... }
 ];
 
 const Login = () => {

@@ -428,7 +428,8 @@ export default function TourDetailsPage() {
     const location = useLocation();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const isGroupMode = searchParams.get('mode') === 'group';
+    // Gate K: isGroupMode + `?mode=group` deep link RIMOSSI. Il Group Mode non
+    // esiste in V1. Ogni tour è un tour normale (self-guided o Guide-led).
 
     // 1. DATA RETRIEVAL (Unified Strategy)
     const [localTour, setLocalTour] = useState(null);
@@ -705,14 +706,11 @@ export default function TourDetailsPage() {
 
     const isGuideTour = tour.type !== 'self-guided' && !tour.isAiGenerated;
 
-    // Mock Participants for Group Mode
-    const groupParticipants = [
-        { id: 1, name: "Sofia", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" },
-        { id: 2, name: "Marco", avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop" },
-        { id: 3, name: "Elena", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop" },
-        { id: 4, name: "Luca", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" },
-        { id: 5, name: "Giulia", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop" },
-    ];
+    // Gate K: groupParticipants + intero Group Mode RIMOSSI. Era pressione
+    // sociale fabbricata: 5 persone inesistenti (Sofia/Marco/Elena/Luca/Giulia)
+    // con avatar Unsplash + badge "Confermati" + "altri 4 esploratori" mostrati
+    // a un utente che il tour lo fa da solo. Group Mode non esiste in V1.
+    // Se un giorno esisterà, sarà con persone vere dal DB.
 
     const navigateToMap = () => {
         // 🛡️ ROBUST WAYPOINT PARSING
@@ -773,7 +771,7 @@ export default function TourDetailsPage() {
                     title: tour.title,
                     waypoints: safeWaypoints,
                     steps: tour.steps, // Pass full steps
-                    mode: isGroupMode ? 'group_tour' : 'tour',
+                    mode: 'tour', // Gate K: Group Mode rimosso, mode è sempre 'tour'
                     routePath: tour.routePath, // Pass route path
                     center: tour.center, // ⚡ CRITICAL: Pass explicit center for Map Page
                     // Guide contact context — needed for "Contatta Guida" button in MapPage
@@ -793,10 +791,9 @@ export default function TourDetailsPage() {
         setCtaDisabled(true);
         setTimeout(() => setCtaDisabled(false), 2000); // debounce 2s
 
-        if (isGroupMode) {
-            toast({ title: `Ti sei unito al gruppo di ${groupParticipants[0].name}! Ci vediamo al punto di incontro.`, type: 'success' });
-            navigateToMap();
-        } else if (isGuideTour) {
+        // Gate K: rimosso il ramo isGroupMode (toast "Ti sei unito al gruppo
+        // di Sofia!" era una finta unione a un gruppo inesistente).
+        if (isGuideTour) {
             setShowRequestModal(true);
         } else {
             navigateToMap();
@@ -897,7 +894,7 @@ export default function TourDetailsPage() {
                                 )}
                                 {!tour.live && (
                                     <div className="absolute bottom-4 left-4 bg-white/90 text-terracotta-600 px-4 py-2 rounded-full font-bold text-sm shadow-lg">
-                                        {isGroupMode ? '👥 Gruppo Privato' : (isGuideTour ? '👤 Tour Guidato' : '🗺️ Self-Guided')}
+                                        {isGuideTour ? '👤 Tour Guidato' : '🗺️ Self-Guided'}
                                     </div>
                                 )}
                             </div>
@@ -949,45 +946,9 @@ export default function TourDetailsPage() {
                             </motion.div>
                         </div>
 
-                {/* --- SOCIAL BLOCK (Group Mode Only) --- */}
-                {isGroupMode && (
-                    <motion.div
-                        className="bg-purple-50 border-2 border-purple-200 rounded-3xl p-6 relative overflow-hidden"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.6 }}
-                    >
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-purple-100 rounded-bl-full -mr-4 -mt-4 opacity-50" />
-
-                        <h3 className="font-bold text-gray-800 mb-4 flex items-center relative z-10">
-                            <span className="text-2xl mr-2">💌</span>
-                            Invito Speciale
-                        </h3>
-
-                        <p className="text-sm text-gray-700 font-medium mb-4 relative z-10">
-                            Ti stai unendo a <span className="font-bold text-purple-700">{groupParticipants[0].name}</span> e altri {groupParticipants.length - 1} esploratori per vivere questa storia dal vivo.
-                        </p>
-
-                        <div className="flex items-center justify-between relative z-10">
-                            <div className="flex space-x-2">
-                                {/* Simple Avatar Stack */}
-                                <div className="flex -space-x-3">
-                                    {groupParticipants.map((p, i) => (
-                                        <div key={p.id} className="w-10 h-10 rounded-full border-2 border-white overflow-hidden" style={{ zIndex: 10 - i }}>
-                                            <img loading="lazy" src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
-                                        </div>
-                                    ))}
-                                    <div className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500" style={{ zIndex: 0 }}>
-                                        +2
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="text-xs font-bold text-purple-600 bg-white px-3 py-1 rounded-full shadow-sm">
-                                Confermati
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
+                {/* Gate K: SOCIAL BLOCK Group Mode RIMOSSO — pressione sociale
+                    fabbricata ("Ti stai unendo a Sofia e altri 4 esploratori"
+                    + 5 avatar Unsplash + "Confermati" fake). Fuori. */}
 
                 {/* --- GUIDE OR AI SUMMARY SECTION --- */}
                 {isGuideTour ? (
@@ -1432,34 +1393,25 @@ export default function TourDetailsPage() {
                                 <>
                                     <button
                                         onClick={handleSmartAction}
-                                        className={`w-full py-4 rounded-2xl font-bold text-white shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2 text-lg transform active:scale-95 ${isGroupMode
-                                            ? "bg-gradient-to-r from-purple-500 to-indigo-600 shadow-purple-500/30"
-                                            : (isGuideTour ? "bg-gray-800 hover:bg-black" : "bg-gradient-to-r from-terracotta-400 to-terracotta-600")
-                                            }`}
+                                        className={`w-full py-4 rounded-2xl font-bold text-white shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2 text-lg transform active:scale-95 ${
+                                            isGuideTour ? "bg-gray-800 hover:bg-black" : "bg-gradient-to-r from-terracotta-400 to-terracotta-600"
+                                        }`}
                                     >
-                                        {isGroupMode ? (
+                                        {/* Gate K: CTA "Unisciti al Gruppo" RIMOSSA (Group Mode fake). */}
+                                        {isGuideTour ? (
                                             <>
-                                                <Users className="w-6 h-6" />
-                                                <span>Unisciti al Gruppo</span>
+                                                <MessageCircle className="w-6 h-6" />
+                                                <span>Richiedi Guida</span>
                                             </>
                                         ) : (
-                                            isGuideTour ? (
-                                                <>
-                                                    <MessageCircle className="w-6 h-6" />
-                                                    <span>Richiedi Guida</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Play className="w-6 h-6 fill-current" />
-                                                    <span>Avvia Itinerario</span>
-                                                </>
-                                            )
+                                            <>
+                                                <Play className="w-6 h-6 fill-current" />
+                                                <span>Avvia Itinerario</span>
+                                            </>
                                         )}
                                     </button>
                                     <p className="text-center text-xs text-gray-500 mt-2">
-                                        {isGroupMode
-                                            ? "Ti unirai ufficialmente alla lista dei partecipanti."
-                                            : (isGuideTour ? "Invierai una richiesta non vincolante alla guida." : "Navigazione GPS inclusa. Clicca per iniziare.")}
+                                        {isGuideTour ? "Invierai una richiesta non vincolante alla guida." : "Navigazione GPS inclusa. Clicca per iniziare."}
                                     </p>
                                 </>
                             )}

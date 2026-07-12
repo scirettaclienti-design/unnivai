@@ -6,6 +6,9 @@ import { CityProvider } from './context/CityContext';
 import RoleGuard from './components/RoleGuard';
 import ErrorBoundary from './components/ErrorBoundary';
 import ToastProvider from './components/ToastProvider';
+// Gate K — Guard che redirige rotte V2/V3 (Guide/Business/BecomeGuide) a
+// /dashboard-user con toast onesto "Disponibile prossimamente."
+import V1LockedGuard from './components/V1LockedGuard';
 // DVAI-022: APIProvider rimosso dal root — caricato SOLO nelle pagine mappa
 // tramite MapAPIWrapper (MapPage, TourBuilder, Explore).
 
@@ -16,12 +19,14 @@ const Profile        = lazy(() => import('./pages/Profile'));
 const TourDetails    = lazy(() => import('./pages/TourDetails'));
 const AiItinerary    = lazy(() => import('./pages/AiItinerary'));
 const DashboardUser  = lazy(() => import('./pages/DashboardUser'));
-// Gate J1: DashboardGuide, DashboardBusiness, BecomeGuide, GuidePlaceholder,
-// TourBuilder — pagine Guide/Business V2/V3. Il codice resta nel repo ma
-// nessuna rotta le raggiunge in V1: modello di lancio locked = viaggiatore +
-// motore AI. Le dashboard con analytics/chat/messaggi finti (audit anti-fake
-// 15 CRITICA) sarebbero peggio che assenti — un partner vede €2450 di
-// guadagni inventati e capisce che stiamo bluffando. Meglio spegnerle.
+// Gate K — Le pagine Guide/Business/BecomeGuide restano lazy-caricate, ma le
+// loro rotte sono wrappate in <V1LockedGuard> che redirige a /dashboard-user
+// con toast "Disponibile prossimamente". In V2/V3 basta togliere il guard
+// senza rifare il router. Vedi src/components/V1LockedGuard.jsx.
+const DashboardGuide = lazy(() => import('./pages/DashboardGuide'));
+const DashboardBusiness = lazy(() => import('./pages/DashboardBusiness'));
+const BecomeGuide    = lazy(() => import('./pages/BecomeGuide'));
+const GuidePlaceholder = lazy(() => import('./pages/GuidePlaceholder'));
 const QuickPath      = lazy(() => import('./pages/QuickPath'));
 const Notifications  = lazy(() => import('./pages/Notifications'));
 const NotificationSettings = lazy(() => import('./pages/NotificationSettings'));
@@ -35,6 +40,7 @@ const NotFound       = lazy(() => import('./pages/NotFound'));
 
 // DVAI-022: Pagine con Google Maps — wrapped con MapAPIWrapper internamente
 const MapPage    = lazy(() => import('./pages/MapPage'));
+const TourBuilder = lazy(() => import('./pages/guide/TourBuilder'));
 const Explore    = lazy(() => import('./pages/Explore'));
 
 // Optimized Query Client
@@ -134,13 +140,27 @@ function App() {
                     <Route path="/tour-live"       element={<TourLive />} />
                     <Route path="/surprise-tour"   element={<SurpriseTour />} />
                     <Route path="/trending"        element={<Trending />} />
+                    {/* Gate K: /become-guide raggiungibile ma bloccata → toast
+                        "Disponibile prossimamente" + redirect /dashboard-user. */}
+                    <Route path="/become-guide"    element={<V1LockedGuard><BecomeGuide /></V1LockedGuard>} />
                   </Route>
 
-                  {/* Gate J1: GUIDE ROUTES + BUSINESS ROUTES + /become-guide
-                      RIMOSSE dal router. Le pagine (DashboardGuide, TourBuilder,
-                      DashboardBusiness, BecomeGuide, GuidePlaceholder) restano
-                      nel repo per V2/V3 ma nessuna rotta le raggiunge.
-                      Chi digita /dashboard-guide/etc. cade sul catch-all 404. */}
+                  {/* Gate K — GUIDE ROUTES: raggiungibili ma bloccate dal
+                      V1LockedGuard che redirige a /dashboard-user con toast
+                      "Disponibile prossimamente." In V2 basta togliere il guard. */}
+                  <Route element={<RoleGuard allowedRoles={['guide']} />}>
+                    <Route path="/dashboard-guide"    element={<V1LockedGuard><DashboardGuide /></V1LockedGuard>} />
+                    <Route path="/guide/create-tour"  element={<V1LockedGuard><TourBuilder /></V1LockedGuard>} />
+                    <Route path="/guide/*"            element={<V1LockedGuard><DashboardGuide /></V1LockedGuard>} />
+                    <Route path="/chat/guide/:id"     element={<V1LockedGuard><GuidePlaceholder type="chat" /></V1LockedGuard>} />
+                    <Route path="/profile/guide/:id"  element={<V1LockedGuard><GuidePlaceholder type="profile" /></V1LockedGuard>} />
+                  </Route>
+
+                  {/* Gate K — BUSINESS ROUTES: raggiungibili ma bloccate. */}
+                  <Route element={<RoleGuard allowedRoles={['business']} />}>
+                    <Route path="/dashboard-business" element={<V1LockedGuard><DashboardBusiness /></V1LockedGuard>} />
+                    <Route path="/business/*"         element={<V1LockedGuard><DashboardBusiness /></V1LockedGuard>} />
+                  </Route>
 
                   {/* DVAI-042: Catch-all 404 */}
                   <Route path="*" element={<NotFound />} />

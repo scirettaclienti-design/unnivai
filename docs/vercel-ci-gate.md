@@ -26,13 +26,16 @@ Serve al gate per leggere lo stato dei check-runs GitHub via API.
    - **Repository access**: *Only select repositories* → seleziona `unnivai`
 
 3. **Repository permissions** — dai SOLO letture (nessun write):
-   - **Actions**: Read-only
-   - **Checks**: Read-only
-   - **Contents**: Read-only
-   - **Metadata**: Read-only (dovrebbe essere già selezionato)
+   - **Actions**: Read-only  ← usato dal gate
+   - **Metadata**: Read-only (obbligatorio di default)
 
    Tutti gli altri: **No access**. Se il PAT trapelasse, l'attaccante non
    potrebbe scrivere nulla.
+
+   NOTE: nei fine-grained PAT il permesso "Checks: Read" non è esposto per
+   Repository permissions. Lo script del gate legge da
+   `/repos/{owner}/{repo}/actions/runs?head_sha=SHA` (Actions API), non da
+   `check-runs` (Checks API), proprio per stare dentro i permessi disponibili.
 
 4. Clicca **Generate token** in fondo alla pagina.
 
@@ -112,17 +115,27 @@ Serve al gate per leggere lo stato dei check-runs GitHub via API.
   (È la convenzione Vercel dell'Ignored Build Step, sembra invertita ma è
    documentata così: https://vercel.com/docs/projects/overview#ignored-build-step)
 
-Lo script fa polling della GitHub Checks API sul SHA del commit corrente
-(`VERCEL_GIT_COMMIT_SHA`), aspetta max 3 minuti che il CI risolva, poi:
-- **Ogni check completed=success/skipped/neutral** → procedi.
-- **Anche un solo check failed** → blocca subito, elenca quali.
-- **Timeout senza risoluzione** → blocca (preferisco missing deploy che deploy
-  con CI incerto).
+Lo script fa polling di GitHub Actions API su
+`/repos/{owner}/{repo}/actions/runs?head_sha={SHA}`, aspetta max 3 minuti che
+i workflow_runs risolvano, poi:
+- **Ogni workflow_run completed con conclusion=success o skipped** → procedi.
+- **Anche un solo workflow_run con conclusion=failure/cancelled/timed_out** →
+  blocca subito, elenca quali (con link al run GH per debug).
+- **Timeout senza risoluzione** → blocca (fail-closed).
+- **HTTP 401/403 dall'API** → blocca + log con istruzioni per rigenerare il PAT.
+
+Regola locked (Ivano): **mai fail-open silenzioso**. In ogni caso di dubbio, si
+blocca. L'unica via per disabilitare volutamente è cancellare `GH_TOKEN` dalle
+env var Vercel — e lo script log ne dice esplicitamente il motivo.
 
 ## Rollback rapido
 
 Se lo script rompe qualcosa (es. bug nel gate stesso):
 - Vercel → Settings → Environment Variables → cancella `GH_TOKEN`.
-- Lo script vede `GH_TOKEN` vuoto → esce con `exit 1` (allow deploy).
+- Lo script vede `GH_TOKEN` vuoto → esce con `exit 0` (BLOCK).
+- Vuoi che i deploy ripartano invece? **Elimina anche l'Ignored Build Step**
+  (Vercel → Settings → Git → Ignored Build Step → **Don't ignore**).
 
-Zero impatto senza riconfigurare nulla.
+Zero rischi lasciando lo script attivo senza il PAT: fallisce chiuso, non
+aperto. Se hai bisogno di deployare in emergenza senza CI, il rollback vero è
+disattivare l'Ignored Build Step.

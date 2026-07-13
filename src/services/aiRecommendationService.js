@@ -1466,10 +1466,19 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
             // 5. Distanza a piedi (SOLO se GPS attivo). Zero fallback su cityCenter.
             const { haversineKm } = await import('./tourShape');
             const hasGps = Number.isFinite(ctx.userLat) && Number.isFinite(ctx.userLng);
-            const enriched = top.map(p => {
+
+            // Gate N.1 — Fetch opening_hours.periods dei top-3 in parallelo.
+            // Ci serve closingTimeTodayHH (es. "22:00") per il prompt. openNow
+            // di Places textsearch resta ma è dato istantaneo meno affidabile.
+            const openingHoursResults = await Promise.all(
+                top.map(p => placesDiscoveryService.fetchPlaceOpeningHours(p.place_id || p.googlePlaceId))
+            );
+
+            const enriched = top.map((p, i) => {
                 const distanceMinutes = hasGps && Number.isFinite(p.latitude) && Number.isFinite(p.longitude)
                     ? Math.round(haversineKm(ctx.userLat, ctx.userLng, p.latitude, p.longitude) * 12)
                     : null;
+                const oh = openingHoursResults[i] || {};
                 return {
                     name: p.name,
                     place_id: p.place_id || p.googlePlaceId,
@@ -1477,9 +1486,10 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
                     lng: p.longitude,
                     rating: p.rating,
                     user_ratings_total: p.user_ratings_total,
-                    // opening_hours.open_now è nel Google textsearch response
-                    // quando disponibile — placesDiscoveryService lo passa attraverso.
-                    open_now: p.opening_hours?.open_now ?? null,
+                    // Preferisci closingTimeTodayHH (da place/details): dato strutturale.
+                    // Fallback openNow (da textsearch): istantaneo, meno affidabile.
+                    closingTimeTodayHH: oh.closingTimeTodayHH || null,
+                    open_now: oh.openNow ?? p.opening_hours?.open_now ?? null,
                     distanceMinutes,
                 };
             });
@@ -1490,11 +1500,21 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
             const tempStr = Number.isFinite(ctx.temperatureC) ? `${ctx.temperatureC}°C` : null;
             const weatherStr = ctx.condition || null;
 
+            // Gate N.1 — Preferisci closingTimeTodayHH (dato strutturale da
+            // place/details) a openNow (istantaneo da textsearch, spesso in ritardo).
+            // Se hai closingTime → "chiude alle 22:00". Se non hai closingTime ma
+            // hai openNow → "aperto adesso" / "chiuso ora". Se nessuno dei due →
+            // NESSUN claim sull'apertura.
             const candidatesBlock = enriched.map((c, i) => {
                 const bits = [`${i + 1}. ${c.name}`];
                 if (c.distanceMinutes !== null) bits.push(`${c.distanceMinutes} min a piedi da te`);
-                if (c.open_now === true) bits.push('aperto adesso');
-                if (c.open_now === false) bits.push('chiuso ora');
+                if (c.closingTimeTodayHH) {
+                    bits.push(`chiude oggi alle ${c.closingTimeTodayHH}`);
+                } else if (c.open_now === true) {
+                    bits.push('aperto adesso');
+                } else if (c.open_now === false) {
+                    bits.push('chiuso ora');
+                }
                 if (Number.isFinite(c.rating)) bits.push(`rating ${c.rating}`);
                 return bits.join(' — ');
             }).join('\n');
@@ -1521,8 +1541,12 @@ Scrivi UNA notifica breve che promette all'utente di andare in 1 o 2 di questi p
 
 REGOLE VOCE (locked):
 - Title = il DATO di contesto, nudo. Esempi: "Sono le 18:12 🌇", "30 gradi 🍝", "Piove ☔". Zero aggettivi ("il cielo sta cambiando" = aggettivo travestito).
-- Message = UN MOTIVO verificabile per andare, costruito SOLO sui dati che hai. Esempi: "Palazzo Biscari è a 6 minuti da te.", "MM Trattoria è a 4 minuti da te, aperto adesso."
-- Non citare orari di chiusura o di apertura precisi (es. "chiude alle 19", "apre alle 20"): NON li hai nel contesto. "aperto adesso" / "chiuso ora" sono ammessi SOLO se open_now è nei dati del candidato. Se non c'è, non dire nulla sull'apertura.
+- Message = UN MOTIVO verificabile per andare, costruito SOLO sui dati che hai. Esempi: "Palazzo Biscari è a 6 minuti da te e chiude alle 19:00", "MM Trattoria è a 4 minuti da te, aperto adesso."
+- Regola sugli orari (PRIORITÀ):
+  1) Se un candidato ha "chiude oggi alle HH:MM" nei suoi dati → PREFERISCILO ("chiude alle 19:00"). È un dato strutturale, affidabile.
+  2) SOLO se manca "chiude oggi alle" ma è presente "aperto adesso" → puoi dire "aperto adesso" (dato istantaneo, meno affidabile).
+  3) Se non hai NÉ orario di chiusura NÉ open_now nei dati del candidato → NON dire nulla sull'apertura. Nessun claim > claim falso.
+- Non inventare mai orari (es. "chiude alle 20" se non c'è nei dati): reintrodurre un fake ucciso.
 - Il motivo DEVE essere costruito SOLO sui dati che ti ho dato sopra (ora, temperatura, meteo, distanza, open_now, rating).
 - NIENTE fatti inventati sul posto: no "il pub dove producono la birra", no "storia dal 1960". Se non è nei dati sopra, non lo sai.
 - NIENTE aggettivi vuoti: "spettacolare", "unico", "indimenticabile", "atmosfera intima", "vista mozzafiato".

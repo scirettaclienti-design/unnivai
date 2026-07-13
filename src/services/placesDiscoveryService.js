@@ -531,12 +531,58 @@ const discoverAllThemes = async (cityName, lat, lng) => {
   return results;
 };
 
+// Gate N.1 — Fetch opening_hours.periods di un POI via place/details.
+// Estrae l'orario di chiusura di OGGI se disponibile.
+//
+// Response Places shape (semplificata):
+//   { result: { opening_hours: { periods: [
+//     { open: { day: 0, time: '1000' }, close: { day: 0, time: '2200' } }, ...
+//   ] } } }
+// day: 0=domenica, 1=lunedì, ..., 6=sabato (convention Google).
+// time: HHmm (es. '2200' = 22:00).
+//
+// @param {string} placeId
+// @returns {Promise<{ openNow: boolean|null, closingTimeTodayHH: string|null }>}
+export const fetchPlaceOpeningHours = async (placeId) => {
+  if (!placeId || !isPlacesProxyEnabled()) return { openNow: null, closingTimeTodayHH: null };
+  try {
+    const url = buildPlacesProxyUrl({
+      path: 'place/details',
+      place_id: placeId,
+      fields: 'opening_hours',
+    });
+    const res = await fetch(url);
+    if (!res.ok) return { openNow: null, closingTimeTodayHH: null };
+    const data = await res.json();
+    const oh = data?.result?.opening_hours;
+    if (!oh) return { openNow: null, closingTimeTodayHH: null };
+
+    const openNow = typeof oh.open_now === 'boolean' ? oh.open_now : null;
+
+    // Cerca l'orario di chiusura del GIORNO CORRENTE.
+    const today = new Date().getDay(); // 0=domenica come Google
+    const periods = Array.isArray(oh.periods) ? oh.periods : [];
+    const todayPeriod = periods.find(p => p?.open?.day === today && p?.close?.time);
+    let closingTimeTodayHH = null;
+    if (todayPeriod?.close?.time) {
+      // '2200' → '22:00'
+      const t = String(todayPeriod.close.time);
+      if (t.length === 4) closingTimeTodayHH = `${t.slice(0, 2)}:${t.slice(2)}`;
+    }
+    return { openNow, closingTimeTodayHH };
+  } catch (e) {
+    console.warn(`[fetchPlaceOpeningHours] ${placeId} failed: ${e.message}`);
+    return { openNow: null, closingTimeTodayHH: null };
+  }
+};
+
 export const placesDiscoveryService = {
   discoverPOIs,           // legacy AI-first (usato come fallback interno)
   discoverRealPOIs,       // DVAI-060 Google-first
   discoverAllThemes,
   enrichWithPhotos,
   fetchPlacePhoto,
+  fetchPlaceOpeningHours, // Gate N.1
 };
 
 // Export nominato per test unitari senza toccare la superficie del service.

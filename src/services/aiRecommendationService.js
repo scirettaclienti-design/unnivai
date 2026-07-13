@@ -1521,7 +1521,8 @@ Scrivi UNA notifica breve che promette all'utente di andare in 1 o 2 di questi p
 
 REGOLE VOCE (locked):
 - Title = il DATO di contesto, nudo. Esempi: "Sono le 18:12 🌇", "30 gradi 🍝", "Piove ☔". Zero aggettivi ("il cielo sta cambiando" = aggettivo travestito).
-- Message = UN MOTIVO verificabile per andare. Esempi: "Palazzo Biscari è a 6 minuti da te e non chiude fino alle 19", "MM Trattoria è a 4 minuti da te. Al chiuso, tavoli disponibili adesso."
+- Message = UN MOTIVO verificabile per andare, costruito SOLO sui dati che hai. Esempi: "Palazzo Biscari è a 6 minuti da te.", "MM Trattoria è a 4 minuti da te, aperto adesso."
+- Non citare orari di chiusura o di apertura precisi (es. "chiude alle 19", "apre alle 20"): NON li hai nel contesto. "aperto adesso" / "chiuso ora" sono ammessi SOLO se open_now è nei dati del candidato. Se non c'è, non dire nulla sull'apertura.
 - Il motivo DEVE essere costruito SOLO sui dati che ti ho dato sopra (ora, temperatura, meteo, distanza, open_now, rating).
 - NIENTE fatti inventati sul posto: no "il pub dove producono la birra", no "storia dal 1960". Se non è nei dati sopra, non lo sai.
 - NIENTE aggettivi vuoti: "spettacolare", "unico", "indimenticabile", "atmosfera intima", "vista mozzafiato".

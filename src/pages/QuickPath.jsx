@@ -15,7 +15,6 @@ import { getCoverPalette } from "@/lib/categoryPalette";
 // import { dataService } from "@/services/dataService";
 import { Brain } from "lucide-react";
 import { ArrowLeft, Waves, Mountain, Building2, Trees, ArrowRight, RotateCcw, Home, Sunrise, Sun, Sunset, Zap, Clock, Target, User, Heart, Users, UserCheck, MapPin, Calendar, Timer, UsersIcon } from "lucide-react";
-import DemoHint from "@/components/DemoHint";
 import { Link } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import BottomNavigation from "@/components/BottomNavigation";

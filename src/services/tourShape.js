@@ -313,7 +313,11 @@ export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma') {
         // Metadata
         city: raw.city || cityFallback,
         price: typeof raw.price === 'number' ? raw.price : 0,
-        rating: typeof raw.rating === 'number' ? raw.rating : null,
+        // Gate O.4: rating/reviewsCount POI-level da Google Places. null se
+        // il POI non li ha (non 0 fake, non "N/D"). Attribuzione Google si
+        // fa lato UI dove il dato viene mostrato.
+        rating: Number.isFinite(raw.rating) && raw.rating > 0 ? raw.rating : null,
+        reviewsCount: Number.isFinite(raw.reviewsCount) && raw.reviewsCount > 0 ? raw.reviewsCount : null,
     };
 }
 

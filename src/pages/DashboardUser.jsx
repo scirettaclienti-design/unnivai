@@ -108,27 +108,53 @@ const buildSmartExperiencesAsync = async (cityName, cityCenter, userDNA = []) =>
     // 5. Build experience objects with REAL POI data.
     //
     // Gate O.2: se un tema non ha POI reali da Places, il tema si SALTA.
-    // Prima: 4 tappe finte con nomi generici ("Piazza principale") e
-    // coord random attorno al centro — un tour fake mascherato da
-    // consigliato dall'AI. Ora: nessun materiale reale → nessuna card.
-    // Rating/reviews/price rimossi: erano Math.random / hardcoded.
+    //
+    // Gate O.4: il rating di Google Places e' un fatto per singolo POI, MAI
+    // per il tour aggregato (nessuna media, nessuna somma). Portiamo
+    // `rating`/`reviewsCount` giu' fino allo step (dato vero, verificabile),
+    // e selezioniamo un `featuredPoi` con qualityScore = rating × ln(1+total)
+    // — lo stesso indice usato dalle soglie Gate I. La card Home mostrera'
+    // "Include {featuredPoi.name} · ★{rating}", un solo POI, un solo numero.
     return themes.slice(0, 5)
         .map((theme, index) => {
             const pois = allPOIs[theme.type] || [];
             if (pois.length === 0) return null;
 
             const title = theme.titleFn(cityName);
-            const generatedSteps = pois.slice(0, 4).map((poi) => ({
-                title: poi.name || poi.title,
-                description: poi.description || `Luogo di interesse a ${cityName}`,
-                lat: poi.lat || poi.latitude,
-                lng: poi.lng || poi.longitude,
-                latitude: poi.lat || poi.latitude,
-                longitude: poi.lng || poi.longitude,
-                image: poi.image || poi.photo || getPoiTypeImage(poi.type, cityName),
-                type: poi.type || 'place',
-                city: cityName,
-            }));
+            const chosen = pois.slice(0, 4);
+            const generatedSteps = chosen.map((poi) => {
+                const rating = Number.isFinite(poi.rating) && poi.rating > 0 ? poi.rating : null;
+                const reviewsCount = Number.isFinite(poi.user_ratings_total) && poi.user_ratings_total > 0
+                    ? poi.user_ratings_total
+                    : null;
+                return {
+                    title: poi.name || poi.title,
+                    description: poi.description || `Luogo di interesse a ${cityName}`,
+                    lat: poi.lat || poi.latitude,
+                    lng: poi.lng || poi.longitude,
+                    latitude: poi.lat || poi.latitude,
+                    longitude: poi.lng || poi.longitude,
+                    image: poi.image || poi.photo || getPoiTypeImage(poi.type, cityName),
+                    type: poi.type || 'place',
+                    city: cityName,
+                    // Gate O.4: dati Google POI-level. Attribuzione esplicita
+                    // ("recensioni Google") si fa a livello render/drawer.
+                    rating,
+                    reviewsCount,
+                    googlePlaceId: poi.googlePlaceId || poi.place_id || null,
+                };
+            });
+
+            // POI di punta: qualityScore = rating × ln(1 + reviews). Solo tra
+            // gli step con rating reale — se nessuno ha rating, featuredPoi=null.
+            const rated = generatedSteps.filter(s => Number.isFinite(s.rating));
+            const featuredPoi = rated.length > 0
+                ? rated.reduce((best, s) => {
+                    const score = s.rating * Math.log(1 + (s.reviewsCount || 0));
+                    const bestScore = best.rating * Math.log(1 + (best.reviewsCount || 0));
+                    return score > bestScore ? s : best;
+                })
+                : null;
 
             const mainImage = generatedSteps[0]?.image
                 || THEME_FALLBACK_IMAGES[theme.type]
@@ -136,7 +162,7 @@ const buildSmartExperiencesAsync = async (cityName, cityCenter, userDNA = []) =>
                 || GENERIC.piazza;
             const cardImage = (mainImage === GENERIC.piazza && CITY_IMAGES[cityName]) ? CITY_IMAGES[cityName] : mainImage;
             const emoji = THEME_EMOJIS[theme.type] || '📍';
-            const highlights = pois.slice(0, 3).map(p => p.name || p.title);
+            const highlights = chosen.slice(0, 3).map(p => p.name || p.title);
 
             return {
                 id: `smart-${index}-${Date.now()}`,
@@ -158,6 +184,15 @@ const buildSmartExperiencesAsync = async (cityName, cityCenter, userDNA = []) =>
                 center: { latitude: centerLat, longitude: centerLng },
                 steps: generatedSteps,
                 waypoints: generatedSteps.map(s => [s.lat, s.lng]),
+                // Gate O.4: featuredPoi e' un dato POI-level (name + rating +
+                // reviewsCount) esposto al render. Non e' un rating del tour.
+                featuredPoi: featuredPoi
+                    ? {
+                        name: featuredPoi.title,
+                        rating: featuredPoi.rating,
+                        reviewsCount: featuredPoi.reviewsCount,
+                    }
+                    : null,
             };
         })
         .filter(Boolean)
@@ -731,17 +766,20 @@ const DashboardUser = () => {
                                         title={exp.title}
                                         animateKey={exp.image}
                                     >
-                                        {/* Gate O.2: badge rating solo se rating e' un dato reale (DB tours o Places). */}
-                                        {(exp.rating || exp.rating === 0) && (
-                                            <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold text-white flex items-center">
-                                                <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
-                                                {exp.rating}
-                                            </div>
-                                        )}
-
+                                        {/* Gate O.4: nessun rating a livello TOUR. Il rating e' un fatto
+                                            del singolo POI (Google Places), non del tour aggregato. Il
+                                            badge featuredPoi qui sotto mostra ★rating + nome del POI di
+                                            punta (qualityScore max), verificabile su Maps. */}
                                         <div className="absolute bottom-0 left-0 p-5 w-full text-white">
                                             <div className="text-[10px] font-bold text-gray-300 uppercase tracking-wider mb-1">{exp.category}</div>
                                             <h4 className="font-playfair font-bold text-lg leading-tight mb-2 line-clamp-2">{exp.title}</h4>
+                                            {exp.featuredPoi && Number.isFinite(exp.featuredPoi.rating) && (
+                                                <div className="flex items-center gap-1.5 text-xs mb-2 opacity-95">
+                                                    <Star className="w-3 h-3 text-yellow-400 fill-current shrink-0" />
+                                                    <span className="font-medium truncate">Include {exp.featuredPoi.name}</span>
+                                                    <span className="font-bold whitespace-nowrap">· {exp.featuredPoi.rating.toFixed(1)}</span>
+                                                </div>
+                                            )}
                                             <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/20">
                                                 <div className="flex items-center text-xs font-medium opacity-90">
                                                     <Clock className="w-3 h-3 mr-1" />

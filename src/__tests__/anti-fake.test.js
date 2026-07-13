@@ -192,6 +192,24 @@ const RULES = [
         ],
         message: '"Roma" hardcoded o `temperatureC: N` come default. Il path Home deve mostrare skeleton finche\' il dato non c\'e\', mai un valore-ponte.',
     },
+    // Gate O.4 — Nessun rating/reviews renderizzato a livello TOUR nel JSX.
+    // Il rating Google Places e' un fatto del singolo POI: mostrarlo aggregato
+    // a livello tour = derivata inventata (media, somma, rating del "primo dell'array")
+    // presentata come dato Google. Il pattern cattura letture tipiche in JSX:
+    //   {exp.rating}, {tour.rating}, {experience.reviews}, {item.user_ratings_total}
+    // NON cattura letture POI-level: {step.rating}, {poi.rating}, {exp.featuredPoi.rating}
+    // (perche' tra `exp.` e `rating` c'e' `featuredPoi.`).
+    {
+        name: 'no-rating-or-reviews-at-tour-level',
+        pattern: /\{(?:exp|tour|experience|item)\.(?:rating|reviews|reviewsCount|user_ratings_total)\b/,
+        allowlist: [
+            // Cleanup pianificato Blocco 2.2 (Profilo reale) / 2.3 (Esplora + TourLive).
+            'src/pages/TourLive.jsx',
+            'src/pages/Profile.jsx',
+            'src/pages/Explore.jsx',
+        ],
+        message: 'Rating/reviews a livello TOUR nel JSX. Solo POI-level: usa exp.featuredPoi.rating o step.rating, mai un aggregato inventato del tour.',
+    },
     // Gate N.0 — Ogni notifica AI-generated deve portare engineVersion.
     // Regola custom: se un file contiene type 'tour_recommendation' o 'weather_alert'
     // deve contenere anche 'engineVersion' (import o uso). Impedisce che un

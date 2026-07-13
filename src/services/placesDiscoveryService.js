@@ -21,7 +21,10 @@ import { isSmallTown } from './tourShape';
 // Gate 3 T1: prefix bumped a 'unnivai_poiv4_' — buildPlacesProxyUrl ora fa
 // default language=it. I POI cached prima del fix hanno nomi in inglese
 // ("Syracuse Cathedral") — il bump forza il rifetch al primo miss.
-const CACHE_PREFIX = 'unnivai_poiv4_';
+// Gate P.1: prefix bumped a 'unnivai_poiv5_dedup_' — walking morto, cultura
+// query allargata, romance query B, dedup globale. Le vecchie chiavi cache
+// contenevano 5 temi sovrapposti; il bump forza il rifetch con la nuova mappa.
+const CACHE_PREFIX = 'unnivai_poiv5_dedup_';
 // DVAI-050 — TTL esteso a 24h per ridurre re-fetch OpenAI/Places.
 // Stessa city+tema → riusato 1 giorno. Trade-off accettabile: meteo cambia
 // poco in 24h, POI tematici sono stabili.
@@ -331,14 +334,19 @@ const QUALITY_THRESHOLDS = {
 // DVAI-060 F2: aggiunti shopping e nightlife per coprire il picker AiItinerary.
 // Shopping usa soglia CULTURA (permissiva su rating: boutique piccole a 4.0 ok).
 // Nightlife usa soglia FOOD (rating alto = filtro anti-catena su bar/pub).
+// Gate P.1: 5 temi → 4 temi. `walking` era sottoinsieme di `art`, ucciso.
+// `art` → `cultura` con query allargata (assorbe monumento/centro storico).
+// `romance` con query B locked Ivano — geografia costiera/salite panoramiche
+// che nessuna guida turistica elenca come categoria. Zero collision con
+// cultura/food/natura per costruzione: moli/scogliere/scalinate/lungomare
+// sono POI urbani-costieri registrati come entity autonome su Google.
 const THEME_TEXTSEARCH = {
-  food:      { query: 'trattoria ristorante pizzeria osteria',     kind: 'FOOD' },
-  walking:   { query: 'piazza chiesa monumento centro storico',    kind: 'CULTURA' },
-  romance:   { query: 'belvedere panorama tramonto giardino',      kind: 'CULTURA' },
-  art:       { query: 'museo chiesa palazzo storico galleria',     kind: 'CULTURA' },
-  nature:    { query: 'parco villa comunale giardino botanico',    kind: 'NATURA' },
-  shopping:  { query: 'artigianato boutique mercato negozi tipici', kind: 'CULTURA' },
-  nightlife: { query: 'bar cocktail pub locale musica vino',       kind: 'FOOD' },
+  food:      { query: 'trattoria ristorante pizzeria osteria',                              kind: 'FOOD' },
+  cultura:   { query: 'museo chiesa palazzo storico galleria monumento centro storico',     kind: 'CULTURA' },
+  romance:   { query: 'lungomare lungofiume scogliera molo scalinata belvedere punto panoramico', kind: 'CULTURA' },
+  nature:    { query: 'parco villa comunale giardino botanico',                             kind: 'NATURA' },
+  shopping:  { query: 'artigianato boutique mercato negozi tipici',                         kind: 'CULTURA' },
+  nightlife: { query: 'bar cocktail pub locale musica vino',                                kind: 'FOOD' },
 };
 
 // Google `types` → tipo interno DoveVAI usato dai motori (rendering marker/cover).
@@ -524,14 +532,48 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
   }
 };
 
+// Gate P.1: dedup globale POI cross-tema via place_id. Un POI compare in un
+// solo tour: quello dove il suo qualityScore (rating × ln(1+total)) è massimo.
+// Prima: "Duomo di Siracusa" appariva sia in walking che in art come featured;
+// due card mostravano lo stesso POI di punta e la stessa cover Places.
+// Effetto atteso: temi che perdono tutti i POI si spengono (filter(Boolean)
+// downstream). Meglio meno tour distinti che tour ridondanti.
+const dedupePOIsAcrossThemes = (allPOIs) => {
+  const bestByPlaceId = new Map();
+  for (const [theme, pois] of Object.entries(allPOIs)) {
+    if (!Array.isArray(pois)) continue;
+    for (const poi of pois) {
+      const pid = poi.place_id || poi.googlePlaceId;
+      if (!pid) continue;
+      const score = qualityScore(poi);
+      const current = bestByPlaceId.get(pid);
+      if (!current || score > current.score) {
+        bestByPlaceId.set(pid, { poi, theme, score });
+      }
+    }
+  }
+  const deduped = Object.fromEntries(Object.keys(allPOIs).map(t => [t, []]));
+  for (const { poi, theme } of bestByPlaceId.values()) {
+    deduped[theme].push(poi);
+  }
+  // Riordina ogni tema per qualityScore (sort locale post-dedup, preserva
+  // l'ordinamento tra POI rimasti nel tema).
+  for (const theme of Object.keys(deduped)) {
+    deduped[theme].sort((a, b) => qualityScore(b) - qualityScore(a));
+  }
+  return deduped;
+};
+
 const discoverAllThemes = async (cityName, lat, lng) => {
-  const themes = ['food', 'walking', 'romance', 'art', 'nature'];
+  // Gate P.1: 4 temi (walking morto). 3 se `romance` non produce POI distinti
+  // dopo la dedup → si spegne downstream.
+  const themes = ['food', 'cultura', 'romance', 'nature'];
   const results = {};
   // DVAI-060: motore primario Google-first; fallback a discoverPOIs interno.
   await Promise.all(themes.map(async (theme) => {
     results[theme] = await discoverRealPOIs(cityName, lat, lng, theme);
   }));
-  return results;
+  return dedupePOIsAcrossThemes(results);
 };
 
 // Gate N.1 — Fetch opening_hours.periods di un POI via place/details.

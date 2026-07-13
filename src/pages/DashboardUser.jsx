@@ -18,31 +18,32 @@ import { resolveCityCenter, CityCenterUnresolvedError } from '@/services/cityCen
 import TourCover from '@/components/TourCover';
 // 🧠 AI-POWERED EXPERIENCE GENERATOR (REAL POI DISCOVERY)
 
-// Theme-aware fallback images (city-neutral, topic-relevant)
+// Theme-aware fallback images (city-neutral, topic-relevant).
+// Gate P.1: 4 temi (walking morto, art rinominato cultura).
 const THEME_FALLBACK_IMAGES = {
     food: GENERIC.food,
-    walking: GENERIC.piazza,
-    romance: GENERIC.park,
-    art: GENERIC.church,
+    cultura: GENERIC.church,
+    romance: GENERIC.sea,
     nature: GENERIC.park,
 };
 
 const THEME_EMOJIS = {
     food: '🍽️',
-    walking: '👣',
+    cultura: '🎨',
     romance: '🌅',
-    art: '🎨',
     nature: '🌿',
 };
 
 // Gate O.2: nessun `price` hardcoded qui. Un tour AI-generato non ha
 // un prezzo reale — quel numero era finto. Le card non mostrano prezzo
 // finche' il tour non arriva dal DB con price_eur autoritativo.
+// Gate P.1: 4 temi. cultura assorbe ex-walking + ex-art (query allargata
+// lato placesDiscoveryService). romance ora pesca lungomare/moli/scalinate
+// (query B) — POI che nessuna guida turistica elenca come categoria.
 const THEME_CONFIGS = [
     { type: 'food',    titleFn: (c) => `Assapora ${c}`,               duration: '2h',   highlights: ['Gastronomia Locale', 'Sapori Tipici', 'Degustazione'] },
-    { type: 'walking', titleFn: (c) => `I segreti di ${c}`,           duration: '1.5h', highlights: ['Centro Storico', 'Vicoli Caratteristici', 'Scoperte'] },
-    { type: 'romance', titleFn: (c) => `Magia al tramonto a ${c}`,    duration: '2h',   highlights: ['Panorami', 'Atmosfera Unica', 'Tramonto'] },
-    { type: 'art',     titleFn: (c) => `Tesori Artistici a ${c}`,     duration: '3h',   highlights: ['Architettura', 'Arte Sacra', 'Storia Locale'] },
+    { type: 'cultura', titleFn: (c) => `Tesori di ${c}`,              duration: '3h',   highlights: ['Architettura', 'Arte Sacra', 'Storia Locale'] },
+    { type: 'romance', titleFn: (c) => `Vista mare a ${c}`,           duration: '2h',   highlights: ['Lungomare', 'Belvedere', 'Punti panoramici'] },
     { type: 'nature',  titleFn: (c) => `Verde e Relax a ${c}`,        duration: '2.5h', highlights: ['Aria Aperta', 'Natura', 'Percorsi Verdi'] },
 ];
 
@@ -90,17 +91,22 @@ const buildSmartExperiencesAsync = async (cityName, cityCenter, userDNA = []) =>
         console.warn('[buildSmartExperiences] Discovery failed, using fallback:', e);
     }
 
-    // 4. Build ordered theme list (DNA-aware)
+    // 4. Build ordered theme list (DNA-aware).
+    // Gate P.1: 4 temi. Rewire su cultura (ex-art). Aggancio DNA:
+    // likesFood → food, likesNature → nature, likesArts → cultura.
     let themes = [...THEME_CONFIGS];
     if (dna.length > 0) {
-        if (likesFood) themes[0] = { ...themes[0], titleFn: (c) => `Street Food Tour su misura - ${c}` };
-        if (likesNature) themes[4] = { ...themes[4], titleFn: (c) => `Escursione Panoramica a ${c}` };
-        if (likesArts) themes[3] = { ...themes[3], titleFn: (c) => `Esplorazione Storica di ${c}` };
+        const foodIdx = themes.findIndex(t => t.type === 'food');
+        const natureIdx = themes.findIndex(t => t.type === 'nature');
+        const culturaIdx = themes.findIndex(t => t.type === 'cultura');
+        if (likesFood && foodIdx >= 0) themes[foodIdx] = { ...themes[foodIdx], titleFn: (c) => `Street Food Tour su misura - ${c}` };
+        if (likesNature && natureIdx >= 0) themes[natureIdx] = { ...themes[natureIdx], titleFn: (c) => `Escursione Panoramica a ${c}` };
+        if (likesArts && culturaIdx >= 0) themes[culturaIdx] = { ...themes[culturaIdx], titleFn: (c) => `Esplorazione Storica di ${c}` };
 
         themes.sort((a, b) => {
             if (likesFood && a.type === 'food') return -1;
             if (likesNature && a.type === 'nature') return -1;
-            if (likesArts && a.type === 'art') return -1;
+            if (likesArts && a.type === 'cultura') return -1;
             return 0;
         });
     }
@@ -115,7 +121,7 @@ const buildSmartExperiencesAsync = async (cityName, cityCenter, userDNA = []) =>
     // e selezioniamo un `featuredPoi` con qualityScore = rating × ln(1+total)
     // — lo stesso indice usato dalle soglie Gate I. La card Home mostrera'
     // "Include {featuredPoi.name} · ★{rating}", un solo POI, un solo numero.
-    return themes.slice(0, 5)
+    return themes
         .map((theme, index) => {
             const pois = allPOIs[theme.type] || [];
             if (pois.length === 0) return null;
@@ -196,6 +202,20 @@ const buildSmartExperiencesAsync = async (cityName, cityCenter, userDNA = []) =>
             };
         })
         .filter(Boolean)
+        // Gate P.1: secondo giro di dedup sulle URL foto per il caso raro
+        // (POI diversi, stessa googlePhoto — es. landmark con foto community
+        // condivise). Il tour piu' tardi cade su foto step alternativo o
+        // fallback tema. Zero collision cover.
+        .map((tour, idx, all) => {
+            const previousImages = new Set(all.slice(0, idx).map(t => t.image).filter(Boolean));
+            if (!previousImages.has(tour.image)) return tour;
+            const altStep = tour.steps.find(s => s.image && !previousImages.has(s.image));
+            const fallbackImage = altStep?.image
+                || THEME_FALLBACK_IMAGES[tour.steps[0]?.type]
+                || CITY_IMAGES[cityName]
+                || GENERIC.piazza;
+            return { ...tour, image: fallbackImage, images: [fallbackImage] };
+        })
         // Gate O.1: cityCenter (Places-auth) passato al normalizer per applyRadiusFilter.
         .map(t => normalizeTour(t, {
             cityFallback: cityName,

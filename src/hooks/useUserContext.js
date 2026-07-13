@@ -4,34 +4,32 @@ import { useEnhancedGeolocation } from "./useEnhancedGeolocation";
 import { useAuth } from "../context/AuthContext";
 import { useCity } from "../context/CityContext";
 
+// Gate O.2: niente valori-ponte. La citta' e la temperatura si mostrano
+// quando esistono davvero — mai un default hardcoded ("Roma", 24°C) con
+// la faccia del dato reale. Il consumer di questo hook riceve `city` e
+// `temperatureC` = undefined finche' non sono risolti; renderizza
+// skeleton o nasconde il campo, mai un fallback fake.
 export function useUserContext() {
-    // We still use the geolocation hook to get the browser's GPS signal
-    // This feeds into our context service
     const { location: gpsLocation, loading: gpsLoading } = useEnhancedGeolocation();
-    const { user } = useAuth(); // Get authenticated user
+    const { user } = useAuth();
     const { city: manualCity, isManual } = useCity();
 
-    // Effective City Logic: mai mostrare "Lat: ... Lon: ..." in UI
-    const rawCity = isManual ? manualCity : (gpsLocation?.city || 'Roma');
+    // Manual > GPS. Nessun fallback Roma. Se sia manuale che GPS mancano,
+    // effectiveCity resta undefined -> la useQuery non parte (enabled: false)
+    // -> il consumer entra in stato "senza citta'" (skeleton / CTA scegli citta').
+    const rawCity = isManual ? manualCity : gpsLocation?.city;
     const looksLikeCoords = typeof rawCity === 'string' && (rawCity.startsWith('Lat:') || rawCity.includes('Lon:'));
-    const effectiveCity = looksLikeCoords ? 'Roma' : rawCity;
+    const effectiveCity = looksLikeCoords ? undefined : rawCity;
 
     const { data: userContext, isLoading: contextLoading } = useQuery({
-        queryKey: ['userContext', effectiveCity], // Re-fetch if city changes
+        queryKey: ['userContext', effectiveCity],
         queryFn: () => userContextService.getUserContext(gpsLocation, isManual ? manualCity : null),
-        initialData: {
-            userId: null,
-            firstName: 'Ospite',
-            city: 'Roma',
-            temperatureC: 24,
-            toursCount: 3,
-            isGuest: true,
-            source: 'fallback'
-        },
-        staleTime: 60_000, // DVAI-025: 60 s di cache per evitare refetch eccessivi
+        enabled: !!effectiveCity,
+        staleTime: 60_000,
     });
 
-    // Determine the Real First Name from Auth (if available) or fallback to Context/Default
+    // firstName: profilo auth se disponibile, altrimenti fallback stato "Ospite"
+    // ('Ospite' e' una label di stato utente, non un dato mascherato da fatto).
     const realFirstName = user?.user_metadata?.full_name?.split(' ')[0]
         || user?.user_metadata?.first_name
         || user?.email?.split('@')[0]
@@ -39,11 +37,11 @@ export function useUserContext() {
         || 'Ospite';
 
     return {
-        ...userContext,
-        firstName: realFirstName, // Override with real name
-        email: user?.email,      //  expose email
-        isGuest: !user,           // Correct guest status
-        city: effectiveCity,      // Override city
-        isLoading: gpsLoading || contextLoading
+        ...(userContext || {}),
+        firstName: realFirstName,
+        email: user?.email,
+        isGuest: !user,
+        city: effectiveCity,
+        isLoading: gpsLoading || contextLoading || !effectiveCity,
     };
 }

@@ -35,12 +35,15 @@ const THEME_EMOJIS = {
     nature: '🌿',
 };
 
+// Gate O.2: nessun `price` hardcoded qui. Un tour AI-generato non ha
+// un prezzo reale — quel numero era finto. Le card non mostrano prezzo
+// finche' il tour non arriva dal DB con price_eur autoritativo.
 const THEME_CONFIGS = [
-    { type: 'food',    titleFn: (c) => `Assapora ${c}`,               duration: '2h',   price: 35, highlights: ['Gastronomia Locale', 'Sapori Tipici', 'Degustazione'] },
-    { type: 'walking', titleFn: (c) => `I segreti di ${c}`,           duration: '1.5h', price: 15, highlights: ['Centro Storico', 'Vicoli Caratteristici', 'Scoperte'] },
-    { type: 'romance', titleFn: (c) => `Magia al tramonto a ${c}`,    duration: '2h',   price: 25, highlights: ['Panorami', 'Atmosfera Unica', 'Tramonto'] },
-    { type: 'art',     titleFn: (c) => `Tesori Artistici a ${c}`,     duration: '3h',   price: 40, highlights: ['Architettura', 'Arte Sacra', 'Storia Locale'] },
-    { type: 'nature',  titleFn: (c) => `Verde e Relax a ${c}`,        duration: '2.5h', price: 20, highlights: ['Aria Aperta', 'Natura', 'Percorsi Verdi'] },
+    { type: 'food',    titleFn: (c) => `Assapora ${c}`,               duration: '2h',   highlights: ['Gastronomia Locale', 'Sapori Tipici', 'Degustazione'] },
+    { type: 'walking', titleFn: (c) => `I segreti di ${c}`,           duration: '1.5h', highlights: ['Centro Storico', 'Vicoli Caratteristici', 'Scoperte'] },
+    { type: 'romance', titleFn: (c) => `Magia al tramonto a ${c}`,    duration: '2h',   highlights: ['Panorami', 'Atmosfera Unica', 'Tramonto'] },
+    { type: 'art',     titleFn: (c) => `Tesori Artistici a ${c}`,     duration: '3h',   highlights: ['Architettura', 'Arte Sacra', 'Storia Locale'] },
+    { type: 'nature',  titleFn: (c) => `Verde e Relax a ${c}`,        duration: '2.5h', highlights: ['Aria Aperta', 'Natura', 'Percorsi Verdi'] },
 ];
 
 // ─── Type-aware image fallback for POI types ─────────────────────────
@@ -102,14 +105,20 @@ const buildSmartExperiencesAsync = async (cityName, cityCenter, userDNA = []) =>
         });
     }
 
-    // 5. Build experience objects with REAL POI data
-    return themes.slice(0, 5).map((theme, index) => {
-        const pois = allPOIs[theme.type] || [];
-        const title = theme.titleFn(cityName);
+    // 5. Build experience objects with REAL POI data.
+    //
+    // Gate O.2: se un tema non ha POI reali da Places, il tema si SALTA.
+    // Prima: 4 tappe finte con nomi generici ("Piazza principale") e
+    // coord random attorno al centro — un tour fake mascherato da
+    // consigliato dall'AI. Ora: nessun materiale reale → nessuna card.
+    // Rating/reviews/price rimossi: erano Math.random / hardcoded.
+    return themes.slice(0, 5)
+        .map((theme, index) => {
+            const pois = allPOIs[theme.type] || [];
+            if (pois.length === 0) return null;
 
-        // Use real POIs if available, else create basic steps
-        const generatedSteps = pois.length > 0
-            ? pois.slice(0, 4).map((poi, i) => ({
+            const title = theme.titleFn(cityName);
+            const generatedSteps = pois.slice(0, 4).map((poi) => ({
                 title: poi.name || poi.title,
                 description: poi.description || `Luogo di interesse a ${cityName}`,
                 lat: poi.lat || poi.latitude,
@@ -119,64 +128,44 @@ const buildSmartExperiencesAsync = async (cityName, cityCenter, userDNA = []) =>
                 image: poi.image || poi.photo || getPoiTypeImage(poi.type, cityName),
                 type: poi.type || 'place',
                 city: cityName,
-            }))
-            : Array.from({ length: 4 }).map((_, i) => {
-                const stepNames = ['Piazza principale', 'Punto panoramico', 'Quartiere storico', 'Angolo locale'];
-                return {
-                title: `${stepNames[i] || 'Tappa'} — ${cityName}`,
-                description: `Esplora ${stepNames[i]?.toLowerCase() || 'un angolo nascosto'} di ${cityName}`,
-                lat: centerLat + (Math.random() - 0.5) * 0.008,
-                lng: centerLng + (Math.random() - 0.5) * 0.008,
-                latitude: centerLat + (Math.random() - 0.5) * 0.008,
-                longitude: centerLng + (Math.random() - 0.5) * 0.008,
-                image: getPoiTypeImage(theme.type, cityName),
-                type: 'place',
-                city: cityName,
-            }; });
+            }));
 
-        // Experience card image: priorità → POI reale → tema + città → cover città → generico
-        const mainImage = generatedSteps[0]?.image
-            || THEME_FALLBACK_IMAGES[theme.type]
-            || CITY_IMAGES[cityName]
-            || GENERIC.piazza;
-        // Per le card, se l'immagine è la piazza generica E abbiamo una cover città, usa la cover
-        const cardImage = (mainImage === GENERIC.piazza && CITY_IMAGES[cityName]) ? CITY_IMAGES[cityName] : mainImage;
-        const emoji = THEME_EMOJIS[theme.type] || '📍';
-        const highlights = pois.length > 0
-            ? pois.slice(0, 3).map(p => p.name || p.title)
-            : theme.highlights;
+            const mainImage = generatedSteps[0]?.image
+                || THEME_FALLBACK_IMAGES[theme.type]
+                || CITY_IMAGES[cityName]
+                || GENERIC.piazza;
+            const cardImage = (mainImage === GENERIC.piazza && CITY_IMAGES[cityName]) ? CITY_IMAGES[cityName] : mainImage;
+            const emoji = THEME_EMOJIS[theme.type] || '📍';
+            const highlights = pois.slice(0, 3).map(p => p.name || p.title);
 
-        return {
-            id: `smart-${index}-${Date.now()}`,
-            type: 'ai-memory',
-            title,
-            location: `${cityName}, Esperienza Locale`,
-            rating: (4.7 + Math.random() * 0.3).toFixed(1),
-            reviews: Math.floor(Math.random() * 200) + 20,
-            price: theme.price,
-            duration: theme.duration,
-            image: cardImage,
-            images: [cardImage],
-            category: (index === 0 && userDNA.length > 0) ? 'Cucito sui tuoi gusti' : "Consigliato dall'AI",
-            emoji,
-            isAiGenerated: true,
-            highlights,
-            included: ['Percorso con luoghi reali', "Esplorazione Guidata dall'AI", 'Assistenza Virtuale'],
-            notIncluded: ["Biglietti d'ingresso non specificati", 'Trasporti privati'],
-            guide: 'Intelligenza DoveVai',
-            guideAvatar: '🤖',
-            guideBio: `Ho assemblato questa esperienza basandomi su luoghi reali di ${cityName} e le tue preferenze.`,
-            center: { latitude: centerLat, longitude: centerLng },
-            steps: generatedSteps,
-            waypoints: generatedSteps.map(s => [s.lat, s.lng]),
-            isAiGenerated: true,
-        };
-    // Gate O.1: cityCenter (Places-auth) passato al normalizer per applyRadiusFilter.
-    // Sempre presente — il chiamante lo garantisce.
-    }).map(t => normalizeTour(t, {
-        cityFallback: cityName,
-        cityCenter: { latitude: centerLat, longitude: centerLng },
-    }));
+            return {
+                id: `smart-${index}-${Date.now()}`,
+                type: 'ai-memory',
+                title,
+                location: `${cityName}, Esperienza Locale`,
+                duration: theme.duration,
+                image: cardImage,
+                images: [cardImage],
+                category: (index === 0 && userDNA.length > 0) ? 'Cucito sui tuoi gusti' : "Consigliato dall'AI",
+                emoji,
+                isAiGenerated: true,
+                highlights,
+                included: ['Percorso con luoghi reali', "Esplorazione Guidata dall'AI", 'Assistenza Virtuale'],
+                notIncluded: ["Biglietti d'ingresso non specificati", 'Trasporti privati'],
+                guide: 'Intelligenza DoveVai',
+                guideAvatar: '🤖',
+                guideBio: `Ho assemblato questa esperienza basandomi su luoghi reali di ${cityName} e le tue preferenze.`,
+                center: { latitude: centerLat, longitude: centerLng },
+                steps: generatedSteps,
+                waypoints: generatedSteps.map(s => [s.lat, s.lng]),
+            };
+        })
+        .filter(Boolean)
+        // Gate O.1: cityCenter (Places-auth) passato al normalizer per applyRadiusFilter.
+        .map(t => normalizeTour(t, {
+            cityFallback: cityName,
+            cityCenter: { latitude: centerLat, longitude: centerLng },
+        }));
 };
 
 // Gate D-2: buildSmartExperiencesFallback rimosso. Prima serviva 3 tour finti
@@ -265,11 +254,13 @@ const DashboardUser = () => {
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [requestText, setRequestText] = useState('');
     const [requestStatus, setRequestStatus] = useState('idle'); // idle, submitting, success, error
-    const [requestCity, setRequestCity] = useState('Roma'); // City chosen for the tour request
+    const [requestCity, setRequestCity] = useState(''); // City chosen for the tour request (Gate O.2: vuoto iniziale, popolato in handleGuideRequest)
 
     const handleGuideRequest = () => {
         setRequestStatus('idle');
-        setRequestCity(city || 'Roma'); // pre-set to user's current city
+        // Gate O.2: pre-set alla citta' attuale se risolta, altrimenti campo vuoto
+        // → l'utente compila. Zero 'Roma' fake che finisce dentro una richiesta guida.
+        setRequestCity(city || '');
         setShowRequestModal(true);
     };
 
@@ -324,13 +315,16 @@ const DashboardUser = () => {
     // Gate O.1: queryKey è [city, ...] senza lat/lng. Il primo render dei
     // POI dipende SOLO dal centro città (resolveCityCenter — Places auth),
     // non dal GPS utente. Quando il GPS arriva la queryKey non cambia →
-    // niente refetch → costo Places dimezzato + zero POI di Roma
-    // hardcoded mostrati a utenti di altre città. Le distanze utente-POI
-    // (dove servano) si calcolano client-side dai lat/lng già presenti.
+    // niente refetch → costo Places dimezzato.
+    //
+    // Gate O.2: `enabled: !!city`. Se la citta' non e' ancora risolta,
+    // la query NON parte → skeleton in UI. Zero fallback 'Roma' che
+    // trapelano allo user come contenuto-ponte finto.
     const { data: experiences, isError: experiencesError, isPending: experiencesLoading, refetch: refetchExperiences } = useQuery({
         queryKey: ['home-experiences', city, totalInteractions, hasPreferences],
+        enabled: !!city,
         queryFn: async () => {
-            const currentCity = city || 'Roma';
+            const currentCity = city;
             let finalTours = [];
 
             try {
@@ -394,9 +388,8 @@ const DashboardUser = () => {
                         type: 'ai-insider',
                         title: day.title || `Insider · ${currentCity}`,
                         location: `${currentCity}, Tour AI Insider`,
-                        rating: 4.9,
-                        reviews: 0,
-                        price: 0,
+                        // Gate O.2: nessun rating/reviews/price. Un tour AI-insider non ha
+                        // recensioni e non ha un prezzo — inventarli sarebbe finto.
                         duration: `${day.stops.reduce((acc, s) => acc + (s.suggestedMinutes || 30), 0)} min`,
                         // image/images li lascio scegliere al normalizer (priorità prima foto Places)
                         image: firstStop.googlePhoto || CITY_IMAGES[currentCity] || GENERIC.piazza,
@@ -738,10 +731,13 @@ const DashboardUser = () => {
                                         title={exp.title}
                                         animateKey={exp.image}
                                     >
-                                        <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold text-white flex items-center">
-                                            <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
-                                            {exp.rating}
-                                        </div>
+                                        {/* Gate O.2: badge rating solo se rating e' un dato reale (DB tours o Places). */}
+                                        {(exp.rating || exp.rating === 0) && (
+                                            <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold text-white flex items-center">
+                                                <Star className="w-3 h-3 text-yellow-400 fill-current mr-1" />
+                                                {exp.rating}
+                                            </div>
+                                        )}
 
                                         <div className="absolute bottom-0 left-0 p-5 w-full text-white">
                                             <div className="text-[10px] font-bold text-gray-300 uppercase tracking-wider mb-1">{exp.category}</div>
@@ -751,7 +747,10 @@ const DashboardUser = () => {
                                                     <Clock className="w-3 h-3 mr-1" />
                                                     {exp.duration}
                                                 </div>
-                                                <span className="font-bold text-base">€{exp.price}</span>
+                                                {/* Gate O.2: prezzo solo se e' un numero reale dal DB tours.price_eur. */}
+                                                {Number.isFinite(exp.price) && (
+                                                    <span className="font-bold text-base">€{exp.price}</span>
+                                                )}
                                             </div>
                                         </div>
                                     </TourCover>
@@ -761,7 +760,7 @@ const DashboardUser = () => {
                             // Gate D-2: empty state onesto al posto dei 3 tour finti.
                             <div className="flex flex-col items-center justify-center py-10 w-full text-center">
                                 <div className="text-4xl mb-3">🌱</div>
-                                <p className="text-gray-700 text-sm mb-1 font-semibold">Non ci sono ancora tour a {city || 'questa città'}.</p>
+                                <p className="text-gray-700 text-sm mb-1 font-semibold">{city ? `Non ci sono ancora tour a ${city}.` : 'Non ci sono ancora tour qui.'}</p>
                                 <p className="text-gray-500 text-xs">Ne stiamo aggiungendo nuovi ogni settimana. Torna presto.</p>
                             </div>
                         )}
@@ -811,7 +810,7 @@ const DashboardUser = () => {
                                     </div>
                                     <h3 className="text-2xl font-bold text-gray-800 mb-2">Richiesta Inviata!</h3>
                                     <p className="text-gray-500 text-sm mb-8 leading-relaxed px-4">
-                                        Fantastico! Le guide locali su <strong>{city || 'Roma'}</strong> hanno appena ricevuto la tua ispirazione.<br /><br />Ti contatteranno presto con una proposta personalizzata.
+                                        Fantastico! Le guide locali su <strong>{requestCity || city}</strong> hanno appena ricevuto la tua ispirazione.<br /><br />Ti contatteranno presto con una proposta personalizzata.
                                     </p>
                                     <button
                                         onClick={() => {

@@ -139,8 +139,7 @@ export default function NotificationsPage() {
             title: day.title || `Il tuo giro a ${city}`,
             city,
             duration_minutes: day.stops.reduce((acc, s) => acc + (s.suggestedMinutes || 30), 0),
-            price_eur: 0,
-            rating: 5.0,
+            // Gate O.2: nessun rating/price finto su un tour precomputed da notifica.
             stops: day.stops,
             isAiGenerated: true,
             highlights: day.stops.slice(0, 3).map(s => s.title),

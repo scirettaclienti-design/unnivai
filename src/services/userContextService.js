@@ -30,7 +30,10 @@ class UserContextService {
 
 
         // 2. Location logic
-        let city = 'Roma'; // Fallback Default
+        // Gate O.2: nessun default Roma. Se ne' manualCity ne' gpsLocation portano
+        // un nome citta', il servizio ritorna city=null → il consumer sa di essere
+        // in stato "senza citta'" (skeleton / CTA scegli citta').
+        let city = null;
         let lat = null;
         let lng = null;
         let source = 'fallback';
@@ -95,61 +98,64 @@ class UserContextService {
         }
 
         // 3. Weather
-        let temperatureC = 24; // Default MVP
-        let weatherCondition = 'sunny';
+        // Gate O.2: null-default. Il meteo si mostra quando esiste. Se il
+        // fetch fallisce, il consumer riceve null e nasconde il campo.
+        // Zero valori-ponte (24°C / sunny) con la faccia di un dato reale.
+        let temperatureC = null;
+        let weatherCondition = null;
 
         // 🛡️ SANITIZATION: Ensure City is a Name, NOT Coordinates
-        // If city looks like specific coordinates or "Lat:", trigger failover
+        // Se abbiamo una stringa coord-like, proviamo il reverse geocode.
+        // Se non recuperiamo un nome, city resta null → skeleton lato UI.
         if (city && (city.includes('Lat') || city.includes(':') || (city.match(/\d/) && city.length > 20))) {
-            console.warn(`⚠️ Detected Coordinate String in City Context: ${city}. Forcing Reverse Geocode/Fallback.`);
+            console.warn(`⚠️ Detected Coordinate String in City Context: ${city}. Forcing Reverse Geocode.`);
             if (lat && lng) {
                 try {
                     const realName = await this.reverseGeocodeCity(lat, lng);
-                    console.log(`✅ Recovered Real City Name: ${realName}`);
                     city = realName;
                 } catch {
-                    city = 'Roma';
+                    city = null;
                 }
             } else {
-                city = 'Roma';
+                city = null;
             }
         }
 
-        // Final Capitalization
+        // Final Capitalization (solo se city esiste come stringa valida).
         if (city && typeof city === 'string') {
             city = city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
-        } else {
-            city = 'Roma';
         }
 
-        // Fetch Weather for Final City.
-        // forceRefresh=true when the user manually picked a city so we bypass
-        // the 30-minute in-memory cache and always show live data.
-        try {
-            const w = await weatherService.getWeather(city, lat, lng, !!manualCity);
-            if (w) {
-                temperatureC = w.temperature;
-                weatherCondition = w.condition;
+        // Fetch Weather solo se abbiamo una citta' concreta.
+        if (city) {
+            try {
+                const w = await weatherService.getWeather(city, lat, lng, !!manualCity);
+                if (w) {
+                    temperatureC = w.temperature;
+                    weatherCondition = w.condition;
+                }
+            } catch {
+                console.warn('Weather fetch failed');
             }
-        } catch {
-            console.warn('Weather fetch failed');
         }
 
         // 4. Tours Count
         let toursCount = 3; // Default Mock Count
-        try {
-            if (dataService.useRealData) {
-                const { count, error } = await supabase
-                    .from('tours')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('city', city);
+        if (city) {
+            try {
+                if (dataService.useRealData) {
+                    const { count, error } = await supabase
+                        .from('tours')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('city', city);
 
-                if (!error && count !== null) {
-                    toursCount = count;
+                    if (!error && count !== null) {
+                        toursCount = count;
+                    }
                 }
+            } catch {
+                // Silent fallback to mock count
             }
-        } catch {
-            // Silent fallback to mock count
         }
 
         // Final Context Object
@@ -186,10 +192,12 @@ class UserContextService {
                 const admin_level_2 = components.find(c => c.types.includes('administrative_area_level_2'));
                 if (admin_level_2) return admin_level_2.long_name;
             }
-            return 'Roma';
+            // Gate O.2: nessuna component di indirizzo riconosciuta → null,
+            // non un "Roma" mascherato da risultato geocoding.
+            return null;
         } catch (e) {
             console.warn('Service geocoding failed, falling back to cached or default');
-            return 'Roma';
+            return null;
         }
     }
 

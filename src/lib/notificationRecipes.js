@@ -51,18 +51,24 @@ export const NOTIFICATION_RECIPES = {
 
 /**
  * Classifica il meteo in una delle 4 classi accettate dalle ricette.
- * @param {number} temperatureC — es. 24
- * @param {string} condition — es. 'sunny', 'rainy', 'cloudy'
- * @returns {'sereno'|'pioggia'|'caldo'|'freddo'}
+ * Gate O.2: se ne' temperatura ne' condizione sono disponibili, ritorna null
+ * (nessun valore-ponte "22°C sereno" cablato). Il chiamante sa che non deve
+ * generare notifica finche' il meteo reale non arriva.
+ * @param {number} temperatureC — es. 24 (opzionale)
+ * @param {string} condition — es. 'sunny', 'rainy', 'cloudy' (opzionale)
+ * @returns {'sereno'|'pioggia'|'caldo'|'freddo'|null}
  */
 export function computeWeatherClass(temperatureC, condition) {
     const cond = String(condition || '').toLowerCase();
-    const t = Number.isFinite(temperatureC) ? temperatureC : 22;
+    const hasCond = cond.length > 0;
+    const hasTemp = Number.isFinite(temperatureC);
+
+    if (!hasCond && !hasTemp) return null;
 
     // Pioggia ha priorità: se piove, non ci interessa se fa caldo/freddo.
-    if (/(rain|drizzle|storm|snow|piog|nuv|temp)/.test(cond)) return 'pioggia';
-    if (t >= 28) return 'caldo';
-    if (t <= 12) return 'freddo';
+    if (hasCond && /(rain|drizzle|storm|snow|piog|nuv|temp)/.test(cond)) return 'pioggia';
+    if (hasTemp && temperatureC >= 28) return 'caldo';
+    if (hasTemp && temperatureC <= 12) return 'freddo';
     return 'sereno';
 }
 

@@ -24,7 +24,9 @@ export default function TopBar() {
     const { setCity } = useCity();
     const navigate = useNavigate();
 
-    const currentTemp = `${temperatureC}°C`;
+    // Gate O.2: mostra la temperatura solo se e' un numero reale.
+    // Zero valori-ponte (24°C) durante il caricamento.
+    const currentTemp = Number.isFinite(temperatureC) ? `${temperatureC}°C` : null;
 
     const handleLogout = async () => {
         await signOut();
@@ -71,13 +73,17 @@ export default function TopBar() {
                             <div className="text-xs font-medium text-gray-500 flex items-center space-x-2">
                                 <span className="flex items-center">
                                     <MapPin className="w-3 h-3 mr-1" />
-                                    {currentCity}
+                                    {currentCity || <span className="italic text-gray-400">Scegli citta&apos;</span>}
                                     <button onClick={handleCityChange} className="ml-2 hover:bg-gray-100 p-1 rounded-full text-indigo-500 transition-colors">
                                         <Edit2 size={10} />
                                     </button>
                                 </span>
-                                <span className="w-1 h-1 rounded-full bg-gray-300" />
-                                <span>{currentTemp}</span>
+                                {currentTemp && (
+                                    <>
+                                        <span className="w-1 h-1 rounded-full bg-gray-300" />
+                                        <span>{currentTemp}</span>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -85,7 +91,7 @@ export default function TopBar() {
                     <div className="flex items-center gap-3">
                         <NotificationBell
                             userId={userId}
-                            currentLocation={currentCity || "Roma"}
+                            currentLocation={currentCity}
                             theme="light"
                         />
                         <button

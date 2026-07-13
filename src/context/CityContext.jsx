@@ -8,13 +8,16 @@ const STORAGE_KEY = 'user_city';
 const GPS_KEY = 'dvai_gps_data';
 
 export function CityProvider({ children }) {
-    // Inizializza da GPS salvato o localStorage
+    // Inizializza da GPS salvato o localStorage.
+    // Gate O.2: nessun 'Roma' hardcoded al boot. Se non c'e' scelta memorizzata
+    // ne' cache GPS valida, city resta null → il consumer (useUserContext) sa
+    // di essere in stato "senza citta'" e mostra skeleton / CTA scegli citta'.
     const [city, setCity] = useState(() => {
         try {
             const gps = JSON.parse(localStorage.getItem(GPS_KEY) || 'null');
             if (gps?.city && gps?.ts && (Date.now() - gps.ts < 3600000)) return gps.city; // <1 ora
-            return localStorage.getItem(STORAGE_KEY) || 'Roma';
-        } catch { return 'Roma'; }
+            return localStorage.getItem(STORAGE_KEY) || null;
+        } catch { return null; }
     });
     // isManual=true al boot se localStorage ha una città salvata e il GPS cached è scaduto/assente.
     // Senza, la priority 1 di getUserContext non vede la scelta manuale dopo un reload.

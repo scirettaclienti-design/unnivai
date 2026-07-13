@@ -63,11 +63,14 @@ const RULES = [
             'src/pages/QuickPath.jsx',
             'src/services/aiRecommendationService.js',
             'src/services/placesDiscoveryService.js',
+            // Gate O.2: allowlist per file NON in path Home. Rating fake residuo,
+            // cleanup pianificato in Blocco 2.2/2.3 (AiItinerary/SurpriseTour →
+            // via location tour manager; locationTourService → tour reali DB).
+            'src/pages/AiItinerary.jsx',
+            'src/pages/SurpriseTour.jsx',
+            'src/services/locationTourService.js',
         ],
         message: 'Rating hardcoded. Le stelle vengono dal DB (tours.rating) o da Google Places.',
-        // SKIP: AiItinerary/DashboardUser/SurpriseTour/locationTourService — 22 residue.
-        // Riattivare dopo cleanup fallback tour location + AiItinerary POI hardcoded.
-        skip: true,
     },
     {
         name: 'no-reviews-hardcoded',
@@ -80,11 +83,11 @@ const RULES = [
         pattern: /\bprice(_eur)?\s*:\s*[1-9]\d{1,3}\b(?![,.]\d)/,
         allowlist: [
             'src/pages/QuickPath.jsx',
+            // Gate O.2: allowlist non-Home. Cleanup pianificato Blocco 2.2/2.3.
+            'src/pages/AiItinerary.jsx',
+            'src/services/locationTourService.js',
         ],
         message: 'Prezzo hardcoded. price_eur viene dal DB tours.',
-        // SKIP: AiItinerary POI catania hardcoded + DashboardUser THEME_CONFIGS
-        // + locationTourService 12 tour hardcoded — 23 residue.
-        skip: true,
     },
     {
         name: 'no-fake-reviewer-names',
@@ -162,9 +165,32 @@ const RULES = [
         pattern: /Math\.random\(\)[\s\S]{0,80}?(rating|reviews)/i,
         allowlist: [],
         message: 'Rating/reviews via Math.random(). Genera dato falso; usa dati reali dal DB o mostra vuoto.',
-        // SKIP: DashboardUser.jsx buildSmartExperiencesAsync (146-147) usa random.
-        // Riattivare dopo cleanup.
-        skip: true,
+    },
+    // Gate O.2 — Nessun default hardcoded 'Roma' o `temperatureC: N` come
+    // valore-ponte. Catch tre pattern:
+    //   1. `|| 'Roma'` — fallback style
+    //   2. `city: 'Roma'` / `city = 'Roma'` — default object / init
+    //   3. `temperatureC: <numero>` — default value in initialData / state
+    // Il path Home deve essere pulito: se citta'/temp non ci sono → skeleton,
+    // non un dato-ponte con la faccia del dato reale.
+    {
+        name: 'no-hardcoded-city-or-temp-defaults',
+        pattern: /\|\|\s*["']Roma["']|\bcity\s*[:=]\s*["']Roma["']|\btemperatureC\s*:\s*\d+/,
+        allowlist: [
+            // Componenti di autocompletamento indirizzo (visual placeholder tecnico).
+            'src/components/AddressAutocomplete.jsx',
+            // Fallback tecnico dentro il normalizer tour (defensive, non user-visible).
+            'src/services/tourShape.js',
+            // Pagine navigate non-Home. Cleanup pianificato Blocco 2.2-2.5.
+            'src/pages/AiItinerary.jsx',
+            'src/pages/QuickPath.jsx',
+            'src/pages/SurpriseTour.jsx',
+            'src/pages/TourDetails.jsx',
+            // V2/V3 spente (guide/business). Non nel path Home V1.
+            'src/pages/DashboardBusiness.jsx',
+            'src/pages/guide/TourBuilder.jsx',
+        ],
+        message: '"Roma" hardcoded o `temperatureC: N` come default. Il path Home deve mostrare skeleton finche\' il dato non c\'e\', mai un valore-ponte.',
     },
     // Gate N.0 — Ogni notifica AI-generated deve portare engineVersion.
     // Regola custom: se un file contiene type 'tour_recommendation' o 'weather_alert'

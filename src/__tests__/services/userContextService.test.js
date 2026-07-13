@@ -88,17 +88,19 @@ describe('userContextService.getUserContext()', () => {
   // ── GPS denied / unavailable ─────────────────────────────────────────────
 
   describe('GPS denied or unavailable', () => {
-    it('returns city=Roma without throwing when gpsLocation is null (guest)', async () => {
+    // Gate O.2: no default Roma. Se non c'e' ne' GPS ne' manual ne' profile/storage,
+    // city resta null → il consumer sa di essere in stato "senza citta'".
+    it('returns city=null without throwing when gpsLocation is null (guest)', async () => {
       stubGuest()
       const ctx = await userContextService.getUserContext(null, null)
-      expect(ctx.city).toBe('Roma')
+      expect(ctx.city).toBeNull()
       expect(ctx.isGuest).toBe(true)
     })
 
-    it('returns city=Roma without throwing when gpsLocation has no coordinates', async () => {
+    it('returns city=null without throwing when gpsLocation has no coordinates', async () => {
       stubGuest()
       const ctx = await userContextService.getUserContext({}, null)
-      expect(ctx.city).toBe('Roma')
+      expect(ctx.city).toBeNull()
     })
 
     it('returns source="fallback" when no GPS, no manual, and no stored city', async () => {
@@ -191,10 +193,10 @@ describe('userContextService.getUserContext()', () => {
       expect(ctx.city).toBe('Torino')
     })
 
-    it('falls back to Roma when both profile city and localStorage are empty', async () => {
+    it('returns city=null when both profile city and localStorage are empty (Gate O.2)', async () => {
       stubProfileCity(null)
       const ctx = await userContextService.getUserContext(null, null)
-      expect(ctx.city).toBe('Roma')
+      expect(ctx.city).toBeNull()
     })
   })
 
@@ -213,14 +215,14 @@ describe('userContextService.getUserContext()', () => {
   // ── City name sanitization ───────────────────────────────────────────────
 
   describe('city name sanitization', () => {
-    it('replaces a coordinate-string city with Roma when no real coords are available', async () => {
+    it('replaces a coordinate-string city with null when no real coords are available (Gate O.2)', async () => {
       stubGuest()
       // Nominatim won't resolve this — make fetch fail so we confirm the
-      // sanitisation guard catches it and forces Roma.
+      // sanitisation guard catches it and returns null (no Roma fake).
       vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')))
       localStorage.setItem('user_city', 'Lat: 41.90, Lon: 12.49')
       const ctx = await userContextService.getUserContext(null, null)
-      expect(ctx.city).toBe('Roma')
+      expect(ctx.city).toBeNull()
     })
 
     it('capitalises city names to title-case', async () => {
@@ -286,37 +288,52 @@ describe('userContextService.getUserContext()', () => {
       expect(ctx.firstName).toBe('giulia')
     })
 
-    it('continues as guest and returns city=Roma when supabase.auth throws', async () => {
+    it('continues as guest and returns city=null when supabase.auth throws (Gate O.2)', async () => {
       vi.mocked(supabase.auth.getSession).mockRejectedValue(new Error('network error'))
       const ctx = await userContextService.getUserContext(null, null)
       expect(ctx.isGuest).toBe(true)
-      expect(ctx.city).toBe('Roma')
+      expect(ctx.city).toBeNull()
     })
   })
 
   // ── Weather integration ──────────────────────────────────────────────────
 
   describe('weather integration', () => {
+    // Gate O.2: weather si fetcha solo se abbiamo una citta' concreta.
+    // Passiamo un manualCity per attivare il ramo weather.
     it('includes temperature and condition returned by weatherService', async () => {
       stubGuest()
       stubWeather({ temperature: 28, condition: 'cloudy' })
-      const ctx = await userContextService.getUserContext(null, null)
+      const ctx = await userContextService.getUserContext(null, 'Milano')
       expect(ctx.temperatureC).toBe(28)
       expect(ctx.weatherCondition).toBe('cloudy')
     })
 
-    it('uses default temperature (24 °C, sunny) when weatherService throws', async () => {
+    it('leaves temperature and condition null when weatherService throws (Gate O.2)', async () => {
       stubGuest()
       vi.mocked(weatherService.getWeather).mockRejectedValue(new Error('timeout'))
+      const ctx = await userContextService.getUserContext(null, 'Milano')
+      expect(ctx.temperatureC).toBeNull()
+      expect(ctx.weatherCondition).toBeNull()
+    })
+
+    it('does not call weatherService when city is unresolved (Gate O.2)', async () => {
+      stubGuest()
+      const spy = vi.mocked(weatherService.getWeather)
+      spy.mockClear()
       const ctx = await userContextService.getUserContext(null, null)
-      expect(ctx.temperatureC).toBe(24)
-      expect(ctx.weatherCondition).toBe('sunny')
+      expect(spy).not.toHaveBeenCalled()
+      expect(ctx.temperatureC).toBeNull()
+      expect(ctx.weatherCondition).toBeNull()
     })
   })
 
   // ── Full return-shape smoke test ─────────────────────────────────────────
 
   describe('return shape', () => {
+    // Gate O.2: guest senza GPS → city/temperatureC/weatherCondition tutti null.
+    // Il consumer (useUserContext) sa di essere in stato "senza citta'" e mostra
+    // skeleton, non un ponte di Roma/24° con la faccia del dato reale.
     it('always returns all required context keys for a guest with no GPS', async () => {
       stubGuest()
       const ctx = await userContextService.getUserContext(null, null)
@@ -324,11 +341,11 @@ describe('userContextService.getUserContext()', () => {
         userId:           null,
         firstName:        'Ospite',
         isGuest:          true,
-        city:             'Roma',
+        city:             null,
         lat:              null,
         lng:              null,
-        temperatureC:     expect.any(Number),
-        weatherCondition: expect.any(String),
+        temperatureC:     null,
+        weatherCondition: null,
         toursCount:       3,
         source:           'fallback',
       })
@@ -368,16 +385,18 @@ describe('userContextService.reverseGeocodeCity()', () => {
     expect(result).toBe('Unknown Town')
   })
 
-  it('returns Roma when fetch rejects with a network error', async () => {
+  // Gate O.2: reverseGeocodeCity ritorna null (non 'Roma') su errore, cosi'
+  // il consumer sa che il nome citta' non e' risolto e mostra skeleton.
+  it('returns null when fetch rejects with a network error', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')))
     const result = await userContextService.reverseGeocodeCity(0, 0)
-    expect(result).toBe('Roma')
+    expect(result).toBeNull()
   })
 
-  it('returns Roma when Nominatim responds with a non-ok HTTP status', async () => {
+  it('returns null when Nominatim responds with a non-ok HTTP status', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, json: vi.fn() }))
     const result = await userContextService.reverseGeocodeCity(0, 0)
-    expect(result).toBe('Roma')
+    expect(result).toBeNull()
   })
 })
 

@@ -83,19 +83,17 @@ export function useEnhancedGeolocation(options = {}) {
         } catch {
             // IP fallback non disponibile
         }
-        setSimulatedLocation();
+        markLocationUnavailable();
     };
 
-    const setSimulatedLocation = () => {
+    // Gate O.2: quando GPS + IP fallback falliscono entrambi, location resta null.
+    // Il consumer (useUserContext) sa che deve chiedere all'utente manualmente
+    // via CityModal, invece di mostrargli Roma come se fosse la sua posizione.
+    const markLocationUnavailable = () => {
         setState({
-            location: {
-                latitude: 41.9028,
-                longitude: 12.4964,
-                city: 'Roma',
-                country: 'Italia'
-            },
+            location: null,
             loading: false,
-            error: null,
+            error: 'geo_unavailable',
             nearbyData: [],
             savedToDatabase: false
         });
@@ -131,11 +129,13 @@ export function useEnhancedGeolocation(options = {}) {
             );
             if (!response.ok) throw new Error('Geocoding failed');
             const data = await response.json();
+            // Gate O.2: nessun fallback Roma. Se nessun campo topografico e' presente,
+            // ritorno city:null → il consumer sa che il nome citta' non e' risolto.
             const city = data.address?.city || data.address?.town || data.address?.village ||
-                data.address?.municipality || data.address?.county || 'Roma';
+                data.address?.municipality || data.address?.county || null;
             return { city, country: data.address?.country || 'Italia' };
         } catch {
-            return { city: 'Roma', country: 'Italia' };
+            return { city: null, country: 'Italia' };
         }
     };
 

@@ -358,8 +358,29 @@ class DataService {
             // Ideally we want (city_scope is null OR city_scope = currentCity)
             // Supabase filter: .or(`city_scope.is.null,city_scope.eq.${currentCity}`)
 
-            // For MVP safety, let's filter in memory strictly avoiding query complexity errors
-            const filtered = data ? data.filter(n => !n.city_scope || n.city_scope === currentCity) : [];
+            // Blocco 2.1 FASE 3 — Filtro anti-notifiche-guide/business + dati sporchi.
+            // Le notifiche dei tipi guide/business sono V2/V3 (dashboard-guide/business
+            // spente da Gate K con V1LockedGuard). Le vecchie residue nel DB (create
+            // prima di Gate K, es. "iv guida €50 a null") sono dati sporchi con
+            // interpolazioni null visibili. Filtriamo client-side per retrocompat.
+            const V2_V3_TYPES = new Set([
+                'guide_offer', 'guide_request', 'guide_response',
+                'business_lead', 'business_promo',
+                'payment_confirmed', // legato a booking guide V2
+            ]);
+            const hasBrokenInterpolation = (n) => {
+                const text = `${n.title || ''} ${n.message || ''}`;
+                // Stringhe "null" o "undefined" letterali → interpolazione fallita.
+                return /\b(null|undefined)\b/i.test(text);
+            };
+
+            const filtered = data
+                ? data.filter(n =>
+                    (!n.city_scope || n.city_scope === currentCity) &&
+                    !V2_V3_TYPES.has(n.type) &&
+                    !hasBrokenInterpolation(n)
+                )
+                : [];
 
             return filtered.map(n => {
                 const mapped = {
@@ -400,6 +421,17 @@ class DataService {
                     filter: `user_id=eq.${userId}`
                 }, payload => {
                     const n = payload.new;
+                    // Blocco 2.1 FASE 3 — Skip realtime dei tipi V2/V3 e dati sporchi
+                    // (stessa lista di getNotifications, mantenuta in sync).
+                    const V2_V3_TYPES = new Set([
+                        'guide_offer', 'guide_request', 'guide_response',
+                        'business_lead', 'business_promo',
+                        'payment_confirmed',
+                    ]);
+                    if (V2_V3_TYPES.has(n.type)) return;
+                    const rawText = `${n.title || ''} ${n.message || ''}`;
+                    if (/\b(null|undefined)\b/i.test(rawText)) return;
+
                     // Shape must match NotificationUISchema (same as getNotifications mapper)
                     const uiNotification = {
                         id: n.id,

@@ -3,35 +3,16 @@ import { aiRecommendationService } from '@/services/aiRecommendationService';
 import { dataService } from '@/services/dataService';
 import { supabase } from '@/lib/supabase';
 import { resolveCityCenter } from '@/services/cityCenterService';
-import { NOTIFICATION_ENGINE_VERSION } from '@/lib/notificationRecipes';
-
-// ─── Gate N.0 — Fabbrica notifica AI ────────────────────────────────────────
-// UNICO punto di creazione di una notifica AI. Forza engineVersion e mantiene
-// il payload coerente. Non chiamare mai direttamente results.push({type:'tour_recommendation'...})
-// bypassando questa funzione — l'anti-fake test lo prende.
-export function makeAiNotification({ id, slot, tip, timestamp, chosenPois }) {
-    return {
-        id,
-        type: slot === 'evening' ? 'tour_recommendation' : 'weather_alert',
-        priority: slot === 'evening' ? 'high' : 'medium',
-        title: tip.title,
-        message: tip.message,
-        timestamp,
-        actionText: 'Vedi il giro',
-        actionUrl: '/explore',
-        locationBased: true,
-        category: 'tours',
-        timeSlot: slot,
-        chosenPois: chosenPois || [],
-        engineVersion: NOTIFICATION_ENGINE_VERSION, // Gate N.0 marker
-    };
-}
+// Gate Q — Fabbrica spostata in modulo dedicato con marker anti-tampering
+// (signature hash + salt privato). Nessuno fuori dalla fabbrica puo'
+// produrre un record che passi isValidAiNotification.
+import { makeAiNotification, isValidAiNotification } from '@/lib/aiNotificationFactory';
 
 const isGeneratedId = (id) =>
     typeof id === 'string' &&
     (id.startsWith('morning-') || id.startsWith('weekend-') || id.startsWith('weather-') ||
      id.startsWith('sunny-') || id.startsWith('ai-tip-') || id.startsWith('evening-') ||
-     id.startsWith('afternoon-') || id.startsWith('night-') || id.startsWith('rain-'));
+     id.startsWith('afternoon-') || id.startsWith('rain-'));
 
 // ─── TIME SLOT LOGIC ──────────────────────────────────────────────────────────
 /**
@@ -47,33 +28,12 @@ export function getTimeSlot(hour = new Date().getHours()) {
     return 'night';                                    // 22-05
 }
 
-/**
- * Fallback statico — usato quando l'AI non risponde.
- * Coerente con orario E luogo: nessun "goditi il sole" alle 23.
- */
-function getStaticFallback(city, slot, weatherHint = 'clear') {
-    const isRain = ['rain', 'drizzle', 'storm', 'cloud'].some(w => weatherHint.toLowerCase().includes(w));
-
-    const fallbacks = {
-        morning: isRain
-            ? { title: `Buongiorno a ${city} ☁️`, message: `Giornata uggiosa? Perfetta per un museo o un caffè storico a ${city}. Prenota un tour indoor! #DoveVAI`, actionUrl: '/explore', emoji: '☕' }
-            : { title: `Buongiorno da ${city}! 🌅`, message: `L'ora migliore per esplorare ${city}: poca folla e luce perfetta. Scopri i tour del mattino! #DoveVAI`, actionUrl: '/explore', emoji: '🌅' },
-        midday: isRain
-            ? { title: `Pranzo al coperto a ${city} 🍝`, message: `Con la pioggia è l'occasione giusta per scoprire le trattorie storiche di ${city}. Esplora le esperienze food! #DoveVAI`, actionUrl: '/explore', emoji: '🍝' }
-            : { title: `Pranzo a ${city}! 🍽️`, message: `È l'ora di scoprire i sapori autentici di ${city}. Trova un ristorante consigliato dalle nostre guide locali! #DoveVAI`, actionUrl: '/explore', emoji: '🍽️' },
-        afternoon: isRain
-            ? { title: `Pomeriggio indoor a ${city} 🏛️`, message: `Pioggia in vista? I musei e le gallerie d'arte di ${city} ti aspettano. Tour culturali disponibili! #DoveVAI`, actionUrl: '/map', emoji: '🏛️' }
-            : { title: `Esplora ${city} nel pomeriggio 🗺️`, message: `Il momento ideale per le visite culturali a ${city}. Scopri i tour disponibili ora! #DoveVAI`, actionUrl: '/map', emoji: '🗺️' },
-        evening: isRain
-            ? { title: `Cena speciale a ${city} 🌙`, message: `Una serata perfetta per un ristorante accogliente a ${city}. Le nostre guide conoscono i migliori! #DoveVAI`, actionUrl: '/explore', emoji: '🌙' }
-            : { title: `Buona serata a ${city}! 🌆`, message: `L'aperitivo al tramonto, la cena vista panorama: le esperienze serali di ${city} ti aspettano! #DoveVAI`, actionUrl: '/explore', emoji: '🌆' },
-        night: isRain
-            ? { title: `Notte tranquilla a ${city} 🌙`, message: `Pianifica già il tuo tour di domani a ${city}. Le guide più richieste si prenotano in anticipo! #DoveVAI`, actionUrl: '/ai-itinerary', emoji: '🌙' }
-            : { title: `Pianifica la tua avventura 📅`, message: `Crea il tuo itinerario personalizzato per domani a ${city} con l'AI DoveVAI. Bastano 30 secondi! #DoveVAI`, actionUrl: '/ai-itinerary', emoji: '📅' },
-    };
-
-    return fallbacks[slot] || fallbacks.afternoon;
-}
+// Gate Q.1: getStaticFallback rimosso. Era un dizionario di 10 template
+// hardcoded (5 slot × rain/no-rain) usato SOLO per il branch night. Il push
+// notturno marcava a mano `engineVersion: NOTIFICATION_ENGINE_VERSION`
+// bypassando makeAiNotification — la notifica "Bastano 30 secondi! #DoveVAI"
+// del 13/07 usciva da qui. Slot night ora → silenzio.
+// Regola locked: se non c'e' un motivo verificabile, non si genera niente.
 
 /**
  * Costruisce il prompt AI contestuale, passando ora e contesto meteo.
@@ -198,11 +158,13 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
         if (cached) {
             try {
                 const parsed = JSON.parse(cached);
-                // Gate N.0: filtro PER-ELEMENTO. Se anche uno solo manca engineVersion
-                // o ha version sbagliata, quello record viene scartato (era pre-fix
-                // e conterrebbe testi inventati tipo "Bar Mola" o "sorseggia").
-                // Se dopo il filtro l'array è vuoto → cache miss, rigenerazione.
-                const valid = parsed.filter(n => n?.engineVersion === NOTIFICATION_ENGINE_VERSION);
+                // Gate Q: filtro PER-ELEMENTO via isValidAiNotification.
+                // Ricalcola la signature dai campi del record e la confronta
+                // col marker. Un record cached pre-Gate-Q ha string statica
+                // → fallisce la verifica → viene scartato. Un record fresh
+                // dalla fabbrica passa. Se dopo il filtro l'array e' vuoto
+                // → cache miss, rigenerazione.
+                const valid = parsed.filter(n => isValidAiNotification(n));
                 if (valid.length > 0) {
                     return valid.filter(n => !deletedGenerated.includes(n.id))
                                 .map(n => ({ ...n, is_read: readGenerated.includes(n.id) }));
@@ -214,32 +176,15 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
 
         const results = [];
 
-        // Non generare notifiche di notte (22-06) — solo silenzio
-        if (slot === 'night') {
-            // Notifica leggera per pianificazione domani
-            const fallback = getStaticFallback(city, slot);
-            results.push({
-                id: `night-plan-${city}-${dateStr}`,
-                type: 'recommendation',
-                priority: 'low',
-                title: fallback.title,
-                message: fallback.message,
-                timestamp: now,
-                actionText: 'Pianifica',
-                actionUrl: fallback.actionUrl,
-                locationBased: true,
-                category: 'tours',
-                timeSlot: slot,
-                engineVersion: NOTIFICATION_ENGINE_VERSION, // Gate N.0
-            });
-        } else {
+        // Gate Q.1: slot night (22-05) → silenzio. Nessuna notifica-ponte
+        // "pianifica il domani". Coerente con Fase 1 e regola locked
+        // "meglio silenzio che notifica inventata". Il vecchio branch
+        // usava getStaticFallback (ora eliminato) e marcava engineVersion
+        // a mano bypassando la fabbrica.
+        if (slot !== 'night') {
             // Blocco 2.1 FASE 1 — Notifica-vera: pipeline recipe → Places → AI vincolata.
-            // Se null (recipe mancante, 0 candidati Places, AI skip, AI cita nomi non-in-lista)
-            // → NESSUNA notifica per questa fascia. Regola locked: meglio silenzio che
-            // notifica muta o notifica inventata.
-            //
-            // Il vecchio fallback statico (getStaticFallback) NON viene più usato per
-            // il ramo AI — resta solo per night pianificazione (sopra) come copy safe.
+            // Se null (recipe mancante, 0 candidati Places, AI skip, AI cita
+            // nomi non-in-lista) → NESSUNA notifica per questa fascia.
             let cityCenter = null;
             try {
                 cityCenter = await resolveCityCenter(city);
@@ -256,7 +201,9 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
                     cityCenter,
                 });
                 if (tip?.title && tip?.message) {
-                    // Gate N.0: uso la fabbrica makeAiNotification per forzare engineVersion.
+                    // Gate Q: la fabbrica produce il record con signature opaca.
+                    // Chi cerca di aggirare scrivendo `engineVersion:` a mano
+                    // fallisce isValidAiNotification al retrieval.
                     results.push(makeAiNotification({
                         id: `ai-tip-${slotKey}`,
                         slot,

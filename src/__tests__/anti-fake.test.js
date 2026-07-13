@@ -210,6 +210,27 @@ const RULES = [
         ],
         message: 'Rating/reviews a livello TOUR nel JSX. Solo POI-level: usa exp.featuredPoi.rating o step.rating, mai un aggregato inventato del tour.',
     },
+    // Gate Q — Nessun `engineVersion:` come key literal in object literal,
+    // ovunque nel repo. Il marker di validita' delle notifiche AI e' una
+    // signature opaca calcolata dalla fabbrica (src/lib/aiNotificationFactory.js)
+    // usando una key computata `[SIG_KEY]:` — cosi' questa regola blocca
+    // qualsiasi push a mano senza eccezioni. La signature deriva da
+    // contenuto + salt privato di modulo: chi scrive la key da fuori non
+    // conosce il salt e non puo' produrre l'hash corretto.
+    //
+    // Allowlist: ZERO. La fabbrica usa `[SIG_KEY]:` (computed key), non
+    // literal — passa questa regola per costruzione. Se domani qualcuno
+    // riscrive la fabbrica con literal `engineVersion:`, deve aggiungere
+    // esplicitamente un'eccezione qui e giustificarla in PR review.
+    //
+    // Regola locked (Ivano 13/07): "un marker di verita' che chiunque puo'
+    // scriversi da solo non e' un marker: e' una convenzione".
+    {
+        name: 'no-engine-version-literal-key',
+        pattern: /\bengineVersion\s*:/,
+        allowlist: [],
+        message: 'engineVersion come key literal in object literal. Il marker e\' una signature opaca calcolata dalla fabbrica (src/lib/aiNotificationFactory.js -> makeAiNotification). Scriverlo a mano bypassa il filtro anti-fake. Se serve un push di notifica AI, chiama makeAiNotification.',
+    },
     // Gate 3 T1 — Nessuna chiamata Places puo' essere costruita fuori dalla
     // factory `buildPlacesProxyUrl`. Il builder e' l'UNICO chokepoint: applica
     // `language=it` di default, gli headers proxy, l'edge function di Supabase.
@@ -238,7 +259,12 @@ const RULES = [
 // switch/case) che non pubblicano.
 // Pattern match: `type: 'tour_recommendation'` (assegnazione ad object literal),
 // NON `=== 'tour_recommendation'` (confronto/lettura).
-const AI_NOTIF_TYPES = /type\s*:\s*["'](tour_recommendation|weather_alert)["']/;
+// Gate Q — Estesa a 'recommendation' (Buco 1 identificato: il branch night
+// deceased usava type:'recommendation' e sfuggiva alla regola). Con Gate Q
+// la regola engineVersion-literal e' la vera guardia, questa resta come
+// difesa in profondita' — se qualcuno crea AI-notif con type nuovo, la
+// nostra grep-based coverage la vede.
+const AI_NOTIF_TYPES = /type\s*:\s*["'](tour_recommendation|weather_alert|recommendation)["']/;
 const ENGINE_VERSION_TOKEN = /engineVersion/;
 
 // ─── Utility ─────────────────────────────────────────────────────────────────

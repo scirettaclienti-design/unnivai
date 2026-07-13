@@ -1,15 +1,14 @@
-// ─── Gate N.0 — Marker versione motore notifiche ───────────────────────────
+// Gate Q — NOTIFICATION_ENGINE_VERSION rimosso.
 //
-// Ogni notifica AI-generated (client-side o persistita in DB) DEVE portare
-// questo campo. Notifiche senza il marker (o con marker diverso) vengono
-// scartate al load. Serve a due cose:
-//  - Invalidare la sessionStorage dopo ogni refit del motore (client-side)
-//  - Filtrare vecchi record DB pre-fix quando il payload aveva testo
-//    inventato tipo "Bar Mola" o "sorseggia"
+// Era una costante stringa esportata usata come marker di validita' N.0.
+// Chiunque poteva importarla e scriverla a mano dentro un push locale
+// (esattamente cosa ha fatto il branch night che generava
+// "Bastano 30 secondi! #DoveVAI"). Sostituita da signature opaca calcolata
+// in src/lib/aiNotificationFactory.js: il marker deriva dal contenuto +
+// un salt privato di modulo. Non e' replicabile fuori dalla fabbrica.
 //
-// Bump quando cambia la voce del prompt o la struttura del payload notifica.
-// Ultimo bump: 2026-07-12 (post-Blocco 2.1 Fase 1).
-export const NOTIFICATION_ENGINE_VERSION = 'v2-notifica-vera';
+// Regola locked: "un marker di verita' che chiunque puo' scriversi da solo
+// non e' un marker: e' una convenzione".
 
 // Blocco 2.1 FASE 1 — Ricette contesto → query Places.
 //

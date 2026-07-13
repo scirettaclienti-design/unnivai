@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import { TourUISchema, BookingInputSchema, NotificationUISchema, getMoodForTags } from '../lib/schemas.js';
 import { poiService } from './poiService';
 import { aiRecommendationService } from './aiRecommendationService';
+import { isValidAiDbRecord } from '../lib/aiNotificationFactory';
 // ---------------------------------------------------------------------------
 // validateData(schema, data, label?)
 //
@@ -368,11 +369,12 @@ class DataService {
                 'business_lead', 'business_promo',
                 'payment_confirmed', // legato a booking guide V2
             ]);
-            // Gate N.0 — I tipi AI-generated devono avere engineVersion nel payload,
-            // altrimenti sono record pre-fix (testi tipo "Bar Mola" inventati,
-            // CTA "Prenota ora" rimossi). Filtro PER-RECORD, non per-batch.
+            // Gate Q — I tipi AI-generated devono passare isValidAiDbRecord:
+            // signature opaca calcolata dalla fabbrica (aiNotificationFactory).
+            // Chi scrive `engineVersion:` a mano non conosce il salt privato
+            // → hash non torna → rigettato. Sostituisce il vecchio confronto
+            // string-uguaglianza N.0 che era aggirabile scrivendo la stringa.
             const AI_TYPES = new Set(['tour_recommendation', 'weather_alert', 'recommendation']);
-            const NOTIF_ENGINE_VERSION = 'v2-notifica-vera'; // sync con src/lib/notificationRecipes.js
 
             const hasBrokenInterpolation = (n) => {
                 const text = `${n.title || ''} ${n.message || ''}`;
@@ -381,8 +383,7 @@ class DataService {
             };
             const isValidAiRecord = (n) => {
                 if (!AI_TYPES.has(n.type)) return true; // non-AI: nessuna verifica
-                const v = n.action_data?.engineVersion || n.action_data?.engine_version;
-                return v === NOTIF_ENGINE_VERSION;
+                return isValidAiDbRecord(n);
             };
 
             const filtered = data
@@ -444,13 +445,11 @@ class DataService {
                     const rawText = `${n.title || ''} ${n.message || ''}`;
                     if (/\b(null|undefined)\b/i.test(rawText)) return;
 
-                    // Gate N.0 — Skip AI-generated senza engineVersion (pre-fix).
+                    // Gate Q — Skip AI-generated che non passano isValidAiDbRecord
+                    // (signature opaca calcolata dalla fabbrica). Sostituisce il
+                    // vecchio confronto string-uguaglianza N.0.
                     const AI_TYPES = new Set(['tour_recommendation', 'weather_alert', 'recommendation']);
-                    const NOTIF_ENGINE_VERSION = 'v2-notifica-vera';
-                    if (AI_TYPES.has(n.type)) {
-                        const v = n.action_data?.engineVersion || n.action_data?.engine_version;
-                        if (v !== NOTIF_ENGINE_VERSION) return;
-                    }
+                    if (AI_TYPES.has(n.type) && !isValidAiDbRecord(n)) return;
 
                     // Shape must match NotificationUISchema (same as getNotifications mapper)
                     const uiNotification = {

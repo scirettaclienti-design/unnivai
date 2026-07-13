@@ -14,6 +14,7 @@ import { useAILearning } from '../hooks/useAILearning';
 import { placesDiscoveryService } from '@/services/placesDiscoveryService';
 import { getItemImage, GENERIC, CITY_IMAGES } from '@/utils/imageUtils';
 import { normalizeTour } from '@/services/tourShape';
+import { resolveCityCenter, CityCenterUnresolvedError } from '@/services/cityCenterService';
 import TourCover from '@/components/TourCover';
 // 🧠 AI-POWERED EXPERIENCE GENERATOR (REAL POI DISCOVERY)
 
@@ -59,19 +60,26 @@ const getPoiTypeImage = (poiType, cityName) => {
 /**
  * Build smart experiences using REAL POIs discovered by AI.
  * Async — calls placesDiscoveryService to get real place names and coordinates.
+ *
+ * Gate O.1: cityCenter è sorgente autoritativa (risolto UNA volta a monte via
+ * resolveCityCenter). Zero fallback GPS/hardcoded qui dentro. userLat/userLng
+ * NON sono più input — le distanze utente-POI si calcolano client-side quando
+ * il GPS arriva, senza rifetchare Places.
  */
-const buildSmartExperiencesAsync = async (cityName, userLat, userLng, userDNA = []) => {
+const buildSmartExperiencesAsync = async (cityName, cityCenter, userDNA = []) => {
+    if (!cityCenter || !Number.isFinite(cityCenter.latitude) || !Number.isFinite(cityCenter.longitude)) {
+        throw new Error('[buildSmartExperiences] cityCenter mancante — chiamante deve risolvere con resolveCityCenter');
+    }
+    const centerLat = cityCenter.latitude;
+    const centerLng = cityCenter.longitude;
+
     // 1. DNA preferences for ordering (guard against null/undefined)
     const dna = Array.isArray(userDNA) ? userDNA : [];
     const likesFood = dna.some(d => d.inspiration?.includes('Cibo') || d.mood?.includes('Cibo') || d.mood?.includes('Street'));
     const likesNature = dna.some(d => d.inspiration?.includes('Natura') || d.mood?.includes('Natura'));
     const likesArts = dna.some(d => d.inspiration?.includes('Arte') || d.inspiration?.includes('Storia') || d.mood?.includes('Cultura'));
 
-    // 2. Get coordinates (use user GPS if available, else geocode)
-    const centerLat = userLat || 41.9028;
-    const centerLng = userLng || 12.4964;
-
-    // 3. Discover real POIs for all themes (runs in parallel — cached after first call)
+    // 2. Discover real POIs for all themes (runs in parallel — cached after first call)
     let allPOIs = {};
     try {
         allPOIs = await placesDiscoveryService.discoverAllThemes(cityName, centerLat, centerLng);
@@ -163,14 +171,11 @@ const buildSmartExperiencesAsync = async (cityName, userLat, userLng, userDNA = 
             waypoints: generatedSteps.map(s => [s.lat, s.lng]),
             isAiGenerated: true,
         };
-    // DVAI-055-b: cityCenter passato al normalizer → filtro raggio anche sui tour
-    // tematici (la falla che il fix DVAI-055 nel solo generateItinerary non copriva).
-    // Se userLat/userLng assenti, cityCenter è null → nessun filtro (retrocompat).
+    // Gate O.1: cityCenter (Places-auth) passato al normalizer per applyRadiusFilter.
+    // Sempre presente — il chiamante lo garantisce.
     }).map(t => normalizeTour(t, {
         cityFallback: cityName,
-        cityCenter: Number.isFinite(userLat) && Number.isFinite(userLng)
-            ? { latitude: userLat, longitude: userLng }
-            : null,
+        cityCenter: { latitude: centerLat, longitude: centerLng },
     }));
 };
 
@@ -219,7 +224,10 @@ const getAffinityScore = (tour, graph) => {
 };
 
 const DashboardUser = () => {
-    const { firstName, city, lat, lng, temperatureC, weatherCondition, isLoading } = useUserContext();
+    // Gate O.1: lat/lng non più letti qui. Il centro POI viene da resolveCityCenter
+    // (Places-auth), non dal GPS. GPS/meteo restano disponibili via useUserContext
+    // per altri consumer (TopBar, distanze client-side future).
+    const { firstName, city, temperatureC, weatherCondition, isLoading } = useUserContext();
     const navigate = useNavigate();
     const [showCustomOptions, setShowCustomOptions] = useState(false);
     const [showNotificationPreview, setShowNotificationPreview] = useState(false);
@@ -311,9 +319,16 @@ const DashboardUser = () => {
         return () => { window.removeEventListener('offline', goOffline); window.removeEventListener('online', goOnline); };
     }, []);
 
-    // Fetch Experiences — personalizzate con il preference graph
+    // Fetch Experiences — personalizzate con il preference graph.
+    //
+    // Gate O.1: queryKey è [city, ...] senza lat/lng. Il primo render dei
+    // POI dipende SOLO dal centro città (resolveCityCenter — Places auth),
+    // non dal GPS utente. Quando il GPS arriva la queryKey non cambia →
+    // niente refetch → costo Places dimezzato + zero POI di Roma
+    // hardcoded mostrati a utenti di altre città. Le distanze utente-POI
+    // (dove servano) si calcolano client-side dai lat/lng già presenti.
     const { data: experiences, isError: experiencesError, isPending: experiencesLoading, refetch: refetchExperiences } = useQuery({
-        queryKey: ['home-experiences', city, lat, lng, totalInteractions, hasPreferences],
+        queryKey: ['home-experiences', city, totalInteractions, hasPreferences],
         queryFn: async () => {
             const currentCity = city || 'Roma';
             let finalTours = [];
@@ -333,21 +348,35 @@ const DashboardUser = () => {
                 console.warn("Failed to fetch tours, using fallback", e);
             }
 
-            // Se non ci sono tour nel DB, genera con AI discovery + narrativa insider
+            // Se non ci sono tour nel DB, genera con AI discovery + narrativa insider.
             if (finalTours.length === 0) {
+                // Gate O.1: risolvo cityCenter una volta, autoritativo. Se la città
+                // non esiste su Places (typo o proxy giù), fail-CLOSED: nessun tour
+                // finto. La useQuery esce con [] → empty state onesto in UI.
+                let cityCenter;
+                try {
+                    cityCenter = await resolveCityCenter(currentCity);
+                } catch (err) {
+                    if (err instanceof CityCenterUnresolvedError) {
+                        console.warn(`[Per Te] cityCenter irrisolto (${err.reason}) per "${currentCity}" — empty state`);
+                        return [];
+                    }
+                    throw err;
+                }
+
                 // Lancia in parallelo: 5 tour tematici (placesDiscoveryService) +
                 // 1 tour narrativo "insider locale" (aiRecommendationService).
                 // Il featured insider va in cima alle card di "Per Te".
                 const [smartTours, insiderResult] = await Promise.all([
-                    buildSmartExperiencesAsync(currentCity, lat, lng, userDNAPreferences),
+                    buildSmartExperiencesAsync(currentCity, cityCenter, userDNAPreferences),
                     aiRecommendationService.generateItinerary(
                         currentCity,
                         { duration: '1 Giorno', group: 'solo', pace: 'rilassato' },
                         `Itinerario insider per scoprire ${currentCity} oggi`,
                         {},
                         getAIContext?.() || '',
-                        // DVAI-055: cityCenter per vincolo geografico. lat/lng dal userContext (GPS o manuale).
-                        Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null
+                        // Gate O.1: cityCenter risolto sopra, sempre autoritativo — non aspetta GPS.
+                        { latitude: cityCenter.latitude, longitude: cityCenter.longitude }
                     ).catch(err => {
                         console.warn('[Per Te] insider narrativa fallback:', err.message);
                         return null;
@@ -387,11 +416,9 @@ const DashboardUser = () => {
                         mapMood: day.mapMood || 'default',
                     }, {
                         cityFallback: currentCity,
-                        // DVAI-055-b: doppio filtro innocuo — generateItinerary ha già filtrato,
-                        // il normalizer riapplica per uniformità. Idempotente.
-                        cityCenter: Number.isFinite(lat) && Number.isFinite(lng)
-                            ? { latitude: lat, longitude: lng }
-                            : null,
+                        // Gate O.1: cityCenter da resolveCityCenter (sempre presente qui).
+                        // Filtro raggio idempotente sopra a generateItinerary.
+                        cityCenter: { latitude: cityCenter.latitude, longitude: cityCenter.longitude },
                     });
                 }
 

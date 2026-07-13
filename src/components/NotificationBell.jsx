@@ -11,9 +11,13 @@ import { supabase } from '@/lib/supabase';
 import { useUserNotifications } from '@/hooks/useUserNotifications';
 
 export default function NotificationBell({ theme = 'dark' }) {
-    const { userId, city, firstName, isGuest } = useUserContext();
+    const { userId, city, firstName, isGuest, lat, lng, temperatureC, weatherCondition } = useUserContext();
     const [showPreview, setShowPreview] = useState(false);
-    const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useUserNotifications(userId, city, firstName);
+    // Blocco 2.1 FASE 1 — Passa il ctx per la notifica-vera (GPS, meteo).
+    const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useUserNotifications(
+        userId, city, firstName,
+        { userLat: lat, userLng: lng, temperatureC, condition: weatherCondition }
+    );
     const navigate = useNavigate();
 
     const handleNotificationClick = (notification) => {

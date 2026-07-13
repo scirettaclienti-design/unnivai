@@ -49,7 +49,7 @@ const getWeatherIconByCondition = (condition = '') => {
 };
 
 export default function NotificationsPage() {
-    const { userId, city, firstName, temperatureC, weatherCondition } = useUserContext();
+    const { userId, city, firstName, temperatureC, weatherCondition, lat, lng } = useUserContext();
     const { toast } = useToast();
     const navigate = useNavigate();
     const [filter, setFilter] = useState('all');
@@ -110,7 +110,11 @@ export default function NotificationsPage() {
         }
     };
 
-    const { notifications: rawNotifications, unreadCount, markAsRead, deleteNotification, markAllAsRead } = useUserNotifications(userId, city, firstName);
+    // Blocco 2.1 FASE 1 — Passa il ctx per la notifica-vera (GPS, meteo).
+    const { notifications: rawNotifications, unreadCount, markAsRead, deleteNotification, markAllAsRead } = useUserNotifications(
+        userId, city, firstName,
+        { userLat: lat, userLng: lng, temperatureC, condition: weatherCondition }
+    );
 
     const notifications = rawNotifications.map(n => ({
         ...n,

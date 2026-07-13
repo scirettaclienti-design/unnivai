@@ -1343,59 +1343,168 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
         }
     },
 
-    // ─── DYNAMIC WEATHER & SOCIAL TIP ─────────────────────────────────────────
-    /**
-     * DVAI-002 (notifiche): Genera un consiglio AI contestuale all'orario reale.
-     * @param {string} city
-     * @param {string} userName
-     * @param {'morning'|'midday'|'afternoon'|'evening'|'night'} slot - fascia oraria da useUserNotifications
-     */
-    async generateWeatherSocialTip(city, userName, slot = 'afternoon') {
-        // Descrizione human-readable dello slot per il prompt
-        const slotLabels = {
-            morning:   'mattina (06-10), poca folla, luce bella',
-            midday:    'mezzogiorno (11-13), ora di pranzo',
-            afternoon: 'pomeriggio (14-17), caldo, ideale per musei e gallerie',
-            evening:   'sera (18-21), aperitivo e cena',
-            night:     'notte (22-05), tutto chiuso tranne locali notturni',
-        };
-        const slotActivities = {
-            morning:   'passeggiate, mercati del mattino, tour con poca folla, colazione tipica',
-            midday:    'ristoranti, trattorie, osterie, street food, pranzo tipico locale',
-            afternoon: 'musei, gallerie d\'arte, tour culturali, laboratori artigianali',
-            evening:   'aperitivo, ristoranti romantici, esperienze gastronomiche serali, vista panoramica',
-            night:     'pianificazione del giorno dopo, itinerari AI per domani mattina',
-        };
-
+    // ─── DYNAMIC WEATHER & SOCIAL TIP (Blocco 2.1 FASE 1) ─────────────────────
+    //
+    // Pipeline nuova: contesto reale → recipe query → Places → dati verificabili
+    // → AI vincolata a nomi in lista. Zero invenzione. Se Places 0 → null.
+    //
+    // Regole voce locked (feedback_dovevai_voce): title = fatto nudo,
+    // message = motivo verificabile, blacklist verbi da menu/aggettivi vuoti.
+    //
+    // @param {string} city
+    // @param {string} userName
+    // @param {'morning'|'midday'|'afternoon'|'evening'|'night'} slot
+    // @param {object} ctx — { userLat, userLng, temperatureC, condition, cityCenter }
+    // @returns {Promise<null | { title, message, chosenPois: [{name, place_id, lat, lng}] }>}
+    async generateWeatherSocialTip(city, userName, slot = 'afternoon', ctx = {}) {
         try {
-            const prompt = `Sei un esperto locale di ${city}. Ora è: ${slotLabels[slot] || slotLabels.afternoon}.
-Scrivi UN breve consiglio (max 140 caratteri) per ${userName || 'il viaggiatore'} suggerendo SOLO attività adatte a questo orario: ${slotActivities[slot] || slotActivities.afternoon}.
-REGOLA FONDAMENTALE: NON suggerire il sole, passeggiate all'aperto o attività esterne di notte. NON suggerire ristoranti o bar alle 7 del mattino.
-Aggiungi #DoveVAI alla fine.
+            // 1. Recipe da (slot, weatherClass). Se null (es. night) → nessuna notifica.
+            const { computeWeatherClass, getRecipe } = await import('../lib/notificationRecipes');
+            const weatherClass = computeWeatherClass(ctx.temperatureC, ctx.condition);
+            const recipe = getRecipe(slot, weatherClass);
+            if (!recipe) {
+                console.info(`[SmartNotif] ${city}/${slot}/${weatherClass}: no recipe → skip`);
+                return null;
+            }
 
-Formato JSON:
-{
-  "title": "Titolo breve con emoji adatta all'orario (max 50 car)",
-  "message": "Consiglio coerente con l'orario con hashtag (max 140 car)"
-}`;
+            // 2. cityCenter obbligatorio per textsearch (nessun tour senza).
+            const cc = ctx.cityCenter;
+            if (!cc || !Number.isFinite(cc.latitude) || !Number.isFinite(cc.longitude)) {
+                console.info(`[SmartNotif] ${city}: cityCenter mancante → skip`);
+                return null;
+            }
+
+            // 3. Places textsearch via placesDiscoveryService (customQuery + customKind).
+            const { placesDiscoveryService } = await import('./placesDiscoveryService');
+            const candidates = await placesDiscoveryService.discoverRealPOIs(
+                city, cc.latitude, cc.longitude, null,
+                { customQuery: recipe.query, customKind: recipe.kind, skipLegacyFallback: true, maxResults: 5 }
+            );
+            if (!Array.isArray(candidates) || candidates.length === 0) {
+                console.info(`[SmartNotif] ${city}/${recipe.query}: 0 candidati Places → skip`);
+                return null;
+            }
+
+            // 4. Top-3 candidati (già ordinati per QS in discoverRealPOIs).
+            const top = candidates.slice(0, 3);
+
+            // 5. Distanza a piedi (SOLO se GPS attivo). Zero fallback su cityCenter.
+            const { haversineKm } = await import('./tourShape');
+            const hasGps = Number.isFinite(ctx.userLat) && Number.isFinite(ctx.userLng);
+            const enriched = top.map(p => {
+                const distanceMinutes = hasGps && Number.isFinite(p.latitude) && Number.isFinite(p.longitude)
+                    ? Math.round(haversineKm(ctx.userLat, ctx.userLng, p.latitude, p.longitude) * 12)
+                    : null;
+                return {
+                    name: p.name,
+                    place_id: p.place_id || p.googlePlaceId,
+                    lat: p.latitude,
+                    lng: p.longitude,
+                    rating: p.rating,
+                    user_ratings_total: p.user_ratings_total,
+                    // opening_hours.open_now è nel Google textsearch response
+                    // quando disponibile — placesDiscoveryService lo passa attraverso.
+                    open_now: p.opening_hours?.open_now ?? null,
+                    distanceMinutes,
+                };
+            });
+
+            // 6. Costruisci prompt con dati verificabili.
+            const nowH = new Date().getHours();
+            const nowM = new Date().getMinutes().toString().padStart(2, '0');
+            const tempStr = Number.isFinite(ctx.temperatureC) ? `${ctx.temperatureC}°C` : null;
+            const weatherStr = ctx.condition || null;
+
+            const candidatesBlock = enriched.map((c, i) => {
+                const bits = [`${i + 1}. ${c.name}`];
+                if (c.distanceMinutes !== null) bits.push(`${c.distanceMinutes} min a piedi da te`);
+                if (c.open_now === true) bits.push('aperto adesso');
+                if (c.open_now === false) bits.push('chiuso ora');
+                if (Number.isFinite(c.rating)) bits.push(`rating ${c.rating}`);
+                return bits.join(' — ');
+            }).join('\n');
+
+            const contextBlock = [
+                `Città: ${city}`,
+                `Ora esatta: ${nowH}:${nowM}`,
+                tempStr && `Temperatura: ${tempStr}`,
+                weatherStr && `Condizioni: ${weatherStr}`,
+                `Slot orario: ${slot} (${weatherClass})`,
+                `Categoria: ${recipe.categoria}`,
+                hasGps ? 'GPS utente: disponibile → usa "a X minuti da te"' : 'GPS utente: NON disponibile → NON dire "da te" e NON dare distanze',
+            ].filter(Boolean).join('\n');
+
+            const systemPrompt = `Sei una persona che conosce ${city} bene. Non un travel advisor, non una guida turistica.
+
+Ti do 3 posti REALI trovati su Google Places nel giro di 5km:
+${candidatesBlock}
+
+CONTESTO:
+${contextBlock}
+
+Scrivi UNA notifica breve che promette all'utente di andare in 1 o 2 di questi posti.
+
+REGOLE VOCE (locked):
+- Title = il DATO di contesto, nudo. Esempi: "Sono le 18:12 🌇", "30 gradi 🍝", "Piove ☔". Zero aggettivi ("il cielo sta cambiando" = aggettivo travestito).
+- Message = UN MOTIVO verificabile per andare. Esempi: "Palazzo Biscari è a 6 minuti da te e non chiude fino alle 19", "MM Trattoria è a 4 minuti da te. Al chiuso, tavoli disponibili adesso."
+- Il motivo DEVE essere costruito SOLO sui dati che ti ho dato sopra (ora, temperatura, meteo, distanza, open_now, rating).
+- NIENTE fatti inventati sul posto: no "il pub dove producono la birra", no "storia dal 1960". Se non è nei dati sopra, non lo sai.
+- NIENTE aggettivi vuoti: "spettacolare", "unico", "indimenticabile", "atmosfera intima", "vista mozzafiato".
+- NIENTE verbi da menu: "sorseggia", "gusta", "immergiti", "assapora".
+- Otto parole per far alzare l'utente dal divano. Voce di persona, non di app.
+
+LIMITI DURI:
+- Usa SOLO i nomi nella lista dei 3 candidati. Se citi un nome non in lista → sei fuori.
+- Title max 50 caratteri (incluso emoji).
+- Message max 140 caratteri.
+- Zero hashtag, zero emoji nel message.
+- Se pensi che nessuno dei 3 candidati sia adatto o non hai un motivo forte → rispondi { "skip": true, "reason": "..." }.
+
+Rispondi in JSON puro:
+  { "title": "...", "message": "..." }
+oppure
+  { "skip": true, "reason": "..." }`;
 
             const data = await callOpenAIProxy({
                 model: 'gpt-4o-mini',
                 messages: [
-                    { role: 'system', content: 'Sei un travel advisor locale amichevole. Rispondi SOLO in JSON valido. Rispetta rigorosamente il contesto orario.' },
-                    { role: 'user', content: prompt }
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: 'Scrivi la notifica ora.' }
                 ],
                 response_format: { type: 'json_object' },
+                temperature: 0.4, // determinismo maggiore per voce coerente
                 max_tokens: 200,
             });
 
             if (!data.choices?.[0]) throw new Error('No AI response');
             const parsed = JSON.parse(data.choices[0].message.content);
-            if (!parsed.title || !parsed.message) throw new Error('Incomplete AI response');
-            return parsed;
+
+            if (parsed.skip === true) {
+                console.info(`[SmartNotif] ${city}/${slot}: AI skip (${parsed.reason || 'no reason'})`);
+                return null;
+            }
+
+            if (!parsed.title || !parsed.message) {
+                throw new Error('Incomplete AI response');
+            }
+
+            // 7. Verifica anti-invenzione: message deve contenere almeno un nome
+            //    della lista candidati. Se cita nomi non-in-lista → scarta.
+            const msg = String(parsed.message).toLowerCase();
+            const chosenPois = enriched.filter(c => msg.includes(c.name.toLowerCase()));
+            if (chosenPois.length === 0) {
+                console.warn(`[SmartNotif] ${city}/${slot}: AI non ha citato nessun candidato → scarto`);
+                return null;
+            }
+
+            return {
+                title: String(parsed.title).slice(0, 60),
+                message: String(parsed.message).slice(0, 180),
+                chosenPois: chosenPois.map(c => ({ name: c.name, place_id: c.place_id, lat: c.lat, lng: c.lng })),
+            };
         } catch (e) {
-            console.warn('[AI] generateWeatherSocialTip failed:', e.message);
-            return null; // null → useUserNotifications usa il fallback statico coerente
+            console.warn('[SmartNotif] generateWeatherSocialTip failed:', e.message);
+            return null; // null → useUserNotifications non pubblica notifica
         }
     },
 

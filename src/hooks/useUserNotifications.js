@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { aiRecommendationService } from '@/services/aiRecommendationService';
 import { dataService } from '@/services/dataService';
 import { supabase } from '@/lib/supabase';
+import { resolveCityCenter } from '@/services/cityCenterService';
 
 const isGeneratedId = (id) =>
     typeof id === 'string' &&
@@ -87,7 +88,11 @@ Formato JSON:
 }`;
 }
 
-export function useUserNotifications(userId, city, firstName) {
+export function useUserNotifications(userId, city, firstName, ctx = {}) {
+    // Blocco 2.1 FASE 1 — ctx = { userLat, userLng, temperatureC, condition }.
+    // Passato al generateWeatherSocialTip per costruire la notifica-vera:
+    // - userLat/userLng = GPS reale (se GPS negato → null → notifica senza distanza)
+    // - temperatureC + condition = classificatore weatherClass per la ricetta
     const [generatedNotifications, setGeneratedNotifications] = useState([]);
     const [realNotifications, setRealNotifications] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -138,7 +143,10 @@ export function useUserNotifications(userId, city, firstName) {
             const interval = setInterval(loadSmartNotifications, 30 * 60 * 1000);
             return () => clearInterval(interval);
         }
-    }, [userId, city, firstName]);
+    // Dep su ctx.userLat/lng/temp/condition: se cambiano (GPS reso disponibile,
+    // meteo aggiornato) rigenera in modo che la notifica usi i dati nuovi.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userId, city, firstName, ctx.userLat, ctx.userLng, ctx.temperatureC, ctx.condition]);
 
     const loadSmartNotifications = async () => {
         setIsLoading(true);
@@ -192,9 +200,28 @@ export function useUserNotifications(userId, city, firstName) {
                 timeSlot: slot,
             });
         } else {
-            // Tenta la chiamata AI con contesto orario
+            // Blocco 2.1 FASE 1 — Notifica-vera: pipeline recipe → Places → AI vincolata.
+            // Se null (recipe mancante, 0 candidati Places, AI skip, AI cita nomi non-in-lista)
+            // → NESSUNA notifica per questa fascia. Regola locked: meglio silenzio che
+            // notifica muta o notifica inventata.
+            //
+            // Il vecchio fallback statico (getStaticFallback) NON viene più usato per
+            // il ramo AI — resta solo per night pianificazione (sopra) come copy safe.
+            let cityCenter = null;
             try {
-                const tip = await aiRecommendationService.generateWeatherSocialTip(city, userName, slot);
+                cityCenter = await resolveCityCenter(city);
+            } catch (e) {
+                console.info(`[SmartNotif] ${city}: cityCenter unresolvable (${e?.reason || e?.message}) → skip`);
+            }
+
+            if (cityCenter) {
+                const tip = await aiRecommendationService.generateWeatherSocialTip(city, userName, slot, {
+                    userLat: ctx.userLat,
+                    userLng: ctx.userLng,
+                    temperatureC: ctx.temperatureC,
+                    condition: ctx.condition,
+                    cityCenter,
+                });
                 if (tip?.title && tip?.message) {
                     results.push({
                         id: `ai-tip-${slotKey}`,
@@ -203,31 +230,19 @@ export function useUserNotifications(userId, city, firstName) {
                         title: tip.title,
                         message: tip.message,
                         timestamp: now,
-                        actionText: slot === 'evening' ? 'Prenota ora' : 'Esplora',
-                        actionUrl: slot === 'evening' ? '/explore' : (slot === 'morning' ? '/map' : '/explore'),
+                        // FASE 2 farà il CTA unico "Vedi il giro" che apre TourDetails
+                        // col tour precomputato. Per ora l'actionUrl resta a /explore
+                        // ma il modal (Notifications.jsx) userà chosenPois per il tour.
+                        actionText: 'Vedi il giro',
+                        actionUrl: '/explore',
                         locationBased: true,
-                        category: slot === 'evening' ? 'tours' : 'weather',
+                        category: 'tours',
                         timeSlot: slot,
+                        // Dati per Fase 2 (precompute): i POI che l'AI ha citato.
+                        chosenPois: tip.chosenPois || [],
                     });
-                } else {
-                    throw new Error('Empty AI response');
                 }
-            } catch {
-                // Fallback statico coerente con l'orario
-                const fallback = getStaticFallback(city, slot);
-                results.push({
-                    id: `static-${slotKey}`,
-                    type: 'recommendation',
-                    priority: slot === 'evening' ? 'high' : 'medium',
-                    title: fallback.title,
-                    message: fallback.message,
-                    timestamp: now,
-                    actionText: 'Scopri',
-                    actionUrl: fallback.actionUrl,
-                    locationBased: true,
-                    category: slot === 'evening' ? 'tours' : 'weather',
-                    timeSlot: slot,
-                });
+                // else: null → nessuna notifica pubblicata. Silenzio onesto.
             }
         }
 

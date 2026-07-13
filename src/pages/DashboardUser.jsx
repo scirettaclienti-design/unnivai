@@ -266,7 +266,14 @@ const DashboardUser = () => {
     };
 
     const submitGuideRequest = async () => {
-        if (!requestText.trim()) return;
+        // Gate L: defense-in-depth. Il bottone è disabled quando testo vuoto,
+        // ma se un giorno il disabled viene rimosso, il toast copre il caso.
+        if (!requestText.trim()) {
+            if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+            setToast({ title: 'Scrivi qualcosa prima di inviare la richiesta.', type: 'info' });
+            toastTimerRef.current = setTimeout(() => setToast(null), 3000);
+            return;
+        }
 
         setRequestStatus('submitting');
         try {

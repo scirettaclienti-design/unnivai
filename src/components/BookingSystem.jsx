@@ -9,6 +9,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, Users, CreditCard, Check, X, ExternalLink } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 // Genera i prossimi N giorni disponibili a partire da domani
 const generateAvailableDates = (count = 6) => {
@@ -28,6 +29,7 @@ export default function BookingModal({ tourId, tourTitle, price, guideId, onClos
     const [bookingData, setBookingData] = useState({ guests: 2, paymentMethod: 'card' });
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [checkoutError, setCheckoutError] = useState(null);
+    const { toast } = useToast();
 
     // DVAI-040: date dinamiche, non più hardcoded
     const availableDates = useMemo(() => generateAvailableDates(6), []);
@@ -37,7 +39,20 @@ export default function BookingModal({ tourId, tourTitle, price, guideId, onClos
 
     // Step 3: conferma e avvia pagamento Stripe
     const handleConfirm = async () => {
-        if (!bookingData.date || !bookingData.time || !bookingData.guests) return;
+        // Gate L: defense-in-depth. Il bottone è disabled quando dati mancano,
+        // ma se un giorno il disabled viene rimosso, il toast copre il caso.
+        if (!bookingData.date || !bookingData.time || !bookingData.guests) {
+            const missing = [];
+            if (!bookingData.date) missing.push('data');
+            if (!bookingData.time) missing.push('ora');
+            if (!bookingData.guests) missing.push('numero di ospiti');
+            toast({
+                title: `Compila ${missing.join(', ')} prima di confermare.`,
+                type: 'info',
+                duration: 3000,
+            });
+            return;
+        }
 
         setIsCheckingOut(true);
         setCheckoutError(null);

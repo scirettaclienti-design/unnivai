@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, Shield, AlertTriangle, Send } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { sanitizeMessage } from '@/utils/chatSanitizer';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ChatModalUser({ isOpen, onClose, request, userId, userName }) {
     const [chatHistory, setChatHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
     const [chatMessage, setChatMessage] = useState('');
+    const { toast } = useToast();
 
     useEffect(() => {
         if (isOpen && request) {
@@ -35,7 +37,13 @@ export default function ChatModalUser({ isOpen, onClose, request, userId, userNa
     };
 
     const sendChatMessage = async () => {
-        if (!chatMessage.trim() || !request) return;
+        // Gate L: defense-in-depth. Il bottone è già disabled, ma se un giorno
+        // viene sbloccato, il toast copre il caso.
+        if (!chatMessage.trim()) {
+            toast({ title: 'Scrivi qualcosa prima di inviare.', type: 'info', duration: 3000 });
+            return;
+        }
+        if (!request) return; // guard tecnica: request assente → chiama uscita silenziosa
 
         const { sanitizedText, hasViolations } = sanitizeMessage(chatMessage.trim());
 

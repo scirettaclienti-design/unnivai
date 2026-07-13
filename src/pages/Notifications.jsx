@@ -137,7 +137,13 @@ export default function NotificationsPage() {
     };
 
     const handleReplySubmit = async () => {
-        if (!replyText.trim() || !selectedNotification?.actionData?.guide_id) return;
+        // Gate L: defense-in-depth. Il bottone è già disabled, ma se un giorno
+        // viene sbloccato, il toast copre il caso.
+        if (!replyText.trim()) {
+            toast({ title: 'Scrivi la tua risposta prima di inviare.', type: 'info', duration: 3000 });
+            return;
+        }
+        if (!selectedNotification?.actionData?.guide_id) return; // guard tecnica
 
         setIsReplying(true);
         const { sanitizedText, hasViolations } = sanitizeMessage(replyText.trim());

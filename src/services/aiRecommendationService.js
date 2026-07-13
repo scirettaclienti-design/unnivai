@@ -930,7 +930,7 @@ export const aiRecommendationService = {
     // DVAI-060 F2 — Google-first: se cityCenter presente, chiama discoverRealPOIs
     // per ottenere candidati reali. L'AI diventa selettore-narratore. Se meno di 3
     // candidati o cityCenter assente, fallback al vecchio flusso AI-first.
-    async generateItinerary(city, prefs = {}, userPrompt = '', weather = {}, aiProfile = '', cityCenter = null) {
+    async generateItinerary(city, prefs = {}, userPrompt = '', weather = {}, aiProfile = '', cityCenter = null, opts = {}) {
         // DVAI-055 — la cache key include cityCenter perché il filtro raggio cambia
         // il risultato salvato. Firmato con lat/lng arrotondati a 3 decimali (~110 m).
         const centerFingerprint = cityCenter && Number.isFinite(cityCenter.latitude)
@@ -940,9 +940,12 @@ export const aiRecommendationService = {
         const cached = loadInsiderFromCache(cacheKey);
         if (cached) return cached;
 
-        // DVAI-050 — Cache MISS: prima di chiamare OpenAI controlla la quota giornaliera.
-        // Lancia AiQuotaExceededError se >= 10 generazioni oggi (gestita dalla UI).
-        await checkAndIncrementQuota();
+        // DVAI-050 — Cache MISS: quota giornaliera utente (10/day).
+        // Blocco 2.1 FASE 2: opts.skipUserQuota=true bypassa il conteggio utente
+        // (usato dal precompute sistema che ha il suo cap syswarm cap 6/day).
+        if (!opts.skipUserQuota) {
+            await checkAndIncrementQuota();
+        }
 
         const weatherIcon = weather?.condition === 'sunny' ? '☀️'
             : weather?.condition === 'rainy' ? '🌧️' : '⛅';
@@ -1280,6 +1283,78 @@ Schema JSON ESATTO:
                 console.warn(`[AI] Itinerary failed (${reason}) → rethrow onesto (no static fallback)`);
             }
             throw err;
+        }
+    },
+
+    // ─── Blocco 2.1 FASE 2 — System precompute (bypass quota utente) ──────────
+    //
+    // Generato dal sistema per il precompute lazy delle notifiche:
+    //  - NON consuma la quota utente (10/day)
+    //  - Ha un contatore separato in localStorage: unnivai_syswarm_<userId>_<YYYY-MM-DD>
+    //  - Cap 6/day per utente per proteggere il budget OpenAI complessivo
+    //  - Se cap raggiunto → throw SystemQuotaExceededError (UI mostra CTA disabled)
+    //
+    // Il tour risultante DEVE contenere almeno un chosenPoi della notifica —
+    // altrimenti la promessa del CTA "Vedi il giro" viene tradita.
+    //
+    // @param {string} city
+    // @param {string} notificationMessage — il testo della notifica (userPrompt del motore)
+    // @param {Array<{name, place_id, lat, lng}>} chosenPois — POI citati nel messaggio
+    // @param {object} weather
+    // @param {object} cityCenter
+    // @returns {Promise<{ tourData, chosenPois } | null>}
+    async generateSystemPrewarmTour(city, notificationMessage, chosenPois = [], weather = {}, cityCenter = null) {
+        try {
+            // 1. Cap syswarm: contatore separato per giorno per utente.
+            const { data: { session } } = await supabase.auth.getSession();
+            const userId = session?.user?.id;
+            if (!userId) {
+                // Guest: bypass sia quota utente sia syswarm counter (rischio budget minimo).
+            } else {
+                const day = todayStr();
+                const key = `unnivai_syswarm_${userId}_${day}`;
+                const current = parseInt(localStorage.getItem(key) || '0', 10);
+                if (current >= 6) {
+                    console.info(`[SysPrewarm] cap 6/day raggiunto per ${userId}/${day}`);
+                    throw new Error('SYSTEM_PREWARM_CAP_EXCEEDED');
+                }
+                // Incrementa PRIMA della chiamata (fail-closed sul budget).
+                try { localStorage.setItem(key, String(current + 1)); } catch { /* localStorage pieno */ }
+            }
+
+            // 2. Chiama generateItinerary col flag skipUserQuota=true.
+            const result = await this.generateItinerary(
+                city,
+                { duration: 'Veloce', group: 'solo' },
+                notificationMessage,       // userPrompt → path A Gate B → traduttore → Places
+                weather,
+                '',                        // aiProfile vuoto per system tour
+                cityCenter,
+                { skipUserQuota: true }    // NON consuma quota utente
+            );
+
+            const stops = result?.days?.[0]?.stops || [];
+            if (!Array.isArray(stops) || stops.length === 0) {
+                console.warn(`[SysPrewarm] motore 0 tappe → skip`);
+                return null;
+            }
+
+            // 3. Verifica promessa: almeno uno dei chosenPois deve essere nelle stops.
+            //    Altrimenti la notifica prometteva X e il tour porta a Y — non serve.
+            const stopNames = stops.map(s => String(s.title || s.name || '').toLowerCase());
+            const promised = chosenPois.some(p =>
+                stopNames.some(sn => sn.includes(String(p.name).toLowerCase()))
+            );
+            if (chosenPois.length > 0 && !promised) {
+                console.warn(`[SysPrewarm] tour non contiene nessuno dei POI promessi → scarto`);
+                return null;
+            }
+
+            return { tourData: result, chosenPois };
+        } catch (err) {
+            if (err.message === 'SYSTEM_PREWARM_CAP_EXCEEDED') throw err;
+            console.warn(`[SysPrewarm] failed: ${err.message}`);
+            return null;
         }
     },
 

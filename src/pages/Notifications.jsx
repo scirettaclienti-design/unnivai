@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { useUserNotifications } from '@/hooks/useUserNotifications';
 import { useAILearning } from '@/hooks/useAILearning';
 import { aiRecommendationService } from '@/services/aiRecommendationService';
 import { getTimeSlot } from '@/hooks/useUserNotifications';
+import { resolveCityCenter } from '@/services/cityCenterService';
 import { supabase } from '@/lib/supabase';
 import { sanitizeMessage } from '@/utils/chatSanitizer';
 import {
@@ -54,61 +55,11 @@ export default function NotificationsPage() {
     const navigate = useNavigate();
     const [filter, setFilter] = useState('all');
     const [reviewModal, setReviewModal] = useState(null);
-    const [isGeneratingTour, setIsGeneratingTour] = useState(false);
-    const { getAIContext, trackInteraction } = useAILearning();
+    const { trackInteraction } = useAILearning();
 
-    // Genera mini-tour AI in tempo reale dalla notifica
-    const handleGenerateAITour = async (notification) => {
-        setIsGeneratingTour(true);
-        const slot = getTimeSlot();
-        const slotHints = {
-            morning: 'cultura, monumenti, passeggiate panoramiche',
-            midday: 'gastronomia, mercati, street food',
-            afternoon: 'musei, gallerie, shopping',
-            evening: 'ristoranti, aperitivi, nightlife, panorami serali',
-            night: 'locali, jazz bar, passeggiata notturna',
-        };
-
-        const aiProfile = getAIContext();
-        const prompt = [
-            `Mini-tour rapido di 3 tappe per ${slot === 'evening' ? 'questa sera' : 'adesso'} a ${city}.`,
-            `Orario: ${slot} — focus su ${slotHints[slot] || 'esperienze locali'}.`,
-            notification.title ? `Ispirazione: "${notification.title}"` : '',
-            aiProfile ? `[Profilo utente: ${aiProfile}]` : '',
-        ].filter(Boolean).join(' ');
-
-        try {
-            const result = await aiRecommendationService.generateItinerary(
-                city,
-                { duration: 'Mezza Giornata', interests: slotHints[slot] },
-                prompt,
-                { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 }
-            );
-
-            const stops = (result.days || result)?.[0]?.stops || [];
-            if (stops.length === 0) throw new Error('Nessuna tappa generata');
-
-            const route = stops.map((s, i) => ({
-                latitude: s.latitude,
-                longitude: s.longitude,
-                name: s.title,
-                title: s.title,
-                description: s.description,
-                category: s.type || 'Punto Mappa',
-                type: 'waypoint',
-                index: i + 1,
-            }));
-
-            trackInteraction('notification_ai_tour', { city, slot, stopsCount: route.length });
-            setSelectedNotification(null);
-            navigate('/map', { state: { route, tourData: { title: `Tour ${slot === 'evening' ? 'Serale' : 'Rapido'} — ${city}`, city } } });
-        } catch (err) {
-            console.warn('[Notifications] AI tour generation failed:', err.message);
-            toast({ title: 'Tour non disponibile', description: 'Riprova tra qualche secondo.', variant: 'warning' });
-        } finally {
-            setIsGeneratingTour(false);
-        }
-    };
+    // Blocco 2.1 FASE 2 — Precompute lazy del tour promesso dalla notifica.
+    // Stato: 'idle' | 'loading' | 'ready' | 'cap_exceeded' | 'error'
+    const [prewarm, setPrewarm] = useState({ status: 'idle', tourData: null });
 
     // Blocco 2.1 FASE 1 — Passa il ctx per la notifica-vera (GPS, meteo).
     const { notifications: rawNotifications, unreadCount, markAsRead, deleteNotification, markAllAsRead } = useUserNotifications(
@@ -131,6 +82,70 @@ export default function NotificationsPage() {
     const [selectedNotification, setSelectedNotification] = useState(null);
     const [replyText, setReplyText] = useState('');
     const [isReplying, setIsReplying] = useState(false);
+
+    // Blocco 2.1 FASE 2 — Precompute lazy: quando l'utente apre il modal di una
+    // notifica "tours" con chosenPois, generiamo il tour in background.
+    // L'utente legge il testo per 3-4 secondi: in quel tempo il tour è pronto.
+    // Regola locked (Ivano): "il tour promesso deve contenere i POI citati".
+    useEffect(() => {
+        let cancelled = false;
+        if (!selectedNotification || selectedNotification.category !== 'tours' || !Array.isArray(selectedNotification.chosenPois) || selectedNotification.chosenPois.length === 0) {
+            setPrewarm({ status: 'idle', tourData: null });
+            return;
+        }
+        setPrewarm({ status: 'loading', tourData: null });
+        (async () => {
+            try {
+                const cityCenter = await resolveCityCenter(city);
+                const result = await aiRecommendationService.generateSystemPrewarmTour(
+                    city,
+                    selectedNotification.message,
+                    selectedNotification.chosenPois,
+                    { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
+                    cityCenter,
+                );
+                if (cancelled) return;
+                if (result?.tourData) {
+                    setPrewarm({ status: 'ready', tourData: result.tourData });
+                    trackInteraction('notification_precompute_ready', { city, slot: getTimeSlot() });
+                } else {
+                    setPrewarm({ status: 'error', tourData: null });
+                }
+            } catch (err) {
+                if (cancelled) return;
+                if (err.message === 'SYSTEM_PREWARM_CAP_EXCEEDED') {
+                    setPrewarm({ status: 'cap_exceeded', tourData: null });
+                } else {
+                    console.warn('[SysPrewarm] modal precompute error:', err.message);
+                    setPrewarm({ status: 'error', tourData: null });
+                }
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [selectedNotification?.id, city, weatherCondition, temperatureC, trackInteraction]);
+
+    // Gate K — Un solo CTA "Vedi il giro" per le notifiche category='tours'.
+    // Se il precompute è ready → naviga a TourDetails col tour precomputato.
+    // Se cap_exceeded/error → CTA disabled con copy onesto.
+    const handleVediGiro = () => {
+        if (prewarm.status !== 'ready' || !prewarm.tourData) return;
+        const day = prewarm.tourData.days?.[0];
+        if (!day || !Array.isArray(day.stops) || day.stops.length === 0) return;
+        const tourId = 'notif-tour-' + Date.now();
+        const tourData = {
+            id: tourId,
+            title: day.title || `Il tuo giro a ${city}`,
+            city,
+            duration_minutes: day.stops.reduce((acc, s) => acc + (s.suggestedMinutes || 30), 0),
+            price_eur: 0,
+            rating: 5.0,
+            stops: day.stops,
+            isAiGenerated: true,
+            highlights: day.stops.slice(0, 3).map(s => s.title),
+        };
+        setSelectedNotification(null);
+        navigate(`/tour-details/${tourId}`, { state: { tourData, isAiGenerated: true } });
+    };
 
     const handleNotificationClick = (notification) => {
         if (notification.unread) {
@@ -383,7 +398,9 @@ export default function NotificationsPage() {
                                         )}
                                     </div>
 
-                                    <p className="text-sm text-gray-600 leading-relaxed mb-3">
+                                    {/* Blocco 2.1 FASE 4: preview breve (2 righe max) — il messaggio
+                                        completo si vede nel modal. Evita ridondanza lista/modal. */}
+                                    <p className="text-sm text-gray-600 leading-relaxed mb-3 line-clamp-2">
                                         {notification.message}
                                     </p>
 
@@ -607,24 +624,6 @@ export default function NotificationsPage() {
                                                             </>
                                                         ) : 'ACCETTA E PAGA'}
                                                     </button>
-                                                ) : selectedNotification.category === 'tours' ? (
-                                                    <button
-                                                        onClick={() => handleGenerateAITour(selectedNotification)}
-                                                        disabled={isGeneratingTour}
-                                                        className="flex-none py-3 px-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl font-bold text-center transition-all shadow-md flex items-center gap-2"
-                                                    >
-                                                        {isGeneratingTour ? (
-                                                            <>
-                                                                <Loader className="w-4 h-4 animate-spin" />
-                                                                Genero...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <Sparkles className="w-4 h-4" />
-                                                                TOUR AI
-                                                            </>
-                                                        )}
-                                                    </button>
                                                 ) : selectedNotification.action !== 'dettagli' ? (
                                                     <Link
                                                         to={selectedNotification.link}
@@ -638,30 +637,33 @@ export default function NotificationsPage() {
                                             </div>
                                         </div>
                                     ) : selectedNotification.category === 'tours' ? (
-                                        // DVAI-056 — CTA primaria scura "Scopri il tuo giro" (era "ESPLORA"),
-                                        // "Tour AI" resta come opzione secondaria (feature esistente).
-                                        <div className="flex gap-2">
-                                            <Link
-                                                to={selectedNotification.link}
-                                                className="flex-1 py-3 text-white rounded-xl font-semibold text-center shadow-md transition-all flex items-center justify-center gap-1.5 text-sm whitespace-nowrap hover:opacity-95"
-                                                style={{ backgroundColor: '#E8833A' }}
-                                                onClick={() => setSelectedNotification(null)}
-                                            >
-                                                Scopri il tuo giro
-                                                <ArrowRight className="w-4 h-4" />
-                                            </Link>
-                                            <button
-                                                onClick={() => handleGenerateAITour(selectedNotification)}
-                                                disabled={isGeneratingTour}
-                                                className="flex-none py-3 px-4 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 text-gray-700 rounded-xl font-semibold text-center transition-colors flex items-center justify-center gap-1.5 text-sm"
-                                            >
-                                                {isGeneratingTour ? (
-                                                    <><Loader className="w-4 h-4 animate-spin" /></>
-                                                ) : (
-                                                    <><Sparkles className="w-4 h-4" /> Tour AI</>
-                                                )}
-                                            </button>
-                                        </div>
+                                        // Blocco 2.1 FASE 2 — UN solo CTA "Vedi il giro".
+                                        // Il tour è precomputato lazy quando si apre il modal (useEffect sopra).
+                                        // Copy dello stato:
+                                        //   loading      → "Sto preparando il giro..." (spinner)
+                                        //   ready        → "Vedi il giro" (attivo, click → TourDetails)
+                                        //   cap_exceeded → "Ho preparato tanto oggi. Domani nuovi giri 🌅"
+                                        //   error/idle   → "Non riesco a preparare il giro." (retry via rientro)
+                                        <button
+                                            onClick={handleVediGiro}
+                                            disabled={prewarm.status !== 'ready'}
+                                            className={`w-full py-3 text-white rounded-xl font-semibold text-center shadow-md transition-all flex items-center justify-center gap-1.5 text-sm whitespace-nowrap ${
+                                                prewarm.status === 'ready'
+                                                    ? 'hover:opacity-95 cursor-pointer'
+                                                    : 'cursor-not-allowed opacity-70'
+                                            }`}
+                                            style={{ backgroundColor: prewarm.status === 'ready' ? '#E8833A' : '#B8B8B8' }}
+                                        >
+                                            {prewarm.status === 'loading' ? (
+                                                <><Loader className="w-4 h-4 animate-spin" /> Sto preparando il giro…</>
+                                            ) : prewarm.status === 'ready' ? (
+                                                <>Vedi il giro <ArrowRight className="w-4 h-4" /></>
+                                            ) : prewarm.status === 'cap_exceeded' ? (
+                                                <>🌅 Domani nuovi giri</>
+                                            ) : (
+                                                <>Non riesco a preparare il giro</>
+                                            )}
+                                        </button>
                                     ) : (
                                         <Link
                                             to={selectedNotification.link}

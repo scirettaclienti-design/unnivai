@@ -1,3 +1,16 @@
+// ─── Gate N.0 — Marker versione motore notifiche ───────────────────────────
+//
+// Ogni notifica AI-generated (client-side o persistita in DB) DEVE portare
+// questo campo. Notifiche senza il marker (o con marker diverso) vengono
+// scartate al load. Serve a due cose:
+//  - Invalidare la sessionStorage dopo ogni refit del motore (client-side)
+//  - Filtrare vecchi record DB pre-fix quando il payload aveva testo
+//    inventato tipo "Bar Mola" o "sorseggia"
+//
+// Bump quando cambia la voce del prompt o la struttura del payload notifica.
+// Ultimo bump: 2026-07-12 (post-Blocco 2.1 Fase 1).
+export const NOTIFICATION_ENGINE_VERSION = 'v2-notifica-vera';
+
 // Blocco 2.1 FASE 1 — Ricette contesto → query Places.
 //
 // Dizionario slot × weatherClass → { categoria, query, kind }.

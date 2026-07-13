@@ -368,17 +368,29 @@ class DataService {
                 'business_lead', 'business_promo',
                 'payment_confirmed', // legato a booking guide V2
             ]);
+            // Gate N.0 — I tipi AI-generated devono avere engineVersion nel payload,
+            // altrimenti sono record pre-fix (testi tipo "Bar Mola" inventati,
+            // CTA "Prenota ora" rimossi). Filtro PER-RECORD, non per-batch.
+            const AI_TYPES = new Set(['tour_recommendation', 'weather_alert', 'recommendation']);
+            const NOTIF_ENGINE_VERSION = 'v2-notifica-vera'; // sync con src/lib/notificationRecipes.js
+
             const hasBrokenInterpolation = (n) => {
                 const text = `${n.title || ''} ${n.message || ''}`;
                 // Stringhe "null" o "undefined" letterali → interpolazione fallita.
                 return /\b(null|undefined)\b/i.test(text);
+            };
+            const isValidAiRecord = (n) => {
+                if (!AI_TYPES.has(n.type)) return true; // non-AI: nessuna verifica
+                const v = n.action_data?.engineVersion || n.action_data?.engine_version;
+                return v === NOTIF_ENGINE_VERSION;
             };
 
             const filtered = data
                 ? data.filter(n =>
                     (!n.city_scope || n.city_scope === currentCity) &&
                     !V2_V3_TYPES.has(n.type) &&
-                    !hasBrokenInterpolation(n)
+                    !hasBrokenInterpolation(n) &&
+                    isValidAiRecord(n)
                 )
                 : [];
 
@@ -431,6 +443,14 @@ class DataService {
                     if (V2_V3_TYPES.has(n.type)) return;
                     const rawText = `${n.title || ''} ${n.message || ''}`;
                     if (/\b(null|undefined)\b/i.test(rawText)) return;
+
+                    // Gate N.0 — Skip AI-generated senza engineVersion (pre-fix).
+                    const AI_TYPES = new Set(['tour_recommendation', 'weather_alert', 'recommendation']);
+                    const NOTIF_ENGINE_VERSION = 'v2-notifica-vera';
+                    if (AI_TYPES.has(n.type)) {
+                        const v = n.action_data?.engineVersion || n.action_data?.engine_version;
+                        if (v !== NOTIF_ENGINE_VERSION) return;
+                    }
 
                     // Shape must match NotificationUISchema (same as getNotifications mapper)
                     const uiNotification = {

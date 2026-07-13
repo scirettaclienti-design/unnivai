@@ -166,7 +166,23 @@ const RULES = [
         // Riattivare dopo cleanup.
         skip: true,
     },
+    // Gate N.0 — Ogni notifica AI-generated deve portare engineVersion.
+    // Regola custom: se un file contiene type 'tour_recommendation' o 'weather_alert'
+    // deve contenere anche 'engineVersion' (import o uso). Impedisce che un
+    // refactor futuro riportando notifiche AI senza marker faccia rientrare
+    // testi tipo "Bar Mola" attraverso il filtro.
+    // Attiva subito: unica file consumatore è useUserNotifications.js che ora
+    // usa la fabbrica makeAiNotification.
 ];
+
+// Gate N.0 — Regola custom (fuori dal loop RULES perché ha logica per-file
+// non pattern grep). Verifica che ogni file che PUBBLICA notifiche AI abbia
+// il marker engineVersion nel payload. Filtra i consumers (confronti su n.type,
+// switch/case) che non pubblicano.
+// Pattern match: `type: 'tour_recommendation'` (assegnazione ad object literal),
+// NON `=== 'tour_recommendation'` (confronto/lettura).
+const AI_NOTIF_TYPES = /type\s*:\s*["'](tour_recommendation|weather_alert)["']/;
+const ENGINE_VERSION_TOKEN = /engineVersion/;
 
 // ─── Utility ─────────────────────────────────────────────────────────────────
 
@@ -238,4 +254,26 @@ describe('Gate M — Anti-fake test', () => {
             expect(violations).toHaveLength(0);
         });
     }
+
+    // Gate N.0 — Regola attiva, custom: se un file contiene push di notifica AI
+    // (type 'tour_recommendation' o 'weather_alert') deve contenere anche
+    // 'engineVersion' — testimonianza che la notifica porta il marker versione.
+    it('[no-ai-notif-without-engine-version] Notifiche AI (tour_recommendation/weather_alert) devono avere engineVersion nel payload', () => {
+        const missing = [];
+        for (const file of files) {
+            const rel = relative(REPO_ROOT, file).replace(/\\/g, '/');
+            const content = readFileSync(file, 'utf8');
+            if (AI_NOTIF_TYPES.test(content) && !ENGINE_VERSION_TOKEN.test(content)) {
+                missing.push(rel);
+            }
+        }
+        if (missing.length > 0) {
+            throw new Error(
+                `no-ai-notif-without-engine-version: ${missing.length} file(s) pubblicano notifiche AI senza engineVersion:\n` +
+                missing.map(f => `  ${f}`).join('\n') + '\n' +
+                `Fix: usa makeAiNotification() da src/hooks/useUserNotifications.js OPPURE aggiungi engineVersion: NOTIFICATION_ENGINE_VERSION al payload.`
+            );
+        }
+        expect(missing).toHaveLength(0);
+    });
 });

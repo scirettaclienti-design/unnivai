@@ -3,6 +3,29 @@ import { aiRecommendationService } from '@/services/aiRecommendationService';
 import { dataService } from '@/services/dataService';
 import { supabase } from '@/lib/supabase';
 import { resolveCityCenter } from '@/services/cityCenterService';
+import { NOTIFICATION_ENGINE_VERSION } from '@/lib/notificationRecipes';
+
+// ─── Gate N.0 — Fabbrica notifica AI ────────────────────────────────────────
+// UNICO punto di creazione di una notifica AI. Forza engineVersion e mantiene
+// il payload coerente. Non chiamare mai direttamente results.push({type:'tour_recommendation'...})
+// bypassando questa funzione — l'anti-fake test lo prende.
+export function makeAiNotification({ id, slot, tip, timestamp, chosenPois }) {
+    return {
+        id,
+        type: slot === 'evening' ? 'tour_recommendation' : 'weather_alert',
+        priority: slot === 'evening' ? 'high' : 'medium',
+        title: tip.title,
+        message: tip.message,
+        timestamp,
+        actionText: 'Vedi il giro',
+        actionUrl: '/explore',
+        locationBased: true,
+        category: 'tours',
+        timeSlot: slot,
+        chosenPois: chosenPois || [],
+        engineVersion: NOTIFICATION_ENGINE_VERSION, // Gate N.0 marker
+    };
+}
 
 const isGeneratedId = (id) =>
     typeof id === 'string' &&
@@ -175,8 +198,17 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
         if (cached) {
             try {
                 const parsed = JSON.parse(cached);
-                return parsed.filter(n => !deletedGenerated.includes(n.id))
-                             .map(n => ({ ...n, is_read: readGenerated.includes(n.id) }));
+                // Gate N.0: filtro PER-ELEMENTO. Se anche uno solo manca engineVersion
+                // o ha version sbagliata, quello record viene scartato (era pre-fix
+                // e conterrebbe testi inventati tipo "Bar Mola" o "sorseggia").
+                // Se dopo il filtro l'array è vuoto → cache miss, rigenerazione.
+                const valid = parsed.filter(n => n?.engineVersion === NOTIFICATION_ENGINE_VERSION);
+                if (valid.length > 0) {
+                    return valid.filter(n => !deletedGenerated.includes(n.id))
+                                .map(n => ({ ...n, is_read: readGenerated.includes(n.id) }));
+                }
+                // Cache tutta pre-fix → sovrascriviamo qui sotto rigenerando.
+                sessionStorage.removeItem(cacheKey);
             } catch { /* ignora cache corrotta */ }
         }
 
@@ -198,6 +230,7 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
                 locationBased: true,
                 category: 'tours',
                 timeSlot: slot,
+                engineVersion: NOTIFICATION_ENGINE_VERSION, // Gate N.0
             });
         } else {
             // Blocco 2.1 FASE 1 — Notifica-vera: pipeline recipe → Places → AI vincolata.
@@ -223,24 +256,14 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
                     cityCenter,
                 });
                 if (tip?.title && tip?.message) {
-                    results.push({
+                    // Gate N.0: uso la fabbrica makeAiNotification per forzare engineVersion.
+                    results.push(makeAiNotification({
                         id: `ai-tip-${slotKey}`,
-                        type: slot === 'evening' ? 'tour_recommendation' : 'weather_alert',
-                        priority: slot === 'evening' ? 'high' : 'medium',
-                        title: tip.title,
-                        message: tip.message,
+                        slot,
+                        tip,
                         timestamp: now,
-                        // FASE 2 farà il CTA unico "Vedi il giro" che apre TourDetails
-                        // col tour precomputato. Per ora l'actionUrl resta a /explore
-                        // ma il modal (Notifications.jsx) userà chosenPois per il tour.
-                        actionText: 'Vedi il giro',
-                        actionUrl: '/explore',
-                        locationBased: true,
-                        category: 'tours',
-                        timeSlot: slot,
-                        // Dati per Fase 2 (precompute): i POI che l'AI ha citato.
                         chosenPois: tip.chosenPois || [],
-                    });
+                    }));
                 }
                 // else: null → nessuna notifica pubblicata. Silenzio onesto.
             }

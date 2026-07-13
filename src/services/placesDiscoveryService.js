@@ -18,7 +18,10 @@ import { isSmallTown } from './tourShape';
 // DVAI-055-b: prefix bumped da 'unnivai_poiv2_' per invalidare i POI tematici
 // cached prima del filtro raggio centralizzato nel normalizer. I tour tematici
 // pre-fix contenevano tappe a 50-70 km da borghi.
-const CACHE_PREFIX = 'unnivai_poiv3_';
+// Gate 3 T1: prefix bumped a 'unnivai_poiv4_' — buildPlacesProxyUrl ora fa
+// default language=it. I POI cached prima del fix hanno nomi in inglese
+// ("Syracuse Cathedral") — il bump forza il rifetch al primo miss.
+const CACHE_PREFIX = 'unnivai_poiv4_';
 // DVAI-050 — TTL esteso a 24h per ridurre re-fetch OpenAI/Places.
 // Stessa city+tema → riusato 1 giorno. Trade-off accettabile: meteo cambia
 // poco in 24h, POI tematici sono stabili.

@@ -210,6 +210,19 @@ const RULES = [
         ],
         message: 'Rating/reviews a livello TOUR nel JSX. Solo POI-level: usa exp.featuredPoi.rating o step.rating, mai un aggregato inventato del tour.',
     },
+    // Gate 3 T1 — Nessuna chiamata Places puo' essere costruita fuori dalla
+    // factory `buildPlacesProxyUrl`. Il builder e' l'UNICO chokepoint: applica
+    // `language=it` di default, gli headers proxy, l'edge function di Supabase.
+    // Se qualcuno bypassa e fa `fetch('https://.../place/textsearch?...')` a
+    // mano, i nomi POI tornano in inglese (Google fallback) + il proxy resta
+    // fuori — insieme al fake rientra pure il rischio di leak di API key.
+    // Il pattern cattura fetch diretti al Places API (proxy o Google diretto).
+    {
+        name: 'no-places-url-outside-builder',
+        pattern: /fetch\s*\(\s*[`'"][^`'"]*place\/(?:textsearch|findplacefromtext|details|photo)|maps\.googleapis\.com\/maps\/api\/place/i,
+        allowlist: [],
+        message: 'Chiamata Places costruita a mano. Usa buildPlacesProxyUrl({ path: "place/textsearch", ... }) da src/services/aiRecommendationService.js — il builder aggiunge language=it di default e passa dall\'edge function.',
+    },
     // Gate N.0 — Ogni notifica AI-generated deve portare engineVersion.
     // Regola custom: se un file contiene type 'tour_recommendation' o 'weather_alert'
     // deve contenere anche 'engineVersion' (import o uso). Impedisce che un

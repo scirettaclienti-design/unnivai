@@ -454,8 +454,7 @@ const HowItWorksModal = ({ onClose }) => {
                 exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 250, damping: 28 }}
                 className="relative z-10 w-full h-full md:h-auto md:max-h-[92vh] md:max-w-5xl md:rounded-3xl overflow-y-scroll flex flex-col"
-                style={{ WebkitOverflowScrolling: 'touch' }}
-                style={{ background: '#090910' }}
+                style={{ WebkitOverflowScrolling: 'touch', background: '#090910' }}
                 onMouseEnter={pauseTimer}
                 onMouseLeave={() => goTo(step)} // restart timer on mouse leave
             >

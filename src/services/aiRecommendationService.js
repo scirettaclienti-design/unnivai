@@ -29,7 +29,14 @@ export const getPlacesProxyBase = () => {
 };
 
 export const buildPlacesProxyUrl = (params) => {
-    const qs = new URLSearchParams(params).toString();
+    // Gate 3 T1: language=it di default. Google restituisce nomi in italiano
+    // ("Duomo di Siracusa" invece di "Syracuse Cathedral") + descrizioni + address
+    // components tradotti. Il caller puo' sovrascrivere passando `language`
+    // esplicito (raro — es. testing). Questa e' l'unica factory di URL Places:
+    // ogni chiamata deve passare da qui — la regola anti-fake
+    // `no-places-url-outside-builder` blocca costruzioni a mano in CI.
+    const withDefaults = { language: 'it', ...params };
+    const qs = new URLSearchParams(withDefaults).toString();
     return `${getPlacesProxyBase()}?${qs}`;
 };
 
@@ -245,7 +252,10 @@ export const verifyPOIWithPlaces = async (poi, city) => {
 // Bumpato anche il prefisso intent cache: le queries del traduttore possono
 // cambiare col nuovo prompt e i cached "parchi giardini aree verdi" ora sono
 // da rifare.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf7_soglia_';
+// Gate 3 T1: prefix bumped da 'unnivai_insiderf7_soglia_' — buildPlacesProxyUrl
+// ora fa default language=it, i tour insider cached prima contenevano POI con
+// nomi inglesi ("Syracuse Cathedral").
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf8_it_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {

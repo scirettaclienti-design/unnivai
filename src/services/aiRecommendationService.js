@@ -1286,31 +1286,41 @@ Schema JSON ESATTO:
         }
     },
 
-    // ─── Blocco 2.1 FASE 2 — System precompute (bypass quota utente) ──────────
+    // ─── Gate N.2 — System precompute deterministico ──────────────────────────
     //
-    // Generato dal sistema per il precompute lazy delle notifiche:
-    //  - NON consuma la quota utente (10/day)
-    //  - Ha un contatore separato in localStorage: unnivai_syswarm_<userId>_<YYYY-MM-DD>
-    //  - Cap 6/day per utente per proteggere il budget OpenAI complessivo
-    //  - Se cap raggiunto → throw SystemQuotaExceededError (UI mostra CTA disabled)
+    // Riscritto rispetto a Blocco 2.1 Fase 2: ZERO generateItinerary, ZERO LLM.
+    // Il tour è costruito ESATTAMENTE dai chosenPois della notifica.
+    // La coerenza notifica↔tour è STRUTTURALE (non verificata a posteriori):
+    // se la notifica dice "Bar X e Piazza Y", il tour porta A quei due, non
+    // a un tour rigenerato al volo sulla stessa città.
     //
-    // Il tour risultante DEVE contenere almeno un chosenPoi della notifica —
-    // altrimenti la promessa del CTA "Vedi il giro" viene tradita.
+    // Pipeline:
+    //  1. Cap syswarm 6/day (ora budget Places details, non OpenAI)
+    //  2. Per ogni chosenPoi: place/details → arricchisce con foto, indirizzo,
+    //     opening_hours (Basic Data, gratis su Places legacy)
+    //  3. Ordina con sortByProximity (nearest-neighbor greedy da tourShape)
+    //  4. Costruisce tourData.days[0].stops = i chosenPois arricchiti
+    //  5. description = '' (Blocco 2.7 farà il narratore fatti-non-poesia)
+    //
+    // La guard "almeno un POI" è stata rimossa: la coerenza non si verifica,
+    // si costruisce.
     //
     // @param {string} city
-    // @param {string} notificationMessage — il testo della notifica (userPrompt del motore)
-    // @param {Array<{name, place_id, lat, lng}>} chosenPois — POI citati nel messaggio
-    // @param {object} weather
-    // @param {object} cityCenter
+    // @param {Array<{name, place_id, lat, lng}>} chosenPois — obbligatori
+    // @param {object} weather (per la copertina del tour, non per il narratore)
+    // @param {object} cityCenter (per centrare la mappa)
     // @returns {Promise<{ tourData, chosenPois } | null>}
-    async generateSystemPrewarmTour(city, notificationMessage, chosenPois = [], weather = {}, cityCenter = null) {
+    async generateSystemPrewarmTour(city, chosenPois = [], weather = {}, cityCenter = null) {
+        if (!Array.isArray(chosenPois) || chosenPois.length === 0) {
+            console.warn(`[SysPrewarm] chosenPois vuoti → skip`);
+            return null;
+        }
+
         try {
             // 1. Cap syswarm: contatore separato per giorno per utente.
             const { data: { session } } = await supabase.auth.getSession();
             const userId = session?.user?.id;
-            if (!userId) {
-                // Guest: bypass sia quota utente sia syswarm counter (rischio budget minimo).
-            } else {
+            if (userId) {
                 const day = todayStr();
                 const key = `unnivai_syswarm_${userId}_${day}`;
                 const current = parseInt(localStorage.getItem(key) || '0', 10);
@@ -1318,39 +1328,48 @@ Schema JSON ESATTO:
                     console.info(`[SysPrewarm] cap 6/day raggiunto per ${userId}/${day}`);
                     throw new Error('SYSTEM_PREWARM_CAP_EXCEEDED');
                 }
-                // Incrementa PRIMA della chiamata (fail-closed sul budget).
+                // Incrementa PRIMA delle chiamate (fail-closed sul budget).
                 try { localStorage.setItem(key, String(current + 1)); } catch { /* localStorage pieno */ }
             }
 
-            // 2. Chiama generateItinerary col flag skipUserQuota=true.
-            const result = await this.generateItinerary(
-                city,
-                { duration: 'Veloce', group: 'solo' },
-                notificationMessage,       // userPrompt → path A Gate B → traduttore → Places
-                weather,
-                '',                        // aiProfile vuoto per system tour
-                cityCenter,
-                { skipUserQuota: true }    // NON consuma quota utente
+            // 2. Fetch place/details in parallelo per ogni chosenPoi.
+            const { placesDiscoveryService } = await import('./placesDiscoveryService');
+            const detailsResults = await Promise.all(
+                chosenPois.map(p => placesDiscoveryService.fetchPlaceDetailsForTour(p.place_id, city))
             );
 
-            const stops = result?.days?.[0]?.stops || [];
-            if (!Array.isArray(stops) || stops.length === 0) {
-                console.warn(`[SysPrewarm] motore 0 tappe → skip`);
+            // Solo POI arricchiti con successo entrano nel tour. Coord obbligatorie.
+            const enrichedStops = detailsResults
+                .filter(d => d && Number.isFinite(d.latitude) && Number.isFinite(d.longitude));
+
+            if (enrichedStops.length === 0) {
+                console.warn(`[SysPrewarm] 0 chosenPois arricchibili via place/details → skip`);
                 return null;
             }
 
-            // 3. Verifica promessa: almeno uno dei chosenPois deve essere nelle stops.
-            //    Altrimenti la notifica prometteva X e il tour porta a Y — non serve.
-            const stopNames = stops.map(s => String(s.title || s.name || '').toLowerCase());
-            const promised = chosenPois.some(p =>
-                stopNames.some(sn => sn.includes(String(p.name).toLowerCase()))
-            );
-            if (chosenPois.length > 0 && !promised) {
-                console.warn(`[SysPrewarm] tour non contiene nessuno dei POI promessi → scarto`);
-                return null;
-            }
+            // 3. Ordina per prossimità (nearest-neighbor greedy).
+            const ordered = sortByProximity(enrichedStops);
 
-            return { tourData: result, chosenPois };
+            // 4. Costruisci tourData compatibile con TourDetails render.
+            const totalMinutes = ordered.reduce((acc, s) => acc + (s.suggestedMinutes || 30), 0);
+            const tourData = {
+                days: [{
+                    day: 1,
+                    title: `Il tuo giro a ${city}`,
+                    weather: {
+                        condition: weather?.condition || 'Sereno',
+                        temperature: weather?.temperature ?? 22,
+                        icon: weather?.condition === 'rainy' ? '🌧️' : weather?.condition === 'sunny' ? '☀️' : '⛅',
+                    },
+                    suggestedTransit: 'walking',
+                    mapMood: 'default',
+                    stops: ordered,
+                }],
+                _source: 'system-prewarm',
+                _duration_minutes: totalMinutes,
+            };
+
+            return { tourData, chosenPois };
         } catch (err) {
             if (err.message === 'SYSTEM_PREWARM_CAP_EXCEEDED') throw err;
             console.warn(`[SysPrewarm] failed: ${err.message}`);

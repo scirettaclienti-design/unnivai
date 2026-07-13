@@ -97,9 +97,11 @@ export default function NotificationsPage() {
         (async () => {
             try {
                 const cityCenter = await resolveCityCenter(city);
+                // Gate N.2: signature cambiata — precompute deterministico dai chosenPois.
+                // Il notification.message non è più passato: il tour è costruito dai POI,
+                // non da un userPrompt che li menziona.
                 const result = await aiRecommendationService.generateSystemPrewarmTour(
                     city,
-                    selectedNotification.message,
                     selectedNotification.chosenPois,
                     { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
                     cityCenter,

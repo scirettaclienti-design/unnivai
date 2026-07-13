@@ -576,6 +576,77 @@ export const fetchPlaceOpeningHours = async (placeId) => {
   }
 };
 
+// Gate N.2 — Fetch dei dati completi per una tappa del tour (foto, indirizzo,
+// tipi, opening_hours). Chiamata singola place/details per POI — usata dal
+// precompute deterministico delle notifiche. Retrocompat con opening_hours.
+//
+// Return shape allineato alle stops del motore (buildPOIFromCandidate).
+//
+// @param {string} placeId
+// @param {string} cityName
+// @returns {Promise<object|null>}
+export const fetchPlaceDetailsForTour = async (placeId, cityName) => {
+  if (!placeId || !isPlacesProxyEnabled()) return null;
+  try {
+    const url = buildPlacesProxyUrl({
+      path: 'place/details',
+      place_id: placeId,
+      // Basic Data (gratis): name, geometry, photos, types, formatted_address.
+      // Basic Data include anche business_status e opening_hours.
+      fields: 'name,geometry,photos,types,formatted_address,rating,user_ratings_total,business_status,opening_hours',
+    });
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const r = data?.result;
+    if (!r) return null;
+
+    const lat = r.geometry?.location?.lat;
+    const lng = r.geometry?.location?.lng;
+    const photoRef = r.photos?.[0]?.photo_reference;
+    const photoUrl = photoRef
+      ? buildPlacesProxyUrl({ path: 'place/photo', maxwidth: '600', photo_reference: photoRef })
+      : null;
+
+    // closing time del giorno corrente (se disponibile)
+    const oh = r.opening_hours;
+    const today = new Date().getDay();
+    const periods = Array.isArray(oh?.periods) ? oh.periods : [];
+    const todayPeriod = periods.find(p => p?.open?.day === today && p?.close?.time);
+    let closingTimeTodayHH = null;
+    if (todayPeriod?.close?.time) {
+      const t = String(todayPeriod.close.time);
+      if (t.length === 4) closingTimeTodayHH = `${t.slice(0, 2)}:${t.slice(2)}`;
+    }
+
+    return {
+      id: `google-${placeId}`,
+      name: r.name,
+      title: r.name,
+      description: '', // Blocco 2.7 farà il narratore (fatti, non poesia).
+      lat, lng,
+      latitude: lat, longitude: lng,
+      type: mapGoogleTypeToOurType(r.types),
+      rating: r.rating || 0,
+      user_ratings_total: r.user_ratings_total || 0,
+      business_status: r.business_status || 'OPERATIONAL',
+      types: r.types || [],
+      city: cityName,
+      place_id: placeId,
+      googlePlaceId: placeId,
+      googlePhoto: photoUrl,
+      image: photoUrl,
+      address: r.formatted_address || null,
+      closingTimeTodayHH,
+      openNow: typeof oh?.open_now === 'boolean' ? oh.open_now : null,
+      suggestedMinutes: 30, // default: si affinerà se serve
+    };
+  } catch (e) {
+    console.warn(`[fetchPlaceDetailsForTour] ${placeId} failed: ${e.message}`);
+    return null;
+  }
+};
+
 export const placesDiscoveryService = {
   discoverPOIs,           // legacy AI-first (usato come fallback interno)
   discoverRealPOIs,       // DVAI-060 Google-first
@@ -583,6 +654,7 @@ export const placesDiscoveryService = {
   enrichWithPhotos,
   fetchPlacePhoto,
   fetchPlaceOpeningHours, // Gate N.1
+  fetchPlaceDetailsForTour, // Gate N.2 (precompute deterministico)
 };
 
 // Export nominato per test unitari senza toccare la superficie del service.

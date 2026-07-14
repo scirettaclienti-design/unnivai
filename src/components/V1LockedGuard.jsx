@@ -1,37 +1,25 @@
-import React, { useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useToast } from '../hooks/use-toast';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 
 /**
- * Gate K — V1LockedGuard
+ * Gate K → Gate W — V1LockedGuard
  *
- * Blocca rotte che appartengono a funzioni fuori dal perimetro V1
- * (Guide V2, Business V3) redirigendo su /dashboard-user con toast onesto.
+ * Rotte fuori V1 (Guide V2 / Business V3) non fanno piu' redirect a
+ * /dashboard-user con toast. Ora redirigono alla schermata Prossimamente
+ * dedicata (contenuto: che cosa sara', a chi serve, quando arriva, cosa
+ * fare ora). Un "Prossimamente" fatto bene e' una promessa, non un buco.
  *
- * Motivazione (locked Ivano): "se un utente ha già un profilo guide/business
- * e prova ad accedere, deve capire cosa succede, non finire su una 404 muta.
- * E in V2 si riaccende togliendo una riga."
+ * Motivazione (locked Ivano 14/07): "l'utente NON vuole che la sezione
+ * sparisca: vuole capire che e' un servizio in arrivo, secondo l'iter
+ * V1 (viaggiatore+AI) -> V2 (guide) -> V3 (attivita')".
  *
  * Uso:
- *   <Route path="/dashboard-guide" element={<V1LockedGuard><DashboardGuide /></V1LockedGuard>} />
+ *   <Route path="/dashboard-guide" element={<V1LockedGuard kind="guide"><DashboardGuide /></V1LockedGuard>} />
+ *   <Route path="/dashboard-business" element={<V1LockedGuard kind="attivita"><DashboardBusiness /></V1LockedGuard>} />
  *
- * Quando lanceremo V2/V3, basta rimuovere il wrapping (o togliere
- * questo guard) — le pagine tornano attive senza rifare il router.
+ * Quando V2/V3 saranno pronte, basta rimuovere il wrapping (o il guard).
+ * Le pagine wrappate tornano attive senza rifare il router.
  */
-export default function V1LockedGuard({ children: _children }) {
-    const { toast } = useToast();
-    const location = useLocation();
-
-    useEffect(() => {
-        toast({
-            title: 'Disponibile prossimamente.',
-            description: 'Questa funzione arriva in una prossima versione.',
-            type: 'info',
-            duration: 4000,
-        });
-    // location.pathname dep: toast riappare se l'utente naviga tra due rotte bloccate
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location.pathname]);
-
-    return <Navigate to="/dashboard-user" replace />;
+export default function V1LockedGuard({ kind = 'guide', children: _children }) {
+    return <Navigate to={`/prossimamente/${kind}`} replace />;
 }

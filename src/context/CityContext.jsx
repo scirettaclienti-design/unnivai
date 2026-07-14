@@ -43,10 +43,21 @@ export function CityProvider({ children }) {
         } catch {} return null;
     });
 
+    // Gate W — Messaggi errore GPS in italiano, action-oriented.
+    // Mai il messaggio nativo del browser ("Position update is unavailable"),
+    // mai il codice numerico. Codici GeolocationPositionError:
+    //   1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
+    const gpsErrorMessage = (code) => {
+        if (code === 1) return "Non ho il permesso di usare la tua posizione. Attivalo nelle impostazioni, oppure scegli la citta' dall'header.";
+        if (code === 2) return "Non riesco a leggere la tua posizione. Scegli la citta' dall'header.";
+        if (code === 3) return "La posizione ci sta mettendo troppo. Scegli la citta' dall'header.";
+        return "Non riesco a leggere la tua posizione. Scegli la citta' dall'header.";
+    };
+
     // Chiamato SOLO da un onClick (user gesture — obbligatorio per iOS Safari)
     const requestGPS = useCallback((onSuccess, onError) => {
         if (!navigator.geolocation) {
-            onError?.('Geolocalizzazione non supportata dal browser');
+            onError?.("Il tuo browser non supporta la geolocalizzazione. Scegli la citta' dall'header.");
             return;
         }
 
@@ -83,7 +94,7 @@ export function CityProvider({ children }) {
                     });
             },
             (error) => {
-                onError?.(`GPS errore (${error.code}): ${error.message}`);
+                onError?.(gpsErrorMessage(error.code));
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
         );

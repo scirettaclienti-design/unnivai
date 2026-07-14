@@ -37,6 +37,9 @@ const Trending       = lazy(() => import('./pages/Trending'));
 const Photos         = lazy(() => import('./pages/Photos'));
 const Onboarding     = lazy(() => import('./pages/Onboarding'));
 const NotFound       = lazy(() => import('./pages/NotFound'));
+// Gate W — Schermate "Prossimamente" per V2 Guide, V3 Attivita', Foto.
+// Sostituiscono redirect+toast di V1LockedGuard con contenuto onesto.
+const Prossimamente  = lazy(() => import('./pages/Prossimamente'));
 
 // DVAI-022: Pagine con Google Maps — wrapped con MapAPIWrapper internamente
 const MapPage    = lazy(() => import('./pages/MapPage'));
@@ -140,26 +143,32 @@ function App() {
                     <Route path="/tour-live"       element={<TourLive />} />
                     <Route path="/surprise-tour"   element={<SurpriseTour />} />
                     <Route path="/trending"        element={<Trending />} />
-                    {/* Gate K: /become-guide raggiungibile ma bloccata → toast
-                        "Disponibile prossimamente" + redirect /dashboard-user. */}
-                    <Route path="/become-guide"    element={<V1LockedGuard><BecomeGuide /></V1LockedGuard>} />
+                    {/* Gate W: /become-guide -> pagina Prossimamente guide (era: redirect+toast). */}
+                    <Route path="/become-guide"    element={<V1LockedGuard kind="guide"><BecomeGuide /></V1LockedGuard>} />
+
+                    {/* Gate W: schermate "Prossimamente" per V2 Guide, V3 Attivita', Foto.
+                        Contenuto onesto (che cosa, a chi, quando, cosa fare ora) — sostituisce
+                        il pattern redirect+toast di V1LockedGuard che rimbalzava a /dashboard-user. */}
+                    <Route path="/prossimamente/guide"     element={<Prossimamente kind="guide" />} />
+                    <Route path="/prossimamente/attivita"  element={<Prossimamente kind="attivita" />} />
+                    <Route path="/prossimamente/foto"      element={<Prossimamente kind="foto" />} />
                   </Route>
 
-                  {/* Gate K — GUIDE ROUTES: raggiungibili ma bloccate dal
-                      V1LockedGuard che redirige a /dashboard-user con toast
-                      "Disponibile prossimamente." In V2 basta togliere il guard. */}
+                  {/* Gate W — GUIDE ROUTES: raggiungibili ma redirette a
+                      /prossimamente/guide (schermata onesta con contenuto).
+                      In V2 basta togliere il guard: le pagine sono gia' pronte. */}
                   <Route element={<RoleGuard allowedRoles={['guide']} />}>
-                    <Route path="/dashboard-guide"    element={<V1LockedGuard><DashboardGuide /></V1LockedGuard>} />
-                    <Route path="/guide/create-tour"  element={<V1LockedGuard><TourBuilder /></V1LockedGuard>} />
-                    <Route path="/guide/*"            element={<V1LockedGuard><DashboardGuide /></V1LockedGuard>} />
-                    <Route path="/chat/guide/:id"     element={<V1LockedGuard><GuidePlaceholder type="chat" /></V1LockedGuard>} />
-                    <Route path="/profile/guide/:id"  element={<V1LockedGuard><GuidePlaceholder type="profile" /></V1LockedGuard>} />
+                    <Route path="/dashboard-guide"    element={<V1LockedGuard kind="guide"><DashboardGuide /></V1LockedGuard>} />
+                    <Route path="/guide/create-tour"  element={<V1LockedGuard kind="guide"><TourBuilder /></V1LockedGuard>} />
+                    <Route path="/guide/*"            element={<V1LockedGuard kind="guide"><DashboardGuide /></V1LockedGuard>} />
+                    <Route path="/chat/guide/:id"     element={<V1LockedGuard kind="guide"><GuidePlaceholder type="chat" /></V1LockedGuard>} />
+                    <Route path="/profile/guide/:id"  element={<V1LockedGuard kind="guide"><GuidePlaceholder type="profile" /></V1LockedGuard>} />
                   </Route>
 
-                  {/* Gate K — BUSINESS ROUTES: raggiungibili ma bloccate. */}
+                  {/* Gate W — BUSINESS ROUTES: redirette a /prossimamente/attivita. */}
                   <Route element={<RoleGuard allowedRoles={['business']} />}>
-                    <Route path="/dashboard-business" element={<V1LockedGuard><DashboardBusiness /></V1LockedGuard>} />
-                    <Route path="/business/*"         element={<V1LockedGuard><DashboardBusiness /></V1LockedGuard>} />
+                    <Route path="/dashboard-business" element={<V1LockedGuard kind="attivita"><DashboardBusiness /></V1LockedGuard>} />
+                    <Route path="/business/*"         element={<V1LockedGuard kind="attivita"><DashboardBusiness /></V1LockedGuard>} />
                   </Route>
 
                   {/* DVAI-042: Catch-all 404 */}

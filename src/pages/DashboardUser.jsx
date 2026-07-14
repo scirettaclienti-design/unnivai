@@ -639,41 +639,14 @@ const DashboardUser = () => {
                     </AnimatePresence>
                 </motion.div>
 
-                {/* Core Section - SMART GLASS BUTTONS */}
+                {/* Core Section - SMART GLASS BUTTONS
+                    Gate W: Ordine cambiato. Prima venivano prima le funzioni VERE
+                    (AI Itinerary, Quiz), poi la card Guide Locali SUBORDINATA
+                    visivamente (padding ridotto, opacita', badge "in costruzione"
+                    invece di "LIVE NOW"). La gerarchia visiva dice la verita' quanto
+                    il testo: una card di funzione non attiva non pesa come una attiva.
+                */}
                 <section className="flex flex-col space-y-5">
-
-                    {/* Button 1: Guide Locali */}
-                    <Link to="/explore" className="block">
-                        <motion.div
-                            whileHover={{ scale: 1.02, y: -2 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="relative bg-gradient-to-r from-terracotta-500 to-red-600 rounded-3xl p-1 shadow-xl shadow-terracotta-500/20 overflow-hidden group"
-                        >
-                            {/* Inner Glass Container */}
-                            <div className="relative bg-white/10 backdrop-blur-sm rounded-[20px] p-5 h-full flex items-center justify-between border border-white/20">
-                                {/* Subtle Texture Overlay */}
-                                <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&q=80')] bg-cover bg-center mix-blend-overlay" />
-
-                                <div className="relative z-10 flex items-center space-x-4">
-                                    <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md shadow-inner border border-white/30">
-                                        <Users className="w-8 h-8 text-white drop-shadow-md" />
-                                    </div>
-                                    <div>
-                                        {/* Speaking Badge */}
-                                        <div className="mb-1">
-                                            <span className="bg-white/90 text-terracotta-600 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm flex w-fit items-center">
-                                                <span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-1 animate-pulse" />
-                                                Live Now
-                                            </span>
-                                        </div>
-                                        <h3 className="text-xl font-bold font-playfair text-white leading-tight">Guide Locali</h3>
-                                        <p className="text-terracotta-50 text-xs font-medium mt-0.5 opacity-90">Esplora con esperti del posto</p>
-                                    </div>
-                                </div>
-                                <ChevronRight className="w-5 h-5 text-white/50 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                        </motion.div>
-                    </Link>
 
                     {/* Button 2: AI Itinerary */}
                     <Link to="/ai-itinerary" className="block">
@@ -741,6 +714,38 @@ const DashboardUser = () => {
                             </motion.div>
                         </Link>
                     </div>
+
+                    {/* Gate W — Card Guide Locali SUBORDINATA visivamente.
+                        Prima: card grande con badge "LIVE NOW" rosso pulsante che prometteva
+                        una funzione inesistente. Ora: card piu' piccola (p-3 vs p-5), opacita'
+                        ridotta (75%), colori smorzati (bg gray-100 vs gradient terracotta),
+                        badge "◇ FASE 2 · IN COSTRUZIONE" (statico, no rosso). Posizionata SOTTO
+                        AI Itinerary e Quiz Veloce — le funzioni che esistono davvero.
+                        Click -> /prossimamente/guide (schermata onesta), non /explore. */}
+                    <Link to="/prossimamente/guide" className="block opacity-75 hover:opacity-100 transition-opacity">
+                        <motion.div
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="relative bg-gray-100 rounded-2xl p-3 border border-gray-200 flex items-center justify-between group"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="bg-white p-2 rounded-xl border border-gray-200">
+                                    <Users className="w-5 h-5 text-gray-500" />
+                                </div>
+                                <div>
+                                    <div className="mb-0.5">
+                                        <span className="inline-flex items-center bg-terracotta-50 text-terracotta-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-terracotta-200 uppercase tracking-wider">
+                                            <span className="mr-1 text-[11px] leading-none">◇</span>
+                                            Fase 2 · In costruzione
+                                        </span>
+                                    </div>
+                                    <h3 className="text-sm font-bold text-gray-800 leading-tight">Guide Locali</h3>
+                                    <p className="text-gray-500 text-[11px] leading-snug mt-0.5">Persone del posto — arrivano dopo V1</p>
+                                </div>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+                        </motion.div>
+                    </Link>
 
                 </section>
 

@@ -99,10 +99,16 @@ const tryFindPlace = async (cityName) => {
         inputtype: 'textquery',
         fields: 'name,geometry,types',
     });
+    // Gate V: timeout 5s. Prima nessun timeout → se il proxy Places pendeva,
+    // resolveCityCenter appendeva la Home + il precompute notifica.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     let res;
     try {
-        res = await fetch(proxyUrl);
+        res = await fetch(proxyUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
     } catch (err) {
+        clearTimeout(timeoutId);
         throw new CityCenterUnresolvedError(cityName, 'proxy', err);
     }
     if (!res.ok) {
@@ -135,10 +141,15 @@ const tryTextSearch = async (cityName) => {
         path: 'place/textsearch',
         query: `${cityName}, Italia`,
     });
+    // Gate V: timeout 5s (vedi tryFindPlace).
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     let res;
     try {
-        res = await fetch(proxyUrl);
+        res = await fetch(proxyUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
     } catch (err) {
+        clearTimeout(timeoutId);
         throw new CityCenterUnresolvedError(cityName, 'proxy', err);
     }
     if (!res.ok) {

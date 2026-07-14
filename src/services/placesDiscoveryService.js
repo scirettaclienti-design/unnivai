@@ -116,6 +116,9 @@ const waitForGoogleMaps = () => new Promise((resolve) => {
 const fetchPlacePhoto = async (placeName, cityName) => {
   // DVAI-050: se il proxy Places è OFF (es. prod senza secret), skip silenzioso.
   if (!isPlacesProxyEnabled()) return null;
+  // Gate V: timeout 5s (AbortController). Uniformita' con tutte le fetch Places.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
   try {
     const searchQuery = `${placeName} ${cityName} Italia`;
     const findUrl = buildPlacesProxyUrl({
@@ -124,7 +127,8 @@ const fetchPlacePhoto = async (placeName, cityName) => {
       inputtype: 'textquery',
       fields: 'photos,name',
     });
-    const res = await fetch(findUrl);
+    const res = await fetch(findUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!res.ok) return null;
     const data = await res.json();
     const ref = data?.candidates?.[0]?.photos?.[0]?.photo_reference;
@@ -135,7 +139,9 @@ const fetchPlacePhoto = async (placeName, cityName) => {
       photo_reference: ref,
     });
   } catch (e) {
-    console.warn('[PlacesPhoto] fetch failed:', e.message);
+    clearTimeout(timeoutId);
+    const reason = e.name === 'AbortError' ? 'timeout (5s)' : e.message;
+    console.warn(`[PlacesPhoto] fetch failed: ${reason}`);
     return null;
   }
 };
@@ -482,6 +488,10 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
   const cached = loadFromCache(cacheKey);
   if (cached) return cached;
 
+  // Gate V: timeout 5s. Prima nessun timeout → una textsearch appesa bloccava
+  // discoverAllThemes (Home) e generateWeatherSocialTip (notifiche).
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
   try {
     const url = buildPlacesProxyUrl({
       path: 'place/textsearch',
@@ -489,7 +499,8 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
       location: `${lat},${lng}`,
       radius: String(radius),
     });
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!res.ok) throw new Error(`textsearch HTTP ${res.status}`);
     const data = await res.json();
     if (data.status !== 'OK' || !Array.isArray(data.results)) {
@@ -590,13 +601,20 @@ const discoverAllThemes = async (cityName, lat, lng) => {
 // @returns {Promise<{ openNow: boolean|null, closingTimeTodayHH: string|null }>}
 export const fetchPlaceOpeningHours = async (placeId) => {
   if (!placeId || !isPlacesProxyEnabled()) return { openNow: null, closingTimeTodayHH: null };
+  // Gate V: timeout 5s (AbortController). Prima nessun timeout → se il proxy
+  // Places restava pending, la Promise non risolveva mai e appendeva l'intera
+  // catena upstream (Promise.all in generateSystemPrewarmTour → spinner
+  // infinito nel modal notifica).
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
   try {
     const url = buildPlacesProxyUrl({
       path: 'place/details',
       place_id: placeId,
       fields: 'opening_hours',
     });
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!res.ok) return { openNow: null, closingTimeTodayHH: null };
     const data = await res.json();
     const oh = data?.result?.opening_hours;
@@ -616,7 +634,9 @@ export const fetchPlaceOpeningHours = async (placeId) => {
     }
     return { openNow, closingTimeTodayHH };
   } catch (e) {
-    console.warn(`[fetchPlaceOpeningHours] ${placeId} failed: ${e.message}`);
+    clearTimeout(timeoutId);
+    const reason = e.name === 'AbortError' ? 'timeout (5s)' : e.message;
+    console.warn(`[fetchPlaceOpeningHours] ${placeId} failed: ${reason}`);
     return { openNow: null, closingTimeTodayHH: null };
   }
 };
@@ -632,15 +652,20 @@ export const fetchPlaceOpeningHours = async (placeId) => {
 // @returns {Promise<object|null>}
 export const fetchPlaceDetailsForTour = async (placeId, cityName) => {
   if (!placeId || !isPlacesProxyEnabled()) return null;
+  // Gate V: timeout 5s (AbortController). Vedi fetchPlaceOpeningHours.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
   try {
     const url = buildPlacesProxyUrl({
       path: 'place/details',
       place_id: placeId,
-      // Basic Data (gratis): name, geometry, photos, types, formatted_address.
-      // Basic Data include anche business_status e opening_hours.
+      // Basic Data: name, geometry, photos, types, formatted_address, business_status.
+      // Contact Data: opening_hours ($0.003/1000).
+      // Atmosphere Data: rating, user_ratings_total ($0.005/1000, fatturato al max SKU).
       fields: 'name,geometry,photos,types,formatted_address,rating,user_ratings_total,business_status,opening_hours',
     });
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!res.ok) return null;
     const data = await res.json();
     const r = data?.result;
@@ -687,7 +712,9 @@ export const fetchPlaceDetailsForTour = async (placeId, cityName) => {
       suggestedMinutes: 30, // default: si affinerà se serve
     };
   } catch (e) {
-    console.warn(`[fetchPlaceDetailsForTour] ${placeId} failed: ${e.message}`);
+    clearTimeout(timeoutId);
+    const reason = e.name === 'AbortError' ? 'timeout (5s)' : e.message;
+    console.warn(`[fetchPlaceDetailsForTour] ${placeId} failed: ${reason}`);
     return null;
   }
 };

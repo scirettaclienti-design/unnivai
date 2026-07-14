@@ -284,6 +284,27 @@ const RULES = [
 const AI_NOTIF_TYPES = /type\s*:\s*["'](tour_recommendation|weather_alert|recommendation)["']/;
 const ENGINE_VERSION_TOKEN = /engineVersion/;
 
+// Gate V — Nessun fetch in services/lib/hooks senza AbortController companion.
+// Bug scoperto: fetchPlaceDetailsForTour senza timeout appendeva Promise.all
+// in generateSystemPrewarmTour, spinner infinito nel modal notifica.
+// Regola locked (Ivano 14/07): "ogni stato di loading ha un timeout e una
+// via d'uscita". Un await fetch senza signal e' una promise che puo' pendere
+// per sempre. Cerchiamo `fetch(` senza `signal` nelle 3 righe circostanti.
+const FETCH_CALL = /\bfetch\s*\(/;
+const SIGNAL_PRESENT = /\bsignal\s*:|signal\s*\?\s*\{\s*signal\s*\}/;
+// Allowlist file legacy con fetch senza timeout — cleanup pianificato
+// Blocco 2 (fix strutturale su geocoding/weather/POI legacy). Il path Home
+// critico (cityCenter, discoverRealPOIs textsearch, fetchPlaceDetailsForTour,
+// fetchPlaceOpeningHours) e' gia' timeout-fixed.
+const FETCH_ALLOWLIST = new Set([
+    'src/hooks/useEnhancedGeolocation.js',     // Nominatim/ipapi geocoding legacy — Blocco 2 cleanup
+    'src/services/userContextService.js',      // reverseGeocodeCity Google Maps legacy — Blocco 2
+    'src/services/weatherService.js',          // open-meteo weather + geocoding — Blocco 2
+    'src/services/poiService.js',              // Overpass API legacy — Blocco 2
+    'src/services/dataService.js',             // Nominatim geocoding business fallback (V3) — Blocco 2
+    'src/services/aiRecommendationService.js', // verifyPOIWithPlaces legacy (discoverPOIs fallback AI-first) — Blocco 2
+]);
+
 // Gate S — Storage key user-derived DEVONO contenere userId.
 // Bug scoperto in Gate S diagnosi: cache `dvai_smart_notif_${slot}-${city}-${date}`
 // era senza userId → utente B leggeva la notifica di A col nome di A dentro.
@@ -365,6 +386,46 @@ describe('Gate M — Anti-fake test', () => {
             expect(violations).toHaveLength(0);
         });
     }
+
+    // Gate V — Regola attiva, per-linea: nessun `fetch(` senza AbortController
+    // companion (`signal:` nelle 3 righe circostanti). Scope: file services/lib/hooks.
+    // Files legacy con fetch senza timeout in allowlist FETCH_ALLOWLIST — cleanup
+    // Blocco 2. Il path Home critico (cityCenter, placesDiscovery textsearch/details/
+    // openingHours/photo) e' gia' timeout-fixed dopo Gate V — se qualcuno aggiunge
+    // una nuova fetch senza signal in placesDiscoveryService.js, la CI la vede.
+    it('[no-fetch-without-abort-signal] fetch() nei services deve avere AbortController', () => {
+        const missing = [];
+        for (const file of files) {
+            const rel = relative(REPO_ROOT, file).replace(/\\/g, '/');
+            if (!(rel.startsWith('src/services/') || rel.startsWith('src/lib/') || rel.startsWith('src/hooks/'))) continue;
+            if (FETCH_ALLOWLIST.has(rel)) continue;
+            const content = readFileSync(file, 'utf8');
+            const lines = content.split('\n');
+            lines.forEach((line, idx) => {
+                const t = line.trim();
+                if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) return;
+                if (!FETCH_CALL.test(line)) return;
+                // Cerca signal in finestra +8 righe (fetch multi-line con opts
+                // che possono estendersi oltre 3 righe, es. body multi-line +
+                // signal in fondo all'options object).
+                const start = Math.max(0, idx - 1);
+                const end = Math.min(lines.length, idx + 8);
+                const chunk = lines.slice(start, end).join(' ');
+                if (SIGNAL_PRESENT.test(chunk)) return;
+                missing.push({ file: rel, line: idx + 1, content: t.slice(0, 200) });
+            });
+        }
+        if (missing.length > 0) {
+            const details = missing.map(v => `  ${v.file}:${v.line} → ${v.content}`).join('\n');
+            throw new Error(
+                `no-fetch-without-abort-signal: ${missing.length} violazione/i.\n${details}\n` +
+                `Fix: usa AbortController con timeout 5s (Places/GPS) o 12s+ (OpenAI). Esempio:\n` +
+                `  const ctrl = new AbortController();\n  const tid = setTimeout(() => ctrl.abort(), 5000);\n  try { await fetch(url, { signal: ctrl.signal }); clearTimeout(tid); ... } catch { clearTimeout(tid); ... }\n` +
+                `Se il file e' legacy e cleanup pianificato Blocco 2, aggiungi a FETCH_ALLOWLIST con nota TODO.`
+            );
+        }
+        expect(missing).toHaveLength(0);
+    });
 
     // Gate S — Regola attiva, per-linea: se una linea contiene una chiave
     // storage user-derived come literal (`dvai_smart_notif_*`,

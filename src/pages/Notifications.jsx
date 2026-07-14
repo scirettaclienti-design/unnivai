@@ -103,18 +103,29 @@ export default function NotificationsPage() {
             return;
         }
         setPrewarm({ status: 'loading', tourData: null });
+        // Gate V: guard esterno con timeout 8s. Anche se i timeout su
+        // fetchPlaceDetails (5s ciascuno, gate V) coprono il caso normale,
+        // questo Promise.race garantisce che il modal ESCA dallo stato
+        // 'loading' entro 8s in ogni caso — anche se il codice introduce
+        // in futuro una nuova promise senza timeout. Regola locked (Ivano):
+        // "ogni stato di loading ha un timeout e una via d'uscita".
+        const PREWARM_TIMEOUT_MS = 8000;
         (async () => {
             try {
-                const cityCenter = await resolveCityCenter(city);
-                // Gate N.2: signature cambiata — precompute deterministico dai chosenPois.
-                // Il notification.message non è più passato: il tour è costruito dai POI,
-                // non da un userPrompt che li menziona.
-                const result = await aiRecommendationService.generateSystemPrewarmTour(
-                    city,
-                    selectedNotification.chosenPois,
-                    { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
-                    cityCenter,
+                const generateTask = (async () => {
+                    const cityCenter = await resolveCityCenter(city);
+                    // Gate N.2: precompute deterministico dai chosenPois.
+                    return aiRecommendationService.generateSystemPrewarmTour(
+                        city,
+                        selectedNotification.chosenPois,
+                        { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
+                        cityCenter,
+                    );
+                })();
+                const timeoutTask = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('PREWARM_TIMEOUT')), PREWARM_TIMEOUT_MS)
                 );
+                const result = await Promise.race([generateTask, timeoutTask]);
                 if (cancelled) return;
                 if (result?.tourData) {
                     setPrewarm({ status: 'ready', tourData: result.tourData });
@@ -124,8 +135,8 @@ export default function NotificationsPage() {
                 }
             } catch (err) {
                 if (cancelled) return;
-                // Gate T.1: rimosso branch SYSTEM_PREWARM_CAP_EXCEEDED (cap sparito).
-                console.warn('[SysPrewarm] modal precompute error:', err.message);
+                const reason = err.message === 'PREWARM_TIMEOUT' ? `timeout (${PREWARM_TIMEOUT_MS}ms)` : err.message;
+                console.warn('[SysPrewarm] modal precompute error:', reason);
                 setPrewarm({ status: 'error', tourData: null });
             }
         })();

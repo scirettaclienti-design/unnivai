@@ -284,6 +284,17 @@ const RULES = [
 const AI_NOTIF_TYPES = /type\s*:\s*["'](tour_recommendation|weather_alert|recommendation)["']/;
 const ENGINE_VERSION_TOKEN = /engineVersion/;
 
+// Gate S — Storage key user-derived DEVONO contenere userId.
+// Bug scoperto in Gate S diagnosi: cache `dvai_smart_notif_${slot}-${city}-${date}`
+// era senza userId → utente B leggeva la notifica di A col nome di A dentro.
+// Regola: se una linea contiene una di queste chiavi come literal (string o
+// template literal), deve contenere anche un marker userId (`${userId}`,
+// `scopedKey(`, `${userId ||`, ecc.). Escludi cleanup helpers
+// (`.filter(k => k.startsWith(...))`).
+const USER_DERIVED_STORAGE_KEYS = /["'`](dvai_smart_notif_|read_generated_notifs|deleted_generated_notifs)/;
+const USER_ID_MARKER = /\$\{[^}]*userId[^}]*\}|scopedKey\s*\(|_\$\{userId|\$\{user\?\.id/;
+const CLEANUP_MARKER = /\.filter\s*\(|\.startsWith\s*\(|\.forEach\s*\(/;
+
 // ─── Utility ─────────────────────────────────────────────────────────────────
 
 function walk(dir) {
@@ -354,6 +365,38 @@ describe('Gate M — Anti-fake test', () => {
             expect(violations).toHaveLength(0);
         });
     }
+
+    // Gate S — Regola attiva, per-linea: se una linea contiene una chiave
+    // storage user-derived come literal (`dvai_smart_notif_*`,
+    // `read_generated_notifs`, `deleted_generated_notifs`), deve contenere
+    // anche un marker userId (`${userId}`, `scopedKey(`, `_${userId`).
+    // Escludi cleanup helpers (`.filter(k=>k.startsWith(...))`,
+    // `.forEach(k=>...removeItem(k))`) usati in signOut per rimuovere tutte
+    // le varianti prefixed.
+    it('[no-user-derived-storage-key-without-userid] Storage key user-derived devono avere userId', () => {
+        const missing = [];
+        for (const file of files) {
+            const rel = relative(REPO_ROOT, file).replace(/\\/g, '/');
+            const content = readFileSync(file, 'utf8');
+            const lines = content.split('\n');
+            lines.forEach((line, idx) => {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) return;
+                if (!USER_DERIVED_STORAGE_KEYS.test(line)) return;
+                if (CLEANUP_MARKER.test(line)) return; // filter/startsWith/forEach cleanup
+                if (USER_ID_MARKER.test(line)) return;
+                missing.push({ file: rel, line: idx + 1, content: trimmed.slice(0, 200) });
+            });
+        }
+        if (missing.length > 0) {
+            const details = missing.map(v => `  ${v.file}:${v.line} → ${v.content}`).join('\n');
+            throw new Error(
+                `no-user-derived-storage-key-without-userid: ${missing.length} violazione/i.\n${details}\n` +
+                `Fix: le chiavi dvai_smart_notif_/read_generated_notifs/deleted_generated_notifs devono avere lo userId nel key path. Usa scopedKey('base') o \`\${base}_\${userId || 'guest'}\`.`
+            );
+        }
+        expect(missing).toHaveLength(0);
+    });
 
     // Gate N.0 — Regola attiva, custom: se un file contiene push di notifica AI
     // (type 'tour_recommendation' o 'weather_alert') deve contenere anche

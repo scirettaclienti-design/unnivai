@@ -1452,8 +1452,9 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
     // Pipeline nuova: contesto reale → recipe query → Places → dati verificabili
     // → AI vincolata a nomi in lista. Zero invenzione. Se Places 0 → null.
     //
-    // Regole voce locked (feedback_dovevai_voce): title = fatto nudo,
-    // message = motivo verificabile, blacklist verbi da menu/aggettivi vuoti.
+    // Regole voce locked (feedback_dovevai_voce + Gate S.4): title = cue di
+    // slot fisso (mai ora nuda che scade in un minuto), message = motivo
+    // verificabile, blacklist verbi da menu/aggettivi vuoti.
     //
     // @param {string} city
     // @param {string} userName
@@ -1461,6 +1462,17 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
     // @param {object} ctx — { userLat, userLng, temperatureC, condition, cityCenter }
     // @returns {Promise<null | { title, message, chosenPois: [{name, place_id, lat, lng}] }>}
     async generateWeatherSocialTip(city, userName, slot = 'afternoon', ctx = {}) {
+        // Gate S.4: title = cue di slot deterministico, non generato dall'AI.
+        // "Sono le 8:09 🌇" scade in un minuto; "Stamattina 🌇" e' vero per
+        // tutta la finestra dello slot. Il title lo scrive il codice, l'AI
+        // scrive solo il message (dove ci sono i dati verificabili).
+        const SLOT_TITLES = {
+            morning:   'Stamattina 🌇',
+            midday:    'A pranzo 🍝',
+            afternoon: 'Nel pomeriggio 🗺️',
+            evening:   'Stasera 🌆',
+        };
+        const forcedTitle = SLOT_TITLES[slot] || null;
         try {
             // 1. Recipe da (slot, weatherClass). Se null (es. night) → nessuna notifica.
             const { computeWeatherClass, getRecipe } = await import('../lib/notificationRecipes');
@@ -1566,17 +1578,19 @@ ${candidatesBlock}
 CONTESTO:
 ${contextBlock}
 
-Scrivi UNA notifica breve che promette all'utente di andare in 1 o 2 di questi posti.
+Scrivi SOLO il MESSAGE della notifica (il title lo genero io: "${forcedTitle}").
+Il message promette all'utente di andare in 1 o 2 di questi posti.
 
-REGOLE VOCE (locked):
-- Title = il DATO di contesto, nudo. Esempi: "Sono le 18:12 🌇", "30 gradi 🍝", "Piove ☔". Zero aggettivi ("il cielo sta cambiando" = aggettivo travestito).
-- Message = UN MOTIVO verificabile per andare, costruito SOLO sui dati che hai. Esempi: "Palazzo Biscari è a 6 minuti da te e chiude alle 19:00", "MM Trattoria è a 4 minuti da te, aperto adesso."
+REGOLE MESSAGE (locked):
+- UN MOTIVO verificabile per andare, costruito SOLO sui dati che hai.
+- Esempi ok: "Palazzo Biscari è a 6 minuti da te e chiude alle 19:00", "MM Trattoria è a 4 minuti da te, aperto adesso."
 - Regola sugli orari (PRIORITÀ):
   1) Se un candidato ha "chiude oggi alle HH:MM" nei suoi dati → PREFERISCILO ("chiude alle 19:00"). È un dato strutturale, affidabile.
   2) SOLO se manca "chiude oggi alle" ma è presente "aperto adesso" → puoi dire "aperto adesso" (dato istantaneo, meno affidabile).
   3) Se non hai NÉ orario di chiusura NÉ open_now nei dati del candidato → NON dire nulla sull'apertura. Nessun claim > claim falso.
 - Non inventare mai orari (es. "chiude alle 20" se non c'è nei dati): reintrodurre un fake ucciso.
 - Il motivo DEVE essere costruito SOLO sui dati che ti ho dato sopra (ora, temperatura, meteo, distanza, open_now, rating).
+- NIENTE riferimenti all'ora esatta (es. "sono le 18:12"): il title lo copre, e "sono le HH:MM" scade in un minuto se l'utente apre in ritardo.
 - NIENTE fatti inventati sul posto: no "il pub dove producono la birra", no "storia dal 1960". Se non è nei dati sopra, non lo sai.
 - NIENTE aggettivi vuoti: "spettacolare", "unico", "indimenticabile", "atmosfera intima", "vista mozzafiato".
 - NIENTE verbi da menu: "sorseggia", "gusta", "immergiti", "assapora".
@@ -1584,13 +1598,12 @@ REGOLE VOCE (locked):
 
 LIMITI DURI:
 - Usa SOLO i nomi nella lista dei 3 candidati. Se citi un nome non in lista → sei fuori.
-- Title max 50 caratteri (incluso emoji).
 - Message max 140 caratteri.
 - Zero hashtag, zero emoji nel message.
 - Se pensi che nessuno dei 3 candidati sia adatto o non hai un motivo forte → rispondi { "skip": true, "reason": "..." }.
 
 Rispondi in JSON puro:
-  { "title": "...", "message": "..." }
+  { "message": "..." }
 oppure
   { "skip": true, "reason": "..." }`;
 
@@ -1613,8 +1626,14 @@ oppure
                 return null;
             }
 
-            if (!parsed.title || !parsed.message) {
-                throw new Error('Incomplete AI response');
+            if (!parsed.message) {
+                throw new Error('Incomplete AI response (missing message)');
+            }
+            if (!forcedTitle) {
+                // Slot senza cue mappato (es. night) → skip. Gate Q.1 gia' skippa
+                // night a monte in useUserNotifications, ma safety-net.
+                console.warn(`[SmartNotif] ${city}/${slot}: nessun cue di slot definito → skip`);
+                return null;
             }
 
             // 7. Verifica anti-invenzione: message deve contenere almeno un nome
@@ -1637,7 +1656,8 @@ oppure
             }
 
             return {
-                title: String(parsed.title).slice(0, 60),
+                // Gate S.4: title deterministico da codice, non da AI.
+                title: forcedTitle,
                 message: String(parsed.message).slice(0, 180),
                 chosenPois: chosenPois.map(c => ({ name: c.name, place_id: c.place_id, lat: c.lat, lng: c.lng })),
             };

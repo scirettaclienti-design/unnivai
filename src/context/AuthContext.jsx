@@ -69,12 +69,36 @@ export const AuthProvider = ({ children }) => {
     const signOut = async () => {
         setLoading(true);
         await supabase.auth.signOut();
-        // Reset completo dello stato client
-        localStorage.removeItem('unnivai_role');
-        localStorage.removeItem('unnivai_ai_learning_brain');
-        localStorage.removeItem('dvai_gps_data');
-        localStorage.removeItem('dvai_onboarding_done');
-        localStorage.removeItem('user_tour_history');
+        // Gate S.3 — cleanup completo di tutte le chiavi user-derived.
+        // Audit fatto durante Gate S: se sopravvive al logout, prossimo utente
+        // sullo stesso device vede lo stato del precedente (privacy leak).
+        // Cache tecniche non-user (POI Discovery, cityCenter, insider tour)
+        // NON vengono pulite: sono dati oggettivi condivisi, nessun leak.
+        const localKeys = [
+            'unnivai_role',
+            'unnivai_ai_learning_brain',
+            'dvai_gps_data',
+            'dvai_onboarding_done',
+            'user_tour_history',
+            'unnivai_mode',
+            'unnivai_favorites',
+            'user_city',
+            'dvai_notification_settings',
+        ];
+        localKeys.forEach(k => localStorage.removeItem(k));
+        // Prefixed keys: le chiavi user-scoped (Gate S.2) hanno suffix
+        // userId, quindi possono essere piu' di una per user diverso.
+        // Rimuovi tutte le occorrenze con questi prefissi.
+        Object.keys(localStorage)
+            .filter(k => k.startsWith('read_generated_notifs') ||
+                         k.startsWith('deleted_generated_notifs') ||
+                         k.startsWith('unnivai_syswarm_') ||
+                         k.startsWith('unnivai_declined_'))
+            .forEach(k => localStorage.removeItem(k));
+        // Session cache notifiche AI (dvai_smart_notif_${userId}-...)
+        Object.keys(sessionStorage)
+            .filter(k => k.startsWith('dvai_smart_notif_'))
+            .forEach(k => sessionStorage.removeItem(k));
         queryClient.clear(); // Svuota tutta la cache React Query
         setUser(null);
         setIsPasswordRecovery(false);

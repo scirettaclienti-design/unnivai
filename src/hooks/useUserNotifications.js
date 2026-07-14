@@ -80,11 +80,15 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
     const [realNotifications, setRealNotifications] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
+    // Gate S.2: chiavi user-scoped col suffix userId per evitare leak fra
+    // utenti sullo stesso device (B che vede letto/eliminato di A).
+    // Guest → suffix 'guest' (non ci sono azioni multi-account guest).
+    const scopedKey = (base) => `${base}_${userId || 'guest'}`;
     const [readGenerated, setReadGenerated] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('read_generated_notifs') || '[]'); } catch { return []; }
+        try { return JSON.parse(localStorage.getItem(scopedKey('read_generated_notifs')) || '[]'); } catch { return []; }
     });
     const [deletedGenerated, setDeletedGenerated] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('deleted_generated_notifs') || '[]'); } catch { return []; }
+        try { return JSON.parse(localStorage.getItem(scopedKey('deleted_generated_notifs')) || '[]'); } catch { return []; }
     });
 
     // Realtime notifications da Supabase
@@ -152,24 +156,29 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
         const dateStr = now.toDateString();
         const slotKey = `${slot}-${city}-${dateStr}`;
 
-        // Evita rigenerazioni multiple nella stessa fascia oraria
-        const cacheKey = `dvai_smart_notif_${slotKey}`;
+        // Gate S.2: cache key con userId (guest → 'guest'). Utenti diversi
+        // sullo stesso device hanno cache separate. Prima: dvai_smart_notif_
+        // era senza userId e B leggeva la notifica di A (bug privacy).
+        const cacheKey = `dvai_smart_notif_${userId || 'guest'}-${slotKey}`;
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
             try {
                 const parsed = JSON.parse(cached);
-                // Gate Q: filtro PER-ELEMENTO via isValidAiNotification.
-                // Ricalcola la signature dai campi del record e la confronta
-                // col marker. Un record cached pre-Gate-Q ha string statica
-                // → fallisce la verifica → viene scartato. Un record fresh
-                // dalla fabbrica passa. Se dopo il filtro l'array e' vuoto
-                // → cache miss, rigenerazione.
-                const valid = parsed.filter(n => isValidAiNotification(n));
+                // Gate Q: filtro signature per-elemento (isValidAiNotification).
+                // Gate S.1: filtro TTL 5 minuti al RENDER. Una notifica-vera nasce
+                // su dati istantanei (ora, distanza dall'utente): fuori dalla
+                // finestra dei 5 min il messaggio mente. Meglio silenzio +
+                // rigenerazione che una notifica scaduta cliccabile.
+                const FIVE_MIN_MS = 5 * 60 * 1000;
+                const nowMs = Date.now();
+                const valid = parsed
+                    .filter(n => isValidAiNotification(n))
+                    .filter(n => n?.timestamp && (nowMs - new Date(n.timestamp).getTime() < FIVE_MIN_MS));
                 if (valid.length > 0) {
                     return valid.filter(n => !deletedGenerated.includes(n.id))
                                 .map(n => ({ ...n, is_read: readGenerated.includes(n.id) }));
                 }
-                // Cache tutta pre-fix → sovrascriviamo qui sotto rigenerando.
+                // Cache scaduta (TTL o signature) → rimuovi e rigenera sotto.
                 sessionStorage.removeItem(cacheKey);
             } catch { /* ignora cache corrotta */ }
         }
@@ -245,7 +254,7 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
         } else {
             const newRead = [...new Set([...readGenerated, id])];
             setReadGenerated(newRead);
-            localStorage.setItem('read_generated_notifs', JSON.stringify(newRead));
+            localStorage.setItem(scopedKey('read_generated_notifs'), JSON.stringify(newRead));
             setGeneratedNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
         }
     };
@@ -261,7 +270,7 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
         } else {
             const newDeleted = [...new Set([...deletedGenerated, id])];
             setDeletedGenerated(newDeleted);
-            localStorage.setItem('deleted_generated_notifs', JSON.stringify(newDeleted));
+            localStorage.setItem(scopedKey('deleted_generated_notifs'), JSON.stringify(newDeleted));
             setGeneratedNotifications(prev => prev.filter(n => n.id !== id));
         }
     };
@@ -279,7 +288,7 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
         const currentGeneratedIds = generatedNotifications.map(n => n.id);
         const newRead = [...new Set([...readGenerated, ...currentGeneratedIds])];
         setReadGenerated(newRead);
-        localStorage.setItem('read_generated_notifs', JSON.stringify(newRead));
+        localStorage.setItem(scopedKey('read_generated_notifs'), JSON.stringify(newRead));
         setGeneratedNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     };
 

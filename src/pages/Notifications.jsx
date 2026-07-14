@@ -73,7 +73,14 @@ export default function NotificationsPage() {
         time: n.created_at ? new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (n.timestamp ? new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Ora'),
         action: (n.actionType || n.actionText || 'dettagli').toLowerCase(),
         link: n.actionUrl || n.link || '#',
-        category: (n.type === 'tour_recommendation' || n.type === 'location' || n.type === 'recommendation') ? 'tours' :
+        // Gate R.1: category = 'tours' se la notifica ha chosenPois (=> tour
+        // costruibile via precompute). Il type descrive il meteo/motivo, i
+        // chosenPois descrivono la REALTA' del tour. Prima solo type ===
+        // 'tour_recommendation' triggerava il branch precompute; le notifiche
+        // slot morning/midday/afternoon (type = 'weather_alert') pur avendo
+        // chosenPois cadevano nel branch <Link> statico verso /explore.
+        // Ora il criterio e' avere POI, non avere un type specifico.
+        category: (Array.isArray(n.chosenPois) && n.chosenPois.length > 0) ? 'tours' :
             (n.type === 'weather' || n.type === 'weather_alert') ? 'weather' :
                 (n.type === 'social_activity' || n.type === 'group_invite') ? 'social' :
                     (n.type === 'guide_message' || n.type === 'price_offer' || n.type === 'request_accepted' || n.type === 'request_declined') ? 'messages' : 'altro'
@@ -638,33 +645,44 @@ export default function NotificationsPage() {
                                             </div>
                                         </div>
                                     ) : selectedNotification.category === 'tours' ? (
-                                        // Blocco 2.1 FASE 2 — UN solo CTA "Vedi il giro".
-                                        // Il tour è precomputato lazy quando si apre il modal (useEffect sopra).
-                                        // Copy dello stato:
+                                        // Blocco 2.1 FASE 2 — CTA "Vedi il giro" con precompute lazy.
+                                        // Gate R.4: copy ancorato al POI di partenza (Gate R.3 garantisce
+                                        // che chosenPois[0] sia il primo POI menzionato nella notifica).
                                         //   loading      → "Sto preparando il giro..." (spinner)
-                                        //   ready        → "Vedi il giro" (attivo, click → TourDetails)
-                                        //   cap_exceeded → "Ho preparato tanto oggi. Domani nuovi giri 🌅"
-                                        //   error/idle   → "Non riesco a preparare il giro." (retry via rientro)
-                                        <button
-                                            onClick={handleVediGiro}
-                                            disabled={prewarm.status !== 'ready'}
-                                            className={`w-full py-3 text-white rounded-xl font-semibold text-center shadow-md transition-all flex items-center justify-center gap-1.5 text-sm whitespace-nowrap ${
-                                                prewarm.status === 'ready'
-                                                    ? 'hover:opacity-95 cursor-pointer'
-                                                    : 'cursor-not-allowed opacity-70'
-                                            }`}
-                                            style={{ backgroundColor: prewarm.status === 'ready' ? '#E8833A' : '#B8B8B8' }}
-                                        >
-                                            {prewarm.status === 'loading' ? (
-                                                <><Loader className="w-4 h-4 animate-spin" /> Sto preparando il giro…</>
-                                            ) : prewarm.status === 'ready' ? (
-                                                <>Vedi il giro <ArrowRight className="w-4 h-4" /></>
-                                            ) : prewarm.status === 'cap_exceeded' ? (
-                                                <>🌅 Domani nuovi giri</>
-                                            ) : (
-                                                <>Non riesco a preparare il giro</>
-                                            )}
-                                        </button>
+                                        //   ready 1 stop → "Vai a <POI>"
+                                        //   ready n stop → "Parti da <POI>"
+                                        //   cap_exceeded → "🌅 Domani nuovi giri"
+                                        //   error/idle   → "Non riesco a preparare il giro"
+                                        (() => {
+                                            const stops = prewarm.tourData?.days?.[0]?.stops || [];
+                                            const firstStop = stops[0];
+                                            const rawName = firstStop?.title || firstStop?.name || '';
+                                            // Truncate se troppo lungo — mai sostituire con generico (locked Ivano).
+                                            const displayName = rawName.length > 22 ? rawName.slice(0, 21).trimEnd() + '…' : rawName;
+                                            const verb = stops.length > 1 ? 'Parti da' : 'Vai a';
+                                            return (
+                                                <button
+                                                    onClick={handleVediGiro}
+                                                    disabled={prewarm.status !== 'ready'}
+                                                    className={`w-full py-3 text-white rounded-xl font-semibold text-center shadow-md transition-all flex items-center justify-center gap-1.5 text-sm whitespace-nowrap ${
+                                                        prewarm.status === 'ready'
+                                                            ? 'hover:opacity-95 cursor-pointer'
+                                                            : 'cursor-not-allowed opacity-70'
+                                                    }`}
+                                                    style={{ backgroundColor: prewarm.status === 'ready' ? '#E8833A' : '#B8B8B8' }}
+                                                >
+                                                    {prewarm.status === 'loading' ? (
+                                                        <><Loader className="w-4 h-4 animate-spin" /> Sto preparando il giro…</>
+                                                    ) : prewarm.status === 'ready' && displayName ? (
+                                                        <>{verb} {displayName} <ArrowRight className="w-4 h-4" /></>
+                                                    ) : prewarm.status === 'cap_exceeded' ? (
+                                                        <>🌅 Domani nuovi giri</>
+                                                    ) : (
+                                                        <>Non riesco a preparare il giro</>
+                                                    )}
+                                                </button>
+                                            );
+                                        })()
                                     ) : (
                                         <Link
                                             to={selectedNotification.link}

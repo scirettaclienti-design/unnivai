@@ -210,6 +210,23 @@ const RULES = [
         ],
         message: 'Rating/reviews a livello TOUR nel JSX. Solo POI-level: usa exp.featuredPoi.rating o step.rating, mai un aggregato inventato del tour.',
     },
+    // Gate R.5 — Nessun `actionUrl:` con valore literal (stringa hardcoded)
+    // per notifiche AI. Il CTA di una notifica AI deriva dal tour costruito
+    // dai chosenPois via precompute in Notifications.jsx, non da un URL fisso.
+    // Il fallback statico '/explore' faceva sembrare che il bottone funzionasse
+    // mentre portava altrove (Gate R diagnosi: notifica cita Savia, bottone
+    // apre Explore).
+    //
+    // Allowlist: DashboardGuide.jsx (notifiche guide-to-user V2, non-AI,
+    // fuori path V1 spento da V1LockedGuard). Zero eccezioni in path AI.
+    {
+        name: 'no-static-action-url-on-ai-notification',
+        pattern: /\bactionUrl\s*:\s*["']/,
+        allowlist: [
+            'src/pages/DashboardGuide.jsx',
+        ],
+        message: 'actionUrl con valore stringa hardcoded. Le notifiche AI derivano il CTA dal tour costruito dai chosenPois (Notifications.jsx handleVediGiro → /tour-details con state). Se il precompute fallisce, il bottone deve restare disabled — un URL statico e\' un fallback che mente.',
+    },
     // Gate Q — Nessun `engineVersion:` come key literal in object literal,
     // ovunque nel repo. Il marker di validita' delle notifiche AI e' una
     // signature opaca calcolata dalla fabbrica (src/lib/aiNotificationFactory.js)

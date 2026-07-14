@@ -67,8 +67,15 @@ export function makeAiNotification({ id, slot, tip, timestamp, chosenPois }) {
         title: tip.title,
         message: tip.message,
         timestamp,
+        // Gate R.2: nessun actionUrl statico. Una notifica AI non ha un URL
+        // fisso: o ha un tour costruito dai suoi chosenPois (via precompute
+        // in Notifications.jsx → handleVediGiro → /tour-details con state),
+        // o non ha un CTA. Il fallback '/explore' faceva sembrare che il
+        // bottone funzionasse mentre portava altrove (Gate R diagnosi).
+        // actionText resta come label neutrale — il vero copy contestuale
+        // ("Vai a X" / "Parti da X") si costruisce lato Notifications.jsx
+        // usando il primo POI del tour precomputato.
         actionText: 'Vedi il giro',
-        actionUrl: '/explore',
         locationBased: true,
         category: 'tours',
         timeSlot: slot,

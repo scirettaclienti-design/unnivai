@@ -1619,8 +1619,18 @@ oppure
 
             // 7. Verifica anti-invenzione: message deve contenere almeno un nome
             //    della lista candidati. Se cita nomi non-in-lista → scarta.
+            //
+            // Gate R.3: ordina chosenPois per ordine di MENZIONE nel messaggio,
+            // non per qualityScore di enriched. Cosi' chosenPois[0] e' il POI
+            // nominato PER PRIMO nel testo — che diventa il seme fisso di
+            // sortByProximity (aiRecommendationService.js:766) e la prima
+            // tappa del tour costruito da generateSystemPrewarmTour. Il CTA
+            // ("Parti da X") nomina lo stesso POI che l'utente ha letto per
+            // primo. Coerenza notifica ↔ tour ↔ CTA garantita.
             const msg = String(parsed.message).toLowerCase();
-            const chosenPois = enriched.filter(c => msg.includes(c.name.toLowerCase()));
+            const chosenPois = enriched
+                .filter(c => msg.includes(c.name.toLowerCase()))
+                .sort((a, b) => msg.indexOf(a.name.toLowerCase()) - msg.indexOf(b.name.toLowerCase()));
             if (chosenPois.length === 0) {
                 console.warn(`[SmartNotif] ${city}/${slot}: AI non ha citato nessun candidato → scarto`);
                 return null;

@@ -46,12 +46,22 @@ export function CityProvider({ children }) {
         } catch {} return null;
     });
 
-    // Gate W — Messaggi errore GPS in italiano, action-oriented.
-    // Mai il messaggio nativo del browser ("Position update is unavailable"),
-    // mai il codice numerico. Codici GeolocationPositionError:
-    //   1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
+    // Gate W + Z.2 — Messaggi errore GPS in italiano, action-oriented.
+    // Codici GeolocationPositionError:
+    //   1 = PERMISSION_DENIED (permesso browser negato o bloccato a livello sito/sistema)
+    //   2 = POSITION_UNAVAILABLE (chip GPS non trova, WiFi non mappato)
+    //   3 = TIMEOUT (posizione ci mette troppo)
+    // Gate Z.2: messaggio dedicato per code 1 su DESKTOP (browser bloccato
+    // a livello sito o sistema — l'azione e' diversa dalle impostazioni iOS).
     const gpsErrorMessage = (code) => {
-        if (code === 1) return "Non ho il permesso di usare la tua posizione. Attivalo nelle impostazioni, oppure scegli la citta' dall'header.";
+        if (code === 1) {
+            const isDesktop = typeof navigator !== 'undefined' &&
+                !/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (isDesktop) {
+                return "Il browser non ci da' il permesso di usare la tua posizione. Controlla le impostazioni del sito, oppure scegli la citta' dall'header.";
+            }
+            return "Non ho il permesso di usare la tua posizione. Attivalo nelle impostazioni, oppure scegli la citta' dall'header.";
+        }
         if (code === 2) return "Non riesco a leggere la tua posizione. Scegli la citta' dall'header.";
         if (code === 3) return "La posizione ci sta mettendo troppo. Scegli la citta' dall'header.";
         return "Non riesco a leggere la tua posizione. Scegli la citta' dall'header.";
@@ -115,18 +125,23 @@ export function CityProvider({ children }) {
                     });
             },
             async (error) => {
-                // Gate Y.3: prima di dichiarare "posizione non disponibile",
-                // proviamo il fallback IP. Code 1 (permesso negato) NON fa
-                // retry: l'utente ha detto no, non insistiamo.
+                // Gate Y.3 + Z.2: log strumentale per diagnosi desktop.
+                console.info('[requestGPS] getCurrentPosition failed:', 'code=' + error.code, 'msg=' + error.message);
+                // Code 1 (permesso negato) NON fa retry: l'utente ha detto no.
                 if (error.code === 1) {
+                    console.info('[requestGPS] code 1 (permesso) -> no IP fallback');
                     onError?.(gpsErrorMessage(1));
                     return;
                 }
+                // Code 2/3: prova fallback IP prima di dichiarare "non disponibile".
+                console.info('[requestGPS] trying IP fallback (fetchIpLocation, timeout 4s)...');
                 const loc = await fetchIpLocation();
                 if (loc) {
+                    console.info('[requestGPS] IP fallback ok:', loc.city);
                     applyLocationAndNotify(loc.latitude, loc.longitude, loc.city, onSuccess);
                     return;
                 }
+                console.info('[requestGPS] IP fallback null -> onError con codice GPS originale');
                 onError?.(gpsErrorMessage(error.code));
             },
             GPS_POSITION_OPTIONS,

@@ -119,6 +119,11 @@ export default function SurpriseTourPage() {
     const [selectedSurprise, setSelectedSurprise] = useState(null);
     const [isShuffling, setIsShuffling] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
+    // Gate Z.3: id del tipo cliccato. Distinto da selectedFilter perche'
+    // "Sorpresa Totale" (id=4) ha filterMap[4]=null: click su Sorpresa Totale
+    // -> selectedFilter=null MA selectedSurpriseType=4 (scelta esplicita).
+    // Il bottone Genera si attiva quando selectedSurpriseType !== null.
+    const [selectedSurpriseType, setSelectedSurpriseType] = useState(null);
     // DVAI-061 B — Flash pulsante "Domani nuove esperienze 🌅" per 3s quando
     // quota esaurita. Feedback dove l'utente sta guardando (il pulsante), non
     // solo il toast in basso (banner blindness + fuori viewport iPhone).
@@ -321,6 +326,8 @@ export default function SurpriseTourPage() {
 
     const handleFilterClick = (typeId) => {
         setSelectedFilter(filterMap[typeId]);
+        // Gate Z.3: traccia scelta esplicita (anche "Sorpresa Totale" id=4 conta).
+        setSelectedSurpriseType(typeId);
     };
 
     return (
@@ -374,65 +381,18 @@ export default function SurpriseTourPage() {
                         🎁
                     </motion.div>
                     <h1 className="text-3xl font-bold text-gray-800 mb-2">Tour Sorpresa</h1>
-                    <p className="text-gray-600">Lasciati guidare dal destino o dalle tue passioni</p>
+                    <p className="text-gray-600">Scegli una categoria, poi genera la tua esperienza</p>
                 </motion.div>
 
-                {/* Shuffle/Generate Button - THE MAIN ACTION */}
-                <motion.div
-                    className="mb-8"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                >
-                    <motion.button
-                        onClick={() => shuffleExperience()}
-                        disabled={isShuffling || quotaExhaustedFlash}
-                        // DVAI-061 B — Il pulsante cambia stato/colore/testo in TRE modalità:
-                        //  1. quotaExhaustedFlash → soft peach + "Domani nuove esperienze 🌅" per 3s
-                        //  2. isShuffling         → arancione opacità 0.75 + spinner + "Analizzando..."
-                        //  3. default             → arancione pieno + "Genera Esperienza Unica"
-                        className={`relative w-full bg-gradient-to-r text-white py-6 px-8 rounded-3xl font-bold shadow-xl hover:shadow-2xl transition-all duration-500 flex items-center justify-center space-x-3 ${
-                            quotaExhaustedFlash
-                                ? 'from-orange-200 to-orange-300 opacity-90 cursor-not-allowed'
-                                : isShuffling
-                                    ? 'from-orange-400 to-orange-500 opacity-75 cursor-not-allowed'
-                                    : 'from-orange-400 to-orange-500'
-                        }`}
-                        whileHover={!isShuffling && !quotaExhaustedFlash ? { scale: 1.02, rotateX: 5 } : {}}
-                        whileTap={!isShuffling && !quotaExhaustedFlash ? { scale: 0.98 } : {}}
-                    >
-                        <motion.div
-                            animate={isShuffling ? { rotate: 360 } : {}}
-                            transition={isShuffling ? { duration: 0.5, repeat: Infinity, ease: "linear" } : {}}
-                        >
-                            {quotaExhaustedFlash ? <span className="text-2xl">🌅</span> : <Sparkles className="w-6 h-6" />}
-                        </motion.div>
-                        <AnimatePresence mode="wait">
-                            <motion.span
-                                key={quotaExhaustedFlash ? 'quota' : isShuffling ? 'loading' : 'idle'}
-                                className="text-xl"
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -6 }}
-                                transition={{ duration: 0.25 }}
-                            >
-                                {quotaExhaustedFlash
-                                    ? 'Domani nuove esperienze'
-                                    : isShuffling
-                                        ? 'Analizzando i tuoi interessi...'
-                                        : (selectedFilter ? `Genera Sorpresa ${selectedFilter}` : 'Genera Esperienza Unica')}
-                            </motion.span>
-                        </AnimatePresence>
-                        {!isShuffling && !quotaExhaustedFlash && (
-                            <motion.div
-                                className="text-2xl"
-                                whileHover={{ scale: 1.3, rotate: 15 }}
-                            >
-                                🎲
-                            </motion.div>
-                        )}
-                    </motion.button>
-                </motion.div>
+                {/* Gate Z.3: struttura invertita. PRIMA "Scegli la tua categoria"
+                    (era sotto), POI il bottone "Genera" (era sopra). La categoria e'
+                    un FILTRO reale della generazione (surpriseTour.jsx:218 e :207 la
+                    passano al prompt AI + agli interests). L'ordine di prima permetteva
+                    di generare senza scelta, chiamando "Mix delle sue piu' profonde
+                    passioni storiche" (fallback poetico bandito Blocco 2.7).
+                    Bottone disabilitato finche' selectedSurpriseType e' null.
+                    "Sorpresa Totale" (id=4, filterMap[4]=null) e' una scelta valida:
+                    equivale a "categoria non specificata, sorprendimi tu". */}
 
                 {/* Selected Surprise Experience (Doc View) */}
                 <AnimatePresence mode="wait">
@@ -512,17 +472,20 @@ export default function SurpriseTourPage() {
                     )}
                 </AnimatePresence>
 
-                {/* Surprise Categories */}
+                {/* Gate Z.3: Categorie PRIMA del bottone Genera.
+                    Prima erano dopo, l'utente poteva generare senza aver scelto. */}
                 <motion.div
                     className="mb-8"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.3 }}
                 >
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">Scegli la tua Categoria</h2>
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">Scegli la tua categoria</h2>
                     <div className="grid grid-cols-2 gap-3">
                         {surpriseTypes.map((type, index) => {
-                            const isActive = filterMap[type.id] === selectedFilter;
+                            // Gate Z.3: activa card usa selectedSurpriseType (id), non
+                            // selectedFilter (che e' null per "Sorpresa Totale").
+                            const isActive = type.id === selectedSurpriseType;
                             return (
                                 <motion.div
                                     key={type.id}
@@ -555,13 +518,71 @@ export default function SurpriseTourPage() {
                     </div>
                 </motion.div>
 
+                {/* Gate Z.3: Bottone Genera dopo la scelta. Disabilitato finche'
+                    selectedSurpriseType e' null. "Sorpresa Totale" e' una scelta
+                    valida (id=4, filterMap=null) — abilita il bottone.
+                    Copy dinamico: "Genera esperienza {categoria}" o "Sorprendimi"
+                    per Sorpresa Totale. Prima "Genera Esperienza Unica" era il
+                    default che l'utente vedeva prima ancora di scegliere. */}
+                <motion.div
+                    className="mb-8"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.6, delay: 0.8 }}
+                >
+                    <motion.button
+                        onClick={() => shuffleExperience()}
+                        disabled={isShuffling || quotaExhaustedFlash || selectedSurpriseType === null}
+                        className={`relative w-full bg-gradient-to-r text-white py-6 px-8 rounded-3xl font-bold shadow-xl hover:shadow-2xl transition-all duration-500 flex items-center justify-center space-x-3 ${
+                            selectedSurpriseType === null
+                                ? 'from-gray-300 to-gray-400 opacity-70 cursor-not-allowed'
+                                : quotaExhaustedFlash
+                                    ? 'from-orange-200 to-orange-300 opacity-90 cursor-not-allowed'
+                                    : isShuffling
+                                        ? 'from-orange-400 to-orange-500 opacity-75 cursor-not-allowed'
+                                        : 'from-orange-400 to-orange-500'
+                        }`}
+                        whileHover={!isShuffling && !quotaExhaustedFlash && selectedSurpriseType !== null ? { scale: 1.02, rotateX: 5 } : {}}
+                        whileTap={!isShuffling && !quotaExhaustedFlash && selectedSurpriseType !== null ? { scale: 0.98 } : {}}
+                    >
+                        <motion.div
+                            animate={isShuffling ? { rotate: 360 } : {}}
+                            transition={isShuffling ? { duration: 0.5, repeat: Infinity, ease: "linear" } : {}}
+                        >
+                            {quotaExhaustedFlash ? <span className="text-2xl">🌅</span> : <Sparkles className="w-6 h-6" />}
+                        </motion.div>
+                        <AnimatePresence mode="wait">
+                            <motion.span
+                                key={selectedSurpriseType === null ? 'nochoice' : quotaExhaustedFlash ? 'quota' : isShuffling ? 'loading' : 'idle'}
+                                className="text-xl"
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                transition={{ duration: 0.25 }}
+                            >
+                                {selectedSurpriseType === null
+                                    ? 'Scegli una categoria'
+                                    : quotaExhaustedFlash
+                                        ? 'Domani nuove esperienze'
+                                        : isShuffling
+                                            ? 'Analizzando i tuoi interessi...'
+                                            : (selectedFilter ? `Genera esperienza ${selectedFilter}` : 'Sorprendimi')}
+                            </motion.span>
+                        </AnimatePresence>
+                        {!isShuffling && !quotaExhaustedFlash && selectedSurpriseType !== null && (
+                            <motion.div
+                                className="text-2xl"
+                                whileHover={{ scale: 1.3, rotate: 15 }}
+                            >
+                                🎲
+                            </motion.div>
+                        )}
+                    </motion.button>
+                </motion.div>
+
                 {/* Gate J2: rimossa lista "Ispirazioni del Momento" con 3 esperienze
-                    hardcoded ("Avventura Gastronomica" €75 4.9★, "Mistero Artistico"
-                    €85 4.8★, "Natura Incontaminata" €95 4.7★) — foto Unsplash + prezzi
-                    e rating inventati mostrati come tour reali. La vera esperienza
-                    parte solo dal pulsante grande "Genera Esperienza Unica" sopra
-                    (shuffleExperience → motore AI reale con quota 10/day).
-                    I chip categoria sopra restano come pre-selezione del tema. */}
+                    hardcoded. La vera esperienza parte solo dal pulsante Genera
+                    (shuffleExperience → motore AI reale con quota 10/day). */}
             </main>
 
             <BottomNavigation />

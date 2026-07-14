@@ -235,11 +235,41 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
             .map(n => ({ ...n, is_read: readGenerated.includes(n.id) }));
     };
 
-    const notifications = [...realNotifications, ...generatedNotifications].sort((a, b) => {
-        const timeA = new Date(a.created_at || a.timestamp || 0).getTime();
-        const timeB = new Date(b.created_at || b.timestamp || 0).getTime();
-        return timeB - timeA;
-    });
+    // Gate Z.1 — CHOKEPOINT UNICO di validita' notifica.
+    // Prima: unreadCount contava lo state React (che poteva contenere notifiche
+    // scadute), la lista in Notifications.jsx mostrava un altro subset ->
+    // badge=1, lista=0 (bug fantasma di Ivano). Root cause: TTL 5min viveva
+    // dentro generateTimeAwareNotifications, applicato solo al momento della
+    // lettura cache, ma il risultato veniva congelato in useState. Il tempo
+    // scorre, lo state no. Il badge contava il congelato.
+    //
+    // Fix: isNotificationLive(n) applicato in UN posto solo, prima di derivare
+    // qualsiasi cosa. Se una notifica non e' mostrabile, non e' contata.
+    // Regola locked (Ivano 14/07): "il conteggio e la lista leggono la STESSA
+    // funzione. Se una notifica non si puo' mostrare, non si conta".
+    const FIVE_MIN_MS = 5 * 60 * 1000;
+    const nowMs = Date.now();
+    const isNotificationLive = (n) => {
+        if (!n) return false;
+        // Notifiche generate client-side: hanno timestamp (Date/ISO), no created_at.
+        // TTL 5 min (Gate S.1) — fuori dalla finestra i dati istantanei mentono.
+        if (n.timestamp && !n.created_at) {
+            const ts = new Date(n.timestamp).getTime();
+            return Number.isFinite(ts) && (nowMs - ts < FIVE_MIN_MS);
+        }
+        // Notifiche DB (realNotifications): hanno created_at. No TTL — sono
+        // notifiche persistenti che l'utente ha ricevuto e restano finche'
+        // non le elimina/legge.
+        return true;
+    };
+
+    const notifications = [...realNotifications, ...generatedNotifications]
+        .filter(isNotificationLive)
+        .sort((a, b) => {
+            const timeA = new Date(a.created_at || a.timestamp || 0).getTime();
+            const timeB = new Date(b.created_at || b.timestamp || 0).getTime();
+            return timeB - timeA;
+        });
 
     const unreadCount = notifications.filter(n => !n.is_read).length;
 

@@ -58,7 +58,9 @@ export default function NotificationsPage() {
     const { trackInteraction } = useAILearning();
 
     // Blocco 2.1 FASE 2 — Precompute lazy del tour promesso dalla notifica.
-    // Stato: 'idle' | 'loading' | 'ready' | 'cap_exceeded' | 'error'
+    // Stato: 'idle' | 'loading' | 'ready' | 'error'
+    // Gate T.1: rimosso 'cap_exceeded' — non c'e' piu' cap syswarm dopo N.2
+    // (place/details Basic Data e' gratis).
     const [prewarm, setPrewarm] = useState({ status: 'idle', tourData: null });
 
     // Blocco 2.1 FASE 1 — Passa il ctx per la notifica-vera (GPS, meteo).
@@ -122,12 +124,9 @@ export default function NotificationsPage() {
                 }
             } catch (err) {
                 if (cancelled) return;
-                if (err.message === 'SYSTEM_PREWARM_CAP_EXCEEDED') {
-                    setPrewarm({ status: 'cap_exceeded', tourData: null });
-                } else {
-                    console.warn('[SysPrewarm] modal precompute error:', err.message);
-                    setPrewarm({ status: 'error', tourData: null });
-                }
+                // Gate T.1: rimosso branch SYSTEM_PREWARM_CAP_EXCEEDED (cap sparito).
+                console.warn('[SysPrewarm] modal precompute error:', err.message);
+                setPrewarm({ status: 'error', tourData: null });
             }
         })();
         return () => { cancelled = true; };
@@ -427,19 +426,38 @@ export default function NotificationsPage() {
                                     <div className="mt-4 flex items-center justify-between">
                                         {/* Action Button Area */}
                                         <div className="flex-1">
-                                            <motion.button
-                                                onClick={() => handleNotificationClick(notification)}
-                                                className={`px-5 py-2 rounded-xl text-sm font-bold shadow-md flex items-center space-x-2 w-max ${notification.action === 'prenota' ? 'bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white' :
-                                                    notification.action === 'scopri' ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white' :
-                                                        notification.action === 'rispondi' ? 'bg-gradient-to-r from-purple-400 to-purple-500 text-white' :
-                                                            'bg-white text-gray-700 border border-gray-100'
-                                                    }`}
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                            >
-                                                <span>{notification.action.charAt(0).toUpperCase() + notification.action.slice(1)}</span>
-                                                <ArrowRight className="w-3 h-3" />
-                                            </motion.button>
+                                            {(() => {
+                                                // Gate T.3: copy dinamico anche nella card lista (non solo modal
+                                                // R.4). Se la notifica ha chosenPois, il CTA mostra "Vai a X" (1)
+                                                // o "Parti da X" (n) — coerente con quello che l'utente vedra' nel
+                                                // modal e nel tour precomputato. Fallback al copy attuale per
+                                                // notifiche non-AI (user_reply, price_offer, ecc.).
+                                                const chosen = Array.isArray(notification.chosenPois) ? notification.chosenPois : [];
+                                                let label;
+                                                if (chosen.length > 0 && chosen[0]?.name) {
+                                                    const rawName = chosen[0].name;
+                                                    const displayName = rawName.length > 22 ? rawName.slice(0, 21).trimEnd() + '…' : rawName;
+                                                    const verb = chosen.length > 1 ? 'Parti da' : 'Vai a';
+                                                    label = `${verb} ${displayName}`;
+                                                } else {
+                                                    label = notification.action.charAt(0).toUpperCase() + notification.action.slice(1);
+                                                }
+                                                return (
+                                                    <motion.button
+                                                        onClick={() => handleNotificationClick(notification)}
+                                                        className={`px-5 py-2 rounded-xl text-sm font-bold shadow-md flex items-center space-x-2 w-max ${notification.action === 'prenota' ? 'bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white' :
+                                                            notification.action === 'scopri' ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white' :
+                                                                notification.action === 'rispondi' ? 'bg-gradient-to-r from-purple-400 to-purple-500 text-white' :
+                                                                    'bg-white text-gray-700 border border-gray-100'
+                                                            }`}
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                    >
+                                                        <span>{label}</span>
+                                                        <ArrowRight className="w-3 h-3" />
+                                                    </motion.button>
+                                                );
+                                            })()}
                                         </div>
 
                                         {/* Delete Button with confirmation */}
@@ -648,11 +666,10 @@ export default function NotificationsPage() {
                                         // Blocco 2.1 FASE 2 — CTA "Vedi il giro" con precompute lazy.
                                         // Gate R.4: copy ancorato al POI di partenza (Gate R.3 garantisce
                                         // che chosenPois[0] sia il primo POI menzionato nella notifica).
-                                        //   loading      → "Sto preparando il giro..." (spinner)
+                                        //   loading    → "Sto preparando il giro..." (spinner)
                                         //   ready 1 stop → "Vai a <POI>"
                                         //   ready n stop → "Parti da <POI>"
-                                        //   cap_exceeded → "🌅 Domani nuovi giri"
-                                        //   error/idle   → "Non riesco a preparare il giro"
+                                        //   error/idle → "Non riesco a preparare il giro"
                                         (() => {
                                             const stops = prewarm.tourData?.days?.[0]?.stops || [];
                                             const firstStop = stops[0];
@@ -675,8 +692,6 @@ export default function NotificationsPage() {
                                                         <><Loader className="w-4 h-4 animate-spin" /> Sto preparando il giro…</>
                                                     ) : prewarm.status === 'ready' && displayName ? (
                                                         <>{verb} {displayName} <ArrowRight className="w-4 h-4" /></>
-                                                    ) : prewarm.status === 'cap_exceeded' ? (
-                                                        <>🌅 Domani nuovi giri</>
                                                     ) : (
                                                         <>Non riesco a preparare il giro</>
                                                     )}

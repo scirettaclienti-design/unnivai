@@ -1327,20 +1327,17 @@ Schema JSON ESATTO:
         }
 
         try {
-            // 1. Cap syswarm: contatore separato per giorno per utente.
-            const { data: { session } } = await supabase.auth.getSession();
-            const userId = session?.user?.id;
-            if (userId) {
-                const day = todayStr();
-                const key = `unnivai_syswarm_${userId}_${day}`;
-                const current = parseInt(localStorage.getItem(key) || '0', 10);
-                if (current >= 6) {
-                    console.info(`[SysPrewarm] cap 6/day raggiunto per ${userId}/${day}`);
-                    throw new Error('SYSTEM_PREWARM_CAP_EXCEEDED');
-                }
-                // Incrementa PRIMA delle chiamate (fail-closed sul budget).
-                try { localStorage.setItem(key, String(current + 1)); } catch { /* localStorage pieno */ }
-            }
+            // Gate T.1: cap syswarm rimosso. Era dimensionato su 6 completion
+            // OpenAI/giorno (Blocco 2.1 Fase 2). Dopo Gate N.2 il precompute
+            // NON chiama piu' l'LLM: fetchPlaceDetailsForTour su Places
+            // Legacy Basic Data (name/geometry/photos/types/opening_hours) ha
+            // costo ZERO. Il cap client-side proteggeva un budget che non
+            // esiste piu', e bloccava l'unica funzione del prodotto dopo la
+            // sesta apertura del giorno. La cache 24h di placesDiscoveryService
+            // + cityCenter cache mitigano gia' il traffico Google. Se in
+            // futuro serve difesa quota, va messa lato edge function proxy
+            // (centrale per progetto, non user-side aggirabile via
+            // localStorage.clear()).
 
             // 2. Fetch place/details in parallelo per ogni chosenPoi.
             const { placesDiscoveryService } = await import('./placesDiscoveryService');
@@ -1381,7 +1378,7 @@ Schema JSON ESATTO:
 
             return { tourData, chosenPois };
         } catch (err) {
-            if (err.message === 'SYSTEM_PREWARM_CAP_EXCEEDED') throw err;
+            // Gate T.1: rimossa re-throw SYSTEM_PREWARM_CAP_EXCEEDED (cap sparito).
             console.warn(`[SysPrewarm] failed: ${err.message}`);
             return null;
         }
@@ -1594,6 +1591,7 @@ REGOLE MESSAGE (locked):
 - NIENTE fatti inventati sul posto: no "il pub dove producono la birra", no "storia dal 1960". Se non è nei dati sopra, non lo sai.
 - NIENTE aggettivi vuoti: "spettacolare", "unico", "indimenticabile", "atmosfera intima", "vista mozzafiato".
 - NIENTE verbi da menu: "sorseggia", "gusta", "immergiti", "assapora".
+- NIENTE formule di giudizio o raccomandazione: "ottima scelta", "vale la pena", "da provare", "consigliato", "perfetto per", "ideale per", "imperdibile", "consiglio", "assolutamente da". Sono opinioni su un posto che non hai mai visto. Il message finisce dopo l'ultimo FATTO verificabile: nessuna coda di opinione, nessuna chiusura da recensione.
 - Otto parole per far alzare l'utente dal divano. Voce di persona, non di app.
 
 LIMITI DURI:
@@ -1635,6 +1633,25 @@ oppure
                 console.warn(`[SmartNotif] ${city}/${slot}: nessun cue di slot definito → skip`);
                 return null;
             }
+
+            // Gate T.2: post-processing anti-giudizio. Il prompt vieta esplicitamente
+            // le formule di raccomandazione, ma l'AI ogni tanto ne inserisce una in
+            // coda ("Ottima scelta per un dolce.", "Da provare!"). Le tagliamo dopo:
+            // trova la frase con il verdetto → rimuovi dall'inizio della frase alla
+            // fine (fino a punto/esclamativo/interrogativo/EOL). Se la coda pulita
+            // e' vuota o solo punteggiatura, ferma al primo punto conservando i fatti.
+            const JUDGMENT_PATTERNS = [
+                /\.\s*(?:ottima scelta|ottima idea|ottimo posto|vale la pena|da provare|consigliato|consiglio|perfetto per|ideale per|imperdibile|assolutamente da|non perdere)[^.!?]*[.!?]?/gi,
+                /\.\s*(?:un must|una chicca|una scoperta|una perla|un gioiello)[^.!?]*[.!?]?/gi,
+            ];
+            let cleanMessage = String(parsed.message);
+            for (const p of JUDGMENT_PATTERNS) cleanMessage = cleanMessage.replace(p, '.');
+            cleanMessage = cleanMessage.replace(/\s+/g, ' ').replace(/\s+\./g, '.').trim();
+            if (!cleanMessage || cleanMessage.length < 20) {
+                console.warn(`[SmartNotif] ${city}/${slot}: message post-cleanup vuoto/troppo corto → scarto`);
+                return null;
+            }
+            parsed.message = cleanMessage;
 
             // 7. Verifica anti-invenzione: message deve contenere almeno un nome
             //    della lista candidati. Se cita nomi non-in-lista → scarta.

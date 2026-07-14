@@ -296,8 +296,15 @@ const SIGNAL_PRESENT = /\bsignal\s*:|signal\s*\?\s*\{\s*signal\s*\}/;
 // Blocco 2 (fix strutturale su geocoding/weather/POI legacy). Il path Home
 // critico (cityCenter, discoverRealPOIs textsearch, fetchPlaceDetailsForTour,
 // fetchPlaceOpeningHours) e' gia' timeout-fixed.
+// Gate X: rimossi useEnhancedGeolocation (ipapi + Google Maps geocode +
+// Nominatim reverse ora timeout-fixed) e prevista rimozione degli altri
+// mano a mano che si fixano. La regola locked (Ivano 14/07): "una fetch
+// senza timeout che pende e' la stessa classe di bug dello spinner infinito
+// — solo che qui l'utente aspetta senza nemmeno una rotella. L'allowlist
+// era debito, e il debito e' appena venuto a bussare".
 const FETCH_ALLOWLIST = new Set([
-    'src/hooks/useEnhancedGeolocation.js',     // Nominatim/ipapi geocoding legacy — Blocco 2 cleanup
+    // Rimasti in allowlist: file V2/V3 spenti (V1LockedGuard) o code path
+    // non raggiungibili nel percorso viaggiatore V1. Cleanup Blocco 2.
     'src/services/userContextService.js',      // reverseGeocodeCity Google Maps legacy — Blocco 2
     'src/services/weatherService.js',          // open-meteo weather + geocoding — Blocco 2
     'src/services/poiService.js',              // Overpass API legacy — Blocco 2
@@ -397,7 +404,7 @@ describe('Gate M — Anti-fake test', () => {
         const missing = [];
         for (const file of files) {
             const rel = relative(REPO_ROOT, file).replace(/\\/g, '/');
-            if (!(rel.startsWith('src/services/') || rel.startsWith('src/lib/') || rel.startsWith('src/hooks/'))) continue;
+            if (!(rel.startsWith('src/services/') || rel.startsWith('src/lib/') || rel.startsWith('src/hooks/') || rel.startsWith('src/context/'))) continue;
             if (FETCH_ALLOWLIST.has(rel)) continue;
             const content = readFileSync(file, 'utf8');
             const lines = content.split('\n');

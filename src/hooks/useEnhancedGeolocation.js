@@ -2,8 +2,25 @@
  * DVAI-032 — Rimossi saveLocationToBackend() e getNearbyData():
  * puntavano a endpoint inesistenti (/api/location/save, /api/location/nearby)
  * causando 404 silenziosi ad ogni mount del componente.
+ *
+ * Gate X — PositionOptions ottimizzate per app tourism-mobile (locked Ivano):
+ * L'utente e' in hotel, vicolo, bar. Non chiediamo satellite (indoor fallisce
+ * sempre) e accettiamo posizione recente (5 min). La precisione che serve e'
+ * "in che citta' sei", non "su quale lato del marciapiede". Costante
+ * esportata per unificare l'unico secondo path (CityContext.requestGPS).
  */
 import { useState, useEffect } from 'react';
+
+// Gate X.1 + X.2: unica costante condivisa da tutti i path GPS del client.
+// Prima erano due configurazioni diverse (useEnhancedGeolocation aveva
+// enableHighAccuracy:true + maximumAge:0; CityContext aveva
+// enableHighAccuracy:true + maximumAge:300000). Due path che leggono lo
+// stesso GPS con opzioni diverse e' un bug in attesa.
+export const GPS_POSITION_OPTIONS = Object.freeze({
+    enableHighAccuracy: false,          // WiFi/cella OK — satellite non serve per "in che citta' sei"
+    timeout: 8000,                      // 8s: piu' del network round-trip, meno di "eternita'"
+    maximumAge: 5 * 60 * 1000,          // 5min cache: se hai gia' un fix recente, usalo
+});
 
 export function useEnhancedGeolocation(options = {}) {
     const [state, setState] = useState({
@@ -23,10 +40,8 @@ export function useEnhancedGeolocation(options = {}) {
         setState(prev => ({ ...prev, loading: true, error: null }));
 
         const defaultOptions = {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 0,
-            ...options
+            ...GPS_POSITION_OPTIONS,
+            ...options,
         };
 
         try {
@@ -62,8 +77,15 @@ export function useEnhancedGeolocation(options = {}) {
     };
 
     const triggerIpFallback = async () => {
+        // Gate X.3: timeout 4s. Se ipapi.co pende (DNS, CORS, ad blocker, VPN),
+        // cade rapido e l'utente vede il banner "scegli citta'" invece di
+        // aspettare senza feedback. Regola locked: "ogni stato di loading ha un
+        // timeout e una via d'uscita, anche quando il loading e' invisibile".
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
         try {
-            const res = await fetch('https://ipapi.co/json/');
+            const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+            clearTimeout(timeoutId);
             const data = await res.json();
             if (data?.latitude && data?.longitude && data?.city) {
                 setState({
@@ -81,7 +103,8 @@ export function useEnhancedGeolocation(options = {}) {
                 return;
             }
         } catch {
-            // IP fallback non disponibile
+            clearTimeout(timeoutId);
+            // IP fallback non disponibile o timeout
         }
         markLocationUnavailable();
     };
@@ -100,13 +123,20 @@ export function useEnhancedGeolocation(options = {}) {
     };
 
     const reverseGeocode = async (lat, lon) => {
+        // Gate X.3: timeout 6s per ogni tentativo. Google Maps geocode direct
+        // + fallback Nominatim erano senza timeout — se pendevano, la catena
+        // "GPS -> nome citta'" si spezzava senza feedback.
         try {
             const MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
             if (MAPS_KEY) {
+                const gCtrl = new AbortController();
+                const gTid = setTimeout(() => gCtrl.abort(), 6000);
                 try {
                     const res = await fetch(
-                        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${MAPS_KEY}&result_type=locality|administrative_area_level_3`
+                        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${MAPS_KEY}&result_type=locality|administrative_area_level_3`,
+                        { signal: gCtrl.signal }
                     );
+                    clearTimeout(gTid);
                     const data = await res.json();
                     if (data.status === 'OK' && data.results.length > 0) {
                         let city = '';
@@ -120,20 +150,30 @@ export function useEnhancedGeolocation(options = {}) {
                         if (city) return { city, country };
                     }
                 } catch {
+                    clearTimeout(gTid);
                     // fallback a Nominatim
                 }
             }
 
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=it&addressdetails=1`
-            );
-            if (!response.ok) throw new Error('Geocoding failed');
-            const data = await response.json();
-            // Gate O.2: nessun fallback Roma. Se nessun campo topografico e' presente,
-            // ritorno city:null → il consumer sa che il nome citta' non e' risolto.
-            const city = data.address?.city || data.address?.town || data.address?.village ||
-                data.address?.municipality || data.address?.county || null;
-            return { city, country: data.address?.country || 'Italia' };
+            const nCtrl = new AbortController();
+            const nTid = setTimeout(() => nCtrl.abort(), 6000);
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=it&addressdetails=1`,
+                    { signal: nCtrl.signal }
+                );
+                clearTimeout(nTid);
+                if (!response.ok) throw new Error('Geocoding failed');
+                const data = await response.json();
+                // Gate O.2: nessun fallback Roma. Se nessun campo topografico e' presente,
+                // ritorno city:null → il consumer sa che il nome citta' non e' risolto.
+                const city = data.address?.city || data.address?.town || data.address?.village ||
+                    data.address?.municipality || data.address?.county || null;
+                return { city, country: data.address?.country || 'Italia' };
+            } catch {
+                clearTimeout(nTid);
+                throw new Error('Nominatim geocoding failed');
+            }
         } catch {
             return { city: null, country: 'Italia' };
         }

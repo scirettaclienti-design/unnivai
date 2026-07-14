@@ -16,8 +16,13 @@ export default function GpsActivationBanner() {
         requestGPS(
             (city) => {
                 setIsLoading(false);
-                setFeedback({ type: 'success', message: `Posizione trovata: ${city}` });
-                setTimeout(() => setFeedback(null), 3000);
+                // Gate X.3: city puo' essere null se reverse geocode e' fallito
+                // (coordinate GPS OK, ma nessun nome citta' risolto). Copy onesto.
+                const message = city
+                    ? `Posizione trovata: ${city}`
+                    : 'Posizione trovata, ma non riesco a leggere il nome della citta\'. Scegli la citta\' dall\'header.';
+                setFeedback({ type: city ? 'success' : 'error', message });
+                setTimeout(() => setFeedback(null), city ? 3000 : 5000);
             },
             (errorMsg) => {
                 setIsLoading(false);

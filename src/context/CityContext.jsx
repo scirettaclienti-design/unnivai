@@ -1,6 +1,9 @@
 import React, { createContext, useState, useContext, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { userContextService } from '../services/userContextService';
+// Gate X.2: unica costante GPS condivisa. Un solo comportamento su entrambi
+// i path (useEnhancedGeolocation al mount + requestGPS user gesture).
+import { GPS_POSITION_OPTIONS } from '../hooks/useEnhancedGeolocation';
 
 const CityContext = createContext();
 
@@ -54,7 +57,10 @@ export function CityProvider({ children }) {
         return "Non riesco a leggere la tua posizione. Scegli la citta' dall'header.";
     };
 
-    // Chiamato SOLO da un onClick (user gesture — obbligatorio per iOS Safari)
+    // Chiamato SOLO da un onClick (user gesture — obbligatorio per iOS Safari).
+    // Gate X.2: options unificate via GPS_POSITION_OPTIONS
+    // (enableHighAccuracy:false + timeout:8s + maximumAge:5min).
+    // Un solo comportamento su entrambi i path (mount + user gesture).
     const requestGPS = useCallback((onSuccess, onError) => {
         if (!navigator.geolocation) {
             onError?.("Il tuo browser non supporta la geolocalizzazione. Scegli la citta' dall'header.");
@@ -64,11 +70,16 @@ export function CityProvider({ children }) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
-                // Reverse geocoding
+                // Gate X.3: timeout 6s su Nominatim reverse geocode.
+                // Prima nessun timeout -> se il servizio pendeva, il banner
+                // GPS rimaneva in "Ricerca posizione..." senza uscita.
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 6000);
                 fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=it`, {
-                    headers: { 'User-Agent': 'DoveVAI/1.0' }
+                    headers: { 'User-Agent': 'DoveVAI/1.0' },
+                    signal: controller.signal,
                 })
-                    .then(r => r.json())
+                    .then(r => { clearTimeout(timeoutId); return r.json(); })
                     .then(data => {
                         const gpsCity = data.address?.city || data.address?.town || data.address?.village || data.address?.municipality;
                         if (gpsCity) {
@@ -83,11 +94,17 @@ export function CityProvider({ children }) {
                             } catch {}
                             onSuccess?.(clean, latitude, longitude);
                         } else {
-                            onSuccess?.('Roma', latitude, longitude); // Città non risolta ma coordinate OK
+                            // Gate O.2: nessun fallback 'Roma'. Se non risolvo il nome citta',
+                            // le coordinate sono comunque valide -> setto solo gpsCoords + gpsActive
+                            // e comunico onSuccess con city=null.
+                            setGpsCoords({ lat: latitude, lon: longitude });
+                            setGpsActive(true);
+                            onSuccess?.(null, latitude, longitude);
                         }
                     })
                     .catch(() => {
-                        // Geocoding fallito ma GPS OK
+                        clearTimeout(timeoutId);
+                        // Geocoding fallito o timeout, ma GPS OK
                         setGpsCoords({ lat: latitude, lon: longitude });
                         setGpsActive(true);
                         onSuccess?.(city, latitude, longitude);
@@ -96,7 +113,7 @@ export function CityProvider({ children }) {
             (error) => {
                 onError?.(gpsErrorMessage(error.code));
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+            GPS_POSITION_OPTIONS,
         );
     }, [city]);
 

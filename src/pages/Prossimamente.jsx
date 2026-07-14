@@ -13,9 +13,15 @@ import { useUserContext } from '../hooks/useUserContext';
 // Contenuto per ognuna delle 3 schermate. `whenBuilder`/`subtitleBuilder`
 // accettano il nome della citta' quando serve — Gate O.2 garantisce che
 // city sia null (mai 'Roma' hardcoded) se non risolto → fallback "la tua citta'".
+// Gate Y.4: badge = "IN COSTRUZIONE" (senza numero fase).
+// L'utente esterno non ha idea dei passi V1/V2/V3 (gergo interno).
+// "In costruzione" e' universalmente comprensibile, dice lo stato attuale
+// senza chiedere di conoscere la roadmap. Il "quando arriva" lo dice il
+// blocco QUANDO ARRIVA dentro la pagina, dove il contesto giustifica
+// "Fase 2" (spiegato subito sotto).
 const CONTENT = {
     guide: {
-        phase: 'FASE 2 · IN COSTRUZIONE',
+        phase: 'IN COSTRUZIONE',
         title: 'Guide Locali',
         subtitleBuilder: (cityLabel) =>
             `Persone del posto che ti fanno vedere ${cityLabel} da un ragazzo di ${cityLabel}.`,
@@ -37,7 +43,7 @@ const CONTENT = {
             `percorso su misura per ${cityLabel} oggi, con luoghi veri e orari veri.`,
     },
     attivita: {
-        phase: 'FASE 3 · IN COSTRUZIONE',
+        phase: 'IN COSTRUZIONE',
         title: 'Attivita\' Locali',
         subtitleBuilder: () =>
             'I posti che le guide portano davvero — non quelli che pagano per apparire.',
@@ -59,7 +65,7 @@ const CONTENT = {
             'recensioni vere). Nessuno paga per apparire.',
     },
     foto: {
-        phase: 'FASE — IN LAVORAZIONE',
+        phase: 'IN COSTRUZIONE',
         title: 'Le tue Foto',
         subtitleBuilder: () =>
             'Documenta il tuo percorso reale — non i posti che dovresti visitare.',

@@ -1,9 +1,9 @@
 import React, { createContext, useState, useContext, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { userContextService } from '../services/userContextService';
-// Gate X.2: unica costante GPS condivisa. Un solo comportamento su entrambi
-// i path (useEnhancedGeolocation al mount + requestGPS user gesture).
-import { GPS_POSITION_OPTIONS } from '../hooks/useEnhancedGeolocation';
+// Gate X.2 + Y.3: costante GPS + helper IP fallback condivisi.
+// Un solo comportamento su entrambi i path (mount + user gesture).
+import { GPS_POSITION_OPTIONS, fetchIpLocation } from '../hooks/useEnhancedGeolocation';
 
 const CityContext = createContext();
 
@@ -57,13 +57,35 @@ export function CityProvider({ children }) {
         return "Non riesco a leggere la tua posizione. Scegli la citta' dall'header.";
     };
 
+    // Helper interno: dato lat/lng + nome citta' precomputato (o null),
+    // aggiorna stato + persiste in localStorage + chiama onSuccess.
+    // Estratto per riuso: percorso GPS + reverse geocode e percorso IP
+    // fallback finiscono qui, un solo posto che aggiorna lo stato.
+    const applyLocationAndNotify = (lat, lng, cityName, onSuccess) => {
+        const clean = cityName ? cityName.trim() : null;
+        if (clean) setCity(clean);
+        setGpsActive(true);
+        setGpsCoords({ lat, lon: lng });
+        if (clean) setIsManual(false);
+        try {
+            if (clean) localStorage.setItem(STORAGE_KEY, clean);
+            localStorage.setItem(GPS_KEY, JSON.stringify({ lat, lon: lng, city: clean, ts: Date.now() }));
+        } catch { /* localStorage pieno */ }
+        onSuccess?.(clean, lat, lng);
+    };
+
     // Chiamato SOLO da un onClick (user gesture — obbligatorio per iOS Safari).
-    // Gate X.2: options unificate via GPS_POSITION_OPTIONS
-    // (enableHighAccuracy:false + timeout:8s + maximumAge:5min).
+    // Gate X.2: options unificate via GPS_POSITION_OPTIONS.
+    // Gate Y.3: se getCurrentPosition fallisce (code 2/3), prova fetchIpLocation
+    // come fa gia' il mount automatico. Se anche IP fallisce -> onError onesto.
     // Un solo comportamento su entrambi i path (mount + user gesture).
     const requestGPS = useCallback((onSuccess, onError) => {
         if (!navigator.geolocation) {
-            onError?.("Il tuo browser non supporta la geolocalizzazione. Scegli la citta' dall'header.");
+            // No GPS API -> prova subito IP.
+            fetchIpLocation().then(loc => {
+                if (loc) applyLocationAndNotify(loc.latitude, loc.longitude, loc.city, onSuccess);
+                else onError?.("Il tuo browser non supporta la geolocalizzazione. Scegli la citta' dall'header.");
+            });
             return;
         }
 
@@ -71,8 +93,6 @@ export function CityProvider({ children }) {
             (position) => {
                 const { latitude, longitude } = position.coords;
                 // Gate X.3: timeout 6s su Nominatim reverse geocode.
-                // Prima nessun timeout -> se il servizio pendeva, il banner
-                // GPS rimaneva in "Ricerca posizione..." senza uscita.
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 6000);
                 fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=it`, {
@@ -82,35 +102,31 @@ export function CityProvider({ children }) {
                     .then(r => { clearTimeout(timeoutId); return r.json(); })
                     .then(data => {
                         const gpsCity = data.address?.city || data.address?.town || data.address?.village || data.address?.municipality;
-                        if (gpsCity) {
-                            const clean = gpsCity.trim();
-                            setCity(clean);
-                            setGpsActive(true);
-                            setGpsCoords({ lat: latitude, lon: longitude });
-                            setIsManual(false);
-                            try {
-                                localStorage.setItem(STORAGE_KEY, clean);
-                                localStorage.setItem(GPS_KEY, JSON.stringify({ lat: latitude, lon: longitude, city: clean, ts: Date.now() }));
-                            } catch {}
-                            onSuccess?.(clean, latitude, longitude);
-                        } else {
-                            // Gate O.2: nessun fallback 'Roma'. Se non risolvo il nome citta',
-                            // le coordinate sono comunque valide -> setto solo gpsCoords + gpsActive
-                            // e comunico onSuccess con city=null.
-                            setGpsCoords({ lat: latitude, lon: longitude });
-                            setGpsActive(true);
-                            onSuccess?.(null, latitude, longitude);
-                        }
+                        // Gate O.2: se il geocode non risolve nome citta', passa null (no 'Roma' fake).
+                        applyLocationAndNotify(latitude, longitude, gpsCity || null, onSuccess);
                     })
                     .catch(() => {
                         clearTimeout(timeoutId);
-                        // Geocoding fallito o timeout, ma GPS OK
+                        // Geocoding fallito o timeout, ma GPS OK: teniamo le coord,
+                        // manteniamo la city corrente (che l'utente potrebbe aver scelto a mano).
                         setGpsCoords({ lat: latitude, lon: longitude });
                         setGpsActive(true);
                         onSuccess?.(city, latitude, longitude);
                     });
             },
-            (error) => {
+            async (error) => {
+                // Gate Y.3: prima di dichiarare "posizione non disponibile",
+                // proviamo il fallback IP. Code 1 (permesso negato) NON fa
+                // retry: l'utente ha detto no, non insistiamo.
+                if (error.code === 1) {
+                    onError?.(gpsErrorMessage(1));
+                    return;
+                }
+                const loc = await fetchIpLocation();
+                if (loc) {
+                    applyLocationAndNotify(loc.latitude, loc.longitude, loc.city, onSuccess);
+                    return;
+                }
                 onError?.(gpsErrorMessage(error.code));
             },
             GPS_POSITION_OPTIONS,

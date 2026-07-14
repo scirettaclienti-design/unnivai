@@ -22,6 +22,34 @@ export const GPS_POSITION_OPTIONS = Object.freeze({
     maximumAge: 5 * 60 * 1000,          // 5min cache: se hai gia' un fix recente, usalo
 });
 
+// Gate Y.3: helper condiviso per il fallback IP. Prima solo il mount automatico
+// lo usava; il banner user-gesture (CityContext.requestGPS) no — cioe' il path
+// che l'utente USA attivamente non aveva il fallback che l'auto-mount aveva.
+// Ora entrambi possono chiamarlo. Timeout 4s (stessa scelta X.3).
+//
+// @returns {Promise<null | { latitude, longitude, city, country }>}
+export async function fetchIpLocation() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    try {
+        const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        const data = await res.json();
+        if (data?.latitude && data?.longitude && data?.city) {
+            return {
+                latitude: data.latitude,
+                longitude: data.longitude,
+                city: data.city,
+                country: data.country_name || 'Italia',
+            };
+        }
+        return null;
+    } catch {
+        clearTimeout(timeoutId);
+        return null;
+    }
+}
+
 export function useEnhancedGeolocation(options = {}) {
     const [state, setState] = useState({
         location: null,
@@ -77,34 +105,17 @@ export function useEnhancedGeolocation(options = {}) {
     };
 
     const triggerIpFallback = async () => {
-        // Gate X.3: timeout 4s. Se ipapi.co pende (DNS, CORS, ad blocker, VPN),
-        // cade rapido e l'utente vede il banner "scegli citta'" invece di
-        // aspettare senza feedback. Regola locked: "ogni stato di loading ha un
-        // timeout e una via d'uscita, anche quando il loading e' invisibile".
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000);
-        try {
-            const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
-            clearTimeout(timeoutId);
-            const data = await res.json();
-            if (data?.latitude && data?.longitude && data?.city) {
-                setState({
-                    location: {
-                        latitude: data.latitude,
-                        longitude: data.longitude,
-                        city: data.city,
-                        country: data.country_name || 'Italia'
-                    },
-                    loading: false,
-                    error: null,
-                    nearbyData: [],
-                    savedToDatabase: false
-                });
-                return;
-            }
-        } catch {
-            clearTimeout(timeoutId);
-            // IP fallback non disponibile o timeout
+        // Gate Y.3: usa l'helper condiviso fetchIpLocation (export sopra).
+        const loc = await fetchIpLocation();
+        if (loc) {
+            setState({
+                location: loc,
+                loading: false,
+                error: null,
+                nearbyData: [],
+                savedToDatabase: false
+            });
+            return;
         }
         markLocationUnavailable();
     };

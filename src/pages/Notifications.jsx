@@ -129,7 +129,15 @@ export default function NotificationsPage() {
                 if (cancelled) return;
                 if (result?.tourData) {
                     setPrewarm({ status: 'ready', tourData: result.tourData });
-                    trackInteraction('notification_precompute_ready', { city, slot: getTimeSlot() });
+                    // Gate Y.1: RIMOSSO trackInteraction da qui. Un processo automatico
+                    // (precompute) NON e' un'interazione utente. Regola locked (Ivano):
+                    // "il tracking registra cio' che l'utente FA, non cio' che il sistema
+                    // fa per lui". Inoltre: trackInteraction e' ricreato da useCallback
+                    // ogni volta che learningState cambia (deps [syncToDb]). Averla nelle
+                    // deps di questa useEffect provocava LOOP di re-mount infinito
+                    // (setPrewarm ready -> track -> setLearningState -> syncToDb nuovo ->
+                    // trackInteraction nuovo -> useEffect ri-scatta -> loop). Spinner
+                    // infinito visto da Ivano su seconda apertura notifica.
                 } else {
                     setPrewarm({ status: 'error', tourData: null });
                 }
@@ -141,15 +149,20 @@ export default function NotificationsPage() {
             }
         })();
         return () => { cancelled = true; };
-    }, [selectedNotification?.id, city, weatherCondition, temperatureC, trackInteraction]);
+    // Gate Y.1: trackInteraction RIMOSSA dalle deps (causa loop, vedi commento sopra).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedNotification?.id, city, weatherCondition, temperatureC]);
 
     // Gate K — Un solo CTA "Vedi il giro" per le notifiche category='tours'.
     // Se il precompute è ready → naviga a TourDetails col tour precomputato.
-    // Se cap_exceeded/error → CTA disabled con copy onesto.
+    // Gate Y.1: il tracking sta QUI (click utente reale) invece che dentro
+    // l'useEffect del precompute (che era un processo automatico).
     const handleVediGiro = () => {
         if (prewarm.status !== 'ready' || !prewarm.tourData) return;
         const day = prewarm.tourData.days?.[0];
         if (!day || !Array.isArray(day.stops) || day.stops.length === 0) return;
+        // Gate Y.1: track un vero gesto utente.
+        trackInteraction('notification_cta_click', { city, slot: getTimeSlot() });
         const tourId = 'notif-tour-' + Date.now();
         const tourData = {
             id: tourId,

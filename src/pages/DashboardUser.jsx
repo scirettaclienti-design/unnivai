@@ -734,13 +734,14 @@ const DashboardUser = () => {
                                 </div>
                                 <div>
                                     <div className="mb-0.5">
+                                        {/* Gate Y.4: badge senza gergo "Fase N" (interno). */}
                                         <span className="inline-flex items-center bg-terracotta-50 text-terracotta-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-terracotta-200 uppercase tracking-wider">
                                             <span className="mr-1 text-[11px] leading-none">◇</span>
-                                            Fase 2 · In costruzione
+                                            In costruzione
                                         </span>
                                     </div>
                                     <h3 className="text-sm font-bold text-gray-800 leading-tight">Guide Locali</h3>
-                                    <p className="text-gray-500 text-[11px] leading-snug mt-0.5">Persone del posto — arrivano dopo V1</p>
+                                    <p className="text-gray-500 text-[11px] leading-snug mt-0.5">Persone del posto — non ancora disponibili</p>
                                 </div>
                             </div>
                             <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />

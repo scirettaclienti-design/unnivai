@@ -210,6 +210,28 @@ const RULES = [
         ],
         message: 'Rating/reviews a livello TOUR nel JSX. Solo POI-level: usa exp.featuredPoi.rating o step.rating, mai un aggregato inventato del tour.',
     },
+    // Gate AA — Nessuno stato di loading puo' dipendere dall'assenza di un
+    // dato che l'utente non puo' fornire con un'azione immediata.
+    // Bug del "Ciao, ...!" eterno: isLoading includeva `!effectiveCity`, ma
+    // se GPS negato/fallito la citta' non arriva mai -> loading eterno ->
+    // vicolo cieco. Il fix: distinguere "non lo so ancora" (loading vero:
+    // gpsLoading/contextFetching) da "non lo so" (stato noto: needsCityChoice
+    // -> apre CityModal onboarding).
+    //
+    // Pattern vietato in isLoading formulas: `!effectiveCity`, `!city`,
+    // `!hasSomething`, ovvero negazione di dato user-scoped in un || di
+    // isLoading. Se serve, va tradotto in uno stato esplicito con exit path.
+    //
+    // Allowlist ZERO: se qualcuno ci ricasca, la regola blocca in CI.
+    // Regola locked (Ivano 14/07): "Nessun guard puo' creare uno stato
+    // non-uscibile. Se un guard blocca una query, deve esistere un percorso
+    // che permetta all'utente di sbloccarla".
+    {
+        name: 'no-loading-without-exit',
+        pattern: /isLoading\s*[:=][^,;{}]*\|\|\s*!/,
+        allowlist: [],
+        message: 'isLoading dipende dalla negazione di un dato user-scoped (`!city`, `!effectiveCity`, ecc). Se il dato non arriva mai (GPS negato, IP bloccato) l\'app resta in loading eterno. Traduci in uno stato esplicito (es. `needsCityChoice`) che il consumer possa trattare con un\'azione (es. aprire un modal). Regola locked: nessun guard puo\' creare uno stato non-uscibile.',
+    },
     // Gate R.5 — Nessun `actionUrl:` con valore literal (stringa hardcoded)
     // per notifiche AI. Il CTA di una notifica AI deriva dal tour costruito
     // dai chosenPois via precompute in Notifications.jsx, non da un URL fisso.

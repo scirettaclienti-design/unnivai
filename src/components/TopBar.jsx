@@ -17,7 +17,8 @@ export default function TopBar() {
         city: currentCity,
         temperatureC,
         firstName,
-        isLoading
+        isLoading,
+        needsCityChoice,
     } = useUserContext();
 
     const { signOut } = useAuth(); // Get signOut
@@ -34,6 +35,21 @@ export default function TopBar() {
     };
 
     const [isCityModalOpen, setIsCityModalOpen] = useState(false);
+    // Gate AA.2: onboarding esplicito. Al primo accesso (senza cache, senza
+    // GPS che risolve) la citta' non e' un errore: e' una domanda che il
+    // prodotto fa. Il modal si apre da solo perche' il prodotto NON funziona
+    // senza citta' — chiederla e' piu' onesto e piu' veloce che aspettare
+    // che GPS/IP fallback trovino qualcosa.
+    // Trigger UNA SOLA VOLTA per sessione: se l'utente chiude senza scegliere
+    // (X in alto a destra), non lo perseguitiamo. Puo' aprire manualmente
+    // con Edit2 accanto a "Scegli citta'".
+    const [onboardingPrompted, setOnboardingPrompted] = useState(false);
+    useEffect(() => {
+        if (needsCityChoice && !onboardingPrompted && !isCityModalOpen) {
+            setIsCityModalOpen(true);
+            setOnboardingPrompted(true);
+        }
+    }, [needsCityChoice, onboardingPrompted, isCityModalOpen]);
 
     const handleCityChange = () => {
         setIsCityModalOpen(true);
@@ -111,14 +127,19 @@ export default function TopBar() {
                 onClose={() => setIsCityModalOpen(false)}
                 initialCity={currentCity || ""}
                 onSave={handleSaveCity}
+                mode={needsCityChoice && !currentCity ? "onboarding" : "edit"}
             />
         </header >
     );
 }
 
 // --- INTERNAL COMPONENT: CITY MODAL ---
-function CityModal({ isOpen, onClose, initialCity, onSave }) {
+// Gate AA.2: due modalita'. `edit` (cambio citta' esistente) e `onboarding`
+// (primo accesso, non sappiamo dove sei — te lo chiediamo). Il modal non
+// e' un errore/scusa: e' una domanda naturale al primo accesso.
+function CityModal({ isOpen, onClose, initialCity, onSave, mode = "edit" }) {
     const [tempCity, setTempCity] = useState(initialCity);
+    const isOnboarding = mode === "onboarding";
 
     // Reset tempCity when modal opens
     useEffect(() => {
@@ -149,8 +170,14 @@ function CityModal({ isOpen, onClose, initialCity, onSave }) {
             >
                 <div className="flex justify-between items-center mb-4">
                     <div>
-                        <h3 className="text-lg font-bold text-gray-800">Dove ti trovi?</h3>
-                        <p className="text-[10px] text-gray-500 font-medium">Cambia la tua posizione attuale</p>
+                        <h3 className="text-lg font-bold text-gray-800">
+                            {isOnboarding ? "Da dove cominciamo?" : "Dove ti trovi?"}
+                        </h3>
+                        <p className="text-[10px] text-gray-500 font-medium">
+                            {isOnboarding
+                                ? "Scegli la citta' dove vuoi esplorare oggi."
+                                : "Cambia la tua posizione attuale"}
+                        </p>
                     </div>
                     <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
                         <X size={18} className="text-gray-400" />

@@ -601,10 +601,16 @@ const discoverAllThemes = async (cityName, lat, lng) => {
 // @returns {Promise<{ openNow: boolean|null, closingTimeTodayHH: string|null }>}
 export const fetchPlaceOpeningHours = async (placeId) => {
   if (!placeId || !isPlacesProxyEnabled()) return { openNow: null, closingTimeTodayHH: null };
-  // Gate V: timeout 5s (AbortController). Prima nessun timeout → se il proxy
-  // Places restava pending, la Promise non risolveva mai e appendeva l'intera
-  // catena upstream (Promise.all in generateSystemPrewarmTour → spinner
-  // infinito nel modal notifica).
+  // Gate BB.c (U.1c): cache 24h per place_id. Gli orari di una pasticceria
+  // non cambiano ogni cinque minuti. Prima: zero cache -> 3 call/notifica
+  // moltiplicato per ogni rigenerazione. Ora: hit rate atteso >95% su
+  // utenti ripetuti dentro la stessa citta'.
+  // NOTA: openNow (istantaneo) resta nel payload ma perde freschezza dopo
+  // ~30 min. Preferiamo closingTimeTodayHH (strutturale) come locked Gate N.1.
+  const cacheKey = `oh_${placeId}`;
+  const cached = loadFromCache(cacheKey);
+  if (cached) return cached;
+  // Gate V: timeout 5s (AbortController).
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5000);
   try {
@@ -632,7 +638,9 @@ export const fetchPlaceOpeningHours = async (placeId) => {
       const t = String(todayPeriod.close.time);
       if (t.length === 4) closingTimeTodayHH = `${t.slice(0, 2)}:${t.slice(2)}`;
     }
-    return { openNow, closingTimeTodayHH };
+    const result = { openNow, closingTimeTodayHH };
+    saveToCache(cacheKey, result);
+    return result;
   } catch (e) {
     clearTimeout(timeoutId);
     const reason = e.name === 'AbortError' ? 'timeout (5s)' : e.message;
@@ -650,19 +658,43 @@ export const fetchPlaceOpeningHours = async (placeId) => {
 // @param {string} placeId
 // @param {string} cityName
 // @returns {Promise<object|null>}
-export const fetchPlaceDetailsForTour = async (placeId, cityName) => {
+export const fetchPlaceDetailsForTour = async (placeId, cityName, candidateHints = {}) => {
   if (!placeId || !isPlacesProxyEnabled()) return null;
-  // Gate V: timeout 5s (AbortController). Vedi fetchPlaceOpeningHours.
+  // Gate BB.d (U.1d): cache 24h per place_id. Dettagli di un POI non cambiano
+  // ogni cinque minuti (nome/coordinate/foto/tipi sono stabili nel giro di
+  // giorni). Il ricalcolo distanze e' client-side, non richiede questa call.
+  //
+  // Gate BB.e (U.1e): candidateHints = { rating, user_ratings_total } passati
+  // dal caller (chosenPois dal textsearch iniziale). Evita di ripagare
+  // Atmosphere SKU per dati gia' in memoria.
+  const cacheKey = `pd_${placeId}`;
+  const cached = loadFromCache(cacheKey);
+  if (cached) {
+    // Anche su cache hit, i hints del candidato prevalgono se piu' freschi
+    // (di solito uguali, ma il caller ha diritto di override).
+    return {
+      ...cached,
+      rating: Number.isFinite(candidateHints.rating) ? candidateHints.rating : cached.rating,
+      user_ratings_total: Number.isFinite(candidateHints.user_ratings_total)
+        ? candidateHints.user_ratings_total
+        : cached.user_ratings_total,
+    };
+  }
+  // Gate V: timeout 5s (AbortController).
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5000);
   try {
     const url = buildPlacesProxyUrl({
       path: 'place/details',
       place_id: placeId,
-      // Basic Data: name, geometry, photos, types, formatted_address, business_status.
-      // Contact Data: opening_hours ($0.003/1000).
-      // Atmosphere Data: rating, user_ratings_total ($0.005/1000, fatturato al max SKU).
-      fields: 'name,geometry,photos,types,formatted_address,rating,user_ratings_total,business_status,opening_hours',
+      // Gate BB.e (U.1e): SOLO Basic Data ($0) + Contact opening_hours ($0.003).
+      // Rimossi rating/user_ratings_total (Atmosphere $0.005 fatturato al max
+      // SKU): quei dati arrivano gia' dal candidato del textsearch iniziale
+      // (buildPOIFromCandidate) e vengono propagati fino al tour precomputato
+      // via chosenPois. Payare due volte lo stesso dato era spreco puro.
+      // Basic: name, geometry, photos, types, formatted_address, business_status.
+      // Contact: opening_hours (necessario per closingTimeTodayHH).
+      fields: 'name,geometry,photos,types,formatted_address,business_status,opening_hours',
     });
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
@@ -689,7 +721,11 @@ export const fetchPlaceDetailsForTour = async (placeId, cityName) => {
       if (t.length === 4) closingTimeTodayHH = `${t.slice(0, 2)}:${t.slice(2)}`;
     }
 
-    return {
+    // Gate BB.e (U.1e): rating/user_ratings_total NON piu' fetchati (Basic-only).
+    // Arrivano da candidateHints (candidato del textsearch) o cadono a 0
+    // (accettabile: rating a 0 su una notifica precomputed non blocca nulla,
+    // il tour usa i POI verificati dalla notifica-vera che ha gia' rating).
+    const result = {
       id: `google-${placeId}`,
       name: r.name,
       title: r.name,
@@ -697,8 +733,8 @@ export const fetchPlaceDetailsForTour = async (placeId, cityName) => {
       lat, lng,
       latitude: lat, longitude: lng,
       type: mapGoogleTypeToOurType(r.types),
-      rating: r.rating || 0,
-      user_ratings_total: r.user_ratings_total || 0,
+      rating: Number.isFinite(candidateHints.rating) ? candidateHints.rating : 0,
+      user_ratings_total: Number.isFinite(candidateHints.user_ratings_total) ? candidateHints.user_ratings_total : 0,
       business_status: r.business_status || 'OPERATIONAL',
       types: r.types || [],
       city: cityName,
@@ -711,6 +747,8 @@ export const fetchPlaceDetailsForTour = async (placeId, cityName) => {
       openNow: typeof oh?.open_now === 'boolean' ? oh.open_now : null,
       suggestedMinutes: 30, // default: si affinerà se serve
     };
+    saveToCache(cacheKey, result);
+    return result;
   } catch (e) {
     clearTimeout(timeoutId);
     const reason = e.name === 'AbortError' ? 'timeout (5s)' : e.message;

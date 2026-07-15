@@ -1341,8 +1341,14 @@ Schema JSON ESATTO:
 
             // 2. Fetch place/details in parallelo per ogni chosenPoi.
             const { placesDiscoveryService } = await import('./placesDiscoveryService');
+            // Gate BB.e: passa rating/user_ratings_total del candidato come hints.
+            // Evita di ripagare Atmosphere SKU per dati gia' ricevuti dal textsearch
+            // via chosenPois (Notifications.jsx li passa dal payload notifica).
             const detailsResults = await Promise.all(
-                chosenPois.map(p => placesDiscoveryService.fetchPlaceDetailsForTour(p.place_id, city))
+                chosenPois.map(p => placesDiscoveryService.fetchPlaceDetailsForTour(p.place_id, city, {
+                    rating: p.rating,
+                    user_ratings_total: p.user_ratings_total,
+                }))
             );
 
             // Solo POI arricchiti con successo entrano nel tour. Coord obbligatorie.
@@ -1676,7 +1682,17 @@ oppure
                 // Gate S.4: title deterministico da codice, non da AI.
                 title: forcedTitle,
                 message: String(parsed.message).slice(0, 180),
-                chosenPois: chosenPois.map(c => ({ name: c.name, place_id: c.place_id, lat: c.lat, lng: c.lng })),
+                // Gate BB.e: propaga rating/user_ratings_total del candidato al payload
+                // notifica -> passa al precompute tour via candidateHints -> evita ripagare
+                // Atmosphere SKU. Dato gia' ricevuto dal textsearch, si porta appresso.
+                chosenPois: chosenPois.map(c => ({
+                    name: c.name,
+                    place_id: c.place_id,
+                    lat: c.lat,
+                    lng: c.lng,
+                    rating: c.rating,
+                    user_ratings_total: c.user_ratings_total,
+                })),
             };
         } catch (e) {
             console.warn('[SmartNotif] generateWeatherSocialTip failed:', e.message);

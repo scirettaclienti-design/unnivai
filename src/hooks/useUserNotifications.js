@@ -121,19 +121,44 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
         };
     }, [userId, city]);
 
-    // Smart notifications — time-aware
+    // Smart notifications — time-aware.
+    // Gate U.1a: RIMOSSO setInterval(30 min). Un utente con app aperta 4h non
+    // vuole 8 notifiche generate — ne vuole UNA per slot. Trigger:
+    //   - mount (city arriva)
+    //   - cambio slot (rileva al focus finestra + cambio deps)
+    //   - cambio deps (userId/city/firstName/GPS/meteo)
+    // Interval era la voce di costo maggiore ($0.041 × 8 = $0.33/utente/day
+    // solo per app rimasta aperta). Gate U.1a: -80% chiamate notifiche.
     useEffect(() => {
         const isGuideMode = localStorage.getItem('unnivai_mode') === 'guide';
         if (city && !isGuideMode) {
             loadSmartNotifications();
-            // Rigenera ogni 30 min per adattarsi al cambio di fascia oraria
-            const interval = setInterval(loadSmartNotifications, 30 * 60 * 1000);
-            return () => clearInterval(interval);
         }
     // Dep su ctx.userLat/lng/temp/condition: se cambiano (GPS reso disponibile,
     // meteo aggiornato) rigenera in modo che la notifica usi i dati nuovi.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId, city, firstName, ctx.userLat, ctx.userLng, ctx.temperatureC, ctx.condition]);
+
+    // Gate U.1a: rigenera al cambio slot (mattina->pranzo->pomeriggio->sera).
+    // Trigger su focus finestra (l'utente riprende in mano il telefono) invece
+    // che a intervalli fissi. Se lo slot corrente e' cambiato rispetto a
+    // quello dell'ultima generazione, rigenera. Altrimenti no-op.
+    useEffect(() => {
+        if (!city) return;
+        const isGuideMode = localStorage.getItem('unnivai_mode') === 'guide';
+        if (isGuideMode) return;
+        let lastSlot = getTimeSlot();
+        const checkSlotChange = () => {
+            const currentSlot = getTimeSlot();
+            if (currentSlot !== lastSlot) {
+                lastSlot = currentSlot;
+                loadSmartNotifications();
+            }
+        };
+        window.addEventListener('focus', checkSlotChange);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        return () => window.removeEventListener('focus', checkSlotChange);
+    }, [city]);
 
     const loadSmartNotifications = async () => {
         setIsLoading(true);

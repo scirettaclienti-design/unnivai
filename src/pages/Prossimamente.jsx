@@ -13,12 +13,10 @@ import { useUserContext } from '../hooks/useUserContext';
 // Contenuto per ognuna delle 3 schermate. `whenBuilder`/`subtitleBuilder`
 // accettano il nome della citta' quando serve — Gate O.2 garantisce che
 // city sia null (mai 'Roma' hardcoded) se non risolto → fallback "la tua citta'".
-// Gate Y.4: badge = "IN COSTRUZIONE" (senza numero fase).
-// L'utente esterno non ha idea dei passi V1/V2/V3 (gergo interno).
-// "In costruzione" e' universalmente comprensibile, dice lo stato attuale
-// senza chiedere di conoscere la roadmap. Il "quando arriva" lo dice il
-// blocco QUANDO ARRIVA dentro la pagina, dove il contesto giustifica
-// "Fase 2" (spiegato subito sotto).
+// Gate Y.4 + CC: badge = "IN COSTRUZIONE" (senza numero fase).
+// Anche il testo interno NON contiene "Fase 2/3" — la logica dell'ordine
+// resta (guide prima di attivita', attivita' dopo le guide), ma senza
+// numero. L'utente non deve conoscere la roadmap interna per capire.
 const CONTENT = {
     guide: {
         phase: 'IN COSTRUZIONE',
@@ -34,9 +32,9 @@ const CONTENT = {
             "davanti al monumento. A chi ha gia' visto il monumento e ora vuole sapere " +
             "dove va a mangiare chi ci lavora accanto.",
         when:
-            "Fase 2. Quando la parte viaggiatore-piu'-AI (dove sei ora) sara' stabile " +
-            "in mano ai primi utenti veri. Le guide arrivano poi, insieme, non prima: " +
-            "ogni guida chiede tempo per essere certificata e questo lavoro parte solo " +
+            "Quando la parte viaggiatore-piu'-AI (dove sei ora) sara' stabile in mano " +
+            "ai primi utenti veri. Le guide arrivano poi, insieme, non prima: ogni " +
+            "guida chiede tempo per essere certificata e questo lavoro parte solo " +
             "quando il resto tiene.",
         nowBuilder: (cityLabel) =>
             `La versione senza guida esiste gia' ed e' qui. L'AI ti costruisce un ` +
@@ -57,9 +55,9 @@ const CONTENT = {
             "per non finire nella trattoria sponsorizzata che riempie Instagram e non " +
             "riempie il locale.",
         when:
-            "Fase 3. Dopo le guide (Fase 2). L'ordine non e' casuale: le guide portano " +
-            "gli utenti nei posti che conoscono. I posti si aggiungono a un tessuto che " +
-            "esiste gia', non a un elenco vuoto.",
+            "Dopo le guide. L'ordine non e' casuale: le guide portano gli utenti nei " +
+            "posti che conoscono. I posti si aggiungono a un tessuto che esiste gia', " +
+            "non a un elenco vuoto.",
         nowBuilder: () =>
             'I luoghi che ti mostriamo oggi vengono da Google Places (rating vero, ' +
             'recensioni vere). Nessuno paga per apparire.',
@@ -78,9 +76,9 @@ const CONTENT = {
             "A te, per tenerti conto di cosa hai visto. Agli altri viaggiatori, per una " +
             "versione dei luoghi che non e' quella promozionale.",
         when:
-            "Non ha una fase legata al lancio. Si attiva quando abbastanza tour saranno " +
-            "stati completati dai primi utenti: prima di quella soglia, le foto degli " +
-            "utenti sarebbero troppo poche per essere utili agli altri viaggiatori.",
+            "Si attiva quando abbastanza tour saranno stati completati dai primi utenti: " +
+            "prima di quella soglia le foto sarebbero troppo poche per essere utili " +
+            "agli altri viaggiatori.",
         nowBuilder: () =>
             'Puoi gia\' completare un tour AI: quando la funzione foto sara\' attiva, ' +
             'la ritroverai collegata a quei tour.',

@@ -130,18 +130,17 @@ const RULES = [
         name: 'no-roma-coords-in-tour-content',
         pattern: /\b(41\.9028|12\.4964)\b/,
         allowlist: [
+            // Gate CC.2b: rimosso 'src/pages/Explore.jsx' (mapCenter ora da resolveCityCenter).
             'src/components/Map/GoogleMapContainer.jsx',
             'src/hooks/useEnhancedGeolocation.js',
             'src/services/userContextService.js',
             'src/pages/DashboardUser.jsx',
-            'src/pages/Explore.jsx',
             'src/pages/Login.jsx',
             'src/pages/guide/TourBuilder.jsx',
             'src/data/demoData.js',
             'src/services/aiRecommendationService.js',
         ],
         message: 'Coord Roma inline. I tour usano coord reali da Google Places, non 41.9028/12.4964.',
-        // Attiva subito: tutti i posti sono in allowlist per default tecnici.
     },
     {
         name: 'no-in-arrivo-toast',
@@ -203,10 +202,10 @@ const RULES = [
         name: 'no-rating-or-reviews-at-tour-level',
         pattern: /\{(?:exp|tour|experience|item)\.(?:rating|reviews|reviewsCount|user_ratings_total)\b/,
         allowlist: [
-            // Cleanup pianificato Blocco 2.2 (Profilo reale) / 2.3 (Esplora + TourLive).
+            // Gate CC.2b: rimosso 'src/pages/Explore.jsx' (featuredPoi POI-level).
+            // Cleanup pianificato Blocco 2.2 (Profilo reale) / TourLive.
             'src/pages/TourLive.jsx',
             'src/pages/Profile.jsx',
-            'src/pages/Explore.jsx',
         ],
         message: 'Rating/reviews a livello TOUR nel JSX. Solo POI-level: usa exp.featuredPoi.rating o step.rating, mai un aggregato inventato del tour.',
     },

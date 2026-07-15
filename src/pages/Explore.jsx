@@ -10,8 +10,7 @@ import UnnivaiMap from "@/components/UnnivaiMap";
 import { supabase } from "@/lib/supabase";
 import { dataService } from "@/services/dataService";
 import { useUserContext } from "@/hooks/useUserContext";
-import { useCity } from "@/context/CityContext";
-import { DEMO_CITIES } from "@/data/demoData";
+import { resolveCityCenter, CityCenterUnresolvedError } from "@/services/cityCenterService";
 const categories = ["Tutti", "Gastronomia", "Cultura", "Natura", "Arte", "Romantico"];
 
 function ExplorePage() {
@@ -22,50 +21,34 @@ function ExplorePage() {
     const [experiences, setExperiences] = useState([]);
     const [loading, setLoading] = useState(true);
 
-
-    // Use Global Context for Location Sync
+    // Gate CC.2b: rimosso useCity import + fetchRealLocation duplicato (aveva
+    // options GPS pre-Gate-X: enableHighAccuracy:true, timeout:5000,
+    // maximumAge:0 — proprio la combinazione peggiore che Ivano ha
+    // diagnosticato e Gate X.1 ha corretto). Ora usiamo useUserContext
+    // (unica sorgente city+GPS + regola Gate AA) e resolveCityCenter per
+    // il centro mappa (chokepoint autoritativo, no fallback Roma).
     const { city, lat, lng } = useUserContext();
-    const { isManual } = useCity();
 
-    // Determine Map Center based on Local GPS (priority), Context, or Demo Data
-    const [localMapCenter, setLocalMapCenter] = useState(null);
-
-    // Se l'utente ha inserito una città manualmente (es. "Milano"), ignora il GPS locale di default
-    const mapCenter = (!isManual && localMapCenter) ? localMapCenter : {
-        lat: isManual ? (lat || DEMO_CITIES[city]?.center?.latitude || 41.9028) : (lat || DEMO_CITIES[city]?.center?.latitude || 41.9028),
-        lng: isManual ? (lng || DEMO_CITIES[city]?.center?.longitude || 12.4964) : (lng || DEMO_CITIES[city]?.center?.longitude || 12.4964)
-    };
-
-    // Auto-Geolocate on Mount (Task 2 Phase 5)
+    // Gate CC.2b: mapCenter da resolveCityCenter (Places-auth, cache 30gg).
+    // Rimosso fallback Roma hardcoded (41.9028/12.4964) — bug O.2 residuo
+    // che mostrava POI di Roma a utente Napoli. Se city non e' risolto,
+    // mapCenter e' null e la mappa si nasconde (Gate AA garantisce che
+    // city arrivi via CityModal onboarding).
+    const [mapCenter, setMapCenter] = useState(null);
     useEffect(() => {
-        const fetchRealLocation = async () => {
-            const fallbackIP = async () => {
-                try {
-                    const res = await fetch('https://ipapi.co/json/');
-                    const data = await res.json();
-                    if (data?.latitude && data?.longitude) {
-                        setLocalMapCenter({ lat: data.latitude, lng: data.longitude });
-                    }
-                } catch (e) {
-                    console.warn('IP-Geolocation fallback fallito', e);
+        let cancelled = false;
+        if (!city) { setMapCenter(null); return; }
+        resolveCityCenter(city)
+            .then(cc => { if (!cancelled) setMapCenter({ lat: cc.latitude, lng: cc.longitude }); })
+            .catch(err => {
+                if (cancelled) return;
+                if (err instanceof CityCenterUnresolvedError) {
+                    console.warn(`[Explore] cityCenter irrisolto (${err.reason}) per "${city}"`);
                 }
-            };
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => setLocalMapCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                    (err) => {
-                        console.warn('GPS negato o in timeout, fallback su IP:', err);
-                        fallbackIP();
-                    },
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                );
-            } else {
-                fallbackIP();
-            }
-        };
-        fetchRealLocation();
-    }, []);
+                setMapCenter(null);
+            });
+        return () => { cancelled = true; };
+    }, [city]);
 
     // Initialize favorites from localStorage
     const [favoriteItems, setFavoriteItems] = useState(() => {
@@ -150,7 +133,7 @@ function ExplorePage() {
         return () => {
             supabase.removeChannel(toursChannel);
         };
-    }, [city, lat, lng]);
+    }, [city]);
 
     const toggleFavorite = (id) => {
         const newFavorites = new Set(favoriteItems);
@@ -190,27 +173,36 @@ function ExplorePage() {
         });
     }, [experiences, searchQuery, activeFilter, selectedDate]);
 
-    // ⚡ Memoize map activities to prevent infinite React re-renders and Maps Virtual DOM trashing
-    // By using pseudo-random deterministic seeds from IDs, we prevent markers from jumping around!
+    // Gate CC.2a — Marker mappa sulle coordinate VERE dei POI degli step.
+    // Prima: offset pseudo-random dal centro citta' -> marker piazzati in
+    // posizione FINTA. Su un prodotto che vende "luoghi reali su mappa reale"
+    // e' il fake piu' grave che ci fosse — il cuore del prodotto mentiva.
+    // Regola: se un POI non ha coordinate valide, NON creare il marker. Mai
+    // un marker inventato.
+    // Un tour ha piu' step: ognuno diventa il proprio marker. Click marker ->
+    // apre TourDetails del tour di appartenenza (via id).
     const mapActivities = useMemo(() => {
-        return filteredExperiences.map((e) => {
-            // Deterministic pseudo-random offset based on ID to freeze marker positions across re-renders
-            const charCodeSum = String(e.id).split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
-            const stableOffsetLat = ((charCodeSum % 100) / 100 * 0.02) - 0.01;
-            const stableOffsetLng = (((charCodeSum * 3) % 100) / 100 * 0.02) - 0.01;
-            
-            return {
-                ...e,
-                id: `${e.id}`,
-                latitude: mapCenter.lat + stableOffsetLat,
-                longitude: mapCenter.lng + stableOffsetLng,
-                name: e.title,
-                image: e.image || e.imageUrl,
-                category: e.category || 'culture',
-                tier: 'base'
-            };
-        });
-    }, [filteredExperiences, mapCenter.lat, mapCenter.lng]);
+        const markers = [];
+        for (const exp of filteredExperiences) {
+            const steps = Array.isArray(exp.steps) ? exp.steps : [];
+            for (const step of steps) {
+                const lat = step.latitude ?? step.lat;
+                const lng = step.longitude ?? step.lng;
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+                markers.push({
+                    id: `${exp.id}-${step.id || step.title}`,
+                    tourId: exp.id,
+                    latitude: lat,
+                    longitude: lng,
+                    name: step.title || step.name,
+                    image: step.image || exp.image || exp.imageUrl,
+                    category: exp.category || 'culture',
+                    tier: 'base',
+                });
+            }
+        }
+        return markers;
+    }, [filteredExperiences]);
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-ochre-50 to-ochre-100 font-quicksand">
@@ -262,43 +254,49 @@ function ExplorePage() {
                     )}
                 </motion.div>
 
-                {/* Map Preview Section - Click to Expand */}
-                <motion.div
-                    className="mb-8"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                >
-                    <div className="flex justify-between items-end mb-3 px-1">
-                        <h2 className="font-bold text-lg text-gray-800">Mappa Interattiva</h2>
-                        <Link to="/map" className="text-xs font-bold text-terracotta-600 hover:underline">Apri a schermo intero</Link>
-                    </div>
-                    <div onClick={() => navigate('/map', { state: { initialCenter: mapCenter } })} className="block">
-                        <div className="h-64 rounded-3xl overflow-hidden shadow-xl border-4 border-white relative group cursor-pointer">
-                            <div className="absolute inset-0 z-0 pointer-events-none">
-                                <UnnivaiMap
-                                    key={`${mapCenter.lat}-${mapCenter.lng}`}
-                                    height="100%"
-                                    width="100%"
-                                    zoom={12}
-                                    interactive={false}
-                                    showUserLocation={false}
-                                    initialCenter={{ latitude: mapCenter.lat, longitude: mapCenter.lng }}
-                                    viewCenter={{ latitude: mapCenter.lat, longitude: mapCenter.lng }} // ⚡ Use viewCenter for flyTo updates
-                                    activeCity={city}
-                                    activities={mapActivities}
-                                    mapMood="default"
-                                />
-                            </div>
-                            <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors pointer-events-none" />
-                            <div className="absolute bottom-4 right-4 z-10">
-                                <span className="bg-white/90 backdrop-blur text-gray-800 px-4 py-2 rounded-full font-bold shadow-lg text-xs flex items-center gap-2 group-hover:scale-105 transition-transform">
-                                    <Map size={14} /> Espandi Mappa
-                                </span>
+                {/* Map Preview Section - Click to Expand.
+                    Gate CC.2b: mostra la mappa solo se abbiamo cityCenter risolto
+                    (Places-auth). Zero fallback Roma. Se city assente o cityCenter
+                    non risolto, l'intera sezione mappa non si renderizza — Gate AA
+                    aprira' il CityModal per farsi dare una citta'. */}
+                {mapCenter && (
+                    <motion.div
+                        className="mb-8"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                    >
+                        <div className="flex justify-between items-end mb-3 px-1">
+                            <h2 className="font-bold text-lg text-gray-800">Mappa Interattiva</h2>
+                            <Link to="/map" className="text-xs font-bold text-terracotta-600 hover:underline">Apri a schermo intero</Link>
+                        </div>
+                        <div onClick={() => navigate('/map', { state: { initialCenter: mapCenter } })} className="block">
+                            <div className="h-64 rounded-3xl overflow-hidden shadow-xl border-4 border-white relative group cursor-pointer">
+                                <div className="absolute inset-0 z-0 pointer-events-none">
+                                    <UnnivaiMap
+                                        key={`${mapCenter.lat}-${mapCenter.lng}`}
+                                        height="100%"
+                                        width="100%"
+                                        zoom={12}
+                                        interactive={false}
+                                        showUserLocation={false}
+                                        initialCenter={{ latitude: mapCenter.lat, longitude: mapCenter.lng }}
+                                        viewCenter={{ latitude: mapCenter.lat, longitude: mapCenter.lng }}
+                                        activeCity={city}
+                                        activities={mapActivities}
+                                        mapMood="default"
+                                    />
+                                </div>
+                                <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors pointer-events-none" />
+                                <div className="absolute bottom-4 right-4 z-10">
+                                    <span className="bg-white/90 backdrop-blur text-gray-800 px-4 py-2 rounded-full font-bold shadow-lg text-xs flex items-center gap-2 group-hover:scale-105 transition-transform">
+                                        <Map size={14} /> Espandi Mappa
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </motion.div>
+                    </motion.div>
+                )}
 
                 {/* Loading State */}
                 {loading && (
@@ -311,7 +309,29 @@ function ExplorePage() {
                 {/* Experiences List */}
                 {!loading && (
                     <div className="space-y-6">
-                        {filteredExperiences.slice(0, visibleCount).map((experience, index) => (
+                        {filteredExperiences.slice(0, visibleCount).map((experience, index) => {
+                            // Gate CC.2b: featuredPoi POI-level (regola O.4). Il rating a
+                            // livello TOUR non esiste — media/somma di rating POI e' una
+                            // derivata inventata. Selezione via qualityScore = rating × ln(1+total)
+                            // sullo step con rating reale.
+                            const ratedSteps = (Array.isArray(experience.steps) ? experience.steps : [])
+                                .map(s => ({
+                                    name: s.title || s.name,
+                                    rating: Number.isFinite(s.rating) && s.rating > 0 ? s.rating : null,
+                                    reviewsCount: Number.isFinite(s.reviewsCount) && s.reviewsCount > 0
+                                        ? s.reviewsCount
+                                        : (Number.isFinite(s.user_ratings_total) && s.user_ratings_total > 0
+                                            ? s.user_ratings_total : null),
+                                }))
+                                .filter(s => s.rating !== null);
+                            const featuredPoi = ratedSteps.length > 0
+                                ? ratedSteps.reduce((best, s) => {
+                                    const score = s.rating * Math.log(1 + (s.reviewsCount || 0));
+                                    const bestScore = best.rating * Math.log(1 + (best.reviewsCount || 0));
+                                    return score > bestScore ? s : best;
+                                })
+                                : null;
+                            return (
                             <motion.div
                                 key={experience.id}
                                 initial={{ opacity: 0, y: 20 }}
@@ -328,9 +348,7 @@ function ExplorePage() {
                                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 onError={(e) => e.target.src = 'https://placehold.co/600x400?text=Tour'}
                                             />
-                                            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm">
-                                                <Star size={12} className="text-yellow-400 fill-current" /> {experience.rating}
-                                            </div>
+                                            {/* Gate CC.2b: rimosso badge rating tour-level (regola O.4). Il rating vero e' POI-level, mostrato piu' sotto come featuredPoi. */}
                                             {experience.distance && (
                                                 <div className="absolute top-3 left-3 bg-black/70 backdrop-blur px-2.5 py-1 rounded-full text-xs font-bold text-white flex items-center gap-1 shadow-sm">
                                                     <MapPin size={12} /> {experience.distance}
@@ -339,12 +357,18 @@ function ExplorePage() {
                                         </div>
 
                                         <div className="px-2 pb-2">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h3 className="font-bold text-gray-900 text-lg leading-tight w-2/3">{experience.title}</h3>
-                                                <div className="flex flex-col items-end">
-                                                    <span className="text-lg font-bold text-gray-900">€{experience.price}</span>
+                                            {/* Gate CC.2b: rimosso €{experience.price} tour-level (regola O.2).
+                                                Un tour AI non ha prezzo reale — la durata resta come dato onesto. */}
+                                            <h3 className="font-bold text-gray-900 text-lg leading-tight mb-2">{experience.title}</h3>
+
+                                            {/* Gate CC.2b: featuredPoi POI-level — "Include X · ★rating" (regola O.4). */}
+                                            {featuredPoi && Number.isFinite(featuredPoi.rating) && (
+                                                <div className="flex items-center gap-1.5 text-xs text-gray-600 mb-2">
+                                                    <Star className="w-3 h-3 text-yellow-400 fill-current shrink-0" />
+                                                    <span className="font-medium truncate">Include {featuredPoi.name}</span>
+                                                    <span className="font-bold whitespace-nowrap">· {featuredPoi.rating.toFixed(1)}</span>
                                                 </div>
-                                            </div>
+                                            )}
 
                                             <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
                                                 <span className="flex items-center gap-1">
@@ -362,7 +386,8 @@ function ExplorePage() {
                                     </div>
                                 </Link>
                             </motion.div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 

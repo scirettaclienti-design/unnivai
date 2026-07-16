@@ -3,11 +3,15 @@
 Punto di partenza per chi (o quale sessione di Claude) riprende il progetto.
 Aggiornare in coda dopo ogni iterazione importante.
 
-**Ultimo aggiornamento**: 2026-07-16 dopo Gate EE (commit `63e3948`) — landing +
-onboarding + login onesti V1, 5 nuove regole anti-fake grep-based bloccanti,
-Vercel verde. Precedenti: Gate DD 15/07 (cache condivisa Supabase places_cache
-attiva: primo utente paga, dal secondo cache hit, -85% chiamate Places attese).
-Gate CC.3 (Esplora completo) pendente prossima sessione.
+**Ultimo aggiornamento**: 2026-07-17 dopo Gate II (commit `00bb209`, verificato
+device Ivano su Troina) — narratore unificato su TUTTI i tour Home in 1 sola
+call OpenAI, kill placeholder "Luogo di interesse", isMockTour su flag
+esplicito `isDemoTour`. Coerenza narrativa raggiunta: ogni tappa di ogni tour
+"Per Te" ora ha description + insiderTip + bestTime + transition dal
+narratore. Precedenti stessa sessione: Gate GG (16/07) ErrorBoundary con
+chunk-reload automatico + tabella `error_logs` Supabase (frase "team
+notificato" ora vera), Gate FF.1 (16/07) responsive slide HowItWorks per
+iPhone. Vercel verde. CC.3 Esplora rimane pendente.
 
 ---
 
@@ -912,6 +916,357 @@ Le 6 originali (blocco 1) restano. Nuove aggiunte:
   80% dopo 48h dal lancio.
 - **Cron cleanup places_cache**: `DELETE FROM places_cache WHERE created_at
   < NOW() - INTERVAL '25 hours'` giornaliero (evita crescita storage).
+
+---
+
+---
+
+## Aggiornamento 16→17/07 — Gate FF/GG/II
+
+Sessione dopo commit handoff `f1e3e66`. Tre gate su tre finding device
+diversi + un allineamento infrastrutturale.
+
+### Gate FF.2 (16/07) — Diagnosi READ-ONLY: HowItWorks vs Onboarding + design system
+
+Finding Ivano: le slide "Come funziona DoveVai" hanno il mockup iPhone
+tagliato sotto la fold su mobile. Diagnosi a 3 domande:
+
+- (a) Screenshot = **modal HowItWorks** (`Landing.jsx:268`), NON Onboarding
+  wizard. Due componenti distinti in file diversi con lifecycle diverso.
+  HowItWorks: pitch marketing pre-signup con mockup iPhone finto (PhoneShell
+  260×520 fisso). Onboarding: card wizard chiara post-signup, nessun mockup.
+- (b) Onboarding wizard post-EE: welcome (2 card + hero "Il posto esiste") →
+  interessi (grid 2×4 con 8 categorie) → pronto (subtitle "Ci siamo. Inizia.
+  La città te la chiediamo tra un secondo."). `useState('Roma')` rimosso in
+  EE; nessun riferimento a città. La città arriva dal CityModal Gate AA
+  al mount della dashboard.
+- (c) Non condividono design system. HowItWorks: `font-sans`, `bg-gray-950`,
+  gradienti dinamici scuri, mesh + grid overlay, split 50/50 desktop.
+  Onboarding: `font-quicksand`, `bg-gradient ochre→terracotta`, card unica
+  centrata, palette warm chiara. Sono due mondi opposti (marketing scuro
+  vs onboarding chiaro friendly). Per allinearli servono ~1 giornata di
+  tokenizzazione tailwind → design system condiviso (V1.1 con Antigravity,
+  non pre-lancio).
+
+### Gate FF.1 (16/07) — Responsive HowItWorks + Onboarding
+
+- `PhoneShell` scalabile: `w-[190px] h-[380px] sm:w-[220px] sm:h-[440px]
+  md:w-[260px] md:h-[520px]`. Su iPhone 390×844 il mockup resta visibile
+  "quasi completo" (~73% dell'originale), mai tagliato sotto la fold.
+- HowItWorksModal compresso mobile: padding/font/margini/chip/nav-buttons
+  responsive (`p-4→p-6`, `text-2xl→3xl→4xl`, chip `text-[10px]→xs`,
+  buttons `h-10→h-11`). Container `h-svh` (dynamic viewport per Safari
+  toolbar).
+- Onboarding grid interessi compressa: card `p-2→p-3`, emoji
+  `text-xl→2xl`, label/desc font ridotti. Wrapper `min-h-svh + p-3`.
+- Verifica Playwright viewport 390×844: step 0/1/2 tutto entra, phone
+  visibile completo.
+- Estetica FINE (design system condiviso, colori, tipografia) rimandata
+  a V1.1 con Antigravity.
+
+### Gate GG (16/07) — ErrorBoundary onesto: chunk-reload + reporting reale
+
+Finding Ivano: schermata "Qualcosa è andato storto" con dettaglio "...ml' is
+not a valid JavaScript MIME type" (stale chunk post-deploy) + frase "Il team
+tecnico è stato notificato" mentre nessuno riceveva niente + stack tecnico
+grezzo esposto all'utente.
+
+- **GG.1** — ErrorBoundary riconosce chunk-load come categoria a sé.
+  Nuovo `classifyError` in `src/lib/errorReporting.js`: pattern per
+  ChunkLoadError / "Failed to fetch dynamically imported module" /
+  "Importing a module script failed" / "is not a valid JavaScript MIME
+  type" / "Loading chunk N failed". `componentDidCatch`: se
+  `errorType='chunk_load'` → `location.reload()` automatico UNA volta.
+  Flag `sessionStorage['dvai_chunk_reload_attempted']` anti-loop
+  (se già presente → fallback UI normale = bug vero, non stale cache).
+  `componentDidMount` pulisce il flag → il prossimo deploy avrà di nuovo
+  il suo reload disponibile. Durante il reload, spinner neutro.
+
+- **GG.2** — "Team tecnico notificato" ora è VERO.
+  - Nuova migration `20260716_gate_gg_error_logs.sql`: tabella
+    `public.error_logs` (`id, created_at, user_id, error_type, message,
+    stack, url, user_agent, context JSONB`). RLS insert PUBLIC (anche anon,
+    perché spesso è il flow signup che rompe pre-sessione), select solo
+    `service_role`.
+  - Nuovo `src/lib/errorReporting.js`: `reportError(error, context)`
+    fire-and-forget. Dedup per hash FNV-1a entro 5min (evita spam loop
+    render). Try/catch a ogni livello: un crash nel report di un crash
+    non deve mai essere fatale.
+  - ErrorBoundary chiama `reportError` sempre (anche per `chunk_load`
+    per sapere quanti stiamo avendo). Copy fallback: "L'errore è stato
+    registrato e lo guardiamo" (vero: sta in `error_logs`).
+
+- **GG.3** — Zero stack tecnico esposto all'utente.
+  Rimossi `{error.toString()}` + `{error.stack}` dalla fallback UI.
+  Nuovo copy umano: "Qualcosa non ha funzionato. Non siamo riusciti a
+  caricare questa schermata. L'errore è stato registrato e lo guardiamo.
+  Riprova, o torna alla home." Stack va in `console.error` + `error_logs`
+  Supabase. Mai in faccia all'utente.
+
+**Nuova regola anti-fake bloccante** (24° totale post-EE, ora 25° in Gate II):
+`no-reassuring-lie-without-action` (grep-based). Blocca in CI qualunque file
+JSX/JS che contenga frasi tipo "team notificato / email inviata / abbiamo
+salvato / salvato con successo" SENZA una call verificabile (`reportError(`,
+`sendEmail(`, `mailto:`, `supabase.from(...).insert/upsert/update`,
+`error_logs`). Zero allowlist.
+
+**Deploy necessario post-Gate GG**: apply migration
+`20260716_gate_gg_error_logs.sql` su Supabase (via `apply_migration` MCP o
+SQL Editor con SQL puro). Senza tabella, `reportError` fallisce silenzioso
+(fire-and-forget → log console warn) e i crash non finiscono da nessuna
+parte. Verifica: apri Supabase Table Editor → `error_logs` → dopo un test
+di crash deve avere righe con `error_type='chunk_load'` o `generic`.
+
+### Gate II (16-17/07) — Narratore unificato su TUTTI i tour Home
+
+Finding Ivano su Troina: 3 tour Home, 3 comportamenti diversi.
+- "I vicoli segreti" (insider): description + insiderTip + bestTime per
+  ogni tappa. GIUSTO.
+- "Vista mare" (romance): luoghi veri ma solo "Luogo di interesse a X"
+  come description. SBAGLIATO.
+- "Verde relax" (nature): badge "Tour di esempio" (isMockTour scattato
+  su tour reale). SBAGLIATO doppiamente.
+
+Diagnosi read-only (Gate II diagnosi #229): UN bug, 3 sintomi. Il narratore
+`buildSelectorSystemPrompt` girava **solo sul tour insider** (chiamato in
+un solo posto: `aiRecommendationService.js:985` dentro `generateItinerary`).
+I 4 tour tematici (`buildSmartExperiencesAsync`) passavano da
+`placesDiscoveryService.discoverAllThemes` → `buildPOIFromCandidate` che
+scriveva `description: ''` con commento "sarà scritta dall'AI in Fase 2".
+La Fase 2 non è mai stata implementata per il path tematico. Il fallback
+`|| \`Luogo di interesse a ${cityName}\`` in DashboardUser:138 completava
+il fake. isMockTour scattava perché `applyRadiusFilter` a volte svuotava
+gli steps di un tema → `hasRealSteps=false` → guard implicito attivo su
+id "smart-N-timestamp" non-UUID.
+
+Decisione Ivano (strada A): 1 sola call OpenAI per tutti e 5 i tour Home.
+Costo invariato (era 1 call, resta 1 call). Vincoli: non degradare l'insider
++ regole voce identiche + descrizione vera per ogni tappa altrimenti tappa
+esclusa + tour senza tappe esclusi + resta dentro cache DD dove possibile.
+
+**Commit `00bb209`** — 5 file, +471 / -270:
+
+- **`aiRecommendationService.js`** (+306):
+  - Nuovo `buildUnifiedHomeToursPrompt`: prompt che accetta candidati
+    raggruppati per tema (`insider + food + cultura + romance + nature`).
+    Regole voce identiche a `buildSelectorSystemPrompt` locked (fatti
+    sensoriali, blacklist aggettivi vuoti, insiderTip pratico, bestTime
+    "perché ORA"). Response format JSON: `{tours: [{themeType, title,
+    mapMood, suggestedTransit, stops: [{place_id, description, insiderTip,
+    bestTime, transition, suggestedMinutes, type}]}]}`.
+  - Nuovo `generateHomeTours({city, cityCenter, themedCandidates, prefs,
+    aiProfile, weather})`. 1 call gpt-4o-mini, timeout 45s (era 35s per
+    insider da solo), max_tokens 4000 (era 2000).
+  - Post-processing per ogni tour: `canonicalizeStopsFromCandidates`
+    (title/lat/lng/photo/rating dal candidato Google), dedup cross-tour
+    su place_id (primo tour che lo usa lo tiene), filtro stops con
+    description vuota (regola II.2), applyRadiusFilter safety,
+    sortByProximity. Tour con 0 stops post-filtro scartati.
+  - Cache: `insiderCacheKey` esistente, key include fingerprint pool
+    (city + cityCenter + hash FNV-1a dei sorted place_ids). Cambia il
+    pool → cache invalidata automaticamente.
+  - Nuovo helper `hashStr` FNV-1a 32-bit per cache key deterministica
+    su pool grandi.
+
+- **`DashboardUser.jsx`** (-150 dead code, +100 nuovo flusso):
+  - `buildSmartExperiencesAsync` RIMOSSO completamente (dead code
+    post-fix).
+  - `THEME_CONFIGS` + `getPoiTypeImage` RIMOSSI (titoli statici ora
+    generati dal narratore, image fallback coperto da tourShape).
+  - queryFn 'home-experiences' nuovo flusso: `discoverAllThemes` →
+    pool per tema (parallelo, cache DD) → pool insider (unione top-15
+    by qualityScore) → 1 call `generateHomeTours` → mapping output.
+    Insider sempre in cima (badge "✨ Insider AI"), riordinamento DNA
+    preferences esclude insider (resta primo per costruzione).
+
+- **`TourDetails.jsx`** (II.3):
+  - `isMockTour` ora dipende SOLO dal flag esplicito
+    `tour.isDemoTour === true`. Prima era regola implicita
+    `!isAiSelfGuided && !isValidGuideId(...) && (id numerico O non-UUID)`
+    che scattava sui tour REALI quando `applyRadiusFilter` svuotava gli
+    steps. "Verde relax" a Troina finiva così.
+  - Zero call site oggi setta `isDemoTour` → nessun tour Home mostra
+    più il badge. Se in futuro serve un demo intenzionale, va marcato
+    esplicitamente.
+
+- **`placesDiscoveryService.js`** (II.2):
+  - `discoverPOIs` fallback path (template inventati con `Math.random`
+    coords + rating 4.5 + description placeholder) ora ritorna `[]`.
+    Se non ci sono POI reali Google, non c'è tour. Regola locked #1
+    applicata: nessun fallback produce mai contenuto.
+
+- **`anti-fake.test.js`**:
+  - Regola `no-luogo-di-interesse-placeholder` **RIATTIVATA** (era
+    skip da Gate M). Allowlist: `MapPage.jsx` + `POIDetailDrawer.jsx`
+    (letterali di GUARD `description !== "Punto..."` — anti-fake, non
+    fake). 25° regola bloccante totale (era 24° post-GG).
+
+**Verifica device** ✅ (Ivano su Troina, 17/07): tutti i tour narrano,
+"Vista mare" ha description + orario per tappa come "I vicoli segreti",
+"Verde relax" non è più "Tour di esempio", l'insider è rimasto identico.
+
+---
+
+## Regole locked NUOVE (16-17/07)
+
+Aggiornate le 13 esistenti (blocco 1 + 6 nuove 14-16/07). Dopo Gate GG + II
+salgono a **17 totali**:
+
+14. **Nessun messaggio all'utente può affermare un'azione di sistema che
+    non avviene** (Gate GG, 16/07). "Team notificato", "email inviata",
+    "salvato con successo" richiedono il codice che esegue davvero
+    l'azione (`reportError`, `sendEmail`, `supabase.from(...).insert`).
+    Regola grep-based `no-reassuring-lie-without-action` in CI. Bugia
+    rassicurante = stessa classe di "Marco R." e Giulia — peggio, promette
+    un processo inesistente.
+
+15. **Zero stack tecnico esposto all'utente** (Gate GG, 16/07). Un
+    messaggio tecnico grezzo ("'...ml' is not a valid JavaScript MIME
+    type") non deve mai comparire in UI. Va nei log (console +
+    `error_logs` Supabase) + copy umano in interfaccia. Stessa regola
+    del GPS in inglese di Gate W: tecnico nei log, umano in faccia.
+
+16. **Ogni tappa di ogni tour Home ha nome vero + descrizione unica del
+    luogo + quando visitarlo** (Gate II, 17/07). Stessa pipeline
+    (narratore) per TUTTI i tour, nessuno escluso. Se il narratore non
+    produce descrizione vera → la tappa non entra (regola sub-locked:
+    meno tappe > tappe vuote). Tour con 0 tappe post-filtro → escluso.
+    Mai placeholder generico. Grep-based
+    `no-luogo-di-interesse-placeholder` in CI.
+
+17. **`isMockTour` dipende SOLO da flag esplicito, non da euristiche
+    su campi vuoti** (Gate II.3, 17/07). Un tour reale con un campo vuoto
+    NON è un tour di esempio. Se serve marcare un tour come demo, si
+    aggiunge `isDemoTour: true` esplicitamente. Guard impliciti su
+    "steps vuoti" o "id non-UUID" hanno scattato su tour reali (Verde
+    relax) — regola sepolta = bug latente.
+
+---
+
+## Stato costi al 17/07 (post Gate II)
+
+Invariato vs 16/07 sul lato Places (Gate DD attivo). Sul lato OpenAI:
+
+- **Home tour narrati**: 1 call `generateHomeTours` gpt-4o-mini per utente
+  al primo mount (cache client + insider cache condivisa city+pool). Era
+  1 call `generateItinerary` insider (invariato). Il narratore ora produce
+  N tour invece di 1 → output ~2-3× più grande in tokens output, delta
+  ~$0.0002-0.0004 per call su gpt-4o-mini (trascurabile).
+- **Notifiche**: 1 call `generateWeatherSocialTip` + 3 place/details Basic
+  (gratis) al trigger notifica. Invariato.
+- **Precompute tour da notifica**: `generateSystemPrewarmTour` è
+  deterministico (no LLM), solo place/details Basic. Invariato.
+
+**Tabella pre/post gate aggiornata**:
+
+| Fase             | textsearch/utente | note                                        |
+|------------------|-------------------|---------------------------------------------|
+| Pre Gate O       | 10 chiamate       | 5 temi × 2 refetch GPS. ~$17/utente/mese.   |
+| Gate O.1         | 5 chiamate        | Kill refetch GPS.                           |
+| Gate BB          | 5 primo giorno, 0 dal secondo per-browser | Cache localStorage per-browser. |
+| Gate DD (attuale)| 5 primo utente sulla città, 0 tutti gli altri per 24h | -85% atteso al lancio. |
+| Post Gate II     | Invariato (Places) + 1 call OpenAI narratore per Home (era 1 call insider) | Zero delta costi. |
+
+---
+
+## Ottimizzazione (C) PIANIFICATA per U.2
+
+Cache condivisa server-side sul narratore, stesso pattern Gate DD ma su
+OpenAI invece che Places:
+
+- Nuova tabella Supabase `narrator_cache` con `cache_key TEXT PRIMARY KEY,
+  data JSONB, created_at TIMESTAMPTZ`.
+- Cache key deterministica: `city + theme_pool_hash(sorted place_ids)`.
+- TTL 24h. Prima persona su Troina paga la call `generateHomeTours` (1
+  call), dalle successive per 24h → 0 call OpenAI, cache HIT dal server.
+- Overhead: edge function proxy per il narratore (o direct write da
+  client con service_role via edge function). ~40 righe di codice + 1
+  migration.
+- Effetto atteso al lancio: la Home narrata diventa gratis dalla seconda
+  persona sulla stessa città. Combinato con Gate DD (cache Places): la
+  prima persona su una città paga tutto (~$0.16 Places + ~$0.001 narratore),
+  tutte le successive per 24h leggono da cache condivisa a costo zero.
+
+**Da fare con U.2** (rate limit server-side + ottimizzazione costi bloc).
+NON mescolare con altri lavori prima del lancio: prima il narratore
+funziona (Gate II fatto), poi (C) lo rende gratis dalla seconda persona.
+
+---
+
+## Backlog aperto al 17/07 (aggiornato, in ordine di priorità)
+
+### Priorità 1 — Contenuto vero end-to-end
+
+- **Profilo dati finti** (task pending, era Blocco 2.2): tab Profile mostra
+  regioni fake ("Toscana 8 tour" Unsplash). Cleanup + collegamento a
+  `explorers.tours_completed`, `explorers.km_walked`, `user_photos` reali.
+- **Gate CC.3** (task #221, pending): Esplora completo — mostra tour AI
+  + segnaposto "Presto guide locali" onesto. Kill "Guida DoveVai" default
+  (ogni tour AI attribuito a una guida fittizia "DoveVai Concierge").
+
+### Priorità 2 — Ottimizzazione costi + rate limit
+
+- **U.2** (rate limit server-side sui numeri finali post-DD + cache narratore
+  strada C): se un IP fa >100 chiamate/min al places-proxy → 429. Nuova
+  tabella `narrator_cache` per Gate II (pattern DD su OpenAI). Un solo
+  commit, due leve costi insieme.
+
+### Priorità 3 — Verifica finale
+
+- **Verifica notifiche end-to-end 3× di fila su device**: browser nuovo,
+  utente diverso, città diversa. Verifica anche `X-Cache: HIT` per DD.
+- **Verifica GG in prod**: apri Supabase Table Editor → `error_logs`.
+  Dopo 24-48h dal lancio deve avere righe (crash reali). Chunk-load
+  reload automatico funzionante = pattern `error_type='chunk_load'`
+  presente con dedup.
+
+### Priorità 4 — Bug residui minori
+
+- **Task #159**: durata scheda tour "3h m" — minuti vuoti. Bug UI formatter.
+- **Task #163**: `POIDetailDrawer` legge `insiderTip/description/bestTime`
+  reali (oggi placeholder generici — dopo Gate II i dati esistono, serve
+  solo cablare il render).
+- **Task #164**: kill "Luogo di interesse a X" placeholder + commento
+  ottimistico ("Un posto che merita una visita" default) — coperto da
+  Gate II ma verificare cleanup residuo.
+- **Bug MapPage `|| 'Roma'` residuo** di O.2: MapPage ha ancora
+  `city || 'Roma'` in un branch non-Home. Non urgente ma va tolto.
+
+### Priorità 5 — Cleanup interni
+
+- **Cleanup FETCH_ALLOWLIST Blocco 2**: `userContextService.js`,
+  `weatherService.js`, `poiService.js`, `dataService.js`,
+  `aiRecommendationService.js verifyPOIWithPlaces`.
+- **Cleanup allowlist regole EE**: `TourDetails.jsx` / `AiItinerary.jsx` /
+  `DashboardUser.jsx` / `MVPEnhancements.jsx` — quando il Blocco 2 completa
+  il cleanup, rimuovere da allowlist di `no-v2-features-in-copy` e
+  `no-fake-price-in-copy`.
+- **Riattivare 3 skip anti-fake residue**: `no-in-arrivo-toast`,
+  `no-fake-reviewer-names`, `no-unsplash-in-content` dopo cleanup dei file
+  residui che li violano.
+- **Cron cleanup places_cache + error_logs**: `DELETE WHERE created_at <
+  NOW() - INTERVAL '25 hours'` (places) / `'30 days'` (errors).
+
+---
+
+## Blocco SEPARATO — Post-lancio con Antigravity
+
+Estetica FINE, non fixabile in 15 giorni senza compromettere altro:
+
+- **Navigazione TourLive/MapPage**: NavigationHUD (DVAI-062-065) funziona
+  ma non stampa telemetria d'uso. Serve capire dove gli utenti abbandonano
+  la nav per iterare.
+- **Transizioni pagine**: Framer Motion enter/exit oggi minimali. Da
+  polishare con Antigravity per un feel premium.
+- **Design system condiviso Landing ↔ Onboarding**: strada 3 della
+  diagnosi FF.2. Tokenizzare font/palette/radius/spacing in
+  `tailwind.config.js` come design tokens. 1 giornata di lavoro,
+  vale tutto il prodotto in V1.1.
+- **Estetica card Home**: layout uniforme per tutti i tour narrati
+  (post Gate II tutti hanno description+bestTime, serve solo un
+  visual pass per mostrarli bene).
+
+Sessione dedicata ad Antigravity dopo il lancio.
 
 ---
 

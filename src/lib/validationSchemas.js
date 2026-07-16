@@ -73,7 +73,7 @@ export const TourBuilderSchema = z.object({
     price: z
         .number({ invalid_type_error: 'Il prezzo deve essere un numero' })
         .min(0, 'Prezzo non può essere negativo')
-        .max(5000, 'Prezzo massimo €5000'),
+        .max(5000, 'Prezzo massimo 5000 euro'),
     duration_minutes: z
         .number({ invalid_type_error: 'Durata deve essere un numero' })
         .min(30, 'Durata minima 30 minuti')

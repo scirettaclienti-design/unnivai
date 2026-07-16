@@ -70,7 +70,7 @@ const Step1Phone = ({ active }) => {
                     </div>
                     <div className="flex items-center flex-1">
                         <motion.span initial={{ width: 0 }} animate={active ? { width: 'auto' } : {}} transition={{ delay: 0.7, duration: 0.9 }}
-                            className="text-white text-[13px] font-semibold overflow-hidden whitespace-nowrap">Roma, Italia</motion.span>
+                            className="text-white text-[13px] font-semibold overflow-hidden whitespace-nowrap">La tua città</motion.span>
                         <motion.div animate={active ? { opacity: [1, 0, 1] } : {}} transition={{ repeat: Infinity, duration: 0.9 }}
                             className="w-0.5 h-3.5 bg-indigo-400 ml-0.5 rounded-full" />
                     </div>
@@ -121,8 +121,8 @@ const Step1Phone = ({ active }) => {
                 className="mx-3 mb-2 bg-white/8 backdrop-blur rounded-2xl px-3 py-2.5 border border-white/10 flex items-center gap-2.5">
                 <div className="w-8 h-8 bg-indigo-500 rounded-xl flex items-center justify-center flex-shrink-0 text-base">🏛️</div>
                 <div>
-                    <p className="text-white text-[11px] font-bold">5 esperienze trovate</p>
-                    <p className="text-indigo-400 text-[9px]">Roma del centro storico</p>
+                    <p className="text-white text-[11px] font-bold">Esperienze trovate</p>
+                    <p className="text-indigo-400 text-[9px]">Nel centro della città</p>
                 </div>
                 <div className="ml-auto w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center">
                     <ChevronRight className="w-3 h-3 text-white" />
@@ -132,16 +132,21 @@ const Step1Phone = ({ active }) => {
     );
 };
 
-/* ─────────────────────────────────────────────
-   STEP 2 — AI Itinerary
-───────────────────────────────────────────── */
+// ─────────────────────────────────────────────
+// STEP 2 — AI Itinerary (mock ASTRATTO Gate EE)
+// Prima: nomi POI veri ("Bar San Calisto", "Da Enzo al 29") + prezzi
+// hardcoded in euro + citta' hardcoded nell'header. Ivano: mai nomi
+// inventati che sembrano veri, mai prezzi finti, mai una citta' hardcoded.
+// Ora: dichiaratamente astratto — Tappa 1/2/3 con categoria + orario
+// (fatti generici sull'idea di itinerario), zero nomi POI, zero prezzi.
+// ─────────────────────────────────────────────
 const Step2Phone = ({ active }) => {
     const stops = [
-        { time: '09:00', emoji: '☕', title: 'Bar San Calisto', cat: 'food', price: 'Gratis', color: '#10b981' },
-        { time: '10:30', emoji: '🏛️', title: 'Colosseo + Foro Romano', cat: 'cultura', price: '€18', color: '#10b981' },
-        { time: '13:00', emoji: '🍝', title: 'Da Enzo al 29', cat: 'pranzo', price: '€28', color: '#10b981' },
-        { time: '15:30', emoji: '🎨', title: 'Mercati di Traiano', cat: 'arte', price: '€15', color: '#10b981' },
-        { time: '18:00', emoji: '🌅', title: 'Tramonto al Gianicolo', cat: 'scenic', price: 'Gratis', color: '#10b981' },
+        { time: '09:00', emoji: '☕', title: 'Tappa 1', cat: 'colazione' },
+        { time: '10:30', emoji: '🏛️', title: 'Tappa 2', cat: 'cultura' },
+        { time: '13:00', emoji: '🍝', title: 'Tappa 3', cat: 'pranzo' },
+        { time: '15:30', emoji: '🎨', title: 'Tappa 4', cat: 'arte' },
+        { time: '18:00', emoji: '🌅', title: 'Tappa 5', cat: 'panorama' },
     ];
     return (
         <div className="flex flex-col h-full">
@@ -164,7 +169,7 @@ const Step2Phone = ({ active }) => {
                                 </motion.div>
                             )}
                         </div>
-                        <p className="text-white/40 text-[9px]">Itinerario personalizzato · Roma</p>
+                        <p className="text-white/40 text-[9px]">Esempio di itinerario</p>
                     </div>
                     <motion.div initial={{ scale: 0 }} animate={active ? { scale: 1 } : {}} transition={{ delay: 2.2, type: 'spring' }}
                         className="bg-emerald-500/20 text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
@@ -192,7 +197,7 @@ const Step2Phone = ({ active }) => {
                             </div>
                             <p className="text-white text-[11px] font-semibold truncate">{stop.title}</p>
                         </div>
-                        <span className="text-white/50 text-[10px] font-bold flex-shrink-0">{stop.price}</span>
+                        {/* Gate EE: rimosso stop.price (prezzi euro/Gratis) — prezzi fake. */}
                     </motion.div>
                 ))}
             </div>
@@ -206,163 +211,27 @@ const Step2Phone = ({ active }) => {
     );
 };
 
-/* ─────────────────────────────────────────────
-   STEP 3 — Chat Guida
-───────────────────────────────────────────── */
-const Step3Phone = ({ active }) => {
-    const messages = [
-        { from: 'guide', text: 'Ciao! Sono Giulia 👋 Ho visto il tuo itinerario per Roma', delay: 0.7, time: '18:12' },
-        { from: 'user', text: 'Perfetto! Sei disponibile sabato mattina?', delay: 1.3, time: '18:13' },
-        { from: 'guide', text: 'Sì! Ho uno slot libero dalle 9. Ti porto nei vicoli segreti di Trastevere 🌿', delay: 1.9, time: '18:13' },
-        { from: 'user', text: 'Fantastico, confermo! 🎉', delay: 2.5, time: '18:14' },
-    ];
-    return (
-        <div className="flex flex-col h-full">
-            {/* Guide header */}
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={active ? { opacity: 1, y: 0 } : {}} transition={{ delay: 0.3 }}
-                className="px-3 pt-1 pb-2.5 border-b border-white/8 bg-gradient-to-b from-[#1a0f00] to-transparent">
-                <div className="flex items-center gap-2.5">
-                    <div className="relative flex-shrink-0">
-                        <img loading="lazy" src="https://randomuser.me/api/portraits/women/44.jpg" alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-orange-500/40" />
-                        <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 2 }}
-                            className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-[#0d0d14]" />
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-white text-[13px] font-bold">Giulia Romano</p>
-                        <div className="flex items-center gap-1.5">
-                            <div className="flex items-center gap-0.5">
-                                {[...Array(5)].map((_, i) => <Star key={i} className="w-2 h-2 text-amber-400 fill-current" />)}
-                            </div>
-                            <span className="text-white/40 text-[9px]">4.9 · 218 tour</span>
-                        </div>
-                    </div>
-                    <div className="flex gap-1.5">
-                        <div className="w-7 h-7 bg-white/8 rounded-full flex items-center justify-center border border-white/10">
-                            <MessageCircle className="w-3.5 h-3.5 text-white/60" />
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
-            {/* Messages */}
-            <div className="flex-1 px-3 py-2 space-y-2.5 overflow-hidden">
-                {messages.map((msg, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, x: msg.from === 'user' ? 20 : -20, y: 10 }}
-                        animate={active ? { opacity: 1, x: 0, y: 0 } : {}} transition={{ delay: msg.delay, type: 'spring', stiffness: 200 }}
-                        className={`flex flex-col ${msg.from === 'user' ? 'items-end' : 'items-start'}`}>
-                        <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-[11px] leading-relaxed ${msg.from === 'user'
-                                ? 'bg-orange-500 text-white rounded-br-md'
-                                : 'bg-white/8 border border-white/10 text-white/85 rounded-bl-md'
-                            }`}>{msg.text}</div>
-                        <span className="text-white/25 text-[8px] mt-0.5 px-1">{msg.time}</span>
-                    </motion.div>
-                ))}
-            </div>
-            {/* Confirmed badge */}
-            <motion.div initial={{ scale: 0, opacity: 0 }} animate={active ? { scale: 1, opacity: 1 } : {}} transition={{ delay: 3, type: 'spring', stiffness: 200 }}
-                className="mx-3 mb-1 bg-orange-500/10 border border-orange-500/30 rounded-2xl px-3 py-2 flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                <div>
-                    <p className="text-white text-[10px] font-bold">Tour Confermato — Sab 15 Feb</p>
-                    <p className="text-orange-400 text-[9px]">Trastevere · 09:00 · 3h · €45</p>
-                </div>
-            </motion.div>
-            {/* Input */}
-            <div className="mx-3 mb-2.5 bg-white/5 border border-white/8 rounded-2xl px-3 py-2 flex items-center gap-2">
-                <span className="text-white/25 text-[11px] flex-1">Scrivi a Giulia...</span>
-                <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                    <ArrowRight className="w-3 h-3 text-white" />
-                </div>
-            </div>
-        </div>
-    );
-};
+// ─────────────────────────────────────────────
+// Gate EE — Step3Phone (Chat Guida) e Step4Phone (Live Tour Navigation)
+// ELIMINATI. Erano mock di funzioni V2/V3 con persona inventata (nome
+// finto + foto stock + contatore tour + prezzi euro + chat finta) e
+// feature V2/V3 (live nav, live stories) che non esistono in V1.
+// Ivano: zero mock di UI futura, zero persone inventate. Se serve
+// accennare al futuro, UNA riga di testo linkata a /prossimamente/guide
+// (in fondo alla landing).
+// ─────────────────────────────────────────────
 
-/* ─────────────────────────────────────────────
-   STEP 4 — Live Tour Navigation
-───────────────────────────────────────────── */
-const Step4Phone = ({ active }) => (
-    <div className="flex flex-col h-full">
-        {/* Nav bar */}
-        <motion.div initial={{ opacity: 0 }} animate={active ? { opacity: 1 } : {}} transition={{ delay: 0.4 }}
-            className="px-3 pt-1 pb-2 border-b border-white/8 bg-gradient-to-b from-[#1a0d2e] to-transparent">
-            <div className="flex items-center gap-2">
-                <motion.div animate={active ? { rotate: [0, 20, -20, 0] } : {}} transition={{ repeat: Infinity, duration: 3, delay: 1 }}>
-                    <Navigation className="w-4 h-4 text-violet-400" />
-                </motion.div>
-                <div className="flex-1">
-                    <span className="text-violet-300 text-[11px] font-bold">Tour Live · Tappa 2 di 5</span>
-                    <div className="flex gap-1 mt-0.5">
-                        {[...Array(5)].map((_, i) => (
-                            <div key={i} className={`h-1 flex-1 rounded-full ${i < 2 ? 'bg-violet-500' : 'bg-white/10'}`} />
-                        ))}
-                    </div>
-                </div>
-                <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-white/30" />
-                    <span className="text-white/40 text-[9px]">2h 20m</span>
-                </div>
-            </div>
-        </motion.div>
-        {/* Map with animated SVG route */}
-        <div className="flex-1 relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%)' }}>
-            {/* Grid */}
-            <div className="absolute inset-0 opacity-5"
-                style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 260 260">
-                {/* Completed route */}
-                <motion.path d="M 40 220 Q 80 200 100 160 Q 115 130 130 110"
-                    stroke="#8b5cf6" strokeWidth="4" fill="none" strokeLinecap="round"
-                    initial={{ pathLength: 0 }} animate={active ? { pathLength: 1 } : {}} transition={{ delay: 0.8, duration: 1.2 }} />
-                {/* Future route dashed */}
-                <motion.path d="M 130 110 Q 155 80 175 60 Q 200 35 220 20"
-                    stroke="#8b5cf6" strokeWidth="3" fill="none" strokeLinecap="round" strokeDasharray="6 5"
-                    initial={{ pathLength: 0 }} animate={active ? { pathLength: 1 } : {}} transition={{ delay: 2, duration: 1 }} />
-                {/* Start dot */}
-                <circle cx="40" cy="220" r="5" fill="#8b5cf6" opacity="0.5" />
-                {/* Completed stop */}
-                <circle cx="100" cy="160" r="4" fill="#10b981" />
-                {/* Current position */}
-                <motion.circle cx="130" cy="110" r="6" fill="#8b5cf6"
-                    animate={{ r: [6, 9, 6] }} transition={{ repeat: Infinity, duration: 1.5 }} />
-                <circle cx="130" cy="110" r="3" fill="white" />
-                {/* Future stop */}
-                <motion.circle cx="175" cy="60" r="4" fill="white" opacity="0.4"
-                    initial={{ opacity: 0 }} animate={active ? { opacity: 0.4 } : {}} transition={{ delay: 2.2 }} />
-                <motion.circle cx="220" cy="20" r="4" fill="white" opacity="0.4"
-                    initial={{ opacity: 0 }} animate={active ? { opacity: 0.4 } : {}} transition={{ delay: 2.4 }} />
-            </svg>
-        </div>
-        {/* Current stop card */}
-        <motion.div initial={{ y: 40, opacity: 0 }} animate={active ? { y: 0, opacity: 1 } : {}} transition={{ delay: 1.8, type: 'spring', stiffness: 200 }}
-            className="mx-3 mb-2 bg-white/8 backdrop-blur rounded-2xl p-3 border border-violet-500/30 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent" />
-            <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-violet-500 rounded-xl flex items-center justify-center text-xl flex-shrink-0 shadow-lg shadow-violet-500/30">🏛️</div>
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="text-[9px] font-bold text-violet-400 uppercase">Prossima Tappa</span>
-                        <span className="text-[8px] bg-violet-500/20 text-violet-300 px-1.5 rounded-full">3 min a piedi</span>
-                    </div>
-                    <p className="text-white text-[12px] font-bold truncate">Mercati di Traiano</p>
-                    <p className="text-violet-300 text-[10px] italic truncate">"Il Giulia: Qui l'arte parla..."</p>
-                </div>
-                <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }}
-                    className="w-8 h-8 bg-violet-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <ChevronRight className="w-4 h-4 text-white" />
-                </motion.div>
-            </div>
-        </motion.div>
-    </div>
-);
-
-/* ─────────────────────────────────────────────
-   STEP DEFINITIONS
-───────────────────────────────────────────── */
+// ─────────────────────────────────────────────
+// STEP DEFINITIONS — Gate EE riscrittura V1 onesta
+// Da 4 step a 3. Copy vero: parla solo di cio' che V1 fa.
+// Zero claim su guide certificate, feature V2/V3 live, prezzi promessi,
+// chat con la persona guida, copertura fisica ("in tutta Italia").
+// ─────────────────────────────────────────────
 const STEPS = [
     {
         id: 0, label: '01', tag: 'Scoperta',
         title: 'Scegli la tua città',
-        desc: 'Apri DoveVai e digita dove vuoi andare. La mappa si anima istantaneamente con decine di esperienze autentiche curate da chi vive davvero quei luoghi.',
+        desc: 'Scegli dove sei o dove vai. La mappa mostra subito luoghi veri con coordinate vere e orari veri, in qualunque città scegli.',
         gradient: 'from-blue-600 via-indigo-600 to-violet-700',
         glow: 'rgba(99,102,241,0.3)',
         meshColor: '#4f46e5',
@@ -372,7 +241,7 @@ const STEPS = [
     {
         id: 1, label: '02', tag: 'Pianificazione',
         title: "L'AI costruisce il tuo percorso",
-        desc: 'In pochi secondi l\'intelligenza artificiale analizza i tuoi interessi, il meteo, i tuoi orari e crea un itinerario con orari, prezzi e consigli su misura per te.',
+        desc: "In pochi secondi un itinerario su misura per te, sui tuoi interessi. Zero elenchi sponsorizzati travestiti da consigli, zero prezzi finti.",
         gradient: 'from-emerald-500 via-teal-500 to-cyan-600',
         glow: 'rgba(16,185,129,0.3)',
         meshColor: '#059669',
@@ -380,24 +249,14 @@ const STEPS = [
         Phone: Step2Phone,
     },
     {
-        id: 2, label: '03', tag: 'Connessione',
-        title: 'Incontra la tua guida',
-        desc: 'Scegli tra decine di guide locali verificate. Chatta direttamente, personalizza ogni dettaglio del tour e conferma il tuo appuntamento in pochi tap.',
-        gradient: 'from-orange-500 via-red-500 to-rose-600',
+        id: 2, label: '03', tag: 'Esperienza',
+        title: 'Vivi il percorso',
+        desc: 'Mappa reale, coordinate reali. Ogni luogo nella sua vera posizione — nessun marker inventato, nessun elenco che paga per apparire.',
+        gradient: 'from-orange-500 via-amber-500 to-orange-600',
         glow: 'rgba(249,115,22,0.3)',
         meshColor: '#ea580c',
         accent: '#f97316',
-        Phone: Step3Phone,
-    },
-    {
-        id: 3, label: '04', tag: 'Esperienza',
-        title: "Vivi l'avventura in diretta",
-        desc: 'Il giorno del tour apri la navigazione live. Segui il percorso, ascolta le storie della guida su ogni luogo e crea ricordi che nessuna audioguida ti darà mai.',
-        gradient: 'from-violet-600 via-purple-600 to-fuchsia-600',
-        glow: 'rgba(139,92,246,0.3)',
-        meshColor: '#7c3aed',
-        accent: '#8b5cf6',
-        Phone: Step4Phone,
+        Phone: Step1Phone,  // Riusa Step1Phone (mappa reale) per il terzo step "vivi il percorso"
     },
 ];
 
@@ -532,13 +391,15 @@ const HowItWorksModal = ({ onClose }) => {
                                 <h2 className="text-3xl md:text-4xl font-black text-white mb-4 leading-[1.1] tracking-tight">{current.title}</h2>
                                 <p className="text-white/55 text-base leading-relaxed mb-8 max-w-sm">{current.desc}</p>
 
-                                {/* Feature chips */}
+                                {/* Feature chips — Gate EE: rimossi vecchi chip che promettevano
+                                    feature V2/V3 (esperti curatori, prezzi tour, chat con la
+                                    persona guida, live navigation, live stories) non presenti
+                                    in V1. Ora solo chip su cio' che V1 fa davvero. */}
                                 <div className="flex flex-wrap gap-2 mb-8">
                                     {[
-                                        step === 0 && ['🗺️ Mappa live', '📍 Geo-rilevamento', '⭐ Curato dagli esperti'],
-                                        step === 1 && ['🧠 AI personalizzata', '⏱️ Tempo reale', '💰 Prezzi inclusi'],
-                                        step === 2 && ['✅ Guide verificate', '💬 Chat diretta', '📅 Prenotazione istantanea'],
-                                        step === 3 && ['🧭 Navigazione live', '🎙️ Storie in diretta', '📸 Momenti da salvare'],
+                                        step === 0 && ['🗺️ Mappa reale', '📍 Coordinate vere', '🌍 Ogni città italiana'],
+                                        step === 1 && ['🧠 AI personalizzata', '⏱️ In pochi secondi', '🎯 Sui tuoi interessi'],
+                                        step === 2 && ['🗺️ Marker sui punti veri', '📖 Fatti verificabili', '🕒 Orari veri'],
                                     ].flat().filter(Boolean).map((chip, i) => (
                                         <motion.span key={i} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 + i * 0.08 }}
                                             className="text-xs font-semibold px-3 py-1.5 rounded-full border text-white/70"
@@ -682,24 +543,27 @@ const Landing = () => {
                             <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse" />Il futuro del viaggio è qui
                         </span>
                     </motion.div>
+                    {/* Gate EE — Hero riscritta V1. Frase-firma locked Ivano.
+                        Zero claim su persone V2. Zero "in tutta Italia" (promessa
+                        di copertura fisica): "in qualunque città scegli" (vero: il
+                        motore funziona ovunque ci siano POI). */}
                     <motion.h1 variants={stagger.item} className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-[1.05] tracking-tight">
-                        Vivi l'Italia<br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500">con gli occhi di chi ci vive.</span>
+                        Il posto esiste.<br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500">Nessuno te lo aveva mostrato così.</span>
                     </motion.h1>
                     <motion.div variants={stagger.item} className="flex items-center gap-2 mb-5">
                         <MapPin className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                        <span className="text-white/60 text-sm font-medium">Guide a</span>
+                        <span className="text-white/60 text-sm font-medium">In qualunque città scegli — anche</span>
                         <div className="relative h-6 overflow-hidden w-20">
                             <AnimatePresence mode="wait">
                                 <motion.span key={cityIdx} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }}
                                     transition={{ duration: 0.35 }} className="absolute inset-0 text-orange-400 font-bold text-sm">{CITIES[cityIdx]}</motion.span>
                             </AnimatePresence>
                         </div>
-                        <span className="text-white/60 text-sm">e in tutta Italia</span>
                     </motion.div>
                     <motion.p variants={stagger.item} className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
-                        Guide locali vere, itinerari AI personalizzati e mappe interattive.<br className="hidden md:block" />
-                        Un'esperienza di viaggio che nessuna app ti ha mai dato.
+                        L'AI ti costruisce un percorso su misura in qualunque città italiana,<br className="hidden md:block" />
+                        con luoghi veri e orari veri.
                     </motion.p>
                     <motion.div variants={stagger.item} className="flex flex-col sm:flex-row items-center gap-4 mb-16">
                         <Link to="/login">
@@ -717,18 +581,14 @@ const Landing = () => {
                             Guarda come funziona
                         </motion.button>
                     </motion.div>
-                    <motion.div variants={stagger.item} className="flex items-center gap-3">
-                        <div className="flex -space-x-2">
-                            {['https://randomuser.me/api/portraits/women/44.jpg', 'https://randomuser.me/api/portraits/men/32.jpg',
-                                'https://randomuser.me/api/portraits/women/68.jpg', 'https://randomuser.me/api/portraits/men/54.jpg'].map((src, i) => (
-                                    <img loading="lazy" key={i} src={src} alt="" className="w-8 h-8 rounded-full border-2 border-gray-900 object-cover" />
-                                ))}
-                        </div>
-                        <div className="text-left">
-                            <div className="flex items-center gap-1">{[...Array(5)].map((_, i) => <Star key={i} className="w-3 h-3 text-amber-400 fill-current" />)}</div>
-                            <p className="text-xs text-white/50 mt-0.5">+2.800 viaggiatori soddisfatti</p>
-                        </div>
-                    </motion.div>
+                    {/* Gate EE — Rimosso social proof fake:
+                        - conteggio utenti soddisfatti (numero inventato, al lancio
+                          non c'e' NESSUN utente. Anche se ci fossero, "soddisfatti"
+                          e' un'attribuzione senza recensione vera).
+                        - avatar da servizio foto stock (persone finte).
+                        - 5 stelle piene senza recensione dietro.
+                        Il social proof vero arrivera' quando ci saranno recensioni reali.
+                        Fino ad allora, nessun claim di popolarita'. */}
                 </motion.div>
             </main>
 
@@ -737,10 +597,14 @@ const Landing = () => {
                 className="relative z-10 px-4 pb-16 max-w-5xl mx-auto">
                 <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-12" />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {/* Gate EE — Feature grid riscritta V1.
+                        Rimosso: vecchio blocco che prometteva persone V2 come feature
+                        gia' presente. La V2 arrivera' — c'e' una riga di testo linkata
+                        a /prossimamente/guide sotto la grid. */}
                     {[
-                        { icon: <Globe className="w-6 h-6 text-blue-400" />, bg: 'from-blue-500/10 to-blue-500/5', border: 'border-blue-500/20', title: 'Mappa Intelligente', desc: 'Navigazione immersiva con punti curati e geolocalizzazione in tempo reale.' },
-                        { icon: <Users className="w-6 h-6 text-orange-400" />, bg: 'from-orange-500/10 to-orange-500/5', border: 'border-orange-500/20', title: 'Guide Locali Vere', desc: 'Esperti del territorio certificati, non semplici audioguide preregistrate.' },
-                        { icon: <Compass className="w-6 h-6 text-emerald-400" />, bg: 'from-emerald-500/10 to-emerald-500/5', border: 'border-emerald-500/20', title: 'Itinerari su Misura', desc: "L'AI crea il tuo percorso — dalle gemme nascoste ai grandi classici." },
+                        { icon: <Compass className="w-6 h-6 text-emerald-400" />, bg: 'from-emerald-500/10 to-emerald-500/5', border: 'border-emerald-500/20', title: 'Motore AI', desc: 'Costruisce un percorso su misura dai luoghi reali della citta\' che scegli.' },
+                        { icon: <Globe className="w-6 h-6 text-blue-400" />, bg: 'from-blue-500/10 to-blue-500/5', border: 'border-blue-500/20', title: 'Mappa vera', desc: 'Ogni POI nella sua vera posizione — coordinate reali, nessun marker inventato.' },
+                        { icon: <Sparkles className="w-6 h-6 text-orange-400" />, bg: 'from-orange-500/10 to-orange-500/5', border: 'border-orange-500/20', title: 'Personalizzazione', desc: 'Impara i tuoi interessi. Ogni consiglio, sempre piu\' tuo.' },
                     ].map((feat, i) => (
                         <motion.div key={i} whileHover={{ y: -4, scale: 1.02 }}
                             className={`bg-gradient-to-b ${feat.bg} backdrop-blur-sm p-6 rounded-2xl border ${feat.border} transition-all duration-300`}>
@@ -749,6 +613,19 @@ const Landing = () => {
                             <p className="text-sm text-white/50 leading-relaxed">{feat.desc}</p>
                         </motion.div>
                     ))}
+                </div>
+
+                {/* Gate EE — UNA riga onesta sul futuro. Zero mock, zero foto,
+                    zero personas. Solo un accenno linkato alla schermata dedicata.
+                    NB: il copy evita di proposito il termine V2 (regola
+                    anti-fake no-v2-features-in-copy) — la feature V2 e' annunciata
+                    nella pagina /prossimamente/guide, non promessa a parole qui. */}
+                <div className="mt-8 text-center">
+                    <Link to="/prossimamente/guide" className="text-white/40 hover:text-white/70 text-sm transition-colors inline-flex items-center gap-1.5">
+                        <span className="text-terracotta-400">◇</span>
+                        Presto: persone del posto in carne e ossa
+                        <ArrowRight className="w-3 h-3" />
+                    </Link>
                 </div>
             </motion.section>
 

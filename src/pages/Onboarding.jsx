@@ -1,22 +1,20 @@
 /**
  * DVAI-011 — Onboarding Wizard post-registrazione
- * 4 step: benvenuto → città → interessi → tutorial
- * Al termine: salva preferenze nel profilo Supabase e reindirizza alla dashboard.
+ * 3 step: benvenuto → interessi → pronto
+ * Gate EE — Vincolo strutturale locked Ivano: l'onboarding NON ha un suo
+ * sistema di città. La città si chiede in UN SOLO POSTO (CityModal
+ * Gate AA), al primo mount della dashboard. Qui: solo profilo + interessi.
+ * Al termine: salva preferenze nel profilo Supabase e reindirizza a
+ * /dashboard-user, dove AA aprira' il CityModal onboarding.
  */
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Compass, Sparkles, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Compass, Sparkles, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useCity } from '@/context/CityContext';
 import { supabase } from '@/lib/supabase';
 
-const ITALIAN_CITIES = [
-    'Roma', 'Milano', 'Napoli', 'Firenze', 'Venezia',
-    'Bologna', 'Torino', 'Palermo', 'Bari', 'Genova',
-    'Catania', 'Verona', 'Padova', 'Trieste', 'Trento',
-    'Lecce', 'Siena', 'Modena', 'Parma', 'Perugia',
-];
+// Gate EE — ITALIAN_CITIES rimosso: dead code (mai usato nel wizard corrente).
 
 const INTERESTS = [
     { id: 'food',      emoji: '🍝', label: 'Gastronomia',   desc: 'Ristoranti, mercati, corsi di cucina' },
@@ -30,9 +28,13 @@ const INTERESTS = [
 ];
 
 const STEP_CONFIG = [
-    { id: 'welcome',   title: 'Benvenuto su DoveVAI',   subtitle: 'Il turismo italiano, reinventato' },
+    { id: 'welcome',   title: 'Benvenuto su DoveVAI',   subtitle: 'Il posto esiste. Nessuno te lo aveva mostrato così.' },
     { id: 'interests', title: 'Cosa ti appassiona?',     subtitle: 'Seleziona almeno un interesse' },
-    { id: 'ready',     title: 'Tutto pronto!',            subtitle: 'La tua posizione è stata rilevata automaticamente' },
+    // Gate EE: rimosso subtitle "La tua posizione e' stata rilevata
+    // automaticamente" — bugia esplicita (non era mai rilevata, era Roma
+    // hardcoded). La citta' la chiede il CityModal Gate AA al primo mount
+    // della dashboard. Qui l'onboarding non nomina mai la citta'.
+    { id: 'ready',     title: 'Ci siamo. Inizia.',       subtitle: 'La città te la chiediamo tra un secondo.' },
 ];
 
 const slideVariants = {
@@ -44,13 +46,14 @@ const slideVariants = {
 export default function Onboarding() {
     const [step, setStep] = useState(0);
     const [direction, setDirection] = useState(1);
-    const [selectedCity, setSelectedCity] = useState('Roma');
+    // Gate EE: RIMOSSO selectedCity useState('Roma') (fallback Roma silenzioso)
+    // e setCity da useCity() (l'onboarding NON deve avere un suo motore di
+    // citta'). La citta' la chiede il CityModal Gate AA — un solo posto.
     const [selectedInterests, setSelectedInterests] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
 
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { setCity } = useCity();
 
     const goNext = () => {
         setDirection(1);
@@ -147,10 +150,13 @@ export default function Onboarding() {
                                 </h1>
                                 <p className="text-gray-500 text-sm mb-6">{STEP_CONFIG[0].subtitle}</p>
                                 <div className="space-y-3 text-left mb-6">
+                                    {/* Gate EE — Rimossa la card che prometteva "esperienze autentiche
+                                        con persone del posto fuori dai circuiti turistici" (feature V2
+                                        promessa come V1). Le due card restanti descrivono solo cio' che
+                                        V1 fa davvero. */}
                                     {[
-                                        { emoji: '🗺️', title: 'Tour con guide locali', desc: 'Esperienze autentiche fuori dai circuiti turistici' },
-                                        { emoji: '🤖', title: 'Itinerari AI', desc: 'Personalizzati in base ai tuoi interessi' },
-                                        { emoji: '📍', title: 'Mappa interattiva', desc: 'Naviga le città italiane in tempo reale' },
+                                        { emoji: '🤖', title: 'Itinerari AI', desc: 'Su misura per te, in qualunque città scegli' },
+                                        { emoji: '📍', title: 'Mappa vera', desc: 'Coordinate reali, marker nel punto giusto' },
                                     ].map((item, i) => (
                                         <motion.div
                                             key={i}
@@ -226,12 +232,11 @@ export default function Onboarding() {
                                 <h2 className="text-2xl font-black text-gray-800 mb-2">{STEP_CONFIG[2]?.title || 'Tutto pronto!'}</h2>
                                 <p className="text-gray-500 text-sm mb-5">{STEP_CONFIG[2]?.subtitle || 'Inizia la tua avventura'}</p>
 
-                                {/* Riepilogo scelte */}
+                                {/* Riepilogo scelte — Gate EE: solo interessi (scelti davvero
+                                    dall'utente). RIMOSSO "Città: Roma" (era hardcoded, mostrare
+                                    Roma qui era una bugia mascherata da riepilogo). La citta'
+                                    la chiede il CityModal Gate AA subito dopo. */}
                                 <div className="space-y-2 text-left mb-5">
-                                    <div className="flex items-center space-x-2 bg-terracotta-50 rounded-xl p-3">
-                                        <MapPin className="w-4 h-4 text-terracotta-500" />
-                                        <span className="text-sm font-bold text-gray-700">Città: <span className="text-terracotta-600">{selectedCity}</span></span>
-                                    </div>
                                     <div className="flex items-start space-x-2 bg-terracotta-50 rounded-xl p-3">
                                         <Sparkles className="w-4 h-4 text-terracotta-500 mt-0.5" />
                                         <div>

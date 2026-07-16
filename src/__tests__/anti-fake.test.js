@@ -114,7 +114,8 @@ const RULES = [
         pattern: /images\.unsplash\.com/,
         allowlist: [
             'src/utils/imageUtils.js',
-            'src/pages/Landing.jsx',
+            // Gate EE: rimosso 'src/pages/Landing.jsx' (unsplash avatar
+            // "+2.800 viaggiatori" cancellato — la landing non ha piu' foto stock).
             'src/pages/QuickPath.jsx',
             'src/pages/SurpriseTour.jsx',
             'src/pages/AiItinerary.jsx',
@@ -174,7 +175,9 @@ const RULES = [
     // non un dato-ponte con la faccia del dato reale.
     {
         name: 'no-hardcoded-city-or-temp-defaults',
-        pattern: /\|\|\s*["']Roma["']|\bcity\s*[:=]\s*["']Roma["']|\btemperatureC\s*:\s*\d+/,
+        // Gate EE — aggiunto `useState\("Roma"\)` (bug Onboarding: selectedCity
+        // useState('Roma') sembrava "città rilevata" ma era Roma hardcoded).
+        pattern: /\|\|\s*["']Roma["']|\bcity\s*[:=]\s*["']Roma["']|\btemperatureC\s*:\s*\d+|useState\s*\(\s*["']Roma["']\s*\)/,
         allowlist: [
             // Componenti di autocompletamento indirizzo (visual placeholder tecnico).
             'src/components/AddressAutocomplete.jsx',
@@ -188,6 +191,8 @@ const RULES = [
             // V2/V3 spente (guide/business). Non nel path Home V1.
             'src/pages/DashboardBusiness.jsx',
             'src/pages/guide/TourBuilder.jsx',
+            // Gate EE: Landing.jsx e Onboarding.jsx NON in allowlist. La landing
+            // e' la prima schermata del prodotto: vale le stesse regole del resto.
         ],
         message: '"Roma" hardcoded o `temperatureC: N` come default. Il path Home deve mostrare skeleton finche\' il dato non c\'e\', mai un valore-ponte.',
     },
@@ -281,6 +286,80 @@ const RULES = [
         pattern: /fetch\s*\(\s*[`'"][^`'"]*place\/(?:textsearch|findplacefromtext|details|photo)|maps\.googleapis\.com\/maps\/api\/place/i,
         allowlist: [],
         message: 'Chiamata Places costruita a mano. Usa buildPlacesProxyUrl({ path: "place/textsearch", ... }) da src/services/aiRecommendationService.js — il builder aggiunge language=it di default e passa dall\'edge function.',
+    },
+    // Gate EE — Nessun prezzo hardcoded nel copy landing/onboarding/marketing.
+    // Bug: la landing mostrava "€49" nello step "Vedi il giro" come se DoveVAI
+    // vendesse tour a 49€. V1 non ha prezzi (niente booking, niente marketplace):
+    // ogni "€N" nel copy e' una bugia sul modello di business. Il pattern
+    // cattura simbolo euro seguito da 1-4 cifre (con eventuali decimali).
+    // Escluso: `.price_eur` (nome campo DB, non testo user-visible).
+    // Regola locked (Ivano 15/07): "prima la verita', poi la forma. Un prezzo
+    // finto e' peggio di un design brutto: dice che l'app fa cose che non fa".
+    {
+        name: 'no-fake-price-in-copy',
+        pattern: /€\s?\d{1,4}(?:[.,]\d{1,2})?(?!\w)/,
+        allowlist: [
+            // Dead code, non importato da nessun file (pitch deck). Rimuovere in cleanup Blocco 2.
+            'src/components/MVPEnhancements.jsx',
+        ],
+        message: 'Simbolo € seguito da numero nel copy. V1 non ha prezzi (niente booking, niente marketplace). Se un giorno metti prezzi, devono venire dal DB tours.price_eur, non essere hardcoded. Landing/Onboarding: mai in allowlist — vale il muro EE.',
+    },
+    // Gate EE — Nessun avatar persona fake (randomuser.me, unsplash portraits).
+    // Bug: la landing mostrava 3 avatar randomuser.me con testo "+2.800 viaggiatori
+    // hanno gia' scoperto DoveVAI" — social proof inventato prima ancora del lancio.
+    // Se domani vogliamo social proof veri, saranno avatar da profiles Supabase
+    // di utenti reali con consenso. Mai foto stock spacciate per persone reali.
+    {
+        name: 'no-fake-persona-avatars',
+        pattern: /randomuser\.me|unsplash\.com\/(?:photos|portraits)\/[^"'\s]*face|thispersondoesnotexist|generated\.photos/i,
+        allowlist: [],
+        message: 'Avatar persona da servizio di foto stock/AI-generated. Social proof deve venire da profiles Supabase reali con consenso, o non esistere. La landing NON e\' una vetrina di persone che non esistono.',
+    },
+    // Gate EE — Nessun numero di social proof scritto nel copy.
+    // Bug: la landing diceva "+2.800 viaggiatori" a lancio ancora da fare.
+    // Ogni "+N viaggiatori/utenti/clienti/persone" hardcoded e' una bugia sul
+    // trazionamento. Se un giorno ci sono utenti veri, il numero deve venire
+    // da COUNT(*) di profiles Supabase, non da una stringa scritta a mano.
+    {
+        name: 'no-fake-social-proof-numbers',
+        pattern: /\+?\d{1,3}[.,]?\d{3}\s+(viaggiatori|utenti|clienti|persone|iscritti|scaricamenti|download)/i,
+        allowlist: [],
+        message: 'Numero di social proof scritto a mano nel copy. Se ci sono utenti veri, il numero deve venire da COUNT su profiles Supabase. Se non ci sono ancora, non mentire.',
+    },
+    // Gate EE — Nessuna feature V2/V3 nominata come presente nel copy V1.
+    // Bug: landing prometteva "guide locali", "esperti certificati", "audioguida",
+    // "storie in diretta", "navigazione live", "chatta con la guida" — tutte
+    // feature V2/V3 che V1 NON fa. L'utente che clicca Register aspettando
+    // guide locali si sente truffato al primo login.
+    // Ammesso: gli stessi termini dentro pagine /prossimamente/* (sono la
+    // pagina che dichiara ESPLICITAMENTE che la feature non c'e' ancora)
+    // + il nome componente `GuidePlaceholder` + la pagina Prossimamente.jsx.
+    // Regola locked (Ivano 15/07): "V1 promette solo cio' che V1 mantiene.
+    // Le feature V2/V3 vivono in /prossimamente, non nel copy della landing".
+    {
+        name: 'no-v2-features-in-copy',
+        pattern: /\b(guide locali|esperti certificati|audioguida|storie in diretta|navigazione live|chatta con la guida|prenota (?:un|una) guida|booking guida)\b/i,
+        allowlist: [
+            // Pagine "Prossimamente" — dichiarano ESPLICITAMENTE che la feature
+            // non c'e' ancora. Il pattern qui e' onesto, non fake.
+            'src/pages/Prossimamente.jsx',
+            'src/pages/GuidePlaceholder.jsx',
+            // File legacy con copy V2 in path non-Home. Cleanup pianificato Blocco 2:
+            //  - TourDetails.jsx:1388 — copy "esplora tour reali delle nostre guide
+            //    locali" in ramo tour demo (V2 marketplace, spento in V1).
+            //  - AiItinerary.jsx:580 — loading text "L'IA sta consultando le guide
+            //    locali" (menzogna operativa: l'IA consulta Google Places, non guide).
+            //  - DashboardUser.jsx:877 — conferma guide_request "Le guide locali
+            //    su X hanno appena ricevuto la tua ispirazione" (flow V2 dashboard
+            //    guide, non nel path Home V1).
+            //  - MVPEnhancements.jsx — dead code pitch deck (non importato).
+            // Landing.jsx / Onboarding.jsx / Login.jsx MAI in allowlist — vale il muro EE.
+            'src/pages/TourDetails.jsx',
+            'src/pages/AiItinerary.jsx',
+            'src/pages/DashboardUser.jsx',
+            'src/components/MVPEnhancements.jsx',
+        ],
+        message: 'Feature V2/V3 (guide locali, esperti, audioguida, live, chat-guida) nominata come presente nel copy V1. V1 promette solo cio\' che V1 mantiene. Le feature V2/V3 vivono in /prossimamente, non nel copy della landing/onboarding/dashboard. Landing/Onboarding/Login: mai in allowlist — vale il muro EE.',
     },
     // Gate N.0 — Ogni notifica AI-generated deve portare engineVersion.
     // Regola custom: se un file contiene type 'tour_recommendation' o 'weather_alert'

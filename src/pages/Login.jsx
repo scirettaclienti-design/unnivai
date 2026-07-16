@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Flag, Store, ArrowRight, User, Mail, Lock, Briefcase, CheckCircle, Compass, ChevronLeft, Sparkles, Star, Eye, EyeOff } from 'lucide-react';
+import { MapPin, Flag, Store, ArrowRight, User, Mail, Lock, Briefcase, CheckCircle, Compass, ChevronLeft, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { LoginSchema, SignupSchema, validateForm } from '../lib/validationSchemas';
 
 // Gate K — In V1 il selettore ruolo mostra SOLO "Viaggiatore".
@@ -18,14 +18,18 @@ const ROLES = [
         emoji: '🧭',
         title: 'Voglio Esplorare',
         subtitle: 'Viaggiatore',
-        desc: 'Scopri tour unici creati da locali, vivi la città come mai prima d\'ora e lasciati guidare dall\'AI.',
+        // Gate EE: copy V1 onesto. "Scopri tour unici creati da locali" +
+        // perks V2 ("Guide locali verificate", "Mappa live") erano promesse
+        // di feature V2/V3. V1 fa: itinerario AI in qualunque citta' scegli,
+        // con luoghi veri Google Places e mappa vera. Solo cio' che V1 mantiene.
+        desc: 'Ogni giorno l\'AI ti costruisce un percorso su misura in qualunque città italiana, con luoghi veri e orari veri.',
         gradient: 'from-emerald-500 to-teal-600',
         glow: 'shadow-emerald-500/25',
         border: 'border-emerald-500/40',
         bg: 'from-emerald-500/10 to-teal-600/5',
         ring: 'ring-emerald-500/30',
         accent: '#10b981',
-        perks: ['Itinerari AI personalizzati', 'Guide locali verificate', 'Mappa interattiva live'],
+        perks: ['Itinerari AI personalizzati', 'Luoghi veri da Google Places', 'Mappa con coordinate reali'],
     },
     // Gate K: guide e business RIMOSSE dal selettore. V2/V3.
     // { id: 'guide', ... }
@@ -453,20 +457,12 @@ const Login = () => {
                                 )}
                             </div>
 
-                            {/* Social proof */}
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-                                className="flex items-center justify-center gap-3 mt-5">
-                                <div className="flex -space-x-1.5">
-                                    {['https://randomuser.me/api/portraits/women/44.jpg', 'https://randomuser.me/api/portraits/men/32.jpg',
-                                        'https://randomuser.me/api/portraits/women/68.jpg'].map((src, i) => (
-                                            <img key={i} src={src} alt="" className="w-6 h-6 rounded-full border border-gray-950 object-cover" />
-                                        ))}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => <Star key={i} className="w-2.5 h-2.5 text-amber-400 fill-current" />)}
-                                </div>
-                                <span className="text-white/30 text-xs">+2.800 utenti attivi</span>
-                            </motion.div>
+                            {/* Gate EE — Rimosso blocco social proof fake (3 avatar
+                                da servizio di foto stock + 5 stelle senza recensione
+                                dietro + conteggio utenti inventato). Login e' la
+                                seconda schermata del prodotto: vale le stesse regole
+                                della landing. Il social proof vero arrivera' quando
+                                ci saranno utenti veri con recensioni vere. */}
                         </motion.div>
                     )}
                 </AnimatePresence>

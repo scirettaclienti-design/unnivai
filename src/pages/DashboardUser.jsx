@@ -34,194 +34,22 @@ const THEME_EMOJIS = {
     nature: '🌿',
 };
 
-// Gate O.2: nessun `price` hardcoded qui. Un tour AI-generato non ha
-// un prezzo reale — quel numero era finto. Le card non mostrano prezzo
-// finche' il tour non arriva dal DB con price_eur autoritativo.
-// Gate P.1: 4 temi. cultura assorbe ex-walking + ex-art (query allargata
-// lato placesDiscoveryService). romance ora pesca lungomare/moli/scalinate
-// (query B) — POI che nessuna guida turistica elenca come categoria.
-const THEME_CONFIGS = [
-    { type: 'food',    titleFn: (c) => `Assapora ${c}`,               duration: '2h',   highlights: ['Gastronomia Locale', 'Sapori Tipici', 'Degustazione'] },
-    { type: 'cultura', titleFn: (c) => `Tesori di ${c}`,              duration: '3h',   highlights: ['Architettura', 'Arte Sacra', 'Storia Locale'] },
-    { type: 'romance', titleFn: (c) => `Vista mare a ${c}`,           duration: '2h',   highlights: ['Lungomare', 'Belvedere', 'Punti panoramici'] },
-    { type: 'nature',  titleFn: (c) => `Verde e Relax a ${c}`,        duration: '2.5h', highlights: ['Aria Aperta', 'Natura', 'Percorsi Verdi'] },
-];
+// Gate II (16/07): THEME_CONFIGS + getPoiTypeImage RIMOSSI.
+// Erano dead code post-refactor: THEME_CONFIGS conteneva titoli statici
+// ("Vista mare a X") ora sostituiti dai titoli generati dal narratore
+// ("I vicoli segreti di X"). getPoiTypeImage era un fallback locale ora
+// coperto da tourShape STEP_FALLBACK_IMAGE + THEME_FALLBACK_IMAGES sopra.
 
-// ─── Type-aware image fallback for POI types ─────────────────────────
-const getPoiTypeImage = (poiType, cityName) => {
-    const t = (poiType || '').toLowerCase();
-    if (t.includes('church') || t.includes('chiesa') || t.includes('basilica')) return GENERIC.church;
-    if (t.includes('restaurant') || t.includes('food') || t.includes('trattoria') || t.includes('ristorante')) return GENERIC.food;
-    if (t.includes('park') || t.includes('garden') || t.includes('villa')) return GENERIC.park;
-    if (t.includes('museum') || t.includes('museo') || t.includes('galleria')) return GENERIC.museum;
-    if (t.includes('piazza') || t.includes('monument')) return GENERIC.piazza;
-    if (t.includes('viewpoint') || t.includes('panoram')) return GENERIC.sea;
-    if (t.includes('palazzo')) return GENERIC.museum;
-    // City-specific fallback
-    return CITY_IMAGES[cityName] || GENERIC.piazza;
-};
-
-/**
- * Build smart experiences using REAL POIs discovered by AI.
- * Async — calls placesDiscoveryService to get real place names and coordinates.
- *
- * Gate O.1: cityCenter è sorgente autoritativa (risolto UNA volta a monte via
- * resolveCityCenter). Zero fallback GPS/hardcoded qui dentro. userLat/userLng
- * NON sono più input — le distanze utente-POI si calcolano client-side quando
- * il GPS arriva, senza rifetchare Places.
- */
-const buildSmartExperiencesAsync = async (cityName, cityCenter, userDNA = []) => {
-    if (!cityCenter || !Number.isFinite(cityCenter.latitude) || !Number.isFinite(cityCenter.longitude)) {
-        throw new Error('[buildSmartExperiences] cityCenter mancante — chiamante deve risolvere con resolveCityCenter');
-    }
-    const centerLat = cityCenter.latitude;
-    const centerLng = cityCenter.longitude;
-
-    // 1. DNA preferences for ordering (guard against null/undefined)
-    const dna = Array.isArray(userDNA) ? userDNA : [];
-    const likesFood = dna.some(d => d.inspiration?.includes('Cibo') || d.mood?.includes('Cibo') || d.mood?.includes('Street'));
-    const likesNature = dna.some(d => d.inspiration?.includes('Natura') || d.mood?.includes('Natura'));
-    const likesArts = dna.some(d => d.inspiration?.includes('Arte') || d.inspiration?.includes('Storia') || d.mood?.includes('Cultura'));
-
-    // 2. Discover real POIs for all themes (runs in parallel — cached after first call)
-    let allPOIs = {};
-    try {
-        allPOIs = await placesDiscoveryService.discoverAllThemes(cityName, centerLat, centerLng);
-    } catch (e) {
-        console.warn('[buildSmartExperiences] Discovery failed, using fallback:', e);
-    }
-
-    // 4. Build ordered theme list (DNA-aware).
-    // Gate P.1: 4 temi. Rewire su cultura (ex-art). Aggancio DNA:
-    // likesFood → food, likesNature → nature, likesArts → cultura.
-    let themes = [...THEME_CONFIGS];
-    if (dna.length > 0) {
-        const foodIdx = themes.findIndex(t => t.type === 'food');
-        const natureIdx = themes.findIndex(t => t.type === 'nature');
-        const culturaIdx = themes.findIndex(t => t.type === 'cultura');
-        if (likesFood && foodIdx >= 0) themes[foodIdx] = { ...themes[foodIdx], titleFn: (c) => `Street Food Tour su misura - ${c}` };
-        if (likesNature && natureIdx >= 0) themes[natureIdx] = { ...themes[natureIdx], titleFn: (c) => `Escursione Panoramica a ${c}` };
-        if (likesArts && culturaIdx >= 0) themes[culturaIdx] = { ...themes[culturaIdx], titleFn: (c) => `Esplorazione Storica di ${c}` };
-
-        themes.sort((a, b) => {
-            if (likesFood && a.type === 'food') return -1;
-            if (likesNature && a.type === 'nature') return -1;
-            if (likesArts && a.type === 'cultura') return -1;
-            return 0;
-        });
-    }
-
-    // 5. Build experience objects with REAL POI data.
-    //
-    // Gate O.2: se un tema non ha POI reali da Places, il tema si SALTA.
-    //
-    // Gate O.4: il rating di Google Places e' un fatto per singolo POI, MAI
-    // per il tour aggregato (nessuna media, nessuna somma). Portiamo
-    // `rating`/`reviewsCount` giu' fino allo step (dato vero, verificabile),
-    // e selezioniamo un `featuredPoi` con qualityScore = rating × ln(1+total)
-    // — lo stesso indice usato dalle soglie Gate I. La card Home mostrera'
-    // "Include {featuredPoi.name} · ★{rating}", un solo POI, un solo numero.
-    return themes
-        .map((theme, index) => {
-            const pois = allPOIs[theme.type] || [];
-            if (pois.length === 0) return null;
-
-            const title = theme.titleFn(cityName);
-            const chosen = pois.slice(0, 4);
-            const generatedSteps = chosen.map((poi) => {
-                const rating = Number.isFinite(poi.rating) && poi.rating > 0 ? poi.rating : null;
-                const reviewsCount = Number.isFinite(poi.user_ratings_total) && poi.user_ratings_total > 0
-                    ? poi.user_ratings_total
-                    : null;
-                return {
-                    title: poi.name || poi.title,
-                    description: poi.description || `Luogo di interesse a ${cityName}`,
-                    lat: poi.lat || poi.latitude,
-                    lng: poi.lng || poi.longitude,
-                    latitude: poi.lat || poi.latitude,
-                    longitude: poi.lng || poi.longitude,
-                    image: poi.image || poi.photo || getPoiTypeImage(poi.type, cityName),
-                    type: poi.type || 'place',
-                    city: cityName,
-                    // Gate O.4: dati Google POI-level. Attribuzione esplicita
-                    // ("recensioni Google") si fa a livello render/drawer.
-                    rating,
-                    reviewsCount,
-                    googlePlaceId: poi.googlePlaceId || poi.place_id || null,
-                };
-            });
-
-            // POI di punta: qualityScore = rating × ln(1 + reviews). Solo tra
-            // gli step con rating reale — se nessuno ha rating, featuredPoi=null.
-            const rated = generatedSteps.filter(s => Number.isFinite(s.rating));
-            const featuredPoi = rated.length > 0
-                ? rated.reduce((best, s) => {
-                    const score = s.rating * Math.log(1 + (s.reviewsCount || 0));
-                    const bestScore = best.rating * Math.log(1 + (best.reviewsCount || 0));
-                    return score > bestScore ? s : best;
-                })
-                : null;
-
-            const mainImage = generatedSteps[0]?.image
-                || THEME_FALLBACK_IMAGES[theme.type]
-                || CITY_IMAGES[cityName]
-                || GENERIC.piazza;
-            const cardImage = (mainImage === GENERIC.piazza && CITY_IMAGES[cityName]) ? CITY_IMAGES[cityName] : mainImage;
-            const emoji = THEME_EMOJIS[theme.type] || '📍';
-            const highlights = chosen.slice(0, 3).map(p => p.name || p.title);
-
-            return {
-                id: `smart-${index}-${Date.now()}`,
-                type: 'ai-memory',
-                title,
-                location: `${cityName}, Esperienza Locale`,
-                duration: theme.duration,
-                image: cardImage,
-                images: [cardImage],
-                category: (index === 0 && userDNA.length > 0) ? 'Cucito sui tuoi gusti' : "Consigliato dall'AI",
-                emoji,
-                isAiGenerated: true,
-                highlights,
-                included: ['Percorso con luoghi reali', "Esplorazione Guidata dall'AI", 'Assistenza Virtuale'],
-                notIncluded: ["Biglietti d'ingresso non specificati", 'Trasporti privati'],
-                guide: 'Intelligenza DoveVai',
-                guideAvatar: '🤖',
-                guideBio: `Ho assemblato questa esperienza basandomi su luoghi reali di ${cityName} e le tue preferenze.`,
-                center: { latitude: centerLat, longitude: centerLng },
-                steps: generatedSteps,
-                waypoints: generatedSteps.map(s => [s.lat, s.lng]),
-                // Gate O.4: featuredPoi e' un dato POI-level (name + rating +
-                // reviewsCount) esposto al render. Non e' un rating del tour.
-                featuredPoi: featuredPoi
-                    ? {
-                        name: featuredPoi.title,
-                        rating: featuredPoi.rating,
-                        reviewsCount: featuredPoi.reviewsCount,
-                    }
-                    : null,
-            };
-        })
-        .filter(Boolean)
-        // Gate P.1: secondo giro di dedup sulle URL foto per il caso raro
-        // (POI diversi, stessa googlePhoto — es. landmark con foto community
-        // condivise). Il tour piu' tardi cade su foto step alternativo o
-        // fallback tema. Zero collision cover.
-        .map((tour, idx, all) => {
-            const previousImages = new Set(all.slice(0, idx).map(t => t.image).filter(Boolean));
-            if (!previousImages.has(tour.image)) return tour;
-            const altStep = tour.steps.find(s => s.image && !previousImages.has(s.image));
-            const fallbackImage = altStep?.image
-                || THEME_FALLBACK_IMAGES[tour.steps[0]?.type]
-                || CITY_IMAGES[cityName]
-                || GENERIC.piazza;
-            return { ...tour, image: fallbackImage, images: [fallbackImage] };
-        })
-        // Gate O.1: cityCenter (Places-auth) passato al normalizer per applyRadiusFilter.
-        .map(t => normalizeTour(t, {
-            cityFallback: cityName,
-            cityCenter: { latitude: centerLat, longitude: centerLng },
-        }));
-};
+// Gate II (16/07): buildSmartExperiencesAsync RIMOSSO.
+// Prima produceva 4 tour tematici SENZA passare dal narratore
+// (description restava '' → fallback "Luogo di interesse a X" → isMockTour
+// scattava sui tour reali). Ora aiRecommendationService.generateHomeTours
+// produce N tour narrati in UNA sola call OpenAI (costo invariato).
+// Vedi queryFn 'home-experiences' sotto per il nuovo flusso.
+//
+// La pipeline vecchia (discoverAllThemes + mapping steps senza description)
+// e' stata rimossa integralmente. Se serve rollback, git log su
+// DashboardUser.jsx pre-commit Gate II.
 
 // Gate D-2: buildSmartExperiencesFallback rimosso. Prima serviva 3 tour finti
 // con rating "4.8", coord Roma hardcoded, guida "🤖 Intelligenza DoveVai"
@@ -413,69 +241,124 @@ const DashboardUser = () => {
                     throw err;
                 }
 
-                // Lancia in parallelo: 5 tour tematici (placesDiscoveryService) +
-                // 1 tour narrativo "insider locale" (aiRecommendationService).
-                // Il featured insider va in cima alle card di "Per Te".
-                const [smartTours, insiderResult] = await Promise.all([
-                    buildSmartExperiencesAsync(currentCity, cityCenter, userDNAPreferences),
-                    aiRecommendationService.generateItinerary(
-                        currentCity,
-                        { duration: '1 Giorno', group: 'solo', pace: 'rilassato' },
-                        `Itinerario insider per scoprire ${currentCity} oggi`,
-                        {},
-                        getAIContext?.() || '',
-                        // Gate O.1: cityCenter risolto sopra, sempre autoritativo — non aspetta GPS.
-                        { latitude: cityCenter.latitude, longitude: cityCenter.longitude }
-                    ).catch(err => {
-                        console.warn('[Per Te] insider narrativa fallback:', err.message);
-                        return null;
-                    }),
-                ]);
+                // Gate II — 1 call OpenAI unificata per TUTTI i tour Home.
+                // Prima: Promise.all([buildSmartExperiencesAsync (4 tematici SENZA
+                // narratore), generateItinerary (insider narrato)]). Bug: 4/5 tour
+                // avevano description="" → placeholder "Luogo di interesse".
+                // Ora: discoverAllThemes → pool per tema → generateHomeTours
+                // narra TUTTI i tour in 1 chiamata (costo invariato).
 
-                let featured = null;
-                if (insiderResult?.days?.[0]?.stops?.length > 0) {
-                    const day = insiderResult.days[0];
-                    const firstStop = day.stops[0];
-                    // DVAI-053: passo l'oggetto raw al normalizer — cover, images,
-                    // steps[], itinerary derivata e guide default sono settati lì.
-                    featured = normalizeTour({
-                        id: `ai-insider-${Date.now()}`,
-                        type: 'ai-insider',
-                        title: day.title || `Insider · ${currentCity}`,
-                        location: `${currentCity}, Tour AI Insider`,
-                        // Gate O.2: nessun rating/reviews/price. Un tour AI-insider non ha
-                        // recensioni e non ha un prezzo — inventarli sarebbe finto.
-                        duration: `${day.stops.reduce((acc, s) => acc + (s.suggestedMinutes || 30), 0)} min`,
-                        // image/images li lascio scegliere al normalizer (priorità prima foto Places)
-                        image: firstStop.googlePhoto || CITY_IMAGES[currentCity] || GENERIC.piazza,
-                        category: '✨ Insider AI',
-                        emoji: '🧭',
-                        isAiGenerated: true,
-                        isInsiderNarrative: true,
-                        highlights: day.stops.slice(0, 3).map(s => s.title),
-                        included: ['Tour-storia con narrativa', 'Suggerimenti insider per ogni tappa', "Quando andare per il momento giusto"],
-                        notIncluded: ['Guida fisica', 'Biglietti musei'],
-                        guideBio: `Itinerario "insider" generato per oggi a ${currentCity}.`,
-                        center: { latitude: firstStop.latitude, longitude: firstStop.longitude },
-                        // Passo gli stops grezzi: il normalizer estrae title/description/transition/...
-                        // e mappa googlePhoto → image.
-                        stops: day.stops,
-                        suggestedTransit: day.suggestedTransit || 'walking',
-                        mapMood: day.mapMood || 'default',
-                    }, {
-                        cityFallback: currentCity,
-                        // Gate O.1: cityCenter da resolveCityCenter (sempre presente qui).
-                        // Filtro raggio idempotente sopra a generateItinerary.
-                        cityCenter: { latitude: cityCenter.latitude, longitude: cityCenter.longitude },
-                    });
+                // Pool candidati per tema (Places-first, cache condivisa Gate DD).
+                let themedPools = {};
+                try {
+                    themedPools = await placesDiscoveryService.discoverAllThemes(
+                        currentCity, cityCenter.latitude, cityCenter.longitude
+                    );
+                } catch (e) {
+                    console.warn('[Per Te] discoverAllThemes fallita:', e.message);
                 }
 
-                finalTours = featured ? [featured, ...smartTours] : smartTours;
+                // Pool insider: unione top-15 by qualityScore da tutti i temi.
+                // Il narratore sceglie la "perla" mescolando categorie.
+                const allPoisSeen = new Map();
+                for (const pois of Object.values(themedPools)) {
+                    if (!Array.isArray(pois)) continue;
+                    for (const p of pois) {
+                        const pid = p.place_id || p.googlePlaceId || p.title;
+                        if (pid && !allPoisSeen.has(pid)) allPoisSeen.set(pid, p);
+                    }
+                }
+                const insiderPool = [...allPoisSeen.values()]
+                    .sort((a, b) =>
+                        ((b.rating || 0) * Math.log(1 + (b.user_ratings_total || 0))) -
+                        ((a.rating || 0) * Math.log(1 + (a.user_ratings_total || 0)))
+                    )
+                    .slice(0, 15);
 
+                // Call unificata: 1 sola call OpenAI, N tour narrati.
+                let homeToursResult = { tours: [] };
+                try {
+                    homeToursResult = await aiRecommendationService.generateHomeTours({
+                        city: currentCity,
+                        cityCenter,
+                        themedCandidates: {
+                            insider: insiderPool,
+                            ...themedPools, // food, cultura, romance, nature
+                        },
+                        prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' },
+                        aiProfile: getAIContext?.() || '',
+                    });
+                } catch (err) {
+                    console.warn('[Per Te] generateHomeTours errore:', err.message);
+                }
+
+                // Mapping output → shape UI. Ogni tour del narratore diventa una
+                // card, insider in cima (badge dedicato). Regola II.2 applicata a
+                // monte in generateHomeTours: stops con description vuota gia'
+                // scartati, tour con 0 stops gia' esclusi.
+                finalTours = homeToursResult.tours.map((tour) => {
+                    const isInsider = tour.themeType === 'insider';
+                    const firstStop = tour.stops[0];
+                    const durationMin = tour.stops.reduce((acc, s) => acc + (s.suggestedMinutes || 30), 0);
+
+                    // featuredPoi (Gate O.4): POI di punta = qualityScore max tra
+                    // stops con rating reale. Solo tra step Google-verified.
+                    const rated = tour.stops.filter(s => Number.isFinite(s.rating) && s.rating > 0);
+                    const featuredPoi = rated.length > 0
+                        ? (() => {
+                            const best = rated.reduce((a, b) => {
+                                const scoreA = a.rating * Math.log(1 + (a.reviewsCount || 0));
+                                const scoreB = b.rating * Math.log(1 + (b.reviewsCount || 0));
+                                return scoreB > scoreA ? b : a;
+                            });
+                            return { name: best.title, rating: best.rating, reviewsCount: best.reviewsCount };
+                        })()
+                        : null;
+
+                    const emoji = isInsider ? '🧭' : (THEME_EMOJIS[tour.themeType] || '📍');
+                    const category = isInsider ? '✨ Insider AI' : "Consigliato dall'AI";
+                    const themeFallbackImg = THEME_FALLBACK_IMAGES[tour.themeType] || CITY_IMAGES[currentCity] || GENERIC.piazza;
+
+                    return normalizeTour({
+                        id: `home-${tour.themeType}-${Date.now()}`,
+                        type: isInsider ? 'ai-insider' : 'ai-memory',
+                        title: tour.title,
+                        location: `${currentCity}, ${isInsider ? 'Tour AI Insider' : 'Esperienza Locale'}`,
+                        // Gate O.2: nessun rating/reviews/price tour-level.
+                        duration: `${durationMin} min`,
+                        image: firstStop?.googlePhoto || themeFallbackImg,
+                        category,
+                        emoji,
+                        isAiGenerated: true,
+                        isInsiderNarrative: isInsider,
+                        highlights: tour.stops.slice(0, 3).map(s => s.title),
+                        included: ['Tour-storia con narrativa', 'Suggerimenti insider per ogni tappa', 'Quando andare per il momento giusto'],
+                        notIncluded: ['Guida fisica', 'Biglietti musei'],
+                        guideBio: `Itinerario narrato dall'AI su luoghi reali di ${currentCity}.`,
+                        center: { latitude: cityCenter.latitude, longitude: cityCenter.longitude },
+                        stops: tour.stops,
+                        suggestedTransit: tour.suggestedTransit || 'walking',
+                        mapMood: tour.mapMood || 'default',
+                        featuredPoi,
+                    }, {
+                        cityFallback: currentCity,
+                        cityCenter: { latitude: cityCenter.latitude, longitude: cityCenter.longitude },
+                    });
+                });
+
+                // Insider sempre in cima (badge "✨ Insider AI"). Se il narratore
+                // non ha prodotto insider, l'ordine resta come tornato dall'AI.
+                const insiderIdx = finalTours.findIndex(t => t.isInsiderNarrative);
+                if (insiderIdx > 0) {
+                    const [insiderTour] = finalTours.splice(insiderIdx, 1);
+                    finalTours.unshift(insiderTour);
+                }
+
+                // Ordinamento DNA preferences (esclude insider dalla parte
+                // riordinabile — resta primo per costruzione).
                 if (hasPreferences) {
-                    // Il featured rimane in cima a prescindere — sortiamo solo gli smart
-                    const head = featured ? [featured] : [];
-                    const tail = (featured ? finalTours.slice(1) : finalTours)
+                    const head = finalTours[0]?.isInsiderNarrative ? [finalTours[0]] : [];
+                    const tail = (head.length ? finalTours.slice(1) : finalTours)
                         .sort((a, b) => getTourAffinity(b) - getTourAffinity(a));
                     finalTours = [...head, ...tail];
                 }

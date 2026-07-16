@@ -892,6 +892,146 @@ Ecco i ${N} luoghi REALI (usa i place_id da qui):
 ${JSON.stringify(candidatesLite, null, 2)}`;
 };
 
+// Gate II (16/07) — Hash FNV-1a 32-bit per cache key deterministica su
+// pool grandi (place_id set). Non crypto: dedup/cache client-side.
+const hashStr = (s) => {
+    let h = 2166136261;
+    const str = String(s || '');
+    for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = (h * 16777619) >>> 0;
+    }
+    return h.toString(36);
+};
+
+// Gate II — Prompt UNIFICATO per generare N tour Home in una call.
+//
+// Prima: buildSelectorSystemPrompt genera 1 tour (l'insider). I 4 tematici
+// (buildSmartExperiencesAsync) saltavano il narratore, description restava ''.
+// Sintomi: "Vista mare" senza descrizione, "Verde relax" con badge "Tour di
+// esempio" (guard isMockTour scattava su steps vuoti dopo applyRadiusFilter).
+//
+// Ora: 1 call, N tour narrati. Costo invariato (1 call OpenAI, output 2-3x
+// piu' grande — trascurabile su gpt-4o-mini). L'insider e' uno dei N tour,
+// non un path separato: tutte le tappe di tutti i tour vengono dallo stesso
+// narratore, con la stessa qualita' di voce.
+//
+// Regole voce identiche a buildSelectorSystemPrompt (locked): fatti sensoriali,
+// zero aggettivi vuoti, insiderTip pratico da local, bestTime "perche' ORA".
+// Un place_id in un solo tour (dedup post-processing lato codice).
+const buildUnifiedHomeToursPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, cityCenter, themedCandidates }) => {
+    const groupLabel = prefs?.group || 'chiunque';
+    const transitHint = prefs?.pace === 'intenso' ? 'con qualche mezzo' : 'a piedi';
+    const radiusInfo = cityCenter && Number.isFinite(cityCenter.latitude)
+        ? ` Tutte le tappe devono restare entro ${(cityCenter.radiusKm ?? ((cityCenter.isSmallTown ?? isSmallTown(city)) ? 5 : 10))} km dal centro di ${city}.`
+        : '';
+
+    // Meta per tema: titolo suggerito + focus categoria (per aiutare l'AI a
+    // non mescolare cibo in un tour cultura).
+    const themeMeta = {
+        insider: { titleHint: `Titolo evocativo unico (es. "I vicoli segreti di ${city}", "La ${city} che non dorme mai") — NON "Tour di ${city}"`, focus: 'perla nascosta, mix di categorie che raccontano l\'anima della citta\', prima tappa NON e\' il monumento piu\' famoso' },
+        food:    { titleHint: `Titolo tipo "Assapora ${city}" o "Street food di ${city}"`, focus: 'ristoranti, trattorie, mercati, gelaterie, caffe\' — SOLO tappe food' },
+        cultura: { titleHint: `Titolo tipo "Tesori di ${city}" o "Storia di ${city}"`, focus: 'chiese, musei, palazzi, monumenti, piazze storiche — SOLO tappe cultura/storia/arte' },
+        romance: { titleHint: `Titolo tipo "Vista mare a ${city}" o "${city} al tramonto"`, focus: 'lungomari, panorami, belvederi, giardini romantici, scalinate scenografiche' },
+        nature:  { titleHint: `Titolo tipo "Verde e Relax a ${city}" o "${city} outdoor"`, focus: 'parchi, ville, aree verdi, percorsi naturalistici' },
+    };
+
+    const buildCandidatesLite = (pois) => pois.map(p => ({
+        place_id: p.place_id || p.googlePlaceId,
+        name: p.name,
+        rating: p.rating,
+        user_ratings_total: p.user_ratings_total,
+        types: (p.types || []).slice(0, 5),
+        address: p.address || null,
+    }));
+
+    const themedBlocks = Object.entries(themedCandidates)
+        .filter(([, pois]) => Array.isArray(pois) && pois.length > 0)
+        .map(([theme, pois]) => {
+            const lite = buildCandidatesLite(pois);
+            const meta = themeMeta[theme] || themeMeta.insider;
+            return `━━━ TOUR "${theme.toUpperCase()}" — ${meta.focus}
+Titolo: ${meta.titleHint}
+${lite.length} candidati REALI (usa questi place_id):
+${JSON.stringify(lite, null, 2)}`;
+        }).join('\n\n');
+
+    const totalPois = Object.values(themedCandidates).reduce((sum, arr) => sum + (arr?.length || 0), 0);
+    const themeList = Object.keys(themedCandidates).filter(k => themedCandidates[k]?.length > 0);
+
+    return `SEI L'INSIDER DI ${city} — un local che ti mostra la sua citta', non una guida turistica, non Wikipedia, non un elenco.
+
+⚠️ NON scegli tu i luoghi. Io ti do ${totalPois} luoghi REALI di ${city}, gia' verificati su Google (rating, tipo, foto), raggruppati per TEMA.${radiusInfo}
+
+Il tuo lavoro: produci ${themeList.length} tour distinti (uno per TEMA), ognuno di 3-5 tappe.
+
+Contesto:
+• orario: ${timeContext}
+• gruppo: ${groupLabel}
+• meteo: ${weather?.condition || 'sereno'} ${weather?.temperature || 22}°${aiProfile ? `\n• profilo utente: ${aiProfile}` : ''}
+
+REGOLE:
+1. SCELTA — per ogni tour, scegli 3-5 tra i SUOI candidati (quelli piu' adatti a orario/gruppo/meteo).
+2. ORDINE — costruisci un percorso che ${transitHint} abbia senso NARRATIVO, non solo geometrico.
+3. VOCE — per ogni tappa racconta come un local sussurra un segreto:
+
+   description (max 120 car): un dettaglio sensoriale specifico, cosa vedi/senti/odori.
+     ✓ "Il pavimento e' consumato dai piedi di 300 anni di parrocchiani"
+     ✗ "Chiesa barocca del XVIII secolo, patrimonio della citta'"
+
+   insiderTip (max 100 car): un consiglio pratico che solo chi ci vive sa.
+     ✓ "Chiedi il caffe' al bancone, seduto costa il doppio"
+     ✗ "Consigliata visita mattutina"
+
+   bestTime (max 100 car): perche' ORA. Non un orario generico, un motivo specifico.
+     ✓ "Alle 17 la luce entra dalla vetrata sud e colpisce l'altare"
+     ✗ "Momento migliore: pomeriggio"
+
+   transition (max 80 car): cosa vedi camminando alla prossima tappa.
+     ✓ "Girando per Via delle Cisterne c'e' un balcone tutto edera"
+     ✗ "Prosegui verso la prossima tappa a 5 min a piedi"
+
+REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
+"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",
+"affascinante", "magico", "imperdibile", "ottima scelta", "perfetta scelta" — usate sole senza contesto.
+
+REGOLE STRUTTURA:
+- MAI suggerire posti chiusi ora (contesto: ${timeContext}).
+- Adatta il TIPO di posto al gruppo: coppia→intimo, amici→vivace, famiglia→kid-friendly, solo→contemplativo.
+- Un place_id puo' apparire in AL PIU' UN tour. Non ripetere lo stesso luogo in tour diversi.
+- Se un tour non ha 3 candidati adatti al contesto, meglio 2-3 tappe che tappe inventate. NON creare tappe con description generica per riempire.
+
+FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
+{
+  "tours": [
+    {
+      "themeType": "insider" | "food" | "cultura" | "romance" | "nature",
+      "title": "Titolo evocativo (segui indicazioni per tema)",
+      "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
+      "suggestedTransit": "walking|bus|metro",
+      "stops": [{
+        "place_id": "ChIJ... — deve essere uno di quelli del tuo blocco tema",
+        "time": "HH:MM",
+        "description": "voce insider sensoriale (max 120 car)",
+        "insiderTip": "consiglio da local (max 100 car)",
+        "bestTime": "perche' ORA (max 100 car)",
+        "transition": "cosa vedi camminando (max 80 car)",
+        "suggestedMinutes": 30,
+        "type": "cultura|storia|food|shopping|relax|arte|natura"
+      }]
+    }
+  ]
+}
+
+⚠️ NON produrre: name/title del POI/latitude/longitude/rating/photo/address.
+Li ho gia' io e li prendero' dal candidato che tu identifichi con place_id.
+Ogni place_id DEVE essere uno di quelli del suo blocco tema — altri id verranno scartati.
+
+Ecco i candidati raggruppati per tema:
+
+${themedBlocks}`;
+};
+
 // Post-processing: prende gli stop AI (con place_id) e li canonizza dai candidati
 // reali. Riscrive title/lat/lng/rating/googlePhoto/type dal record Google, tiene
 // dall'AI description/insiderTip/bestTime/transition/time/suggestedMinutes.
@@ -1312,6 +1452,172 @@ Schema JSON ESATTO:
     //  4. Costruisce tourData.days[0].stops = i chosenPois arricchiti
     //  5. description = '' (Blocco 2.7 farà il narratore fatti-non-poesia)
     //
+    // ─── Gate II (16/07) — Call unificata per N tour Home in una call ────────
+    //
+    // Prima: DashboardUser lanciava Promise.all([buildSmartExperiencesAsync,
+    // generateItinerary(insider)]). buildSmartExperiencesAsync NON passava
+    // dal narratore → 4 tour tematici con description vuota → fallback
+    // "Luogo di interesse a X" → isMockTour scattava su tour reali.
+    //
+    // Ora: 1 sola call. themedCandidates raggruppa i POI per tema
+    // ({insider: [...], food: [...], cultura: [...], romance: [...],
+    // nature: [...]}). L'AI produce fino a N tour, uno per tema, con
+    // description+insiderTip+bestTime+transition per OGNI tappa.
+    //
+    // Costo: 1 call OpenAI gpt-4o-mini (invariato vs oggi). Output 2-3x
+    // piu' grande (5 tour × 4 tappe × 4 campi ~= 4000 max_tokens) ma
+    // trascurabile su gpt-4o-mini pricing.
+    //
+    // Regole applicate post-processing:
+    //  - Ogni stop DEVE avere description non vuota (II.2). Se AI non ha
+    //    narrato, lo stop viene scartato.
+    //  - Ogni tour DEVE avere >=1 stop dopo il filtro description. Se 0,
+    //    il tour viene scartato (regola locked: meno tour e' meglio di
+    //    tour vuoti).
+    //  - Dedup cross-tour su place_id (primo tour che lo usa lo tiene).
+    //
+    // Cache: come generateItinerary insider, ma key include fingerprint
+    // del pool (place_id set) — cache invalidata automaticamente quando
+    // i pool cambiano (es. deploy nuovo → Places dedup diverso).
+    //
+    // TODO Blocco 2 (U.2): cache condivisa server-side Supabase su
+    // (city, place_ids sorted hash), pattern Gate DD ma su OpenAI narratore.
+    // Rende la call gratis dalla seconda persona sulla stessa citta' per 24h.
+    //
+    // @param {object} params
+    // @param {string} params.city
+    // @param {object} params.cityCenter { latitude, longitude, radiusKm?, isSmallTown? }
+    // @param {object} params.themedCandidates { [themeType]: POI[] }
+    // @param {object} params.prefs { duration, group, pace }
+    // @param {string} params.aiProfile — profilo utente per personalizzare voce
+    // @param {object} params.weather { condition, temperature }
+    // @param {object} params.opts { skipUserQuota? }
+    // @returns {Promise<{ tours: Array, _source: string }>}
+    async generateHomeTours({ city, cityCenter, themedCandidates, prefs = {}, aiProfile = '', weather = {}, opts = {} } = {}) {
+        // Filtro pool vuoti: se un tema non ha POI, non entra nel prompt.
+        const nonEmptyPools = Object.fromEntries(
+            Object.entries(themedCandidates || {}).filter(([, arr]) => Array.isArray(arr) && arr.length > 0)
+        );
+        if (Object.keys(nonEmptyPools).length === 0) {
+            return { tours: [], _source: 'no-pools' };
+        }
+
+        // Cache key: city + cityCenter fingerprint + hash del pool aggregato.
+        // Include place_id ordinati per stabilita' tra call.
+        const centerFingerprint = cityCenter && Number.isFinite(cityCenter.latitude)
+            ? `${cityCenter.latitude.toFixed(3)},${cityCenter.longitude.toFixed(3)}`
+            : 'noRadius';
+        const poolStr = Object.entries(nonEmptyPools)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([theme, arr]) => `${theme}:${arr.map(p => p.place_id || p.googlePlaceId).sort().join(',')}`)
+            .join('|');
+        const cacheKey = `hometours_v1_${city.replace(/\s+/g, '_')}_${centerFingerprint}_${hashStr(poolStr)}`;
+        const cached = loadInsiderFromCache(cacheKey);
+        if (cached) return cached;
+
+        // Quota: 1 call = 1 conteggio (come generateItinerary). skipUserQuota
+        // solo per contexts di sistema (non usato qui in V1).
+        if (!opts.skipUserQuota) {
+            await checkAndIncrementQuota();
+        }
+
+        const weatherIcon = weather?.condition === 'sunny' ? '☀️'
+            : weather?.condition === 'rainy' ? '🌧️' : '⛅';
+        const hour = new Date().getHours();
+        const timeContext = hour >= 6 && hour < 11 ? 'mattina presto — colazione/bar e posti che aprono la mattina'
+            : hour >= 11 && hour < 14 ? 'ora di pranzo — includi un ristorante locale (non turistico)'
+            : hour >= 14 && hour < 18 ? 'pomeriggio — musei, gallerie, panorami, passeggiate'
+            : hour >= 18 && hour < 22 ? 'sera — aperitivi, ristoranti, panorami al tramonto'
+            : 'notte — locali, jazz bar, piazze illuminate';
+
+        const prompt = buildUnifiedHomeToursPrompt({
+            city, timeContext, weather, weatherIcon,
+            prefs, aiProfile, cityCenter, themedCandidates: nonEmptyPools,
+        });
+
+        // Timeout 45s: prompt piu' grande + output 4000 tokens = puo' richiedere
+        // ~15-25s reali. Insider da solo era 35s con 2000 tokens.
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 45_000);
+        try {
+            const data = await callOpenAIProxy({
+                model: 'gpt-4o-mini',
+                messages: [
+                    { role: 'system', content: prompt },
+                    { role: 'user', content: `Costruisci i tour. Ricorda: place_id dal blocco tema corrispondente, voce insider concreta, MAI aggettivi vuoti, tappe con description sensoriale specifica.` },
+                ],
+                response_format: { type: 'json_object' },
+                temperature: 0.7,
+                max_tokens: 4000,
+            }, controller.signal);
+            clearTimeout(timeoutId);
+
+            const raw = data.choices?.[0]?.message?.content;
+            if (!raw) throw new Error('Empty AI response (generateHomeTours)');
+            const parsed = JSON.parse(raw);
+            const rawTours = Array.isArray(parsed) ? parsed : (parsed.tours ?? []);
+            if (!Array.isArray(rawTours) || rawTours.length === 0) throw new Error('AI returned no tours (generateHomeTours)');
+
+            const VALID_MOODS = new Set(['romantico', 'storia', 'avventura', 'natura', 'cibo', 'shopping', 'arte', 'sorpresa', 'sport']);
+            const VALID_TRANSIT = new Set(['bus', 'metro', 'walking']);
+            // Dedup cross-tour: primo tour che usa un place_id lo tiene, i tour
+            // successivi che lo referenziano lo perdono. Ordine tipico: insider
+            // prima (perle nascoste), poi tematici. Se l'AI cambia ordine, la
+            // regola resta stabile — prima il primo.
+            const seenPlaceIds = new Set();
+
+            const finalTours = rawTours.map(tour => {
+                const themeType = tour.themeType;
+                const pool = nonEmptyPools[themeType];
+                if (!pool) {
+                    console.warn(`[generateHomeTours] AI ha proposto themeType "${themeType}" fuori dai pool → tour scartato`);
+                    return null;
+                }
+
+                const aiStops = Array.isArray(tour.stops) ? tour.stops : [];
+                let canonized = canonicalizeStopsFromCandidates(aiStops, pool);
+
+                // Dedup cross-tour su place_id.
+                canonized = canonized.filter(s => {
+                    const pid = s.place_id || s.googlePlaceId;
+                    if (!pid) return true; // no id → mantengo, e' un edge case da controllare
+                    if (seenPlaceIds.has(pid)) return false;
+                    seenPlaceIds.add(pid);
+                    return true;
+                });
+
+                // Gate II.2 — regola locked: description vuota → stop scartato.
+                // Mai placeholder "Luogo di interesse". Meno tappe > tappe vuote.
+                canonized = canonized.filter(s => s.description && String(s.description).trim().length > 0);
+
+                // Safety filtro raggio (Places gia' filtrato ma difense-in-depth).
+                const withinRadius = applyRadiusFilter(canonized, cityCenter, city);
+                const ordered = sortByProximity(withinRadius);
+
+                return {
+                    themeType,
+                    title: tour.title || `Tour di ${city}`,
+                    mapMood: VALID_MOODS.has(tour.mapMood) ? tour.mapMood : 'default',
+                    suggestedTransit: VALID_TRANSIT.has(tour.suggestedTransit) ? tour.suggestedTransit : 'walking',
+                    stops: ordered,
+                };
+            })
+                .filter(t => t && t.stops.length > 0);
+
+            const result = { tours: finalTours, _source: 'unified-home' };
+            saveInsiderToCache(cacheKey, result);
+            return result;
+        } catch (err) {
+            clearTimeout(timeoutId);
+            if (err instanceof AiQuotaExceededError) throw err;
+            console.warn(`[generateHomeTours] fallita: ${err.name === 'AbortError' ? 'timeout' : err.message}`);
+            // Fail-CLOSED: nessun tour di ripiego finto. Chi consuma decide
+            // (empty state onesto). Regola locked #1: nessun fallback produce
+            // mai contenuto.
+            return { tours: [], _source: 'error', _error: err.message };
+        }
+    },
+
     // La guard "almeno un POI" è stata rimossa: la coerenza non si verifica,
     // si costruisce.
     //

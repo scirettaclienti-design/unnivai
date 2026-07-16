@@ -102,12 +102,20 @@ const RULES = [
     {
         name: 'no-luogo-di-interesse-placeholder',
         pattern: /Luogo di interesse|Punto d['´]?interesse consigliato/i,
-        allowlist: [],
-        message: 'Segnaposto placeholder. Usa description reale da Google Places o empty state onesto.',
-        // SKIP: POIDetailDrawer/MapPage hanno GUARD (`description !== "Punto..."`) che
-        // NON mostrano il segnaposto — sono corretti. DashboardUser:106 sì problematico.
-        // Riattivare dopo cleanup DashboardUser buildSmartExperiencesAsync description.
-        skip: true,
+        allowlist: [
+            // MapPage.jsx:480 e POIDetailDrawer:237/247 hanno GUARD
+            // (`description !== "Punto..."`) che ESCLUDONO il segnaposto dal
+            // render — le stringhe letterali sono dati di confronto, non da
+            // mostrare. E' anti-fake, non fake.
+            'src/pages/MapPage.jsx',
+            'src/components/Map/POIDetailDrawer.jsx',
+        ],
+        message: 'Segnaposto placeholder. Usa description reale (narratore) o empty state onesto. Gate II ha eliminato le sorgenti: se rientra, e\' una regressione.',
+        // Gate II — RIATTIVATA. Prima skip=true perche' DashboardUser:138
+        // aveva il fallback `|| \`Luogo di interesse a ${cityName}\`` e
+        // placesDiscoveryService.js:300 iniettava lo stesso testo nei
+        // template di fallback. Ora entrambi ELIMINATI (Gate II unificato
+        // narratore → description sempre vera, altrimenti stop scartato).
     },
     {
         name: 'no-unsplash-in-content',

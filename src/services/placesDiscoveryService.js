@@ -292,21 +292,20 @@ const buildLocalFallback = (cityName, lat, lng, themeType) => {
     ],
   };
 
-  const items = templates[themeType] || templates.walking;
-  return items.map((item, i) => ({
-    id: `fallback-${themeType}-${i}`,
-    name: item.name,
-    title: item.name,
-    description: `Luogo di interesse a ${cityName}`,
-    lat: lat + (Math.random() - 0.5) * 0.008,
-    lng: lng + (Math.random() - 0.5) * 0.008,
-    latitude: lat + (Math.random() - 0.5) * 0.008,
-    longitude: lng + (Math.random() - 0.5) * 0.008,
-    type: item.type,
-    rating: 4.5,
-    city: cityName,
-    image: null,
-  }));
+  // Gate II (16/07): questo fallback e' dead code post-Gate II — la Home
+  // usa generateHomeTours che accetta pool VUOTI (nessun tour se non ci sono
+  // POI reali) invece di iniettare template inventati. La funzione resta
+  // esportata per retrocompat di eventuali call site legacy, ma restituisce
+  // array VUOTO (regola locked #1: nessun fallback produce mai contenuto).
+  //
+  // Prima: templates di nomi tipo "Parco comunale di Troina" con coord
+  // Math.random + rating 4.5 hardcoded + description placeholder — tutti fake.
+  // Con Gate II qualunque tour tematico riceve narrazione vera dall'AI su POI
+  // reali Google. Se non ci sono POI reali, il tour non esiste.
+  console.info(`[DVAI-060] fallback POIs richiesti per ${cityName}/${themeType} → return []`);
+  // Riferimento non usato per evitare warning noUnusedVars sulla const items.
+  void templates;
+  return [];
 };
 
 // ─── DVAI-060 — MOTORE GOOGLE-FIRST ─────────────────────────────────────────────

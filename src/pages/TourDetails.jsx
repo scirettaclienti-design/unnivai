@@ -694,15 +694,20 @@ export default function TourDetailsPage() {
 
     // --- STANDARD TOUR LOGIC ---
     // --- SMART CTA LOGIC ---
-    // DVAI-012 / DVAI-049: Un tour è "mock" se il suo id è numerico (1,2,3) o una
-    // stringa tipo "a1" oppure se non ha un guide_id UUID valido. ECCEZIONE: i tour
-    // generati dall'AI (isAiGenerated=true) con steps reali NON sono mock — sono
-    // tour-storia self-guided generati dal motore, non esche fake.
+    // Gate II.3 (16/07): isMockTour ora dipende SOLO dal flag esplicito
+    // `tour.isDemoTour === true`. Prima il guard era una regola implicita
+    // (id non-UUID + no steps + non-AI) che scattava sui tour REALI quando
+    // applyRadiusFilter svuotava gli steps di un tema (es. "Verde relax" a
+    // Troina): tour reale → badge "Tour di esempio" bugiardo.
+    // Nuova regola locked (Ivano 16/07): un tour reale con un campo vuoto
+    // NON e' un tour di esempio. Serve un flag ESPLICITO messo da chi crea
+    // il tour intenzionalmente come demo (es. onboarding preview).
+    // Zero call site oggi setta isDemoTour → nessun tour Home mostra piu'
+    // il badge "Tour di esempio". Se in futuro serve un demo, va marcato
+    // esplicitamente.
     const hasRealSteps = Array.isArray(tour.steps) && tour.steps.length > 0;
     const isAiSelfGuided = !!tour.isAiGenerated && hasRealSteps;
-    const isMockTour = !isAiSelfGuided && !isValidGuideId(tour.guide_id || tour.guideId || '') &&
-        (typeof tour.id === 'number' ||
-         (typeof tour.id === 'string' && !(/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(tour.id))));
+    const isMockTour = tour.isDemoTour === true;
 
     const isGuideTour = tour.type !== 'self-guided' && !tour.isAiGenerated;
 

@@ -102,9 +102,11 @@ export default function Onboarding() {
     const progress = ((step) / (STEP_CONFIG.length - 1)) * 100;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-ochre-50 via-white to-terracotta-50 font-quicksand flex flex-col items-center justify-center p-4">
-            {/* Progress bar */}
-            <div className="w-full max-w-sm mb-8">
+        <div className="min-h-svh bg-gradient-to-br from-ochre-50 via-white to-terracotta-50 font-quicksand flex flex-col items-center justify-center p-3 sm:p-4">
+            {/* Progress bar — Gate FF.1: min-h-svh (dynamic viewport) + padding
+                ridotto per iPhone SE. mb-6 mobile per lasciare piu' spazio al
+                contenuto centrale (grid 2x4 interessi altrimenti scorre). */}
+            <div className="w-full max-w-sm mb-6 sm:mb-8">
                 <div className="flex justify-between items-center mb-2">
                     <span className="text-xs text-gray-400 font-medium">
                         Passo {step + 1} di {STEP_CONFIG.length}
@@ -176,13 +178,15 @@ export default function Onboarding() {
                             </div>
                         )}
 
-                        {/* Step 1: Città */}
-                        {/* Step 1: Interessi (città viene dal GPS) */}
+                        {/* Step 1: Interessi (città viene dal CityModal Gate AA post-onboarding) */}
+                        {/* Gate FF.1 — grid 2x4 compressa per entrare in iPhone SE 375x667.
+                            Padding card p-2.5, emoji text-xl, label/desc font-size ridotti.
+                            Su viewport standard (>=sm) resta come prima. */}
                         {step === 1 && (
                             <div>
-                                <div className="text-center mb-4">
-                                    <Compass className="w-10 h-10 text-terracotta-500 mx-auto mb-2" />
-                                    <h2 className="text-xl font-black text-gray-800">{STEP_CONFIG[1]?.title}</h2>
+                                <div className="text-center mb-3 sm:mb-4">
+                                    <Compass className="w-8 h-8 sm:w-10 sm:h-10 text-terracotta-500 mx-auto mb-1.5 sm:mb-2" />
+                                    <h2 className="text-lg sm:text-xl font-black text-gray-800">{STEP_CONFIG[1]?.title}</h2>
                                     <p className="text-gray-500 text-xs mt-1">{STEP_CONFIG[1]?.subtitle}</p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2">
@@ -192,18 +196,18 @@ export default function Onboarding() {
                                             <motion.button
                                                 key={interest.id}
                                                 onClick={() => toggleInterest(interest.id)}
-                                                className={`p-3 rounded-2xl text-left transition-all ${
+                                                className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl text-left transition-all ${
                                                     isSelected
                                                         ? 'bg-terracotta-500 text-white shadow-lg shadow-terracotta-200'
                                                         : 'bg-gray-50 text-gray-700 hover:bg-terracotta-50'
                                                 }`}
                                                 whileTap={{ scale: 0.95 }}
                                             >
-                                                <div className="text-2xl mb-1">{interest.emoji}</div>
-                                                <p className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-gray-800'}`}>
+                                                <div className="text-xl sm:text-2xl mb-0.5 sm:mb-1">{interest.emoji}</div>
+                                                <p className={`text-[11px] sm:text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-gray-800'}`}>
                                                     {interest.label}
                                                 </p>
-                                                <p className={`text-[10px] ${isSelected ? 'text-white/80' : 'text-gray-400'}`}>
+                                                <p className={`text-[9px] sm:text-[10px] leading-tight ${isSelected ? 'text-white/80' : 'text-gray-400'}`}>
                                                     {interest.desc}
                                                 </p>
                                             </motion.button>
@@ -211,7 +215,7 @@ export default function Onboarding() {
                                     })}
                                 </div>
                                 {selectedInterests.length === 0 && (
-                                    <p className="text-center text-xs text-terracotta-400 mt-3">
+                                    <p className="text-center text-xs text-terracotta-400 mt-2 sm:mt-3">
                                         Seleziona almeno un interesse per continuare
                                     </p>
                                 )}

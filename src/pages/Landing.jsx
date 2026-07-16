@@ -15,8 +15,14 @@ const stagger = {
 /* ─────────────────────────────────────────────
    PHONE SHELL — shared realistic wrapper
 ───────────────────────────────────────────── */
+// Gate FF.1 — PhoneShell responsive. Prima w/h fissi 260/520 uscivano
+// sotto la fold su iPhone 390x844 nel modal HowItWorks (l'utente vedeva
+// mezzo mockup tagliato). Ora tre step: 190x380 mobile (~73% originale,
+// resta visibile "quasi completo" come vuole Ivano) → 220x440 sm → 260x520
+// md/lg. Le proporzioni interne (Dynamic Island, radius, side buttons)
+// restano identiche perche' usano solo classi rem/tailwind non pixel fissi.
 const PhoneShell = ({ children, accent = '#6366f1', time = '9:41' }) => (
-    <div className="relative w-[260px] h-[520px] flex-shrink-0">
+    <div className="relative w-[190px] h-[380px] sm:w-[220px] sm:h-[440px] md:w-[260px] md:h-[520px] flex-shrink-0">
         {/* Outer glow */}
         <div className="absolute inset-0 rounded-[44px] blur-3xl opacity-40" style={{ background: `radial-gradient(circle, ${accent}55, transparent 70%)`, transform: 'scale(1.1)' }} />
         {/* Phone body */}
@@ -312,7 +318,11 @@ const HowItWorksModal = ({ onClose }) => {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 250, damping: 28 }}
-                className="relative z-10 w-full h-full md:h-auto md:max-h-[92vh] md:max-w-5xl md:rounded-3xl overflow-y-scroll flex flex-col"
+                // Gate FF.1 — h-svh (small viewport height) su mobile gestisce
+                // correttamente Safari iPhone che ridimensiona il viewport quando
+                // appare la toolbar. overflow-y-auto (non scroll) evita la barra
+                // sempre visibile.
+                className="relative z-10 w-full h-svh md:h-auto md:max-h-[92vh] md:max-w-5xl md:rounded-3xl overflow-y-auto flex flex-col"
                 style={{ WebkitOverflowScrolling: 'touch', background: '#090910' }}
                 onMouseEnter={pauseTimer}
                 onMouseLeave={() => goTo(step)} // restart timer on mouse leave
@@ -332,8 +342,8 @@ const HowItWorksModal = ({ onClose }) => {
                     </motion.div>
                 </AnimatePresence>
 
-                {/* Top bar */}
-                <div className="relative z-10 flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/5 flex-shrink-0">
+                {/* Top bar — Gate FF.1: padding compresso mobile */}
+                <div className="relative z-10 flex items-center justify-between px-4 md:px-6 pt-4 md:pt-5 pb-3 md:pb-4 border-b border-white/5 flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-600/30">
                             <Compass className="w-4 h-4 text-white" />
@@ -358,17 +368,19 @@ const HowItWorksModal = ({ onClose }) => {
                 {/* Main content */}
                 <div className="relative z-10 flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
 
-                    {/* LEFT — Text */}
-                    <div className="lg:w-[50%] flex flex-col justify-between p-6 lg:p-10">
+                    {/* LEFT — Text. Gate FF.1: padding + font + margini compressi
+                        su mobile per far entrare tutto in iPhone 390x844 insieme
+                        al phone sotto (mobile stack verticale). */}
+                    <div className="lg:w-[50%] flex flex-col justify-between p-4 md:p-6 lg:p-10">
                         <AnimatePresence mode="wait">
                             <motion.div key={step}
                                 initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }}
                                 transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                                 className="flex-1 flex flex-col justify-center">
 
-                                {/* Step number + tag */}
-                                <div className="flex items-center gap-3 mb-6">
-                                    <span className={`text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r ${current.gradient} leading-none`}>
+                                {/* Step number + tag — Gate FF.1: text-4xl mobile, text-5xl da md */}
+                                <div className="flex items-center gap-3 mb-4 md:mb-6">
+                                    <span className={`text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r ${current.gradient} leading-none`}>
                                         {current.label}
                                     </span>
                                     <div className="flex flex-col gap-1">
@@ -388,45 +400,47 @@ const HowItWorksModal = ({ onClose }) => {
                                     </div>
                                 </div>
 
-                                <h2 className="text-3xl md:text-4xl font-black text-white mb-4 leading-[1.1] tracking-tight">{current.title}</h2>
-                                <p className="text-white/55 text-base leading-relaxed mb-8 max-w-sm">{current.desc}</p>
+                                {/* Gate FF.1: title text-2xl mobile → 3xl md → 4xl lg */}
+                                <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-white mb-3 md:mb-4 leading-[1.1] tracking-tight">{current.title}</h2>
+                                <p className="text-white/55 text-sm md:text-base leading-relaxed mb-4 md:mb-8 max-w-sm">{current.desc}</p>
 
                                 {/* Feature chips — Gate EE: rimossi vecchi chip che promettevano
                                     feature V2/V3 (esperti curatori, prezzi tour, chat con la
                                     persona guida, live navigation, live stories) non presenti
-                                    in V1. Ora solo chip su cio' che V1 fa davvero. */}
-                                <div className="flex flex-wrap gap-2 mb-8">
+                                    in V1. Ora solo chip su cio' che V1 fa davvero.
+                                    Gate FF.1: chip piu' compatti su mobile (padding + font). */}
+                                <div className="flex flex-wrap gap-1.5 md:gap-2 mb-4 md:mb-8">
                                     {[
                                         step === 0 && ['🗺️ Mappa reale', '📍 Coordinate vere', '🌍 Ogni città italiana'],
                                         step === 1 && ['🧠 AI personalizzata', '⏱️ In pochi secondi', '🎯 Sui tuoi interessi'],
                                         step === 2 && ['🗺️ Marker sui punti veri', '📖 Fatti verificabili', '🕒 Orari veri'],
                                     ].flat().filter(Boolean).map((chip, i) => (
                                         <motion.span key={i} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 + i * 0.08 }}
-                                            className="text-xs font-semibold px-3 py-1.5 rounded-full border text-white/70"
+                                            className="text-[10px] md:text-xs font-semibold px-2 md:px-3 py-1 md:py-1.5 rounded-full border text-white/70"
                                             style={{ borderColor: `${current.accent}40`, background: `${current.accent}12` }}>
                                             {chip}
                                         </motion.span>
                                     ))}
                                 </div>
 
-                                {/* Navigation buttons */}
+                                {/* Navigation buttons — Gate FF.1: h-10 mobile → h-11 da md */}
                                 <div className="flex items-center gap-3">
                                     {step > 0 && (
                                         <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={() => goTo(step - 1)}
-                                            className="w-11 h-11 bg-white/8 hover:bg-white/12 border border-white/10 rounded-xl flex items-center justify-center transition-all">
+                                            className="w-10 h-10 md:w-11 md:h-11 bg-white/8 hover:bg-white/12 border border-white/10 rounded-xl flex items-center justify-center transition-all">
                                             <ChevronLeft className="w-5 h-5 text-white/60" />
                                         </motion.button>
                                     )}
                                     {step < STEPS.length - 1 ? (
                                         <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => goTo(step + 1)}
-                                            className={`flex-1 h-11 bg-gradient-to-r ${current.gradient} text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg`}
+                                            className={`flex-1 h-10 md:h-11 bg-gradient-to-r ${current.gradient} text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg`}
                                             style={{ boxShadow: `0 8px 24px ${current.glow}` }}>
                                             Prossimo <ChevronRight className="w-4 h-4" />
                                         </motion.button>
                                     ) : (
                                         <Link to="/login" className="flex-1" onClick={onClose}>
                                             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                                                className="w-full h-11 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30">
+                                                className="w-full h-10 md:h-11 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30">
                                                 🎉 Inizia Gratis ora <ArrowRight className="w-4 h-4" />
                                             </motion.button>
                                         </Link>
@@ -436,14 +450,17 @@ const HowItWorksModal = ({ onClose }) => {
                         </AnimatePresence>
                     </div>
 
-                    {/* RIGHT — Phone */}
-                    <div className="lg:w-[50%] flex items-center justify-center p-6 lg:p-10 relative">
+                    {/* RIGHT — Phone. Gate FF.1: padding compresso mobile
+                        (pt-2 pb-6 → il phone stacca dal testo ma non spreca
+                        altezza sotto). Ring decorativo scalato per non
+                        eccedere il phone su mobile (w-64 mobile → w-80 md). */}
+                    <div className="lg:w-[50%] flex items-center justify-center pt-2 pb-6 px-4 md:p-6 lg:p-10 relative">
                         {/* Decorative ring behind phone */}
                         <AnimatePresence mode="wait">
                             <motion.div key={step}
                                 initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
                                 transition={{ duration: 0.5 }}
-                                className="absolute w-80 h-80 rounded-full border border-white/5"
+                                className="absolute w-56 h-56 md:w-80 md:h-80 rounded-full border border-white/5"
                                 style={{ boxShadow: `0 0 80px 20px ${current.glow}` }}
                             />
                         </AnimatePresence>

@@ -361,6 +361,35 @@ const RULES = [
         ],
         message: 'Feature V2/V3 (guide locali, esperti, audioguida, live, chat-guida) nominata come presente nel copy V1. V1 promette solo cio\' che V1 mantiene. Le feature V2/V3 vivono in /prossimamente, non nel copy della landing/onboarding/dashboard. Landing/Onboarding/Login: mai in allowlist — vale il muro EE.',
     },
+    // Gate GG (16/07) — Nessun messaggio all'utente puo' affermare
+    // un'azione di sistema che non avviene davvero.
+    // Bug scoperto Ivano: ErrorBoundary diceva "Il team tecnico e' stato
+    // notificato" mentre nel codice c'era solo `console.error()`. Nessuno
+    // riceveva niente. Bugia rassicurante, stessa classe di "Marco R." o
+    // "Giulia Romano" ma peggio: promette un processo che non esiste.
+    //
+    // Frasi vietate (in JSX/JS user-facing): affermazioni di azione sistema
+    //  - "team (tecnico) (e') stato notificato/avvisato"
+    //  - "email inviata / abbiamo inviato l'email"
+    //  - "abbiamo salvato" / "salvato con successo" (senza codice che salva)
+    // La regola matcha SEMPRE il pattern. Se serve dire una di queste frasi,
+    // il file DEVE contenere anche la chiamata che esegue davvero l'azione
+    // (`reportError(`, `sendEmail(`, `supabase.from(...).insert`,
+    // `supabase.from(...).upsert`). Se il pattern matcha SENZA la call →
+    // violazione (bugia rassicurante).
+    //
+    // Approccio: pattern che catcha la frase; la validation per-file (call
+    // presente?) e' fatta nella regola custom sotto (fuori dal loop RULES).
+    // Nel loop RULES qui includiamo solo le frasi che NON hanno mai una
+    // controparte legittima (rare).
+    //
+    // Regola locked (Ivano 16/07): "nessun messaggio all'utente puo' affermare
+    // un'azione di sistema che non avviene". Test anti-rientro contro le
+    // bugie rassicuranti.
+    // Nota: questa regola vive nella regola custom sotto
+    // `no-reassuring-lie-without-action`, che ha logica per-file necessaria
+    // per validare la coesistenza pattern+call.
+
     // Gate N.0 — Ogni notifica AI-generated deve portare engineVersion.
     // Regola custom: se un file contiene type 'tour_recommendation' o 'weather_alert'
     // deve contenere anche 'engineVersion' (import o uso). Impedisce che un
@@ -561,6 +590,48 @@ describe('Gate M — Anti-fake test', () => {
             throw new Error(
                 `no-user-derived-storage-key-without-userid: ${missing.length} violazione/i.\n${details}\n` +
                 `Fix: le chiavi dvai_smart_notif_/read_generated_notifs/deleted_generated_notifs devono avere lo userId nel key path. Usa scopedKey('base') o \`\${base}_\${userId || 'guest'}\`.`
+            );
+        }
+        expect(missing).toHaveLength(0);
+    });
+
+    // Gate GG (16/07) — Regola attiva, custom: nessuna frase user-facing puo'
+    // affermare un'azione di sistema (notifica al team / email inviata /
+    // dato salvato) senza che il codice di quel file la esegua davvero.
+    //
+    // Bug scoperto Ivano: ErrorBoundary diceva "Il team tecnico e' stato
+    // notificato" mentre componentDidCatch faceva solo console.error.
+    // Nessuno riceveva niente. Bugia rassicurante.
+    //
+    // Pattern: qualunque literal string (JSX/JS) che matcha frasi tipo
+    // "team ... notificato", "email inviata", "abbiamo salvato". Se la
+    // frase c'e', il file DEVE contenere anche una call verificabile che
+    // realizza l'azione: reportError(, sendEmail(, supabase.from(...).insert,
+    // supabase.from(...).upsert, oppure un helper di test/mock evidente.
+    //
+    // Regola locked (Ivano 16/07): "nessun messaggio all'utente puo' affermare
+    // un'azione di sistema che non avviene". Vale anche per copy che
+    // riguarda percorsi non-error (successo booking, invito inviato, ecc).
+    it('[no-reassuring-lie-without-action] Frasi tipo "team notificato / email inviata / salvato" richiedono il codice che esegue davvero l\'azione', () => {
+        const REASSURING_PHRASES = /\b(team\s+(?:tecnico\s+)?(?:e['’])?\s*stato\s+(?:notificato|avvisato)|(?:e['’])\s+stato\s+notificato|abbiamo\s+notificato|email\s+inviata|abbiamo\s+inviato\s+l['’]?email|abbiamo\s+salvato|salvato\s+con\s+successo)\b/i;
+        const ACTION_MARKERS = /\breportError\s*\(|\bsendEmail\s*\(|\bmailto\s*:|supabase\.[a-zA-Z_]+\([^)]*\)\.(?:insert|upsert|update)|\bfrom\s*\(\s*["'][^"']*["']\s*\)\s*\.(?:insert|upsert|update)|\berror_logs\b/;
+        const missing = [];
+        for (const file of files) {
+            const rel = relative(REPO_ROOT, file).replace(/\\/g, '/');
+            const content = readFileSync(file, 'utf8');
+            if (!REASSURING_PHRASES.test(content)) continue;
+            if (ACTION_MARKERS.test(content)) continue;
+            // Riporta la linea specifica per messaggio piu' utile.
+            const lines = content.split('\n');
+            const idx = lines.findIndex(l => REASSURING_PHRASES.test(l) && !l.trim().startsWith('//') && !l.trim().startsWith('*'));
+            if (idx < 0) continue; // era in commento puro
+            missing.push({ file: rel, line: idx + 1, content: lines[idx].trim().slice(0, 200) });
+        }
+        if (missing.length > 0) {
+            const details = missing.map(v => `  ${v.file}:${v.line} → ${v.content}`).join('\n');
+            throw new Error(
+                `no-reassuring-lie-without-action: ${missing.length} violazione/i.\n${details}\n` +
+                `Fix: se la frase "team notificato / email inviata / salvato" appare in un file, quel file deve contenere anche una call che esegue davvero l'azione (reportError(, sendEmail(, supabase.from(...).insert/upsert). Oppure togli la frase.`
             );
         }
         expect(missing).toHaveLength(0);

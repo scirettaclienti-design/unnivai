@@ -37,6 +37,12 @@ PROGRESS.md
 V1.1_BACKLOG.md
 COST_PER_TOUR.md
 
+# Gate EE (Ivano 16/07): DOVEVAI_HANDOFF.md e' committato — e' la fonte
+# unica di stato per me, per Claude e per la prossima sessione. Aggiornarlo
+# in coda dopo ogni gate importante. Altri DOVEVAI_*.md (drafts, note
+# volatili) restano fuori dal repo.
+!DOVEVAI_HANDOFF.md
+
 
 # Gate F — Playwright E2E artifacts
 /playwright-report/

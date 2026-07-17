@@ -1653,12 +1653,17 @@ const MapPage = () => {
                         />
                     </InfoWindow>
                 ) : (
-                    <POIDetailDrawer 
-                        poi={selectedPOI} 
-                        onClose={() => setSelectedPOI(null)} 
+                    <POIDetailDrawer
+                        poi={selectedPOI}
+                        onClose={() => setSelectedPOI(null)}
                         onUnlock={handlePOIUnlock}
                         transportMode={pageTransportMode}
                         onNavigate={handleStartNavigationClick}
+                        // Fase 2a: CTA "Sono arrivato" solo durante la nav e solo su una
+                        // vera tappa del tour (in activeRoute). isCompleted → disabilitato.
+                        isNavigating={isNavigating}
+                        isCompleted={!!selectedPOI && completedSteps.includes(selectedPOI.id)}
+                        isTourStep={!!selectedPOI && activeRoute.some(s => s.id === selectedPOI.id)}
                     />
                 )
             )}

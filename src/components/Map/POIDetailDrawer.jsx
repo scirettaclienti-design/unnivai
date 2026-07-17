@@ -5,7 +5,7 @@ import confetti from 'canvas-confetti';
 import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useToast } from '../../hooks/use-toast';
 
-export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavigate }) => {
+export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavigate, isNavigating = false, isCompleted = false, isTourStep = false }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const { toast } = useToast();
 
@@ -258,7 +258,30 @@ export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavig
           </div>
 
           {/* MAIN BOTTOM CALL TO ACTION */}
-          {poi.level === 2 ? (
+          {/* Fase 2a gate Navigazione: durante la nav attiva, su una TAPPA del tour
+              il CTA e' "Sono arrivato" (fatto dichiarato, non premio). Chiama lo
+              stesso handlePOIUnlock (onUnlock) del ramo level===2 ma SENZA confetti
+              ne' linguaggio gamification. Guidato da isNavigating/isTourStep/isCompleted
+              passati da MapPage — NON da poi.level (che le tappe non hanno). Fuori
+              nav, o su POI non-tappa, resta la cascata esistente sotto. */}
+          {isNavigating && isTourStep ? (
+            isCompleted ? (
+              <button
+                disabled
+                className="w-full bg-gray-100/80 backdrop-blur-sm border border-gray-200 text-gray-400 py-4.5 rounded-[1.25rem] font-bold flex items-center justify-center gap-2 transition-all text-sm cursor-not-allowed uppercase tracking-wider"
+              >
+                <MapPin size={18} /> Tappa completata
+              </button>
+            ) : (
+              <button
+                onClick={() => onUnlock && onUnlock(poi)}
+                className="w-full text-white py-3.5 rounded-full font-bold flex items-center justify-center gap-2 shadow-lg shadow-orange-400/30 active:scale-95 transition-all text-sm min-h-[44px]"
+                style={{ background: 'linear-gradient(135deg, #C2703E, #D4A843)' }}
+              >
+                <MapPin size={18} /> Sono arrivato
+              </button>
+            )
+          ) : poi.level === 2 ? (
             <button 
               onClick={handleUnlock}
               disabled={poi.completed}

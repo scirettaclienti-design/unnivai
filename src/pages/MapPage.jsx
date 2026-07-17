@@ -25,6 +25,7 @@ import { dataService } from '../services/dataService';
 import { poiService } from '../services/poiService';
 import { POIPopupCard } from '../components/Map/POIPopupCard';
 import { supabase } from '../lib/supabase';
+import { logNavEvent } from '../lib/navTelemetry';
 import './MapPage.css';
 
 import { DEMO_CITIES } from '../data/demoData';
@@ -529,6 +530,11 @@ const MapPage = () => {
                     image: s.image,
                     type: s.type || 'waypoint',
                     description: s.description,
+                    // Fase 1 gate Navigazione: propaga il contenuto insider di Gate II
+                    // (null onesto se il narratore non l'ha prodotto — regola locked #16).
+                    // NON mostrato ancora da nessuna parte: il surfacing e' la Fase 3.
+                    insiderTip: s.insiderTip ?? null,
+                    bestTime: s.bestTime ?? null,
                     city: s.city || tourData.city || city || '',
                     index: i,
                 }));
@@ -775,6 +781,16 @@ const MapPage = () => {
         // come no-op safety (gestisce il caso in cui fullscreen fosse stato
         // attivato manualmente dall'utente su desktop).
         exitNavFullscreen();
+
+        // Fase 1 telemetria: complete vs abandon in base a quante tappe fatte.
+        const totalStepsCount = activeRoute?.length || 0;
+        const endTourId = tourData?.id || tourData?.tourId || null;
+        if (totalStepsCount > 0 && completedSteps.length >= totalStepsCount) {
+            logNavEvent('nav_complete', { tour_id: endTourId });
+        } else {
+            logNavEvent('nav_abandon', { tour_id: endTourId, step_index: completedSteps.length });
+        }
+
         if (completedSteps.length > 0) {
             setTimeout(() => setIsSummaryModalOpen(true), 300);
         }
@@ -790,6 +806,9 @@ const MapPage = () => {
 
     const handleStartNavigationReal = () => {
         console.log('[DVAI-Nav] handleStartNavigationReal: click Avvia');
+        // FASE 1 DEBUG — RIMUOVERE in Fase 3. Verifica su device che insiderTip/bestTime
+        // di Gate II arrivino sull'oggetto tappa (null onesto se assenti, mai placeholder).
+        console.log('[Fase1-debug] tappe insider:', (activeRoute || []).map(s => ({ name: s.name, insiderTip: s.insiderTip, bestTime: s.bestTime })));
         setIsRoutePlannerOpen(false);
         setIsNavigating(true);
         setFollowing(true);
@@ -822,6 +841,9 @@ const MapPage = () => {
             navigator.geolocation.getCurrentPosition(
                 ({ coords }) => {
                     console.log('[DVAI-Nav] start: GPS ok', { lat: coords.latitude, lng: coords.longitude });
+                    // Fase 1 telemetria: nav_start (una sola volta per sessione, con
+                    // esito GPS come contesto — non un evento separato).
+                    logNavEvent('nav_start', { tour_id: tourData?.id || tourData?.tourId || null, mode: pageTransportMode });
                     // Layer C Fix 2 — Zoom sulla posizione utente all'avvio.
                     // Uso mapRef.current.flyTo (wrapper testato) invece di map.moveCamera diretto.
                     // Retry con backoff se il wrapper non è pronto (max 300ms), poi warn esplicito.
@@ -943,6 +965,9 @@ const MapPage = () => {
                 },
                 (err) => {
                     console.warn('[DVAI-Nav] start: GPS fallito', err?.code, err?.message);
+                    // Fase 1 telemetria: la nav parte comunque (fallback prima tappa
+                    // sotto). Registriamo nav_start con gps_denied nel context.
+                    logNavEvent('nav_start', { tour_id: tourData?.id || tourData?.tourId || null, mode: pageTransportMode, gps_denied: true });
                     // Layer C Fix 2 — messaggio più informativo. Distinguo permission
                     // denied (utente ha detto no) da altri errori (timeout, unavailable).
                     const isPermissionDenied = err?.code === 1;
@@ -973,6 +998,10 @@ const MapPage = () => {
                 },
                 { enableHighAccuracy: true, timeout: 5000 }
             );
+        } else {
+            // Nessuna API geolocation: la nav parte comunque. Registriamo nav_start
+            // con gps_denied per non perdere la sessione nel conteggio.
+            logNavEvent('nav_start', { tour_id: tourData?.id || tourData?.tourId || null, mode: pageTransportMode, gps_denied: true });
         }
     };
 
@@ -980,6 +1009,14 @@ const MapPage = () => {
         if (!completedSteps.includes(poiObj.id)) {
             const newCompleted = [...completedSteps, poiObj.id];
             setCompletedSteps(newCompleted);
+
+            // Fase 1 telemetria: step_reached. Dentro la guard di idempotenza
+            // (N3) → un solo evento per tappa. In Fase 2 lo stesso punto sara'
+            // chiamato anche dal geofence, quindi step_reached copre entrambi.
+            logNavEvent('step_reached', {
+                tour_id: tourData?.id || tourData?.tourId || null,
+                step_index: typeof poiObj.index === 'number' ? poiObj.index : (newCompleted.length - 1),
+            });
 
             // Feedback visivo: toast celebrativo
             const stepNum = newCompleted.length;

@@ -3,15 +3,18 @@
 Punto di partenza per chi (o quale sessione di Claude) riprende il progetto.
 Aggiornare in coda dopo ogni iterazione importante.
 
-**Ultimo aggiornamento**: 2026-07-17 dopo Gate II (commit `00bb209`, verificato
-device Ivano su Troina) — narratore unificato su TUTTI i tour Home in 1 sola
-call OpenAI, kill placeholder "Luogo di interesse", isMockTour su flag
-esplicito `isDemoTour`. Coerenza narrativa raggiunta: ogni tappa di ogni tour
-"Per Te" ora ha description + insiderTip + bestTime + transition dal
-narratore. Precedenti stessa sessione: Gate GG (16/07) ErrorBoundary con
-chunk-reload automatico + tabella `error_logs` Supabase (frase "team
-notificato" ora vera), Gate FF.1 (16/07) responsive slide HowItWorks per
-iPhone. Vercel verde. CC.3 Esplora rimane pendente.
+**Ultimo aggiornamento**: 2026-07-17 dopo Gate KK — diagnosi read-only su
+finding prod (screenshot ErrorBoundary vecchio con stack + "team notificato").
+Codice GG su main confermato corretto; crash causato da CACHE CLIENT STALE
+(browser Ivano eseguiva ancora bundle pre-GG con `index.html` vecchio che
+referenziava chunk hashati di un build precedente). Auto-risolto al refresh
+cache browser. **Verificato device Ivano 17/07**: app entra pulita, nessun
+crash attivo in prod. Backlog aggiornato con fix strutturale
+`vercel.json` cache policy (P2, pre-lancio) e advisory sicurezza RLS
+(4 tabelle senza RLS in prod). Precedenti sessione: Gate II (16-17/07,
+commit `00bb209`) narratore unificato N tour Home in 1 call; Gate GG (16/07)
+ErrorBoundary chunk-reload + error_logs; Gate FF.1 (16/07) responsive slide.
+Vercel verde. CC.3 Esplora rimane pendente.
 
 ---
 
@@ -1105,6 +1108,50 @@ esclusa + tour senza tappe esclusi + resta dentro cache DD dove possibile.
 "Vista mare" ha description + orario per tappa come "I vicoli segreti",
 "Verde relax" non è più "Tour di esempio", l'insider è rimasto identico.
 
+### Gate KK (17/07) — Crash prod ErrorBoundary: NON è bug di codice
+
+Screenshot Ivano (deploy 17/07): schermata "Qualcosa è andato storto" + "Il
+team tecnico è stato notificato" + stack grezzo `TypeError: 'text/html' is not
+a valid JavaScript MIME type` + nessun reload automatico. Sembrava regressione
+Gate GG.
+
+Diagnosi read-only:
+
+- **Codice GG su main è CORRETTO e verificato.** Render ErrorBoundary attuale
+  NON contiene "team tecnico notificato" (ora "l'errore è stato registrato e
+  lo guardiamo"). Nessuno stack esposto. `classifyError` matcha
+  `is not a valid javascript mime type`. Chunk-load → spinner + `location.reload()`
+  automatico con flag `dvai_chunk_reload_attempted` anti-loop.
+- **Tabella `error_logs` esiste in prod** (applicata manualmente via SQL Editor,
+  fuori dal migration tracker — `list_migrations` mostra solo `dvai_050_ai_quota_daily`
+  registrato). Zero righe nella tabella (nessun crash è mai stato riportato).
+- **`curl -sI` su `unnivai.vercel.app/`**: `index.html` servito fresco
+  (`age: 0`, `x-vercel-cache: MISS`, `cache-control: public, max-age=0,
+  must-revalidate`, `x-vercel-id: fra1::h4lcp-...`). Il server serve la
+  versione corretta.
+
+**CAUSA REALE**: cache client stale. Il vecchio `index.html` cachato da Safari
+referenziava chunk hashati di un build precedente; post-deploy quei chunk non
+esistono più → Vercel risponde `text/html` (SPA fallback) → il boundary
+PRE-GG (nel bundle vecchio ancora in esecuzione nel browser) mostra lo stack.
+**GG non può intercettare perché GG non è nel bundle che sta girando.**
+
+**Auto-risolto al refresh cache browser.** **Verificato device Ivano 17/07**:
+app entra pulita, richiede di nuovo la localizzazione (= ripartenza da zero,
+cache svuotata). Nessun crash attivo in prod.
+
+**Perimetro onesto**: il browser di Ivano è a posto, il problema STRUTTURALE
+no. Ogni utente con cache vecchia, al prossimo deploy, può rivivere lo stesso
+lampo prima che GG (auto-reload) sia caricato. La rete di sicurezza GG
+scatta solo se il bundle GG è già attivo — cane che si morde la coda al primo
+deploy.
+
+**Advisory sicurezza emerso in diagnosi KK** (da verificare, NON toccato):
+4 tabelle con RLS disabilitato in prod — `public.profiles`, `public.bookings`,
+`public.guides`, `public.spatial_ref_sys`. Con anon key si legge/scrive
+tutto. Da valutare prima del lancio (`profiles` e `guides` sono sensibili).
+Aprire gate dedicato security RLS in P2.
+
 ---
 
 ## Regole locked NUOVE (16-17/07)
@@ -1204,12 +1251,28 @@ funziona (Gate II fatto), poi (C) lo rende gratis dalla seconda persona.
   + segnaposto "Presto guide locali" onesto. Kill "Guida DoveVai" default
   (ogni tour AI attribuito a una guida fittizia "DoveVai Concierge").
 
-### Priorità 2 — Ottimizzazione costi + rate limit
+### Priorità 2 — Ottimizzazione costi + rate limit + cache policy + sicurezza
 
 - **U.2** (rate limit server-side sui numeri finali post-DD + cache narratore
   strada C): se un IP fa >100 chiamate/min al places-proxy → 429. Nuova
   tabella `narrator_cache` per Gate II (pattern DD su OpenAI). Un solo
   commit, due leve costi insieme.
+- **`vercel.json` cache policy** (Gate KK backlog, pre-lancio):
+  fix strutturale stale-chunk alla radice. Headers da aggiungere:
+  - `index.html` → `Cache-Control: no-cache` (rivalida sempre).
+  - `/assets/*` (chunk hashati Vite) → `Cache-Control: public,
+    max-age=31536000, immutable` (mai stale: l'hash cambia a ogni build).
+  Vite già hash-a i filename → immutable è sicuro. Elimina lo stale chunk
+  per tutti gli utenti futuri. Da fare con U.2 (un commit). NON urgente:
+  nessun crash attivo oggi (l'ultimo Ivano è auto-risolto), ma serve prima
+  del lancio per evitare che ogni deploy generi un lampo di errore agli
+  utenti con cache vecchia.
+- **Gate security RLS** (advisory Gate KK): 4 tabelle in prod con RLS OFF —
+  `public.profiles`, `public.bookings`, `public.guides`, `public.spatial_ref_sys`.
+  Con anon key si legge/scrive tutto. Valutare policy prima del lancio.
+  `profiles` e `guides` sono sensibili (email, PIVA, license_number).
+  `spatial_ref_sys` è read-only PostGIS built-in (probabilmente OK escluderla).
+  `bookings` V1 non ha usi attivi (V2). Un gate dedicato, non un one-liner.
 
 ### Priorità 3 — Verifica finale
 

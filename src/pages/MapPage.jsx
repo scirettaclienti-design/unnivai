@@ -32,6 +32,13 @@ import { DEMO_CITIES } from '../data/demoData';
 
 const DEFAULT_CITY = 'Roma';
 
+// Fase 2b-1 gate Navigazione: raggio base (m) entro cui una tappa si considera
+// "raggiunta" e si auto-sblocca. Soglia effettiva = max(GEOFENCE_BASE_M, accuracy GPS)
+// → si allarga da sola quando il GPS è impreciso, resta stretta quando è preciso.
+// VALORE DI PARTENZA per camminata urbana, DA CALIBRARE su device reale a Troina
+// leggendo i log [DVAI-Geofence]. Non è un magic number sparso: unico punto qui.
+const GEOFENCE_BASE_M = 35;
+
 // ─── SEMANTIC TAG MAPPING ─────────────────────────────────────────────────────
 // Tour tags → Business category_tags equivalents (one-to-many)
 const TAG_MAPPING = {
@@ -364,7 +371,10 @@ const MapPage = () => {
                     }));
                 }
             },
-            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            // R2 (Gate X): al MOUNT precisione "in che città sei" basta — niente
+            // high-accuracy (era il buco iOS 45s indoor). La precisione marciapiede
+            // serve solo durante la nav attiva (watchPosition sotto).
+            { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 }
         );
 
         // watchPosition continuo per pallino blu sempre aggiornato
@@ -380,6 +390,14 @@ const MapPage = () => {
 
     // NEW STATES: Tour Completion Tracking
     const [completedSteps, setCompletedSteps] = useState([]);
+    // Fase 2b-1 geofence: il callback watchPosition cattura UNA volta lo scope di
+    // handleStartNavigationReal → senza ref leggerebbe completedSteps/handlePOIUnlock
+    // stantii (bug: nextStep resterebbe sempre la tappa 0, setCompletedSteps
+    // sovrascriverebbe). Questi ref tengono l'ultimo valore. geofenceFiredRef
+    // deduplica gli auto-sblocchi in modo sincrono (prima che lo stato si aggiorni).
+    const completedStepsRef = useRef(completedSteps);
+    const handlePOIUnlockRef = useRef(null);
+    const geofenceFiredRef = useRef(new Set());
     const [flyToLabel, setFlyToLabel] = useState(null);
     const [reviewModalData, setReviewModalData] = useState(null);
     const [voiceEnabled, setVoiceEnabled] = useState(true);
@@ -809,6 +827,8 @@ const MapPage = () => {
         // FASE 1 DEBUG — RIMUOVERE in Fase 3. Verifica su device che insiderTip/bestTime
         // di Gate II arrivino sull'oggetto tappa (null onesto se assenti, mai placeholder).
         console.log('[Fase1-debug] tappe insider:', (activeRoute || []).map(s => ({ name: s.name, insiderTip: s.insiderTip, bestTime: s.bestTime })));
+        // Fase 2b-1: nuova sessione nav → azzera i geofence già scattati.
+        geofenceFiredRef.current = new Set();
         setIsRoutePlannerOpen(false);
         setIsNavigating(true);
         setFollowing(true);
@@ -896,8 +916,43 @@ const MapPage = () => {
                     let writer3Ticks = 0;
                     const wId = navigator.geolocation.watchPosition(
                         (pos) => {
-                            const { latitude, longitude, heading, speed } = pos.coords;
+                            const { latitude, longitude, heading, speed, accuracy } = pos.coords;
                             setLocalCenter({ latitude, longitude });
+
+                            // ── Fase 2b-1: GEOFENCE auto-unlock ──────────────────────
+                            // Prossima tappa = prima di activeRoute NON ancora completata
+                            // (per esclusione da completedSteps, non per conteggio → evita
+                            // il quirk di 2a) e non già auto-sbloccata in questa sessione.
+                            // Calcolo client-side (haversine, dati in memoria): zero API.
+                            {
+                                const doneIds = completedStepsRef.current || [];
+                                const firedSet = geofenceFiredRef.current;
+                                const nextStep = (activeRoute || []).find(
+                                    s => !doneIds.includes(s.id) && !firedSet.has(s.id)
+                                );
+                                if (nextStep && Number.isFinite(nextStep.latitude) && Number.isFinite(nextStep.longitude)) {
+                                    const distM = haversineM(latitude, longitude, nextStep.latitude, nextStep.longitude);
+                                    // Soglia adattiva (R1): si allarga se il GPS è impreciso.
+                                    const soglia = Math.max(GEOFENCE_BASE_M, accuracy || 0);
+                                    const scattato = distM <= soglia;
+                                    // Strumento di calibrazione (rimuovere/ridurre dopo Troina).
+                                    console.log('[DVAI-Geofence]', {
+                                        prossimaTappa: nextStep.name || nextStep.title,
+                                        distanzaM: Math.round(distM),
+                                        accuracy: Math.round(accuracy || 0),
+                                        soglia: Math.round(soglia),
+                                        scattato,
+                                    });
+                                    if (scattato && handlePOIUnlockRef.current) {
+                                        // Dedup sincrono: marca PRIMA di chiamare, così il tick
+                                        // successivo passa già alla tappa dopo (niente doppioni,
+                                        // niente fly-to/toast a raffica). handlePOIUnlock ha
+                                        // comunque la sua guard su completedSteps (N3).
+                                        firedSet.add(nextStep.id);
+                                        handlePOIUnlockRef.current(nextStep);
+                                    }
+                                }
+                            }
 
                             const now = Date.now();
                             // Adatta camera al mezzo di trasporto
@@ -959,7 +1014,10 @@ const MapPage = () => {
                             }
                         },
                         (err) => console.warn("Errore Inseguimento Navigazione:", err),
-                        { enableHighAccuracy: true, maximumAge: 1000 }
+                        // R2: high-accuracy giustificato SOLO qui (nav attiva, serve
+                        // precisione marciapiede per il geofence). Parte all'avvio nav,
+                        // fermato da clearWatch in handleEndNavigation. timeout per non pendere.
+                        { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
                     );
                     setWatchId(wId);
                 },
@@ -1054,6 +1112,12 @@ const MapPage = () => {
             }
         }
     };
+
+    // Fase 2b-1: tieni i ref allineati all'ultimo render, così il callback
+    // watchPosition (geofence) legge sempre l'ultimo completedSteps e chiama
+    // l'ultimo handlePOIUnlock (il cui setCompletedSteps parte dallo stato reale).
+    useEffect(() => { completedStepsRef.current = completedSteps; }, [completedSteps]);
+    useEffect(() => { handlePOIUnlockRef.current = handlePOIUnlock; });
 
     // ─── CUSTOM POI INTERCEPTION (Premium Google Maps Feel) ───
     const handleNativePOIClick = useCallback((e) => {

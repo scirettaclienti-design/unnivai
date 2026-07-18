@@ -90,6 +90,7 @@ export default function NavigationHUD({
     routeStats,
     activeRoute,
     completedSteps,
+    nextStepDistanceM,
     voiceEnabled,
     onToggleVoice,
     onEndNavigation,
@@ -97,6 +98,10 @@ export default function NavigationHUD({
     onRecenterCamera,
 }) {
     const step0 = routeStats?.steps?.[0];
+    // Fase 2b-2 FIX 2: distanza REATTIVA alla prossima tappa (scende camminando).
+    // Se disponibile sostituisce il valore statico del maneuver leg0 nel chip.
+    const liveDistanceText = Number.isFinite(nextStepDistanceM) ? formatDistance(nextStepDistanceM) : null;
+    const distChip = liveDistanceText || step0?.distance?.text;
     const ManeuverIcon = maneuverIcon(step0?.maneuver);
     const totalSteps = activeRoute?.length || 0;
     const doneSteps = completedSteps?.length || 0;
@@ -172,12 +177,12 @@ export default function NavigationHUD({
                                         sono lunghi (es. "1.5 km · 35 min rimasti"), la seconda
                                         parte va a capo invece di uscire dallo schermo. */}
                                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                        {step0.distance?.text && (
+                                        {distChip && (
                                             <span className="text-[13px] font-bold text-orange-600 whitespace-nowrap">
-                                                {step0.distance.text}
+                                                {distChip}
                                             </span>
                                         )}
-                                        {step0.distance?.text && durationText && (
+                                        {distChip && durationText && (
                                             <span className="w-1 h-1 rounded-full bg-gray-300 shrink-0" />
                                         )}
                                         {durationText && (

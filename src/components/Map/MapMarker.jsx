@@ -26,7 +26,7 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
             title={activity.name || activity.title || 'Marker'}
             zIndex={baseZIndex}
         >
-            <div className={`group relative cursor-pointer ${isStep ? 'animate-in zoom-in slide-in-from-bottom-2 duration-300' : ''}`} style={{ transformOrigin: 'bottom center', transform: 'translate(0, -50%)' }}>
+            <div className={`group relative cursor-pointer ${isStep ? 'animate-in zoom-in slide-in-from-bottom-2 duration-300' : ''} ${activity.isCompleted ? 'opacity-60' : ''}`} style={{ transformOrigin: 'bottom center', transform: 'translate(0, -50%)' }}>
 
                 {/* Pulse radar — tappa corrente o utente vicino (<20m) */}
                 {activity.isCurrentStep && (
@@ -52,7 +52,8 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
                         }}
                     >
                         <span className="text-white leading-none tracking-tight flex items-center justify-center">
-                            {isStep ? stepNumber : styles.icon}
+                            {/* FIX 5: tappa completata → segno di spunta (stato, non look fine). */}
+                            {activity.isCompleted ? '✓' : (isStep ? stepNumber : styles.icon)}
                         </span>
                     </div>
 
@@ -85,7 +86,8 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
     
     return prevId === nextId && prevLat === nextLat && prevLng === nextLng
         && prevProps.sequenceNumber === nextProps.sequenceNumber
-        && prevProps.activity?.isCurrentStep === nextProps.activity?.isCurrentStep;
+        && prevProps.activity?.isCurrentStep === nextProps.activity?.isCurrentStep
+        && prevProps.activity?.isCompleted === nextProps.activity?.isCompleted;
 });
 
 export default MapMarker;

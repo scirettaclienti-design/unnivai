@@ -35,9 +35,11 @@ const DEFAULT_CITY = 'Roma';
 // Fase 2b-1 gate Navigazione: raggio base (m) entro cui una tappa si considera
 // "raggiunta" e si auto-sblocca. Soglia effettiva = max(GEOFENCE_BASE_M, accuracy GPS)
 // → si allarga da sola quando il GPS è impreciso, resta stretta quando è preciso.
-// VALORE DI PARTENZA per camminata urbana, DA CALIBRARE su device reale a Troina
-// leggendo i log [DVAI-Geofence]. Non è un magic number sparso: unico punto qui.
-const GEOFENCE_BASE_M = 35;
+// DA CALIBRARE su device reale a Troina leggendo i log [DVAI-Geofence]. Non è un
+// magic number sparso: unico punto qui.
+// 2b-2: portato 35→25 dopo test reale a Troina (scatto percepito perfetto ~15-20m
+// con accuracy 5-10m). Ancora calibrazione in corso, non definitivo.
+const GEOFENCE_BASE_M = 25;
 
 // ─── SEMANTIC TAG MAPPING ─────────────────────────────────────────────────────
 // Tour tags → Business category_tags equivalents (one-to-many)
@@ -398,10 +400,20 @@ const MapPage = () => {
     const completedStepsRef = useRef(completedSteps);
     const handlePOIUnlockRef = useRef(null);
     const geofenceFiredRef = useRef(new Set());
+    // Fase 2b-2 FIX 1: latch irreversibile a fine tour → i tick GPS residui non
+    // ricalcolano nulla, la UI di successo si congela (regola locked #11).
+    const navCompletedRef = useRef(false);
+    // Fase 2b-2 FIX 2: distanza live dalla posizione GPS alla PROSSIMA tappa
+    // (scende mentre cammini). Alimentata dal geofence, mostrata nell'HUD.
+    const [nextStepDistanceM, setNextStepDistanceM] = useState(null);
     const [flyToLabel, setFlyToLabel] = useState(null);
     const [reviewModalData, setReviewModalData] = useState(null);
     const [voiceEnabled, setVoiceEnabled] = useState(true);
     const lastSpokenRef = useRef('');
+    // Fase 2b-2 FIX 3: identità istruzioni vocali già pronunciate in questa sessione
+    // nav. Ogni identità si dice UNA volta → micro-rotazioni/re-render non ripetono
+    // il TTS in loop. Reset all'avvio nav.
+    const spokenIdentitiesRef = useRef(new Set());
     const lastSurprisePos = useRef(null);
     const surpriseCount = useRef(0);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
@@ -460,7 +472,10 @@ const MapPage = () => {
         if (!voiceEnabled || !isNavigating || !routeStats?.steps?.[0]?.instructions) return;
         const rawHtml = routeStats.steps[0].instructions;
         const identity = stepIdentity(rawHtml);
-        if (!identity || identity === lastSpokenRef.current || !window.speechSynthesis) return;
+        // FIX 3: una volta per identità nell'INTERA sessione nav (non solo "diversa
+        // dall'ultima") → micro-variazioni di bussola/accuracy non ripetono in loop.
+        if (!identity || spokenIdentitiesRef.current.has(identity) || !window.speechSynthesis) return;
+        spokenIdentitiesRef.current.add(identity);
         lastSpokenRef.current = identity;
         const spokenText = rawHtml.replace(/<[^>]*>/g, '');
         window.speechSynthesis.cancel();
@@ -705,10 +720,13 @@ const MapPage = () => {
     // All markers when route active: tour stops (con isCurrentStep) + business partners
     const allMapMarkers = useMemo(() => {
         if (showRoute) {
-            const nextStepIndex = completedSteps.length;
+            // FIX 5: "prossima" = prima tappa NON completata (per esclusione, non per
+            // conteggio → coerente col geofence). Marca isCompleted per lo stato marker.
+            const firstUncompletedIdx = (activeRoute || []).findIndex(s => !completedSteps.includes(s.id));
             const markedRoute = (activeRoute || []).map((step, i) => ({
                 ...step,
-                isCurrentStep: i === nextStepIndex, // Pulse sul prossimo step da raggiungere
+                isCurrentStep: i === firstUncompletedIdx, // pulse sulla prossima da raggiungere
+                isCompleted: completedSteps.includes(step.id),
             }));
             return [...markedRoute, ...businessPartners];
         }
@@ -827,8 +845,12 @@ const MapPage = () => {
         // FASE 1 DEBUG — RIMUOVERE in Fase 3. Verifica su device che insiderTip/bestTime
         // di Gate II arrivino sull'oggetto tappa (null onesto se assenti, mai placeholder).
         console.log('[Fase1-debug] tappe insider:', (activeRoute || []).map(s => ({ name: s.name, insiderTip: s.insiderTip, bestTime: s.bestTime })));
-        // Fase 2b-1: nuova sessione nav → azzera i geofence già scattati.
+        // Fase 2b: nuova sessione nav → azzera geofence, latch completamento,
+        // istruzioni vocali già dette, distanza live.
         geofenceFiredRef.current = new Set();
+        navCompletedRef.current = false;
+        spokenIdentitiesRef.current = new Set();
+        setNextStepDistanceM(null);
         setIsRoutePlannerOpen(false);
         setIsNavigating(true);
         setFollowing(true);
@@ -916,15 +938,15 @@ const MapPage = () => {
                     let writer3Ticks = 0;
                     const wId = navigator.geolocation.watchPosition(
                         (pos) => {
-                            const { latitude, longitude, heading, speed, accuracy } = pos.coords;
+                            const { latitude, longitude, accuracy } = pos.coords;
                             setLocalCenter({ latitude, longitude });
 
-                            // ── Fase 2b-1: GEOFENCE auto-unlock ──────────────────────
-                            // Prossima tappa = prima di activeRoute NON ancora completata
-                            // (per esclusione da completedSteps, non per conteggio → evita
-                            // il quirk di 2a) e non già auto-sbloccata in questa sessione.
+                            // ── Fase 2b GEOFENCE auto-unlock + distanza live ──────────
+                            // FIX 1: se il tour è completato, i tick non ricalcolano nulla.
+                            // Prossima tappa = prima di activeRoute NON completata (per
+                            // esclusione, non per conteggio) e non già auto-sbloccata.
                             // Calcolo client-side (haversine, dati in memoria): zero API.
-                            {
+                            if (!navCompletedRef.current) {
                                 const doneIds = completedStepsRef.current || [];
                                 const firedSet = geofenceFiredRef.current;
                                 const nextStep = (activeRoute || []).find(
@@ -932,6 +954,8 @@ const MapPage = () => {
                                 );
                                 if (nextStep && Number.isFinite(nextStep.latitude) && Number.isFinite(nextStep.longitude)) {
                                     const distM = haversineM(latitude, longitude, nextStep.latitude, nextStep.longitude);
+                                    // FIX 2: distanza live alla prossima tappa (scende camminando).
+                                    setNextStepDistanceM(Math.round(distM));
                                     // Soglia adattiva (R1): si allarga se il GPS è impreciso.
                                     const soglia = Math.max(GEOFENCE_BASE_M, accuracy || 0);
                                     const scattato = distM <= soglia;
@@ -951,6 +975,9 @@ const MapPage = () => {
                                         firedSet.add(nextStep.id);
                                         handlePOIUnlockRef.current(nextStep);
                                     }
+                                } else {
+                                    // Nessuna prossima tappa (tutte fatte / non trovata) → azzera.
+                                    setNextStepDistanceM(null);
                                 }
                             }
 
@@ -969,12 +996,13 @@ const MapPage = () => {
                                 if (writer3Ticks % 10 === 1) {
                                     console.log(`[DVAI-Nav] writer#3 watchPosition moveCamera (tick #${writer3Ticks}, zoom ${navZoom}, tilt ${navTilt})`);
                                 }
-                                map.moveCamera({
-                                    center: { lat: latitude, lng: longitude },
-                                    zoom: navZoom,
-                                    tilt: navTilt,
-                                    heading: heading !== null ? heading : undefined
-                                });
+                                // FIX 4 (minimo): Google Maps JS non ha easeTo/flyTo con
+                                // durata (a differenza di Mapbox). panTo anima SOLO il center
+                                // → toglie lo scatto di posizione. zoom/tilt restano quelli
+                                // del follow-start (setFollowing/flyToUser). Il per-tick NON
+                                // ri-setta più heading (era lo scatto in rotazione). La
+                                // rotazione heading-up fluida è debito Antigravity.
+                                map.panTo({ lat: latitude, lng: longitude });
                             }
 
                             // Cultural Surprise: solo A PIEDI, ogni ~300m + audioguida
@@ -1106,8 +1134,14 @@ const MapPage = () => {
                 }
             }
 
-            // Se tutte le tappe completate
+            // Se tutte le tappe completate → FIX 1: stop DEFINITIVO dei tick GPS
+            // (clearWatch) + latch irreversibile. Nessun ricalcolo può più girare,
+            // la UI di successo si congela (regola locked #11: nessuno stato
+            // completato torna indietro per una fluttuazione GPS).
             if (newCompleted.length >= totalSteps) {
+                navCompletedRef.current = true;
+                if (watchId) { navigator.geolocation.clearWatch(watchId); setWatchId(null); }
+                setNextStepDistanceM(null);
                 setTimeout(() => setIsSummaryModalOpen(true), 2000);
             }
         }
@@ -1535,6 +1569,7 @@ const MapPage = () => {
                     routeStats={routeStats}
                     activeRoute={activeRoute}
                     completedSteps={completedSteps}
+                    nextStepDistanceM={nextStepDistanceM}
                     voiceEnabled={voiceEnabled}
                     onToggleVoice={() => { setVoiceEnabled(v => !v); window.speechSynthesis?.cancel(); }}
                     onEndNavigation={handleEndNavigation}

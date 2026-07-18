@@ -451,41 +451,8 @@ const MapPage = () => {
         return () => window.speechSynthesis?.removeEventListener?.('voiceschanged', findVoice);
     }, []);
 
-    // DVAI-064 B — Voce: parla UNA volta per STEP logico, non a ogni tick.
-    // Google Directions include la distanza nell'HTML instructions (es. "In
-    // <b>300 m</b> gira a destra"). Ogni tick GPS la distanza scende
-    // (300 → 250 → 200), la stringa cambia, il useEffect re-runs, la voce
-    // ripete l'istruzione tutta intera. Il gate `text === lastSpokenRef` era
-    // sempre falso perché comparava stringhe complete.
-    //
-    // Fix: identity = HTML stripped + numeri/distanze rimossi + normalizzato.
-    // Confronto sull'identity ("gira a destra su via roma") — la distanza
-    // resta nel TESTO PRONUNCIATO (utile) ma non nell'identity (bloccante).
-    const stepIdentity = (rawHtml) => (rawHtml || '')
-        .replace(/<[^>]*>/g, '')                                    // strip HTML
-        .replace(/\d+(?:[.,]\d+)?\s*(?:m|km|mt|metri|chilometri)\b/gi, '')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .toLowerCase();
-
-    useEffect(() => {
-        if (!voiceEnabled || !isNavigating || !routeStats?.steps?.[0]?.instructions) return;
-        const rawHtml = routeStats.steps[0].instructions;
-        const identity = stepIdentity(rawHtml);
-        // FIX 3: una volta per identità nell'INTERA sessione nav (non solo "diversa
-        // dall'ultima") → micro-variazioni di bussola/accuracy non ripetono in loop.
-        if (!identity || spokenIdentitiesRef.current.has(identity) || !window.speechSynthesis) return;
-        spokenIdentitiesRef.current.add(identity);
-        lastSpokenRef.current = identity;
-        const spokenText = rawHtml.replace(/<[^>]*>/g, '');
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(spokenText);
-        utterance.lang = 'it-IT';
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-        if (italianVoiceRef.current) utterance.voice = italianVoiceRef.current;
-        window.speechSynthesis.speak(utterance);
-    }, [voiceEnabled, isNavigating, routeStats?.steps?.[0]?.instructions]);
+    // Fase 2b-3 PART B — TTS voce onesta: definito DOPO activeRoute (sotto), che
+    // ne è dipendenza (no-use-before-define).
 
     useEffect(() => {
         const handleOnline = () => setIsOffline(false);
@@ -590,6 +557,29 @@ const MapPage = () => {
             return [];
         } catch { return []; }
     }, [tourData, location.state, activeCity]);
+
+    // Fase 2b-3 PART B — Voce ONESTA: annuncia la PROSSIMA TAPPA (destinazione),
+    // non il turn-by-turn congelato di leg 0 (che non avanzava mai e mentiva
+    // accanto alla distanza-live). Coerente con l'HUD. Una volta per tappa
+    // (spokenIdentitiesRef, FIX 3): quando una tappa diventa la prossima la
+    // annuncia una sola volta; micro-variazioni non ripetono nulla.
+    useEffect(() => {
+        if (!voiceEnabled || !isNavigating) return;
+        const nextStop = (activeRoute || []).find(s => !completedSteps.includes(s.id));
+        if (!nextStop || !window.speechSynthesis) return;
+        const identity = `tappa:${nextStop.id}`;
+        if (spokenIdentitiesRef.current.has(identity)) return;
+        spokenIdentitiesRef.current.add(identity);
+        lastSpokenRef.current = identity;
+        const name = nextStop.name || nextStop.title || 'prossima tappa';
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(`Prossima tappa: ${name}`);
+        utterance.lang = 'it-IT';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        if (italianVoiceRef.current) utterance.voice = italianVoiceRef.current;
+        window.speechSynthesis.speak(utterance);
+    }, [voiceEnabled, isNavigating, activeRoute, completedSteps]);
 
     // ─── PLANNER PREVIEW ROUTE (BEFORE NAVIGATING) ───────────────────────────
     const plannerPreviewRoute = useMemo(() => {
@@ -1780,9 +1770,12 @@ const MapPage = () => {
                 onReview={({ tourId: tid, guideId: gid, guideName: gn }) => {
                     setReviewModalData({ tourId: tid, guideId: gid, guideName: gn });
                 }}
+                cityName={tourData?.city || null}
                 stats={{
-                    duration: routeStats ? `${Math.round(routeStats.durationSec / 60)} min` : (tourData?.duration || '1h 20m'),
-                    distance: routeStats ? (routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m') : '2.4 km',
+                    // N5: SOLO dati reali da Directions. Se routeStats manca → null
+                    // (mai '1h 20m'/'2.4 km' fake). Regola locked #1.
+                    duration: routeStats ? `${Math.round(routeStats.durationSec / 60)} min` : null,
+                    distance: routeStats ? (routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m') : null,
                     completedCount: completedSteps.length
                 }}
             />

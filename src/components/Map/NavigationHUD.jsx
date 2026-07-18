@@ -16,7 +16,6 @@
  * - Safe-area-top rispettato (env(safe-area-inset-top)).
  */
 import { motion, AnimatePresence } from 'framer-motion';
-import DOMPurify from 'dompurify';
 import {
     Navigation,
     CornerUpLeft,
@@ -102,26 +101,21 @@ export default function NavigationHUD({
     // Se disponibile sostituisce il valore statico del maneuver leg0 nel chip.
     const liveDistanceText = Number.isFinite(nextStepDistanceM) ? formatDistance(nextStepDistanceM) : null;
     const distChip = liveDistanceText || step0?.distance?.text;
-    const ManeuverIcon = maneuverIcon(step0?.maneuver);
+    // Fase 2b-3 PART B: icona generica (non il maneuver congelato di leg 0).
+    const ManeuverIcon = maneuverIcon(null);
     const totalSteps = activeRoute?.length || 0;
     const doneSteps = completedSteps?.length || 0;
-    const currentStepIdx = Math.min(doneSteps, Math.max(0, totalSteps - 1));
-    const currentStopName = activeRoute?.[currentStepIdx]?.name
-        || activeRoute?.[currentStepIdx]?.title
-        || 'Prossima tappa';
+    // PART B: prossima tappa per ESCLUSIONE (coerente con geofence/distanza-live),
+    // non per conteggio. È la destinazione onesta da mostrare/annunciare.
+    const nextStop = (activeRoute || []).find(s => !(completedSteps || []).includes(s.id));
+    const nextStopName = nextStop?.name || nextStop?.title || null;
+    const allDone = totalSteps > 0 && !nextStop;
+    const currentStopName = nextStopName || 'Prossima tappa';
     const progressPct = totalSteps > 0
         ? Math.min(100, Math.max(0, ((doneSteps + 1) / totalSteps) * 100))
         : 0;
     const durationText = formatDuration(routeStats?.durationSec);
     const distanceRemainingText = formatDistance(routeStats?.distanceM);
-
-    // Istruzione principale sanitizzata (DVAI-002 XSS guard, come JSX inline pre-refactor).
-    const instructionHtml = step0?.instructions
-        ? DOMPurify.sanitize(step0.instructions, {
-            ALLOWED_TAGS: ['b', 'strong', 'span', 'div'],
-            ALLOWED_ATTR: ['style'],
-        })
-        : null;
 
     // DVAI-065 Fix HUD — Inset assoluto (left-2 right-2) invece di
     // left-1/2 + -translate-x-1/2 + w-[calc(...)]. Nessuna matematica di
@@ -161,21 +155,20 @@ export default function NavigationHUD({
                                 <p className="text-[15px] font-semibold text-amber-600 leading-snug break-words">
                                     {routeStats.error}
                                 </p>
-                            ) : instructionHtml ? (
+                            ) : (
                                 <>
-                                    {/* DVAI-063 B — break-words + hyphens: le istruzioni Google
-                                        possono contenere stringhe lunghe non separate
-                                        (es. "Via Ancipa/SP102") che il line-clamp non spezza
-                                        e forzano overflow orizzontale. break-words permette il
-                                        break dentro le parole se necessario. */}
+                                    {/* Fase 2b-3 PART B: destinazione ONESTA (dove stai andando),
+                                        non il turn-by-turn congelato di leg 0. Stesso layout/stile
+                                        della riga pre-esistente: cambia solo il testo/valore. */}
                                     <p
                                         className="text-[17px] font-bold text-gray-900 leading-tight line-clamp-2 break-words"
                                         style={{ fontFamily: 'Quicksand, sans-serif', wordBreak: 'break-word', hyphens: 'auto' }}
-                                        dangerouslySetInnerHTML={{ __html: instructionHtml }}
-                                    />
-                                    {/* DVAI-063 B — flex-wrap sul chip: se distanza + tempo
-                                        sono lunghi (es. "1.5 km · 35 min rimasti"), la seconda
-                                        parte va a capo invece di uscire dallo schermo. */}
+                                    >
+                                        {allDone
+                                            ? 'Tour completato'
+                                            : (nextStopName ? `→ Prossima tappa: ${nextStopName}` : 'Prossima tappa')}
+                                    </p>
+                                    {/* chip: distanza-live (FIX 2 di 2b-2) + tempo. Invariato. */}
                                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                         {distChip && (
                                             <span className="text-[13px] font-bold text-orange-600 whitespace-nowrap">
@@ -192,10 +185,6 @@ export default function NavigationHUD({
                                         )}
                                     </div>
                                 </>
-                            ) : (
-                                <p className="text-[15px] font-semibold text-gray-500">
-                                    Ricalcolo in corso…
-                                </p>
                             )}
                         </div>
                     </div>

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Award, MapPin, Clock, MessageCircle, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-export const TourSummaryModal = ({ isOpen, onClose, stats, titleName, guideId, guideName, tourId, onReview }) => {
+export const TourSummaryModal = ({ isOpen, onClose, stats, titleName, cityName, guideId, guideName, tourId, onReview }) => {
     if (!isOpen) return null;
 
     useEffect(() => {
@@ -25,8 +25,8 @@ export const TourSummaryModal = ({ isOpen, onClose, stats, titleName, guideId, g
                     id: Date.now(),
                     date: new Date().toISOString(),
                     title: titleName || 'Storico Urbano',
-                    duration: stats?.duration || '0h',
-                    distance: stats?.distance || '0 km',
+                    duration: stats?.duration ?? null,
+                    distance: stats?.distance ?? null,
                     completedCount: stats?.completedCount || 0
                 };
                 
@@ -43,7 +43,16 @@ export const TourSummaryModal = ({ isOpen, onClose, stats, titleName, guideId, g
     }, [isOpen]);
 
     const handleShare = () => {
-        const text = `Ho appena scoperto i segreti di Roma con DoveVai! 🏛️ ${stats?.completedCount || 0} monumenti sbloccati in ${stats?.duration || '45 min'}. Scarica l'app per il tuo prossimo tour!`;
+        // N5: testo costruito SOLO da dati reali del tour corrente. Nessun valore
+        // hardcoded (città/km/minuti). I dati mancanti si OMETTONO, non si inventano.
+        let text = `Ho appena esplorato "${titleName || 'un tour'}"`;
+        if (cityName) text += ` a ${cityName}`;
+        text += ` con DoveVai!`;
+        const detail = [];
+        if (stats?.completedCount) detail.push(`${stats.completedCount} tappe`);
+        if (stats?.distance) detail.push(stats.distance);
+        if (stats?.duration) detail.push(stats.duration);
+        if (detail.length) text += ` ${detail.join(' · ')}.`;
         window.open(`whatsapp://send?text=${encodeURIComponent(text)}`);
     };
 
@@ -87,13 +96,13 @@ export const TourSummaryModal = ({ isOpen, onClose, stats, titleName, guideId, g
                                 <div className="bg-white rounded-3xl pt-6 pb-5 px-4 border border-gray-100 shadow-md flex flex-col items-center justify-center flex-1 relative overflow-hidden min-h-[130px]">
                                     <div className="absolute top-0 left-0 w-full h-1.5 bg-orange-400 opacity-80" />
                                     <Clock size={28} className="text-orange-500 mb-2" />
-                                    <span className="text-2xl font-black text-gray-900 leading-none mb-1">{stats?.duration || '1h 20m'}</span>
+                                    <span className="text-2xl font-black text-gray-900 leading-none mb-1">{stats?.duration ?? '—'}</span>
                                     <span className="text-[11px] text-gray-500 font-bold uppercase tracking-widest mt-1">Tempo</span>
                                 </div>
                                 <div className="bg-white rounded-3xl pt-6 pb-5 px-4 border border-gray-100 shadow-md flex flex-col items-center justify-center flex-1 relative overflow-hidden min-h-[130px]">
                                     <div className="absolute top-0 left-0 w-full h-1.5 bg-orange-400 opacity-80" />
                                     <MapPin size={28} className="text-orange-500 mb-2" />
-                                    <span className="text-2xl font-black text-gray-900 leading-none mb-1">{stats?.distance || '2.4 km'}</span>
+                                    <span className="text-2xl font-black text-gray-900 leading-none mb-1">{stats?.distance ?? '—'}</span>
                                     <span className="text-[11px] text-gray-500 font-bold uppercase tracking-widest mt-1">Distanza</span>
                                 </div>
                             </div>

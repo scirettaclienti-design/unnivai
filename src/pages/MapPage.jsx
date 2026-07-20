@@ -403,6 +403,17 @@ const MapPage = () => {
     // Fase 2b-2 FIX 1: latch irreversibile a fine tour → i tick GPS residui non
     // ricalcolano nulla, la UI di successo si congela (regola locked #11).
     const navCompletedRef = useRef(false);
+    // Fase 2c-1 FIX A: target reale del geofence. Se l'utente ha fatto "Naviga"
+    // su una tappa specifica → id di quella tappa; se "Avvia" tour → null
+    // (prossima in ordine). navIsSingleTargetRef distingue "Naviga verso un punto
+    // non-tappa" (nessuna tappa da sbloccare) da "Avvia tour".
+    const navTargetStepIdRef = useRef(null);
+    const navIsSingleTargetRef = useRef(false);
+    // Fase 2c-1 FIX B (anti-cascata arm-then-fire): tappe di cui abbiamo visto
+    // distanza > soglia almeno una volta durante la nav. Solo una tappa "armata"
+    // (o il primissimo sblocco della sessione) può scattare → da fermo le tappe
+    // vicine non si sbloccano a catena.
+    const armedStepsRef = useRef(new Set());
     // Fase 2b-2 FIX 2: distanza live dalla posizione GPS alla PROSSIMA tappa
     // (scende mentre cammini). Alimentata dal geofence, mostrata nell'HUD.
     const [nextStepDistanceM, setNextStepDistanceM] = useState(null);
@@ -841,6 +852,24 @@ const MapPage = () => {
         navCompletedRef.current = false;
         spokenIdentitiesRef.current = new Set();
         setNextStepDistanceM(null);
+        // Fase 2c-1 FIX A/B: azzera armamento e determina il TARGET reale del
+        // geofence. "Naviga" su una tappa → insegue QUELLA (match per id, con
+        // fallback coordinate). "Avvia" tour (nessuna selezione) → sequenziale.
+        // "Naviga" verso un punto non-tappa → single-target senza tappa da sbloccare.
+        armedStepsRef.current = new Set();
+        const singleTarget = selectedPOI || selectedActivity;
+        navIsSingleTargetRef.current = !!singleTarget;
+        if (singleTarget) {
+            const tLat = singleTarget.latitude ?? singleTarget.lat;
+            const tLng = singleTarget.longitude ?? singleTarget.lng;
+            const matched = (activeRoute || []).find(s =>
+                (singleTarget.id != null && s.id === singleTarget.id)
+                || (Number.isFinite(s.latitude) && s.latitude === tLat && s.longitude === tLng)
+            );
+            navTargetStepIdRef.current = matched?.id || null;
+        } else {
+            navTargetStepIdRef.current = null;
+        }
         setIsRoutePlannerOpen(false);
         setIsNavigating(true);
         setFollowing(true);
@@ -939,22 +968,48 @@ const MapPage = () => {
                             if (!navCompletedRef.current) {
                                 const doneIds = completedStepsRef.current || [];
                                 const firedSet = geofenceFiredRef.current;
-                                const nextStep = (activeRoute || []).find(
-                                    s => !doneIds.includes(s.id) && !firedSet.has(s.id)
-                                );
+                                const armedSet = armedStepsRef.current;
+                                // FIX A: TARGET reale.
+                                //  - "Naviga" su una tappa (targetId) → insegue SOLO quella.
+                                //  - "Avvia" tour (no single target) → prossima non completata in ordine.
+                                //  - "Naviga" verso un punto non-tappa → nessuna tappa da sbloccare.
+                                const targetId = navTargetStepIdRef.current;
+                                let nextStep;
+                                if (targetId) {
+                                    nextStep = (activeRoute || []).find(
+                                        s => s.id === targetId && !doneIds.includes(s.id) && !firedSet.has(s.id)
+                                    );
+                                } else if (!navIsSingleTargetRef.current) {
+                                    nextStep = (activeRoute || []).find(
+                                        s => !doneIds.includes(s.id) && !firedSet.has(s.id)
+                                    );
+                                } else {
+                                    nextStep = undefined;
+                                }
                                 if (nextStep && Number.isFinite(nextStep.latitude) && Number.isFinite(nextStep.longitude)) {
                                     const distM = haversineM(latitude, longitude, nextStep.latitude, nextStep.longitude);
                                     // FIX 2: distanza live alla prossima tappa (scende camminando).
                                     setNextStepDistanceM(Math.round(distM));
                                     // Soglia adattiva (R1): si allarga se il GPS è impreciso.
                                     const soglia = Math.max(GEOFENCE_BASE_M, accuracy || 0);
-                                    const scattato = distM <= soglia;
+                                    // FIX B arm-then-fire: fuori raggio → "arma" la tappa; dentro
+                                    // raggio → scatta SOLO se armata (già vista fuori→dentro) OPPURE
+                                    // è il primissimo sblocco della sessione (sei partito lì apposta).
+                                    // Da fermo, le tappe successive vicine non sono mai state "fuori"
+                                    // → non armate → non scattano a catena.
+                                    if (distM > soglia) armedSet.add(nextStep.id);
+                                    const isArmed = armedSet.has(nextStep.id);
+                                    const isFirstOfSession = doneIds.length === 0 && firedSet.size === 0;
+                                    const scattato = distM <= soglia && (isArmed || isFirstOfSession);
                                     // Strumento di calibrazione (rimuovere/ridurre dopo Troina).
                                     console.log('[DVAI-Geofence]', {
+                                        modo: targetId ? 'naviga' : 'tour',
                                         prossimaTappa: nextStep.name || nextStep.title,
                                         distanzaM: Math.round(distM),
                                         accuracy: Math.round(accuracy || 0),
                                         soglia: Math.round(soglia),
+                                        armata: isArmed,
+                                        primoDellaSessione: isFirstOfSession,
                                         scattato,
                                     });
                                     if (scattato && handlePOIUnlockRef.current) {
@@ -966,7 +1021,8 @@ const MapPage = () => {
                                         handlePOIUnlockRef.current(nextStep);
                                     }
                                 } else {
-                                    // Nessuna prossima tappa (tutte fatte / non trovata) → azzera.
+                                    // Nessuna prossima tappa (tutte fatte / non trovata / target
+                                    // non-tappa) → azzera la distanza live.
                                     setNextStepDistanceM(null);
                                 }
                             }

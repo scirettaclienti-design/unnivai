@@ -26,7 +26,6 @@ export default function ProfilePage() {
 
     // Dynamic Data State
     const [myRequests, setMyRequests] = useState([]);
-    const [stats, setStats] = useState({ tours: 0, guides: 0, rating: null });
     const [tourHistory, setTourHistory] = useState([]);
 
     // Sync local state when context loads real name
@@ -41,20 +40,11 @@ export default function ProfilePage() {
 
         const fetchProfileData = async () => {
             try {
-                // 1. Fetch Stats from Explorers
-                const { data: explorer, error: explorerError } = await supabase
-                    .from('explorers')
-                    .select('tours_completed, km_walked') // Add other fields if available
-                    .eq('id', userId)
-                    .single();
-
-                if (!explorerError && explorer) {
-                    setStats(prev => ({
-                        ...prev,
-                        tours: explorer.tours_completed || 0,
-                        // Guides and Rating could be fetched if tables exist, keeping mocks/defaults for now or could query 'follows' table
-                    }));
-                }
+                // Livello 1 verità: rimosso il fetch stats da `explorers`. La query
+                // leggeva `tours_completed` (colonna INESISTENTE → errore) su una
+                // tabella comunque VUOTA e non alimentata da alcun codice. Nessun
+                // contatore reale > 0 esiste oggi → i contatori mostrano empty state
+                // onesto. Il collegamento vero (ponte nav→profilo) è il gate successivo.
 
                 // 2. Fetch Memories (Photos joined with Tours)
                 const { data: photos, error: photoError } = await supabase
@@ -92,11 +82,11 @@ export default function ProfilePage() {
                                 title: tour.title || "Tour Senza Nome",
                                 location: tour.city || "Italia",
                                 date: new Date(photo.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' }),
-                                rating: tour.rating || 5, // Fallback rating
-                                image: photo.media_url, // Use first found photo as cover
-                                duration: tour.duration || "2 ore", // Fallback
-                                guide: "Guide Expert", // Mock for now
-                                highlights: ["Esperienza Autentica", "Vista Panoramica"], // Mock
+                                rating: tour.rating || null, // Livello 1: rating reale del tour o niente (mai 5 finto)
+                                image: photo.media_url, // cover = prima foto reale
+                                duration: tour.duration || null, // reale o niente (mai "2 ore" finto)
+                                guide: null, // V1 non ha guide (feature V2). Mai "Guide Expert".
+                                highlights: [], // niente highlights inventati
                                 description: `Hai esplorato ${tour.city || 'questo luogo'} catturando ${photos.filter(p => p.tour_id === tour.id).length} momenti speciali.`,
                                 photos: []
                             };
@@ -131,7 +121,9 @@ export default function ProfilePage() {
     }, [userId]);
 
     const shareTour = (platform, tour) => {
-        const message = `Ho appena completato un fantastico tour: "${tour.title}" a ${tour.location}! 🌟 Rating: ${tour.rating}/5 ⭐`;
+        // Livello 1: testo onesto — via l'aggettivo "fantastico" (voce brand) e il
+        // rating tour-level (seed non reale, regola O.4). Solo il fatto: cosa e dove.
+        const message = `Ho appena esplorato "${tour.title}" a ${tour.location} con DoveVai!`;
         const url = window.location.href;
 
         switch (platform) {
@@ -202,21 +194,24 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    {/* Simplified Stats */}
+                    {/* Simplified Stats — Livello 1: nessun contatore reale alimentato
+                        ancora (il ponte nav→profilo è il gate dopo). Stesso layout a 3
+                        celle: "—" al posto di numeri finti + caption evocativa onesta. */}
                     <div className="flex justify-around pt-4 border-t border-gray-200">
                         <div className="text-center">
-                            <div className="text-lg font-bold text-terracotta-600">{stats.tours}</div>
+                            <div className="text-lg font-bold text-terracotta-600">—</div>
                             <div className="text-xs text-gray-600">Tour</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-lg font-bold text-terracotta-600">{stats.guides}</div>
+                            <div className="text-lg font-bold text-terracotta-600">—</div>
                             <div className="text-xs text-gray-600">Guide</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-lg font-bold text-terracotta-600">{stats.rating ?? '—'}</div>
+                            <div className="text-lg font-bold text-terracotta-600">—</div>
                             <div className="text-xs text-gray-600">Rating</div>
                         </div>
                     </div>
+                    <p className="text-center text-xs text-gray-500 mt-3">Il tuo primo giro ti aspetta: completane uno e questi numeri prendono vita.</p>
                 </motion.div>
 
                 {/* Tour DNA */}
@@ -387,50 +382,10 @@ export default function ProfilePage() {
                                 I Miei Risultati
                             </h3>
 
-                            <div className="space-y-4">
-                                <div className="bg-white p-4 rounded-xl border border-yellow-100 shadow-sm flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="bg-yellow-100 p-2 rounded-full">
-                                            <span className="text-xl">🏅</span>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-800 text-sm">Esploratore Veterano</h4>
-                                            <p className="text-xs text-gray-500">Completati 10+ tour</p>
-                                        </div>
-                                    </div>
-                                    <div className="h-2 w-16 bg-gray-100 rounded-full overflow-hidden">
-                                        <div className="h-full bg-yellow-400 w-full" />
-                                    </div>
-                                </div>
-
-                                <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="bg-blue-100 p-2 rounded-full">
-                                            <span className="text-xl">🎭</span>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-800 text-sm">Amante della Cultura</h4>
-                                            <p className="text-xs text-gray-500">5+ tour culturali</p>
-                                        </div>
-                                    </div>
-                                    <div className="h-2 w-16 bg-gray-100 rounded-full overflow-hidden">
-                                        <div className="h-full bg-blue-400 w-3/4" />
-                                    </div>
-                                </div>
-
-                                <div className="bg-white p-4 rounded-xl border border-green-100 shadow-sm flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="bg-green-100 p-2 rounded-full">
-                                            <span className="text-xl">⭐</span>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-800 text-sm">Guida Esperta</h4>
-                                            <p className="text-xs text-gray-500">Rating medio 4.8/5</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Top 10%</div>
-                                </div>
-                            </div>
+                            {/* Livello 1: via i traguardi hardcoded (10+ tour, 4.8/5,
+                                Top 10% erano tutti inventati). Box invariato, contenuto
+                                onesto sull'assenza — si sbloccheranno con i tour veri. */}
+                            <p className="text-sm text-gray-500 italic">I traguardi appariranno qui man mano che esplori: il primo si sblocca al tuo primo tour completato.</p>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -450,36 +405,10 @@ export default function ProfilePage() {
                                 Esplora Zone
                             </h3>
 
-                            <div className="space-y-3">
-                                {[
-                                    { name: "Toscana", tours: 8, image: "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=100&h=100&fit=crop", emoji: "🍷" },
-                                    { name: "Sicilia", tours: 5, image: "https://images.unsplash.com/photo-1580500722723-e2dc6e1b7bb8?w=100&h=100&fit=crop", emoji: "🌋" },
-                                    { name: "Venezia", tours: 3, image: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=100&h=100&fit=crop", emoji: "🚤" },
-                                    { name: "Roma", tours: 6, image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=100&h=100&fit=crop", emoji: "🏛️" }
-                                ].map((zone, index) => (
-                                    <Link key={zone.name} to="/explore">
-                                        <motion.div
-                                            className="flex items-center space-x-4 p-3 bg-gradient-to-r from-white/80 to-white/60 rounded-xl hover:shadow-md transition-all"
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: index * 0.1 }}
-                                            whileHover={{ scale: 1.02 }}
-                                        >
-                                            <img
-                                                src={zone.image}
-                                                alt={zone.name}
-                                                className="w-12 h-12 rounded-lg object-cover"
-                                            />
-                                            <div className="flex-1">
-                                                <h4 className="font-semibold text-gray-800">{zone.name}</h4>
-                                                <p className="text-sm text-gray-600">{zone.tours} tour disponibili</p>
-                                            </div>
-                                            <div className="text-2xl">{zone.emoji}</div>
-                                            <ChevronRight className="w-4 h-4 text-gray-400" />
-                                        </motion.div>
-                                    </Link>
-                                ))}
-                            </div>
+                            {/* Livello 1: via zone hardcoded + Unsplash. Box invariato,
+                                contenuto onesto sull'assenza. Popolerà con le città vere
+                                da nav_events quando ci sarà il ponte (gate successivo). */}
+                            <p className="text-sm text-gray-500 italic">Le zone che esplori appariranno qui: ogni città che visiti lascia il segno.</p>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -496,17 +425,26 @@ export default function ProfilePage() {
                             <Clock className="w-5 h-5 mr-2 text-terracotta-400" />
                             Rivivi i tuoi Tour
                         </h3>
-                        <div className="flex items-center space-x-3 text-sm text-gray-600">
-                            <span>{tourHistory.length} tour</span>
-                            <span>•</span>
-                            <span>{tourHistory.reduce((total, tour) => total + tour.photos.length, 0)} foto</span>
-                            <Link to="/photos">
-                                <span className="text-terracotta-500 hover:text-terracotta-600 font-medium cursor-pointer">Vedi tutte</span>
-                            </Link>
-                        </div>
+                        {/* Livello 1: conteggio solo se c'è davvero qualcosa (niente "0 tour • 0 foto" nudo). */}
+                        {tourHistory.length > 0 && (
+                            <div className="flex items-center space-x-3 text-sm text-gray-600">
+                                <span>{tourHistory.length} tour</span>
+                                <span>•</span>
+                                <span>{tourHistory.reduce((total, tour) => total + tour.photos.length, 0)} foto</span>
+                                <Link to="/photos">
+                                    <span className="text-terracotta-500 hover:text-terracotta-600 font-medium cursor-pointer">Vedi tutte</span>
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-4">
+                        {/* Livello 1: empty state evocativo onesto, stesso stile card. */}
+                        {tourHistory.length === 0 && (
+                            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg text-center">
+                                <p className="text-sm text-gray-500 italic">Le tue tappe raccontano dove sei stato — inizia a scriverle. Le foto dei tuoi tour appariranno qui.</p>
+                            </div>
+                        )}
                         {tourHistory.map((tour, index) => (
                             <motion.div
                                 key={tour.id}
@@ -520,7 +458,7 @@ export default function ProfilePage() {
                                     <div className="flex items-center justify-between">
                                         <h4 className="font-bold text-gray-800 text-sm">{tour.title}</h4>
                                         <div className="flex items-center space-x-1">
-                                            {Array.from({ length: tour.rating }).map((_, i) => (
+                                            {Array.from({ length: tour.rating || 0 }).map((_, i) => (
                                                 <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
                                             ))}
                                         </div>
@@ -673,7 +611,7 @@ export default function ProfilePage() {
                                             </div>
                                             <div>
                                                 <p className="text-xs text-gray-500 font-medium">Durata</p>
-                                                <p className="text-sm font-bold text-gray-800">{selectedTour.duration}</p>
+                                                <p className="text-sm font-bold text-gray-800">{selectedTour.duration || '—'}</p>
                                             </div>
                                         </div>
                                         <div className="w-px h-8 bg-gray-200" />
@@ -683,7 +621,7 @@ export default function ProfilePage() {
                                             </div>
                                             <div>
                                                 <p className="text-xs text-gray-500 font-medium">Guida</p>
-                                                <p className="text-sm font-bold text-gray-800">{selectedTour.guide}</p>
+                                                <p className="text-sm font-bold text-gray-800">{selectedTour.guide || '—'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -698,7 +636,9 @@ export default function ProfilePage() {
                                         </p>
                                     </div>
 
-                                    {/* Highlights Chips */}
+                                    {/* Highlights Chips — Livello 1: sezione nascosta se non
+                                        ci sono highlights reali (mai chip inventate). */}
+                                    {selectedTour.highlights?.length > 0 && (
                                     <div>
                                         <h4 className="font-bold text-gray-800 mb-3 flex items-center">
                                             <span className="text-lg mr-2">✨</span> Highlights
@@ -715,6 +655,7 @@ export default function ProfilePage() {
                                             ))}
                                         </div>
                                     </div>
+                                    )}
 
                                     {/* Gallery Section */}
                                     {selectedTour?.photos && (

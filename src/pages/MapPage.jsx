@@ -41,6 +41,18 @@ const DEFAULT_CITY = 'Roma';
 // con accuracy 5-10m). Ancora calibrazione in corso, non definitivo.
 const GEOFENCE_BASE_M = 25;
 
+// Fase 2c-2: formatta il tempo REALE trascorso (ms) → "X min" / "Xh Ym" / "<1 min".
+// null se input non valido (caso difensivo → il summary mostra "—", mai un fake).
+const formatElapsedMs = (ms) => {
+    if (!Number.isFinite(ms) || ms < 0) return null;
+    const totalMin = Math.round(ms / 60000);
+    if (totalMin < 1) return '<1 min';
+    if (totalMin < 60) return `${totalMin} min`;
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return m === 0 ? `${h}h` : `${h}h ${m}m`;
+};
+
 // ─── SEMANTIC TAG MAPPING ─────────────────────────────────────────────────────
 // Tour tags → Business category_tags equivalents (one-to-many)
 const TAG_MAPPING = {
@@ -403,6 +415,11 @@ const MapPage = () => {
     // Fase 2b-2 FIX 1: latch irreversibile a fine tour → i tick GPS residui non
     // ricalcolano nulla, la UI di successo si congela (regola locked #11).
     const navCompletedRef = useRef(false);
+    // Fase 2c-2: timestamp di avvio nav (ref, non state) per il TEMPO REALE
+    // trascorso nel summary (start → completamento/Fine), al posto dell'ETA
+    // di Directions. navElapsedMs congela il valore all'apertura del summary.
+    const navStartTimeRef = useRef(null);
+    const [navElapsedMs, setNavElapsedMs] = useState(null);
     // Fase 2c-1 FIX A: target reale del geofence. Se l'utente ha fatto "Naviga"
     // su una tappa specifica → id di quella tappa; se "Avvia" tour → null
     // (prossima in ordine). navIsSingleTargetRef distingue "Naviga verso un punto
@@ -829,6 +846,8 @@ const MapPage = () => {
         }
 
         if (completedSteps.length > 0) {
+            // Fase 2c-2: congela il tempo reale al momento della fine.
+            setNavElapsedMs(navStartTimeRef.current != null ? Date.now() - navStartTimeRef.current : null);
             setTimeout(() => setIsSummaryModalOpen(true), 300);
         }
     };
@@ -852,6 +871,9 @@ const MapPage = () => {
         navCompletedRef.current = false;
         spokenIdentitiesRef.current = new Set();
         setNextStepDistanceM(null);
+        // Fase 2c-2: avvio cronometro tempo reale.
+        navStartTimeRef.current = Date.now();
+        setNavElapsedMs(null);
         // Fase 2c-1 FIX A/B: azzera armamento e determina il TARGET reale del
         // geofence. "Naviga" su una tappa → insegue QUELLA (match per id, con
         // fallback coordinate). "Avvia" tour (nessuna selezione) → sequenziale.
@@ -1188,6 +1210,8 @@ const MapPage = () => {
                 navCompletedRef.current = true;
                 if (watchId) { navigator.geolocation.clearWatch(watchId); setWatchId(null); }
                 setNextStepDistanceM(null);
+                // Fase 2c-2: congela il tempo reale al momento del completamento.
+                setNavElapsedMs(navStartTimeRef.current != null ? Date.now() - navStartTimeRef.current : null);
                 setTimeout(() => setIsSummaryModalOpen(true), 2000);
             }
         }
@@ -1827,10 +1851,12 @@ const MapPage = () => {
                     setReviewModalData({ tourId: tid, guideId: gid, guideName: gn });
                 }}
                 cityName={tourData?.city || null}
+                totalSteps={activeRoute?.length || 0}
                 stats={{
-                    // N5: SOLO dati reali da Directions. Se routeStats manca → null
-                    // (mai '1h 20m'/'2.4 km' fake). Regola locked #1.
-                    duration: routeStats ? `${Math.round(routeStats.durationSec / 60)} min` : null,
+                    // Fase 2c-2: TEMPO REALE trascorso (start→fine), non l'ETA di
+                    // Directions. null → il modal mostra "—" (mai fake). Regola #1.
+                    duration: formatElapsedMs(navElapsedMs),
+                    // N5: distanza reale da Directions (verificata device). Se manca → null.
                     distance: routeStats ? (routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m') : null,
                     completedCount: completedSteps.length
                 }}

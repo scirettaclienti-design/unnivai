@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Award, MapPin, Clock, MessageCircle, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-export const TourSummaryModal = ({ isOpen, onClose, stats, titleName, cityName, guideId, guideName, tourId, onReview }) => {
+export const TourSummaryModal = ({ isOpen, onClose, stats, titleName, cityName, totalSteps = 0, guideId, guideName, tourId, onReview }) => {
     if (!isOpen) return null;
 
     useEffect(() => {
@@ -89,7 +89,16 @@ export const TourSummaryModal = ({ isOpen, onClose, stats, titleName, cityName, 
                             {titleName || 'Storico Urbano'}
                         </motion.div>
                         
-                        <h2 className="text-4xl font-black text-gray-900 drop-shadow-sm px-2 leading-tight">Tour Completato!</h2>
+                        {/* Fase 2c-2: titolo CONDIZIONALE sui dati reali. "Tour Completato!"
+                            solo se davvero tutte le tappe sono fatte; altrimenti il conteggio
+                            onesto ("2 di 4 tappe"). Stesso <h2>, cambia solo il testo. */}
+                        <h2 className="text-4xl font-black text-gray-900 drop-shadow-sm px-2 leading-tight">
+                            {totalSteps > 0
+                                ? ((stats?.completedCount ?? 0) >= totalSteps
+                                    ? 'Tour Completato!'
+                                    : `${stats?.completedCount ?? 0} di ${totalSteps} tappe`)
+                                : 'Tour Completato!'}
+                        </h2>
 
                         <div className="flex flex-col gap-5 w-full mt-2 mb-2">
                             <div className="flex gap-4 w-full">

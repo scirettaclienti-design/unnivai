@@ -1333,6 +1333,123 @@ Sessione dedicata ad Antigravity dopo il lancio.
 
 ---
 
+## Gate NAVIGAZIONE — stato al 19/07 (funzionale-base CHIUSO, Livello 2 da aprire)
+
+Correzione di premessa (importante): l'handoff diceva "NavigationHUD funziona".
+Era una mezza verità — funzionava il CONTORNO (mappa, polyline, ETA, pallino GPS),
+NON l'avanzamento a tappe. La diagnosi ha rivelato che lo sblocco tappa non era mai
+stato raggiungibile (bottone gated su level===2 che le tappe non ricevono mai) e
+che il turn-by-turn era congelato su steps[0] di leg 0. Ora l'avanzamento a tappe
+FUNZIONA e la voce brand è rispettata.
+
+### Fasi chiuse e VERIFICATE su device (Ivano, Troina, a piedi + auto)
+
+- **Fase 1**: propagazione insiderTip/bestTime in activeRoute + telemetria
+  nav_events (tabella Supabase pattern Gate GG: nav_start, step_reached,
+  nav_complete, nav_abandon; RLS insert public/select service_role; applicata a
+  mano via SQL Editor).
+- **Fase 2a**: trigger manuale onesto "Sono arrivato" (non "Sblocca Contenuto"):
+  durante la nav, su una tappa non completata → handlePOIUnlock. Contratto sanato
+  con prop isNavigating/isCompleted/isTourStep (non più poi.level). Verificato:
+  contatore avanza, step_reached si scrive, idempotenza N3 regge.
+- **Fase 2b-1**: geofence auto-unlock. Legge accuracy, haversine client-side alla
+  prossima tappa, soglia adattiva max(GEOFENCE_BASE_M, accuracy). R2 chiuso:
+  enableHighAccuracy confinato alla sola nav attiva (clearWatch a fine nav), MOUNT
+  tornato a options soft di Gate X (no regressione iOS 45s). Ref anti-stale-closure.
+- **Fase 2b-2**: irreversibilità (navCompletedRef latch — no bounce su fluttuazione
+  GPS), distanza live in HUD (cala mentre cammini), TTS una volta per tappa
+  (spokenIdentitiesRef), camera panTo (no scatti; rotazione heading-up rimossa →
+  debito Antigravity), marker completato con ✓.
+- **Fase 2b-3**: summary reale (N5) — kill fallback '2.4 km'/'1h 20m', handleShare
+  de-Roma-izzato (usa città reale, mai hardcoded). Istruzione HUD onesta:
+  "→ Prossima tappa: {nome}" invece del turn-by-turn congelato. Voce allineata.
+- **Fase 2c-1**: geofence TARGET-CORRETTO + ANTI-CASCATA. Il geofence inseguiva "la
+  prima tappa non completata in ordine d'array" → due bug: (i) "Naviga" su tappa
+  saltata non scattava; (ii) CASCATA (tappe vicine nel centro storico si
+  sbloccavano tutte da fermo). Fix: navTargetStepIdRef (segue il target di "Naviga")
+  + arm-then-fire (una tappa scatta solo se vista fuori→dentro il raggio; eccezione
+  isFirstOfSession per la prima). Verificato device: tappe si sbloccano UNA alla
+  volta muovendosi, nessuna cascata da fermo, "Naviga" scatta sulla tappa giusta.
+- **Fase 2c-2**: summary onesto — tempo REALE (navStartTimeRef = Date.now() all'avvio,
+  delta congelato all'apertura summary, non più ETA Directions) + titolo condizionale
+  ("Tour Completato!" solo se completedSteps.length >= totalSteps, altrimenti
+  "{N} di {M} tappe"). Distanza e conteggio già reali da 2b-3. handleShare coerente.
+
+### Pendente (richiede calibrazione a piedi)
+
+- **Fase 2c-3**: abbassare GEOFENCE_BASE_M 25→~15 (scatto osservato a 20-30m, si
+  vuole più vicino — da fissare col distanzaM reale letto in [DVAI-Geofence]) +
+  kill fallback distanza HUD "8m" (|| step0?.distance?.text quando live è null).
+  Opzionale: chiudere il micro-race post-"Sono arrivato" (flag sincrono
+  primoDellaSessione — da confermare se si manifesta sul campo).
+- **Verifica finale device**: conferma 2c-2 (tempo+titolo) + 2c-3 (soglia) in un
+  giro a piedi.
+
+### Verità note ancora aperte (registrate, non regressioni)
+- La "distanza" summary è la lunghezza del percorso Directions pianificato, non
+  odometria GPS reale (se giri a vuoto non conta i metri). È coerente, non fake, ma
+  non è la distanza-camminata. Perimetro onesto.
+
+---
+
+## NUOVO GATE — "NAVIGAZIONE LIVELLO 2" (da aprire, il salto funzionale)
+
+Decisione Ivano (19/07): la navigazione è un CUORE PULSANTE dell'app e allo stato
+attuale (Livello 1: cursore che si muove + "prossima tappa: X" + distanza che cala)
+è troppo scarna. Va portata al "Livello 2" — WOW funzionale senza inseguire Google.
+
+**Tre livelli (chiarimento che corregge la vecchia dicotomia asticella):**
+- L1 (attuale): cursore + prossima tappa + distanza. Troppo povero per il cuore app.
+- L2 (DA COSTRUIRE, raggiungibile): indicazioni stradali essenziali che AVANZANO col
+  GPS ("dritto 200m → destra su Via X → tappa a 50m", dai maneuver di Directions,
+  fatti BENE — non congelati come prima) + percorso che si COLORA dietro mentre
+  cammini (fatto vs da fare) + ricalcolo BASE se esci dal percorso (ridisegna la
+  rotta dalla posizione attuale, non rerouting sofisticato) + rotazione heading-up.
+- L3 (Google Maps pieno, IRRAGGIUNGIBILE, fuori scope per sempre): turn-by-turn
+  maneuver-by-maneuver completo con traffico, rerouting dinamico avanzato.
+
+**Nota chiave:** i dati per L2 CI SONO GIÀ — Google Directions restituisce i maneuver
+di ogni step con distanze. Il turn-by-turn "congelato" che abbiamo disattivato era
+proprio questo, solo rotto (leggeva steps[0] e non avanzava). Non va costruito da
+zero: va fatto avanzare col GPS.
+
+**Da fare all'apertura del gate (NON ora):** asticella dedicata + diagnosi completa
+(mappare i maneuver di Directions, come avanzarli col GPS, il ricalcolo base, il
+percorso colorato). CANDIDATO per Claude Fable 5 sul terminale (analisi
+architetturale ampia); implementazione a fasi con Opus.
+
+**Perimetro onesto del gate (da confermare in asticella):** L2 sì, L3 no. Dà
+"quello che serve, non tutto Google".
+
+---
+
+## Backlog aggiornato al 19/07 (ordine)
+
+1. **2c-3** (soglia geofence + fallback HUD) — prossimo giro a piedi.
+2. **Profilo fake** (gate di verità, codice puro, verificabile da casa): tab Profile
+   mostra dati finti (regioni Unsplash "Toscana 8 tour"). Cleanup + collegamento a
+   explorers.tours_completed/km_walked/user_photos reali. NOTA: profiles ha anche
+   RLS DISABILITATO in prod (Gate KK) — valutare se chiudere insieme (sensibile).
+3. **Gate Navigazione Livello 2** (sopra) — il salto funzionale del cuore app.
+4. **Blocco Antigravity** — estetica netta di TUTTO (mappa, HUD, onboarding,
+   transizioni, rotazione heading-up) DOPO che L2 è chiuso funzionalmente.
+5. **Esplora CC.3, U.2** (rate limit + cache narratore) — come da backlog precedente.
+
+**Fuori scope registrati:**
+- Navigazione AUTO pura (l'app è per tour a piedi; l'uso in auto è limitato per
+  design, non è un bug).
+- Curiosità audio narratore inventate/generiche (es. "gli artisti di strada devono
+  avere permesso comunale", "le trattorie coi menù a mano sono le migliori") →
+  backlog NARRATORE (stesso filone poesia-del-caffè, nomi POI grezzi da Google tipo
+  "Bar Pour Toi di Cantagallo Basilio"). Bug di verità del narratore, gate a sé.
+
+**Nota operativa modelli:** Claude Fable 5 sul terminale per diagnosi/analisi
+architetturali ampie (es. apertura Nav Livello 2). Opus per esecuzione a fasi
+(diff, un fix alla volta). Cambio modello segnalato di volta in volta per
+ottimizzare i token di Ivano.
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
 
 - **Box wizard adattive alla città**. Gate C Task 2 progettato ma non implementato.

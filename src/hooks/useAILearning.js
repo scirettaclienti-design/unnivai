@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { dataService } from '../services/dataService';
-import { computeWeights, weightsToAIProfile, tourAffinityScore, applyEvent } from '../services/preferenceEngine';
+import { computeWeights, weightsToAIProfile, tourAffinityScore, applyEvent, normalizeCategory } from '../services/preferenceEngine';
 
-const STORAGE_KEY = 'unnivai_ai_learning_brain';
+// Fase 2 Gate DNA: bump chiave localStorage (v1→v2). Il "brain" v1 conteneva
+// chiavi cat: sporche (nomi-sezione, "guide"): ignorandolo, i client ripartono
+// puliti e non ri-scrivono lo sporco nel DB dopo il reset. Vedi RESET SQL.
+const STORAGE_KEY = 'unnivai_ai_learning_brain_v2';
 const MAX_INTERACTIONS = 30;
 const SYNC_DEBOUNCE_MS = 3000;
 
@@ -142,7 +145,16 @@ export function useAILearning() {
 
             // Aggiorna il preference graph (conteggi per categoria/mood/tipo)
             const graph = { ...prev.preferenceGraph };
-            if (data.category) graph[`cat:${data.category}`] = (graph[`cat:${data.category}`] || 0) + 1;
+            // Fase 2 Gate DNA — normalizza la category sulla tassonomia autorevole
+            // (CORE_CATEGORIES via normalizeCategory). Se NON è un gusto valido
+            // (nomi-sezione "Scelto per te", feature spente "guide", ecc.) NON si
+            // scrive la chiave cat: (regola #1: nessun dato falso alla sorgente).
+            // È l'UNICO punto che scrive cat: — copre trackTourView/trackCategoryClick/
+            // trackGeneratedTour (tutti passano da qui).
+            if (data.category) {
+                const normCat = normalizeCategory(data.category);
+                if (normCat) graph[`cat:${normCat}`] = (graph[`cat:${normCat}`] || 0) + 1;
+            }
             if (data.mood) graph[`mood:${data.mood}`] = (graph[`mood:${data.mood}`] || 0) + 1;
             if (data.type) graph[`type:${data.type}`] = (graph[`type:${data.type}`] || 0) + 1;
             if (data.city) graph[`city:${data.city}`] = (graph[`city:${data.city}`] || 0) + 1;

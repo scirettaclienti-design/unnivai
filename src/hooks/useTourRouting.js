@@ -128,13 +128,20 @@ export default function useTourRouting(waypoints, travelModePreference) {
 
                 const steps = response.routes[0]?.legs?.[0]?.steps || [];
                 setRouteInfo({ distanceM: totalDistM, durationSec: totalDurSec, mode: resolveMode(travelModePreference), steps });
-                // L2-0: estrai i dati completi (tutti i legs) nel ref. routeInfo sopra
-                // resta identico (steps di leg 0) per i consumatori attuali.
-                directionsDataRef.current = extractDirectionsData(response);
+                // L2-1 latest-wins (SCOPE MINIMO): guarda SOLO la data-path L2-1.
+                // setDirections/setRouteInfo sopra NON toccati (race preesistente = gate
+                // a sé nel backlog, regola #4). `signature` è il valore catturato da QUESTA
+                // closure; se è partita una route diversa, lastRequestSignature.current è
+                // avanzato → scarto il dato stale.
+                if (signature === lastRequestSignature.current) {
+                    directionsDataRef.current = extractDirectionsData(response);
+                }
             } else {
                 console.error('Directions failed:', status);
                 setRouteInfo({ error: status, distanceM: 0, durationSec: 0 });
-                directionsDataRef.current = { steps: [], overviewPath: [] };
+                if (signature === lastRequestSignature.current) {
+                    directionsDataRef.current = { steps: [], overviewPath: [] };
+                }
             }
         });
     }, [directionsService, directionsRendererOutline, directionsRendererInner, waypoints, routesLibrary, travelModePreference]);

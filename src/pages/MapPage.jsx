@@ -26,6 +26,7 @@ import { poiService } from '../services/poiService';
 import { POIPopupCard } from '../components/Map/POIPopupCard';
 import { supabase } from '../lib/supabase';
 import { logNavEvent } from '../lib/navTelemetry';
+import { haversineM, pickActiveStep } from '../lib/navGeo';
 import './MapPage.css';
 
 import { DEMO_CITIES } from '../data/demoData';
@@ -84,14 +85,7 @@ const tagsMatch = (tourTags = [], businessTags = [], aiVibes = [], aiStyles = []
     return allBusinessTags.some(bt => bt && allTourTags.some(tt => tt && (tt.includes(bt) || bt.includes(tt))));
 };
 
-const haversineM = (lat1, lng1, lat2, lng2) => {
-    const R = 6371000;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) ** 2 +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-};
+// L2-1: haversineM spostata in ../lib/navGeo (fonte unica, importata sopra).
 
 // ─── SERVER-SIDE FILTER AUDIT ────────────────────────────────────────────────
 //
@@ -434,6 +428,13 @@ const MapPage = () => {
     // Fase 2b-2 FIX 2: distanza live dalla posizione GPS alla PROSSIMA tappa
     // (scende mentre cammini). Alimentata dal geofence, mostrata nell'HUD.
     const [nextStepDistanceM, setNextStepDistanceM] = useState(null);
+    // L2-1: dati Directions trasportati (copia in MapPage, leggibile dal watchPosition
+    // senza stale-closure) + precompute punto→stepIdx + cursori monotòni + istruzione.
+    const directionsDataRef = useRef({ steps: [], overviewPath: [] });
+    const routePointsRef = useRef([]);        // flat [{lat,lng,stepIdx}]
+    const nearestPointIdxRef = useRef(0);      // cursore scan-forward monotòno
+    const activeStepIdxRef = useRef(0);        // indice step monotòno (max, mai indietro)
+    const [activeManeuver, setActiveManeuver] = useState(null); // { maneuver, instructionHtml } | null
     const [flyToLabel, setFlyToLabel] = useState(null);
     const [reviewModalData, setReviewModalData] = useState(null);
     const [voiceEnabled, setVoiceEnabled] = useState(true);
@@ -874,6 +875,12 @@ const MapPage = () => {
         // Fase 2c-2: avvio cronometro tempo reale.
         navStartTimeRef.current = Date.now();
         setNavElapsedMs(null);
+        // L2-1: azzera dati/cursori maneuver (si rinfrescano al primo onDirectionsData).
+        directionsDataRef.current = { steps: [], overviewPath: [] };
+        routePointsRef.current = [];
+        nearestPointIdxRef.current = 0;
+        activeStepIdxRef.current = 0;
+        setActiveManeuver(null);
         // Fase 2c-1 FIX A/B: azzera armamento e determina il TARGET reale del
         // geofence. "Naviga" su una tappa → insegue QUELLA (match per id, con
         // fallback coordinate). "Avvia" tour (nessuna selezione) → sequenziale.
@@ -1047,6 +1054,31 @@ const MapPage = () => {
                                     // non-tappa) → azzera la distanza live.
                                     setNextStepDistanceM(null);
                                 }
+                            }
+
+                            // ── L2-1: avanzamento maneuver (proiezione + indice monotòno) ──
+                            // Ortogonale al geofence: legge posizione + directionsData, scrive
+                            // SOLO nearestPointIdxRef/activeStepIdxRef + setActiveManeuver.
+                            // Mai handlePOIUnlock, mai armedStepsRef/geofenceFiredRef/completedSteps.
+                            if (!navCompletedRef.current) {
+                                const steps = directionsDataRef.current?.steps || [];
+                                let maneuver = null;
+                                const hit = pickActiveStep(routePointsRef.current, latitude, longitude, nearestPointIdxRef.current);
+                                if (hit && steps.length > 0) {
+                                    nearestPointIdxRef.current = hit.pointIdx;
+                                    const stepIdx = Math.max(activeStepIdxRef.current, hit.stepIdx);
+                                    activeStepIdxRef.current = stepIdx;
+                                    const s = steps[stepIdx];
+                                    if (s && (s.maneuver || s.instructions)) {
+                                        maneuver = { maneuver: s.maneuver || null, instructionHtml: s.instructions || null };
+                                    }
+                                }
+                                // hit === null (pts vuoto / coords invalide / fuori tolleranza) →
+                                // maneuver resta null → HUD torna a "→ Prossima tappa" (mai stale).
+                                setActiveManeuver(prev => {
+                                    if (prev?.maneuver === maneuver?.maneuver && prev?.instructionHtml === maneuver?.instructionHtml) return prev;
+                                    return maneuver;
+                                });
                             }
 
                             const now = Date.now();
@@ -1292,6 +1324,21 @@ const MapPage = () => {
         setRouteStats(stats); // Pass the whole object directly to keep steps
     }, []);
 
+    // L2-1: trasporto dati Directions (clone di handleRouteStats, ma → ref non state).
+    // Precomputa l'indice punto→stepIdx UNA volta per route. Azzera i cursori e
+    // l'istruzione (nuova route → mai istruzione stale finché il tick non ricalcola).
+    const handleDirectionsData = useCallback((data) => {
+        directionsDataRef.current = data && Array.isArray(data.steps) ? data : { steps: [], overviewPath: [] };
+        const pts = [];
+        directionsDataRef.current.steps.forEach((s, stepIdx) => {
+            (s.path || []).forEach(p => { if (p) pts.push({ lat: p.lat, lng: p.lng, stepIdx }); });
+        });
+        routePointsRef.current = pts;
+        nearestPointIdxRef.current = 0;
+        activeStepIdxRef.current = 0;
+        setActiveManeuver(null);
+    }, []);
+
     // ─── RENDER ───────────────────────────────────────────────────────────────
     return (
         <div className="relative w-full h-screen overflow-hidden bg-gray-50">
@@ -1354,6 +1401,7 @@ const MapPage = () => {
                             isNavigating={isNavigating}
                             transportModeOverride={pageTransportMode}
                             onRouteStats={handleRouteStats}
+                            onDirectionsData={handleDirectionsData}
                             selectedId={selectedActivity?.id}
                             activeCity={activeCity}
                             initialCenter={activeTourData?.center || passedCenter || localCenter || (lat && lng ? { latitude: lat, longitude: lng } : null)}
@@ -1640,6 +1688,7 @@ const MapPage = () => {
                     activeRoute={activeRoute}
                     completedSteps={completedSteps}
                     nextStepDistanceM={nextStepDistanceM}
+                    activeManeuver={activeManeuver}
                     voiceEnabled={voiceEnabled}
                     onToggleVoice={() => { setVoiceEnabled(v => !v); window.speechSynthesis?.cancel(); }}
                     onEndNavigation={handleEndNavigation}

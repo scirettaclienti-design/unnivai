@@ -16,6 +16,7 @@
  * - Safe-area-top rispettato (env(safe-area-inset-top)).
  */
 import { motion, AnimatePresence } from 'framer-motion';
+import DOMPurify from 'dompurify';
 import {
     Navigation,
     CornerUpLeft,
@@ -90,6 +91,7 @@ export default function NavigationHUD({
     activeRoute,
     completedSteps,
     nextStepDistanceM,
+    activeManeuver,
     voiceEnabled,
     onToggleVoice,
     onEndNavigation,
@@ -101,8 +103,15 @@ export default function NavigationHUD({
     // Se disponibile sostituisce il valore statico del maneuver leg0 nel chip.
     const liveDistanceText = Number.isFinite(nextStepDistanceM) ? formatDistance(nextStepDistanceM) : null;
     const distChip = liveDistanceText || step0?.distance?.text;
-    // Fase 2b-3 PART B: icona generica (non il maneuver congelato di leg 0).
-    const ManeuverIcon = maneuverIcon(null);
+    // L2-1: icona del maneuver ATTIVO (maneuverIcon già completa, default Navigation).
+    // Il chip distanza resta INVARIATO (distanza alla tappa) → 2c-3 indipendente.
+    const ManeuverIcon = maneuverIcon(activeManeuver?.maneuver ?? null);
+    // L2-1: istruzione del maneuver attivo, sanitizzata (XSS guard, come pre-2b-3).
+    // Se assente (fuori tolleranza / dati mancanti / route fallita) → null → fallback
+    // "→ Prossima tappa" (mai stale, mai inventata — regola #1).
+    const maneuverHtml = activeManeuver?.instructionHtml
+        ? DOMPurify.sanitize(activeManeuver.instructionHtml, { ALLOWED_TAGS: ['b', 'strong', 'span', 'div'], ALLOWED_ATTR: ['style'] })
+        : null;
     const totalSteps = activeRoute?.length || 0;
     const doneSteps = completedSteps?.length || 0;
     // PART B: prossima tappa per ESCLUSIONE (coerente con geofence/distanza-live),
@@ -157,17 +166,25 @@ export default function NavigationHUD({
                                 </p>
                             ) : (
                                 <>
-                                    {/* Fase 2b-3 PART B: destinazione ONESTA (dove stai andando),
-                                        non il turn-by-turn congelato di leg 0. Stesso layout/stile
-                                        della riga pre-esistente: cambia solo il testo/valore. */}
-                                    <p
-                                        className="text-[17px] font-bold text-gray-900 leading-tight line-clamp-2 break-words"
-                                        style={{ fontFamily: 'Quicksand, sans-serif', wordBreak: 'break-word', hyphens: 'auto' }}
-                                    >
-                                        {allDone
-                                            ? 'Tour completato'
-                                            : (nextStopName ? `→ Prossima tappa: ${nextStopName}` : 'Prossima tappa')}
-                                    </p>
+                                    {/* L2-1: istruzione del maneuver ATTIVO se disponibile (avanza
+                                        col GPS); altrimenti fallback destinazione onesta (2b-3).
+                                        Stesso layout/stile della riga. */}
+                                    {maneuverHtml ? (
+                                        <p
+                                            className="text-[17px] font-bold text-gray-900 leading-tight line-clamp-2 break-words"
+                                            style={{ fontFamily: 'Quicksand, sans-serif', wordBreak: 'break-word', hyphens: 'auto' }}
+                                            dangerouslySetInnerHTML={{ __html: maneuverHtml }}
+                                        />
+                                    ) : (
+                                        <p
+                                            className="text-[17px] font-bold text-gray-900 leading-tight line-clamp-2 break-words"
+                                            style={{ fontFamily: 'Quicksand, sans-serif', wordBreak: 'break-word', hyphens: 'auto' }}
+                                        >
+                                            {allDone
+                                                ? 'Tour completato'
+                                                : (nextStopName ? `→ Prossima tappa: ${nextStopName}` : 'Prossima tappa')}
+                                        </p>
+                                    )}
                                     {/* chip: distanza-live (FIX 2 di 2b-2) + tempo. Invariato. */}
                                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                         {distChip && (

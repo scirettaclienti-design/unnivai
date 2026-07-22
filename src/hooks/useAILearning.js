@@ -203,22 +203,17 @@ export function useAILearning() {
 
     // ─── Build AI context string da pesi strutturati ─────────────────────────
     const getAIContext = useCallback(() => {
-        // Usa il preference engine per generare un profilo preciso
-        const engineProfile = weightsToAIProfile(weights);
-        if (engineProfile) return engineProfile;
-
-        // Fallback legacy se engine non ha abbastanza dati
-        const graph = learningState.preferenceGraph;
-        if (!graph || Object.keys(graph).length === 0) return '';
-
-        const topCategories = Object.entries(graph)
-            .filter(([k]) => k.startsWith('cat:'))
-            .sort(([, a], [, b]) => b - a)
-            .slice(0, 3)
-            .map(([k]) => k.replace('cat:', ''));
-
-        return topCategories.length > 0 ? `Categorie preferite: ${topCategories.join(', ')}.` : '';
-    }, [weights, learningState.preferenceGraph]);
+        // Fase 1 Gate DNA — SOLO il profilo pulito del preference engine, già
+        // filtrato sulla whitelist di gusto CORE_CATEGORIES (via computeWeights /
+        // normalizeCategory in preferenceEngine.js). Se non c'è segnale di gusto
+        // valido → NIENTE (regola #1: nessun fallback produce contenuto).
+        //
+        // RIMOSSO il fallback legacy che leggeva le chiavi `cat:` GREZZE del grafo
+        // (senza normalizzare): produceva testi tipo "Categorie preferite: guide,
+        // Scelto per te, Consigliato dall'AI" — nomi di sezioni UI + una feature
+        // spenta (guide) spacciati per gusti dentro il prompt AI.
+        return weightsToAIProfile(weights) || '';
+    }, [weights]);
 
     // ─── Score affinità per ranking tour ─────────────────────────────────────
     const getTourAffinity = useCallback((tour) => {

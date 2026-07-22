@@ -1450,6 +1450,101 @@ ottimizzare i token di Ivano.
 
 ---
 
+## Gate PROFILO L1 — verità nel tab (22/07) ✅ VERIFICATO DEVICE
+
+Diagnosi: il Profilo non aveva "dati fake da sostituire" — era più rotto.
+`Profile.jsx` leggeva `explorers.tours_completed`, colonna che NON ESISTE → query
+fallita → contatori a 0 per sempre. `explorers` e `user_photos` vuote (0 righe) e
+NESSUN codice le alimenta. `nav_complete` non è collegato al profilo.
+
+**Commit `ba2cb9e`** — estetica INVARIATA (vincolo Ivano), solo contenuto:
+- Query rotta rimossa (non legge più colonne inesistenti).
+- Contatori: "—" + empty state evocativo (niente numeri finti).
+- "Esplora Zone" (Toscana 8/Sicilia 5/Venezia 3/Roma 6 + Unsplash): fake ucciso,
+  box mantenuto con testo evocativo.
+- "I Miei Risultati" (Esploratore Veterano 10+ tour / Guida Esperta 4.8/5 Top 10%):
+  badge inventati uccisi, empty state onesto.
+- Storico: kill `rating||5`, `"2 ore"`, `"Guide Expert"`, highlights inventati.
+- `shareTour`: kill "fantastico" (aggettivo) + rating tour-level seed (regola O.4)
+  che l'utente CONDIVIDEVA pubblicamente. Ora solo il fatto.
+- Dati VERI non toccati: "Richieste Attive" (guide_requests reali, chat davvero
+  create), card DNA (poi corretta nel gate DNA).
+
+Formulazioni evocative (approvate Ivano): regola locked — **evocativo su un FATTO
+VERO (l'assenza), mai un dato inventato per riempire**.
+
+## Gate DNA ONESTO (22/07) ✅ VERIFICATO DEVICE
+
+Domanda Ivano: "il DNA funziona davvero?". Diagnosi su DB: **numeri veri,
+significato falso**. Il grafo conteneva `cat:guide=193`, `cat:"Scelto per te"=79`,
+`cat:"Consigliato dall'AI"=65` — NON gusti: nomi di sezioni UI + il type di una
+feature SPENTA in V1. Il gusto vero (food=6, cultura=5) era sepolto fuori dal top-4.
+Doppio fraintendimento: card diceva "4059 interazioni analizzate" ma le % erano su
+348 (somma top-4). Il grafo conteneva anche `city:Catania=3624` (rumore da loop di
+test, classe Gate Y).
+
+**Fase 1 `fec8e6f`** — pulizia segnale: rimosso il fallback di `getAIContext` che
+iniettava "Categorie preferite: guide, Scelto per te…" nei prompt AI.
+CORREZIONE ONESTA: la portata era **sovrastimata** in diagnosi. `getTourAffinity`
+usava già weights filtrati → il ranking Home NON era distorto. Il fix è difensivo:
+chiude il buco per account a segnale-zero (tutti, al lancio).
+
+**Fase 2 `eb9e247`** — tassonomia + card + reset:
+- `trackInteraction` normalizza su `CORE_CATEGORIES`/`normalizeCategory` di
+  `preferenceEngine.js` (fonte unica, NON duplicata). Se non normalizza → NON
+  scrive la chiave (regola #1).
+- Card: filtra a CORE, soglia `DNA_MIN_CATEGORIZED = 12` (sotto: "Il tuo DNA si sta
+  formando…"; sopra: % vere). Numero e % ora sulla STESSA base (`validTotal`).
+- localStorage bump `unnivai_ai_learning_brain` → `_v2`: senza, il brain locale
+  sporco avrebbe sovrascritto il DB resettato al primo merge.
+- **Reset DB eseguito da Ivano** (tutti gli utenti): `preference_data='{}'`,
+  `interactions='[]'`, `total_interactions=0`.
+
+**CORREZIONE HANDOFF — Blocco 3 obsoleto**: diceva "il preference graph esiste ma
+non alimenta né la Home, né il traduttore, né le notifiche". FALSO: alimenta
+DashboardUser (ranking Home + aiProfile), AiItinerary:195, QuickPath:624,
+SurpriseTour. Solo che lo faceva con dati inquinati.
+
+**Perimetro onesto**: il DNA ora si popola SOLO da interazioni con categoria di
+gusto CORE valida. I tour "Per Te" con type = nome-tema NON contribuiscono (una
+sezione non è un gusto) → il DNA resta "in formazione" più a lungo. È corretto
+(lento-e-vero > veloce-e-falso). Fase 3 opzionale: mappare temi → CORE alla
+generazione.
+
+## LEZIONI OPERATIVE (22/07) — da applicare sempre
+
+**1. CI verde ≠ deployato.** Il Gate Profilo era committato, CI verde, e NON in
+produzione per 13 ore. Catena: E2E cancelled per flakiness infra (mirror apt
+Playwright) → gate `vercel-ignored-build-step.sh` fail-CLOSED → skip build →
+**il re-run della CI NON ri-triggera Vercel** (deploya sugli eventi di push, non
+sui cambi di stato CI). Servono nuovo push o redeploy manuale.
+→ **La regola #2 va estesa**: la verità è *CI verde + deploy Vercel effettivo +
+verifica device*. Verificare SEMPRE il deploy (interrogando il bundle prod per una
+stringa-marker) prima di dire "fatto".
+
+**2. Verificare il contenuto del bundle, non solo l'hash.** Metodo collaudato:
+`curl` sull'entry, trovare il chunk, cercare la stringa nuova E l'assenza della
+vecchia. Ha smascherato sia il Profilo non deployato sia confermato DNA F1/F2.
+
+**3. Backlog `vercel.json` cache policy** (da Gate KK): `index.html` no-cache +
+`/assets/*` immutable. Ancora aperto.
+
+## Backlog aggiornato al 22/07
+
+1. **2c-3** (soglia geofence ~15m + kill fallback distanza "8m") — serve camminata.
+2. **Nav Livello 2** — indicazioni stradali che avanzano col GPS, percorso che si
+   colora, ricalcolo base. Asticella dedicata + diagnosi (candidato Fable 5).
+3. **Ponte nav→profilo** (Profilo L2): colonna `tours_completed`, writer su
+   `nav_complete`, riga `explorers` all'onboarding + decisione Home vs Profilo per
+   i tour completati.
+4. **Allowlist cleanup**: Profile.jsx ora ha 0 Unsplash e 0 rating-tour-level → può
+   uscire da `no-unsplash-in-content` e `no-rating-or-reviews-at-tour-level`.
+5. **Esplora CC.3, U.2** (rate limit + cache narratore), `vercel.json`, RLS profiles.
+6. **Blocco Antigravity** — estetica di TUTTO, dopo che il funzionale è chiuso.
+   Include: card "DNA in formazione" con trattamento visivo dedicato.
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
 
 - **Box wizard adattive alla città**. Gate C Task 2 progettato ma non implementato.

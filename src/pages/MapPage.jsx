@@ -49,6 +49,34 @@ const DEFAULT_CITY = 'Roma';
 // con accuracy 5-10m). Ancora calibrazione in corso, non definitivo.
 const GEOFENCE_BASE_M = 25;
 
+// GATE DEBUG-NAV PERSIST: persistenza del buffer di calibrazione. TUTTO qui
+// gira SOLO se DEBUG_NAV è true (guardie a ogni call site). A flag spento:
+// zero righe, zero scritture, zero overhead.
+// - Ring buffer in-memoria alzato da 500 a 5000: iOS watchPosition ~1 tick/s
+//   camminando → 5000 righe ≈ 83 min, copre un giro di calibrazione completo.
+//   ~150 byte/riga → ≈ 750KB in memoria, trascurabile.
+// - localStorage: log TSV che ACCUMULA tra sessioni (separatore # SESSIONE),
+//   flush throttled (5s) per non pesare sul loop GPS, cap ~3MB (dei ~5MB
+//   disponibili) con scarto delle righe più vecchie + marker # TRUNCATED.
+const DEBUG_NAV_STORAGE_KEY = 'unnivai_debugnav_log_v1';
+const DEBUG_NAV_MAX_ROWS = 5000;        // ring buffer in-memoria
+const DEBUG_NAV_PERSIST_MS = 5000;      // throttle scrittura localStorage
+const DEBUG_NAV_MAX_CHARS = 3_000_000;  // cap ~3MB su localStorage
+const DEBUG_NAV_TSV_COLS = ['evento', 'ts', 'dt_s', 'lat', 'lng', 'accuracy_m', 'nextTappa', 'nextTappaDistM', 'soglia_m', 'armata', 'primo', 'scattato', 'stepIdx', 'snapDistM_m', 'instr'];
+const DEBUG_NAV_TSV_HEADER = DEBUG_NAV_TSV_COLS.join('\t');
+
+// Serializza una riga del buffer in TSV (una colonna per campo, tab-separato,
+// incollabile in un foglio senza parsing). Campi non disponibili → cella vuota
+// (mai valori inventati). Le righe di sblocco (r.unlock) mappano distReale sulla
+// colonna nextTappaDistM e marcano evento=UNLOCK.
+const debugRowToTSV = (r) => {
+    const esc = (v) => (v == null ? '' : String(v).replace(/[\t\n\r]/g, ' '));
+    const cells = r.unlock
+        ? ['UNLOCK', r.ts, '', '', '', r.accuracy, r.tappa, r.distReale, '', '', '', 'true', '', '', 'SBLOCCO']
+        : ['tick', r.ts, r.dt, r.lat, r.lng, r.accuracy, r.nextTappaName, r.nextTappaDistM, r.soglia, r.armata, r.primo, r.scattato, r.stepIdx, r.snapDistM, r.instr];
+    return cells.map(esc).join('\t');
+};
+
 // Fase 2c-2: formatta il tempo REALE trascorso (ms) → "X min" / "Xh Ym" / "<1 min".
 // null se input non valido (caso difensivo → il summary mostra "—", mai un fake).
 const formatElapsedMs = (ms) => {
@@ -446,11 +474,68 @@ const MapPage = () => {
     // re-render). lastDebugMsRef per il delta-tempo tra tick. Popolati SOLO se DEBUG_NAV.
     const navDebugRef = useRef([]);
     const lastDebugMsRef = useRef(null);
+    // GATE DEBUG-NAV PERSIST: coda righe non ancora scritte, ultimo flush, marker
+    // di sessione (separatore scritto una volta per run). Tutti usati SOLO sotto
+    // guardia DEBUG_NAV.
+    const debugPendingRef = useRef([]);
+    const lastPersistMsRef = useRef(0);
+    const debugSessionSepRef = useRef(false);
+
+    // Append throttled del buffer su localStorage. Fire-and-forget: un errore di
+    // persistenza (quota, storage non disponibile) NON deve toccare la nav.
+    const flushDebugToStorage = useCallback(() => {
+        if (!DEBUG_NAV) return;
+        const pending = debugPendingRef.current;
+        if (pending.length === 0) return;
+        debugPendingRef.current = [];
+        try {
+            let stored = localStorage.getItem(DEBUG_NAV_STORAGE_KEY) || '';
+            if (!stored) stored = DEBUG_NAV_TSV_HEADER + '\n';
+            if (!debugSessionSepRef.current) {
+                stored += `# SESSIONE ${new Date().toISOString()}\n`;
+                debugSessionSepRef.current = true;
+            }
+            stored += pending.map(debugRowToTSV).join('\n') + '\n';
+            // Cap ~3MB: scarta il 25% più vecchio, tiene header, segnala il taglio.
+            if (stored.length > DEBUG_NAV_MAX_CHARS) {
+                const lines = stored.split('\n');
+                const header = lines[0];
+                const body = lines.slice(1).filter(l => !l.startsWith('# TRUNCATED'));
+                const keep = body.slice(Math.floor(body.length * 0.25));
+                stored = `${header}\n# TRUNCATED ${new Date().toISOString()}\n${keep.join('\n')}`;
+            }
+            localStorage.setItem(DEBUG_NAV_STORAGE_KEY, stored);
+        } catch (e) {
+            console.warn('[debugnav] persist failed:', e?.message || e);
+        }
+    }, []);
+
     const pushNavDebug = (row) => {
         const b = navDebugRef.current;
         b.push(row);
-        if (b.length > 500) b.shift(); // ring buffer: scarta le più vecchie
+        if (b.length > DEBUG_NAV_MAX_ROWS) b.shift(); // ring buffer: scarta le più vecchie
+        // Persistenza: accoda e flush throttled (non a ogni tick).
+        debugPendingRef.current.push(row);
+        const now = Date.now();
+        if (now - lastPersistMsRef.current >= DEBUG_NAV_PERSIST_MS) {
+            lastPersistMsRef.current = now;
+            flushDebugToStorage();
+        }
     };
+
+    // GATE DEBUG-NAV PERSIST: flush della coda quando l'app va in background o si
+    // chiude (iOS: pagehide/visibilitychange), così non si perde l'ultima finestra
+    // <5s non ancora scritta. Montato SOLO se DEBUG_NAV → zero listener a flag spento.
+    useEffect(() => {
+        if (!DEBUG_NAV) return;
+        const onHide = () => flushDebugToStorage();
+        window.addEventListener('pagehide', onHide);
+        document.addEventListener('visibilitychange', onHide);
+        return () => {
+            window.removeEventListener('pagehide', onHide);
+            document.removeEventListener('visibilitychange', onHide);
+        };
+    }, [flushDebugToStorage]);
     const [flyToLabel, setFlyToLabel] = useState(null);
     const [reviewModalData, setReviewModalData] = useState(null);
     const [voiceEnabled, setVoiceEnabled] = useState(true);
@@ -1069,6 +1154,15 @@ const MapPage = () => {
                                         primoDellaSessione: isFirstOfSession,
                                         scattato,
                                     });
+                                    // GATE DEBUG-NAV PERSIST: stessi valori del console.log, stesso
+                                    // istante, zero ricalcolo → nel buffer/localStorage per calibrare
+                                    // la soglia senza Mac collegato.
+                                    if (dbg) {
+                                        dbg.soglia = Math.round(soglia);
+                                        dbg.armata = isArmed;
+                                        dbg.primo = isFirstOfSession;
+                                        dbg.scattato = scattato;
+                                    }
                                     if (scattato && handlePOIUnlockRef.current) {
                                         // Dedup sincrono: marca PRIMA di chiamare, così il tick
                                         // successivo passa già alla tappa dopo (niente doppioni,
@@ -1984,7 +2078,7 @@ const MapPage = () => {
             )}
 
             {/* GATE DEBUG PANEL: montato SOLO con ?debugnav=1. Assente → inerte. */}
-            {DEBUG_NAV && <NavDebugPanel bufferRef={navDebugRef} />}
+            {DEBUG_NAV && <NavDebugPanel bufferRef={navDebugRef} storageKey={DEBUG_NAV_STORAGE_KEY} onFlush={flushDebugToStorage} />}
         </div>
     );
 };

@@ -1562,6 +1562,71 @@ vecchia. Ha smascherato sia il Profilo non deployato sia confermato DNA F1/F2.
 
 ---
 
+## Sessione 23/07 — Nav L2 (L2-0/L2-1) + ponte profilo + debug panel
+
+### Gate NAV L2 — L2-0 (`5474d1a`) e L2-1 (`0704c55`) chiusi e IN PROD
+
+**L2-0**: `extractDirectionsData` (funzione pura, tutti i legs + overview_path,
+LatLng normalizzati) + `directionsDataRef` nell'hook. **L2-1**: istruzione maneuver
+che avanza col GPS (`pickActiveStep` proiezione + indice monotòno, trasporto clone
+di onRouteStats → ref MapPage, latest-wins scope-minimo, fallback onesto a
+"Prossima tappa" fuori tolleranza). `MANEUVER_SNAP_TOLERANCE_M=25` da calibrare.
+
+**VERIFICATO su device a Troina (23/07)**: le istruzioni maneuver esistono,
+cambiano, l'icona è corretta. **MA con difetti gravi** (finding sotto).
+
+### FINDING camminata Troina 23/07
+
+**BUG (nav)**
+- Istruzione arriva **30-40m DOPO** la svolta, non prima.
+- **Puntatore GPS a scatti**: prima era fluido → **regressione introdotta da L2-1**.
+- Fallback a "Prossima tappa" **a metà percorso** (la proiezione perde l'aggancio).
+- Geofence scatta ancora a **20-25m**, da calibrare.
+
+**VERITÀ (fake sopravvissuti / nuovi)**
+- **IL SUMMARY MENTE**: mostra 3,2 km quando l'utente ne ha camminati ~1. È la
+  distanza del **tour pianificato** (Directions) spacciata per **percorso fatto**.
+  Stessa classe dei fake di Blocco 1, sopravvissuta perché "sembra un dato tecnico".
+- **Minuti congelati** a "50 min rimasti" mentre i metri calano.
+- **"MONUMENTI SCOPERTE"**: genere sbagliato (→ "Monumenti scoperti").
+
+**PRODOTTO (differenza navigatore vs tour)**
+- **Ordine tappe rigido**: utente a 30m dalla tappa 3, il tour lo manda alla tappa 1
+  a 1km. Per un tour a piedi si deve partire dal **punto più vicino**.
+- **Ritmo arrivo/ripartenza**: appena sblocchi una tappa annuncia subito la
+  prossima, non lascia il momento. È la differenza tra navigatore e tour.
+- **Curiosità narratore generiche**, non legate al luogo. Voce TTS robotica.
+- **Qualità POI**: migliorata (niente invenzioni, orari veri) ma ancora distante
+  dall'obiettivo. Troina = banco di prova migliore (pochi POI + giudice che conosce
+  la verità sul campo).
+
+### Altri gate chiusi in sessione
+- **Ponte nav→profilo Fasi 2+3** (`3dcd7c0`): tabella `completed_tours` + trigger
+  `SECURITY DEFINER` su `nav_complete`, migration **TRACCIATA** (`20260722114554`).
+  Restano **Fase 1** (nav_complete oggi scritto solo su "Fine", non al completamento
+  reale → sotto-conta) e **Fase 4** (lettura Profilo: `COUNT(completed_tours)`).
+- **Allowlist cleanup** (`db55418`): Profile.jsx fuori da `no-rating-or-reviews-at-tour-level`.
+- **Debug panel** (`ac7f2c4`): pannello calibrazione nav, `?debugnav=1`, buffer su
+  ref (zero re-render), riga con `dt` (delta tick), `snapDistM` esposto. Spento di
+  default. Serve per la camminata di calibrazione.
+
+### Lezione nuova
+Marker per verifica deploy bundle prod = **stringa-letterale o object-key, MAI nome
+di simbolo** (i simboli vengono rinominati/tree-shakati in minify).
+
+### Backlog 23/07 (ordine: per cosa sblocca cosa)
+1. **Camminata col pannello debug** → numeri veri (snap, dt, distReale, soglia).
+2. **Gate ritardo+fluidità+geofence** — tutto nel tick, un gate solo (istruzione in
+   anticipo, puntatore fluido, calibrazione soglie).
+3. **Gate summary onesto** — verità (km reali vs pianificati, minuti, genere),
+   verificabile da casa.
+4. **Gate ordine tappe** — partire dal punto più vicino.
+5. **Gate ritmo arrivo/ripartenza** — design L2 (lascia il momento).
+6. **Gate narratore** — curiosità legate al luogo + voce.
+7. **L2-2/3/4**, ponte Fasi 1+4, RLS, `vercel.json`, Esplora CC.3.
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
 
 - **Box wizard adattive alla città**. Gate C Task 2 progettato ma non implementato.

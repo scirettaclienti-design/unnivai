@@ -7,8 +7,29 @@ import { computeWeights, weightsToAIProfile, tourAffinityScore, applyEvent, norm
 // chiavi cat: sporche (nomi-sezione, "guide"): ignorandolo, i client ripartono
 // puliti e non ri-scrivono lo sporco nel DB dopo il reset. Vedi RESET SQL.
 const STORAGE_KEY = 'unnivai_ai_learning_brain_v2';
+// Gate SEME (L1): chiave dedicata del seme onboarding (id CORE seminati).
+// FUORI dal brain di proposito: il seme NON entra MAI nel preferenceGraph
+// (regola locked Gate DNA: il grafo contiene solo gusti da comportamento vero;
+// la card "DNA in formazione" conta solo interazioni reali). Il seme e' un
+// input SEPARATO passato a computeWeights come 2o argomento. Deve combaciare
+// con ONBOARDING_SEED_KEY in Onboarding.jsx e la cleanup logout in AuthContext.jsx.
+const ONBOARDING_SEED_KEY = 'unnivai_onboarding_seed_v1';
 const MAX_INTERACTIONS = 30;
 const SYNC_DEBOUNCE_MS = 3000;
+
+// Gate SEME (L1): lettura SINCRONA del seme (nessun async nel path critico).
+// JSON malformato/assente → [] (regola #1: nessun fallback produce contenuto,
+// mai categorie di default). Filtra a sole stringhe per robustezza.
+function readOnboardingSeed() {
+    try {
+        const raw = localStorage.getItem(ONBOARDING_SEED_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.filter(x => typeof x === 'string') : [];
+    } catch {
+        return [];
+    }
+}
 
 /**
  * useAILearning — Preference Graph
@@ -54,6 +75,12 @@ export function useAILearning() {
             return defaults;
         }
     });
+
+    // Gate SEME (L1): seme onboarding, stato SEPARATO dal brain, letto una sola
+    // volta in modo sincrono al mount (initializer) → gia' disponibile al primo
+    // render, prima che parta la query 'home-experiences'. NON confluisce mai in
+    // learningState.preferenceGraph.
+    const [onboardingSeed] = useState(readOnboardingSeed);
 
     const syncTimerRef = useRef(null);
     const hasSyncedFromDb = useRef(false);
@@ -209,9 +236,12 @@ export function useAILearning() {
     }, [trackInteraction]);
 
     // ─── Pesi normalizzati dal Preference Engine ────────────────────────────────
+    // Gate SEME (L1): il seme onboarding entra QUI come 2o arg (prima era []).
+    // computeWeights lo somma (+0.3/id normalizzato) ai click impliciti del grafo
+    // e ri-normalizza. Il seme resta fuori dal grafo: influenza solo i pesi.
     const weights = useMemo(() => {
-        return computeWeights(learningState.preferenceGraph, []);
-    }, [learningState.preferenceGraph]);
+        return computeWeights(learningState.preferenceGraph, onboardingSeed);
+    }, [learningState.preferenceGraph, onboardingSeed]);
 
     // ─── Build AI context string da pesi strutturati ─────────────────────────
     const getAIContext = useCallback(() => {
@@ -239,6 +269,10 @@ export function useAILearning() {
     return {
         ...learningState,
         weights, // Pesi normalizzati 0.0-1.0 per categorie
+        // Gate SEME (L1): true se l'onboarding ha seminato almeno un gusto.
+        // Serve a DashboardUser per attivare il ranking DNA dal giorno 0 (R1),
+        // senza aspettare 3 interazioni reali. NON altera il conteggio DNA.
+        hasSeed: onboardingSeed.length > 0,
         trackGeneratedTour,
         trackTourView,
         trackCategoryClick,

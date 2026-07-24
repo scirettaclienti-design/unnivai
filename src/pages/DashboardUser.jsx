@@ -181,8 +181,14 @@ const DashboardUser = () => {
         }
     };
 
-    const { userDNAPreferences, preferenceGraph, totalInteractions, getAIContext, getTourAffinity } = useAILearning();
-    const hasPreferences = totalInteractions >= 3;
+    const { userDNAPreferences, preferenceGraph, totalInteractions, getAIContext, getTourAffinity, hasSeed } = useAILearning();
+    // Gate SEME (L1): il ranking DNA (:216 tour reali, :359 riordino) si attiva
+    // con >=3 interazioni reali OPPURE con un seme onboarding non vuoto — cosi'
+    // gli interessi scelti contano dal primo ingresso (R1). hasSeed e' disponibile
+    // sincrono al primo render (letto da localStorage nell'initializer del hook),
+    // quindi la query 'home-experiences' parte gia' col valore giusto. La queryKey
+    // NON cambia struttura: hasPreferences ne era gia' membro.
+    const hasPreferences = totalInteractions >= 3 || hasSeed;
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
     useEffect(() => {

@@ -77,6 +77,12 @@ export const AuthProvider = ({ children }) => {
         const localKeys = [
             'unnivai_role',
             'unnivai_ai_learning_brain',
+            // Gate SEME (L1): bug di privacy preesistente — lo STORAGE_KEY attuale
+            // e' 'unnivai_ai_learning_brain_v2', non veniva pulito: su device
+            // condiviso il prossimo utente ereditava grafo e gusti del precedente.
+            'unnivai_ai_learning_brain_v2',
+            // Gate SEME (L1): seme onboarding, user-derived → va pulito al logout.
+            'unnivai_onboarding_seed_v1',
             'dvai_gps_data',
             'dvai_onboarding_done',
             'user_tour_history',

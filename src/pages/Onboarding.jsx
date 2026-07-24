@@ -16,16 +16,32 @@ import { supabase } from '@/lib/supabase';
 
 // Gate EE — ITALIAN_CITIES rimosso: dead code (mai usato nel wizard corrente).
 
+// Gate SEME (L1): ogni voce dichiara `seeds` = gli id CORE_CATEGORIES che
+// semina nel preference engine (2o arg di computeWeights). Una voce puo'
+// seminarne piu' d'uno ("Storia e arte" → cultura + arte). Gli id in `seeds`
+// sono verificati contro normalizeCategory (referto: 8/8 non-null).
+// 'romantic' RIMOSSO: normalizeCategory lo scartava in silenzio (referto #1).
+// Label provvisorie: le riscrive il gate estetica (separato).
 const INTERESTS = [
-    { id: 'food',      emoji: '🍝', label: 'Gastronomia',   desc: 'Ristoranti, mercati, corsi di cucina' },
-    { id: 'culture',   emoji: '🏛️', label: 'Cultura',        desc: 'Musei, storia, arte locale' },
-    { id: 'adventure', emoji: '🧗', label: 'Avventura',      desc: 'Trekking, escursioni, sport' },
-    { id: 'romantic',  emoji: '💑', label: 'Romantico',      desc: 'Coppie, tramonti, esperienze intime' },
-    { id: 'art',       emoji: '🎨', label: 'Arte & Design',  desc: 'Gallerie, street art, artigianato' },
-    { id: 'nature',    emoji: '🌿', label: 'Natura',         desc: 'Parchi, giardini, panorami' },
-    { id: 'nightlife', emoji: '🌙', label: 'Vita notturna',  desc: 'Aperitivo, bar, eventi serali' },
-    { id: 'shopping',  emoji: '🛍️', label: 'Shopping',       desc: 'Boutique, artigianato, mercatini' },
+    { id: 'food',      emoji: '🍝', label: 'Mangiare e bere',      desc: 'Ristoranti, mercati, corsi di cucina', seeds: ['food'] },
+    { id: 'cultura',   emoji: '🏛️', label: 'Storia e arte',        desc: 'Musei, storia, gallerie, arte locale', seeds: ['cultura', 'arte'] },
+    { id: 'natura',    emoji: '🌿', label: 'Natura e panorami',    desc: 'Parchi, giardini, panorami',          seeds: ['natura'] },
+    { id: 'nightlife', emoji: '🌙', label: 'Vita notturna',        desc: 'Aperitivo, bar, eventi serali',       seeds: ['nightlife'] },
+    { id: 'avventura', emoji: '🧗', label: 'Camminare e scoprire', desc: 'Trekking, escursioni, sport',         seeds: ['avventura'] },
+    { id: 'relax',     emoji: '☕', label: 'Ritmo lento',          desc: 'Pause, benessere, angoli tranquilli', seeds: ['relax'] },
+    { id: 'shopping',  emoji: '🛍️', label: 'Shopping e mercati',   desc: 'Boutique, artigianato, mercatini',    seeds: ['shopping'] },
 ];
+
+// Gate SEME (L1): chiave localStorage dedicata (FUORI dal brain). Deve
+// combaciare con ONBOARDING_SEED_KEY in useAILearning.js e con la lista di
+// cleanup logout in AuthContext.jsx.
+const ONBOARDING_SEED_KEY = 'unnivai_onboarding_seed_v1';
+
+// Gate SEME (L1): dagli id-voce selezionati agli id CORE seminati (flat, dedup).
+const computeSeed = (selectedIds) => {
+    const flat = selectedIds.flatMap(id => INTERESTS.find(i => i.id === id)?.seeds || []);
+    return [...new Set(flat)];
+};
 
 const STEP_CONFIG = [
     { id: 'welcome',   title: 'Benvenuto su DoveVAI',   subtitle: 'Il posto esiste. Nessuno te lo aveva mostrato così.' },
@@ -72,12 +88,16 @@ export default function Onboarding() {
 
     const handleComplete = async () => {
         setIsSaving(true);
+        // Gate SEME (L1): id CORE seminati (flat, dedup) dagli interessi scelti.
+        const seed = computeSeed(selectedInterests);
         try {
-            // Salva solo preferenze/interessi — la città viene dal GPS
+            // Salva solo preferenze/interessi — la città viene dal GPS.
+            // Gate SEME (L1): profiles.interests ora contiene gli id CORE seminati
+            // (NON le label), cosi' il dato DB e' riusabile in futuro senza rimappatura.
             if (user?.id) {
                 await supabase.from('profiles').upsert({
                     id: user.id,
-                    interests: selectedInterests,
+                    interests: seed,
                     onboarding_complete: true,
                     updated_at: new Date().toISOString(),
                 }, { onConflict: 'id' });
@@ -90,6 +110,10 @@ export default function Onboarding() {
             console.warn('[Onboarding] save failed:', err.message);
             // Salva comunque il flag locale e procedi — l'utente non deve rimanere bloccato
         }
+        // Gate SEME (L1): il seme va scritto SEMPRE e PRIMA del navigate (sync),
+        // indipendente dall'esito del salvataggio DB — deve essere gia' in
+        // localStorage quando DashboardUser monta e useAILearning lo legge.
+        try { localStorage.setItem(ONBOARDING_SEED_KEY, JSON.stringify(seed)); } catch { /* quota: seme salta, comportamento = utente senza seme */ }
         setIsSaving(false);
         navigate('/dashboard-user', { replace: true });
     };
@@ -311,6 +335,10 @@ export default function Onboarding() {
                 <button
                     onClick={() => {
                         localStorage.setItem('dvai_onboarding_done', '1');
+                        // Gate SEME (L1): "saltato" scrive seme VUOTO (non omette la
+                        // chiave): "ho saltato" deve essere distinguibile da "non sono
+                        // mai passato". Nessun seme di default (regola #1).
+                        try { localStorage.setItem(ONBOARDING_SEED_KEY, '[]'); } catch { /* no-op */ }
                         navigate('/dashboard-user', { replace: true });
                     }}
                     className="mt-4 text-xs text-gray-400 hover:text-gray-600 transition-colors underline"

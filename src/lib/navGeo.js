@@ -43,5 +43,7 @@ export function pickActiveStep(pts, lat, lng, fromIdx = 0, tol = MANEUVER_SNAP_T
         if (d < bestDist) { bestDist = d; bestIdx = i; }
     }
     if (bestIdx < 0 || bestDist > tol) return null;
-    return { pointIdx: bestIdx, stepIdx: pts[bestIdx].stepIdx };
+    // snapDistM = distanza di proiezione (quanto sei lontano dal path all'aggancio).
+    // Dato-chiave per calibrare MANEUVER_SNAP_TOLERANCE_M. pointIdx/stepIdx invariati.
+    return { pointIdx: bestIdx, stepIdx: pts[bestIdx].stepIdx, snapDistM: Math.round(bestDist) };
 }

@@ -32,6 +32,19 @@ describe('pickActiveStep', () => {
         expect(hit.pointIdx).toBe(2);
     });
 
+    it('espone snapDistM = distanza di proiezione (arrotondata) al punto agganciato', () => {
+        const pts = [pt(0, 0), pt(15, 0), pt(30, 1), pt(45, 1)];
+        // posizione a 40m: il punto più vicino è pt(45,1) a 5m.
+        const pos = north(40);
+        const hit = pickActiveStep(pts, pos.lat, pos.lng, 0, MANEUVER_SNAP_TOLERANCE_M);
+        expect(hit).not.toBeNull();
+        expect(hit.pointIdx).toBe(3);
+        expect(hit.snapDistM).toBe(5);      // ~5m dal punto agganciato
+        // sul punto esatto → snapDistM 0
+        const onPoint = pickActiveStep(pts, north(30).lat, north(30).lng, 0, MANEUVER_SNAP_TOLERANCE_M);
+        expect(onPoint.snapDistM).toBe(0);
+    });
+
     it('FUORI TOLLERANZA → null (NON l\'ultimo valido)', () => {
         const pts = [pt(0, 0), pt(15, 0), pt(30, 1)];
         const pos = north(100); // 100m dal punto più vicino (30m) = 70m di scarto

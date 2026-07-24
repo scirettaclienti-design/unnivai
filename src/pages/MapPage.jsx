@@ -27,7 +27,14 @@ import { POIPopupCard } from '../components/Map/POIPopupCard';
 import { supabase } from '../lib/supabase';
 import { logNavEvent } from '../lib/navTelemetry';
 import { haversineM, pickActiveStep } from '../lib/navGeo';
+import NavDebugPanel from '../components/NavDebugPanel';
 import './MapPage.css';
+
+// GATE DEBUG PANEL: strumento di calibrazione nav, NON feature di prodotto.
+// SPENTO di default: si attiva SOLO con ?debugnav=1 (valutato una volta al load).
+// Senza il parametro: componente non montato, zero righe accumulate, zero costo.
+const DEBUG_NAV = typeof window !== 'undefined'
+    && new URLSearchParams(window.location.search).get('debugnav') === '1';
 
 import { DEMO_CITIES } from '../data/demoData';
 
@@ -435,6 +442,15 @@ const MapPage = () => {
     const nearestPointIdxRef = useRef(0);      // cursore scan-forward monotòno
     const activeStepIdxRef = useRef(0);        // indice step monotòno (max, mai indietro)
     const [activeManeuver, setActiveManeuver] = useState(null); // { maneuver, instructionHtml } | null
+    // GATE DEBUG PANEL: ring buffer righe di calibrazione (ref, MAI state → zero
+    // re-render). lastDebugMsRef per il delta-tempo tra tick. Popolati SOLO se DEBUG_NAV.
+    const navDebugRef = useRef([]);
+    const lastDebugMsRef = useRef(null);
+    const pushNavDebug = (row) => {
+        const b = navDebugRef.current;
+        b.push(row);
+        if (b.length > 500) b.shift(); // ring buffer: scarta le più vecchie
+    };
     const [flyToLabel, setFlyToLabel] = useState(null);
     const [reviewModalData, setReviewModalData] = useState(null);
     const [voiceEnabled, setVoiceEnabled] = useState(true);
@@ -989,6 +1005,17 @@ const MapPage = () => {
                             const { latitude, longitude, accuracy } = pos.coords;
                             setLocalCenter({ latitude, longitude });
 
+                            // GATE DEBUG PANEL: riga di calibrazione per questo tick.
+                            // dbg=null quando DEBUG_NAV è spento → tutte le capture sotto saltano.
+                            // dt = secondi dal tick precedente (regressione fluidità: tick irregolari).
+                            let dbg = null;
+                            if (DEBUG_NAV) {
+                                const nowMs = Date.now();
+                                const dt = lastDebugMsRef.current != null ? ((nowMs - lastDebugMsRef.current) / 1000).toFixed(1) : null;
+                                lastDebugMsRef.current = nowMs;
+                                dbg = { ts: new Date().toLocaleTimeString('it-IT'), dt, lat: latitude.toFixed(6), lng: longitude.toFixed(6), accuracy: Math.round(accuracy || 0) };
+                            }
+
                             // ── Fase 2b GEOFENCE auto-unlock + distanza live ──────────
                             // FIX 1: se il tour è completato, i tick non ricalcolano nulla.
                             // Prossima tappa = prima di activeRoute NON completata (per
@@ -1019,6 +1046,7 @@ const MapPage = () => {
                                     const distM = haversineM(latitude, longitude, nextStep.latitude, nextStep.longitude);
                                     // FIX 2: distanza live alla prossima tappa (scende camminando).
                                     setNextStepDistanceM(Math.round(distM));
+                                    if (dbg) { dbg.nextTappaDistM = Math.round(distM); dbg.nextTappaName = nextStep.name || nextStep.title; }
                                     // Soglia adattiva (R1): si allarga se il GPS è impreciso.
                                     const soglia = Math.max(GEOFENCE_BASE_M, accuracy || 0);
                                     // FIX B arm-then-fire: fuori raggio → "arma" la tappa; dentro
@@ -1046,6 +1074,8 @@ const MapPage = () => {
                                         // successivo passa già alla tappa dopo (niente doppioni,
                                         // niente fly-to/toast a raffica). handlePOIUnlock ha
                                         // comunque la sua guard su completedSteps (N3).
+                                        // GATE DEBUG: riga marcata di sblocco con la distanza REALE allo scatto.
+                                        if (DEBUG_NAV) pushNavDebug({ ts: new Date().toLocaleTimeString('it-IT'), unlock: true, tappa: nextStep.name || nextStep.title, distReale: Math.round(distM), accuracy: Math.round(accuracy || 0) });
                                         firedSet.add(nextStep.id);
                                         handlePOIUnlockRef.current(nextStep);
                                     }
@@ -1053,6 +1083,7 @@ const MapPage = () => {
                                     // Nessuna prossima tappa (tutte fatte / non trovata / target
                                     // non-tappa) → azzera la distanza live.
                                     setNextStepDistanceM(null);
+                                    if (dbg) dbg.nextTappaDistM = null;
                                 }
                             }
 
@@ -1079,7 +1110,16 @@ const MapPage = () => {
                                     if (prev?.maneuver === maneuver?.maneuver && prev?.instructionHtml === maneuver?.instructionHtml) return prev;
                                     return maneuver;
                                 });
+                                if (dbg) {
+                                    dbg.stepIdx = hit?.stepIdx ?? null;
+                                    dbg.snapDistM = hit?.snapDistM ?? null;
+                                    dbg.instr = maneuver?.instructionHtml
+                                        ? maneuver.instructionHtml.replace(/<[^>]*>/g, '').slice(0, 40)
+                                        : (dbg.nextTappaName ? `→ ${dbg.nextTappaName}` : '→ prossima tappa');
+                                }
                             }
+                            // GATE DEBUG: registra la riga del tick (SOLO se DEBUG_NAV).
+                            if (dbg) pushNavDebug(dbg);
 
                             const now = Date.now();
                             // Adatta camera al mezzo di trasporto
@@ -1942,6 +1982,9 @@ const MapPage = () => {
                     tourTitle={tourData?.title}
                 />
             )}
+
+            {/* GATE DEBUG PANEL: montato SOLO con ?debugnav=1. Assente → inerte. */}
+            {DEBUG_NAV && <NavDebugPanel bufferRef={navDebugRef} />}
         </div>
     );
 };

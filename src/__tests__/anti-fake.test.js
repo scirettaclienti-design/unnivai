@@ -130,9 +130,9 @@ const RULES = [
             'src/services/locationTourService.js',
         ],
         message: 'Unsplash dentro contenuto tour. Le foto vengono da Google Places photo API.',
-        // SKIP: Profile.jsx region cover + dataService fallback + tourShape STEP_FALLBACK
-        // + GroupInviteModal Sofia avatar. Riattivare dopo cleanup Profile regioni +
-        // sostituzione STEP_FALLBACK con categoryPalette.
+        // SKIP: dataService fallback + tourShape STEP_FALLBACK + GroupInviteModal
+        // Sofia avatar (Profile.jsx ripulito in Gate Profilo L1). Riattivare dopo
+        // aver ripulito gli 8 violatori residui (vedi handoff).
         skip: true,
     },
     {
@@ -216,9 +216,9 @@ const RULES = [
         pattern: /\{(?:exp|tour|experience|item)\.(?:rating|reviews|reviewsCount|user_ratings_total)\b/,
         allowlist: [
             // Gate CC.2b: rimosso 'src/pages/Explore.jsx' (featuredPoi POI-level).
-            // Cleanup pianificato Blocco 2.2 (Profilo reale) / TourLive.
+            // Gate Profilo L1 (ba2cb9e): rimosso 'src/pages/Profile.jsx' — 0
+            // occorrenze del pattern, ora coperto dalla regola (rientro = build rossa).
             'src/pages/TourLive.jsx',
-            'src/pages/Profile.jsx',
         ],
         message: 'Rating/reviews a livello TOUR nel JSX. Solo POI-level: usa exp.featuredPoi.rating o step.rating, mai un aggregato inventato del tour.',
     },

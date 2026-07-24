@@ -1537,11 +1537,28 @@ vecchia. Ha smascherato sia il Profilo non deployato sia confermato DNA F1/F2.
 3. **Ponte nav→profilo** (Profilo L2): colonna `tours_completed`, writer su
    `nav_complete`, riga `explorers` all'onboarding + decisione Home vs Profilo per
    i tour completati.
-4. **Allowlist cleanup**: Profile.jsx ora ha 0 Unsplash e 0 rating-tour-level → può
-   uscire da `no-unsplash-in-content` e `no-rating-or-reviews-at-tour-level`.
+4. **Allowlist cleanup** ✅ FATTO (22/07): Profile.jsx rimosso dall'allowlist di
+   `no-rating-or-reviews-at-tour-level` (0 occorrenze → ora coperto). Correzione:
+   Profile.jsx NON era nell'allowlist di `no-unsplash-in-content` (solo nel commento
+   skip, ora ripulito). Due findings emersi durante il cleanup (vedi sotto).
 5. **Esplora CC.3, U.2** (rate limit + cache narratore), `vercel.json`, RLS profiles.
 6. **Blocco Antigravity** — estetica di TUTTO, dopo che il funzionale è chiuso.
    Include: card "DNA in formazione" con trattamento visivo dedicato.
+
+### Findings emersi dal cleanup allowlist (22/07)
+
+- **8 violatori residui di `no-unsplash-in-content`** (perciò la regola resta `skip`):
+  `src/components/GroupInviteModal.jsx`, `src/components/Map/QuickPathSummary.jsx`,
+  `src/pages/DashboardGuide.jsx`, `src/pages/DashboardUser.jsx`, `src/pages/Landing.jsx`,
+  `src/pages/MapPage.jsx`, `src/services/dataService.js`, `src/services/tourShape.js`.
+  Ripulirli tutti (foto da Google Places, non Unsplash) → poi si riattiva la regola
+  come bloccante.
+- **⚠️ FINDING DI VERITÀ (vetrina prodotto, guardare PRE-LANCIO)**: `Landing.jsx`
+  contiene ancora `images.unsplash.com`, MA il commento Gate EE in
+  `anti-fake.test.js` dichiara "la landing non ha più foto stock" (l'aveva rimossa
+  dall'allowlist su quella premessa). O il cleanup EE era incompleto, o un unsplash
+  è rientrato. La landing è la PRIMA schermata del prodotto: una foto stock lì è un
+  fake sulla vetrina. Da verificare e uccidere prima del lancio (gate a sé).
 
 ---
 

@@ -55,8 +55,13 @@ const Login = () => {
 
     React.useEffect(() => {
         if (user && role && role !== 'guest') {
-            // Gate J1: dashboard guide/business spente in V1 — tutti su /dashboard-user.
-            navigate('/dashboard-user', { replace: true });
+            // Gate ROUTING: Login NON decide l'onboarding. Redirige a `/` e lascia
+            // decidere RootDispatcher (autorita' unica del gate onboarding). Prima
+            // andava dritto a /dashboard-user, saltando il gate: chi confermava
+            // l'email atterrava qui e finiva in dashboard senza mai vedere
+            // l'onboarding. Condizione invariata (user && role && role !== 'guest'):
+            // un non-autenticato o un guest non scatta → nessun ping-pong / ↔ /login.
+            navigate('/', { replace: true });
         }
     }, [user, role, navigate]);
 

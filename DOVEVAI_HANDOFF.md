@@ -2000,6 +2000,48 @@ lavoro delle due settimane.
 5. Badge fantasma notifica.
 6. Gate ESTETICA (onboarding + landing) — unica eccezione al paletto P1.
 
+### Referto debugnav — causa trovata (25/07, fine sessione)
+
+**Perché DBG non compariva**: `DEBUG_NAV` è una const module-level
+(`MapPage.jsx:36-37`) valutata **una sola volta** al lazy-import del modulo
+MapPage. Aprendo `unnivai.vercel.app/?debugnav=1` il load avviene su `/`, dove
+MapPage non è ancora caricato; la navigazione interna a `/map` non trascina la
+query string → al lazy-load `window.location.search` è vuoto → flag false.
+Il pannello e la persistenza **funzionano**: il problema era solo dove stava il
+param.
+
+**Procedura che funziona (flag sticky, nessun codice da toccare)**:
+1. Da loggato, hard-load di `unnivai.vercel.app/map?debugnav=1` (invio nella
+   barra indirizzi, non navigazione interna). Rotta `/map`, App.jsx:138, dentro
+   RoleGuard. Il pannello si monta anche **senza tour** (nessun early-return).
+2. Verifica che compaia DBG in basso a sinistra.
+3. Torna in dashboard, scegli un tour, entra in mappa dall'app: il param sparisce
+   dall'URL ma `DEBUG_NAV` resta true (già catturato) → DBG persiste + tour
+   caricato.
+
+**Tick solo a nav attiva**: `pushNavDebug` è chiamato solo dentro il
+`watchPosition` registrato in `handleStartNavigationReal` (:1088). Il watch di
+background per il pallino blu (:424) non registra. Prova da casa: flag sticky →
+tour con tappe → Avvia → anche da fermo iOS emette aggiornamenti GPS periodici,
+il contatore "salvate" sale. **Segnale di conferma cercato: il contatore che sale.**
+
+**Debolezza "Copia log" su iOS**: se `navigator.clipboard` fallisce, il fallback
+`window.prompt` è impraticabile per un TSV grande. Mitigazione: copiare presto e
+spesso, o spezzare la calibrazione in tratti brevi.
+
+**RISCHIO NON RISOLTO — flag non sopravvive al reload**: se Safari ricarica la
+scheda durante la camminata (schermo bloccato, background, pressione memoria), il
+modulo si ricarica con URL pulito → `DEBUG_NAV=false` → **il pannello smette di
+registrare in silenzio**. Il log già persistito sopravvive; i tick successivi si
+perdono, e te ne accorgi solo al rientro. → **Gate DEBUGNAV STICKY** (prompt già
+scritto, non ancora girato): leggere il flag da `sessionStorage` oltre che
+dall'URL, con `?debugnav=0` per spegnerlo (regola #7 vale anche al contrario:
+nessuno stato non-spegnibile).
+
+**Pendente immediato**: provare la procedura sticky da casa (5 min, nessun
+codice) e verificare che il contatore salga. Se NON sale, fermarsi: il problema
+è un altro e il gate sticky sarebbe cieco.
+
 ---
 
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE

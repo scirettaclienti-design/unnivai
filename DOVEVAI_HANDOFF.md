@@ -1627,6 +1627,381 @@ di simbolo** (i simboli vengono rinominati/tree-shakati in minify).
 
 ---
 
+## Aggiornamento 25/07 — Gate SEME + DEBUG-NAV + ROUTING (3 in prod, 0 verificati device)
+
+Sessione di codice puro (nessuna camminata). Tre gate committati, CI verde,
+deploy confermato in prod. **Nessuno verificato su iPhone** → per la regola #3
+nessuno è chiuso. Più una correzione importante all'handoff stesso.
+
+### ⚠️ CORREZIONE HANDOFF — colonne `profiles` inesistenti
+
+Diagnosi Gate ROUTING ha interrogato lo schema reale via Supabase MCP.
+`public.profiles` **non ha** le colonne `interests`, `onboarding_complete`,
+`updated_at`. Colonne reali: `id, role, first_name, last_name, city,
+created_at, preferred_city, current_city_override, description, address,
+website, instagram_handle, menu_url, image_urls, ai_metadata, is_unlimited`.
+
+Conseguenze:
+- `Onboarding.jsx` upsert `{id, interests, onboarding_complete, updated_at}`
+  → 3 colonne su 4 inesistenti → PostgREST 400 → **l'upsert fallisce
+  interamente**, errore non controllato (`await` senza check `.error`) →
+  no-op silenzioso. **L'onboarding non ha mai scritto nulla su `profiles`.**
+- Il referto Gate SEME diceva "profiles.interests ora salva gli id CORE":
+  **falso**. Il seme funziona solo via localStorage.
+- Esiste il trigger `on_auth_user_created → handle_new_user()` (SECURITY
+  DEFINER) che crea la riga `profiles` al signup (verificato: 5 auth users /
+  5 profiles / 0 orfani). Quindi la riga esiste sempre prima dell'onboarding:
+  aggiungendo `onboarding_complete boolean NOT NULL DEFAULT false` ogni nuova
+  riga nasce corretta, nessun caso "SELECT vuota" da gestire.
+
+**Terza occorrenza della stessa classe di bug** (dopo `explorers.tours_completed`
+del Gate PROFILO e `explorers`/`user_photos` vuote): una write Supabase verso
+colonne inesistenti fallisce in silenzio e si traveste da successo.
+
+### Gate SEME (L1) — interessi onboarding → weights ✅ PASS PRATICO (25/07)
+
+**Commit `ff77cc0`** (produzione) + **`67dba21`** (test). CI verde, marker
+`unnivai_onboarding_seed_v1` confermato nel bundle prod.
+
+Diagnosi (2 referti read-only) ha trovato: le selezioni onboarding erano
+**cosmetiche**. Scritte su `profiles.interests` (che non esiste, vedi sopra),
+lette da nessuno. Break point: `useAILearning.js:213` chiamava
+`computeWeights(graph, [])` — il 2° parametro `onboardingInterests` esisteva
+già con boost +0.3 (`preferenceEngine.js:44-49`) ed era cablato a vuoto.
+
+Fix:
+- **Tassonomia**: `INTERESTS` da 8 a 7 voci, ognuna con campo `seeds` (id CORE
+  seminati). `romantic` **rimosso** (`normalizeCategory` lo scartava in
+  silenzio → seme vuoto indistinguibile da nessuna scelta). Una voce può
+  seminare più id: "Storia e arte" → `['cultura','arte']`.
+  Voci: food / cultura+arte / natura / nightlife / avventura / relax / shopping.
+- **Scrittura**: nuova chiave `unnivai_onboarding_seed_v1` (localStorage,
+  array piatto di id CORE, dedup). Scritta in `handleComplete` **prima** del
+  navigate, e nel path "salta" con `[]` esplicito (chiave presente = "ho
+  saltato", distinguibile da assente).
+- **Lettura**: sincrona nell'initializer `useState` di `useAILearning`
+  (try/catch → `[]`). Stato separato, **mai** dentro `learningState.preferenceGraph`.
+- **`hasPreferences`** (DashboardUser:185): `totalInteractions >= 3 || hasSeed`.
+  Senza questo il seme era inerte: il riordino DNA era saltato per un utente
+  appena onboardato (R1 della diagnosi).
+- **Fix privacy R3**: `AuthContext` cleanup logout rimuoveva
+  `unnivai_ai_learning_brain` (v1) ma **non** `_v2` (lo STORAGE_KEY attuale).
+  Su device condiviso il prossimo utente ereditava grafo e gusti del
+  precedente. Aggiunte entrambe le chiavi (brain v2 + seme).
+
+**Timing verificato read-only**: `/onboarding` è top-level, `/dashboard-user`
+è dentro `RoleGuard` → sottoalberi diversi → al navigate React Router monta
+ex-novo DashboardUser → l'initializer rigira e legge il seme appena scritto.
+Nessun reload necessario. Tutti i 7 call site di `useAILearning` sono
+componenti-pagina lazy, nessuno in un provider persistente.
+
+**12 test nuovi** (`67dba21`, solo test, zero produzione):
+- `preferenceEngine.test.js`: computeWeights col 2° arg + **invariante cleanup
+  logout** — estrae `STORAGE_KEY`/`ONBOARDING_SEED_KEY` dal sorgente di
+  `useAILearning` e verifica che `AuthContext` li pulisca. Se qualcuno rinomina
+  la chiave senza aggiornare il logout, il test fallisce. Il bug R3 non può
+  tornare.
+- `useAILearning_seed.test.js`: round-trip seme→weights via `renderHook` con
+  `useAuth → user:null` (il sync DB non parte, il grafo resta quello di
+  localStorage). **Killer anti-grafo**: il seme muove i weights ma
+  `preferenceGraph` resta `{}` e `totalInteractions` 0 — il grafo **non è
+  mockato**, quindi se il seme ci finisse il test fallisce. La regola locked
+  Gate DNA è ora protetta in CI, non a mano.
+- `onboarding_seed.test.js`: derivazione seme via render reale del wizard
+  (accorpamento cultura→cultura+arte, 7 voci → 8 id dedup, Salta → `[]`).
+- Casi non producibili **dichiarati** invece che finti ("selezione vuota" non
+  è raggiungibile: bottone disabilitato senza ≥1 scelta).
+
+**Perimetro onesto**: il seme sposta **l'ordine**, non i temi. I temi discovery
+restano fissi (`food/cultura/romance/nature`, `placesDiscoveryService.js:349-352`)
+→ chi scegle "nightlife" non vede nascere un tour notturno. Cache di
+`generateHomeTours` è city-only (`aiRecommendationService.js:1514`, aiProfile
+**non** nella key) → su cache-hit 24h la narrazione è quella del primo utente
+della città. Nessun sync cross-device. Nessun seme retroattivo per chi ha già
+fatto l'onboarding.
+
+### Gate DEBUG-NAV PERSIST — pannello autosufficiente sul campo ⏳ NON VERIFICATO (DBG non compare, 25/07)
+
+**Commit `1f474f4`**. CI verde, marker `unnivai_debugnav_log_v1` confermato nel
+chunk prod `MapPage-*.js` (lazy).
+
+Diagnosi pre-camminata ha trovato che il pannello `?debugnav=1` **non bastava**:
+(a) `soglia`, `armata`, `primoDellaSessione`, `scattato` esistevano solo nel
+`console.log [DVAI-Geofence]` → leggibili unicamente con Mac collegato via cavo;
+(b) buffer solo in memoria (`useRef`), zero persistenza → reload = dati persi;
+(c) ring buffer 500 righe = 3-8 min di camminata.
+
+Fix (tutto sotto `if (DEBUG_NAV)`, zero overhead a flag spento):
+- Record tick arricchito con `soglia/armata/primo/scattato` (stessa fonte del
+  console.log, stesso istante, non ricalcolati). Celle vuote quando il valore
+  non esiste a quel punto del codice — mai zero inventato.
+- Persistenza su `unnivai_debugnav_log_v1`, flush throttled 5s + su
+  `pagehide`/`visibilitychange`. Righe accumulate tra sessioni, separatore
+  `# SESSIONE <ISO>`. Cap ~3MB, oltre scarta il 25% più vecchio e marca
+  `# TRUNCATED`.
+- Ring buffer 500 → 5000 (~83 min di vista live).
+- Pannello: contatore righe, KB salvati, ⚠ troncato, export **TSV con header**
+  letto da localStorage (non solo dal ref), Pulisci con conferma.
+
+**Logica nav invariata**: non toccati `soglia = max(GEOFENCE_BASE_M, accuracy)`,
+arm-then-fire, `handlePOIUnlock`, `clearWatch`, camera, TTS, `logNavEvent`,
+`pickActiveStep`. L'inserto è sotto `if (dbg)` e `dbg` è `null` a flag spento
+→ la modifica non può alterare ciò che misura.
+
+**Aperto**: la chiave contiene coordinate GPS e **non** è pulita al logout
+(pulizia manuale dal pannello). Da aggiungere al cleanup `AuthContext` quando
+si tocca quel file. Rilevante quando l'app va in mano ai tester.
+
+### Gate ROUTING — onboarding raggiungibile ✅ CHIUSO / PASS VERIFICATO (25/07)
+
+**Commit `2bbdf02`**. CI verde, deploy confermato con **marker negativo**
+(vedi lezioni operative).
+
+Finding device Ivano (utente nuovo): dopo la conferma email l'onboarding **non
+parte mai**. Diagnosi: il link di conferma atterra su `/login`
+(`emailRedirectTo`, Login.jsx:95); lì `Login.jsx:56-61` redirigeva a
+`/dashboard-user` appena `user && role`. Il gate onboarding vive **solo** su `/`
+(`RootDispatcher`, App.jsx:94-98) → mai valutato. `RoleGuard` controlla il ruolo,
+non l'onboarding.
+
+**Non era il browser sporco: era il flusso.** Riproducibile anche in incognito
+pulito. Conseguenza grave: **nessun utente reale avrebbe mai visto l'onboarding**
+→ il seme del Gate SEME non lo riceveva nessuno.
+
+Fix a una riga: `Login.jsx` redirige a `/` invece di `/dashboard-user`. Login
+smette di sapere cosa sia l'onboarding; **autorità unica** in RootDispatcher
+(stessa logica della regola locked #8 "un solo motore di città").
+
+Tre casi verificati, nessun vicolo cieco (regola #7): non autenticato → Landing
+(nessun redirect a /login → nessun ping-pong); autenticato senza flag →
+`/onboarding`; autenticato con flag → dashboard istantaneo (localStorage).
+
+**Effetto collaterale da registrare**: il logout pulisce `dvai_onboarding_done`
+(AuthContext.jsx:87) → **dopo questo fix ogni logout fa rivedere l'onboarding**.
+Prima era invisibile perché Login bypassava il gate. Non è un vicolo cieco, ed
+è oggi la via di test senza Mac, ma è UX sbagliata. Non si risolve togliendo il
+flag dal cleanup (su device condiviso l'utente B erediterebbe il flag di A e
+salterebbe l'onboarding): **si risolve solo con la colonna DB**. Il Gate
+PERSISTENZA passa da nice-to-have a **necessario**.
+
+**Non risolto, dichiarato**: cross-device; **deep-link a rotte protette** —
+`RoleGuard` (App.jsx:130) avvolge tutte le rotte protette e controlla solo il
+ruolo, quindi un autenticato-non-onboardato che apre `/map`, `/profile`,
+`/home` (App.jsx:134) entra senza gate. `RoleGuard` è la sede architetturalmente
+giusta per il gate, ma va progettata **insieme** alla verità DB — altrimenti si
+costruisce su localStorage e si rifà. Entra nel Gate PERSISTENZA.
+
+### LEZIONI OPERATIVE (25/07)
+
+**4. Il marker negativo è più forte del marker positivo.** Un fix a una riga può
+non introdurre stringhe nuove nel bundle → cercare un marker positivo produce
+falsi negativi ("non lo trovo → non deployato"). Metodo collaudato su `2bbdf02`:
+provare l'**assenza** della stringa vecchia (`/dashboard-user` non è più nel
+chunk Login) + hash chunk cambiato + filename chunk cambiato = tre prove
+indipendenti. Una stringa presente può venire da un build precedente; una
+scomparsa dimostra la sostituzione.
+
+**5. Attenzione ai chunk lazy nella verifica deploy.** Un marker in un componente
+lazy sta in un chunk separato, non nell'entry. Cercarlo solo nell'entry produce
+un falso negativo. Metodo: estrarre i chunk referenziati dall'entry e cercare in
+tutti.
+
+**6. Una write Supabase senza `.error` controllato è un no-op travestito da
+successo.** Terza occorrenza (`explorers.tours_completed`, `explorers`/
+`user_photos`, ora `profiles.interests`/`onboarding_complete`). Candidata a
+regola locked #18. Serve un **audit delle write contro lo schema reale** —
+sospetto che non sia l'ultima.
+
+**7. Il "source scan" come pattern riusabile.** Due test ora leggono il sorgente
+invece dell'implementazione: le regole anti-fake (contenuto fake) e l'invariante
+cleanup del Gate SEME (accoppiamento silenzioso fra file). Il secondo è
+generalizzabile: ogni costante definita in un file che deve comparire in un altro
+(chiavi localStorage, nomi tabella, `CACHE_VERSION`, `AI_NOTIF_TYPES`) può essere
+protetta da un invariante di tre righe. Da estrarre come helper al terzo uso.
+
+### Backlog aggiornato al 25/07
+
+**Priorità 0 — Verifiche device pendenti (3 gate in volo)**
+1. **Test SEME + ROUTING in un colpo**: Esci → Accedi → deve comparire
+   l'onboarding (verifica ROUTING) → scegli un solo interesse forte ("Natura e
+   panorami") → Home: l'ordine dei "Per Te" deve riflettere la scelta al primo
+   accesso (verifica SEME). Città fresca (cache DD 24h). Poi logout → verificare
+   che `unnivai_onboarding_seed_v1` e `unnivai_ai_learning_brain_v2` spariscano.
+2. **Camminata con `?debugnav=1`** (flag nell'URL al load, verificare bottone
+   "DBG" prima di uscire): 3 avvicinamenti puliti in linea retta per la soglia
+   (2c-3), 1 minuto fermo tra due tappe vicine per l'anti-cascata, 1 tratto con
+   svolta per il ritardo maneuver + snapDistM. Export TSV a fine giro.
+
+**Priorità 1 — Gate PERSISTENZA (ora necessario, non opzionale)**
+- Migration: `ALTER TABLE profiles ADD COLUMN onboarding_complete boolean NOT
+  NULL DEFAULT false` + `interests`. Da applicare a mano (SQL Editor) come le
+  precedenti fuori dal migration tracker.
+- Fix upsert `Onboarding.jsx`: inviare solo colonne esistenti + **controllare
+  `.error`** e non ingoiarlo.
+- `RootDispatcher` esteso: fast path (flag locale presente → decisione sincrona,
+  zero DB) / slow path (flag assente → query DB dietro loading, poi Navigate).
+  RootDispatcher renderizza solo `<Navigate>` → nessun flash dashboard.
+  Dopo lettura DB positiva, scrivere il flag locale come cache.
+- Gate onboarding spostato/allargato a `RoleGuard` per chiudere i deep-link.
+- Chiude: ri-onboarding a ogni logout, cross-device, deep-link.
+
+**Priorità 2 — Badge fantasma notifica**
+La campanella si accende (`unreadCount > 0`) ma il pannello è vuoto. Sospetto
+TTL 5 min: contatore e render usano criteri di validità diversi. Precedente:
+Gate Z (`isNotificationLive` congelato dallo state React). Gate a sé, non un
+one-liner. Diagnosi: `useUserNotifications.js:197, 218, 280, 299`.
+
+**Priorità 3 — Nav (riapre col log della camminata)**
+- **2c-3**: soglia geofence 25→~15m + kill fallback distanza HUD "8m".
+- **Nav L2**: istruzioni maneuver che avanzano col GPS (oggi ritardo 30-40m),
+  percorso che si colora, ricalcolo base, puntatore a scatti. Il campo
+  `snapDistM` del log dirà se il ritardo è la tolleranza di snap (25m) o
+  l'aggancio dello step. Se è la costante, è un one-liner e non un gate.
+
+**Priorità 4 — Invariato dai giri precedenti**
+- Ponte nav→profilo (Profilo L2), Esplora CC.3, U.2 (rate limit + cache
+  narratore), `vercel.json` cache policy, RLS `profiles`/`guides`.
+- Cleanup: `unnivai_debugnav_log_v1` al logout; allowlist Profile.jsx
+  (0 Unsplash, 0 rating tour-level → può uscire da 2 regole).
+- Blocco Antigravity: estetica di TUTTO dopo il funzionale. **Include il Gate
+  ESTETICA ONBOARDING** (unica eccezione al paletto P1: l'onboarding non tocca
+  nav né motore, quindi non brucia lavoro futuro). La tassonomia delle 7 voci
+  è ora **fissata** → si disegna su struttura definitiva.
+
+**Priorità 5 — Cleanup interni**
+- Consolidare le DUE liste di regole locked in un'unica sezione 1-17 — la
+  numerazione divisa ha già prodotto una lettura sbagliata (25/07): "REGOLE
+  LOCKED (voce brand + processo)" in fondo (1-6) + "Regole locked NUOVE
+  (14→16/07)" a metà file (7-17). La #8 ("Un solo motore di città", Gate AA)
+  è stata cercata per errore nella lista in fondo.
+
+**Fuori scope confermati**: estetica HUD/mappa/puntatore/popup nav (cambiano
+struttura con i gate nav 2/3/5); voce TTS (gate a sé, breve).
+
+### CHIUSURA SESSIONE 25/07 — verdetti device + decisioni strategiche
+
+#### Verdetti device — 2 gate su 3 CHIUSI
+
+- **Gate ROUTING → ✅ PASS VERIFICATO.** Logout → login → l'onboarding
+  compare (screenshot Ivano). Il fix a una riga (`Login.jsx` → `navigate('/')`)
+  ha chiuso l'ingresso primario. Gate CHIUSO.
+- **Gate SEME (L1) → ✅ PASS PRATICO.** Scelta "Natura e panorami" → i "Per Te"
+  cambiano rispetto alla sessione precedente ("Troina al tramonto — Monte
+  Muganà" coerente col gusto). **Prova indiretta**: il confronto è con la
+  sessione precedente, non un A/B pulito. Prova certa disponibile se serve:
+  logout → onboarding con solo "Mangiare e bere" → verificare che l'ordine
+  cambi di nuovo. Accettato come PASS.
+- **Gate DEBUG-NAV → ⏳ NON VERIFICATO.** Il bottone DBG non compare aprendo
+  `unnivai.vercel.app/?debugnav=1`. Causa probabile: il flag è letto una volta
+  sola al load di MapPage (const module-level) e React Router non trasporta la
+  query string nella navigazione interna → quando MapPage carica, l'URL è già
+  pulito. **Prompt di verifica read-only già scritto e girato a Claude Code,
+  referto MAI arrivato** (sessione chiusa prima). Da rigirare (vedi sotto).
+
+#### PENDENTE BLOCCANTE — verifica pannello debugnav
+
+Prima della camminata serve il referto read-only su: rotta esatta di MapPage;
+se il pannello si monta aprendo la rotta diretta con param SENZA tour caricato;
+se i tick GPS si registrano solo a nav attiva o anche a nav spenta (per provare
+da casa); comportamento di "Copia log" su Safari iOS senza `navigator.clipboard`.
+Il segnale di conferma cercato: **contatore righe del pannello che sale**.
+
+#### Nuovi finding registrati (NON aperti)
+
+- **Badge fantasma notifica** (P2, già a backlog, ora confermato device):
+  il pallino si accende (`unreadCount > 0`) ma il pannello è vuoto. Sospetto
+  TTL 5 min — contatore e render usano criteri di validità diversi. Precedente
+  identico: Gate Z (`isNotificationLive` congelato dallo state React).
+  Diagnosi da fare su `useUserNotifications.js:197, 218, 280, 299`.
+  Nota Ivano: "è la cosa più bella che l'app fa" → merita un gate suo.
+- **Landing con il Colosseo** (screenshot immagine 1): per un'app che promette
+  "il posto che nessuno ti aveva mostrato così", il Colosseo è l'esatto
+  opposto del posizionamento. → Gate ESTETICA, insieme all'onboarding.
+- **"Quiz Veloce — Scopri il tuo stile di viaggio"** (Home, screenshot 4):
+  possibile **secondo motore di preferenze** che convive con onboarding e DNA.
+  Se scrive gusti da un'altra parte è la stessa classe del bug appena chiuso
+  (regola locked #8, un solo motore). **Da diagnosticare prima del lancio.**
+
+#### DECISIONE STRATEGICA — piano di lancio (rivisto)
+
+Piano iniziale Ivano: agosto link privato a esperti + marketing in parallelo,
+settembre pubblico + App Store/Play Store.
+
+**Correzione sul punto store**: DoveVAI è React+Vite su Vercel, un sito web.
+Per gli store serve incapsulamento (Capacitor) e **Apple rifiuta i wrapper di
+siti web** (Guideline 4.2 Minimum Functionality) — servono funzionalità native
+vere (GPS background, push native). Più: account dev 99$/anno, privacy policy,
+dichiarazione dati, rifiuti probabili al primo submit. Realisticamente
+**4-8 settimane di lavoro dedicato** dopo che il web è stabile.
+**Alternativa registrata**: PWA installabile da Safari ("Aggiungi a Home") =
+icona + fullscreen + zero attrito di distribuzione. Gli store sono una leva di
+marketing (visibilità in ricerca), non un requisito tecnico per il lancio.
+
+**Piano rivisto:**
+- **fine luglio → ~15 agosto**: sicurezza (RLS) + Gate PERSISTENZA + bug
+  strutturali. Poi UNO tra Nav L2 e Temi Adattivi (vedi bivio).
+- **~15 → 31 agosto**: link privato agli esperti con credenziali definite
+  + **lista scritta dei limiti dichiarati**. Marketing in parallelo.
+- **settembre**: iterazione sul feedback, apertura pubblica web + PWA.
+- **ott-nov**: store, se i numeri del web lo giustificano.
+
+**Blocca il link privato (non negoziabile prima di dare credenziali a chiunque):**
+RLS OFF su `profiles`/`bookings`/`guides` — con la anon key (pubblica nel
+bundle) chiunque legge e scrive email e dati di tutti. Un esperto lo trova in
+5 minuti con le DevTools. Dare il link a 10 persone = 10 utenti reali in un DB
+aperto.
+
+**Altri bloccanti per il test privato**: ri-onboarding a ogni logout;
+scritture DB onboarding che falliscono in silenzio; badge notifica fantasma;
+**nessun rate limit** (il link girato = chiamate Places/OpenAI sulla carta di
+Ivano); `vercel.json` cache policy (ogni deploy = schermata errore per chi ha
+cache vecchia, e in un mese di test i deploy sono frequenti).
+
+**Voti attesi dagli esperti (stima onesta)**: codice 8-9 raggiungibile — quello
+che un tecnico premia è la disciplina, e 25 regole anti-fake in CI + gate Vercel
+fail-closed + perimetri dichiarati sono visibili nel repo. Prodotto 8 realistico,
+non 9, se la nav resta L1. Marketing: non prevedibile finché non esiste risposta
+a **città di lancio, utente in quella città, perché torna la seconda volta** —
+domande a cui il codice non risponde, e la cosa più preziosa che il mese di test
+può restituire, ma solo se gliela si chiede esplicitamente.
+
+#### BIVIO DA DECIDERE — Nav L2 vs Temi Adattivi
+
+Non c'è tempo per sicurezza+persistenza **e** Nav L2 **e** Temi Adattivi entro
+il 15/08. La sicurezza non è negoziabile. Resta UNO tra:
+
+- **Nav L2**: istruzioni maneuver che avanzano col GPS, percorso che si colora,
+  ricalcolo base. Serve se il pitch è "tour a tappe che ti guida".
+- **Gate TEMI ADATTIVI**: gli interessi non spostano solo l'ordine ma
+  **generano i temi** (oggi fissi `food/cultura/romance/nature`,
+  `placesDiscoveryService.js:349-352`). Serve se il pitch è "memoria
+  intelligente che si adatta" — che è quello che Ivano ha dichiarato essere
+  il motivo-per-tornare.
+
+Stato onesto del DNA oggi: **vero come architettura, parziale come esperienza**.
+Sposta l'ordine, non i temi. `DNA_MIN_CATEGORIZED = 12` → impara dopo 12
+interazioni categorizzate vere. Un esperto che apre l'app 3 volte in 2 giorni
+potrebbe non vedere il DNA muoversi abbastanza da capire che esiste.
+**Se il DNA è il motivo-per-tornare, TEMI ADATTIVI non è un nice-to-have:
+è la feature che dimostra la tesi.**
+
+Decisione da prendere PRIMA di aprire il prossimo gate: determina l'ordine di
+lavoro delle due settimane.
+
+#### Ordine di lavoro concordato per la ripresa
+
+1. Verifica pannello debugnav (referto pendente) → **camminata di calibrazione**
+   con `?debugnav=1` (unico dato non producibile da casa).
+2. **Gate SICUREZZA RLS** — decide se il 15/08 è una data o un'illusione.
+3. **Gate PERSISTENZA** (migration `onboarding_complete` + `interests`, fix
+   upsert con `.error` controllato, RootDispatcher fast/slow path, gate su
+   RoleGuard per i deep-link).
+4. Il ramo scelto al bivio (Nav L2 **oppure** Temi Adattivi).
+5. Badge fantasma notifica.
+6. Gate ESTETICA (onboarding + landing) — unica eccezione al paletto P1.
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
 
 - **Box wizard adattive alla città**. Gate C Task 2 progettato ma non implementato.

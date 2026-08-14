@@ -2300,6 +2300,73 @@ landing), Esplora CC.3, U.2, `vercel.json` cache policy, cleanup
 `unnivai_debugnav_log_v1` al logout, consolidamento delle due liste di regole
 locked.
 
+### VERDETTO DEVICE 14/08 — Gate SICUREZZA RLS ✅ PASS
+
+Verificato da Ivano su iPhone. **Per la regola #3 il gate è CHIUSO.**
+Nessun rollback eseguito: `profiles`, `bookings`, `guides` e `guides_profile`
+restano con RLS attiva. `supabase/GATE_RLS_ROLLBACK.sql` resta in repo come
+rete, non è stato usato.
+
+**Perimetro onesto del verdetto**: è un PASS complessivo dichiarato dal
+device. Le singole voci della checklist (Home, dashboard guida coi nomi dei
+richiedenti, tour generato senza 401/403) **non sono state riportate una per
+una**, quindi non risultano da qui quali percorsi siano stati effettivamente
+percorsi. Non risultano provati: dashboard business, dashboard guida in
+scrittura (che è comunque rotta per il trigger `42703`), signup di un utente
+nuovo dal telefono.
+
+### Finding device 14/08 — registrati, NON aperti
+
+Due finding di verità emersi durante la stessa verifica. **Nessuno dei due
+riguarda l'RLS**: sono contenuto, non permessi. Entrambi appartengono alla
+famiglia della **regola #6** (il prodotto dice un FATTO, non un aggettivo) e
+sono la conferma che quella regola non è ancora applicata ovunque.
+
+> ⚠️ **Referto sintetico.** Quanto segue è registrato al livello di dettaglio
+> in cui è stato riportato. Le ancore di codice qui sotto sono **candidati da
+> verificare**, non cause diagnosticate: nessuna diagnosi read-only è ancora
+> stata girata su questi due punti.
+
+**1. POI-località con descrizione poetica.**
+Un POI che è in realtà una **località** (un'area, una frazione, un centro
+abitato — non un luogo puntuale visitabile) viene presentato con una
+descrizione poetica invece che con un fatto verificabile. È esattamente la
+blacklist della regola #6 applicata a un oggetto che per di più non è un POI:
+il difetto è doppio, la natura dell'entità e il registro del testo.
+Precedente della stessa famiglia: **"Curiosità narratore generiche, non legate
+al luogo"** (finding camminata Troina 23/07), mai chiuso.
+*Da completare*: quale località, in quale città, su quale schermata (card
+Home / dettaglio tour / drawer POI in mappa / narratore in navigazione), e il
+testo esatto mostrato.
+*Candidati da verificare*: `src/services/placesDiscoveryService.js` e
+`src/services/aiRecommendationService.js` per la generazione; `POIPopupCard.jsx`
+e `POIDetailDrawer.jsx` per la resa. Da capire anche **perché una località
+entra tra i POI**: se è il filtro sui `types` di Google Places a lasciarla
+passare, il fix sta a monte del testo.
+
+**2. Presentazione distanza/tempo ingannevole.**
+Distanza e tempo mostrati in modo che induce a credere un dato diverso da
+quello reale.
+**Molto probabilmente la stessa classe già registrata il 23/07 e mai chiusa**:
+*"IL SUMMARY MENTE: mostra 3,2 km quando l'utente ne ha camminati ~1 — è la
+distanza del tour pianificato (Directions) spacciata per percorso fatto"* +
+*"Minuti congelati a '50 min rimasti' mentre i metri calano"*. Se è così, non
+è un finding nuovo: è **il quarto avvistamento dello stesso**, e il fatto che
+riemerga da solo dice che il Gate summary onesto (backlog 23/07, punto 3) non
+è più rinviabile.
+*Da completare*: se il numero ingannevole compare in navigazione attiva
+(HUD), nel riepilogo di fine tour, o nella card del tour prima di partire —
+sono tre superfici diverse con tre fix diversi.
+*Candidati da verificare*: `NavigationHUD.jsx:73-86` (i due formatter,
+`${m} min` e `${(m/1000).toFixed(1)} km` — formattano correttamente, il
+problema semmai è **quale grandezza** ricevono), `TourSummaryModal.jsx`,
+`QuickPathSummary.jsx`.
+
+**Entrambi entrano nel backlog in Priorità 2**, sopra la RLS FASE 2: sono
+visibili all'utente al primo sguardo, e il test privato agli esperti è a
+giorni. Un esperto che apre l'app e legge "3,2 km" dopo averne camminato uno
+non sta valutando la sicurezza del database.
+
 ---
 
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE

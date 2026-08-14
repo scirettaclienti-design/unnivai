@@ -2044,7 +2044,270 @@ codice) e verificare che il contatore salga. Se NON sale, fermarsi: il problema
 
 ---
 
+## Aggiornamento 14/08 — Gate SICUREZZA RLS chiuso (device pendente)
+
+Sessione di sola sicurezza + due diagnosi. Nessun file applicativo toccato:
+il gate è DB puro, l'effetto è immediato su ogni client già aperto, anche su
+bundle vecchi. Commit `22556dd`, 7 file (6 migration + rollback).
+**Nessuna verifica bundle da fare** — non c'è bundle nuovo. Verifica device
+pendente: per la regola #3 il gate non è chiuso finché Ivano non apre l'app.
+
+### Gate SICUREZZA RLS — stato finale
+
+Il bloccante del piano di lancio (vedi "DECISIONE STRATEGICA" del 25/07) era:
+con la anon key, pubblica nel bundle, chiunque leggeva i dati di tutti.
+Misurato, non dedotto: `GET /rest/v1/profiles?select=id,first_name` tornava
+**5 righe complete** (nome, cognome, città, indirizzo, instagram,
+`is_unlimited`) a chi non aveva nemmeno una sessione.
+
+| Tabella | Prima | Dopo |
+|---|---|---|
+| `profiles` | RLS OFF, 0 policy | **RLS ON + 4 policy**: select/update/insert own (`auth.uid() = id`) + guida→richiedente |
+| `bookings` | RLS OFF, 0 policy | **RLS ON + 3 policy**: select own, select guida via `tours.guide_id`, insert own. **Nessuna UPDATE/DELETE dal client** — lo stato lo scrive lo Stripe webhook in service_role |
+| `guides` | RLS OFF, 0 policy | **RLS ON, 0 policy** — 0 righe, 0 riferimenti in tutto il codice: chiusa a chiave |
+| `guides_profile` | RLS **già ON** ma con 2 `SELECT USING (true)` sovrapposte | **RLS ON + 3 policy own**: rimosse entrambe le letture pubbliche e la policy `ALL` con chiave sbagliata (`id` invece di `user_id`) |
+
+Prove finali con la anon key: `profiles` da 5 righe a `[]`;
+`guides_profile?select=piva,license_number` da `200` con i dati a `[]`.
+
+**Perimetro allargato in corsa**: `guides_profile` non era nel referto
+originale. La diagnosi ha misurato che PIVA, `license_number`,
+`license_file_url`, `insurance_file_url` e `commission_rate` erano leggibili
+da chiunque. Oggi quei campi sono vuoti — **non perché il percorso non esista**:
+il form di accreditamento è vivo (`DashboardGuide.jsx:475` → `:201-203`). Il
+giorno in cui una guida vera lo compila, la PIVA sarebbe diventata pubblica
+nello stesso istante e senza nessun altro segnale. Quel giorno è il test
+privato di agosto.
+
+**La vista pubblica NON è stata creata**, di proposito: non esiste un solo
+consumatore pubblico di `guides_profile` (tutti i lettori filtrano su
+`user_id = user.id`). Si progetta quando servirà, insieme al fix del nome
+guida in `TourDetails.jsx:585` (rotto: chiede `profiles.username` e
+`profiles.bio`, colonne inesistenti). Un gate solo, col consumatore davanti.
+
+### La ricorsione 42P17 — il momento in cui il gate è andato rosso
+
+Al primo `ENABLE` su `profiles`, **ogni** SELECT è fallita con
+`42P17: infinite recursion detected in policy for relation "profiles"`.
+RLS spenta entro pochi secondi (rollback), causa isolata:
+
+```
+profiles."profiles_select_guide_on_request"
+  └─ sottoquery su guide_requests
+      └─ guide_requests."Guides see local requests"   ← policy PRE-ESISTENTE
+          USING (city = (SELECT profiles.city FROM profiles WHERE id = auth.uid()))
+          └─ sottoquery su profiles  ⟲
+```
+
+**Non era la policy nuova a essere sbagliata**: è `guide_requests` ad averne
+una che interroga `profiles`.
+
+**Soluzione**: il lookup è stato spostato in
+`public.is_requester_visible_to_guide(uuid)`, **SECURITY DEFINER** con
+`search_path` fissato. Il corpo gira con i permessi del proprietario di
+`guide_requests` (che non ha `FORCE ROW LEVEL SECURITY`), quindi non attiva le
+sue policy e il ciclo non si forma. `EXECUTE` revocata a `public` e `anon`,
+concessa solo ad `authenticated`: restituisce un booleano, non righe.
+
+Scartato il rimuovere `"Guides see local requests"`: avrebbe rotto il ciclo e
+tolto una policy discutibile (consente a ogni autenticato di leggere tutte le
+richieste della propria città), ma cambia il comportamento di **un'altra**
+tabella dentro un passo che deve toccarne una sola. Va nel cleanup policy.
+
+**Nota sulla policy guida→richiedente**: espone la **riga intera** del profilo
+del richiedente, non solo nome e foto — RLS è *row*-level, non sa restringere
+le colonne. Il secondo `EXISTS` (il lettore deve avere una riga in
+`guides_profile`) è stato aggiunto perché senza di esso "richiesta a pioggia"
+non significa "visibile a qualunque guida" ma **"visibile a qualunque utente
+autenticato"**.
+
+### Advisor sicurezza — nuovo stato verde
+
+I **3 ERROR `rls_disabled_in_public`** su `profiles`, `bookings`, `guides`
+**sono spariti**. Resta **un solo ERROR: `spatial_ref_sys`** — PostGIS
+built-in, di proprietà di `supabase_admin`, il ruolo `postgres` non può
+nemmeno fare l'`ALTER`, zero dati personali.
+
+> **Da qui in avanti, "advisor con 1 solo ERROR" È lo stato verde di questo
+> progetto. `spatial_ref_sys` è dichiarato accettato: non va più inseguito.**
+
+Due voci nuove, entrambe volute: `INFO rls_enabled_no_policy` su `guides` (è
+la scelta), e `WARN` su `is_requester_visible_to_guide` eseguibile da
+`authenticated` (inevitabile: la policy la chiama). **Non** compare tra le
+SECURITY DEFINER eseguibili da `anon`: la REVOKE ha funzionato.
+
+### Bug scoperti strada facendo (nessuno causato dal gate)
+
+**1. Ogni UPDATE su `guides_profile` ed `explorers` fallisce** — `42703:
+record "new" has no field "updated_at"`. Il trigger `set_updated_at()` scrive
+`NEW.updated_at` su due tabelle che **non hanno quella colonna**. Sono le
+uniche due occorrenze (`profiles` è pulita: ha solo
+`protect_profile_is_unlimited`).
+**Provato che NON è l'RLS**: lo stesso UPDATE fallisce identico eseguito come
+`service_role`, che ha `rolbypassrls = true`. Metodo da riusare ogni volta che
+una verifica va rossa dopo aver toccato RLS.
+Rompe: form di accreditamento guida (`DashboardGuide.jsx:208`), gestione città
+operative (`:735`, `:758`).
+
+**2. Auto-creazione profilo guida rotta** — `428C9: cannot insert a
+non-DEFAULT value into column "user_id"`. `DashboardGuide.jsx:75` fa
+`insert([{ user_id: user.id }])`, ma **`user_id` è `GENERATED ALWAYS AS (id)
+STORED`**: è un mirror di `id`, non è scrivibile.
+**Il fix NON è dare un default a `id`**: è inserire `id` e lasciar derivare
+`user_id`. La previsione derivata dallo schema (`23502` su `id NOT NULL`) era
+**sbagliata**, la misura l'ha corretta. Se il gate fosse partito dalla
+derivazione avrebbe scritto la patch sbagliata.
+Effetto collaterale positivo: l'incoerenza `id` vs `user_id` nelle policy non
+può materializzarsi — il DB vincola le due colonne a coincidere.
+
+**3. Confermato `protect_profile_is_unlimited` funziona** (misurato su un
+account con flag `false`; il primo test era invalido perché girato su un
+account già `true`). Un client autenticato che prova ad auto-assegnarsi
+`is_unlimited` si vede ripristinare `false`; con claim JWT `role=service_role`
+l'assegnazione passa. La `UPDATE own` non apre una scalata di privilegi.
+
+### Diagnosi bug città — "sono in Puglia, l'app dice Troina"
+
+**Causa, e non è `current_city_override`.** `useUserContext.js:48` sovrascrive
+`userContext.city` con `effectiveCity`: il valore del DB **non raggiunge mai
+la UI**. La catena reale ha due soli gradini (`useUserContext.js:23`):
+
+```js
+const rawCity = isManual ? manualCity : gpsLocation?.city;
+```
+
+Il colpevole è `CityContext.jsx:32`:
+```js
+isManual = !validGps && !!localStorage.getItem('user_city')
+```
+combinato con `CityContext.jsx:81`: **è il GPS stesso a scrivere `user_city`**.
+Quindi quella chiave non significa "scelta manuale" ma "ultima città
+conosciuta, da qualunque fonte". `dvai_gps_data` scade in **1 ora**,
+`user_city` **mai** → 60 minuti dopo la camminata di Troina, `isManual`
+diventa `true` su un valore che nessuno ha scelto a mano, e da lì il ramo
+`gpsLocation?.city` non viene più nemmeno letto.
+
+**L'unica uscita** è `applyLocationAndNotify` con nome città risolto
+(`CityContext.jsx:79`), raggiungibile **solo dal bottone del banner**.
+`resetToGPS()` esiste ma è destrutturata in `CitySearchBar.jsx:7` e **mai
+invocata**. Il GPS automatico al mount non tocca CityContext. Il logout
+azzera tutto.
+
+**Rotella infinita**: il loading di `GpsActivationBanner` si spegne solo
+dentro i due callback di `requestGPS`. `GPS_POSITION_OPTIONS.timeout = 8000`
+**non copre l'attesa del permesso** (per specifica), e non esiste alcun
+watchdog indipendente → se il prompt resta appeso, **stato non-uscibile**
+(viola la regola #7, stessa classe della #10). Secondo candidato: nel ramo
+`catch` del geocode (`CityContext.jsx:118-125`) `setGpsActive(true)` **smonta
+il banner** prima che `setIsLoading(false)` abbia effetto, e `onSuccess` riceve
+la città **vecchia dalla closure** → nessun messaggio, città invariata.
+**Discriminante osservabile sul device**: se la TopBar dice "Ciao, ...!"
+mentre gira, `gpsLoading` è bloccato → è il permesso, non un GPS lento.
+
+**Conferma indipendente arrivata durante il gate**: a inizio giornata il DB
+diceva `current_city_override = 'Troina'`; a fine giornata dice
+**`Ippocampo`** (Puglia, provincia di Foggia). Non l'ha scritto nessuna sonda
+(tutte in transazioni rollbackate, e usavano `Bari`/`BaselineTest`): l'ha
+scritto l'app dal device. **Il DB sa che Ivano è in Puglia; è lo schermo che
+continua a dire Troina.** Non databile: `profiles` non ha `updated_at`.
+
+### LEZIONE OPERATIVA #8 — non è più un bug ricorrente, è uno scollamento
+
+La classe **"scrittura Supabase che fallisce e si traveste da successo"** è
+alla **settima occorrenza**: `explorers.tours_completed` → `explorers`/
+`user_photos` vuote → `profiles.interests`/`onboarding_complete` → colonne
+`bookings` inesistenti → 4 embed PostgREST senza FK → `profiles.username`/
+`bio` → `guide_applications` inesistente → trigger `updated_at` su tabelle
+senza la colonna → `user_id` generata non scrivibile.
+
+Sette volte non è sfortuna: è uno **scollamento sistematico tra ciò che il
+codice crede dello schema e ciò che lo schema è**. E ha un costo già pagato
+due volte in questo gate: metà delle query che "sarebbero state rotte da RLS"
+erano **già rotte**, e senza misurarlo avremmo attribuito all'RLS danni che
+non ha fatto.
+
+→ **Serve un GATE AUDIT SCHEMA prima del Gate PERSISTENZA**: confronto
+sistematico di ogni `.from(...).insert/update/select` e di ogni embed
+PostgREST contro lo schema reale interrogato dal DB. Il Gate PERSISTENZA sta
+per aggiungere colonne a `profiles` senza sapere quali altre query
+interrogano cose che non esistono.
+
+### LEZIONE OPERATIVA #9 — un difetto può restare latente perché una protezione è spenta
+
+La ricorsione `42P17` esisteva **da quando è stata scritta**
+`"Guides see local requests"`. Non si è mai manifestata perché `profiles`
+aveva RLS spenta: senza policy su `profiles`, il ciclo non si chiudeva.
+
+Accendere una protezione non introduce solo il rischio di rompere ciò che
+funziona: **rivela difetti che erano lì da sempre e che la protezione spenta
+nascondeva**. Conseguenze pratiche:
+1. Il rosso di un gate di sicurezza non è automaticamente colpa del gate.
+   Prima di rollbackare per sempre, **isolare** — rieseguire come
+   `service_role` (che bypassa RLS) è il test che separa i due casi.
+2. Le altre protezioni ancora spente (`guide_requests` e `notifications` hanno
+   RLS ma con policy larghe) possono nascondere altri cicli. **La RLS FASE 2
+   va aperta aspettandosi un 42P17, non sperando di non trovarlo.**
+
+### Backlog aggiornato al 14/08
+
+**Priorità 0 — verifiche device pendenti**
+1. **Gate RLS** (oggi): Home carica, dashboard guida mostra i nomi dei
+   richiedenti, generare un tour senza 401/403 in console. Rollback a una
+   riga: `ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY` (le policy
+   restano inerti). Vedi `supabase/GATE_RLS_ROLLBACK.sql`.
+2. **Camminata con `?debugnav=1`** (procedura sticky del 25/07) — invariata.
+3. **Test SEME + ROUTING** — invariato dal 25/07.
+
+**Priorità 1 — Gate CITTÀ** (nuovo, bloccante per il test privato)
+Due bug distinti con una conseguenza condivisa: il bottone del banner è
+l'unica uscita dallo stato incollato, e il bug 2 rompe l'unica riparazione
+del bug 1. Riparare: (a) `isManual` non va inferito dalla presenza di
+`user_city` — serve una chiave distinta per la scelta manuale, oppure un flag
+esplicito; (b) watchdog sul bottone GPS; (c) il ramo `catch` del geocode deve
+smettere di ripassare la città vecchia; (d) cablare `resetToGPS` a un bottone.
+Nota: `applyLocationAndNotify` aggiorna CityContext ma `useUserContext:23`
+legge `gpsLocation?.city` da **un altro hook** quando `isManual` è false —
+va sciolto insieme, altrimenti uno sblocco riuscito fa **sparire** la città.
+
+**Priorità 1 — GATE AUDIT SCHEMA** (nuovo, prerequisito di PERSISTENZA)
+Vedi lezione #8. Deve produrre l'elenco completo delle write/read verso
+colonne o FK inesistenti, e i due bug trigger/`GENERATED ALWAYS` di oggi.
+
+**Priorità 2 — Gate RLS FASE 2**
+`guide_requests` (anon legge le richieste open con `request_text`; INSERT con
+`WITH CHECK (true)` → chiunque inserisce a nome di altri; UPDATE su qualunque
+richiesta non assegnata), `notifications` (chiunque scrive a chiunque),
+`explorers`/`user_photos` (`USING (true)` che annulla le own-only), le **6 RPC
+SECURITY DEFINER anon-eseguibili** (`get_nearby_requests_for_guide` restituisce
+`user_name` e `request_text`; `complete_tour` **scrive**), cleanup delle policy
+duplicate (`guide_requests` 10, `notifications` 7, `businesses_profile` 6).
+Aspettarsi un 42P17 (lezione #9).
+
+**Priorità 3 — Gate PERSISTENZA** — invariato dal 25/07, ma **dopo** l'audit
+schema. La policy `profiles_insert_own` è già scritta e in attesa: PostgREST
+valuta l'INSERT prima del `DO UPDATE`, quindi senza di essa l'upsert riparato
+fallirebbe per un motivo nuovo.
+
+**Priorità 4 — il bivio, ancora NON deciso**: Nav L2 **oppure** Temi Adattivi.
+Il piano rivisto del 25/07 dava "fine luglio → ~15 agosto" per sicurezza +
+persistenza + bug strutturali, e poi UNO dei due. **Oggi è il 14/08**: la
+sicurezza è chiusa (device pendente), la persistenza no, e sono comparsi due
+gate nuovi (CITTÀ, AUDIT SCHEMA) che prima non c'erano. La data del test
+privato va rinegoziata su questi fatti, non sul piano di tre settimane fa.
+
+**Priorità 5** — badge fantasma notifica, Gate ESTETICA (onboarding +
+landing), Esplora CC.3, U.2, `vercel.json` cache policy, cleanup
+`unnivai_debugnav_log_v1` al logout, consolidamento delle due liste di regole
+locked.
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
+
+> ⚠️ **SEZIONE OBSOLETA** — corretta dal Gate DNA ONESTO (22/07, vedi sopra):
+> il preference graph **alimenta** DashboardUser, `AiItinerary:195`,
+> `QuickPath:624`, SurpriseTour; la telemetria nav **esiste** (`nav_events`).
+> Vale la regola: in caso di conflitto vince il blocco datato più recente.
 
 - **Box wizard adattive alla città**. Gate C Task 2 progettato ma non implementato.
   Idea: 1 textsearch generica per città (`"attrazioni ${city}"`) → cluster POI

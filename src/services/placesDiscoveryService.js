@@ -367,12 +367,121 @@ const mapGoogleTypeToOurType = (types = []) => {
   return 'place';
 };
 
+// Gate NARRATORE/POI — un'area geografica non è una tappa.
+//
+// BLACKLIST_TYPES (aiRecommendationService.js:131) ha un'altra semantica:
+// servizi commerciali che non hanno senso come tappa (officine, banche,
+// scuole). Non conteneva — e non deve contenere — entità geografiche.
+// Senza questa lista, textsearch "… Ippocampo" poteva restituire la frazione
+// stessa come candidato: nome = nome della città, nessun luogo da visitare.
+//
+// NON incluso `route`: una via può essere una tappa legittima.
+// NON inclusi `point_of_interest`, `establishment`, `premise`: Google li mette
+// anche sui luoghi veri (es. Museo Robert Capa ha `point_of_interest`).
+const GEO_ENTITY_TYPES = new Set([
+  'locality',
+  'sublocality', 'sublocality_level_1', 'sublocality_level_2',
+  'sublocality_level_3', 'sublocality_level_4',
+  'administrative_area_level_1', 'administrative_area_level_2',
+  'administrative_area_level_3', 'administrative_area_level_4',
+  'administrative_area_level_5',
+  'political',
+  'postal_code', 'postal_code_prefix', 'postal_code_suffix',
+  'neighborhood',
+  'country', 'continent', 'archipelago',
+]);
+
+// Gate NARRATORE/POI — type che indicano un LUOGO REALE, visitabile.
+//
+// Guard anti-falso-positivo di isCityItself: un ristorante che si chiama come
+// il paese resta un ristorante. "Trattoria Ippocampo" a Ippocampo e' un posto
+// vero; "Ippocampo" con type `locality` no. Il discrimine e' il type, non il
+// nome — quindi in presenza di uno di questi il confronto sul nome NON si fa
+// nemmeno.
+//
+// Composizione: gli 11 type nominati nel gate + quelli che
+// mapGoogleTypeToOurType (sopra) gia' riconosce come luogo.
+const REAL_PLACE_TYPES = new Set([
+  'restaurant', 'bar', 'cafe', 'museum', 'church', 'park',
+  'tourist_attraction', 'lodging', 'store', 'meal_takeaway', 'art_gallery',
+  'place_of_worship', 'mosque', 'synagogue', 'hindu_temple',
+  'bakery', 'food', 'meal_delivery', 'night_club',
+  'natural_feature', 'campground',
+]);
+
+// Gate NARRATORE/POI — affissi puramente geografici attorno al nome citta'.
+// Lista chiusa: solo le forme dichiarate nel gate, nessuna variante inventata.
+// Gli accenti sono gia' stati rimossi quando questi pattern vengono applicati
+// ("localita", non "località").
+const GEO_AFFIX_PREFIXES = [
+  /^comune di\s+/,
+  /^frazione di\s+/,
+  /^frazione\s+/,
+  /^localita di\s+/,
+  /^localita\s+/,
+];
+// Suffisso sigla provinciale: "Ippocampo (FG)". Volutamente stretto (1-4
+// lettere) per non mangiare parentesi che fanno parte del nome di un locale.
+const GEO_AFFIX_SUFFIX = /\s*\([a-z]{1,4}\)$/;
+
+// Normalizza per confronto: accenti via, minuscolo, spazi collassati.
+const normalizeForNameMatch = (s) =>
+  String(s ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // diacritici combinanti
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, ' ');
+
+// Gate NARRATORE/POI — il candidato E' la citta' stessa?
+//
+// Invariante trovato in diagnosi sul caso Ippocampo: quando il titolo del POI
+// coincide col badge localita', l'entita' non e' un luogo — e' il posto in cui
+// ti trovi. Seconda rete rispetto a GEO_ENTITY_TYPES, per il caso in cui
+// Google restituisca la localita' senza un type geografico.
+//
+// @returns {boolean} true = DA SCARTARE.
+const isCityItself = (candidate, cityName) => {
+  // Senza il dato non si giudica.
+  const city = normalizeForNameMatch(cityName);
+  if (!city) return false;
+
+  const types = Array.isArray(candidate?.types) ? candidate.types : [];
+  // Guard anti-falso-positivo: ha un type di luogo reale → non si guarda il nome.
+  if (types.some(t => REAL_PLACE_TYPES.has(t))) return false;
+
+  const rawName = normalizeForNameMatch(candidate?.name);
+  if (!rawName) return false;
+
+  // Prova il nome nudo e le sue forme senza affissi geografici.
+  let stripped = rawName.replace(GEO_AFFIX_SUFFIX, '').trim();
+  for (const prefix of GEO_AFFIX_PREFIXES) {
+    if (prefix.test(stripped)) {
+      stripped = stripped.replace(prefix, '').trim();
+      break; // un solo affisso: "frazione di comune di X" non e' una forma reale
+    }
+  }
+
+  if (rawName !== city && stripped !== city) return false;
+
+  console.warn(`[Gate NARRATORE/POI] scartato "${candidate?.name || '?'}" → e' la citta' stessa ("${cityName}") — types=[${types.join('|')}]`);
+  return true;
+};
+
 // ─── FILTRI ────────────────────────────────────────────────────────────────────
 const passesHardExclusions = (c) => {
   // DVAI-057: solo attività operative.
   if (c.business_status && c.business_status !== 'OPERATIONAL') return false;
   // DVAI-051: nessuna officina/banca/ospedale/etc.
   if (Array.isArray(c.types) && c.types.some(t => BLACKLIST_TYPES.has(t))) return false;
+  // Gate NARRATORE/POI: nessuna area geografica (località, comune, CAP…).
+  if (Array.isArray(c.types)) {
+    const hitGeo = c.types.find(t => GEO_ENTITY_TYPES.has(t));
+    if (hitGeo) {
+      console.warn(`[Gate NARRATORE/POI] scartato "${c.name || '?'}" → area geografica (${hitGeo}) — types=[${c.types.join('|')}]`);
+      return false;
+    }
+  }
   // Rumore garantito: 1 sola recensione e rating basso.
   const r = c.rating || 0;
   const t = c.user_ratings_total || 0;
@@ -506,8 +615,14 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
       throw new Error(`textsearch status=${data.status}`);
     }
 
-    // 1. Esclusioni hard (business_status, blacklist types, rumore).
-    const cleaned = data.results.filter(passesHardExclusions);
+    // 1. Esclusioni hard (business_status, blacklist types, aree geografiche, rumore).
+    //    Gate NARRATORE/POI: isCityItself gira QUI, prima di applyQualityThreshold —
+    //    un candidato destinato allo scarto non deve essere contato per decidere
+    //    lo scale-down (altrimenti la localita' stessa "aiuta" a restare al
+    //    livello 1 e poi sparisce, falsando la soglia per gli altri).
+    const cleaned = data.results
+      .filter(passesHardExclusions)
+      .filter(c => !isCityItself(c, cityName));
     // 2. Soglia qualità differenziata per tema, con scale-down se pochi.
     const { pois: qualified, scaleLevel } = applyQualityThreshold(cleaned, effectiveKind, isSmall);
     // 3. Ordinamento per qualityScore (rating × ln(1+total)).
@@ -773,4 +888,7 @@ export {
   passesHardExclusions,
   applyQualityThreshold,
   QUALITY_THRESHOLDS,
+  GEO_ENTITY_TYPES, // Gate NARRATORE/POI
+  REAL_PLACE_TYPES, // Gate NARRATORE/POI
+  isCityItself,     // Gate NARRATORE/POI
 };

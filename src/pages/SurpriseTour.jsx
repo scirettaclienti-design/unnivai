@@ -108,6 +108,24 @@ import { aiRecommendationService } from "@/services/aiRecommendationService";
 import { normalizeTour } from "@/services/tourShape";
 import { useToast } from "@/hooks/use-toast";
 
+// Gate NARRATORE/POI (Fase 2a) — decisione pura, esportata per i test.
+// Stesso pattern di getTourRenderState (TourDetails, Gate E-1): la scelta sta
+// in una funzione pura, il componente la applica e basta.
+//
+// Il motore restituisce { days: [{ stops: [] }], _source: 'no-results' } quando
+// non ha tappe da servire — `days.length` vale 1, non 0. Per questo si guardano
+// LE TAPPE e non `_source`: il guard regge per qualunque via il tour si svuoti,
+// non solo per i tre `_source` di no-results. È il motivo per cui QuickPath
+// (:641-648) non si è mai rotto su questo caso, ed è il modello imitato qui.
+//
+// @returns {'error'|'empty'|'ready'}
+export function getSurpriseOutcome(result) {
+    if (!result || !Array.isArray(result.days) || result.days.length === 0) return 'error';
+    const stops = result.days[0]?.stops;
+    if (!Array.isArray(stops) || stops.length === 0) return 'empty';
+    return 'ready';
+}
+
 export default function SurpriseTourPage() {
     // DVAI-055: estraggo lat/lng dal userContext per il vincolo geografico
     const { city, userId, firstName, lat, lng } = useUserContext();
@@ -240,7 +258,29 @@ export default function SurpriseTourPage() {
                 Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null
             );
 
-            if (!result || !result.days || result.days.length === 0) throw new Error("AI Generation Failed");
+            // Gate NARRATORE/POI (Fase 2a) — il check storico
+            // (`!result.days || result.days.length === 0`) NON scattava mai sul
+            // payload onesto del motore: { days: [{ stops: [] }] } ha
+            // days.length === 1. Si arrivava a navigare su un tour a zero tappe.
+            const outcome = getSurpriseOutcome(result);
+            if (outcome === 'error') throw new Error("AI Generation Failed");
+            if (outcome === 'empty') {
+                const oggetto = result?._oggetto_umano || null;
+                console.warn(`[DVAI-061] shuffleExperience: motore 0 tappe → nessuna navigazione (oggetto="${oggetto || 'n/a'}", source=${result?._source || 'unknown'})`);
+                // Registro copy riusato da QuickPath.jsx:1071-1082 (stesso caso,
+                // stessa voce). Lo spinner lo spegne il `finally` sotto.
+                toast({
+                    title: oggetto
+                        ? `A ${city || 'Roma'} non troviamo ${oggetto}.`
+                        : 'Non basta per un tour.',
+                    description: oggetto
+                        ? 'Cambia richiesta e riprovo.'
+                        : `A ${city || 'Roma'} non ci sono abbastanza posti veri per quello che hai chiesto.`,
+                    type: 'info',
+                    duration: 6000,
+                });
+                return;
+            }
 
             // 3. Map to Tour Data Format
             const surpriseTour = result.days[0]; // Take 1st day as the experience

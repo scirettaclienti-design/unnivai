@@ -129,6 +129,19 @@ const sampleItinerary = [
     }
 ];
 
+// Gate NARRATORE/POI (Fase 2a) — decisione pura, esportata per i test.
+// Stesso pattern di getTourRenderState (TourDetails, Gate E-1).
+//
+// `if (newDay)` era vero anche per { stops: [] }: il payload onesto del motore
+// ha sempre un oggetto giorno dentro `days`, quello che manca sono le tappe.
+// Si sostituisce SOLO se il nuovo giorno ha tappe vere — altrimenti resta il
+// giorno precedente, che è contenuto vero.
+//
+// @returns {boolean} true = sostituisci il giorno visualizzato
+export function shouldReplaceDay(newDay) {
+    return Array.isArray(newDay?.stops) && newDay.stops.length > 0;
+}
+
 export default function AIItineraryPage() {
     const [currentStep, setCurrentStep] = useState(0);
     const [userPreferences, setUserPreferences] = useState(preferences);
@@ -334,12 +347,24 @@ export default function AIItineraryPage() {
                 '',
                 cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)
             );
+            // Gate NARRATORE/POI (Fase 2a) — `if (newDay)` non bastava:
+            // { stops: [] } è truthy, quindi il payload onesto del motore
+            // sostituiva il giorno visualizzato con uno vuoto, in silenzio.
+            // Meglio il vecchio contenuto vero che il vuoto.
             const newDay = result.days?.[0];
-            if (newDay) {
-                setGeneratedItinerary(prev =>
-                    prev.map(d => d.day === dayNumber ? { ...newDay, day: dayNumber } : d)
-                );
+            if (!shouldReplaceDay(newDay)) {
+                console.warn(`[AI] regenerateDay: 0 tappe → giorno ${dayNumber} invariato (source=${result?._source || 'unknown'})`);
+                toast({
+                    title: `Il giorno ${dayNumber} resta com'era.`,
+                    description: `A ${activeCity} la rigenerazione non ha prodotto tappe nuove.`,
+                    type: 'info',
+                    duration: 5000,
+                });
+                return;
             }
+            setGeneratedItinerary(prev =>
+                prev.map(d => d.day === dayNumber ? { ...newDay, day: dayNumber } : d)
+            );
         } catch (err) {
             console.warn('[AI] regenerateDay failed:', err.message);
         } finally {

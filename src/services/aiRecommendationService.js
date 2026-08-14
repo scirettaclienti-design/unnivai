@@ -1032,6 +1032,20 @@ Ecco i candidati raggruppati per tema:
 ${themedBlocks}`;
 };
 
+// Gate NARRATORE/POI (Fase 2b) — regola locked #16: se il narratore non
+// produce una descrizione vera, la tappa NON entra ("meno tappe > tappe vuote").
+//
+// Predicato UNICO, condiviso da generateHomeTours e generateItinerary. Prima
+// esisteva solo inline in generateHomeTours (Gate II.2): una regola locked
+// scritta in due posti diverge alla prima modifica, e infatti generateItinerary
+// non l'ha mai avuta — è la lacuna che ha lasciato passare la tappa-località
+// di Ippocampo con testo poetico al posto di un fatto.
+//
+// Corpo identico a quello che era inline: nessun cambio di comportamento per
+// il path Home.
+// Exported per test.
+export const hasRealDescription = (s) => !!(s?.description && String(s.description).trim().length > 0);
+
 // Post-processing: prende gli stop AI (con place_id) e li canonizza dai candidati
 // reali. Riscrive title/lat/lng/rating/googlePhoto/type dal record Google, tiene
 // dall'AI description/insiderTip/bestTime/transition/time/suggestedMinutes.
@@ -1156,9 +1170,20 @@ export const aiRecommendationService = {
                         // Canonicizza: title/lat/lng/rating/googlePhoto dai candidati.
                         // Scarta stop con place_id non appartenente ai candidati (AI-halluc).
                         const canonized = canonicalizeStopsFromCandidates(aiStops, candidates);
+                        // Gate NARRATORE/POI (Fase 2b) — regola locked #16, stesso
+                        // predicato di generateHomeTours. Se il narratore non ha
+                        // prodotto una descrizione vera, la tappa non entra.
+                        // Un giorno che resta a 0 tappe viene eliminato dal
+                        // .filter() in coda al map, e il flusso cade da solo nel
+                        // ramo di uscita onesto (:1184 → _source 'no-results').
+                        const described = canonized.filter(hasRealDescription);
+                        if (described.length < canonized.length) {
+                            const scartate = canonized.filter(s => !hasRealDescription(s)).map(s => s.title || '?');
+                            console.warn(`[Gate NARRATORE/POI] ${city}: ${canonized.length - described.length}/${canonized.length} tappe scartate → descrizione assente — [${scartate.join(' | ')}]`);
+                        }
                         // Applica il filtro raggio come safety (DVAI-055-b): quasi no-op
                         // perché discoverRealPOIs ha già filtrato per prossimità query.
-                        const withinRadius = applyRadiusFilter(canonized, cityCenter, city);
+                        const withinRadius = applyRadiusFilter(described, cityCenter, city);
                         // Ordina per prossimità geografica dopo la canonizzazione.
                         const ordered = sortByProximity(withinRadius);
                         return {
@@ -1588,7 +1613,11 @@ Schema JSON ESATTO:
 
                 // Gate II.2 — regola locked: description vuota → stop scartato.
                 // Mai placeholder "Luogo di interesse". Meno tappe > tappe vuote.
-                canonized = canonized.filter(s => s.description && String(s.description).trim().length > 0);
+                // Gate NARRATORE/POI (Fase 2b): il predicato inline è diventato
+                // hasRealDescription, condiviso con generateItinerary. Stesso
+                // corpo, stessa posizione nella catena, stesso ordine rispetto
+                // al dedup cross-tour sopra: comportamento invariato.
+                canonized = canonized.filter(hasRealDescription);
 
                 // Safety filtro raggio (Places gia' filtrato ma difense-in-depth).
                 const withinRadius = applyRadiusFilter(canonized, cityCenter, city);

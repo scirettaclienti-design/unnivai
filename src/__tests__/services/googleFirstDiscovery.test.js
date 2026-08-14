@@ -11,7 +11,11 @@ import {
     passesHardExclusions,
     applyQualityThreshold,
     QUALITY_THRESHOLDS,
+    GEO_ENTITY_TYPES,
+    REAL_PLACE_TYPES,
+    isCityItself,
 } from '../../services/placesDiscoveryService';
+import { BLACKLIST_TYPES } from '../../services/aiRecommendationService';
 
 // ─── FIXTURE — dati REALI raccolti da textsearch Troina + Enna il 2026-07-07 ───
 
@@ -113,6 +117,172 @@ describe('DVAI-060 — passesHardExclusions', () => {
             business_status: 'OPERATIONAL',
             types: ['church'],
         })).toBe(true);
+    });
+});
+
+// ─── Gate NARRATORE/POI — aree geografiche ──────────────────────────────────────
+//
+// Caso reale (device, 14/08): a Ippocampo (frazione di Zapponeta, FG) la
+// LOCALITÀ STESSA è entrata come unica tappa di un tour. BLACKLIST_TYPES
+// contiene solo servizi commerciali, quindi una `locality` non aveva alcun
+// motivo di essere scartata.
+//
+// Rating e recensioni nei casi "passa" sono valorizzati apposta: senza,
+// i filtri rumore (rating<3.5 && total<=2) e dati-assenti (0/0) scarterebbero
+// il candidato per un motivo diverso da quello in esame, e il test non
+// direbbe nulla sul filtro geografico.
+
+describe('Gate NARRATORE/POI — passesHardExclusions scarta le aree geografiche', () => {
+    it("scarta la località stessa: types ['locality','political'] (caso Ippocampo)", () => {
+        expect(passesHardExclusions({
+            name: 'Ippocampo',
+            rating: 4.5, user_ratings_total: 120,
+            business_status: 'OPERATIONAL',
+            types: ['locality', 'political'],
+        })).toBe(false);
+    });
+
+    it('scarta ogni type presente in GEO_ENTITY_TYPES, uno per uno', () => {
+        for (const geo of GEO_ENTITY_TYPES) {
+            expect(passesHardExclusions({
+                name: `entità ${geo}`,
+                rating: 4.8, user_ratings_total: 300,
+                business_status: 'OPERATIONAL',
+                types: [geo, 'establishment'],
+            }), `il type "${geo}" doveva essere scartato`).toBe(false);
+        }
+    });
+
+    it("NON scarta un ristorante: ['restaurant','food','establishment']", () => {
+        expect(passesHardExclusions({
+            name: 'La Contea dei Normanni',
+            rating: 4.4, user_ratings_total: 660,
+            business_status: 'OPERATIONAL',
+            types: ['restaurant', 'food', 'establishment'],
+        })).toBe(true);
+    });
+
+    it("NON scarta ['route'] — una via può essere una tappa legittima", () => {
+        expect(passesHardExclusions({
+            name: 'Via Oceano Atlantico',
+            rating: 4.2, user_ratings_total: 40,
+            business_status: 'OPERATIONAL',
+            types: ['route'],
+        })).toBe(true);
+    });
+
+    it("NON scarta ['museum','point_of_interest','establishment'] — i type generici stanno anche sui luoghi veri", () => {
+        expect(passesHardExclusions({
+            name: 'Museo Robert Capa',
+            rating: 5.0, user_ratings_total: 209,
+            business_status: 'OPERATIONAL',
+            types: ['museum', 'point_of_interest', 'establishment'],
+        })).toBe(true);
+    });
+
+    it('la lista NON contiene i type generici né route (invariante di composizione)', () => {
+        for (const keep of ['route', 'point_of_interest', 'establishment', 'premise']) {
+            expect(GEO_ENTITY_TYPES.has(keep), `"${keep}" non deve stare in GEO_ENTITY_TYPES`).toBe(false);
+        }
+    });
+
+    it('nessuna sovrapposizione con BLACKLIST_TYPES: sono due liste con semantiche diverse', () => {
+        for (const geo of GEO_ENTITY_TYPES) {
+            expect(BLACKLIST_TYPES.has(geo), `"${geo}" è finito anche in BLACKLIST_TYPES`).toBe(false);
+        }
+    });
+});
+
+// ─── Gate NARRATORE/POI — il candidato è la città stessa ────────────────────────
+//
+// Seconda rete rispetto a GEO_ENTITY_TYPES, per il caso in cui Google
+// restituisca la località SENZA un type geografico. Invariante dalla diagnosi:
+// titolo POI == badge località → non è un luogo, è il posto in cui ti trovi.
+//
+// isCityItself ritorna TRUE quando il candidato è DA SCARTARE.
+
+describe('Gate NARRATORE/POI — isCityItself', () => {
+    it('scarta la località stessa (caso Ippocampo)', () => {
+        expect(isCityItself(
+            { name: 'Ippocampo', types: ['locality', 'political'] },
+            'Ippocampo',
+        )).toBe(true);
+    });
+
+    it('normalizza entrambi i lati: maiuscole, spazi in coda, minuscole', () => {
+        expect(isCityItself(
+            { name: 'IPPOCAMPO ', types: ['locality'] },
+            'ippocampo',
+        )).toBe(true);
+    });
+
+    it('scarta il prefisso geografico "Comune di X"', () => {
+        expect(isCityItself(
+            { name: 'Comune di Troina', types: ['local_government_office'] },
+            'Troina',
+        )).toBe(true);
+    });
+
+    it('NON scarta un nome diverso che contiene quello della città', () => {
+        expect(isCityItself(
+            { name: 'Trattoria Ippocampo', types: [] },
+            'Ippocampo',
+        )).toBe(false);
+    });
+
+    it('guard anti-falso-positivo: un ristorante che si chiama come il paese PASSA', () => {
+        expect(isCityItself(
+            { name: 'Ippocampo', types: ['restaurant', 'food'] },
+            'Ippocampo',
+        )).toBe(false);
+    });
+
+    it('NON scarta una città diversa da quella cercata', () => {
+        expect(isCityItself(
+            { name: 'Erice', types: ['locality'] },
+            'Trapani',
+        )).toBe(false);
+    });
+
+    it('senza cityName non giudica: null e undefined passano', () => {
+        expect(isCityItself({ name: 'Ippocampo', types: ['locality'] }, null)).toBe(false);
+        expect(isCityItself({ name: 'Ippocampo', types: ['locality'] }, undefined)).toBe(false);
+        expect(isCityItself({ name: 'Ippocampo', types: ['locality'] }, '   ')).toBe(false);
+    });
+
+    it('accenti: il confronto è insensibile ai diacritici', () => {
+        expect(isCityItself({ name: 'Forlì', types: ['locality'] }, 'Forli')).toBe(true);
+        expect(isCityItself({ name: 'Forli', types: ['locality'] }, 'Forlì')).toBe(true);
+    });
+
+    it('altri affissi geografici dichiarati: frazione / frazione di / località / sigla provincia', () => {
+        const casi = [
+            'Frazione Ippocampo',
+            'Frazione di Ippocampo',
+            'Località Ippocampo',
+            'Ippocampo (FG)',
+        ];
+        for (const name of casi) {
+            expect(isCityItself({ name, types: ['locality'] }, 'Ippocampo'), `"${name}" doveva essere scartato`).toBe(true);
+        }
+    });
+
+    it('il guard vince sugli affissi: "Località Ippocampo" con type bar PASSA', () => {
+        expect(isCityItself(
+            { name: 'Località Ippocampo', types: ['bar'] },
+            'Ippocampo',
+        )).toBe(false);
+    });
+
+    it('candidato senza nome non viene giudicato', () => {
+        expect(isCityItself({ types: ['locality'] }, 'Ippocampo')).toBe(false);
+        expect(isCityItself({ name: '', types: ['locality'] }, 'Ippocampo')).toBe(false);
+    });
+
+    it('REAL_PLACE_TYPES e GEO_ENTITY_TYPES non si sovrappongono', () => {
+        for (const real of REAL_PLACE_TYPES) {
+            expect(GEO_ENTITY_TYPES.has(real), `"${real}" è in entrambe le liste`).toBe(false);
+        }
     });
 });
 

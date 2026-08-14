@@ -2315,57 +2315,119 @@ percorsi. Non risultano provati: dashboard business, dashboard guida in
 scrittura (che è comunque rotta per il trigger `42703`), signup di un utente
 nuovo dal telefono.
 
-### Finding device 14/08 — registrati, NON aperti
+### Finding device 14/08 — registrati e riqualificati, NON aperti
 
-Due finding di verità emersi durante la stessa verifica. **Nessuno dei due
-riguarda l'RLS**: sono contenuto, non permessi. Entrambi appartengono alla
-famiglia della **regola #6** (il prodotto dice un FATTO, non un aggettivo) e
-sono la conferma che quella regola non è ancora applicata ovunque.
+**Nessuno riguarda l'RLS**: sono contenuto e presentazione, non permessi.
 
-> ⚠️ **Referto sintetico.** Quanto segue è registrato al livello di dettaglio
-> in cui è stato riportato. Le ancore di codice qui sotto sono **candidati da
-> verificare**, non cause diagnosticate: nessuna diagnosi read-only è ancora
-> stata girata su questi due punti.
+> **CORREZIONE a una prima stesura di questo blocco.** Il finding
+> distanza/tempo era stato registrato come "quarto avvistamento" del summary
+> bugiardo del 23/07. **È sbagliato: sono due difetti distinti.** Quello di
+> oggi è di **presentazione** (numeri corretti, accostati male, in navigazione
+> attiva); quello del 23/07 è di **calcolo** (numero sbagliato, nel riepilogo
+> di fine tour). Vanno aperti separatamente e hanno fix diversi. Registrato
+> anche l'errore: accorpare per somiglianza superficiale due difetti che
+> vivono in schermate diverse ne nasconde uno dei due.
 
-**1. POI-località con descrizione poetica.**
-Un POI che è in realtà una **località** (un'area, una frazione, un centro
-abitato — non un luogo puntuale visitabile) viene presentato con una
-descrizione poetica invece che con un fatto verificabile. È esattamente la
-blacklist della regola #6 applicata a un oggetto che per di più non è un POI:
-il difetto è doppio, la natura dell'entità e il registro del testo.
-Precedente della stessa famiglia: **"Curiosità narratore generiche, non legate
-al luogo"** (finding camminata Troina 23/07), mai chiuso.
-*Da completare*: quale località, in quale città, su quale schermata (card
-Home / dettaglio tour / drawer POI in mappa / narratore in navigazione), e il
-testo esatto mostrato.
-*Candidati da verificare*: `src/services/placesDiscoveryService.js` e
-`src/services/aiRecommendationService.js` per la generazione; `POIPopupCard.jsx`
-e `POIDetailDrawer.jsx` per la resa. Da capire anche **perché una località
-entra tra i POI**: se è il filtro sui `types` di Google Places a lasciarla
-passare, il fix sta a monte del testo.
+---
 
-**2. Presentazione distanza/tempo ingannevole.**
-Distanza e tempo mostrati in modo che induce a credere un dato diverso da
-quello reale.
-**Molto probabilmente la stessa classe già registrata il 23/07 e mai chiusa**:
-*"IL SUMMARY MENTE: mostra 3,2 km quando l'utente ne ha camminati ~1 — è la
-distanza del tour pianificato (Directions) spacciata per percorso fatto"* +
-*"Minuti congelati a '50 min rimasti' mentre i metri calano"*. Se è così, non
-è un finding nuovo: è **il quarto avvistamento dello stesso**, e il fatto che
-riemerga da solo dice che il Gate summary onesto (backlog 23/07, punto 3) non
-è più rinviabile.
-*Da completare*: se il numero ingannevole compare in navigazione attiva
-(HUD), nel riepilogo di fine tour, o nella card del tour prima di partire —
-sono tre superfici diverse con tre fix diversi.
-*Candidati da verificare*: `NavigationHUD.jsx:73-86` (i due formatter,
-`${m} min` e `${(m/1000).toFixed(1)} km` — formattano correttamente, il
-problema semmai è **quale grandezza** ricevono), `TourSummaryModal.jsx`,
-`QuickPathSummary.jsx`.
+**FINDING 1 — POI-località con descrizione poetica** (contenuto)
 
-**Entrambi entrano nel backlog in Priorità 2**, sopra la RLS FASE 2: sono
-visibili all'utente al primo sguardo, e il test privato agli esperti è a
-giorni. Un esperto che apre l'app e legge "3,2 km" dopo averne camminato uno
-non sta valutando la sicurezza del database.
+Dati dal device:
+- **Località**: Ippocampo, frazione di Zapponeta, provincia di Foggia, Puglia
+- **Città rilevata dall'app**: Ippocampo
+- **Schermata**: drawer POI in mappa, durante un tour generato da "Percorso Veloce"
+- **Titolo mostrato**: "Ippocampo", con sotto il badge località "IPPOCAMPO"
+- **Foto**: un cortile con ghiaia e una pianta — non un luogo di interesse
+- **Testo sotto "PANORAMICA"**, esatto:
+  > *"Nei pressi di Ippocampo, le onde si infrangono dolcemente, portando un
+  > profumo salmastro nell'aria."*
+- **Il tour aveva UNA sola tappa** (TAPPA 1/1), ed era la località stessa
+
+**Due regole locked violate insieme:**
+- **#12** (la voce del brand è fatti verificabili, mai aggettivi): "onde che si
+  infrangono dolcemente" e "profumo salmastro" sono precisamente la poesia che
+  la blacklist doveva uccidere. Il post-processing regex non li ha intercettati
+  perché non sono nella lista dei termini ("sorseggia", "gusta",
+  "spettacolare"…): **la blacklist per termini non regge contro una frase
+  nuova**. È il limite strutturale dell'approccio, non una svista.
+- **#16** (ogni tappa ha nome vero + descrizione unica del luogo + quando
+  visitarlo; se il narratore non produce descrizione vera **la tappa non
+  entra**; tour con 0 tappe post-filtro → **escluso**). Qui la tappa è entrata,
+  ed era l'unica: applicando la regola alla lettera il tour **non sarebbe
+  dovuto esistere**. Il "meno tappe > tappe vuote" non è stato applicato.
+
+**Il titolo è il campanello più forte**: quando titolo POI e badge località
+coincidono ("Ippocampo" / "IPPOCAMPO"), l'entità non è un luogo — è il posto
+in cui ti trovi. È un invariante verificabile in CI senza chiamare nessuna API.
+
+**Due domande per la diagnosi** (da girare, non risposte qui):
+1. **Perché una località entra tra i POI.** Se è il filtro sui `types` di
+   Google Places a lasciarla passare (`locality`, `administrative_area_level_*`,
+   `sublocality`), il fix sta **a monte del testo** e il narratore è innocente.
+2. **Perché il narratore ha prodotto atmosfera invece di fermarsi.** La #16
+   prevede esplicitamente il fermarsi. Da capire se il filtro "descrizione
+   vera" non esiste su questo path, o se esiste e questa frase l'ha superato.
+
+**Contesto che cambia il peso del finding**: Ippocampo è un piccolo villaggio
+turistico con pochissimi POI. È il **caso limite "città con pool quasi
+vuoto"** — dove il motore ha meno da cui pescare e quindi raschia il fondo.
+Da tenere presente nel decidere il fix: **se l'app funziona solo dove ci sono
+50 POI, il posizionamento si restringe alle città già note** — cioè l'opposto
+della promessa "il posto che nessuno ti aveva mostrato così". Il
+comportamento giusto in pool vuoto non è "inventa qualcosa", è "dillo".
+
+*Candidati da verificare*: `placesDiscoveryService.js` e
+`aiRecommendationService.js` per generazione e filtro `types`;
+`POIDetailDrawer.jsx` per la resa.
+
+---
+
+**FINDING 2 — HUD navigazione: due grandezze sulla stessa riga senza etichetta**
+(presentazione)
+
+Screenshot della navigazione attiva:
+```
+riga 1:  Procedi in direzione nordest su Via Oceano Atlantico...
+riga 2:  720 m • 27 min rimasti
+riga 3:  TAPPA 1/1 — Ippocampo
+riga 4:  2.0 km totali · ~27 min
+```
+
+**I numeri sono CORRETTI.** 720 m è la distanza al **prossimo maneuver**;
+27 min è il tempo del **tour intero** (2.0 km a piedi ≈ 4,4 km/h, coerente).
+Il difetto è che **due grandezze diverse stanno sulla stessa riga senza
+etichetta**, quindi si leggono come "720 m in 27 minuti" — che sarebbe un
+passo assurdo. Ivano l'ha letto così, e ha ragione a leggerlo così.
+
+Non è un bug di calcolo e **non è un fake**: è un difetto di presentazione.
+Ma l'effetto sull'utente è lo stesso di un dato falso — crede un numero che
+il prodotto non ha mai affermato. Vale la pena registrarlo come **estensione
+della regola #12**: un dato vero, accostato male, comunica una falsità. La
+regola oggi copre il *registro* del testo (fatti, non aggettivi); non copre
+l'*accostamento* di due dati veri.
+
+*Superficie*: `NavigationHUD.jsx`. I due formatter (`:73-86`, `${m} min` e
+`${(m/1000).toFixed(1)} km`) sono corretti e ricevono le grandezze giuste —
+il fix è nell'etichettatura/layout, non nel calcolo.
+
+---
+
+**FINDING 3 — riferimento incrociato: il summary bugiardo resta aperto**
+
+Da non confondere col Finding 2. Registrato il **23/07**, mai chiuso, difetto
+di **calcolo** nel **riepilogo di fine tour**: *"IL SUMMARY MENTE: mostra
+3,2 km quando l'utente ne ha camminati ~1 — è la distanza del tour pianificato
+(Directions) spacciata per percorso fatto"* + *"minuti congelati a '50 min
+rimasti' mentre i metri calano"*. Superficie diversa (`TourSummaryModal.jsx` /
+`QuickPathSummary.jsx`), causa diversa, fix diverso. Resta al suo posto nel
+backlog 23/07 (punto 3, "Gate summary onesto", verificabile da casa).
+
+---
+
+**Backlog — dove vanno.** Finding 1 e 2 entrano in **Priorità 2**, sopra la
+RLS FASE 2: sono visibili all'utente al primo sguardo e il test privato agli
+esperti è a giorni. Il Finding 1 ha priorità sul 2 — un POI inventato è una
+violazione di verità, l'HUD è una lettura ambigua di dati veri.
 
 ---
 

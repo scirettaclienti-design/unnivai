@@ -1,0 +1,24 @@
+-- ============================================================================
+-- GATE SICUREZZA RLS — PASSO 4b: accensione di RLS su profiles
+-- Data: 2026-08-14
+--
+-- E' l'unico comando rischioso dell'intero gate, e si annulla con un solo
+-- comando. Le policy sono gia' in piedi dal passo 4a (inerti fino a qui).
+--
+-- Stato pre-accensione, misurato con la anon key e senza sessione:
+--   GET /rest/v1/profiles?select=id,first_name -> HTTP 200 con TUTTE e 5 le
+--   righe: nome, cognome, citta', indirizzo, instagram, is_unlimited di ogni
+--   utente registrato, leggibili da chiunque possieda la anon key — che e'
+--   pubblica nel bundle JS servito da Vercel.
+--
+-- Effetto atteso: la stessa chiamata deve tornare [].
+--
+-- Non passa da CI ne' da Vercel: e' DB puro, l'effetto e' immediato su ogni
+-- client gia' aperto, anche su bundle vecchi.
+--
+-- ROLLBACK: ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;
+--   Le policy restano in piedi ma inerti, si torna allo stato di oggi in
+--   cinque secondi. Vedi supabase/GATE_RLS_ROLLBACK.sql
+-- ============================================================================
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;

@@ -2751,6 +2751,129 @@ Questo riordino **sostituisce** l'ordine di Priorità 1 del blocco 15/08 sopra.
 
 ---
 
+## Sessione 15/08 (3) — Sonda dati reali: IL PIANO POOL-VUOTO DEL 15/08 È SUPERATO
+
+6 chiamate Places reali via proxy, filtri importati dal sorgente con `vite-node`
+(non reimplementati). Cachate 24h.
+
+### La premessa era sbagliata: il pool non è vuoto
+
+A Ippocampo, query NATURA, `isSmall=true`: **6 risultati, 6 passano
+`passesHardExclusions`, 6 sono LIVELLO 1**. `scaleLevel` effettivo = **1**.
+Distanze reali (haversine dal centro): **48,7 / 56,4 / 79,5 / 108,8 / 143,9 /
+225,2 km**. Nessuno entro 5 km. Il più vicino a 48,7.
+`radius=5000` e `radius=10000` danno risultati **BYTE-IDENTICI**: Google ignora
+il raggio quando localmente non trova (conferma del bias, non vincolo).
+
+**Conseguenze sui 4 punti della decisione 15/08:**
+- **Punto 1** (">=3 qualificati → tour normale") **SCATTEREBBE**, producendo un
+  tour di ville comunali a 50-225 km. È F9 sul path tour: distanza calcolata e
+  mai usata come filtro.
+- **Punto 2** (secondo textsearch allargato) **NON VERREBBE MAI RAGGIUNTO**: la
+  condizione "<3" non si verifica. Avremmo scritto codice mai eseguito.
+- **Punto 3** (nessun tour + messaggio onesto) irraggiungibile per lo stesso
+  motivo.
+- **Punto 4** (togliere il livello 3 dal path tour) **UCCIDEREBBE "La
+  Masseria"**: 3,6 stelle / 347 rec, soglia FOOD small `minRating 4,2` → fuori
+  dal livello 1; livello 2 richiede >=3,8 → fuori anche da lì. L'unico POI vero
+  locale sopravvive **SOLO al livello 3**. Risultato: zero tour a Ippocampo, non
+  per mancanza di posti, ma perché il posto vero è sotto soglia mentre sei ville
+  a 200 km sono sopra.
+
+### La leva non è il raggio: è la query
+
+Stessa città, stesso raggio, query diverse:
+
+| Query | risultati | entro 10 km |
+|---|---|---|
+| `museo chiesa palazzo storico` | 1 | **0** — l'unico è **Musei Vaticani, 295 km** |
+| `parco villa comunale giardino` | 6-9 | 0-2 |
+| `trattoria ristorante pizzeria` | 9 | 1 (**La Masseria, 7,0 km**) |
+| **`lungomare spiaggia`** | 5 | **5 SU 5** |
+
+Ippocampo è un villaggio balneare: ha lidi, campeggi, spiagge. Il wizard offre
+"Centro Storico" e "Parchi e Verde", e il motore cerca ville comunali che lì non
+esistono.
+
+**È F3 misurato in numeri**: non più un'impressione di UX, ma la ragione tecnica
+per cui l'app non funziona fuori dalle città d'arte. **TERZO voto del campo sul
+bivio Nav L2 vs Temi Adattivi**, questa volta con i dati.
+
+### F11 — NUOVO, latente con data di scadenza
+
+`resolveCityCenter('Ippocampo')` **FALLISCE oggi**. `findplacefromtext` torna una
+cooperativa a Bergamo (`types: establishment/point_of_interest/school`);
+`textsearch` torna 9 risultati, **0** con un type in `ACCEPTED_CITY_TYPES`
+(`cityCenterService:74-78`) → throw `not_found` (`:221`).
+Per confronto: `'Zapponeta'` risolve (`locality, political`).
+
+Il tour del 15/08 è uscito perché c'era un `cityCenter` in cache (TTL 30 giorni,
+`:199`). Quando scade, Ippocampo smette di funzionare del tutto.
+**Classe della lezione #9**: un difetto latente perché una protezione (la cache)
+lo stava mascherando.
+
+> ⚠️ Precisazione onesta: la causa "cache" è un'**inferenza**, non un dato
+> verificato. La sonda ha provato che oggi `resolveCityCenter('Ippocampo')`
+> fallisce; *perché* il 15/08 il tour sia uscito comunque non è determinabile
+> da qui (cache 30gg oppure stringa città diversa sul device). Si verifica
+> leggendo `unnivai_citycenter_*` nel localStorage del telefono.
+
+**Nota aggiuntiva**: centrare su Zapponeta (comune) **scarta Ippocampo**
+(frazione) — i lidi stanno a 6,7-7,5 km, cioè **oltre R=5 e dentro R_wider=12**.
+Col centro comunale, il filtro stretto eliminerebbe proprio i POI del posto dove
+l'utente si trova.
+
+### Cosa resta valido della decisione 15/08
+
+Il principio: **"il motore non abbassa l'asticella, allarga il territorio"**.
+Regge. Quello che non regge è il **meccanismo** scelto per attuarlo — il raggio
+non è la leva.
+
+### PROSSIMA SESSIONE — un gate da aprire (1) e quattro decisioni (2-5)
+
+1. **Gate TOUR-DISTANZA** — da aprire. La sonda mostra 6 candidati livello 1 a
+   48-225 km da Ippocampo. **NON è verificato se arrivino all'utente**:
+   `applyRadiusFilter` esiste già a `:1186`, e il difetto potrebbe essere la sua
+   **INEFFICACIA** e non la sua assenza. Nota che `:1186` gira su `canonized`,
+   cioè **DOPO** la scelta dell'AI: anche filtrando, la chiamata AI è già stata
+   pagata su un pool sbagliato. **Prima domanda della Fase 0: le sei ville
+   arrivano all'utente sì o no, con prova.**
+2. **Cosa diventa POOL-VUOTO**: soglie geografiche? soglie per kind ricalibrate
+   (La Masseria)? query adattive?
+3. **Il bivio temi adattivi**, ora con i numeri.
+4. **F11** — `resolveCityCenter` sulle frazioni.
+5. **BLOCCO MAPPA, promosso**: non è estetica, è la superficie del prodotto. Tre
+   pezzi distinti: **MAPPA-VERITÀ** (summary che mostra la distanza pianificata
+   come camminata, aperto dal 23/07), **MAPPA-NAVIGAZIONE** (HUD: istruzioni
+   30-40m late, cursore a scatti, proiezione persa, geofence a 20-25m — test L2-1
+   Troina), **MAPPA-IDENTITÀ** (pin di sistema, nessuna identità Unnivai).
+   Il freeze Antigravity va sbloccato per la sola **MAPPA-IDENTITÀ**: file
+   diversi, non tocca la logica di navigazione.
+
+### LEZIONI OPERATIVE
+
+**#13 — Una sonda sui dati reali prima di implementare un gate costa centesimi e
+può invalidare l'intero piano.** Qui ha risparmiato una settimana di codice su
+una premessa falsa. Da fare ogni volta che un gate si fonda su un'**ipotesi sul
+mondo esterno** ("il pool è vuoto") e non su una lettura del codice.
+
+**#14 — Verifica bundle: TRE marker, non uno.** Un marker di controllo già
+deployato (prova che lo strumento funziona), uno positivo per il codice nuovo,
+uno negativo per il codice rimosso. Il positivo dev'essere una **stringa
+letterale** (className, testo UI), MAI un nome di simbolo.
+Aggiunta: usare anche un marker di un **gate precedente** per provare che non è
+regredito.
+
+**#15 — Una regola anti-fake che non è mai stata vista fallire non protegge
+niente.** Ogni gate che introduce una regola deve provarla **rossa sul codice
+pre-fix, nello stesso commit**.
+
+**#16 — Un test verde su un path mai raggiunto è un'assenza travestita da
+presenza.** Asserire sull'**effetto osservabile** (il `console.warn` del filtro),
+non sul valore di ritorno: un `null` non distingue "filtrato" da "mai arrivato".
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
 
 > ⚠️ **SEZIONE OBSOLETA** — corretta dal Gate DNA ONESTO (22/07, vedi sopra):

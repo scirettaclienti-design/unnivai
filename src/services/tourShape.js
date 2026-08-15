@@ -52,8 +52,24 @@ export function haversineKm(lat1, lng1, lat2, lng2) {
 // solo meno clamorosa dei 200 km di Capodimonte proposti a Ippocampo.
 // Chi chiama da un path notifiche passa { allowWiden: false }.
 export function applyRadiusFilter(rawStops, cityCenter, cityName, opts = {}) {
-    const { allowWiden = true } = opts;
+    const { allowWiden = true, requireCenter = false } = opts;
     if (!cityCenter || !Number.isFinite(cityCenter.latitude) || !Number.isFinite(cityCenter.longitude)) {
+        // Gate TOUR-DISTANZA — opts.requireCenter (default FALSE, comportamento
+        // storico invariato per i call site esistenti).
+        //
+        // Senza un centro valido la distanza non è calcolabile: il default
+        // "ritorna tutto" è una scelta di retrocompatibilità che, su un filtro
+        // di sicurezza, equivale a spegnerlo in silenzio. Con requireCenter:true
+        // si preferisce nessun candidato a candidati non verificabili.
+        //
+        // Attenzione: qui si giudica la PRESENZA del centro, non la sua
+        // completezza. Un cityCenter "nudo" { latitude, longitude } — come lo
+        // passa SurpriseTour.jsx:257 — ha lat/lng validi, quindi NON entra in
+        // questo ramo: il filtro gira col fallback 5/10 km di :52.
+        if (requireCenter) {
+            console.warn(`[Gate TOUR-DISTANZA] ${cityName || '?'}: cityCenter assente o non valido → 0 candidati (requireCenter)`);
+            return [];
+        }
         return rawStops;
     }
     const small = cityCenter.isSmallTown ?? isSmallTown(cityName);

@@ -396,7 +396,7 @@ const checkAndIncrementQuota = async () => {
 // sorgenti passano dal normalizer. Qui le importiamo per uso locale (regola 15
 // del prompt + filtro pre-verifyPOIWithPlaces che risparmia chiamate Google $)
 // E le re-esportiamo per non rompere aiRadius.test.js.
-import { isSmallTown, applyRadiusFilter } from './tourShape';
+import { isSmallTown, applyRadiusFilter, haversineKm } from './tourShape';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 
 // ─── DVAI-060 F2 — derive theme + fetch candidati reali ──────────────────────
@@ -1131,7 +1131,37 @@ export const aiRecommendationService = {
         // candidati, errore onesto con oggetto_umano.
         const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
         try {
-            const { candidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt);
+            const { candidates: rawCandidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt);
+
+            // Gate TOUR-DISTANZA — il raggio PRIMA della chiamata AI.
+            //
+            // Sonda 15/08 su dati reali: a Ippocampo la query NATURA restituisce
+            // 6 candidati tutti di LIVELLO 1 (scaleLevel 1, non 3) a 48-225 km
+            // dal centro. `radius` in Places Text Search è un bias, non un
+            // vincolo: Google risponde fuori raggio quando dentro non trova.
+            //
+            // Il filtro a :1186 li intercetta comunque — ma gira su `canonized`,
+            // cioè DOPO che il selettore AI è stato chiamato e pagato con fino a
+            // 20 candidati serializzati nel prompt. Qui si scartano prima: stesso
+            // esito per l'utente, una chiamata OpenAI in meno.
+            //
+            // requireCenter:true — senza centro non si giudica la distanza, e un
+            // filtro di sicurezza che si spegne da solo non è un filtro.
+            const candidates = applyRadiusFilter(rawCandidates, cityCenter, city, { requireCenter: true });
+            if (candidates.length < rawCandidates.length) {
+                const scartati = rawCandidates
+                    .filter(c => !candidates.includes(c))
+                    .map(c => {
+                        const lat = c.latitude ?? c.lat;
+                        const lng = c.longitude ?? c.lng;
+                        const d = (cityCenter && Number.isFinite(cityCenter.latitude) && Number.isFinite(lat) && Number.isFinite(lng))
+                            ? `${haversineKm(cityCenter.latitude, cityCenter.longitude, lat, lng).toFixed(1)} km`
+                            : 'distanza n/d';
+                        return `${c.name || c.title || '?'} (${d})`;
+                    });
+                console.warn(`[Gate TOUR-DISTANZA] ${city}: ${rawCandidates.length - candidates.length}/${rawCandidates.length} candidati scartati PRIMA della chiamata AI — [${scartati.join(' | ')}]`);
+            }
+
             // Gate I — soglia minima 1 candidato (era 3). Un posto vero è meglio
             // di zero. Un tour di 1 tappa con Villa Bellini > messaggio bugiardo
             // "A Catania non troviamo parchi" (Catania ha Villa Bellini).

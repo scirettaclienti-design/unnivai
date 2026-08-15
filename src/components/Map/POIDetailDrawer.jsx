@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Info, Sparkles, MapPin, Navigation, Globe, PhoneCall, CalendarCheck, Volume2, Square, BookOpen, Lightbulb, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useToast } from '../../hooks/use-toast';
+import { resolvePoiPhoto } from '../../lib/poiPhoto';
 
 export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavigate, isNavigating = false, isCompleted = false, isTourStep = false }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -14,27 +14,29 @@ export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavig
 
   const initialImageUrl = poi?.image || poi?.image_urls?.[0];
   const [displayImage, setDisplayImage] = useState(initialImageUrl);
-  
-  const map = useMap();
-  const placesLib = useMapsLibrary('places');
 
+  // Gate FOTO — la ricerca per nome (findPlaceFromQuery su "${nome} ${città}")
+  // è stata rimossa: prendeva results[0].photos[0] senza verificare che fosse
+  // lo stesso posto, e mostrava la foto di un altro luogo con nome simile.
+  // Ora la foto arriva da place/details ancorato al googlePlaceId del POI,
+  // via places-proxy (quindi cachata 24h e non fatturata a ogni apertura).
   useEffect(() => {
-      // If we already have a specific image or we are not a waypoint/poi missing an image, return.
+      // Se abbiamo già una foto vera (non lo stock Unsplash di tourShape) va bene così.
       if (displayImage && !displayImage.includes('unsplash.com')) return;
-      if (!map || !placesLib || !poi || (!poi.name && !poi.title)) return;
+      if (!poi?.googlePlaceId) return; // senza ancoraggio non si cerca nulla
 
-      const service = new placesLib.PlacesService(map);
-      const request = {
-          query: `${poi.name || poi.title} ${poi.city || poi.location || ''}`,
-          fields: ['photos']
-      };
-
-      service.findPlaceFromQuery(request, (results, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK && results && results[0] && results[0].photos) {
-              setDisplayImage(results[0].photos[0].getUrl({ maxWidth: 800 }));
-          }
-      });
-  }, [map, placesLib, poi?.name, poi?.title, displayImage]);
+      // fetchPlaceDetailsForTour ha un timeout proprio (5s) ma non è abortabile
+      // dall'esterno: il flag evita il setState su componente smontato.
+      let cancelled = false;
+      (async () => {
+          const { placesDiscoveryService } = await import('../../services/placesDiscoveryService');
+          const details = await placesDiscoveryService.fetchPlaceDetailsForTour(poi.googlePlaceId, poi.city);
+          if (cancelled) return;
+          const url = resolvePoiPhoto(poi, details);
+          if (url) setDisplayImage(url);
+      })();
+      return () => { cancelled = true; };
+  }, [poi?.googlePlaceId, poi?.city, displayImage]);
 
   useEffect(() => {
     // Stop speaking when drawer closes or unmounts

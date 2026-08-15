@@ -290,6 +290,25 @@ const RULES = [
     // fuori — insieme al fake rientra pure il rischio di leak di API key.
     // Il pattern cattura fetch diretti al Places API (proxy o Google diretto).
     {
+        // Gate FOTO (15/08) — cercare un luogo per NOME e mostrarne la foto è
+        // il bug che ha prodotto "Ippocampo → cortile con ghiaia" e
+        // "La Masseria → parco giochi": findPlaceFromQuery({query: "${nome}
+        // ${città}"}) restituisce il primo posto che si chiama così, e non c'è
+        // modo di verificare che sia lo stesso. La foto va ancorata al
+        // place_id (place/details), mai al nome.
+        //
+        // NON copre getDetails: MapPage.jsx:1424 lo usa con `placeId` esplicito,
+        // che è il comportamento corretto ed è fuori perimetro dichiarato.
+        //
+        // La regex sull'SDK JS colma un buco reale: `no-places-url-outside-builder`
+        // qui sotto cerca `fetch(` e `maps.googleapis.com`, quindi non vedeva
+        // nessuna delle tre chiamate fatte tramite PlacesService.
+        name: 'no-places-sdk-search-by-name',
+        pattern: /findPlaceFromQuery/,
+        allowlist: [],
+        message: 'Ricerca Places per NOME: restituisce "un posto che si chiama così", non questo posto. Usa fetchPlaceDetailsForTour(placeId) + resolvePoiPhoto (src/lib/poiPhoto.js) — la foto si ancora al place_id.',
+    },
+    {
         name: 'no-places-url-outside-builder',
         pattern: /fetch\s*\(\s*[`'"][^`'"]*place\/(?:textsearch|findplacefromtext|details|photo)|maps\.googleapis\.com\/maps\/api\/place/i,
         allowlist: [],

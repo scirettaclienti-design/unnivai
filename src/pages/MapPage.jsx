@@ -347,41 +347,23 @@ const MapPage = () => {
 
     const [isCameraFollowing, setIsCameraFollowing] = useState(false);
     const followingRef = useRef(false);
-    // 🔑 Dynamic photo enrichment for selected tour markers
-    const [activityPhotoUrl, setActivityPhotoUrl] = useState(null);
-
-    useEffect(() => {
-        setActivityPhotoUrl(null); // Reset on selection change
-        if (!selectedActivity) return;
-
-        // If already has a real Google Places photo (not Unsplash/placeholder), use it
-        const img = selectedActivity.image;
-        const isGeneric = !img || img.includes('unsplash.com') || img.includes('placeholder') || img.includes('via.placeholder');
-        if (!isGeneric) {
-            setActivityPhotoUrl(img);
-            return;
-        }
-
-        // Dynamically fetch a real Google Places photo
-        if (!placesService) return;
-        const queryName = selectedActivity.name || selectedActivity.title || '';
-        const queryCity = selectedActivity.city || city || '';
-        if (!queryName) return;
-
-        const request = {
-            query: `${queryName} ${queryCity} Italia`.trim(),
-            fields: ['photos']
-        };
-
-        placesService.findPlaceFromQuery(request, (results, status) => {
-            if (
-                status === window.google.maps.places.PlacesServiceStatus.OK &&
-                results?.[0]?.photos?.[0]
-            ) {
-                setActivityPhotoUrl(results[0].photos[0].getUrl({ maxWidth: 800 }));
-            }
-        });
-    }, [selectedActivity, placesService, city]);
+    // Gate FOTO — la ricerca per nome è stata CANCELLATA, non sostituita.
+    //
+    // `selectedActivity` è una riga della tabella `tours` (mappata a :793-812
+    // da dataService.getToursByCity), non un POI Google: non ha né può avere un
+    // place_id, quindi non esiste un ancoraggio con cui verificare la foto.
+    // Cercarla per nome dava la foto di "un posto che si chiama così".
+    //
+    // La foto di un tour è quella che la guida ha caricato: `imageUrl` da
+    // `tours.image_urls` (dataService.js:88, che NON inventa fallback — se
+    // l'array è vuoto resta ''). Assente → nessuna foto.
+    const activityPhotoUrl = (() => {
+        const img = selectedActivity?.image;
+        if (!img || typeof img !== 'string') return null;
+        // Uno stock non è la foto del tour.
+        if (img.includes('unsplash.com') || img.includes('placeholder')) return null;
+        return img;
+    })();
 
     const setFollowing = useCallback((val) => {
         setIsCameraFollowing(val);
@@ -1875,10 +1857,15 @@ const MapPage = () => {
             {selectedActivity && !isRoutePlannerOpen && (
                 <div className={`absolute z-[50] animate-in slide-in-from-bottom-5 duration-300 ${isNavigating ? 'bottom-4 left-4 right-4' : 'bottom-0 left-0 right-0 lg:bottom-8 lg:left-8 lg:w-[400px]'}`}>
                     <div className={`bg-white shadow-2xl overflow-hidden ring-1 ring-black/5 ${isNavigating ? 'rounded-2xl' : 'rounded-t-3xl lg:rounded-3xl'}`}>
-                        {/* Image section — compact during navigation */}
-                        <div className={`relative bg-gray-100 ${isNavigating ? 'h-28' : 'h-44'}`}>
-                            <img src={activityPhotoUrl || selectedActivity.image || 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=800'} className="w-full h-full object-cover" alt="" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        {/* Image section — compact during navigation.
+                            Gate FOTO: niente foto → header compatto, nessun
+                            placeholder Unsplash. Meglio nessuna immagine che
+                            l'immagine di un altro posto. */}
+                        <div className={`relative ${activityPhotoUrl ? 'bg-gray-100' : ''} ${isNavigating ? (activityPhotoUrl ? 'h-28' : 'h-10') : (activityPhotoUrl ? 'h-44' : 'h-12')}`}>
+                            {activityPhotoUrl && (
+                                <img src={activityPhotoUrl} className="w-full h-full object-cover" alt="" />
+                            )}
+                            {activityPhotoUrl && <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />}
                             <button onClick={() => setSelectedActivity(null)}
                                 className="absolute top-3 right-3 p-1.5 bg-black/50 hover:bg-black/70 rounded-full text-white backdrop-blur-sm transition-colors">
                                 <X size={16} />
@@ -1888,17 +1875,20 @@ const MapPage = () => {
                                     {selectedActivity.category}
                                 </div>
                             )}
-                            {/* Name overlaid on image during navigation for compactness */}
-                            {isNavigating && (
+                            {/* Name overlaid on image during navigation for compactness.
+                                Gate FOTO: solo SE c'è l'immagine — il testo è bianco
+                                con drop-shadow, su fondo chiaro sparirebbe. */}
+                            {isNavigating && activityPhotoUrl && (
                                 <div className="absolute bottom-2 left-3 right-3">
                                     <h2 className="text-white font-bold text-base leading-tight drop-shadow-lg truncate">{selectedActivity.name || selectedActivity.title || 'Punto di Interesse'}</h2>
                                 </div>
                             )}
                         </div>
                         <div className={isNavigating ? 'p-3' : 'p-5'}>
-                            {/* Full title only when NOT navigating (during nav it's overlaid on image) */}
-                            {!isNavigating && (
-                                <h2 className="text-xl font-bold mb-1 text-gray-900">{selectedActivity.name || selectedActivity.title || 'Punto di Interesse'}</h2>
+                            {/* Titolo sotto: quando non si naviga, oppure quando si
+                                naviga ma non c'è foto su cui sovrapporlo. */}
+                            {(!isNavigating || !activityPhotoUrl) && (
+                                <h2 className={`font-bold text-gray-900 ${isNavigating ? 'text-base mb-1 truncate' : 'text-xl mb-1'}`}>{selectedActivity.name || selectedActivity.title || 'Punto di Interesse'}</h2>
                             )}
                             <p className="text-gray-500 text-xs mb-2 font-medium flex items-center gap-1">
                                 <Clock size={12} /> {selectedActivity.duration || 'Durata flessibile'}

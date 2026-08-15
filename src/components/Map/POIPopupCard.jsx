@@ -1,39 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Navigation, MapPin, X, Map } from 'lucide-react';
-import { useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { resolvePoiPhoto } from '../../lib/poiPhoto';
 
 export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
     if (!poi) return null;
 
     const initialImageUrl = poi.image || poi.image_urls?.[0];
     const [displayImage, setDisplayImage] = useState(initialImageUrl);
-    
-    const map = useMap();
-    const placesLib = useMapsLibrary('places');
+    // Gate FOTO (passo 1) — terza condizione. Prima ne esistevano due
+    // ("ho una foto" / "non ho una foto") e la seconda renderizzava sempre uno
+    // spinner: se la foto non arrivava mai, quello spinner girava per sempre
+    // (regola #7, nessuno stato non-uscibile). Ora "ricerca conclusa senza
+    // foto" è uno stato suo, impostato su OGNI via d'uscita — successo,
+    // fallimento (il ramo che non esisteva) e early-return.
+    const [photoPhase, setPhotoPhase] = useState('pending'); // 'pending' | 'resolved'
 
+    // Gate FOTO — via la ricerca per nome (findPlaceFromQuery). Qui era anche
+    // peggio che nel drawer: la clausola `isTourWaypoint` faceva ripartire la
+    // query ANCHE con una googlePhoto corretta già in mano, sovrascrivendo una
+    // foto giusta con una cercata per nome. Rimossa.
     useEffect(() => {
-        // Always try Google Places photo for tour waypoints and POIs that only have generic images
+        // Foto vera già presente (non lo stock Unsplash di tourShape) → fine.
         const isGenericImage = !displayImage || displayImage.includes('unsplash.com');
-        const isTourWaypoint = poi.type === 'waypoint' || poi.type === 'tour_step' || poi.type === 'place';
-        
-        // Skip if we already have a specific (non-stock) image AND it's not a waypoint
-        if (displayImage && !isGenericImage && !isTourWaypoint) return;
-        if (!map || !placesLib || (!poi.name && !poi.title)) return;
+        if (displayImage && !isGenericImage) { setPhotoPhase('resolved'); return; }
+        if (!poi.googlePlaceId) { setPhotoPhase('resolved'); return; }
 
-        const service = new placesLib.PlacesService(map);
-        const queryName = poi.name || poi.title;
-        const queryCity = poi.city || poi.location || '';
-        const request = {
-            query: `${queryName} ${queryCity}`.trim(),
-            fields: ['photos']
-        };
-
-        service.findPlaceFromQuery(request, (results, status) => {
-            if (status === window.google.maps.places.PlacesServiceStatus.OK && results && results[0] && results[0].photos) {
-                setDisplayImage(results[0].photos[0].getUrl({ maxWidth: 400 }));
-            }
-        });
-    }, [map, placesLib, poi.name, poi.title, poi.city, displayImage]);
+        // Timeout proprio (5s) dentro fetchPlaceDetailsForTour, ma non abortabile
+        // dall'esterno: il flag impedisce il setState dopo lo smontaggio.
+        let cancelled = false;
+        (async () => {
+            const { placesDiscoveryService } = await import('../../services/placesDiscoveryService');
+            const details = await placesDiscoveryService.fetchPlaceDetailsForTour(poi.googlePlaceId, poi.city);
+            if (cancelled) return;
+            const url = resolvePoiPhoto(poi, details);
+            if (url) setDisplayImage(url);
+            setPhotoPhase('resolved');
+        })();
+        return () => { cancelled = true; };
+    }, [poi.googlePlaceId, poi.city, displayImage]);
 
     // Fake rating since we might not always have it mapped
     const [rating, setRating] = useState(poi.rating || 4.5);
@@ -55,17 +59,30 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
                         <X size={14} strokeWidth={3} />
                     </button>
                 </div>
-            ) : (
+            ) : photoPhase === 'pending' ? (
+                // Ricerca in corso — l'unico caso in cui lo spinner è onesto.
                 <div className="h-32 relative shrink-0 bg-gray-50 flex items-center justify-center">
                     <div className="w-6 h-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin opacity-50" />
                     <div className="absolute top-2 right-2 z-10">
-                        <button 
+                        <button
                             onClick={(e) => { e.stopPropagation(); onClose(); }}
                             className="p-1.5 bg-gray-200 hover:bg-gray-300 rounded-full text-gray-600 transition-colors"
                         >
                             <X size={14} strokeWidth={3} />
                         </button>
                     </div>
+                </div>
+            ) : (
+                // Ricerca conclusa senza foto: stato FINITO. Header compatto,
+                // niente immagine e niente placeholder — stesso trattamento del
+                // drawer (POIDetailDrawer.jsx:88,95), che il blocco lo omette.
+                <div className="relative shrink-0 flex justify-end px-2 pt-2">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onClose(); }}
+                        className="p-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors"
+                    >
+                        <X size={14} strokeWidth={3} />
+                    </button>
                 </div>
             )}
             

@@ -2431,6 +2431,251 @@ violazione di verità, l'HUD è una lettura ambigua di dati veri.
 
 ---
 
+## Sessione 15/08 — Gate NARRATORE/POI chiuso + 18 giorni di deploy fermi
+
+Sessione lunga: una diagnosi in due fasi, un gate in tre fasi, la scoperta che
+la produzione era ferma al 27/07, e sei finding dal campo (Ippocampo, FG).
+
+### Gate NARRATORE/POI — commit `1bab486` ✅ PASS DEVICE (parziale)
+
+Origine: il 14/08 a Ippocampo un tour "Percorso Veloce" aveva UNA tappa, ed era
+**la località stessa**, con descrizione poetica ("le onde si infrangono
+dolcemente, portando un profumo salmastro") e foto di un cortile con ghiaia.
+Violava le regole locked #12 e #16.
+
+**Diagnosi — tre difetti indipendenti, non uno:**
+
+1. **Il filtro `types` non esisteva.** `BLACKLIST_TYPES`
+   (`aiRecommendationService.js:131-139`) è una lista di *servizi commerciali*
+   (meccanici, banche, scuole): nessuna entità geografica. Una `locality` non
+   aveva motivo di essere scartata, e `mapGoogleTypeToOurType` la classificava
+   `'place'`. **Il narratore era innocente**: gli è stato chiesto di descrivere
+   Ippocampo e l'ha descritto.
+2. **La regola #16 viveva in un posto solo.** Il filtro `.filter(s =>
+   s.description && ...)` di Gate II sta in `generateHomeTours:1591`. Il path
+   QuickPath passa da `generateItinerary`, dove il blocco `:1154-1172` fa
+   canonicalize → radius → sort e **nessun filtro su description**.
+   È la regola #8 ("un solo motore") applicata alla voce invece che alla città:
+   due narratori con due regole diverse.
+3. **La regola #12 era falsa nell'handoff.** `JUDGMENT_PATTERNS:1955` esiste
+   solo per `parsed.message` delle **notifiche**. Sul path tour la blacklist è
+   solo testo dentro il prompt — un'istruzione all'AI, non un controllo
+   sull'output. L'handoff dichiarava "post-processing regex rimuove le formule
+   di giudizio" come se valesse ovunque. **Corretto.**
+
+**Scoperta collaterale grave — `applyQualityThreshold:387-402`:** sotto i 3
+candidati qualificati il motore scende a `scaleLevel 3` e ritorna `candidates`
+**non filtrati**. In pool quasi vuoto la soglia qualità **cessa di esistere**, e
+l'unica traccia è un `console.warn`. Il comportamento in paese piccolo oggi non
+è "dillo": è **raschia il fondo in silenzio**.
+
+**Fase 0 (read-only) — quattro risposte che hanno dimensionato il fix:**
+- `normalizeTour` NON reintroduce default su `description` (`tourShape.js:285` è
+  una coercizione `|| ''`, non un contenuto). Un filtro a monte regge.
+- I 4 call site di `generateItinerary` (QuickPath:627, SurpriseTour:228,
+  AiItinerary:240 e :329) non filtrano a valle → **un fix solo li copre tutti**.
+- `applyQualityThreshold` ha **un solo chiamante** (`:512`), e `scaleLevel` viene
+  **loggato e buttato**: un POI raschiato è byte-identico a uno di qualità per
+  chiunque lo riceva. MA alimenta **tre superfici** (tour, notifiche via
+  `:1804`, temi Home via `:584`) → rimuoverlo violerebbe la regola #4.
+- Il paracadute dei 12 km **esiste già ma è inerte**: Places cerca entro 3 km
+  (`:481`), `applyRadiusFilter` riallarga a `R_wider=12` km (`tourShape.js:53`)
+  — ma non può ripescare ciò che la ricerca non ha mai portato a casa.
+
+**Implementazione — 3 fasi, 1 commit, 42 test nuovi (236 → 278 passed):**
+
+- **Fase 1** — `GEO_ENTITY_TYPES` (19 type: locality, sublocality*,
+  administrative_area*, political, postal_code*, neighborhood, country…) in
+  `passesHardExclusions`. Lista **separata** da `BLACKLIST_TYPES`, semantica
+  diversa. Esclusi di proposito `route`, `point_of_interest`, `establishment`,
+  `premise`: li portano anche i POI veri (a Troina `Ruderi Monastero Nuovo` e
+  `Madonna della Catena` hanno **solo** `['point_of_interest']` — includerlo li
+  avrebbe uccisi).
+  Più `isCityItself(candidate, cityName)`: scarta il candidato che è la città
+  stessa (normalizzazione NFD + affissi "comune di"/"frazione"/sigla), con
+  **guard anti-falso-positivo**: se ha un type di luogo reale, passa sempre.
+  Applicata **prima** di `applyQualityThreshold` — un candidato destinato allo
+  scarto non deve essere contato per decidere lo scale-down.
+- **Fase 2a** — guard consumatori (regola #5). **Due bug pre-esistenti dal Gate
+  B, non introdotti dal filtro**: SurpriseTour:243 controllava
+  `days.length === 0` che **non scatta mai** (days ha length 1 con stops vuoto) →
+  navigava a una scheda tour con zero tappe; AiItinerary `regenerateDay:337`
+  faceva `if (newDay)` su `{stops: []}` che è **truthy** → sostituiva il giorno
+  con uno vuoto. Il filtro li avrebbe resi frequenti.
+  Pattern usato: funzioni pure esportate + testate (`getSurpriseOutcome`,
+  `shouldReplaceDay`), come `getTourRenderState` di `TourDetails.jsx:40` nato dal
+  Gate E-1.
+- **Fase 2b** — `hasRealDescription()` estratto come predicato **condiviso**,
+  usato da `generateHomeTours` (invariato, 3 test di non-regressione) e da
+  `generateItinerary`. Il tour svuotato cade nel ramo onesto **già esistente**
+  a `:1183-1193` (NON `:1211`, che copre "0 candidati Places" e si attiva prima
+  della chiamata AI). Nessun ramo nuovo, nessuna modifica al flusso.
+
+**Verdetto device (Ippocampo, 15/08):** con percorso Natura → Parchi e Verde la
+tappa è **"La Masseria"**, un POI vero. Il primo tentativo mostrava ancora
+"Ippocampo" perché lo stesso percorso nel wizard = stessa cache key = tour
+cachato pre-deploy. **Il gate funziona.**
+**Perimetro del PASS**: NON verificato su città con pool ricco (Catania/Troina)
+— è il test che direbbe se il filtro è troppo stretto. Resta aperto.
+
+**Cosa il gate NON risolve (dichiarato):** il narratore può ancora scrivere prosa
+inventata su un luogo vero (confermato device: "il profumo di pane fresco appena
+sfornato riempie l'aria mentre entri" su La Masseria); notifiche e temi Home
+restano al livello 3; `fetchPlaceDetailsForTour` (precompute) non passa da
+`isCityItself`; `regenerateDay` controlla il giorno **prima** di `normalizeTour`,
+quindi non vede le tappe svuotate dal filtro raggio; **nessun cache bump** → i
+device con cache POI calda vedono i candidati vecchi fino a 24h.
+
+### DECISIONE POOL-VUOTO (presa 15/08, da implementare nel Gate 2)
+
+Scelta **(c) con (a) come fondo**:
+1. Pool locale, soglia piena. ≥3 tappe vere → tour normale.
+2. Se <3, **secondo textsearch a raggio esteso (~12 km, da calibrare) a soglia
+   INVARIATA**, con distanza dichiarata all'utente.
+3. Se ancora niente: **nessun tour + messaggio onesto**.
+
+Il punto che la rende difendibile: **`applyQualityThreshold` smette di avere il
+livello 3**. Il motore non abbassa più l'asticella, **allarga il territorio ad
+asticella invariata**. Scartata (b) "servi con disclaimer": un disclaimer non
+trasforma una località in un luogo da visitare.
+Motivazione di prodotto: "Il posto esiste" — a Ippocampo il posto esiste, non
+dentro il confine della frazione. Un'app che si arrende al confine comunale
+contraddice la propria promessa. **Con (a) l'app funziona solo dove c'è già
+turismo; con (c) ovunque ci sia qualcosa entro mezz'ora.**
+Vincoli noti: raggio da calibrare su casi reali; un POI a 12 km in un'app "a
+piedi" richiede il mezzo dichiarato; cache bump obbligatorio.
+
+### LA VICENDA DEPLOY — produzione ferma dal 27/07 al 14/08
+
+Il commit del gate risultava su main con CI verde, ma il bundle in prod non lo
+conteneva. Cause e prove:
+
+- **5 deploy `Canceled`, tutti in 1-2 secondi.** Ultimo `Ready`: 27/07.
+- Log build: `🛑 GitHub API returned 401 — BLOCKING deploy (fail-closed). PAT
+  invalido o senza permesso 'Actions: Read'`. **Il PAT fine-grained era scaduto.**
+- Il gate `vercel-ignored-build-step.sh` ha funzionato **come doveva** — ha
+  bloccato invece di deployare alla cieca, e stampa già il rimedio nei log.
+- **18 giorni di commit mai arrivati in produzione.** Include il Gate RLS
+  (`22556dd`), che però era **DB-puro**: l'effetto era immediato via Supabase,
+  quindi il PASS device del 14/08 resta valido.
+- Fix: PAT rigenerato (**senza scadenza**, `Actions: Read-only` sul solo repo
+  `unnivai`), `GH_TOKEN` aggiornato su Vercel (Production + Preview), redeploy.
+  Cancellati i token morti in lista (`vercel-ci-gate-unnivai`, `claude`).
+  ⚠️ `dove vai` — "last used within 5 months" — **da verificare prima di
+  cancellare**: potrebbe servire ad altro (Managed Agents, script locali).
+
+**Verifica bundle post-redeploy: DEPLOYATO ✅** — 4 marker letterali in 4 chunk
+emessi separatamente (entry `index-DyWmrz3g`, `placesDiscoveryService-B15ZU2Md`,
+`SurpriseTour-4RXhbFlF`, `AiItinerary-BmuhMTve`). `aiRecommendationService` **non
+ha un chunk suo**: è bundlato nell'entry.
+
+### LEZIONI OPERATIVE NUOVE
+
+**#10 — Il gate Vercel fail-closed è corretto ma MUTO.** Blocca in 1 secondo e
+il segnale vive solo nei log di build, che nessuno apre di routine.
+**Il tempo del Canceled è la diagnosi, a costo zero:** 1-2s = lo script è uscito
+subito (fail-closed, non ha mai guardato la CI); ~90s+ = ha davvero atteso e
+visto un workflow non-success. Vale anche per il Ready: **25s = build cache
+riusata, ~1m50s = build pulito**.
+Aperto: il gate dovrebbe avere una voce (notifica, o un check visibile su
+GitHub) invece di morire in silenzio. E la scadenza dei PAT va tracciata.
+
+**#11 — Un fallimento dello strumento letto come "assenza" è la stessa classe di
+errore del marker mal cercato.** Tre occorrenze in una sessione:
+(a) `grep` senza `-F` su `[Gate NARRATORE/POI]` → le parentesi quadre lette come
+classe di caratteri → falso "trovato in 75 chunk";
+(b) un `curl` tornato vuoto dopo ~150 richieste allo stesso host → falso
+`ENTRY NON TROVATO`;
+(c) `console.warn` è **silenziato globalmente** in `src/test/setup.js:82`
+(`vi.spyOn(console,'warn').mockImplementation(()=>{})`) → un grep sull'output dei
+test non prova nulla, né in un senso né nell'altro: serve lo spy.
+**Regola: prima di fidarsi di un'assenza, provare che lo strumento troverebbe una
+presenza nota** (metodo usato: cercare `unnivai_debugnav_log_v1`, marker già
+deployato, prima di cercare quello nuovo).
+
+**#12 — Gli hash prod ≠ locale sono NORMALI e non provano nulla.** Vite inlinea
+`import.meta.env.VITE_*` a build time e le env di Vercel differiscono dal `.env`
+locale. Aspettarsi hash identici produce un falso "non deployato". I criteri
+validi sono due: **l'hash di prod è cambiato rispetto a prima**, e **il contenuto
+contiene i marker letterali**.
+
+### FINDING DEVICE 15/08 — registrati, NON aperti
+
+**F1 — La foto mostrata non è del posto (CONFERMATO DUE VOLTE).**
+`POIDetailDrawer.jsx:21-37`: quando manca l'immagine, fa una seconda query
+Places **client-side** `findPlaceFromQuery({query: "${poi.name} ${poi.city}"})` e
+prende `results[0].photos[0]` **senza verificare che sia lo stesso place_id**.
+Osservato: "Ippocampo" → cortile con ghiaia; "La Masseria" → parco giochi per
+bambini. Fetch client-side non passante dal proxy → fuori dalla cache DD e
+probabilmente fuori da `no-places-url-outside-builder` (da verificare).
+**Priorità alta: è "tutto vero, zero fake" rotto nel modo più visibile.**
+
+**F2 — Il narratore inventa dettagli sensoriali.** "Il profumo di pane fresco
+appena sfornato riempie l'aria mentre entri" (La Masseria). La blacklist per
+termini non regge contro una frase nuova: **limite strutturale dell'approccio,
+non una svista**. Serve un criterio diverso (es. ancorare ogni frase a un dato
+verificabile del candidato).
+
+**F3 — Il wizard QuickPath è cieco al contesto.** Box fisse Città/Natura/Storia/
+Relax; secondo passo con **una sola opzione** ("Centro Storico" a Ippocampo,
+"Parchi e Verde" in un villaggio di mare). Il tour non porta al mare perché
+**il wizard non permette di chiedere il mare**. È il Gate C Task 2 (box adattive)
+del Blocco 3 — e la dimostrazione sul campo che i temi fissi rompono la promessa.
+
+**F4 — Il wizard chiede e poi ignora.** "In coppia" e "Medio (2-4 ore)"
+selezionati → tour con 1 tappa, nessuna differenziazione visibile. Chiedere dati
+che non contano è una forma di finzione.
+
+**F5 — `"3h m"`** (minuti vuoti) — è il **Task #159**, aperto dal 13/07. One-liner
+mai fatto, ora visto di nuovo sul campo.
+
+**F6 — Empty state con promessa falsa.** "Non ci sono ancora tour a Ippocampo.
+**Ne stiamo aggiungendo nuovi ogni settimana. Torna presto.**" La seconda frase è
+falsa: i tour li genera l'AI dai POI Google, non c'è una redazione che li carica.
+**Regola #14 violata** (stessa classe di "il team tecnico è stato notificato").
+One-liner.
+
+**F7 — Landing: il Colosseo non si vede su mobile** (solo fondo azzurro). Si
+somma al finding 25/07 (il Colosseo contraddice il posizionamento). Due ragioni
+per rifarla, e la seconda rende la prima gratis. → Gate ESTETICA.
+
+**F8 — Onboarding da rifare esteticamente** (giudizio Ivano, 15/08). La
+tassonomia delle 7 voci è **fissata**, quindi si disegna su struttura definitiva.
+
+### BACKLOG AGGIORNATO 15/08
+
+**Priorità 0 — verifiche pendenti**
+- **NARRATORE/POI su città con pool ricco** (Catania o Troina): il filtro è
+  troppo stretto? È il pezzo mancante del PASS.
+- Camminata con `?debugnav=1` (procedura sticky del 25/07) — invariata.
+
+**Priorità 1 — verità visibile all'utente**
+1. **Gate FOTO** (F1) — il place_id della foto deve coincidere con quello del
+   POI, altrimenti nessuna foto. Chirurgico.
+2. **Gate POOL-VUOTO** (decisione sopra) — raggio esteso a soglia invariata,
+   `scaleLevel` propagato, livello 3 rimosso **solo dal path tour**.
+3. **F6 + F5** — one-liner, si chiudono insieme a uno dei due sopra.
+
+**Priorità 2 — quelli già in coda**
+- Gate HUD presentazione (distanza al maneuver + tempo totale sulla stessa riga
+  senza etichette). Diverso dal summary bugiardo del 23/07, che resta aperto.
+- Gate CITTÀ (`user_city` interpretato come scelta manuale, `CityContext:32` +
+  `useUserContext:23`; `requestGPS` senza watchdog). Diagnosi già fatta 14/08.
+- GATE AUDIT SCHEMA (7 occorrenze, prerequisito di PERSISTENZA).
+- Gate PERSISTENZA, Gate RLS FASE 2 (aspettarsi un 42P17, lezione #9).
+
+**Priorità 3 — il bivio, ORA CON UN FATTO IN PIÙ**
+Nav L2 **vs** Temi Adattivi. Il 15/08 il campo ha parlato: **F3 e F4 mostrano che
+il wizard a temi fissi rompe la promessa dell'app in una città reale.** Non
+decide al posto di Ivano, ma il fatto è arrivato. Il 15/08 del piano originale è
+passato: la data del test privato va rinegoziata sui fatti, non sul piano.
+
+**Priorità 4** — Gate ESTETICA (landing mobile + onboarding), Esplora CC.3, U.2,
+`vercel.json` cache policy, cleanup `unnivai_debugnav_log_v1` al logout,
+consolidamento delle due liste di regole locked.
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
 
 > ⚠️ **SEZIONE OBSOLETA** — corretta dal Gate DNA ONESTO (22/07, vedi sopra):

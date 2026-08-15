@@ -44,7 +44,15 @@ export function haversineKm(lat1, lng1, lat2, lng2) {
 // - Filtra rawStops entro R_km dal centro città.
 // - Se < 2 tappe residue, riprova con R_wider (rifiltra rawStops originali, NON chiama AI).
 // - Se anche R_wider < 2 → ritorna le poche o zero tappe: chi consuma decide.
-export function applyRadiusFilter(rawStops, cityCenter, cityName) {
+//
+// Gate NOTIFICHE-DISTANZA — opts.allowWiden (default TRUE, comportamento
+// storico invariato per i tre path tour). Il riallargamento a R_wider ha senso
+// per un TOUR: meglio una tappa a 12 km che nessun tour. Non ha senso per una
+// NOTIFICA, che dice "N min a piedi da te": lì 12 km resta una distanza falsa,
+// solo meno clamorosa dei 200 km di Capodimonte proposti a Ippocampo.
+// Chi chiama da un path notifiche passa { allowWiden: false }.
+export function applyRadiusFilter(rawStops, cityCenter, cityName, opts = {}) {
+    const { allowWiden = true } = opts;
     if (!cityCenter || !Number.isFinite(cityCenter.latitude) || !Number.isFinite(cityCenter.longitude)) {
         return rawStops;
     }
@@ -65,7 +73,7 @@ export function applyRadiusFilter(rawStops, cityCenter, cityName) {
     });
 
     let filtered = filterAt(R);
-    if (filtered.length < 2 && rawStops.length >= 2) {
+    if (allowWiden && filtered.length < 2 && rawStops.length >= 2) {
         console.warn(`[AI-radius] ${cityName || '?'}: solo ${filtered.length} tappe entro ${R} km, allargo a ${R_wider} km`);
         filtered = filterAt(R_wider);
     }

@@ -1839,8 +1839,33 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
                 return null;
             }
 
+            // Gate NOTIFICHE-DISTANZA — il raggio, che qui non c'era.
+            //
+            // Finding device 15/08 (F9): notifica "Museo e Real Bosco di
+            // Capodimonte" (Napoli) a un utente a Ippocampo, ~200 km. La citta'
+            // era giusta: manca(va) il vincolo di distanza. Il `radius` della
+            // textsearch e' un BIAS per Google, non un filtro — e su un pool
+            // povero restituisce risultati fuori raggio.
+            //
+            // I tre path tour hanno applyRadiusFilter (:1186, :1403, :1623);
+            // questo era l'unico dei quattro consumatori di discoverRealPOIs
+            // senza. `cc` porta gia' radiusKm (5 km borgo / 10 km citta',
+            // iniettato da resolveCityCenter).
+            //
+            // allowWiden:false — per un tour meglio una tappa a 12 km che
+            // nessun tour; per una notifica che dice "N min a piedi da te",
+            // 12 km e' ancora una distanza falsa.
+            //
+            // Prima dello slice(0,3): le 3 fetchPlaceOpeningHours qui sotto si
+            // pagano solo sui superstiti, non su chi verrebbe scartato dopo.
+            const nearby = applyRadiusFilter(candidates, cc, city, { allowWiden: false });
+            if (nearby.length === 0) {
+                console.info(`[SmartNotif] ${city}/${recipe.query}: 0 candidati entro il raggio → skip`);
+                return null;
+            }
+
             // 4. Top-3 candidati (già ordinati per QS in discoverRealPOIs).
-            const top = candidates.slice(0, 3);
+            const top = nearby.slice(0, 3);
 
             // 5. Distanza a piedi (SOLO se GPS attivo). Zero fallback su cityCenter.
             const { haversineKm } = await import('./tourShape');

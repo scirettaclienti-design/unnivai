@@ -2676,6 +2676,81 @@ consolidamento delle due liste di regole locked.
 
 ---
 
+## Sessione 15/08 (2) — Gate FOTO chiuso, commit `2729068`
+
+### Gate FOTO ✅ PASS DEVICE (parziale)
+
+F1 chiuso. "La Masseria" a Ippocampo mostra la propria foto (place_id),
+non più il parco giochi. Puntatori mappa corretti.
+
+Fix: `resolvePoiPhoto(poi, details)` predicato puro condiviso (senza
+`googlePlaceId` → null; `details` null → null; URL unsplash → null).
+Drawer e popup passano da `fetchPlaceDetailsForTour` via places-proxy
+(regola #8, cache `pd_${placeId}` 24h) al posto di `findPlaceFromQuery`.
+Rimossa da `POIPopupCard` la clausola `isTourWaypoint` che sovrascriveva una
+`googlePhoto` già corretta. `POIPopupCard` ha ora tre stati: lo spinner non è
+più infinito (regola #5, fatto PRIMA di togliere la foto).
+`MapPage:376` cancellata: `selectedActivity` è una riga di `tours`, non un POI
+Google — nessun place_id per costruzione. Foto da `imageUrl` o nessuna.
+Titolo protetto quando manca l'immagine (bianco su fondo chiaro).
+Regola anti-fake nuova: `no-places-sdk-search-by-name`, allowlist vuota,
+provata ROSSA sul codice pre-fix (3 violazioni = i 3 call site esatti).
+287 test passed (era 278), 3 skipped, 0 falliti.
+
+Verifica prod: marker positivo (`justify-end px-2 pt-2`, className del ramo
+nuovo) trovato in `MapPage-Cd6031H_`; marker negativo `findPlaceFromQuery`
+**0** su entry + 75 chunk (era 3); marker di controllo
+`unnivai_debugnav_log_v1` trovato (lezione #11 applicata **prima**, non dopo
+un falso allarme).
+
+**PERIMETRO DEL PASS**: non verificato un POI senza foto Google (ramo header
+compatto); `POIPopupCard` si monta solo su desktop (`MapPage:1995`) e resta
+non verificato.
+
+**NON RISOLVE**: F2 narratore inventivo; cover tour Unsplash (Dashboard,
+SurpriseTour, `tourShape:369`); `TourDetails:347` src undefined;
+`MapPage:1424` `getDetails` (corretto per costruzione, ma client-side fuori
+da proxy e cache); restrizioni `VITE_GOOGLE_MAPS_API_KEY`; geocoding
+diretto; `no-unsplash-in-content` resta skip.
+
+**NON COPERTO DA TEST** (testuale): il comportamento runtime dei due
+componenti — che l'effetto chiami davvero `fetchPlaceDetailsForTour`, che
+il flag `cancelled` impedisca il setState dopo lo smontaggio, e che i tre
+rami di render di `POIPopupCard` appaiano nelle condizioni giuste; è
+coperto solo il predicato puro.
+
+**EFFETTO VOLUTO, non regressione**: due tour su tre a Roma (`tour quartiere
+coppedè`, `roma di notte`) hanno `image_urls` vuoto e ora compaiono senza
+copertina. Prima mostravano un'Unsplash hardcoded: non è stata rimossa
+un'immagine, è stata rimossa un'affermazione falsa.
+
+### FINDING DEVICE 15/08 (2)
+
+**F9 — La notifica propone Capodimonte (Napoli) con utente a Ippocampo,
+~200 km.** Formalmente conforme a regola #16 (orario vero), falsa come
+proposta. Ipotesi: città stale nel precompute (Gate CITTÀ, diagnosi
+14/08) oppure città diversa passata a `generateSystemPrewarmTour`.
+Non verificata. **PRIORITÀ ALTA.**
+
+**F10 — Empty state QuickPath: doppia punteggiatura `".:"`** da concatenazione
+messaggio+suggerimento. One-liner, con F5 e F6.
+
+Riconfermati sul campo: **F2** (narratore: "profumo di pane fresco",
+"odore del mare fresco"), **F3** (box QuickPath fisse, non adattive né alla
+città né alle scelte precedenti — **secondo voto del campo** sul bivio
+Nav L2 vs Temi Adattivi).
+
+### BACKLOG — riordinato
+
+Questo riordino **sostituisce** l'ordine di Priorità 1 del blocco 15/08 sopra.
+
+1. **Gate CITTÀ** (era priorità 2) — sale **sopra** POOL-VUOTO: se la città è
+   sbagliata, allargare il raggio allarga attorno al punto sbagliato.
+2. **Gate POOL-VUOTO** (decisione 15/08 invariata).
+3. **F5 + F6 + F10** one-liner.
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
 
 > ⚠️ **SEZIONE OBSOLETA** — corretta dal Gate DNA ONESTO (22/07, vedi sopra):

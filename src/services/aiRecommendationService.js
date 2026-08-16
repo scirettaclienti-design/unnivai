@@ -789,14 +789,23 @@ function sortByProximity(stops) {
 // Guardrail voce (parole vietate + esempi ✓/✗) preservano il tono insider che
 // era il valore emotivo di DoveVAI e che era il criterio #1 di successo.
 const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, cityCenter, candidates, userPrompt, intent }) => {
-    const candidatesLite = candidates.map(p => ({
-        place_id: p.place_id || p.googlePlaceId,
-        name: p.name,
-        rating: p.rating,
-        user_ratings_total: p.user_ratings_total,
-        types: (p.types || []).slice(0, 5),
-        address: p.address || null,
-    }));
+    const candidatesLite = candidates.map(p => {
+        const lite = {
+            place_id: p.place_id || p.googlePlaceId,
+            name: p.name,
+            rating: p.rating,
+            user_ratings_total: p.user_ratings_total,
+            types: (p.types || []).slice(0, 5),
+            address: p.address || null,
+        };
+        // Gate TOUR-SENSATO — la regola ":862 MAI suggerire posti chiusi ora"
+        // era una frase che il modello non poteva rispettare: nel prompt non
+        // arrivava nessun orario. open_now viene dalla textsearch a costo zero.
+        // Se il dato manca il campo si OMETTE: metterlo a false o a null
+        // inventerebbe un fatto ("è chiuso" / "non si sa") che nessuno ha detto.
+        if (typeof p.open_now === 'boolean') lite.open_now = p.open_now;
+        return lite;
+    });
     const N = candidatesLite.length;
     const groupLabel = prefs?.group || 'chiunque';
     const transitHint = prefs?.pace === 'intenso' ? 'con qualche mezzo' : 'a piedi';
@@ -1071,7 +1080,17 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates) => {
             bestTime: s.bestTime || null,
             transition: s.transition || null,
             suggestedMinutes: s.suggestedMinutes || 30,
-            type: s.type || c.type || 'place',
+            // Gate TOUR-SENSATO (F14) — Google è l'autorità sulla categoria.
+            // Prima era `s.type || c.type`: vinceva l'etichetta scritta dall'AI,
+            // e nessuno verificava che corrispondesse al posto. Device 16/08:
+            // "Beach Club Ippocampo" (types bar/food/restaurant) etichettato
+            // CULTURA, un condominio etichettato NATURA.
+            // `c.type` viene da mapGoogleTypeToOurType sui types reali; l'AI
+            // resta come fallback quando Google non sa classificare.
+            // Verificato che i sei valori Google-derived siano tutti coperti da
+            // normalizeStepCategory: museum/church→cultura, park→natura,
+            // restaurant→food, monument→storia, place già in TOUR_CATEGORIES.
+            type: c.type || s.type || 'place',
             latitude: c.latitude ?? c.lat,
             longitude: c.longitude ?? c.lng,
             price: typeof s.price === 'number' ? s.price : 0,
@@ -1923,7 +1942,12 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
                     // Preferisci closingTimeTodayHH (da place/details): dato strutturale.
                     // Fallback openNow (da textsearch): istantaneo, meno affidabile.
                     closingTimeTodayHH: oh.closingTimeTodayHH || null,
-                    open_now: oh.openNow ?? p.opening_hours?.open_now ?? null,
+                    // Gate TOUR-SENSATO (F18) — era `p.opening_hours?.open_now`,
+                    // sempre undefined: buildPOIFromCandidate costruisce un
+                    // oggetto nuovo e non trasportava l'oggetto annidato. La
+                    // lettura cadeva silenziosamente sul fallback `?? null`.
+                    // Ora il candidato porta `open_now` piatto.
+                    open_now: oh.openNow ?? p.open_now ?? null,
                     distanceMinutes,
                 };
             });

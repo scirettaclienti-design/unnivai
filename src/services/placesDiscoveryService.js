@@ -468,6 +468,36 @@ const isCityItself = (candidate, cityName) => {
   return true;
 };
 
+// Gate TOUR-SENSATO (F13) — POI che esistono ma non si visitano.
+//
+// Device 16/08, SurpriseTour a Ippocampo: fra le 4 tappe c'era
+// "VILLAGGIO IPPOCAMPO - Supercondominio". Types reali (sonda via proxy):
+// ['establishment', 'lodging', 'point_of_interest'] — identici a quelli di
+// "B&B Centro Storico" a Manfredonia. Nessuno tocca BLACKLIST_TYPES (servizi
+// commerciali) ne' GEO_ENTITY_TYPES (aree geografiche): passavano lisci.
+//
+// La regola e' CONDIZIONALE e non una lista secca, perche' il type che li
+// tradisce e' lo stesso che portano i posti buoni: "Beach Club Ippocampo" ha
+// lodging E travel_agency, ma anche bar/food/restaurant. Una blacklist su
+// `lodging` avrebbe ucciso lidi, agriturismi e rifugi.
+//
+// point_of_interest ed establishment NON sono nella lista di salvataggio: li
+// porta anche il condominio, quindi includerli renderebbe la regola inerte.
+// E' anche la lezione di Troina — 'Ruderi Monastero Nuovo' e 'Madonna della
+// Catena' hanno SOLO ['point_of_interest'], quindi quel type non discrimina
+// in nessuna delle due direzioni.
+const NON_VISITABLE_TYPES = new Set([
+  'lodging',
+  'travel_agency',
+]);
+
+// I type che salvano: se ce n'e' almeno uno, il posto si visita davvero.
+const VISITABLE_TYPES = new Set([
+  'restaurant', 'bar', 'cafe', 'food', 'bakery',
+  'natural_feature', 'park', 'campground',
+  'museum', 'art_gallery', 'church', 'place_of_worship', 'tourist_attraction',
+]);
+
 // ─── FILTRI ────────────────────────────────────────────────────────────────────
 const passesHardExclusions = (c) => {
   // DVAI-057: solo attività operative.
@@ -479,6 +509,14 @@ const passesHardExclusions = (c) => {
     const hitGeo = c.types.find(t => GEO_ENTITY_TYPES.has(t));
     if (hitGeo) {
       console.warn(`[Gate NARRATORE/POI] scartato "${c.name || '?'}" → area geografica (${hitGeo}) — types=[${c.types.join('|')}]`);
+      return false;
+    }
+  }
+  // Gate TOUR-SENSATO: alloggi e agenzie che non sono anche un posto da visitare.
+  if (Array.isArray(c.types)) {
+    const hitNonVisit = c.types.find(t => NON_VISITABLE_TYPES.has(t));
+    if (hitNonVisit && !c.types.some(t => VISITABLE_TYPES.has(t))) {
+      console.warn(`[Gate TOUR-SENSATO] scartato "${c.name || '?'}" → non visitabile (${hitNonVisit}, nessun type di visita) — types=[${c.types.join('|')}]`);
       return false;
     }
   }
@@ -534,6 +572,15 @@ const buildPOIFromCandidate = (place, cityName) => {
     user_ratings_total: place.user_ratings_total || 0,
     business_status: place.business_status || 'OPERATIONAL',
     price_level: place.price_level ?? null,
+    // Gate TOUR-SENSATO — la textsearch restituisce gia' opening_hours su TUTTI
+    // i risultati (verificato via proxy su Manfredonia: 20/20), ma solo nella
+    // forma { open_now: bool }: nessun `periods`, quindi nessun orario di
+    // chiusura. Finora veniva scartato qui, e il prompt del selettore chiedeva
+    // "MAI suggerire posti chiusi ora" senza dare al modello il dato per
+    // saperlo. Costo zero: e' gia' nella risposta che paghiamo.
+    // closingTimeTodayHH resta fuori scope: richiederebbe place/details per
+    // candidato (20 chiamate per tour).
+    open_now: place.opening_hours?.open_now ?? null,
     types: place.types || [],
     city: cityName,
     place_id: place.place_id,
@@ -891,4 +938,6 @@ export {
   GEO_ENTITY_TYPES, // Gate NARRATORE/POI
   REAL_PLACE_TYPES, // Gate NARRATORE/POI
   isCityItself,     // Gate NARRATORE/POI
+  NON_VISITABLE_TYPES, // Gate TOUR-SENSATO
+  VISITABLE_TYPES,     // Gate TOUR-SENSATO
 };

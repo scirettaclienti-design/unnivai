@@ -2874,6 +2874,194 @@ non sul valore di ritorno: un `null` non distingue "filtrato" da "mai arrivato".
 
 ---
 
+## Sessione 16/08 — TOUR-DISTANZA, TOUR SENSATO, e la scoperta che i finding sono uno solo
+
+Due gate in produzione (`5663200`, `65428d9`), una sonda su Manfredonia, sei
+finding dal campo. E la conclusione che conta più dei sei fix: **non sono sei
+problemi, sono uno.**
+
+### Gate TOUR-DISTANZA — commit `5663200`
+
+La Fase 0 ha **smentito la voce di backlog**, che era sbagliata due volte. Il
+filtro a `:1216` esiste e funziona: su QuickPath e AiItinerary le sei ville a
+200 km **non arrivavano** all'utente. Quello che ha trovato invece:
+
+**Difetto 1 — SurpriseTour senza vincolo geografico.** `applyRadiusFilter` con
+`cityCenter` assente ritornava `rawStops` **invariato** (`tourShape:48-50`): un
+filtro che si spegne da solo quando manca il dato che gli serve. Stessa classe
+del `radius` Places che non vincola e del `distanceMinutes` che non filtrava le
+notifiche. SurpriseTour passa `lat/lng` da `useUserContext`, **null in 4
+condizioni** (nessuna città risolta, query in volo, città manuale non
+geocodificabile, re-verify fallito) → nessun filtro → POI a 200 km a schermo.
+
+**Difetto 2 — il filtro girava 39 righe DOPO la chiamata AI.** Il selettore
+(`gpt-4o-mini`, fino a 20 candidati serializzati, il prompt più pesante del
+sistema) veniva pagato su un pool poi buttato.
+
+Fix: `opts.requireCenter` (default FALSE, i 4 call site esistenti identici) +
+filtro sui `candidates` prima della guardia. `:1216` non toccato, resta la
+seconda rete.
+
+**Perimetro dichiarato**: la quota utente si consuma comunque
+(`checkAndIncrementQuota` è a `:1111`, **23 righe prima** dei candidati — nessun
+filtro sui candidati può recuperarla, correzione a quanto scritto in Fase 0); il
+traduttore d'intento è già pagato; `hasGps` a `SurpriseTour:189-190` resta
+calcolato e usato **solo per il log**; SurpriseTour continua a usare la
+posizione utente come centro città quando il GPS c'è (retrocompat DVAI-055).
+
+### Blocco TOUR SENSATO — commit `65428d9`
+
+Origine: device Ippocampo, SurpriseTour, 4 tappe — Beach Club, Spiaggia, La
+Masseria, **"VILLAGGIO IPPOCAMPO - Supercondominio"** — con categorie
+CULTURA/RELAX/FOOD/NATURA. Tre tappe su quattro erano lo stesso tratto di
+litorale, la quarta un condominio, e nessuna categoria corrispondeva al luogo.
+
+**F13 — un condominio entrava nel tour.** Types reali (sonda Places): condominio
+e B&B hanno `[establishment, lodging, point_of_interest]` — nessuno tocca
+`BLACKLIST_TYPES` né `GEO_ENTITY_TYPES`. Ma `lodging` sta **anche** su Beach Club
+e Spiaggia: **la tassonomia Google dice chi ha registrato il posto, non cosa è.**
+Una lista secca non discrimina. Fix: `NON_VISITABLE_TYPES` + `VISITABLE_TYPES`,
+regola **condizionale** — scarta solo se non c'è nessun type di visita accanto.
+
+> **FALSO POSITIVO NOTO E ACCETTATO**: "Spiaggia Ippocampo di Manfredonia" ha
+> gli **stessi** types del condominio — su Google è registrata come alloggio,
+> nessun `natural_feature`. **Viene scartata.** È nel test come comportamento
+> atteso, con l'asserzione che i types sono identici, più il test complementare:
+> un `lodging` con `natural_feature` sopravvive senza toccare codice.
+
+**F14 — Google è l'autorità sulla categoria, non l'AI.** Il Beach Club era
+CULTURA perché il modello ha scritto quella parola. Il prompt chiede
+`cultura|storia|food|relax|arte|natura`, `mapGoogleTypeToOurType` produce
+`museum|church|park|restaurant|monument|place`: **due vocabolari**, riconciliati
+solo a valle da `CATEGORY_ALIASES`. `:1074` da `s.type || c.type` a
+`c.type || s.type`, dopo aver verificato che ogni valore Google-derived ha un
+alias.
+
+**F16 (solo il dato) — `open_now` entra nel prompt.** Il prompt diceva *"MAI
+suggerire posti chiusi ora"* ma `candidatesLite` non portava gli orari: un
+vincolo che il modello non poteva rispettare. Google restituisce
+`opening_hours` su **tutti** i risultati della textsearch a costo zero (sonda:
+20/20 su Manfredonia), e `buildPOIFromCandidate` lo scartava. Se il dato manca,
+la chiave viene **omessa**: `false` o `null` inventerebbero un fatto. Nessuna
+chiamata `place/details` aggiunta — `closingTimeTodayHH` sarebbero 20 chiamate
+per tour.
+
+**F18 — una lettura che era sempre `undefined`.** `aiRecommendationService:1898`
+leggeva `p.opening_hours?.open_now`, campo che `buildPOIFromCandidate`
+eliminava; il `?? null` lo mascherava. Il ramo `c.open_now === false → "chiuso
+ora"` **non scattava MAI**: un silenzio, non un errore. Provato rosso sulla
+lettura vecchia e verde con il fix.
+
+319 test passed (era 303), 3 skipped, 0 falliti.
+
+### La sonda Manfredonia — e la domanda che resta aperta
+
+`resolveCityCenter('Manfredonia')` **risolve al primo tentativo**
+(`41.62999, 15.91731`, types `[locality|political]`), a differenza di Ippocampo.
+`isSmallTown = true` → raggio 5 km.
+
+| tema | totali | hard | **L1** | dopo raggio | scaleLevel |
+|---|---|---|---|---|---|
+| **FOOD** | 20 | 20 | **16** | **16** | **1** |
+| CULTURA | 6 | 6 | 5 | 4 | 1 |
+| NATURA | 1 | 1 | **0** | 1 | **3** |
+
+**16 ristoranti di livello 1, tutti entro 2,8 km.** Il pool gastronomico di
+Manfredonia è pieno e vicino: la catena arriva intatta al selettore AI e in
+nessun punto verificabile l'array va a zero.
+
+> ⚠️ **NON SPIEGATO, RESTA APERTO**: sul device il tour gastronomico a
+> Manfredonia **non usciva comunque**. La sonda si ferma al selettore — cosa
+> scelga `gpt-4o-mini` fra 16 candidati non è determinabile senza chiamarlo, e
+> non è stato fatto. Il difetto è **oltre** il punto che la sonda copre.
+
+Due osservazioni di qualità dalla stessa sonda: **"B&B Centro Storico"** entrava
+fra i 5 POI culturali di livello 1 (ora scartato da F13), e **"VisitManfredonia"**
+con 1 recensione è probabilmente un ufficio turistico. Il pool culturale reale
+era **4**, non 6.
+
+E la classificazione small/large **non è una leva**: se Manfredonia fosse
+`large`, FOOD scenderebbe da 16 a 14 e NATURA resterebbe 0 (l'unico risultato
+fallisce sul **rating**, non sulle recensioni).
+
+### REGOLA LOCKED #18 — `open_now` è un vincolo, mai un'affermazione
+
+**`open_now` è un vincolo per il motore, mai un'affermazione all'utente.**
+`openNow` da Google è inaffidabile per bar e ristoranti (già registrato). Può
+**filtrare candidati** ed **entrare in un prompt come vincolo negativo**; non può
+comparire — né letterale né parafrasato — in una stringa che l'utente legge.
+Per dire all'utente qualcosa sull'apertura serve `closingTimeTodayHH`, che è un
+fatto con un orario.
+
+Sul path notifiche `"chiuso ora"` entra **oggi** nel prompt del messaggio
+(`:1968-1975`): **da verificare che non finisca parafrasato nell'output.**
+**Non protetto da codice — candidato a regola anti-fake.**
+
+### LEZIONE OPERATIVA #17 — il marker nuovo può finire in un chunk lazy
+
+Fino a oggi ogni marker positivo era nell'**entry**, perché
+`aiRecommendationService` è bundlato lì. `[Gate TOUR-SENSATO]` vive in
+`placesDiscoveryService`, che ha **un chunk suo**: in produzione compare in
+`placesDiscoveryService-*.js` e **zero volte nell'entry**.
+
+Cercarlo nell'entry avrebbe dato un falso negativo — la lezione #11 in una forma
+che non avevamo ancora incontrato. **Il marker va cercato dove vive il file che
+lo contiene, non dove vivevano i marker precedenti.**
+
+Verifica del deploy di oggi, tre marker: controllo `unnivai_debugnav_log_v1`
+→ `MapPage-_wnuvVqm.js × 1`; controllo `[Gate TOUR-DISTANZA]` → `entry × 2`
+(nessuna regressione); positivo `[Gate TOUR-SENSATO]` →
+`placesDiscoveryService-D3vyJj_V.js × 1`.
+
+### ⚠️ Numerazione finding: F12 e F17 non esistono
+
+Verificato: **zero occorrenze** di `F12` e `F17` in tutto l'handoff, e nessuna
+definizione in sessione. La numerazione va da F11 a F13 e da F16 a F18 con due
+buchi. Non li ho inventati per riempirli: se corrispondono a qualcosa di
+osservato e non registrato, vanno scritti; altrimenti i buchi restano e vanno
+saputi.
+
+---
+
+## ⭐ LA COSA PIÙ IMPORTANTE — i sei finding sono UNO
+
+F13 (un condominio nel tour), F14 (categorie che non corrispondono), F15 (tre
+tappe sullo stesso posto), F16 (nessun ordine orario), F3 (box fisse), F4 (il
+wizard chiede e ignora) **non sono sei problemi indipendenti**.
+
+**Il motore fa liste, non giornate.**
+
+Sceglie N posti che superano una soglia, li ordina per vicinanza geografica, e
+li serve. Non sa che una giornata ha un ritmo, che un ristorante ha senso
+all'una e un belvedere al tramonto, che tre tappe sullo stesso litorale sono una
+tappa sola, che una categoria è una promessa su cosa troverai.
+
+Ogni fix di oggi ha tolto un modo di sbagliare dalla lista. **Nessuno ha
+trasformato la lista in una giornata.**
+
+### Il prossimo è UN BLOCCO SOLO: **TOUR = GIORNATA**
+
+Non sei gate. Un blocco, con dentro:
+
+1. **Ordine per orario** invece che per vicinanza. Oggi `sortByProximity`
+   (`:1218`) **riscrive** la scelta narrativa dell'AI — il prompt le chiede un
+   percorso *"che abbia senso NARRATIVO, non solo geometrico"* (`:834-836`) e il
+   codice subito dopo la sovrascrive con un nearest-neighbor greedy.
+2. **Durate vere**. `suggestedMinutes` è inventato dal modello e defaultato a 30
+   in **due** punti (`:1073`, `tourShape:321`). O diventa un dato, o non deve
+   comparire come se lo fosse.
+3. **Dedup per prossimità**. Oggi il dedup è **solo su `place_id`**
+   (`:742-751`): tre POI a 200 metri con "Ippocampo" nel nome hanno tre id
+   distinti e passano tutti e tre. Sono le tappe 1, 2 e 4 del device.
+4. **Stessa forma su QuickPath / SurpriseTour / Per Te**. Tre path che oggi
+   divergono su cityCenter, su `suggestedTransit`, sui guard.
+
+**E il motore sa già farlo su un path**: il titolo *"Manfredonia che non dorme
+mai"* lo dimostra. Non è un problema di capacità del modello — è che il codice
+attorno non gli chiede una giornata e gli riscrive l'ordine.
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
 
 > ⚠️ **SEZIONE OBSOLETA** — corretta dal Gate DNA ONESTO (22/07, vedi sopra):

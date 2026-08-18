@@ -3062,6 +3062,203 @@ attorno non gli chiede una giornata e gli riscrive l'ordine.
 
 ---
 
+## Sessione 18/08 (2) — Gate VERITÀ VISIVA (F26), parte 1 in produzione
+
+Commit **`5deca9c`**. Diff 1-3 di 6: `tourShape`, `POIDetailDrawer`,
+`POIPopupCard`, `MapPage`.
+
+### Il difetto osservato
+
+Mappa Esplora a schermo intero, Ippocampo (Manfredonia). Il POI *"Manfredonia
+Ippocampo — Viale Picardi 25"* mostrava **una foto del Colosseo**. Nella stessa
+sessione "Cornetteria XXL" e "Beach Club Ippocampo" avevano la foto giusta.
+
+### La causa: il predicato funzionava, era il codice intorno a ignorarlo
+
+Il Gate FOTO (`2729068`) aveva introdotto `resolvePoiPhoto(poi, details)` come
+predicato puro. Faceva il suo lavoro. Veniva scavalcato in quattro punti:
+
+| punto | file:riga | cosa faceva |
+|---|---|---|
+| il seme | `POIDetailDrawer.jsx:15` | `useState(poi.image \|\| poi.image_urls?.[0])` — la foto falsa era nello stato **prima** di ogni verifica |
+| la guardia | `:25` | `!displayImage.includes('unsplash.com')` — test **per esclusione**: lasciava passare qualunque altro URL inventato |
+| l'uscita | `:26` | `if (!poi?.googlePlaceId) return` — silenzioso, il valore ereditato sopravviveva per inerzia |
+| **il null scartato** | `:36` | `if (url) setDisplayImage(url)` — senza `else`. Quando `resolvePoiPhoto` faceva esattamente il suo lavoro, il verdetto veniva buttato e il falso restava a schermo |
+
+E la sorgente del Colosseo: **`tourShape.js:13`**, `STEP_FALLBACK_IMAGE =
+photo-1552832230-c0197dd311b5`, assegnato a `:287` a **ogni tappa senza foto
+reale** e a `:396` a **ogni copertina**. Il repo lo dichiarava da sé
+(`imageUtils.js:84`: `// Colosseum / Palatine Hill`).
+
+`MapPage.jsx:1418` era il moltiplicatore: il POI nativo portava `id: place.place_id`
+ma **non** `googlePlaceId` — quindi su quei POI `resolvePoiPhoto` non veniva
+**mai** invocato.
+
+### Decisione di prodotto (Ivano)
+
+- **Schede POI** → nessuna immagine senza foto Google ancorata al place_id.
+  Modello: `MapPage.jsx:360-367`.
+- **Copertine tour** → gradient categoria + glifo. Modello: `TourCover.jsx:36-63`.
+- Discriminante: *sul POI l'immagine pretende di essere QUEL posto. Sulla
+  copertina no.*
+
+### Fatto
+
+- `tourShape`: via `STEP_FALLBACK_IMAGE`; `imageSource` `'fallback'` → `'none'`;
+  la catena della cover finisce a `null` (`TourCover` cade nel ramo B da sé —
+  `isPlacesPhoto(null) === false`).
+- `POIDetailDrawer` / `POIPopupCard`: quattro punti ciascuno. La guardia ora è
+  `isPlacesPhoto` — **test per inclusione**, stesso discriminante di `TourCover`
+  (regola locked #8, un motore solo). Il null è **onorato**.
+- `MapPage`: `googlePlaceId` portato sul POI nativo (`:1394`, `:1421`); via gli
+  unsplash a `:247`, `:1397`, `:1411`. Il contenitore partner conserva un fondo
+  neutro perché porta quattro elementi veri oltre alla foto (X, badge, nome,
+  indirizzo in overlay bianco).
+
+Suite 341 verdi. CI verde (Lint & Test 36s, E2E 83s).
+
+### Marker sul bundle SERVITO (non sul dist locale)
+
+| marker | pre `771f94e` | post `5deca9c` |
+|---|---|---|
+| `photo-1555396273-367ea4eb4db5` | 1 | **0** |
+| `photo-1552832230-c0197dd311b5` | 6 | **5** |
+| `[Gate NARRATORE/POI]` | 2 | 2 |
+| `È visibile alle guide registrate su DoveVAI` | 1 | 1 |
+
+Il 6 → 5 è il risultato **atteso**: il chunk che ha perso il Colosseo è quello
+di `tourShape`, provato incrociando i due bundle e confermato direttamente (il
+chunk con `[Gate TOUR-DISTANZA]` ora contiene il Colosseo 0 volte). Le 5 residue
+sono `imageUtils`, `QuickPath`, `SurpriseTour`, `DashboardGuide` — assegnate ai
+diff 4-5 — e `Landing.jsx:520`, che è uso dichiarato e non si tocca.
+
+**Effetto reale già in produzione**: il Colosseo non può più comparire su
+nessuna tappa né su nessuna copertina. È la superficie del difetto osservato.
+
+### Restano da fare in F26
+
+- **DIFF 4** — `getItemImage` (`imageUtils.js:133-169`, consumato da
+  `TourDetails.jsx:828`), catena `DashboardUser.jsx:23/326/335`
+  (THEME → CITY → GENERIC), `QuickPathSummary.jsx:8`, `Explore.jsx:349`
+  (`placehold.co`), hero `PlaceDetailsView` (`TourDetails.jsx:346`).
+- **DIFF 5** — mappe locali duplicate: `SurpriseTour.jsx:9-15`,
+  `DashboardGuide.jsx:978`, `locationTourService.js:64/78`. Da misurare prima:
+  se quei dati demo sono raggiungibili da un path utente. Se sono morti, non si
+  toccano.
+- **DIFF 6** — riattivare `no-unsplash-in-content` (`anti-fake.test.js:136`,
+  oggi `skip: true`) svuotando l'allowlist (`:123-131`), più una **regola
+  strutturale** contro `if (url) setX(url)` senza ramo `else`: il difetto
+  osservato non era un URL sbagliato, era un null ignorato. Entrambe da provare
+  **rosse** sul codice pre-gate. `Landing.jsx:520` va esentato per nome, non per
+  categoria.
+
+### Esito test device — F26 diff 1-3
+
+| punto | esito |
+|---|---|
+| **1 — scheda POI mappa** | **NON TESTATO** (non "bloccato"). Il guard è verificato nel bundle servito, ma la scheda POI **non è apribile** a causa di F38. Il caso osservato — il Colosseo su Viale Picardi — **resta aperto** finché non lo si vede su device. |
+| **2 — `/tour-details`** | **PASS.** 6 immagini, tutte caricate, `naturalWidth` 600, nessuna rotta. **Le foto vere non sono state toccate.** È il test che conta più del punto 1: prova che il gate non ha spento anche ciò che funzionava. |
+| **3 — tappe senza foto** | **PASS strutturale.** Tutte e 3 le tappe avevano foto vera, quindi il ramo "senza foto" **non si è attivato**. Nel bundle il fallback esiste (`onError` → `display:none` + div gradient). Non è una verifica del ramo, è una verifica della sua presenza. |
+
+Il punto 2 vale più del punto 1 perché un gate che rimuove immagini false ha un
+solo modo di fallire davvero: rimuovere anche quelle vere. Quello è stato
+misurato, e non è successo.
+
+### Nota tecnica per il DIFF 4
+
+Restano **due** condizioni `includes('unsplash.com')` scritte a mano che **non**
+passano da `isPlacesPhoto`:
+
+- `MapPage.jsx:367` — `activityPhotoUrl` (che è anche il *modello* citato nella
+  decisione di prodotto)
+- `poiPhoto.js:40` — dentro `resolvePoiPhoto` stesso
+
+> Correzione al brief: non sono entrambe in MapPage. Misurato con
+> `grep -rn "includes('unsplash"` su `src/`, escludendo i test: le occorrenze
+> fuori da `isPlacesPhoto` sono esattamente queste due, una per file.
+
+L'allowlist di host esiste già (`categoryPalette.js:75`, `PLACES_URL_PATTERNS` a
+`:68-72`) ed è quella che i drawer usano dal DIFF 2. **Non serve un predicato
+nuovo: serve che anche quelle due ci passino.** Un motore solo (regola locked #8).
+
+Il punto non è stilistico: **una allowlist di host non si bypassa aggiungendo un
+provider di stock; una blocklist sì.** Oggi basta che qualcuno introduca
+`pexels.com` o `picsum.photos` perché entrambe quelle condizioni lo lascino
+passare come se fosse una foto vera.
+
+### Nuovi finding aperti
+
+- **F37 — `POIPopupCard.jsx:49-50`**: `rating` default `4.5` e
+  `user_ratings_total` generato con `Math.random()` **a ogni apertura**. Numeri
+  fabbricati a runtime: più grave dei default fissi, perché cambiano tra due
+  aperture dello stesso posto. Il commento sopra dice già *"Fake rating"*.
+  **Da chiudere nel gate subito dopo F26.**
+
+- **F38 — `/map` ignora la città selezionata. PRIORITÀ ALTA.** L'header dice
+  "Manfredonia", la mappa è centrata su **Roma** (default hardcoded).
+  Selezionando "Ippocampo" dall'autocomplete la mappa **non si muove**.
+  Blocca la verifica device di F26 (la scheda POI del difetto non è
+  raggiungibile) **e** blocca metà del blocco MAPPA. È il prossimo lavoro utile:
+  senza F38 il punto 1 di F26 resta non verificabile.
+
+- **F39 — deep link tour rotti.** Gli ID sono timestamp di sessione (es.
+  `home-romance-1787088869446`); l'URL diretto dà *"Questo tour non esiste più"*.
+  Esiste un pulsante **Condividi** che condivide un link morto.
+  **Decisione Ivano: il Condividi si SPEGNE, non si ripara** — stessa sorte di
+  "Prenota Esperienza". La riparazione vera è **GATE PERSISTENZA TOUR**, che
+  dipende da **GATE AUDIT SCHEMA** (schema mismatch sistemico, già noto).
+
+- **F40 — modale "Dove ti trovi?"** si riapre a **ogni** navigazione e blocca il
+  click; **Escape non la chiude**. Stato non-uscibile → regola locked #7.
+
+- **F41 — sessione sloggata da sola** durante il test.
+
+### LEZIONI OPERATIVE
+
+*(La numerazione prosegue da **#17**, `Sessione 16/08`. Non esiste una lezione
+#18: il `#18` già presente nell'handoff è una **regola locked**, serie diversa.)*
+
+**#18 — Un predicato corretto non protegge niente se il chiamante ne scarta il
+verdetto.** `resolvePoiPhoto` funzionava, aveva 8 test verdi ed era condiviso da
+due componenti. Mostrava comunque il Colosseo, perché a valle stava scritto
+`if (url) setDisplayImage(url)`: quando il predicato rispondeva `null` — cioè
+quando faceva esattamente il suo lavoro — la risposta veniva buttata via.
+Quando si introduce un predicato di verità, **testare anche che il suo `null`
+venga onorato**, non solo che il `null` venga prodotto. Il test del valore di
+ritorno e il test dell'effetto sono due test diversi (vedi #16).
+
+**#19 — Allowlist di host, mai blocklist.** La guardia era
+`!url.includes('unsplash.com')`: un test **per esclusione**, che rispondeva "non
+è unsplash" e concludeva "allora è vera". Sostituita da `isPlacesPhoto(url)`,
+test **per inclusione** su un elenco di host Google. La differenza non è
+stilistica: **una allowlist non si bypassa aggiungendo un provider di stock, una
+blocklist sì.** Vale per URL, per tipi Places, per qualunque cosa si stia
+filtrando: elencare ciò che è ammesso, non ciò che è vietato.
+
+**#20 — "NON TESTATO" non è "bloccato", e nessuno dei due è "PASS".** Il punto 1
+del test device di F26 non è stato eseguito perché F38 rende la scheda POI
+irraggiungibile. Scriverlo "bloccato" avrebbe suggerito che il codice è a posto
+e l'ambiente no; scriverlo "PASS" sarebbe stato falso. **Un caso osservato su
+device si chiude solo rivedendolo su device.** Corollario emerso lo stesso
+giorno: quando un gate *rimuove* qualcosa, il test che conta di più è quello che
+prova che **non ha rimosso anche il resto** (punto 2, le 6 foto vere ancora
+caricate) — non quello sul difetto originale.
+
+---
+
+### Fuori da F26, dichiarato
+
+- **D6 / `enrichMonuments`** (`MapPage.jsx:598` → `aiRecommendationService.js:1781`):
+  riceve **solo `name` e `type`** — niente place_id, niente coordinate — e scrive
+  il risultato in `poi.description` (`:609`), che è ciò che la scheda rende sotto
+  "PANORAMICA". Su un indirizzo stradale ha prodotto *"Il profumo del mare si
+  mescola alla salsedine, mentre i gabbiani volano sopra le onde."* È un
+  **percorso e un prompt separati** da quelli delle descrizioni tappa
+  (`DOVEVAI_NARRATOR_PROMPT:10` vs `buildSelectorSystemPrompt:791`).
+  **Non è in questo gate.**
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
 
 > ⚠️ **SEZIONE OBSOLETA** — corretta dal Gate DNA ONESTO (22/07, vedi sopra):

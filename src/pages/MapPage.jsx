@@ -244,7 +244,10 @@ const fetchMatchingBusinesses = async (lat, lng, tourTags = [], radiusM = 2500, 
                     category_tags: bTags,
                     description: b.description || '',
                     address: b.address || '',
-                    image: b.image_urls?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500',
+                    // F26 — via lo stock Unsplash. `image_urls[0]` è la foto che
+                    // l'attività ha caricato: reale, anche se non passa da Places.
+                    // Se non l'ha caricata, la card non mostra foto (render a :1936).
+                    image: b.image_urls?.[0] || null,
                     ai_metadata: b.ai_metadata,
                     subscription_tier: b.subscription_tier,
                     distanceM: Math.round(dist),
@@ -1388,13 +1391,19 @@ const MapPage = () => {
         if (!placesService) {
             setSelectedPOI({
                 id: placeId,
+                // Gate VERITÀ VISIVA (F26) — `googlePlaceId` mancava, ed è il motivo
+                // per cui resolvePoiPhoto nel drawer non partiva mai su questi POI:
+                // usciva su `if (!poi?.googlePlaceId) return`. Ora l'ancoraggio c'è
+                // e il drawer risolve la foto vera via places-proxy.
+                googlePlaceId: placeId,
                 name: e.detail?.name || e.name || 'Punto di Interesse',
                 category: 'Google Maps POI',
                 description: 'Caricamento dettagli non disponibile al momento.',
                 latitude: e.detail.location?.lat,
                 longitude: e.detail.location?.lng,
                 type: 'native_poi',
-                image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500'
+                // F26 — via lo stock Unsplash. Senza foto ancorata, nessuna foto.
+                image: null,
             });
             return;
         }
@@ -1406,9 +1415,13 @@ const MapPage = () => {
 
         placesService.getDetails(request, (place, status) => {
             if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
-                const imageUrl = place.photos && place.photos.length > 0 
-                    ? place.photos[0].getUrl({ maxWidth: 800 }) 
-                    : 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500';
+                // F26 — via lo stock Unsplash. `place.photos` qui viene da
+                // getDetails(placeId): è ancorata a QUESTO posto, non a "un posto
+                // che si chiama così", quindi è legittima. Se non c'è, è null e
+                // il drawer prova comunque a risolverla dal googlePlaceId.
+                const imageUrl = place.photos && place.photos.length > 0
+                    ? place.photos[0].getUrl({ maxWidth: 800 })
+                    : null;
                 
                 // Map the categories to a readable genre
                 const category = place.types && place.types.length > 0 
@@ -1417,6 +1430,10 @@ const MapPage = () => {
                 
                 setSelectedPOI({
                     id: place.place_id,
+                    // F26 — l'ancoraggio che mancava. Senza questo campo il DIFF 2
+                    // da solo non basterebbe: resolvePoiPhoto non verrebbe mai
+                    // invocato su un POI nativo della mappa.
+                    googlePlaceId: place.place_id,
                     name: place.name,
                     category: category,
                     description: place.formatted_address,
@@ -1920,8 +1937,15 @@ const MapPage = () => {
                 <div className="absolute bottom-0 left-0 right-0 z-[50] lg:bottom-8 lg:left-8 lg:w-[400px] animate-in slide-in-from-bottom-5">
                     <div className="bg-white rounded-t-3xl lg:rounded-3xl shadow-2xl overflow-hidden ring-2 ring-orange-200">
                         {/* Hero */}
-                        <div className="h-40 relative">
-                            <img src={selectedPartner.image} className="w-full h-full object-cover" alt="" />
+                        <div className="h-40 relative bg-gradient-to-br from-stone-300 to-stone-500">
+                            {/* F26 — l'<img> era montata senza guardia: con image null
+                                mostrava l'icona di immagine rotta. Il contenitore NON si
+                                rimuove (porta X, badge, nome e indirizzo in overlay bianco):
+                                sotto resta un fondo neutro, che non finge di essere una foto
+                                del posto ma tiene il testo leggibile. */}
+                            {selectedPartner.image && (
+                                <img src={selectedPartner.image} className="absolute inset-0 w-full h-full object-cover" alt="" />
+                            )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                             <button onClick={() => setSelectedPartner(null)}
                                 className="absolute top-3 right-3 p-2 bg-black/50 rounded-full text-white backdrop-blur-sm">

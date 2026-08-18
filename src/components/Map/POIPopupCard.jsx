@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Navigation, MapPin, X, Map } from 'lucide-react';
 import { resolvePoiPhoto } from '../../lib/poiPhoto';
+import { isPlacesPhoto } from '../../lib/categoryPalette';
 
 export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
     if (!poi) return null;
 
-    const initialImageUrl = poi.image || poi.image_urls?.[0];
-    const [displayImage, setDisplayImage] = useState(initialImageUrl);
+    // Gate VERITÀ VISIVA (F26) — stesso intervento del drawer: il seme da
+    // `poi.image || poi.image_urls?.[0]` metteva a schermo l'immagine del
+    // chiamante prima di ogni verifica. Si parte da null e si accetta subito
+    // solo ciò che è già ancorato a Google Places.
+    const [displayImage, setDisplayImage] = useState(
+        () => (isPlacesPhoto(poi.image) ? poi.image : null),
+    );
     // Gate FOTO (passo 1) — terza condizione. Prima ne esistevano due
     // ("ho una foto" / "non ho una foto") e la seconda renderizzava sempre uno
     // spinner: se la foto non arrivava mai, quello spinner girava per sempre
@@ -20,10 +26,11 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
     // query ANCHE con una googlePhoto corretta già in mano, sovrascrivendo una
     // foto giusta con una cercata per nome. Rimossa.
     useEffect(() => {
-        // Foto vera già presente (non lo stock Unsplash di tourShape) → fine.
-        const isGenericImage = !displayImage || displayImage.includes('unsplash.com');
-        if (displayImage && !isGenericImage) { setPhotoPhase('resolved'); return; }
-        if (!poi.googlePlaceId) { setPhotoPhase('resolved'); return; }
+        // F26 — "è ancorata a Google Places?" al posto di "è unsplash?".
+        if (isPlacesPhoto(displayImage)) { setPhotoPhase('resolved'); return; }
+        // Senza place_id nessun ancoraggio è possibile: azzera e chiudi la fase,
+        // così non resta a schermo un'immagine ereditata dal chiamante.
+        if (!poi.googlePlaceId) { setDisplayImage(null); setPhotoPhase('resolved'); return; }
 
         // Timeout proprio (5s) dentro fetchPlaceDetailsForTour, ma non abortabile
         // dall'esterno: il flag impedisce il setState dopo lo smontaggio.
@@ -32,8 +39,10 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
             const { placesDiscoveryService } = await import('../../services/placesDiscoveryService');
             const details = await placesDiscoveryService.fetchPlaceDetailsForTour(poi.googlePlaceId, poi.city);
             if (cancelled) return;
-            const url = resolvePoiPhoto(poi, details);
-            if (url) setDisplayImage(url);
+            // F26 — il null è ONORATO: `if (url)` scartava proprio il verdetto
+            // che serviva. "Ricerca conclusa senza foto" resta uno stato finito
+            // (photoPhase 'resolved'), quindi nessuno spinner perpetuo.
+            setDisplayImage(resolvePoiPhoto(poi, details));
             setPhotoPhase('resolved');
         })();
         return () => { cancelled = true; };

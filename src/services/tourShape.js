@@ -9,8 +9,14 @@
 // Soluzione: TUTTE le shape passano per normalizeTour / normalizeTourStep e
 // producono un oggetto identico, qualunque sia la sorgente.
 
-// Fallback Unsplash quando nessuna foto reale è disponibile. Brand-neutral.
-const STEP_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80';
+// Gate VERITÀ VISIVA (F26) — STEP_FALLBACK_IMAGE rimosso.
+// Era 'photo-1552832230-c0197dd311b5', cioè il COLOSSEO (lo dichiara
+// imageUtils.js:84), assegnato a ogni tappa senza foto reale e a ogni
+// copertina senza foto: un tour a Manfredonia mostrava il Colosseo.
+// Decisione Ivano: sulla TAPPA l'immagine pretende di essere quel posto,
+// quindi senza foto Google ancorata al place_id non c'è immagine (null).
+// Sulla COPERTINA no, e il null fa cadere TourCover nel ramo B (gradient
+// per categoria + glifo) — isPlacesPhoto(null) === false, categoryPalette.js:76.
 
 // ─── DVAI-055-b: utility geografiche centralizzate nel normalizer ────────────
 // Il filtro raggio "tappe entro raggio città" vive qui perché TUTTE le sorgenti
@@ -283,8 +289,10 @@ export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma') {
     const hasLng = Number.isFinite(lng);
 
     // Immagine: priorità foto reale Places > foto fornita > photos[0] > fallback Unsplash
-    let imageSource = 'fallback';
-    let image = STEP_FALLBACK_IMAGE;
+    // F26 — nessuna foto reale ⇒ nessuna immagine. `imageSource: 'none'`
+    // sostituisce 'fallback': non esiste piu' un ripiego da dichiarare.
+    let imageSource = 'none';
+    let image = null;
     if (raw.googlePhoto) {
         image = raw.googlePhoto;
         imageSource = 'places';
@@ -392,8 +400,10 @@ export function normalizeTour(raw = {}, opts = {}) {
     // ricalcola da uno step successivo, mai da una tappa fantasma.
     const firstPlacesPhoto = steps.find(s => s.imageSource === 'places')?.image;
     const firstProvidedImage = steps.find(s => s.imageSource === 'provided')?.image;
-    const firstAnyStepImage = steps.find(s => s.image && s.image !== STEP_FALLBACK_IMAGE)?.image;
-    const cover = raw.image || raw.imageUrl || firstPlacesPhoto || firstProvidedImage || firstAnyStepImage || STEP_FALLBACK_IMAGE;
+    // F26 — la catena finisce a null, non su un'immagine inventata. `firstAnyStepImage`
+    // e' sparito con STEP_FALLBACK_IMAGE: ora ogni step.image non-null e' gia'
+    // 'places' o 'provided', quindi era un terzo giro sugli stessi valori.
+    const cover = raw.image || raw.imageUrl || firstPlacesPhoto || firstProvidedImage || null;
 
     // Galleria: priorità images esplicito > foto reali di tutti gli step > cover
     const images = Array.isArray(raw.images) && raw.images.length > 0

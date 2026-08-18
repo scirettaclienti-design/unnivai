@@ -4,6 +4,7 @@ import { X, Info, Sparkles, MapPin, Navigation, Globe, PhoneCall, CalendarCheck,
 import confetti from 'canvas-confetti';
 import { useToast } from '../../hooks/use-toast';
 import { resolvePoiPhoto } from '../../lib/poiPhoto';
+import { isPlacesPhoto } from '../../lib/categoryPalette';
 
 export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavigate, isNavigating = false, isCompleted = false, isTourStep = false }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -12,8 +13,16 @@ export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavig
   // Define premium status: Monument (0) or Subscribed Business
   const isPremium = poi?.level === 0 || poi?.is_premium === true || poi?.subscription_status === 'active';
 
-  const initialImageUrl = poi?.image || poi?.image_urls?.[0];
-  const [displayImage, setDisplayImage] = useState(initialImageUrl);
+  // Gate VERITÀ VISIVA (F26) — il seme è morto.
+  // Prima: `useState(poi?.image || poi?.image_urls?.[0])`. L'immagine che il
+  // chiamante aveva in mano finiva a schermo PRIMA di qualsiasi verifica, e
+  // resolvePoiPhoto non poteva più toglierla. È così che il Colosseo di
+  // tourShape è arrivato su un POI di Manfredonia.
+  // Ora si parte da null e si accetta subito solo ciò che è GIÀ ancorato a
+  // Google Places (isPlacesPhoto). Tutto il resto va risolto o non si mostra.
+  const [displayImage, setDisplayImage] = useState(
+      () => (isPlacesPhoto(poi?.image) ? poi.image : null),
+  );
 
   // Gate FOTO — la ricerca per nome (findPlaceFromQuery su "${nome} ${città}")
   // è stata rimossa: prendeva results[0].photos[0] senza verificare che fosse
@@ -21,9 +30,14 @@ export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavig
   // Ora la foto arriva da place/details ancorato al googlePlaceId del POI,
   // via places-proxy (quindi cachata 24h e non fatturata a ogni apertura).
   useEffect(() => {
-      // Se abbiamo già una foto vera (non lo stock Unsplash di tourShape) va bene così.
-      if (displayImage && !displayImage.includes('unsplash.com')) return;
-      if (!poi?.googlePlaceId) return; // senza ancoraggio non si cerca nulla
+      // F26 — la guardia non chiede più "è unsplash?" (test per esclusione, che
+      // lasciava passare qualunque altro URL inventato) ma "è ancorata a Google
+      // Places?" (test per inclusione).
+      if (isPlacesPhoto(displayImage)) return;
+      // Senza place_id nessuna foto può essere ancorata a QUESTO posto.
+      // Non è un early-return silenzioso: azzera, così un valore ereditato
+      // dal chiamante non sopravvive per inerzia.
+      if (!poi?.googlePlaceId) { setDisplayImage(null); return; }
 
       // fetchPlaceDetailsForTour ha un timeout proprio (5s) ma non è abortabile
       // dall'esterno: il flag evita il setState su componente smontato.
@@ -32,8 +46,10 @@ export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavig
           const { placesDiscoveryService } = await import('../../services/placesDiscoveryService');
           const details = await placesDiscoveryService.fetchPlaceDetailsForTour(poi.googlePlaceId, poi.city);
           if (cancelled) return;
-          const url = resolvePoiPhoto(poi, details);
-          if (url) setDisplayImage(url);
+          // F26 — il null è ONORATO. Prima era `if (url) setDisplayImage(url)`:
+          // quando resolvePoiPhoto faceva esattamente il suo lavoro il risultato
+          // veniva scartato e il falso restava a schermo.
+          setDisplayImage(resolvePoiPhoto(poi, details));
       })();
       return () => { cancelled = true; };
   }, [poi?.googlePlaceId, poi?.city, displayImage]);

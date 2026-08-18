@@ -336,7 +336,10 @@ export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma') {
 
         // Metadata
         city: raw.city || cityFallback,
-        price: typeof raw.price === 'number' ? raw.price : 0,
+        // Gate PULIZIA P5 — `price` non e' piu' defaultato a 0. Stessa regola di
+        // rating/reviewsCount qui sotto: se il dato non c'e', il campo e' null,
+        // non uno zero che a valle diventa "Gratuito".
+        price: typeof raw.price === 'number' ? raw.price : null,
         // Gate O.4: rating/reviewsCount POI-level da Google Places. null se
         // il POI non li ha (non 0 fake, non "N/D"). Attribuzione Google si
         // fa lato UI dove il dato viene mostrato.

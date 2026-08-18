@@ -13,7 +13,7 @@ export default function ReviewModal({ isOpen, onClose, tourId, guideId, bookingI
 
     const handleSubmit = async () => {
         if (rating === 0) {
-            toast({ title: 'Seleziona un voto', description: 'Clicca sulle stelle per votare.', variant: 'warning' });
+            toast({ title: 'Seleziona un voto', description: 'Clicca sulle stelle per votare.', type: 'warning' });
             return;
         }
 
@@ -29,13 +29,13 @@ export default function ReviewModal({ isOpen, onClose, tourId, guideId, bookingI
 
             if (!result.success) throw new Error(result.error);
 
-            toast({ title: 'Grazie per la recensione!', description: 'Il tuo feedback aiuta la community.', variant: 'success' });
+            toast({ title: 'Grazie per la recensione!', description: 'Il tuo feedback aiuta la community.', type: 'success' });
             onClose();
         } catch (err) {
             toast({
                 title: 'Errore',
                 description: err.message?.includes('unique') ? 'Hai già recensito questo tour.' : 'Non è stato possibile salvare la recensione.',
-                variant: 'error',
+                type: 'error',
             });
         } finally {
             setIsSubmitting(false);

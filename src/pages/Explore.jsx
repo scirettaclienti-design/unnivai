@@ -395,10 +395,18 @@ function ExplorePage() {
                     <div className="text-center py-12 opacity-60">
                         {experiences.length === 0 ? (
                             // Gate D-4: città senza tour reali. Empty state onesto (mai demo).
+                            // Gate PULIZIA P6: rimossa "Ne stiamo aggiungendo nuovi ogni
+                            // settimana" — nessun processo aggiunge tour periodicamente.
                             <>
                                 <div className="text-4xl mb-3">🌱</div>
-                                <p className="mb-1 font-semibold text-gray-700">Non ci sono ancora tour a {city || 'questa città'}.</p>
-                                <p className="text-xs text-gray-500">Ne stiamo aggiungendo nuovi ogni settimana.</p>
+                                <p className="mb-1 font-semibold text-gray-700">Nessuna guida ha ancora pubblicato un tour a {city || 'questa città'}.</p>
+                                <p className="text-xs text-gray-500 mb-4">Il motore AI ne costruisce uno adesso, sui luoghi veri della città.</p>
+                                <Link
+                                    to="/ai-itinerary"
+                                    className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-2xl text-xs font-bold hover:bg-gray-800 transition-colors"
+                                >
+                                    Crea il tuo percorso
+                                </Link>
                             </>
                         ) : (
                             // Filtri troppo restrittivi.

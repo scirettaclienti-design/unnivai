@@ -134,7 +134,10 @@ export default function SurpriseTourPage() {
 
     const navigate = useNavigate();
     const location = useLocation();
-    const [selectedSurprise, setSelectedSurprise] = useState(null);
+    // Gate PULIZIA P4 (DIFF 6) — rimosso lo state `selectedSurprise`: il setter
+    // non era chiamato da nessuna parte e l'unico blocco che lo leggeva era il
+    // JSX morto qui sotto. Il termine `!selectedSurprise` nella condizione di
+    // autoSuggest era costantemente true, quindi toglierlo non cambia il flusso.
     const [isShuffling, setIsShuffling] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState(null);
     // Gate Z.3: id del tipo cliccato. Distinto da selectedFilter perche'
@@ -173,7 +176,7 @@ export default function SurpriseTourPage() {
 
     // 🚀 INNESCO AUTOMATICO (se si arriva da una Card Inconscia)
     useEffect(() => {
-        if (location.state?.autoSuggest && !isShuffling && !selectedSurprise) {
+        if (location.state?.autoSuggest && !isShuffling) {
             // Eseguiamo la simulazione grafica per 1.5 secondi prima di triggerare davvero, o triggeriamo subito.
             // Puliamo lo state per non ciclare se torna indietro
             const suggestion = location.state.autoSuggest;
@@ -434,83 +437,16 @@ export default function SurpriseTourPage() {
                     "Sorpresa Totale" (id=4, filterMap[4]=null) e' una scelta valida:
                     equivale a "categoria non specificata, sorprendimi tu". */}
 
-                {/* Selected Surprise Experience (Doc View) */}
-                <AnimatePresence mode="wait">
-                    {selectedSurprise && (
-                        <motion.div
-                            key={selectedSurprise.id}
-                            className="bg-white rounded-3xl p-0 shadow-2xl mb-12 relative overflow-hidden border border-gray-100"
-                            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                            transition={{ duration: 0.5, type: "spring" }}
-                        >
-                            {/* "Doc" Header */}
-                            <div className="bg-gray-50 border-b border-gray-100 p-4 flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                    <FileText className="w-4 h-4 text-orange-500" />
-                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Itinerario Generato</span>
-                                </div>
-                                {selectedSurprise.isAdHoc && (
-                                    <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center shadow-sm">
-                                        <Heart className="w-3 h-3 mr-1 fill-current" />
-                                        PER TE
-                                    </span>
-                                )}
-                            </div>
-
-                            <div className="relative">
-                                <img
-                                    src={selectedSurprise.image}
-                                    alt={selectedSurprise.title}
-                                    className="w-full h-56 object-cover"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                                <div className="absolute bottom-0 left-0 p-6 text-white w-full">
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.2 }}
-                                        className="inline-block bg-orange-500/90 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-bold mb-2 shadow-lg"
-                                    >
-                                        {selectedSurprise.matchReason}
-                                    </motion.div>
-                                    <h3 className="text-2xl font-bold leading-tight font-playfair">{selectedSurprise.title}</h3>
-                                </div>
-                            </div>
-
-                            <div className="p-6">
-                                <p className="text-gray-600 mb-6 leading-relaxed">
-                                    {selectedSurprise.description}
-                                </p>
-
-                                <div className="flex items-center justify-between mb-6 text-sm text-gray-500">
-                                    <div className="flex items-center">
-                                        <Clock className="w-4 h-4 mr-2 text-orange-400" />
-                                        {selectedSurprise.duration}
-                                    </div>
-                                    <div className="flex items-center">
-                                        <MapPin className="w-4 h-4 mr-2 text-orange-400" />
-                                        {selectedSurprise.location}
-                                    </div>
-                                </div>
-
-                                <div className="flex space-x-3">
-                                    <Link to="/map" className="flex-1">
-                                        <button className="w-full bg-gray-100 text-gray-800 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors">
-                                            Vedi Mappa
-                                        </button>
-                                    </Link>
-                                    <Link to="/tour-details" className="flex-[2]">
-                                        <button className="w-full bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600 transition-colors shadow-lg shadow-orange-200">
-                                            Accetta Avventura
-                                        </button>
-                                    </Link>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                {/* Gate PULIZIA P4 (DIFF 6) — rimosso il blocco "Selected Surprise
+                    Experience (Doc View)", 77 righe di JSX irraggiungibile.
+                    Misurato: il setter dello state che lo governava non era chiamato da
+                    nessuna parte, quindi la guardia non si apriva mai. Dentro c'era il
+                    secondo CTA che puntava alla rotta dei dettagli senza id ne' state
+                    (stesso difetto P4 di AiItinerary). NON era un duplicato del navigate
+                    corretto piu' sopra che aveva perso i parametri: leggeva matchReason /
+                    isAdHoc / location, campi che su mappedTour non esistono — sono i resti
+                    delle 3 esperienze finte tolte dal Gate J2. La navigazione vera resta
+                    una sola, quella con id e state dopo la generazione. */}
 
                 {/* Gate Z.3: Categorie PRIMA del bottone Genera.
                     Prima erano dopo, l'utente poteva generare senza aver scelto. */}

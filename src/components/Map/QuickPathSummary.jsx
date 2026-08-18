@@ -2,8 +2,22 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Navigation, Clock, Users, ArrowRight, Sparkles, Home } from 'lucide-react';
 
+// Gate PULIZIA P1 — formatta minuti → "45 min" / "3h" / "1h 30m".
+// Il vecchio inline `(min % 60 || '')` trattava lo 0 come falsy e stampava
+// "3h m" per ogni durata multipla di 60 (medio=180, lungo=300 di QuickPath).
+// Stessa guardia `resto === 0` gia' usata in NavigationHUD.jsx:80 e MapPage.jsx:89.
+const formatMinutes = (min) => {
+    if (!Number.isFinite(min) || min <= 0) return null;
+    if (min < 60) return `${min} min`;
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return m === 0 ? `${h}h` : `${h}h ${m}m`;
+};
+
 export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
     if (!tourData) return null;
+
+    const durationLabel = formatMinutes(tourData.duration_minutes);
 
     const mainImage = tourData.imageUrl || tourData.images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800';
 
@@ -77,11 +91,15 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                             <p className="text-3xl font-black text-gray-900">{tourData.steps?.length || 0}</p>
                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Tappe</p>
                         </div>
-                        <div className="w-px h-10 bg-gray-200" />
-                        <div className="text-center">
-                            <p className="text-3xl font-black text-gray-900">{tourData.duration_minutes ? Math.floor(tourData.duration_minutes/60) + 'h ' + (tourData.duration_minutes%60 || '') + 'm' : '~2h'}</p>
-                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Durata</p>
-                        </div>
+                        {durationLabel && (
+                            <>
+                                <div className="w-px h-10 bg-gray-200" />
+                                <div className="text-center">
+                                    <p className="text-3xl font-black text-gray-900">{durationLabel}</p>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Durata</p>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Tappe Generate (Nuovo) */}

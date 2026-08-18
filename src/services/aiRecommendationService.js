@@ -1093,7 +1093,9 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates) => {
             type: c.type || s.type || 'place',
             latitude: c.latitude ?? c.lat,
             longitude: c.longitude ?? c.lng,
-            price: typeof s.price === 'number' ? s.price : 0,
+            // Gate PULIZIA P5 — rimosso `price: … : 0`. Lo schema del selettore
+            // non ha un campo price: il default rendeva ogni tappa "Gratuito".
+            // Nessun lettore resta scoperto: TourDetails.jsx filtra gia' `> 0`.
             rating: c.rating || null,
             googlePlaceId: c.place_id || c.googlePlaceId,
             googlePhoto: c.googlePhoto || null,
@@ -1366,9 +1368,7 @@ Schema JSON ESATTO:
       "type": "cultura|storia|food|shopping|relax|arte|natura",
       "location": "Indirizzo reale o quartiere",
       "latitude": 41.9028,
-      "longitude": 12.4964,
-      "price": 0,
-      "rating": 4.5
+      "longitude": 12.4964
     }]
   }]
 }`;
@@ -1437,8 +1437,11 @@ Schema JSON ESATTO:
                             ...s,
                             latitude: lat,
                             longitude: lng,
-                            price: typeof s.price === 'number' ? s.price : 0,
-                            rating: typeof s.rating === 'number' ? Math.min(s.rating, 5) : 4.5,
+                            // Gate PULIZIA P5 — via `price: … : 0` e `rating: … : 4.5`.
+                            // Lo schema del prompt legacy non li chiede piu' (:1367-1369),
+                            // quindi il default era l'unica sorgente: un prezzo e un voto
+                            // inventati dal codice e mostrati come dati del posto.
+                            rating: typeof s.rating === 'number' ? Math.min(s.rating, 5) : null,
                             suggestedMinutes: s.suggestedMinutes || 30,
                             transition: s.transition || null,
                             insiderTip: s.insiderTip || null,

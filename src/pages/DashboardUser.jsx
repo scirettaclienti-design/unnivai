@@ -711,10 +711,20 @@ const DashboardUser = () => {
                             </Link>
                         )) : (
                             // Gate D-2: empty state onesto al posto dei 3 tour finti.
+                            // Gate PULIZIA P6: via "Ne stiamo aggiungendo nuovi ogni
+                            // settimana. Torna presto." Nessun codice aggiunge tour su
+                            // base periodica: l'unico insert su `tours` e' TourBuilder.jsx:291,
+                            // fatto a mano da una guida. Il motore AI, invece, esiste e gira.
                             <div className="flex flex-col items-center justify-center py-10 w-full text-center">
                                 <div className="text-4xl mb-3">🌱</div>
-                                <p className="text-gray-700 text-sm mb-1 font-semibold">{city ? `Non ci sono ancora tour a ${city}.` : 'Non ci sono ancora tour qui.'}</p>
-                                <p className="text-gray-500 text-xs">Ne stiamo aggiungendo nuovi ogni settimana. Torna presto.</p>
+                                <p className="text-gray-700 text-sm mb-1 font-semibold">{city ? `Nessuna guida ha ancora pubblicato un tour a ${city}.` : 'Nessuna guida ha ancora pubblicato un tour qui.'}</p>
+                                <p className="text-gray-500 text-xs mb-4">Il motore AI ne costruisce uno adesso, sui luoghi veri della città.</p>
+                                <Link
+                                    to="/ai-itinerary"
+                                    className="px-5 py-2.5 bg-gray-900 text-white rounded-2xl text-xs font-bold hover:bg-gray-800 transition-colors"
+                                >
+                                    Crea il tuo percorso
+                                </Link>
                             </div>
                         )}
                     </div>
@@ -761,9 +771,15 @@ const DashboardUser = () => {
                                             <CheckCircle className="w-10 h-10 text-green-500" />
                                         </motion.div>
                                     </div>
-                                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Richiesta Inviata!</h3>
+                                    {/* Gate PULIZIA P6 — due affermazioni false rimosse:
+                                        "locali su {city}" (DashboardGuide.jsx:147 filtra su
+                                        guide_id e status, mai su city: la richiesta la vedono
+                                        tutte le guide, ovunque) e "hanno appena ricevuto"
+                                        (createGuideRequest, dataService.js:908, inserisce una
+                                        riga e basta — nessuna notifica, nessun push, nessuna mail). */}
+                                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Richiesta inviata</h3>
                                     <p className="text-gray-500 text-sm mb-8 leading-relaxed px-4">
-                                        Fantastico! Le guide locali su <strong>{requestCity || city}</strong> hanno appena ricevuto la tua ispirazione.<br /><br />Ti contatteranno presto con una proposta personalizzata.
+                                        È visibile alle guide registrate su DoveVAI. Se una guida la prende in carico, la proposta ti arriva qui.
                                     </p>
                                     <button
                                         onClick={() => {

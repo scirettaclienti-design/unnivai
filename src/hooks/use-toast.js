@@ -13,9 +13,18 @@
 
 const TOAST_EVENT = 'dvai:toast';
 
+// Gate PULIZIA P2 — il separatore ': ' si aggiunge solo se il titolo non ha
+// gia' una punteggiatura finale. Prima produceva ".:" su ogni toast con titolo
+// che era una frase compiuta (AiItinerary.jsx:241/268/358, SurpriseTour.jsx:273).
+const joinTitleAndDescription = (title, description) => {
+    const t = String(title ?? '').trimEnd();
+    if (!description) return title;
+    return /[.!?:;…]$/.test(t) ? `${t} ${description}` : `${t}: ${description}`;
+};
+
 export function useToast() {
     const toast = ({ title, description, type = 'info', duration = 3000 }) => {
-        const message = description ? `${title}: ${description}` : title;
+        const message = joinTitleAndDescription(title, description);
         window.dispatchEvent(
             new CustomEvent(TOAST_EVENT, { detail: { message, type, duration } })
         );

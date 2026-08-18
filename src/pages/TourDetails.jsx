@@ -344,7 +344,7 @@ const PlaceDetailsView = ({ place, onBack }) => {
             {/* Header Image */}
             <div className="relative h-64">
                 <img
-                    src={place.images[0] || place.imageUrl}
+                    src={place.images?.[0] || place.imageUrl}
                     alt={place.title}
                     className="w-full h-full object-cover"
                 />
@@ -365,52 +365,51 @@ const PlaceDetailsView = ({ place, onBack }) => {
                 {/* Title & Rating */}
                 <div className="flex justify-between items-start mb-2">
                     <h1 className="text-2xl font-bold text-gray-900 leading-tight flex-1 mr-2">{place.title}</h1>
-                    <div className="flex flex-col items-end">
-                        <div className="flex items-center bg-green-50 px-2 py-1 rounded-lg border border-green-100">
-                            <Star size={14} className="text-green-600 fill-current mr-1" />
-                            <span className="font-bold text-green-700 text-sm">{place.rating}</span>
+                    {Number.isFinite(place.rating) && place.rating > 0 && (
+                        <div className="flex flex-col items-end">
+                            <div className="flex items-center bg-green-50 px-2 py-1 rounded-lg border border-green-100">
+                                <Star size={14} className="text-green-600 fill-current mr-1" />
+                                <span className="font-bold text-green-700 text-sm">{place.rating}</span>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
-                <p className="text-gray-500 text-sm mb-6 flex items-center">
-                    <MapPin size={14} className="mr-1" /> {place.meetingPoint || place.location || "Google Maps"}
-                </p>
+                {(place.meetingPoint || place.location) && (
+                    <p className="text-gray-500 text-sm mb-6 flex items-center">
+                        <MapPin size={14} className="mr-1" /> {place.meetingPoint || place.location}
+                    </p>
+                )}
 
-                {/* Info Cards Row */}
-                <div className="grid grid-cols-3 gap-3 mb-8">
-                    <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 text-center">
-                        <div className="text-xs text-gray-400 font-bold uppercase mb-1">Prezzo</div>
-                        <div className="font-black text-gray-800 text-sm">{typeof place.price === 'number' ? `€${place.price}` : place.price}</div>
-                    </div>
-                    <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 text-center">
-                        <div className="text-xs text-gray-400 font-bold uppercase mb-1">Orari</div>
-                        <div className="font-black text-green-600 text-sm">Aperto</div>
-                    </div>
-                    <div className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 text-center">
-                        <div className="text-xs text-gray-400 font-bold uppercase mb-1">Distanza</div>
-                        <div className="font-black text-gray-800 text-sm">0.2 km</div>
-                    </div>
-                </div>
+                {/* Gate PULIZIA P5 — rimossa l'intera "Info Cards Row".
+                    Tre card, zero dati: "Orari: Aperto" era una costante scritta
+                    nel JSX (nessuna lettura di opening_hours), "Distanza: 0.2 km"
+                    idem (nessun calcolo), "Prezzo" leggeva un campo che il default
+                    a 0 rendeva sempre presente. Il fallback "Google Maps" sotto il
+                    titolo e' sparito con la stessa logica: non e' un indirizzo. */}
 
                 {/* Description */}
-                <div className="mb-8">
-                    <h3 className="font-bold text-gray-800 mb-2">Descrizione</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                        {place.description}
-                    </p>
-                </div>
+                {place.description && (
+                    <div className="mb-8">
+                        <h3 className="font-bold text-gray-800 mb-2">Descrizione</h3>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                            {place.description}
+                        </p>
+                    </div>
+                )}
 
                 {/* Highlights (Punti di Forza) */}
-                <div className="mb-8">
-                    <h3 className="font-bold text-gray-800 mb-3">Punti di Forza</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {place.highlights && place.highlights.map((h, i) => (
-                            <span key={i} className="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg border border-gray-200">
-                                {h.replace(/^[^\s]+\s/, '')} {/* Strip leading emoji if present */}
-                            </span>
-                        ))}
+                {Array.isArray(place.highlights) && place.highlights.length > 0 && (
+                    <div className="mb-8">
+                        <h3 className="font-bold text-gray-800 mb-3">Punti di Forza</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {place.highlights.map((h, i) => (
+                                <span key={i} className="px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-lg border border-gray-200">
+                                    {String(h).replace(/^[^\s]+\s/, '')} {/* Strip leading emoji if present */}
+                                </span>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Gate J2: rimossi bottoni "Chiama" e "Prenota Tavolo/Vedi Disponibilità/
@@ -493,21 +492,18 @@ export default function TourDetailsPage() {
             setLocalTour({
                 ...normalized,
                 type: finalType,
-                // Solo i default specifici di TourDetails che non sono nel normalizer.
+                // Gate PULIZIA P5 — rimossi i dieci default hardcoded che stavano
+                // qui (guideBio "Guida virtuale intelligente...", rating 4.5,
+                // location "Destinazione Tour", participants 0, maxParticipants 10,
+                // language "Italiano", highlights ["✨ Esperienza autentica", ...],
+                // meetingPoint "Punto di partenza sulla mappa", included
+                // ["Itinerario digitale", "Supporto 24/7"], notIncluded, nextStart
+                // "Sempre disponibile"). Nessuno di questi aveva una sorgente:
+                // erano stringhe scritte qui e mostrate come dati del tour.
+                // Ora passa solo cio' che `normalized` contiene davvero, e ogni
+                // render a valle e' protetto dall'assenza.
                 guide_id: incoming.guide_id || incoming.guideId || incoming.author_id || null,
                 guideId: incoming.guide_id || incoming.guideId || incoming.author_id || null,
-                guideBio: normalized.guideBio || "Guida virtuale intelligente selezionata per te.",
-                rating: normalized.rating ?? 4.5,
-                reviews: normalized.reviews ?? 0,
-                location: normalized.location || "Destinazione Tour",
-                participants: normalized.participants ?? 0,
-                maxParticipants: normalized.maxParticipants ?? 10,
-                language: normalized.language || "Italiano",
-                highlights: normalized.highlights || ["✨ Esperienza autentica", "📍 Tappe esclusive"],
-                meetingPoint: normalized.meetingPoint || normalized.startPoint || "Punto di partenza sulla mappa",
-                included: normalized.included || ["Itinerario digitale", "Supporto 24/7"],
-                notIncluded: normalized.notIncluded || ["Biglietti musei (se non spec.)"],
-                nextStart: normalized.nextStart || "Sempre disponibile",
             });
         }
     }, [location.state, id]);
@@ -939,15 +935,23 @@ export default function TourDetailsPage() {
                                     {/* Price Button REMOVED as requested */}
                                 </div>
 
-                                {/* Real Data Badges */}
-                                <div className="flex gap-4 text-xs font-bold text-gray-500 mb-2">
-                                    <span className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
-                                        <Users size={14} className="text-gray-400" /> Max {tour.maxParticipants} Pers
-                                    </span>
-                                    <span className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
-                                        <MessageCircle size={14} className="text-gray-400" /> {tour.language}
-                                    </span>
-                                </div>
+                                {/* Real Data Badges — Gate PULIZIA P5: mostrati solo se il dato
+                                    esiste davvero. "Max 10 Pers" e "Italiano" erano default
+                                    hardcoded: nessun tour AI li ha, e li leggeva come fatti. */}
+                                {(Number.isFinite(tour.maxParticipants) || tour.language) && (
+                                    <div className="flex gap-4 text-xs font-bold text-gray-500 mb-2">
+                                        {Number.isFinite(tour.maxParticipants) && (
+                                            <span className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
+                                                <Users size={14} className="text-gray-400" /> Max {tour.maxParticipants} Pers
+                                            </span>
+                                        )}
+                                        {tour.language && (
+                                            <span className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
+                                                <MessageCircle size={14} className="text-gray-400" /> {tour.language}
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
                             </motion.div>
                         </div>
 
@@ -984,7 +988,9 @@ export default function TourDetailsPage() {
                                         <span className="text-xs text-gray-500 ml-1">({guideRating.count > 0 ? guideRating.count : (tour.reviews || 0)} recensioni)</span>
                                     </div>
                                 </div>
-                                <p className="text-gray-600 text-sm leading-relaxed">{tour.guideBio}</p>
+                                {tour.guideBio && (
+                                    <p className="text-gray-600 text-sm leading-relaxed">{tour.guideBio}</p>
+                                )}
                                 <div className="flex space-x-2 mt-4">
                                     <button
                                         onClick={handleChatClick}
@@ -1080,36 +1086,60 @@ export default function TourDetailsPage() {
 
                 {/* ⬇️ STANDARD SECTIONS ⬇️ */}
                 <>
-                        {/* Info Grid */}
+                        {/* Info Grid — Gate PULIZIA P5: anche il CONTENITORE e' sotto
+                            guardia, non solo le card. Il genitore e' `space-y-8` (:904):
+                            una grid vuota resta un figlio e si porta dietro 2rem di
+                            margine, cioe' uno spazio morto a schermo. Caso reale: un tour
+                            da SurpriseTour non ha location, duration, participants ne'
+                            nextStart, quindi tutte e quattro le card spariscono insieme. */}
+                        {(tour.location || tour.duration ||
+                          (Number.isFinite(tour.participants) && Number.isFinite(tour.maxParticipants)) ||
+                          tour.nextStart) && (
                         <motion.div
                             className="grid grid-cols-2 gap-4"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.4 }}
                         >
-                            <div className="bg-white/70 rounded-2xl p-4 text-center">
-                                <MapPin className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
-                                <div className="text-xs text-gray-500 mb-1">Dove</div>
-                                <div className="font-bold text-gray-800 text-sm">{tour.location}</div>
-                            </div>
-                            <div className="bg-white/70 rounded-2xl p-4 text-center">
-                                <Clock className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
-                                <div className="text-xs text-gray-500 mb-1">Durata</div>
-                                <div className="font-bold text-gray-800 text-sm">{tour.duration}</div>
-                            </div>
-                            <div className="bg-white/70 rounded-2xl p-4 text-center">
-                                <Users className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
-                                <div className="text-xs text-gray-500 mb-1">Partecipanti</div>
-                                <div className="font-bold text-gray-800 text-sm">{tour.participants}/{tour.maxParticipants}</div>
-                            </div>
-                            <div className="bg-white/70 rounded-2xl p-4 text-center">
-                                <Calendar className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
-                                <div className="text-xs text-gray-500 mb-1">Prossimo</div>
-                                <div className="font-bold text-gray-800 text-sm">{tour.nextStart}</div>
-                            </div>
+                            {/* Gate PULIZIA P5 — ogni card compare solo col suo dato.
+                                "Partecipanti 0/10" e "Prossimo: Sempre disponibile" erano
+                                default hardcoded senza alcuna sorgente. */}
+                            {tour.location && (
+                                <div className="bg-white/70 rounded-2xl p-4 text-center">
+                                    <MapPin className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
+                                    <div className="text-xs text-gray-500 mb-1">Dove</div>
+                                    <div className="font-bold text-gray-800 text-sm">{tour.location}</div>
+                                </div>
+                            )}
+                            {tour.duration && (
+                                <div className="bg-white/70 rounded-2xl p-4 text-center">
+                                    <Clock className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
+                                    <div className="text-xs text-gray-500 mb-1">Durata</div>
+                                    <div className="font-bold text-gray-800 text-sm">{tour.duration}</div>
+                                </div>
+                            )}
+                            {Number.isFinite(tour.participants) && Number.isFinite(tour.maxParticipants) && (
+                                <div className="bg-white/70 rounded-2xl p-4 text-center">
+                                    <Users className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
+                                    <div className="text-xs text-gray-500 mb-1">Partecipanti</div>
+                                    <div className="font-bold text-gray-800 text-sm">{tour.participants}/{tour.maxParticipants}</div>
+                                </div>
+                            )}
+                            {tour.nextStart && (
+                                <div className="bg-white/70 rounded-2xl p-4 text-center">
+                                    <Calendar className="w-6 h-6 text-terracotta-400 mx-auto mb-2" />
+                                    <div className="text-xs text-gray-500 mb-1">Prossimo</div>
+                                    <div className="font-bold text-gray-800 text-sm">{tour.nextStart}</div>
+                                </div>
+                            )}
                         </motion.div>
+                        )}
 
-                        {/* Highlights */}
+                        {/* Highlights — Gate PULIZIA P5: il blocco esiste solo se ci sono
+                            highlights veri. Il default ["✨ Esperienza autentica",
+                            "📍 Tappe esclusive"] e' stato rimosso, e senza guardia questo
+                            .map() sarebbe andato in crash su undefined. */}
+                        {Array.isArray(tour.highlights) && tour.highlights.length > 0 && (
                         <motion.div
                             className="bg-gradient-to-r from-ochre-100 to-terracotta-100 rounded-3xl p-6"
                             initial={{ opacity: 0, scale: 0.9 }}
@@ -1130,11 +1160,12 @@ export default function TourDetailsPage() {
                                         transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
                                     >
                                         <div className="text-xl">✨</div>
-                                        <span className="font-medium text-gray-700 text-sm">{highlight.replace(/^[^\s]+\s/, '')}</span>
+                                        <span className="font-medium text-gray-700 text-sm">{String(highlight).replace(/^[^\s]+\s/, '')}</span>
                                     </motion.div>
                                 ))}
                             </div>
                         </motion.div>
+                        )}
 
                         {/* DVAI-054 — Programma del tour: rendering editoriale per ogni tappa.
                             Fonte primaria: tour.steps (shape canonica DVAI-053).
@@ -1344,13 +1375,19 @@ export default function TourDetailsPage() {
                         {/* DVAI-059 — Rimosso intero box "Mappatura" con "Guarda la Mappa" (2° CTA mappa duplicato).
                             L'unica CTA mappa vive in "Avvia Itinerario" (SMART CTA in fondo). */}
 
-                        {/* Included/Not Included */}
+                        {/* Included/Not Included — Gate PULIZIA P5: ogni colonna compare
+                            solo se la lista esiste ed e' piena. I default ["Itinerario
+                            digitale", "Supporto 24/7"] e ["Biglietti musei (se non spec.)"]
+                            sono stati rimossi: erano promesse di servizio scritte qui. */}
+                        {((Array.isArray(tour.included) && tour.included.length > 0) ||
+                          (Array.isArray(tour.notIncluded) && tour.notIncluded.length > 0)) && (
                         <motion.div
                             className="grid grid-cols-1 md:grid-cols-2 gap-6"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 1.4 }}
                         >
+                            {Array.isArray(tour.included) && tour.included.length > 0 && (
                             <div className="bg-white/80 rounded-2xl p-6">
                                 <h4 className="font-bold text-gray-800 mb-4 flex items-center text-sm"><CheckCircle size={16} className="mr-2 text-green-500" /> Incluso</h4>
                                 <div className="space-y-2">
@@ -1362,6 +1399,8 @@ export default function TourDetailsPage() {
                                     ))}
                                 </div>
                             </div>
+                            )}
+                            {Array.isArray(tour.notIncluded) && tour.notIncluded.length > 0 && (
                             <div className="bg-white/80 rounded-2xl p-6">
                                 <h4 className="font-bold text-gray-800 mb-4 flex items-center text-sm"><XCircle size={16} className="mr-2 text-red-500" /> Non Incluso</h4>
                                 <div className="space-y-2">
@@ -1373,7 +1412,9 @@ export default function TourDetailsPage() {
                                     ))}
                                 </div>
                             </div>
+                            )}
                         </motion.div>
+                        )}
 
                         {/* --- SMART CTA BUTTONS --- */}
                         <motion.div

@@ -747,12 +747,10 @@ export default function AIItineraryPage() {
 
                                                                 <div className="flex items-center justify-between">
                                                                     <div className="flex items-center gap-2">
-                                                                        {stop.price !== undefined && (
-                                                                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${stop.price === 0 ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'
-                                                                                }`}>
-                                                                                {stop.price === 0 ? 'Gratuito' : `€${stop.price}`}
-                                                                            </span>
-                                                                        )}
+                                                                        {/* Gate PULIZIA P5 — rimosso il badge prezzo. Lo schema
+                                                                            del selettore (aiRecommendationService.js:883-891)
+                                                                            non ha un campo `price`: era sempre 0 → "Gratuito"
+                                                                            su ogni tappa, bar compresi. */}
                                                                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${typeColors[stop.type] || 'bg-gray-100 text-gray-600'}`}>
                                                                             {stop.type}
                                                                         </span>
@@ -883,34 +881,31 @@ export default function AIItineraryPage() {
                                     </button>
                                 </div>
 
-                                {selectedStop.photos && selectedStop.photos.length > 0 && (
-                                    <img
-                                        src={selectedStop.photos[0]}
-                                        alt={selectedStop.title}
-                                        className="w-full h-48 rounded-2xl object-cover mb-4"
-                                    />
-                                )}
-
+                                {/* Gate PULIZIA P5 — rimossi tre blocchi senza sorgente:
+                                    - photos: il campo `photos` non e' mai valorizzato da nessun
+                                      punto del codice (ne' canonicalizeStopsFromCandidates ne'
+                                      normalizeTourStep) → <img> montata su undefined, blocco morto.
+                                    - location: assente dallo schema del selettore (:883-891).
+                                    - price: assente dallo schema → sempre 0 → sempre "Gratuito".
+                                    Restano i campi con sorgente reale: descrizione e insiderTip
+                                    (narratore), time (AI), rating (Google). */}
                                 <div className="space-y-4">
-                                    <p className="text-gray-600">{selectedStop.description}</p>
+                                    {selectedStop.description && (
+                                        <p className="text-gray-600">{selectedStop.description}</p>
+                                    )}
+
+                                    {selectedStop.insiderTip && (
+                                        <div>
+                                            <h4 className="font-bold text-gray-800 text-sm">Consiglio insider</h4>
+                                            <p className="text-sm text-gray-600">{selectedStop.insiderTip}</p>
+                                        </div>
+                                    )}
 
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <h4 className="font-bold text-gray-800 text-sm">Orario</h4>
-                                            <p className="text-sm text-gray-600">{selectedStop.time}</p>
-                                        </div>
-                                        {selectedStop.location && (
+                                        {selectedStop.time && (
                                             <div>
-                                                <h4 className="font-bold text-gray-800 text-sm">Posizione</h4>
-                                                <p className="text-sm text-gray-600">{selectedStop.location}</p>
-                                            </div>
-                                        )}
-                                        {selectedStop.price !== undefined && (
-                                            <div>
-                                                <h4 className="font-bold text-gray-800 text-sm">Prezzo</h4>
-                                                <p className="text-sm text-gray-600">
-                                                    {selectedStop.price === 0 ? 'Gratuito' : `€${selectedStop.price}`}
-                                                </p>
+                                                <h4 className="font-bold text-gray-800 text-sm">Orario</h4>
+                                                <p className="text-sm text-gray-600">{selectedStop.time}</p>
                                             </div>
                                         )}
                                         {selectedStop.rating && (
@@ -923,16 +918,13 @@ export default function AIItineraryPage() {
                                             </div>
                                         )}
                                     </div>
-
-                                    <Link to="/tour-details">
-                                        <motion.button
-                                            className="w-full bg-terracotta-400 text-white py-3 px-4 rounded-xl font-medium hover:bg-terracotta-500 transition-colors"
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            Prenota Esperienza
-                                        </motion.button>
-                                    </Link>
+                                    {/* Gate PULIZIA P4 — rimosso il bottone "Prenota Esperienza".
+                                        Puntava a <Link to="/tour-details"> senza :id e senza state:
+                                        TourDetails cadeva su rawId=1, la query DB non partiva nemmeno
+                                        (enabled:false) e l'utente leggeva "Questo tour non esiste piu'".
+                                        Una tappa POI non e' un prodotto prenotabile: l'unica riga
+                                        `tours` la crea una guida da TourBuilder.jsx:291. Nessun
+                                        ComingSoon: la funzione non esiste e non e' progettata. */}
                                 </div>
                             </motion.div>
                         </motion.div>

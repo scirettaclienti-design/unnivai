@@ -32,7 +32,13 @@ const DOVEVAI_MAP_STYLES = [
 ];
 
 export default function GoogleMapContainer({
-    initialCenter = { latitude: 41.9028, longitude: 12.4964 },
+    // Gate F38 — rimosso il default Roma (41.9028, 12.4964). `defaultCenter`
+    // di @vis.gl e' UNCONTROLLED: letto SOLO al mount. Un default qui non era
+    // un ripiego innocuo, era una condanna: la mappa ci restava inchiodata e
+    // la si poteva muovere solo con flyTo imperativi. Ora il centro e'
+    // obbligatorio, e chi monta questo componente deve gia' saperlo
+    // (MapPage lo monta solo con centerStatus === 'resolved').
+    initialCenter,
     defaultZoom = 13,
     heading = 0,
     tilt = 45,
@@ -53,9 +59,15 @@ export default function GoogleMapContainer({
     transportModeOverride,
     ...props
 }) {
-    const defaultCenter = { 
-        lat: initialCenter?.latitude ?? 41.9028, 
-        lng: initialCenter?.longitude ?? 12.4964 
+    // Fail-closed: senza centro non si monta una mappa su un posto inventato.
+    // Il chiamante ha gia' il dovere di risolverlo (Gate F38).
+    if (!Number.isFinite(initialCenter?.latitude) || !Number.isFinite(initialCenter?.longitude)) {
+        console.warn('[Gate F38] GoogleMapContainer senza initialCenter valido → nessuna mappa');
+        return null;
+    }
+    const defaultCenter = {
+        lat: initialCenter.latitude,
+        lng: initialCenter.longitude,
     };
 
     return (

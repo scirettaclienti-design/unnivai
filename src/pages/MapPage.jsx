@@ -9,6 +9,7 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUserContext } from '../hooks/useUserContext';
 import { useCity } from '../context/CityContext';
+import { resolveMapCenter, resolveCenterStatus } from '../lib/mapCenter';
 import UnnivaiMap from '../components/UnnivaiMap';
 import { WeatherAirBadge } from '../components/Map/WeatherAirBadge';
 import { POIDetailDrawer } from '../components/Map/POIDetailDrawer';
@@ -36,7 +37,6 @@ import './MapPage.css';
 const DEBUG_NAV = typeof window !== 'undefined'
     && new URLSearchParams(window.location.search).get('debugnav') === '1';
 
-import { DEMO_CITIES } from '../data/demoData';
 
 const DEFAULT_CITY = 'Roma';
 
@@ -272,7 +272,7 @@ const fetchMatchingBusinesses = async (lat, lng, tourTags = [], radiusM = 2500, 
 const MapPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { city, lat, lng } = useUserContext();
+    const { city, lat, lng, isLoading: userContextLoading } = useUserContext();
     const { isManual } = useCity();
     const queryClient = useQueryClient();
 
@@ -315,7 +315,12 @@ const MapPage = () => {
     }), [map]);
 
     const activeCity = city || DEFAULT_CITY;
-    const cityData = DEMO_CITIES[activeCity] || DEMO_CITIES['Roma'];
+    // Gate F38 — rimossa `const cityData = DEMO_CITIES[activeCity] || DEMO_CITIES['Roma']`.
+    // Era il cuore del difetto: DEMO_CITIES contiene 18 città, e il `||` non
+    // distingueva "città sconosciuta" da "città Roma". Per ogni città italiana
+    // fuori da quelle 18 — cioè quasi tutte — la mappa si centrava su Roma
+    // mentre l'header mostrava, correttamente, il nome giusto.
+    // Il centro ora è UNO stato derivato: vedi `mapCenter` più sotto.
 
     const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
@@ -347,6 +352,43 @@ const MapPage = () => {
     const [localCenter, setLocalCenter] = useState(null);
     const [customOriginAddress, setCustomOriginAddress] = useState('');
     const [isLocating, setIsLocating] = useState(!passedCenter && !activeTourData);
+    // Gate F38 — centro scritto dalla selezione città dell'autocomplete.
+    // Prima quella selezione produceva SOLO un flyTo imperativo su un ref, che
+    // il primo re-render dell'effect di centratura sovrascriveva. Ora è stato.
+    const [manualCenter, setManualCenter] = useState(null);
+
+    // ─── GATE F38 — IL CENTRO MAPPA È UNO STATO DERIVATO ─────────────────────
+    // Prima esistevano quattro fallback indipendenti che si sovrascrivevano a
+    // vicenda (initialCenter al mount, l'effect CITY FLY-TO, il flyTo
+    // dell'autocomplete, cityData). Nessuno era l'autorità. Ora c'è una sola
+    // catena di precedenza, e tutto il resto la legge.
+    //
+    // Le coordinate della città NON sono un geocode nuovo: `lat`/`lng` arrivano
+    // già da userContextService.getCoordinatesForCity (:46, :93), che geocoda
+    // qualunque città italiana con fast-path su CITY_COORDS. Il dato c'era —
+    // DEMO_CITIES lo stava scavalcando.
+    const cityCenter = (Number.isFinite(lat) && Number.isFinite(lng))
+        ? { latitude: lat, longitude: lng }
+        : null;
+
+    // Precedenza (decisione Ivano, 6 livelli):
+    //  1. tour attivo   2. centro passato via router   3. scelta autocomplete
+    //  4. se isManual → città geocodata (la scelta esplicita batte il GPS)
+    //  5. altrimenti → GPS reale, poi città geocodata
+    //  6. niente. NESSUN default Roma.
+    const { center: mapCenter, source: centerSource } = useMemo(
+        () => resolveMapCenter({
+            tourCenter: activeTourData?.center,
+            passedCenter,
+            manualCenter,
+            gpsCenter: localCenter,
+            cityCenter,
+            isManual,
+        }),
+        [activeTourData, passedCenter, manualCenter, localCenter, cityCenter?.latitude, cityCenter?.longitude, isManual],
+    );
+
+    const centerStatus = resolveCenterStatus({ center: mapCenter, isLocating, userContextLoading });
 
     const [isCameraFollowing, setIsCameraFollowing] = useState(false);
     const followingRef = useRef(false);
@@ -385,12 +427,25 @@ const MapPage = () => {
             setIsLocating(false);
             return;
         }
+        // Gate F38 — timeout duro 8s su `isLocating`, indipendente da quello
+        // passato a getCurrentPosition sotto. Regola locked #7: un guard non può
+        // creare uno stato da cui non si esce. Su iOS il callback di
+        // getCurrentPosition può non arrivare MAI (né success né error): in quel
+        // caso `isLocating` restava true per sempre, e con esso lo stato
+        // `pending` — cioè la mappa non montava più. Allo scadere si passa alla
+        // sorgente successiva della catena (città geocodata), mai a Roma.
+        const hardTimeout = setTimeout(() => {
+            console.warn('[Gate F38] GPS non ha risposto entro 8s → passo alla citta geocodata');
+            setIsLocating(false);
+        }, 8000);
         navigator.geolocation.getCurrentPosition(
             (pos) => {
+                clearTimeout(hardTimeout);
                 setLocalCenter({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
                 setIsLocating(false);
             },
             (err) => {
+                clearTimeout(hardTimeout);
                 console.warn('MapPage GPS Fallback failed:', err);
                 setIsLocating(false);
                 if (err.code === 1) { // PERMISSION_DENIED
@@ -413,7 +468,10 @@ const MapPage = () => {
             () => {},
             { enableHighAccuracy: false, maximumAge: 5000 }
         );
-        return () => navigator.geolocation.clearWatch(bgWatchId);
+        return () => {
+            clearTimeout(hardTimeout);
+            navigator.geolocation.clearWatch(bgWatchId);
+        };
     }, []);
 
     // NEW STATES: Tour Completion Tracking
@@ -705,49 +763,45 @@ const MapPage = () => {
         if (!destLat || !destLng) return null;
 
         // Posizione utente: GPS reale o fallback prima tappa del tour
-        const locLat = localCenter?.latitude || activeRoute?.[0]?.latitude || cityData?.center?.latitude;
-        const locLng = localCenter?.longitude || activeRoute?.[0]?.longitude || cityData?.center?.longitude;
+        // Gate F38 — l'ultimo anello era `cityData.center` (Roma per ogni citta
+        // fuori dalle 18 di DEMO_CITIES). Ora e' il centro derivato.
+        const locLat = localCenter?.latitude || activeRoute?.[0]?.latitude || mapCenter?.latitude;
+        const locLng = localCenter?.longitude || activeRoute?.[0]?.longitude || mapCenter?.longitude;
         if (!locLat || !locLng) return null;
 
         return [
             { lat: locLat, lng: locLng, title: localCenter ? 'La tua posizione' : 'Punto di partenza' },
             { lat: destLat, lng: destLng, title: selectedPOI?.name || selectedActivity?.name || 'Destinazione' }
         ];
-    }, [isRoutePlannerOpen, isNavigating, localCenter, activeRoute, cityData, selectedPOI, selectedActivity]);
+    }, [isRoutePlannerOpen, isNavigating, localCenter, activeRoute, mapCenter, selectedPOI, selectedActivity]);
 
     // ─── CITY FLY-TO ─────────────────────────────────────────────────────────
+    // Gate F38 — un solo effect, una sola sorgente: `mapCenter`.
+    // Prima leggeva sei variabili e ricadeva su `cityData.center` (Roma). Il
+    // ramo `isLocating` è sparito dalla guardia: non serve più bloccare la
+    // centratura in attesa del GPS, perché la mappa non monta finché il centro
+    // non è risolto — e quando monta, monta già sul centro giusto.
+    // Questo effect ora serve solo alla RIFINITURA: quando il GPS arriva dopo
+    // il mount sulla città, la camera si sposta di pochi chilometri dentro la
+    // stessa località. Il salto Roma → Puglia non è più producibile.
     useEffect(() => {
         if (!mapRef.current || !isMapReady) return;
-        // DVAI-064 A — gate isNavigating: durante la navigazione la camera è
-        // gestita dal watchPosition callback (moveCamera istantaneo, throttled
-        // 400ms). Senza questo gate, ogni tick GPS aggiornava `localCenter`
-        // (dep), ri-eseguiva l'effect, che se `activeTourData?.center` era
-        // presente lanciava flyTo animato 2s verso il centro tour zoom 13 →
-        // camera "strappata" ogni ~500ms tra utente (zoom 19) e centro tour
-        // (zoom 13). Ora durante nav questo effect è no-op.
+        // DVAI-064 A — durante la navigazione la camera è gestita dal
+        // watchPosition callback (moveCamera istantaneo, throttled 400ms).
+        // Senza questo gate ogni tick GPS strappava la camera.
         if (isNavigating) return;
-        if (activeTourData?.center?.latitude && activeTourData?.center?.longitude) {
-            mapRef.current.flyTo({
-                center: [activeTourData.center.longitude, activeTourData.center.latitude],
-                zoom: 13, duration: 2000, essential: true,
-            });
-            return;
-        }
-        if (showRoute || selectedActivity || isLocating) return;
-        
-        const activeLat = isManual ? lat : (localCenter?.latitude || lat);
-        const activeLng = isManual ? lng : (localCenter?.longitude || lng);
+        if (showRoute || selectedActivity) return;
+        if (!mapCenter) return;
 
-        const targetLat = activeLat || cityData?.center?.latitude;
-        const targetLng = activeLng || cityData?.center?.longitude;
-
-        if (targetLat && targetLng) {
-            // Zoom in slightly more if we are using an exact user GPS or Geocoded location
-            const targetZoom = (activeLat === localCenter?.latitude || isManual) ? 14 : 13;
-            mapRef.current.flyTo({ center: [targetLng, targetLat], zoom: targetZoom, duration: 2000, essential: true });
-            setShowSearchHere(false);
-        }
-    }, [activeCity, lat, lng, cityData, showRoute, activeTourData, selectedActivity, isMapReady, localCenter, isLocating, isManual, isNavigating]);
+        // Zoom più stretto quando il centro è una posizione precisa (GPS o
+        // scelta esplicita); più largo quando è il centro di una città.
+        const targetZoom = (centerSource === 'gps' || centerSource === 'manual') ? 14 : 13;
+        mapRef.current.flyTo({
+            center: [mapCenter.longitude, mapCenter.latitude],
+            zoom: targetZoom, duration: 2000, essential: true,
+        });
+        setShowSearchHere(false);
+    }, [mapCenter, centerSource, showRoute, selectedActivity, isMapReady, isNavigating]);
 
     // ─── AUTO-FIT TO ROUTE (TOURS ONLY — NOT route planner) ────────────────────
     useEffect(() => {
@@ -1494,14 +1548,29 @@ const MapPage = () => {
                 ) : (
                     <>
                         {/* Layer rimosso per ottimizzazione estrama 60fps (I grandi box-shadow inset sopra a WebGL causano microlag nel panning) */}
-                        {isLocating && (
+                        {/* Gate F38 — l'overlay non copre piu' una mappa gia' montata su
+                            Roma: copre il vuoto, perche' la mappa non monta finche' il
+                            centro non e' risolto. Per questo il testo cambia. */}
+                        {centerStatus === 'pending' && (
                             <div className="absolute inset-0 z-20 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity duration-500">
                                 <div className="bg-white/90 backdrop-blur-xl px-6 py-4 rounded-2xl shadow-2xl flex flex-col items-center gap-3 animate-in zoom-in-95">
                                     <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                                    <span className="text-sm font-bold text-gray-800">Acquisizione posizione...</span>
+                                    <span className="text-sm font-bold text-gray-800">Preparo la mappa</span>
+                                    {city && <span className="text-xs text-gray-500">su {city}</span>}
                                 </div>
                             </div>
                         )}
+                        {/* Stato onesto: il boot e' finito e non sappiamo dove sei. Mai Roma.
+                            Uscibile: la barra di ricerca citta' resta montata sopra. */}
+                        {centerStatus === 'unavailable' && (
+                            <div className="absolute inset-0 z-20 flex items-center justify-center bg-gray-50 px-8">
+                                <div className="text-center max-w-xs">
+                                    <p className="text-gray-800 text-sm font-bold mb-1">Dimmi tu dove.</p>
+                                    <p className="text-gray-500 text-xs">Scegli una città dalla barra qui sopra e apro la mappa lì.</p>
+                                </div>
+                            </div>
+                        )}
+                        {centerStatus === 'resolved' && (
                         <UnnivaiMap
                             ref={mapRef}
                             height="100%"
@@ -1537,13 +1606,18 @@ const MapPage = () => {
                             onDirectionsData={handleDirectionsData}
                             selectedId={selectedActivity?.id}
                             activeCity={activeCity}
-                            initialCenter={activeTourData?.center || passedCenter || localCenter || (lat && lng ? { latitude: lat, longitude: lng } : null)}
+                            // Gate F38 — `defaultCenter` di @vis.gl e' UNCONTROLLED: letto solo
+                            // al mount. Montare prima di conoscere il centro significava montare
+                            // su Roma per sempre, correggibile solo con flyTo imperativi. Ora la
+                            // mappa monta una volta sola, gia' sul centro giusto.
+                            initialCenter={mapCenter}
                             onLoad={() => setIsMapReady(true)}
                             completedSteps={completedSteps}
                             mapMood={tourData?.mood || 'default'}
                             suggestedTransit={pageTransportMode}
                             userLocation={localCenter}
                         />
+                        )}
 
                         {/* Layer C Fix 3 — Il "Riprendi Navigazione" fluttuante è stato integrato
                             nel NavigationHUD come pulsante "Centra" (icona LocateFixed) che appare
@@ -1580,12 +1654,23 @@ const MapPage = () => {
                                                 }
                                             } else if (selection.bounce) {
                                                 // Just bounce back to active city center
-                                                const targetLat = localCenter ? localCenter.latitude : (lat && lng) ? lat : cityData?.center?.latitude;
-                                                const targetLng = localCenter ? localCenter.longitude : (lat && lng) ? lng : cityData?.center?.longitude;
+                                                // Gate F38 — il bounce torna al centro derivato, unica autorita'.
+                                                const targetLat = mapCenter?.latitude;
+                                                const targetLng = mapCenter?.longitude;
+                                                if (!targetLat || !targetLng) return;
                                                 mapRef.current?.flyTo({ center: [targetLng, targetLat], zoom: 13, duration: 1500 });
                                             } else {
-                                                // Selected a new city from autocomplete
-                                                mapRef.current?.flyTo({ center: [selection.lng, selection.lat], zoom: 13, duration: 1500 });
+                                                // Gate F38 — la selezione SCRIVE STATO, non un flyTo su un ref.
+                                                // Prima faceva solo `mapRef.current.flyTo(...)`: 1500ms di
+                                                // animazione che il primo re-render dell'effect di centratura
+                                                // sovrascriveva con i suoi 2000ms verso cityData.center (Roma).
+                                                // Due flyTo in gara, vinceva quello sbagliato. Ora `manualCenter`
+                                                // entra nella catena di precedenza al livello 3 e l'effect lo
+                                                // legge come chiunque altro: una sola autorità, nessuna gara.
+                                                if (Number.isFinite(selection.lat) && Number.isFinite(selection.lng)) {
+                                                    console.info(`[Gate F38] citta selezionata → centro ${selection.city}`);
+                                                    setManualCenter({ latitude: selection.lat, longitude: selection.lng });
+                                                }
                                             }
                                         }}
                                     />
@@ -1642,7 +1727,7 @@ const MapPage = () => {
                                                                     () => {
                                                                         setIsLocating(false);
                                                                         // Fallback: usa centro città
-                                                                        if (cityData?.center) setLocalCenter({ latitude: cityData.center.latitude, longitude: cityData.center.longitude });
+                                                                        if (mapCenter) setLocalCenter({ latitude: mapCenter.latitude, longitude: mapCenter.longitude });
                                                                         window.dispatchEvent(new CustomEvent('dvai:toast', { detail: { message: `📍 GPS non disponibile. Partenza da ${activeCity}.`, type: 'info', duration: 4000 } }));
                                                                     },
                                                                     { enableHighAccuracy: true, timeout: 8000 }

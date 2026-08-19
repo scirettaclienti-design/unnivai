@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
 import { useUserContext } from "../hooks/useUserContext";
-import { DEMO_CITIES } from "../data/demoData";
 import { aiRecommendationService } from "../services/aiRecommendationService";
 import { normalizeTour } from "../services/tourShape";
 import { useAILearning } from "../hooks/useAILearning"; // DVAI-045
@@ -167,7 +166,11 @@ export default function AIItineraryPage() {
     // NON viene più derivato da questi valori (buco #3 chiuso).
     const { city, temperatureC, weatherCondition } = useUserContext();
     const activeCity = city || 'Roma';
-    const cityData = DEMO_CITIES[activeCity] || DEMO_CITIES['Roma'];
+    // Gate F38 — rimossa `const cityData = DEMO_CITIES[activeCity] || DEMO_CITIES['Roma']`.
+    // Era una variabile morta (dichiarata e mai letta) il cui unico effetto era
+    // tenere in vita l'import di DEMO_CITIES. La riga in sé è il difetto: quel
+    // `|| DEMO_CITIES['Roma']` non distingue "città sconosciuta" da "città Roma",
+    // e DEMO_CITIES contiene 18 città su tutte quelle italiane.
 
     // DVAI-045: leggi le preferenze apprese dall'AI
     const { userDNAPreferences, trackGeneratedTour, trackInteraction, getAIContext } = useAILearning();

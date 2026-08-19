@@ -75,7 +75,17 @@ export const CitySearchBar = ({ activeCity, onCitySelect }) => {
         setIsOpen(false);
         setIsLoading(true);
 
-        if (!geocoder.current) return;
+        // Gate F38 DIFF 2 — regola locked #7: un guard non può creare uno stato
+        // da cui non si esce. Qui `return` usciva DOPO setIsLoading(true) e
+        // PRIMA del `finally`, quindi lo spinner restava acceso per sempre e la
+        // barra non tornava utilizzabile. Ora lo stato viene chiuso prima di
+        // uscire, e il motivo è dichiarato invece che silenzioso.
+        if (!geocoder.current) {
+            console.warn('[Gate F38] geocoder non pronto → selezione citta annullata');
+            setIsLoading(false);
+            setInputValue('');
+            return;
+        }
 
         try {
             const response = await geocoder.current.geocode({ placeId: prediction.place_id });

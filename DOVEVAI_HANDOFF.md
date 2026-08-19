@@ -3188,6 +3188,55 @@ passare come se fosse una foto vera.
 
 ### Nuovi finding aperti
 
+> **Sintesi**: in questa sessione sono registrati **F27-F41**. `F26` è il nome
+> del **gate** (VERITÀ VISIVA), non un finding — il messaggio di commit
+> `c66d4d6` dice "F26-F41" ed è impreciso, ma è già pushato e non si riscrive
+> la storia per un refuso: la versione corretta è questa riga.
+
+**Difetti di contenuto — cosa entra in un tour**
+
+- **F27 — un indirizzo stradale entra come tappa.** *"Manfredonia Ippocampo -
+  Viale Picardi 25"* è finito dentro un tour come tappa. `VISITABLE_TYPES` non
+  lo scarta. È lo stesso POI del difetto foto di F26: un indirizzo non è un
+  posto visitabile, e prima ancora di non avere una foto vera non doveva
+  esserci.
+
+- **F33 — quattro tappe di fila tutte FOOD**, 60/45/60/60 min. Non è una
+  giornata, è una lista di ristoranti. **Confluisce in TOUR = GIORNATA.**
+
+- **F35 — un tour con UNA sola tappa esce comunque**: *"1 TAPPE — 3h"*, un
+  camping. Serve una **soglia minima** di tappe sotto la quale il tour non si
+  produce (e l'empty state onesto esiste già).
+
+**Difetti di contesto — l'app non guarda dove/quando sei**
+
+- **F31 — city-lock confermato su device**: la posizione è passata da Ippocampo
+  a **Foggia da sola**. **Distinto da F38**: qui è la **città che cambia da
+  sola**; in F38 è la **mappa che non segue** la città selezionata. Due sintomi
+  vicini, da non fondere prima di aver misurato.
+
+- **F28 — fascia oraria preselezionata "Mattina 08:00-12:00" alle 21:10.**
+  Il wizard non guarda l'orologio.
+
+**Difetti di copy e di stato del controllo**
+
+- **F29 — "1 tappe programmate"**: plurale non gestito (`AiItinerary`).
+- **F36 — "1 TAPPE"** nel riepilogo QuickPath: **stesso plurale di F29,
+  superficie diversa**. Da chiudere insieme, o si riapre sul terzo path.
+- **F30 — categoria "Avventura Culturale" → bottone "Genera esperienza Arte".**
+  L'etichetta scelta e l'azione offerta non coincidono.
+- **F34 — bottone "Crea il tuo percorso" grigio spento** nell'empty state
+  Esplora: è **l'unica azione della pagina** e sembra disabilitato. (È il
+  bottone introdotto dal Gate PULIZIA, DIFF 5 — il testo è giusto, lo stile
+  contraddice l'invito.)
+
+**Difetti di layout**
+
+- **F32 — testo che tocca i bordi** nelle schede tappa, parole tagliate a
+  sinistra (*"calda"* → *"cala"*).
+
+**Difetti già dettagliati sopra**
+
 - **F37 — `POIPopupCard.jsx:49-50`**: `rating` default `4.5` e
   `user_ratings_total` generato con `Math.random()` **a ogni apertura**. Numeri
   fabbricati a runtime: più grave dei default fissi, perché cambiano tra due

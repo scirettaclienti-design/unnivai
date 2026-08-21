@@ -3385,6 +3385,160 @@ gate risulterebbe passato per il motivo sbagliato.
 
 ---
 
+## Sessione 21/08 — Gate F43 CHIUSO: il gate CI decide sui job per nome
+
+Commit **`607f249`**. Tre file: `vercel-ignored-build-step.sh` riscritto,
+`scripts/ci-gate-parser.mjs` e `src/test/ci-gate-parser.test.js` nuovi.
+
+### I tre difetti, in ordine di scoperta
+
+**1 — conteggio dei workflow_run invece dei job per nome.** Nel repo esiste
+**un solo** workflow (`.github/workflows/ci.yml`, name `"CI"`), quindi
+`/actions/runs?head_sha=` restituisce `total_count = 1`, **non 2**. I due job
+`"Lint & Test"` ed `"E2E Smoke"` vivono solo in `/actions/runs/{id}/jobs`,
+endpoint che il gate **non chiamava mai**. Conseguenza: *"nessun run
+in_progress"* veniva letto come *"CI verde"* anche nella finestra in cui le
+check non sono ancora registrate. **Alzare il solo timeout avrebbe reso quella
+finestra più probabile, non meno: un fail-closed che diventa fail-open.**
+
+**2 — budget contato in tentativi, non in wall-clock.** `18 × 10s` non
+significava 180s: il tempo delle chiamate non entrava nel conto.
+
+**3 — `curl` senza timeout.** Una chiamata appesa **35s** ha portato una fase da
+30s a **69s**. Con `curl` illimitato il tetto reale **non esisteva**.
+Emerso **solo nel dry-run contro l'API vera** — i 22 unit test erano tutti verdi.
+
+### I numeri, tutti misurati
+
+| | |
+|---|---|
+| durata CI storica (40 run) | mediana **93s**, p90 **126s**, coda **228-277s** |
+| dry-run ALL_GREEN | `exit=1` in **2-3s**, entrambi i nomi job nel log |
+| dry-run CI_FAILED | `exit=0` in **2s**, con nome job e `html_url` |
+| dry-run NOT_REGISTERED | `exit=0` in **30s esatti**, 3 ripetizioni su 3 (prima: 69s) |
+| dry-run API_UNREACHABLE | `exit=0`, **6/6 chiamate scadute** (forzato con `CURL_MAX_TIME=0.1`) |
+| run di chiusura | totale **106s** — Lint & Test 43s, E2E Smoke **56s** |
+| deploy `607f249` | **Ready, 2m 1s**, Production |
+
+### Marker
+
+`ALL_GREEN` · `CI_FAILED` · `NOT_REGISTERED` · `TIMEOUT_JOB_PENDING` ·
+`MISSING_EXPECTED_JOB` · `RATE_LIMITED` · `API_UNREACHABLE` · `AUTH_ERROR` ·
+`HTTP_ERROR` · `PARSE_ERROR` · `NO_TOKEN` · `NO_SHA`
+
+Ultima riga, su **ogni** percorso di uscita:
+```
+GATE_VERDICT exit=<0|1> REASON=<marker> elapsed=<Ns> chiamate: N, scadute: M
+```
+**Vercel legge solo exit 0/1**: la diagnosi vive nel marker, non nell'exit code.
+`TIMEOUT_JOB_PENDING ≠ CI_FAILED` e `RATE_LIMITED ≠ AUTH_ERROR` sono coppie che
+prima producevano lo stesso identico Cancel muto.
+
+### Esito in produzione — parte osservata, parte dedotta
+
+**Osservato** (Ivano, dashboard Vercel): deployment su `607f249` → **Ready,
+2m 1s, Production**.
+
+**Dedotto, non osservato**: Ready implica `exit=1`, e nel codice nuovo `exit=1`
+ha **un solo percorso** — `PROCEED` / `ALL_GREEN`. Quindi il gate ha letto i job
+per nome e ha lasciato passare.
+**La riga `GATE_VERDICT` dal log di build NON è stata letta: l'`elapsed` reale in
+ambiente Vercel resta non misurato.**
+
+### FASE 5a — lo stato del deploy È leggibile dall'esterno
+
+Misurato, con controllo positivo su uno SHA storico:
+
+```
+GET /repos/{owner}/{repo}/commits/{sha}/status
+  → state: "success", statuses[].context == "Vercel"
+GET /repos/{owner}/{repo}/deployments?sha={sha}
+  → environment "Production", created_at
+```
+
+Controllo positivo su `29f4a2c`: `target_url` contiene
+`…/unnivai/Bf65671jgwHkXFBo` — **lo stesso ID che Ivano aveva letto sulla
+dashboard**. Su `607f249`: `state: success`, deployment `6017826612`.
+
+**Permesso richiesto: nessuno.** Il repo è pubblico e la chiamata funziona
+**senza token** (HTTP 200, `state: success`), con il rate limit anonimo di
+60 req/h. Con token si ottiene in più il `target_url` con l'ID del deployment.
+
+**Limite:** GitHub registra **un solo** `deployment_status` (`success`), senza
+un record `pending`. Quindi lo **stato finale** è leggibile, la **durata** no.
+
+### VOCI APERTE
+
+- **F44 — riformulato, non chiuso.** Vedi sotto.
+- **Lezione #10 intatta**: il gate resta muto fuori dai log di build Vercel.
+  **Ma ora esiste `GATE_VERDICT`, marker stabile e grepabile, e la 5a dimostra
+  che lo stato del deploy è interrogabile senza token.** È la materia prima per
+  chiuderla — **non è ancora chiusa**.
+- **`RATE_LIMITED` provato solo dagli unit test**, mai dal campo.
+- **`elapsed` reale del gate in Vercel non misurato.**
+- **Scadenza del PAT non monitorata.**
+- **eslint `globalIgnores` su `scripts/` e `src/test/`**: i due file nuovi non
+  sono analizzati. "Lint pulito" su di loro non prova nulla.
+- **`note_call` viene chiamata dopo `deny_and_exit`**: su un'uscita per 403 i
+  contatori dicono "chiamate effettuate", non "previste". Nessun effetto sui
+  verdetti — `API_UNREACHABLE` si valuta solo sui percorsi di deadline.
+
+---
+
+## F44 — RIFORMULATO (era: "la E2E è quadruplicata in quattro commit")
+
+**La formulazione precedente era sbagliata e va sostituita, non integrata.**
+Descriveva quattro punti scelti male.
+
+Serie reale di `E2E Smoke`: **50 → 83 → 186 → 234 → 56**.
+
+Non è una crescita monotona: è **varianza con coda**. Il fenomeno da spiegare non
+è "perché cresce" ma "perché a volte impiega 4× la mediana".
+
+**Il fatto scomodo, da tenere scritto:** con **56s**, il run di chiusura sarebbe
+passato **anche col gate vecchio**. Il gate nuovo **non è ancora stato messo alla
+prova dalla condizione per cui è stato scritto**. La prima vera prova sarà il
+**prossimo run con E2E oltre i 180s** — quello in cui il gate vecchio avrebbe
+prodotto un Cancel muto e il nuovo deve produrre `ALL_GREEN`.
+
+---
+
+## LEZIONI OPERATIVE (21/08)
+
+**#22 — Un commit che non tocca il bundle non è verificabile dal bundle.**
+`607f249` tocca solo `vercel-ignored-build-step.sh`, `scripts/` e `src/test/`:
+nessuno è importato dall'app, e il build locale produce **lo stesso identico
+hash**. Ho sondato l'entry servita 18 volte in 13 minuti e stavo per riportare
+"deploy non avvenuto": sarebbe stato **falso**. L'hash è identico **per
+costruzione**, a deploy riuscito come a deploy fallito.
+Gli altri due segnali che ho provato sono anch'essi inutilizzabili:
+`x-vercel-id` non contiene il deployment, e `last-modified` coincide con
+`date − age` (verificato: `08:17:37 − 631s = 08:07:06 = last-modified`) — cioè è
+l'istante in cui **la mia stessa sonda** ha riempito la cache. **Stavo misurando
+me stesso.**
+Per i commit di sola infrastruttura l'unica verifica è il log di build, che la
+lezione #10 dice essere invisibile: **le due lezioni si sommano, e insieme
+producono un gate che non ha modo di dimostrarsi da fuori.** La FASE 5a apre la
+prima crepa in questo muro.
+
+**#23 — Corollario operativo della #22.** Prima di dichiarare un deploy "non
+avvenuto", **verificare se quel commit poteva cambiare il bundle**. Se non
+poteva, l'assenza di cambiamento **non è un'informazione**: è il comportamento
+atteso in entrambi gli scenari.
+
+**#24 — `import.meta.url` si rompe se il path contiene uno spazio.** Il guard
+`import.meta.url === \`file://${process.argv[1]}\`` è sempre falso in
+`unnivai ricresa`, perché `import.meta.url` è percent-encoded (`%20`). Il CLI
+non stampava nulla, lo script leggeva output vuoto e cadeva su `PARSE_ERROR`:
+**avrei sostituito un fail-closed intermittente con uno permanente, a ogni
+push.** Si usa `pathToFileURL`.
+**I test puri non lo prendevano**: 13 test verdi su `decide()`, che è pura e non
+sa niente dell'entrypoint. L'ho trovato solo eseguendo il CLI vero con fixture
+su `/tmp`. È la #16 in una forma nuova: **testare la funzione non è testare il
+programma.**
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
 
 > ⚠️ **SEZIONE OBSOLETA** — corretta dal Gate DNA ONESTO (22/07, vedi sopra):

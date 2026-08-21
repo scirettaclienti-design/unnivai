@@ -3642,6 +3642,17 @@ il job_id, poi `/actions/jobs/<job_id>` per gli step con `started_at` e
 `completed_at`) e ha ristretto il campo **da un job intero a una riga di YAML**.
 Prima di cercare la causa di un job lento, chiedersi **quale step** è lento: il
 nome del contenitore non è una diagnosi.
+
+**#26 — Un commento che sopravvive alla cosa che descrive è un dato falso, solo
+più lento a farsi vedere.** In `SurpriseTour` la riga sopra il call site diceva
+*"cover reale dal primo POI (Google Places) o **fallback tematico città**"*: il
+fallback l'avevo appena rimosso, e il commento avrebbe continuato a promettere
+un comportamento inesistente a chiunque leggesse quel punto. Stessa forma della
+dichiarazione falsa del Gate EE su `Landing.jsx`, corretta nel DIFF 4 (punto 7),
+e dello scanner che salta le righe di commento e quindi **non può accorgersene**.
+Regola: **quando si rimuove un comportamento, il commento che lo descrive fa
+parte della rimozione**, non della documentazione.
+
 ---
 
 ## Sessione 21/08 (2) — Gate F26 DIFF 4: le catene di fallback
@@ -3739,6 +3750,62 @@ Provato rosso contro il `dataService` pre-diff.
   risponde nel DIFF 5.
 - **Il DIFF 4 NON è verificato su device.** Le copertine ora cadono sul gradient
   di categoria: **che sia bello non lo prova nessun test.**
+
+---
+
+## Sessione 21/08 (3) — Gate F26 DIFF 5 chiuso
+
+Commit **`cb58368`**, deploy **success** (`Y7vRaMtfdeva2eUovoGzvB1nrDe1`).
+CI 89s. **399 test** (+8). Marker **6/6** dichiarati prima e verificati dopo.
+
+Tre punti: `SurpriseTour` (`CITY_IMAGES` + `getAdaptiveImage`, 25 URL),
+`QuickPath` (26 `image` dalle opzioni del quiz), `AiItinerary:814` (lo stock sui
+waypoint di "Vedi su Mappa").
+
+**Il perimetro è stato deciso misurando la raggiungibilità**, non a memoria:
+delle 5 superfici con 78 Unsplash, **2 VIVE, 1 SPENTA, 2 MORTE**. Il criterio ha
+retto; la mia **classificazione di `AiItinerary` era sbagliata** — avevo contato
+9 occorrenze dandole tutte al mock, ma la nona (`:814`) era codice vivo.
+
+### ORDINE DEI GATE — cambiato
+
+> **DIFF 5 → GATE CLEANUP → DIFF 6**
+
+Il cleanup va **prima** del DIFF 6: il DIFF 6 svuota le allowlist, e tre di
+quelle nominano file che stiamo per cancellare. Cancellarli prima **riduce** il
+lavoro del DIFF 6 invece di duplicarlo.
+
+**I 4 file da cancellare** (tutti a **0 chunk** nel bundle, verificato):
+
+| file | perché morto | occ. |
+|---|---|---:|
+| `src/services/locationTourService.js` | importato da `NotificationBell.jsx:6` ma **mai chiamato**; 0 call site per tutti e 6 i suoi metodi | 12 |
+| `src/pages/AiItinerary.jsx` → `sampleItinerary` (`:26`) | dichiarato e mai referenziato | 8 |
+| `src/utils/imageUtils.js` | orfano dal DIFF 4; unico importatore residuo è dead code | 52 |
+| `src/components/UnnivaiMap.old.jsx` | nessun import (i 5 `UnnivaiMap` puntano al file vivo) | 2 |
+
+**Le tre allowlist che li nominano**, in `src/__tests__/anti-fake.test.js`:
+`:68`/`:71` e `:88` (`locationTourService.js`), `:124` e `:145`
+(`imageUtils.js`, `locationTourService.js`, `AiItinerary.jsx`). Vanno rimosse
+insieme ai file, non dopo.
+
+### Da decidere nel DIFF 6, registrato ora per non trovarselo come sorpresa
+
+**`DashboardUser.jsx:554` e `:587`** — due `bg-[url('https://images.unsplash.com/…')]`
+a **`opacity-10`**: texture decorative dietro le card della dashboard, non
+affermazioni su un posto. Sono fuori dal perimetro di F26 per questo motivo, **ma
+con l'allowlist svuotata faranno fallire `no-unsplash-in-content`.** Decisione da
+prendere lì: rimuoverle, o esentarle per nome e motivo come `Landing.jsx:520`.
+
+**`DashboardGuide.jsx`** (6 occorrenze) — **SPENTO**, non morto: il codice è nel
+bundle ma `V1LockedGuard` non monta mai i children. **Debito differito: torna
+visibile il giorno che V2 si accende.**
+
+### Nessuna verifica su device
+
+**Né il DIFF 4 né il DIFF 5 sono stati visti su device.** Le copertine ora cadono
+sul gradient di categoria e le opzioni del quiz sul gradient + emoji: **che sia
+bello non lo prova nessun test.**
 
 ---
 

@@ -811,7 +811,14 @@ export default function AIItineraryPage() {
                                         name: s.title,  // Required for MapPage activity card
                                         description: s.description,
                                         category: s.type || 'Punto Mappa',
-                                        image: s.photos?.[0] || 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=400',
+                                        // Gate VERITÀ VISIVA (F26) DIFF 5 — via lo stock.
+                                        // `s.photos` non e' mai valorizzato, quindi lo stock
+                                        // vinceva SEMPRE, su ogni waypoint di "Vedi su Mappa".
+                                        // Che a valle venga filtrato (isPlacesPhoto nei drawer,
+                                        // activityPhotoUrl in MapPage) e' la ragione per toglierlo,
+                                        // non per lasciarlo: la sorgente resta viva per il prossimo
+                                        // consumatore che non conosce l'allowlist.
+                                        image: s.photos?.[0] || null,
                                         index: i + 1,
                                         type: 'waypoint'
                                     })) || [],

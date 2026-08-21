@@ -5,58 +5,15 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
 
-// 🧠 ADAPTIVE IMAGE LOGIC
-const CITY_IMAGES = {
-    'Roma': {
-        food: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500", // Carbonara/Roman Food
-        art: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=500", // Colosseum/Art
-        nature: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=500", // Villa Borghese
-        view: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=500",
-        default: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800"
-    },
-    'Firenze': {
-        food: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500",
-        art: "https://images.unsplash.com/photo-1543429388-662bd3d76722?w=500", // Florence Duomo/Art
-        nature: "https://images.unsplash.com/photo-1533621985392-563d8109d3b8?w=500", // Tuscany Hills
-        view: "https://images.unsplash.com/photo-1534237191398-90407a51c969?w=500",
-        default: "https://images.unsplash.com/photo-1543429388-662bd3d76722?w=800"
-    },
-    'Milano': {
-        food: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500",
-        art: "https://images.unsplash.com/photo-1547464333-28f0de20b8f9?w=500", // Duomo
-        nature: "https://images.unsplash.com/photo-1579290076295-a226bc40b543?w=500", // Parco Sempioneish
-        view: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500",
-        default: "https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=800"
-    },
-    'Napoli': {
-        food: "https://images.unsplash.com/photo-1574868233905-25916053805b?w=500", // Pizza
-        art: "https://images.unsplash.com/photo-1548625361-9877484df6c5?w=500",
-        nature: "https://images.unsplash.com/photo-1536417724282-598284687593?w=500", // Vesuvio
-        view: "https://images.unsplash.com/photo-1498394467144-8cb38902d184?w=500",
-        default: "https://images.unsplash.com/photo-1534720993072-cb99b397d415?w=800"
-    },
-    // Fallback generic
-    'default': {
-        food: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=500",
-        art: "https://images.unsplash.com/photo-1548625361-9877484df6c5?w=500",
-        nature: "https://images.unsplash.com/photo-1501854140884-074bf222b866?w=500",
-        view: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=500",
-        default: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800"
-    }
-};
-
-const getAdaptiveImage = (city, category) => {
-    const cityData = CITY_IMAGES[city] || CITY_IMAGES['default'];
-    // Normalize category
-    const catKey = (category || '').toLowerCase();
-
-    if (catKey.includes('cibo') || catKey.includes('gastronomia') || catKey.includes('food')) return cityData.food;
-    if (catKey.includes('arte') || catKey.includes('cultura') || catKey.includes('storia')) return cityData.art;
-    if (catKey.includes('natura') || catKey.includes('parco') || catKey.includes('sport')) return cityData.nature;
-    if (catKey.includes('vista') || catKey.includes('panorama')) return cityData.view;
-
-    return cityData.default;
-};
+// Gate VERITÀ VISIVA (F26) DIFF 5 — rimossi CITY_IMAGES e getAdaptiveImage.
+// Erano 25 URL Unsplash indicizzati per citta' e categoria, usati come
+// COPERTINA del tour a sorpresa quando la prima tappa non aveva una foto
+// Google. Per "Roma" la voce `art`, `view` e `default` erano tutte e tre il
+// Colosseo; per una citta' fuori dalla tabella si cadeva su CITY_IMAGES.default.
+// Era lo stesso difetto chiuso dal DIFF 4 su TourDetails e DashboardUser,
+// sopravvissuto in un file diverso: uno stock presentato come copertina di
+// QUESTO tour. Senza foto reale la copertina e' null e TourCover cade nel ramo
+// B illustrato (gradient di categoria + glifo).
 
 // Gate J2: getSurpriseExperiences rimossa. Prima serviva 3 "esperienze"
 // hardcoded (€75-95, 4.7-4.9★, foto Unsplash) come tour reali cliccabili.
@@ -293,12 +250,12 @@ export default function SurpriseTourPage() {
             const routeCoords = surpriseTour.stops.map(s => `${s.longitude} ${s.latitude}`).join(', ');
             const routeWKT = `LINESTRING(${routeCoords})`;
 
-            // DVAI-051: cover reale dal primo POI (Google Places) o fallback tematico città.
+            // DVAI-051 + F26 DIFF 5: cover reale dal primo POI (Google Places), oppure
+            // nessuna copertina. Il "fallback tematico citta'" e' stato rimosso.
             // Mantiene gli stessi campi narrativi del tour insider per renderizzare
             // "💡 Insider", "Quando:", "→ transizione" nella scheda.
             const stop0 = surpriseTour.stops[0] || {};
-            const firstCat = stop0.type || (selectedFilter || '').toLowerCase() || 'default';
-            const cover = stop0.googlePhoto || getAdaptiveImage(city || 'Roma', firstCat);
+            const cover = stop0.googlePhoto || null;
 
             // DVAI-053: normalizer unificato — stessa shape di Per Te e AiItinerary.
             const mappedTour = normalizeTour({

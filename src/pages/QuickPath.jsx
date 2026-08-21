@@ -253,27 +253,35 @@ export function buildPromptFromSelections({ main, sub, time, duration, group, ci
     return [sentence1, sentence2, sentence3, sentence4, sentence5].filter(Boolean).join(' ');
 }
 
+// Gate VERITÀ VISIVA (F26) DIFF 5 — rimossa la proprieta' `image` (26 URL
+// Unsplash) dalle opzioni del quiz. Non erano copertine di tour, ma foto
+// patinate che illustravano una categoria: dopo il DIFF 4 ogni copertina e' un
+// gradient, e tenerle avrebbe prodotto un downgrade visivo proprio nel momento
+// della scelta. Una era falsa anche con la lettura piu' permissiva: il Colosseo
+// su "Parchi e Verde".
+// Nessun ridisegno: il render gia' prevedeva il caso senza immagine
+// (:864-882) — gradient di categoria da getCoverPalette + emoji dell'opzione.
 // 🌍 ADAPTIVE DATA ENGINE
 const CITY_CONFIG = {
     'Roma': {
         main: ['citta', 'natura', 'storia', 'cibo'],
         sub: {
             citta: [
-                { id: 'rione', title: 'Rioni Storici', image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=300', description: 'Perditi tra i vicoli di Trastevere o Monti', emoji: '🛵' },
-                { id: 'piazze', title: 'Piazze Eterne', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=300', description: 'La dolce vita tra Piazza Navona e Spagna', emoji: '⛲' },
-                { id: 'shopping', title: 'Via del Corso', image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300', description: 'Shopping tra vetrine e palazzi storici', emoji: '🛍️' }
+                { id: 'rione', title: 'Rioni Storici', description: 'Perditi tra i vicoli di Trastevere o Monti', emoji: '🛵' },
+                { id: 'piazze', title: 'Piazze Eterne', description: 'La dolce vita tra Piazza Navona e Spagna', emoji: '⛲' },
+                { id: 'shopping', title: 'Via del Corso', description: 'Shopping tra vetrine e palazzi storici', emoji: '🛍️' }
             ],
             natura: [
-                { id: 'villa', title: 'Ville Nobiliari', image: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=300', description: 'Relax a Villa Borghese o Doria Pamphilj', emoji: '🌳' },
-                { id: 'tevere', title: 'Lungo il Tevere', image: 'https://images.unsplash.com/photo-1565618244030-h200?w=300', description: 'Passeggiata ciclabile sulle sponde del fiume', emoji: '🚴' }
+                { id: 'villa', title: 'Ville Nobiliari', description: 'Relax a Villa Borghese o Doria Pamphilj', emoji: '🌳' },
+                { id: 'tevere', title: 'Lungo il Tevere', description: 'Passeggiata ciclabile sulle sponde del fiume', emoji: '🚴' }
             ],
             storia: [
-                { id: 'imperiale', title: 'Roma Imperiale', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=300', description: 'Colosseo e Fori Imperiali al tramonto', emoji: '⚔️' },
-                { id: 'barocco', title: 'Roma Barocca', image: 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=300', description: 'Bernini, Borromini e le cupole', emoji: '⛪' }
+                { id: 'imperiale', title: 'Roma Imperiale', description: 'Colosseo e Fori Imperiali al tramonto', emoji: '⚔️' },
+                { id: 'barocco', title: 'Roma Barocca', description: 'Bernini, Borromini e le cupole', emoji: '⛪' }
             ],
             cibo: [
-                { id: 'street', title: 'Street Food', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300', description: 'Supplì, Pizza al taglio e Maritozzo', emoji: '🍕' },
-                { id: 'carbonara', title: 'Carbonara Tour', image: 'https://images.unsplash.com/photo-1574868233905-25916053805b?w=300', description: 'Alla ricerca della pasta perfetta', emoji: '🍝' }
+                { id: 'street', title: 'Street Food', description: 'Supplì, Pizza al taglio e Maritozzo', emoji: '🍕' },
+                { id: 'carbonara', title: 'Carbonara Tour', description: 'Alla ricerca della pasta perfetta', emoji: '🍝' }
             ]
         }
     },
@@ -281,18 +289,18 @@ const CITY_CONFIG = {
         main: ['citta', 'moda', 'parchi', 'canali'],
         sub: {
             citta: [
-                { id: 'duomo', title: 'Zona Duomo', image: 'https://images.unsplash.com/photo-1547464333-28f0de20b8f9?w=300', description: 'Il cuore pulsante tra madonnina e galleria', emoji: '⛪' },
-                { id: 'grattacieli', title: 'Skyline Gae Aulenti', image: 'https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=300', description: 'La Milano moderna del Bosco Verticale', emoji: '🏙️' }
+                { id: 'duomo', title: 'Zona Duomo', description: 'Il cuore pulsante tra madonnina e galleria', emoji: '⛪' },
+                { id: 'grattacieli', title: 'Skyline Gae Aulenti', description: 'La Milano moderna del Bosco Verticale', emoji: '🏙️' }
             ],
             moda: [
-                { id: 'quadrilatero', title: 'Quadrilatero', image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300', description: 'Fashion district e vetrine di lusso', emoji: '👠' },
-                { id: 'vintage', title: 'Vintage Brera', image: 'https://images.unsplash.com/photo-1520006403909-838d6b92c22e?w=300', description: 'Botteghe storiche e design', emoji: '🕶️' }
+                { id: 'quadrilatero', title: 'Quadrilatero', description: 'Fashion district e vetrine di lusso', emoji: '👠' },
+                { id: 'vintage', title: 'Vintage Brera', description: 'Botteghe storiche e design', emoji: '🕶️' }
             ],
             parchi: [
-                { id: 'sempione', title: 'Parco Sempione', image: 'https://images.unsplash.com/photo-1579290076295-a226bc40b543?w=300', description: 'Relax vista Castello Sforzesco', emoji: '🏰' }
+                { id: 'sempione', title: 'Parco Sempione', description: 'Relax vista Castello Sforzesco', emoji: '🏰' }
             ],
             canali: [
-                { id: 'navigli', title: 'I Navigli', image: 'https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=300', description: 'Aperitivo e passeggiata sui canali', emoji: '🥂' }
+                { id: 'navigli', title: 'I Navigli', description: 'Aperitivo e passeggiata sui canali', emoji: '🥂' }
             ]
         }
     },
@@ -300,19 +308,19 @@ const CITY_CONFIG = {
         main: ['mare', 'citta', 'vulcano', 'cibo'],
         sub: {
             mare: [
-                { id: 'lungomare', title: 'Lungomare', image: 'https://images.unsplash.com/photo-1498394467144-8cb38902d184?w=300', description: 'Castel dell\'Ovo e vista Capri', emoji: '🌊' },
-                { id: 'posillipo', title: 'Posillipo', image: 'https://images.unsplash.com/photo-1534720993072-cb99b397d415?w=300', description: 'Panorami mozzafiato dall\'alto', emoji: '📸' }
+                { id: 'lungomare', title: 'Lungomare', description: 'Castel dell\'Ovo e vista Capri', emoji: '🌊' },
+                { id: 'posillipo', title: 'Posillipo', description: 'Panorami mozzafiato dall\'alto', emoji: '📸' }
             ],
             citta: [
-                { id: 'spaccanapoli', title: 'Spaccanapoli', image: 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=300', description: 'Il cuore verace e i presepi', emoji: '🌶️' },
-                { id: 'quartieri', title: 'Quartieri Spagnoli', image: 'https://images.unsplash.com/photo-1574868233905-25916053805b?w=300', description: 'Murales, vicoli e vitalità', emoji: '🎭' }
+                { id: 'spaccanapoli', title: 'Spaccanapoli', description: 'Il cuore verace e i presepi', emoji: '🌶️' },
+                { id: 'quartieri', title: 'Quartieri Spagnoli', description: 'Murales, vicoli e vitalità', emoji: '🎭' }
             ],
             vulcano: [
-                { id: 'vesuvio', title: 'Vesuvio View', image: 'https://images.unsplash.com/photo-1536417724282-598284687593?w=300', description: 'Punti panoramici sul vulcano', emoji: '🌋' }
+                { id: 'vesuvio', title: 'Vesuvio View', description: 'Punti panoramici sul vulcano', emoji: '🌋' }
             ],
             cibo: [
-                { id: 'pizza', title: 'Vera Pizza', image: 'https://images.unsplash.com/photo-1574868233905-25916053805b?w=300', description: 'Le pizzerie storiche', emoji: '🍕' },
-                { id: 'dolci', title: 'Sfogliatella', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300', description: 'Pasticceria napoletana', emoji: '🧁' }
+                { id: 'pizza', title: 'Vera Pizza', description: 'Le pizzerie storiche', emoji: '🍕' },
+                { id: 'dolci', title: 'Sfogliatella', description: 'Pasticceria napoletana', emoji: '🧁' }
             ]
         }
     },
@@ -320,10 +328,10 @@ const CITY_CONFIG = {
     'default': {
         main: ['citta', 'natura', 'storia', 'relax'],
         sub: {
-            citta: [{ id: 'centro', title: 'Centro Storico', image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=300', description: 'Monumenti e piazze principali', emoji: '🏰' }],
-            natura: [{ id: 'parco', title: 'Parchi e Verde', image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=300', description: 'Aree verdi e relax', emoji: '🌳' }],
-            storia: [{ id: 'musei', title: 'Cultura e Musei', image: 'https://images.unsplash.com/photo-1548625361-9877484df6c5?w=300', description: 'Arte e storia locale', emoji: '🏛️' }],
-            relax: [{ id: 'spa', title: 'Benessere', image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=300', description: 'Terme e relax', emoji: '🧖' }]
+            citta: [{ id: 'centro', title: 'Centro Storico', description: 'Monumenti e piazze principali', emoji: '🏰' }],
+            natura: [{ id: 'parco', title: 'Parchi e Verde', description: 'Aree verdi e relax', emoji: '🌳' }],
+            storia: [{ id: 'musei', title: 'Cultura e Musei', description: 'Arte e storia locale', emoji: '🏛️' }],
+            relax: [{ id: 'spa', title: 'Benessere', description: 'Terme e relax', emoji: '🧖' }]
         }
     }
 };

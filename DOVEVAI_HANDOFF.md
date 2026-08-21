@@ -3490,16 +3490,48 @@ un record `pending`. Quindi lo **stato finale** è leggibile, la **durata** no.
 **La formulazione precedente era sbagliata e va sostituita, non integrata.**
 Descriveva quattro punti scelti male.
 
-Serie reale di `E2E Smoke`: **50 → 83 → 186 → 234 → 56**.
+Serie reale di `E2E Smoke`, sei punti:
+**52 → 83 → 186 → 234 → 56 → 84**.
 
-Non è una crescita monotona: è **varianza con coda**. Il fenomeno da spiegare non
-è "perché cresce" ma "perché a volte impiega 4× la mediana".
+Non è una crescita monotona: è **bimodale**. Due regimi netti — ~50-85s e
+~186-234s — senza valori intermedi. Il fenomeno da spiegare non è "perché
+cresce" ma "perché a volte impiega 3-4× la mediana".
 
-**Il fatto scomodo, da tenere scritto:** con **56s**, il run di chiusura sarebbe
-passato **anche col gate vecchio**. Il gate nuovo **non è ancora stato messo alla
-prova dalla condizione per cui è stato scritto**. La prima vera prova sarà il
-**prossimo run con E2E oltre i 180s** — quello in cui il gate vecchio avrebbe
-prodotto un Cancel muto e il nuovo deve produrre `ALL_GREEN`.
+### Ipotesi cache Playwright — ESCLUSA CON I DATI (21/08)
+
+Non "non confermata": **smentita**. L'ipotesi era che i run lenti pagassero un
+cache miss dei browser (~93 MB di download).
+
+| run id | E2E | chiave | esito | `cache not found` |
+|---|---|---|---|---|
+| `32275949454` | **186s** | `playwright-Linux-1.61.1` | restored | 0 |
+| `32296513827` | **234s** | `playwright-Linux-1.61.1` | restored | 0 |
+| `32136719605` | 52s | `playwright-Linux-1.61.1` | restored | 0 |
+| `32186339414` | 83s | `playwright-Linux-1.61.1` | restored | 0 |
+| `32461361555` | 56s | `playwright-Linux-1.61.1` | restored | 0 |
+| `32492356855` | 84s | `playwright-Linux-1.61.1` | restored | 0 |
+
+**Stessa chiave, stessa dimensione al byte (`273964501 B`), `Cache restored
+successfully` in tutti e sei, zero `cache not found` — inclusi i due lenti.**
+Se la causa fosse la cache, i due sopra i 180s avrebbero dovuto mostrare un
+miss. Non lo mostrano.
+
+**Campo ristretto:** il ripristino della cache costa **15-20s in entrambi i
+regimi** (run da 186s: job alle 16:27:31, cache ripristinata alle 16:27:51; run
+da 56s: 08:03:48 → 08:04:03). Quindi i ~150s di differenza si accumulano **dopo
+la cache** — dentro l'esecuzione dei test o nel bootstrap del browser.
+**Causa ignota, ma il campo è più stretto di prima.**
+
+### Conseguenza su F43
+
+**F43 resta il pezzo di infrastruttura meno verificato che abbiamo.** Non è mai
+stato messo alla prova da un run oltre i 180s — la condizione esatta per cui è
+stato scritto.
+
+E ora **non sappiamo nemmeno quando accadrà**: l'ipotesi cache prometteva un
+innesco prevedibile (il prossimo bump di Playwright, che invalida la chiave), e
+**quella promessa cade insieme all'ipotesi**. Senza una causa nota, il prossimo
+run lento arriva quando arriva.
 
 ---
 

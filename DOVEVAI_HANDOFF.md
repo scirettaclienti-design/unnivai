@@ -3262,6 +3262,67 @@ passare come se fosse una foto vera.
 
 - **F41 — sessione sloggata da sola** durante il test.
 
+### TEST DEVICE — F38 + F26 punto 1
+
+Deployment `Bf65671jg`, commit `29f4a2c`.
+
+**F26 punto 1: PASS.** Tappa con foto Google vera, nessun Colosseo.
+**Il caso osservato — il Colosseo su "Manfredonia Ippocampo - Viale Picardi 25" —
+è chiuso su device.** Era rimasto non verificato dal giro precedente perché F38
+rendeva la scheda POI irraggiungibile: la sequenza F38 → F26 era corretta.
+
+**F38: PARZIALE.**
+
+| | esito |
+|---|---|
+| **funziona** | la mappa **dentro Esplora** segue la città: Milano → Milano, Ippocampo → Ippocampo. Prima era **sempre** Roma. |
+| **non funziona** | **a schermo intero** l'header dice "Foggia" e la mappa resta su Milano. Cambiare città dalla barra **dentro la mappa espansa** non la muove; cambiarla dalla **home** sì, e poi Esplora la segue. |
+
+Diagnosi Ivano: `manualCenter` viene scritto ma **quella superficie non lo
+osserva**. Il DIFF 1 ha sistemato il **centro iniziale**, non la **selezione
+dall'interno** della mappa.
+
+> ⚠️ **Prima di implementare F38-bis, identificare la superficie — non assumere
+> che sia `MapPage`.** È esattamente la lezione della D1 di questo gate ("non
+> assumere che sia POIDetailDrawer: verificalo"). Il fatto che la barra dentro
+> la mappa espansa si comporti diversamente da quella della home suggerisce due
+> istanze o due componenti distinti. Va misurato, non dedotto.
+
+Registrato come **F38-bis**, coda dello stesso gate.
+
+### FINDING NUOVI
+
+- **F45 — il quiz adatta le opzioni solo per le grandi città.** A Napoli compare
+  "siti vulcanici"; nei piccoli centri restano le quattro box fisse. **Conferma e
+  precisa F3/F24**: esistono profili per capoluogo. (Il codice lo mostra:
+  `QuickPath.jsx` ha un profilo `'default'` con 4 sub-opzioni fisse — vedi F26 D2,
+  dove `'Centro Storico'` / `'Monumenti e piazze principali'` sono proprio quelle.)
+
+- **F46 — il Diario mostra un tour a 221,9 km** (*"I colori e i volti di Napoli"*)
+  mentre l'utente è a Ippocampo. **Il Gate TOUR-DISTANZA copre la generazione, non
+  il Diario.** Stessa card: **"1 Tappe"** — cioè **F35 + F36 insieme**, la soglia
+  minima mancante e il plurale non gestito sulla stessa superficie.
+
+### INFRASTRUTTURA
+
+Deploy sbloccato con **redeploy manuale** su `29f4a2c`: **19s**, contro i 3m06 dei
+tentativi Canceled. Il gate ha trovato la CI **già 3/3 completa** e ha proseguito
+al primo tentativo — il che esclude il PAT e conferma il timeout.
+
+- **F43 — `vercel-ignored-build-step.sh`.** `MAX_ATTEMPTS=18` (~3 min) era tarato
+  su una E2E da 50s che ora ne impiega 234. **Ma alzarlo da solo non basta**: il
+  difetto vero è la logica `total/in_progress` — con "nessuna in_progress" il gate
+  passerebbe **mentre le check non sono ancora registrate**, cioè un fail-closed
+  che diventa **fail-open**. Serve: *settle period*, **lista delle tre check attese
+  per nome**, e **exit code distinti** per timeout vs CI rossa (oggi producono lo
+  stesso Cancel muto).
+  Diventa un gate a sé **dopo** il test device, non mentre la produzione è appena
+  ripartita.
+
+- **F44 — la E2E è quadruplicata in quattro commit**: 50s → 83s → 3m06 → 3m54.
+  Causa sconosciuta. Secondo finding a sé, indipendente da F43: F43 è il gate che
+  non regge il tempo, F44 è il tempo che cresce.
+
 ### LEZIONI OPERATIVE
 
 *(La numerazione prosegue da **#17**, `Sessione 16/08`. Non esiste una lezione
@@ -3292,6 +3353,22 @@ device si chiude solo rivedendolo su device.** Corollario emerso lo stesso
 giorno: quando un gate *rimuove* qualcosa, il test che conta di più è quello che
 prova che **non ha rimosso anche il resto** (punto 2, le 6 foto vere ancora
 caricate) — non quello sul difetto originale.
+
+> **Aggiornamento 19/08**: la lezione #20 ha avuto la sua conferma. Il punto 1 è
+> stato eseguito dopo F38 ed è **PASS**. Il "NON TESTATO" era corretto: il codice
+> era a posto già dal 18/08, ma dichiararlo chiuso sarebbe stato falso per un
+> giorno intero.
+
+**#21 — Un HTTP 200 su un asset non prova che l'asset esista.** Il fallback SPA
+risponde **200 a qualunque path**, con lo stesso `index.html`. Durante lo sblocco
+del deploy di F38 stavo per dichiarare "deploy avvenuto" perché il chunk nuovo
+rispondeva 200: era `text/html`, **690 byte**, identico byte per byte alla
+risposta per un hash **inventato**. Verificare sempre **content-type e
+dimensione**, o confrontare con un hash che non può esistere. Vale per ogni
+verifica su un bundle servito — cioè per il marker check di **ogni** gate (#14).
+Corollario: scaricando N chunk per un `grep`, controllare che siano **tutti JS**.
+Un chunk servito come HTML darebbe zero occorrenze del marker negativo, e il
+gate risulterebbe passato per il motivo sbagliato.
 
 ---
 

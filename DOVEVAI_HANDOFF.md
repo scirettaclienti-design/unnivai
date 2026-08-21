@@ -3539,6 +3539,104 @@ programma.**
 
 ---
 
+## Sessione 21/08 (2) — Gate F26 DIFF 4: le catene di fallback
+
+Commit **`e4e19e0`**, deploy **success** (`Fnv7XvMFDMjopVt8H7vgNsdGwBNm`).
+CI 126s — Lint & Test 35s, E2E Smoke 84s. **391 test** (+8).
+
+**Regola applicata** (decisione Ivano): sulla **copertina** un'illustrazione
+dichiarata va bene, non pretende di essere una foto di quel posto; sulla
+**scheda POI** l'immagine pretende di essere **quel** posto, quindi senza foto
+ancorata al `place_id` non si mostra niente.
+
+Sette punti: hero `TourDetails` → `TourCover`; catena
+`THEME_FALLBACK_IMAGES → CITY_IMAGES → GENERIC.piazza` in `DashboardUser`
+(**due** siti, non uno); stock di ripiego in `QuickPathSummary`; `placehold.co`
+in `Explore`; hero `PlaceDetailsView` sotto `isPlacesPhoto`; push dello stock in
+`dataService.js:48`; correzione del commento falso in `anti-fake.test.js`.
+
+### F1 — CHIUSO, e non da F26
+
+**`findPlaceFromQuery` non esiste più come codice.** Le uniche occorrenze sono
+commenti-lapide (`POIDetailDrawer.jsx:27`, `POIPopupCard.jsx:24`,
+`poiPhoto.js:5`) e test. Fu ucciso dal **Gate FOTO (`2729068`)**, non da questo
+gate.
+
+**Va tolto dal backlog**: era un finding sopravvissuto nel documento al codice
+che lo aveva già risolto. Verificato anche che la regola che lo vieta
+(`no-places-sdk-search-by-name`) **morde davvero**: file sonda con il pattern →
+`× 1 violazione`. Non è più una regola mai vista fallire.
+
+### La dichiarazione falsa del Gate EE
+
+`anti-fake.test.js:125-126` diceva: *"rimosso `src/pages/Landing.jsx` (unsplash
+avatar '+2.800 viaggiatori' cancellato — **la landing non ha più foto stock**)"*.
+
+**Falso.** Il Gate EE rimosse l'avatar, **non l'hero**: `Landing.jsx:520` è
+tuttora `photo-1552832230`, il Colosseo. La dichiarazione affermava più di
+quanto fosse stato fatto — **la stessa bugia che quel file esiste per uccidere,
+scritta dentro lo strumento**.
+
+**Era invisibile perché la regola sopra è `skip: true`.** Corretta al punto 7:
+`Landing.jsx` resta in allowlist per un **motivo nominato** (hero della landing,
+non contenuto POI né copertina tour, non ancora sostituito), non per categoria.
+Togliere lo `skip` resta **DIFF 6**.
+
+### Tecnica nuova — per un diff di sola rimozione
+
+**La sparizione di un chunk dal bundle è prova più forte di un marker positivo.**
+
+Il chunk `imageUtils-*.js` c'era nel bundle PRE e nel POST **non esiste**: i
+punti 1 e 2 gli hanno tolto gli unici due import vivi. È una prova strutturale,
+non un conteggio.
+
+Serve perché **un diff che solo rimuove non ha un marker positivo**: non
+aggiunge nessuna stringa letterale. Avevo scelto `isPlacesPhoto` e dà **0
+chunk**, perché è un **nome di simbolo** e la minificazione lo rinomina — cioè
+esattamente la violazione della lezione #14. Dichiarare l'assenza del marker
+positivo è più onesto che inventarne uno.
+
+Marker: `photo-1552832230` bundle **5 → 4** (i 4 residui: `Landing` eccezione
+dichiarata, più `DashboardGuide`/`QuickPath`/`SurpriseTour` di DIFF 5);
+`placehold.co` **1 → 0**; `[Gate NARRATORE/POI]` **2 → 2**.
+
+> Attenzione a due misure che **non** vanno a zero nel **sorgente** e non è un
+> difetto: `placehold.co` resta a `Explore.jsx:350` e `getItemImage` a
+> `TourDetails.jsx:833` **dentro i commenti di gate**, che citano ciò che è stato
+> rimosso. Nel bundle sono zero. È la stessa trappola già vista nel Gate PULIZIA.
+
+### Il difetto trovato dal test, non da me
+
+`QuickPathSummary` aveva **due** Unsplash: `mainImage` (visto) e **un secondo
+dentro l'`onError` dell'`<img>`** (`:42`), che rimetteva la stessa piazza quando
+la foto si rompeva. Avrei chiuso il diff col buco aperto.
+
+8/8 asserzioni rosse pre-fix. Le 3 che restavano rosse dopo avevano **tre cause
+diverse**: un mio commento che citava il simbolo, questo difetto vero, e
+un'asserzione sbagliata (`not.toContain` non distingue una **citazione** da
+un'**affermazione**).
+
+`dataService.test.js:212` invertito **e rinominato**: asseriva che
+`mapTourToUI` restituisse uno stock, cioè **proteggeva il difetto invece del
+contratto**. Un nome falso in un file di test è lo stesso difetto del punto 7.
+Provato rosso contro il `dataService` pre-diff.
+
+### NON risolto
+
+- **DIFF 5**: `QuickPath` 26, `SurpriseTour` 25, `locationTourService` 12,
+  `AiItinerary` 9, `DashboardGuide` 6. Con essi va cancellato `imageUtils.js`,
+  ora **orfano nel sorgente** ma già fuori dal bundle (lo importa solo
+  `UnnivaiMap.old.jsx`, dead code).
+- **DIFF 6**: `skip: true`, svuotamento allowlist, regola strutturale contro
+  `if (url) setX(url)` senza `else`.
+- **`GroupInviteModal.jsx:44`**: avatar persona, regola diversa.
+- **Raggiungibilità di `locationTourService`**: domanda ancora aperta, si
+  risponde nel DIFF 5.
+- **Il DIFF 4 NON è verificato su device.** Le copertine ora cadono sul gradient
+  di categoria: **che sia bello non lo prova nessun test.**
+
+---
+
 ## BLOCCO 3 — INTELLIGENZA ⏳ DA APRIRE
 
 > ⚠️ **SEZIONE OBSOLETA** — corretta dal Gate DNA ONESTO (22/07, vedi sopra):

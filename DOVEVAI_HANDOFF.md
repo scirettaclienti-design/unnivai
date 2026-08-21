@@ -3522,6 +3522,60 @@ da 56s: 08:03:48 → 08:04:03). Quindi i ~150s di differenza si accumulano **dop
 la cache** — dentro l'esecuzione dei test o nel bootstrap del browser.
 **Causa ignota, ma il campo è più stretto di prima.**
 
+### F44 CHIUSO COME FINDING (21/08) — non come gate
+
+**Non è "E2E lenta". Non lo è mai stata.**
+
+Scomposizione per step del job `E2E Smoke`, run `32296513827` (234s) contro
+`32461361555` (56s). Tredici step per parte, **stessi nomi**, confrontabili uno
+a uno:
+
+| step | lento | veloce | delta |
+|---|---:|---:|---:|
+| **Install Playwright chromium** | **189s** | **16s** | **+173s** |
+| Setup Node.js 22 | 12s | 7s | +5s |
+| Run E2E smoke tests | 13s | 12s | +1s |
+| **Cache Playwright browsers** | **5s** | **5s** | **0s** |
+| altri nove step | — | — | ±1s ciascuno |
+| | | | **+180s** |
+
+**Un solo step su tredici vale +173s dei ~180s.** Gli altri dodici insieme fanno
++7s: rumore.
+
+**I test veri durano 13s contro 12s.** L'esecuzione non c'entra niente. Per
+settimane abbiamo detto "la E2E è lenta" perché quello è **il nome del job**, e
+il job contiene tredici step di cui uno solo varia — e non è quello che esegue
+i test.
+
+`Cache Playwright browsers` costa **5s in entrambi**. L'ipotesi *cache miss* era
+già esclusa con i dati (sei run, stessa chiave, stessi `273964501 B`, restored
+ovunque, zero `cache not found`); la scomposizione lo conferma dal lato del
+tempo.
+
+**Fatto non spiegato, e ora preciso.** Letto `ci.yml` (sola lettura):
+
+```yaml
+      - name: Cache Playwright browsers      # :69-73
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+
+      - name: Install Playwright chromium    # :75-76
+        run: npx playwright install --with-deps chromium
+```
+
+Lo step di install **non ha alcuna condizione `if:`: gira sempre**, anche dopo
+un cache hit riuscito. E lo step di cache **non ha un `id:`**, quindi
+`steps.<id>.outputs.cache-hit` oggi non sarebbe nemmeno referenziabile.
+Perché quel comando impieghi 16s in un regime e 189s nell'altro **resta ignoto**:
+qui è registrato il fatto, non una spiegazione.
+
+**Impatto reale sul prodotto: nessuno.** Solo minuti di CI. È per questo che
+resta un **finding registrato e non un gate**.
+
+Serie bimodale a sei punti: **52 → 83 → 186 → 234 → 56 → 84**.
+
 ### Conseguenza su F43
 
 **F43 resta il pezzo di infrastruttura meno verificato che abbiamo.** Non è mai
@@ -3532,6 +3586,15 @@ E ora **non sappiamo nemmeno quando accadrà**: l'ipotesi cache prometteva un
 innesco prevedibile (il prossimo bump di Playwright, che invalida la chiave), e
 **quella promessa cade insieme all'ipotesi**. Senza una causa nota, il prossimo
 run lento arriva quando arriva.
+
+**Il rovescio controintuitivo, da tenere scritto.** Lo step
+`Install Playwright chromium` oggi gira **sempre**, senza `if:`. Se un giorno lo
+si condizionasse al cache-miss — che è la cosa ovvia da fare per accorciare la
+CI — **sparirebbe l'unico innesco noto dei run oltre 180s**. Il gate F43
+diventerebbe **ancora meno verificabile** di adesso: nessun run lento, quindi
+nessuna occasione di provarlo nella condizione per cui è stato scritto.
+Ottimizzare la CI e collaudare il gate tirano in direzioni opposte. Chi tocca
+quello step deve saperlo.
 
 ---
 
@@ -3569,6 +3632,16 @@ sa niente dell'entrypoint. L'ho trovato solo eseguendo il CLI vero con fixture
 su `/tmp`. È la #16 in una forma nuova: **testare la funzione non è testare il
 programma.**
 
+
+**#25 — Il nome di un job non è la sua causa.** Per settimane "E2E Smoke lenta"
+ha descritto **tredici step come se fossero uno**. I test veri duravano 13s
+contro 12s nei due regimi estremi: non erano mai stati loro. La variazione stava
+tutta in `Install Playwright chromium`, +173s su +180s.
+La scomposizione per step è costata **due letture API** (`/runs/<id>/jobs` per
+il job_id, poi `/actions/jobs/<job_id>` per gli step con `started_at` e
+`completed_at`) e ha ristretto il campo **da un job intero a una riga di YAML**.
+Prima di cercare la causa di un job lento, chiedersi **quale step** è lento: il
+nome del contenitore non è una diagnosi.
 ---
 
 ## Sessione 21/08 (2) — Gate F26 DIFF 4: le catene di fallback

@@ -19,7 +19,11 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
 
     const durationLabel = formatMinutes(tourData.duration_minutes);
 
-    const mainImage = tourData.imageUrl || tourData.images?.[0] || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800';
+    // Gate VERITÀ VISIVA (F26) DIFF 4 — via lo stock Unsplash di ripiego.
+    // Questa e' la copertina del tour appena generato: se non c'e' una foto
+    // Places verificata si mostra il gradient di categoria (TourCover ramo B),
+    // non una piazza italiana a caso presentata come il tuo percorso.
+    const mainImage = tourData.imageUrl || tourData.images?.[0] || null;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
@@ -30,13 +34,18 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                 className="bg-white rounded-[2rem] shadow-2xl max-w-lg w-full overflow-hidden relative"
             >
                 {/* Visual Header */}
-                <div className="relative h-48 w-full overflow-hidden">
-                    <img
-                        src={mainImage}
-                        alt={tourData.title}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800'; }}
-                    />
+                <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-stone-300 to-stone-500">
+                    {mainImage && (
+                        <img
+                            src={mainImage}
+                            alt={tourData.title}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            // F26 DIFF 4 — il secondo stock era QUI, nell'onError: una
+                            // foto rotta veniva sostituita da una piazza generica.
+                            // Ora l'img si nasconde e resta il fondo neutro sotto.
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                     
                     <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5">

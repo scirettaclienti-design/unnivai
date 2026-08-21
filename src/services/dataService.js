@@ -45,7 +45,11 @@ class DataService {
             // Fallback for main image if array is empty but 'image' column exists
             if (images.length === 0 && dbTour.image) images.push(dbTour.image);
             // Final fallback
-            if (images.length === 0) images.push("https://images.unsplash.com/photo-1516483638261-f4dbaf036963");
+            // Gate VERITÀ VISIVA (F26) DIFF 4 — rimosso il push di uno stock
+            // Unsplash dentro `images` di un tour REALE del DB. Stava a monte di
+            // tutto: la copertina risultava "presente" e nessun controllo a valle
+            // poteva piu' distinguerla da una foto caricata dalla guida.
+            // Un tour senza foto ha images vuoto, e il render lo dichiara.
 
             const highlights = Array.isArray(dbTour.highlights) ? dbTour.highlights : [];
             const itinerary = Array.isArray(dbTour.itinerary) ? dbTour.itinerary : [];

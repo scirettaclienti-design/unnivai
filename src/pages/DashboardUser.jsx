@@ -12,7 +12,6 @@ import { useQuery } from "@tanstack/react-query";
 import { dataService, createGuideRequest } from "@/services/dataService";
 import { useAILearning } from '../hooks/useAILearning';
 import { placesDiscoveryService } from '@/services/placesDiscoveryService';
-import { getItemImage, GENERIC, CITY_IMAGES } from '@/utils/imageUtils';
 import { normalizeTour } from '@/services/tourShape';
 import { resolveCityCenter, CityCenterUnresolvedError } from '@/services/cityCenterService';
 import TourCover from '@/components/TourCover';
@@ -20,12 +19,8 @@ import TourCover from '@/components/TourCover';
 
 // Theme-aware fallback images (city-neutral, topic-relevant).
 // Gate P.1: 4 temi (walking morto, art rinominato cultura).
-const THEME_FALLBACK_IMAGES = {
-    food: GENERIC.food,
-    cultura: GENERIC.church,
-    romance: GENERIC.sea,
-    nature: GENERIC.park,
-};
+// Gate VERITÀ VISIVA (F26) DIFF 4 — THEME_FALLBACK_IMAGES rimosso: era la
+// prima maglia della catena di stock che finiva sulla copertina dei tour "Per Te".
 
 const THEME_EMOJIS = {
     food: '🍽️',
@@ -323,7 +318,13 @@ const DashboardUser = () => {
 
                     const emoji = isInsider ? '🧭' : (THEME_EMOJIS[tour.themeType] || '📍');
                     const category = isInsider ? '✨ Insider AI' : "Consigliato dall'AI";
-                    const themeFallbackImg = THEME_FALLBACK_IMAGES[tour.themeType] || CITY_IMAGES[currentCity] || GENERIC.piazza;
+                    // Gate VERITÀ VISIVA (F26) DIFF 4 — rimossa la catena
+                    // THEME_FALLBACK_IMAGES -> CITY_IMAGES -> GENERIC.piazza.
+                    // Erano tre livelli di stock Unsplash mostrati come copertina di
+                    // QUESTO tour: per "Roma" CITY_IMAGES dava il Colosseo. TourCover
+                    // (gia' usato a :677) cade da solo nel ramo B illustrato quando
+                    // `cover` non e' una foto Places verificata — non serve dargli
+                    // un ripiego, serve NON darglielo.
 
                     return normalizeTour({
                         id: `home-${tour.themeType}-${Date.now()}`,
@@ -332,7 +333,7 @@ const DashboardUser = () => {
                         location: `${currentCity}, ${isInsider ? 'Tour AI Insider' : 'Esperienza Locale'}`,
                         // Gate O.2: nessun rating/reviews/price tour-level.
                         duration: `${durationMin} min`,
-                        image: firstStop?.googlePhoto || themeFallbackImg,
+                        image: firstStop?.googlePhoto || null,
                         category,
                         emoji,
                         isAiGenerated: true,
@@ -370,12 +371,15 @@ const DashboardUser = () => {
                 }
             }
 
-            // Arricchisci categoria + garantisci immagine coerente con la città
-            const cityFallbackImg = CITY_IMAGES[currentCity] || GENERIC.piazza;
+            // Gate VERITÀ VISIVA (F26) DIFF 4 — via anche il secondo `cityFallbackImg`
+            // (CITY_IMAGES -> GENERIC.piazza). "Garantisci immagine coerente con la
+            // città" era il nome gentile di "metti uno stock che assomigli al posto":
+            // il Colosseo su Roma, una piazza generica ovunque. Senza foto vera la
+            // copertina e' il gradient di categoria di TourCover.
             return finalTours.slice(0, 5).map((t, i) => ({
                 ...t,
-                image: t.image || t.imageUrl || cityFallbackImg,
-                images: (t.images?.length > 0) ? t.images : [t.image || t.imageUrl || cityFallbackImg],
+                image: t.image || t.imageUrl || null,
+                images: (t.images?.length > 0) ? t.images : [t.image || t.imageUrl].filter(Boolean),
                 category: hasPreferences && i === 0
                     ? 'Scelto per te'
                     : (t.category || (hasPreferences ? 'Basato sui tuoi gusti' : 'Popolare a ' + currentCity)),

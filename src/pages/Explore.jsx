@@ -346,7 +346,11 @@ function ExplorePage() {
                                                 src={experience.imageUrl}
                                                 alt={experience.title}
                                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                onError={(e) => e.target.src = 'https://placehold.co/600x400?text=Tour'}
+                                                // Gate VERITÀ VISIVA (F26) DIFF 4 — via il placeholder
+                                                // 'placehold.co/600x400?text=Tour': un rettangolo con
+                                                // scritto "Tour" e' un'immagine inventata come le altre.
+                                                // Ora l'img rotta si nasconde e resta lo skeleton sotto.
+                                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                             />
                                             {/* Gate CC.2b: rimosso badge rating tour-level (regola O.4). Il rating vero e' POI-level, mostrato piu' sotto come featuredPoi. */}
                                             {experience.distance && (

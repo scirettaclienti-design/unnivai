@@ -121,18 +121,35 @@ const RULES = [
         name: 'no-unsplash-in-content',
         pattern: /images\.unsplash\.com/,
         allowlist: [
+            // CORREZIONE F26 DIFF 4 (21/08). Qui c'era scritto:
+            //   "Gate EE: rimosso 'src/pages/Landing.jsx' (unsplash avatar
+            //    '+2.800 viaggiatori' cancellato — la landing non ha piu' foto stock)"
+            // ed era FALSO. Il Gate EE rimosse l'avatar, NON l'hero: Landing.jsx:520
+            // e' tuttora `photo-1552832230`, cioe' il Colosseo. La dichiarazione
+            // affermava piu' di quanto fosse stato fatto, e nessuno se n'e' accorto
+            // perche' la regola e' skip:true. E' la stessa bugia che questo file
+            // esiste per uccidere, solo scritta dentro lo strumento.
+            //
+            // Landing.jsx resta in allowlist per un motivo NOMINATO, non per
+            // categoria: e' l'hero della landing, non contenuto POI ne' copertina
+            // tour, e non e' ancora stato sostituito. Gate a parte.
+            'src/pages/Landing.jsx',
+            // Orfano dopo il DIFF 4: TourDetails e DashboardUser non lo importano
+            // piu'. Resta nel sorgente (UnnivaiMap.old.jsx lo referenzia) ma e'
+            // fuori dal bundle. Cancellazione: DIFF 5.
             'src/utils/imageUtils.js',
-            // Gate EE: rimosso 'src/pages/Landing.jsx' (unsplash avatar
-            // "+2.800 viaggiatori" cancellato — la landing non ha piu' foto stock).
+            // DIFF 5 — non ancora ripuliti.
             'src/pages/QuickPath.jsx',
             'src/pages/SurpriseTour.jsx',
             'src/pages/AiItinerary.jsx',
             'src/services/locationTourService.js',
+            'src/pages/DashboardGuide.jsx',
+            'src/components/GroupInviteModal.jsx',
         ],
         message: 'Unsplash dentro contenuto tour. Le foto vengono da Google Places photo API.',
-        // SKIP: dataService fallback + tourShape STEP_FALLBACK + GroupInviteModal
-        // Sofia avatar (Profile.jsx ripulito in Gate Profilo L1). Riattivare dopo
-        // aver ripulito gli 8 violatori residui (vedi handoff).
+        // SKIP ancora attivo: toglierlo e' il DIFF 6, insieme allo svuotamento
+        // dell'allowlist. Il DIFF 4 ha gia' chiuso dataService fallback e
+        // tourShape STEP_FALLBACK, due dei violatori citati nella vecchia nota.
         skip: true,
     },
     {

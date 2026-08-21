@@ -4,7 +4,8 @@ import { ArrowLeft, ArrowRight, MapPin, Clock, Star, Play, Heart, Share2, Users,
 import { Link, useParams, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import TopBar from "../components/TopBar";
-import { getItemImage, imgOnError } from "../utils/imageUtils";
+import TourCover from "../components/TourCover";
+import { isPlacesPhoto } from "@/lib/categoryPalette";
 
 import { useAuth } from "../context/AuthContext";
 import BottomNavigation from "../components/BottomNavigation";
@@ -341,13 +342,20 @@ const GuideChatModal = ({ isOpen, onClose, guideName, guideAvatar }) => {
 const PlaceDetailsView = ({ place, onBack }) => {
     return (
         <div className="min-h-screen bg-gray-50 font-quicksand pb-24">
-            {/* Header Image */}
-            <div className="relative h-64">
-                <img
-                    src={place.images?.[0] || place.imageUrl}
-                    alt={place.title}
-                    className="w-full h-full object-cover"
-                />
+            {/* Gate VERITÀ VISIVA (F26) DIFF 4 — questa e' una scheda POI, non una
+                copertina: qui l'immagine PRETENDE di essere quel posto. Decisione
+                Ivano: senza foto ancorata al place_id non si mostra niente.
+                Il contenitore resta (porta il bottone indietro e il badge tipo) con
+                un fondo neutro che non finge di essere una fotografia — stesso
+                trattamento dell'hero tappa a :1220 e della card partner in MapPage. */}
+            <div className="relative h-64 bg-gradient-to-br from-stone-300 to-stone-500">
+                {isPlacesPhoto(place.images?.[0] || place.imageUrl) && (
+                    <img
+                        src={place.images?.[0] || place.imageUrl}
+                        alt={place.title}
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+                )}
                 <button
                     onClick={onBack}
                     className="absolute top-4 left-4 p-2 bg-white/90 rounded-full shadow-md text-gray-700 hover:bg-white transition-colors"
@@ -821,18 +829,24 @@ export default function TourDetailsPage() {
             <main className="max-w-md mx-auto pb-24">
                 {/* --- HERO SECTION --- */}
                 <div className="relative">
-                    {/* Placeholder blur gradient while image loads */}
-                    <div className="absolute inset-0 h-80 bg-gradient-to-br from-orange-200 via-orange-100 to-amber-100" />
-                    <motion.img
-                                loading="eager"
-                                src={getItemImage(tour, tour.city)}
-                                onError={imgOnError(tour.city)}
-                                alt={tour.title}
-                                className="relative w-full h-80 object-cover"
-                                initial={{ scale: 1.2, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ duration: 0.8 }}
-                            />
+                    {/* Gate VERITÀ VISIVA (F26) DIFF 4 — la copertina passa da TourCover.
+                        Prima: l'helper di imageUtils, che quando non trovava una
+                        foto vera ricadeva su CITY_IMAGES o su GENERIC.piazza — cioè su
+                        uno stock Unsplash mostrato come copertina di QUEL tour. Per
+                        "Roma" quello stock era il Colosseo (imageUtils.js:38).
+                        Ora: se la foto e' verificata Places la si mostra (ramo A), se
+                        non c'e' si mostra il gradient di categoria col glifo (ramo B).
+                        Decisione Ivano: sulla COPERTINA un'illustrazione dichiarata va
+                        bene, perche' non pretende di essere una foto di quel posto. */}
+                    <div className="relative w-full h-80">
+                        <TourCover
+                            cover={tour.imageUrl || tour.image || null}
+                            category={tour.category || tour.type}
+                            type={tour.type}
+                            title={tour.title}
+                            animateKey={tour.imageUrl || tour.image || tour.id}
+                        />
+                    </div>
 
                             {/* Overlay Controls */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent">

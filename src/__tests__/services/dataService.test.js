@@ -209,9 +209,13 @@ describe('mapTourToUI', () => {
     expect(result.imageUrl).toBe('https://single.jpg')
   })
 
-  it('uses Unsplash fallback URL when no image field is present', () => {
+  // Gate VERITÀ VISIVA (F26) DIFF 4 — invertito. Prima asseriva che mapTourToUI
+  // RESTITUISSE uno stock Unsplash: proteggeva il difetto invece del contratto.
+  // Il push dello stock in `images` (dataService.js:48) e' stato rimosso, e con
+  // esso il nome del test, che ora direbbe il contrario di cio' che verifica.
+  it('non inventa un\'immagine quando il tour DB non ne ha una', () => {
     const result = dataService.mapTourToUI(minimalDbTour())
-    expect(result.imageUrl).toContain('unsplash.com')
+    expect(result.imageUrl).toBeFalsy()
   })
 
   it('wraps a non-array images value in an array', () => {

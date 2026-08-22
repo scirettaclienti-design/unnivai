@@ -3666,6 +3666,19 @@ ricordare che gli esempi **✗** (cosa non scrivere) non vengono imitati — son
 **✓** il template. Quando un output di modello sembra inventato, **rileggere il
 prompt prima di accusare il modello**.
 
+
+**#28 — Un dato falso può vivere dentro una regola di sicurezza.**
+*"Non suggerire MAI posti chiusi"* sembrava proteggere l'utente, e conteneva
+tre orari inventati (*"i musei chiudono alle 19, i ristoranti aprono alle 12 e
+19, i bar alle 7"*). Nessuno li aveva mai riletti perché l'**intenzione** della
+riga era difensiva: si legge il verbo, non il complemento.
+**Le regole di sicurezza vanno lette come contenuto, non solo come intenzione** —
+e sono il posto dove un fatto inventato sopravvive più a lungo, perché
+sembra che stia proteggendo qualcosa.
+Corollario trovato lo stesso giorno: **il rimedio ovvio è una seconda trappola.**
+Citare la frase falsa per negarla (*"«i musei chiudono alle 19» NON è un fatto
+che conosci"*) la rimette nel prompt, e i modelli negano male. Il divieto va
+scritto **senza ripetere ciò che vieta**.
 ---
 
 ## Sessione 21/08 (2) — Gate F26 DIFF 4: le catene di fallback
@@ -3884,6 +3897,48 @@ frasi viste su device esiste nel sorgente. La causa vera è che il modello
   una regola mancante: è una superficie che quel meccanismo non tocca. Provato
   con una sonda: su cinque frasi vere del difetto, **una sola** violazione — e
   solo perché conteneva il placeholder letterale.
+
+### DIFF 3 CHIUSO (22/08) — commit `ea59c1a`, deploy success
+
+**"Alle 19" non era un'allucinazione: era una nostra riga.** Il punto 9 del
+prompt legacy affermava, *come regola di sicurezza*:
+
+> *"Non suggerire MAI posti chiusi. **I musei chiudono alle 19. I ristoranti
+> aprono alle 12 e 19. I bar aprono alle 7.** Adatta al contesto orario."*
+
+Tre orari inventati dentro un'istruzione che sembrava proteggere l'utente.
+
+**E la regola esisteva in TRE copie** — selettore, "Per Te", legacy — non una.
+
+Fatto: tutte e tre riformulate come **divieto di affermare** stati di apertura,
+non come istruzione a dedurli; **`open_now` rimosso** dal payload del selettore
+(verificato prima che nessun `filter`/`sort`/`find` lo usasse: la selezione non
+dipendeva da lui); **`bestTime: null`** quando non c'è un motivo verificabile.
+
+**Path notifiche NON toccato**: lì `closingTimeTodayHH → open_now` è già la
+gerarchia corretta e il dato viene da `place/details`. Presidiato da un test.
+
+Due decisioni di metodo:
+
+- **Il marker `"alle 19" → 0` era sbagliato**, corretto prima di eseguirlo:
+  avrebbe cancellato `:2066` (esempio con orario **reale**) e `:2068` (la regola
+  locked scritta bene). **Un marker che punisce chi rispetta la regola non è un
+  marker.** Finale: `"alle 19"` 3→2, `"aprono alle"` 1→0, `"chiudono alle"` 1→0,
+  `"MAI suggerire posti chiusi"` 2→0.
+- **`tourSensato.test.js:251` invertito e rinominato**, non cancellato. Il
+  commento racconta **entrambi** i gate: F18 aggiunse `open_now`
+  deliberatamente, il DIFF 3 lo rimuove. Senza quella storia, fra sei mesi
+  sembra un test che ha sempre detto questo.
+
+### Restano
+
+- **DIFF 2** — rinominare `hasRealDescription` in `hasNonEmptyDescription`:
+  verifica solo che la stringa non sia vuota e **non guarda `insiderTip`**.
+  Cinque minuti, **nessun cambio di comportamento**, solo un nome che smette di
+  promettere ciò che non fa.
+- **DIFF 4** — harness runtime. **È il pezzo che rende il gate durevole**: le
+  regole anti-fake scansionano il sorgente, il testo del narratore nasce a
+  runtime. Senza, DIFF 1 e DIFF 3 sono correzioni una tantum.
 
 ### Onestà
 

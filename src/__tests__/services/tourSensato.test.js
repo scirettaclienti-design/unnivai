@@ -248,7 +248,34 @@ describe('Gate TOUR-SENSATO F18 — open_now arriva ai chosenPois della notifica
 
 // Il prompt del selettore: si ispeziona il body inviato a openai-proxy, non il
 // valore di ritorno (lezione #16).
-describe('Gate TOUR-SENSATO — open_now arriva nel prompt del selettore', () => {
+//
+// ── STORIA DELL'INVERSIONE — leggere prima di modificare ────────────────────
+// Questo test ASSERIVA IL CONTRARIO fino al 22/08, ed è stato invertito, non
+// riscritto da zero. Le due decisioni, in ordine:
+//
+//   F18 — Gate TOUR-SENSATO (16/08). `open_now` fu aggiunto DELIBERATAMENTE al
+//     payload del selettore, e questo test lo difendeva. Motivo di allora: il
+//     prompt conteneva la regola "MAI suggerire posti chiusi ora", che il
+//     modello non poteva rispettare perché nessun dato di apertura gli
+//     arrivava. Dargli `open_now` sembrava il minimo per rendere la regola
+//     applicabile.
+//
+//   DIFF 3 — Gate NARRATORE ANCORATO (22/08). `open_now` è stato RIMOSSO dal
+//     payload del selettore. Due ragioni:
+//     1. la regola locked dice di NON usarlo — è istantaneo e perde freschezza
+//        in ~30 min — e di preferire closingTimeTodayHH, che su questo path
+//        non arriva (la textsearch non restituisce `periods`);
+//     2. sul campo la sua presenza INDUCEVA il difetto invece di prevenirlo:
+//        avendo un dato di apertura, il modello si sentiva autorizzato ad
+//        affermare stati di apertura ("Adesso il locale è pieno di vita",
+//        osservato alle 00:18 su un locale chiuso).
+//     La regola è stata riscritta come divieto di AFFERMARE stati di apertura:
+//     al modello non serve più alcun dato di apertura, quindi non lo riceve.
+//
+// Il path NOTIFICHE non è stato toccato: lì la gerarchia
+// closingTimeTodayHH → open_now è già corretta e il dato viene da place/details.
+// Lo presidia il test "un POI chiuso produce 'chiuso ora' nel prompt" qui sopra.
+describe('Gate NARRATORE ANCORATO DIFF 3 — open_now NON arriva più nel prompt del selettore', () => {
     const INTENT = { queries: ['osteria'], categoria: 'cibo', oggetto_umano: 'osterie', vincoli: { tempo: null, escludi: [], note: null } };
     const CENTRO = { latitude: 41.63, longitude: 15.917, isSmallTown: true, radiusKm: 5 };
 
@@ -258,7 +285,7 @@ describe('Gate TOUR-SENSATO — open_now arriva nel prompt del selettore', () =>
     });
     afterEach(() => { vi.unstubAllGlobals(); });
 
-    it('candidato chiuso → open_now:false nel prompt; candidato senza dato → campo OMESSO', async () => {
+    it('nessun candidato porta open_now nel payload, nemmeno quello con il dato', async () => {
         const bodies = [];
         let aiCall = 0;
         vi.stubGlobal('fetch', vi.fn(async (url, init) => {
@@ -294,8 +321,14 @@ describe('Gate TOUR-SENSATO — open_now arriva nel prompt del selettore', () =>
         const chiuso = lista.find(c => c.name === 'Osteria Sotto Casa');
         const ignoto = lista.find(c => c.name === 'Senza orari');
 
-        expect(chiuso.open_now).toBe(false);
-        // Omesso, non `null` e non `false`: un default inventerebbe un fatto.
+        // PRIMA (F18): `chiuso.open_now === false`, e omesso su chi non l'aveva.
+        // ORA (DIFF 3): il campo non esiste per NESSUNO dei due. Il candidato con
+        // il dato è quello che conta: prova che la rimozione è a monte, nel
+        // payload, e non un effetto del candidato che il dato non ce l'aveva.
+        expect('open_now' in chiuso).toBe(false);
         expect('open_now' in ignoto).toBe(false);
+        // I candidati arrivano comunque: si è tolto un campo, non la lista.
+        expect(chiuso.name).toBe('Osteria Sotto Casa');
+        expect(chiuso.place_id).toBe('pid-chiuso');
     });
 });

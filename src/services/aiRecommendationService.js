@@ -803,12 +803,18 @@ export const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherI
             types: (p.types || []).slice(0, 5),
             address: p.address || null,
         };
-        // Gate TOUR-SENSATO — la regola ":862 MAI suggerire posti chiusi ora"
-        // era una frase che il modello non poteva rispettare: nel prompt non
-        // arrivava nessun orario. open_now viene dalla textsearch a costo zero.
-        // Se il dato manca il campo si OMETTE: metterlo a false o a null
-        // inventerebbe un fatto ("è chiuso" / "non si sa") che nessuno ha detto.
-        if (typeof p.open_now === 'boolean') lite.open_now = p.open_now;
+        // Gate NARRATORE ANCORATO (DIFF 3) — `open_now` NON viene più passato.
+        // Il Gate TOUR-SENSATO lo aveva aggiunto per dare al modello un dato su
+        // cui applicare "mai suggerire posti chiusi ora". Ma la regola locked
+        // dice di NON usarlo — è istantaneo e perde freschezza in ~30 min — e di
+        // preferire l'orario di chiusura reale (closingTimeTodayHH), che su
+        // questo path non arriva: la textsearch non restituisce `periods`.
+        // Passare l'unico dato che la regola vieta, per far rispettare una regola
+        // che ora è diventata "non parlarne", non ha più senso: la regola
+        // riscritta sopra vieta di AFFERMARE stati di apertura, quindi al modello
+        // non serve alcun dato di apertura. Un dato in meno è una bugia in meno.
+        // closingTimeTodayHH resta capacità inutilizzata su questo path: portarlo
+        // costa una place/details per candidato ed è un gate a sé.
         return lite;
     });
     const N = candidatesLite.length;
@@ -877,8 +883,13 @@ Il tuo lavoro in 3 mosse:
      ✓ panorama      — "Mettiti a destra del parapetto, a sinistra c'è un palo in mezzo"
      ✗ "Consigliata visita mattutina"
 
-   bestTime (max 100 car): perché ORA. Non un orario generico, un motivo specifico.
-     ✓ "Alle 17 la luce entra dalla vetrata sud e colpisce l'altare"
+   bestTime (max 100 car): perché ORA — ma SOLO se il motivo è verificabile dai
+     dati che ti ho dato (momento della giornata, meteo, stagione). NON ricevi
+     orari di apertura o chiusura: NON citare ore.
+     Se non hai un motivo vero, scrivi "bestTime": null. Il campo è opzionale e
+     l'interfaccia lo omette: un motivo inventato è peggio di un campo assente.
+     ✓ "Con il cielo coperto di oggi i mosaici non sono abbagliati dal riflesso"
+     ✗ "Alle 17 la luce entra dalla vetrata sud e colpisce l'altare"  ← orario inventato
      ✗ "Momento migliore: pomeriggio"
 
    transition (max 80 car): cosa vedi camminando alla prossima tappa. Un dettaglio.
@@ -893,7 +904,12 @@ REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
 "affascinante", "magico", "imperdibile" — usate sole senza contesto.
 
 REGOLE STRUTTURA:
-- MAI suggerire posti chiusi ora (contesto: ${timeContext}).
+- NON AFFERMARE MAI se un posto è aperto o chiuso, e NON dedurlo dall'ora.
+  Non ricevi i suoi orari: qualunque frase sull'apertura sarebbe inventata.
+  Vietato scrivere "aperto adesso", "chiuso a quest'ora", "lo trovi ancora aperto",
+  e vietato citare orari di apertura o chiusura in QUALSIASI campo.
+  Puoi dire cosa si vede o si sente in questo momento della giornata
+  (contesto: ${timeContext}); mai se il posto è accessibile.
 - COERENZA COL TIPO: ogni frase che scrivi su una tappa deve essere compatibile
   col suo "types". Prima di scrivere, rileggi il "types" di QUEL candidato.
   Un consiglio gastronomico su un museo, o una nota su una sala espositiva in un
@@ -919,7 +935,7 @@ FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
       "time": "HH:MM",
       "description": "voce insider sensoriale (max 120 car)",
       "insiderTip": "consiglio da local (max 100 car)",
-      "bestTime": "perché ORA (max 100 car)",
+      "bestTime": "perché ORA (max 100 car) — oppure null se non hai un motivo vero",
       "transition": "cosa vedi camminando (max 80 car)",
       "suggestedMinutes": 30,
       "type": "cultura|storia|food|shopping|relax|arte|natura"
@@ -1026,8 +1042,13 @@ REGOLE:
      ✓ "Chiedi il caffe' al bancone, seduto costa il doppio"
      ✗ "Consigliata visita mattutina"
 
-   bestTime (max 100 car): perche' ORA. Non un orario generico, un motivo specifico.
-     ✓ "Alle 17 la luce entra dalla vetrata sud e colpisce l'altare"
+   bestTime (max 100 car): perche' ORA — ma SOLO se il motivo è verificabile dai
+     dati che ti ho dato (momento della giornata, meteo, stagione). NON ricevi
+     orari di apertura o chiusura: NON citare ore.
+     Se non hai un motivo vero, scrivi "bestTime": null. Il campo è opzionale e
+     l'interfaccia lo omette: un motivo inventato è peggio di un campo assente.
+     ✓ "Con il cielo coperto di oggi i mosaici non sono abbagliati dal riflesso"
+     ✗ "Alle 17 la luce entra dalla vetrata sud e colpisce l'altare"  ← orario inventato
      ✗ "Momento migliore: pomeriggio"
 
    transition (max 80 car): cosa vedi camminando alla prossima tappa.
@@ -1039,7 +1060,12 @@ REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
 "affascinante", "magico", "imperdibile", "ottima scelta", "perfetta scelta" — usate sole senza contesto.
 
 REGOLE STRUTTURA:
-- MAI suggerire posti chiusi ora (contesto: ${timeContext}).
+- NON AFFERMARE MAI se un posto è aperto o chiuso, e NON dedurlo dall'ora.
+  Non ricevi i suoi orari: qualunque frase sull'apertura sarebbe inventata.
+  Vietato scrivere "aperto adesso", "chiuso a quest'ora", "lo trovi ancora aperto",
+  e vietato citare orari di apertura o chiusura in QUALSIASI campo.
+  Puoi dire cosa si vede o si sente in questo momento della giornata
+  (contesto: ${timeContext}); mai se il posto è accessibile.
 - Adatta il TIPO di posto al gruppo: coppia→intimo, amici→vivace, famiglia→kid-friendly, solo→contemplativo.
 - Un place_id puo' apparire in AL PIU' UN tour. Non ripetere lo stesso luogo in tour diversi.
 - Se un tour non ha 3 candidati adatti al contesto, meglio 2-3 tappe che tappe inventate. NON creare tappe con description generica per riempire.
@@ -1057,7 +1083,7 @@ FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
         "time": "HH:MM",
         "description": "voce insider sensoriale (max 120 car)",
         "insiderTip": "consiglio da local (max 100 car)",
-        "bestTime": "perche' ORA (max 100 car)",
+        "bestTime": "perche' ORA (max 100 car) — oppure null se non hai un motivo vero",
         "transition": "cosa vedi camminando (max 80 car)",
         "suggestedMinutes": 30,
         "type": "cultura|storia|food|shopping|relax|arte|natura"
@@ -1374,7 +1400,7 @@ REGOLE ASSOLUTE:
 6. Per ogni tappa: perché vale la pena andarci ORA (${timeContext}).
 7. Le descrizioni sono evocative, dirette, mai da Wikipedia. Max 120 caratteri.
 8. CONTESTO GRUPPO: se "coppia" → posti intimi, tramonti, tavoli per due. Se "amici" → locali vivaci, street food, piazze sociali. Se "famiglia" → posti kid-friendly, gelato, parchi. Se "solo" → caffè con vista, librerie, angoli tranquilli.
-9. Non suggerire MAI posti chiusi. I musei chiudono alle 19. I ristoranti aprono alle 12 e 19. I bar aprono alle 7. Adatta al contesto orario.
+9. NON AFFERMARE MAI se un posto è aperto o chiuso, e NON dedurlo dall'ora: non ricevi i suoi orari. Un orario di apertura o chiusura che credi di sapere è una tua supposizione, e scriverla la trasforma in una bugia. Vietato citare orari di apertura o chiusura in qualsiasi campo, per qualsiasi tipo di posto.
 10. Per città NON top-6 (Roma/Milano/Firenze/Napoli/Venezia/Torino): sii conservativo. Suggerisci SOLO posti che sei CERTO esistano. Meglio 3 tappe sicure che 5 inventate. Se non conosci un posto specifico, usa la categoria ("un'enoteca storica nel centro") piuttosto che un nome falso.
 11. Per tour multi-giorno: il giorno 2 riprende dove finisce il giorno 1. Narrativa continua, non ripartire da zero.
 12. Il TITOLO nasce dalle TAPPE CHE HAI SCELTO, non da un modello: deve poter valere solo per QUESTO tour. Se lo si potesse incollare su un tour diverso della stessa citta', e' sbagliato. Se le tappe sono gastronomiche il titolo parla di cibo, se sono musei parla d'arte. Forma evocativa "<aggettivo/immagine> <sostantivo> di <citta'>", mai "Tour di <citta'>". NON riusare formule gia' sentite.
@@ -1396,7 +1422,7 @@ Schema JSON ESATTO:
       "description": "Descrizione evocativa, diretta, da insider (max 120 car)",
       "transition": "Come arrivi alla prossima tappa (distanza, cosa vedi camminando)",
       "insiderTip": "Consiglio da local",
-      "bestTime": "Perché questo è il momento giusto per questa tappa",
+      "bestTime": "Perché questo è il momento giusto — oppure null se non hai un motivo vero, senza citare orari",
       "photo_query": "Nome Posto Indirizzo Città (per ricerca Google Places foto)",
       "suggestedMinutes": 30,
       "type": "cultura|storia|food|shopping|relax|arte|natura",

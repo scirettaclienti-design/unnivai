@@ -118,10 +118,14 @@ describe('Gate NARRATORE ANCORATO DIFF 1 — il prompt del selettore', () => {
         expect(p).toContain('Consigliata visita mattutina');
     });
 
-    it('DIFF 3, non ancora fatto: bestTime puo\' ancora affermare un orario', () => {
-        // Registrato come limite noto. Quando il DIFF 3 chiudera' questo punto,
-        // questa asserzione va invertita — non cancellata.
-        expect(prompt()).toContain('Alle 17 la luce entra dalla vetrata sud');
+    it('DIFF 3 chiuso: l\'orario inventato non e\' piu\' un esempio ✓', () => {
+        // Era registrato come limite noto del DIFF 1 e ora e' INVERTITO, non
+        // cancellato: "Alle 17 la luce entra dalla vetrata sud" era l'esempio ✓
+        // che premiava un orario specifico senza alcun dato di orario nel prompt.
+        // Resta nel testo come ✗ — i controesempi non vengono imitati (lezione #27).
+        const p = prompt();
+        expect(p).toContain('← orario inventato');
+        expect(p).not.toMatch(/✓ "Alle 17 la luce entra/);
     });
 });
 
@@ -144,5 +148,60 @@ describe('Gate NARRATORE ANCORATO DIFF 1 — il titolo dettato, su TUTTI i promp
         expect(src).toContain('DERIVATO dalle tappe che hai scelto');
         // punto 12 del prompt legacy
         expect(src).toContain('Il TITOLO nasce dalle TAPPE CHE HAI SCELTO');
+    });
+});
+
+describe('Gate NARRATORE ANCORATO DIFF 3 — nessun orario inventato, nessuno stato di apertura', () => {
+    it('controllo dello strumento: il sorgente letto e\' quello giusto', () => {
+        const src = serviceCode();
+        expect(src).toContain('buildSelectorSystemPrompt');
+        expect(src).toContain('candidatesLite');
+    });
+
+    it('gli orari inventati del punto 9 legacy sono spariti', () => {
+        const src = serviceCode();
+        expect(src).not.toContain('I musei chiudono alle 19');
+        expect(src).not.toContain('aprono alle');
+        expect(src).not.toContain('chiudono alle');
+    });
+
+    it('resta l\'orario REALE del path notifiche: il marker non punisce chi rispetta la regola', () => {
+        // :2066 e' un esempio con orario da closingTimeTodayHH vero, :2068 e' la
+        // regola locked scritta bene. Un marker secco su "alle 19" li avrebbe
+        // cancellati entrambi.
+        const src = serviceCode();
+        expect(src).toContain('chiude alle 19:00');
+        expect(src).toContain('chiude oggi alle HH:MM');
+    });
+
+    it('nessun prompt ordina piu\' di dedurre se un posto e\' chiuso', () => {
+        expect(serviceCode()).not.toContain('MAI suggerire posti chiusi ora');
+    });
+
+    it('tutti i prompt vietano di AFFERMARE stati di apertura', () => {
+        const src = serviceCode();
+        // due copie della regola (selettore + "Per Te") piu' il punto 9 legacy
+        const occorrenze = src.split('NON AFFERMARE MAI se un posto è aperto o chiuso').length - 1;
+        expect(occorrenze).toBe(3);
+    });
+
+    it('open_now non entra piu\' nel payload del selettore', () => {
+        const src = serviceCode();
+        expect(src).not.toContain('lite.open_now');
+        // il prompt del selettore non deve nemmeno nominarlo
+        expect(prompt()).not.toContain('open_now');
+    });
+
+    it('il path notifiche NON e\' stato toccato: li\' la gerarchia era gia\' corretta', () => {
+        const src = serviceCode();
+        expect(src).toContain('} else if (c.open_now === true) {');
+        expect(src).toContain("bits.push('chiuso ora');");
+    });
+
+    it('bestTime ammette null quando non c\'e\' un motivo vero', () => {
+        const p = prompt();
+        expect(p).toContain('"bestTime": null');
+        expect(p).toContain('un motivo inventato è peggio di un campo assente');
+        expect(p).toContain('NON citare ore');
     });
 });

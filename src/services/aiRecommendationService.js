@@ -101,7 +101,7 @@ const callOpenAIProxy = async (payload, signal) => {
  *
  * Type-check (DVAI-051): l'AI può fornire un nome che esiste su Google ma di tipo
  * completamente diverso (es. "Fratelli Puglisi gelateria" mentre il vero locale è
- * un'officina). Mappiamo poi.type → set di Google `types` attesi; se l'intersezione
+ * un'officina). Mappiamo poi.type → set di Google "types" attesi; se l'intersezione
  * è vuota scartiamo il POI.
  */
 // DVAI-051: i types `establishment` e `point_of_interest` sono ~universali su Google,
@@ -154,7 +154,7 @@ export const verifyPOIWithPlaces = async (poi, city) => {
             path: 'place/findplacefromtext',
             input: searchQuery,
             inputtype: 'textquery',
-            // DVAI-051: aggiunto `types` (Basic Data, gratis) per il type-check.
+            // DVAI-051: aggiunto "types" (Basic Data, gratis) per il type-check.
             // DVAI-057: aggiunto `business_status` per scartare CLOSED_TEMPORARILY / CLOSED_PERMANENTLY
             // ("esiste su Google" ≠ "aperto oggi"). Senza il campo nella field mask Google non lo ritorna.
             fields: 'name,geometry,place_id,rating,opening_hours,photos,types,business_status',
@@ -788,7 +788,12 @@ function sortByProximity(stops) {
 //
 // Guardrail voce (parole vietate + esempi ✓/✗) preservano il tono insider che
 // era il valore emotivo di DoveVAI e che era il criterio #1 di successo.
-const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, cityCenter, candidates, userPrompt, intent }) => {
+// Exported per test (stesso pattern di canonicalizeStopsFromCandidates e
+// hasRealDescription piu' sotto). Il Gate NARRATORE ANCORATO verifica il
+// PROMPT COSTRUITO, non l'output del modello: l'output e' non deterministico e
+// nessun test puo' provare che sia migliorato. Raggiungerlo attraverso
+// generateItinerary renderebbe il test dipendente dagli interni del motore.
+export const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, cityCenter, candidates, userPrompt, intent }) => {
     const candidatesLite = candidates.map(p => {
         const lite = {
             place_id: p.place_id || p.googlePlaceId,
@@ -846,13 +851,30 @@ Il tuo lavoro in 3 mosse:
 
 3. VOCE — per ogni tappa, racconta come un local sussurra un segreto:
 
+   ⚠️ REGOLA SOPRA TUTTE: gli esempi ✓ qui sotto mostrano il REGISTRO, non il
+   contenuto. NON copiarli e NON trasporli su un posto di tipo diverso. Ogni
+   frase deve nascere dal luogo che stai descrivendo e dal suo "types".
+
    description (max 120 car): un dettaglio sensoriale specifico, cosa vedi/senti/odori.
-     ✓ "Il pavimento è consumato dai piedi di 300 anni di parrocchiani"
+     Scegli l'esempio del tipo GIUSTO per quel POI:
+     ✓ museo/galleria — "La sala 3 ha una sola panca, davanti al quadro più piccolo"
+     ✓ chiesa        — "Il pavimento è consumato dai piedi di 300 anni di parrocchiani"
+     ✓ ristorante/bar — "Il bancone è di zinco e d'estate resta freddo sotto il gomito"
+     ✓ parco/natura  — "I platani sul lato ovest fanno ombra fino alle quattro"
+     ✓ panorama      — "Da qui si vedono i tetti fino al campanile, senza cavi in mezzo"
      ✗ "Chiesa barocca del XVIII secolo, patrimonio della città"
 
    insiderTip (max 100 car): un consiglio pratico che solo chi ci vive sa.
-     ✓ "Chiedi il caffè al bancone, seduto costa il doppio"
-     ✓ "Entra dalla porta laterale, quella principale è chiusa lun/mar"
+     ⚠️ DEVE essere pertinente al "types" del POI. Un consiglio da bar su un museo
+     è un errore grave: non si chiede un dolce in una galleria d'arte.
+     Se per QUEL posto non hai un consiglio pertinente e concreto, scrivi
+     "insiderTip": null. Nessun consiglio è meglio di un consiglio di un'altra
+     categoria: il campo è opzionale e l'interfaccia lo omette senza problemi.
+     ✓ museo/galleria — "L'ultima sala è la più vuota: partì da lì e torna indietro"
+     ✓ chiesa        — "Entra dalla porta laterale, quella principale è chiusa lun/mar"
+     ✓ ristorante/bar — "Chiedi il caffè al bancone, seduto costa il doppio"
+     ✓ parco/natura  — "L'ingresso nord non ha scale, quello sud sì"
+     ✓ panorama      — "Mettiti a destra del parapetto, a sinistra c'è un palo in mezzo"
      ✗ "Consigliata visita mattutina"
 
    bestTime (max 100 car): perché ORA. Non un orario generico, un motivo specifico.
@@ -860,7 +882,10 @@ Il tuo lavoro in 3 mosse:
      ✗ "Momento migliore: pomeriggio"
 
    transition (max 80 car): cosa vedi camminando alla prossima tappa. Un dettaglio.
+     Varia: non tutte le strade hanno balconi. Guarda cosa c'è davvero fra i due punti.
      ✓ "Girando per Via delle Cisterne c'è un balcone tutto edera"
+     ✓ "Il ponte è stretto, si passa uno alla volta"
+     ✓ "Sulla destra un muro di mattoni con una targa quasi illeggibile"
      ✗ "Prosegui verso la prossima tappa a 5 min a piedi"
 
 REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
@@ -869,8 +894,17 @@ REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
 
 REGOLE STRUTTURA:
 - MAI suggerire posti chiusi ora (contesto: ${timeContext}).
+- COERENZA COL TIPO: ogni frase che scrivi su una tappa deve essere compatibile
+  col suo "types". Prima di scrivere, rileggi il "types" di QUEL candidato.
+  Un consiglio gastronomico su un museo, o una nota su una sala espositiva in un
+  bar, è un errore che invalida la tappa.
 - Adatta il TIPO di posto al gruppo: coppia→intimo, amici→vivace, famiglia→kid-friendly, solo→contemplativo.
-- Il TITOLO del tour è evocativo: "La ${city} che non dorme mai", "I vicoli segreti di ${city}" — non "Tour di ${city}".
+- Il TITOLO nasce dalle TAPPE CHE HAI SCELTO e dalla richiesta dell'utente, non
+  da un modello. Deve poter valere solo per QUESTO tour: se lo si potesse
+  incollare su un tour diverso di ${city}, è sbagliato. Forma evocativa
+  ("<aggettivo/immagine> <sostantivo> di ${city}"), mai "Tour di ${city}".
+  Se le tappe sono gastronomiche il titolo parla di cibo; se sono musei parla
+  d'arte. NON usare formule già sentite: inventane una da queste tappe.
 
 FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
 {
@@ -938,7 +972,7 @@ const buildUnifiedHomeToursPrompt = ({ city, timeContext, weather, weatherIcon, 
     // Meta per tema: titolo suggerito + focus categoria (per aiutare l'AI a
     // non mescolare cibo in un tour cultura).
     const themeMeta = {
-        insider: { titleHint: `Titolo evocativo unico (es. "I vicoli segreti di ${city}", "La ${city} che non dorme mai") — NON "Tour di ${city}"`, focus: 'perla nascosta, mix di categorie che raccontano l\'anima della citta\', prima tappa NON e\' il monumento piu\' famoso' },
+        insider: { titleHint: `Titolo evocativo unico, DERIVATO dalle tappe che hai scelto: deve poter valere solo per QUESTE tappe, non per un altro tour di ${city}. Forma "<aggettivo/immagine> <sostantivo> di ${city}", mai "Tour di ${city}". NON riusare formule gia' sentite: inventane una da queste tappe.`, focus: 'perla nascosta, mix di categorie che raccontano l\'anima della citta\', prima tappa NON e\' il monumento piu\' famoso' },
         food:    { titleHint: `Titolo tipo "Assapora ${city}" o "Street food di ${city}"`, focus: 'ristoranti, trattorie, mercati, gelaterie, caffe\' — SOLO tappe food' },
         cultura: { titleHint: `Titolo tipo "Tesori di ${city}" o "Storia di ${city}"`, focus: 'chiese, musei, palazzi, monumenti, piazze storiche — SOLO tappe cultura/storia/arte' },
         romance: { titleHint: `Titolo tipo "Vista mare a ${city}" o "${city} al tramonto"`, focus: 'lungomari, panorami, belvederi, giardini romantici, scalinate scenografiche' },
@@ -1343,7 +1377,7 @@ REGOLE ASSOLUTE:
 9. Non suggerire MAI posti chiusi. I musei chiudono alle 19. I ristoranti aprono alle 12 e 19. I bar aprono alle 7. Adatta al contesto orario.
 10. Per città NON top-6 (Roma/Milano/Firenze/Napoli/Venezia/Torino): sii conservativo. Suggerisci SOLO posti che sei CERTO esistano. Meglio 3 tappe sicure che 5 inventate. Se non conosci un posto specifico, usa la categoria ("un'enoteca storica nel centro") piuttosto che un nome falso.
 11. Per tour multi-giorno: il giorno 2 riprende dove finisce il giorno 1. Narrativa continua, non ripartire da zero.
-12. Il TITOLO del tour deve essere evocativo e unico. Es: "La Roma che non dorme mai" non "Tour serale di Roma". Es: "I vicoli segreti di Bari vecchia" non "Tour di Bari".
+12. Il TITOLO nasce dalle TAPPE CHE HAI SCELTO, non da un modello: deve poter valere solo per QUESTO tour. Se lo si potesse incollare su un tour diverso della stessa citta', e' sbagliato. Se le tappe sono gastronomiche il titolo parla di cibo, se sono musei parla d'arte. Forma evocativa "<aggettivo/immagine> <sostantivo> di <citta'>", mai "Tour di <citta'>". NON riusare formule gia' sentite.
 13. Includi "photo_query" per ogni tappa: la stringa di ricerca Google Places più precisa per trovare la foto reale del posto (es: "Caffè Greco Via Condotti Roma").${aiProfile ? `
 14. PROFILO UTENTE IMPLICITO (adatta il tour a questi gusti senza menzionarli esplicitamente): ${aiProfile}` : ''}${cityCenter && Number.isFinite(cityCenter.latitude) ? `
 15. VINCOLO GEOGRAFICO ASSOLUTO: tutte le tappe DEVONO trovarsi entro ${(cityCenter.radiusKm ?? ((cityCenter.isSmallTown ?? isSmallTown(city)) ? 5 : 10))} km dal centro (${cityCenter.latitude.toFixed(4)}, ${cityCenter.longitude.toFixed(4)}), che è ${city}. ${(cityCenter.isSmallTown ?? isSmallTown(city)) ? `Trattandosi di un borgo piccolo, resta ENTRO il territorio comunale di ${city}. NON aggiungere località vicine famose (es. Taormina, Cefalù, Amalfi) anche se pensi arricchiscano il tour: l'utente vuole scoprire ${city}, non altrove.` : `Non spostarti in comuni vicini né in provincia.`} Meglio 3 tappe reali dentro ${city} che 5 sparse nel raggio provinciale.` : ''}

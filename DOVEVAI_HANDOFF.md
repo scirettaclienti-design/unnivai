@@ -3653,6 +3653,19 @@ e dello scanner che salta le righe di commento e quindi **non può accorgersene*
 Regola: **quando si rimuove un comportamento, il commento che lo descrive fa
 parte della rimozione**, non della documentazione.
 
+
+**#27 — Un esempio dentro un prompt non è un'illustrazione: è un template.**
+Il modello lo copia **alla lettera**, e il difetto si presenta come
+allucinazione mentre è **obbedienza**. Su device abbiamo visto un tip da
+pasticceria su un museo, e un tour gastronomico intitolato *"I vicoli segreti di
+Venezia"*: erano **i nostri esempi**, trasposti su un posto del tipo sbagliato.
+Avevamo cercato dei pool di frasi — non esistevano.
+Regole operative: **un esempio per categoria, mai uno solo**; dichiarare
+esplicitamente che l'esempio mostra il *registro* e non il *contenuto*; e
+ricordare che gli esempi **✗** (cosa non scrivere) non vengono imitati — sono i
+**✓** il template. Quando un output di modello sembra inventato, **rileggere il
+prompt prima di accusare il modello**.
+
 ---
 
 ## Sessione 21/08 (2) — Gate F26 DIFF 4: le catene di fallback
@@ -3806,6 +3819,78 @@ visibile il giorno che V2 si accende.**
 **Né il DIFF 4 né il DIFF 5 sono stati visti su device.** Le copertine ora cadono
 sul gradient di categoria e le opzioni del quiz sul gradient + emoji: **che sia
 bello non lo prova nessun test.**
+
+---
+
+## Sessione 22/08 — GATE NARRATORE ANCORATO aperto, DIFF 1 chiuso
+
+Commit **`e104140`**, deploy **success** (`3HTzuhj5kgebCMjxvngD4gTQoRTU`).
+CI 87s. **411 test** (+12).
+
+### La causa — l'ipotesi iniziale era sbagliata
+
+Sospettavamo **pool fissi** di frasi. **Smentito sul codice**: nessuna delle
+frasi viste su device esiste nel sorgente. La causa vera è che il modello
+**imita gli esempi del prompt**.
+
+| evidenza device (Venezia, 21/08) | esempio che la produceva |
+|---|---|
+| tip da pasticceria sulla **Collezione Peggy Guggenheim** | `insiderTip` ✓ = *"Chiedi il caffè al bancone"* — un consiglio da bar dato come modello per **tutte** le categorie |
+| *"I vicoli segreti di Venezia"* su un tour **Gastronomia** | l'esempio di titolo, copiato **alla lettera**. Era **il nostro** esempio |
+| *"Alle 19 il locale è meno affollato"* | `bestTime` ✓ premia un orario specifico, e nel prompt **non arriva nessun orario** |
+
+**Il difetto si presentava come allucinazione ed era obbedienza.**
+
+### Fatto nel DIFF 1
+
+- **Esempi per categoria** (museo/galleria, chiesa, ristorante/bar, parco/natura,
+  panorama) su `description`, `insiderTip`, `transition`, con una riga sopra:
+  *gli esempi mostrano il REGISTRO, non il contenuto da copiare*. Scelta la
+  strada degli esempi e **non** la rimozione: i ✗ insegnano cosa evitare ma non
+  che aspetto abbia un dettaglio concreto, e toglierli tutti rischiava il
+  ritorno alla prosa generica già combattuta dal Gate NARRATORE/POI.
+- **Coerenza col `types`**: era **"dato passato ma non usato"** — `types` è in
+  `candidatesLite` da sempre e non vincolava la voce. Ora `"insiderTip": null`
+  è dichiarato preferibile a un tip di altra categoria. Il render regge `null`
+  senza modifiche (`TourDetails:1275`, `AiItinerary:907`, `tourShape:333`,
+  `MapPage:709` già guardati).
+- **Titolo su tutti e tre i prompt** del file — selettore, `titleHint` del tema
+  insider (`buildUnifiedHomeToursPrompt`, "Per Te"), punto 12 del legacy.
+  Ragione: non sappiamo da quale path venisse il titolo visto su device, e
+  lasciarne due avrebbe reso **il giro di verifica non interpretabile**.
+- Marker `"I vicoli segreti di"`: sorgente **2 → 0**, bundle **1 chunk → 0**.
+  Un solo marker negativo **sul sorgente**, così prende anche una quarta porta.
+
+### DIFF 2, 3, 4 — in coda, con le decisioni già prese
+
+- **DIFF 2 — `hasRealDescription`.** Il predicato è
+  `!!(s?.description && String(s.description).trim().length > 0)`: verifica
+  **solo che la stringa non sia vuota**, e **non guarda `insiderTip`**. Il tip
+  food sul Guggenheim non è mai stato esaminato da nessun predicato.
+  **Decisione presa: rinominare** (`hasNonEmptyDescription`), non gonfiare.
+- **DIFF 3 — orari.** *Decisione presa: **vietare di affermare orari**, non
+  comprare `place/details`.* Dentro il DIFF 3 va anche **`open_now`**: arriva al
+  modello (`candidatesLite`, se boolean) mentre la **regola locked dice di non
+  usarlo** e di preferire l'orario di chiusura reale — che esiste come capacità
+  (`closingTimeTodayHH`, `placesDiscoveryService:907`) ma **non raggiunge** i
+  candidati.
+  Nel file di test c'è un'asserzione che registra il limite noto
+  (`"Alle 17 la luce entra dalla vetrata sud"`): **va invertita, non cancellata.**
+  > Trovato passando, utile per il DIFF 3: il prompt legacy al punto 9 dice
+  > letteralmente *"I musei chiudono alle 19. I ristoranti aprono alle 12 e 19."*
+  > È una candidata diretta per il "19" visto su device.
+- **DIFF 4 — la superficie che l'anti-fake non raggiunge.** Le regole
+  **scansionano il sorgente**; il testo del narratore **nasce a runtime**. Non è
+  una regola mancante: è una superficie che quel meccanismo non tocca. Provato
+  con una sonda: su cinque frasi vere del difetto, **una sola** violazione — e
+  solo perché conteneva il placeholder letterale.
+
+### Onestà
+
+**Nessun test prova che il narratore sia migliorato.** L'output è non
+deterministico. Provano che **il prompt non detta più il testo che veniva
+copiato**. La prova è un giro su device, su un tour con **almeno un POI
+non-food**.
 
 ---
 

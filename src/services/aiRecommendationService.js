@@ -861,14 +861,33 @@ Il tuo lavoro in 3 mosse:
    contenuto. NON copiarli e NON trasporli su un posto di tipo diverso. Ogni
    frase deve nascere dal luogo che stai descrivendo e dal suo "types".
 
+   ⛔ NON ATTRIBUIRE A UN POSTO CONTENUTI CHE NON SAI ESISTANO LI'.
+   Di ogni luogo sai SOLO questo: nome, "types", rating, numero di recensioni,
+   indirizzo. Nient'altro. Da li' NON si deduce cosa c'e' dentro: quali opere,
+   quali mostre, quali sale, quali piatti, quali servizi, quali eventi.
+   Vietato scrivere che un posto ospita, espone, propone o contiene qualcosa,
+   se non risulta dai dati che hai.
+
+   COME SI RISOLVE LA TENSIONE (leggi: e' la regola che decide):
+   ti chiedo di essere SPECIFICO e insieme di NON INVENTARE. Non e' una
+   contraddizione: la specificita' deve stare su cio' che e' deducibile dai dati
+   che hai, o su cio' che vale per QUEL TIPO di posto in generale — non su
+   contenuti asseriti di quel singolo luogo.
+   Se la scelta e' tra generico e falso, VINCE IL GENERICO.
+   "Dentro la temperatura scende di colpo" (vero di quasi ogni chiesa in pietra)
+   e' meglio di "la sala 3 ha una panca davanti al quadro piu' piccolo" (che non
+   puoi sapere).
+
    description (max 120 car): un dettaglio sensoriale specifico, cosa vedi/senti/odori.
-     Scegli l'esempio del tipo GIUSTO per quel POI:
-     ✓ museo/galleria — "La sala 3 ha una sola panca, davanti al quadro più piccolo"
-     ✓ chiesa        — "Il pavimento è consumato dai piedi di 300 anni di parrocchiani"
-     ✓ ristorante/bar — "Il bancone è di zinco e d'estate resta freddo sotto il gomito"
-     ✓ parco/natura  — "I platani sul lato ovest fanno ombra fino alle quattro"
-     ✓ panorama      — "Da qui si vedono i tetti fino al campanile, senza cavi in mezzo"
-     ✗ "Chiesa barocca del XVIII secolo, patrimonio della città"
+     Scegli l'esempio del tipo GIUSTO per quel POI. Nota come ognuno dica una cosa
+     vera di QUEL TIPO di posto, non un contenuto di quel singolo luogo:
+     ✓ museo/galleria — "Le sale in fondo restano le più silenziose, sempre"
+     ✓ chiesa        — "Dentro la temperatura scende di colpo, anche in agosto"
+     ✓ ristorante/bar — "L'ora in cui si sente più il rumore delle posate che le voci"
+     ✓ parco/natura  — "L'ombra vera è sotto gli alberi grandi, non lungo i vialetti"
+     ✓ panorama      — "Bastano pochi passi di lato per togliersi la folla dall'inquadratura"
+     ✗ "Chiesa barocca del XVIII secolo, patrimonio della città"  ← da enciclopedia
+     ✗ "L'eco risuona tra le opere contemporanee esposte"  ← contenuto INVENTATO
 
    insiderTip (max 100 car): un consiglio pratico che solo chi ci vive sa.
      ⚠️ DEVE essere pertinente al "types" del POI. Un consiglio da bar su un museo
@@ -876,28 +895,33 @@ Il tuo lavoro in 3 mosse:
      Se per QUEL posto non hai un consiglio pertinente e concreto, scrivi
      "insiderTip": null. Nessun consiglio è meglio di un consiglio di un'altra
      categoria: il campo è opzionale e l'interfaccia lo omette senza problemi.
-     ✓ museo/galleria — "L'ultima sala è la più vuota: partì da lì e torna indietro"
-     ✓ chiesa        — "Entra dalla porta laterale, quella principale è chiusa lun/mar"
+     ✓ museo/galleria — "Percorrilo al contrario: dall'ultima sala verso l'ingresso"
+     ✓ chiesa        — "Siediti qualche minuto prima di guardare: gli occhi si abituano al buio"
      ✓ ristorante/bar — "Chiedi il caffè al bancone, seduto costa il doppio"
-     ✓ parco/natura  — "L'ingresso nord non ha scale, quello sud sì"
-     ✓ panorama      — "Mettiti a destra del parapetto, a sinistra c'è un palo in mezzo"
-     ✗ "Consigliata visita mattutina"
+     ✓ parco/natura  — "Se ha piovuto da poco, i vialetti in terra battuta diventano fango"
+     ✓ panorama      — "Dai le spalle al sole, altrimenti le foto vengono controluce"
+     ✗ "Consigliata visita mattutina"  ← generico e inutile
+     ✗ "Entra dalla porta laterale, quella principale è chiusa lun/mar"  ← ORARI che non hai
+     ✗ "Non perderti la sezione dedicata agli artisti emergenti"  ← contenuto INVENTATO
 
    bestTime (max 100 car): perché ORA — ma SOLO se il motivo è verificabile dai
      dati che ti ho dato (momento della giornata, meteo, stagione). NON ricevi
      orari di apertura o chiusura: NON citare ore.
      Se non hai un motivo vero, scrivi "bestTime": null. Il campo è opzionale e
      l'interfaccia lo omette: un motivo inventato è peggio di un campo assente.
-     ✓ "Con il cielo coperto di oggi i mosaici non sono abbagliati dal riflesso"
+     ✓ "Con il cielo coperto di oggi non si cammina controluce"  ← meteo, che hai
      ✗ "Alle 17 la luce entra dalla vetrata sud e colpisce l'altare"  ← orario inventato
      ✗ "Momento migliore: pomeriggio"
 
    transition (max 80 car): cosa vedi camminando alla prossima tappa. Un dettaglio.
      Varia: non tutte le strade hanno balconi. Guarda cosa c'è davvero fra i due punti.
-     ✓ "Girando per Via delle Cisterne c'è un balcone tutto edera"
+     ⛔ NON dire cosa sta accadendo ORA lungo il percorso, e non dedurlo dall'ora:
+     non sai se i bar stiano aprendo, se ci sia gente, se le luci siano accese.
+     Descrivi cosa c'è, non cosa sta succedendo.
      ✓ "Il ponte è stretto, si passa uno alla volta"
      ✓ "Sulla destra un muro di mattoni con una targa quasi illeggibile"
      ✗ "Prosegui verso la prossima tappa a 5 min a piedi"
+     ✗ "Le luci dei bar si accendono lentamente"  ← cosa accade ORA, che non sai"
 
 REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
 "storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",
@@ -1034,6 +1058,23 @@ REGOLE:
 2. ORDINE — costruisci un percorso che ${transitHint} abbia senso NARRATIVO, non solo geometrico.
 3. VOCE — per ogni tappa racconta come un local sussurra un segreto:
 
+   ⛔ NON ATTRIBUIRE A UN POSTO CONTENUTI CHE NON SAI ESISTANO LI'.
+   Di ogni luogo sai SOLO questo: nome, "types", rating, numero di recensioni,
+   indirizzo. Nient'altro. Da li' NON si deduce cosa c'e' dentro: quali opere,
+   quali mostre, quali sale, quali piatti, quali servizi, quali eventi.
+   Vietato scrivere che un posto ospita, espone, propone o contiene qualcosa,
+   se non risulta dai dati che hai.
+
+   COME SI RISOLVE LA TENSIONE (leggi: e' la regola che decide):
+   ti chiedo di essere SPECIFICO e insieme di NON INVENTARE. Non e' una
+   contraddizione: la specificita' deve stare su cio' che e' deducibile dai dati
+   che hai, o su cio' che vale per QUEL TIPO di posto in generale — non su
+   contenuti asseriti di quel singolo luogo.
+   Se la scelta e' tra generico e falso, VINCE IL GENERICO.
+   "Dentro la temperatura scende di colpo" (vero di quasi ogni chiesa in pietra)
+   e' meglio di "la sala 3 ha una panca davanti al quadro piu' piccolo" (che non
+   puoi sapere).
+
    description (max 120 car): un dettaglio sensoriale specifico, cosa vedi/senti/odori.
      ✓ "Il pavimento e' consumato dai piedi di 300 anni di parrocchiani"
      ✗ "Chiesa barocca del XVIII secolo, patrimonio della citta'"
@@ -1047,13 +1088,17 @@ REGOLE:
      orari di apertura o chiusura: NON citare ore.
      Se non hai un motivo vero, scrivi "bestTime": null. Il campo è opzionale e
      l'interfaccia lo omette: un motivo inventato è peggio di un campo assente.
-     ✓ "Con il cielo coperto di oggi i mosaici non sono abbagliati dal riflesso"
+     ✓ "Con il cielo coperto di oggi non si cammina controluce"  ← meteo, che hai
      ✗ "Alle 17 la luce entra dalla vetrata sud e colpisce l'altare"  ← orario inventato
      ✗ "Momento migliore: pomeriggio"
 
    transition (max 80 car): cosa vedi camminando alla prossima tappa.
-     ✓ "Girando per Via delle Cisterne c'e' un balcone tutto edera"
+     ⛔ NON dire cosa sta accadendo ORA lungo il percorso, e non dedurlo dall'ora:
+     non sai se i bar stiano aprendo, se ci sia gente, se le luci siano accese.
+     Descrivi cosa c'è, non cosa sta succedendo.
+     ✓ "Il ponte e' stretto, si passa uno alla volta"
      ✗ "Prosegui verso la prossima tappa a 5 min a piedi"
+     ✗ "Le luci dei bar si accendono lentamente"  ← cosa accade ORA, che non sai"
 
 REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
 "storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",
@@ -1396,9 +1441,10 @@ REGOLE ASSOLUTE:
 2. Le coordinate DEVONO essere precise al punto esatto del POI (ingresso principale), non al centro della strada. Latitudine tra 36-47, Longitudine tra 6-19 (Italia).
 3. MAI iniziare con la tappa più ovvia/turistica della città. La prima tappa è una perla nascosta.
 4. Il tour ha una NARRATIVA — non è una lista. Ogni tappa porta logicamente alla successiva.
-5. Tra una tappa e l'altra, aggiungi nel campo "transition" cosa si vede camminando (es: "5 min a piedi, passerai per vicolo dei Serpenti dove c'è un murales degli anni '70").
+5. Tra una tappa e l'altra, aggiungi nel campo "transition" cosa si vede camminando. NON dire cosa sta accadendo ORA lungo il percorso e non dedurlo dall'ora (non sai se i bar aprano, se ci sia gente, se le luci siano accese), e non attribuire alla strada dettagli che non sai esistano li'. Descrivi cosa c'e', non cosa sta succedendo.
 6. Per ogni tappa: perché vale la pena andarci ORA (${timeContext}).
 7. Le descrizioni sono evocative, dirette, mai da Wikipedia. Max 120 caratteri.
+7-bis. NON ATTRIBUIRE A UN POSTO CONTENUTI CHE NON SAI ESISTANO LI'. Di ogni luogo sai solo nome, tipo, indirizzo: da li' non si deduce quali opere, mostre, sale, piatti o eventi ci siano. Vietato scrivere che un posto ospita, espone o propone qualcosa se non risulta dai dati. Se la scelta e' tra generico e falso, vince il generico.
 8. CONTESTO GRUPPO: se "coppia" → posti intimi, tramonti, tavoli per due. Se "amici" → locali vivaci, street food, piazze sociali. Se "famiglia" → posti kid-friendly, gelato, parchi. Se "solo" → caffè con vista, librerie, angoli tranquilli.
 9. NON AFFERMARE MAI se un posto è aperto o chiuso, e NON dedurlo dall'ora: non ricevi i suoi orari. Un orario di apertura o chiusura che credi di sapere è una tua supposizione, e scriverla la trasforma in una bugia. Vietato citare orari di apertura o chiusura in qualsiasi campo, per qualsiasi tipo di posto.
 10. Per città NON top-6 (Roma/Milano/Firenze/Napoli/Venezia/Torino): sii conservativo. Suggerisci SOLO posti che sei CERTO esistano. Meglio 3 tappe sicure che 5 inventate. Se non conosci un posto specifico, usa la categoria ("un'enoteca storica nel centro") piuttosto che un nome falso.

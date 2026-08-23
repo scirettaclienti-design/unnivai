@@ -205,3 +205,69 @@ describe('Gate NARRATORE ANCORATO DIFF 3 — nessun orario inventato, nessuno st
         expect(p).toContain('NON citare ore');
     });
 });
+
+describe('Gate NARRATORE ANCORATO F55 — non attribuire contenuti che non si sanno esistere', () => {
+    it('controllo dello strumento: il prompt porta i types e non la categoria UI collassata', () => {
+        // Causa A esclusa in FASE A: al modello arrivano i types Google, non
+        // "CULTURA". Se questo cambiasse, la diagnosi andrebbe rifatta.
+        const p = prompt();
+        expect(p).toContain('museum');
+        expect(p).toContain('restaurant');
+        expect(p).not.toContain('CULTURA');
+    });
+
+    it('il divieto e\' presente in tutti e tre i prompt', () => {
+        const src = serviceCode();
+        const n = src.split('NON ATTRIBUIRE A UN POSTO CONTENUTI').length - 1;
+        expect(n).toBe(3);
+    });
+
+    it('dichiara esplicitamente cosa il modello SA', () => {
+        const p = prompt();
+        expect(p).toContain('nome, "types", rating, numero di recensioni');
+        expect(p).toContain('NON si deduce cosa c\'e\' dentro');
+    });
+
+    it('risolve la tensione specificita\'/verita\': fra generico e falso vince il generico', () => {
+        const p = prompt();
+        expect(p).toContain('COME SI RISOLVE LA TENSIONE');
+        expect(p).toContain('VINCE IL GENERICO');
+    });
+
+    it('nessun esempio ✓ asserisce piu\' un contenuto del singolo luogo', () => {
+        const p = prompt();
+        // erano i quattro che violavano il divieto che li precede
+        expect(p).not.toContain('La sala 3 ha una sola panca');
+        expect(p).not.toContain('Il bancone è di zinco');
+        expect(p).not.toContain('I platani sul lato ovest');
+        expect(p).not.toContain('i mosaici non sono abbagliati');
+    });
+
+    it('l\'esempio chiesa che citava gli orari e\' passato da ✓ a ✗ (contraddiceva il DIFF 3)', () => {
+        const p = prompt();
+        expect(p).toContain('← ORARI che non hai');
+        expect(p).not.toMatch(/✓ chiesa\s+— "Entra dalla porta laterale/);
+    });
+
+    it('le due frasi false viste su device sono ora contro-esempi espliciti', () => {
+        const p = prompt();
+        expect(p).toContain('artisti emergenti"  ← contenuto INVENTATO');
+        expect(p).toContain('opere contemporanee esposte"  ← contenuto INVENTATO');
+    });
+});
+
+describe('Gate NARRATORE ANCORATO F56 — transition non afferma cosa accade ORA', () => {
+    it('il divieto temporale e\' su tutti e tre i prompt', () => {
+        const src = serviceCode();
+        const n = src.split('NON dire cosa sta accadendo ORA').length - 1;
+        expect(n).toBe(3);
+    });
+
+    it('la frase vista su device e\' un contro-esempio', () => {
+        expect(prompt()).toContain('Le luci dei bar si accendono lentamente"  ← cosa accade ORA');
+    });
+
+    it('resta la richiesta di descrivere cosa c\'e\'', () => {
+        expect(prompt()).toContain("Descrivi cosa c'è, non cosa sta succedendo");
+    });
+});

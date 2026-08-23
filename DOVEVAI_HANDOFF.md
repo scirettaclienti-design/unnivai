@@ -3679,6 +3679,22 @@ Corollario trovato lo stesso giorno: **il rimedio ovvio è una seconda trappola.
 Citare la frase falsa per negarla (*"«i musei chiudono alle 19» NON è un fatto
 che conosci"*) la rimette nel prompt, e i modelli negano male. Il divieto va
 scritto **senza ripetere ciò che vieta**.
+
+**#29 — Un esempio che viola la regola che lo precede vince sulla regola.**
+Aggiunto il divieto di attribuire contenuti a un posto, **8 esempi ✓ su 10 lo
+violavano**: erano tutti asserzioni sul singolo luogo (*"La sala 3 ha una sola
+panca"*, *"Il bancone è di zinco"*, *"I platani sul lato ovest"*). Non basta
+aggiungere la regola sopra: **gli esempi ✓ vanno riletti a ogni divieto nuovo**,
+perché sono la parte del prompt che il modello imita (#27) e quindi battono la
+prosa normativa che li precede.
+
+**#30 — Rileggendo un prompt si trova ciò che si sta cercando.**
+Il DIFF 3 aveva riletto gli stessi esempi il giorno prima cercando **orari**, e
+non aveva visto *"la porta principale è chiusa **lun/mar**"* — che afferma
+**giorni** di apertura, cioè viola la stessa regola. Un'occhiata mirata non è
+una revisione: quando si vieta una classe di affermazioni, **elencare le forme
+che quella classe può assumere** (ore, giorni, stagioni, "adesso") prima di
+cercarle.
 ---
 
 ## Sessione 21/08 (2) — Gate F26 DIFF 4: le catene di fallback
@@ -3930,7 +3946,56 @@ Due decisioni di metodo:
   deliberatamente, il DIFF 3 lo rimuove. Senza quella storia, fra sei mesi
   sembra un test che ha sempre detto questo.
 
+### F55 + F56 CHIUSI (23/08) — commit `8a74cb7`, deploy success
+
+Su device (Milano, 16:29) la **Basilica di Santa Maria delle Grazie** — chiesa
+domenicana del XV secolo, UNESCO — aveva `insiderTip` *"Non perderti la sezione
+dedicata agli artisti emergenti"* e `description` *"L'eco delle voci risuona tra
+le opere contemporanee esposte"*. Due affermazioni false.
+
+**Due ipotesi provate ed escluse prima di scrivere codice:**
+
+| ipotesi | verdetto | prova |
+|---|---|---|
+| tassonomia collassata (arriva "CULTURA" invece dei types) | **esclusa** | prompt reale costruito con candidato basilica: arrivano `["church","place_of_worship",…]`, `"CULTURA"` **non entra**. La categoria UI nasce a valle in `normalizeStepCategory`, è solo display |
+| esempi trasposti (lessico galleria su chiesa) | **esclusa** | lessico osservato: `artisti` 0, `contemporane` 0, `mostre` 0, `esposte` 0 occorrenze nel sorgente. E `museo/galleria` e `chiesa` erano **già** separate dal DIFF 1 |
+
+**Causa vera (C): nulla vietava di affermare cosa un posto CONTIENE, mentre il
+prompt premiava la specificità.** Il modello non ha osservazioni — riceve nome,
+`types`, rating, indirizzo — quindi per obbedire **inventa** un contenuto
+plausibile. **La licenza di inventare viveva dentro la richiesta di qualità.**
+Il DIFF 1 aveva ridotto la *distanza* dell'errore (da food-su-museo a
+galleria-su-chiesa) rendendolo più verosimile, quindi **più difficile da vedere**.
+
+Fatto: divieto sopra i campi nei tre prompt, con la dichiarazione di cosa il
+modello sa e la regola che risolve la tensione (**fra generico e falso vince il
+generico**); `transition` esteso col divieto temporale del DIFF 3, su **tre**
+prompt; le due frasi false promosse a contro-esempi ✗.
+
+**`description` NON nullable — decisione presa, con la ragione.**
+`hasRealDescription` filtra le tappe (`:1230`), quindi renderla nullable
+cambierebbe il **motore**, non il testo. Con *"zero tappe accettabile, tappe
+finte no"*, un modello prudente che risponde `null` su metà dei POI produce
+**tour vuoti** — e non si vedrebbe in un test, si vedrebbe su device dopo il
+deploy.
+Se su device le description scivolano nel generico, `description` nullable
+diventa un diff, **intrecciato col DIFF 2**.
+
+> **La strada che NON si prende in quel caso**: tornare indietro sugli esempi.
+> Si dà invece al modello **dati veri su cui essere specifico** — gate
+> `place/details`, oggi fuori scope per costi API e cache.
+
+**Trade-off assunto deliberatamente**: gli esempi ✓ sono ora più generici.
+*"Le sale in fondo restano le più silenziose"* è più debole di *"La sala 3 ha
+una sola panca"*. È la **conseguenza attesa** del fix, non un effetto imprevisto.
+La domanda aperta è **di quanto**.
+
 ### Restano
+
+**Debito device aggiornato**: F26 DIFF 4/5 e NARRATORE DIFF 1/3 sono
+**verificati** (21-23/08). Restano da verificare **solo F55 e F56** — su un POI
+religioso, guardando due cose insieme: che non compaiano più contenuti inventati,
+e che le description **non siano diventate intercambiabili** fra POI diversi.
 
 - **DIFF 2** — rinominare `hasRealDescription` in `hasNonEmptyDescription`:
   verifica solo che la stringa non sia vuota e **non guarda `insiderTip`**.

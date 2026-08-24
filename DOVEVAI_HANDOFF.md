@@ -3997,10 +3997,20 @@ La domanda aperta è **di quanto**.
 religioso, guardando due cose insieme: che non compaiano più contenuti inventati,
 e che le description **non siano diventate intercambiabili** fra POI diversi.
 
-- **DIFF 2** — rinominare `hasRealDescription` in `hasNonEmptyDescription`:
-  verifica solo che la stringa non sia vuota e **non guarda `insiderTip`**.
-  Cinque minuti, **nessun cambio di comportamento**, solo un nome che smette di
-  promettere ciò che non fa.
+- **DIFF 2 — CHIUSO** (24/08, commit `c918e78`, deploy success).
+  `hasRealDescription` → **`hasNonEmptyDescription`**. Verificava che la stringa
+  non fosse vuota; il nome prometteva un controllo di verità che non c'è mai
+  stato, e contava perché quel predicato **decide se una tappa entra nel tour**
+  (`:1335`, `:1778`).
+  Rinomina e basta, come deciso: il predicato vero non si costruisce prima di
+  sapere cosa vincola la voce, e `description` resta non nullable.
+  **Comportamento invariato, provato:** 429 test — *lo stesso numero* — e
+  **bundle byte-identico** (stesso hash `index-DaXaP6VP.js`, stesso md5). Era il
+  controllo decisivo: il simbolo è minificato via, quindi un bundle diverso
+  avrebbe significato che era successo altro oltre alla rinomina.
+  Se servirà un predicato che verifica la **qualità** e non la lunghezza, nasce
+  **accanto**, non dentro: sono due domande diverse.
+
 - **DIFF 4** — harness runtime. **È il pezzo che rende il gate durevole**: le
   regole anti-fake scansionano il sorgente, il testo del narratore nasce a
   runtime. Senza, DIFF 1 e DIFF 3 sono correzioni una tantum.

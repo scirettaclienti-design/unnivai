@@ -789,7 +789,7 @@ function sortByProximity(stops) {
 // Guardrail voce (parole vietate + esempi ✓/✗) preservano il tono insider che
 // era il valore emotivo di DoveVAI e che era il criterio #1 di successo.
 // Exported per test (stesso pattern di canonicalizeStopsFromCandidates e
-// hasRealDescription piu' sotto). Il Gate NARRATORE ANCORATO verifica il
+// hasNonEmptyDescription piu' sotto). Il Gate NARRATORE ANCORATO verifica il
 // PROMPT COSTRUITO, non l'output del modello: l'output e' non deterministico e
 // nessun test puo' provare che sia migliorato. Raggiungerlo attraverso
 // generateItinerary renderebbe il test dipendente dagli interni del motore.
@@ -1158,7 +1158,16 @@ ${themedBlocks}`;
 // Corpo identico a quello che era inline: nessun cambio di comportamento per
 // il path Home.
 // Exported per test.
-export const hasRealDescription = (s) => !!(s?.description && String(s.description).trim().length > 0);
+// Gate NARRATORE ANCORATO DIFF 2 — rinominato da `hasNonEmptyDescription`.
+// Il vecchio nome prometteva piu' di quanto il predicato faccia: verifica che
+// `description` sia una stringa NON VUOTA, non che dica il vero. Qualunque frase
+// inventata lo supera, e non guarda `insiderTip`. Il nome contava perche' questo
+// predicato decide se una tappa entra nel tour (:1335, :1778): "hasReal…"
+// suggeriva un controllo di verita' che non c'e' mai stato.
+// E' la lezione #26 in un identificatore invece che in un commento.
+// Se un domani servira' un predicato che verifica la QUALITA' e non la lunghezza,
+// nasce ACCANTO a questo, non dentro: sono due domande diverse.
+export const hasNonEmptyDescription = (s) => !!(s?.description && String(s.description).trim().length > 0);
 
 // Post-processing: prende gli stop AI (con place_id) e li canonizza dai candidati
 // reali. Riscrive title/lat/lng/rating/googlePhoto/type dal record Google, tiene
@@ -1332,9 +1341,9 @@ export const aiRecommendationService = {
                         // Un giorno che resta a 0 tappe viene eliminato dal
                         // .filter() in coda al map, e il flusso cade da solo nel
                         // ramo di uscita onesto (:1184 → _source 'no-results').
-                        const described = canonized.filter(hasRealDescription);
+                        const described = canonized.filter(hasNonEmptyDescription);
                         if (described.length < canonized.length) {
-                            const scartate = canonized.filter(s => !hasRealDescription(s)).map(s => s.title || '?');
+                            const scartate = canonized.filter(s => !hasNonEmptyDescription(s)).map(s => s.title || '?');
                             console.warn(`[Gate NARRATORE/POI] ${city}: ${canonized.length - described.length}/${canonized.length} tappe scartate → descrizione assente — [${scartate.join(' | ')}]`);
                         }
                         // Applica il filtro raggio come safety (DVAI-055-b): quasi no-op
@@ -1772,10 +1781,10 @@ Schema JSON ESATTO:
                 // Gate II.2 — regola locked: description vuota → stop scartato.
                 // Mai placeholder "Luogo di interesse". Meno tappe > tappe vuote.
                 // Gate NARRATORE/POI (Fase 2b): il predicato inline è diventato
-                // hasRealDescription, condiviso con generateItinerary. Stesso
+                // hasNonEmptyDescription, condiviso con generateItinerary. Stesso
                 // corpo, stessa posizione nella catena, stesso ordine rispetto
                 // al dedup cross-tour sopra: comportamento invariato.
-                canonized = canonized.filter(hasRealDescription);
+                canonized = canonized.filter(hasNonEmptyDescription);
 
                 // Safety filtro raggio (Places gia' filtrato ma difense-in-depth).
                 const withinRadius = applyRadiusFilter(canonized, cityCenter, city);

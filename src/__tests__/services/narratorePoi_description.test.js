@@ -15,45 +15,47 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
-    hasRealDescription,
+    hasNonEmptyDescription,
     aiRecommendationService,
 } from '../../services/aiRecommendationService';
 
-// ─── hasRealDescription — il predicato condiviso ────────────────────────────────
+// ─── hasNonEmptyDescription — il predicato condiviso ───
+// (era `hasRealDescription` fino al DIFF 2 del Gate NARRATORE ANCORATO: rinomina,
+//  nessun cambio di comportamento — le asserzioni qui sotto sono invariate.)─────────────────────────────
 
-describe('Gate NARRATORE/POI Fase 2b — hasRealDescription', () => {
+describe('Gate NARRATORE/POI Fase 2b — hasNonEmptyDescription', () => {
     it('description valorizzata → true', () => {
-        expect(hasRealDescription({ description: 'Il pavimento è consumato da 300 anni di passi' })).toBe(true);
+        expect(hasNonEmptyDescription({ description: 'Il pavimento è consumato da 300 anni di passi' })).toBe(true);
     });
 
     it('null / undefined / campo assente → false', () => {
-        expect(hasRealDescription({ description: null })).toBe(false);
-        expect(hasRealDescription({ description: undefined })).toBe(false);
-        expect(hasRealDescription({})).toBe(false);
+        expect(hasNonEmptyDescription({ description: null })).toBe(false);
+        expect(hasNonEmptyDescription({ description: undefined })).toBe(false);
+        expect(hasNonEmptyDescription({})).toBe(false);
     });
 
     it("stringa vuota e soli spazi → false", () => {
-        expect(hasRealDescription({ description: '' })).toBe(false);
-        expect(hasRealDescription({ description: '   ' })).toBe(false);
+        expect(hasNonEmptyDescription({ description: '' })).toBe(false);
+        expect(hasNonEmptyDescription({ description: '   ' })).toBe(false);
     });
 
     it("whitespace non stampabile ('\\n\\t') → false", () => {
-        expect(hasRealDescription({ description: '\n\t' })).toBe(false);
-        expect(hasRealDescription({ description: '\n  \t \n' })).toBe(false);
+        expect(hasNonEmptyDescription({ description: '\n\t' })).toBe(false);
+        expect(hasNonEmptyDescription({ description: '\n  \t \n' })).toBe(false);
     });
 
     it('tipi inattesi non fanno crashare il predicato', () => {
-        expect(hasRealDescription({ description: 42 })).toBe(true);        // String(42).trim() = "42"
-        expect(hasRealDescription({ description: 0 })).toBe(false);        // 0 è falsy a monte
-        expect(hasRealDescription({ description: {} })).toBe(true);        // "[object Object]"
-        expect(hasRealDescription({ description: [] })).toBe(false);       // String([]) = ""
-        expect(hasRealDescription(null)).toBe(false);
-        expect(hasRealDescription(undefined)).toBe(false);
+        expect(hasNonEmptyDescription({ description: 42 })).toBe(true);        // String(42).trim() = "42"
+        expect(hasNonEmptyDescription({ description: 0 })).toBe(false);        // 0 è falsy a monte
+        expect(hasNonEmptyDescription({ description: {} })).toBe(true);        // "[object Object]"
+        expect(hasNonEmptyDescription({ description: [] })).toBe(false);       // String([]) = ""
+        expect(hasNonEmptyDescription(null)).toBe(false);
+        expect(hasNonEmptyDescription(undefined)).toBe(false);
     });
 
     it('ritorna sempre un booleano, mai un valore truthy generico', () => {
-        expect(hasRealDescription({ description: 'x' })).toBe(true);
-        expect(typeof hasRealDescription({ description: null })).toBe('boolean');
+        expect(hasNonEmptyDescription({ description: 'x' })).toBe(true);
+        expect(typeof hasNonEmptyDescription({ description: null })).toBe('boolean');
     });
 });
 

@@ -4242,6 +4242,103 @@ un'indagine aperta, non un fix, e non aveva niente da committare.
 Nessuna migration, nessun DDL applicato con effetto: il solo `REVOKE` eseguito
 non ha cambiato nulla (lezione #31).
 
+## Sessione 26/08 — GATE CLEANUP chiuso
+
+Commit **`a250a95`**, push su `main`. CI **verde** (Lint & Test + E2E Smoke),
+Vercel **success** (8 poll da 25s, curl anonimo). **457 test** (+1), build
+pulita, lint **0 errori / 206 warning** (era 221).
+
+### Cosa ha chiuso
+
+**Cinque file morti, non quattro.** Il censimento del 21/08 ne contava quattro;
+**`GroupInviteModal.jsx` era un morto mai censito** — zero importatori, nemmeno
+`lazy()` o `import()` dinamici, assente dal bundle.
+
+| cancellato | perché | occ. |
+|---|---|---:|
+| `src/utils/imageUtils.js` | unico importatore era `UnnivaiMap.old.jsx` | 52 |
+| `src/services/locationTourService.js` | importato da `NotificationBell.jsx:6` ma **0 call site** per tutti e 6 i metodi | 12 |
+| `src/components/UnnivaiMap.old.jsx` | 0 importatori. Cancellato **PRIMA** di imageUtils, di cui era l'unico importatore | — |
+| `src/components/GroupInviteModal.jsx` | 0 importatori, statici e dinamici | 1 + 2 `Sofia` |
+| `sampleItinerary` in `AiItinerary.jsx` | **solo la costante**, il file resta vivo | 8 |
+
+La morte è stata **riprovata prima di cancellare**, non ereditata dall'handoff.
+
+**Allowlist 45 → 28.** Undici cadute col cleanup, **sette già scadute su regole
+ATTIVE** — ognuna una porta aperta *oggi*, non un debito differito. Ognuna
+verificata individualmente (file esistente + 0 occorrenze reali) prima di
+toglierla, e la suite riprovata dopo: se una non fosse stata scaduta, la sua
+regola sarebbe diventata rossa. **`no-price-eur-hardcoded` ha ora allowlist
+vuota**: da qui qualunque prezzo hardcoded, ovunque, blocca la build.
+Nel file non resta **nessuna** voce che nomina un file inesistente o che esenta
+zero occorrenze.
+
+**Il test di `gateF26diff5` INVERTITO, non cancellato.** Asseriva che i morti
+*contenessero* ancora unsplash: proteggeva «non ho ripulito un morto per far
+scendere un numero». Cancellati i file quell'asserzione non è diventata falsa,
+è diventata **inapplicabile**. Ora asserisce la loro **assenza** — stesso
+contratto, altra metà. Se qualcuno li ricrea vuoti per far passare un test,
+diventa rosso.
+
+### Il bundle — la parte che vale
+
+**md5 cambiato, ZERO JavaScript modificato.** Non l'ho accettato come normale:
+
+1. Tre build dello stesso sorgente → hash identici: il build è **deterministico**,
+   quindi il cambiamento era reale.
+2. Ricostruito `c212832` in un **worktree isolato** → riproduce esattamente
+   l'md5 originale `4b960ab…`. Un PRIMA affidabile.
+3. Confronto a **nomi normalizzati** (hash tolti da nomi e riferimenti interni,
+   `.js` **e** `.css`): **0 chunk JS su 77 differiscono.**
+4. Cambia solo il CSS: **−866 byte, 1642 → 1629 regole**. Tailwind scansiona i
+   **sorgenti** (`content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"]`),
+   quindi cancellare un JSX morto smette di emettere le sue classi. Le 13
+   sparite sono tutte e sole classi presenti solo in `UnnivaiMap.old.jsx` (10) e
+   `GroupInviteModal.jsx` (3).
+5. Controllo che nessun vivo fosse derubato: due classi sembravano usate da file
+   vivi, ma erano **match di sottostringa** — i vivi usano `max-h-[85vh]` e
+   `md:rounded-[24px]`, classi Tailwind **diverse** dalle nude `h-[85vh]` e
+   `rounded-[24px]` dei morti. Nel CSS nuovo le vive ci sono (1→1), le nude no.
+
+**Il marker dichiarato era impreciso, non il codice.**
+
+### LEZIONE #31 — «bundle invariato» è il marker sbagliato per una cancellazione
+
+Cancellare un JSX morto **cambia sempre il CSS** via Tailwind, anche quando
+nessun JavaScript cambia: le classi del markup morto smettono di essere emesse.
+Il marker giusto per una cancellazione di file è **«zero chunk JS differenti a
+nomi normalizzati»**, non «bundle invariato». E il confronto va fatto a
+sottostringa **esclusa**: `max-h-[85vh]` contiene `h-[85vh]` e un grep ingenuo
+dà falso allarme proprio nel momento in cui si sta decidendo se fermarsi.
+
+### LEZIONE #32 — `not.toContain` non distingue una citazione da un'affermazione
+
+Già registrata nel DIFF 4, **ripetuta due volte in questo gate**. Riscrivendo il
+commento di `TourDetails` ho reintrodotto la stringa `utils/imageUtils`, che
+`gateF26diff4.test.js:28` asserisce assente per intercettare un **import**: la
+suite è diventata rossa su un **commento**. Poi è successo di nuovo con la nota
+che avvertiva del problema, perché conteneva la stringa stessa. Nel codice ora
+c'è un NB che dice di nominare quel modulo **senza il suo path di import**.
+
+### Marker
+
+| marker | prima | dopo |
+|---|---:|---:|
+| unsplash sorgente, allowlist svuotata | 82 | **9** |
+| `no-fake-reviewer-names` | 3 | **0** |
+| `Sofia` fuori test | 5 | **2** (commenti `//`, lo scanner li salta) |
+| voci allowlist totali | 45 | **28** |
+| file `.js/.jsx` in `src` | 107 | **103** |
+| chunk / unsplash nel bundle | 77 / 9 | **77 / 9** |
+| lint warning | 221 | **206** |
+
+### Device
+
+**Non richiesto**: zero JavaScript cambiato. Il debito device resta quello di
+prima — **F55, F56, DIFF 4**, nessuno saldato.
+
+---
+
 ## PROSSIMA SESSIONE — la coda, in quest'ordine
 
 Una riga di contesto per voce, così si riapre senza rileggere tremila righe.
@@ -4261,13 +4358,31 @@ dimostrata e il ticket va inviato; se non cala, il 204 era vuoto e va rifatta
 tutta la diagnosi. Riga da usare: uno SRID **non** fra 4326/3857/4258/32633, e
 `INSERT` di ripristino pronto **prima** di premere invio.
 
-**c) F26 DIFF 6** — accende le regole anti-fake oggi spente. Le **allowlist vanno
-svuotate**; restano **tre eccezioni per nome**, e sono queste:
-`Landing.jsx:520`, `DashboardUser:554`, `DashboardUser:587`.
+**c) F26 DIFF 6 — SBLOCCATO**, il CLEANUP è chiuso. Perimetro già scritto in
+FASE 0 e ancora valido:
+1. Togliere i **tre `skip: true`** (`no-unsplash-in-content`,
+   `no-fake-reviewer-names`, `no-in-arrivo-toast`).
+2. `no-unsplash-in-content`: allowlist **da 2 voci a 3**, aggiungendo
+   `DashboardUser.jsx` per nome e motivo. Le tre eccezioni finali sono
+   `Landing.jsx:520` (hero), `DashboardUser:554`/`:587` (texture `opacity-10`),
+   `DashboardGuide.jsx` (6, spento dietro `V1LockedGuard`). **Residuo misurato
+   ad allowlist svuotata: 9.**
+3. `TourDetails:973` — **già fatto nel CLEANUP**, non rifarlo.
+4. **DA DECIDERE**: `no-in-arrivo-toast` ha 2 violazioni, `GuidePlaceholder:30`
+   ("Coming Soon") e `TourDetails:818` (toast chat-guida). Vanno **rimosse**,
+   non esentate — ma `gatePulizia.test.js:205` **protegge attivamente**
+   l'irraggiungibilità di `GuidePlaceholder`, quindi cancellare la pagina
+   significa toccare anche quel test. Se il punto 4 rimuove il toast di
+   TourDetails, **allora serve un giro device** e va dichiarato.
 
-**d) GATE CLEANUP** — i **4 file morti** più le **3 allowlist che li nominano**.
-Vanno insieme: togliere i file lasciando le allowlist significa lasciare in giro
-tre puntatori a nulla, che è esattamente come nasce un commento falso (#26).
+**Metodo sonda obbligatorio.** Dopo la pulizia `no-fake-reviewer-names` e
+`no-in-arrivo-toast` valgono **0**: uno zero non prova niente. Vanno provocate
+violazioni (`'Sofia'`, `'Coming soon'` in un file vivo), visto il rosso, tolte.
+Per `no-unsplash-in-content` il rosso è già misurato (9 ad allowlist svuotata),
+e il precedente è codificato in `gateF26diff5.test.js:52`.
+
+**d) GATE CLEANUP** — ✅ **CHIUSO** il 26/08, commit `a250a95`. Erano cinque
+morti, non quattro, e 17 allowlist scadute, non tre. Vedi la sessione 26/08.
 
 **e) GATE RAGGIO** — **F47**: POI proposti a **Mestre** per un tour di Venezia.
 **F52**: ordine delle tappe incoerente con l'ora. Stesso gate perché toccano
@@ -4282,6 +4397,20 @@ renderebbe illeggibili i giri device degli altri.
 
 **h) Bug minori, in un gate unico** — **F37, F39, F45, F46, F51, F54**. Uno solo
 per non pagare sei volte il costo di apertura e chiusura.
+
+**i) Regola strutturale `if (url) setX(url)` senza `else`** — voce a parte, con
+la misura già fatta in FASE 0 del DIFF 6. **Scrivibile**: le voci di `RULES`
+sono per-riga, ma il precedente multi-riga esiste
+(`no-fetch-without-abort-signal`, finestra `idx-1 … idx+8`).
+**Il problema è il segnale, non il meccanismo**: forma una-riga **16
+occorrenze**, di cui ~14 sono guardie di cancellazione legittime (`isMounted`,
+`!cancelled`, `isOpen`, `originalIndex !== -1`). Ristretta a identificatori di
+dato: **2**, di cui una è il commento in `POIDetailDrawer:49` che documenta
+l'istanza già riparata dal DIFF 4. **Bersaglio vivo reale: uno,
+`TourDetails:640`** (`if (data) setNearbyPartners(data)`), e serve un giudizio
+per dire se è un difetto.
+Una regola larga vorrebbe ~14 voci di allowlist su 16 hit: **una regola per
+l'88% eccezione**, cioè la prossima `skip: true`. Se si apre, si apre stretta.
 
 ### Problemi aperti (non in coda, ma vivi)
 

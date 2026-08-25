@@ -3695,6 +3695,25 @@ non aveva visto *"la porta principale è chiusa **lun/mar**"* — che afferma
 una revisione: quando si vieta una classe di affermazioni, **elencare le forme
 che quella classe può assumere** (ore, giorni, stagioni, "adesso") prima di
 cercarle.
+
+**#31 — `REVOKE` riesce anche quando non revoca niente.**
+In Postgres `REVOKE` rimuove solo i grant di cui **tu** sei il concedente. Il
+grant su `spatial_ref_sys` era `anon=arwdDxtm/**supabase_admin**` — il pezzo
+dopo la barra è il concedente. Eseguito da `postgres`, il `REVOKE` è tornato
+senza errori e **non ha cambiato un bit**: `anon` aveva ancora `DELETE`. Una
+sonda che chiedeva "l'istruzione va a buon fine?" ha risposto `RIUSCITO` ed era
+una risposta vera a una domanda inutile. **La prova di un permesso non è che
+l'istruzione passi: è che il permesso dopo sia diverso da prima.** Misurare
+`has_table_privilege` PRIMA e DOPO, sempre.
+
+**#32 — Un `DO $$ ... EXCEPTION ... $$` non è una transazione.**
+La prima sonda diceva "in transazione con ROLLBACK" e nessuna transazione era
+aperta: a impedire la modifica erano state le eccezioni, cioè il fatto che i
+comandi **fallissero**. Se uno fosse riuscito, sarebbe stato committato. Il
+blocco `BEGIN ... EXCEPTION` di plpgsql è una **sotto**transazione e annulla solo
+se ne esce per eccezione — da qui il `RAISE EXCEPTION 'annulla'` dopo ogni
+tentativo riuscito, che è il modo corretto di provare un DDL senza applicarlo.
+Scrivere "rollback" non fa rollback.
 ---
 
 ## Sessione 21/08 (2) — Gate F26 DIFF 4: le catene di fallback
@@ -3891,6 +3910,9 @@ frasi viste su device esiste nel sorgente. La causa vera è che il modello
   Un solo marker negativo **sul sorgente**, così prende anche una quarta porta.
 
 ### DIFF 2, 3, 4 — in coda, con le decisioni già prese
+<!-- SUPERATO: al 25/08 DIFF 2, 3 e 4 sono tutti CHIUSI. Quanto segue resta
+     solo come registro delle decisioni prese PRIMA di eseguirli. Per lo stato
+     vero vedi "Sessione 25/08" in fondo al file. -->
 
 - **DIFF 2 — `hasRealDescription`.** Il predicato è
   `!!(s?.description && String(s.description).trim().length > 0)`: verifica
@@ -3993,9 +4015,11 @@ La domanda aperta è **di quanto**.
 ### Restano
 
 **Debito device aggiornato**: F26 DIFF 4/5 e NARRATORE DIFF 1/3 sono
-**verificati** (21-23/08). Restano da verificare **solo F55 e F56** — su un POI
+**verificati** (21-23/08). Restano da verificare F55 e F56 — su un POI
 religioso, guardando due cose insieme: che non compaiano più contenuti inventati,
 e che le description **non siano diventate intercambiabili** fra POI diversi.
+<!-- SUPERATO il 25/08: diceva "solo F55 e F56". Con la DIFF 4 in produzione il
+     debito device è di TRE voci — vedi "DEBITO DEVICE" nel blocco 25/08. -->
 
 - **DIFF 2 — CHIUSO** (24/08, commit `c918e78`, deploy success).
   `hasRealDescription` → **`hasNonEmptyDescription`**. Verificava che la stringa
@@ -4011,9 +4035,12 @@ e che le description **non siano diventate intercambiabili** fra POI diversi.
   Se servirà un predicato che verifica la **qualità** e non la lunghezza, nasce
   **accanto**, non dentro: sono due domande diverse.
 
-- **DIFF 4** — harness runtime. **È il pezzo che rende il gate durevole**: le
-  regole anti-fake scansionano il sorgente, il testo del narratore nasce a
-  runtime. Senza, DIFF 1 e DIFF 3 sono correzioni una tantum.
+- **DIFF 4** — harness runtime. ~~**È il pezzo che rende il gate durevole**~~
+  → **SUPERATO il 25/08, vedi il blocco in fondo.** Questa frase era una
+  promessa scritta *prima* di costruirlo, ed è risultata falsa: la DIFF 4 copre i
+  difetti di **forma** (orari, temporalità, duplicati), **non** quelli di
+  contenuto. Due su cinque. Resta vero il resto: le regole anti-fake scansionano
+  il sorgente, il testo del narratore nasce a runtime.
 
 ### Onestà
 
@@ -4021,6 +4048,259 @@ e che le description **non siano diventate intercambiabili** fra POI diversi.
 deterministico. Provano che **il prompt non detta più il testo che veniva
 copiato**. La prova è un giro su device, su un tour con **almeno un POI
 non-food**.
+
+---
+
+## Sessione 24-25/08 — CHIUSURA GATE NARRATORE ANCORATO
+
+> Etichettata "chiusura 24/08" da Ivano; il lavoro è stato eseguito e misurato
+> il **25/08**. Le date nei comandi e nelle misure sotto sono quelle vere.
+
+Commit **`7211cc4`**, push su `main`, deploy **success** (verificato via
+`/commits/7211cc4…/status` → `Vercel=success`, 7 poll da 25s).
+**456 test** (+6), build pulita, lint **0 errori** (221 warning, la baseline di
+sempre). Marker: sorgente 1, bundle 1.
+
+### Il gate in sei diff — cosa ha chiuso ciascuno
+
+| Diff | Commit | Cosa ha chiuso |
+|---|---|---|
+| **DIFF 1** | `e104140` | Gli **esempi del prompt** dettavano il testo. Esempi per categoria su `description`/`insiderTip`/`transition` + titolo su tutti e tre i prompt. Marker `"I vicoli segreti di"` 2→0. |
+| **DIFF 2** | `c918e78` | `hasRealDescription` → **`hasNonEmptyDescription`**. Il nome prometteva un controllo di verità inesistente su un predicato che **decide se una tappa entra**. Bundle byte-identico: rinomina e nulla più. |
+| **DIFF 3** | `ea59c1a` | **Orari affermati**. Vietato affermare aperto/chiuso su tutti e tre i prompt; `open_now` tolto da `candidatesLite` (regola locked #18: vincolo, mai affermazione). |
+| **F55** | `8a74cb7` | **Contenuti attribuiti** a un posto che non li ha ("la sezione dedicata agli artisti emergenti" su una basilica). |
+| **F56** | `8a74cb7` | **Presente affermato** ("cosa sta accadendo ORA"); `transition` esteso col divieto temporale su tre prompt. |
+| **DIFF 4** | `7211cc4` | Le tre fasi di questa sessione: A-bis (regola anti-fake sugli **esempi ✓** dei prompt), A (`narratorGuards.js`, invarianti puri), B (innesto solo-log nel motore). |
+
+### Cosa resta INVISIBILE — senza sconti
+
+La DIFF 4 copre i difetti di **forma**. Dei cinque difetti trovati su device ne
+intercetta **due**. Restano fuori, e non per pigrizia ma **per costruzione** —
+vederli richiederebbe sapere cosa contiene davvero quel posto:
+
+- **F55, contenuti inventati.** *"Non perderti la sezione dedicata agli artisti
+  emergenti"* su una basilica non viola **nessun** invariante: niente orario,
+  niente presente, nessun duplicato. È **il più grave dei cinque**.
+- **Scivolamento nel generico.** Prosa che va bene per qualunque posto passa
+  tutti i controlli proprio perché non afferma niente di falsificabile.
+- **Titoli scollegati dal testo.** Nessun invariante lega titolo e corpo.
+- **Tip pertinenti-al-tipo-ma-falsi.** Un consiglio plausibile per una chiesa,
+  detto su *quella* chiesa dove è falso: forma perfetta, contenuto inventato.
+- **Description SIMILI** (non identiche). Il confronto è esatto su testo
+  normalizzato. La similarità richiederebbe una soglia da tarare, cioè un test
+  che fallisce a caso, cioè la prossima `skip: true`. Scartata di proposito.
+
+**Nessun test prova che il narratore sia migliorato.** L'output non è
+deterministico. Provano che il prompt non detta più il testo che veniva copiato.
+
+### DEBITO DEVICE — tre voci, nessuna saldata
+
+1. **F55** — POI religioso: che non compaiano contenuti inventati.
+2. **F56** — che non si affermi cosa accade *adesso*.
+3. **DIFF 4** — attenzione, qui la domanda è diversa. È **solo-log**: va
+   verificato che **i log COMPAIANO** in console, non che l'app regga. Che
+   l'app regga è già provato dal test "numero di tappe invariato"; un giro
+   device che non trova violazioni **non dimostra nulla** — potrebbe voler dire
+   che i guard non sono innestati. Cercare `[Narratore] VIOLAZIONE`, e se non
+   compare mai, provocarne una prima di concludere che va tutto bene.
+
+Da guardare in tutti e tre insieme: se le description sono diventate
+**intercambiabili** fra POI diversi.
+
+### DIFF 4 FASE B — CHIUSA
+
+Innesto di `findTourViolations` in `canonicalizeStopsFromCandidates`
+(`aiRecommendationService.js:1177`). **Solo log**, marker
+`[Narratore] VIOLAZIONE <invariante> | campo=… | POI="…" | estratto="…"`.
+Il nome POI è quello **canonico di Google**, non quello che credeva l'AI:
+serve a rendere la riga utile quando la si leggerà in produzione.
+
+Il log sta **dopo** il `.filter(Boolean)`: una tappa scartata per `place_id`
+inventato non esiste, segnalarne il testo sarebbe rumore. I guard sono avvolti
+in `try/catch` — un guard che rompe la generazione del tour sarebbe peggio del
+difetto che sorveglia.
+
+**Prova del rosso** (metodo sonda): prima dell'innesto **3 test rossi su 6**, e
+i tre fallivano **sull'asserzione** (`expected [] to have a length of 1`), non
+sull'import. Gli altri tre erano verdi da subito **di proposito**: sono quelli
+che asseriscono che *nulla cambia*, e dovevano restare verdi anche dopo. Dopo:
+6/6. Marker dichiarati prima della misura e rispettati — sorgente 1, bundle 1,
+simbolo `findTourViolations` 0 perché minificato (zero spiegato, non zero cieco).
+
+**Il test che conta non è quello sul warn**: è `il numero di tappe e' invariato`.
+È la prova che la Fase B non cambia comportamento — bundle diverso, output
+identico. Quando qualcuno aprirà la Fase C, quel test diventerà rosso, ed è
+esattamente ciò che deve fare: **la Fase C è una decisione, non manutenzione**,
+e non deve poter entrare di soppiatto.
+
+**Condizione che ANNULLA la Fase C**, da leggere prima di aprirla: se i log
+mostrano violazioni **frequenti**, il problema è il **prompt**, e annullare il
+campo mascherebbe un tour scadente invece di ripararlo — nasconderebbe la
+diagnosi proprio mentre la si sta raccogliendo. La Fase C si apre solo dopo aver
+letto log **veri**, e la decide Ivano.
+
+### Onestà sulla DIFF 4
+
+**Copre i difetti di FORMA** (orari affermati, riferimenti al presente,
+description duplicate). **Non è "il gate reso durevole".** Dei cinque difetti
+trovati su device, ne intercetta **2 su 5**. F55 — *"non perderti la sezione
+dedicata agli artisti emergenti"* su una basilica — non viola **nessun**
+invariante: nessun orario, nessun presente, nessun duplicato. È il più grave dei
+cinque e **resta invisibile**; vederlo richiederebbe sapere cosa contiene la
+basilica. La FASE A-bis è **l'unica** fase che chiude un difetto già avvenuto.
+
+### Gate SICUREZZA — `public.spatial_ref_sys` ⚠️ APERTO, NON RISOLVIBILE DA QUI
+
+Allarme Supabase CRITICAL `rls_disabled_in_public`. **Non riguarda dati utente**:
+è la tabella EPSG di PostGIS, 8.500 righe, di proprietà di `supabase_admin` e
+appartenente all'estensione `postgis`.
+
+**INDAGINE APERTA. Non è un fix, e non è nemmeno una diagnosi completa.**
+
+Misurato: `GET /rest/v1/spatial_ref_sys` con la sola **chiave anon** (quella che
+viaggia nel bundle del frontend) → **HTTP 200**, la tabella è esposta e leggibile.
+`DELETE ?srid=eq.-999999` → **HTTP 204**.
+
+**Il 204 NON prova la cancellazione.** PostgREST risponde 204 anche a un
+`DELETE` il cui filtro non matcha nessuna riga, ed è esattamente il caso: `srid
+= -999999` non esiste, quel filtro era scelto apposta per non distruggere nulla.
+Prova che la richiesta è stata accettata, non che una riga possa sparire.
+**La verifica decisiva — `count` PRIMA / `DELETE` di una riga vera / `count`
+DOPO — NON È STATA FATTA.** Finché non lo è, la scrivibilità da `anon` resta
+**indiziaria**: coerente con `has_table_privilege` = true e con un `DELETE`
+eseguito in-database sotto `SET LOCAL ROLE anon`, ma non dimostrata.
+
+Vale anche il rovescio: **non è dimostrato che sia innocua**. Non è chiusa in
+nessuna delle due direzioni.
+
+**Quattro rimedi, quattro strade chiuse** (tutte provate e annullate):
+
+| Tentativo | Esito |
+|---|---|
+| `ALTER TABLE … ENABLE ROW LEVEL SECURITY` | `must be owner of table spatial_ref_sys` |
+| `REVOKE INSERT,UPDATE,DELETE FROM anon, authenticated` | **eseguito, effetto zero** — vedi lezione #31 |
+| `SET ROLE supabase_admin` | `permission denied to set role` |
+| `ALTER EXTENSION postgis SET SCHEMA extensions` | `extension "postgis" does not support SET SCHEMA` |
+| `ALTER TABLE … SET SCHEMA extensions` | `must be owner` |
+| `REVOKE ALL … FROM PUBLIC` | eseguito, `anon` mantiene il grant diretto |
+
+ACL vera: `anon=arwdDxtm/**supabase_admin**`. Il grant è **diretto** e il
+concedente è `supabase_admin`, che `postgres` non può né impersonare né revocare.
+**Serve Supabase Support: non esiste una mossa lato progetto.**
+
+**Bozza del ticket — NON INVIATO.** Scriverlo a nome di Ivano è una sua chiamata,
+non è mai stato aperto:
+
+> Progetto `ahecpiwsdhghkndncejb`. Il security advisor segnala
+> `rls_disabled_in_public` su `public.spatial_ref_sys`. Il ruolo `anon` ha un
+> grant diretto `arwdDxtm` concesso da `supabase_admin`, quindi il ruolo
+> `postgres` non può revocarlo. Verificati e tutti impossibili da `postgres`:
+> `ENABLE ROW LEVEL SECURITY` (*must be owner*), `SET ROLE supabase_admin`
+> (*permission denied*), `ALTER EXTENSION postgis SET SCHEMA`
+> (*does not support SET SCHEMA*), `ALTER TABLE … SET SCHEMA` (*must be owner*),
+> `REVOKE … FROM PUBLIC` (ineffcace, il grant è diretto).
+> Richiesta: eseguire come `supabase_admin`
+> `REVOKE INSERT, UPDATE, DELETE ON public.spatial_ref_sys FROM anon, authenticated;`
+> lasciando `SELECT`, che serve a PostGIS.
+
+**Impatto, SE la scrivibilità verrà dimostrata al punto b**: nessuna fuga di
+dati in ogni caso — le definizioni EPSG sono pubbliche per natura, non c'è nulla
+da esfiltrare. Il rischio sarebbe la **corruzione** della base spaziale, che
+romperebbe `businesses_profile.location`, `search_nearby_partners` e
+`get_nearby_partners_for_tour`. Sarebbe comunque **recuperabile**: il dataset è
+quello standard distribuito con PostGIS.
+
+**Controllo compensativo** — impronta al 25/08, per rendere la corruzione
+*rilevabile*:
+```
+righe = 8500   md5 = c4485917b4b7a60fe515dee472f7b51a   SRID 4326/3857/4258/32633 = 4 presenti
+```
+```sql
+SELECT count(*), md5(string_agg(srid::text||'|'||coalesce(auth_name,'')||'|'||
+       coalesce(auth_srid::text,'')||'|'||coalesce(srtext,''), E'\n' ORDER BY srid))
+FROM public.spatial_ref_sys;
+```
+
+**Da NON "correggere" per riflesso**: `public.guides` è `rls_enabled_no_policy`
+(INFO). RLS attiva con zero policy = deny-all, cioè l'esito fail-closed **voluto**
+dal Gate RLS precedente. È corretto così.
+
+### File toccati in questa sessione
+
+| File | Stato | Cosa |
+|---|---|---|
+| `src/lib/narratorGuards.js` | **nuovo** | invarianti puri (FASE A) |
+| `src/__tests__/lib/narratorGuards.test.js` | **nuovo** | 20 test sui puri |
+| `src/__tests__/services/narratorGuardsInnesto.test.js` | **nuovo** | 6 test sull'innesto (FASE B) |
+| `src/services/aiRecommendationService.js` | modificato | import + innesto solo-log; A-bis −1/+1 |
+| `src/__tests__/anti-fake.test.js` | modificato | regola `no-forbidden-forms-in-prompt-examples` (A-bis) |
+| `DOVEVAI_HANDOFF.md` | modificato | lezioni #31/#32 + questo blocco (commit separato) |
+
+I primi cinque sono in **`7211cc4`**. `spatial_ref_sys` **non è nel commit**: è
+un'indagine aperta, non un fix, e non aveva niente da committare.
+
+Nessuna migration, nessun DDL applicato con effetto: il solo `REVOKE` eseguito
+non ha cambiato nulla (lezione #31).
+
+## PROSSIMA SESSIONE — la coda, in quest'ordine
+
+Una riga di contesto per voce, così si riapre senza rileggere tremila righe.
+
+**a) Giro device F55 / F56 / DIFF 4** — POI religioso **a Milano**. Tre domande
+distinte: (1) compaiono ancora **contenuti inventati** su quel POI; (2) le
+description sono **intercambiabili** fra POI diversi; (3) i log
+`[Narratore] VIOLAZIONE` **compaiono in console**. Attenzione alla terza: la
+DIFF 4 è solo-log, e un giro che non trova violazioni **non prova che funzioni**
+— potrebbe voler dire che i guard non girano. Se non compare nulla, provocarne
+una prima di concludere.
+
+**b) Verifica `spatial_ref_sys` count-prima / count-dopo** — è l'unica prova che
+manca. `SELECT count(*)`, poi `DELETE` **di una riga vera** via REST con la
+chiave anon, poi `count(*)` di nuovo. Se il numero cala, la scrivibilità è
+dimostrata e il ticket va inviato; se non cala, il 204 era vuoto e va rifatta
+tutta la diagnosi. Riga da usare: uno SRID **non** fra 4326/3857/4258/32633, e
+`INSERT` di ripristino pronto **prima** di premere invio.
+
+**c) F26 DIFF 6** — accende le regole anti-fake oggi spente. Le **allowlist vanno
+svuotate**; restano **tre eccezioni per nome**, e sono queste:
+`Landing.jsx:520`, `DashboardUser:554`, `DashboardUser:587`.
+
+**d) GATE CLEANUP** — i **4 file morti** più le **3 allowlist che li nominano**.
+Vanno insieme: togliere i file lasciando le allowlist significa lasciare in giro
+tre puntatori a nulla, che è esattamente come nasce un commento falso (#26).
+
+**e) GATE RAGGIO** — **F47**: POI proposti a **Mestre** per un tour di Venezia.
+**F52**: ordine delle tappe incoerente con l'ora. Stesso gate perché toccano
+entrambi la forma del tour, non il testo.
+
+**f) GATE CITTÀ** — `user_city` sopravvive **oltre il TTL**: la città vecchia
+vince su quella nuova.
+
+**g) AUDIT SCHEMA → PERSISTENZA** — il più grosso, e **sblocca anche F53**
+(Esplora vuoto). Da fare dopo i piccoli, non prima: cambia il contratto dati e
+renderebbe illeggibili i giri device degli altri.
+
+**h) Bug minori, in un gate unico** — **F37, F39, F45, F46, F51, F54**. Uno solo
+per non pagare sei volte il costo di apertura e chiusura.
+
+### Problemi aperti (non in coda, ma vivi)
+
+- **`spatial_ref_sys`** — indagine **APERTA**: scrivibilità **indiziaria**, non
+  dimostrata (manca la prova al punto **b**). Rimedio bloccato su Supabase
+  Support, ticket in **bozza**, mai inviato.
+- **Funzioni `SECURITY DEFINER` eseguibili da `anon`** (WARN, mai gattato):
+  `handle_new_user`, `record_completed_tour`, `complete_tour`,
+  `search_nearby_partners`, `get_nearby_partners_for_tour`,
+  `get_nearby_requests_for_guide`, `get_notifications_policies`. Più 14 funzioni
+  con `function_search_path_mutable` e `auth_leaked_password_protection` spento.
+  `handle_new_user` e `record_completed_tour` aperte ad `anon` meritano un gate.
+- **DIFF 4 FASE C** — non aperta. **Condizione che la annulla**: se i log
+  mostrano violazioni frequenti, il problema è il **prompt**, e annullare il
+  campo mascherebbe un tour scadente. Si apre solo dopo aver letto log veri.
+- **P3** (description triplicata) — mai attribuita.
+- **F44** — perché uno step CI passa da 16s a 189s: causa ignota.
+- **F38-bis** — la mappa a schermo intero non segue la selezione città.
+- **F40, F41, F42** — non ancora collocati in nessun gate della coda.
 
 ---
 

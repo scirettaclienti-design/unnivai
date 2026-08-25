@@ -59,16 +59,22 @@ const RULES = [
         name: 'no-rating-hardcoded',
         pattern: /\brating\s*:\s*["']?[1-5]\.[0-9]+["']?(?![a-z])/i,
         allowlist: [
-            'src/services/tourShape.js',
             'src/pages/QuickPath.jsx',
-            'src/services/aiRecommendationService.js',
             'src/services/placesDiscoveryService.js',
             // Gate O.2: allowlist per file NON in path Home. Rating fake residuo,
-            // cleanup pianificato in Blocco 2.2/2.3 (AiItinerary/SurpriseTour →
-            // via location tour manager; locationTourService → tour reali DB).
-            'src/pages/AiItinerary.jsx',
+            // cleanup pianificato in Blocco 2.2/2.3 (SurpriseTour → via location
+            // tour manager).
             'src/pages/SurpriseTour.jsx',
-            'src/services/locationTourService.js',
+            //
+            // GATE CLEANUP — quattro voci tolte:
+            //  - 'src/pages/AiItinerary.jsx'  8 → 0, stavano tutte in `sampleItinerary`
+            //  - 'src/services/locationTourService.js'  file cancellato
+            //  - 'src/services/tourShape.js'  SCADUTA: l'unico `rating:` rimasto
+            //    e' `Number.isFinite(raw.rating) ? raw.rating : null` (:354), cioe'
+            //    un passaggio del dato vero, non un decimale scritto a mano.
+            //  - 'src/services/aiRecommendationService.js'  SCADUTA: tutti i suoi
+            //    `rating` leggono da Google Places (`p.rating`, `place.rating`),
+            //    nessun letterale.
         ],
         message: 'Rating hardcoded. Le stelle vengono dal DB (tours.rating) o da Google Places.',
     },
@@ -81,12 +87,14 @@ const RULES = [
     {
         name: 'no-price-eur-hardcoded',
         pattern: /\bprice(_eur)?\s*:\s*[1-9]\d{1,3}\b(?![,.]\d)/,
-        allowlist: [
-            'src/pages/QuickPath.jsx',
-            // Gate O.2: allowlist non-Home. Cleanup pianificato Blocco 2.2/2.3.
-            'src/pages/AiItinerary.jsx',
-            'src/services/locationTourService.js',
-        ],
+        // GATE CLEANUP — allowlist SVUOTATA, tre voci tolte:
+        //  - 'src/pages/AiItinerary.jsx'  6 → 0, stavano tutte in `sampleItinerary`
+        //  - 'src/services/locationTourService.js'  file cancellato
+        //  - 'src/pages/QuickPath.jsx'  SCADUTA: l'unico `price_eur:` rimasto e'
+        //    `price_eur: 0` (:685), che il pattern non prende (vuole [1-9]) ed e'
+        //    comunque un prezzo onesto, non finto.
+        // Da qui in poi qualunque prezzo hardcoded, ovunque, fa rossa la build.
+        allowlist: [],
         message: 'Prezzo hardcoded. price_eur viene dal DB tours.',
     },
     {
@@ -94,9 +102,18 @@ const RULES = [
         pattern: /\b(Maria Benedetti|Giuseppe Torrisi|Andrea Morosini|Sofia|Marco R|Elena|Luca|Giulia)\b/,
         allowlist: [],
         message: 'Nome persona fake. Reviewer/guide/participants devono venire da profiles DB.',
-        // SKIP: GroupInviteModal.jsx (V2 group feature, mai raggiunto ma nel repo)
-        // + Landing.jsx (Giulia demo marketing showcase — decide Ivano se mock è OK per marketing)
-        // + TourDetails.jsx:950 (falso positivo: è dentro un commento JSX Gate K).
+        // SKIP ancora attivo: toglierlo e' il DIFF 6.
+        //
+        // GATE CLEANUP — i tre violatori che questa nota citava non esistono piu':
+        //  - GroupInviteModal.jsx (2 'Sofia') → file CANCELLATO, zero importatori.
+        //  - Landing.jsx ("Giulia" demo marketing) → gia' 0 occorrenze prima di
+        //    questo gate: la nota citava un violatore che non c'era piu'.
+        //  - TourDetails.jsx:950 → la riga vera era :973, e il "falso positivo"
+        //    NON era filtrato dallo scanner (il filtro guarda l'inizio riga; quella
+        //    e' una continuazione di commento JSX). Commento riscritto senza il
+        //    nome fabbricato.
+        // Violazioni residue oggi: 0. Al DIFF 6 la regola si accende su uno zero,
+        // quindi va provocata una violazione prima di fidarsene (metodo sonda).
         skip: true,
     },
     {
@@ -134,17 +151,26 @@ const RULES = [
             // categoria: e' l'hero della landing, non contenuto POI ne' copertina
             // tour, e non e' ancora stato sostituito. Gate a parte.
             'src/pages/Landing.jsx',
-            // Orfano dopo il DIFF 4: TourDetails e DashboardUser non lo importano
-            // piu'. Resta nel sorgente (UnnivaiMap.old.jsx lo referenzia) ma e'
-            // fuori dal bundle. Cancellazione: DIFF 5.
-            'src/utils/imageUtils.js',
-            // DIFF 5 — non ancora ripuliti.
-            'src/pages/QuickPath.jsx',
-            'src/pages/SurpriseTour.jsx',
-            'src/pages/AiItinerary.jsx',
-            'src/services/locationTourService.js',
+            //
+            // GATE CLEANUP — sei voci tolte, per due motivi diversi.
+            //
+            // CANCELLATE COL FILE (esentavano un path inesistente):
+            //   'src/utils/imageUtils.js'            52 occorrenze
+            //   'src/services/locationTourService.js' 12
+            //   'src/components/GroupInviteModal.jsx'  1
+            // Con imageUtils e' andato via anche UnnivaiMap.old.jsx, che ne era
+            // l'unico importatore residuo (cancellato PRIMA, non dopo).
+            //
+            // SCADUTE (esentavano zero occorrenze — una allowlist che non esenta
+            // niente e' una dichiarazione falsa, lezione #26):
+            //   'src/pages/AiItinerary.jsx'  8 → 0, stavano tutte in `sampleItinerary`
+            //   'src/pages/QuickPath.jsx'    0, ripulito dal DIFF 5
+            //   'src/pages/SurpriseTour.jsx' 0, ripulito dal DIFF 5
+            //
+            // DashboardGuide resta: 6 occorrenze VERE. Il codice e' SPENTO, non
+            // morto — sta nel bundle ma V1LockedGuard non monta mai i children.
+            // Debito differito che torna visibile il giorno che V2 si accende.
             'src/pages/DashboardGuide.jsx',
-            'src/components/GroupInviteModal.jsx',
         ],
         message: 'Unsplash dentro contenuto tour. Le foto vengono da Google Places photo API.',
         // SKIP ancora attivo: toglierlo e' il DIFF 6, insieme allo svuotamento
@@ -157,10 +183,14 @@ const RULES = [
         pattern: /\b(41\.9028|12\.4964)\b/,
         allowlist: [
             // Gate CC.2b: rimosso 'src/pages/Explore.jsx' (mapCenter ora da resolveCityCenter).
-            'src/components/Map/GoogleMapContainer.jsx',
-            'src/hooks/useEnhancedGeolocation.js',
+            //
+            // GATE CLEANUP — tre voci SCADUTE tolte:
+            //  - 'src/components/Map/GoogleMapContainer.jsx'  l'unica occorrenza
+            //    e' dentro il commento di Gate F38 che ne documenta la RIMOZIONE
+            //    (:35). Lo scanner salta i commenti: esentava zero.
+            //  - 'src/hooks/useEnhancedGeolocation.js'  zero occorrenze nel file.
+            //  - 'src/pages/DashboardUser.jsx'  zero occorrenze nel file.
             'src/services/userContextService.js',
-            'src/pages/DashboardUser.jsx',
             'src/pages/Login.jsx',
             'src/pages/guide/TourBuilder.jsx',
             'src/data/demoData.js',
@@ -400,8 +430,9 @@ const RULES = [
     // feature V2/V3 che V1 NON fa. L'utente che clicca Register aspettando
     // guide locali si sente truffato al primo login.
     // Ammesso: gli stessi termini dentro pagine /prossimamente/* (sono la
-    // pagina che dichiara ESPLICITAMENTE che la feature non c'e' ancora)
-    // + il nome componente `GuidePlaceholder` + la pagina Prossimamente.jsx.
+    // pagina che dichiara ESPLICITAMENTE che la feature non c'e' ancora).
+    // GATE CLEANUP: questa nota citava anche `GuidePlaceholder` fra gli ammessi,
+    // ma quella pagina non contiene nessun termine V2 — l'esenzione non serviva.
     // Regola locked (Ivano 15/07): "V1 promette solo cio' che V1 mantiene.
     // Le feature V2/V3 vivono in /prossimamente, non nel copy della landing".
     {
@@ -411,7 +442,11 @@ const RULES = [
             // Pagine "Prossimamente" — dichiarano ESPLICITAMENTE che la feature
             // non c'e' ancora. Il pattern qui e' onesto, non fake.
             'src/pages/Prossimamente.jsx',
-            'src/pages/GuidePlaceholder.jsx',
+            // GATE CLEANUP — tolta 'src/pages/GuidePlaceholder.jsx': SCADUTA, zero
+            // occorrenze di qualunque termine V2 nel file. Il commento del muro EE
+            // qui sopra la citava come esenzione necessaria, e non lo era piu'.
+            // Attenzione: la pagina NON e' morta ed e' fuori dal perimetro CLEANUP
+            // — il suo "Coming Soon" (:30) e' materia del DIFF 6 punto 4.
             // File legacy con copy V2 in path non-Home. Cleanup pianificato Blocco 2:
             //  - TourDetails.jsx:1388 — copy "esplora tour reali delle nostre guide
             //    locali" in ramo tour demo (V2 marketplace, spento in V1).

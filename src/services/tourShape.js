@@ -10,8 +10,9 @@
 // producono un oggetto identico, qualunque sia la sorgente.
 
 // Gate VERITÀ VISIVA (F26) — STEP_FALLBACK_IMAGE rimosso.
-// Era 'photo-1552832230-c0197dd311b5', cioè il COLOSSEO (lo dichiara
-// imageUtils.js:84), assegnato a ogni tappa senza foto reale e a ogni
+// Era 'photo-1552832230-c0197dd311b5', cioè il COLOSSEO — lo dichiarava per
+// nome la mappa di stock del modulo imageUtils, cancellato dal GATE CLEANUP.
+// Quello stock veniva assegnato a ogni tappa senza foto reale e a ogni
 // copertina senza foto: un tour a Manfredonia mostrava il Colosseo.
 // Decisione Ivano: sulla TAPPA l'immagine pretende di essere quel posto,
 // quindi senza foto Google ancorata al place_id non c'è immagine (null).

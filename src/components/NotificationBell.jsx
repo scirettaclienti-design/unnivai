@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, MapPin, Sun, Heart, Clock, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { aiRecommendationService } from '@/services/aiRecommendationService';
-import { locationTourService } from '@/services/locationTourService';
 import { useUserContext } from '@/hooks/useUserContext';
 
 import { dataService } from '@/services/dataService';

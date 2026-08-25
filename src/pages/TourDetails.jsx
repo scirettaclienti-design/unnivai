@@ -830,14 +830,20 @@ export default function TourDetailsPage() {
                 {/* --- HERO SECTION --- */}
                 <div className="relative">
                     {/* Gate VERITÀ VISIVA (F26) DIFF 4 — la copertina passa da TourCover.
-                        Prima: l'helper di imageUtils, che quando non trovava una
-                        foto vera ricadeva su CITY_IMAGES o su GENERIC.piazza — cioè su
-                        uno stock Unsplash mostrato come copertina di QUEL tour. Per
-                        "Roma" quello stock era il Colosseo (imageUtils.js:38).
+                        Prima: un helper del modulo imageUtils (cancellato dal GATE
+                        CLEANUP) che quando non trovava una foto vera ricadeva sulla
+                        sua mappa citta'→stock o sullo stock generico "piazza" — cioe'
+                        su un'immagine Unsplash mostrata come copertina di QUEL tour.
+                        Per "Roma" quello stock era il Colosseo.
                         Ora: se la foto e' verificata Places la si mostra (ramo A), se
                         non c'e' si mostra il gradient di categoria col glifo (ramo B).
                         Decisione Ivano: sulla COPERTINA un'illustrazione dichiarata va
-                        bene, perche' non pretende di essere una foto di quel posto. */}
+                        bene, perche' non pretende di essere una foto di quel posto.
+                        NB: il modulo si nomina qui SENZA il suo path di import, di
+                        proposito. gateF26diff4 asserisce che questo file non contenga
+                        quel path, e l'asserzione non distingue una citazione dentro un
+                        commento da un import vero: scriverlo per esteso qui la fa
+                        rossa. Se serve nominarlo, nominarlo cosi'. */}
                     <div className="relative w-full h-80">
                         <TourCover
                             cover={tour.imageUrl || tour.image || null}
@@ -970,8 +976,14 @@ export default function TourDetailsPage() {
                         </div>
 
                 {/* Gate K: SOCIAL BLOCK Group Mode RIMOSSO — pressione sociale
-                    fabbricata ("Ti stai unendo a Sofia e altri 4 esploratori"
-                    + 5 avatar Unsplash + "Confermati" fake). Fuori. */}
+                    fabbricata: una riga che diceva all'utente di stare per unirsi
+                    a un gruppo di esploratori inesistenti, con 5 avatar Unsplash e
+                    un contatore "Confermati" fake. Fuori.
+                    GATE CLEANUP: il nome di persona inventato che stava qui e'
+                    stato tolto dal commento. Era l'unico residuo che faceva
+                    scattare no-fake-reviewer-names, e ci scattava perche' lo
+                    scanner filtra i commenti guardando l'INIZIO riga: questa e'
+                    una continuazione, quindi passava il filtro. */}
 
                 {/* --- GUIDE OR AI SUMMARY SECTION --- */}
                 {isGuideTour ? (

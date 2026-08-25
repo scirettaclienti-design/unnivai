@@ -6,6 +6,9 @@
 // DVAI-020 — Modello aggiornato da gpt-3.5-turbo a gpt-4o-mini.
 
 import { supabase } from '../lib/supabase';
+// Gate NARRATORE ANCORATO DIFF 4 — invarianti sull'output del narratore.
+// Funzione pura, nessuna I/O: qui viene solo LETTA, il log lo fa il chiamante.
+import { findTourViolations } from '../lib/narratorGuards';
 
 const DOVEVAI_NARRATOR_PROMPT = `Sei la voce di DoveVai. Scrivi curiosità storiche ironiche e colte.
 Evita i cliché come 'storia millenaria'. Focus su aneddoti bizzarri.
@@ -883,7 +886,7 @@ Il tuo lavoro in 3 mosse:
      vera di QUEL TIPO di posto, non un contenuto di quel singolo luogo:
      ✓ museo/galleria — "Le sale in fondo restano le più silenziose, sempre"
      ✓ chiesa        — "Dentro la temperatura scende di colpo, anche in agosto"
-     ✓ ristorante/bar — "L'ora in cui si sente più il rumore delle posate che le voci"
+     ✓ ristorante/bar — "Si sentono più le posate che le voci, con quel soffitto basso"
      ✓ parco/natura  — "L'ombra vera è sotto gli alberi grandi, non lungo i vialetti"
      ✓ panorama      — "Bastano pochi passi di lato per togliersi la folla dall'inquadratura"
      ✗ "Chiesa barocca del XVIII secolo, patrimonio della città"  ← da enciclopedia
@@ -1180,7 +1183,7 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates) => {
         const k = c.place_id || c.googlePlaceId;
         if (k) byId.set(k, c);
     }
-    return aiStops.map(s => {
+    const stops = aiStops.map(s => {
         const c = byId.get(s.place_id);
         if (!c) {
             console.warn(`[DVAI-060 F2] AI ha proposto place_id sconosciuto: ${s.place_id} → scarto stop`);
@@ -1218,6 +1221,37 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates) => {
             city: c.city || null,
         };
     }).filter(Boolean);
+
+    // Gate NARRATORE ANCORATO — DIFF 4 FASE B: gli invarianti sull'output del
+    // narratore, applicati alle tappe VERE appena canonizzate.
+    //
+    // SOLO LOG, di proposito. `stops` viene restituito intatto: stesso numero di
+    // tappe, stessi campi, anche quando la violazione c'e'. E' il punto di tutta
+    // la fase — bundle diverso, output identico — ed e' asserito da
+    // narratorGuardsInnesto.test.js ("il numero di tappe e' invariato").
+    //
+    // Perche' non annullare subito il campo in violazione (sarebbe la Fase C):
+    // non sappiamo ancora QUANTO spesso scatta. Se scattasse spesso, il problema
+    // sarebbe il PROMPT, e annullare il campo mascherebbe un tour scadente invece
+    // di ripararlo — nasconderebbe la diagnosi proprio mentre la si raccoglie.
+    // La Fase C si apre solo dopo aver letto log VERI, e va decisa da Ivano.
+    //
+    // Qui si logga DOPO il filtro: una tappa scartata per place_id inventato non
+    // esiste, e segnalarne il testo sarebbe rumore su qualcosa che nessuno vedra'.
+    try {
+        for (const v of findTourViolations(stops)) {
+            const poi = stops[v.indice]?.title || '(senza titolo)';
+            console.warn(
+                `[Narratore] VIOLAZIONE ${v.invariante} | campo=${v.campo} | POI="${poi}" | estratto="${v.estratto}"`
+            );
+        }
+    } catch (e) {
+        // Un guard che rompe la generazione del tour sarebbe molto peggio del
+        // difetto che sorveglia: qui si osserva, non si decide nulla.
+        console.warn('[Narratore] guard non eseguiti:', e?.message);
+    }
+
+    return stops;
 };
 
 export const aiRecommendationService = {

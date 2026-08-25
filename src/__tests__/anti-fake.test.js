@@ -307,6 +307,30 @@ const RULES = [
     // fuori — insieme al fake rientra pure il rischio di leak di API key.
     // Il pattern cattura fetch diretti al Places API (proxy o Google diretto).
     {
+        // Gate NARRATORE ANCORATO — FASE A-bis (24/08).
+        //
+        // Il difetto che questa regola chiude è GIÀ ACCADUTO. Il 22/08 il DIFF 1
+        // scrisse fra gli esempi ✓ del prompt: "Entra dalla porta laterale,
+        // quella principale è chiusa lun/mar". Il 23/08 il DIFF 3 vietò al
+        // narratore di affermare orari di apertura — e non vide quella riga,
+        // perché stava cercando ORE e quelli erano GIORNI (lezione #30). Per due
+        // giorni un esempio ✓ ha contraddetto la regola che lo precedeva, e un
+        // esempio vince sulla regola (lezione #29).
+        //
+        // Il validatore runtime (Fase B) guarda l'OUTPUT del modello. Nessuno
+        // guardava l'INPUT. Questa regola guarda l'input, ed è la forma che
+        // sappiamo funzionare: uno scanner sul sorgente.
+        //
+        // Come distingue ✓ da ✗: il pattern RICHIEDE il ✓ sulla riga. Lo scanner
+        // è line-based (vedi scanRule), quindi non serve nessuna euristica e
+        // nessuna modifica all'architettura. Le righe ✗ DEVONO contenere le
+        // forme vietate — è il loro scopo — e restano esenti per costruzione.
+        name: 'no-forbidden-forms-in-prompt-examples',
+        pattern: /✓[^\n]*(\b(?:alle|dalle|fino alle)\s*\d|\b(?:lun|mar|mer|gio|ven|sab|dom)\b|\bluned[ìi]\b|\bmarted[ìi]\b|\bmercoled[ìi]\b|\bgioved[ìi]\b|\bvenerd[ìi]\b|\bsabato\b|\bdomenica\b|\bora\b|\badesso\b)/i,
+        allowlist: [],
+        message: 'Esempio ✓ in un prompt che contiene una forma VIETATA al narratore: un orario con preposizione, un giorno della settimana, o un riferimento al presente. Un esempio ✓ è un template che il modello copia (lezione #27) e vince sulla regola che lo precede (lezione #29). Spostalo fra i ✗, o riscrivilo senza quella forma.',
+    },
+    {
         // Gate FOTO (15/08) — cercare un luogo per NOME e mostrarne la foto è
         // il bug che ha prodotto "Ippocampo → cortile con ghiaia" e
         // "La Masseria → parco giochi": findPlaceFromQuery({query: "${nome}

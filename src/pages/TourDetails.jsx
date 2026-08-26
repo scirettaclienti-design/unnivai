@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
-import { ArrowLeft, ArrowRight, MapPin, Clock, Star, Play, Heart, Share2, Users, Calendar, MessageCircle, Navigation, CheckCircle, XCircle, Sparkles, Brain } from "lucide-react";
+// Gate F26 DIFF 6: `Heart` e `Navigation` tolti — erano usati solo dal cuore
+// preferiti e dal bottone Invia della chat finta, entrambi rimossi.
+import { ArrowLeft, ArrowRight, MapPin, Clock, Star, Play, Share2, Users, Calendar, MessageCircle, CheckCircle, XCircle, Sparkles, Brain } from "lucide-react";
 import { Link, useParams, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import TopBar from "../components/TopBar";
@@ -251,93 +253,13 @@ const GuideProfileModal = ({ isOpen, onClose, guideName, guideAvatar, bio, ratin
 };
 
 // --- GUIDE CHAT MODAL ---
-const GuideChatModal = ({ isOpen, onClose, guideName, guideAvatar }) => {
-    if (!isOpen) return null;
-
-    return (
-        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 pointer-events-none">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity pointer-events-auto"
-                onClick={onClose}
-            />
-
-            {/* Chat Interface */}
-            <motion.div
-                className="bg-white w-full max-w-sm h-[80vh] sm:h-[600px] rounded-t-[2rem] sm:rounded-[2rem] shadow-2xl relative z-10 overflow-hidden flex flex-col pointer-events-auto"
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
-            >
-                {/* Header */}
-                <div className="bg-white border-b border-gray-100 p-4 flex items-center justify-between shadow-sm sticky top-0 z-20">
-                    <div className="flex items-center space-x-3">
-                        <div className="relative">
-                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl border border-gray-200">
-                                {guideAvatar}
-                            </div>
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-gray-800 text-sm">{guideName}</h3>
-                            <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                                <span className="w-1 min-h-1 rounded-full bg-green-500 animate-pulse"></span> Online
-                            </p>
-                        </div>
-                    </div>
-                    <button onClick={onClose} className="p-2 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
-                        <XCircle size={20} className="text-gray-400" />
-                    </button>
-                </div>
-
-                {/* Messages Area */}
-                <div className="flex-1 bg-gray-50 p-4 overflow-y-auto space-y-4">
-                    <div className="flex justify-center my-4">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-gray-200/50 px-3 py-1 rounded-full">Oggi</span>
-                    </div>
-
-                    {/* System Message */}
-                    <div className="flex justify-center">
-                        <div className="bg-yellow-50 text-yellow-800 text-xs px-4 py-2 rounded-xl border border-yellow-100 shadow-sm max-w-[85%] text-center leading-relaxed">
-                            🔒 Questa è una chat sicura e crittografata con la tua guida ufficiale DoveVai.
-                        </div>
-                    </div>
-
-                    {/* Guide Message */}
-                    <div className="flex items-end space-x-2">
-                        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs flex-shrink-0">
-                            {guideAvatar}
-                        </div>
-                        <div className="bg-white p-3 rounded-2xl rounded-bl-sm shadow-sm border border-gray-100 max-w-[80%]">
-                            <p className="text-sm text-gray-700 leading-snug">
-                                Ciao! Sono {guideName.split(' ')[0]}. 👋 <br />
-                                Chiedimi pure qualsiasi cosa sul tour o, se vuoi, qualche consiglio segreto sulla zona!
-                            </p>
-                            <span className="text-[10px] text-gray-400 mt-1 block text-right">09:42</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Input Area */}
-                <div className="p-4 bg-white border-t border-gray-100">
-                    <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-3 border border-gray-200 focus-within:ring-2 focus-within:ring-terracotta-400 focus-within:border-transparent transition-all">
-                        <input
-                            type="text"
-                            placeholder="Scrivi un messaggio..."
-                            className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400 text-gray-700"
-                            autoFocus
-                        />
-                        <button className="text-terracotta-500 font-bold p-1 rounded-full hover:bg-terracotta-50 transition-colors">
-                            <span className="sr-only">Invia</span>
-                            <Navigation className="w-5 h-5 rotate-90" />
-                        </button>
-                    </div>
-                </div>
-            </motion.div>
-        </div>
-    );
-};
-
+// Gate F26 DIFF 6 (27/08) — GuideChatModal RIMOSSO, non disabilitato.
+// Era una chat interamente finta, raggiungibile in produzione (il bottone stava
+// dietro `isGuideTour`, una condizione sui DATI, non un guard): pallino verde
+// "Online" hardcoded, un messaggio della guida con timestamp fisso, un input
+// senza onChange ne' submit, e un'affermazione di SICUREZZA falsa su un canale
+// che non trasmetteva niente. La chat con le guide e' V2: finche' non esiste,
+// non esiste nemmeno il bottone.
 // --- PLACE DETAILS VIEW (Simplified "Scheda") ---
 const PlaceDetailsView = ({ place, onBack }) => {
     return (
@@ -432,6 +354,14 @@ const PlaceDetailsView = ({ place, onBack }) => {
 
 export default function TourDetailsPage() {
     const { id } = useParams();
+    // Gate F26 DIFF 6 (27/08) — `toast` portato in scope. Era chiamato tre volte
+    // in questo componente ma dichiarato SOLO dentro RequestModal: in
+    // TourDetailsPage il simbolo non esisteva e ogni chiamata era un
+    // ReferenceError, non un messaggio. ESLint lo diceva (`no-undef`) ma qui e'
+    // warning, non errore, quindi la CI non lo prendeva.
+    // Nessun sistema nuovo: e' lo stesso useToast usato da altri 13 file, con
+    // ToastProvider gia' montato in App.jsx:113.
+    const { toast } = useToast();
     const location = useLocation();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -552,7 +482,6 @@ export default function TourDetailsPage() {
     }) : rawTour;
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
-    const [showChatModal, setShowChatModal] = useState(false);
     const [nearbyPartners, setNearbyPartners] = useState([]);
     const [guideRating, setGuideRating] = useState({ avg: 0, count: 0 });
     const [reviews, setReviews] = useState([]);
@@ -563,15 +492,6 @@ export default function TourDetailsPage() {
     useEffect(() => {
         if (tour?.id && tour?.city) trackTourView(tour);
     }, [tour?.id]);
-
-    // Auto-open chat modal when navigating back from MapPage with openChat flag
-    useEffect(() => {
-        if (location.state?.openChat) {
-            setShowChatModal(true);
-            // Clear the flag so back/forward navigation doesn't re-trigger
-            window.history.replaceState({ ...window.history.state, usr: { ...location.state, openChat: false } }, '');
-        }
-    }, [location.state?.openChat]);
 
     // Ensure guide info (nome, avatar, bio) sempre presi dalla guida reale che ha pubblicato il tour
     useEffect(() => {
@@ -814,14 +734,6 @@ export default function TourDetailsPage() {
     // crashavano con tour=null). Ora è subito dopo l'ultimo useEffect e prima
     // di qualsiasi espressione body che legga tour.*. Vedi ~riga 620.
 
-    const handleFeatureIncoming = () => {
-        toast({ title: '✨ Funzione in arrivo! Stiamo finalizzando la chat diretta con le guide.', type: 'info' });
-    };
-
-    const handleChatClick = () => {
-        setShowChatModal(true);
-    };
-
     return (
         <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
             <TopBar />
@@ -867,20 +779,26 @@ export default function TourDetailsPage() {
                                     </motion.button>
                                 </div>
 
+                                {/* Gate F26 DIFF 6 (27/08) — cuore "Aggiungi ai preferiti"
+                                    RIMOSSO. Faceva `classList.toggle` sull'icona e
+                                    NON scriveva da nessuna parte. Non e' stato
+                                    collegato a dataService.toggleFavorite per tre
+                                    ragioni misurate:
+                                     1. schema: `favorites.tour_id` e' UUID con FK su
+                                        `tours(id)`, ma qui gli id possono essere
+                                        `ai-quiz-...` (vedi il recovery in cima al
+                                        file) — l'insert violerebbe tipo e FK;
+                                     2. il fallimento sarebbe muto: toggleFavorite
+                                        ritorna `{success:true}` in tutti e quattro i
+                                        rami, catch compreso;
+                                     3. non esiste il verso della lettura (nessun
+                                        getFavorites/isFavorite), quindi il cuore
+                                        ripartirebbe grigio su un tour gia' salvato.
+                                    In piu' i preferiti hanno gia' DUE motori
+                                    divergenti (Explore.jsx usa localStorage,
+                                    dataService usa Supabase): riconciliarli e' un
+                                    gate suo, regola locked #8. */}
                                 <div className="absolute top-4 right-4 flex space-x-2">
-                                    <motion.button
-                                        className="p-3 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
-                                        whileHover={{ scale: 1.1, rotate: 15 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={() => {
-                                            const heart = document.getElementById('heart-icon');
-                                            heart.classList.toggle('text-red-500');
-                                            heart.classList.toggle('fill-current');
-                                            toast({ title: '❤️ Aggiunto ai preferiti!', type: 'success' });
-                                        }}
-                                    >
-                                        <Heart id="heart-icon" className="w-6 h-6 text-gray-700" />
-                                    </motion.button>
                                     <motion.button
                                         className="p-3 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white transition-colors"
                                         whileHover={{ scale: 1.1, rotate: -15 }}
@@ -1017,13 +935,10 @@ export default function TourDetailsPage() {
                                 {tour.guideBio && (
                                     <p className="text-gray-600 text-sm leading-relaxed">{tour.guideBio}</p>
                                 )}
+                                {/* Gate F26 DIFF 6: il bottone Chat e' stato rimosso
+                                    insieme a GuideChatModal (chat finta). Resta
+                                    Profilo, che apre dati veri. */}
                                 <div className="flex space-x-2 mt-4">
-                                    <button
-                                        onClick={handleChatClick}
-                                        className="flex-1 bg-terracotta-400 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-terracotta-500 transition-colors flex justify-center gap-1"
-                                    >
-                                        <MessageCircle size={14} /> Chat
-                                    </button>
                                     <button
                                         onClick={() => setShowProfileModal(true)}
                                         className="flex-1 bg-olive-400 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-olive-500 transition-colors flex justify-center gap-1"
@@ -1045,14 +960,6 @@ export default function TourDetailsPage() {
                     bio={tour.guideBio}
                     rating={guideRating.count > 0 ? guideRating.avg : (tour.rating || 4.5)}
                     reviews={guideRating.count > 0 ? guideRating.count : (tour.reviews || 0)}
-                />
-
-                {/* GUIDE CHAT MODAL */}
-                <GuideChatModal
-                    isOpen={showChatModal}
-                    onClose={() => setShowChatModal(false)}
-                    guideName={tour.guide}
-                    guideAvatar={tour.guideAvatar}
                 />
 
                 {/* --- SEZIONE RECENSIONI REALI --- */}

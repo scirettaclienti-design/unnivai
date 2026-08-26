@@ -112,9 +112,12 @@ const RULES = [
         //    NON era filtrato dallo scanner (il filtro guarda l'inizio riga; quella
         //    e' una continuazione di commento JSX). Commento riscritto senza il
         //    nome fabbricato.
-        // Violazioni residue oggi: 0. Al DIFF 6 la regola si accende su uno zero,
-        // quindi va provocata una violazione prima di fidarsene (metodo sonda).
-        skip: true,
+        // Violazioni residue oggi: 0.
+        //
+        // DIFF 6 (27/08) — SKIP TOLTO. La regola si e' accesa su uno zero, quindi
+        // lo zero e' stato provato col metodo sonda e non creduto: piantata
+        // `const reviewerName = 'Sofia';` in TourDetails.jsx (file vivo), vista la
+        // riga rossa `src/pages/TourDetails.jsx:556`, rimossa. La regola VEDE.
     },
     {
         name: 'no-luogo-di-interesse-placeholder',
@@ -171,12 +174,33 @@ const RULES = [
             // morto — sta nel bundle ma V1LockedGuard non monta mai i children.
             // Debito differito che torna visibile il giorno che V2 si accende.
             'src/pages/DashboardGuide.jsx',
+            //
+            // DIFF 6 (27/08) — TERZA voce, per NOME e per MOTIVO.
+            // DashboardUser.jsx:554 e :587 sono due texture di sfondo al 10% di
+            // opacita' in blend overlay, poste via utility di background-image
+            // arbitraria: non affermano un posto, non sono la foto di un POI ne'
+            // la copertina di un tour. Nessun utente le legge come "questo e' il
+            // luogo". Restano debito estetico per il Blocco Antigravity, non
+            // debito di verita'.
+            //
+            // NB — le utility Tailwind qui sopra sono DESCRITTE, non scritte.
+            // `tailwind.config.js` scansiona `./src/**/*.{js,jsx,ts,tsx}`, che
+            // include questa cartella: una classe citata in un commento viene
+            // EMESSA nel CSS come se fosse usata. La prima stesura di questa nota
+            // conteneva la forma letterale del background arbitrario e ha
+            // aggiunto 48 byte e un selettore inesistente al bundle. Vedi #35.
+            'src/pages/DashboardUser.jsx',
         ],
         message: 'Unsplash dentro contenuto tour. Le foto vengono da Google Places photo API.',
-        // SKIP ancora attivo: toglierlo e' il DIFF 6, insieme allo svuotamento
-        // dell'allowlist. Il DIFF 4 ha gia' chiuso dataService fallback e
-        // tourShape STEP_FALLBACK, due dei violatori citati nella vecchia nota.
-        skip: true,
+        // DIFF 6 (27/08) — SKIP TOLTO. Tre voci in allowlist, ognuna per NOME e
+        // per MOTIVO, mai per categoria: una regola con eccezioni categoriali
+        // ("le texture", "il codice spento") smette di mordere, perche' la
+        // categoria si allarga da sola al primo caso nuovo.
+        //
+        // Residuo misurato ad allowlist SVUOTATA: 9 (Landing 1 + DashboardUser 2
+        // + DashboardGuide 6). Le tre esenzioni coprono esattamente quelle 9 e
+        // niente altro: ad allowlist piena il residuo e' 0. Se il numero si
+        // muove, si e' aggiunto unsplash da qualche parte.
     },
     {
         name: 'no-roma-coords-in-tour-content',
@@ -201,12 +225,76 @@ const RULES = [
     {
         name: 'no-in-arrivo-toast',
         pattern: /(Funzione in arrivo|Funzionalità in arrivo|Coming soon)/i,
-        allowlist: [],
+        allowlist: [
+            // DIFF 6 (27/08) — UNA voce, per NOME e per MOTIVO.
+            //
+            // GuidePlaceholder.jsx:30 dice "Coming Soon" e NON e' una promessa
+            // falsa: e' l'opposto. Dichiara che la V2 esiste e non e' pronta,
+            // che e' esattamente cio' che questa regola vuole al posto di un
+            // bottone che finge di funzionare. Esentata, non rimossa.
+            //
+            // L'esenzione e' per FILE perche' `isAllowlisted` confronta il path
+            // intero: non esiste forma `path:riga`. Qui la perdita di
+            // granularita' e' NULLA e misurata — nel file matcha una riga sola,
+            // la :30. La :23 (`Funzionalita' {…} in arrivo.`) NON matcha, perche'
+            // il pattern cerca "Funzionalita' in arrivo" contiguo e li' c'e'
+            // un'interpolazione in mezzo. Il file e' un placeholder di 35 righe
+            // irraggiungibile dietro V1LockedGuard: il file E' l'unita' di
+            // eccezione. Se un giorno ospitera' altro, questa voce va rifatta.
+            'src/pages/GuidePlaceholder.jsx',
+        ],
         message: 'Toast "in arrivo" al posto della vera funzione. Se non esiste, non mostrare il bottone.',
-        // SKIP: GuidePlaceholder.jsx:30 ("Coming Soon" pagina placeholder V2/V3)
-        // + TourDetails.jsx:809 (toast chat-guida "in arrivo"). Da fixare in un
-        // Gate futuro: eliminare il bottone chat-guida e la pagina GuidePlaceholder.
-        skip: true,
+        // DIFF 6 (27/08) — SKIP TOLTO. L'altro violatore, TourDetails
+        // `handleFeatureIncoming` (toast chat-guida), e' stato RIMOSSO: prometteva
+        // una chat diretta con le guide che non esiste. Trattamento diverso dal
+        // "Coming Soon" perche' la classe e' diversa — uno promette, l'altro
+        // dichiara di non poter promettere.
+        //
+        // NB: quel toast era gia' sorgente MORTO (zero call site; il bottone Chat
+        // chiama handleChatClick). Il minifier lo droppava: `Funzione in arrivo`
+        // era gia' assente dal bundle PRE. Rimuoverlo NON cambia il bundle JS.
+        //
+        // Lo zero di questa regola e' stato provato col metodo sonda e non
+        // creduto: piantata `<p>Coming soon</p>` in TourDetails.jsx (file vivo,
+        // NON in allowlist), vista la riga rossa, rimossa. La regola VEDE.
+    },
+    {
+        // Gate F26 DIFF 6 (27/08) — regola NUOVA, nata da GuideChatModal.
+        // Quel componente diceva "Questa e' una chat sicura e crittografata con
+        // la tua guida ufficiale DoveVai" sopra un canale che non trasmetteva
+        // niente: nessuna rete, nessun destinatario, un input senza handler.
+        // Un'affermazione di sicurezza falsa e' la cosa piu' grave che questo
+        // prodotto possa dire, perche' l'utente non ha modo di verificarla e
+        // decide cosa scrivere fidandosi.
+        //
+        // COSA VIETA: l'affermazione di un MECCANISMO (crittografia, cifratura,
+        // end-to-end) e la GARANZIA ASSOLUTA ("100% sicuro", "sicurezza
+        // garantita"). Sono verificabili: o il meccanismo c'e' nel codice, o la
+        // frase e' falsa.
+        //
+        // COSA NON VIETA, e perche' la regola puo' convivere con copy VERA:
+        // l'aggettivo applicato a un processo delegato a un terzo che la
+        // sicurezza la implementa davvero. Caso vivo oggi, misurato:
+        // BookingSystem.jsx:260 dice "Verrai reindirizzato a Stripe per
+        // completare il pagamento in sicurezza" — nomina il terzo, descrive il
+        // reindirizzamento, non afferma un meccanismo che DoveVai non ha.
+        // Passa, e DEVE passare. Per questo `sicur` nudo NON e' nel pattern: ha
+        // 12 occorrenze, fra cui quella riga, "Assicurati di..." e "Sei sicuro
+        // di voler eliminare". Un termine largo qui produrrebbe eccezioni, e le
+        // eccezioni su una regola di sicurezza sono il modo di spegnerla.
+        // Fuori dal pattern anche `e2e` (16 occorrenze: path, config, test).
+        //
+        // ALLOWLIST VUOTA, e va tenuta vuota. Se una violazione emerge non si
+        // esenta il file: si verifica se l'affermazione e' VERA. Se lo diventa
+        // — un canale cifrato per davvero — la strada non e' l'allowlist ma un
+        // registro dei claim verificati, dove ogni frase e' accompagnata dal
+        // meccanismo che la rende vera e da dove controllarlo. Quel registro
+        // oggi non esiste e non va costruito in anticipo: non c'e' un solo
+        // claim vero da registrarci.
+        name: 'no-security-claims-in-copy',
+        pattern: /crittografat|crittografia|cifrat[aeio]|end-to-end encrypt|sicurezza garantita|garantiamo (la |la tua |tua )?sicurezza|(100|cento)\s*%\s*sicur|totalmente sicur|completamente sicur|dati (sono )?al sicuro/i,
+        allowlist: [],
+        message: 'Affermazione di sicurezza nella copy. O il meccanismo esiste nel codice ed e\' dimostrabile, o la frase e\' falsa: l\'utente decide cosa scrivere fidandosi. Verifica se e\' vera, non esentare il file.',
     },
     {
         name: 'no-alert-instead-of-action',

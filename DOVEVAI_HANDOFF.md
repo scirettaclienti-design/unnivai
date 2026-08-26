@@ -4346,6 +4346,43 @@ diff, **provare che la build sia deterministica** — due build di seguito senza
 toccare nulla. Qui lo era, il che ha reso la differenza reale e degna di essere
 inseguita fino alla causa.
 
+### LEZIONE #36 — uno slice fra due `index()` puo' essere VUOTO, e `replace('')` esplode il file
+
+Costata un `DOVEVAI_HANDOFF.md` da **719 MB** e un push rifiutato da GitHub
+(`GH001: Large files detected`, limite 100 MB). Lo script era:
+
+```python
+old = s[s.index(A) : s.index(B)]
+s = s.replace(old, new)
+```
+
+`B` era `"### Cosa ha chiuso"`, un'intestazione che si ripete in **ogni** blocco
+di sessione. `s.index(B)` ha trovato l'occorrenza del blocco **precedente**, che
+sta PRIMA di `A`. In Python uno slice con start > end non e' un errore: e' la
+**stringa vuota**. E `str.replace("", new)` non e' un no-op — inserisce `new`
+**fra ogni carattere** del file. 258 KB diventano 719 MB senza un solo warning.
+
+Due regole, non una:
+1. **Mai delimitare uno slice con due `index()` senza asserire `end > start`.**
+   In un file dove le intestazioni si ripetono per convenzione, la seconda
+   ancora e' quasi sempre ambigua. Lavorare per indici di RIGA verificati
+   (stampandoli prima), non per offset indovinati.
+2. **Mai passare a `replace` un `old` che puo' essere vuoto.** L'assert va sul
+   valore, non sull'intenzione.
+
+Il danno e' stato nullo perche' il commit rotto non era mai stato pushato: il
+`pre-receive hook` di GitHub e' stato l'unico controllo che ha visto il problema
+— lint, test e build non guardano la dimensione dei file. **Il recupero corretto
+non e' `reset --hard`**: `reset --soft` sul commit buono, poi ricostruzione del
+file dal blob con `git cat-file blob <sha>:<path>`, che non tocca nient'altro
+nell'albero.
+
+Corollario, ed e' il vero motivo per cui questa lezione sta qui: al secondo
+tentativo lo script aveva gia' gli assert, e uno e' **scattato** su un offset
+sbagliato di una riga. Non ha rotto niente. La differenza fra i due tentativi
+non e' l'attenzione: sono le guardie.
+
+
 ### Marker
 
 | marker | prima | dopo |
@@ -4369,49 +4406,67 @@ prima — **F55, F56, DIFF 4**, nessuno saldato.
 
 Commit **`102605e`**. **461 test** (+1), build pulita, lint **0 errori / 199
 warning** (era 204). Suite verde anche con `.env` spostato fisicamente.
-CI **verde**. **NON DEPLOYATO** — vedi qui sotto, e non è un dettaglio.
+CI **verde**. **DEPLOYATO** — ma solo al secondo giro, e il perche' vale piu'
+del fatto.
 
-### ⚠️ CI verde e NON deployato — il gate ha bloccato, correttamente
+### Il primo deploy e' stato bloccato dal gate. Diagnosi DIMOSTRATA.
 
-Fatti misurati:
+Il deploy di `102605e` e' stato **Canceled**. Non per un difetto del gate: per
+una latenza di GitHub. I log di build, letti con `vercel inspect --logs`:
 
-| fatto | valore |
-|---|---|
-| push di `102605e` | 16:04:19Z |
-| workflow_run registrato da GitHub | **16:22:25Z — 18 minuti dopo** |
-| esito CI | `completed/success` |
-| entry servita in prod a 4h dal push | `index-CAiV8Dg4.js`, **la stessa di prima** |
-| `PHASE_A_BUDGET` del gate | **30 secondi** |
+```
+16:04:33  Budget: fase A 30s - fase B 300s - timeout per chiamata 15s
+16:04:33  [A] nessun workflow_run per lo SHA - restano 30s
+   ... sei tentativi, uno ogni 5s ...
+16:05:03  Nessun workflow_run per 102605e... entro 30s - BLOCKING (fail-closed).
+16:05:03  GATE_VERDICT exit=0 REASON=NOT_REGISTERED elapsed=30s chiamate: 6, scadute: 0
+```
 
-`vercel-ignored-build-step.sh` ha una **fase A da 30s** per la propagazione
-push → `workflow_run` visibile in API. Il deploy Vercel parte all'istante del
-push; a quel momento il run non esisteva e non sarebbe esistito per altri 18
-minuti. Il gate è fail-closed, quindi ha bloccato.
+`chiamate: 6, scadute: 0` — GitHub rispondeva regolarmente. Il run **non
+esisteva**, e non sarebbe esistito per altri diciotto minuti.
 
-**Il gate ha fatto il suo mestiere.** Il presupposto che è saltato è un altro:
-che GitHub registri il run in pochi secondi. Il budget di 30s è calibrato su
-quella propagazione normale, e non esiste ritentativo dopo la fase A. Quando
-GitHub ha una latenza di minuti, **ogni deploy viene bloccato in silenzio**
-(lezione #10: il gate è muto, il segnale vive solo nei log di build Vercel).
+Il confronto fra i due commit di questa sessione misura il fenomeno:
 
-**Onestà sulla diagnosi: è INDIZIARIA, non dimostrata.** I quattro fatti sopra
-sono misurati, ma il log di build Vercel **non è stato letto** — la CLI `vercel`
-non è installata su questa macchina e non c'è modo di vedere il
-`GATE_VERDICT exit=0 REASON=NOT_REGISTERED` che confermerebbe la lettura. Chi
-riapre: guardare i log del deploy Canceled di `102605e` e verificare il marker.
-La lezione #10 dà anche la scorciatoia — **il tempo del Canceled è la diagnosi**:
-1-2s = fail-closed senza aver mai guardato la CI (coerente con NOT_REGISTERED),
-~90s+ = ha atteso davvero.
+| commit | push | workflow_run registrato | ritardo | esito deploy |
+|---|---|---|---|---|
+| `102605e` | 16:04:19Z | 16:22:25Z | **+18 min** | Canceled a **32s** |
+| `e94ad95` | 20:17:39Z | 20:17:40Z | **+1 s** | **Ready** in 2m |
 
-**Azione necessaria: REDEPLOY.** La CI ora è verde e registrata; rigirando, il
-gate troverebbe i job e passerebbe. Richiede accesso Vercel (dashboard o CLI
-autenticata), quindi **è una mossa di Ivano, non è stata fatta qui**.
+Stesso repo, stesso gate, stesso giorno: **1 secondo contro 18 minuti**. Il
+budget di fase A (30s) e' tarato sulla propagazione normale e dopo la fase A non
+c'e' ritentativo. Il gate e' fail-closed e ha fatto il suo mestiere; il
+presupposto che salta e' che GitHub registri il run in pochi secondi.
 
-**Da valutare, non deciso**: se la fase A debba avere un budget più alto o un
-ritentativo. Attenzione al difetto #2 già catalogato nel commento dello script —
-"nessun run in_progress letto come CI verde" — cioè un fail-closed che
-diventerebbe fail-open. Alzare il timeout **non è gratis**, e questa è
-esattamente la trappola che F43 aveva già chiuso una volta.
+**La durata del Canceled e' la firma, come dice la lezione #10**: 32s = i 30s di
+fase A piu' l'avvio. Non 1-2s (uscita immediata), non 90s+ (attesa vera sui job).
+Si diagnostica dalla lista dei deployment, senza aprire un log.
+
+### Come e' finito in produzione
+
+**Non con un redeploy: trascinato dal commit dell'handoff.** Il push di
+`e94ad95` ha triggerato un deploy nuovo, il suo run e' stato registrato in 1
+secondo, il gate e' passato e ha buildato — e siccome `e94ad95` discende da
+`102605e`, quella build contiene il DIFF 6.
+
+Verificato in produzione con curl anonimo:
+
+| | prima | dopo |
+|---|---|---|
+| entry | `index-CAiV8Dg4.js` | **`index-sVBp4KeF.js`** |
+| chunk TourDetails | `TourDetails-BC9IEmEU.js` | **`TourDetails-DR_Kih9F.js`** |
+| `chat sicura e crittografata` | PRESENTE | **assente** |
+| `09:42` | PRESENTE | **assente** |
+| `Aggiunto ai preferiti` | PRESENTE | **assente** |
+
+**Il codice del DIFF 6 e' servito agli utenti. La chat finta non c'e' piu'.**
+
+**Resta aperto, e non va risolto per riflesso**: se la fase A debba avere piu'
+budget o un ritentativo. Attenzione al difetto #2 gia' catalogato nel commento
+dello script — "nessun run in_progress letto come CI verde" — cioe' un
+fail-closed che diventerebbe fail-open. Alzare il timeout **non e' gratis**: e'
+la trappola che F43 aveva gia' chiuso una volta. Costo attuale del difetto:
+basso, un commit successivo trascina il precedente. Costo di sbagliare il
+rimedio: alto.
 
 ### Cosa ha chiuso
 
@@ -4577,7 +4632,7 @@ nuovo non era ancora nato e la risposta è arrivata verde e falsa. **Lezione #11
 terza occorrenza in questa sessione**: prima di fidarsi di un segnale, provare
 che riguardi la cosa cercata. Monitor rifatto con `select(.headSha)`.
 
-### Lezione nuova di questa sessione: **#35**
+### Lezioni nuove di questa sessione: **#35** e **#36**
 
 **Tailwind emette le classi che trova nei COMMENTI.** Testo completo nel corpo
 delle lezioni sopra. In breve: `tailwind.config.js` scansiona
@@ -4589,6 +4644,13 @@ confrontando il **contenuto** e non l'hash (lezione #2).
 Terza forma in una settimana di *«lo strumento non distingue una citazione da un
 uso»* — dopo #34 (`not.toContain`) e #26 (commenti che sopravvivono alla cosa
 che descrivono).
+
+La **#36** — *uno slice fra due `index()` puo' essere vuoto, e `replace('')`
+esplode il file* — e' costata un handoff da 719 MB e un push rifiutato da GitHub, mentre si
+scriveva questo stesso blocco. Testo completo nel corpo delle lezioni. Il punto
+che vale oltre il bug: al secondo tentativo lo script aveva gli assert e uno e'
+**scattato** su un offset sbagliato di una riga, senza rompere niente. La
+differenza fra i due tentativi non e' stata l'attenzione: sono state le guardie.
 
 ### Device
 
@@ -4604,15 +4666,14 @@ Il debito device precedente resta invariato: **F55, F56, DIFF 4**.
 
 Una riga di contesto per voce, così si riapre senza rileggere tremila righe.
 
-**0) REDEPLOY di `102605e`** — **PRIMA DI TUTTO IL RESTO.** Il codice del DIFF 6
-è su `main` con CI verde ma **non è in produzione**: il gate Vercel ha bloccato
-perché GitHub ha registrato il workflow_run 18 minuti dopo il push, contro una
-fase A da 30s. Finché non si redeploya, la chat finta con l'affermazione di
-crittografia **è ancora servita agli utenti** — verificato con curl anonimo:
-`TourDetails-BC9IEmEU.js` la contiene. Dettagli nella sessione 27/08.
-Dopo il redeploy, verificare col metodo di sempre: entry cambiata + i tre marker
-(`chat sicura e crittografata`, `09:42`, `Aggiunto ai preferiti`) **assenti** dal
-chunk TourDetails di prod.
+**0) ~~REDEPLOY~~** — **NON SERVE PIU'.** Il DIFF 6 e' in produzione dal 26/08
+20:17Z, trascinato dal push del commit handoff `e94ad95` (il deploy diretto di
+`102605e` era stato bloccato dal gate: vedi sessione 27/08). Verificato con curl
+anonimo: entry `index-sVBp4KeF.js`, chunk `TourDetails-DR_Kih9F.js`, i tre
+marker della chat finta **assenti**.
+Resta la domanda aperta sul budget di fase A del gate — **da non toccare per
+riflesso**, la nota sta nella sessione 27/08.
+
 
 **a) Giro device F55 / F56 / DIFF 4** — POI religioso **a Milano**. Tre domande
 distinte: (1) compaiono ancora **contenuti inventati** su quel POI; (2) le

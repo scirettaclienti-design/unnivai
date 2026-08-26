@@ -4302,7 +4302,7 @@ diventa rosso.
 
 **Il marker dichiarato era impreciso, non il codice.**
 
-### LEZIONE #31 — «bundle invariato» è il marker sbagliato per una cancellazione
+### LEZIONE #33 — «bundle invariato» è il marker sbagliato per una cancellazione
 
 Cancellare un JSX morto **cambia sempre il CSS** via Tailwind, anche quando
 nessun JavaScript cambia: le classi del markup morto smettono di essere emesse.
@@ -4311,7 +4311,7 @@ nomi normalizzati»**, non «bundle invariato». E il confronto va fatto a
 sottostringa **esclusa**: `max-h-[85vh]` contiene `h-[85vh]` e un grep ingenuo
 dà falso allarme proprio nel momento in cui si sta decidendo se fermarsi.
 
-### LEZIONE #32 — `not.toContain` non distingue una citazione da un'affermazione
+### LEZIONE #34 — `not.toContain` non distingue una citazione da un'affermazione
 
 Già registrata nel DIFF 4, **ripetuta due volte in questo gate**. Riscrivendo il
 commento di `TourDetails` ho reintrodotto la stringa `utils/imageUtils`, che
@@ -4319,6 +4319,32 @@ commento di `TourDetails` ho reintrodotto la stringa `utils/imageUtils`, che
 suite è diventata rossa su un **commento**. Poi è successo di nuovo con la nota
 che avvertiva del problema, perché conteneva la stringa stessa. Nel codice ora
 c'è un NB che dice di nominare quel modulo **senza il suo path di import**.
+
+### LEZIONE #35 — una classe Tailwind citata in un commento viene EMESSA nel CSS
+
+Scoperta nel DIFF 6 (27/08). `tailwind.config.js` scansiona
+`./src/**/*.{js,jsx,ts,tsx}`, che include `src/__tests__/`. Scrivendo la forma
+letterale di una utility arbitraria dentro il **commento** di una voce di
+allowlist — per descrivere il motivo dell'eccezione — lo scanner l'ha letta come
+un uso reale e ha aggiunto al bundle **48 byte e un selettore che non esiste in
+nessun componente**.
+
+L'effetto non si ferma lì: il CSS cambia → l'entry cambia → **tutti e 76 i chunk
+cambiano hash**, perché ognuno importa l'entry. Per venti minuti il confronto
+bundle ha mostrato «tutto diverso» compresi chunk-foglia come `arrow-left`, che
+il diff non poteva aver toccato. La diagnosi è arrivata **confrontando il
+contenuto e non l'hash** (lezione #2): dentro `arrow-left` l'unica differenza era
+la stringa `./index-<hash>.js`.
+
+È la #34 in un secondo strumento: **Tailwind non distingue una citazione da un
+uso**, come `not.toContain` non distingue una citazione da un'affermazione. La
+regola operativa è la stessa e va estesa: nei commenti **descrivere** le utility
+(«sfondo al 10% di opacità in blend overlay»), mai scriverne la forma letterale.
+
+Corollario sul metodo: prima di attribuire una differenza di bundle al proprio
+diff, **provare che la build sia deterministica** — due build di seguito senza
+toccare nulla. Qui lo era, il che ha reso la differenza reale e degna di essere
+inseguita fino alla causa.
 
 ### Marker
 
@@ -4339,9 +4365,254 @@ prima — **F55, F56, DIFF 4**, nessuno saldato.
 
 ---
 
+## Sessione 27/08 — GATE F26 DIFF 6 chiuso. **F26 CHIUSO PER INTERO: sei diff.**
+
+Commit **`102605e`**. **461 test** (+1), build pulita, lint **0 errori / 199
+warning** (era 204). Suite verde anche con `.env` spostato fisicamente.
+CI **verde**. **NON DEPLOYATO** — vedi qui sotto, e non è un dettaglio.
+
+### ⚠️ CI verde e NON deployato — il gate ha bloccato, correttamente
+
+Fatti misurati:
+
+| fatto | valore |
+|---|---|
+| push di `102605e` | 16:04:19Z |
+| workflow_run registrato da GitHub | **16:22:25Z — 18 minuti dopo** |
+| esito CI | `completed/success` |
+| entry servita in prod a 4h dal push | `index-CAiV8Dg4.js`, **la stessa di prima** |
+| `PHASE_A_BUDGET` del gate | **30 secondi** |
+
+`vercel-ignored-build-step.sh` ha una **fase A da 30s** per la propagazione
+push → `workflow_run` visibile in API. Il deploy Vercel parte all'istante del
+push; a quel momento il run non esisteva e non sarebbe esistito per altri 18
+minuti. Il gate è fail-closed, quindi ha bloccato.
+
+**Il gate ha fatto il suo mestiere.** Il presupposto che è saltato è un altro:
+che GitHub registri il run in pochi secondi. Il budget di 30s è calibrato su
+quella propagazione normale, e non esiste ritentativo dopo la fase A. Quando
+GitHub ha una latenza di minuti, **ogni deploy viene bloccato in silenzio**
+(lezione #10: il gate è muto, il segnale vive solo nei log di build Vercel).
+
+**Onestà sulla diagnosi: è INDIZIARIA, non dimostrata.** I quattro fatti sopra
+sono misurati, ma il log di build Vercel **non è stato letto** — la CLI `vercel`
+non è installata su questa macchina e non c'è modo di vedere il
+`GATE_VERDICT exit=0 REASON=NOT_REGISTERED` che confermerebbe la lettura. Chi
+riapre: guardare i log del deploy Canceled di `102605e` e verificare il marker.
+La lezione #10 dà anche la scorciatoia — **il tempo del Canceled è la diagnosi**:
+1-2s = fail-closed senza aver mai guardato la CI (coerente con NOT_REGISTERED),
+~90s+ = ha atteso davvero.
+
+**Azione necessaria: REDEPLOY.** La CI ora è verde e registrata; rigirando, il
+gate troverebbe i job e passerebbe. Richiede accesso Vercel (dashboard o CLI
+autenticata), quindi **è una mossa di Ivano, non è stata fatta qui**.
+
+**Da valutare, non deciso**: se la fase A debba avere un budget più alto o un
+ritentativo. Attenzione al difetto #2 già catalogato nel commento dello script —
+"nessun run in_progress letto come CI verde" — cioè un fail-closed che
+diventerebbe fail-open. Alzare il timeout **non è gratis**, e questa è
+esattamente la trappola che F43 aveva già chiuso una volta.
+
+### Cosa ha chiuso
+
+**I tre `skip: true` sono via.** `anti-fake.test.js`: 26 test, 26 passed, 0
+skipped — 27 con la regola nuova. Tutte e quattro le regole coinvolte sono state
+provate col **metodo sonda**, perché uno zero non prova che la regola sia verde:
+prova che potrebbe non girare.
+
+| regola | sonda piantata | esito |
+|---|---|---|
+| `no-fake-reviewer-names` | `'Sofia'` in TourDetails | rosso `:556` |
+| `no-in-arrivo-toast` | `'Coming soon'` in TourDetails | rosso `:556` |
+| `no-unsplash-in-content` | allowlist svuotata | rosso, 9 violazioni |
+| `no-security-claims-in-copy` | `'chat crittografata'` | rosso `:357` |
+
+**`no-unsplash-in-content`** — allowlist a tre voci, ognuna per NOME e per
+MOTIVO: `Landing.jsx:520` (hero), `DashboardUser:554/:587` (texture di sfondo),
+`DashboardGuide.jsx` (6, spento dietro `V1LockedGuard`). Residuo ad allowlist
+svuotata: **9**, esattamente quelle coperte.
+
+**`no-in-arrivo-toast`** — `GuidePlaceholder:30` ESENTATO, non rimosso: dichiara
+onestamente che la V2 non è pronta, l'opposto di una promessa falsa. L'esenzione
+è **per file** perché `isAllowlisted` confronta il path intero; la perdita di
+granularità è misurata a zero (nel file matcha una riga sola — la `:23` ha
+un'interpolazione in mezzo e non matcha). Decisione confermata: un numero di riga
+marcirebbe al primo edit sopra la 30.
+
+### F60 — chat finta. **RIMOSSA.**
+
+`GuideChatModal` (era `TourDetails:254`) rimosso, non disabilitato. Il bottone
+che lo apriva stava dietro `isGuideTour` (`:716`), che è una **condizione sui
+dati e non un guard**: era raggiungibile in produzione da chiunque aprisse un
+tour guidato. **Verificato via curl anonimo prima del deploy**: le tre stringhe
+erano servite da `TourDetails-BC9IEmEU.js` in prod.
+
+Conteneva: pallino verde `Online` hardcoded, messaggio della guida con timestamp
+fisso `09:42`, `<input autoFocus>` senza `onChange` né submit, e la frase
+*"Questa è una chat sicura e crittografata con la tua guida ufficiale DoveVai"*
+sopra un canale che non trasmetteva niente.
+
+**Il toast "Funzione in arrivo" rimosso poco prima era l'etichetta onesta sulla
+scatola vuota. Tolta l'etichetta, andava tolta la scatola** — altrimenti il diff
+peggiorava il prodotto invece di migliorarlo.
+
+Rimosso anche un **secondo ingresso mancato**: un `useEffect` su
+`location.state.openChat`, flag che nessuno setta più (le altre occorrenze nel
+repo sono `openChatRequestId`, cosa diversa e viva lato guida). L'ha trovato
+**ESLint, non il grep**: cercavo `showChatModal` e la variabile era
+`setShowChatModal`. **La lezione #11 rivolta contro chi la applica.**
+
+### F61 — tre `toast()` in ReferenceError. **CHIUSO.**
+
+`toast` era dichiarato **solo** dentro `RequestModal:50`. In `TourDetailsPage`
+non era in scope, e le tre chiamate (`:747` errore mappa, `:875` preferiti,
+`:893` link copiato) erano `ReferenceError`, non messaggi. ESLint lo diceva, ma
+qui `no-undef` è **warning** e la CI non lo prendeva.
+
+Fix: **una riga**, `const { toast } = useToast()` in cima al componente. Nessun
+sistema nuovo — stesso `useToast` di altri 13 file, `ToastProvider` già montato
+in `App.jsx:113`. Le chiamate non sono state rimosse perché comunicano fatti
+veri: `:747` in particolare segnala un fallimento mappa realmente accaduto, e
+tacerlo lascerebbe l'utente davanti a uno schermo che non spiega niente.
+
+### F62 — preferiti che non salvano. Cuore **RIMOSSO**, difetto sotto **APERTO**.
+
+Il cuore (`:871-875`) faceva `classList.toggle` sull'icona e non scriveva da
+nessuna parte. Non è stato collegato a `dataService.toggleFavorite` per **tre
+difetti sovrapposti**, tutti misurati:
+
+1. **Mismatch di tipo, non di colonna.** La tabella `favorites` esiste
+   (`20260303_fix_missing_tables_and_columns.sql:381`) con RLS e le tre policy.
+   Ma `tour_id` è `UUID NOT NULL REFERENCES tours(id)`, e gli id che arrivano a
+   TourDetails non sono sempre UUID di `tours`: il file stesso ha un ramo di
+   recovery per `id.startsWith('ai-quiz-')` (`:451`). Il cuore stava nell'hero,
+   cioè su **ogni** tour. Per i tour AI l'insert violerebbe tipo e FK.
+2. **Il fallimento sarebbe muto.** `toggleFavorite` (`dataService.js:287`)
+   ritorna `{success:true}` in **tutti e quattro** i rami — flag spento, guest,
+   successo, e `catch`. Collegarlo avrebbe dato un cuore che si colora sempre e
+   salva a volte.
+3. **Non esiste il verso della lettura.** Nessun `getFavorites`, nessun
+   `isFavorite`. Anche salvando, il cuore ripartirebbe **grigio** su un tour già
+   preferito, perché legge lo stato da `classList`.
+
+Un bottone assente è onesto; un cuore che si colora e non salva no.
+
+### APERTO — i preferiti come gate a sé
+
+Il cuore è via, il difetto sotto no. Dati raccolti oggi, da non ri-scoprire:
+
+- **Due motori divergenti.** `Explore.jsx:138` tiene i preferiti in
+  `localStorage['unnivai_favorites']`; `dataService.toggleFavorite` scrive su
+  Supabase. Non si parlano. È la **regola locked #8** (un solo motore).
+- **`getFavorites` non esiste.** Manca metà del contratto: si scrive e non si
+  rilegge.
+- **`toggleFavorite` è silent-success anche dal `catch`.** Classe della lezione
+  #6 (una write senza `.error` controllato è un no-op travestito da successo).
+- Call site vivo esistente: `TourLive.jsx:363`.
+
+### REGOLA NUOVA — `no-security-claims-in-copy`
+
+0 violazioni, **allowlist VUOTA e da tenere vuota**. Nata da F60: un'affermazione
+di sicurezza falsa è la cosa più grave che questo prodotto possa dire, perché
+l'utente non ha modo di verificarla e **decide cosa scrivere fidandosi**.
+
+**Vieta** l'affermazione di un MECCANISMO (crittografia, cifratura, end-to-end) e
+la GARANZIA ASSOLUTA (`100% sicuro`, `sicurezza garantita`). Sono verificabili: o
+il meccanismo è nel codice, o la frase è falsa.
+
+**Non vieta** l'aggettivo applicato a un processo delegato a un terzo che la
+sicurezza la implementa davvero. Caso vivo, misurato: `BookingSystem.jsx:260`
+dice *"Verrai reindirizzato a Stripe per completare il pagamento in sicurezza"* —
+nomina il terzo, descrive il reindirizzamento, non afferma un meccanismo che
+DoveVai non ha. **Passa, e deve passare.** Per questo `sicur` nudo NON è nel
+pattern: ha 12 occorrenze, fra cui quella riga, `Assicurati di...` e `Sei sicuro
+di voler eliminare`. Fuori dal pattern anche `e2e` (16 occorrenze fra path,
+config e test).
+
+Se una violazione emerge **non si esenta il file: si verifica se l'affermazione è
+vera.** Se un giorno lo diventa, la strada non è l'allowlist ma un registro dei
+claim verificati, dove ogni frase è accompagnata dal meccanismo che la rende vera
+e da dove controllarlo. Oggi quel registro non va costruito: non c'è un solo
+claim vero da registrarci.
+
+### Accessibilità — un dato che era nascosto sotto il falso
+
+`sr-only` è sparito dal CSS con la chat finta, ed era **l'unica etichetta
+screen-reader dell'intero progetto**. Oggi l'app non ne ha nessuna. Non è un
+regresso causato qui — la rimozione è corretta — ma va scritto: **l'unico segno
+di accessibilità che il progetto aveva era sostenuto da codice falso.** Era
+apparente.
+
+### Marker
+
+| marker | prima | dopo |
+|---|---:|---:|
+| `skip: true` in anti-fake | 3 | **0** |
+| test anti-fake | 26 (3 skipped) | **27, 0 skipped** |
+| `chat sicura e crittografata` nel bundle | 1 chunk | **0** |
+| `09:42` | 1 chunk | **0** |
+| `Aggiunto ai preferiti` | 1 chunk | **0** |
+| `toast` no-undef (tutto il repo) | 3 | **0** |
+| chunk `TourDetails` | 38235 B | **33842 B** |
+| CSS | 131575 B | **130788 B** |
+| chunk JS | 77 | **77** |
+| lint warning | 204 | **199** (0 errori) |
+| suite | 460 | **461** |
+
+Le **10 classi CSS sparite** verificate a confine di parola, zero usi vivi, con
+controprova dello strumento su `flex-1` (89 usi trovati: gli zeri sono reali).
+
+### Due correzioni di metodo, entrambe su errori commessi qui
+
+**Il marker «il bundle DEVE cambiare» era sbagliato.** Dichiarato per la
+rimozione del toast chat-guida. Quel toast era **sorgente morto** — zero call
+site, `toast` nemmeno in scope — e il minifier lo droppava già: `Funzione in
+arrivo` era assente dal bundle **PRE**. Il bundle era e restava invariato. Era un
+atteso dichiarato **senza misurarlo**, che è la cosa che questo metodo esiste per
+impedire. Nel giro successivo il PRE è stato misurato prima di dichiarare.
+
+**Il primo monitor CI ha dichiarato SUCCESS leggendo il run del commit
+precedente.** Interrogava `--limit 1` senza filtrare per SHA. Il run del commit
+nuovo non era ancora nato e la risposta è arrivata verde e falsa. **Lezione #11,
+terza occorrenza in questa sessione**: prima di fidarsi di un segnale, provare
+che riguardi la cosa cercata. Monitor rifatto con `select(.headSha)`.
+
+### Lezione nuova di questa sessione: **#35**
+
+**Tailwind emette le classi che trova nei COMMENTI.** Testo completo nel corpo
+delle lezioni sopra. In breve: `tailwind.config.js` scansiona
+`./src/**/*.{js,jsx,ts,tsx}`, test inclusi; una utility *citata* dentro il
+commento di una allowlist è stata letta come un uso reale (+48 byte di CSS e un
+selettore inesistente), il CSS cambiato ha cambiato l'entry e l'entry ha
+cambiato l'hash di **tutti e 76 i chunk**, foglie comprese. Diagnosi arrivata
+confrontando il **contenuto** e non l'hash (lezione #2).
+Terza forma in una settimana di *«lo strumento non distingue una citazione da un
+uso»* — dopo #34 (`not.toContain`) e #26 (commenti che sopravvivono alla cosa
+che descrivono).
+
+### Device
+
+**Richiesto, una voce sola**: il bottone **Profilo** ora occupa la riga intera al
+posto della coppia Chat+Profilo. Non è uno spazio vuoto — è un bottone che si
+allarga — ma è UI che cambia forma e va guardata.
+
+Il debito device precedente resta invariato: **F55, F56, DIFF 4**.
+
+---
+
 ## PROSSIMA SESSIONE — la coda, in quest'ordine
 
 Una riga di contesto per voce, così si riapre senza rileggere tremila righe.
+
+**0) REDEPLOY di `102605e`** — **PRIMA DI TUTTO IL RESTO.** Il codice del DIFF 6
+è su `main` con CI verde ma **non è in produzione**: il gate Vercel ha bloccato
+perché GitHub ha registrato il workflow_run 18 minuti dopo il push, contro una
+fase A da 30s. Finché non si redeploya, la chat finta con l'affermazione di
+crittografia **è ancora servita agli utenti** — verificato con curl anonimo:
+`TourDetails-BC9IEmEU.js` la contiene. Dettagli nella sessione 27/08.
+Dopo il redeploy, verificare col metodo di sempre: entry cambiata + i tre marker
+(`chat sicura e crittografata`, `09:42`, `Aggiunto ai preferiti`) **assenti** dal
+chunk TourDetails di prod.
 
 **a) Giro device F55 / F56 / DIFF 4** — POI religioso **a Milano**. Tre domande
 distinte: (1) compaiono ancora **contenuti inventati** su quel POI; (2) le
@@ -4358,8 +4629,15 @@ dimostrata e il ticket va inviato; se non cala, il 204 era vuoto e va rifatta
 tutta la diagnosi. Riga da usare: uno SRID **non** fra 4326/3857/4258/32633, e
 `INSERT` di ripristino pronto **prima** di premere invio.
 
-**c) F26 DIFF 6 — SBLOCCATO**, il CLEANUP è chiuso. Perimetro già scritto in
-FASE 0 e ancora valido:
+**c) F26 DIFF 6** — ✅ **CHIUSO** il 27/08, commit `102605e`. Con questo
+**F26 è chiuso per intero: sei diff.** Vedi la sessione 27/08.
+Nota su come è andata rispetto al perimetro: il punto 4 prevedeva di rimuovere
+entrambe le violazioni di `no-in-arrivo-toast`; la decisione finale è stata
+**rimuovere TourDetails ed esentare GuidePlaceholder**, perché "Coming Soon"
+dichiara di non poter promettere invece di promettere. Ed è emerso che rimuovere
+il toast **non bastava**: dietro c'era la chat finta vera e propria (F60), che
+il toast si limitava a etichettare onestamente.
+Perimetro storico, per riferimento:
 1. Togliere i **tre `skip: true`** (`no-unsplash-in-content`,
    `no-fake-reviewer-names`, `no-in-arrivo-toast`).
 2. `no-unsplash-in-content`: allowlist **da 2 voci a 3**, aggiungendo
@@ -4383,6 +4661,14 @@ e il precedente è codificato in `gateF26diff5.test.js:52`.
 
 **d) GATE CLEANUP** — ✅ **CHIUSO** il 26/08, commit `a250a95`. Erano cinque
 morti, non quattro, e 17 allowlist scadute, non tre. Vedi la sessione 26/08.
+
+**d-bis) GATE PREFERITI** — nuovo, aperto dal DIFF 6. Tre difetti già misurati,
+da non ri-scoprire: due motori divergenti (`Explore.jsx:138` su localStorage vs
+`dataService.toggleFavorite` su Supabase — regola locked #8), `getFavorites`
+inesistente (si scrive e non si rilegge), e `toggleFavorite` che ritorna
+`{success:true}` anche dal `catch`. Attenzione al vincolo che ha ucciso il
+cuore: `favorites.tour_id` è `UUID REFERENCES tours(id)`, ma i tour AI hanno id
+`ai-quiz-…`. Finché non è chiuso, **nessun bottone preferiti** in UI.
 
 **e) GATE RAGGIO** — **F47**: POI proposti a **Mestre** per un tour di Venezia.
 **F52**: ordine delle tappe incoerente con l'ora. Stesso gate perché toccano
@@ -4430,6 +4716,16 @@ l'88% eccezione**, cioè la prossima `skip: true`. Se si apre, si apre stretta.
 - **F44** — perché uno step CI passa da 16s a 189s: causa ignota.
 - **F38-bis** — la mappa a schermo intero non segue la selezione città.
 - **F40, F41, F42** — non ancora collocati in nessun gate della coda.
+- **F60 / F61 / F62** — chiusi il 27/08 (chat finta rimossa, toast in scope,
+  cuore preferiti rimosso). Il difetto sotto F62 resta aperto: vedi **d-bis**.
+  Nota di numerazione: **F57, F58, F59 non esistono** — si è passati da F56 a
+  F60, non è un buco da colmare.
+- **Accessibilità zero, e prima era mascherata.** `sr-only` era l'unica etichetta
+  screen-reader del progetto e viveva dentro la chat finta rimossa da F60. Oggi
+  l'app non ne ha nessuna. Non è un regresso introdotto dal DIFF 6, è un dato che
+  il codice falso teneva nascosto.
+- **`RequestModal:52`** dichiara `const { toast } = useToast()` e non lo usa.
+  Innocuo, un lint warning.
 
 ---
 

@@ -4383,6 +4383,57 @@ sbagliato di una riga. Non ha rotto niente. La differenza fra i due tentativi
 non e' l'attenzione: sono le guardie.
 
 
+### LEZIONE #37 — un TODO non evaso diventa un dato
+
+`placesDiscoveryService:909` diceva:
+
+```js
+suggestedMinutes: 30, // default: si affinera' se serve
+```
+
+Non e' mai successo. Per mesi **ogni POI ha dichiarato mezz'ora di visita**
+qualunque cosa fosse — una chiesa, un museo, un ristorante. Il commento diceva
+"provvisorio"; il codice diceva "30" a ogni utente che apriva un tour.
+
+Un valore-ponte con accanto la promessa di sistemarlo **non e' provvisorio: e' un
+dato**, e si comporta come un dato in ogni riga che lo legge. La promessa vive
+nel commento, che nessun utente apre. Vale la regola gia' locked sui fallback
+(#5, "un fallback che produce contenuto e' una gamba tolta al tavolo"), con
+un'aggravante: qui il fallback si era **dichiarato temporaneo**, e questo ha
+comprato mesi di immunita' dalla revisione.
+
+Quando serve un valore-ponte, la domanda non e' "lo sistemero'?" ma **"cosa
+mostra all'utente finche' non lo sistemo?"**. Se la risposta e' un'affermazione,
+il ponte non si posa.
+
+### LEZIONE #38 — un test puo' difendere ATTIVAMENTE il difetto che stai togliendo
+
+`googleFirstItinerary.test.js:176` asseriva:
+
+```js
+// Fallback su valori sicuri
+expect(result[0].suggestedMinutes).toBe(30);
+```
+
+Non era sicuro: **era il difetto**, e il test lo proteggeva. Rimuovendo la durata
+inventata la suite e' diventata rossa, e il commento sopra l'asserzione spiegava
+che stava tutelando la robustezza — non che stava congelando un numero prodotto
+dal codice e mostrato come dato del posto.
+
+**Terza forma della stessa famiglia in una settimana**, dopo #34
+(`not.toContain` non distingue una citazione da un'affermazione) e #35 (Tailwind
+non distingue una citazione da un uso): qui e' un **test** che non distingue un
+invariante da uno stato di fatto. Un'asserzione scritta su "com'e' adesso"
+diventa indistinguibile da una scritta su "come deve essere".
+
+Regola operativa: quando un test diventa rosso mentre si rimuove un difetto, la
+prima domanda non e' "come lo faccio ripassare" ma **"questo test cosa stava
+proteggendo davvero?"**. E il commento sopra l'asserzione non e' la risposta: e'
+l'intenzione di chi l'ha scritto, che e' esattamente cio' che va verificato.
+Aggiornare, mai aggirare — e scrivere nel test perche' l'asserzione vecchia era
+sbagliata, cosi' la prossima persona non la ripristina.
+
+
 ### Marker
 
 | marker | prima | dopo |
@@ -4662,6 +4713,97 @@ Il debito device precedente resta invariato: **F55, F56, DIFF 4**.
 
 ---
 
+## Sessione 27/08 (2) — GATE RAGGIO DIFF 1a chiuso
+
+Commit **`f0d122b`**. **493 test** (+32), build pulita, lint 0 errori / 199
+warning (invariato). Suite verde anche con `.env` spostato.
+
+### F64 — la durata era inventata quanto l'orario. **RISOLTO.**
+
+`suggestedMinutes` era chiesto al modello nello **stesso schema JSON** di `time`,
+due righe sotto, e accettato con lo stesso `|| 30` senza validazione. **Sei**
+consumatori vivi, non quattro: oltre a `DashboardUser:303`, `TourDetails:1126` e
+`Notifications:171`, anche `tourShape:330` (il normalizzatore condiviso) e
+`placesDiscoveryService:909`.
+
+**Nessuno se n'era accorto perche' un numero di minuti sembra sempre
+plausibile.** "30 min" su una chiesa non stona come "19:30" alle 23:10: il
+difetto era identico, ma invisibile.
+
+**Perche' il DIFF 1 originale era sbagliato, non incompleto.** Il piano era
+calcolare `time` sommando `suggestedMinutes` a partire dall'ora reale. Avrebbe
+prodotto un orario onesto nella forma e falso nella sostanza — e **peggiore di
+oggi**: 19:30 alle 23:10 e' visibilmente assurdo e l'utente lo scarta, mentre
+`23:15 → 23:45 → 00:30` sembra derivato da un sistema che sa quanto dura una
+visita. Avremmo reso credibile un dato inventato.
+
+### Cosa c'e' al suo posto — `src/lib/tourTiming.js`
+
+Non e' una durata vera: e' una **STIMA DEL PRODOTTO**. La differenza con
+l'invenzione del modello e' che questa e' uguale per tutti, ispezionabile e
+testabile. Google Places non vende durate di visita: non e' un dato comprabile.
+
+- **Sosta** da tabella sui `types` GOOGLE, non su `type` (la categoria UI
+  collassata perde l'informazione: `church` e `museum` finiscono entrambi su
+  'cultura' ma durano 20 e 60).
+- **Precedenza per specificita' dell'esperienza dominante**, non per durata: si
+  scorre la lista e vince la prima voce che matcha, **mai** l'ordine dell'array
+  di Google. Una chiesa turistica dura 20 e non 30 perche' il motivo per cui ci
+  entri e' che e' una chiesa. I generici (`tourist_attraction`,
+  `point_of_interest`) stanno in fondo: dicono "e' un posto", non "e' QUESTO
+  posto".
+- **Spostamento** da haversine / **4.5 km/h**, dichiarata come scelta e non
+  misurata (sotto i 5 km/h del profilo pedonale OSRM, per semafori e centri
+  storici affollati). Se un giorno si misura, `nav_events` esiste.
+- **Prima tappa senza spostamento e senza GPS.** Un tour si guarda ora e si
+  cammina dopo, spesso da un altro punto: un avvicinamento sul GPS attuale
+  sarebbe preciso e falso.
+- `travelMinutes` ritorna **null e mai zero** su coordinate mancanti: zero
+  direbbe "stesso posto", che e' un'affermazione.
+
+**La UI dichiara la stima.** `formatEstimate` e' l'unico modo di mostrare una
+durata (`~30 min`, `circa 1h 35min`), e un test asserisce che **nessun output sia
+un numero secco**.
+
+### Effetto collaterale gestito PRIMA di produrlo
+
+Tolto `time` dagli schemi, il modello non lo produce piu' e `AiItinerary:626`
+(`{stop.time || '--:--'}`) avrebbe mostrato `--:--` su ogni tappa. Ora il badge
+non si monta finche' `time` e' null. Terzo punto di copy, obbligato e dichiarato.
+
+### DIFF 1b — SBLOCCATO
+
+`computeStopTimings` gira **dentro la stessa espressione** di `sortByProximity`
+nei quattro call site: `stayMinutes` e `travelMinutesFromPrev` sono gia'
+nell'ordine definitivo, e il calcolo **non puo' piu' finire prima
+dell'ordinamento senza che si veda nel diff**. Il 1b poggia direttamente su
+questi due campi.
+
+### Marker
+
+| marker | prima | dopo |
+|---|---:|---:|
+| `"suggestedMinutes"` negli schemi JSON | 3 | **0** |
+| `"time": "HH:MM"` negli schemi JSON | 3 | **0** |
+| `.suggestedMinutes` in codice vivo | 6 | **0** |
+| `suggestedMinutes` nel bundle | 5 chunk | **0** |
+| `--:--` nel bundle | 1 chunk | **0** |
+| `stayMinutes` nel bundle | 0 | **2 chunk** |
+| chunk JS / CSS | 77 / 130788 | **invariati** |
+| suite | 461 | **493** |
+
+### Device — il debito si allunga di quattro superfici
+
+Badge minuti in **TourDetails**, durata sulle card **"Per Te"**,
+`duration_minutes` del tour da **notifica**, e la timeline di **AiItinerary**
+senza badge orario. Da guardare: che `~20 min` su una chiesa e `~1h` su un museo
+siano plausibili sul campo, e che la colonna sinistra della timeline non
+collassi senza l'orario.
+
+Il debito precedente resta: **F55, F56, DIFF 4**, piu' il bottone Profilo a
+piena larghezza (DIFF 6).
+
+
 ## PROSSIMA SESSIONE — la coda, in quest'ordine
 
 Una riga di contesto per voce, così si riapre senza rileggere tremila righe.
@@ -4731,9 +4873,39 @@ inesistente (si scrive e non si rilegge), e `toggleFavorite` che ritorna
 cuore: `favorites.tour_id` è `UUID REFERENCES tours(id)`, ma i tour AI hanno id
 `ai-quiz-…`. Finché non è chiuso, **nessun bottone preferiti** in UI.
 
-**e) GATE RAGGIO** — **F47**: POI proposti a **Mestre** per un tour di Venezia.
-**F52**: ordine delle tappe incoerente con l'ora. Stesso gate perché toccano
-entrambi la forma del tour, non il testo.
+**e) GATE RAGGIO** — APERTO, diagnosi FASE 0 fatta il 27/08. I tre finding
+hanno **tre cause diverse** e sono tre diff, non un gate unico.
+
+- **DIFF 1a** (durata inventata, F64) — ✅ **CHIUSO** 27/08, `f0d122b`.
+- **DIFF 1b** (F57, orari impossibili) — **PROSSIMO, sbloccato.** Il campo
+  `time` non e' piu' chiesto al modello; va calcolato nel codice **dopo**
+  `sortByProximity`, da `stayMinutes` + `travelMinutesFromPrev` che sono gia'
+  li' nell'ordine definitivo. Serve il guard: nessun orario nel passato
+  raggiunge la UI. Test con l'ora **iniettata**, mai `new Date()` reale.
+  Attenzione: oggi `AiItinerary:626` non monta il badge quando `time` e' null —
+  il 1b lo riaccende.
+- **DIFF 2** (F52, ordinamento) — dopo il 1b, che potrebbe chiuderlo da solo.
+  Se resta aperto, il nodo e' che **due autorita' ordinano**: il modello "in
+  narrativa" e `sortByProximity` per vicinanza. Va scelta una, ed e' una
+  decisione di prodotto. Qui dentro anche `Math.hypot` → haversine
+  (`sortByProximity:767` misura su gradi: a 45° un grado di longitudine vale
+  ~0.7 di uno di latitudine, quindi la metrica e' distorta).
+- **DIFF 3** (F47, raggio) — indipendente, parallelizzabile. **Il filtro esiste
+  e funziona** (`applyRadiusFilter`, prima e dopo la scelta): e' la **soglia**
+  a essere sbagliata. Costante binaria 5/10 km scollegata dall'estensione reale
+  del comune — misurato: il centro storico di Venezia e' largo **1.61 km**, la
+  soglia e' **10 km**, e Mestre sta a **~8.2 km**. Passa senza nemmeno il
+  widen. Secondo difetto indipendente: `radiusInfo` nel prompt e'
+  **ineseguibile**, perche' `candidatesLite` non passa al modello nessuna
+  coordinata. Un'istruzione che non puo' essere eseguita e' peggio di una
+  assente: sembra una protezione.
+
+**Fuori da tutti e tre**: `closingTimeTodayHH`. Esiste come capacita'
+(`fetchPlaceOpeningHours`, cache 24h per place_id) ma **zero consumatori nel
+path tour**. Costo per un tour da 4 tappe: **20** chiamate `place/details` a
+freddo se si vuole informare la *scelta* del modello, **4** se si vuole solo
+validare a posteriori. La differenza non e' di costo: a 4 la scelta e' gia'
+fatta, e scartare lascia il tour a 3 tappe. Decisione a parte.
 
 **f) GATE CITTÀ** — `user_city` sopravvive **oltre il TTL**: la città vecchia
 vince su quella nuova.

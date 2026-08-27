@@ -400,6 +400,10 @@ const checkAndIncrementQuota = async () => {
 // del prompt + filtro pre-verifyPOIWithPlaces che risparmia chiamate Google $)
 // E le re-esportiamo per non rompere aiRadius.test.js.
 import { isSmallTown, applyRadiusFilter, haversineKm } from './tourShape';
+// Gate RAGGIO DIFF 1a — stime di durata (sosta da types + spostamento haversine).
+// Va chiamato SEMPRE dopo l'ordinamento definitivo: lo spostamento e' una
+// proprieta' della coppia di tappe consecutive, non della singola tappa.
+import { computeStopTimings, totalTourMinutes } from '@/lib/tourTiming';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 
 // ─── DVAI-060 F2 — derive theme + fetch candidati reali ──────────────────────
@@ -959,12 +963,10 @@ FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
     "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
     "stops": [{
       "place_id": "ChIJ...",
-      "time": "HH:MM",
       "description": "voce insider sensoriale (max 120 car)",
       "insiderTip": "consiglio da local (max 100 car)",
       "bestTime": "perché ORA (max 100 car) — oppure null se non hai un motivo vero",
       "transition": "cosa vedi camminando (max 80 car)",
-      "suggestedMinutes": 30,
       "type": "cultura|storia|food|shopping|relax|arte|natura"
     }]
   }]
@@ -1128,12 +1130,10 @@ FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
       "suggestedTransit": "walking|bus|metro",
       "stops": [{
         "place_id": "ChIJ... — deve essere uno di quelli del tuo blocco tema",
-        "time": "HH:MM",
         "description": "voce insider sensoriale (max 120 car)",
         "insiderTip": "consiglio da local (max 100 car)",
         "bestTime": "perche' ORA (max 100 car) — oppure null se non hai un motivo vero",
         "transition": "cosa vedi camminando (max 80 car)",
-        "suggestedMinutes": 30,
         "type": "cultura|storia|food|shopping|relax|arte|natura"
       }]
     }
@@ -1196,7 +1196,16 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates) => {
             insiderTip: s.insiderTip || null,
             bestTime: s.bestTime || null,
             transition: s.transition || null,
-            suggestedMinutes: s.suggestedMinutes || 30,
+            // Gate RAGGIO DIFF 1a — `suggestedMinutes: s.suggestedMinutes || 30`
+            // RIMOSSO: era una durata CHIESTA AL MODELLO e accettata senza
+            // validazione. La durata ora si calcola da `types` + distanza in
+            // src/lib/tourTiming.js, dopo l'ordinamento definitivo.
+            //
+            // `types` (i types Google INTERI) viene portato qui apposta: la
+            // tabella di sosta ne ha bisogno, e `type` qui sotto e' gia' una
+            // riduzione a sei valori che perde l'informazione — `church` e
+            // `museum` collassano entrambi su 'cultura' ma durano 20 e 60.
+            types: Array.isArray(c.types) ? c.types : [],
             // Gate TOUR-SENSATO (F14) — Google è l'autorità sulla categoria.
             // Prima era `s.type || c.type`: vinceva l'etichetta scritta dall'AI,
             // e nessuno verificava che corrispondesse al posto. Device 16/08:
@@ -1384,7 +1393,8 @@ export const aiRecommendationService = {
                         // perché discoverRealPOIs ha già filtrato per prossimità query.
                         const withinRadius = applyRadiusFilter(described, cityCenter, city);
                         // Ordina per prossimità geografica dopo la canonizzazione.
-                        const ordered = sortByProximity(withinRadius);
+                        // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
+                        const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
                         return {
                             day: day.day ?? di + 1,
                             title: day.title ?? `Giorno ${di + 1} a ${city}`,
@@ -1506,14 +1516,12 @@ Schema JSON ESATTO:
     "suggestedTransit": "walking|bus|metro",
     "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
     "stops": [{
-      "time": "HH:MM",
       "title": "Nome REALE del posto (deve esistere su Google Maps)",
       "description": "Descrizione evocativa, diretta, da insider (max 120 car)",
       "transition": "Come arrivi alla prossima tappa (distanza, cosa vedi camminando)",
       "insiderTip": "Consiglio da local",
       "bestTime": "Perché questo è il momento giusto — oppure null se non hai un motivo vero, senza citare orari",
       "photo_query": "Nome Posto Indirizzo Città (per ricerca Google Places foto)",
-      "suggestedMinutes": 30,
       "type": "cultura|storia|food|shopping|relax|arte|natura",
       "location": "Indirizzo reale o quartiere",
       "latitude": 41.9028,
@@ -1591,7 +1599,8 @@ Schema JSON ESATTO:
                             // quindi il default era l'unica sorgente: un prezzo e un voto
                             // inventati dal codice e mostrati come dati del posto.
                             rating: typeof s.rating === 'number' ? Math.min(s.rating, 5) : null,
-                            suggestedMinutes: s.suggestedMinutes || 30,
+                            // Gate RAGGIO DIFF 1a — durata inventata rimossa, vedi tourTiming.js.
+                            types: Array.isArray(s.types) ? s.types : [],
                             transition: s.transition || null,
                             insiderTip: s.insiderTip || null,
                             bestTime: s.bestTime || null,
@@ -1604,7 +1613,8 @@ Schema JSON ESATTO:
                 const withinRadius = applyRadiusFilter(rawStops, cityCenter, city);
 
                 // Ordina le tappe per prossimità geografica (nearest-neighbor greedy)
-                const ordered = sortByProximity(withinRadius);
+                // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
+                const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
 
                 return {
                     day: day.day ?? di + 1,
@@ -1822,7 +1832,8 @@ Schema JSON ESATTO:
 
                 // Safety filtro raggio (Places gia' filtrato ma difense-in-depth).
                 const withinRadius = applyRadiusFilter(canonized, cityCenter, city);
-                const ordered = sortByProximity(withinRadius);
+                // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
+                const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
 
                 return {
                     themeType,
@@ -1897,10 +1908,12 @@ Schema JSON ESATTO:
             }
 
             // 3. Ordina per prossimità (nearest-neighbor greedy).
-            const ordered = sortByProximity(enrichedStops);
+            // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
+            const ordered = computeStopTimings(sortByProximity(enrichedStops)).stops;
 
             // 4. Costruisci tourData compatibile con TourDetails render.
-            const totalMinutes = ordered.reduce((acc, s) => acc + (s.suggestedMinutes || 30), 0);
+            // DIFF 1a: soste + spostamenti dalla fonte unica, non una somma a mano.
+            const totalMinutes = totalTourMinutes(ordered);
             const tourData = {
                 days: [{
                     day: 1,

@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import TopBar from "../components/TopBar";
 import TourCover from "../components/TourCover";
 import { isPlacesPhoto } from "@/lib/categoryPalette";
+import { formatEstimate } from "@/lib/tourTiming";
 
 import { useAuth } from "../context/AuthContext";
 import BottomNavigation from "../components/BottomNavigation";
@@ -1123,7 +1124,11 @@ export default function TourDetailsPage() {
                                     const stepTitle = step.title || step.activity || `Tappa ${index + 1}`;
                                     const stepImage = step.image || null;
                                     const stepCategory = step.category && step.category !== 'place' ? step.category : null;
-                                    const stepMinutes = Number.isFinite(step.suggestedMinutes) && step.suggestedMinutes > 0 ? step.suggestedMinutes : null;
+                                    // Gate RAGGIO DIFF 1a — la durata non e' piu' `suggestedMinutes`
+                                    // (chiesta al modello) ma `stayMinutes`, stimato dai types
+                                    // Google. `formatEstimate` mette il tilde: e' una stima e va
+                                    // detto. Se manca resta null e il badge non si monta.
+                                    const stepMinutes = formatEstimate(step.stayMinutes);
                                     const stepPrice = Number.isFinite(step.price) && step.price > 0 ? step.price : null;
                                     const stepInsider = step.insiderTip || null;
                                     const stepDesc = step.description || null;
@@ -1177,7 +1182,7 @@ export default function TourDetailsPage() {
                                                             )}
                                                             {stepMinutes && (
                                                                 <span className="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px]">
-                                                                    {stepMinutes} min
+                                                                    {stepMinutes}
                                                                 </span>
                                                             )}
                                                             {stepPrice && (

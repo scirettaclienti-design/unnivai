@@ -906,7 +906,10 @@ export const fetchPlaceDetailsForTour = async (placeId, cityName, candidateHints
       address: r.formatted_address || null,
       closingTimeTodayHH,
       openNow: typeof oh?.open_now === 'boolean' ? oh.open_now : null,
-      suggestedMinutes: 30, // default: si affinerà se serve
+      // Gate RAGGIO DIFF 1a — `suggestedMinutes: 30` RIMOSSO. "Si affinera' se
+      // serve" non e' mai successo, e intanto ogni POI dichiarava mezz'ora di
+      // visita indipendentemente da cosa fosse. La durata ora si calcola dai
+      // `types` qui sopra, in src/lib/tourTiming.js.
     };
     saveToCache(cacheKey, result);
     return result;

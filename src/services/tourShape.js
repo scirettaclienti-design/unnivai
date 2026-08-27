@@ -326,8 +326,18 @@ export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma') {
         lng: hasLng ? lng : null,
 
         // Tempi
+        // Gate RAGGIO DIFF 1a — `suggestedMinutes` RIMOSSO: era una durata
+        // chiesta al modello, col default 30 come unica sorgente quando il
+        // modello non la dava. Ora la durata e' una STIMA DEL PRODOTTO calcolata
+        // in src/lib/tourTiming.js (sosta per types Google + spostamento
+        // haversine) e viaggia in `stayMinutes` / `travelMinutesFromPrev`.
+        // Entrambi passano attraverso qui senza default: se mancano restano
+        // null, e la UI non mostra nulla invece di mostrare un numero inventato.
         time: raw.time || null,
-        suggestedMinutes: Number.isFinite(Number(raw.suggestedMinutes)) ? Number(raw.suggestedMinutes) : 30,
+        stayMinutes: Number.isFinite(Number(raw.stayMinutes)) ? Number(raw.stayMinutes) : null,
+        travelMinutesFromPrev: Number.isFinite(Number(raw.travelMinutesFromPrev)) ? Number(raw.travelMinutesFromPrev) : null,
+        // `types` Google interi: la tabella di sosta ne ha bisogno a valle.
+        types: Array.isArray(raw.types) ? raw.types : [],
 
         // Narrativa "insider" — null se assenti (non undefined né mancanti)
         transition: raw.transition || null,

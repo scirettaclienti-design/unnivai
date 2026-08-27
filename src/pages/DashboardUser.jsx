@@ -13,6 +13,7 @@ import { dataService, createGuideRequest } from "@/services/dataService";
 import { useAILearning } from '../hooks/useAILearning';
 import { placesDiscoveryService } from '@/services/placesDiscoveryService';
 import { normalizeTour } from '@/services/tourShape';
+import { totalTourMinutes, formatEstimate } from '@/lib/tourTiming';
 import { resolveCityCenter, CityCenterUnresolvedError } from '@/services/cityCenterService';
 import TourCover from '@/components/TourCover';
 // 🧠 AI-POWERED EXPERIENCE GENERATOR (REAL POI DISCOVERY)
@@ -300,7 +301,11 @@ const DashboardUser = () => {
                 finalTours = homeToursResult.tours.map((tour) => {
                     const isInsider = tour.themeType === 'insider';
                     const firstStop = tour.stops[0];
-                    const durationMin = tour.stops.reduce((acc, s) => acc + (s.suggestedMinutes || 30), 0);
+                    // Gate RAGGIO DIFF 1a — la somma a mano di `suggestedMinutes`
+                    // (durata chiesta al modello) e' RIMOSSA. Il totale ora viene
+                    // dalla fonte unica: soste stimate dai types + spostamenti
+                    // haversine, gia' calcolati a monte in generateHomeTours.
+                    const durationMin = totalTourMinutes(tour.stops);
 
                     // featuredPoi (Gate O.4): POI di punta = qualityScore max tra
                     // stops con rating reale. Solo tra step Google-verified.
@@ -332,7 +337,7 @@ const DashboardUser = () => {
                         title: tour.title,
                         location: `${currentCity}, ${isInsider ? 'Tour AI Insider' : 'Esperienza Locale'}`,
                         // Gate O.2: nessun rating/reviews/price tour-level.
-                        duration: `${durationMin} min`,
+                        duration: formatEstimate(durationMin),
                         image: firstStop?.googlePhoto || null,
                         category,
                         emoji,

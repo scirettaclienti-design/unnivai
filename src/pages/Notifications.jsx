@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { totalTourMinutes } from '@/lib/tourTiming';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserContext } from "@/hooks/useUserContext";
@@ -168,7 +169,10 @@ export default function NotificationsPage() {
             id: tourId,
             title: day.title || `Il tuo giro a ${city}`,
             city,
-            duration_minutes: day.stops.reduce((acc, s) => acc + (s.suggestedMinutes || 30), 0),
+            // Gate RAGGIO DIFF 1a — somma a mano di `suggestedMinutes` rimossa.
+            // Le stime arrivano gia' calcolate da generateSystemPrewarmTour, che
+            // le produce dopo l'ordinamento definitivo.
+            duration_minutes: totalTourMinutes(day.stops),
             // Gate O.2: nessun rating/price finto su un tour precomputed da notifica.
             stops: day.stops,
             isAiGenerated: true,

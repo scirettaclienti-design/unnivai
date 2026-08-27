@@ -623,7 +623,18 @@ export default function AIItineraryPage() {
                                                         <div className="flex">
                                                             {/* Left color bar + Icon */}
                                                             <div className="flex flex-col items-center justify-start bg-gradient-to-b from-terracotta-400 to-terracotta-500 px-3 py-4 min-w-[64px]">
-                                                                <span className="text-white font-bold text-xs mb-2 whitespace-nowrap">{stop.time || '--:--'}</span>
+                                                                {/* Gate RAGGIO DIFF 1a — era `{stop.time || '--:--'}`.
+                                                                    Il modello non produce piu' `time`: il campo e' stato
+                                                                    tolto dagli schemi JSON perche' inventava orari (F57:
+                                                                    19:30 e 21:00 mostrati alle 23:10). Il calcolo vero
+                                                                    arriva col DIFF 1b.
+                                                                    `--:--` non e' un'alternativa accettabile nel frattempo:
+                                                                    e' un segnaposto che occupa il posto di un dato e fa
+                                                                    sembrare rotto cio' che e' semplicemente assente.
+                                                                    Finche' `time` e' null, il badge non si monta. */}
+                                                                {stop.time && (
+                                                                    <span className="text-white font-bold text-xs mb-2 whitespace-nowrap">{stop.time}</span>
+                                                                )}
                                                                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                                                                     <IconComponent className="w-5 h-5 text-white" />
                                                                 </div>

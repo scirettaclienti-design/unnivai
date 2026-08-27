@@ -172,8 +172,18 @@ describe('DVAI-060 F2 — canonicalizeStopsFromCandidates', () => {
         expect(result[0].insiderTip).toBeNull();
         expect(result[0].bestTime).toBeNull();
         expect(result[0].transition).toBeNull();
-        // Fallback su valori sicuri
-        expect(result[0].suggestedMinutes).toBe(30);
+        // Gate RAGGIO DIFF 1a — questa asserzione diceva
+        // `expect(result[0].suggestedMinutes).toBe(30)` sotto il commento
+        // "Fallback su valori sicuri". Non era sicuro: era il difetto.
+        // 30 non veniva da un posto reale, era il default di una durata che il
+        // modello avrebbe dovuto inventare e non aveva inventato — un numero
+        // prodotto dal codice e mostrato all'utente come dato del posto.
+        // Il campo non esiste piu': la durata si calcola dai `types` in
+        // src/lib/tourTiming.js, dopo l'ordinamento.
+        expect(result[0].suggestedMinutes).toBeUndefined();
+        // I types Google interi devono arrivare a valle: la tabella di sosta
+        // ne ha bisogno, e `type` qui sotto e' gia' una riduzione che li perde.
+        expect(Array.isArray(result[0].types)).toBe(true);
     });
 
     it('funziona con candidato che usa googlePlaceId invece di place_id', () => {

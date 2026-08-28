@@ -732,6 +732,21 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
             // famiglia, romantico → CULTURA (soglia media)
         };
         const customKind = CATEGORIA_TO_KIND[String(intent.categoria || '').toLowerCase()] || 'CULTURA';
+
+        // Gate INTENT (28/08) — DIAGNOSTICA, non decisione. `customKind` sopra e'
+        // invariato e resta l'unico usato: qui si misura soltanto QUANTO spesso
+        // il kind globale (derivato dalla `categoria` prodotta dal MODELLO)
+        // diverge da quello che il lessico della singola query suggerirebbe.
+        // Il conteggio dei divergenti rende la domanda automatica: senza, la
+        // riga andrebbe letta e giudicata a mano una per una.
+        const perQuery = queriesToRun.map(q => ({ q, kind: deriveKindFromQuery(q) }));
+        const divergenti = perQuery.filter(x => x.kind !== customKind).length;
+        console.info(
+            `[Gate B] kind globale=${customKind} | per-query: ` +
+            perQuery.map(x => `${x.q}->${x.kind}`).join(', ') +
+            ` | ${divergenti}/${perQuery.length} divergenti`
+        );
+
         lists = await Promise.all(
             queriesToRun.map(q => placesDiscoveryService.discoverRealPOIs(
                 cityName, lat, lng, null,
@@ -762,6 +777,25 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
         const qsB = (b.rating || 0) * Math.log(1 + (b.user_ratings_total || 0));
         return qsB - qsA;
     });
+    // Gate INTENT (28/08) — DIAGNOSTICA sul taglio. Era completamente invisibile,
+    // ed e' il candidato piu' forte per i POI che spariscono: le tre liste
+    // diventano UN ranking solo per qualityScore = rating * ln(1+reviews), che
+    // e' dominato dal volume di recensioni. Una famiglia a basso traffico (le
+    // chiese antiche minori, ~300 recensioni) puo' uscire per intero dai top-20
+    // anche quando la sua query ha funzionato benissimo, perche' perde contro
+    // ristoranti e musei con due ordini di grandezza in piu'.
+    // Il "piu' alto escluso" e' il dato che serve: se e' della famiglia chiesta,
+    // il taglio sta mangiando esattamente cio' che l'utente voleva.
+    if (all.length > 20) {
+        const primoEscluso = all[20];
+        const qsEscluso = (primoEscluso.rating || 0) * Math.log(1 + (primoEscluso.user_ratings_total || 0));
+        console.info(
+            `[Gate B] merge: ${all.length} candidati -> top 20 | esclusi per ranking: ${all.length - 20}` +
+            ` | il piu' alto escluso: "${primoEscluso.name || primoEscluso.title || '?'}"` +
+            ` score=${qsEscluso.toFixed(1)} (rating=${primoEscluso.rating ?? '?'}, reviews=${primoEscluso.user_ratings_total ?? '?'})`
+        );
+    }
+
     // Tronco a top-20: abbastanza per far scegliere all'AI, non troppo per non
     // gonfiare il prompt (ogni candidato costa ~40 token).
     return { candidates: all.slice(0, 20), intent };
@@ -784,6 +818,46 @@ function sortByProximity(stops) {
     }
     return result;
 }
+
+// ─── Gate INTENT (28/08) — kind per QUERY, derivato dal lessico ──────────────
+//
+// SOLO DIAGNOSTICA IN QUESTO DIFF. Non cambia `customKind`, non tocca le
+// soglie, non filtra niente: alimenta una riga di log e basta.
+//
+// Perche' esiste: oggi `customKind` e' UNO SOLO per tutte le query
+// (`CATEGORIA_TO_KIND[intent.categoria]`), e `intent.categoria` la produce il
+// MODELLO. Su Milano, tre query — "chiesa antica", "museo d'arte", "caffe'
+// storico" — hanno prodotto `categoria=cibo`, quindi soglia FOOD (rating 4.2)
+// applicata anche alla query sulla chiesa, contro il 4.0 di CULTURA.
+// Quanto spesso succeda non lo sappiamo: questa mappa serve a misurarlo.
+//
+// La derivazione e' DETERMINISTICA e sta nel codice: nessuna chiamata al
+// modello, altrimenti sarebbe lo stesso difetto con un passaggio in piu'.
+// Se un giorno promuoveremo questo da log a decisione (strada B), la mappa e'
+// gia' scritta e — soprattutto — gia' misurata sul campo.
+//
+// Non mappata → CULTURA, che e' la soglia PIU' PERMISSIVA delle quattro
+// (rating 4.0). Il modo di sbagliare e' verso l'inclusione, mai verso la
+// cancellazione silenziosa di un POI che l'utente ha chiesto.
+export const QUERY_KIND_LEXICON = [
+    { kind: 'FOOD',    parole: ['trattoria', 'ristorante', 'osteria', 'pizzeria', 'pizza', 'caffe', 'caffè', 'bar', 'gelateria', 'gelato', 'pasticceria', 'enoteca', 'birreria', 'street food', 'cucina', 'friggitoria', 'panineria', 'cocktail', 'pub'] },
+    { kind: 'NATURA',  parole: ['parco', 'villa comunale', 'giardino', 'orto botanico', 'riserva', 'oasi', 'bosco', 'lago', 'sentiero', 'spiagg', 'lido', 'cala', 'scogliera', 'grotta'] },
+    { kind: 'RELAX',   parole: ['terme', 'spa', 'benessere', 'belvedere', 'panorama', 'terrazza panoramica', 'lungomare', 'lungofiume'] },
+    { kind: 'CULTURA', parole: ['chiesa', 'basilica', 'duomo', 'cattedrale', 'abbazia', 'santuario', 'battistero', 'museo', 'pinacoteca', 'galleria', 'palazzo', 'castello', 'monumento', 'teatro', 'biblioteca', 'archeolog', 'centro storico', 'piazza', 'borgo', 'mercato', 'artigianato', 'boutique', 'negozi'] },
+];
+
+// Kind lessicale di UNA query. Match su sottostringa in minuscolo: le query sono
+// 2-4 parole scelte dal traduttore, non testo libero, quindi il rischio di falso
+// positivo e' basso e il costo e' trascurabile (max 3 query per generazione, non
+// 60 candidati — la mappa NON gira sui POI).
+export const deriveKindFromQuery = (query) => {
+    const q = String(query || '').toLowerCase();
+    if (!q.trim()) return 'CULTURA';
+    for (const { kind, parole } of QUERY_KIND_LEXICON) {
+        if (parole.some(w => q.includes(w))) return kind;
+    }
+    return 'CULTURA';
+};
 
 // ─── DVAI-060 F2 — Prompt selettore-narratore ────────────────────────────────
 //
@@ -1248,6 +1322,15 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates) => {
     // Qui si logga DOPO il filtro: una tappa scartata per place_id inventato non
     // esiste, e segnalarne il testo sarebbe rumore su qualcosa che nessuno vedra'.
     try {
+        // Gate INTENT (28/08) — LOG DI INGRESSO. Chiude il problema lasciato
+        // aperto dal DIFF 4: fino a ieri "zero violazioni" e "guard mai
+        // eseguito" producevano lo STESSO silenzio, e un giro device che non
+        // trova violazioni non poteva distinguere le due cose.
+        // Il campo `path` risponde dal campo alla domanda sulla copertura: il
+        // guard vive solo dentro questa funzione, chiamata da generateItinerary
+        // Google-first (:1380) e generateHomeTours (:1814). Il ramo AI-first
+        // legacy ha una catena sua e NON ci passa — due path su tre coperti.
+        console.info(`[Narratore] check avviato, ${stops.length} tappe, path=canonicalize`);
         for (const v of findTourViolations(stops)) {
             const poi = stops[v.indice]?.title || '(senza titolo)';
             console.warn(
@@ -1600,7 +1683,26 @@ Schema JSON ESATTO:
                             // inventati dal codice e mostrati come dati del posto.
                             rating: typeof s.rating === 'number' ? Math.min(s.rating, 5) : null,
                             // Gate RAGGIO DIFF 1a — durata inventata rimossa, vedi tourTiming.js.
-                            types: Array.isArray(s.types) ? s.types : [],
+                            //
+                            // CORREZIONE Gate INTENT (28/08): qui c'era un ternario che
+                            // leggeva i types dallo stop `s` col solito guard su array —
+                            // NB: la forma letterale non si scrive, un test la asserisce
+                            // assente e un commento la farebbe fallire (lezione #34).
+                            // Leggeva da `s`, cioe' lo stop prodotto dal MODELLO. Su questo path non
+                            // esiste nessun candidato Google da cui prendere i types: e'
+                            // il ramo AI-first legacy, dove il modello inventa il posto
+                            // (title + coordinate). Il modello non produce `types` e lo
+                            // schema glielo vieta, quindi quella riga valutava SEMPRE `[]`
+                            // fingendo di leggere qualcosa.
+                            //
+                            // Non e' correggibile in `c.types` come sul path Google-first
+                            // (:1208): `c` qui non esiste. Resta `[]` ESPLICITO, che e' la
+                            // verita' — su questo ramo i types Google non ci sono e la
+                            // sosta cade sul default dichiarato di tourTiming.js.
+                            // Limite noto e circoscritto: il ramo scatta solo con meno di
+                            // 3 candidati Google. Se un giorno vorra' durate vere, la
+                            // strada e' passare da place/details, non da `s`.
+                            types: [],
                             transition: s.transition || null,
                             insiderTip: s.insiderTip || null,
                             bestTime: s.bestTime || null,

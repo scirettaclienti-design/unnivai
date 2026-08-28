@@ -531,10 +531,41 @@ const passesHardExclusions = (c) => {
 
 // Scale-down progressivo: se troppo pochi passano, allargo la soglia. Meglio
 // avere 3 candidati borderline che 0 candidati "perfetti".
+// Gate INTENT (28/08) — traccia degli scarti per SOGLIA.
+//
+// Prima questa funzione tagliava senza lasciare traccia per-POI, mentre
+// `[AI-radius] Scartata` logga ogni singolo scarto per distanza. Due filtri sullo
+// stesso pool, uno parlante e uno muto: e' il muto che fa sparire contenuto
+// richiesto dall'utente senza che nessuno lo sappia.
+//
+// AGGREGATO, non per-POI, e la scelta e' dichiarata: su 60 candidati per
+// generazione una riga per scarto sarebbe rumore che nessuno legge, e il rumore
+// e' l'altro modo di essere invisibili. L'aggregato dice quanti e con che
+// soglia; il campione dei tre piu' alti dice CHI, che e' il dato diagnostico —
+// se fra gli scartati c'e' la famiglia che l'utente ha chiesto, si vede subito.
+//
+// La stringa si costruisce solo se ci sono scarti: a pool pulito costo zero.
+const logScartiSoglia = (candidates, level1, kind, t, isSmall) => {
+  const scartati = candidates.length - level1.length;
+  if (scartati <= 0) return;
+  const fuori = candidates
+    .filter(c => !((c.rating || 0) >= t.minRating && (c.user_ratings_total || 0) >= t.minTotal))
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    .slice(0, 3)
+    .map(c => `"${c.name || c.title || '?'}" (r=${c.rating ?? '?'}, n=${c.user_ratings_total ?? '?'})`)
+    .join(', ');
+  console.warn(
+    `[Qualita] scartati ${scartati}/${candidates.length} | kind=${kind} ` +
+    `soglia=${t.minRating}/${t.minTotal} (${isSmall ? 'small' : 'large'}) livello=1 | i piu' alti: ${fuori}`
+  );
+};
+
 const applyQualityThreshold = (candidates, kind, isSmall) => {
   const t = QUALITY_THRESHOLDS[kind][isSmall ? 'small' : 'large'];
   const level1 = candidates.filter(c =>
     (c.rating || 0) >= t.minRating && (c.user_ratings_total || 0) >= t.minTotal);
+  // Solo log: il valore di ritorno e la condizione qui sotto sono invariati.
+  logScartiSoglia(candidates, level1, kind, t, isSmall);
   if (level1.length >= 3) return { pois: level1, scaleLevel: 1 };
 
   const level2 = candidates.filter(c =>

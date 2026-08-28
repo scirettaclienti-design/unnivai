@@ -4434,6 +4434,34 @@ Aggiornare, mai aggirare — e scrivere nel test perche' l'asserzione vecchia er
 sbagliata, cosi' la prossima persona non la ripristina.
 
 
+### LEZIONE #39 — il motore ordina per "e' per tutti", il prodotto promette "e' per te"
+
+Non e' un bug: e' una **tensione strutturale**, e va tenuta come tale.
+
+Il pool dei candidati e' ordinato — e poi troncato a 20 — per
+`qualityScore = rating x ln(1 + user_ratings_total)`. Il logaritmo attenua il
+volume ma non lo neutralizza: fra un ristorante milanese con 5.000 recensioni a
+4.5 (score 38) e una chiesa antica minore con 300 a 4.1 (score 23) vince sempre
+il primo. **Il criterio e' la popolarita', mascherata da qualita'.**
+
+DoveVAI dice all'utente *"non e' per tutti, e' per te"*: tour insider, perle
+nascoste, posti che le guide non elencano. Ma la selezione dei candidati
+premia esattamente cio' che **tutti** hanno gia' visto. Piu' un posto e'
+nascosto, meno recensioni ha, e piu' certamente esce dai top-20 — cioe' **il
+motore filtra via proprio la cosa che il prodotto promette**.
+
+Non e' risolvibile abolendo il ranking: senza, entrerebbe qualunque cosa e la
+qualita' crollerebbe. Le strade sono altre — una quota per query (ogni famiglia
+richiesta ha diritto a N posti nel pool), o un punteggio che premi il rapporto
+rating/popolarita' invece del prodotto.
+
+Il punto della lezione non e' la formula: e' che **una metrica di ordinamento e'
+una dichiarazione di valori**, e questa ne dichiara uno opposto a quello del
+prodotto. Quando un motore e una promessa divergono, non e' il motore ad avere
+ragione — ed e' il tipo di difetto che nessun test coglie, perche' ogni singolo
+pezzo funziona correttamente.
+
+
 ### Marker
 
 | marker | prima | dopo |
@@ -4804,6 +4832,67 @@ Il debito precedente resta: **F55, F56, DIFF 4**, piu' il bottone Profilo a
 piena larghezza (DIFF 6).
 
 
+## Sessione 28/08 — GATE INTENT D3 chiuso (solo log)
+
+Commit **`d45f54a`**. **513 test** (+20), build pulita, lint 0 errori / 199
+warning (invariato). Suite verde anche senza `.env`.
+
+**Questo diff non decide niente**, ed e' provato: quattro asserzioni
+(`customKind` invariato, taglio a 20 invariato, soglie invariate,
+`logScartiSoglia` void) e tre sonde con rosso mirato. Nessuna superficie
+cambia: serve un giro device per **leggere** le righe, non per verificarne
+l'effetto.
+
+### Le quattro righe, e a quale domanda risponde ciascuna
+
+| riga | domanda |
+|---|---|
+| `[Gate B] kind globale=… \| per-query: … \| 2/3 divergenti` | **quanto spesso** `categoria` (prodotta dal modello) e' incoerente con le query. E' il numero che manca per scegliere fra strada A e B |
+| `[Gate B] merge: N candidati -> top 20 \| il piu' alto escluso: "…" score=…` | se il **taglio** mangia la famiglia richiesta. Era del tutto invisibile |
+| `[Qualita] scartati N/M \| kind=… soglia=…` | se la **soglia** taglia, e **chi**. Prima muto, mentre `[AI-radius]` logga ogni scarto per distanza |
+| `[Narratore] check avviato, N tappe` | che il **guard giri davvero** |
+
+### IL CASO CHE SCIOGLIE TUTTO — leggerlo cosi' al prossimo giro
+
+> **`0/3 divergenti` + la chiesa fra gli esclusi del merge**
+> ⇒ **`categoria` e' INNOCENTE.** Il lavoro e' sul **ranking** (terzo diff),
+> non su A ne' su B.
+
+E il rovescio: se i divergenti sono molti **e** la famiglia richiesta compare
+in `[Qualita] scartati`, allora e' la soglia, e la strada B chiude il difetto.
+
+### A4 resta APERTO — due meccanismi candidati, nessuno provato
+
+1. **Soglia FOOD** (`categoria=cibo` → `customKind=FOOD` → rating 4.2 anche
+   sulla query "chiesa antica", contro il 4.0 di CULTURA). Difetto **reale e
+   misurato**, ma **indebolito dallo scale-down** `[DVAI-060]`: se la soglia
+   piena lascia meno di 3 candidati si scende a 3.8/1, quindi tre chiese
+   entrerebbero comunque nel pool.
+2. **Ranking top-20** (`:749-763`): le tre query diventano **un ranking solo**
+   per `rating × ln(1+reviews)`, senza quota per query. Le chiese antiche
+   minori (~300 recensioni) perdono strutturalmente contro ristoranti e musei
+   milanesi (5.000-25.000). **Spiega il fenomeno senza bisogno che `categoria`
+   sia sbagliata**, ed e' il candidato piu' forte.
+
+### Il limite del log narratore, che e' controintuitivo
+
+Usa `path=canonicalize`, non `path=google-first`: la funzione e' condivisa e non
+sa da quale path e' chiamata. **Il segnale utile sta nell'ASSENZA** — se si
+genera dal ramo AI-first legacy la riga **non compare affatto**, e quel silenzio
+e' il dato che due path su tre sono coperti. L'obiettivo principale e' comunque
+raggiunto: "gate eseguito" ora e' distinguibile da "gate mai eseguito".
+
+### La correzione :1603 chiesta NON esisteva
+
+Era stato chiesto `s.types` → `c.types`. In quello scope **`c` non esiste**: il
+ramo e' AI-first legacy, il modello inventa il posto e non c'e' nessun candidato
+Google. La riga valutava **sempre `[]`** fingendo di leggere qualcosa.
+Sostituita con `[]` esplicito; la strada vera, se servira', e' `place/details`.
+
+Ed e' stata la **terza ricaduta sulla #34**: il commento che spiegava la forma
+vietata la conteneva, e il test e' diventato rosso su un commento.
+
+
 ## PROSSIMA SESSIONE — la coda, in quest'ordine
 
 Una riga di contesto per voce, così si riapre senza rileggere tremila righe.
@@ -4899,6 +4988,18 @@ hanno **tre cause diverse** e sono tre diff, non un gate unico.
   **ineseguibile**, perche' `candidatesLite` non passa al modello nessuna
   coordinata. Un'istruzione che non puo' essere eseguita e' peggio di una
   assente: sembra una protezione.
+
+**GATE INTENT (A4)** — figlio del DIFF 3, aperto il 28/08.
+- **D3** (quattro righe di log) — ✅ **CHIUSO** 28/08, `d45f54a`. Nessuna
+  decisione presa: serve un giro device per **leggere** le righe.
+- **Poi si decide, coi numeri**: strada **A** (correggere il prompt: l'unico
+  esempio di `categoria: "misto"` sta dentro la regola INPUT VAGO, quindi il
+  modello impara *misto = utente che non sa cosa vuole* — lezione #27/#29,
+  quarta volta) oppure **B** (kind per query dal lessico, gia' scritto e
+  misurabile in `deriveKindFromQuery`, oggi solo diagnostico).
+  A riduce la frequenza, B annulla l'effetto. **Nessuna delle due tocca il
+  ranking**, che e' il candidato piu' forte: quello sarebbe un terzo diff.
+- Il caso che scioglie tutto sta nella sessione 28/08, scritto in chiaro.
 
 **Fuori da tutti e tre**: `closingTimeTodayHH`. Esiste come capacita'
 (`fetchPlaceOpeningHours`, cache 24h per place_id) ma **zero consumatori nel

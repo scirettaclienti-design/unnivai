@@ -13,7 +13,7 @@
 
 import { supabase } from '../lib/supabase';
 import { buildPlacesProxyUrl, isPlacesProxyEnabled, BLACKLIST_TYPES } from './aiRecommendationService';
-import { isSmallTown } from './tourShape';
+import { isSmallTown, widerRadiusKm } from './tourShape';
 
 // DVAI-055-b: prefix bumped da 'unnivai_poiv2_' per invalidare i POI tematici
 // cached prima del filtro raggio centralizzato nel normalizer. I tour tematici
@@ -24,7 +24,12 @@ import { isSmallTown } from './tourShape';
 // Gate P.1: prefix bumped a 'unnivai_poiv5_dedup_' — walking morto, cultura
 // query allargata, romance query B, dedup globale. Le vecchie chiavi cache
 // contenevano 5 temi sovrapposti; il bump forza il rifetch con la nuova mappa.
-const CACHE_PREFIX = 'unnivai_poiv5_dedup_';
+// Gate INTENT (28/08): prefix bumped a 'unnivai_poiv6_bias_' — il bias della
+// textsearch e' passato da 3/5 km a 12/20 km (= R_wider). La cache key contiene
+// `isSmall` ma NON il radius, quindi senza bump un client con cache calda
+// continuerebbe a servire i pool costruiti col bias stretto e il fix non
+// arriverebbe mai all'utente. Il bump forza il rifetch al primo miss.
+const CACHE_PREFIX = 'unnivai_poiv6_bias_';
 // DVAI-050 — TTL esteso a 24h per ridurre re-fetch OpenAI/Places.
 // Stessa city+tema → riusato 1 giorno. Trade-off accettabile: meteo cambia
 // poco in 24h, POI tematici sono stabili.
@@ -744,7 +749,28 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
   const themeCfg = THEME_TEXTSEARCH[themeType] || THEME_TEXTSEARCH.walking;
   const effectiveQuery = customQuery ? String(customQuery).trim() : themeCfg.query;
   const effectiveKind = customQuery ? customKind : themeCfg.kind;
-  const radius = radiusMeters ?? (isSmall ? 3000 : 5000);
+  // Gate INTENT (28/08) — il bias della textsearch segue il raggio MASSIMO del
+  // filtro, non un numero suo.
+  //
+  // Prima: 3000 (borgo) / 5000 (citta'), mentre applyRadiusFilter accetta fino a
+  // 12 / 20 km. Chiedevamo a Google POI entro 3 km e poi ne accettavamo fino a
+  // 12: due filtri nella stessa catena che tiravano in direzioni opposte, e il
+  // PRIMO era il piu' stretto — cioe' si scartava prima di decidere.
+  //
+  // `location` + `radius` sono un BIAS di rilevanza, non un vincolo: allargarli
+  // non fa entrare tutto, dice a Google dove concentrarsi. Misurato sul campo:
+  //   Ippocampo  "chiesa antica"  bias  3 km ->  1 risultato (13.5 km)
+  //                               bias 12 km ->  4 risultati (12.6-14.1 km)
+  //   Manfredonia                 3 km -> 20   |  12 km -> 20   (invariato)
+  //   Venezia                     3 km -> 20   |  12 km -> 20   (invariato)
+  // Dove l'offerta e' densa il pool NON cresce — Google satura a 20 risultati e
+  // li prende gia' tutti vicini. Cresce solo dove prima era vuoto.
+  //
+  // Nessun margine oltre R_wider: il bias deve coprire il raggio massimo
+  // APPLICABILE, e quello e' R_wider. Un margine in piu' sarebbe un numero
+  // inventato senza un dato che lo giustifichi. Se un giorno il filtro superera'
+  // R_wider, il test che lega i due diventa rosso e si aggiornano insieme.
+  const radius = radiusMeters ?? widerRadiusKm(isSmall) * 1000;
 
   // Cache key differenziata: customQuery ha suo namespace (non collide con temi).
   const cacheKey = customQuery

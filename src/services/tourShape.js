@@ -58,6 +58,25 @@ export function haversineKm(lat1, lng1, lat2, lng2) {
 // NOTIFICA, che dice "N min a piedi da te": lì 12 km resta una distanza falsa,
 // solo meno clamorosa dei 200 km di Capodimonte proposti a Ippocampo.
 // Chi chiama da un path notifiche passa { allowWiden: false }.
+// ─── Gate INTENT (28/08) — il raggio MASSIMO applicabile, in un posto solo ────
+//
+// Era un letterale inline dentro applyRadiusFilter. Estratto ed esportato
+// perche' NON e' piu' usato da qui soltanto: `placesDiscoveryService` ci calibra
+// sopra il bias della textsearch, e i due devono muoversi insieme.
+//
+// LA RELAZIONE DA MANTENERE: bias della ricerca >= raggio massimo del filtro.
+// Il bias serve a dire a Google DOVE guardare, non a filtrare: se e' piu'
+// stretto del raggio che poi accettiamo, stiamo scartando prima di decidere.
+// Prima di questo gate valeva l'opposto — bias 3 km, filtro fino a 12 — e su
+// Ippocampo i POI a 12-14 km che il widen avrebbe accettato non erano mai stati
+// CHIESTI: arrivavano solo per corrispondenza testuale, la stessa che portava
+// gli omonimi a 280 km. Misurato: con bias 3 km la query "chiesa antica
+// Ippocampo" torna 1 risultato, con bias 12 km ne torna 4.
+//
+// Un test lega le due grandezze: se qui il numero sale, il bias deve seguirlo o
+// la suite diventa rossa.
+export const widerRadiusKm = (small) => (small ? 12 : 20);
+
 export function applyRadiusFilter(rawStops, cityCenter, cityName, opts = {}) {
     const { allowWiden = true, requireCenter = false } = opts;
     if (!cityCenter || !Number.isFinite(cityCenter.latitude) || !Number.isFinite(cityCenter.longitude)) {
@@ -81,7 +100,7 @@ export function applyRadiusFilter(rawStops, cityCenter, cityName, opts = {}) {
     }
     const small = cityCenter.isSmallTown ?? isSmallTown(cityName);
     const R = cityCenter.radiusKm ?? (small ? 5 : 10);
-    const R_wider = small ? 12 : 20;
+    const R_wider = widerRadiusKm(small);
 
     const filterAt = (radius) => rawStops.filter(s => {
         const lat = s.latitude ?? s.lat;

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { applyGeoSanity, QUALITY_THRESHOLDS } from '@/services/placesDiscoveryService';
+import { widerRadiusKm } from '@/services/tourShape';
 
 // Gate INTENT — taglio di sanita' geografica (28/08).
 // Places textsearch usa location+radius come BIAS, non come vincolo: con il nome
@@ -196,11 +197,16 @@ describe('Gate INTENT — il taglio sta al posto giusto', () => {
     it('il margine e\' reale: la sanita\' e\' molto sopra il raggio massimo applicabile', () => {
         const s = src();
         expect(s).toContain('const SANITY_KM = 100;');
-        // R_wider in applyRadiusFilter: 12 km borgo / 20 km citta'.
-        const shape = readSrc('services/tourShape.js');
-        expect(shape).toContain('const R_wider = small ? 12 : 20;');
+        // Gate INTENT (28/08): questo test leggeva il LETTERALE
+        // `const R_wider = small ? 12 : 20;` dal sorgente di tourShape. Quel
+        // letterale non esiste piu' — e' diventato `widerRadiusKm`, esportata,
+        // perche' ora anche il bias della textsearch ci si calibra sopra.
+        // Leggere la funzione invece del testo rende il test PIU' robusto: segue
+        // il valore ovunque venga cambiato, invece di inseguire una stringa.
+        const maxApplicabile = Math.max(widerRadiusKm(true), widerRadiusKm(false));
+        expect(maxApplicabile).toBe(20);
         // Fattore 5 fra il massimo applicabile e la soglia di sanita'.
-        expect(100 / 20).toBeGreaterThanOrEqual(5);
+        expect(100 / maxApplicabile).toBeGreaterThanOrEqual(5);
     });
 
     it('il marker del log esiste nel sorgente', () => {

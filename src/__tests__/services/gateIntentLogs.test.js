@@ -175,3 +175,97 @@ describe('Gate INTENT — costo della diagnostica', () => {
         expect(corpo.indexOf('if (scartati <= 0) return;')).toBeLessThan(corpo.indexOf('.map(c =>'));
     });
 });
+
+// ─── Gate INTENT (28/08, verifica sul campo) — il lessico matcha PAROLE ──────
+//
+// Il giro device che ha confermato F65 ha mostrato un residuo nel log per-query:
+// "giardino pubblico" -> FOOD, 1/3 divergenti. Oggi non rompe nulla — il lessico
+// alimenta solo il log — ma e' lo STESSO lessico che diventerebbe decisione se
+// promuovessimo la soglia per query. Un difetto che non morde ancora e' comunque
+// un difetto: qui morderebbe il giorno esatto in cui gli si da' potere.
+//
+// L'audit ha trovato 14 falsi positivi da match a sottostringa e 8 forme
+// plurali che cadevano sul default.
+
+describe('deriveKindFromQuery — nessun match a sottostringa', () => {
+    // Quattro parole corte — bar, pub, spa, cala — dirottavano intere famiglie.
+    const FALSI_POSITIVI = [
+        ['chiesa barocca',      'CULTURA', 'bar'],
+        ['palazzo barocco',     'CULTURA', 'bar'],
+        ['basilica barocca',    'CULTURA', 'bar'],
+        ['arte barocca',        'CULTURA', 'bar'],
+        ['barbiere',            'CULTURA', 'bar'],
+        ['giardino pubblico',   'NATURA',  'pub'],
+        ['giardini pubblici',   'NATURA',  'pub'],
+        ['biblioteca pubblica', 'CULTURA', 'pub'],
+        ['trasporto pubblico',  'CULTURA', 'pub'],
+        ['spazio espositivo',   'CULTURA', 'spa'],
+        ['scala monumentale',   'CULTURA', 'cala'],
+        ['calata del porto',    'CULTURA', 'cala'],
+    ];
+
+    it.each(FALSI_POSITIVI)('"%s" -> %s (non aggancia "%s")', (query, atteso) => {
+        expect(deriveKindFromQuery(query)).toBe(atteso);
+    });
+
+    it('il caso osservato sul campo: "giardino pubblico" e\' NATURA, non FOOD', () => {
+        // Era il residuo 1/3 divergenti nel log del giro di verifica F65.
+        expect(deriveKindFromQuery('giardino pubblico')).toBe('NATURA');
+    });
+
+    it('le parole vere continuano a matchare: il fix non ha spento il lessico', () => {
+        expect(deriveKindFromQuery('bar storico')).toBe('FOOD');
+        expect(deriveKindFromQuery('pub irlandese')).toBe('FOOD');
+        expect(deriveKindFromQuery('spa e benessere')).toBe('RELAX');
+        expect(deriveKindFromQuery('cala nascosta')).toBe('NATURA');
+    });
+
+    it('funziona con gli accenti, dove \\b di JS non basterebbe', () => {
+        expect(deriveKindFromQuery('caffè storico')).toBe('FOOD');
+        expect(deriveKindFromQuery('un caffè')).toBe('FOOD');
+    });
+});
+
+describe('deriveKindFromQuery — i plurali non cadono piu\' sul default', () => {
+    const PLURALI = [
+        ['parchi',      'NATURA'],
+        ['ville',       'CULTURA'],   // "ville" da solo e' ambiguo: ville comunali -> NATURA
+        ['giardini',    'NATURA'],
+        ['ristoranti',  'FOOD'],
+        ['osterie',     'FOOD'],
+        ['trattorie',   'FOOD'],
+        ['chiese',      'CULTURA'],
+        ['musei',       'CULTURA'],
+        ['castelli',    'CULTURA'],
+        ['spiagge',     'NATURA'],
+    ];
+    it.each(PLURALI)('"%s" -> %s', (query, atteso) => {
+        expect(deriveKindFromQuery(query)).toBe(atteso);
+    });
+
+    it('il caso che ha aperto il gate: "parchi e ville" -> NATURA', () => {
+        // Cadeva sul default CULTURA perche' il lessico aveva `parco` e non
+        // `parchi`. Con la soglia per query avrebbe dato la soglia sbagliata
+        // proprio alla richiesta che il gate esiste per proteggere.
+        expect(deriveKindFromQuery('parchi e ville')).toBe('NATURA');
+    });
+
+    it('nessuna radice tronca sopravvive nel lessico', () => {
+        // Con il confine di parola una radice come `spiagg` non matcherebbe piu'
+        // nulla: sarebbe una voce morta che finge di coprire.
+        for (const { parole } of QUERY_KIND_LEXICON) {
+            for (const w of parole) {
+                expect(deriveKindFromQuery(w), `"${w}" non matcha se stessa`).not.toBe(undefined);
+                expect(w).not.toMatch(/^(spiagg|archeolog)$/);
+            }
+        }
+    });
+
+    it('ogni voce del lessico matcha se stessa', () => {
+        for (const { kind, parole } of QUERY_KIND_LEXICON) {
+            for (const w of parole) {
+                expect(deriveKindFromQuery(w), `"${w}" (${kind})`).toBe(kind);
+            }
+        }
+    });
+});

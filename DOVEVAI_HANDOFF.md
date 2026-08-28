@@ -5090,13 +5090,50 @@ nessuna regola che lo dichiari. Imparentato con la **#39**: li' il motore ordina
 per popolarita' mentre il prodotto promette il contrario; qui la personalizzazione
 si auto-conferma mentre il prodotto promette di ascoltarti.
 
-### Verifica sul campo, al prossimo giro
+### Verifica sul campo — ✅ FATTA, F65 CONFERMATO
 
-`[Gate B] intent tradotto` su **"parchi e ville" a Milano deve dare
-`categoria=natura`**. E' il caso osservato e chiude il cerchio.
-Se desse ancora `cibo` con `source=ai`, resta una sorgente non trovata e la
-diagnosi va riaperta — ma con l'input pulito il traduttore risponde `natura` in
-modo stabile.
+`[Gate B] intent tradotto` su **"parchi e ville" a Milano → `categoria=natura`,
+`source=ai`**. Il tour esce con **Parco Sempione, Orto Botanico di Brera, BAM,
+Parco di Villa Finzi**. Il caso osservato e' risolto.
+
+**F55 verificato di striscio nello stesso giro**: le description dei quattro
+parchi sono **specifiche per il posto e non intercambiabili** — *"il fruscio
+delle foglie"*, *"una dolce fragranza di erbe aromatiche"* — e nessun contenuto
+inventato. Il debito device su F55 si puo' considerare **saldato per il caso
+natura**; resta il **caso religioso**, non ancora visto.
+
+**F59 confermato, registrato e NON aperto**: i badge mostrano i `types` Google
+**grezzi in inglese** (`park`, `monument`) invece della categoria italiana.
+
+### Il residuo nel lessico, chiuso subito
+
+Lo stesso giro ha mostrato **1/3 divergenti** nel log per-query: `"giardino
+pubblico" → FOOD`. Causa: **`pub` dentro "pubblico"** — match a sottostringa
+invece che a confine di parola, la **#11 applicata al lessico**.
+
+L'audit dell'intero lessico ha trovato **14 falsi positivi** da quattro parole
+corte, e il peggiore non era `pub`:
+
+| parola | casi | esempio |
+|---|---:|---|
+| **`bar`** | 5 | **`chiesa barocca` → FOOD** |
+| `pub` | 4 | `biblioteca pubblica` → FOOD |
+| `spa` | 2 | `spazio espositivo` → RELAX |
+| `cala` | 2 | `scala monumentale` → NATURA |
+
+E **8 forme plurali** cadevano sul default perche' il lessico aveva solo i
+singolari: `ristoranti`, `osterie`, `trattorie`, `parchi`, `ville`, `giardini`.
+**Incluso `"parchi e ville"` → CULTURA, il caso stesso che ha aperto il gate.**
+
+Corretto con confine di parola esplicito (`[^a-zà-ù]`, non `\b`, che in JS non
+regge gli accenti: `caffè` finisce su `è`) e forme esplicite al posto delle
+radici tronche — con il confine, `spiagg` non matcherebbe piu' nulla e sarebbe
+una voce morta che finge di coprire.
+
+**Il lessico resta DIAGNOSTICO**: non entra in `customKind`, alimenta solo il
+log. Ma e' lo stesso che diventerebbe decisione con la soglia per query — **un
+difetto che non morde ancora morderebbe il giorno esatto in cui gli si da'
+potere.**
 
 ### Costi API della diagnosi
 

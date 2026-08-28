@@ -840,11 +840,42 @@ function sortByProximity(stops) {
 // (rating 4.0). Il modo di sbagliare e' verso l'inclusione, mai verso la
 // cancellazione silenziosa di un POI che l'utente ha chiesto.
 export const QUERY_KIND_LEXICON = [
-    { kind: 'FOOD',    parole: ['trattoria', 'ristorante', 'osteria', 'pizzeria', 'pizza', 'caffe', 'caffè', 'bar', 'gelateria', 'gelato', 'pasticceria', 'enoteca', 'birreria', 'street food', 'cucina', 'friggitoria', 'panineria', 'cocktail', 'pub'] },
-    { kind: 'NATURA',  parole: ['parco', 'villa comunale', 'giardino', 'orto botanico', 'riserva', 'oasi', 'bosco', 'lago', 'sentiero', 'spiagg', 'lido', 'cala', 'scogliera', 'grotta'] },
-    { kind: 'RELAX',   parole: ['terme', 'spa', 'benessere', 'belvedere', 'panorama', 'terrazza panoramica', 'lungomare', 'lungofiume'] },
-    { kind: 'CULTURA', parole: ['chiesa', 'basilica', 'duomo', 'cattedrale', 'abbazia', 'santuario', 'battistero', 'museo', 'pinacoteca', 'galleria', 'palazzo', 'castello', 'monumento', 'teatro', 'biblioteca', 'archeolog', 'centro storico', 'piazza', 'borgo', 'mercato', 'artigianato', 'boutique', 'negozi'] },
+    // ─── Match a CONFINE DI PAROLA, mai a sottostringa ───────────────────────
+    // La prima stesura usava `q.includes(w)` su queste stesse voci, e produceva
+    // 14 falsi positivi misurati. I peggiori:
+    //     "chiesa barocca"      -> FOOD    (`bar` dentro "barocca")
+    //     "giardino pubblico"   -> FOOD    (`pub` dentro "pubblico")
+    //     "biblioteca pubblica" -> FOOD    (idem)
+    //     "scala monumentale"   -> NATURA  (`cala` dentro "scala")
+    //     "spazio espositivo"   -> RELAX   (`spa` dentro "spazio")
+    // Quattro parole corte — bar, pub, spa, cala — bastavano a dirottare
+    // un'intera famiglia. E' la #11 applicata al lessico: un match che trova
+    // piu' di quanto cerca e' un fallimento dello strumento letto come segnale.
+    //
+    // ─── FORME ESPLICITE, singolare E plurale ────────────────────────────────
+    // Le radici tronche (`spiagg`, `archeolog`) sono state sciolte nelle forme
+    // vere: con il confine di parola una radice non matcha piu' nulla, e
+    // lasciarla sarebbe stata una voce morta che finge di coprire.
+    // I plurali mancavano del tutto e cadevano sul default: "ristoranti",
+    // "osterie", "trattorie", "parchi", "ville", "giardini" — incluso
+    // **"parchi e ville"**, il caso stesso che ha aperto questo gate.
+    { kind: 'FOOD',    parole: ['trattoria', 'trattorie', 'ristorante', 'ristoranti', 'osteria', 'osterie', 'pizzeria', 'pizzerie', 'pizza', 'caffe', 'caffè', 'caffetteria', 'bar', 'gelateria', 'gelaterie', 'gelato', 'pasticceria', 'pasticcerie', 'enoteca', 'enoteche', 'birreria', 'birrerie', 'street food', 'cucina', 'friggitoria', 'paninoteca', 'cocktail', 'pub'] },
+    { kind: 'NATURA',  parole: ['parco', 'parchi', 'villa comunale', 'ville comunali', 'giardino', 'giardini', 'orto botanico', 'orti botanici', 'riserva', 'riserve', 'oasi', 'bosco', 'boschi', 'lago', 'laghi', 'sentiero', 'sentieri', 'spiaggia', 'spiagge', 'lido', 'lidi', 'cala', 'cale', 'scogliera', 'scogliere', 'grotta', 'grotte'] },
+    { kind: 'RELAX',   parole: ['terme', 'termale', 'spa', 'benessere', 'belvedere', 'panorama', 'panoramico', 'panoramica', 'terrazza panoramica', 'lungomare', 'lungofiume'] },
+    { kind: 'CULTURA', parole: ['chiesa', 'chiese', 'basilica', 'basiliche', 'duomo', 'cattedrale', 'cattedrali', 'abbazia', 'abbazie', 'santuario', 'santuari', 'battistero', 'museo', 'musei', 'pinacoteca', 'pinacoteche', 'galleria', 'gallerie', 'palazzo', 'palazzi', 'castello', 'castelli', 'monumento', 'monumenti', 'teatro', 'teatri', 'biblioteca', 'biblioteche', 'archeologico', 'archeologica', 'archeologia', 'centro storico', 'piazza', 'piazze', 'borgo', 'borghi', 'mercato', 'mercati', 'artigianato', 'boutique', 'negozi'] },
 ];
+
+// Escape per usare le voci del lessico dentro una RegExp: alcune contengono
+// spazi ("orto botanico") e in futuro potrebbero contenere altro.
+const escapeRegExp = (w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Una voce matcha solo se e' una PAROLA INTERA della query.
+// `\b` non funziona con le lettere accentate in JS (`caffè` finisce su `è`, che
+// per la regex non e' un carattere di parola), quindi il confine e' esplicito:
+// inizio stringa o non-lettera, prima e dopo.
+const NON_LETTERA = '[^a-zà-ù]';
+const matchaParolaIntera = (q, w) =>
+    new RegExp(`(^|${NON_LETTERA})${escapeRegExp(w)}($|${NON_LETTERA})`, 'i').test(q);
 
 // Kind lessicale di UNA query. Match su sottostringa in minuscolo: le query sono
 // 2-4 parole scelte dal traduttore, non testo libero, quindi il rischio di falso
@@ -854,7 +885,7 @@ export const deriveKindFromQuery = (query) => {
     const q = String(query || '').toLowerCase();
     if (!q.trim()) return 'CULTURA';
     for (const { kind, parole } of QUERY_KIND_LEXICON) {
-        if (parole.some(w => q.includes(w))) return kind;
+        if (parole.some(w => matchaParolaIntera(q, w))) return kind;
     }
     return 'CULTURA';
 };

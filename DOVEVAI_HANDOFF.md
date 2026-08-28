@@ -5191,6 +5191,59 @@ non l'avrebbero mai mostrata, perche' il difetto stava in cosa arrivava al
 modello, non in come il modello rispondeva.
 
 
+## GATE INTENT — CHIUSO (28/08). Cinque diff, tutti in produzione.
+
+| # | commit | cosa |
+|---|---|---|
+| 1 | `d45f54a` | **quattro righe di log** — misurare prima di decidere |
+| 2 | `b6daeea` | **taglio di sanita' geografica** (100 km) — pulisce il segnale |
+| 3 | `37d2100` | **raggi riconciliati** — bias = `R_wider` |
+| 4 | `c319dfd` | **F65** — il traduttore riceve la frase, non la frase + il profilo |
+| 5 | `b89ed02` | **lessico a parole intere** — non a sottostringhe |
+
+Suite **582 test** (era 493 a inizio gate), lint 0 errori, tutti deployati e
+verificati sul **contenuto** del bundle servito, non sull'hash.
+
+### La strada abbandonata dai dati
+
+**Raggio dal viewport** — sembrava il fix col miglior rapporto valore/costo e
+**non lo era**. Misurato con l'API reale: Venezia **19.28 km** (il viewport e'
+del COMUNE, non del centro storico: Mestre passerebbe col doppio del margine),
+Ippocampo **0.66 km** (viewport della frazione: zero candidati garantiti),
+`bounds != viewport` con **Milano a 83 km** sul campo sbagliato. Peggiorava in
+**4 localita' su 6**, e la premessa "dato gia' pagato" era falsa — il campo
+affidabile e' `bounds`, che `findplacefromtext` non restituisce.
+
+**Cio' che resta vale piu' del fix mancato**: il viewport misura l'estensione
+**amministrativa**, il raggio utile misura **dove sta l'offerta**, e sui due casi
+noti vanno in **direzioni opposte**. Nessun dato geografico sul comune puo' dire
+il raggio giusto — per questo la strada e' il **conteggio**.
+
+### Il lessico, ultimo diff
+
+**14 falsi positivi** da quattro parole corte col match a sottostringa, e il
+peggiore non era quello osservato: **`chiesa barocca` → FOOD**, per `bar` dentro
+"barocca". Piu' `pub` in "pubblico" (4 casi), `spa` in "spazio", `cala` in
+"scala".
+
+**8 forme plurali** cadevano sul default perche' il lessico aveva solo i
+singolari — **incluso `"parchi e ville"`, il caso che ha aperto il gate**.
+
+Due trappole del passaggio a match-per-parola, in **#41**: `\b` non regge gli
+accenti in JS (`\bcaffè\b` fallisce), e una radice troncata come `spiagg`
+diventa una **voce morta che finge di coprire**.
+
+### Cosa e' cambiato nel metodo
+
+Il gate si e' chiuso perche' a un certo punto abbiamo smesso di ragionare sul
+codice e **abbiamo chiamato le API vere**: Places per i viewport e i candidati,
+OpenAI per il traduttore con l'input pulito. **Le fixture non avrebbero mai
+mostrato F65**, perche' il difetto stava in *cosa arrivava* al modello, non in
+come rispondeva. Costo totale: 20 chiamate Places/Geocoding + 9 gpt-4o-mini.
+
+---
+
+
 ## PROSSIMA SESSIONE — la coda, in quest'ordine
 
 Una riga di contesto per voce, così si riapre senza rileggere tremila righe.
@@ -5204,167 +5257,102 @@ Resta la domanda aperta sul budget di fase A del gate — **da non toccare per
 riflesso**, la nota sta nella sessione 27/08.
 
 
-**a) Giro device F55 / F56 / DIFF 4** — POI religioso **a Milano**. Tre domande
-distinte: (1) compaiono ancora **contenuti inventati** su quel POI; (2) le
-description sono **intercambiabili** fra POI diversi; (3) i log
-`[Narratore] VIOLAZIONE` **compaiono in console**. Attenzione alla terza: la
-DIFF 4 è solo-log, e un giro che non trova violazioni **non prova che funzioni**
-— potrebbe voler dire che i guard non girano. Se non compare nulla, provocarne
-una prima di concludere.
+### DEBITO DEVICE — aggiornato al 28/08
 
-**b) Verifica `spatial_ref_sys` count-prima / count-dopo** — è l'unica prova che
-manca. `SELECT count(*)`, poi `DELETE` **di una riga vera** via REST con la
-chiave anon, poi `count(*)` di nuovo. Se il numero cala, la scrivibilità è
-dimostrata e il ticket va inviato; se non cala, il 204 era vuoto e va rifatta
-tutta la diagnosi. Riga da usare: uno SRID **non** fra 4326/3857/4258/32633, e
-`INSERT` di ripristino pronto **prima** di premere invio.
+| voce | stato |
+|---|---|
+| **F55** — description intercambiabili | ✅ **SALDATO per il caso NATURA** (i quattro parchi di Milano: *"il fruscio delle foglie"*, *"una dolce fragranza di erbe aromatiche"*, specifiche e non intercambiabili). ❌ **APERTO per il caso RELIGIOSO**, mai visto |
+| **F56** — non affermare cosa accade *adesso* | aperto |
+| **DIFF 4** — che i log `[Narratore] VIOLAZIONE` compaiano | aperto. Ora c'e' anche `[Narratore] check avviato`: se **non compare**, il guard non gira su quel path |
+| **DIFF 1a** — quattro superfici | badge minuti **TourDetails**, durata card **"Per Te"**, `duration_minutes` **notifica**, timeline **AiItinerary** senza badge orario |
+| **DIFF 6** — bottone **Profilo** a piena larghezza in TourDetails | aperto |
 
-**c) F26 DIFF 6** — ✅ **CHIUSO** il 27/08, commit `102605e`. Con questo
-**F26 è chiuso per intero: sei diff.** Vedi la sessione 27/08.
-Nota su come è andata rispetto al perimetro: il punto 4 prevedeva di rimuovere
-entrambe le violazioni di `no-in-arrivo-toast`; la decisione finale è stata
-**rimuovere TourDetails ed esentare GuidePlaceholder**, perché "Coming Soon"
-dichiara di non poter promettere invece di promettere. Ed è emerso che rimuovere
-il toast **non bastava**: dietro c'era la chat finta vera e propria (F60), che
-il toast si limitava a etichettare onestamente.
-Perimetro storico, per riferimento:
-1. Togliere i **tre `skip: true`** (`no-unsplash-in-content`,
-   `no-fake-reviewer-names`, `no-in-arrivo-toast`).
-2. `no-unsplash-in-content`: allowlist **da 2 voci a 3**, aggiungendo
-   `DashboardUser.jsx` per nome e motivo. Le tre eccezioni finali sono
-   `Landing.jsx:520` (hero), `DashboardUser:554`/`:587` (texture `opacity-10`),
-   `DashboardGuide.jsx` (6, spento dietro `V1LockedGuard`). **Residuo misurato
-   ad allowlist svuotata: 9.**
-3. `TourDetails:973` — **già fatto nel CLEANUP**, non rifarlo.
-4. **DA DECIDERE**: `no-in-arrivo-toast` ha 2 violazioni, `GuidePlaceholder:30`
-   ("Coming Soon") e `TourDetails:818` (toast chat-guida). Vanno **rimosse**,
-   non esentate — ma `gatePulizia.test.js:205` **protegge attivamente**
-   l'irraggiungibilità di `GuidePlaceholder`, quindi cancellare la pagina
-   significa toccare anche quel test. Se il punto 4 rimuove il toast di
-   TourDetails, **allora serve un giro device** e va dichiarato.
+---
 
-**Metodo sonda obbligatorio.** Dopo la pulizia `no-fake-reviewer-names` e
-`no-in-arrivo-toast` valgono **0**: uno zero non prova niente. Vanno provocate
-violazioni (`'Sofia'`, `'Coming soon'` in un file vivo), visto il rosso, tolte.
-Per `no-unsplash-in-content` il rosso è già misurato (9 ad allowlist svuotata),
-e il precedente è codificato in `gateF26diff5.test.js:52`.
+## PROSSIMA SESSIONE — la coda, in quest'ordine
 
-**d) GATE CLEANUP** — ✅ **CHIUSO** il 26/08, commit `a250a95`. Erano cinque
-morti, non quattro, e 17 allowlist scadute, non tre. Vedi la sessione 26/08.
+**a) DIFF 1b — il calcolo degli orari.** Poggia su terreno **gia' misurato**:
+`computeStopTimings` gira dentro la stessa espressione di `sortByProximity`,
+quindi gli orari nascerebbero nell'**ordine definitivo** e il difetto di F57 non
+puo' ripresentarsi. Serve il guard: nessun orario nel passato raggiunge la UI, e
+test con l'ora **iniettata**, mai `new Date()` reale.
+**Include A1**: `AiItinerary` non legge `stayMinutes` — non era fra i sei
+consumatori del 1a e non mostrava durate nemmeno prima. Stessa timeline, stesso
+diff: aprirla due volte e' sprecato. E il badge orario, oggi non montato perche'
+`time` e' null, si riaccende qui.
 
-**d-bis) GATE PREFERITI** — nuovo, aperto dal DIFF 6. Tre difetti già misurati,
-da non ri-scoprire: due motori divergenti (`Explore.jsx:138` su localStorage vs
+**a-bis) DIFF 2 — l'ordinamento (F52).** *Tour generato alle 16:30 a Milano:
+osteria, poi castello, poi basilica.* Va **dopo il 1b**, che potrebbe chiuderlo
+da solo: se gli orari vengono calcolati nel codice dopo `sortByProximity`, la
+contraddizione sparisce. Se resta aperto, il nodo e' che **due autorita'
+ordinano** — il modello "in narrativa" e `sortByProximity` per vicinanza — e va
+scelta una, che e' una decisione di prodotto. Qui dentro anche
+`Math.hypot` → haversine (`sortByProximity` misura su gradi: a 45° un grado di
+longitudine vale ~0.7 di uno di latitudine, quindi la metrica e' distorta).
+
+**b) Raggio adattivo (F47)** — *POI proposti a **Mestre** per un tour di
+Venezia; e a Ippocampo zero candidati.* **Unica causa aperta su Ippocampo**. I POI ora vengono
+*chiesti* (4 invece di 1) ma stanno a **12.6-14.1 km** e il filtro a 12 li
+scarta. **Vincolo doppio**: Venezia richiede l'**opposto** — fermarsi presto
+quando i candidati abbondano. `allowWiden` esiste ma si ferma a una soglia fissa.
+**Da misurare coi log prima di scriverlo**: cambia quali POI entrano nei tour
+ovunque.
+
+**b-bis) Verifica `spatial_ref_sys` count-prima / count-dopo** — l'unica prova
+che manca all'indagine aperta dal 25/08. `SELECT count(*)`, poi `DELETE` di una
+riga vera via REST con la chiave anon, poi `count(*)` di nuovo. Se cala, la
+scrivibilita' e' dimostrata e il ticket (in bozza, mai inviato) va spedito; se
+non cala, il 204 era vuoto e la diagnosi va rifatta. Riga da usare: uno SRID
+**non** fra 4326/3857/4258/32633, con l'`INSERT` di ripristino pronto **prima**
+di premere invio.
+
+**c) GATE PREFERITI** — aperto dal DIFF 6, con **tre difetti gia' misurati** da
+non ri-scoprire: due motori divergenti (`Explore.jsx:138` su localStorage vs
 `dataService.toggleFavorite` su Supabase — regola locked #8), `getFavorites`
-inesistente (si scrive e non si rilegge), e `toggleFavorite` che ritorna
-`{success:true}` anche dal `catch`. Attenzione al vincolo che ha ucciso il
-cuore: `favorites.tour_id` è `UUID REFERENCES tours(id)`, ma i tour AI hanno id
-`ai-quiz-…`. Finché non è chiuso, **nessun bottone preferiti** in UI.
+**inesistente** (si scrive e non si rilegge), e `toggleFavorite` che ritorna
+`{success:true}` **anche dal `catch`**. Attenzione al vincolo che ha ucciso il
+cuore: `favorites.tour_id` e' `UUID REFERENCES tours(id)`, ma i tour AI hanno id
+`ai-quiz-…`. Finche' non e' chiuso, **nessun bottone preferiti in UI**.
 
-**e) GATE RAGGIO** — APERTO, diagnosi FASE 0 fatta il 27/08. I tre finding
-hanno **tre cause diverse** e sono tre diff, non un gate unico.
+**d) GATE CITTA'** — `user_city` sopravvive **oltre il TTL** e viene letto come
+scelta manuale: la citta' vecchia vince su quella nuova.
 
-- **DIFF 1a** (durata inventata, F64) — ✅ **CHIUSO** 27/08, `f0d122b`.
-- **DIFF 1b** (F57, orari impossibili) — **PROSSIMO, sbloccato.** Il campo
-  `time` non e' piu' chiesto al modello; va calcolato nel codice **dopo**
-  `sortByProximity`, da `stayMinutes` + `travelMinutesFromPrev` che sono gia'
-  li' nell'ordine definitivo. Serve il guard: nessun orario nel passato
-  raggiunge la UI. Test con l'ora **iniettata**, mai `new Date()` reale.
-  Attenzione: oggi `AiItinerary:626` non monta il badge quando `time` e' null —
-  il 1b lo riaccende.
-- **DIFF 2** (F52, ordinamento) — dopo il 1b, che potrebbe chiuderlo da solo.
-  Se resta aperto, il nodo e' che **due autorita' ordinano**: il modello "in
-  narrativa" e `sortByProximity` per vicinanza. Va scelta una, ed e' una
-  decisione di prodotto. Qui dentro anche `Math.hypot` → haversine
-  (`sortByProximity:767` misura su gradi: a 45° un grado di longitudine vale
-  ~0.7 di uno di latitudine, quindi la metrica e' distorta).
-- **DIFF 3** (F47, raggio) — indipendente, parallelizzabile. **Il filtro esiste
-  e funziona** (`applyRadiusFilter`, prima e dopo la scelta): e' la **soglia**
-  a essere sbagliata. Costante binaria 5/10 km scollegata dall'estensione reale
-  del comune — misurato: il centro storico di Venezia e' largo **1.61 km**, la
-  soglia e' **10 km**, e Mestre sta a **~8.2 km**. Passa senza nemmeno il
-  widen. Secondo difetto indipendente: `radiusInfo` nel prompt e'
-  **ineseguibile**, perche' `candidatesLite` non passa al modello nessuna
-  coordinata. Un'istruzione che non puo' essere eseguita e' peggio di una
-  assente: sembra una protezione.
+**e) AUDIT SCHEMA → PERSISTENZA** — i tour AI non vengono salvati. **Sblocca
+anche F53** (Esplora vuoto). Il piu' grosso: cambia il contratto dati, quindi va
+dopo i piccoli, non prima — renderebbe illeggibili i giri device degli altri.
 
-**GATE INTENT (A4)** — figlio del DIFF 3, aperto il 28/08.
-- **D3** (quattro righe di log) — ✅ **CHIUSO** 28/08, `d45f54a`. Nessuna
-  decisione presa: serve un giro device per **leggere** le righe.
-- **Taglio di sanita' geografica** — ✅ **CHIUSO** 28/08, `b6daeea`. Andava per
-  primo perche' **pulisce il segnale di tutte le altre misure**: finche' omonimi
-  a 513 km entravano nel denominatore, ogni numero era sporco.
-- **Raggio riconciliato** — ✅ **CHIUSO** 28/08, `37d2100`. Bias = `R_wider`.
-  Chiude **una causa su due** di Ippocampo: i POI ora vengono chiesti, ma stanno
-  a 12.6-14.1 km e `applyRadiusFilter` (12) li scarta comunque.
-- **F65, il profilo dentro la frase utente** — ✅ **CHIUSO** 28/08, `c319dfd`.
-- **Raggio ADATTIVO guidato dal conteggio** — la causa che resta aperta su
-  Ippocampo, e ora e' l'unica. `allowWiden` esiste ma si ferma a una soglia
-  fissa; l'alternativa e' allargare finche' non si raggiungono N candidati, con
-  un cap di sanita'. Ippocampo si risolverebbe da se' (allarga fino all'offerta
-  di Manfredonia); Venezia richiede il vincolo opposto — **fermarsi presto
-  quando i candidati abbondano**. Cambia quali POI entrano nei tour ovunque:
-  **va misurato coi log prima di scriverlo**, non dopo.
-- **~~Raggio dal viewport~~** — ❌ **SEPPELLITO DAI DATI** il 28/08, non si apre.
-  Misurato con l'API reale: Venezia **19.28 km** (il viewport e' del COMUNE, non
-  del centro storico → Mestre passerebbe col doppio del margine), Ippocampo
-  **0.66 km** (viewport della frazione → zero candidati garantiti), e
-  `bounds != viewport` con Milano a **83 km** sul campo sbagliato. Su sei
-  localita' il viewport peggiora in **quattro**. La premessa "dato gia' pagato"
-  era **falsa**: il campo affidabile e' `bounds`, che `findplacefromtext` non
-  restituisce.
-  **La scoperta che resta**: il viewport misura l'estensione **amministrativa**,
-  il raggio utile misura **dove sta l'offerta**, e sui due casi noti le due
-  grandezze vanno in **direzioni opposte**. Nessun dato geografico sul comune
-  puo' dire il raggio giusto — per questo la strada e' il conteggio.
-- **Soglia per query** — **chiude META' difetto, e va saputo prima di aprirla.**
-  Passare `deriveKindFromQuery(q)` invece di `customKind` e' un parametro, non
-  una riarchitettura (ogni query gira gia' in una chiamata separata), e non crea
-  soglie miste nello stesso pool: si applicano dentro ogni chiamata, prima del
-  merge. **Ma `intent.categoria` resta usato nel prompt selettore**
-  (`aiRecommendationService:912`: *"categoria richiesta: X — TUTTE le tappe
-  devono appartenere a questa categoria"*): con `categoria=cibo` sbagliata il
-  selettore riceverebbe comunque l'istruzione di scegliere solo cibo.
-  **Il voto di maggioranza NON e' fattibile**: su tre query un voto e' rumore, e
-  con `["chiesa","trattoria","villa"]` non esiste maggioranza.
-- **Poi si decide, coi numeri**: strada **A** (correggere il prompt: l'unico
-  esempio di `categoria: "misto"` sta dentro la regola INPUT VAGO, quindi il
-  modello impara *misto = utente che non sa cosa vuole* — lezione #27/#29,
-  quarta volta) oppure **B** (kind per query dal lessico, gia' scritto e
-  misurabile in `deriveKindFromQuery`, oggi solo diagnostico).
-  A riduce la frequenza, B annulla l'effetto. **Nessuna delle due tocca il
-  ranking**, che e' il candidato piu' forte: quello sarebbe un terzo diff.
-- Il caso che scioglie tutto sta nella sessione 28/08, scritto in chiaro.
+**f) A2 — il catch muto sulla quota.** `DashboardUser:293` cattura e scrive solo
+in console: *"hai finito le generazioni di oggi"* e *"l'app e' rotta"* producono
+**due skeleton identici**. Il fix non e' la quota, e' togliere il catch muto.
 
-**Fuori da tutti e tre**: `closingTimeTodayHH`. Esiste come capacita'
-(`fetchPlaceOpeningHours`, cache 24h per place_id) ma **zero consumatori nel
-path tour**. Costo per un tour da 4 tappe: **20** chiamate `place/details` a
-freddo se si vuole informare la *scelta* del modello, **4** se si vuole solo
-validare a posteriori. La differenza non e' di costo: a 4 la scelta e' gia'
-fatta, e scartare lascia il tour a 3 tappe. Decisione a parte.
+**g) Soglia per query** — **chiude META' difetto**, e va saputo prima di aprirla:
+`intent.categoria` resta usato nel prompt selettore (`:912`, *"TUTTE le tappe
+devono appartenere a questa categoria"*), quindi con una categoria sbagliata il
+selettore riceverebbe comunque l'istruzione sbagliata. Il lessico e' pronto e
+ora corretto; il **voto di maggioranza NON e' fattibile** (su tre query e'
+rumore, e con `chiesa`/`trattoria`/`villa` una maggioranza non esiste).
 
-**f) GATE CITTÀ** — `user_city` sopravvive **oltre il TTL**: la città vecchia
-vince su quella nuova.
+**h) Bug minori, in un gate unico** — **F37, F39, F45, F46, F51, F54, F57
+residuo, F58, F59**. Uno solo per non pagare nove volte il costo di apertura e
+chiusura.
 
-**g) AUDIT SCHEMA → PERSISTENZA** — il più grosso, e **sblocca anche F53**
-(Esplora vuoto). Da fare dopo i piccoli, non prima: cambia il contratto dati e
-renderebbe illeggibili i giri device degli altri.
+**i) FINDING STRUTTURALI — registrati e NON aperti.** Non sono bug: sono
+tensioni fra il motore e la promessa del prodotto, e nessun test le coglie
+perche' ogni singolo pezzo funziona.
+- **#39 — il ranking premia la popolarita'.** `rating x ln(1+recensioni)`: piu'
+  un posto e' nascosto, meno recensioni ha, e piu' certamente esce dai top-20.
+  Il motore filtra via proprio cio' che *"non e' per tutti, e' per te"* promette.
+- **Il ciclo di retroazione del DNA.** Piu' tour di un tipo generi, piu' il
+  profilo spinge in quella direzione. F65 ne ha tagliato il tratto peggiore (il
+  profilo non riscrive piu' *cosa e' stato chiesto*) ma il ciclo resta sulla
+  scelta dei POI. La domanda e' di prodotto: **quanto un segnale esplicito deve
+  battere una statistica storica?**
 
-**h) Bug minori, in un gate unico** — **F37, F39, F45, F46, F51, F54**. Uno solo
-per non pagare sei volte il costo di apertura e chiusura.
+**j) Regola strutturale `if (url) setX(url)` senza `else`** — misura gia' fatta:
+16 occorrenze, ~14 guardie legittime. Bersaglio vivo reale: **uno**. Una regola
+larga sarebbe **l'88% eccezione**, cioe' la prossima `skip: true`. Se si apre, si
+apre stretta.
 
-**i) Regola strutturale `if (url) setX(url)` senza `else`** — voce a parte, con
-la misura già fatta in FASE 0 del DIFF 6. **Scrivibile**: le voci di `RULES`
-sono per-riga, ma il precedente multi-riga esiste
-(`no-fetch-without-abort-signal`, finestra `idx-1 … idx+8`).
-**Il problema è il segnale, non il meccanismo**: forma una-riga **16
-occorrenze**, di cui ~14 sono guardie di cancellazione legittime (`isMounted`,
-`!cancelled`, `isOpen`, `originalIndex !== -1`). Ristretta a identificatori di
-dato: **2**, di cui una è il commento in `POIDetailDrawer:49` che documenta
-l'istanza già riparata dal DIFF 4. **Bersaglio vivo reale: uno,
-`TourDetails:640`** (`if (data) setNearbyPartners(data)`), e serve un giudizio
-per dire se è un difetto.
-Una regola larga vorrebbe ~14 voci di allowlist su 16 hit: **una regola per
-l'88% eccezione**, cioè la prossima `skip: true`. Se si apre, si apre stretta.
 
 ### Problemi aperti (non in coda, ma vivi)
 

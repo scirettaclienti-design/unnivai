@@ -4893,6 +4893,79 @@ Ed e' stata la **terza ricaduta sulla #34**: il commento che spiegava la forma
 vietata la conteneva, e il test e' diventato rosso su un commento.
 
 
+## Sessione 28/08 (2) — GATE INTENT: taglio di sanita' geografica
+
+Commit **`b6daeea`**. **531 test** (+18), build pulita, lint invariato. Suite
+verde anche senza `.env`. Nessuna superficie cambia.
+
+### Il difetto: il bias di Places non e' un vincolo
+
+`textsearch` riceve `location` + `radius`, ma sono un **bias di rilevanza**, non
+un filtro. E il testo della query contiene il nome della localita'
+(`${query} ${cityName}`): per un borgo il cui nome e' anche un nome commerciale
+comune, la ricerca trova omonimi in tutta Italia — con ottima corrispondenza
+testuale. Device Ippocampo: **185, 279, 513, 532 km**.
+
+**Il rumore non gonfiava solo un conteggio: RUBAVA SLOT.** Un omonimo con 2000
+recensioni a 4.6 passa la soglia FOOD, sale in cima al ranking per qualityScore
+e **occupa un posto di `maxResults`**, cacciando fuori un POI locale vero —
+molto prima che `applyRadiusFilter` lo veda. Ad Ippocampo i quattro omonimi
+possono aver contribuito ai 0 candidati **quanto il raggio**: due meccanismi,
+non uno.
+
+### Cosa e' entrato
+
+`applyGeoSanity` in `placesDiscoveryService`, **dopo** le esclusioni hard e
+**prima** di `applyQualityThreshold` — e' li' che il rumore comincia a fare
+danni. Soglia **100 km**, con margine **legato da un test** a `R_wider` (12 km
+borgo / 20 km citta'): fattore 5, e se un domani il raggio salisse sopra 20 il
+test diventa **rosso** invece che il margine erodersi in silenzio.
+
+**Nessun centro, nessuna decisione**: coordinate non finite → pool intatto e
+nessun log. Vale anche per il singolo candidato. Un predicato che non puo'
+decidere non decide.
+
+Log come categoria a se': `[Places] rumore geografico: N oltre 100 km | piu'
+lontano: "X" D km`. **Mai fuso con `[Qualita]`**, e un test lo asserisce: il
+rumore dentro quel conteggio sarebbe un numero che nasconde invece di uno
+gonfiato — lo stesso difetto girato.
+
+### Due test esistenti riportati al loro intento
+
+`notificheDistanza` usava **Capodimonte** (158 km da Ippocampo) come fixture per
+provare `applyRadiusFilter`. Da oggi lo intercetta la sanita' **prima**:
+comportamento finale identico, ma cambia **chi** scarta e il log che il test
+cercava. Fixture spostate a **50 km** — dove a decidere e' ancora il raggio — piu'
+un test nuovo che **documenta l'interazione** fra i due filtri invece di
+lasciarla implicita.
+
+E' la **#38 con esito opposto**: li' il test proteggeva un difetto e andava
+corretto, qui protegge una cosa legittima e va riportato al suo intento, non
+silenziato. Nota che vale oltre il test: quella fixture e' un **caso reale
+documentato** — Capodimonte proposto in una notifica per Ippocampo.
+
+### Perche' questo diff veniva per primo
+
+**I numeri del prossimo giro dati sono leggibili.** Il denominatore di
+`[Qualita]` non e' piu' gonfiato dagli omonimi, quindi il conteggio degli scarti
+per soglia dice finalmente qualcosa — proprio nel momento in cui serve per
+decidere fra i due meccanismi candidati di A4.
+
+### Marker
+
+| marker | prima | dopo |
+|---|---:|---:|
+| `[Places] rumore geografico` | 0 | **1** sorgente, **1** bundle |
+| chunk JS | 77 | **77** |
+| CSS | 130788 | **130788**, identico |
+| suite | 513 | **531** |
+
+Sul bundle: tutti gli hash cambiano, ma e' la **cascata**, non la #35 — CSS
+byte-identico e il confronto sul **contenuto** dei chunk-foglia mostra che
+l'unica differenza e' il riferimento all'entry. Il solo chunk realmente diverso
+e' `placesDiscoveryService` (14742 → 15515 byte).
+
+
 ## PROSSIMA SESSIONE — la coda, in quest'ordine
 
 Una riga di contesto per voce, così si riapre senza rileggere tremila righe.
@@ -4992,6 +5065,29 @@ hanno **tre cause diverse** e sono tre diff, non un gate unico.
 **GATE INTENT (A4)** — figlio del DIFF 3, aperto il 28/08.
 - **D3** (quattro righe di log) — ✅ **CHIUSO** 28/08, `d45f54a`. Nessuna
   decisione presa: serve un giro device per **leggere** le righe.
+- **Taglio di sanita' geografica** — ✅ **CHIUSO** 28/08, `b6daeea`. Andava per
+  primo perche' **pulisce il segnale di tutte le altre misure**: finche' omonimi
+  a 513 km entravano nel denominatore, ogni numero era sporco.
+- **Raggio dal viewport** — **PROSSIMO, ed e' il miglior rapporto valore/costo
+  del gate.** `cityCenterService:100` chiede gia' `fields: 'name,geometry,types'`
+  e `geometry` include **anche `viewport`**, i bounds reali del comune: il codice
+  legge solo `location.lat/lng` (`:131-132`, `:170-171`) e **butta il viewport**.
+  Il commento a `:13` lo dichiara pure. **Zero chiamate in piu', dato gia'
+  pagato.** Risolve i due difetti opposti con una mossa sola — Venezia (10 km su
+  un centro storico di 1.61 km → Mestre passa) e Ippocampo (12 km mentre
+  l'offerta sta a 12-22 km → zero risultati) — e rende coerenti i **tre raggi**
+  che oggi convivono scollegati: textsearch 3 km (borgo) / 5 km, `R` 5/10,
+  `R_wider` 12/20.
+- **Soglia per query** — **chiude META' difetto, e va saputo prima di aprirla.**
+  Passare `deriveKindFromQuery(q)` invece di `customKind` e' un parametro, non
+  una riarchitettura (ogni query gira gia' in una chiamata separata), e non crea
+  soglie miste nello stesso pool: si applicano dentro ogni chiamata, prima del
+  merge. **Ma `intent.categoria` resta usato nel prompt selettore**
+  (`aiRecommendationService:912`: *"categoria richiesta: X — TUTTE le tappe
+  devono appartenere a questa categoria"*): con `categoria=cibo` sbagliata il
+  selettore riceverebbe comunque l'istruzione di scegliere solo cibo.
+  **Il voto di maggioranza NON e' fattibile**: su tre query un voto e' rumore, e
+  con `["chiesa","trattoria","villa"]` non esiste maggioranza.
 - **Poi si decide, coi numeri**: strada **A** (correggere il prompt: l'unico
   esempio di `categoria: "misto"` sta dentro la regola INPUT VAGO, quindi il
   modello impara *misto = utente che non sa cosa vuole* — lezione #27/#29,

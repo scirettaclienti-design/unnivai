@@ -4462,6 +4462,37 @@ ragione — ed e' il tipo di difetto che nessun test coglie, perche' ogni singol
 pezzo funziona correttamente.
 
 
+### LEZIONE #40 — una stringa iniettata in un campo che dichiara di contenere l'input dell'utente e' una bugia detta al modello
+
+Il prompt del traduttore d'intenti ha un campo esplicito:
+
+```
+Frase dell'utente: "..."
+```
+
+Dentro ci finiva `userPrompt + "[Profilo utente: … Evita se possibile: natura …]"`.
+Il campo **dichiara** di contenere cio' che l'utente ha scritto. Non lo
+conteneva.
+
+**Il modello ha obbedito, ed e' questo che rende il difetto insidioso**: chiesta
+una lista di parchi e ricevuta l'istruzione di evitare la natura, ha mediato — e
+il risultato si presentava come *un errore del modello*. Per due giri abbiamo
+cercato la causa nel prompt e negli esempi (ipotesi tutte ragionevoli, tutte
+sbagliate). Il prompt era corretto. L'input era falso.
+
+**Come si trova**: non con le fixture, che testano cio' che il codice fa con
+l'input che gli diamo noi. Serve **estrarre il prompt reale e chiamare il modello
+con l'input pulito**. Se risponde bene, il difetto e' a monte — in cosa gli
+arriva, non in come ragiona. Costo: nove chiamate a gpt-4o-mini.
+
+E' la **#28** (un dato falso puo' vivere dentro una regola di sicurezza)
+applicata all'**input** invece che alle istruzioni. La forma generale: *ogni campo
+di un prompt che dichiara la provenienza di un dato e' un'affermazione, e va
+verificata come tale*. `Frase dell'utente`, `candidati verificati su Google`,
+`orario attuale`: se il contenuto non corrisponde all'etichetta, il modello non
+puo' accorgersene e noi daremo la colpa a lui.
+
+
 ### Marker
 
 | marker | prima | dopo |
@@ -4966,6 +4997,115 @@ l'unica differenza e' il riferimento all'entry. Il solo chunk realmente diverso
 e' `placesDiscoveryService` (14742 → 15515 byte).
 
 
+## Sessione 28/08 (3) — GATE INTENT: raggi riconciliati + F65
+
+Due commit. **554 test**, build e lint puliti, entrambi in produzione.
+
+### `37d2100` — il bias della ricerca segue il raggio massimo del filtro
+
+Tre raggi convivevano scollegati: bias textsearch **3 km**, filtro **5**, widen
+**12**. Il primo passo era il piu' stretto — si scartava prima di decidere.
+`location`+`radius` sono un BIAS di rilevanza, non un vincolo: devono coprire il
+raggio massimo APPLICABILE.
+
+Misurato su API reale (query "chiesa antica"):
+
+| | bias 3 km | bias 12 km |
+|---|---:|---:|
+| **Ippocampo** | **1** risultato | **4** (12.6, 13.5, 13.8, 14.1 km) |
+| Manfredonia | 20 | 20, stesse distanze |
+| Venezia | 20 | 20, stesse distanze |
+
+**Il pool cresce solo dove era vuoto.** Dove l'offerta e' densa Google satura a
+20 e li prende gia' tutti vicini, quindi il denominatore di `[Qualita]` non si
+ri-gonfia — che era il rischio da escludere.
+
+**CHIUDE UNA CAUSA SU DUE**: i 4 POI stanno a 12.6-14.1 km, cioe' **fuori da
+`R_wider`=12**, e `applyRadiusFilter` li scarta comunque. Questo diff cambia
+cosa viene **chiesto**, non cosa viene **accettato**. Un test lo asserisce.
+
+`R_wider` da letterale inline a **`widerRadiusKm` esportata**: una fonte sola, e
+un test lega bias e raggio massimo — se qualcuno alza l'uno senza l'altro, rosso.
+
+**Cache**: prefix bumpato a `unnivai_poiv6_bias_`. La chiave conteneva `isSmall`
+ma **non il radius**: senza bump, un client con cache calda avrebbe continuato a
+servire i pool col bias stretto. **Un fix invisibile e' un fix non fatto.**
+
+### `c319dfd` — F65: il traduttore riceve la frase, non la frase piu' il profilo
+
+**Osservato**: "parchi e ville" a Milano → `queries=["trattoria tipica","osteria","bar"]`,
+`categoria=cibo`. E "chiese e musei" dava `cultura` a Milano ma `cibo` a Ippocampo.
+
+**Tre ipotesi smentite.** Estratto il system prompt reale e chiamato il modello
+con l'input **pulito**:
+
+| input | citta' | categoria |
+|---|---|---|
+| `parchi e ville` | Milano | **natura** ✅ |
+| `chiese e musei` | **Ippocampo** | **cultura** ✅ |
+| `chiese e musei` | Milano | storia ✅ |
+
+Non era il nome citta'. Non era un esempio mancante per `natura` — l'esempio
+c'e' ed e' proprio *"un giro nei parchi di Catania"*, e il modello lo usa: le
+queries prodotte sono identiche a quelle dell'esempio. Non era la copia
+dell'INPUT VAGO. **Il traduttore funzionava: gli arrivava un input falso.**
+
+**La causa — `AiItinerary:122`**:
+```js
+const enrichedPrompt = [userPrompt, `[Profilo utente: ${aiProfile}]`]
+```
+Quel terzo argomento arriva a `translateIntentToQueries`, che lo mette nel campo
+`Frase dell'utente: "..."`. Il modello leggeva:
+
+> `Frase dell'utente: "parchi e ville [Profilo utente: … Evita se possibile: natura …]"`
+
+**Gli dicevamo di evitare natura dentro una richiesta di parchi.** Misurato,
+stesso prompt, sola differenza l'iniezione: pulito → `natura`, con profilo →
+`cultura`.
+
+**Errore di categoria**: il profilo serve al **selettore** (quale POI scegliere),
+non al **traduttore** (cosa e' stato chiesto). E il selettore lo riceveva gia' —
+**due volte**, dentro `richiesta utente` e come `profilo implicito`. Ora una
+volta sola. Il profilo continua a influenzare **quale POI**, smette di
+influenzare **cosa si e' chiesto**.
+
+**Cache: nessun bump, ed e' il caso opposto ai raggi.** `intentCacheKey`
+**contiene** il prompt: la chiave cambia da sola e la vecchia decade col TTL. Nei
+raggi serviva perche' la chiave **non** conteneva il radius. Due casi opposti,
+distinguibili solo guardando cosa c'e' **dentro** la chiave — mai per analogia.
+
+### FINDING STRUTTURALE — il ciclo di retroazione del DNA. **Registrato, NON aperto.**
+
+Piu' tour di un tipo generi → il grafo pesa quel tipo → il profilo influenza →
+generi altri tour dello stesso tipo. **Il sistema si convince da solo, e piu'
+l'utente lo usa meno riesce a chiedere qualcosa di diverso.**
+
+F65 ne taglia il tratto piu' dannoso — il profilo non riscrive piu' *cosa e'
+stato chiesto* — ma il ciclo **resta** dove e' legittimo, sulla scelta dei POI.
+
+La domanda aperta, che e' di prodotto: **quanto un segnale esplicito deve battere
+una statistica storica?** Con "non e' per tutti, e' per te", una frase scritta
+adesso dovrebbe pesare piu' della media dei comportamenti passati. Oggi non c'e'
+nessuna regola che lo dichiari. Imparentato con la **#39**: li' il motore ordina
+per popolarita' mentre il prodotto promette il contrario; qui la personalizzazione
+si auto-conferma mentre il prodotto promette di ascoltarti.
+
+### Verifica sul campo, al prossimo giro
+
+`[Gate B] intent tradotto` su **"parchi e ville" a Milano deve dare
+`categoria=natura`**. E' il caso osservato e chiude il cerchio.
+Se desse ancora `cibo` con `source=ai`, resta una sorgente non trovata e la
+diagnosi va riaperta — ma con l'input pulito il traduttore risponde `natura` in
+modo stabile.
+
+### Costi API della diagnosi
+
+10 `textsearch` + 10 Geocoding (raggi/viewport) + 9 `gpt-4o-mini` (F65).
+Trascurabili, ma tracciati: **e' il metodo che ha trovato la causa**. Le fixture
+non l'avrebbero mai mostrata, perche' il difetto stava in cosa arrivava al
+modello, non in come il modello rispondeva.
+
+
 ## PROSSIMA SESSIONE — la coda, in quest'ordine
 
 Una riga di contesto per voce, così si riapre senza rileggere tremila righe.
@@ -5068,16 +5208,29 @@ hanno **tre cause diverse** e sono tre diff, non un gate unico.
 - **Taglio di sanita' geografica** — ✅ **CHIUSO** 28/08, `b6daeea`. Andava per
   primo perche' **pulisce il segnale di tutte le altre misure**: finche' omonimi
   a 513 km entravano nel denominatore, ogni numero era sporco.
-- **Raggio dal viewport** — **PROSSIMO, ed e' il miglior rapporto valore/costo
-  del gate.** `cityCenterService:100` chiede gia' `fields: 'name,geometry,types'`
-  e `geometry` include **anche `viewport`**, i bounds reali del comune: il codice
-  legge solo `location.lat/lng` (`:131-132`, `:170-171`) e **butta il viewport**.
-  Il commento a `:13` lo dichiara pure. **Zero chiamate in piu', dato gia'
-  pagato.** Risolve i due difetti opposti con una mossa sola — Venezia (10 km su
-  un centro storico di 1.61 km → Mestre passa) e Ippocampo (12 km mentre
-  l'offerta sta a 12-22 km → zero risultati) — e rende coerenti i **tre raggi**
-  che oggi convivono scollegati: textsearch 3 km (borgo) / 5 km, `R` 5/10,
-  `R_wider` 12/20.
+- **Raggio riconciliato** — ✅ **CHIUSO** 28/08, `37d2100`. Bias = `R_wider`.
+  Chiude **una causa su due** di Ippocampo: i POI ora vengono chiesti, ma stanno
+  a 12.6-14.1 km e `applyRadiusFilter` (12) li scarta comunque.
+- **F65, il profilo dentro la frase utente** — ✅ **CHIUSO** 28/08, `c319dfd`.
+- **Raggio ADATTIVO guidato dal conteggio** — la causa che resta aperta su
+  Ippocampo, e ora e' l'unica. `allowWiden` esiste ma si ferma a una soglia
+  fissa; l'alternativa e' allargare finche' non si raggiungono N candidati, con
+  un cap di sanita'. Ippocampo si risolverebbe da se' (allarga fino all'offerta
+  di Manfredonia); Venezia richiede il vincolo opposto — **fermarsi presto
+  quando i candidati abbondano**. Cambia quali POI entrano nei tour ovunque:
+  **va misurato coi log prima di scriverlo**, non dopo.
+- **~~Raggio dal viewport~~** — ❌ **SEPPELLITO DAI DATI** il 28/08, non si apre.
+  Misurato con l'API reale: Venezia **19.28 km** (il viewport e' del COMUNE, non
+  del centro storico → Mestre passerebbe col doppio del margine), Ippocampo
+  **0.66 km** (viewport della frazione → zero candidati garantiti), e
+  `bounds != viewport` con Milano a **83 km** sul campo sbagliato. Su sei
+  localita' il viewport peggiora in **quattro**. La premessa "dato gia' pagato"
+  era **falsa**: il campo affidabile e' `bounds`, che `findplacefromtext` non
+  restituisce.
+  **La scoperta che resta**: il viewport misura l'estensione **amministrativa**,
+  il raggio utile misura **dove sta l'offerta**, e sui due casi noti le due
+  grandezze vanno in **direzioni opposte**. Nessun dato geografico sul comune
+  puo' dire il raggio giusto — per questo la strada e' il conteggio.
 - **Soglia per query** — **chiude META' difetto, e va saputo prima di aprirla.**
   Passare `deriveKindFromQuery(q)` invece di `customKind` e' un parametro, non
   una riarchitettura (ogni query gira gia' in una chiamata separata), e non crea

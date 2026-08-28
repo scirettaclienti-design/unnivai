@@ -119,10 +119,30 @@ export default function AIItineraryPage() {
         }
 
         const aiProfile = graphContext || dnaContext;
-        const enrichedPrompt = [
-            userPrompt,
-            aiProfile ? `[Profilo utente: ${aiProfile}]` : '',
-        ].filter(Boolean).join(' ');
+
+        // Gate INTENT F65 (28/08) — qui si costruiva un `enrichedPrompt` che
+        // appiccicava il profilo DENTRO la frase dell'utente:
+        //     [userPrompt, `[Profilo utente: ${aiProfile}]`].join(' ')
+        // e lo passava come terzo argomento a generateItinerary.
+        //
+        // Quel terzo argomento arriva a `translateIntentToQueries`, che lo
+        // inserisce nel campo `Frase dell'utente: "..."` del prompt. Risultato:
+        // al traduttore veniva detto che l'utente aveva scritto
+        //     "parchi e ville [Profilo utente: ... Evita se possibile: natura ...]"
+        // cioe' gli si chiedeva di evitare la natura dentro una richiesta di
+        // parchi. MISURATO chiamando il modello col prompt reale:
+        //     "parchi e ville" pulito           -> categoria=natura   (corretto)
+        //     "parchi e ville" + profilo food   -> categoria=cultura  (deviato)
+        // Il traduttore non sbagliava: gli arrivava un input falso.
+        //
+        // Il profilo NON viene tolto, viene rimesso al suo posto: viaggia gia'
+        // sul parametro `aiProfile` qui sotto, che il selettore riceve con la sua
+        // etichetta (`buildSelectorSystemPrompt`: "• profilo implicito"). Anzi,
+        // fino a oggi il selettore lo riceveva DUE VOLTE — dentro la richiesta
+        // utente e come profilo. Ora una volta sola, e nel campo giusto.
+        //
+        // Il profilo continua a influenzare QUALE POI si sceglie. Smette di
+        // influenzare COSA si e' chiesto.
 
         try {
             // Gate 2 FASE 3 — cityCenter dalla città target, mai dal GPS utente.
@@ -151,7 +171,7 @@ export default function AIItineraryPage() {
             const result = await aiRecommendationService.generateItinerary(
                 activeCity,
                 prefsObject,
-                enrichedPrompt,
+                userPrompt, // F65: la frase dell'utente, PULITA. Il profilo va sotto.
                 { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
                 aiProfile, // Tour DNA iniettato nel system prompt
                 cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)

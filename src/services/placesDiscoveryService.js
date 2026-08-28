@@ -531,6 +531,85 @@ const passesHardExclusions = (c) => {
 
 // Scale-down progressivo: se troppo pochi passano, allargo la soglia. Meglio
 // avere 3 candidati borderline che 0 candidati "perfetti".
+// ─── Gate INTENT (28/08) — TAGLIO DI SANITA' GEOGRAFICA ──────────────────────
+//
+// Places `textsearch` riceve `location` + `radius`, ma quelli sono un BIAS di
+// rilevanza, NON un vincolo: Google puo' restituire risultati fuori raggio se il
+// testo matcha bene. E il testo contiene il nome della localita'
+// (`${query} ${cityName}`), quindi per un borgo il cui nome e' anche un nome
+// commerciale comune la ricerca trova omonimi in tutta Italia — e li trova con
+// ottima corrispondenza testuale.
+//
+// Device Ippocampo: "L'Ippocampo" e "Ristorante Pizzeria Ippocampo" a 185, 279,
+// 513 e 532 km dal centro.
+//
+// PERCHE' IL TAGLIO VA QUI, prima di applyQualityThreshold e non dopo:
+// il rumore non gonfia soltanto un conteggio. Fa DUE danni prima che qualcuno
+// lo veda —
+//   1. entra nel DENOMINATORE della soglia, e lo scale-down decide su di lui;
+//   2. RUBA SLOT di `maxResults`: un ristorante omonimo con 2000 recensioni a
+//      4.6 ha un qualityScore altissimo, sale in cima al ranking e caccia fuori
+//      un POI locale vero.
+// `applyRadiusFilter` lo scarta molto piu' tardi, in aiRecommendationService,
+// quando il danno e' gia' fatto.
+//
+// PERCHE' 100 km NON NASCONDE SCARTI VERI — il margine, dichiarato:
+// il raggio massimo che il sistema puo' applicare e' `R_wider` in
+// applyRadiusFilter, cioe' 20 km (citta') o 12 km (borgo). Fra 20 e 100 c'e' un
+// fattore 5: NULLA che applyRadiusFilter avrebbe potuto accettare cade qui
+// dentro. Questo taglio rimuove rumore, non decisioni di prodotto — le
+// decisioni restano tutte a valle, dove si vedono.
+const SANITY_KM = 100;
+
+// Haversine locale. Il file non importa nulla di proposito (e' il livello piu'
+// basso, sotto tourShape): duplicare dieci righe costa meno di una dipendenza
+// circolare fra services.
+const kmBetween = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const toRad = (x) => (x * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+};
+
+// Rimuove i candidati oltre SANITY_KM dal centro.
+//
+// CONDIZIONE OBBLIGATORIA: senza un centro valido il taglio NON GIRA e ritorna
+// il pool intatto. Un predicato che non puo' decidere non deve decidere —
+// scartare per una distanza non calcolabile sarebbe inventare una ragione.
+// Stessa scelta di `applyRadiusFilter` per il caso `cityCenter` assente, e vale
+// anche per il singolo candidato: coordinate mancanti → passa, non si giudica.
+//
+// Il log e' una CATEGORIA A SE', mai fuso con [Qualita]: se il rumore sparisse
+// dentro quel conteggio passeremmo da un numero gonfiato a un numero che
+// nasconde, che e' lo stesso difetto girato dall'altra parte.
+export const applyGeoSanity = (candidates, lat, lng, cityName) => {
+  if (!Array.isArray(candidates) || candidates.length === 0) return candidates;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return candidates;
+
+  const lontani = [];
+  const tenuti = candidates.filter(c => {
+    const cLat = c?.geometry?.location?.lat ?? c?.latitude ?? c?.lat;
+    const cLng = c?.geometry?.location?.lng ?? c?.longitude ?? c?.lng;
+    if (!Number.isFinite(cLat) || !Number.isFinite(cLng)) return true;
+    const d = kmBetween(lat, lng, cLat, cLng);
+    if (d > SANITY_KM) { lontani.push({ nome: c?.name || c?.title || '?', d }); return false; }
+    return true;
+  });
+
+  if (lontani.length > 0) {
+    const peggiore = lontani.reduce((a, b) => (b.d > a.d ? b : a));
+    console.warn(
+      `[Places] rumore geografico: ${lontani.length} oltre ${SANITY_KM} km` +
+      ` | piu' lontano: "${peggiore.nome}" ${peggiore.d.toFixed(0)} km` +
+      ` | citta'=${cityName || '?'}`
+    );
+  }
+  return tenuti;
+};
+
 // Gate INTENT (28/08) — traccia degli scarti per SOGLIA.
 //
 // Prima questa funzione tagliava senza lasciare traccia per-POI, mentre
@@ -698,9 +777,12 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
     //    un candidato destinato allo scarto non deve essere contato per decidere
     //    lo scale-down (altrimenti la localita' stessa "aiuta" a restare al
     //    livello 1 e poi sparisce, falsando la soglia per gli altri).
-    const cleaned = data.results
-      .filter(passesHardExclusions)
-      .filter(c => !isCityItself(c, cityName));
+    const cleaned = applyGeoSanity(
+      data.results
+        .filter(passesHardExclusions)
+        .filter(c => !isCityItself(c, cityName)),
+      lat, lng, cityName,
+    );
     // 2. Soglia qualità differenziata per tema, con scale-down se pochi.
     const { pois: qualified, scaleLevel } = applyQualityThreshold(cleaned, effectiveKind, isSmall);
     // 3. Ordinamento per qualityScore (rating × ln(1+total)).

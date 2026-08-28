@@ -26,7 +26,22 @@ const vicino = (nome, dLat = 0.01) => ({
     rating: 4.5, user_ratings_total: 120,
 });
 
-// Museo e Real Bosco di Capodimonte, Napoli — coordinate reali, ~200 km.
+// Gate INTENT (28/08) — FIXTURE NUOVA, e la ragione va scritta.
+// Capodimonte sta a 158 km da Ippocampo, quindi da oggi lo intercetta il TAGLIO
+// DI SANITA' GEOGRAFICA (100 km, placesDiscoveryService) prima che
+// applyRadiusFilter lo veda. Il comportamento finale non cambia — non entra
+// comunque — ma cambia CHI lo scarta, e con esso il log.
+// Questi due test verificano `applyRadiusFilter`, quindi devono continuare a
+// verificarlo: serve un candidato nella fascia dove e' ancora LUI a decidere,
+// cioe' sopra i 5 km del borgo e sotto i 100 della sanita'.
+// Capodimonte resta usato piu' sotto, per documentare l'interazione nuova.
+const A_50_KM = {
+    place_id: 'pid-50km', name: 'Santuario lontano', title: 'Santuario lontano',
+    latitude: IPPOCAMPO.latitude + 50 / 111.19, longitude: IPPOCAMPO.longitude,
+    rating: 4.6, user_ratings_total: 3000,
+};
+
+// Museo e Real Bosco di Capodimonte, Napoli — coordinate reali, 158 km.
 const CAPODIMONTE = {
     place_id: 'pid-capodimonte', name: 'Museo e Real Bosco di Capodimonte',
     title: 'Museo e Real Bosco di Capodimonte',
@@ -158,8 +173,10 @@ describe('Gate NOTIFICHE-DISTANZA — generateWeatherSocialTip', () => {
     afterEach(() => { vi.unstubAllGlobals(); infoSpy.mockRestore(); });
 
     it('(b) se il filtro svuota il pool, la notifica NON viene generata', async () => {
-        // Un solo candidato, a 200 km: dopo il filtro restano 0.
-        vi.stubGlobal('fetch', routeFetch([PLACE(CAPODIMONTE)]));
+        // Un solo candidato, a 50 km: sotto la sanita' geografica (100 km), quindi
+        // arriva ad applyRadiusFilter, che e' cio' che questo test verifica.
+        // Dopo il filtro raggio (5 km) restano 0.
+        vi.stubGlobal('fetch', routeFetch([PLACE(A_50_KM)]));
 
         const tip = await aiRecommendationService.generateWeatherSocialTip(
             'Ippocampo', 'Ivano', 'afternoon', CTX,
@@ -173,7 +190,7 @@ describe('Gate NOTIFICHE-DISTANZA — generateWeatherSocialTip', () => {
     });
 
     it('il candidato lontano viene scartato, quello vicino sopravvive', async () => {
-        vi.stubGlobal('fetch', routeFetch([PLACE(CAPODIMONTE), PLACE(vicino('Lido'))]));
+        vi.stubGlobal('fetch', routeFetch([PLACE(A_50_KM), PLACE(vicino('Lido'))]));
 
         await aiRecommendationService.generateWeatherSocialTip(
             'Ippocampo', 'Ivano', 'afternoon', CTX,
@@ -182,8 +199,8 @@ describe('Gate NOTIFICHE-DISTANZA — generateWeatherSocialTip', () => {
         // Prova diretta dello scarto: applyRadiusFilter logga il POI e i km.
         // console.warn è silenziato in setup.js:82, quindi si legge dallo spy.
         const warns = console.warn.mock?.calls?.map(a => String(a[0])) ?? [];
-        const scarto = warns.find(l => l.includes('[AI-radius] Scartata') && l.includes('Capodimonte'));
-        expect(scarto, 'il POI a 163 km doveva essere scartato dal filtro raggio').toBeTruthy();
+        const scarto = warns.find(l => l.includes('[AI-radius] Scartata') && l.includes('Santuario lontano'));
+        expect(scarto, 'il POI a 50 km doveva essere scartato dal filtro raggio').toBeTruthy();
         expect(scarto).toContain('> 5 km da Ippocampo');
 
         // Il pool non si svuota (Lido resta) → nessuno skip…

@@ -4493,6 +4493,40 @@ verificata come tale*. `Frase dell'utente`, `candidati verificati su Google`,
 puo' accorgersene e noi daremo la colpa a lui.
 
 
+### LEZIONE #41 — `\b` non regge gli accenti, e una radice troncata col confine di parola diventa una voce morta
+
+Due trappole trovate insieme correggendo il lessico dei kind, e sono la stessa
+famiglia: **passare da match a sottostringa a match a parola non e' una
+sostituzione meccanica.** Cambia cosa il lessico puo' esprimere.
+
+**1. `\b` in JavaScript non conosce le lettere accentate.** La classe di parola
+di JS e' `[A-Za-z0-9_]`: `è` non ne fa parte. Quindi `\bcaffè\b` fallisce,
+perche' dopo `caffè` la regex cerca un confine e la `è` **e' gia'** un
+non-carattere-di-parola — il confine e' fra `caff` ed `è`, non dopo. Vale per
+ogni voce con accento in un lessico italiano, cioe' molte. Il confine va scritto
+a mano: `[^a-zà-ù]` o inizio/fine stringa.
+
+**2. Una radice troncata sopravvive al cambio di semantica come voce morta.**
+Il lessico aveva `spiagg` e `archeolog`, pensate per coprire piu' forme con
+`includes`. Col confine di parola **non matchano piu' niente** — nessuna query
+contiene la parola `spiagg`. Non danno errore, non danno rosso: restano nella
+tabella, sembrano coprire una famiglia, e coprono zero.
+E' la stessa classe dell'allowlist scaduta della **#26** (una voce che non
+esenta nulla e' una dichiarazione falsa), ma piu' insidiosa perche' la voce
+**era** corretta prima e lo ha smesso senza che nessuno la toccasse.
+
+**Il presidio**: un test che asserisce che **ogni voce del lessico matchi se
+stessa**. Una voce che non si riconosce e' morta, e si vede subito. Costa tre
+righe e avrebbe intercettato entrambe le trappole.
+
+Corollario sulla scelta delle voci: nel match a sottostringa le parole **corte**
+sono pericolose (`bar` dentro "barocca", `pub` dentro "pubblico" — 14 falsi
+positivi misurati); nel match a parola sono pericolose le **radici** e le
+**forme mancanti** (i plurali cadevano sul default). Si scambia una classe di
+difetti con l'altra, e la seconda e' piu' silenziosa: la prima classifica male,
+la seconda non classifica affatto e nessuno se ne accorge.
+
+
 ### Marker
 
 | marker | prima | dopo |
@@ -5134,6 +5168,20 @@ una voce morta che finge di coprire.
 log. Ma e' lo stesso che diventerebbe decisione con la soglia per query — **un
 difetto che non morde ancora morderebbe il giorno esatto in cui gli si da'
 potere.**
+
+Due trappole del passaggio da sottostringa a parola sono registrate nella
+**#41**: `\b` non regge gli accenti in JS, e una radice troncata diventa una
+voce morta che finge di coprire.
+
+**Deploy `b89ed02` verificato su tre livelli** (29/08):
+- `commits/b89ed02/status` → `state: success`; check-runs *Lint & Test* ed
+  *E2E Smoke* entrambi `completed/success`;
+- entry servita cambiata: `index-5aMfnu5a.js` → **`index-CuPK3nfj.js`**;
+- **contenuto** del bundle, non il nome del simbolo (che il minifier mangia):
+  `archeologico`, `archeologica`, `spiagge`, `spiaggia`, `parchi`, `giardini`,
+  `ristoranti`, `trattorie`, `pinacoteche` **presenti**; le radici tronche
+  `spiagg` e `archeolog` **assenti**; la classe di confine `[^a-zà-ù]`
+  **presente**.
 
 ### Costi API della diagnosi
 

@@ -1,3 +1,4 @@
+import React from "react";
 import { Home, Compass, User, Camera } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLocation, Link } from "react-router-dom";
@@ -24,40 +25,39 @@ export default function BottomNavigation() {
     const activeTab = getActiveTab();
 
     return (
-        <footer className="fixed bottom-0 w-full z-50 bg-white/80 backdrop-blur-md border-t border-gray-200/50 pb-safe">
-            <div className="max-w-md mx-auto px-6 py-4">
-                <nav className="flex items-center justify-between">
+        <footer className="fixed bottom-0 w-full z-50 bg-white/90 backdrop-blur-md border-t border-stone-200/70 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+            <div className="max-w-md mx-auto px-6 py-2.5">
+                <nav className="flex items-center justify-between" aria-label="Navigazione principale">
                     {navItems.map((item) => {
                         const IconComponent = item.icon;
                         const isActive = activeTab === item.id;
 
                         return (
-                            <Link key={item.id} to={item.path} className="relative z-10">
-                                <motion.button
-                                    className={`flex flex-col items-center space-y-1 transition-colors duration-300 ${isActive ? 'text-terracotta-500' : 'text-gray-400 hover:text-gray-600'
-                                        }`}
-                                    whileTap={{ scale: 0.92 }}
-                                    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                            <Link key={item.id} to={item.path} className="relative z-10 py-1 px-3">
+                                <motion.div
+                                    className={`flex flex-col items-center space-y-1 transition-colors duration-200 ${
+                                        isActive ? 'text-stone-950 font-bold' : 'text-stone-400 hover:text-stone-600 font-medium'
+                                    }`}
+                                    whileTap={{ scale: 0.94 }}
                                 >
-                                    <div className="relative">
-                                        <motion.div animate={{ scale: isActive ? 1.15 : 1 }} transition={{ type: 'spring', stiffness: 500, damping: 20 }}>
-                                            <IconComponent className={`w-6 h-6 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-                                        </motion.div>
+                                    <div className="relative flex flex-col items-center">
+                                        <IconComponent
+                                            className={`w-5 h-5 transition-transform duration-200 ${
+                                                isActive ? 'stroke-[2.5] scale-105 text-stone-950' : 'stroke-[1.75] text-stone-400'
+                                            }`}
+                                        />
                                         {isActive && (
-                                            <motion.div
-                                                layoutId="nav-glow"
-                                                className="absolute inset-0 bg-terracotta-400/20 blur-lg rounded-full"
-                                                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                                            <motion.span
+                                                layoutId="activeNavIndicator"
+                                                className="absolute -bottom-1 w-1 h-1 rounded-full bg-stone-900"
+                                                transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                                             />
                                         )}
                                     </div>
-                                    <motion.span
-                                        animate={{ opacity: isActive ? 1 : 0.6 }}
-                                        transition={{ duration: 0.2 }}
-                                        className={`text-[10px] font-medium tracking-wide`}>
+                                    <span className="text-[10px] tracking-tight">
                                         {item.label}
-                                    </motion.span>
-                                </motion.button>
+                                    </span>
+                                </motion.div>
                             </Link>
                         );
                     })}

@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CityProvider } from './context/CityContext';
@@ -104,6 +105,86 @@ const RootDispatcher = () => {
   return <Landing />;
 };
 
+function AnimatedAppRoutes() {
+  const location = useLocation();
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      key={location.pathname}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={
+        shouldReduceMotion
+          ? { duration: 0 }
+          : { duration: 0.18, ease: [0.16, 1, 0.3, 1] }
+      }
+      className="min-h-full w-full"
+    >
+      <Routes location={location}>
+        {/* THE GATEKEEPER */}
+        <Route path="/" element={<RootDispatcher />} />
+
+        {/* PUBLIC */}
+        <Route path="/login"           element={<Login />} />
+        <Route path="/onboarding"      element={<Onboarding />} />
+        <Route path="/update-password" element={<UpdatePassword />} />
+        <Route path="/explore"         element={<Explore />} />
+        <Route path="/tour-details"    element={<TourDetails />} />
+        <Route path="/tour-details/:id" element={<TourDetails />} />
+
+        {/* PROTECTED USER ROUTES */}
+        <Route element={<RoleGuard allowedRoles={['explorer', 'user']} />}>
+          <Route path="/dashboard-user"  element={<DashboardUser />} />
+          <Route path="/app/*"           element={<DashboardUser />} />
+          {/* DVAI-026: /home → redirect /dashboard-user */}
+          <Route path="/home"            element={<Navigate to="/dashboard-user" replace />} />
+          <Route path="/photos"          element={<Photos />} />
+          <Route path="/profile"         element={<Profile />} />
+          <Route path="/ai-itinerary"    element={<AiItinerary />} />
+          <Route path="/map"             element={<MapPage />} />
+          <Route path="/quick-path"      element={<QuickPath />} />
+          <Route path="/notifications"   element={<Notifications />} />
+          {/* DVAI-027: /notification-settings ora raggiungibile */}
+          <Route path="/notification-settings" element={<NotificationSettings />} />
+          <Route path="/tour-live"       element={<TourLive />} />
+          <Route path="/surprise-tour"   element={<SurpriseTour />} />
+          <Route path="/trending"        element={<Trending />} />
+          {/* Gate W: /become-guide -> pagina Prossimamente guide (era: redirect+toast). */}
+          <Route path="/become-guide"    element={<V1LockedGuard kind="guide"><BecomeGuide /></V1LockedGuard>} />
+
+          {/* Gate W: schermate "Prossimamente" per V2 Guide, V3 Attivita', Foto.
+              Contenuto onesto (che cosa, a chi, quando, cosa fare ora) — sostituisce
+              il pattern redirect+toast di V1LockedGuard che rimbalzava a /dashboard-user. */}
+          <Route path="/prossimamente/guide"     element={<Prossimamente kind="guide" />} />
+          <Route path="/prossimamente/attivita"  element={<Prossimamente kind="attivita" />} />
+          <Route path="/prossimamente/foto"      element={<Prossimamente kind="foto" />} />
+        </Route>
+
+        {/* Gate W — GUIDE ROUTES: raggiungibili ma redirette a
+            /prossimamente/guide (schermata onesta con contenuto).
+            In V2 basta togliere il guard: le pagine sono gia' pronte. */}
+        <Route element={<RoleGuard allowedRoles={['guide']} />}>
+          <Route path="/dashboard-guide"    element={<V1LockedGuard kind="guide"><DashboardGuide /></V1LockedGuard>} />
+          <Route path="/guide/create-tour"  element={<V1LockedGuard kind="guide"><TourBuilder /></V1LockedGuard>} />
+          <Route path="/guide/*"            element={<V1LockedGuard kind="guide"><DashboardGuide /></V1LockedGuard>} />
+          <Route path="/chat/guide/:id"     element={<V1LockedGuard kind="guide"><GuidePlaceholder type="chat" /></V1LockedGuard>} />
+          <Route path="/profile/guide/:id"  element={<V1LockedGuard kind="guide"><GuidePlaceholder type="profile" /></V1LockedGuard>} />
+        </Route>
+
+        {/* Gate W — BUSINESS ROUTES: redirette a /prossimamente/attivita. */}
+        <Route element={<RoleGuard allowedRoles={['business']} />}>
+          <Route path="/dashboard-business" element={<V1LockedGuard kind="attivita"><DashboardBusiness /></V1LockedGuard>} />
+          <Route path="/business/*"         element={<V1LockedGuard kind="attivita"><DashboardBusiness /></V1LockedGuard>} />
+        </Route>
+
+        {/* DVAI-042: Catch-all 404 */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </motion.div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -114,66 +195,7 @@ function App() {
           <Router>
             <ErrorBoundary>
               <Suspense fallback={<GlobalLoading />}>
-                <Routes>
-                  {/* THE GATEKEEPER */}
-                  <Route path="/" element={<RootDispatcher />} />
-
-                  {/* PUBLIC */}
-                  <Route path="/login"           element={<Login />} />
-                  <Route path="/onboarding"      element={<Onboarding />} />
-                  <Route path="/update-password" element={<UpdatePassword />} />
-                  <Route path="/explore"         element={<Explore />} />
-                  <Route path="/tour-details"    element={<TourDetails />} />
-                  <Route path="/tour-details/:id" element={<TourDetails />} />
-
-                  {/* PROTECTED USER ROUTES */}
-                  <Route element={<RoleGuard allowedRoles={['explorer', 'user']} />}>
-                    <Route path="/dashboard-user"  element={<DashboardUser />} />
-                    <Route path="/app/*"           element={<DashboardUser />} />
-                    {/* DVAI-026: /home → redirect /dashboard-user */}
-                    <Route path="/home"            element={<Navigate to="/dashboard-user" replace />} />
-                    <Route path="/photos"          element={<Photos />} />
-                    <Route path="/profile"         element={<Profile />} />
-                    <Route path="/ai-itinerary"    element={<AiItinerary />} />
-                    <Route path="/map"             element={<MapPage />} />
-                    <Route path="/quick-path"      element={<QuickPath />} />
-                    <Route path="/notifications"   element={<Notifications />} />
-                    {/* DVAI-027: /notification-settings ora raggiungibile */}
-                    <Route path="/notification-settings" element={<NotificationSettings />} />
-                    <Route path="/tour-live"       element={<TourLive />} />
-                    <Route path="/surprise-tour"   element={<SurpriseTour />} />
-                    <Route path="/trending"        element={<Trending />} />
-                    {/* Gate W: /become-guide -> pagina Prossimamente guide (era: redirect+toast). */}
-                    <Route path="/become-guide"    element={<V1LockedGuard kind="guide"><BecomeGuide /></V1LockedGuard>} />
-
-                    {/* Gate W: schermate "Prossimamente" per V2 Guide, V3 Attivita', Foto.
-                        Contenuto onesto (che cosa, a chi, quando, cosa fare ora) — sostituisce
-                        il pattern redirect+toast di V1LockedGuard che rimbalzava a /dashboard-user. */}
-                    <Route path="/prossimamente/guide"     element={<Prossimamente kind="guide" />} />
-                    <Route path="/prossimamente/attivita"  element={<Prossimamente kind="attivita" />} />
-                    <Route path="/prossimamente/foto"      element={<Prossimamente kind="foto" />} />
-                  </Route>
-
-                  {/* Gate W — GUIDE ROUTES: raggiungibili ma redirette a
-                      /prossimamente/guide (schermata onesta con contenuto).
-                      In V2 basta togliere il guard: le pagine sono gia' pronte. */}
-                  <Route element={<RoleGuard allowedRoles={['guide']} />}>
-                    <Route path="/dashboard-guide"    element={<V1LockedGuard kind="guide"><DashboardGuide /></V1LockedGuard>} />
-                    <Route path="/guide/create-tour"  element={<V1LockedGuard kind="guide"><TourBuilder /></V1LockedGuard>} />
-                    <Route path="/guide/*"            element={<V1LockedGuard kind="guide"><DashboardGuide /></V1LockedGuard>} />
-                    <Route path="/chat/guide/:id"     element={<V1LockedGuard kind="guide"><GuidePlaceholder type="chat" /></V1LockedGuard>} />
-                    <Route path="/profile/guide/:id"  element={<V1LockedGuard kind="guide"><GuidePlaceholder type="profile" /></V1LockedGuard>} />
-                  </Route>
-
-                  {/* Gate W — BUSINESS ROUTES: redirette a /prossimamente/attivita. */}
-                  <Route element={<RoleGuard allowedRoles={['business']} />}>
-                    <Route path="/dashboard-business" element={<V1LockedGuard kind="attivita"><DashboardBusiness /></V1LockedGuard>} />
-                    <Route path="/business/*"         element={<V1LockedGuard kind="attivita"><DashboardBusiness /></V1LockedGuard>} />
-                  </Route>
-
-                  {/* DVAI-042: Catch-all 404 */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <AnimatedAppRoutes />
               </Suspense>
             </ErrorBoundary>
           </Router>

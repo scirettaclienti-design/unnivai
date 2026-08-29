@@ -1,63 +1,46 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Info, Sparkles, MapPin, Navigation, Globe, PhoneCall, CalendarCheck, Volume2, Square, BookOpen, Lightbulb, Loader2 } from 'lucide-react';
+import { X, MapPin, Navigation, Globe, PhoneCall, CalendarCheck, Volume2, Square, BookOpen, Lightbulb, Loader2, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { useToast } from '../../hooks/use-toast';
 import { resolvePoiPhoto } from '../../lib/poiPhoto';
-import { isPlacesPhoto } from '../../lib/categoryPalette';
+import { getCoverPalette, isPlacesPhoto } from '../../lib/categoryPalette';
 
-export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavigate, isNavigating = false, isCompleted = false, isTourStep = false }) => {
+export const POIDetailDrawer = ({
+  poi,
+  onClose,
+  onUnlock,
+  transportMode,
+  onNavigate,
+  isNavigating = false,
+  isCompleted = false,
+  isTourStep = false,
+}) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const { toast } = useToast();
 
-  // Define premium status: Monument (0) or Subscribed Business
   const isPremium = poi?.level === 0 || poi?.is_premium === true || poi?.subscription_status === 'active';
 
-  // Gate VERITÀ VISIVA (F26) — il seme è morto.
-  // Prima: `useState(poi?.image || poi?.image_urls?.[0])`. L'immagine che il
-  // chiamante aveva in mano finiva a schermo PRIMA di qualsiasi verifica, e
-  // resolvePoiPhoto non poteva più toglierla. È così che il Colosseo di
-  // tourShape è arrivato su un POI di Manfredonia.
-  // Ora si parte da null e si accetta subito solo ciò che è GIÀ ancorato a
-  // Google Places (isPlacesPhoto). Tutto il resto va risolto o non si mostra.
+  // Gate VERITÀ VISIVA (F26) — solo foto Places verificate
   const [displayImage, setDisplayImage] = useState(
-      () => (isPlacesPhoto(poi?.image) ? poi.image : null),
+    () => (isPlacesPhoto(poi?.image) ? poi.image : null),
   );
 
-  // Gate FOTO — la ricerca per nome (findPlaceFromQuery su "${nome} ${città}")
-  // è stata rimossa: prendeva results[0].photos[0] senza verificare che fosse
-  // lo stesso posto, e mostrava la foto di un altro luogo con nome simile.
-  // Ora la foto arriva da place/details ancorato al googlePlaceId del POI,
-  // via places-proxy (quindi cachata 24h e non fatturata a ogni apertura).
   useEffect(() => {
-      // F26 — la guardia non chiede più "è unsplash?" (test per esclusione, che
-      // lasciava passare qualunque altro URL inventato) ma "è ancorata a Google
-      // Places?" (test per inclusione).
-      if (isPlacesPhoto(displayImage)) return;
-      // Senza place_id nessuna foto può essere ancorata a QUESTO posto.
-      // Non è un early-return silenzioso: azzera, così un valore ereditato
-      // dal chiamante non sopravvive per inerzia.
-      if (!poi?.googlePlaceId) { setDisplayImage(null); return; }
+    if (isPlacesPhoto(displayImage)) return;
+    if (!poi?.googlePlaceId) { setDisplayImage(null); return; }
 
-      // fetchPlaceDetailsForTour ha un timeout proprio (5s) ma non è abortabile
-      // dall'esterno: il flag evita il setState su componente smontato.
-      let cancelled = false;
-      (async () => {
-          const { placesDiscoveryService } = await import('../../services/placesDiscoveryService');
-          const details = await placesDiscoveryService.fetchPlaceDetailsForTour(poi.googlePlaceId, poi.city);
-          if (cancelled) return;
-          // F26 — il null è ONORATO. Prima era `if (url) setDisplayImage(url)`:
-          // quando resolvePoiPhoto faceva esattamente il suo lavoro il risultato
-          // veniva scartato e il falso restava a schermo.
-          setDisplayImage(resolvePoiPhoto(poi, details));
-      })();
-      return () => { cancelled = true; };
+    let cancelled = false;
+    (async () => {
+      const { placesDiscoveryService } = await import('../../services/placesDiscoveryService');
+      const details = await placesDiscoveryService.fetchPlaceDetailsForTour(poi.googlePlaceId, poi.city);
+      if (cancelled) return;
+      setDisplayImage(resolvePoiPhoto(poi, details));
+    })();
+    return () => { cancelled = true; };
   }, [poi?.googlePlaceId, poi?.city, displayImage]);
 
   useEffect(() => {
-    // Stop speaking when drawer closes or unmounts
     return () => {
-      window.speechSynthesis.cancel();
+      window.speechSynthesis?.cancel();
     };
   }, []);
 
@@ -65,11 +48,12 @@ export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavig
 
   const toggleSpeech = () => {
     if (isSpeaking) {
-      window.speechSynthesis.cancel();
+      window.speechSynthesis?.cancel();
       setIsSpeaking(false);
     } else {
-      if ('speechSynthesis' in window && poi.historicalNotes) {
-        const utterance = new SpeechSynthesisUtterance(poi.historicalNotes);
+      const textToSpeak = poi.historicalNotes || poi.description;
+      if ('speechSynthesis' in window && textToSpeak) {
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
         utterance.lang = 'it-IT';
         const voices = window.speechSynthesis.getVoices();
         const itVoice = voices.find(v => v.lang.startsWith('it')) || voices[0];
@@ -86,256 +70,248 @@ export const POIDetailDrawer = ({ poi, onClose, onUnlock, transportMode, onNavig
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#f6d365', '#d4af37', '#ffffff', '#14b8a6'] // Gold and Teal
+      colors: ['#c2410c', '#d97706', '#ffffff', '#1c1917'],
     });
     if (onUnlock) onUnlock(poi);
   };
+
+  const palette = getCoverPalette(poi?.category || poi?.type, poi?.type);
+  const poiTitle = poi.name || poi.company_name || poi.title || 'Punto di interesse';
+  const hasValidRating = Number.isFinite(poi.rating) && poi.rating > 0;
+  const isStepInTour = isTourStep || typeof poi.index === 'number';
 
   return (
     <AnimatePresence>
       <motion.div
         initial={{ y: '100%' }}
-        animate={{ y: 0 }} exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="absolute bottom-0 left-0 right-0 z-[1001] bg-white/95 backdrop-blur-3xl rounded-t-[2.5rem] shadow-[0_-20px_60px_rgba(0,0,0,0.15)] border-t border-white/60 min-h-[40vh] max-h-[85vh] flex flex-col overflow-hidden"
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 28, stiffness: 240 }}
+        className="absolute bottom-0 left-0 right-0 z-[1001] bg-white rounded-t-[2rem] shadow-[0_-15px_40px_rgba(0,0,0,0.12)] border-t border-stone-200/80 min-h-[38vh] max-h-[82vh] flex flex-col overflow-hidden font-quicksand"
       >
-        <div className="absolute top-0 left-0 right-0 h-1.5 flex justify-center z-10">
-           <div className="w-16 h-1.5 bg-gray-300/80 rounded-full mt-4" />
+        {/* Grab Handle */}
+        <div className="absolute top-0 left-0 right-0 h-4 flex justify-center items-center z-20 pointer-events-none">
+          <div className="w-10 h-1 bg-stone-400/60 rounded-full" />
         </div>
-        
-        {displayImage && (
-            <div className="w-full h-40 shrink-0 relative mt-0">
-                <img loading="lazy" src={displayImage} className="w-full h-full object-cover transition-opacity duration-700 opacity-100" alt={poi.name || poi.title} />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent mix-blend-normal" />
-            </div>
-        )}
 
-        <div className={`p-8 pb-14 overflow-y-auto flex-1 no-scrollbar pt-2 ${displayImage ? '-mt-12 relative z-10' : 'mt-8'}`}>
-          
-          {/* HEADER SECTION */}
-          <div className="flex justify-between items-start mb-6">
-            <div className="flex-1 pr-4">
-              {(poi.level === 0 || poi.type === 'native_poi') && <span className="text-5xl mb-4 block drop-shadow-lg">{poi.icon || '📍'}</span>}
-              <div className="flex flex-wrap items-center gap-3 mt-2 mb-4">
-                {/* Tour Step Badge */}
-                {poi.level === 2 && (
-                  <span className="text-white font-black bg-gradient-to-r from-orange-600 to-terracotta-500 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-orange-500/30">
-                    {typeof poi.index === 'number' ? `Tappa ${poi.index + 1}` : 'Tappa Tour'}
-                  </span>
-                )}
-                {poi.level === 0 && (
-                   <span className="text-white font-black bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-orange-500/20">
-                     Monumento
-                   </span>
-                )}
-              </div>
-              
-              <h2 className="text-4xl font-black text-gray-900 leading-tight tracking-tight mb-3 drop-shadow-sm">
-                {poi.name || poi.company_name || poi.title}
-              </h2>
-              
-              {/* GOOGLE REVIEWS / RATING */}
-              {poi.rating && (
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className="font-black text-gray-900">{parseFloat(poi.rating).toFixed(1)}</span>
-                  <div className="flex items-center text-yellow-500">
-                    {[1,2,3,4,5].map(star => (
-                      <svg key={star} className={`w-4 h-4 ${star <= Math.round(poi.rating) ? 'fill-current' : 'text-gray-300 fill-current'}`} viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                  {poi.reviewsCount && (
-                    <span className="text-gray-500 text-sm font-medium ml-1">({poi.reviewsCount})</span>
-                  )}
-                </div>
-              )}
-              
-              <div className="flex flex-wrap items-center gap-2 mt-3">
-                {/* Location / City */}
-                {(poi.city || poi.location) && (
-                  <div className="flex items-center gap-1 text-gray-500 font-bold text-xs uppercase tracking-wider bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-full">
-                    <MapPin size={12} /> <span>{poi.city || poi.location}</span>
-                  </div>
-                )}
-                
-                {/* Business/POI Specific Badges */}
-                {/* Visualizzati solo se l'entità è premium o pubblica (isPremium) */}
-                {isPremium && (poi.price_level || poi.business_hours || poi.price) && (
-                  <>
-                    {(poi.price_level || poi.price) && (
-                      <span className="text-green-700 font-bold bg-green-50 px-3 py-1.5 rounded-full text-xs uppercase tracking-wider border border-green-100">
-                        {poi.price_level || poi.price}
-                      </span>
-                    )}
-                    {poi.business_hours && (
-                      <span className="text-blue-700 font-bold bg-blue-50 px-3 py-1.5 rounded-full text-xs uppercase tracking-wider border border-blue-100">
-                        {poi.business_hours}
-                      </span>
-                    )}
-                  </>
-                )}
-              </div>
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          type="button"
+          aria-label="Chiudi scheda"
+          className="absolute top-3 right-3 z-30 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-colors active:scale-95 shadow-sm"
+        >
+          <X size={16} strokeWidth={2.5} />
+        </button>
+
+        {/* ─── COVER HEADER WITH SEAMLESS FADE ─── */}
+        <div className="w-full h-44 shrink-0 relative overflow-hidden bg-stone-900">
+          {displayImage ? (
+            <img
+              loading="lazy"
+              src={displayImage}
+              alt={poiTitle}
+              className="w-full h-full object-cover"
+              style={{ filter: 'saturate(.95) contrast(1.02) brightness(.96)' }}
+            />
+          ) : (
+            <div
+              className="w-full h-full flex items-center justify-center"
+              style={{ background: palette.gradient }}
+            >
+              <span className="text-6xl opacity-25 select-none">{palette.icon}</span>
             </div>
-            <div className="flex flex-col gap-3 items-center pt-2">
-              <button onClick={onClose} className="p-3 bg-gray-50 hover:bg-gray-200 rounded-full transition-colors active:scale-95 text-gray-500 shadow-sm shrink-0">
-                <X size={20} />
-              </button>
-              {poi.historicalNotes && (
-                <button 
+          )}
+
+          {/* Sfumatura progressiva verso il corpo bianco della scheda */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 18%, rgba(255,255,255,0) 65%)',
+            }}
+          />
+        </div>
+
+        {/* ─── SCROLLABLE CONTENT BODY ─── */}
+        <div className="px-6 pb-8 overflow-y-auto flex-1 scrollbar-hide -mt-8 relative z-10 space-y-4">
+
+          {/* BADGE & TITLE SECTION */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              {isStepInTour ? (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-terracotta-500 text-white shadow-sm">
+                  {typeof poi.index === 'number' ? `Tappa ${poi.index + 1}` : 'Tappa Tour'}
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-stone-100 text-stone-700 border border-stone-200/80">
+                  {poi.category || poi.type || 'Punto Mappa'}
+                </span>
+              )}
+
+              {(poi.city || poi.location) && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-stone-500">
+                  <MapPin size={11} className="text-stone-400" />
+                  {poi.city || poi.location}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="text-2xl font-black text-stone-950 tracking-tight leading-tight">
+                {poiTitle}
+              </h2>
+
+              {(poi.historicalNotes || poi.description) && (
+                <button
+                  type="button"
                   onClick={toggleSpeech}
-                  className="p-3 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-full transition-colors active:scale-95 shadow-sm border border-purple-100 shrink-0 relative"
-                  title="Ascolta Guida"
+                  className="p-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-full transition-colors active:scale-95 border border-stone-200/80 shrink-0"
+                  title="Ascolta sintesi"
+                  aria-label="Ascolta sintesi"
                 >
-                  {isSpeaking ? <Square fill="currentColor" size={20} className="text-red-500 animate-pulse" /> : <Volume2 size={20} />}
-                  {!isSpeaking && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-purple-500 rounded-full animate-ping" />}
-                  {!isSpeaking && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-purple-500 rounded-full" />}
+                  {isSpeaking ? (
+                    <Square size={16} fill="currentColor" className="text-terracotta-500 animate-pulse" />
+                  ) : (
+                    <Volume2 size={16} />
+                  )}
                 </button>
               )}
             </div>
+
+            {/* RATING GOOGLE PLACES (Renderizzato SOLO se dato reale) */}
+            {hasValidRating && (
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <Star size={13} className="text-amber-500 fill-amber-500 shrink-0" />
+                <span className="font-bold text-xs text-stone-900">{parseFloat(poi.rating).toFixed(1)}</span>
+                {poi.reviewsCount && (
+                  <span className="text-stone-400 text-xs font-medium">({poi.reviewsCount.toLocaleString('it-IT')})</span>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* ACTION BAR (Esclusiva Premium/Monumenti) */}
+          {/* ACTION BAR PREMIUM/BUSINESS (Sito web, Telefono testo) */}
           {isPremium && (poi.website_url || poi.phone_number || poi.booking_url) && (
-            <div className="flex gap-3 mb-8">
+            <div className="flex gap-2.5 pt-1">
               {poi.website_url && (
-                <button 
+                <button
+                  type="button"
                   onClick={() => window.open(poi.website_url, '_blank')}
-                  className="flex-1 bg-gray-50 text-gray-700 font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors border border-gray-200 shadow-sm text-sm"
+                  className="flex-1 bg-stone-50 hover:bg-stone-100 text-stone-800 font-bold py-2.5 px-3 rounded-xl border border-stone-200 text-xs flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  <Globe size={18} /> Sito
+                  <Globe size={14} /> Sito web
                 </button>
               )}
-              {/* Gate K: numero di telefono come TESTO, non link tel: né bottone.
-                  Regola Ivano: "Zero tel: link, zero bottoni." Se Places restituisce
-                  poi.phone_number è un dato vero → lo mostriamo, ma senza azione
-                  simulata. L'utente copia il numero e chiama dal suo telefono. */}
+
+              {/* Gate K: numero di telefono come testo selezionabile */}
               {poi.phone_number && (
-                <div className="flex-1 bg-gray-50 text-gray-700 py-3.5 rounded-2xl flex items-center justify-center gap-2 border border-gray-200 text-sm select-all">
-                  <PhoneCall size={16} className="text-gray-500" />
-                  <span className="font-semibold tabular-nums">{poi.phone_number}</span>
+                <div className="flex-1 bg-stone-50 text-stone-800 py-2.5 px-3 rounded-xl border border-stone-200 text-xs flex items-center justify-center gap-1.5 select-all">
+                  <PhoneCall size={13} className="text-stone-400" />
+                  <span className="font-semibold">{poi.phone_number}</span>
                 </div>
               )}
-              {/* Gate K: bottone "Prenota" fallback (level=1) RIMOSSO. Prima faceva
-                  toast "Prenotazione non disponibile per questa struttura." — un
-                  bottone che dichiara di non funzionare è una funzione che finge.
-                  Se poi.booking_url esiste, mostriamo il bottone Prenota reale
-                  (window.open a link vero); altrimenti nessun bottone. */}
+
               {poi.booking_url && (
                 <button
+                  type="button"
                   onClick={() => window.open(poi.booking_url, '_blank')}
-                  className="flex-[1.5] bg-gradient-to-r from-[#d4af37] to-[#eaaa00] text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-yellow-500/30 hover:shadow-xl active:scale-95 transition-all text-sm uppercase tracking-wide"
+                  className="flex-1 bg-stone-900 hover:bg-stone-800 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
                 >
-                  <CalendarCheck size={18} /> Prenota
+                  <CalendarCheck size={14} /> Prenota
                 </button>
               )}
             </div>
           )}
 
-          {/* CONTENT SECTION (History, Facts, Subtitle) */}
-          <div className="space-y-6 mb-8">
+          {/* ─── NARRATIVA / DESCRIZIONE REALE ─── */}
+          <div className="space-y-3 pt-1">
             {poi.historicalNotes && (
-              <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-lg shadow-gray-200/50 relative">
-                <div className="flex items-center gap-2 mb-4 text-gray-800 font-black text-xs uppercase tracking-widest">
-                  <BookOpen size={16} className="text-orange-500" /> <span>Storia e Curiosità</span>
+              <div className="bg-stone-50/90 p-4 rounded-2xl border border-stone-200/80">
+                <div className="flex items-center gap-1.5 mb-2 text-stone-900 font-bold text-[11px] uppercase tracking-wider">
+                  <BookOpen size={13} className="text-terracotta-500" />
+                  <span>Cenni e contesto</span>
                 </div>
-                <p className="text-gray-700 leading-relaxed font-medium text-base">"{poi.historicalNotes}"</p>
+                <p className="text-stone-700 text-xs sm:text-sm leading-relaxed font-medium">
+                  "{poi.historicalNotes}"
+                </p>
+              </div>
+            )}
+
+            {poi.description && !poi.historicalNotes && poi.description !== "Punto d'interesse consigliato." && poi.description !== "Punto di interesse" && (
+              <div className="bg-stone-50/90 p-4 rounded-2xl border border-stone-200/80">
+                <p className="text-stone-700 text-xs sm:text-sm leading-relaxed font-medium">
+                  "{poi.description}"
+                </p>
               </div>
             )}
 
             {poi.funFacts?.length > 0 && (
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-3xl border border-orange-100 shadow-md">
-                <div className="flex items-center gap-2 mb-4 text-orange-900 font-black text-xs uppercase tracking-widest">
-                  <Lightbulb size={18} className="text-orange-500 animate-pulse" /> <span>Lo sapevi che?</span>
+              <div className="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/60">
+                <div className="flex items-center gap-1.5 mb-1.5 text-amber-900 font-bold text-[11px] uppercase tracking-wider">
+                  <Lightbulb size={13} className="text-amber-600" />
+                  <span>Dettaglio</span>
                 </div>
-                <p className="text-orange-900 text-sm font-bold leading-relaxed">{poi.funFacts[0]}</p>
-              </div>
-            )}
-            
-            {poi.description && poi.description !== "Punto d'interesse consigliato." && poi.description !== "Punto di interesse" && !poi.historicalNotes && (
-              <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-lg shadow-gray-200/50 relative">
-                <div className="flex items-center gap-2 mb-4 text-gray-800 font-black text-xs uppercase tracking-widest">
-                  <BookOpen size={16} className="text-orange-500" /> <span>Panoramica</span>
-                </div>
-                <p className="text-gray-700 leading-relaxed font-medium text-base">"{poi.description}"</p>
-              </div>
-            )}
-
-            {/* FALLBACK LOADING STATE */}
-            {(poi.level === 2 || poi.level === 0) && !poi.historicalNotes && (!poi.description || poi.description === "Punto d'interesse consigliato." || poi.description === "Punto di interesse") && !poi.funFacts && (
-              <div className="flex flex-col items-center justify-center p-8 bg-gray-50/80 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-inner my-4">
-                <Loader2 size={32} className="text-orange-500 animate-spin mb-4" />
-                <p className="text-gray-600 font-bold text-sm text-center">
-                  Generazione approfondimenti in corso...
-                </p>
-                <p className="text-gray-400 text-xs font-medium mt-2 text-center">
-                  L'Intelligenza Artificiale sta scrivendo una storia unica per te.
+                <p className="text-amber-950 text-xs leading-relaxed font-medium">
+                  {poi.funFacts[0]}
                 </p>
               </div>
             )}
           </div>
 
-          {/* MAIN BOTTOM CALL TO ACTION */}
-          {/* Fase 2a gate Navigazione: durante la nav attiva, su una TAPPA del tour
-              il CTA e' "Sono arrivato" (fatto dichiarato, non premio). Chiama lo
-              stesso handlePOIUnlock (onUnlock) del ramo level===2 ma SENZA confetti
-              ne' linguaggio gamification. Guidato da isNavigating/isTourStep/isCompleted
-              passati da MapPage — NON da poi.level (che le tappe non hanno). Fuori
-              nav, o su POI non-tappa, resta la cascata esistente sotto. */}
-          {isNavigating && isTourStep ? (
-            isCompleted ? (
+          {/* ─── MAIN CTA ACTION ─── */}
+          <div className="pt-2">
+            {isNavigating && isTourStep ? (
+              isCompleted ? (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full bg-stone-100 border border-stone-200 text-stone-400 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-not-allowed"
+                >
+                  <MapPin size={15} /> Tappa completata
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onUnlock && onUnlock(poi)}
+                  className="w-full bg-terracotta-500 hover:bg-terracotta-600 text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md shadow-terracotta-500/20 active:scale-98 transition-all text-xs uppercase tracking-wider min-h-[46px]"
+                >
+                  <MapPin size={15} /> Sono arrivato
+                </button>
+              )
+            ) : isStepInTour ? (
               <button
-                disabled
-                className="w-full bg-gray-100/80 backdrop-blur-sm border border-gray-200 text-gray-400 py-4.5 rounded-[1.25rem] font-bold flex items-center justify-center gap-2 transition-all text-sm cursor-not-allowed uppercase tracking-wider"
+                type="button"
+                onClick={() => onNavigate && onNavigate(poi)}
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md shadow-stone-900/15 active:scale-98 transition-all text-xs tracking-wide min-h-[46px]"
               >
-                <MapPin size={18} /> Tappa completata
+                <Navigation size={15} className="fill-current" />
+                Raggiungi questa tappa
               </button>
             ) : (
               <button
-                onClick={() => onUnlock && onUnlock(poi)}
-                className="w-full text-white py-3.5 rounded-full font-bold flex items-center justify-center gap-2 shadow-lg shadow-orange-400/30 active:scale-95 transition-all text-sm min-h-[44px]"
-                style={{ background: 'linear-gradient(135deg, #C2703E, #D4A843)' }}
+                type="button"
+                onClick={() => onNavigate && onNavigate(poi)}
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md shadow-stone-900/15 active:scale-98 transition-all text-xs tracking-wide min-h-[46px]"
               >
-                <MapPin size={18} /> Sono arrivato
+                <Navigation size={15} className="fill-current" />
+                Cammina fino a qui
               </button>
-            )
-          ) : poi.level === 2 ? (
-            <button 
-              onClick={handleUnlock}
-              disabled={poi.completed}
-              className={`w-full text-white py-4.5 rounded-[1.25rem] font-black flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-all text-sm tracking-widest uppercase relative overflow-hidden group ${poi.completed ? 'bg-gradient-to-r from-teal-400 to-teal-600 shadow-teal-500/40 cursor-default active:scale-100' : 'bg-[length:200%_auto] bg-gradient-to-r from-orange-500 via-pink-500 to-orange-500 hover:bg-[right_center] animate-[pulse_3s_ease-in-out_infinite] shadow-orange-500/40 hover:shadow-orange-500/60'}`}
-            >
-              {/* Animated Gradient shimmer overlay */}
-              {!poi.completed && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-1000" />}
-              <span className="relative z-10 flex items-center gap-3">
-                 {poi.completed ? 'Tappa Completata' : 'Sblocca Contenuto'} <Sparkles size={18} className={poi.completed ? "text-teal-100" : "text-yellow-200"} />
-              </span>
-            </button>
-          ) : poi.level === 1 ? (
-             <button className="w-full bg-gray-100/80 backdrop-blur-sm border border-gray-200 text-gray-400 py-4.5 rounded-[1.25rem] font-bold flex items-center justify-center gap-2 transition-all text-sm cursor-not-allowed uppercase tracking-wider">
-               <Navigation size={18} /> Ottieni Indicazioni
-             </button>
-          ) : (
-            <button
-              onClick={() => onNavigate && onNavigate(poi)}
-              className="w-full text-white py-3.5 rounded-full font-bold flex items-center justify-center gap-2 shadow-lg shadow-orange-400/30 active:scale-95 transition-all text-sm min-h-[44px]"
-              style={{ background: 'linear-gradient(135deg, #C2703E, #D4A843)' }}>
-              <Navigation size={18} /> Naviga
-            </button>
-          )}
+            )}
 
-          {/* TRANSIT BRIDGE */}
-          {transportMode === 'transit' && (
-            <button 
-              onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${poi.latitude || poi.lat},${poi.longitude || poi.lng}&travelmode=transit`, '_blank')}
-              className="w-full mt-3 bg-indigo-600 text-white py-4 rounded-[1.25rem] font-bold flex items-center justify-center gap-2 shadow-lg hover:bg-indigo-700 active:scale-95 transition-all text-sm"
-            >
-              <Navigation size={18} /> Ottieni Percorso Bus/Metro
-            </button>
-          )}
+            {transportMode === 'transit' && (
+              <button
+                type="button"
+                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${poi.latitude || poi.lat},${poi.longitude || poi.lng}&travelmode=transit`, '_blank')}
+                className="w-full mt-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 border border-stone-200 text-xs transition-colors"
+              >
+                <Navigation size={13} /> Indicazioni con mezzi pubblici
+              </button>
+            )}
+          </div>
 
         </div>
       </motion.div>
     </AnimatePresence>
   );
 };
+

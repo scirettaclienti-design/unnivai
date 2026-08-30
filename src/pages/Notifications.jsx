@@ -285,30 +285,19 @@ export default function NotificationsPage() {
     };
 
     const getNotificationIcon = (type) => {
+        const cls = "w-5 h-5 text-obsidian-secondary";
         switch (type) {
-            case 'tour_recommendation': return <MapPin className="w-5 h-5 text-terracotta-500" />;
-            case 'weather_alert': return <Sun className="w-5 h-5 text-yellow-500" />;
-            case 'weather_change': return <CloudRain className="w-5 h-5 text-blue-500" />;
-            case 'social_activity': return <Heart className="w-5 h-5 text-red-500" />;
-            case 'tour_reminder': return <Clock className="w-5 h-5 text-green-500" />;
-            case 'group_invite': return <Users className="w-5 h-5 text-purple-500" />;
-            case 'guide_message': return <MessageCircle className="w-5 h-5 text-blue-500" />;
-            case 'price_offer': return <Gift className="w-5 h-5 text-green-500" />;
-            case 'request_accepted': return <Check className="w-5 h-5 text-teal-500" />;
-            case 'request_declined': return <X className="w-5 h-5 text-red-500" />;
-            default: return <Bell className="w-5 h-5 text-gray-500" />;
-        }
-    };
-
-    const getActionColor = (action) => {
-        switch (action) {
-            case 'prenota': return 'bg-terracotta-500 hover:bg-terracotta-600';
-            case 'scopri': return 'bg-blue-500 hover:bg-blue-600';
-            case 'vedi': return 'bg-purple-500 hover:bg-purple-600';
-            case 'dettagli': return 'bg-green-500 hover:bg-green-600';
-            case 'rispondi': return 'bg-indigo-500 hover:bg-indigo-600';
-            case 'esplora': return 'bg-orange-500 hover:bg-orange-600';
-            default: return 'bg-gray-500 hover:bg-gray-600';
+            case 'tour_recommendation': return <MapPin className={cls} />;
+            case 'weather_alert': return <Sun className={cls} />;
+            case 'weather_change': return <CloudRain className={cls} />;
+            case 'social_activity': return <Heart className={cls} />;
+            case 'tour_reminder': return <Clock className={cls} />;
+            case 'group_invite': return <Users className={cls} />;
+            case 'guide_message': return <MessageCircle className={cls} />;
+            case 'price_offer': return <Gift className={cls} />;
+            case 'request_accepted': return <Check className={cls} />;
+            case 'request_declined': return <X className={cls} />;
+            default: return <Bell className={cls} />;
         }
     };
 
@@ -320,30 +309,35 @@ export default function NotificationsPage() {
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 pb-20 font-quicksand">
+        <div className="min-h-screen bg-obsidian-bg pb-24 font-quicksand">
             {/* Header Allineato al Telaio Ossidiana */}
-            <div className="sticky top-0 z-20 bg-obsidian-bg border-b border-obsidian-border shadow-md">
+            <div className="sticky top-0 z-20 bg-obsidian-bg border-b border-obsidian-border">
                 <div className="relative">
                     <div className="flex items-center justify-between p-4">
                         <div className="flex items-center space-x-3">
                             <Link to="/dashboard-user">
                                 <motion.button
-                                    className="p-2 bg-obsidian-card hover:bg-obsidian-raised rounded-full transition-colors border border-obsidian-border"
+                                    className="p-2 bg-obsidian-raised hover:bg-obsidian-card rounded-full transition-colors border border-obsidian-border"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
                                     <ArrowLeft className="w-5 h-5 text-obsidian-primary" />
                                 </motion.button>
                             </Link>
-                            <div>
+                            <div className="flex items-center gap-2.5">
                                 <h1 className="text-2xl font-bold text-obsidian-primary tracking-tight">Notifiche</h1>
+                                {unreadCount > 0 && (
+                                    <span className="px-2 py-0.5 text-xs font-bold bg-brand-orange text-obsidian-bg rounded-full">
+                                        {unreadCount}
+                                    </span>
+                                )}
                             </div>
                         </div>
                         <div className="flex items-center space-x-2">
                             {unreadCount > 0 && (
                                 <motion.button
                                     onClick={markAllAsRead}
-                                    className="text-brand-orange hover:text-brand-orange-hover text-xs font-bold px-3 py-1.5 bg-obsidian-card border border-obsidian-border rounded-full"
+                                    className="text-brand-orange hover:text-brand-orange-hover text-xs font-bold px-3 py-1.5 bg-obsidian-raised border border-obsidian-border rounded-full"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
@@ -352,7 +346,7 @@ export default function NotificationsPage() {
                             )}
                             <Link to="/notification-settings">
                                 <motion.button
-                                    className="p-2 bg-obsidian-card hover:bg-obsidian-raised rounded-full transition-colors border border-obsidian-border"
+                                    className="p-2 bg-obsidian-raised hover:bg-obsidian-card rounded-full transition-colors border border-obsidian-border"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
@@ -364,7 +358,7 @@ export default function NotificationsPage() {
 
                     {/* Modern Filter Tabs */}
                     <div className="px-4 pb-4">
-                        <div className="flex space-x-3 overflow-x-auto scrollbar-hide py-1">
+                        <div className="flex space-x-2 overflow-x-auto scrollbar-hide py-1">
                             {[
                                 { key: 'all', label: 'Tutte', icon: Bell },
                                 { key: 'messages', label: 'Messaggi', icon: MessageCircle },
@@ -376,14 +370,14 @@ export default function NotificationsPage() {
                                 <motion.button
                                     key={key}
                                     onClick={() => setFilter(key)}
-                                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-bold transition-all border ${filter === key
-                                        ? 'bg-brand-orange border-brand-orange text-obsidian-bg'
+                                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border shrink-0 ${filter === key
+                                        ? 'bg-brand-orange border-brand-orange text-obsidian-bg shadow-md shadow-brand-orange/20'
                                         : 'bg-obsidian-card border-obsidian-border text-obsidian-secondary hover:text-obsidian-primary hover:bg-obsidian-raised'
                                         }`}
-                                    whileHover={{ scale: 1.05, y: -1 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.97 }}
                                 >
-                                    <Icon className={`w-4 h-4 ${filter === key ? 'text-obsidian-bg' : 'text-obsidian-secondary'}`} />
+                                    <Icon className={`w-3.5 h-3.5 ${filter === key ? 'text-obsidian-bg' : 'text-obsidian-secondary'}`} />
                                     <span>{label}</span>
                                 </motion.button>
                             ))}
@@ -398,25 +392,21 @@ export default function NotificationsPage() {
                     {filteredNotifications.map((notification, index) => (
                         <motion.div
                             key={notification.id}
-                            className={`relative overflow-hidden backdrop-blur-md rounded-3xl transition-all ${notification.unread
-                                ? 'bg-white/80 border-2 border-terracotta-400/30 shadow-xl shadow-terracotta-500/10'
-                                : 'bg-white/50 border border-white/40 shadow-sm'
+                            onClick={() => handleNotificationClick(notification)}
+                            className={`relative overflow-hidden rounded-3xl transition-all cursor-pointer ${notification.unread
+                                ? 'bg-obsidian-card border border-obsidian-border shadow-lg'
+                                : 'bg-obsidian-card/60 border border-obsidian-border/50 shadow-sm'
                                 }`}
-                            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, x: -100, scale: 0.95 }}
-                            transition={{ delay: index * 0.05, type: "spring", stiffness: 300, damping: 25 }}
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, x: -50 }}
+                            transition={{ delay: index * 0.04, duration: 0.25 }}
                             layout
-                            whileHover={{ scale: 1.01 }}
                         >
-                            <div className="p-5 flex items-start gap-4">
+                            <div className="p-4 flex items-start gap-3.5">
                                 {/* Icon Container */}
                                 <div className="flex-shrink-0">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${notification.type === 'tour_recommendation' ? 'bg-orange-100 text-orange-600' :
-                                        notification.type === 'weather_alert' ? 'bg-yellow-100 text-yellow-600' :
-                                            notification.type === 'group_invite' ? 'bg-purple-100 text-purple-600' :
-                                                'bg-gray-100 text-gray-600'
-                                        }`}>
+                                    <div className="w-11 h-11 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center text-obsidian-secondary shadow-sm">
                                         {getNotificationIcon(notification.type)}
                                     </div>
                                 </div>
@@ -424,25 +414,23 @@ export default function NotificationsPage() {
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-start mb-1">
-                                        <h3 className={`font-bold text-gray-800 leading-tight ${notification.unread ? 'text-gray-900' : 'text-gray-700/80'}`}>
+                                        <h3 className={`font-bold text-sm leading-snug ${notification.unread ? 'text-obsidian-primary' : 'text-obsidian-secondary'}`}>
                                             {notification.title}
                                         </h3>
                                         {notification.unread && (
-                                            <div className="w-2 h-2 bg-terracotta-500 rounded-full mt-1.5 animate-pulse" />
+                                            <div className="w-2 h-2 bg-brand-orange rounded-full mt-1.5 ml-2 shrink-0" />
                                         )}
                                     </div>
 
-                                    {/* Blocco 2.1 FASE 4: preview breve (2 righe max) — il messaggio
-                                        completo si vede nel modal. Evita ridondanza lista/modal. */}
-                                    <p className="text-sm text-gray-600 leading-relaxed mb-3 line-clamp-2">
+                                    <p className="text-xs text-obsidian-secondary leading-relaxed mb-3 line-clamp-2">
                                         {notification.message}
                                     </p>
 
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-3 text-xs text-gray-400 font-medium">
+                                        <div className="flex items-center space-x-3 text-[11px] text-obsidian-secondary/70 font-medium">
                                             <span>{notification.time}</span>
                                             {notification.location && (
-                                                <span className="flex items-center text-gray-500">
+                                                <span className="flex items-center text-obsidian-secondary">
                                                     <MapPin className="w-3 h-3 mr-0.5" />
                                                     {notification.location}
                                                 </span>
@@ -450,15 +438,10 @@ export default function NotificationsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 flex items-center justify-between">
+                                    <div className="mt-3.5 flex items-center justify-between">
                                         {/* Action Button Area */}
                                         <div className="flex-1">
                                             {(() => {
-                                                // Gate T.3: copy dinamico anche nella card lista (non solo modal
-                                                // R.4). Se la notifica ha chosenPois, il CTA mostra "Vai a X" (1)
-                                                // o "Parti da X" (n) — coerente con quello che l'utente vedra' nel
-                                                // modal e nel tour precomputato. Fallback al copy attuale per
-                                                // notifiche non-AI (user_reply, price_offer, ecc.).
                                                 const chosen = Array.isArray(notification.chosenPois) ? notification.chosenPois : [];
                                                 let label;
                                                 if (chosen.length > 0 && chosen[0]?.name) {
@@ -471,17 +454,16 @@ export default function NotificationsPage() {
                                                 }
                                                 return (
                                                     <motion.button
-                                                        onClick={() => handleNotificationClick(notification)}
-                                                        className={`px-5 py-2 rounded-xl text-sm font-bold shadow-md flex items-center space-x-2 w-max ${notification.action === 'prenota' ? 'bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white' :
-                                                            notification.action === 'scopri' ? 'bg-gradient-to-r from-blue-400 to-blue-500 text-white' :
-                                                                notification.action === 'rispondi' ? 'bg-gradient-to-r from-purple-400 to-purple-500 text-white' :
-                                                                    'bg-white text-gray-700 border border-gray-100'
-                                                            }`}
-                                                        whileHover={{ scale: 1.05 }}
-                                                        whileTap={{ scale: 0.95 }}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleNotificationClick(notification);
+                                                        }}
+                                                        className="px-4 py-2 rounded-xl text-xs font-bold bg-brand-orange text-obsidian-bg hover:bg-brand-orange-hover transition-colors shadow-md shadow-brand-orange/20 flex items-center space-x-1.5 w-max"
+                                                        whileHover={{ scale: 1.02 }}
+                                                        whileTap={{ scale: 0.98 }}
                                                     >
                                                         <span>{label}</span>
-                                                        <ArrowRight className="w-3 h-3" />
+                                                        <ArrowRight className="w-3 h-3 text-obsidian-bg" />
                                                     </motion.button>
                                                 );
                                             })()}
@@ -492,17 +474,16 @@ export default function NotificationsPage() {
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 if (notification.type === 'price_offer' || notification.type === 'payment_confirmed') {
-                                                    // Conferma per notifiche importanti
                                                     if (!window.confirm('Eliminare questa notifica?')) return;
                                                 }
                                                 deleteNotification(notification.id);
                                             }}
-                                            className="p-2 ml-2 text-gray-400 hover:text-red-500 bg-white hover:bg-red-50 border border-gray-100 hover:border-red-100 rounded-xl transition-colors"
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
+                                            className="p-2 ml-2 text-obsidian-secondary/70 hover:text-obsidian-primary bg-obsidian-bg border border-obsidian-secondary/40 hover:border-obsidian-secondary rounded-xl transition-all shadow-inner"
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
                                             title="Elimina notifica"
                                         >
-                                            <Trash2 className="w-4 h-4" />
+                                            <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
                                         </motion.button>
                                     </div>
                                 </div>
@@ -512,11 +493,12 @@ export default function NotificationsPage() {
                 </AnimatePresence>
 
                 {filteredNotifications.length === 0 && (
-                    <div className="text-center py-20 opacity-60">
-                        <div className="w-24 h-24 bg-white/40 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Bell className="w-10 h-10 text-gray-400" />
+                    <div className="text-center py-20">
+                        <div className="w-14 h-14 bg-obsidian-raised border border-obsidian-border rounded-2xl flex items-center justify-center mx-auto mb-3 text-obsidian-secondary">
+                            <Bell className="w-6 h-6 stroke-[1.5]" />
                         </div>
-                        <p className="text-gray-600 font-medium">Nessuna notifica qui!</p>
+                        <p className="font-semibold text-obsidian-primary text-sm mb-1">Nessuna notifica qui</p>
+                        <p className="text-xs text-obsidian-secondary">I tuoi aggiornamenti, itinerari e messaggi appariranno qui.</p>
                     </div>
                 )}
             </div>
@@ -525,17 +507,17 @@ export default function NotificationsPage() {
             <AnimatePresence>
                 {selectedNotification && (
                     <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setSelectedNotification(null)}
                     >
                         <motion.div
-                            className="bg-white rounded-[28px] w-full max-w-sm overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)]"
-                            initial={{ scale: 0.9, y: 20 }}
+                            className="bg-obsidian-card border border-obsidian-border text-obsidian-primary rounded-[28px] w-full max-w-sm overflow-hidden shadow-2xl"
+                            initial={{ scale: 0.95, y: 15 }}
                             animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
+                            exit={{ scale: 0.95, y: 15 }}
                             onClick={e => e.stopPropagation()}
                         >
                             <div className="p-6">
@@ -550,26 +532,26 @@ export default function NotificationsPage() {
                                         <>
                                             {/* Header: icona meteo + temperatura + città a sinistra, X a destra. Discreto. */}
                                             <div className="flex justify-between items-center mb-4">
-                                                <div className="flex items-center gap-2 text-gray-600">
-                                                    <WeatherIcon className="w-5 h-5" style={{ color: '#E8833A' }} />
+                                                <div className="flex items-center gap-2 text-obsidian-secondary">
+                                                    <WeatherIcon className="w-5 h-5 text-brand-orange" />
                                                     {typeof temperatureC === 'number' && (
-                                                        <span className="text-sm font-semibold text-gray-800">{Math.round(temperatureC)}°</span>
+                                                        <span className="text-sm font-semibold text-obsidian-primary">{Math.round(temperatureC)}°</span>
                                                     )}
                                                     {city && (
-                                                        <span className="text-sm text-gray-500">· {city}</span>
+                                                        <span className="text-sm text-obsidian-secondary">· {city}</span>
                                                     )}
                                                 </div>
                                                 <button
                                                     onClick={() => setSelectedNotification(null)}
-                                                    className="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
+                                                    className="p-2 bg-obsidian-raised rounded-full text-obsidian-secondary hover:text-obsidian-primary border border-obsidian-border transition-colors"
                                                     aria-label="Chiudi"
                                                 >
-                                                    <X className="w-5 h-5" />
+                                                    <X className="w-4 h-4" />
                                                 </button>
                                             </div>
 
                                             {/* Micro-caption: time·città (piccolo) */}
-                                            <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-gray-400 font-medium mb-2">
+                                            <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-obsidian-secondary font-medium mb-2">
                                                 <Clock className="w-3 h-3" />
                                                 <span>{selectedNotification.time}</span>
                                                 {selectedNotification.location && (
@@ -581,10 +563,10 @@ export default function NotificationsPage() {
                                             </div>
 
                                             {/* Titolo pulito (senza emoji) */}
-                                            <h2 className="text-xl font-bold text-gray-900 mb-2 leading-tight">{cleanTitle}</h2>
+                                            <h2 className="text-xl font-bold text-obsidian-primary mb-2 leading-tight">{cleanTitle}</h2>
 
                                             {/* Descrizione */}
-                                            <p className="text-gray-600 mb-6 leading-relaxed whitespace-pre-wrap">
+                                            <p className="text-obsidian-secondary text-sm mb-6 leading-relaxed whitespace-pre-wrap">
                                                 {selectedNotification.message}
                                             </p>
                                         </>
@@ -595,25 +577,23 @@ export default function NotificationsPage() {
                                 {!(selectedNotification.category === 'tours' || selectedNotification.category === 'weather') && (
                                     <>
                                         <div className="flex justify-between items-start mb-4">
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${selectedNotification.category === 'messages' ? 'bg-blue-100 text-blue-600' :
-                                                'bg-gray-100 text-gray-600'
-                                                }`}>
+                                            <div className="w-12 h-12 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center text-obsidian-secondary shadow-lg">
                                                 {getNotificationIcon(selectedNotification.type)}
                                             </div>
                                             <button
                                                 onClick={() => setSelectedNotification(null)}
-                                                className="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200 transition-colors"
+                                                className="p-2 bg-obsidian-raised rounded-full text-obsidian-secondary hover:text-obsidian-primary border border-obsidian-border transition-colors"
                                             >
-                                                <X className="w-5 h-5" />
+                                                <X className="w-4 h-4" />
                                             </button>
                                         </div>
 
-                                        <h2 className="text-xl font-bold text-gray-900 mb-2">{selectedNotification.title}</h2>
-                                        <p className="text-gray-600 mb-6 leading-relaxed whitespace-pre-wrap">
+                                        <h2 className="text-xl font-bold text-obsidian-primary mb-2">{selectedNotification.title}</h2>
+                                        <p className="text-obsidian-secondary text-sm mb-6 leading-relaxed whitespace-pre-wrap">
                                             {selectedNotification.message}
                                         </p>
 
-                                        <div className="flex items-center space-x-3 text-sm text-gray-500 mb-6 bg-gray-50 p-3 rounded-xl">
+                                        <div className="flex items-center space-x-3 text-xs text-obsidian-secondary mb-6 bg-obsidian-raised p-3 rounded-xl border border-obsidian-border">
                                             <Clock className="w-4 h-4" />
                                             <span>Ricevuta alle {selectedNotification.time}</span>
                                         </div>
@@ -624,7 +604,7 @@ export default function NotificationsPage() {
                                     {selectedNotification.category === 'messages' && selectedNotification.actionData?.guide_id ? (
                                         <div className="w-full">
                                             <textarea
-                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta-500/50 mb-3 resize-none"
+                                                className="w-full bg-obsidian-bg border border-obsidian-border text-obsidian-primary placeholder:text-obsidian-secondary/50 rounded-xl p-3 text-xs focus:outline-none focus:border-brand-orange mb-3 resize-none"
                                                 rows="3"
                                                 placeholder="Scrivi la tua risposta qui..."
                                                 value={replyText}
@@ -632,12 +612,12 @@ export default function NotificationsPage() {
                                             ></textarea>
                                             
                                             {(replyText.includes('[Numero Nascosto]') || replyText.includes('[Email Nascosta]')) ? (
-                                                <div className="mb-3 flex gap-2 items-start bg-red-50 p-3 rounded-lg border border-red-100 text-red-700 text-xs">
-                                                    <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" />
-                                                    <p><strong>Dati Sensibili Trovati:</strong> Per tutelare te e la Guida, non è consentito scambiarsi numeri o email fuori piattaforma prima della prenotazione. Cerca di non inserire numeri di telefono o email.</p>
+                                                <div className="mb-3 flex gap-2 items-start bg-obsidian-raised p-3 rounded-xl border border-brand-orange/30 text-obsidian-primary text-xs">
+                                                    <AlertTriangle size={14} className="flex-shrink-0 mt-0.5 text-brand-orange" />
+                                                    <p><strong>Dati Sensibili Trovati:</strong> Per tutelare te e la Guida, non è consentito scambiarsi numeri o email fuori piattaforma prima della prenotazione.</p>
                                                 </div>
                                             ) : (
-                                                <div className="mb-3 flex items-center gap-1.5 text-[10px] text-gray-400">
+                                                <div className="mb-3 flex items-center gap-1.5 text-[10px] text-obsidian-secondary">
                                                     <Shield size={10} /> I dati di contatto personali saranno sbloccati ad avvenuta chiusura della prenotazione.
                                                 </div>
                                             )}
@@ -646,10 +626,10 @@ export default function NotificationsPage() {
                                                 <button
                                                     onClick={handleReplySubmit}
                                                     disabled={isReplying || !replyText.trim()}
-                                                    className="flex-1 py-3 bg-terracotta-500 hover:bg-terracotta-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-xl font-bold text-center shadow-md transition-colors flex items-center justify-center gap-2"
+                                                    className="flex-1 py-3 bg-brand-orange hover:bg-brand-orange-hover disabled:bg-obsidian-raised disabled:text-obsidian-secondary/40 text-obsidian-bg rounded-xl font-bold text-center shadow-md transition-colors flex items-center justify-center gap-2 text-xs"
                                                 >
                                                     <span>{isReplying ? 'Invio...' : 'INVIA RISPOSTA'}</span>
-                                                    <ArrowRight className="w-4 h-4" />
+                                                    <ArrowRight className="w-4 h-4 text-obsidian-bg" />
                                                 </button>
                                                 {selectedNotification.type === 'payment_confirmed' && selectedNotification.actionData?.guide_id ? (
                                                     <button
@@ -660,7 +640,7 @@ export default function NotificationsPage() {
                                                             guideName: selectedNotification.title?.match(/guida (.+)/i)?.[1] || '',
                                                             tourTitle: selectedNotification.message?.match(/tour (.+?)[\.\!]/i)?.[1] || '',
                                                         })}
-                                                        className="flex-none py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-center transition-colors shadow-md flex items-center gap-2"
+                                                        className="flex-none py-3 px-4 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-xl font-bold text-center transition-colors shadow-md flex items-center gap-2 text-xs"
                                                     >
                                                         <Star className="w-4 h-4" /> RECENSISCI
                                                     </button>
@@ -668,11 +648,11 @@ export default function NotificationsPage() {
                                                     <button
                                                         onClick={handleAcceptOffer}
                                                         disabled={isCheckingOut}
-                                                        className="flex-none py-3 px-4 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-xl font-bold text-center transition-colors shadow-md flex items-center gap-2"
+                                                        className="flex-none py-3 px-4 bg-brand-orange hover:bg-brand-orange-hover disabled:bg-obsidian-raised disabled:text-obsidian-secondary/40 text-obsidian-bg rounded-xl font-bold text-center transition-colors shadow-md flex items-center gap-2 text-xs"
                                                     >
                                                         {isCheckingOut ? (
                                                             <>
-                                                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                                <span className="w-4 h-4 border-2 border-obsidian-bg border-t-transparent rounded-full animate-spin" />
                                                                 Avvio...
                                                             </>
                                                         ) : 'ACCETTA E PAGA'}
@@ -681,7 +661,7 @@ export default function NotificationsPage() {
                                                     <Link
                                                         to={selectedNotification.link}
                                                         state={selectedNotification.actionData?.request_id ? { openChatRequestId: selectedNotification.actionData.request_id } : {}}
-                                                        className="flex-none py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-center transition-colors"
+                                                        className="flex-none py-3 px-4 bg-obsidian-raised hover:bg-obsidian-card border border-obsidian-border text-obsidian-primary rounded-xl font-bold text-center transition-colors text-xs"
                                                         onClick={() => setSelectedNotification(null)}
                                                     >
                                                         {selectedNotification.action.toUpperCase()}
@@ -690,35 +670,26 @@ export default function NotificationsPage() {
                                             </div>
                                         </div>
                                     ) : selectedNotification.category === 'tours' ? (
-                                        // Blocco 2.1 FASE 2 — CTA "Vedi il giro" con precompute lazy.
-                                        // Gate R.4: copy ancorato al POI di partenza (Gate R.3 garantisce
-                                        // che chosenPois[0] sia il primo POI menzionato nella notifica).
-                                        //   loading    → "Sto preparando il giro..." (spinner)
-                                        //   ready 1 stop → "Vai a <POI>"
-                                        //   ready n stop → "Parti da <POI>"
-                                        //   error/idle → "Non riesco a preparare il giro"
                                         (() => {
                                             const stops = prewarm.tourData?.days?.[0]?.stops || [];
                                             const firstStop = stops[0];
                                             const rawName = firstStop?.title || firstStop?.name || '';
-                                            // Truncate se troppo lungo — mai sostituire con generico (locked Ivano).
                                             const displayName = rawName.length > 22 ? rawName.slice(0, 21).trimEnd() + '…' : rawName;
                                             const verb = stops.length > 1 ? 'Parti da' : 'Vai a';
                                             return (
                                                 <button
                                                     onClick={handleVediGiro}
                                                     disabled={prewarm.status !== 'ready'}
-                                                    className={`w-full py-3 text-white rounded-xl font-semibold text-center shadow-md transition-all flex items-center justify-center gap-1.5 text-sm whitespace-nowrap ${
+                                                    className={`w-full py-3 rounded-xl font-bold text-center shadow-lg transition-all flex items-center justify-center gap-1.5 text-xs whitespace-nowrap ${
                                                         prewarm.status === 'ready'
-                                                            ? 'hover:opacity-95 cursor-pointer'
-                                                            : 'cursor-not-allowed opacity-70'
+                                                            ? 'bg-brand-orange text-obsidian-bg hover:bg-brand-orange-hover cursor-pointer shadow-brand-orange/20'
+                                                            : 'bg-obsidian-raised text-obsidian-secondary/50 border border-obsidian-border cursor-not-allowed'
                                                     }`}
-                                                    style={{ backgroundColor: prewarm.status === 'ready' ? '#E8833A' : '#B8B8B8' }}
                                                 >
                                                     {prewarm.status === 'loading' ? (
-                                                        <><Loader className="w-4 h-4 animate-spin" /> Sto preparando il giro…</>
+                                                        <><Loader className="w-4 h-4 animate-spin text-obsidian-bg" /> Sto preparando il giro…</>
                                                     ) : prewarm.status === 'ready' && displayName ? (
-                                                        <>{verb} {displayName} <ArrowRight className="w-4 h-4" /></>
+                                                        <>{verb} {displayName} <ArrowRight className="w-4 h-4 text-obsidian-bg" /></>
                                                     ) : (
                                                         <>Non riesco a preparare il giro</>
                                                     )}
@@ -731,9 +702,9 @@ export default function NotificationsPage() {
                                             className="flex-1"
                                             onClick={() => setSelectedNotification(null)}
                                         >
-                                            <div className="w-full py-3 bg-terracotta-500 hover:bg-terracotta-600 text-white rounded-xl font-bold text-center shadow-md transition-colors flex items-center justify-center gap-2">
+                                            <div className="w-full py-3 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-xl font-bold text-center shadow-md transition-colors flex items-center justify-center gap-2 text-xs">
                                                 <span>{selectedNotification.action.toUpperCase()}</span>
-                                                <ArrowRight className="w-4 h-4" />
+                                                <ArrowRight className="w-4 h-4 text-obsidian-bg" />
                                             </div>
                                         </Link>
                                     )}

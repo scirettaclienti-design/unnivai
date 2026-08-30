@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Navigation, Clock, Users, ArrowRight, Sparkles, Home } from 'lucide-react';
+import { getCoverPalette } from '@/lib/categoryPalette';
 
 // Gate PULIZIA P1 — formatta minuti → "45 min" / "3h" / "1h 30m".
 // Il vecchio inline `(min % 60 || '')` trattava lo 0 come falsy e stampava
@@ -24,110 +25,110 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
     // Places verificata si mostra il gradient di categoria (TourCover ramo B),
     // non una piazza italiana a caso presentata come il tuo percorso.
     const mainImage = tourData.imageUrl || tourData.images?.[0] || null;
+    const moodPalette = getCoverPalette(choices?.mood || 'citta', null);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md overflow-y-auto">
             <motion.div
                 initial={{ opacity: 0, scale: 0.96, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="bg-white rounded-[2rem] shadow-2xl max-w-lg w-full overflow-hidden relative"
+                className="bg-obsidian-card border border-obsidian-border text-obsidian-primary rounded-[28px] shadow-2xl max-w-lg w-full overflow-hidden relative my-auto"
             >
                 {/* Visual Header */}
-                <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-stone-300 to-stone-500">
+                <div
+                    className="relative h-48 w-full overflow-hidden"
+                    style={{
+                        background: mainImage ? '#161311' : moodPalette.gradient,
+                    }}
+                >
                     {mainImage && (
                         <img
                             src={mainImage}
                             alt={tourData.title}
                             className="absolute inset-0 w-full h-full object-cover"
-                            // F26 DIFF 4 — il secondo stock era QUI, nell'onError: una
-                            // foto rotta veniva sostituita da una piazza generica.
-                            // Ora l'img si nasconde e resta il fondo neutro sotto.
                             onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-obsidian-card via-obsidian-card/40 to-transparent" />
                     
-                    <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                        <Sparkles size={14} className="text-yellow-400" />
-                        AI Generated
-                    </div>
-
-                    <div className="absolute bottom-4 left-4 right-4 text-white">
-                        <p className="text-sm font-semibold text-orange-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                            <MapPin size={14} /> {tourData.city}
+                    {/* Micro-caption città e titolo tour */}
+                    <div className="absolute bottom-4 left-5 right-5 text-obsidian-primary">
+                        <p className="text-xs font-bold text-brand-orange uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                            <MapPin size={13} /> {tourData.city}
                         </p>
-                        <h2 className="text-3xl font-black tracking-tight leading-none drop-shadow-md">
+                        <h2 className="text-2xl font-black tracking-tight leading-tight text-obsidian-primary drop-shadow-sm">
                             {tourData.title}
                         </h2>
                     </div>
                 </div>
 
                 <div className="px-6 py-6 space-y-6">
+                    {/* Badge Itinerario AI (fuori dalla foto) */}
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-obsidian-raised border border-obsidian-border text-obsidian-secondary text-xs font-semibold w-max shadow-sm">
+                        <Sparkles size={13} className="text-brand-orange" />
+                        <span>Itinerario cucito dall'AI</span>
+                    </div>
+
                     {/* Le tue scelte */}
-                    <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 w-16 h-16 bg-orange-100 rounded-full opacity-50 blur-xl" />
-                        
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                    <div className="bg-obsidian-raised rounded-2xl p-4 border border-obsidian-border relative overflow-hidden">
+                        <h3 className="text-xs font-bold text-obsidian-secondary uppercase tracking-wider mb-3">
                             Il tuo DNA Esplorativo
                         </h3>
                         
                         <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
                             <div className="flex flex-col">
-                                <span className="text-gray-500 text-xs">Mood</span>
-                                <span className="font-bold text-gray-900">{choices?.mood || '—'}</span>
+                                <span className="text-obsidian-secondary text-xs">Mood</span>
+                                <span className="font-bold text-obsidian-primary">{choices?.mood || '—'}</span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-gray-500 text-xs">Ispirazione</span>
-                                <span className="font-bold text-gray-900">{choices?.inspiration || '—'}</span>
+                                <span className="text-obsidian-secondary text-xs">Ispirazione</span>
+                                <span className="font-bold text-obsidian-primary">{choices?.inspiration || '—'}</span>
                             </div>
                             <div className="flex items-center gap-2 mt-1">
-                                <Clock size={16} className="text-orange-500" />
-                                <span className="font-bold text-gray-900">{choices?.duration || '—'}</span>
+                                <Clock size={15} className="text-brand-orange" />
+                                <span className="font-bold text-obsidian-primary">{choices?.duration || '—'}</span>
                             </div>
                             <div className="flex items-center gap-2 mt-1">
-                                <Users size={16} className="text-orange-500" />
-                                <span className="font-bold text-gray-900">{choices?.group || '—'}</span>
+                                <Users size={15} className="text-brand-orange" />
+                                <span className="font-bold text-obsidian-primary">{choices?.group || '—'}</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Stats — Gate 2 FASE 3: rimosso "100% MATCH".
-                        Non c'era alcun calcolo dietro; era un numero autorevole senza
-                        sostanza — esattamente il pattern che il gate estirpa. */}
+                    {/* Stats */}
                     <div className="flex items-center justify-around px-2">
                         <div className="text-center">
-                            <p className="text-3xl font-black text-gray-900">{tourData.steps?.length || 0}</p>
-                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Tappe</p>
+                            <p className="text-3xl font-black text-obsidian-primary">{tourData.steps?.length || 0}</p>
+                            <p className="text-xs text-obsidian-secondary font-bold uppercase tracking-widest mt-0.5">Tappe</p>
                         </div>
                         {durationLabel && (
                             <>
-                                <div className="w-px h-10 bg-gray-200" />
+                                <div className="w-px h-10 bg-obsidian-border" />
                                 <div className="text-center">
-                                    <p className="text-3xl font-black text-gray-900">{durationLabel}</p>
-                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-0.5">Durata</p>
+                                    <p className="text-3xl font-black text-obsidian-primary">{durationLabel}</p>
+                                    <p className="text-xs text-obsidian-secondary font-bold uppercase tracking-widest mt-0.5">Durata</p>
                                 </div>
                             </>
                         )}
                     </div>
 
-                    {/* Tappe Generate (Nuovo) */}
+                    {/* Tappe Generate (descrizioni intere, senza troncamento forzato) */}
                     {tourData.steps?.length > 0 && (
-                        <div className="mt-4 bg-gray-50/50 rounded-2xl p-3 border border-gray-100">
-                            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">Itinerario Generato</h4>
-                            <div className="space-y-2.5 max-h-[140px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200">
+                        <div className="mt-4 bg-obsidian-raised/60 rounded-2xl p-3.5 border border-obsidian-border">
+                            <h4 className="text-[10px] font-bold text-obsidian-secondary uppercase tracking-widest mb-3 px-1">Itinerario Generato</h4>
+                            <div className="space-y-3 max-h-[260px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-obsidian-border">
                                 {tourData.steps.map((step, idx) => (
-                                    <div key={idx} className="flex items-start gap-3 bg-white p-2.5 rounded-xl border border-gray-100 shadow-sm relative overflow-hidden group">
-                                        {/* Highlight connection line simulation */}
+                                    <div key={idx} className="flex items-start gap-3 bg-obsidian-card p-3 rounded-xl border border-obsidian-border shadow-sm relative overflow-hidden group">
                                         {idx !== tourData.steps.length - 1 && (
-                                            <div className="absolute left-[1.35rem] top-8 bottom-[-10px] w-0.5 bg-gray-100 z-0" />
+                                            <div className="absolute left-[1.35rem] top-8 bottom-[-12px] w-0.5 bg-obsidian-border z-0" />
                                         )}
-                                        <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-[11px] font-black shrink-0 relative z-10 shadow-sm">
+                                        <div className="w-6 h-6 rounded-full bg-brand-orange text-obsidian-bg flex items-center justify-center text-[11px] font-bold shrink-0 relative z-10 shadow-sm mt-0.5">
                                             {idx + 1}
                                         </div>
-                                        <div className="flex-1 min-w-0 pb-0.5 relative z-10">
-                                            <p className="text-sm font-extrabold text-gray-900 truncate leading-tight">{step.name || step.title || `Tappa ${idx+1}`}</p>
-                                            <p className="text-[11px] text-gray-500 truncate mt-0.5 font-medium">{step.description || step.category || 'Esplorazione consigliata'}</p>
+                                        <div className="flex-1 min-w-0 relative z-10">
+                                            <p className="text-sm font-bold text-obsidian-primary leading-tight">{step.name || step.title || `Tappa ${idx+1}`}</p>
+                                            <p className="text-xs text-obsidian-secondary mt-1 leading-relaxed font-medium">{step.description || step.category || 'Esplorazione consigliata'}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -139,18 +140,16 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                     <div className="pt-2 flex flex-col gap-3">
                         <button
                             onClick={onViewMap}
-                            className="w-full relative overflow-hidden group bg-gray-900 text-white py-4.5 rounded-[1.25rem] font-bold flex items-center justify-center gap-2 shadow-xl shadow-gray-900/20 hover:shadow-2xl hover:shadow-gray-900/40 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
-                            style={{ padding: '1.2rem' }}
+                            className="w-full bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 transition-colors text-sm cursor-pointer"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-terracotta-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            <Navigation size={20} className="relative z-10 group-hover:text-white transition-colors" />
-                            <span className="relative z-10 text-lg tracking-wide uppercase">Vedi Mappa</span>
-                            <ArrowRight size={20} className="relative z-10 group-hover:translate-x-1 transition-transform" />
+                            <Navigation size={18} className="text-obsidian-bg" />
+                            <span>Vedi mappa</span>
+                            <ArrowRight size={18} className="text-obsidian-bg" />
                         </button>
 
                         <button
                             onClick={onHome}
-                            className="w-full text-gray-500 hover:text-gray-900 font-bold py-3 text-sm flex items-center justify-center gap-2 transition-colors"
+                            className="w-full text-obsidian-secondary hover:text-obsidian-primary font-bold py-3 text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
                         >
                             <Home size={16} /> Torna alla Home
                         </button>

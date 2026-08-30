@@ -9,7 +9,6 @@ import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import GoogleMapContainer from './Map/GoogleMapContainer';
 import MapMarker from './Map/MapMarker';
 import TourRoute from './Map/TourRoute';
-import { MAP_MOODS } from '../lib/schemas';
 
 const CLUSTER_THRESHOLD = 50;
 
@@ -109,7 +108,10 @@ const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userL
 export default function UnnivaiMap({
     activities = [],
     routePoints = [],
-    mapMood = 'default',
+    // `mapMood` non e' piu' destrutturato: sceglieva il Map ID via MAP_MOODS, ma
+    // tutti gli undici mood puntavano allo stesso ID. Continua ad arrivare dai
+    // chiamanti (MapPage, Explore, DashboardUser) dentro `...props` e viene
+    // scartato da GoogleMapContainer, che gia' lo elencava fra le PROPS TO STRIP.
     suggestedTransit,
     userLocation,
     onActivityClick,
@@ -121,10 +123,9 @@ export default function UnnivaiMap({
         activities.filter(a => a && (a.latitude || a.lat) && (a.longitude || a.lng)),
     [activities]);
 
-    const finalMapId = MAP_MOODS[mapMood]?.style || MAP_MOODS.default?.style || import.meta.env.VITE_GOOGLE_MAP_ID;
-
+    // Nessun `mapId` passato: la sorgente unica e' MAP_ID in GoogleMapContainer.
     return (
-        <GoogleMapContainer mapId={finalMapId} activities={activities} routePoints={routePoints} {...props}>
+        <GoogleMapContainer activities={activities} routePoints={routePoints} {...props}>
             <MarkersAndRoute
                 validActivities={validActivities}
                 routePoints={routePoints}

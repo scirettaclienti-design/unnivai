@@ -13,12 +13,6 @@ import { useUserContext } from "@/hooks/useUserContext";
 import { resolveCityCenter, CityCenterUnresolvedError } from "@/services/cityCenterService";
 const categories = ["Tutti", "Gastronomia", "Cultura", "Natura", "Arte", "Romantico"];
 
-const VALIDATION_CITIES = [
-    { id: 'milano', name: 'Milano', tag: 'Metropoli', center: { lat: 45.4642, lng: 9.1900 } },
-    { id: 'venezia', name: 'Venezia', tag: "Città d'acqua", center: { lat: 45.4408, lng: 12.3155 } },
-    { id: 'amalfi', name: 'Amalfi', tag: 'Centro piccolo', center: { lat: 40.6340, lng: 14.6027 } },
-];
-
 function ExplorePage() {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
@@ -56,18 +50,17 @@ function ExplorePage() {
         return () => { cancelled = true; };
     }, [city]);
 
-    const [selectedValidationCity, setSelectedValidationCity] = useState(null);
-
-    // Active center and city for map preview
-    const activePreviewCity = selectedValidationCity || (city?.toLowerCase().includes('venezia')
-        ? VALIDATION_CITIES[1]
-        : city?.toLowerCase().includes('amalfi')
-            ? VALIDATION_CITIES[2]
-            : (mapCenter ? { name: city, center: mapCenter, tag: 'Città corrente' } : VALIDATION_CITIES[0]));
-
-    const currentMapCenter = activePreviewCity.center || mapCenter || VALIDATION_CITIES[0].center;
-    const currentMapCity = activePreviewCity.name || city || 'Milano';
-
+    // Gate CLEANUP estetica — qui vivevano la tabella delle tre citta' di
+    // validazione (Milano/Venezia/Amalfi) e i derivati che ne dipendevano:
+    // codice di sola verifica, per guardare la mappa su morfologie diverse.
+    // Rimosso col resto del ponteggio.
+    //
+    // Non era solo UI. Il centro mappa derivato cadeva sulla prima citta' della
+    // tabella quando `mapCenter` era null, cioe' reintroduceva un centro
+    // HARDCODED — la stessa forma del bug O.2 (fallback Roma) che il Gate CC.2b
+    // aveva tolto poche righe piu' su. Si torna al contratto di quel gate: se
+    // `resolveCityCenter` non risolve, `mapCenter` resta null e la mappa non si
+    // monta. Nessuna citta' di ripiego.
     const mapContainerRef = useRef(null);
     useEffect(() => {
         if (!mapContainerRef.current) return;
@@ -83,7 +76,7 @@ function ExplorePage() {
             clearTimeout(t1);
             clearTimeout(t2);
         };
-    }, [currentMapCenter]);
+    }, [mapCenter]);
 
     // Initialize favorites from localStorage
     const [favoriteItems, setFavoriteItems] = useState(() => {
@@ -290,44 +283,22 @@ function ExplorePage() {
                 </motion.div>
 
                 {/* Map Preview Section - Click to Expand */}
-                {currentMapCenter && (
+                {mapCenter && (
                     <div className="mb-4">
                         <div className="flex justify-between items-end mb-2 px-1">
                             <div>
                                 <h2 className="font-bold text-lg text-obsidian-primary">Mappa Interattiva</h2>
-                                <p className="text-[11px] text-obsidian-secondary mt-0.5">Validazione preview su città e morfologie diverse</p>
                             </div>
                             <Link
                                 to="/map"
-                                state={{ initialCenter: currentMapCenter }}
+                                state={{ initialCenter: mapCenter }}
                                 className="text-xs font-medium text-obsidian-secondary hover:text-obsidian-primary transition-colors"
                             >
                                 Apri a schermo intero
                             </Link>
                         </div>
 
-                        {/* Selettore rapido 3 città per validazione viewport */}
-                        <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide py-0.5">
-                            {VALIDATION_CITIES.map((c) => {
-                                const isSelected = activePreviewCity?.id === c.id || (!selectedValidationCity && activePreviewCity?.name?.toLowerCase() === c.name.toLowerCase());
-                                return (
-                                    <button
-                                        key={c.id}
-                                        type="button"
-                                        onClick={() => setSelectedValidationCity(c)}
-                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border shrink-0 ${
-                                            isSelected
-                                                ? 'bg-brand-orange text-obsidian-bg border-brand-orange shadow-md shadow-brand-orange/25'
-                                                : 'bg-obsidian-card text-obsidian-secondary border-obsidian-border hover:text-obsidian-primary hover:border-obsidian-border-elevated'
-                                        }`}
-                                    >
-                                        {c.name} <span className={`text-[10px] ml-1 font-normal ${isSelected ? 'text-obsidian-bg/85' : 'text-obsidian-secondary/60'}`}>({c.tag})</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        <div onClick={() => navigate('/map', { state: { initialCenter: currentMapCenter } })} className="block">
+                        <div onClick={() => navigate('/map', { state: { initialCenter: mapCenter } })} className="block">
                             {/* Incastonatura Mappa: cornice card scura con bordo sottile e raggio 3xl per contenere la mappa */}
                             <div className="bg-obsidian-card p-1.5 rounded-3xl border border-obsidian-border shadow-xl group cursor-pointer w-full">
                                 <div
@@ -339,7 +310,7 @@ function ExplorePage() {
                                     }}
                                 >
                                     <UnnivaiMap
-                                        key={`${currentMapCenter.lat}-${currentMapCenter.lng}`}
+                                        key={`${mapCenter.lat}-${mapCenter.lng}`}
                                         height="100%"
                                         width="100%"
                                         zoom={13}
@@ -348,9 +319,9 @@ function ExplorePage() {
                                         defaultTilt={0}
                                         interactive={false}
                                         showUserLocation={false}
-                                        initialCenter={{ latitude: currentMapCenter.lat, longitude: currentMapCenter.lng }}
-                                        viewCenter={{ latitude: currentMapCenter.lat, longitude: currentMapCenter.lng }}
-                                        activeCity={currentMapCity}
+                                        initialCenter={{ latitude: mapCenter.lat, longitude: mapCenter.lng }}
+                                        viewCenter={{ latitude: mapCenter.lat, longitude: mapCenter.lng }}
+                                        activeCity={city}
                                         activities={mapActivities}
                                         mapMood="default"
                                     />

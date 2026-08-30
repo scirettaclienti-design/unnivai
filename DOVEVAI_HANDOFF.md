@@ -5276,11 +5276,12 @@ migliora un motore mentre queste tre dicono il falso a chi guarda lo schermo.
 
 ### Primo scaglione — undici voci viste su device (30/08)
 
-**1) La notifica afferma una distanza personale senza GPS attivo.**
-*"e' a 11 minuti da te"* mentre la Home, nella stessa schermata, mostra ancora
-**"Attiva la tua posizione"**. Falso in produzione, sulla superficie piu'
-visibile del prodotto. E' la regola locked #6 rotta nel punto peggiore: non un
-aggettivo di troppo, un **fatto affermato senza la misura che lo reggerebbe**.
+**1) ~~La notifica afferma una distanza personale senza GPS attivo.~~**
+✅ **CHIUSA il 30/08, commit `3dbc353`.** Dettaglio nella sessione 30/08 (3).
+*"e' a 11 minuti da te"* mentre la Home, nella stessa schermata, mostrava ancora
+**"Attiva la tua posizione"**. Era la regola locked #6 rotta nel punto peggiore:
+non un aggettivo di troppo, un **fatto affermato senza la misura che lo
+reggerebbe**. **Verdict device ancora da dare.**
 
 **2) Sistema guide: presente nell'interfaccia, inesistente in V1. TRE superfici.**
 - **guide inventate in TourDetails** — *Marco Polo 4.9*, *Chiara Esposito 4.6*,
@@ -5706,6 +5707,60 @@ Nota sul perimetro: il vincolo che teneva `DashboardUser`, `TourDetails` e
 semplicemente nessuno l'aveva dichiarato scaduto. Quindi le tre superfici
 toccate nel commit `331967f` non sono una violazione: sono un vincolo rimasto
 scritto piu' a lungo della sua ragione.
+
+---
+
+## Sessione 30/08 (3) — VOCE 1 chiusa: la distanza affermata senza GPS
+
+**VOCE 1 CHIUSA — commit `3dbc353`** (su main, 5 file, `+148 −8`).
+
+`source` viene ora **propagato** dai due consumatori (`NotificationBell.jsx:13`,
+`Notifications.jsx:54`) attraverso `useUserNotifications` fino al servizio, e
+`hasGps` legge `ctx.source === 'gps'` invece di **dedurre il GPS dall'esistenza
+di due numeri**. Quei due numeri, in tre rami su quattro di
+`userContextService`, erano le coordinate della **citta'** (`:46` manuale, `:93`
+profilo/localStorage, tabella hardcoded a `:208`); solo `:59` li prende dal
+dispositivo. Il ramo `else` del prompt — *"GPS utente: NON disponibile → NON
+dire «da te»"* — esisteva gia' ed e' rimasto intatto: non veniva **mai
+raggiunto**.
+
+Il dato che serviva era gia' nel payload: `getUserContext` produce `source`
+(`:170`) da sempre, nessuno lo propagava.
+
+**606 test** (+5, era 601), verdi senza `.env`. **Sonda: 4 rossi
+sull'asserzione** prima del fix (*expected '…' not to contain 'min a piedi da
+te'*, *expected '…' to contain 'GPS utente: NON disponibile'*); il quinto, la
+non-regressione con GPS attivo, era gia' verde ed e' rimasto verde.
+
+**NON risolve, e va saputo prima di dire che il difetto e' morto:**
+- **le due autorita' restano due.** `GpsActivationBanner` legge `gpsActive` da
+  `useCity`, la notifica legge `source` da `useUserContext`. Possono ancora
+  divergere sulla stessa schermata: qui si toglie l'**affermazione falsa**, non
+  si unifica la fonte.
+- **non esiste un guard sull'OUTPUT del modello.** I tre post-processing
+  (Gate T.2 anti-giudizio, lunghezza minima, anti-invenzione sui nomi) non
+  guardano ne' la distanza ne' `"da te"`.
+
+### DECISO: il guard sull'output NON si apre adesso
+
+E' un **gate distinto**, e va deciso **dopo il verdict su device**. Se il
+modello smette di dire "da te" perche' non gli viene piu' detto che il GPS c'e',
+il guard e' **una rete che non serve** — e una rete che non serve e' codice che
+qualcuno dovra' mantenere credendo che protegga qualcosa. Si apre solo se il
+difetto si rivede.
+
+### LEZIONE #43 — il lint verde non prova che il file compili
+
+Applicando il fix e' finita una **virgola mancante** nel destructuring di due
+componenti (`weatherCondition source }`). `npm run lint` e' passato con
+**0 errori** su due file che **non compilavano**. L'hanno trovata la suite
+(3 file rossi) e la build.
+
+ESLint **non segnala un errore di parsing come errore** in questa
+configurazione. Quindi: *lint verde su file rotto* e' un **falso segnale**,
+esattamente della stessa famiglia del *"verde in locale"* della regola locked
+#2. Il lint non e' una prova che il codice esista in forma valida — lo sono la
+suite e la build, e vanno girate entrambe prima di dire fatto.
 
 ---
 

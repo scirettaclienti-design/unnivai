@@ -3,18 +3,13 @@
 Punto di partenza per chi (o quale sessione di Claude) riprende il progetto.
 Aggiornare in coda dopo ogni iterazione importante.
 
-**Ultimo aggiornamento**: 2026-07-17 dopo Gate KK — diagnosi read-only su
-finding prod (screenshot ErrorBoundary vecchio con stack + "team notificato").
-Codice GG su main confermato corretto; crash causato da CACHE CLIENT STALE
-(browser Ivano eseguiva ancora bundle pre-GG con `index.html` vecchio che
-referenziava chunk hashati di un build precedente). Auto-risolto al refresh
-cache browser. **Verificato device Ivano 17/07**: app entra pulita, nessun
-crash attivo in prod. Backlog aggiornato con fix strutturale
-`vercel.json` cache policy (P2, pre-lancio) e advisory sicurezza RLS
-(4 tabelle senza RLS in prod). Precedenti sessione: Gate II (16-17/07,
-commit `00bb209`) narratore unificato N tour Home in 1 call; Gate GG (16/07)
-ErrorBoundary chunk-reload + error_logs; Gate FF.1 (16/07) responsive slide.
-Vercel verde. CC.3 Esplora rimane pendente.
+**Ultimo aggiornamento**: 2026-08-29 — aperto il **BLOCCO ESTETICA** su branch
+`estetica` (direzione INCHIOSTRO & OSSIDIANA, fondo `#0E0C0B` per l'intera app;
+Antigravity in parallelo al funzionale per la scadenza piano del 3 settembre).
+Sessione precedente: 28/08, **GATE INTENT chiuso** (cinque diff in produzione).
+Le sezioni di questo file sono in ordine cronologico: **leggere dal fondo**, e
+in caso di conflitto vince sempre il blocco datato più recente.
+La nota storica del 17/07 (Gate KK, cache client stale) resta nel corpo del file.
 
 ---
 
@@ -5404,6 +5399,172 @@ apre stretta.
 - **Navigazione**. TourLive/MapPage con NavigationHUD (DVAI-062-065) funziona
   ma non stampa telemetria d'uso. Serve: capire dove gli utenti abbandonano
   la nav per iterare.
+
+---
+
+## BLOCCO ESTETICA — branch `estetica`, Antigravity (Gemini) — 29/08
+
+**CONTESTO.** Il piano Google Antigravity scade il **3 settembre**. Il blocco
+estetica, che in questo handoff era previsto **DOPO** il funzionale, è stato
+aperto **in parallelo** su un branch separato (`estetica`) per sfruttare la
+finestra prima della scadenza.
+
+**REGOLA CAMBIATA, E PERCHÉ.** L'handoff dice "estetica congelata (P1),
+Antigravity dopo il funzionale". Quella regola **resta valida per navigazione
+e HUD**; **non vale più per il resto**. La ragione è la scadenza del piano,
+**non** un ripensamento di metodo: se il piano non scadesse, l'ordine
+originale reggerebbe.
+
+### Direzione approvata: INCHIOSTRO & OSSIDIANA
+
+Fondo `#0E0C0B` come direzione dell'**intera app**, non del solo onboarding.
+
+Motivo: il prodotto ha una cosa sola da mostrare, **foto di posti veri**. Il
+fondo scuro le fa risaltare, il fondo chiaro le appiattisce. E il **gradient di
+categoria** (TourCover ramo B) — che è l'identità visiva ogni volta che Google
+non ha la foto — sul buio funziona come materiale, non come riempimento.
+
+Scartata la strada "ossidiana solo in onboarding": avrebbe prodotto un ingresso
+da rivista che atterra su un'app da template.
+
+### Fatto e committato su `estetica`
+
+- **`ae85ff5`** — onboarding editoriale (prima versione, poi superata),
+  transizioni di pagina, card POI mobile (`POIDetailDrawer`).
+- **Transizioni**: `mode="wait"` **rimosso** da `AnimatePresence` — le pagine si
+  sovrappongono brevemente invece di lasciare lo schermo vuoto tra una e l'altra.
+- **Onboarding riscritto in Direzione A**, full-screen scuro. **Non ancora
+  committato** al momento di questa nota (`src/pages/Onboarding.jsx` modificato
+  in working tree).
+
+### In corso: quattro correzioni all'onboarding
+
+1. Terracotta delle tessere attive **slavato** → provare **tessera bianca su nero**.
+2. **Via il radio button** a destra: è la forma-del-form che stiamo togliendo.
+3. Testo delle **schermate 1 e 3 più in basso**, vicino all'azione.
+4. **Bottoni non in maiuscolo**.
+
+### Prossimo passo OBBLIGATO, prima di convertire le pagine
+
+**Ridisegnare il gradient di categoria per fondo scuro.** Oggi è calibrato su
+fondo chiaro: su ossidiana ogni copertina senza foto Places rischia di sembrare
+un **buco nero**, e quei gradient sono ovunque.
+
+**Verifica richiesta:** una copertina con gradient **accanto** a una con foto
+Places vera, **stesso fondo**. Se il gradient sembra un buco e la foto no, la
+conversione **peggiora** l'app: non si procede.
+
+### Ordine di conversione
+
+1. Gradient di categoria su fondo scuro.
+2. CSS globale + token Tailwind.
+3. `BottomNavigation` e `TopBar` (telaio, si
+
+> ⚠️ **NOTA TRONCATA IN CONSEGNA.** Il punto 3 e gli eventuali punti successivi
+> dell'ordine di conversione sono arrivati incompleti. **Da completare alla
+> prossima sessione prima di iniziare la conversione** — non ricostruire a
+> memoria.
+
+---
+
+## Sessione 30/08 — DIFF 1b chiuso e verificato, estetica in parallelo
+
+### FUNZIONALE — DIFF 1b CHIUSO
+
+**Cosa mostra la timeline adesso**: un **offset cumulativo dall'inizio del
+percorso**, non un orario assoluto. È la decisione di prodotto (**opzione C**),
+presa per non riprodurre in codice il difetto **F57**: un orario dovrebbe sapere
+a che ora l'utente parte, e non lo sappiamo — un tour si guarda ora e si cammina
+dopo. Un offset è vero a qualunque ora si parta. Include **A1**: AiItinerary ora
+legge `stayMinutes` e mostra la sosta sulla card.
+
+**Dove sta il codice.** Branch `diff-1b-offset`, **due commit** — `13ae78d`
+(il diff) e `6a6633d` (il test di render) — ramificati da `b1e2bf4`, in un
+worktree separato `../unnivai-1b`. **NON PUSHATO.** Suite **601/601**.
+
+**Verificato su iPhone**, su un tour vero a 5 tappe a Taranto:
+
+```
+Inizio → +32 min → +1h 56 → +3h 12 → +5h 44
+```
+
+Colonna stabile, sosta separata dall'offset.
+
+**L'invariante centrale è il null assorbente**: un `travelMinutesFromPrev` null
+annulla l'offset di quella tappa **e di tutte le successive**. Non si somma
+zero — zero è un'affermazione ("da qui a lì non ci si sposta"), null è la
+verità. Provato con sonda: sostituendo l'assorbimento con `?? 0`, **3 test
+rossi sull'asserzione** (`expected [0,35,55,95] to deeply equal
+[0,35,null,null]`), non sull'import.
+
+### Tre cose da sapere prima di rimetterci le mani
+
+**F52 NON è chiuso dal 1b.** Si sperava che gli orari calcolati chiudessero
+anche l'ordinamento incoerente. Senza orari assoluti la contraddizione è
+diventata **invisibile, non risolta**: F52 resta intero e va al **DIFF 2**.
+
+**`aiItinerary_timeline.test.js` aggancia la colonna sinistra via
+`min-w-[64px]`.** Quando AiItinerary sarà convertita all'ossidiana, quel
+selettore cambierà e il test diventerà rosso **senza che nulla si sia rotto**.
+Non è un regresso: è il prezzo di un test che prova il cablaggio invece che il
+calcolo. Va riagganciato, non cancellato.
+
+**Chiuso il mistero dei test.** `b1e2bf4` aveva già **582** test: era l'handoff
+a essere indietro col numero, non la suite a essere cresciuta di nascosto.
+Nessuno ha scritto test all'insaputa di nessuno.
+
+### Un'osservazione dal tour di Taranto
+
+Le 5 tappe erano **tutte di pesce**. Non è un difetto nuovo: è quello
+strutturale già registrato — il DNA che stringe su una categoria — che gli
+offset hanno solo reso **leggibile**, perché adesso si vede la giornata intera
+in colonna.
+
+---
+
+### ESTETICA — branch `estetica`, non committato
+
+**Onboarding CHIUSO e verificato su device.** Testo nero su arancione
+(**6.90:1**), tessere avorio con icona terracotta (**6.79:1**), colori
+secondari tutti sopra **4.5:1**, bagliori rimossi.
+
+**Scala colore in `src/styles/themeTokens.js`**: fondo `#0E0C0B`, card
+`#161311`, superficie sollevata `#1E1A17`, un solo arancione d'accento, due
+grigi di testo.
+
+> ⚠️ **`src/styles/` è UNTRACKED.** Con un `git add` sui soli file *modificati*
+> resta fuori dal commit e **il branch non compila**. Va aggiunto esplicitamente.
+
+**Gradient di categoria**: la versione multicolore è **INVALIDATA**. Rifatto
+**monocromatico arancione** su tre livelli di luminanza (**0.152 / 0.071 /
+0.024**). Emoji Apple sostituite con icone lineari Lucide.
+
+**Decisione APERTA: nove gradient o tre.** Il referto dice che senza glifo,
+dentro lo stesso Tier, le copertine **non si distinguono**.
+
+**`/cover-preview` è temporanea**: va rimossa prima di qualunque merge.
+
+**Ordine di conversione** (completa la nota troncata del 29/08):
+
+1. Gradient di categoria
+2. CSS globale + token
+3. `BottomNavigation` e `TopBar`
+4. Pagine libere
+
+`DashboardUser`, `TourDetails` e `AiItinerary` restano **vietate ad Antigravity**
+finché il funzionale non è chiuso.
+
+---
+
+### DEBITO DEVICE — invariato
+
+| voce | stato |
+|---|---|
+| **F56** — non affermare cosa accade *adesso* | aperto |
+| **DIFF 4** — che i log `[Narratore] VIOLAZIONE` compaiano | aperto |
+| **F55** — caso RELIGIOSO | aperto (il caso NATURA resta saldato) |
+| **DIFF 1a** — le quattro superfici | aperto |
+| **DIFF 6** — bottone **Profilo** in TourDetails | aperto |
 
 ---
 

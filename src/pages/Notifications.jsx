@@ -206,7 +206,7 @@ export default function NotificationsPage() {
             const { error } = await supabase.from('notifications').insert({
                 user_id: selectedNotification.actionData.guide_id,
                 type: 'user_reply',
-                title: `💬 Risposta da ${firstName || 'Utente'}`,
+                title: `Risposta da ${firstName || 'Utente'}`,
                 message: sanitizedText,
                 action_url: '/dashboard-guide',
                 action_data: { request_id: selectedNotification.actionData.request_id },
@@ -321,30 +321,29 @@ export default function NotificationsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 pb-20 font-quicksand">
-            {/* Header */}
-            <div className="sticky top-0 z-20">
-                <div className="absolute inset-0 bg-white/80 backdrop-blur-xl border-b border-white/40 shadow-sm" />
+            {/* Header Allineato al Telaio Ossidiana */}
+            <div className="sticky top-0 z-20 bg-obsidian-bg border-b border-obsidian-border shadow-md">
                 <div className="relative">
                     <div className="flex items-center justify-between p-4">
                         <div className="flex items-center space-x-3">
                             <Link to="/dashboard-user">
                                 <motion.button
-                                    className="p-2 bg-white/50 hover:bg-white rounded-full transition-colors shadow-sm"
+                                    className="p-2 bg-obsidian-card hover:bg-obsidian-raised rounded-full transition-colors border border-obsidian-border"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    <ArrowLeft className="w-5 h-5 text-gray-700" />
+                                    <ArrowLeft className="w-5 h-5 text-obsidian-primary" />
                                 </motion.button>
                             </Link>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Notifiche</h1>
+                                <h1 className="text-2xl font-bold text-obsidian-primary tracking-tight">Notifiche</h1>
                             </div>
                         </div>
                         <div className="flex items-center space-x-2">
                             {unreadCount > 0 && (
                                 <motion.button
                                     onClick={markAllAsRead}
-                                    className="text-terracotta-500 hover:text-terracotta-600 text-xs font-bold px-3 py-1.5 bg-terracotta-50 rounded-full"
+                                    className="text-brand-orange hover:text-brand-orange-hover text-xs font-bold px-3 py-1.5 bg-obsidian-card border border-obsidian-border rounded-full"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
@@ -353,11 +352,11 @@ export default function NotificationsPage() {
                             )}
                             <Link to="/notification-settings">
                                 <motion.button
-                                    className="p-2 bg-white/50 hover:bg-white rounded-full transition-colors shadow-sm"
+                                    className="p-2 bg-obsidian-card hover:bg-obsidian-raised rounded-full transition-colors border border-obsidian-border"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    <Settings className="w-5 h-5 text-gray-700" />
+                                    <Settings className="w-5 h-5 text-obsidian-primary" />
                                 </motion.button>
                             </Link>
                         </div>
@@ -377,14 +376,14 @@ export default function NotificationsPage() {
                                 <motion.button
                                     key={key}
                                     onClick={() => setFilter(key)}
-                                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-bold transition-all shadow-sm border ${filter === key
-                                        ? 'bg-terracotta-500 border-terracotta-500 text-white shadow-terracotta-500/30'
-                                        : 'bg-white/60 border-white/40 text-gray-600 hover:bg-white'
+                                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-bold transition-all border ${filter === key
+                                        ? 'bg-brand-orange border-brand-orange text-obsidian-bg'
+                                        : 'bg-obsidian-card border-obsidian-border text-obsidian-secondary hover:text-obsidian-primary hover:bg-obsidian-raised'
                                         }`}
                                     whileHover={{ scale: 1.05, y: -1 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    <Icon className={`w-4 h-4 ${filter === key ? 'text-white' : 'text-gray-500'}`} />
+                                    <Icon className={`w-4 h-4 ${filter === key ? 'text-obsidian-bg' : 'text-obsidian-secondary'}`} />
                                     <span>{label}</span>
                                 </motion.button>
                             ))}

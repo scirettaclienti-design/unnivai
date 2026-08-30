@@ -24,6 +24,25 @@ body {
 }
 
 :root {
+    /* Token Canonici Inchiostro & Ossidiana */
+    --obsidian-bg: #0E0C0B;
+    --obsidian-card: #161311;
+    --obsidian-raised: #1E1A17;
+    --obsidian-border: #26211E;
+    --obsidian-border-elevated: #332C28;
+
+    --brand-orange: #F97316;
+    --brand-orange-hover: #EA580C;
+    --brand-orange-deep: #9A3412;
+
+    --text-primary: #F5F5F4;
+    --text-secondary: #A8A29E;
+    --text-on-accent: #0E0C0B;
+
+    --ivory-bg: #F5F2EB;
+    --ivory-text: #0E0C0B;
+    --ivory-icon: #9A3412;
+
     --background: hsl(0, 0%, 100%);
     --foreground: hsl(20, 14.3%, 4.1%);
     --muted: hsl(60, 4.8%, 95.9%);
@@ -102,7 +121,7 @@ body {
     }
 
     body {
-        @apply font-quicksand antialiased bg-gradient-to-b from-ochre-100 to-ochre-200 text-foreground;
+        @apply font-quicksand antialiased text-foreground bg-obsidian-bg;
     }
 }
 

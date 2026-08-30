@@ -50,6 +50,26 @@ export default {
                     "4": "var(--chart-4)",
                     "5": "var(--chart-5)",
                 },
+                // Scala Design System Canonico: Inchiostro & Ossidiana
+                obsidian: {
+                    bg: "var(--obsidian-bg)",
+                    card: "var(--obsidian-card)",
+                    raised: "var(--obsidian-raised)",
+                    border: "var(--obsidian-border)",
+                    "border-elevated": "var(--obsidian-border-elevated)",
+                    primary: "var(--text-primary)",
+                    secondary: "var(--text-secondary)",
+                },
+                brand: {
+                    orange: "var(--brand-orange)",
+                    "orange-hover": "var(--brand-orange-hover)",
+                    "orange-deep": "var(--brand-orange-deep)",
+                },
+                ivory: {
+                    bg: "var(--ivory-bg)",
+                    text: "var(--ivory-text)",
+                    icon: "var(--ivory-icon)",
+                },
                 ochre: {
                     50: "var(--ochre-50)",
                     100: "var(--ochre-100)",

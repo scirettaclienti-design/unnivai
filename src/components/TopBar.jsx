@@ -64,39 +64,40 @@ export default function TopBar() {
         setIsCityModalOpen(false);
     };
 
+    // NOTA: Trasparenza e blur temporaneamente rimossi, da riattivare a conversione completata
     return (
-        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/50">
+        <header className="sticky top-0 z-50 bg-obsidian-bg border-b border-obsidian-border shadow-md">
             <div className="max-w-md mx-auto px-6 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                         <motion.div
-                            className="w-10 h-10 bg-terracotta-500 rounded-full flex items-center justify-center shadow-lg shadow-terracotta-500/20"
+                            className="w-10 h-10 bg-brand-orange rounded-full flex items-center justify-center shadow-lg shadow-brand-orange/20"
                             whileHover={{ rotate: 180 }}
                             transition={{ duration: 0.3 }}
                         >
-                            <Mountain className="text-white w-5 h-5" />
+                            <Mountain className="text-obsidian-bg w-5 h-5 stroke-[2.5]" />
                         </motion.div>
                         <div>
                             <Link to="/profile">
                                 <motion.h1
-                                    className="text-lg font-bold text-gray-900 leading-none mb-1 font-montserrat"
+                                    className="text-lg font-bold text-obsidian-primary leading-none mb-1 font-montserrat"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
                                     Ciao, {isLoading ? '...' : firstName}!
                                 </motion.h1>
                             </Link>
-                            <div className="text-xs font-medium text-gray-500 flex items-center space-x-2">
+                            <div className="text-xs font-medium text-obsidian-secondary flex items-center space-x-2">
                                 <span className="flex items-center">
-                                    <MapPin className="w-3 h-3 mr-1" />
-                                    {currentCity || <span className="italic text-gray-400">Scegli citta&apos;</span>}
-                                    <button onClick={handleCityChange} className="ml-2 hover:bg-gray-100 p-1 rounded-full text-indigo-500 transition-colors">
+                                    <MapPin className="w-3 h-3 mr-1 text-brand-orange" />
+                                    {currentCity || <span className="italic text-obsidian-secondary/70">Scegli citta&apos;</span>}
+                                    <button onClick={handleCityChange} className="ml-2 hover:bg-obsidian-card p-1 rounded-full text-brand-orange transition-colors">
                                         <Edit2 size={10} />
                                     </button>
                                 </span>
                                 {currentTemp && (
                                     <>
-                                        <span className="w-1 h-1 rounded-full bg-gray-300" />
+                                        <span className="w-1 h-1 rounded-full bg-obsidian-border" />
                                         <span>{currentTemp}</span>
                                     </>
                                 )}
@@ -108,12 +109,12 @@ export default function TopBar() {
                         <NotificationBell
                             userId={userId}
                             currentLocation={currentCity}
-                            theme="light"
+                            theme="dark"
                         />
                         <button
                             onClick={handleLogout}
-                            className="p-2 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
-                            title="Isci"
+                            className="p-2 rounded-full hover:bg-obsidian-card text-obsidian-secondary hover:text-brand-orange transition-colors"
+                            title="Esci"
                         >
                             <LogOut size={20} />
                         </button>
@@ -129,14 +130,11 @@ export default function TopBar() {
                 onSave={handleSaveCity}
                 mode={needsCityChoice && !currentCity ? "onboarding" : "edit"}
             />
-        </header >
+        </header>
     );
 }
 
 // --- INTERNAL COMPONENT: CITY MODAL ---
-// Gate AA.2: due modalita'. `edit` (cambio citta' esistente) e `onboarding`
-// (primo accesso, non sappiamo dove sei — te lo chiediamo). Il modal non
-// e' un errore/scusa: e' una domanda naturale al primo accesso.
 function CityModal({ isOpen, onClose, initialCity, onSave, mode = "edit" }) {
     const [tempCity, setTempCity] = useState(initialCity);
     const isOnboarding = mode === "onboarding";
@@ -157,7 +155,7 @@ function CityModal({ isOpen, onClose, initialCity, onSave, mode = "edit" }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-md"
+                className="fixed inset-0 bg-black/75 backdrop-blur-md"
                 onClick={onClose}
             />
 
@@ -166,48 +164,52 @@ function CityModal({ isOpen, onClose, initialCity, onSave, mode = "edit" }) {
                 initial={{ scale: 0.95, opacity: 0, y: 10 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.95, opacity: 0, y: 10 }}
-                className="bg-white w-full max-w-xs rounded-[1.5rem] p-5 relative z-10 shadow-2xl font-quicksand mx-auto"
+                className="bg-obsidian-card border border-obsidian-border text-obsidian-primary w-full max-w-xs rounded-[1.5rem] p-5 relative z-10 shadow-2xl font-quicksand mx-auto"
             >
                 <div className="flex justify-between items-center mb-4">
                     <div>
-                        <h3 className="text-lg font-bold text-gray-800">
+                        <h3 className="text-lg font-bold text-obsidian-primary">
                             {isOnboarding ? "Da dove cominciamo?" : "Dove ti trovi?"}
                         </h3>
-                        <p className="text-[10px] text-gray-500 font-medium">
+                        <p className="text-[10px] text-obsidian-secondary font-medium">
                             {isOnboarding
                                 ? "Scegli la citta' dove vuoi esplorare oggi."
                                 : "Cambia la tua posizione attuale"}
                         </p>
                     </div>
-                    <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
-                        <X size={18} className="text-gray-400" />
+                    <button onClick={onClose} className="p-1.5 hover:bg-obsidian-raised rounded-full transition-colors">
+                        <X size={18} className="text-obsidian-secondary" />
                     </button>
                 </div>
 
                 {/* Input */}
                 <div className="relative mb-4">
-                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-terracotta-500 w-4 h-4" />
+                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-orange w-4 h-4" />
                     <input
                         type="text"
                         value={tempCity}
                         onChange={(e) => setTempCity(e.target.value)}
-                        onFocus={(e) => e.target.select()} // Select-all on focus
+                        onFocus={(e) => e.target.select()}
                         onKeyDown={(e) => { if (e.key === 'Enter') onSave(tempCity); }}
                         placeholder="Cerca una città..."
-                        className="w-full bg-gray-50 border border-gray-200 text-gray-800 font-bold rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta-500/50 transition-all placeholder:font-normal"
+                        className="w-full bg-obsidian-bg border border-obsidian-border text-obsidian-primary font-bold rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 transition-all placeholder:font-normal placeholder:text-obsidian-secondary/50"
                         autoFocus
                     />
                 </div>
 
                 {/* Quick Selection */}
                 <div className="mb-4">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Suggeriti</p>
+                    <p className="text-[10px] font-bold text-obsidian-secondary uppercase tracking-wider mb-2">Suggeriti</p>
                     <div className="flex flex-wrap gap-2">
                         {popularCities.map((c) => (
                             <button
                                 key={c}
                                 onClick={() => setTempCity(c)}
-                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${tempCity === c ? 'bg-terracotta-50 border-terracotta-200 text-terracotta-600' : 'bg-white border-gray-100 text-gray-600 hover:bg-gray-50'}`}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${
+                                    tempCity === c
+                                        ? 'bg-ivory-bg border-ivory-bg text-ivory-text'
+                                        : 'bg-obsidian-raised border-obsidian-border text-obsidian-secondary hover:text-obsidian-primary'
+                                }`}
                             >
                                 {c}
                             </button>
@@ -218,7 +220,7 @@ function CityModal({ isOpen, onClose, initialCity, onSave, mode = "edit" }) {
                 {/* Actions */}
                 <button
                     onClick={() => onSave(tempCity)}
-                    className="w-full bg-gradient-to-r from-terracotta-500 to-orange-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-200 active:scale-95 transition-transform text-sm"
+                    className="w-full bg-brand-orange text-obsidian-bg font-bold py-3 rounded-xl shadow-lg active:scale-95 transition-transform text-sm hover:bg-brand-orange-hover"
                 >
                     Conferma Posizione
                 </button>

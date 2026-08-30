@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2, Award, Crosshair } from 'lucide-react';
+import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2, Award, Crosshair, WifiOff, MessageSquare, Tag } from 'lucide-react';
 import { aiRecommendationService } from '@/services/aiRecommendationService';
 import { useUserContext } from '../hooks/useUserContext';
 import GpsActivationBanner from '../components/GpsActivationBanner';
@@ -23,12 +23,7 @@ import TourCover from '@/components/TourCover';
 // Gate VERITÀ VISIVA (F26) DIFF 4 — THEME_FALLBACK_IMAGES rimosso: era la
 // prima maglia della catena di stock che finiva sulla copertina dei tour "Per Te".
 
-const THEME_EMOJIS = {
-    food: '🍽️',
-    cultura: '🎨',
-    romance: '🌅',
-    nature: '🌿',
-};
+const THEME_EMOJIS = {};
 
 // Gate II (16/07): THEME_CONFIGS + getPoiTypeImage RIMOSSI.
 // Erano dead code post-refactor: THEME_CONFIGS conteneva titoli statici
@@ -321,8 +316,8 @@ const DashboardUser = () => {
                         })()
                         : null;
 
-                    const emoji = isInsider ? '🧭' : (THEME_EMOJIS[tour.themeType] || '📍');
-                    const category = isInsider ? '✨ Insider AI' : "Consigliato dall'AI";
+                    const emoji = null;
+                    const category = isInsider ? 'Insider AI' : "Consigliato dall'AI";
                     // Gate VERITÀ VISIVA (F26) DIFF 4 — rimossa la catena
                     // THEME_FALLBACK_IMAGES -> CITY_IMAGES -> GENERIC.piazza.
                     // Erano tre livelli di stock Unsplash mostrati come copertina di
@@ -422,13 +417,13 @@ const DashboardUser = () => {
 
     if (isLoading && !loadingTimeout) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-orange-50 to-white gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200">
-                    <span className="text-2xl">🗺️</span>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-obsidian-bg gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-obsidian-card border border-obsidian-border flex items-center justify-center shadow-lg">
+                    <Compass className="w-7 h-7 text-brand-orange" />
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-1.5">
                     {[0, 1, 2].map(i => (
-                        <div key={i} className="w-2 h-2 rounded-full bg-orange-400" style={{ animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite` }} />
+                        <div key={i} className="w-2 h-2 rounded-full bg-brand-orange" style={{ animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite` }} />
                     ))}
                 </div>
                 <style>{`@keyframes pulse { 0%,80%,100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1.2); } }`}</style>
@@ -437,7 +432,7 @@ const DashboardUser = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand pb-32">
+        <div className="min-h-screen bg-obsidian-bg text-obsidian-primary font-quicksand pb-32">
 
             <TopBar />
 
@@ -445,8 +440,9 @@ const DashboardUser = () => {
 
                 {/* Offline Banner */}
                 {isOffline && (
-                    <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-2xl p-3 text-red-700 text-sm font-medium">
-                        <span>📡</span> Sei offline. Alcune funzioni potrebbero non essere disponibili.
+                    <div className="flex items-center gap-2 bg-obsidian-card border border-obsidian-border rounded-2xl p-3 text-obsidian-secondary text-sm font-medium">
+                        <WifiOff className="w-4 h-4 text-obsidian-secondary shrink-0" />
+                        <span>Sei offline. Alcune funzioni potrebbero non essere disponibili.</span>
                     </div>
                 )}
 
@@ -456,17 +452,16 @@ const DashboardUser = () => {
                 {tourHistory.length > 0 && (
                     <motion.div 
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                        className="bg-white rounded-[2rem] p-6 shadow-xl border border-gray-100 flex flex-col gap-4 relative overflow-hidden"
+                        className="bg-obsidian-card rounded-[2rem] p-6 shadow-xl border border-obsidian-border flex flex-col gap-4 relative overflow-hidden"
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/10 rounded-full blur-3xl -z-0"></div>
                         <div className="flex items-center justify-between z-10">
                             <div>
-                                <h3 className="text-xl font-black text-gray-900 drop-shadow-sm flex items-center gap-2">
-                                    <Award size={20} className="text-yellow-500"/> Il tuo Diario
+                                <h3 className="text-xl font-black text-obsidian-primary flex items-center gap-2">
+                                    <Award size={20} className="text-obsidian-secondary"/> Il tuo Diario
                                 </h3>
-                                <p className="text-sm text-gray-500 font-medium">Tappe e Scoperte</p>
+                                <p className="text-sm text-obsidian-secondary font-medium">Tappe e Scoperte</p>
                             </div>
-                            <div className="bg-yellow-50 text-yellow-700 font-black px-3 py-1.5 rounded-xl border border-yellow-200">
+                            <div className="bg-obsidian-raised text-obsidian-primary font-bold px-3 py-1.5 rounded-xl border border-obsidian-border text-xs">
                                 {tourHistory.length} Tour
                             </div>
                         </div>
@@ -475,15 +470,15 @@ const DashboardUser = () => {
                             {tourHistory.slice(0, 5).map(tour => {
                                 const tourDate = new Date(tour.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
                                 return (
-                                    <div key={tour.id} className="min-w-[240px] shrink-0 bg-gray-50 rounded-2xl p-4 border border-gray-100 snap-center mr-3 shadow-sm">
+                                    <div key={tour.id} className="min-w-[240px] shrink-0 bg-obsidian-raised rounded-2xl p-4 border border-obsidian-border snap-center mr-3 shadow-sm">
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-xs font-bold text-gray-400 bg-white px-2 py-0.5 rounded-md border border-gray-100">{tourDate}</span>
-                                            <span className="p-1 bg-yellow-100 text-yellow-600 rounded-lg"><Star fill="currentColor" size={14}/></span>
+                                            <span className="text-xs font-bold text-obsidian-secondary bg-obsidian-card px-2 py-0.5 rounded-md border border-obsidian-border">{tourDate}</span>
+                                            <span className="p-1 bg-obsidian-card text-brand-orange rounded-lg border border-obsidian-border"><Star fill="currentColor" size={14}/></span>
                                         </div>
-                                        <h4 className="font-bold text-gray-900 truncate mb-1">{tour.title}</h4>
-                                        <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
+                                        <h4 className="font-bold text-obsidian-primary truncate mb-1">{tour.title}</h4>
+                                        <div className="flex items-center gap-3 text-xs text-obsidian-secondary font-medium">
                                             <span className="flex items-center gap-1"><MapPin size={12}/> {tour.distance}</span>
-                                            <span className="flex items-center gap-1 bg-orange-50 text-orange-600 px-1.5 rounded"><Crosshair size={10} className="hidden"/> {tour.completedCount} Tappe</span>
+                                            <span className="flex items-center gap-1 bg-obsidian-card text-obsidian-secondary px-1.5 rounded border border-obsidian-border"><Crosshair size={10} className="hidden"/> {tour.completedCount} Tappe</span>
                                         </div>
                                     </div>
                                 );
@@ -494,24 +489,21 @@ const DashboardUser = () => {
 
                 {/* Custom Tour Block - EXPANDABLE */}
                 <motion.div
-                    className="bg-white rounded-3xl p-5 shadow-lg border border-gray-50 relative overflow-hidden group cursor-pointer"
+                    className="bg-obsidian-card rounded-3xl p-5 shadow-lg border border-obsidian-border relative overflow-hidden group cursor-pointer"
                     initial={{ height: 'auto' }}
                     onClick={() => setShowCustomOptions(!showCustomOptions)}
                 >
                     <div className="flex items-center justify-between relative z-10">
                         <div>
-                            <h3 className="font-bold text-gray-800 text-lg leading-tight">Crea il tuo Tour</h3>
-                            <p className="text-xs text-gray-500 mt-1 font-medium bg-gray-100 px-2 py-0.5 rounded-full w-fit">Su misura per te</p>
+                            <h3 className="font-bold text-obsidian-primary text-lg leading-tight">Crea il tuo Tour</h3>
+                            <p className="text-xs text-obsidian-secondary mt-1 font-medium bg-obsidian-raised border border-obsidian-border px-2 py-0.5 rounded-full w-fit">Su misura per te</p>
                         </div>
                         <div className={`transition-transform duration-300 ${showCustomOptions ? 'rotate-180' : ''}`}>
-                            <div className="bg-orange-50 p-3 rounded-full group-hover:bg-orange-100 transition-colors">
-                                <Compass className="w-7 h-7 text-orange-500" />
+                            <div className="bg-obsidian-raised border border-obsidian-border p-3 rounded-full group-hover:border-brand-orange transition-colors">
+                                <Compass className="w-6 h-6 text-obsidian-secondary group-hover:text-brand-orange transition-colors" />
                             </div>
                         </div>
                     </div>
-
-                    {/* Decorative background */}
-                    <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-orange-50/50 to-transparent skew-x-12 pointer-events-none" />
 
                     {/* Expanded Options */}
                     <AnimatePresence>
@@ -522,15 +514,15 @@ const DashboardUser = () => {
                                 exit={{ opacity: 0, height: 0, marginTop: 0 }}
                                 className="grid grid-cols-2 gap-3"
                             >
-                                <div onClick={handleGuideRequest} className="cursor-pointer bg-orange-50 hover:bg-orange-100 p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-colors">
-                                    <Users size={24} className="text-orange-600 mb-2" />
-                                    <span className="text-xs font-bold text-gray-800 leading-tight">Con Guida</span>
-                                    <span className="text-[10px] text-gray-500 mt-1">Trova un esperto locale</span>
+                                <div onClick={handleGuideRequest} className="cursor-pointer bg-obsidian-raised hover:bg-obsidian-card border border-obsidian-border p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-colors">
+                                    <Users size={22} className="text-obsidian-primary mb-2" />
+                                    <span className="text-xs font-bold text-obsidian-primary leading-tight">Con Guida</span>
+                                    <span className="text-[10px] text-obsidian-secondary mt-1">Trova un esperto locale</span>
                                 </div>
-                                <Link to="/surprise-tour" className="bg-pink-50 hover:bg-pink-100 p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-colors">
-                                    <Gift size={24} className="text-pink-600 mb-2" />
-                                    <span className="text-xs font-bold text-gray-800 leading-tight">Sorprendimi</span>
-                                    <span className="text-[10px] text-gray-500 mt-1">Lasciati sorprendere</span>
+                                <Link to="/surprise-tour" className="bg-obsidian-raised hover:bg-obsidian-card border border-obsidian-border p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-colors">
+                                    <Gift size={22} className="text-obsidian-primary mb-2" />
+                                    <span className="text-xs font-bold text-obsidian-primary leading-tight">Sorprendimi</span>
+                                    <span className="text-[10px] text-obsidian-secondary mt-1">Lasciati sorprendere</span>
                                 </Link>
                             </motion.div>
                         )}
@@ -544,105 +536,88 @@ const DashboardUser = () => {
                     invece di "LIVE NOW"). La gerarchia visiva dice la verita' quanto
                     il testo: una card di funzione non attiva non pesa come una attiva.
                 */}
-                <section className="flex flex-col space-y-5">
+                <section className="flex flex-col space-y-4">
 
-                    {/* Button 2: AI Itinerary */}
+                    {/* Button 2: AI Itinerary (Azione Dominante — Accento Arancione) */}
                     <Link to="/ai-itinerary" className="block">
                         <motion.div
                             whileHover={{ scale: 1.02, y: -2 }}
                             whileTap={{ scale: 0.95 }}
-                            className="relative bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl p-1 shadow-xl shadow-emerald-500/20 overflow-hidden group"
+                            className="relative bg-obsidian-card border border-brand-orange/60 hover:border-brand-orange rounded-3xl p-5 shadow-xl transition-all group overflow-hidden"
                         >
-                            {/* Inner Glass Container */}
-                            <div className="relative bg-white/10 backdrop-blur-sm rounded-[20px] p-5 h-full flex items-center justify-between border border-white/20">
-                                {/* Subtle Texture Overlay */}
-                                <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&q=80')] bg-cover bg-center mix-blend-overlay" />
-
-                                <div className="relative z-10 flex items-center space-x-4">
-                                    <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md shadow-inner border border-white/30">
-                                        <Brain className="w-8 h-8 text-white drop-shadow-md" />
+                            <div className="relative z-10 flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                    <div className="bg-brand-orange text-obsidian-bg p-3 rounded-2xl shadow-md">
+                                        <Brain className="w-8 h-8 drop-shadow-sm" />
                                     </div>
                                     <div>
-                                        {/* Speaking Badge */}
                                         <div className="mb-1">
-                                            <span className="bg-white/90 text-emerald-600 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm w-fit block">
+                                            <span className="bg-brand-orange/15 text-brand-orange border border-brand-orange/30 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wide w-fit block">
                                                 Gratis & Su Misura
                                             </span>
                                         </div>
-                                        <h3 className="text-xl font-bold font-playfair text-white leading-tight">Crea il tuo Percorso</h3>
-                                        <p className="text-emerald-50 text-xs font-medium mt-0.5 opacity-90">Intelligenza artificiale per te</p>
+                                        <h3 className="text-xl font-bold font-playfair text-obsidian-primary leading-tight">Crea il tuo Percorso</h3>
+                                        <p className="text-obsidian-secondary text-xs font-medium mt-0.5">Intelligenza artificiale per te</p>
                                     </div>
                                 </div>
-                                <ChevronRight className="w-5 h-5 text-white/50 group-hover:translate-x-1 transition-transform" />
+                                <ChevronRight className="w-5 h-5 text-obsidian-secondary group-hover:text-brand-orange group-hover:translate-x-1 transition-transform" />
                             </div>
                         </motion.div>
                     </Link>
 
-                    {/* Button 3: Quick Quiz (Previously 'Ispirami Ora') */}
+                    {/* Button 3: Quick Quiz (Azione Secondaria — Scala Ossidiana) */}
                     <div className="relative">
                         <Link to="/quick-path" className="block">
                             <motion.div
                                 whileHover={{ scale: 1.02, y: -2 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="relative bg-gradient-to-r from-amber-400 to-orange-500 rounded-3xl p-1 shadow-xl shadow-amber-500/20 overflow-hidden group cursor-pointer"
+                                className="relative bg-obsidian-card border border-obsidian-border hover:border-obsidian-border/80 rounded-3xl p-5 shadow-lg transition-all group cursor-pointer overflow-hidden"
                             >
-                                {/* Inner Glass Container */}
-                                <div className="relative bg-white/10 backdrop-blur-sm rounded-[20px] p-5 h-full flex items-center justify-between border border-white/20">
-                                    {/* Subtle Texture Overlay */}
-                                    <div className="absolute inset-0 opacity-10 bg-[url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80')] bg-cover bg-center mix-blend-overlay" />
-
-                                    <div className="relative z-10 flex items-center space-x-4">
-                                        <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md shadow-inner border border-white/30">
-                                            <Gamepad2 className="w-8 h-8 text-white drop-shadow-md" />
+                                <div className="relative z-10 flex items-center justify-between">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="bg-obsidian-raised border border-obsidian-border p-3 rounded-2xl text-obsidian-primary">
+                                            <Gamepad2 className="w-8 h-8" />
                                         </div>
                                         <div>
-                                            {/* Speaking Badge */}
                                             <div className="mb-1">
-                                                <span className="bg-white/90 text-amber-600 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm flex w-fit items-center">
+                                                <span className="bg-obsidian-raised text-obsidian-secondary border border-obsidian-border text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide flex w-fit items-center">
                                                     <Brain className="w-3 h-3 mr-1" />
                                                     AI Powered
                                                 </span>
                                             </div>
-                                            <h3 className="text-xl font-bold font-playfair text-white leading-tight">Quiz Veloce</h3>
-                                            <p className="text-amber-50 text-xs font-medium mt-0.5 opacity-90">Scopri il tuo stile di viaggio</p>
+                                            <h3 className="text-xl font-bold font-playfair text-obsidian-primary leading-tight">Quiz Veloce</h3>
+                                            <p className="text-obsidian-secondary text-xs font-medium mt-0.5">Scopri il tuo stile di viaggio</p>
                                         </div>
                                     </div>
-                                    <ChevronRight className="w-5 h-5 text-white/50 group-hover:translate-x-1 transition-transform" />
+                                    <ChevronRight className="w-5 h-5 text-obsidian-secondary group-hover:text-obsidian-primary group-hover:translate-x-1 transition-transform" />
                                 </div>
                             </motion.div>
                         </Link>
                     </div>
 
-                    {/* Gate W — Card Guide Locali SUBORDINATA visivamente.
-                        Prima: card grande con badge "LIVE NOW" rosso pulsante che prometteva
-                        una funzione inesistente. Ora: card piu' piccola (p-3 vs p-5), opacita'
-                        ridotta (75%), colori smorzati (bg gray-100 vs gradient terracotta),
-                        badge "◇ FASE 2 · IN COSTRUZIONE" (statico, no rosso). Posizionata SOTTO
-                        AI Itinerary e Quiz Veloce — le funzioni che esistono davvero.
-                        Click -> /prossimamente/guide (schermata onesta), non /explore. */}
+                    {/* Gate W — Card Guide Locali SUBORDINATA visivamente sulla scala */}
                     <Link to="/prossimamente/guide" className="block opacity-75 hover:opacity-100 transition-opacity">
                         <motion.div
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.98 }}
-                            className="relative bg-gray-100 rounded-2xl p-3 border border-gray-200 flex items-center justify-between group"
+                            className="relative bg-obsidian-card/60 rounded-2xl p-3 border border-obsidian-border flex items-center justify-between group"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="bg-white p-2 rounded-xl border border-gray-200">
-                                    <Users className="w-5 h-5 text-gray-500" />
+                                <div className="bg-obsidian-raised border border-obsidian-border p-2 rounded-xl text-obsidian-secondary">
+                                    <Users className="w-5 h-5" />
                                 </div>
                                 <div>
                                     <div className="mb-0.5">
-                                        {/* Gate Y.4: badge senza gergo "Fase N" (interno). */}
-                                        <span className="inline-flex items-center bg-terracotta-50 text-terracotta-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-terracotta-200 uppercase tracking-wider">
+                                        <span className="inline-flex items-center bg-obsidian-raised text-obsidian-secondary text-[9px] font-bold px-2 py-0.5 rounded-full border border-obsidian-border uppercase tracking-wider">
                                             <span className="mr-1 text-[11px] leading-none">◇</span>
                                             In costruzione
                                         </span>
                                     </div>
-                                    <h3 className="text-sm font-bold text-gray-800 leading-tight">Guide Locali</h3>
-                                    <p className="text-gray-500 text-[11px] leading-snug mt-0.5">Persone del posto — non ancora disponibili</p>
+                                    <h3 className="text-sm font-bold text-obsidian-primary leading-tight">Guide Locali</h3>
+                                    <p className="text-obsidian-secondary text-[11px] leading-snug mt-0.5">Persone del posto — non ancora disponibili</p>
                                 </div>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+                            <ChevronRight className="w-4 h-4 text-obsidian-secondary group-hover:translate-x-0.5 transition-transform" />
                         </motion.div>
                     </Link>
 
@@ -651,86 +626,113 @@ const DashboardUser = () => {
                 {/* Footer Section - Magazine Style Experiences */}
                 <section>
                     <div className="flex items-center justify-between mb-4 px-1">
-                        <h3 className="text-xl font-bold text-gray-800 font-playfair">
+                        <h3 className="text-xl font-bold text-obsidian-primary font-playfair">
                             {hasPreferences ? 'Per Te' : 'Esperienze Uniche'}
                         </h3>
-                        <Link to="/explore" className="text-xs font-bold text-gray-500 hover:text-terracotta-500 uppercase tracking-widest transition-colors">
+                        <Link to="/explore" className="text-xs font-bold text-obsidian-secondary hover:text-obsidian-primary uppercase tracking-widest transition-colors">
                             Vedi tutte
                         </Link>
                     </div>
 
-                    <div className="flex overflow-x-auto space-x-5 pb-8 -mx-6 px-6 scrollbar-hide">
+                    <div className="flex overflow-x-auto gap-3 pb-6 -mx-6 px-6 scrollbar-hide snap-x">
                         {experiencesError ? (
                             <div className="flex flex-col items-center justify-center py-8 w-full text-center">
-                                <p className="text-gray-500 text-sm mb-3">Non riesco a caricare le esperienze</p>
-                                <button onClick={() => refetchExperiences()} className="px-4 py-2 bg-orange-500 text-white rounded-xl text-sm font-bold active:scale-95 transition-transform">Riprova</button>
+                                <p className="text-obsidian-secondary text-sm mb-3">Non riesco a caricare le esperienze</p>
+                                <button onClick={() => refetchExperiences()} className="px-4 py-2 bg-brand-orange text-obsidian-bg rounded-xl text-sm font-bold active:scale-95 transition-transform">Riprova</button>
                             </div>
                         ) : experiencesLoading ? (
-                            // Gate D-2: skeleton onesto al posto dei tour finti. Card grigie,
-                            // non cliccabili, nessun testo/rating che potrebbe sembrare reale.
                             [0, 1, 2].map(i => (
-                                <div key={`skel-${i}`} className="min-w-[260px] h-64 rounded-2xl bg-black/5 animate-pulse" />
+                                <div key={`skel-${i}`} className="w-[calc((100vw-60px)/2)] max-w-[170px] min-w-[150px] h-[265px] rounded-2xl bg-obsidian-card border border-obsidian-border animate-pulse shrink-0 flex flex-col overflow-hidden">
+                                    <div className="h-28 w-full bg-obsidian-raised" />
+                                    <div className="p-3 flex-1 flex flex-col justify-between">
+                                        <div className="space-y-1.5">
+                                            <div className="w-16 h-3 rounded-full bg-obsidian-raised" />
+                                            <div className="w-28 h-4 rounded bg-obsidian-raised" />
+                                            <div className="w-20 h-3 rounded bg-obsidian-raised" />
+                                        </div>
+                                        <div className="pt-2 border-t border-obsidian-border flex justify-between">
+                                            <div className="w-12 h-2.5 rounded bg-obsidian-raised" />
+                                            <div className="w-8 h-2.5 rounded bg-obsidian-raised" />
+                                        </div>
+                                    </div>
+                                </div>
                             ))
                         ) : (experiences && experiences.length > 0) ? experiences.map((exp) => (
                             <Link
                                 to={`/tour-details/${exp.id}`}
                                 state={{ tourData: exp }}
                                 key={exp.id}
-                                className="block min-w-[260px]"
+                                className="block w-[calc((100vw-60px)/2)] max-w-[170px] min-w-[150px] shrink-0 snap-start"
                             >
                                 <motion.div
-                                    className="group relative h-64 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
-                                    whileHover={{ y: -5 }}
+                                    className="group flex flex-col h-[265px] rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-obsidian-border bg-obsidian-card"
+                                    whileHover={{ y: -3 }}
                                 >
-                                    {/* DVAI-058 — Copertina unificata (ramo A foto Places brand-uniformi / ramo B illustrato per categoria) */}
-                                    <TourCover
-                                        cover={exp.image}
-                                        category={exp.category || exp.type}
-                                        type={exp.type}
-                                        title={exp.title}
-                                        animateKey={exp.image}
-                                    >
-                                        {/* Gate O.4: nessun rating a livello TOUR. Il rating e' un fatto
-                                            del singolo POI (Google Places), non del tour aggregato. Il
-                                            badge featuredPoi qui sotto mostra ★rating + nome del POI di
-                                            punta (qualityScore max), verificabile su Maps. */}
-                                        <div className="absolute bottom-0 left-0 p-5 w-full text-white">
-                                            <div className="text-[10px] font-bold text-gray-300 uppercase tracking-wider mb-1">{exp.category}</div>
-                                            <h4 className="font-playfair font-bold text-lg leading-tight mb-2 line-clamp-2">{exp.title}</h4>
-                                            {exp.featuredPoi && Number.isFinite(exp.featuredPoi.rating) && (
-                                                <div className="flex items-center gap-1.5 text-xs mb-2 opacity-95">
-                                                    <Star className="w-3 h-3 text-yellow-400 fill-current shrink-0" />
-                                                    <span className="font-medium truncate">Include {exp.featuredPoi.name}</span>
-                                                    <span className="font-bold whitespace-nowrap">· {exp.featuredPoi.rating.toFixed(1)}</span>
+                                    {/* Foto Places PULITA (ramo A) o Gradient Categoria (ramo B) con rapporto fisso */}
+                                    <div className="relative h-28 w-full overflow-hidden shrink-0 border-b border-obsidian-border bg-obsidian-raised">
+                                        <TourCover
+                                            cover={exp.image}
+                                            category={exp.category || exp.type}
+                                            type={exp.type}
+                                            title={exp.title}
+                                            animateKey={exp.image}
+                                            overlay={false}
+                                        />
+                                    </div>
+
+                                    {/* Blocco Dati su bg-obsidian-card: due card intere a schermo */}
+                                    <div className="p-2.5 flex flex-col flex-1 justify-between">
+                                        <div>
+                                            {/* Badge discreto */}
+                                            <div className="mb-1">
+                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-obsidian-raised text-obsidian-secondary border border-obsidian-border tracking-tight truncate max-w-full">
+                                                    {exp.category}
+                                                </span>
+                                            </div>
+
+                                            {/* Titolo compatto */}
+                                            <h4 className="font-playfair font-bold text-xs text-obsidian-primary leading-snug line-clamp-2 mb-1">
+                                                {exp.title}
+                                            </h4>
+
+                                            {/* Riga Include o Luogo */}
+                                            {exp.featuredPoi && Number.isFinite(exp.featuredPoi.rating) ? (
+                                                <div className="flex items-center gap-1 text-[10px] text-obsidian-secondary truncate">
+                                                    <Star className="w-3 h-3 text-brand-orange fill-current shrink-0" />
+                                                    <span className="truncate">{exp.featuredPoi.name}</span>
+                                                    <span className="font-semibold text-obsidian-primary shrink-0">· {exp.featuredPoi.rating.toFixed(1)}</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-1 text-[10px] text-obsidian-secondary truncate">
+                                                    <MapPin className="w-3 h-3 text-obsidian-secondary/60 shrink-0" />
+                                                    <span className="truncate">{exp.location || (city ? `Tour a ${city}` : 'Esperienza')}</span>
                                                 </div>
                                             )}
-                                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/20">
-                                                <div className="flex items-center text-xs font-medium opacity-90">
-                                                    <Clock className="w-3 h-3 mr-1" />
-                                                    {exp.duration}
-                                                </div>
-                                                {/* Gate O.2: prezzo solo se e' un numero reale dal DB tours.price_eur. */}
-                                                {Number.isFinite(exp.price) && (
-                                                    <span className="font-bold text-base">€{exp.price}</span>
-                                                )}
-                                            </div>
                                         </div>
-                                    </TourCover>
+
+                                        {/* Metadati ancorati in basso */}
+                                        <div className="mt-auto pt-2 border-t border-obsidian-border flex items-center justify-between text-[10px] text-obsidian-secondary">
+                                            <div className="flex items-center gap-1">
+                                                <Clock className="w-3 h-3 text-obsidian-secondary shrink-0" />
+                                                <span className="truncate">{exp.duration}</span>
+                                            </div>
+                                            {Number.isFinite(exp.price) && (
+                                                <span className="font-bold text-xs text-obsidian-primary shrink-0">€{exp.price}</span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </motion.div>
                             </Link>
                         )) : (
-                            // Gate D-2: empty state onesto al posto dei 3 tour finti.
-                            // Gate PULIZIA P6: via "Ne stiamo aggiungendo nuovi ogni
-                            // settimana. Torna presto." Nessun codice aggiunge tour su
-                            // base periodica: l'unico insert su `tours` e' TourBuilder.jsx:291,
-                            // fatto a mano da una guida. Il motore AI, invece, esiste e gira.
                             <div className="flex flex-col items-center justify-center py-10 w-full text-center">
-                                <div className="text-4xl mb-3">🌱</div>
-                                <p className="text-gray-700 text-sm mb-1 font-semibold">{city ? `Nessuna guida ha ancora pubblicato un tour a ${city}.` : 'Nessuna guida ha ancora pubblicato un tour qui.'}</p>
-                                <p className="text-gray-500 text-xs mb-4">Il motore AI ne costruisce uno adesso, sui luoghi veri della città.</p>
+                                <div className="w-12 h-12 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center mx-auto mb-3 text-obsidian-secondary">
+                                    <Compass className="w-6 h-6 stroke-[1.5]" />
+                                </div>
+                                <p className="text-obsidian-primary text-sm mb-1 font-semibold">{city ? `Nessuna guida ha ancora pubblicato un tour a ${city}.` : 'Nessuna guida ha ancora pubblicato un tour qui.'}</p>
+                                <p className="text-obsidian-secondary text-xs mb-4">Il motore AI ne costruisce uno adesso, sui luoghi veri della città.</p>
                                 <Link
                                     to="/ai-itinerary"
-                                    className="px-5 py-2.5 bg-gray-900 text-white rounded-2xl text-xs font-bold hover:bg-gray-800 transition-colors"
+                                    className="px-5 py-2.5 bg-brand-orange text-obsidian-bg rounded-2xl text-xs font-bold hover:bg-brand-orange-hover transition-colors shadow-md shadow-brand-orange/20"
                                 >
                                     Crea il tuo percorso
                                 </Link>
@@ -749,20 +751,20 @@ const DashboardUser = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                            className="absolute inset-0 bg-black/80 backdrop-blur-md"
                             onClick={() => setShowRequestModal(false)}
                         />
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="bg-white w-full max-w-md rounded-3xl p-6 relative z-10 shadow-2xl overflow-hidden"
+                            className="bg-obsidian-card border border-obsidian-border w-full max-w-md rounded-3xl p-6 relative z-10 shadow-2xl overflow-hidden"
                         >
                             <button
                                 onClick={() => setShowRequestModal(false)}
-                                className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors z-20"
+                                className="absolute top-4 right-4 p-2 bg-obsidian-raised border border-obsidian-border rounded-full hover:bg-obsidian-card transition-colors z-20 text-obsidian-secondary hover:text-obsidian-primary"
                             >
-                                <X size={20} className="text-gray-500" />
+                                <X size={18} />
                             </button>
 
                             {requestStatus === 'success' ? (
@@ -771,23 +773,17 @@ const DashboardUser = () => {
                                     animate={{ scale: 1, opacity: 1 }}
                                     className="pt-6 pb-2 text-center flex flex-col items-center"
                                 >
-                                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 relative">
+                                    <div className="w-20 h-20 bg-obsidian-raised border border-obsidian-border rounded-full flex items-center justify-center mb-6 relative">
                                         <motion.div
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
                                             transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
                                         >
-                                            <CheckCircle className="w-10 h-10 text-green-500" />
+                                            <CheckCircle className="w-10 h-10 text-brand-orange" />
                                         </motion.div>
                                     </div>
-                                    {/* Gate PULIZIA P6 — due affermazioni false rimosse:
-                                        "locali su {city}" (DashboardGuide.jsx:147 filtra su
-                                        guide_id e status, mai su city: la richiesta la vedono
-                                        tutte le guide, ovunque) e "hanno appena ricevuto"
-                                        (createGuideRequest, dataService.js:908, inserisce una
-                                        riga e basta — nessuna notifica, nessun push, nessuna mail). */}
-                                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Richiesta inviata</h3>
-                                    <p className="text-gray-500 text-sm mb-8 leading-relaxed px-4">
+                                    <h3 className="text-2xl font-bold text-obsidian-primary mb-2">Richiesta inviata</h3>
+                                    <p className="text-obsidian-secondary text-sm mb-8 leading-relaxed px-4">
                                         È visibile alle guide registrate su DoveVAI. Se una guida la prende in carico, la proposta ti arriva qui.
                                     </p>
                                     <button
@@ -796,7 +792,7 @@ const DashboardUser = () => {
                                             setRequestText('');
                                             setRequestStatus('idle');
                                         }}
-                                        className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-black transition-all shadow-lg active:scale-95"
+                                        className="w-full bg-obsidian-raised border border-obsidian-border text-obsidian-primary font-bold py-4 rounded-xl hover:bg-obsidian-card transition-all active:scale-95"
                                     >
                                         Chiudi e prosegui
                                     </button>
@@ -804,37 +800,37 @@ const DashboardUser = () => {
                             ) : (
                                 <>
                                     <div className="text-center mb-6">
-                                        <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Compass className="w-8 h-8 text-orange-600" />
+                                        <div className="w-16 h-16 bg-obsidian-raised border border-obsidian-border rounded-full flex items-center justify-center mx-auto mb-4 text-brand-orange">
+                                            <Compass className="w-8 h-8" />
                                         </div>
-                                        <h3 className="text-2xl font-bold text-gray-800">Tour su Misura</h3>
-                                        <p className="text-gray-500 text-sm mt-1">Le guide riceveranno la tua richiesta in base alla città scelta.</p>
+                                        <h3 className="text-2xl font-bold text-obsidian-primary">Tour su Misura</h3>
+                                        <p className="text-obsidian-secondary text-sm mt-1">Le guide riceveranno la tua richiesta in base alla città scelta.</p>
                                     </div>
 
                                     <div className="space-y-4">
                                         {/* City Selector */}
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Città del Tour</label>
+                                            <label className="block text-xs font-bold text-obsidian-secondary uppercase mb-2">Città del Tour</label>
                                             <select
                                                 value={requestCity}
                                                 onChange={(e) => setRequestCity(e.target.value)}
-                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-700 font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400 transition-all"
+                                                className="w-full bg-obsidian-bg border border-obsidian-border rounded-xl px-4 py-3 text-obsidian-primary font-semibold focus:outline-none focus:border-brand-orange transition-all"
                                                 disabled={requestStatus === 'submitting'}
                                             >
-                                                <option value="Roma">📍 Roma</option>
-                                                <option value="Milano">📍 Milano</option>
-                                                <option value="Firenze">📍 Firenze</option>
-                                                <option value="Venezia">📍 Venezia</option>
-                                                <option value="Napoli">📍 Napoli</option>
+                                                <option value="Roma">Roma</option>
+                                                <option value="Milano">Milano</option>
+                                                <option value="Firenze">Firenze</option>
+                                                <option value="Venezia">Venezia</option>
+                                                <option value="Napoli">Napoli</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-400 uppercase mb-2">La tua idea</label>
+                                            <label className="block text-xs font-bold text-obsidian-secondary uppercase mb-2">La tua idea</label>
                                             <textarea
                                                 value={requestText}
                                                 onChange={(e) => setRequestText(e.target.value)}
                                                 placeholder="Vorrei visitare i mercati storici e assaggiare lo street food locale..."
-                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all resize-none text-gray-700 disabled:opacity-50"
+                                                className="w-full bg-obsidian-bg border border-obsidian-border rounded-xl p-4 min-h-[120px] focus:outline-none focus:border-brand-orange transition-all resize-none text-obsidian-primary placeholder:text-obsidian-secondary/60 disabled:opacity-50"
                                                 autoFocus
                                                 disabled={requestStatus === 'submitting'}
                                             />
@@ -842,7 +838,7 @@ const DashboardUser = () => {
                                     </div>
 
                                     {requestStatus === 'error' && (
-                                        <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center font-bold">
+                                        <div className="bg-obsidian-raised border border-brand-orange/40 text-brand-orange p-3 rounded-lg text-sm text-center font-bold">
                                             Si è verificato un errore. Riprova.
                                         </div>
                                     )}
@@ -850,7 +846,7 @@ const DashboardUser = () => {
                                     <button
                                         onClick={submitGuideRequest}
                                         disabled={requestStatus === 'submitting' || requestText.trim().length === 0}
-                                        className="w-full bg-orange-600 text-white font-bold py-4 rounded-xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        className="w-full bg-brand-orange text-obsidian-bg font-bold py-4 rounded-xl hover:bg-brand-orange-hover transition-all shadow-lg shadow-brand-orange/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
                                         {requestStatus === 'submitting' ? (
                                             <>
@@ -877,25 +873,26 @@ const DashboardUser = () => {
                         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                         className="fixed top-4 left-4 right-4 z-[100] max-w-md mx-auto"
                     >
-                        <div className={`flex items-start gap-3 p-4 rounded-2xl shadow-2xl border backdrop-blur-md ${toast.type === 'request_declined'
-                                ? 'bg-gray-900/95 border-gray-700'
-                                : toast.type === 'price_offer'
-                                    ? 'bg-orange-600/95 border-orange-500'
-                                    : 'bg-green-600/95 border-green-500'
-                            }`}>
+                        <div className="flex items-start gap-3 p-4 rounded-2xl shadow-2xl border border-obsidian-border bg-obsidian-card/95 backdrop-blur-md">
                             {/* Icon */}
-                            <div className="text-2xl flex-shrink-0 mt-0.5">
-                                {toast.type === 'request_declined' ? '💬' : toast.type === 'price_offer' ? '💶' : '🎉'}
+                            <div className="p-2 rounded-xl bg-obsidian-raised border border-obsidian-border text-brand-orange shrink-0 mt-0.5">
+                                {toast.type === 'request_declined' ? (
+                                    <MessageSquare className="w-5 h-5" />
+                                ) : toast.type === 'price_offer' ? (
+                                    <Tag className="w-5 h-5" />
+                                ) : (
+                                    <CheckCircle className="w-5 h-5" />
+                                )}
                             </div>
                             {/* Text */}
                             <div className="flex-1 min-w-0">
-                                <p className="text-white font-bold text-sm leading-tight">{toast.title}</p>
-                                <p className="text-white/80 text-xs mt-0.5 leading-relaxed">{toast.message}</p>
+                                <p className="text-obsidian-primary font-bold text-sm leading-tight">{toast.title}</p>
+                                <p className="text-obsidian-secondary text-xs mt-0.5 leading-relaxed">{toast.message}</p>
                             </div>
                             {/* Close */}
                             <button
                                 onClick={() => setToast(null)}
-                                className="text-white/60 hover:text-white transition-colors flex-shrink-0 mt-0.5"
+                                className="text-obsidian-secondary hover:text-obsidian-primary transition-colors flex-shrink-0 mt-0.5"
                             >
                                 <X size={16} />
                             </button>
@@ -905,9 +902,7 @@ const DashboardUser = () => {
                             initial={{ scaleX: 1 }}
                             animate={{ scaleX: 0 }}
                             transition={{ duration: 5.5, ease: 'linear' }}
-                            className={`h-0.5 rounded-full origin-left mt-1 ${toast.type === 'request_declined' ? 'bg-gray-500' :
-                                    toast.type === 'price_offer' ? 'bg-orange-300' : 'bg-green-300'
-                                }`}
+                            className="h-0.5 rounded-full origin-left mt-1 bg-brand-orange"
                         />
                     </motion.div>
                 )}

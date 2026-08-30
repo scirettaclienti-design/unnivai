@@ -27,9 +27,7 @@ export default function ProfilePage() {
     const [editName, setEditName] = useState(firstName || "Viaggiatore");
     const [selectedTour, setSelectedTour] = useState(null);
     const [showShareModal, setShowShareModal] = useState(false);
-    const [showResults, setShowResults] = useState(false);
-    const [showExploreZones, setShowExploreZones] = useState(false);
-    const [showMyRequests, setShowMyRequests] = useState(false);
+    const [activeQuickTab, setActiveQuickTab] = useState('requests');
     const [chatModalRequest, setChatModalRequest] = useState(null);
 
     // Dynamic Data State
@@ -154,7 +152,7 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
+        <div className="min-h-screen bg-obsidian-bg text-obsidian-primary font-quicksand">
             <TopBar />
 
             <main className="max-w-md mx-auto px-4 py-8 pb-24">
@@ -167,65 +165,59 @@ export default function ProfilePage() {
                 >
                     <Link to="/dashboard-user">
                         <motion.button
-                            className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm text-terracotta-600 px-4 py-2 rounded-2xl shadow-lg hover:shadow-xl transition-all group"
+                            className="flex items-center space-x-2 bg-obsidian-card text-obsidian-secondary hover:text-obsidian-primary border border-obsidian-border px-4 py-2 rounded-2xl shadow-md hover:bg-obsidian-raised transition-all group"
                             whileHover={{ scale: 1.05, x: 5 }}
                             whileTap={{ scale: 0.95 }}
                         >
                             <ArrowLeft className="w-5 h-5" />
-                            <span className="font-medium">Home</span>
-                            <span className="text-lg">🏠</span>
+                            <span className="font-medium text-xs">Torna alla Home</span>
                         </motion.button>
                     </Link>
                 </motion.div>
 
-                {/* Profile Header - Simplified */}
+                {/* Profile Header */}
                 <motion.div
-                    className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg mb-6"
+                    className="bg-obsidian-card border border-obsidian-border rounded-2xl p-6 shadow-xl mb-6"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.1 }}
                 >
                     <div className="flex items-center space-x-4 mb-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-terracotta-400 to-terracotta-600 rounded-full flex items-center justify-center shadow-md border-2 border-white">
-                            <User className="text-white w-8 h-8" />
+                        <div className="w-16 h-16 bg-obsidian-raised border border-obsidian-border rounded-full flex items-center justify-center shadow-md">
+                            <User className="text-obsidian-primary w-8 h-8 stroke-[1.75]" />
                         </div>
                         <div className="flex-1">
-                            <h2 className="text-xl font-bold text-gray-800">{editName}</h2>
-                            <p className="text-gray-600 flex items-center text-sm mb-1">
-                                <Mail className="w-3 h-3 mr-1 text-terracotta-500" />
+                            <h2 className="text-xl font-bold text-obsidian-primary">{editName}</h2>
+                            <p className="text-obsidian-secondary flex items-center text-sm mb-1">
+                                <Mail className="w-3 h-3 mr-1.5 text-obsidian-secondary" />
                                 {user?.email || 'Email non verificata'}
                             </p>
-                            <p className="text-gray-600 flex items-center text-sm">
-                                <MapPin className="w-3 h-3 mr-1 text-terracotta-500" />
+                            <p className="text-obsidian-secondary flex items-center text-sm">
+                                <MapPin className="w-3 h-3 mr-1.5 text-obsidian-secondary" />
                                 {city || 'Italia'}
                             </p>
                         </div>
                     </div>
 
-                    {/* Simplified Stats — Livello 1: nessun contatore reale alimentato
-                        ancora (il ponte nav→profilo è il gate dopo). Stesso layout a 3
-                        celle: "—" al posto di numeri finti + caption evocativa onesta. */}
-                    <div className="flex justify-around pt-4 border-t border-gray-200">
+                    {/* Stats — Stato Vuoto Pulito */}
+                    <div className="flex justify-around pt-4 border-t border-obsidian-border">
                         <div className="text-center">
-                            <div className="text-lg font-bold text-terracotta-600">—</div>
-                            <div className="text-xs text-gray-600">Tour</div>
+                            <div className="text-lg font-medium text-obsidian-secondary/40 font-mono">—</div>
+                            <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Tour</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-lg font-bold text-terracotta-600">—</div>
-                            <div className="text-xs text-gray-600">Guide</div>
+                            <div className="text-lg font-medium text-obsidian-secondary/40 font-mono">—</div>
+                            <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Guide</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-lg font-bold text-terracotta-600">—</div>
-                            <div className="text-xs text-gray-600">Rating</div>
+                            <div className="text-lg font-medium text-obsidian-secondary/40 font-mono">—</div>
+                            <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Rating</div>
                         </div>
                     </div>
-                    <p className="text-center text-xs text-gray-500 mt-3">Il tuo primo giro ti aspetta: completane uno e questi numeri prendono vita.</p>
+                    <p className="text-center text-xs text-obsidian-secondary/70 mt-3">Il tuo primo giro ti aspetta: completane uno e questi numeri prendono vita.</p>
                 </motion.div>
 
-                {/* Tour DNA — Fase 2: SOLO categorie di gusto valide (CORE_CATEGORIES via
-                    normalizeCategory), alias uniti (culture→cultura). % e numero mostrato
-                    hanno la STESSA base (validTotal = somma dei conteggi CORE), non
-                    totalInteractions. Sotto soglia → "DNA in formazione". Stessa card/box. */}
+                {/* Tour DNA — Informativo */}
                 {(() => {
                     const catCounts = {};
                     for (const [k, v] of Object.entries(preferenceGraph || {})) {
@@ -236,144 +228,154 @@ export default function ProfilePage() {
                     const validTotal = Object.values(catCounts).reduce((s, v) => s + v, 0);
                     const cats = Object.entries(catCounts).sort(([, a], [, b]) => b - a).slice(0, 4);
                     const belowThreshold = validTotal < DNA_MIN_CATEGORIZED;
-                    const DNA_COLORS = ['bg-orange-500', 'bg-blue-500', 'bg-emerald-500', 'bg-purple-500'];
-                    const DNA_EMOJIS = { cultura: '🏛️', food: '🍝', nightlife: '🍸', natura: '🌿', avventura: '🧗', shopping: '🛍️', relax: '☕', arte: '🎨' };
+                    const DNA_SHADES = ['bg-obsidian-primary', 'bg-obsidian-secondary', 'bg-obsidian-secondary/60', 'bg-obsidian-border'];
 
                     return (
                         <motion.div
-                            className="mb-6 bg-white rounded-2xl p-5 shadow-sm"
+                            className="mb-6 bg-obsidian-card border border-obsidian-border rounded-2xl p-5 shadow-sm"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <h3 className="font-bold text-gray-800 text-sm mb-3 flex items-center gap-2">
-                                <span className="text-lg">🧬</span> Il tuo Tour DNA
+                            <h3 className="font-bold text-obsidian-primary text-sm mb-3 flex items-center gap-2">
+                                <Compass className="w-4 h-4 text-obsidian-secondary" /> Il tuo Tour DNA
                             </h3>
                             {belowThreshold ? (
-                                <p className="text-sm text-gray-500 italic">Il tuo DNA si sta formando: ogni tour che apri e ogni tappa che raggiungi aggiunge un pezzo.</p>
+                                <p className="text-sm text-obsidian-secondary italic">Il tuo DNA si sta formando: ogni tour che apri e ogni tappa che raggiungi aggiunge un pezzo.</p>
                             ) : (
                                 <>
-                                    <div className="flex h-3 rounded-full overflow-hidden mb-3">
+                                    <div className="flex h-2.5 rounded-full overflow-hidden mb-3 bg-obsidian-raised">
                                         {cats.map(([k, v], i) => (
-                                            <div key={k} className={`${DNA_COLORS[i]} transition-all`} style={{ width: `${(v / validTotal) * 100}%` }} />
+                                            <div key={k} className={`${DNA_SHADES[i]} transition-all`} style={{ width: `${(v / validTotal) * 100}%` }} />
                                         ))}
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         {cats.map(([k, v], i) => {
                                             const pct = Math.round((v / validTotal) * 100);
                                             return (
-                                                <span key={k} className="flex items-center gap-1 text-xs font-medium text-gray-600 bg-gray-50 px-2.5 py-1 rounded-lg">
-                                                    <span className={`w-2 h-2 rounded-full ${DNA_COLORS[i]}`} />
-                                                    {DNA_EMOJIS[k] || '📍'} {k} {pct}%
+                                                <span key={k} className="flex items-center gap-1.5 text-xs font-medium text-obsidian-primary bg-obsidian-raised border border-obsidian-border px-2.5 py-1 rounded-lg">
+                                                    <span className={`w-2 h-2 rounded-full ${DNA_SHADES[i]}`} />
+                                                    {k} {pct}%
                                                 </span>
                                             );
                                         })}
                                     </div>
-                                    <p className="text-[10px] text-gray-400 mt-2">{validTotal} interazioni di gusto analizzate</p>
+                                    <p className="text-[10px] text-obsidian-secondary/70 mt-2">{validTotal} interazioni di gusto analizzate</p>
                                 </>
                             )}
                         </motion.div>
                     );
                 })()}
 
-                {/* Quick Actions */}
+                {/* Quick Actions — Icone Lineari Monocrome */}
                 <motion.div
                     className="mb-6"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">Azioni Rapide</h3>
+                    <h3 className="text-lg font-bold text-obsidian-primary mb-4">Azioni Rapide</h3>
                     <div className="grid grid-cols-3 gap-3">
                         <motion.button
-                            onClick={() => setShowMyRequests(!showMyRequests)}
-                            className={`p-3 rounded-2xl shadow-lg relative overflow-hidden transition-all border ${showMyRequests ? 'bg-indigo-600 text-white border-indigo-500 ring-2 ring-indigo-300' : 'bg-white text-gray-800 border-gray-100'}`}
+                            onClick={() => setActiveQuickTab('requests')}
+                            className={`p-3.5 rounded-2xl shadow-lg relative overflow-hidden transition-all border ${
+                                activeQuickTab === 'requests'
+                                    ? 'bg-obsidian-raised text-obsidian-primary border-brand-orange ring-1 ring-brand-orange'
+                                    : 'bg-obsidian-card text-obsidian-primary border-obsidian-border hover:bg-obsidian-raised'
+                            }`}
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xl filter drop-shadow">📨</span>
-                                <MessageCircle className={`w-4 h-4 ${showMyRequests ? 'text-white' : 'text-indigo-600'}`} />
+                            <div className="flex items-center justify-between mb-2.5">
+                                <MessageCircle className={`w-5 h-5 ${activeQuickTab === 'requests' ? 'text-brand-orange' : 'text-obsidian-secondary'}`} />
                             </div>
-                            <h4 className={`font-bold text-[11px] leading-tight ${showMyRequests ? 'text-white' : 'text-gray-800'}`}>Richieste</h4>
+                            <h4 className="font-bold text-[11px] leading-tight text-obsidian-primary text-left">Richieste</h4>
                             {myRequests.length > 0 && (
-                                <span className="absolute top-2 right-2 flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500 border border-white"></span>
+                                <span className="absolute top-2.5 right-2.5 flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-orange opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-orange"></span>
                                 </span>
                             )}
                         </motion.button>
 
                         <motion.button
-                            onClick={() => setShowResults(!showResults)}
-                            className={`p-3 rounded-2xl shadow-lg relative overflow-hidden transition-all border ${showResults ? 'bg-yellow-500 text-white border-yellow-400 ring-2 ring-yellow-300' : 'bg-white text-gray-800 border-gray-100'}`}
+                            onClick={() => setActiveQuickTab('results')}
+                            className={`p-3.5 rounded-2xl shadow-lg relative overflow-hidden transition-all border ${
+                                activeQuickTab === 'results'
+                                    ? 'bg-obsidian-raised text-obsidian-primary border-brand-orange ring-1 ring-brand-orange'
+                                    : 'bg-obsidian-card text-obsidian-primary border-obsidian-border hover:bg-obsidian-raised'
+                            }`}
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xl filter drop-shadow">🏆</span>
-                                <Award className={`w-4 h-4 ${showResults ? 'text-white' : 'text-yellow-500'}`} />
+                            <div className="flex items-center justify-between mb-2.5">
+                                <Award className={`w-5 h-5 ${activeQuickTab === 'results' ? 'text-brand-orange' : 'text-obsidian-secondary'}`} />
                             </div>
-                            <h4 className={`font-bold text-[11px] leading-tight ${showResults ? 'text-white' : 'text-gray-800'}`}>Risultati</h4>
+                            <h4 className="font-bold text-[11px] leading-tight text-obsidian-primary text-left">Risultati</h4>
                         </motion.button>
 
                         <motion.button
-                            onClick={() => setShowExploreZones(!showExploreZones)}
-                            className={`p-3 rounded-2xl shadow-lg relative overflow-hidden transition-all border ${showExploreZones ? 'bg-green-600 text-white border-green-500 ring-2 ring-green-300' : 'bg-white text-gray-800 border-gray-100'}`}
+                            onClick={() => setActiveQuickTab('zones')}
+                            className={`p-3.5 rounded-2xl shadow-lg relative overflow-hidden transition-all border ${
+                                activeQuickTab === 'zones'
+                                    ? 'bg-obsidian-raised text-obsidian-primary border-brand-orange ring-1 ring-brand-orange'
+                                    : 'bg-obsidian-card text-obsidian-primary border-obsidian-border hover:bg-obsidian-raised'
+                            }`}
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xl filter drop-shadow">🗺️</span>
-                                <Map className={`w-4 h-4 ${showExploreZones ? 'text-white' : 'text-green-600'}`} />
+                            <div className="flex items-center justify-between mb-2.5">
+                                <Map className={`w-5 h-5 ${activeQuickTab === 'zones' ? 'text-brand-orange' : 'text-obsidian-secondary'}`} />
                             </div>
-                            <h4 className={`font-bold text-[11px] leading-tight ${showExploreZones ? 'text-white' : 'text-gray-800'}`}>Mete</h4>
+                            <h4 className="font-bold text-[11px] leading-tight text-obsidian-primary text-left">Mete</h4>
                         </motion.button>
                     </div>
                 </motion.div>
 
-                {/* My Requests Section */}
-                <AnimatePresence>
-                    {showMyRequests && (
+                {/* Tab Panels — Un solo pannello aperto alla volta */}
+                <AnimatePresence mode="wait">
+                    {activeQuickTab === 'requests' && (
                         <motion.div
-                            className="mb-6 bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
+                            key="requests"
+                            className="mb-6 bg-obsidian-card border border-obsidian-border rounded-2xl p-5 shadow-lg"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            transition={{ duration: 0.15 }}
                         >
-                            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                                <MessageCircle className="w-5 h-5 mr-2 text-indigo-500" />
+                            <h3 className="text-base font-bold text-obsidian-primary mb-4 flex items-center">
+                                <MessageCircle className="w-4 h-4 mr-2 text-obsidian-secondary" />
                                 Richieste Attive
                             </h3>
 
                             <div className="space-y-3">
                                 {myRequests.length === 0 ? (
-                                    <p className="text-sm text-gray-500 italic">Non hai richieste attive al momento.</p>
+                                    <p className="text-sm text-obsidian-secondary italic">Non hai richieste attive al momento.</p>
                                 ) : (
                                     myRequests.map((req) => (
-                                        <div key={req.id} className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm flex flex-col space-y-2">
+                                        <div key={req.id} className="bg-obsidian-bg p-4 rounded-xl border border-obsidian-border flex flex-col space-y-2">
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <h4 className="font-bold text-gray-800 text-sm">Tour a {req.city}</h4>
-                                                    <p className="text-xs text-gray-500">{new Date(req.created_at).toLocaleDateString()} • {req.duration || 3} ore</p>
+                                                    <h4 className="font-bold text-obsidian-primary text-sm">Tour a {req.city}</h4>
+                                                    <p className="text-xs text-obsidian-secondary">{new Date(req.created_at).toLocaleDateString()} • {req.duration || 3} ore</p>
                                                 </div>
-                                                <span className={`px-2 py-1 text-[10px] font-bold rounded-lg ${req.status === 'pending' ? 'bg-orange-100 text-orange-600' :
-                                                    req.status === 'accepted' ? 'bg-green-100 text-green-600' :
-                                                        'bg-gray-100 text-gray-600'
-                                                    }`}>
+                                                <span className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border ${
+                                                    req.status === 'pending'
+                                                        ? 'bg-obsidian-raised text-brand-orange border-brand-orange/30'
+                                                        : 'bg-obsidian-raised text-obsidian-primary border-obsidian-border'
+                                                }`}>
                                                     {req.status === 'pending' ? 'In attesa' : req.status === 'accepted' ? 'Accettata' : req.status}
                                                 </span>
                                             </div>
                                             {req.guide_id && (
-                                                <div className="mt-2 pt-2 border-t border-indigo-50 flex items-center justify-between">
-                                                    <p className="text-xs text-terracotta-500 font-medium flex items-center">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5"></span>
+                                                <div className="mt-2 pt-2 border-t border-obsidian-border flex items-center justify-between">
+                                                    <p className="text-xs text-obsidian-secondary font-medium flex items-center">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-brand-orange mr-1.5"></span>
                                                         Assegnata a una guida locale
                                                     </p>
                                                     <button
                                                         onClick={() => setChatModalRequest(req)}
-                                                        className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors px-3 py-1.5 rounded-lg text-xs font-bold flex items-center"
+                                                        className="bg-brand-orange text-obsidian-bg hover:bg-brand-orange-hover transition-colors px-3 py-1.5 rounded-lg text-xs font-bold flex items-center"
                                                     >
                                                         <MessageCircle className="w-3 h-3 mr-1" /> Apri Chat
                                                     </button>
@@ -385,50 +387,38 @@ export default function ProfilePage() {
                             </div>
                         </motion.div>
                     )}
-                </AnimatePresence>
 
-                {/* Results Section */}
-                <AnimatePresence>
-                    {showResults && (
+                    {activeQuickTab === 'results' && (
                         <motion.div
-                            className="mb-6 bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
+                            key="results"
+                            className="mb-6 bg-obsidian-card border border-obsidian-border rounded-2xl p-5 shadow-lg"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            transition={{ duration: 0.15 }}
                         >
-                            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                                <Award className="w-5 h-5 mr-2 text-yellow-500" />
+                            <h3 className="text-base font-bold text-obsidian-primary mb-3 flex items-center">
+                                <Award className="w-4 h-4 mr-2 text-obsidian-secondary" />
                                 I Miei Risultati
                             </h3>
-
-                            {/* Livello 1: via i traguardi hardcoded (10+ tour, 4.8/5,
-                                Top 10% erano tutti inventati). Box invariato, contenuto
-                                onesto sull'assenza — si sbloccheranno con i tour veri. */}
-                            <p className="text-sm text-gray-500 italic">I traguardi appariranno qui man mano che esplori: il primo si sblocca al tuo primo tour completato.</p>
+                            <p className="text-sm text-obsidian-secondary italic">I traguardi appariranno qui man mano che esplori: il primo si sblocca al tuo primo tour completato.</p>
                         </motion.div>
                     )}
-                </AnimatePresence>
 
-                {/* Explore Zones Section */}
-                <AnimatePresence>
-                    {showExploreZones && (
+                    {activeQuickTab === 'zones' && (
                         <motion.div
-                            className="mb-6 bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
+                            key="zones"
+                            className="mb-6 bg-obsidian-card border border-obsidian-border rounded-2xl p-5 shadow-lg"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            transition={{ duration: 0.15 }}
                         >
-                            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                                <Map className="w-5 h-5 mr-2 text-green-500" />
+                            <h3 className="text-base font-bold text-obsidian-primary mb-3 flex items-center">
+                                <Map className="w-4 h-4 mr-2 text-obsidian-secondary" />
                                 Esplora Zone
                             </h3>
-
-                            {/* Livello 1: via zone hardcoded + Unsplash. Box invariato,
-                                contenuto onesto sull'assenza. Popolerà con le città vere
-                                da nav_events quando ci sarà il ponte (gate successivo). */}
-                            <p className="text-sm text-gray-500 italic">Le zone che esplori appariranno qui: ogni città che visiti lascia il segno.</p>
+                            <p className="text-sm text-obsidian-secondary italic">Le zone che esplori appariranno qui: ogni città che visiti lascia il segno.</p>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -441,68 +431,63 @@ export default function ProfilePage() {
                     transition={{ duration: 0.6, delay: 0.3 }}
                 >
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-bold text-gray-800 flex items-center">
-                            <Clock className="w-5 h-5 mr-2 text-terracotta-400" />
+                        <h3 className="text-lg font-bold text-obsidian-primary flex items-center">
+                            <Clock className="w-5 h-5 mr-2 text-obsidian-secondary" />
                             Rivivi i tuoi Tour
                         </h3>
-                        {/* Livello 1: conteggio solo se c'è davvero qualcosa (niente "0 tour • 0 foto" nudo). */}
                         {tourHistory.length > 0 && (
-                            <div className="flex items-center space-x-3 text-sm text-gray-600">
+                            <div className="flex items-center space-x-3 text-sm text-obsidian-secondary">
                                 <span>{tourHistory.length} tour</span>
                                 <span>•</span>
                                 <span>{tourHistory.reduce((total, tour) => total + tour.photos.length, 0)} foto</span>
                                 <Link to="/photos">
-                                    <span className="text-terracotta-500 hover:text-terracotta-600 font-medium cursor-pointer">Vedi tutte</span>
+                                    <span className="text-obsidian-secondary hover:text-obsidian-primary font-medium cursor-pointer transition-colors">Vedi tutte</span>
                                 </Link>
                             </div>
                         )}
                     </div>
 
                     <div className="space-y-4">
-                        {/* Livello 1: empty state evocativo onesto, stesso stile card. */}
                         {tourHistory.length === 0 && (
-                            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg text-center">
-                                <p className="text-sm text-gray-500 italic">Le tue tappe raccontano dove sei stato — inizia a scriverle. Le foto dei tuoi tour appariranno qui.</p>
+                            <div className="bg-obsidian-card border border-obsidian-border rounded-2xl p-6 shadow-sm text-center">
+                                <p className="text-sm text-obsidian-secondary italic">Le tue tappe raccontano dove sei stato — inizia a scriverle. Le foto dei tuoi tour appariranno qui.</p>
                             </div>
                         )}
                         {tourHistory.map((tour, index) => (
                             <motion.div
                                 key={tour.id}
-                                className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 shadow-lg"
+                                className="bg-obsidian-card border border-obsidian-border rounded-2xl p-4 shadow-lg"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 + index * 0.1 }}
                             >
                                 <div className="space-y-3">
-                                    {/* Header con titolo e rating */}
                                     <div className="flex items-center justify-between">
-                                        <h4 className="font-bold text-gray-800 text-sm">{tour.title}</h4>
+                                        <h4 className="font-bold text-obsidian-primary text-sm">{tour.title}</h4>
                                         <div className="flex items-center space-x-1">
                                             {Array.from({ length: tour.rating || 0 }).map((_, i) => (
-                                                <Star key={i} className="w-3 h-3 text-yellow-400 fill-current" />
+                                                <Star key={i} className="w-3 h-3 text-brand-orange fill-current" />
                                             ))}
                                         </div>
                                     </div>
 
-                                    <p className="text-xs text-gray-600 flex items-center">
-                                        <MapPin className="w-3 h-3 mr-1 text-terracotta-400" />
+                                    <p className="text-xs text-obsidian-secondary flex items-center">
+                                        <MapPin className="w-3 h-3 mr-1 text-obsidian-secondary" />
                                         {tour.location} • {tour.date}
                                     </p>
 
-                                    {/* Foto del tour - Mini carousel */}
-                                    {/* Foto del tour - Mini carousel (Reduced & Styled) */}
+                                    {/* Foto del tour */}
                                     <div className="relative mt-2">
                                         <div className="flex items-center justify-between mb-2">
-                                            <h5 className="text-xs font-bold text-gray-700 flex items-center">
-                                                📸 Ricordi ({tour.photos.length})
+                                            <h5 className="text-xs font-bold text-obsidian-secondary flex items-center">
+                                                Ricordi ({tour.photos.length})
                                             </h5>
                                         </div>
                                         <div className="flex gap-2 pb-1 overflow-x-hidden">
-                                            {/* Show only first 3 photos for cleaner look */}
                                             {tour.photos.slice(0, 3).map((photo, photoIndex) => (
                                                 <motion.div
                                                     key={photoIndex}
-                                                    className="flex-shrink-0 relative group cursor-pointer overflow-hidden rounded-xl w-20 h-20 shadow-sm border border-white"
+                                                    className="flex-shrink-0 relative group cursor-pointer overflow-hidden rounded-xl w-20 h-20 shadow-sm border border-obsidian-border"
                                                     whileHover={{ scale: 1.05, rotate: photoIndex % 2 === 0 ? 2 : -2 }}
                                                     whileTap={{ scale: 0.95 }}
                                                     onClick={() => setSelectedTour(tour)}
@@ -512,31 +497,32 @@ export default function ProfilePage() {
                                                         alt={`Ricordo ${photoIndex + 1}`}
                                                         className="w-full h-full object-cover"
                                                     />
-                                                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                                                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
                                                 </motion.div>
                                             ))}
 
-                                            {/* "See All" Tile */}
-                                            <motion.div
-                                                className="flex-shrink-0 w-20 h-20 bg-gray-50 rounded-xl flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-gray-200 hover:border-terracotta-300 hover:bg-terracotta-50 transition-colors"
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => setSelectedTour(tour)}
-                                            >
-                                                <span className="text-gray-400 font-bold text-xs">+{tour.photos.length - 3}</span>
-                                            </motion.div>
+                                            {tour.photos.length > 3 && (
+                                                <motion.div
+                                                    className="flex-shrink-0 w-20 h-20 bg-obsidian-raised rounded-xl flex flex-col items-center justify-center cursor-pointer border border-obsidian-border hover:border-brand-orange transition-colors"
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => setSelectedTour(tour)}
+                                                >
+                                                    <span className="text-obsidian-primary font-bold text-xs">+{tour.photos.length - 3}</span>
+                                                </motion.div>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {/* Buttons - Redesigned for Premium Cleanliness */}
-                                    <div className="flex items-center gap-2 pt-3 mt-2 border-t border-gray-100/50">
+                                    {/* Buttons */}
+                                    <div className="flex items-center gap-2 pt-3 mt-2 border-t border-obsidian-border">
                                         <motion.button
                                             onClick={() => setSelectedTour(tour)}
-                                            className="flex-1 bg-gray-50 text-gray-700 hover:bg-terracotta-50 hover:text-terracotta-600 border border-gray-200 hover:border-terracotta-200 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 group"
+                                            className="flex-1 bg-obsidian-raised text-obsidian-primary hover:bg-brand-orange hover:text-obsidian-bg border border-obsidian-border hover:border-brand-orange px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 group"
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
                                         >
-                                            <Eye className="w-3.5 h-3.5 text-gray-400 group-hover:text-terracotta-500 transition-colors" />
+                                            <Eye className="w-3.5 h-3.5 text-obsidian-secondary group-hover:text-obsidian-bg transition-colors" />
                                             <span>Rivivi Ricordo</span>
                                         </motion.button>
 
@@ -545,7 +531,7 @@ export default function ProfilePage() {
                                                 setSelectedTour(tour);
                                                 setShowShareModal(true);
                                             }}
-                                            className="p-2.5 rounded-xl border border-transparent hover:bg-gray-50 text-gray-400 hover:text-gray-600 transition-colors"
+                                            className="p-2.5 rounded-xl border border-obsidian-border hover:bg-obsidian-raised text-obsidian-secondary hover:text-obsidian-primary transition-colors"
                                             whileHover={{ scale: 1.1, rotate: 5 }}
                                             whileTap={{ scale: 0.9 }}
                                         >
@@ -570,7 +556,7 @@ export default function ProfilePage() {
                             onClick={() => setSelectedTour(null)}
                         >
                             <motion.div
-                                className="bg-white rounded-3xl w-full max-w-sm max-h-[85vh] overflow-y-auto overflow-x-hidden shadow-2xl relative"
+                                className="bg-obsidian-card border border-obsidian-border rounded-3xl w-full max-w-sm max-h-[85vh] overflow-y-auto overflow-x-hidden shadow-2xl relative"
                                 initial={{ scale: 0.9, opacity: 0, y: 100 }}
                                 animate={{ scale: 1, opacity: 1, y: 0 }}
                                 exit={{ scale: 0.95, opacity: 0, y: 50 }}
@@ -589,29 +575,29 @@ export default function ProfilePage() {
                                         alt={selectedTour.title}
                                         className="w-full h-full object-cover"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-obsidian-card via-obsidian-card/40 to-transparent" />
 
                                     {/* Floating Close Button */}
                                     <button
                                         onClick={() => setSelectedTour(null)}
-                                        className="absolute top-4 right-4 p-2 rounded-full bg-black/20 backdrop-blur-md text-white border border-white/20 hover:bg-black/40 transition-all"
+                                        className="absolute top-4 right-4 p-2 rounded-full bg-obsidian-bg/80 backdrop-blur-md text-obsidian-primary border border-obsidian-border hover:bg-obsidian-raised transition-all"
                                     >
                                         <X className="w-5 h-5" />
                                     </button>
 
                                     {/* Title & Location Overlay */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                                        <div className="flex items-center space-x-1 text-terracotta-300 text-xs font-bold uppercase tracking-wider mb-2">
+                                    <div className="absolute bottom-0 left-0 right-0 p-6 text-obsidian-primary">
+                                        <div className="flex items-center space-x-1 text-brand-orange text-xs font-bold uppercase tracking-wider mb-2">
                                             <MapPin className="w-3 h-3" />
                                             <span>{selectedTour.location}</span>
                                         </div>
-                                        <h3 className="text-2xl font-bold leading-tight mb-2 shadow-sm">{selectedTour.title}</h3>
-                                        <div className="flex items-center space-x-2 text-xs text-white/90">
+                                        <h3 className="text-2xl font-bold leading-tight mb-2">{selectedTour.title}</h3>
+                                        <div className="flex items-center space-x-2 text-xs text-obsidian-secondary">
                                             <div className="flex">
                                                 {Array.from({ length: 5 }).map((_, i) => (
                                                     <Star
                                                         key={i}
-                                                        className={`w-3 h-3 ${i < selectedTour.rating ? 'text-yellow-400 fill-current' : 'text-gray-400'}`}
+                                                        className={`w-3 h-3 ${i < selectedTour.rating ? 'text-brand-orange fill-current' : 'text-obsidian-border'}`}
                                                     />
                                                 ))}
                                             </div>
@@ -624,52 +610,51 @@ export default function ProfilePage() {
                                 {/* Content Body */}
                                 <div className="p-6 space-y-6">
                                     {/* Stats Grid */}
-                                    <div className="flex items-center justify-between bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                                    <div className="flex items-center justify-between bg-obsidian-bg rounded-2xl p-4 border border-obsidian-border">
                                         <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                                            <div className="w-10 h-10 rounded-full bg-obsidian-raised border border-obsidian-border flex items-center justify-center text-obsidian-primary">
                                                 <Clock className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-500 font-medium">Durata</p>
-                                                <p className="text-sm font-bold text-gray-800">{selectedTour.duration || '—'}</p>
+                                                <p className="text-xs text-obsidian-secondary font-medium">Durata</p>
+                                                <p className="text-sm font-bold text-obsidian-primary">{selectedTour.duration || '—'}</p>
                                             </div>
                                         </div>
-                                        <div className="w-px h-8 bg-gray-200" />
+                                        <div className="w-px h-8 bg-obsidian-border" />
                                         <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                            <div className="w-10 h-10 rounded-full bg-obsidian-raised border border-obsidian-border flex items-center justify-center text-obsidian-primary">
                                                 <User className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-500 font-medium">Guida</p>
-                                                <p className="text-sm font-bold text-gray-800">{selectedTour.guide || '—'}</p>
+                                                <p className="text-xs text-obsidian-secondary font-medium">Guida</p>
+                                                <p className="text-sm font-bold text-obsidian-primary">{selectedTour.guide || '—'}</p>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Description */}
                                     <div>
-                                        <h4 className="font-bold text-gray-800 mb-2 flex items-center">
-                                            <span className="text-lg mr-2">📝</span> Descrizione
+                                        <h4 className="font-bold text-obsidian-primary mb-2 flex items-center">
+                                            Descrizione
                                         </h4>
-                                        <p className="text-sm text-gray-600 leading-relaxed min-h-[60px]">
+                                        <p className="text-sm text-obsidian-secondary leading-relaxed min-h-[60px]">
                                             {selectedTour.description}
                                         </p>
                                     </div>
 
-                                    {/* Highlights Chips — Livello 1: sezione nascosta se non
-                                        ci sono highlights reali (mai chip inventate). */}
+                                    {/* Highlights Chips */}
                                     {selectedTour.highlights?.length > 0 && (
                                     <div>
-                                        <h4 className="font-bold text-gray-800 mb-3 flex items-center">
-                                            <span className="text-lg mr-2">✨</span> Highlights
+                                        <h4 className="font-bold text-obsidian-primary mb-3 flex items-center">
+                                            Highlights
                                         </h4>
                                         <div className="flex flex-wrap gap-2">
                                             {selectedTour.highlights.map((highlight, index) => (
                                                 <span
                                                     key={index}
-                                                    className="px-3 py-1.5 bg-terracotta-50 text-terracotta-700 rounded-lg text-xs font-semibold border border-terracotta-100 flex items-center"
+                                                    className="px-3 py-1.5 bg-obsidian-raised text-obsidian-primary rounded-lg text-xs font-semibold border border-obsidian-border flex items-center"
                                                 >
-                                                    <Target className="w-3 h-3 mr-1.5" />
+                                                    <Target className="w-3 h-3 mr-1.5 text-obsidian-secondary" />
                                                     {highlight}
                                                 </span>
                                             ))}
@@ -681,11 +666,10 @@ export default function ProfilePage() {
                                     {selectedTour?.photos && (
                                         <div className="pt-2">
                                             <div className="flex items-center justify-between mb-4">
-                                                <h4 className="font-bold text-gray-800 flex items-center">
-                                                    <span className="text-lg mr-2">📸</span>
+                                                <h4 className="font-bold text-obsidian-primary flex items-center">
                                                     Gallery
                                                 </h4>
-                                                <Link to="/photos" className="text-xs font-bold text-terracotta-500 hover:text-terracotta-600 flex items-center group">
+                                                <Link to="/photos" className="text-xs font-bold text-obsidian-secondary hover:text-obsidian-primary flex items-center group transition-colors">
                                                     Vedi tutte
                                                     <ChevronRight className="w-3 h-3 ml-0.5 group-hover:translate-x-0.5 transition-transform" />
                                                 </Link>
@@ -695,7 +679,7 @@ export default function ProfilePage() {
                                                 {/* Main Featured Photo */}
                                                 {selectedTour.photos[0] && (
                                                     <motion.div
-                                                        className="col-span-2 relative h-48 rounded-2xl overflow-hidden shadow-md cursor-pointer group"
+                                                        className="col-span-2 relative h-48 rounded-2xl overflow-hidden shadow-md cursor-pointer group border border-obsidian-border"
                                                         whileHover={{ scale: 1.01 }}
                                                         transition={{ duration: 0.2 }}
                                                     >
@@ -705,8 +689,8 @@ export default function ProfilePage() {
                                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                                         />
                                                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                        <div className="absolute top-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-lg">
-                                                            <p className="text-white text-[10px] font-bold">Featured</p>
+                                                        <div className="absolute top-2 right-2 bg-obsidian-bg/80 backdrop-blur-sm border border-obsidian-border px-2 py-1 rounded-lg">
+                                                            <p className="text-obsidian-primary text-[10px] font-bold">Featured</p>
                                                         </div>
                                                     </motion.div>
                                                 )}
@@ -715,7 +699,7 @@ export default function ProfilePage() {
                                                 {selectedTour.photos.slice(1, 4).map((photo, index) => (
                                                     <motion.div
                                                         key={index}
-                                                        className="relative h-24 rounded-xl overflow-hidden shadow-sm cursor-pointer group"
+                                                        className="relative h-24 rounded-xl overflow-hidden shadow-sm cursor-pointer group border border-obsidian-border"
                                                         whileHover={{ scale: 1.05 }}
                                                     >
                                                         <img
@@ -730,11 +714,11 @@ export default function ProfilePage() {
                                                 {selectedTour.photos.length > 4 && (
                                                     <Link to="/photos">
                                                         <motion.div
-                                                            className="relative h-24 bg-gray-50 rounded-xl overflow-hidden shadow-sm flex flex-col items-center justify-center cursor-pointer border border-gray-100 hover:bg-terracotta-50 hover:border-terracotta-200 transition-all group"
+                                                            className="relative h-24 bg-obsidian-raised rounded-xl overflow-hidden shadow-sm flex flex-col items-center justify-center cursor-pointer border border-obsidian-border hover:border-brand-orange transition-all group"
                                                             whileHover={{ scale: 1.05 }}
                                                         >
-                                                            <span className="font-bold text-terracotta-600 text-lg group-hover:scale-110 transition-transform">+{selectedTour.photos.length - 4}</span>
-                                                            <span className="text-[10px] text-gray-400 group-hover:text-terracotta-400">altre foto</span>
+                                                            <span className="font-bold text-obsidian-primary text-lg group-hover:scale-110 transition-transform">+{selectedTour.photos.length - 4}</span>
+                                                            <span className="text-[10px] text-obsidian-secondary">altre foto</span>
                                                         </motion.div>
                                                     </Link>
                                                 )}
@@ -742,7 +726,7 @@ export default function ProfilePage() {
 
                                             <Link to="/photos">
                                                 <motion.button
-                                                    className="w-full py-3.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl text-sm font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all flex items-center justify-center gap-2 group"
+                                                    className="w-full py-3.5 bg-brand-orange text-obsidian-bg rounded-xl text-sm font-bold shadow-lg hover:bg-brand-orange-hover transition-all flex items-center justify-center gap-2 group"
                                                     whileTap={{ scale: 0.98 }}
                                                 >
                                                     Visualizza Album Completo
@@ -761,72 +745,72 @@ export default function ProfilePage() {
                 <AnimatePresence>
                     {showShareModal && selectedTour && (
                         <motion.div
-                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                            className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setShowShareModal(false)}
                         >
                             <motion.div
-                                className="bg-white rounded-3xl p-6 max-w-sm w-full"
+                                className="bg-obsidian-card border border-obsidian-border rounded-3xl p-6 max-w-sm w-full shadow-2xl"
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 exit={{ scale: 0.8, opacity: 0 }}
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-xl font-bold text-gray-800">Condividi Tour</h3>
+                                    <h3 className="text-lg font-bold text-obsidian-primary">Condividi Tour</h3>
                                     <button
                                         onClick={() => setShowShareModal(false)}
-                                        className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                                        className="p-2 rounded-full bg-obsidian-raised border border-obsidian-border text-obsidian-secondary hover:text-obsidian-primary transition-colors"
                                     >
-                                        ✕
+                                        <X size={16} />
                                     </button>
                                 </div>
 
-                                <p className="text-sm text-gray-600 mb-6">
+                                <p className="text-sm text-obsidian-secondary mb-6">
                                     Condividi "{selectedTour.title}" con i tuoi amici
                                 </p>
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <motion.button
                                         onClick={() => shareTour('facebook', selectedTour)}
-                                        className="bg-blue-600 text-white p-4 rounded-2xl flex flex-col items-center space-y-2 hover:bg-blue-700 transition-colors"
+                                        className="bg-obsidian-bg hover:bg-obsidian-raised border border-obsidian-border text-obsidian-primary p-4 rounded-2xl flex flex-col items-center space-y-2 transition-colors"
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
-                                        <Facebook className="w-6 h-6" />
-                                        <span className="text-sm font-medium">Facebook</span>
+                                        <Facebook className="w-6 h-6 text-obsidian-secondary" />
+                                        <span className="text-xs font-medium">Facebook</span>
                                     </motion.button>
 
                                     <motion.button
                                         onClick={() => shareTour('twitter', selectedTour)}
-                                        className="bg-black text-white p-4 rounded-2xl flex flex-col items-center space-y-2 hover:bg-gray-800 transition-colors"
+                                        className="bg-obsidian-bg hover:bg-obsidian-raised border border-obsidian-border text-obsidian-primary p-4 rounded-2xl flex flex-col items-center space-y-2 transition-colors"
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
-                                        <Twitter className="w-6 h-6" />
-                                        <span className="text-sm font-medium">Twitter</span>
+                                        <Twitter className="w-6 h-6 text-obsidian-secondary" />
+                                        <span className="text-xs font-medium">Twitter</span>
                                     </motion.button>
 
                                     <motion.button
                                         onClick={() => shareTour('instagram', selectedTour)}
-                                        className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 rounded-2xl flex flex-col items-center space-y-2 hover:from-purple-600 hover:to-pink-600 transition-colors"
+                                        className="bg-obsidian-bg hover:bg-obsidian-raised border border-obsidian-border text-obsidian-primary p-4 rounded-2xl flex flex-col items-center space-y-2 transition-colors"
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
-                                        <Instagram className="w-6 h-6" />
-                                        <span className="text-sm font-medium">Instagram</span>
+                                        <Instagram className="w-6 h-6 text-obsidian-secondary" />
+                                        <span className="text-xs font-medium">Instagram</span>
                                     </motion.button>
 
                                     <motion.button
                                         onClick={() => shareTour('copy', selectedTour)}
-                                        className="bg-gray-500 text-white p-4 rounded-2xl flex flex-col items-center space-y-2 hover:bg-gray-600 transition-colors"
+                                        className="bg-obsidian-bg hover:bg-obsidian-raised border border-obsidian-border text-obsidian-primary p-4 rounded-2xl flex flex-col items-center space-y-2 transition-colors"
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
-                                        <LinkIcon className="w-6 h-6" />
-                                        <span className="text-sm font-medium">Copia Link</span>
+                                        <LinkIcon className="w-6 h-6 text-obsidian-secondary" />
+                                        <span className="text-xs font-medium">Copia Link</span>
                                     </motion.button>
                                 </div>
                             </motion.div>

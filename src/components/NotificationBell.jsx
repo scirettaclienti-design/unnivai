@@ -58,9 +58,9 @@ export default function NotificationBell({ theme = 'dark' }) {
     const isLight = theme === 'light';
     const containerClasses = isLight
         ? "relative p-3 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all duration-300 cursor-pointer border border-gray-200"
-        : "relative p-3 bg-white/20 hover:bg-white/30 rounded-2xl transition-all duration-300 cursor-pointer backdrop-blur-sm border border-white/30";
+        : "relative p-3 bg-obsidian-card hover:bg-obsidian-raised rounded-2xl transition-all duration-300 cursor-pointer border border-obsidian-border";
 
-    const iconColor = isLight ? "text-gray-700" : "text-white";
+    const iconColor = isLight ? "text-gray-700" : "text-obsidian-primary";
 
     return (
         <div className="relative"
@@ -95,7 +95,7 @@ export default function NotificationBell({ theme = 'dark' }) {
 
                         {unreadCount > 0 && (
                             <motion.div
-                                className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg"
+                                className="absolute -top-2 -right-2 bg-brand-orange text-obsidian-bg text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg shadow-brand-orange/30"
                                 initial={{ scale: 0, rotate: 180 }}
                                 animate={{ scale: 1, rotate: 0 }}
                                 transition={{
@@ -122,7 +122,7 @@ export default function NotificationBell({ theme = 'dark' }) {
 
                         {isLoading && (
                             <motion.div
-                                className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full shadow-lg"
+                                className="absolute -top-1 -right-1 w-4 h-4 bg-brand-orange rounded-full shadow-lg"
                                 animate={{
                                     scale: [1, 1.3, 1],
                                     opacity: [0.7, 1, 0.7],

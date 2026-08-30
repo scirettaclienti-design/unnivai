@@ -37,6 +37,7 @@ const UpdatePassword = lazy(() => import('./pages/UpdatePassword'));
 const Trending       = lazy(() => import('./pages/Trending'));
 const Photos         = lazy(() => import('./pages/Photos'));
 const Onboarding     = lazy(() => import('./pages/Onboarding'));
+const CoverPreview   = lazy(() => import('./pages/CoverPreview'));
 const NotFound       = lazy(() => import('./pages/NotFound'));
 // Gate W — Schermate "Prossimamente" per V2 Guide, V3 Attivita', Foto.
 // Sostituiscono redirect+toast di V1LockedGuard con contenuto onesto.
@@ -128,6 +129,7 @@ function AnimatedAppRoutes() {
         {/* PUBLIC */}
         <Route path="/login"           element={<Login />} />
         <Route path="/onboarding"      element={<Onboarding />} />
+        <Route path="/cover-preview"   element={<CoverPreview />} />
         <Route path="/update-password" element={<UpdatePassword />} />
         <Route path="/explore"         element={<Explore />} />
         <Route path="/tour-details"    element={<TourDetails />} />

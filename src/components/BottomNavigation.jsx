@@ -24,8 +24,12 @@ export default function BottomNavigation() {
 
     const activeTab = getActiveTab();
 
+    // NOTA: Trasparenza e blur temporaneamente rimossi, da riattivare a conversione completata
     return (
-        <footer className="fixed bottom-0 w-full z-50 bg-white/90 backdrop-blur-md border-t border-stone-200/70 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+        <footer
+            className="fixed bottom-0 w-full z-50 bg-obsidian-bg border-t border-obsidian-border shadow-2xl"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        >
             <div className="max-w-md mx-auto px-6 py-2.5">
                 <nav className="flex items-center justify-between" aria-label="Navigazione principale">
                     {navItems.map((item) => {
@@ -36,20 +40,24 @@ export default function BottomNavigation() {
                             <Link key={item.id} to={item.path} className="relative z-10 py-1 px-3">
                                 <motion.div
                                     className={`flex flex-col items-center space-y-1 transition-colors duration-200 ${
-                                        isActive ? 'text-stone-950 font-bold' : 'text-stone-400 hover:text-stone-600 font-medium'
+                                        isActive
+                                            ? 'text-brand-orange font-bold'
+                                            : 'text-obsidian-secondary hover:text-obsidian-primary font-medium'
                                     }`}
                                     whileTap={{ scale: 0.94 }}
                                 >
                                     <div className="relative flex flex-col items-center">
                                         <IconComponent
                                             className={`w-5 h-5 transition-transform duration-200 ${
-                                                isActive ? 'stroke-[2.5] scale-105 text-stone-950' : 'stroke-[1.75] text-stone-400'
+                                                isActive
+                                                    ? 'stroke-[2.2] scale-105 text-brand-orange'
+                                                    : 'stroke-[1.75] text-obsidian-secondary'
                                             }`}
                                         />
                                         {isActive && (
                                             <motion.span
                                                 layoutId="activeNavIndicator"
-                                                className="absolute -bottom-1 w-1 h-1 rounded-full bg-stone-900"
+                                                className="absolute -bottom-1 w-1 h-1 rounded-full bg-brand-orange"
                                                 transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                                             />
                                         )}

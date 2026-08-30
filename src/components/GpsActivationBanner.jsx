@@ -34,34 +34,35 @@ export default function GpsActivationBanner() {
     return (
         <div className="w-full">
             {feedback?.type === 'success' ? (
-                <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-2xl p-3 text-green-700 text-sm font-medium">
-                    <span>✅</span> {feedback.message}
+                <div className="flex items-center gap-2 bg-obsidian-card border border-obsidian-border rounded-2xl p-3 text-obsidian-primary text-sm font-medium">
+                    <MapPin className="w-4 h-4 text-brand-orange inline shrink-0" />
+                    <span>{feedback.message}</span>
                 </div>
             ) : feedback?.type === 'error' ? (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3">
-                    <p className="text-amber-700 text-xs font-medium mb-2">⚠️ {feedback.message}</p>
-                    <p className="text-amber-600 text-xs">Seleziona una città manualmente dall'header.</p>
+                <div className="bg-obsidian-card border border-brand-orange/30 rounded-2xl p-3">
+                    <p className="text-brand-orange text-xs font-semibold mb-1">Posizione non disponibile</p>
+                    <p className="text-obsidian-secondary text-xs">{feedback.message}. Puoi selezionare la città dall'header in alto.</p>
                 </div>
             ) : (
                 <button
                     onClick={handleClick}
                     disabled={isLoading}
-                    className="w-full flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform disabled:opacity-70"
+                    className="w-full flex items-center gap-3 bg-obsidian-card border border-obsidian-border hover:border-brand-orange/40 rounded-2xl p-4 text-left active:scale-[0.98] transition-all disabled:opacity-70 group"
                 >
-                    <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-obsidian-raised border border-brand-orange/30 flex items-center justify-center shrink-0 text-brand-orange">
                         {isLoading ? (
-                            <Loader className="w-5 h-5 text-white animate-spin" />
+                            <Loader className="w-5 h-5 text-brand-orange animate-spin" />
                         ) : (
-                            <MapPin className="w-5 h-5 text-white" />
+                            <MapPin className="w-5 h-5 text-brand-orange" />
                         )}
                     </div>
                     <div className="flex-1">
-                        <p className="text-sm font-bold text-blue-800">
+                        <p className="text-sm font-bold text-obsidian-primary group-hover:text-brand-orange transition-colors">
                             {isLoading ? 'Ricerca posizione...' : 'Attiva la tua posizione'}
                         </p>
-                        <p className="text-xs text-blue-600">Per tour personalizzati nella tua zona</p>
+                        <p className="text-xs text-obsidian-secondary">Per tour personalizzati nella tua zona</p>
                     </div>
-                    {!isLoading && <ChevronRight className="w-5 h-5 text-blue-400" />}
+                    {!isLoading && <ChevronRight className="w-5 h-5 text-obsidian-secondary group-hover:text-brand-orange group-hover:translate-x-0.5 transition-all" />}
                 </button>
             )}
         </div>

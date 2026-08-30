@@ -1,7 +1,7 @@
 // DVAI-022: APIProvider solo per questa pagina (via MapAPIWrapper)
 import MapAPIWrapper from '@/components/MapAPIWrapper';
 import { motion } from "framer-motion";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { MapPin, Star, Clock, Users, Search, Calendar, Map, Heart, ArrowLeft, ArrowRight, Filter } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import TopBar from "@/components/TopBar";
@@ -12,6 +12,12 @@ import { dataService } from "@/services/dataService";
 import { useUserContext } from "@/hooks/useUserContext";
 import { resolveCityCenter, CityCenterUnresolvedError } from "@/services/cityCenterService";
 const categories = ["Tutti", "Gastronomia", "Cultura", "Natura", "Arte", "Romantico"];
+
+const VALIDATION_CITIES = [
+    { id: 'milano', name: 'Milano', tag: 'Metropoli', center: { lat: 45.4642, lng: 9.1900 } },
+    { id: 'venezia', name: 'Venezia', tag: "Città d'acqua", center: { lat: 45.4408, lng: 12.3155 } },
+    { id: 'amalfi', name: 'Amalfi', tag: 'Centro piccolo', center: { lat: 40.6340, lng: 14.6027 } },
+];
 
 function ExplorePage() {
     const navigate = useNavigate();
@@ -49,6 +55,35 @@ function ExplorePage() {
             });
         return () => { cancelled = true; };
     }, [city]);
+
+    const [selectedValidationCity, setSelectedValidationCity] = useState(null);
+
+    // Active center and city for map preview
+    const activePreviewCity = selectedValidationCity || (city?.toLowerCase().includes('venezia')
+        ? VALIDATION_CITIES[1]
+        : city?.toLowerCase().includes('amalfi')
+            ? VALIDATION_CITIES[2]
+            : (mapCenter ? { name: city, center: mapCenter, tag: 'Città corrente' } : VALIDATION_CITIES[0]));
+
+    const currentMapCenter = activePreviewCity.center || mapCenter || VALIDATION_CITIES[0].center;
+    const currentMapCity = activePreviewCity.name || city || 'Milano';
+
+    const mapContainerRef = useRef(null);
+    useEffect(() => {
+        if (!mapContainerRef.current) return;
+        const triggerResize = () => {
+            window.dispatchEvent(new Event('resize'));
+        };
+        const observer = new ResizeObserver(triggerResize);
+        observer.observe(mapContainerRef.current);
+        const t1 = setTimeout(triggerResize, 80);
+        const t2 = setTimeout(triggerResize, 350);
+        return () => {
+            observer.disconnect();
+            clearTimeout(t1);
+            clearTimeout(t2);
+        };
+    }, [currentMapCenter]);
 
     // Initialize favorites from localStorage
     const [favoriteItems, setFavoriteItems] = useState(() => {
@@ -205,7 +240,7 @@ function ExplorePage() {
     }, [filteredExperiences]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-ochre-50 to-ochre-100 font-quicksand">
+        <div className="min-h-screen bg-obsidian-bg text-obsidian-primary font-quicksand">
             <TopBar />
 
             <main className="max-w-md mx-auto px-4 py-8 pb-32">
@@ -216,12 +251,12 @@ function ExplorePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                 >
-                    <Link to="/dashboard-user" className="inline-flex items-center text-gray-500 text-sm mb-4 hover:text-black transition-colors">
+                    <Link to="/dashboard-user" className="inline-flex items-center text-obsidian-secondary text-sm mb-4 hover:text-obsidian-primary transition-colors">
                         <ArrowLeft size={16} className="mr-1" /> Torna alla Home
                     </Link>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Esplora</h1>
-                    <p className="text-gray-600">
-                        {city ? `Le migliori esperienze a ${city}.` : 'Le migliori esperienze autentiche in Italia.'}
+                    <h1 className="text-3xl font-bold text-obsidian-primary mb-2">Esplora</h1>
+                    <p className="text-obsidian-secondary">
+                        {city ? `I luoghi e i punti di interesse a ${city}.` : 'I luoghi e i punti di interesse in Italia.'}
                     </p>
                 </motion.div>
 
@@ -233,76 +268,103 @@ function ExplorePage() {
                     transition={{ duration: 0.6, delay: 0.1 }}
                 >
                     <div className="relative">
-                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-obsidian-secondary w-5 h-5" />
                         <input
                             type="text"
                             placeholder="Cerca attività, luoghi, categorie..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-4 bg-white rounded-2xl shadow-sm border border-gray-100 focus:outline-none focus:ring-2 focus:ring-black/5"
+                            className="w-full pl-12 pr-4 py-3.5 bg-obsidian-card text-obsidian-primary font-medium placeholder:text-obsidian-secondary/60 rounded-2xl border border-obsidian-border focus:outline-none focus:border-brand-orange transition-colors"
                         />
                     </div>
                     {/* Active Filters Summary */}
                     {(searchQuery || selectedDate) && (
                         <div className="flex gap-2 flex-wrap">
                             {searchQuery && (
-                                <span className="bg-black text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                                    "{searchQuery}" <button onClick={() => setSearchQuery('')}><X size={12} /></button>
+                                <span className="bg-obsidian-raised text-obsidian-primary border border-obsidian-border px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5">
+                                    "{searchQuery}" <button onClick={() => setSearchQuery('')} className="text-obsidian-secondary hover:text-obsidian-primary"><X size={12} /></button>
                                 </span>
                             )}
                         </div>
                     )}
                 </motion.div>
 
-                {/* Map Preview Section - Click to Expand.
-                    Gate CC.2b: mostra la mappa solo se abbiamo cityCenter risolto
-                    (Places-auth). Zero fallback Roma. Se city assente o cityCenter
-                    non risolto, l'intera sezione mappa non si renderizza — Gate AA
-                    aprira' il CityModal per farsi dare una citta'. */}
-                {mapCenter && (
-                    <motion.div
-                        className="mb-8"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                    >
-                        <div className="flex justify-between items-end mb-3 px-1">
-                            <h2 className="font-bold text-lg text-gray-800">Mappa Interattiva</h2>
-                            <Link to="/map" className="text-xs font-bold text-terracotta-600 hover:underline">Apri a schermo intero</Link>
+                {/* Map Preview Section - Click to Expand */}
+                {currentMapCenter && (
+                    <div className="mb-4">
+                        <div className="flex justify-between items-end mb-2 px-1">
+                            <div>
+                                <h2 className="font-bold text-lg text-obsidian-primary">Mappa Interattiva</h2>
+                                <p className="text-[11px] text-obsidian-secondary mt-0.5">Validazione preview su città e morfologie diverse</p>
+                            </div>
+                            <Link
+                                to="/map"
+                                state={{ initialCenter: currentMapCenter }}
+                                className="text-xs font-medium text-obsidian-secondary hover:text-obsidian-primary transition-colors"
+                            >
+                                Apri a schermo intero
+                            </Link>
                         </div>
-                        <div onClick={() => navigate('/map', { state: { initialCenter: mapCenter } })} className="block">
-                            <div className="h-64 rounded-3xl overflow-hidden shadow-xl border-4 border-white relative group cursor-pointer">
-                                <div className="absolute inset-0 z-0 pointer-events-none">
+
+                        {/* Selettore rapido 3 città per validazione viewport */}
+                        <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide py-0.5">
+                            {VALIDATION_CITIES.map((c) => {
+                                const isSelected = activePreviewCity?.id === c.id || (!selectedValidationCity && activePreviewCity?.name?.toLowerCase() === c.name.toLowerCase());
+                                return (
+                                    <button
+                                        key={c.id}
+                                        type="button"
+                                        onClick={() => setSelectedValidationCity(c)}
+                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border shrink-0 ${
+                                            isSelected
+                                                ? 'bg-brand-orange text-obsidian-bg border-brand-orange shadow-md shadow-brand-orange/25'
+                                                : 'bg-obsidian-card text-obsidian-secondary border-obsidian-border hover:text-obsidian-primary hover:border-obsidian-border-elevated'
+                                        }`}
+                                    >
+                                        {c.name} <span className={`text-[10px] ml-1 font-normal ${isSelected ? 'text-obsidian-bg/85' : 'text-obsidian-secondary/60'}`}>({c.tag})</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div onClick={() => navigate('/map', { state: { initialCenter: currentMapCenter } })} className="block">
+                            {/* Incastonatura Mappa: cornice card scura con bordo sottile e raggio 3xl per contenere la mappa */}
+                            <div className="bg-obsidian-card p-1.5 rounded-3xl border border-obsidian-border shadow-xl group cursor-pointer w-full">
+                                <div
+                                    ref={mapContainerRef}
+                                    className="h-64 rounded-2xl overflow-hidden relative w-full pointer-events-none"
+                                    style={{
+                                        transform: 'translateZ(0)',
+                                        WebkitMaskImage: '-webkit-radial-gradient(white, black)',
+                                    }}
+                                >
                                     <UnnivaiMap
-                                        key={`${mapCenter.lat}-${mapCenter.lng}`}
+                                        key={`${currentMapCenter.lat}-${currentMapCenter.lng}`}
                                         height="100%"
                                         width="100%"
-                                        zoom={12}
+                                        zoom={13}
+                                        defaultZoom={13}
+                                        tilt={0}
+                                        defaultTilt={0}
                                         interactive={false}
                                         showUserLocation={false}
-                                        initialCenter={{ latitude: mapCenter.lat, longitude: mapCenter.lng }}
-                                        viewCenter={{ latitude: mapCenter.lat, longitude: mapCenter.lng }}
-                                        activeCity={city}
+                                        initialCenter={{ latitude: currentMapCenter.lat, longitude: currentMapCenter.lng }}
+                                        viewCenter={{ latitude: currentMapCenter.lat, longitude: currentMapCenter.lng }}
+                                        activeCity={currentMapCity}
                                         activities={mapActivities}
                                         mapMood="default"
                                     />
                                 </div>
-                                <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors pointer-events-none" />
-                                <div className="absolute bottom-4 right-4 z-10">
-                                    <span className="bg-white/90 backdrop-blur text-gray-800 px-4 py-2 rounded-full font-bold shadow-lg text-xs flex items-center gap-2 group-hover:scale-105 transition-transform">
-                                        <Map size={14} /> Espandi Mappa
-                                    </span>
-                                </div>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 )}
 
                 {/* Loading State */}
                 {loading && (
                     <div className="text-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-                        <p className="text-gray-500">Ricerca esperienze in corso...</p>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-orange mx-auto mb-4"></div>
+                        <p className="text-obsidian-secondary text-sm">Ricerca esperienze in corso...</p>
                     </div>
                 )}
 
@@ -310,10 +372,6 @@ function ExplorePage() {
                 {!loading && (
                     <div className="space-y-6">
                         {filteredExperiences.slice(0, visibleCount).map((experience, index) => {
-                            // Gate CC.2b: featuredPoi POI-level (regola O.4). Il rating a
-                            // livello TOUR non esiste — media/somma di rating POI e' una
-                            // derivata inventata. Selezione via qualityScore = rating × ln(1+total)
-                            // sullo step con rating reale.
                             const ratedSteps = (Array.isArray(experience.steps) ? experience.steps : [])
                                 .map(s => ({
                                     name: s.title || s.name,
@@ -339,51 +397,43 @@ function ExplorePage() {
                                 transition={{ duration: 0.5, delay: 0.1 * index }}
                             >
                                 <Link to={`/tour-details/${experience.id}`} state={{ tourData: experience }}>
-                                    <div className="group bg-white rounded-3xl p-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                                    <div className="group bg-obsidian-card border border-obsidian-border hover:border-obsidian-border-elevated rounded-3xl p-3 shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                                         <div className="relative h-48 rounded-2xl overflow-hidden mb-3">
-                                            <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                                            <div className="absolute inset-0 bg-obsidian-raised animate-pulse" />
                                             <img
                                                 src={experience.imageUrl}
                                                 alt={experience.title}
-                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                // Gate VERITÀ VISIVA (F26) DIFF 4 — via il placeholder
-                                                // 'placehold.co/600x400?text=Tour': un rettangolo con
-                                                // scritto "Tour" e' un'immagine inventata come le altre.
-                                                // Ora l'img rotta si nasconde e resta lo skeleton sotto.
+                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                             />
-                                            {/* Gate CC.2b: rimosso badge rating tour-level (regola O.4). Il rating vero e' POI-level, mostrato piu' sotto come featuredPoi. */}
                                             {experience.distance && (
-                                                <div className="absolute top-3 left-3 bg-black/70 backdrop-blur px-2.5 py-1 rounded-full text-xs font-bold text-white flex items-center gap-1 shadow-sm">
-                                                    <MapPin size={12} /> {experience.distance}
+                                                <div className="absolute top-3 left-3 bg-obsidian-bg/85 backdrop-blur-sm border border-obsidian-border px-2.5 py-1 rounded-full text-xs font-medium text-obsidian-primary flex items-center gap-1 shadow-sm">
+                                                    <MapPin size={12} className="text-brand-orange" /> {experience.distance}
                                                 </div>
                                             )}
                                         </div>
 
                                         <div className="px-2 pb-2">
-                                            {/* Gate CC.2b: rimosso €{experience.price} tour-level (regola O.2).
-                                                Un tour AI non ha prezzo reale — la durata resta come dato onesto. */}
-                                            <h3 className="font-bold text-gray-900 text-lg leading-tight mb-2">{experience.title}</h3>
+                                            <h3 className="font-bold text-obsidian-primary text-lg leading-tight mb-2 group-hover:text-brand-orange transition-colors">{experience.title}</h3>
 
-                                            {/* Gate CC.2b: featuredPoi POI-level — "Include X · ★rating" (regola O.4). */}
                                             {featuredPoi && Number.isFinite(featuredPoi.rating) && (
-                                                <div className="flex items-center gap-1.5 text-xs text-gray-600 mb-2">
-                                                    <Star className="w-3 h-3 text-yellow-400 fill-current shrink-0" />
+                                                <div className="flex items-center gap-1.5 text-xs text-obsidian-secondary mb-2">
+                                                    <Star className="w-3 h-3 text-brand-orange fill-current shrink-0" />
                                                     <span className="font-medium truncate">Include {featuredPoi.name}</span>
-                                                    <span className="font-bold whitespace-nowrap">· {featuredPoi.rating.toFixed(1)}</span>
+                                                    <span className="font-bold text-obsidian-primary whitespace-nowrap">· {featuredPoi.rating.toFixed(1)}</span>
                                                 </div>
                                             )}
 
-                                            <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
+                                            <div className="flex items-center gap-4 text-xs text-obsidian-secondary mb-4">
                                                 <span className="flex items-center gap-1">
-                                                    <Clock size={14} className="text-gray-400" /> {experience.duration}
+                                                    <Clock size={14} className="text-obsidian-secondary" /> {experience.duration}
                                                 </span>
                                                 <span className="flex items-center gap-1">
-                                                    <MapPin size={14} className="text-gray-400" /> {experience.location}
+                                                    <MapPin size={14} className="text-obsidian-secondary" /> {experience.location}
                                                 </span>
                                             </div>
 
-                                            <button className="w-full py-3 rounded-xl bg-gray-50 text-gray-900 font-bold text-sm group-hover:bg-black group-hover:text-white transition-colors flex items-center justify-center gap-2">
+                                            <button className="w-full py-3 rounded-xl bg-obsidian-raised border border-obsidian-border text-obsidian-primary font-bold text-sm group-hover:bg-brand-orange group-hover:text-obsidian-bg group-hover:border-brand-orange transition-all duration-200 flex items-center justify-center gap-2">
                                                 Vedi Dettagli <ArrowRight size={16} />
                                             </button>
                                         </div>
@@ -396,27 +446,25 @@ function ExplorePage() {
                 )}
 
                 {!loading && filteredExperiences.length === 0 && (
-                    <div className="text-center py-12 opacity-60">
+                    <div className="text-center pt-2 pb-8">
                         {experiences.length === 0 ? (
-                            // Gate D-4: città senza tour reali. Empty state onesto (mai demo).
-                            // Gate PULIZIA P6: rimossa "Ne stiamo aggiungendo nuovi ogni
-                            // settimana" — nessun processo aggiunge tour periodicamente.
                             <>
-                                <div className="text-4xl mb-3">🌱</div>
-                                <p className="mb-1 font-semibold text-gray-700">Nessuna guida ha ancora pubblicato un tour a {city || 'questa città'}.</p>
-                                <p className="text-xs text-gray-500 mb-4">Il motore AI ne costruisce uno adesso, sui luoghi veri della città.</p>
+                                <div className="w-12 h-12 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center mx-auto mb-3 text-obsidian-secondary">
+                                    <Map className="w-6 h-6 stroke-[1.5]" />
+                                </div>
+                                <p className="mb-1 font-semibold text-obsidian-primary">Nessuna guida ha ancora pubblicato un tour a {city || 'questa città'}.</p>
+                                <p className="text-xs text-obsidian-secondary mb-4">Il motore AI ne costruisce uno adesso, sui luoghi veri della città.</p>
                                 <Link
                                     to="/ai-itinerary"
-                                    className="inline-block px-5 py-2.5 bg-gray-900 text-white rounded-2xl text-xs font-bold hover:bg-gray-800 transition-colors"
+                                    className="inline-block px-6 py-3 bg-brand-orange text-obsidian-bg rounded-2xl text-xs font-bold hover:bg-brand-orange-hover transition-colors shadow-lg shadow-brand-orange/20"
                                 >
                                     Crea il tuo percorso
                                 </Link>
                             </>
                         ) : (
-                            // Filtri troppo restrittivi.
                             <>
-                                <p className="mb-2">Nessuna esperienza trovata con questi filtri.</p>
-                                <button onClick={() => { setSearchQuery(''); setSelectedDate(''); setActiveFilter('Tutti'); }} className="text-sm text-blue-500 underline">Resetta filtri</button>
+                                <p className="mb-2 text-obsidian-secondary">Nessuna esperienza trovata con questi filtri.</p>
+                                <button onClick={() => { setSearchQuery(''); setSelectedDate(''); setActiveFilter('Tutti'); }} className="text-sm text-brand-orange hover:text-brand-orange-hover font-semibold transition-colors">Resetta filtri</button>
                             </>
                         )}
                     </div>

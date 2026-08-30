@@ -75,6 +75,13 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
     plugins: [react(), devPlacesProxyPlugin(env)],
+    server: {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

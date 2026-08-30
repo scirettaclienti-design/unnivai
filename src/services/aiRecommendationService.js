@@ -2216,7 +2216,23 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
 
             // 5. Distanza a piedi (SOLO se GPS attivo). Zero fallback su cityCenter.
             const { haversineKm } = await import('./tourShape');
-            const hasGps = Number.isFinite(ctx.userLat) && Number.isFinite(ctx.userLng);
+            // VOCE 1 (30/08) — qui c'era:
+            //     const hasGps = Number.isFinite(ctx.userLat) && Number.isFinite(ctx.userLng);
+            // che NON testava il GPS: testava che due numeri esistessero, senza
+            // poterne vedere la provenienza. E in tre rami su quattro
+            // `userContextService` riempie lat/lng dalla CITTA' (:46 manuale,
+            // :93 profilo/localStorage, da una tabella hardcoded a :208) —
+            // solo :59 li prende dal dispositivo. Con GPS spento e citta'
+            // risolta da profilo, `hasGps` era true, la distanza si calcolava
+            // dal CENTRO CITTA' e finiva nel prompt come "N min a piedi da te",
+            // mentre la Home mostrava ancora "Attiva la tua posizione".
+            //
+            // Ora si legge la PROVENIENZA, che `getUserContext` gia' produceva
+            // (`source`, :170) e che nessuno propagava. Il controllo sui numeri
+            // resta, ma come precondizione aritmetica: senza provenienza 'gps'
+            // non basta piu' che esistano.
+            const hasGps = ctx.source === 'gps'
+                && Number.isFinite(ctx.userLat) && Number.isFinite(ctx.userLng);
 
             // Gate N.1 — Fetch opening_hours.periods dei top-3 in parallelo.
             // Ci serve closingTimeTodayHH (es. "22:00") per il prompt. openNow

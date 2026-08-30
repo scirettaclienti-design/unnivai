@@ -72,9 +72,13 @@ Formato JSON:
 }
 
 export function useUserNotifications(userId, city, firstName, ctx = {}) {
-    // Blocco 2.1 FASE 1 — ctx = { userLat, userLng, temperatureC, condition }.
+    // Blocco 2.1 FASE 1 — ctx = { userLat, userLng, source, temperatureC, condition }.
     // Passato al generateWeatherSocialTip per costruire la notifica-vera:
-    // - userLat/userLng = GPS reale (se GPS negato → null → notifica senza distanza)
+    // - userLat/userLng = coordinate; `source` dice DA DOVE vengono ('gps' |
+    //   'manual' | 'fallback'). VOCE 1 (30/08): senza `source` le coordinate
+    //   della citta' passavano per posizione dell'utente e la notifica diceva
+    //   "N minuti da te" a GPS spento. Le due cose viaggiano insieme o non
+    //   viaggiano.
     // - temperatureC + condition = classificatore weatherClass per la ricetta
     const [generatedNotifications, setGeneratedNotifications] = useState([]);
     const [realNotifications, setRealNotifications] = useState([]);
@@ -137,7 +141,7 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
     // Dep su ctx.userLat/lng/temp/condition: se cambiano (GPS reso disponibile,
     // meteo aggiornato) rigenera in modo che la notifica usi i dati nuovi.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userId, city, firstName, ctx.userLat, ctx.userLng, ctx.temperatureC, ctx.condition]);
+    }, [userId, city, firstName, ctx.userLat, ctx.userLng, ctx.source, ctx.temperatureC, ctx.condition]);
 
     // Gate U.1a: rigenera al cambio slot (mattina->pranzo->pomeriggio->sera).
     // Trigger su focus finestra (l'utente riprende in mano il telefono) invece
@@ -230,6 +234,7 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
                 const tip = await aiRecommendationService.generateWeatherSocialTip(city, userName, slot, {
                     userLat: ctx.userLat,
                     userLng: ctx.userLng,
+                    source: ctx.source,
                     temperatureC: ctx.temperatureC,
                     condition: ctx.condition,
                     cityCenter,

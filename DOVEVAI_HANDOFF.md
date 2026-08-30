@@ -5264,18 +5264,83 @@ riflesso**, la nota sta nella sessione 27/08.
 
 ---
 
-## PROSSIMA SESSIONE — la coda, in quest'ordine
+## LA CODA — aggiornata al 30/08, in ordine di GRAVITA'
 
-**a) DIFF 1b — il calcolo degli orari.** Poggia su terreno **gia' misurato**:
-`computeStopTimings` gira dentro la stessa espressione di `sortByProximity`,
-quindi gli orari nascerebbero nell'**ordine definitivo** e il difetto di F57 non
-puo' ripresentarsi. Serve il guard: nessun orario nel passato raggiunge la UI, e
-test con l'ora **iniettata**, mai `new Date()` reale.
-**Include A1**: `AiItinerary` non legge `stayMinutes` — non era fra i sei
-consumatori del 1a e non mostrava durate nemmeno prima. Stessa timeline, stesso
-diff: aprirla due volte e' sprecato. E il badge orario, oggi non montato perche'
-`time` e' null, si riaccende qui.
+Sostituisce la coda del 28/08: la voce `a)` era il **DIFF 1b**, chiuso e
+mergiato in main. Il resto di quella coda non e' sparito — e' sceso sotto, nel
+secondo scaglione, perche' sono gate gia' diagnosticati e non difetti visibili.
 
+**Le prime tre non sono bug, sono difetti di VERITA'**: l'app afferma cose che
+non sa o che non esistono. Vanno prima di qualunque gate, perche' un gate
+migliora un motore mentre queste tre dicono il falso a chi guarda lo schermo.
+
+### Primo scaglione — undici voci viste su device (30/08)
+
+**1) ~~La notifica afferma una distanza personale senza GPS attivo.~~**
+✅ **CHIUSA il 30/08, commit `3dbc353`.** Dettaglio nella sessione 30/08 (3).
+*"e' a 11 minuti da te"* mentre la Home, nella stessa schermata, mostrava ancora
+**"Attiva la tua posizione"**. Era la regola locked #6 rotta nel punto peggiore:
+non un aggettivo di troppo, un **fatto affermato senza la misura che lo
+reggerebbe**. **Verdict device ancora da dare.**
+
+**2) Sistema guide: presente nell'interfaccia, inesistente in V1. TRE superfici.**
+- **guide inventate in TourDetails** — *Marco Polo 4.9*, *Chiara Esposito 4.6*,
+  con biografie fabbricate. E' il **pattern del Gate K**.
+- **"Richieste Attive"** nel Profilo, con bottone **"Apri Chat"**.
+- **modal "Tour su Misura"** con **"Invia alle Guide di X"**.
+**Da chiudere insieme, non una alla volta**: sono la stessa promessa fatta in
+tre posti, e toglierne una lascia le altre a confermarla.
+
+**3) F55/F56 RIAPERTI sul caso CULTURA.** Visti su device il **30/08**:
+descrizioni intercambiabili (**aria / profumo / suono** su Duomo, Scala e Santa
+Maria delle Grazie), il **"fruscio delle foglie" su una basilica**, e il
+presente affermato sul **foyer della Scala**. Il caso NATURA restava saldato:
+non lo e' piu' in generale, e' saldato **solo li'**.
+
+**4) `duration_minutes` di QuickPath e' l'INPUT del wizard, non una durata.**
+E' il 90/180/300 scelto allo **Step 4**, ristampato come se fosse un calcolo.
+Lo stesso tour da' **numeri diversi** fra QuickPath e le card "Per Te", che
+passano da `tourTiming`. E' una **forma di F64 sopravvissuta** perche' QuickPath
+non era fra i sei consumatori del DIFF 1a.
+
+**4-bis) `formatMinutes` esiste in DUE copie, e nessuna mette il tilde.**
+`QuickPathSummary.jsx:10` (Gate PULIZIA P1) e `SurpriseTour.jsx:44`, identiche —
+la seconda copiata durante la conversione ossidiana del 30/08. Formattano
+entrambe `duration_minutes`, cioe' il numero falso del punto qui sopra, e lo
+stampano **secco**: `"3h"`, `"1h 30m"`. `formatEstimate` in `tourTiming.js`
+esiste per dire che quel numero e' una stima, e il tilde non e' decorativo.
+**Si chiude dentro la voce 4**: quando si sistema l'origine del numero si
+sistemano tutte e due le copie, e nessuna deve piu' mostrare un numero secco.
+Motore in due copie = regola locked #8.
+
+**5) "circa 4h 23min" nelle card "Per Te".** Da stabilire l'origine: **se viene
+da `tourTiming` va arrotondata**. Una stima non si mostra al minuto — il minuto
+afferma una precisione che il modulo dichiara di non avere.
+
+**6) "Vedi tutte" in Home porta a Esplora vuota.** Da verificare **quale dei
+due**: routing sbagliato, o il Gate PERSISTENZA (i tour AI non sono salvati,
+quindi non c'e' niente da elencare). Sono due gate diversi.
+
+**7) `SLOT_TITLES` con emoji hardcoded** — `aiRecommendationService.js:2157`.
+
+**8) "Crea il tuo Tour" e "Crea il tuo Percorso"**: due card **consecutive** in
+Home con nomi quasi identici. Destinazioni **non verificate**.
+
+**9) "Attiva la posizione" in Home mentre la TopBar mostra gia' la citta'.**
+Stessa schermata, due affermazioni opposte sullo stato della posizione.
+Appartiene al **Gate CITTA'**.
+
+**10) Sezioni spente ma navigabili**: filtro **"Social"** in Notifiche e voce
+**"Foto"** in BottomNavigation.
+
+**11) La sezione Foto promette Instagram / Facebook / WhatsApp** che non sono
+integrati.
+
+### Secondo scaglione — i gate gia' diagnosticati (dalla coda del 28/08)
+
+Restano validi e con la diagnosi gia' fatta: le lettere sono quelle vecchie, si
+leggono cosi' senza rinumerare i riferimenti sparsi nel file. L'ordine che vale
+e' comunque **prima il primo scaglione**.
 **a-bis) DIFF 2 — l'ordinamento (F52).** *Tour generato alle 16:30 a Milano:
 osteria, poi castello, poi basilica.* Va **dopo il 1b**, che potrebbe chiuderlo
 da solo: se gli orari vengono calcolati nel codice dopo `sortByProximity`, la
@@ -5565,6 +5630,137 @@ finché il funzionale non è chiuso.
 | **F55** — caso RELIGIOSO | aperto (il caso NATURA resta saldato) |
 | **DIFF 1a** — le quattro superfici | aperto |
 | **DIFF 6** — bottone **Profilo** in TourDetails | aperto |
+
+---
+
+## Sessione 30/08 (2) — cleanup estetica: il ponteggio che rimetteva O.2
+
+Rimosso dal branch `estetica` il codice che esisteva **per farci guardare
+l'estetica**, non per l'utente. Commit `cb9bbe5`, tre file, `+19 −105`.
+
+- **rotta `/cover-preview`** — pagina di confronto delle copertine: via il file
+  `CoverPreview.jsx`, l'import lazy e la `<Route>`;
+- **selettore delle tre citta' in Explore** (Milano / Venezia / Amalfi), che
+  serviva a vedere la mappa su morfologie diverse.
+
+Marker misurati sul codice (esclusi i commenti che spiegano la rimozione):
+`cover-preview` **4 → 0**, `VALIDATION_CITIES` **6 → 0**, `activePreviewCity`
+**4 → 0**, `currentMapCenter`/`currentMapCity` **8 / 2 → 0 / 0**, chunk
+`CoverPreview-*.js` nel bundle **presente → assente**. Suite **601/601
+invariata**, lint 0 errori, build verde.
+
+### LEZIONE #42 — un ponteggio di verifica non e' neutro
+
+Il secondo pezzo **non era solo UI**, ed e' la ragione per cui questa non e'
+una nota di pulizia ma una lezione.
+
+Il selettore alimentava il centro della mappa, e lo faceva cosi':
+
+```js
+const currentMapCenter = activePreviewCity.center || mapCenter || VALIDATION_CITIES[0].center;
+const currentMapCity   = activePreviewCity.name   || city      || 'Milano';
+```
+
+Quel `VALIDATION_CITIES[0].center` e' **un centro citta' hardcoded**: la stessa
+identica forma del **bug O.2** — il fallback Roma che mostrava POI di Roma a un
+utente di Napoli — che il **Gate CC.2b** aveva rimosso **venti righe piu' su**,
+lasciando un commento che dichiarava di averlo tolto. Il ponteggio l'ha rimesso
+dentro dalla porta di servizio, con Milano al posto di Roma, mentre il commento
+del gate continuava a giurare il contrario.
+
+**La lezione, detta in generale.** Il codice di verifica prende la forma del
+codice di produzione — legge gli stessi stati, alimenta gli stessi render — e
+per farlo funzionare "intanto" gli si mettono sotto dei default. Quei default
+sono esattamente la classe di difetto che i gate chiudono. Quindi:
+
+1. **un ponteggio puo' riaprire un gate gia' chiuso**, e non lo dice: i test
+   passano, il commento del gate resta li' a dichiarare il contrario, e la
+   prova che il gate regge diventa **falsa**;
+2. **rimuovere il bottone non basta.** Qui, togliere solo il selettore avrebbe
+   lasciato dentro `currentMapCenter` col suo fallback: il difetto sarebbe
+   sopravvissuto alla rimozione della cosa che lo aveva introdotto, **invisibile
+   perche' senza piu' una UI che lo spiegasse**;
+3. quando si toglie un ponteggio si toglie **cio' che alimentava**, e si
+   **rilegge il gate che tocca** — non ci si fida del commento del gate, che
+   descrive il codice del giorno in cui e' stato scritto.
+
+Corollario operativo: un ponteggio di verifica va scritto **dichiarando cosa
+tocca** e va rimosso **prima** che il branch punti al merge, non dopo. Su
+`estetica` era registrato nel blocco del 29/08 (*"`/cover-preview` e'
+temporanea, va rimossa prima di qualunque merge"*) — la nota ha funzionato per
+la rotta, che era visibile, e **non per il selettore**, che sembrava un
+dettaglio di UI.
+
+### DECISO: `estetica` resta SEPARATA, non si mergia
+
+Il branch e' completo (6 commit sopra main, nessuno pushato) e **non viene
+mergiato adesso**. Il motivo non e' prudenza generica:
+
+le prime tre voci della coda sono **difetti di verita'**, e si lavorano su main
+pulito. Mergiando ora, ogni fix nascerebbe sopra **1300 righe di conversione
+estetica**, e un rosso diventerebbe **ambiguo** — non si saprebbe se l'ha
+causato il fix o la conversione. Il merge si fa **quando le prime tre sono
+chiuse**.
+
+Nota sul perimetro: il vincolo che teneva `DashboardUser`, `TourDetails` e
+`AiItinerary` fuori dal lavoro estetico **era scaduto col merge del DIFF 1b** —
+semplicemente nessuno l'aveva dichiarato scaduto. Quindi le tre superfici
+toccate nel commit `331967f` non sono una violazione: sono un vincolo rimasto
+scritto piu' a lungo della sua ragione.
+
+---
+
+## Sessione 30/08 (3) — VOCE 1 chiusa: la distanza affermata senza GPS
+
+**VOCE 1 CHIUSA — commit `3dbc353`** (su main, 5 file, `+148 −8`).
+
+`source` viene ora **propagato** dai due consumatori (`NotificationBell.jsx:13`,
+`Notifications.jsx:54`) attraverso `useUserNotifications` fino al servizio, e
+`hasGps` legge `ctx.source === 'gps'` invece di **dedurre il GPS dall'esistenza
+di due numeri**. Quei due numeri, in tre rami su quattro di
+`userContextService`, erano le coordinate della **citta'** (`:46` manuale, `:93`
+profilo/localStorage, tabella hardcoded a `:208`); solo `:59` li prende dal
+dispositivo. Il ramo `else` del prompt — *"GPS utente: NON disponibile → NON
+dire «da te»"* — esisteva gia' ed e' rimasto intatto: non veniva **mai
+raggiunto**.
+
+Il dato che serviva era gia' nel payload: `getUserContext` produce `source`
+(`:170`) da sempre, nessuno lo propagava.
+
+**606 test** (+5, era 601), verdi senza `.env`. **Sonda: 4 rossi
+sull'asserzione** prima del fix (*expected '…' not to contain 'min a piedi da
+te'*, *expected '…' to contain 'GPS utente: NON disponibile'*); il quinto, la
+non-regressione con GPS attivo, era gia' verde ed e' rimasto verde.
+
+**NON risolve, e va saputo prima di dire che il difetto e' morto:**
+- **le due autorita' restano due.** `GpsActivationBanner` legge `gpsActive` da
+  `useCity`, la notifica legge `source` da `useUserContext`. Possono ancora
+  divergere sulla stessa schermata: qui si toglie l'**affermazione falsa**, non
+  si unifica la fonte.
+- **non esiste un guard sull'OUTPUT del modello.** I tre post-processing
+  (Gate T.2 anti-giudizio, lunghezza minima, anti-invenzione sui nomi) non
+  guardano ne' la distanza ne' `"da te"`.
+
+### DECISO: il guard sull'output NON si apre adesso
+
+E' un **gate distinto**, e va deciso **dopo il verdict su device**. Se il
+modello smette di dire "da te" perche' non gli viene piu' detto che il GPS c'e',
+il guard e' **una rete che non serve** — e una rete che non serve e' codice che
+qualcuno dovra' mantenere credendo che protegga qualcosa. Si apre solo se il
+difetto si rivede.
+
+### LEZIONE #43 — il lint verde non prova che il file compili
+
+Applicando il fix e' finita una **virgola mancante** nel destructuring di due
+componenti (`weatherCondition source }`). `npm run lint` e' passato con
+**0 errori** su due file che **non compilavano**. L'hanno trovata la suite
+(3 file rossi) e la build.
+
+ESLint **non segnala un errore di parsing come errore** in questa
+configurazione. Quindi: *lint verde su file rotto* e' un **falso segnale**,
+esattamente della stessa famiglia del *"verde in locale"* della regola locked
+#2. Il lint non e' una prova che il codice esista in forma valida — lo sono la
+suite e la build, e vanno girate entrambe prima di dire fatto.
 
 ---
 

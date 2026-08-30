@@ -211,3 +211,118 @@ describe('Gate NOTIFICHE-DISTANZA — generateWeatherSocialTip', () => {
         expect(infoLines().some(l => l.includes('0 candidati Places'))).toBe(false);
     });
 });
+
+
+// ─── VOCE 1 — "da te" senza GPS ────────────────────────────────────────────────
+//
+// Difetto visto in produzione il 30/08: la notifica diceva "e' a 11 minuti da
+// te" mentre la Home, nella stessa schermata, mostrava ancora "Attiva la tua
+// posizione".
+//
+// La causa non e' il modello. `userContextService` riempie `lat`/`lng` dalla
+// CITTA' in tre rami su quattro (:46 manuale, :93 profilo/localStorage —
+// tabella di coordinate hardcoded a :208), e solo il ramo GPS (:59) li riempie
+// davvero dal dispositivo. `hasGps` testava che i due numeri esistessero, non
+// da dove venissero: con GPS spento e citta' risolta da profilo era TRUE, la
+// distanza veniva calcolata dal CENTRO CITTA' e infilata nel prompt come
+// "N min a piedi da te".
+//
+// Il prompt aveva gia' il ramo giusto ("GPS utente: NON disponibile → NON dire
+// «da te»"): non veniva mai raggiunto. Il fix non lo tocca, gli fa arrivare la
+// verita' — `source`, che `getUserContext` gia' produceva (:170) e che nessuno
+// propagava.
+//
+// COSA PROVANO QUESTI TEST, detto onesto: che il falso non viene piu' FABBRICATO
+// (nessuna distanza nei candidati) ne' AUTORIZZATO (il ramo else del contesto).
+// Il testo finale lo scrive il modello, qui mockato: non esiste un guard
+// sull'output che intercetti "da te" a valle, e questi test non fingono di
+// provarlo.
+
+let promptiInviati = [];
+
+const routeFetchCatturante = (results) => vi.fn(async (url, options) => {
+    const u = String(url);
+    if (u.includes('textsearch')) {
+        return { ok: true, json: async () => ({ status: 'OK', results }) };
+    }
+    if (u.includes('details')) {
+        return { ok: true, json: async () => ({ status: 'OK', result: { opening_hours: { periods: [] } } }) };
+    }
+    if (u.includes('openai-proxy')) {
+        try {
+            const body = JSON.parse(options?.body || '{}');
+            const sys = (body.messages || []).map(m => String(m?.content || '')).join('\n');
+            if (sys) promptiInviati.push(sys);
+        } catch { /* body non JSON: il test lo vedra' come prompt mancante */ }
+        return { ok: true, json: async () => ({
+            choices: [{ message: { content: JSON.stringify({ message: 'Lido e a due passi, chiude alle 19:00.' }) } }],
+        }) };
+    }
+    throw new Error(`fetch inatteso: ${u}`);
+});
+
+// Stesso ctx del blocco sopra, ma con la PROVENIENZA dichiarata. Le coordinate
+// restano identiche nei due casi: e' esattamente il punto: prima bastavano loro.
+const ctxCon = (source) => ({ ...CTX, source });
+
+const promptUnico = () => {
+    expect(promptiInviati.length, 'il motore doveva arrivare a chiamare il modello').toBeGreaterThan(0);
+    return promptiInviati.join('\n');
+};
+
+describe('VOCE 1 — la notifica non dice "da te" se le coordinate non sono GPS', () => {
+    let infoSpy;
+    beforeEach(() => {
+        vi.clearAllMocks();
+        promptiInviati = [];
+        infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+        try { window.localStorage.clear(); window.sessionStorage.clear(); } catch { /* jsdom */ }
+    });
+    afterEach(() => { vi.unstubAllGlobals(); infoSpy.mockRestore(); });
+
+    it('TEST DECISIVO — source manuale: nessuna distanza fabbricata nei candidati', async () => {
+        vi.stubGlobal('fetch', routeFetchCatturante([PLACE(vicino('Lido'))]));
+        await aiRecommendationService.generateWeatherSocialTip(
+            'Ippocampo', 'Ivano', 'afternoon', ctxCon('manual'),
+        );
+        expect(promptUnico()).not.toContain('min a piedi da te');
+    });
+
+    it('source manuale: al modello viene detto che il GPS NON c\'e\'', async () => {
+        vi.stubGlobal('fetch', routeFetchCatturante([PLACE(vicino('Lido'))]));
+        await aiRecommendationService.generateWeatherSocialTip(
+            'Ippocampo', 'Ivano', 'afternoon', ctxCon('manual'),
+        );
+        const p = promptUnico();
+        expect(p).toContain('GPS utente: NON disponibile');
+        expect(p).not.toContain('GPS utente: disponibile');
+    });
+
+    it('le coordinate da sole non bastano piu\': stesse lat/lng, source diverso, esito diverso', async () => {
+        vi.stubGlobal('fetch', routeFetchCatturante([PLACE(vicino('Lido'))]));
+        await aiRecommendationService.generateWeatherSocialTip(
+            'Ippocampo', 'Ivano', 'afternoon', ctxCon('fallback'),
+        );
+        expect(promptUnico()).not.toContain('min a piedi da te');
+    });
+
+    it('source assente = provenienza ignota: si tace, non si afferma', async () => {
+        vi.stubGlobal('fetch', routeFetchCatturante([PLACE(vicino('Lido'))]));
+        await aiRecommendationService.generateWeatherSocialTip(
+            'Ippocampo', 'Ivano', 'afternoon', CTX, // nessun source
+        );
+        expect(promptUnico()).not.toContain('min a piedi da te');
+    });
+
+    it('NON-REGRESSIONE — source gps: la distanza resta, e resta corretta', async () => {
+        vi.stubGlobal('fetch', routeFetchCatturante([PLACE(vicino('Lido'))]));
+        await aiRecommendationService.generateWeatherSocialTip(
+            'Ippocampo', 'Ivano', 'afternoon', ctxCon('gps'),
+        );
+        const p = promptUnico();
+        expect(p).toContain('min a piedi da te');
+        expect(p).toContain('GPS utente: disponibile');
+        // Lido sta a 0.01 gradi di latitudine = ~1.11 km => 1.11 * 12 = 13 min.
+        expect(p).toMatch(/1[23] min a piedi da te/);
+    });
+});

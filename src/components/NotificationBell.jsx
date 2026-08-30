@@ -10,12 +10,14 @@ import { supabase } from '@/lib/supabase';
 import { useUserNotifications } from '@/hooks/useUserNotifications';
 
 export default function NotificationBell({ theme = 'dark' }) {
-    const { userId, city, firstName, isGuest, lat, lng, temperatureC, weatherCondition } = useUserContext();
+    const { userId, city, firstName, isGuest, lat, lng, temperatureC, weatherCondition, source } = useUserContext();
     const [showPreview, setShowPreview] = useState(false);
     // Blocco 2.1 FASE 1 — Passa il ctx per la notifica-vera (GPS, meteo).
     const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useUserNotifications(
         userId, city, firstName,
-        { userLat: lat, userLng: lng, temperatureC, condition: weatherCondition }
+        // VOCE 1 — `source` dice se lat/lng vengono dal GPS o dalla citta'.
+        // Senza, la notifica non puo' sapere se "da te" e' vero.
+        { userLat: lat, userLng: lng, source, temperatureC, condition: weatherCondition }
     );
     const navigate = useNavigate();
 

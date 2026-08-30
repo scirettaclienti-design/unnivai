@@ -51,7 +51,7 @@ const getWeatherIconByCondition = (condition = '') => {
 };
 
 export default function NotificationsPage() {
-    const { userId, city, firstName, temperatureC, weatherCondition, lat, lng } = useUserContext();
+    const { userId, city, firstName, temperatureC, weatherCondition, lat, lng, source } = useUserContext();
     const { toast } = useToast();
     const navigate = useNavigate();
     const [filter, setFilter] = useState('all');
@@ -67,7 +67,9 @@ export default function NotificationsPage() {
     // Blocco 2.1 FASE 1 — Passa il ctx per la notifica-vera (GPS, meteo).
     const { notifications: rawNotifications, unreadCount, markAsRead, deleteNotification, markAllAsRead } = useUserNotifications(
         userId, city, firstName,
-        { userLat: lat, userLng: lng, temperatureC, condition: weatherCondition }
+        // VOCE 1 — `source` dice se lat/lng vengono dal GPS o dalla citta'.
+        // Senza, la notifica non puo' sapere se "da te" e' vero.
+        { userLat: lat, userLng: lng, source, temperatureC, condition: weatherCondition }
     );
 
     const notifications = rawNotifications.map(n => ({

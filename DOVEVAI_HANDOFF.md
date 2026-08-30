@@ -5264,18 +5264,72 @@ riflesso**, la nota sta nella sessione 27/08.
 
 ---
 
-## PROSSIMA SESSIONE — la coda, in quest'ordine
+## LA CODA — aggiornata al 30/08, in ordine di GRAVITA'
 
-**a) DIFF 1b — il calcolo degli orari.** Poggia su terreno **gia' misurato**:
-`computeStopTimings` gira dentro la stessa espressione di `sortByProximity`,
-quindi gli orari nascerebbero nell'**ordine definitivo** e il difetto di F57 non
-puo' ripresentarsi. Serve il guard: nessun orario nel passato raggiunge la UI, e
-test con l'ora **iniettata**, mai `new Date()` reale.
-**Include A1**: `AiItinerary` non legge `stayMinutes` — non era fra i sei
-consumatori del 1a e non mostrava durate nemmeno prima. Stessa timeline, stesso
-diff: aprirla due volte e' sprecato. E il badge orario, oggi non montato perche'
-`time` e' null, si riaccende qui.
+Sostituisce la coda del 28/08: la voce `a)` era il **DIFF 1b**, chiuso e
+mergiato in main. Il resto di quella coda non e' sparito — e' sceso sotto, nel
+secondo scaglione, perche' sono gate gia' diagnosticati e non difetti visibili.
 
+**Le prime tre non sono bug, sono difetti di VERITA'**: l'app afferma cose che
+non sa o che non esistono. Vanno prima di qualunque gate, perche' un gate
+migliora un motore mentre queste tre dicono il falso a chi guarda lo schermo.
+
+### Primo scaglione — undici voci viste su device (30/08)
+
+**1) La notifica afferma una distanza personale senza GPS attivo.**
+*"e' a 11 minuti da te"* mentre la Home, nella stessa schermata, mostra ancora
+**"Attiva la tua posizione"**. Falso in produzione, sulla superficie piu'
+visibile del prodotto. E' la regola locked #6 rotta nel punto peggiore: non un
+aggettivo di troppo, un **fatto affermato senza la misura che lo reggerebbe**.
+
+**2) Sistema guide: presente nell'interfaccia, inesistente in V1. TRE superfici.**
+- **guide inventate in TourDetails** — *Marco Polo 4.9*, *Chiara Esposito 4.6*,
+  con biografie fabbricate. E' il **pattern del Gate K**.
+- **"Richieste Attive"** nel Profilo, con bottone **"Apri Chat"**.
+- **modal "Tour su Misura"** con **"Invia alle Guide di X"**.
+**Da chiudere insieme, non una alla volta**: sono la stessa promessa fatta in
+tre posti, e toglierne una lascia le altre a confermarla.
+
+**3) F55/F56 RIAPERTI sul caso CULTURA.** Visti su device il **30/08**:
+descrizioni intercambiabili (**aria / profumo / suono** su Duomo, Scala e Santa
+Maria delle Grazie), il **"fruscio delle foglie" su una basilica**, e il
+presente affermato sul **foyer della Scala**. Il caso NATURA restava saldato:
+non lo e' piu' in generale, e' saldato **solo li'**.
+
+**4) `duration_minutes` di QuickPath e' l'INPUT del wizard, non una durata.**
+E' il 90/180/300 scelto allo **Step 4**, ristampato come se fosse un calcolo.
+Lo stesso tour da' **numeri diversi** fra QuickPath e le card "Per Te", che
+passano da `tourTiming`. E' una **forma di F64 sopravvissuta** perche' QuickPath
+non era fra i sei consumatori del DIFF 1a.
+
+**5) "circa 4h 23min" nelle card "Per Te".** Da stabilire l'origine: **se viene
+da `tourTiming` va arrotondata**. Una stima non si mostra al minuto — il minuto
+afferma una precisione che il modulo dichiara di non avere.
+
+**6) "Vedi tutte" in Home porta a Esplora vuota.** Da verificare **quale dei
+due**: routing sbagliato, o il Gate PERSISTENZA (i tour AI non sono salvati,
+quindi non c'e' niente da elencare). Sono due gate diversi.
+
+**7) `SLOT_TITLES` con emoji hardcoded** — `aiRecommendationService.js:2157`.
+
+**8) "Crea il tuo Tour" e "Crea il tuo Percorso"**: due card **consecutive** in
+Home con nomi quasi identici. Destinazioni **non verificate**.
+
+**9) "Attiva la posizione" in Home mentre la TopBar mostra gia' la citta'.**
+Stessa schermata, due affermazioni opposte sullo stato della posizione.
+Appartiene al **Gate CITTA'**.
+
+**10) Sezioni spente ma navigabili**: filtro **"Social"** in Notifiche e voce
+**"Foto"** in BottomNavigation.
+
+**11) La sezione Foto promette Instagram / Facebook / WhatsApp** che non sono
+integrati.
+
+### Secondo scaglione — i gate gia' diagnosticati (dalla coda del 28/08)
+
+Restano validi e con la diagnosi gia' fatta: le lettere sono quelle vecchie, si
+leggono cosi' senza rinumerare i riferimenti sparsi nel file. L'ordine che vale
+e' comunque **prima il primo scaglione**.
 **a-bis) DIFF 2 — l'ordinamento (F52).** *Tour generato alle 16:30 a Milano:
 osteria, poi castello, poi basilica.* Va **dopo il 1b**, che potrebbe chiuderlo
 da solo: se gli orari vengono calcolati nel codice dopo `sortByProximity`, la
@@ -5565,6 +5619,66 @@ finché il funzionale non è chiuso.
 | **F55** — caso RELIGIOSO | aperto (il caso NATURA resta saldato) |
 | **DIFF 1a** — le quattro superfici | aperto |
 | **DIFF 6** — bottone **Profilo** in TourDetails | aperto |
+
+---
+
+## Sessione 30/08 (2) — cleanup estetica: il ponteggio che rimetteva O.2
+
+Rimosso dal branch `estetica` il codice che esisteva **per farci guardare
+l'estetica**, non per l'utente. Commit `cb9bbe5`, tre file, `+19 −105`.
+
+- **rotta `/cover-preview`** — pagina di confronto delle copertine: via il file
+  `CoverPreview.jsx`, l'import lazy e la `<Route>`;
+- **selettore delle tre citta' in Explore** (Milano / Venezia / Amalfi), che
+  serviva a vedere la mappa su morfologie diverse.
+
+Marker misurati sul codice (esclusi i commenti che spiegano la rimozione):
+`cover-preview` **4 → 0**, `VALIDATION_CITIES` **6 → 0**, `activePreviewCity`
+**4 → 0**, `currentMapCenter`/`currentMapCity` **8 / 2 → 0 / 0**, chunk
+`CoverPreview-*.js` nel bundle **presente → assente**. Suite **601/601
+invariata**, lint 0 errori, build verde.
+
+### LEZIONE #42 — un ponteggio di verifica non e' neutro
+
+Il secondo pezzo **non era solo UI**, ed e' la ragione per cui questa non e'
+una nota di pulizia ma una lezione.
+
+Il selettore alimentava il centro della mappa, e lo faceva cosi':
+
+```js
+const currentMapCenter = activePreviewCity.center || mapCenter || VALIDATION_CITIES[0].center;
+const currentMapCity   = activePreviewCity.name   || city      || 'Milano';
+```
+
+Quel `VALIDATION_CITIES[0].center` e' **un centro citta' hardcoded**: la stessa
+identica forma del **bug O.2** — il fallback Roma che mostrava POI di Roma a un
+utente di Napoli — che il **Gate CC.2b** aveva rimosso **venti righe piu' su**,
+lasciando un commento che dichiarava di averlo tolto. Il ponteggio l'ha rimesso
+dentro dalla porta di servizio, con Milano al posto di Roma, mentre il commento
+del gate continuava a giurare il contrario.
+
+**La lezione, detta in generale.** Il codice di verifica prende la forma del
+codice di produzione — legge gli stessi stati, alimenta gli stessi render — e
+per farlo funzionare "intanto" gli si mettono sotto dei default. Quei default
+sono esattamente la classe di difetto che i gate chiudono. Quindi:
+
+1. **un ponteggio puo' riaprire un gate gia' chiuso**, e non lo dice: i test
+   passano, il commento del gate resta li' a dichiarare il contrario, e la
+   prova che il gate regge diventa **falsa**;
+2. **rimuovere il bottone non basta.** Qui, togliere solo il selettore avrebbe
+   lasciato dentro `currentMapCenter` col suo fallback: il difetto sarebbe
+   sopravvissuto alla rimozione della cosa che lo aveva introdotto, **invisibile
+   perche' senza piu' una UI che lo spiegasse**;
+3. quando si toglie un ponteggio si toglie **cio' che alimentava**, e si
+   **rilegge il gate che tocca** — non ci si fida del commento del gate, che
+   descrive il codice del giorno in cui e' stato scritto.
+
+Corollario operativo: un ponteggio di verifica va scritto **dichiarando cosa
+tocca** e va rimosso **prima** che il branch punti al merge, non dopo. Su
+`estetica` era registrato nel blocco del 29/08 (*"`/cover-preview` e'
+temporanea, va rimossa prima di qualunque merge"*) — la nota ha funzionato per
+la rotta, che era visibile, e **non per il selettore**, che sembrava un
+dettaglio di UI.
 
 ---
 

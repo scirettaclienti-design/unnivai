@@ -128,9 +128,9 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-obsidian-bg text-obsidian-primary font-quicksand overflow-x-hidden flex flex-col justify-between relative selection:bg-brand-orange selection:text-obsidian-bg">
+        <div className="min-h-screen bg-obsidian-bg text-obsidian-primary font-quicksand overflow-x-hidden flex flex-col justify-start relative selection:bg-brand-orange selection:text-obsidian-bg">
             {/* Top Navigation */}
-            <nav className="relative z-10 flex items-center justify-between px-6 py-5 md:px-10 max-w-5xl mx-auto w-full">
+            <nav className="relative z-10 flex items-center justify-between px-6 pt-5 pb-2 md:px-10 max-w-5xl mx-auto w-full">
                 <Link to="/" className="flex items-center gap-2.5 group">
                     <div className="w-9 h-9 bg-obsidian-card border border-obsidian-border rounded-xl flex items-center justify-center text-brand-orange shadow-sm group-hover:scale-105 transition-transform">
                         <Compass className="w-5 h-5 stroke-[1.75]" />
@@ -148,8 +148,8 @@ const Login = () => {
             </nav>
 
             {/* Main content */}
-            <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-8 max-w-5xl mx-auto w-full">
-                <AnimatePresence mode="wait">
+            <div className="relative z-10 flex-1 flex flex-col items-center justify-start px-4 pt-1 pb-8 max-w-5xl mx-auto w-full">
+                <AnimatePresence>
                     {/* ===== ROLE SELECTION ===== */}
                     {!selectedRole ? (
                         <motion.div
@@ -270,7 +270,7 @@ const Login = () => {
                         >
                             {/* Role badge */}
                             {currentRole && (
-                                <div className="flex justify-center mb-5">
+                                <div className="flex justify-center mb-3">
                                     <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-obsidian-card border border-obsidian-border text-obsidian-secondary text-xs font-bold">
                                         <currentRole.icon className="w-4 h-4 text-brand-orange stroke-[1.75]" />
                                         <span className="text-obsidian-primary">{currentRole.title}</span>
@@ -481,7 +481,7 @@ const Login = () => {
                                                 disabled={loading}
                                                 whileHover={{ scale: 1.01 }}
                                                 whileTap={{ scale: 0.98 }}
-                                                className="w-full py-4 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg font-bold rounded-xl shadow-lg shadow-brand-orange/20 transition-all flex items-center justify-center gap-2 mt-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                                className="w-full py-4 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg font-bold rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2 mt-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                             >
                                                 {loading ? (
                                                     <span className="animate-pulse">Elaborazione...</span>

@@ -5302,6 +5302,16 @@ Lo stesso tour da' **numeri diversi** fra QuickPath e le card "Per Te", che
 passano da `tourTiming`. E' una **forma di F64 sopravvissuta** perche' QuickPath
 non era fra i sei consumatori del DIFF 1a.
 
+**4-bis) `formatMinutes` esiste in DUE copie, e nessuna mette il tilde.**
+`QuickPathSummary.jsx:10` (Gate PULIZIA P1) e `SurpriseTour.jsx:44`, identiche —
+la seconda copiata durante la conversione ossidiana del 30/08. Formattano
+entrambe `duration_minutes`, cioe' il numero falso del punto qui sopra, e lo
+stampano **secco**: `"3h"`, `"1h 30m"`. `formatEstimate` in `tourTiming.js`
+esiste per dire che quel numero e' una stima, e il tilde non e' decorativo.
+**Si chiude dentro la voce 4**: quando si sistema l'origine del numero si
+sistemano tutte e due le copie, e nessuna deve piu' mostrare un numero secco.
+Motore in due copie = regola locked #8.
+
 **5) "circa 4h 23min" nelle card "Per Te".** Da stabilire l'origine: **se viene
 da `tourTiming` va arrotondata**. Una stima non si mostra al minuto — il minuto
 afferma una precisione che il modulo dichiara di non avere.
@@ -5679,6 +5689,23 @@ tocca** e va rimosso **prima** che il branch punti al merge, non dopo. Su
 temporanea, va rimossa prima di qualunque merge"*) — la nota ha funzionato per
 la rotta, che era visibile, e **non per il selettore**, che sembrava un
 dettaglio di UI.
+
+### DECISO: `estetica` resta SEPARATA, non si mergia
+
+Il branch e' completo (6 commit sopra main, nessuno pushato) e **non viene
+mergiato adesso**. Il motivo non e' prudenza generica:
+
+le prime tre voci della coda sono **difetti di verita'**, e si lavorano su main
+pulito. Mergiando ora, ogni fix nascerebbe sopra **1300 righe di conversione
+estetica**, e un rosso diventerebbe **ambiguo** — non si saprebbe se l'ha
+causato il fix o la conversione. Il merge si fa **quando le prime tre sono
+chiuse**.
+
+Nota sul perimetro: il vincolo che teneva `DashboardUser`, `TourDetails` e
+`AiItinerary` fuori dal lavoro estetico **era scaduto col merge del DIFF 1b** —
+semplicemente nessuno l'aveva dichiarato scaduto. Quindi le tre superfici
+toccate nel commit `331967f` non sono una violazione: sono un vincolo rimasto
+scritto piu' a lungo della sua ragione.
 
 ---
 

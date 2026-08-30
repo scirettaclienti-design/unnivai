@@ -7,6 +7,10 @@ import BottomNavigation from "../components/BottomNavigation";
 import { useUserContext } from "../hooks/useUserContext";
 import { aiRecommendationService } from "../services/aiRecommendationService";
 import { normalizeTour } from "../services/tourShape";
+// Gate RAGGIO DIFF 1b — offset cumulativo e formattazione delle stime.
+// Nessun numero secco e nessuna stringa costruita a mano in questa pagina:
+// la forma testuale di un tempo vive tutta in tourTiming.js.
+import { computeCumulativeOffsets, formatOffsetLabel, formatEstimate } from "@/lib/tourTiming";
 import { useAILearning } from "../hooks/useAILearning"; // DVAI-045
 import { useToast } from "../hooks/use-toast";
 // Gate 2 FASE 3 — resolveCityCenter come sorgente unica del centro città.
@@ -615,11 +619,26 @@ export default function AIItineraryPage() {
                                         </div>
 
                                         {/* Stops Timeline */}
+                                        {/* Gate RAGGIO DIFF 1b — gli offset si DERIVANO qui, al render,
+                                            dai campi che computeStopTimings ha gia' messo sulle tappe.
+                                            Non si persistono e non si chiedono al modello: un cumulativo
+                                            salvato sarebbe vero solo finche' l'ordine non cambia, e
+                                            l'ordine lo decide sortByProximity a monte. */}
                                         <div className="space-y-3">
-                                            {day.stops.map((stop, index) => {
+                                            {(() => {
+                                                const offsets = computeCumulativeOffsets(day.stops);
+                                                return day.stops.map((stop, index) => {
                                                 const IconComponent = (typeof stop.icon === 'string'
                                                     ? { Camera, ShoppingBag, Utensils, Eye, Coffee, MapPin }[stop.icon] || MapPin
                                                     : stop.icon) || MapPin;
+
+                                                // "Inizio" per la prima tappa, "+35 min" per le altre,
+                                                // null se un addendo manca (e allora non si monta nulla).
+                                                const offsetLabel = formatOffsetLabel(offsets[index]);
+                                                // La sosta e' un'altra informazione: quanto stai QUI, non
+                                                // quanto e' passato dall'inizio. Sta sulla card, non nella
+                                                // colonna, e porta il tilde della stima.
+                                                const stayLabel = formatEstimate(stop.stayMinutes);
 
                                                 const typeColors = {
                                                     cultura: 'bg-purple-100 text-purple-700',
@@ -643,17 +662,19 @@ export default function AIItineraryPage() {
                                                         <div className="flex">
                                                             {/* Left color bar + Icon */}
                                                             <div className="flex flex-col items-center justify-start bg-gradient-to-b from-terracotta-400 to-terracotta-500 px-3 py-4 min-w-[64px]">
-                                                                {/* Gate RAGGIO DIFF 1a — era `{stop.time || '--:--'}`.
-                                                                    Il modello non produce piu' `time`: il campo e' stato
-                                                                    tolto dagli schemi JSON perche' inventava orari (F57:
-                                                                    19:30 e 21:00 mostrati alle 23:10). Il calcolo vero
-                                                                    arriva col DIFF 1b.
-                                                                    `--:--` non e' un'alternativa accettabile nel frattempo:
-                                                                    e' un segnaposto che occupa il posto di un dato e fa
-                                                                    sembrare rotto cio' che e' semplicemente assente.
-                                                                    Finche' `time` e' null, il badge non si monta. */}
-                                                                {stop.time && (
-                                                                    <span className="text-white font-bold text-xs mb-2 whitespace-nowrap">{stop.time}</span>
+                                                                {/* Gate RAGGIO DIFF 1b — qui stava il badge orario, mai
+                                                                    montato da quando il DIFF 1a ha tolto `time` dagli schemi
+                                                                    (il modello inventava gli orari: F57, 19:30 e 21:00
+                                                                    mostrati alle 23:10).
+                                                                    Al suo posto NON torna un orario: torna un offset
+                                                                    dall'inizio del percorso. Un orario dovrebbe sapere a che
+                                                                    ora l'utente parte, e non lo sappiamo; un offset e' vero
+                                                                    a qualunque ora si parta.
+                                                                    Se l'offset e' null (un buco nei dati a monte) il badge
+                                                                    non si monta: niente segnaposto, che occuperebbe il posto
+                                                                    di un dato e farebbe sembrare rotto cio' che e' assente. */}
+                                                                {offsetLabel && (
+                                                                    <span className="text-white font-bold text-xs mb-2 whitespace-nowrap">{offsetLabel}</span>
                                                                 )}
                                                                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                                                                     <IconComponent className="w-5 h-5 text-white" />
@@ -683,6 +704,16 @@ export default function AIItineraryPage() {
                                                                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${typeColors[stop.type] || 'bg-gray-100 text-gray-600'}`}>
                                                                             {stop.type}
                                                                         </span>
+                                                                        {/* Sosta stimata dai types Google. Sta qui e non nella
+                                                                            colonna sinistra di proposito: "quanto stai" e
+                                                                            "dopo quanto ci arrivi" sono due misure diverse,
+                                                                            e affiancarle le fa leggere come una sola. */}
+                                                                        {stayLabel && (
+                                                                            <span className="text-xs text-gray-500 flex items-center gap-1">
+                                                                                <Clock className="w-3 h-3" />
+                                                                                {stayLabel}
+                                                                            </span>
+                                                                        )}
                                                                     </div>
 
                                                                     <motion.button
@@ -705,7 +736,8 @@ export default function AIItineraryPage() {
                                                         </div>
                                                     </motion.div>
                                                 );
-                                            })}
+                                                });
+                                            })()}
                                         </div>
                                     </motion.div>
                                 ))}

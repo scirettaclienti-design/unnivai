@@ -185,3 +185,77 @@ export function formatEstimate(minutes) {
     if (m === 0) return `circa ${h}h`;
     return `circa ${h}h ${m}min`;
 }
+
+/**
+ * ─── OFFSET CUMULATIVO — DIFF 1b ─────────────────────────────────────────────
+ *
+ * Quanto tempo e' passato DALL'INIZIO DEL PERCORSO quando arrivi alla tappa i.
+ * NON e' un orario: e' una distanza temporale dal punto di partenza. La
+ * differenza non e' formale, e' la stessa che ha ucciso il campo `time` (F57,
+ * orari 19:30 e 21:00 mostrati alle 23:10): un orario afferma QUANDO, e per
+ * saperlo servirebbe sapere a che ora l'utente parte — cosa che non sappiamo.
+ * Un offset afferma DOPO QUANTO, ed e' vero a qualunque ora si parta.
+ *
+ * FORMULA: offset[0] = 0; offset[i] = offset[i-1] + stay[i-1] + travel[i].
+ * Ci arrivi dopo aver sostato in tutte le tappe precedenti e aver camminato
+ * fino a qui.
+ *
+ * ─── NULL ASSORBENTE, ED E' LA REGOLA CHE CONTA ──────────────────────────────
+ * Se un addendo manca, l'offset di quella tappa E DI TUTTE LE SUCCESSIVE e'
+ * null. Non si somma zero: zero e' un'affermazione ("da qui a li' non ci si
+ * sposta"), null e' la verita' ("non lo so"). Ed e' contagioso per costruzione:
+ * un cumulativo con un buco in mezzo non e' approssimato, e' falso — tutto
+ * quello che viene dopo erediterebbe l'errore senza dirlo.
+ *
+ * LA PRIMA TAPPA NON E' UN BUCO. Il suo `travelMinutesFromPrev` e' null per
+ * scelta dichiarata (vedi computeStopTimings: non usiamo il GPS dell'utente),
+ * ma quel null non assorbe: la prima tappa E' l'origine della misura, offset 0.
+ * Se assorbisse, ogni tour avrebbe la timeline vuota.
+ *
+ * @param {Array} stops tappe gia' passate da computeStopTimings
+ * @returns {Array<number|null>} un offset in minuti per tappa, allineato per indice
+ */
+export function computeCumulativeOffsets(stops) {
+    if (!Array.isArray(stops) || stops.length === 0) return [];
+    const out = [];
+    let acc = 0;
+    let broken = false;
+    for (let i = 0; i < stops.length; i++) {
+        // La prima tappa e' l'origine: 0, e il suo travel null non entra nel giro.
+        if (i === 0) { out.push(0); continue; }
+        if (broken) { out.push(null); continue; }
+        const prevStay = stops[i - 1]?.stayMinutes;
+        const travel = stops[i]?.travelMinutesFromPrev;
+        // `?? 0` qui sarebbe il difetto: direbbe "sosta zero" / "spostamento
+        // zero" dove il dato manca, e propagherebbe l'affermazione a valle.
+        if (!Number.isFinite(prevStay) || !Number.isFinite(travel)) {
+            broken = true;
+            out.push(null);
+            continue;
+        }
+        acc += prevStay + travel;
+        out.push(acc);
+    }
+    return out;
+}
+
+/**
+ * Etichetta di un offset per la UI. Unico punto in cui un offset diventa testo:
+ * nessun numero secco raggiunge il render.
+ *
+ * Il `+` dice che e' una distanza dall'inizio, non un orario — la stessa
+ * funzione che il tilde ha in formatEstimate, che dichiara la stima.
+ * La prima tappa legge "Inizio", mai "+0 min": scrivere "+0 min" affermerebbe
+ * di aver misurato un tempo di avvicinamento e averlo trovato nullo.
+ *
+ * @returns {string|null} null se non c'e' niente di onesto da dire
+ */
+export function formatOffsetLabel(minutes) {
+    if (minutes === 0) return 'Inizio';
+    if (!Number.isFinite(minutes) || minutes < 0) return null;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h === 0) return `+${m} min`;
+    if (m === 0) return `+${h}h`;
+    return `+${h}h ${m}`;
+}

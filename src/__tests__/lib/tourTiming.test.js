@@ -11,6 +11,8 @@ import {
     computeStopTimings,
     totalTourMinutes,
     formatEstimate,
+    computeCumulativeOffsets,
+    formatOffsetLabel,
 } from '@/lib/tourTiming';
 
 // Gate RAGGIO — DIFF 1a. Test del modulo puro + marker negativo sul sorgente.
@@ -264,5 +266,95 @@ describe('marker negativo — la durata inventata non esiste piu\'', () => {
     it('nessun fallback silenzioso `|| 30` sulla durata', () => {
         const bad = sourceLines().filter(h => /suggestedMinutes[^;]*\|\|\s*30/.test(h.text));
         expect(bad.map(h => `${h.rel}:${h.line}`)).toEqual([]);
+    });
+});
+
+
+// ─── DIFF 1b — offset cumulativo dall'inizio del percorso ────────────────────
+
+const stop = (stayMinutes, travelMinutesFromPrev) => ({ stayMinutes, travelMinutesFromPrev });
+
+describe('computeCumulativeOffsets — la somma', () => {
+    it('la prima tappa e\' l\'origine: offset 0, e il suo travel null NON assorbe', () => {
+        const offsets = computeCumulativeOffsets([stop(30, null), stop(20, 15)]);
+        expect(offsets[0]).toBe(0);
+        expect(offsets[1]).toBe(45);
+    });
+
+    it('somma sosta precedente + spostamento, tappa dopo tappa', () => {
+        // 0 → 0 ; 1 → 30+5=35 ; 2 → 35+20+25=80
+        const offsets = computeCumulativeOffsets([stop(30, null), stop(20, 5), stop(60, 25)]);
+        expect(offsets).toEqual([0, 35, 80]);
+    });
+
+    it('lista vuota o non-array → nessun offset', () => {
+        expect(computeCumulativeOffsets([])).toEqual([]);
+        expect(computeCumulativeOffsets(null)).toEqual([]);
+    });
+});
+
+describe('computeCumulativeOffsets — NULL ASSORBENTE (test decisivo)', () => {
+    it('travel null a meta\' percorso annulla quella tappa E TUTTE le successive', () => {
+        // Se qui si sommasse 0 invece di assorbire, uscirebbe [0, 35, 35, 65]:
+        // una timeline che afferma "dalla 2 alla 3 non ci si sposta". Falso.
+        const offsets = computeCumulativeOffsets([
+            stop(30, null),
+            stop(20, 5),
+            stop(30, null),
+            stop(30, 10),
+        ]);
+        expect(offsets).toEqual([0, 35, null, null]);
+    });
+
+    it('sosta mancante assorbe come lo spostamento: un addendo che manca e\' un buco', () => {
+        const offsets = computeCumulativeOffsets([stop(30, null), stop(null, 10), stop(20, 10)]);
+        expect(offsets).toEqual([0, 40, null]);
+    });
+
+    it('mai zero al posto di null: nessun offset dopo il buco e\' un numero', () => {
+        const offsets = computeCumulativeOffsets([stop(30, null), stop(20, null), stop(20, 10)]);
+        expect(offsets.slice(1).every(o => o === null)).toBe(true);
+    });
+});
+
+describe('formatOffsetLabel — nessun numero secco alla UI', () => {
+    it('la prima tappa legge "Inizio", mai "+0 min"', () => {
+        expect(formatOffsetLabel(0)).toBe('Inizio');
+    });
+
+    it('sotto l\'ora: "+35 min"', () => {
+        expect(formatOffsetLabel(35)).toBe('+35 min');
+    });
+
+    it('sopra l\'ora: "+1h 20"', () => {
+        expect(formatOffsetLabel(80)).toBe('+1h 20');
+    });
+
+    it('ora tonda: "+2h"', () => {
+        expect(formatOffsetLabel(120)).toBe('+2h');
+    });
+
+    it('null resta null: la UI non monta niente', () => {
+        expect(formatOffsetLabel(null)).toBeNull();
+        expect(formatOffsetLabel(undefined)).toBeNull();
+        expect(formatOffsetLabel(NaN)).toBeNull();
+    });
+});
+
+describe('marker negativo — la timeline non mostra piu\' un orario', () => {
+    const aiItinerary = () => readFileSync(join(process.cwd(), 'src/pages/AiItinerary.jsx'), 'utf8');
+
+    it('la colonna sinistra non legge piu\' `stop.time`', () => {
+        expect(/stop\.time\b/.test(aiItinerary())).toBe(false);
+    });
+
+    it('l\'etichetta dell\'offset passa da formatOffsetLabel, non da una stringa a mano', () => {
+        expect(/formatOffsetLabel\(/.test(aiItinerary())).toBe(true);
+    });
+
+    it('nessun orario costruito: niente toLocaleTimeString, getHours, `--:--`', () => {
+        const src = aiItinerary();
+        expect(/toLocaleTimeString|getHours\(/.test(src)).toBe(false);
+        expect(/'--:--'|"--:--"/.test(src)).toBe(false);
     });
 });

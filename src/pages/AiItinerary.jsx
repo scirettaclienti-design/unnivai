@@ -30,7 +30,7 @@ const preferences = [
 // Gate NARRATORE/POI (Fase 2a) — decisione pura, esportata per i test.
 // Stesso pattern di getTourRenderState (TourDetails, Gate E-1).
 //
-// `if (newDay)` era vero anche per { stops: [] }: il payload onesto del motore
+// `if (newDay)` era vero anche per { stops: [] }: the payload onesto del motore
 // ha sempre un oggetto giorno dentro `days`, quello che manca sono le tappe.
 // Si sostituisce SOLO se il nuovo giorno ha tappe vere — altrimenti resta il
 // giorno precedente, che è contenuto vero.
@@ -49,6 +49,16 @@ export default function AIItineraryPage() {
     const abortRef = useRef(null);
     const [selectedStop, setSelectedStop] = useState(null);
     const [currentDay, setCurrentDay] = useState(1);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            window.__setAiItineraryPreview = ({ step, itinerary, selectedStop: stop }) => {
+                if (step !== undefined) setCurrentStep(step);
+                if (itinerary !== undefined) setGeneratedItinerary(itinerary);
+                if (stop !== undefined) setSelectedStop(stop);
+            };
+        }
+    }, []);
 
     const updatePreference = (prefId, value) => {
         setUserPreferences(prev =>
@@ -295,76 +305,49 @@ export default function AIItineraryPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
+        <div className="min-h-screen bg-obsidian-bg font-quicksand text-obsidian-primary flex flex-col justify-between">
             <TopBar />
 
-            <main className="max-w-md mx-auto px-4 py-8 pb-24">
+            <main className="max-w-md mx-auto px-4 py-6 pb-24 w-full">
                 {/* Back Button */}
-                <motion.div
-                    className="mb-6"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <Link to="/dashboard-user">
-                        <motion.button
-                            className="flex items-center space-x-2 bg-white/80 backdrop-blur-sm text-terracotta-600 px-4 py-2 rounded-2xl shadow-lg hover:shadow-xl transition-all group"
-                            whileHover={{ scale: 1.05, x: 5 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                            <span className="font-medium">Home</span>
-                            <span className="text-lg">🏠</span>
-                        </motion.button>
+                <div className="mb-4">
+                    <Link
+                        to="/dashboard-user"
+                        className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-obsidian-card border border-obsidian-border text-obsidian-secondary hover:text-obsidian-primary transition-colors text-xs font-bold"
+                    >
+                        <ArrowLeft size={14} />
+                        <span>Home</span>
                     </Link>
-                </motion.div>
+                </div>
 
-                {/* Header - Digital Concierge Avatar */}
-                <motion.div
-                    className="text-center mb-10"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                >
-                    <div className="relative w-24 h-24 mx-auto mb-6">
-                        {/* Pulsing Halo */}
-                        <motion.div
-                            className="absolute inset-0 bg-gradient-to-tr from-orange-300 to-purple-400 rounded-full blur-xl opacity-60"
-                            animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
-                            transition={{ duration: 4, repeat: Infinity }}
-                        />
-                        {/* Avatar Container */}
-                        <div className="relative w-full h-full bg-gradient-to-br from-white to-gray-100 rounded-full shadow-2xl flex items-center justify-center border-4 border-white/50 backdrop-blur-md z-10">
-                            <Brain className="w-12 h-12 text-terracotta-500" />
-                            <motion.div
-                                className="absolute top-1 right-1 bg-green-400 w-4 h-4 rounded-full border-2 border-white shadow-sm"
-                                animate={{ scale: [1, 1.2, 1] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                            />
-                        </div>
+                {/* Header - Travel Designer AI */}
+                <div className="text-center mb-6">
+                    <div className="w-16 h-16 rounded-2xl bg-obsidian-card border border-obsidian-border flex items-center justify-center text-brand-orange mx-auto mb-3 shadow-md">
+                        <Brain className="w-8 h-8 text-brand-orange" />
                     </div>
-
-                    <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-terracotta-600 to-orange-500 mb-2">
+                    <h1 className="text-2xl font-bold text-obsidian-primary mb-1">
                         Il Tuo Travel Designer AI
                     </h1>
-                    <p className="text-gray-600 font-medium">Raccontami il tuo sogno, io lo trasformo in viaggio.</p>
-                </motion.div>
+                    <p className="text-obsidian-secondary text-sm font-medium">Raccontami il tuo sogno, io lo trasformo in viaggio.</p>
+                </div>
 
                 {/* Step Indicator */}
-                <div className="flex items-center justify-center mb-10">
+                <div className="flex items-center justify-center mb-8">
                     {['Sogni', 'Magia', 'Realtà'].map((step, index) => (
                         <div key={step} className="flex items-center">
-                            <motion.div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-md ${index <= currentStep
-                                    ? 'bg-gradient-to-r from-terracotta-400 to-orange-500 text-white scale-110'
-                                    : 'bg-white text-gray-400 border border-gray-200'
-                                    }`}
+                            <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-sm ${
+                                    index <= currentStep
+                                        ? 'bg-brand-orange text-obsidian-bg'
+                                        : 'bg-obsidian-card text-obsidian-secondary border border-obsidian-border'
+                                }`}
                             >
                                 {index + 1}
-                            </motion.div>
+                            </div>
                             {index < 2 && (
-                                <div className={`w-12 h-1 mx-2 rounded-full transition-all ${index < currentStep ? 'bg-terracotta-300' : 'bg-gray-200'
-                                    }`} />
+                                <div className={`w-10 h-0.5 mx-2 rounded-full transition-all ${
+                                    index < currentStep ? 'bg-brand-orange' : 'bg-obsidian-border'
+                                }`} />
                             )}
                         </div>
                     ))}
@@ -378,57 +361,48 @@ export default function AIItineraryPage() {
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <div className="space-y-8">
+                        <div className="space-y-6">
                             {/* Pro Input Card */}
-                            <motion.div
-                                className="bg-white/60 backdrop-blur-xl rounded-3xl p-1 shadow-2xl shadow-terracotta-500/10 border border-white/80"
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                            >
-                                <div className="bg-gradient-to-b from-white/50 to-white/20 rounded-[22px] p-6">
-                                    <div className="flex items-center space-x-3 mb-4">
-                                        <Sparkles className="w-5 h-5 text-orange-400" />
-                                        <h3 className="font-bold text-gray-800">La tua visione</h3>
-                                    </div>
+                            <div className="bg-obsidian-card rounded-2xl p-4 border border-obsidian-border shadow-sm">
+                                <div className="flex items-center space-x-2 mb-3">
+                                    <Sparkles className="w-4 h-4 text-brand-orange" />
+                                    <h3 className="font-bold text-obsidian-primary text-sm">La tua visione</h3>
+                                </div>
 
-                                    <div className="relative group">
-                                        <textarea
-                                            value={userPrompt}
-                                            onChange={(e) => setUserPrompt(e.target.value)}
-                                            placeholder="Es: 'Voglio perdermi tra i vicoli di Trastevere, mangiare la carbonara migliore e finire la serata in un jazz club nascosto...'"
-                                            className="w-full h-32 bg-white/50 rounded-xl p-4 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-terracotta-300/50 transition-all resize-none shadow-inner border border-transparent focus:bg-white"
-                                            style={{ fontFamily: 'Inter, sans-serif' }}
-                                        />
-                                        <div className="absolute bottom-3 right-3 flex items-center space-x-2">
-                                            <span className="text-xs text-gray-400 font-medium">{userPrompt.length > 0 ? 'Perfetto!' : 'Sii creativo...'}</span>
-                                            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-                                        </div>
+                                <div className="relative">
+                                    <textarea
+                                        value={userPrompt}
+                                        onChange={(e) => setUserPrompt(e.target.value)}
+                                        placeholder="Es: 'Voglio perdermi tra i vicoli di Trastevere, mangiare la carbonara migliore e finire la serata in un jazz club nascosto...'"
+                                        className="w-full h-28 bg-obsidian-raised rounded-xl p-3.5 text-obsidian-primary placeholder-obsidian-secondary/50 focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all resize-none border border-obsidian-border text-sm"
+                                    />
+                                    <div className="flex items-center justify-end space-x-1.5 mt-1.5 px-1">
+                                        <span className="text-[11px] text-obsidian-secondary font-medium">
+                                            {userPrompt.length > 0 ? 'Perfetto!' : 'Sii creativo...'}
+                                        </span>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-brand-orange animate-pulse" />
                                     </div>
                                 </div>
-                            </motion.div>
+                            </div>
 
                             {/* Filters "Pills" Style */}
-                            <div className="space-y-6">
-                                {userPreferences.map((pref, index) => (
-                                    <motion.div
-                                        key={pref.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.1 + 0.2 }}
-                                    >
-                                        <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 ml-2 flex items-center gap-2">
+                            <div className="space-y-5">
+                                {userPreferences.map((pref) => (
+                                    <div key={pref.id}>
+                                        <h3 className="text-xs font-bold text-obsidian-secondary uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                                             <span>{pref.emoji}</span> {pref.title}
                                         </h3>
 
-                                        <div className="flex flex-wrap gap-3">
+                                        <div className="flex flex-wrap gap-2.5">
                                             {pref.options.map((option) => {
                                                 const isSelected = pref.id === 'interests'
                                                     ? pref.selected.includes(option)
                                                     : pref.selected === option;
 
                                                 return (
-                                                    <motion.button
+                                                    <button
                                                         key={option}
+                                                        type="button"
                                                         onClick={() => {
                                                             if (pref.id === 'interests') {
                                                                 const current = pref.selected;
@@ -440,115 +414,85 @@ export default function AIItineraryPage() {
                                                                 updatePreference(pref.id, option);
                                                             }
                                                         }}
-                                                        className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all border ${isSelected
-                                                            ? 'bg-gradient-to-r from-terracotta-500 to-orange-500 text-white border-transparent shadow-lg shadow-orange-500/30'
-                                                            : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300 hover:bg-orange-50'
-                                                            }`}
-                                                        whileHover={{ scale: 1.05, y: -2 }}
-                                                        whileTap={{ scale: 0.95 }}
+                                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                                                            isSelected
+                                                                ? 'bg-obsidian-raised border-brand-orange ring-1 ring-brand-orange/40 text-obsidian-primary'
+                                                                : 'bg-obsidian-card border-obsidian-border text-obsidian-secondary hover:text-obsidian-primary hover:bg-obsidian-raised'
+                                                        }`}
                                                     >
                                                         {option}
-                                                    </motion.button>
+                                                    </button>
                                                 );
                                             })}
                                         </div>
-                                    </motion.div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
 
-                        <motion.div className="mt-12 mb-8">
-                            <motion.button
+                        {/* CTA Genera Viaggio — Unica CTA arancione */}
+                        <div className="mt-8 mb-6">
+                            <button
+                                type="button"
                                 onClick={() => {
                                     setCurrentStep(1);
                                     generateItinerary();
                                 }}
-                                className={`w-full py-5 rounded-2xl font-bold text-lg shadow-xl transition-all flex items-center justify-center space-x-3 relative overflow-hidden group ${userPrompt.trim() || userPreferences.some(pref =>
-                                    pref.selected && (Array.isArray(pref.selected) ? pref.selected.length > 0 : true)
-                                )
-                                    ? 'bg-gray-900 text-white cursor-pointer'
-                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                    }`}
-                                whileHover={userPrompt.trim() ? { scale: 1.02 } : {}}
-                                whileTap={userPrompt.trim() ? { scale: 0.98 } : {}}
                                 disabled={!userPrompt.trim() && !userPreferences.some(pref =>
                                     pref.selected && (Array.isArray(pref.selected) ? pref.selected.length > 0 : true)
                                 )}
+                                className={`w-full py-4 px-6 rounded-2xl font-bold transition-colors flex items-center justify-center gap-2 shadow-lg ${
+                                    userPrompt.trim() || userPreferences.some(pref =>
+                                        pref.selected && (Array.isArray(pref.selected) ? pref.selected.length > 0 : true)
+                                    )
+                                        ? 'bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg shadow-brand-orange/20 cursor-pointer'
+                                        : 'bg-obsidian-raised text-obsidian-secondary/40 border border-obsidian-border cursor-not-allowed'
+                                }`}
                             >
-                                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 via-pink-500 to-terracotta-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                <div className="relative flex items-center space-x-2 z-10">
-                                    <Brain className="w-6 h-6" />
-                                    <span>Genera Viaggio</span>
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                </div>
-                            </motion.button>
-                        </motion.div>
+                                <Brain className="w-5 h-5" />
+                                <span className="text-base font-bold">Genera Viaggio</span>
+                                <ArrowRight className="w-4 h-4" />
+                            </button>
+                        </div>
                     </motion.div>
                 )}
 
                 {/* Step 2: Sophisticated Loading */}
                 {currentStep === 1 && (
-                    <motion.div
-                        className="text-center py-20"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                    >
-                        <div className="relative w-32 h-32 mx-auto mb-12">
-                            {/* Orbit Rings */}
-                            {[0, 1, 2].map(i => (
-                                <motion.div
-                                    key={i}
-                                    className="absolute inset-0 border-2 border-orange-300/30 rounded-full"
-                                    animate={{
-                                        rotate: i % 2 === 0 ? 360 : -360,
-                                        scale: [1, 1.1, 1]
-                                    }}
-                                    transition={{
-                                        rotate: { duration: 10 + i * 5, repeat: Infinity, ease: "linear" },
-                                        scale: { duration: 3, repeat: Infinity, ease: "easeInOut" }
-                                    }}
-                                    style={{ borderTopColor: 'rgba(249, 115, 22, 0.8)' }}
-                                />
-                            ))}
-
-                            {/* Core */}
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <motion.div
-                                    className="bg-gradient-to-tr from-orange-500 to-pink-500 p-4 rounded-xl shadow-lg shadow-orange-500/50"
-                                    animate={{ y: [0, -10, 0] }}
-                                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                                >
-                                    <Brain className="w-8 h-8 text-white" />
-                                </motion.div>
+                    <div className="text-center py-16">
+                        <div className="relative w-20 h-20 mx-auto mb-8">
+                            <div className="w-20 h-20 rounded-3xl bg-obsidian-card border border-obsidian-border flex items-center justify-center text-brand-orange shadow-xl relative z-10">
+                                <Brain className="w-10 h-10 animate-pulse text-brand-orange" />
                             </div>
+                            <div className="absolute -inset-2 rounded-[28px] bg-brand-orange/20 animate-ping opacity-40" />
                         </div>
 
-                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Creazione Itinerario...</h2>
-                        <p className="text-gray-500 mb-10">L'IA sta consultando le guide locali e analizzando il meteo.</p>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-obsidian-raised border border-obsidian-border text-brand-orange text-xs font-semibold mb-3">
+                            <Sparkles size={12} />
+                            <span>Creazione Itinerario AI</span>
+                        </div>
+
+                        <h2 className="text-xl font-bold text-obsidian-primary mb-2">Creazione Itinerario...</h2>
+                        <p className="text-xs text-obsidian-secondary max-w-xs mx-auto leading-relaxed font-medium mb-8">
+                            L'IA sta consultando le guide locali e analizzando il meteo.
+                        </p>
 
                         <div className="max-w-xs mx-auto space-y-3">
                             {[
-                                { text: "Analisi preferenze", color: "bg-blue-400" },
-                                { text: "Selezione gemme nascoste", color: "bg-purple-400" },
-                                { text: "Ottimizzazione percorso", color: "bg-green-400" }
-                            ].map((item, idx) => (
-                                <motion.div
+                                { text: "Analisi preferenze" },
+                                { text: "Selezione gemme nascoste" },
+                                { text: "Ottimizzazione percorso" }
+                            ].map((item) => (
+                                <div
                                     key={item.text}
-                                    className="flex items-center space-x-3 bg-white/50 rounded-lg p-3"
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: idx * 0.8 }}
+                                    className="flex items-center space-x-3 bg-obsidian-card border border-obsidian-border rounded-xl p-3"
                                 >
-                                    <motion.div
-                                        className={`w-2 h-2 rounded-full ${item.color}`}
-                                        animate={{ scale: [1, 1.5, 1] }}
-                                        transition={{ repeat: Infinity, duration: 1 }}
-                                    />
-                                    <span className="text-sm font-medium text-gray-600">{item.text}</span>
-                                </motion.div>
+                                    <div className="w-2 h-2 rounded-full bg-brand-orange animate-pulse" />
+                                    <span className="text-xs font-medium text-obsidian-secondary">{item.text}</span>
+                                </div>
                             ))}
                         </div>
-                    </motion.div>
+                    </div>
                 )}
 
                 {/* Step 3: Generated Itinerary */}
@@ -559,20 +503,20 @@ export default function AIItineraryPage() {
                         transition={{ duration: 0.6 }}
                     >
                         {/* Day Navigator */}
-                        <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
+                        <div className="flex space-x-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
                             {generatedItinerary.map((day) => (
-                                <motion.button
+                                <button
                                     key={day.day}
+                                    type="button"
                                     onClick={() => setCurrentDay(day.day)}
-                                    className={`flex-shrink-0 px-4 py-2 rounded-xl font-medium transition-all ${currentDay === day.day
-                                        ? 'bg-terracotta-400 text-white shadow-lg'
-                                        : 'bg-white/70 text-gray-700 hover:bg-white/90'
-                                        }`}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                                        currentDay === day.day
+                                            ? 'bg-obsidian-raised border-brand-orange ring-1 ring-brand-orange/40 text-obsidian-primary'
+                                            : 'bg-obsidian-card border-obsidian-border text-obsidian-secondary hover:text-obsidian-primary'
+                                    }`}
                                 >
                                     Giorno {day.day}
-                                </motion.button>
+                                </button>
                             ))}
                         </div>
 
@@ -586,33 +530,32 @@ export default function AIItineraryPage() {
                                         initial={{ opacity: 0, x: 50 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: -50 }}
-                                        transition={{ duration: 0.4 }}
                                     >
                                         {/* Day Header */}
-                                        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg mb-6">
-                                            <div className="flex items-center justify-between mb-4">
+                                        <div className="bg-obsidian-card border border-obsidian-border rounded-2xl p-5 shadow-sm mb-6">
+                                            <div className="flex items-center justify-between mb-2">
                                                 <div>
-                                                    <h2 className="text-xl font-bold text-gray-800">{day.title}</h2>
-                                                    <p className="text-gray-600 text-sm">
+                                                    <h2 className="text-xl font-bold text-obsidian-primary">{day.title}</h2>
+                                                    <p className="text-obsidian-secondary text-xs mt-0.5">
                                                         {day.stops.length} tappe programmate
                                                     </p>
                                                 </div>
-                                                <motion.button
+                                                <button
+                                                    type="button"
                                                     onClick={() => regenerateDay(day.day)}
-                                                    className="p-2 bg-terracotta-100 text-terracotta-600 rounded-xl hover:bg-terracotta-200 transition-colors"
-                                                    whileHover={{ scale: 1.1, rotate: 180 }}
-                                                    whileTap={{ scale: 0.9 }}
+                                                    className="p-2.5 bg-obsidian-raised hover:bg-obsidian-border border border-obsidian-border text-obsidian-secondary hover:text-obsidian-primary rounded-xl transition-colors cursor-pointer"
+                                                    title="Rigenera giorno"
                                                 >
-                                                    <Shuffle className="w-5 h-5" />
-                                                </motion.button>
+                                                    <Shuffle className="w-4 h-4" />
+                                                </button>
                                             </div>
 
                                             {day.weather && (
-                                                <div className="flex items-center space-x-3 bg-gradient-to-r from-blue-50 to-cyan-50 p-3 rounded-xl">
+                                                <div className="flex items-center space-x-3 bg-obsidian-raised border border-obsidian-border p-3 rounded-xl mt-3">
                                                     <span className="text-2xl">{day.weather.icon}</span>
                                                     <div>
-                                                        <p className="font-medium text-gray-800">{day.weather.condition}</p>
-                                                        <p className="text-sm text-gray-600">{day.weather.temperature}°C</p>
+                                                        <p className="font-medium text-obsidian-primary text-xs">{day.weather.condition}</p>
+                                                        <p className="text-[11px] text-obsidian-secondary">{day.weather.temperature}°C</p>
                                                     </div>
                                                 </div>
                                             )}
@@ -640,101 +583,70 @@ export default function AIItineraryPage() {
                                                 // colonna, e porta il tilde della stima.
                                                 const stayLabel = formatEstimate(stop.stayMinutes);
 
-                                                const typeColors = {
-                                                    cultura: 'bg-purple-100 text-purple-700',
-                                                    culture: 'bg-purple-100 text-purple-700',
-                                                    food: 'bg-red-100 text-red-700',
-                                                    shopping: 'bg-green-100 text-green-700',
-                                                    relax: 'bg-blue-100 text-blue-700',
-                                                    storia: 'bg-amber-100 text-amber-800',
-                                                    natura: 'bg-emerald-100 text-emerald-700',
-                                                };
-
                                                 return (
-                                                    <motion.div
+                                                    <div
                                                         key={stop.title ?? index}
-                                                        className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
-                                                        initial={{ opacity: 0, y: 20 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        transition={{ delay: index * 0.08 }}
-                                                        whileHover={{ scale: 1.01 }}
+                                                        className="bg-obsidian-card rounded-2xl border border-obsidian-border overflow-hidden shadow-sm"
                                                     >
                                                         <div className="flex">
-                                                            {/* Left color bar + Icon */}
-                                                            <div className="flex flex-col items-center justify-start bg-gradient-to-b from-terracotta-400 to-terracotta-500 px-3 py-4 min-w-[64px]">
-                                                                {/* Gate RAGGIO DIFF 1b — qui stava il badge orario, mai
-                                                                    montato da quando il DIFF 1a ha tolto `time` dagli schemi
-                                                                    (il modello inventava gli orari: F57, 19:30 e 21:00
-                                                                    mostrati alle 23:10).
-                                                                    Al suo posto NON torna un orario: torna un offset
-                                                                    dall'inizio del percorso. Un orario dovrebbe sapere a che
-                                                                    ora l'utente parte, e non lo sappiamo; un offset e' vero
-                                                                    a qualunque ora si parta.
-                                                                    Se l'offset e' null (un buco nei dati a monte) il badge
-                                                                    non si monta: niente segnaposto, che occuperebbe il posto
-                                                                    di un dato e farebbe sembrare rotto cio' che e' assente. */}
+                                                            {/* Left column + Icon — VINCOLO TECNICO: min-w-[64px] INVARIATO */}
+                                                            <div className="flex flex-col items-center justify-start bg-obsidian-raised border-r border-obsidian-border px-3 py-4 min-w-[64px]">
+                                                                {/* Gate RAGGIO DIFF 1b — offset su scala neutra, senza accento */}
                                                                 {offsetLabel && (
-                                                                    <span className="text-white font-bold text-xs mb-2 whitespace-nowrap">{offsetLabel}</span>
+                                                                    <span className="text-obsidian-secondary font-bold text-xs mb-2 whitespace-nowrap">{offsetLabel}</span>
                                                                 )}
-                                                                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                                                                    <IconComponent className="w-5 h-5 text-white" />
+                                                                <div className="w-9 h-9 bg-obsidian-card border border-obsidian-border rounded-full flex items-center justify-center text-obsidian-primary">
+                                                                    <IconComponent className="w-4 h-4 text-obsidian-secondary" />
                                                                 </div>
                                                             </div>
 
                                                             {/* Content */}
                                                             <div className="flex-1 p-4">
                                                                 <div className="flex items-start justify-between gap-2 mb-1">
-                                                                    <h4 className="font-bold text-gray-900 text-sm leading-tight">{stop.title}</h4>
+                                                                    <h4 className="font-bold text-obsidian-primary text-sm leading-tight">{stop.title}</h4>
                                                                     {stop.rating && (
-                                                                        <div className="flex items-center gap-0.5 flex-shrink-0 bg-yellow-50 px-2 py-0.5 rounded-full">
-                                                                            <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                                                                            <span className="text-xs font-bold text-gray-700">{stop.rating}</span>
+                                                                        <div className="flex items-center gap-1 flex-shrink-0 bg-obsidian-raised border border-obsidian-border px-2 py-0.5 rounded-full">
+                                                                            <Star className="w-3 h-3 text-brand-orange fill-current" />
+                                                                            <span className="text-xs font-bold text-obsidian-primary">{stop.rating}</span>
                                                                         </div>
                                                                     )}
                                                                 </div>
 
-                                                                <p className="text-xs text-gray-500 mb-2 line-clamp-2">{stop.description}</p>
+                                                                <p className="text-xs text-obsidian-secondary mb-2 line-clamp-2 leading-relaxed">{stop.description}</p>
 
                                                                 <div className="flex items-center justify-between">
                                                                     <div className="flex items-center gap-2">
-                                                                        {/* Gate PULIZIA P5 — rimosso il badge prezzo. Lo schema
-                                                                            del selettore (aiRecommendationService.js:883-891)
-                                                                            non ha un campo `price`: era sempre 0 → "Gratuito"
-                                                                            su ogni tappa, bar compresi. */}
-                                                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${typeColors[stop.type] || 'bg-gray-100 text-gray-600'}`}>
+                                                                        {/* Categoria */}
+                                                                        <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-obsidian-raised border border-obsidian-border text-obsidian-secondary">
                                                                             {stop.type}
                                                                         </span>
-                                                                        {/* Sosta stimata dai types Google. Sta qui e non nella
-                                                                            colonna sinistra di proposito: "quanto stai" e
-                                                                            "dopo quanto ci arrivi" sono due misure diverse,
-                                                                            e affiancarle le fa leggere come una sola. */}
+                                                                        {/* Sosta stimata */}
                                                                         {stayLabel && (
-                                                                            <span className="text-xs text-gray-500 flex items-center gap-1">
-                                                                                <Clock className="w-3 h-3" />
+                                                                            <span className="text-xs text-obsidian-secondary flex items-center gap-1">
+                                                                                <Clock className="w-3 h-3 text-obsidian-secondary" />
                                                                                 {stayLabel}
                                                                             </span>
                                                                         )}
                                                                     </div>
 
-                                                                    <motion.button
+                                                                    <button
+                                                                        type="button"
                                                                         onClick={() => { setSelectedStop(stop); trackInteraction?.('stop_detail_view', { category: stop.type, city: activeCity, title: stop.title }); }}
-                                                                        className="text-terracotta-500 hover:text-terracotta-700 text-xs font-bold"
-                                                                        whileHover={{ scale: 1.05 }}
-                                                                        whileTap={{ scale: 0.95 }}
+                                                                        className="text-obsidian-secondary hover:text-obsidian-primary text-xs font-bold transition-colors cursor-pointer"
                                                                     >
                                                                         Dettagli →
-                                                                    </motion.button>
+                                                                    </button>
                                                                 </div>
 
                                                                 {stop.location && (
-                                                                    <p className="text-[11px] text-gray-400 flex items-center mt-1.5">
-                                                                        <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                                                                    <p className="text-[11px] text-obsidian-secondary flex items-center mt-1.5">
+                                                                        <MapPin className="w-3 h-3 mr-1 flex-shrink-0 text-obsidian-secondary" />
                                                                         {stop.location}
                                                                     </p>
                                                                 )}
                                                             </div>
                                                         </div>
-                                                    </motion.div>
+                                                    </div>
                                                 );
                                                 });
                                             })()}
@@ -743,20 +655,19 @@ export default function AIItineraryPage() {
                                 ))}
                         </AnimatePresence>
 
-                        {/* Action Buttons */}
+                        {/* Action Buttons — Una sola CTA arancione */}
                         <div className="flex space-x-3 mt-8">
-                            <motion.button
+                            <button
+                                type="button"
                                 onClick={() => {
                                     setCurrentStep(0);
                                     setGeneratedItinerary(null);
                                 }}
-                                className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-gray-400 transition-colors flex items-center justify-center space-x-2"
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
+                                className="flex-1 bg-obsidian-raised hover:bg-obsidian-border text-obsidian-secondary hover:text-obsidian-primary py-3.5 px-4 rounded-xl font-bold text-xs transition-colors flex items-center justify-center space-x-2 border border-obsidian-border cursor-pointer"
                             >
                                 <Shuffle className="w-4 h-4" />
                                 <span>Ricomincia</span>
-                            </motion.button>
+                            </button>
 
                             <Link
                                 to="/map"
@@ -809,98 +720,84 @@ export default function AIItineraryPage() {
                                 }}
                                 className="flex-1"
                             >
-                                <motion.button
-                                    className="w-full bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white py-3 px-4 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center space-x-2"
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
+                                <button
+                                    type="button"
+                                    className="w-full bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg py-3.5 px-4 rounded-xl font-bold text-sm shadow-lg shadow-brand-orange/20 transition-colors flex items-center justify-center space-x-2 cursor-pointer"
                                 >
                                     <Navigation className="w-4 h-4" />
                                     <span>Vedi su Mappa</span>
-                                </motion.button>
+                                </button>
                             </Link>
                         </div>
-                    </motion.div >
+                    </motion.div>
                 )}
 
                 {/* Stop Detail Modal */}
                 <AnimatePresence>
                     {selectedStop && (
                         <motion.div
-                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                            className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setSelectedStop(null)}
                         >
                             <motion.div
-                                className="bg-white rounded-3xl p-6 max-w-sm w-full max-h-[80vh] overflow-y-auto"
-                                initial={{ scale: 0.8, opacity: 0 }}
+                                className="bg-obsidian-card border border-obsidian-border rounded-3xl p-6 max-w-sm w-full max-h-[80vh] overflow-y-auto text-obsidian-primary shadow-2xl"
+                                initial={{ scale: 0.95, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.8, opacity: 0 }}
+                                exit={{ scale: 0.95, opacity: 0 }}
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-xl font-bold text-gray-800">{selectedStop.title}</h3>
+                                    <h3 className="text-lg font-bold text-obsidian-primary leading-tight">{selectedStop.title}</h3>
                                     <button
+                                        type="button"
                                         onClick={() => setSelectedStop(null)}
-                                        className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                                        className="p-1.5 rounded-full bg-obsidian-raised hover:bg-obsidian-border text-obsidian-secondary hover:text-obsidian-primary transition-colors cursor-pointer"
                                     >
                                         ✕
                                     </button>
                                 </div>
 
-                                {/* Gate PULIZIA P5 — rimossi tre blocchi senza sorgente:
-                                    - photos: il campo `photos` non e' mai valorizzato da nessun
-                                      punto del codice (ne' canonicalizeStopsFromCandidates ne'
-                                      normalizeTourStep) → <img> montata su undefined, blocco morto.
-                                    - location: assente dallo schema del selettore (:883-891).
-                                    - price: assente dallo schema → sempre 0 → sempre "Gratuito".
-                                    Restano i campi con sorgente reale: descrizione e insiderTip
-                                    (narratore), time (AI), rating (Google). */}
+                                {/* Gate PULIZIA P5 — rimossi tre blocchi senza sorgente */}
                                 <div className="space-y-4">
                                     {selectedStop.description && (
-                                        <p className="text-gray-600">{selectedStop.description}</p>
+                                        <p className="text-xs text-obsidian-secondary leading-relaxed">{selectedStop.description}</p>
                                     )}
 
                                     {selectedStop.insiderTip && (
-                                        <div>
-                                            <h4 className="font-bold text-gray-800 text-sm">Consiglio insider</h4>
-                                            <p className="text-sm text-gray-600">{selectedStop.insiderTip}</p>
+                                        <div className="bg-obsidian-raised/60 border border-obsidian-border rounded-xl p-3">
+                                            <h4 className="font-bold text-obsidian-primary text-xs mb-1">Consiglio insider</h4>
+                                            <p className="text-xs text-obsidian-secondary leading-relaxed">{selectedStop.insiderTip}</p>
                                         </div>
                                     )}
 
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 gap-3">
                                         {selectedStop.time && (
-                                            <div>
-                                                <h4 className="font-bold text-gray-800 text-sm">Orario</h4>
-                                                <p className="text-sm text-gray-600">{selectedStop.time}</p>
+                                            <div className="bg-obsidian-raised border border-obsidian-border rounded-xl p-2.5">
+                                                <h4 className="font-bold text-obsidian-secondary text-[10px] uppercase tracking-wider">Orario</h4>
+                                                <p className="text-xs font-semibold text-obsidian-primary mt-0.5">{selectedStop.time}</p>
                                             </div>
                                         )}
                                         {selectedStop.rating && (
-                                            <div>
-                                                <h4 className="font-bold text-gray-800 text-sm">Rating</h4>
-                                                <div className="flex items-center space-x-1">
-                                                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                                    <span className="text-sm text-gray-600">{selectedStop.rating}/5</span>
+                                            <div className="bg-obsidian-raised border border-obsidian-border rounded-xl p-2.5">
+                                                <h4 className="font-bold text-obsidian-secondary text-[10px] uppercase tracking-wider">Rating</h4>
+                                                <div className="flex items-center space-x-1 mt-0.5">
+                                                    <Star className="w-3.5 h-3.5 text-brand-orange fill-current" />
+                                                    <span className="text-xs font-bold text-obsidian-primary">{selectedStop.rating}/5</span>
                                                 </div>
                                             </div>
                                         )}
                                     </div>
-                                    {/* Gate PULIZIA P4 — rimosso il bottone "Prenota Esperienza".
-                                        Puntava a <Link to="/tour-details"> senza :id e senza state:
-                                        TourDetails cadeva su rawId=1, la query DB non partiva nemmeno
-                                        (enabled:false) e l'utente leggeva "Questo tour non esiste piu'".
-                                        Una tappa POI non e' un prodotto prenotabile: l'unica riga
-                                        `tours` la crea una guida da TourBuilder.jsx:291. Nessun
-                                        ComingSoon: la funzione non esiste e non e' progettata. */}
                                 </div>
                             </motion.div>
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </main >
+            </main>
 
             <BottomNavigation />
-        </div >
+        </div>
     );
 }

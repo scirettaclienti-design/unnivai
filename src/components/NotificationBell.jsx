@@ -37,20 +37,11 @@ export default function NotificationBell({ theme = 'dark' }) {
 
     const getNotificationIcon = (type) => {
         switch (type) {
-            case 'tour_recommendation': return <MapPin className="w-4 h-4 text-terracotta-500" />;
-            case 'weather_alert': return <Sun className="w-4 h-4 text-yellow-500" />;
-            case 'social_activity': return <Heart className="w-4 h-4 text-red-500" />;
-            case 'tour_reminder': return <Clock className="w-4 h-4 text-green-500" />;
-            default: return <Bell className="w-4 h-4 text-gray-500" />;
-        }
-    };
-
-    const getActionColor = (actionType) => {
-        switch (actionType) {
-            case 'prenota': return 'bg-terracotta-500 hover:bg-terracotta-600';
-            case 'scopri': return 'bg-blue-500 hover:bg-blue-600';
-            case 'vedi': return 'bg-purple-500 hover:bg-purple-600';
-            default: return 'bg-gray-500 hover:bg-gray-600';
+            case 'tour_recommendation': return <MapPin className="w-4 h-4 text-obsidian-secondary" />;
+            case 'weather_alert': return <Sun className="w-4 h-4 text-obsidian-secondary" />;
+            case 'social_activity': return <Heart className="w-4 h-4 text-obsidian-secondary" />;
+            case 'tour_reminder': return <Clock className="w-4 h-4 text-obsidian-secondary" />;
+            default: return <Bell className="w-4 h-4 text-obsidian-secondary" />;
         }
     };
 
@@ -74,7 +65,7 @@ export default function NotificationBell({ theme = 'dark' }) {
                     <motion.div
                         className={containerClasses}
                         whileHover={{
-                            boxShadow: isLight ? "0 4px 15px rgba(0,0,0,0.1)" : "0 8px 25px rgba(255,255,255,0.2)",
+                            boxShadow: isLight ? "0 4px 15px rgba(0,0,0,0.1)" : "0 4px 20px rgba(0,0,0,0.5)",
                             rotate: [0, -10, 10, 0]
                         }}
                         transition={{ duration: 0.6 }}
@@ -143,33 +134,24 @@ export default function NotificationBell({ theme = 'dark' }) {
             <AnimatePresence>
                 {showPreview && notifications.length > 0 && (
                     <motion.div
-                        className="absolute top-full right-0 mt-3 w-96 bg-gradient-to-br from-white/95 to-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 z-50 overflow-hidden"
-                        initial={{ opacity: 0, y: -20, scale: 0.9, rotateX: -15 }}
-                        animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.9, rotateX: -15 }}
-                        transition={{
-                            type: "spring",
-                            stiffness: 300,
-                            damping: 30,
-                            duration: 0.4
-                        }}
+                        className="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-obsidian-card border border-obsidian-border rounded-[24px] shadow-2xl z-50 overflow-hidden text-obsidian-primary font-quicksand"
+                        initial={{ opacity: 0, y: -10, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.96 }}
+                        transition={{ duration: 0.2 }}
                     >
-                        {/* Header with gradient */}
-                        <div className="bg-gradient-to-r from-terracotta-500 to-terracotta-600 p-4 text-white">
+                        {/* Header */}
+                        <div className="p-4 border-b border-obsidian-border bg-obsidian-card">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
-                                    <motion.div
-                                        className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center"
-                                        animate={{ rotate: [0, 10, -10, 0] }}
-                                        transition={{ duration: 2, repeat: Infinity }}
-                                    >
-                                        <Bell className="w-3 h-3" />
-                                    </motion.div>
-                                    <h3 className="font-bold text-lg">Notifiche Smart</h3>
+                                    <div className="w-6 h-6 bg-obsidian-raised border border-obsidian-border rounded-full flex items-center justify-center text-obsidian-secondary">
+                                        <Bell className="w-3.5 h-3.5 text-obsidian-secondary" />
+                                    </div>
+                                    <h3 className="font-bold text-base text-obsidian-primary">Notifiche Smart</h3>
                                 </div>
                                 <Link to="/notifications">
                                     <motion.span
-                                        className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-full text-sm font-medium cursor-pointer transition-colors"
+                                        className="bg-obsidian-raised hover:bg-obsidian-border border border-obsidian-border px-3 py-1 rounded-full text-xs font-semibold text-obsidian-secondary hover:text-obsidian-primary cursor-pointer transition-colors"
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                     >
@@ -179,95 +161,40 @@ export default function NotificationBell({ theme = 'dark' }) {
                             </div>
                         </div>
 
-                        <div className="p-4 space-y-4 max-h-80 overflow-y-auto">
+                        <div className="p-3 space-y-2.5 max-h-80 overflow-y-auto">
                             {notifications.slice(0, 3).map((notification, index) => (
                                 <motion.div
                                     key={index}
-                                    className="group relative bg-gradient-to-r from-white/80 to-white/60 rounded-2xl p-4 hover:shadow-lg transition-all duration-300 border border-white/50 cursor-pointer"
+                                    className="group relative bg-obsidian-raised hover:bg-obsidian-raised/80 rounded-2xl p-3.5 transition-all duration-200 border border-obsidian-border cursor-pointer"
                                     onClick={() => handleNotificationClick(notification)}
-                                    initial={{ opacity: 0, x: -30, scale: 0.9 }}
-                                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                                    transition={{
-                                        delay: index * 0.15,
-                                        type: "spring",
-                                        stiffness: 200
-                                    }}
-                                    whileHover={{
-                                        scale: 1.02,
-                                        boxShadow: "0 8px 25px rgba(0,0,0,0.1)"
-                                    }}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.05 }}
                                 >
-                                    {/* Animated border */}
-                                    <motion.div
-                                        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100"
-                                        style={{
-                                            background: `linear-gradient(45deg, 
-                        transparent, 
-                        rgba(210, 137, 108, 0.1), 
-                        transparent
-                      )`,
-                                        }}
-                                        animate={{
-                                            background: [
-                                                'linear-gradient(45deg, transparent, rgba(210, 137, 108, 0.1), transparent)',
-                                                'linear-gradient(225deg, transparent, rgba(210, 137, 108, 0.1), transparent)',
-                                                'linear-gradient(45deg, transparent, rgba(210, 137, 108, 0.1), transparent)'
-                                            ]
-                                        }}
-                                        transition={{ duration: 2, repeat: Infinity }}
-                                    />
-
                                     <div className="relative flex items-start space-x-3">
-                                        <motion.div
-                                            className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-terracotta-400 to-terracotta-600 rounded-xl flex items-center justify-center shadow-md"
-                                            whileHover={{ rotate: 360 }}
-                                            transition={{ duration: 0.6 }}
-                                        >
+                                        <div className="flex-shrink-0 w-9 h-9 bg-obsidian-card border border-obsidian-border rounded-xl flex items-center justify-center">
                                             {getNotificationIcon(notification.type)}
-                                        </motion.div>
+                                        </div>
 
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="text-sm font-bold text-gray-800 mb-1 group-hover:text-terracotta-700 transition-colors">
+                                            <h4 className="text-sm font-bold text-obsidian-primary mb-1 leading-tight">
                                                 {notification.title}
                                             </h4>
-                                            <p className="text-xs text-gray-600 leading-relaxed line-clamp-2 mb-2">
+                                            <p className="text-xs text-obsidian-secondary leading-relaxed line-clamp-2 mb-2 font-medium">
                                                 {notification.message}
                                             </p>
 
                                             {notification.location && (
-                                                <div className="flex items-center space-x-1 text-xs text-gray-500 mb-3">
-                                                    <motion.div
-                                                        animate={{ y: [0, -2, 0] }}
-                                                        transition={{ duration: 1.5, repeat: Infinity }}
-                                                    >
-                                                        <MapPin className="w-3 h-3" />
-                                                    </motion.div>
+                                                <div className="flex items-center space-x-1 text-xs text-obsidian-secondary mb-2.5">
+                                                    <MapPin className="w-3 h-3 text-obsidian-secondary" />
                                                     <span>{notification.location}</span>
                                                 </div>
                                             )}
 
-                                            <motion.button
-                                                className={`px-4 py-2 rounded-xl text-white text-xs font-semibold ${getActionColor(notification.actionType)} relative overflow-hidden shadow-md`}
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                transition={{ type: "spring", stiffness: 400 }}
-                                            >
-                                                <motion.div
-                                                    className="absolute inset-0 bg-white/20"
-                                                    initial={{ x: '-100%' }}
-                                                    whileHover={{ x: '100%' }}
-                                                    transition={{ duration: 0.5 }}
-                                                />
-                                                <span className="relative z-10 flex items-center space-x-1">
-                                                    <span>{notification.actionType}</span>
-                                                    <motion.span
-                                                        animate={{ x: [0, 2, 0] }}
-                                                        transition={{ duration: 1, repeat: Infinity }}
-                                                    >
-                                                        →
-                                                    </motion.span>
-                                                </span>
-                                            </motion.button>
+                                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-obsidian-card hover:bg-obsidian-border border border-obsidian-border text-obsidian-primary text-xs font-bold transition-colors shadow-sm">
+                                                <span>{notification.actionType || 'Vedi'}</span>
+                                                <ArrowRight className="w-3.5 h-3.5 text-obsidian-secondary" />
+                                            </div>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -275,28 +202,14 @@ export default function NotificationBell({ theme = 'dark' }) {
                         </div>
 
                         {notifications.length > 3 && (
-                            <motion.div
-                                className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 text-center border-t border-gray-200"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.6 }}
-                            >
+                            <div className="bg-obsidian-card/60 p-3 text-center border-t border-obsidian-border">
                                 <Link to="/notifications">
-                                    <motion.div
-                                        className="inline-flex items-center space-x-2 text-terracotta-600 hover:text-terracotta-700 font-semibold text-sm cursor-pointer"
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
+                                    <div className="inline-flex items-center space-x-2 text-obsidian-secondary hover:text-obsidian-primary font-bold text-xs cursor-pointer transition-colors">
                                         <span>Altre {notifications.length - 3} notifiche</span>
-                                        <motion.div
-                                            animate={{ x: [0, 3, 0] }}
-                                            transition={{ duration: 1.5, repeat: Infinity }}
-                                        >
-                                            <ArrowRight className="w-4 h-4" />
-                                        </motion.div>
-                                    </motion.div>
+                                        <ArrowRight className="w-3.5 h-3.5 text-obsidian-secondary" />
+                                    </div>
                                 </Link>
-                            </motion.div>
+                            </div>
                         )}
                     </motion.div>
                 )}

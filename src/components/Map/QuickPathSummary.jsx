@@ -116,8 +116,14 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                     {/* Tappe Generate (descrizioni intere, senza troncamento forzato) */}
                     {tourData.steps?.length > 0 && (
                         <div className="mt-4 bg-obsidian-raised/60 rounded-2xl p-3.5 border border-obsidian-border">
-                            <h4 className="text-[10px] font-bold text-obsidian-secondary uppercase tracking-widest mb-3 px-1">Itinerario Generato</h4>
-                            <div className="space-y-3 max-h-[260px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-obsidian-border">
+                            <h4 className="text-[10px] font-bold text-obsidian-secondary uppercase tracking-widest mb-2 px-1">Itinerario Generato</h4>
+                            <div
+                                className="space-y-3 max-h-[260px] overflow-y-auto pr-2 pt-2.5 pb-1 scrollbar-thin scrollbar-thumb-obsidian-border"
+                                style={{
+                                    maskImage: 'linear-gradient(to bottom, transparent 0%, black 26px, black 100%)',
+                                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 26px, black 100%)',
+                                }}
+                            >
                                 {tourData.steps.map((step, idx) => (
                                     <div key={idx} className="flex items-start gap-3 bg-obsidian-card p-3 rounded-xl border border-obsidian-border shadow-sm relative overflow-hidden group">
                                         {idx !== tourData.steps.length - 1 && (

@@ -811,18 +811,26 @@ const DashboardUser = () => {
                                         {/* City Selector */}
                                         <div>
                                             <label className="block text-xs font-bold text-obsidian-secondary uppercase mb-2">Città del Tour</label>
-                                            <select
-                                                value={requestCity}
-                                                onChange={(e) => setRequestCity(e.target.value)}
-                                                className="w-full bg-obsidian-bg border border-obsidian-border rounded-xl px-4 py-3 text-obsidian-primary font-semibold focus:outline-none focus:border-brand-orange transition-all"
-                                                disabled={requestStatus === 'submitting'}
-                                            >
-                                                <option value="Roma">Roma</option>
-                                                <option value="Milano">Milano</option>
-                                                <option value="Firenze">Firenze</option>
-                                                <option value="Venezia">Venezia</option>
-                                                <option value="Napoli">Napoli</option>
-                                            </select>
+                                            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                                                {['Roma', 'Milano', 'Firenze', 'Venezia', 'Napoli'].map((cityName) => {
+                                                    const isSelected = requestCity === cityName;
+                                                    return (
+                                                        <button
+                                                            key={cityName}
+                                                            type="button"
+                                                            onClick={() => setRequestCity(cityName)}
+                                                            disabled={requestStatus === 'submitting'}
+                                                            className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
+                                                                isSelected
+                                                                    ? 'bg-obsidian-raised border-brand-orange ring-1 ring-brand-orange/40 text-obsidian-primary'
+                                                                    : 'bg-obsidian-bg border-obsidian-border text-obsidian-secondary hover:text-obsidian-primary hover:border-obsidian-border/80'
+                                                            }`}
+                                                        >
+                                                            {cityName}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold text-obsidian-secondary uppercase mb-2">La tua idea</label>

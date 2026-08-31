@@ -110,7 +110,7 @@ const RequestModal = ({ isOpen, onClose, guideName, tourTitle, guideId, tourId, 
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/75 backdrop-blur-sm pointer-events-auto"
+                className="absolute inset-0 bg-obsidian-bg/75 backdrop-blur-sm pointer-events-auto"
                 onClick={onClose}
             />
 
@@ -183,7 +183,7 @@ const GuideProfileModal = ({ isOpen, onClose, guideName, guideAvatar, bio, ratin
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-obsidian-bg/75 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
 

@@ -509,7 +509,7 @@ export default function NotificationsPage() {
             <AnimatePresence>
                 {selectedNotification && (
                     <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian-bg/75 backdrop-blur-md"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}

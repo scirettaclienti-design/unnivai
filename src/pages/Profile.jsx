@@ -548,7 +548,7 @@ export default function ProfilePage() {
                 <AnimatePresence>
                     {selectedTour && !showShareModal && (
                         <motion.div
-                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                            className="fixed inset-0 bg-obsidian-bg/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -745,7 +745,7 @@ export default function ProfilePage() {
                 <AnimatePresence>
                     {showShareModal && selectedTour && (
                         <motion.div
-                            className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
+                            className="fixed inset-0 bg-obsidian-bg/80 backdrop-blur-md z-50 flex items-center justify-center p-4"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}

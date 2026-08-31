@@ -22,11 +22,11 @@ export function Toast({ message, type, isVisible, onClose, duration = 2000 }) {
 
     const getColors = () => {
         switch (type) {
-            case 'success': return 'bg-gradient-to-r from-green-500 to-green-600 shadow-green-200';
-            case 'error': return 'bg-gradient-to-r from-red-500 to-red-600 shadow-red-200';
-            case 'warning': return 'bg-gradient-to-r from-yellow-500 to-orange-500 shadow-yellow-200';
-            case 'info': return 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-blue-200';
-            default: return 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-blue-200';
+            case 'success': return 'border-status-success text-status-success';
+            case 'error': return 'border-status-error text-status-error';
+            case 'warning': return 'border-status-warning text-status-warning';
+            case 'info': return 'border-brand-orange text-brand-orange';
+            default: return 'border-brand-orange text-brand-orange';
         }
     };
 
@@ -57,18 +57,18 @@ export function Toast({ message, type, isVisible, onClose, duration = 2000 }) {
                     }}
                 >
                     <motion.div
-                        className={`${getColors()} text-white rounded-2xl p-3 sm:p-4 shadow-2xl backdrop-blur-sm flex items-center space-x-3 border border-white/20`}
+                        className={`bg-obsidian-card border-l-4 ${getColors()} rounded-2xl p-3 sm:p-4 shadow-2xl backdrop-blur-sm flex items-center space-x-3 border-y border-r border-obsidian-border`}
                         initial={{ scale: 0.95 }}
                         animate={{ scale: 1 }}
                         exit={{ scale: 0.95 }}
                     >
                         <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                             <span className="text-xl sm:text-2xl flex-shrink-0">{getEmoji()}</span>
-                            <p className="text-white font-medium text-xs sm:text-sm leading-tight sm:leading-relaxed line-clamp-2 min-w-0">{message}</p>
+                            <p className="text-obsidian-primary font-medium text-xs sm:text-sm leading-tight sm:leading-relaxed line-clamp-2 min-w-0">{message}</p>
                         </div>
                         <motion.button
                             onClick={onClose}
-                            className="text-white/80 hover:text-white transition-colors p-1 rounded-full hover:bg-white/20 flex-shrink-0"
+                            className="text-obsidian-secondary hover:text-obsidian-primary transition-colors p-1 rounded-full hover:bg-obsidian-raised flex-shrink-0"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                         >

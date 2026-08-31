@@ -1,3 +1,5 @@
+import { THEME } from "./src/styles/themeTokens.js";
+
 /** @type {import('tailwindcss').Config} */
 export default {
     darkMode: ["class"],
@@ -69,6 +71,7 @@ export default {
                     bg: "var(--ivory-bg)",
                     text: "var(--ivory-text)",
                     icon: "var(--ivory-icon)",
+                    badge: THEME.raw.ivoryBadge,
                 },
                 ochre: {
                     50: "var(--ochre-50)",
@@ -93,6 +96,11 @@ export default {
                     300: "var(--olive-300)",
                     400: "var(--olive-400)",
                     500: "var(--olive-500)",
+                },
+                status: {
+                    success: THEME.raw.statusSuccess,
+                    error: THEME.raw.statusError,
+                    warning: THEME.raw.statusWarning,
                 },
                 sidebar: {
                     DEFAULT: "var(--sidebar-background)",

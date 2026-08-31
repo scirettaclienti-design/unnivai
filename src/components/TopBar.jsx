@@ -155,7 +155,7 @@ function CityModal({ isOpen, onClose, initialCity, onSave, mode = "edit" }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/75 backdrop-blur-md"
+                className="fixed inset-0 bg-obsidian-bg/75 backdrop-blur-md"
                 onClick={onClose}
             />
 

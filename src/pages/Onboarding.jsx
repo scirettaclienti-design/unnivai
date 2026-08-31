@@ -97,10 +97,10 @@ export default function Onboarding() {
     };
 
     return (
-        <div className="min-h-svh w-full bg-[#0E0C0B] text-[#F5F5F4] flex flex-col justify-between p-6 sm:p-8 font-quicksand relative overflow-hidden selection:bg-[#F97316] selection:text-[#0E0C0B]">
+        <div className="min-h-svh w-full bg-obsidian-bg text-obsidian-primary flex flex-col justify-between p-6 sm:p-8 font-quicksand relative overflow-hidden selection:bg-brand-orange selection:text-obsidian-bg">
             {/* Header: Brand & Minimal Step indicator */}
             <header className="w-full max-w-md mx-auto pt-2 flex items-center justify-between z-10">
-                <span className="text-xs font-black tracking-widest uppercase text-[#A8A29E]">
+                <span className="text-xs font-black tracking-widest uppercase text-obsidian-secondary">
                     DoveVAI
                 </span>
                 <div className="flex items-center space-x-2" aria-label={`Passo ${step + 1} di 3`}>
@@ -109,10 +109,10 @@ export default function Onboarding() {
                             key={i}
                             className={`h-1 rounded-full transition-all duration-300 ${
                                 i === step
-                                    ? 'w-8 bg-[#F97316]'
+                                    ? 'w-8 bg-brand-orange'
                                     : i < step
-                                    ? 'w-2 bg-[#A8A29E]'
-                                    : 'w-2 bg-[#1E1A17]'
+                                    ? 'w-2 bg-obsidian-secondary'
+                                    : 'w-2 bg-obsidian-raised'
                             }`}
                         />
                     ))}
@@ -135,11 +135,11 @@ export default function Onboarding() {
                         {/* ─── STEP 0: Il Manifesto ─── */}
                         {step === 0 && (
                             <div className="space-y-5">
-                                <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-[#F5F5F4] leading-[1.08]">
+                                <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-obsidian-primary leading-[1.08]">
                                     Non è per tutti.<br />
                                     È per te.
                                 </h1>
-                                <p className="text-[#A8A29E] text-base sm:text-lg leading-relaxed font-medium max-w-sm pt-1">
+                                <p className="text-obsidian-secondary text-base sm:text-lg leading-relaxed font-medium max-w-sm pt-1">
                                     Percorsi a piedi sui luoghi che gli altri superano. Solo posti veri, nessun filtro da guida.
                                 </p>
                             </div>
@@ -149,10 +149,10 @@ export default function Onboarding() {
                         {step === 1 && (
                             <div className="space-y-4">
                                 <div>
-                                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-[#F5F5F4]">
+                                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-obsidian-primary">
                                         Come ti muovi?
                                     </h2>
-                                    <p className="text-[#A8A29E] text-xs sm:text-sm mt-1 font-medium">
+                                    <p className="text-obsidian-secondary text-xs sm:text-sm mt-1 font-medium">
                                         Dichiara cosa cercare.
                                     </p>
                                 </div>
@@ -168,17 +168,17 @@ export default function Onboarding() {
                                                 onClick={() => toggleInterest(interest.id)}
                                                 className={`w-full p-4 rounded-2xl flex items-center transition-all border text-left ${
                                                     isSelected
-                                                        ? 'bg-[#F5F2EB] border-[#F5F2EB] text-[#0E0C0B] font-black shadow-md'
-                                                        : 'bg-[#161311] border-[#26211E] text-[#F5F5F4] font-bold hover:bg-[#1E1A17]'
+                                                        ? 'bg-ivory-bg border-ivory-bg text-ivory-text font-black shadow-md'
+                                                        : 'bg-obsidian-card border-obsidian-border text-obsidian-primary font-bold hover:bg-obsidian-raised'
                                                 }`}
                                                 whileTap={{ scale: 0.98 }}
                                             >
                                                 <div className="flex items-center space-x-3.5">
                                                     <div className={`p-2 rounded-xl transition-colors ${
-                                                        isSelected ? 'bg-[#E5DFD1]' : 'bg-[#1E1A17]'
+                                                        isSelected ? 'bg-ivory-badge' : 'bg-obsidian-raised'
                                                     }`}>
                                                         <IconComponent className={`w-4 h-4 stroke-[2.4] ${
-                                                            isSelected ? 'text-[#9A3412]' : 'text-[#F97316]'
+                                                            isSelected ? 'text-ivory-icon' : 'text-brand-orange'
                                                         }`} />
                                                     </div>
                                                     <span className="text-sm tracking-tight">
@@ -195,10 +195,10 @@ export default function Onboarding() {
                         {/* ─── STEP 2: Passaggio alla Strada ─── */}
                         {step === 2 && (
                             <div className="space-y-5">
-                                <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-[#F5F5F4] leading-[1.08]">
+                                <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-obsidian-primary leading-[1.08]">
                                     Ora tocca<br />alla strada.
                                 </h2>
-                                <p className="text-[#A8A29E] text-base sm:text-lg leading-relaxed font-medium max-w-sm pt-1">
+                                <p className="text-obsidian-secondary text-base sm:text-lg leading-relaxed font-medium max-w-sm pt-1">
                                     Ci serve solo sapere dove sei. Il percorso parte da lì.
                                 </p>
                             </div>
@@ -214,7 +214,7 @@ export default function Onboarding() {
                         <button
                             type="button"
                             onClick={goBack}
-                            className="flex items-center justify-center px-5 py-4 rounded-2xl bg-[#161311] border border-[#26211E] text-[#F5F5F4] font-bold text-sm hover:bg-[#1E1A17] transition-colors active:scale-98"
+                            className="flex items-center justify-center px-5 py-4 rounded-2xl bg-obsidian-card border border-obsidian-border text-obsidian-primary font-bold text-sm hover:bg-obsidian-raised transition-colors active:scale-98"
                         >
                             <ArrowLeft className="w-4 h-4 mr-1.5 stroke-[2.2]" />
                             <span>Indietro</span>
@@ -228,8 +228,8 @@ export default function Onboarding() {
                             disabled={!canProceed()}
                             className={`flex-1 flex items-center justify-center space-x-2 py-4 rounded-2xl font-black text-sm transition-all active:scale-98 ${
                                 canProceed()
-                                    ? 'bg-[#F97316] text-[#0E0C0B] hover:bg-[#EA580C]'
-                                    : 'bg-[#1E1A17] border border-[#26211E] text-[#A8A29E] cursor-not-allowed'
+                                    ? 'bg-brand-orange text-obsidian-bg hover:bg-brand-orange-hover'
+                                    : 'bg-obsidian-raised border border-obsidian-border text-obsidian-secondary cursor-not-allowed'
                             }`}
                         >
                             <span>{step === 0 ? 'Iniziamo!' : 'Continua'}</span>
@@ -240,10 +240,10 @@ export default function Onboarding() {
                             type="button"
                             onClick={handleComplete}
                             disabled={isSaving}
-                            className="flex-1 flex items-center justify-center space-x-2 py-4 rounded-2xl bg-[#F97316] text-[#0E0C0B] font-black text-sm hover:bg-[#EA580C] transition-all disabled:opacity-50 active:scale-98"
+                            className="flex-1 flex items-center justify-center space-x-2 py-4 rounded-2xl bg-brand-orange text-obsidian-bg font-black text-sm hover:bg-brand-orange-hover transition-all disabled:opacity-50 active:scale-98"
                         >
                             {isSaving ? (
-                                <div className="w-4 h-4 border-2 border-[#0E0C0B] border-t-transparent rounded-full animate-spin" />
+                                <div className="w-4 h-4 border-2 border-obsidian-bg border-t-transparent rounded-full animate-spin" />
                             ) : (
                                 <>
                                     <span>Entra in DoveVAI</span>
@@ -267,7 +267,7 @@ export default function Onboarding() {
                                 }
                                 navigate('/dashboard-user', { replace: true });
                             }}
-                            className="text-xs font-bold text-[#A8A29E] hover:text-[#F5F5F4] transition-colors py-1"
+                            className="text-xs font-bold text-obsidian-secondary hover:text-obsidian-primary transition-colors py-1"
                         >
                             Salta per ora
                         </button>

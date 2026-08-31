@@ -47,13 +47,8 @@ export default function NotificationBell({ theme = 'dark' }) {
         }
     };
 
-    // Dynamic Colors based on Theme
-    const isLight = theme === 'light';
-    const containerClasses = isLight
-        ? "relative p-3 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-all duration-300 cursor-pointer border border-gray-200"
-        : "relative p-3 bg-obsidian-card hover:bg-obsidian-raised rounded-2xl transition-all duration-300 cursor-pointer border border-obsidian-border";
-
-    const iconColor = isLight ? "text-gray-700" : "text-obsidian-primary";
+    const containerClasses = "relative p-3 bg-obsidian-card hover:bg-obsidian-raised rounded-2xl transition-all duration-300 cursor-pointer border border-obsidian-border";
+    const iconColor = "text-obsidian-primary";
 
     return (
         <div className="relative"
@@ -67,7 +62,7 @@ export default function NotificationBell({ theme = 'dark' }) {
                     <motion.div
                         className={containerClasses}
                         whileHover={{
-                            boxShadow: isLight ? "0 4px 15px rgba(0,0,0,0.1)" : "0 4px 20px rgba(0,0,0,0.5)",
+                            boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
                             rotate: [0, -10, 10, 0]
                         }}
                         transition={{ duration: 0.6 }}

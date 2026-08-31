@@ -60,21 +60,21 @@ const queryClient = new QueryClient({
 
 // DoveVAI Branded Loading
 const GlobalLoading = () => (
-  <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-orange-50 to-white">
+  <div className="flex items-center justify-center min-h-screen bg-obsidian-bg">
     <div className="flex flex-col items-center gap-5">
       <div className="relative">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200">
+        <div className="w-16 h-16 rounded-2xl bg-brand-orange flex items-center justify-center shadow-lg">
           <span className="text-3xl">🗺️</span>
         </div>
-        <div className="absolute -inset-2 rounded-3xl border-2 border-orange-300/40 animate-ping" />
+        <div className="absolute -inset-2 rounded-3xl border-2 border-brand-orange/40 animate-ping" />
       </div>
       <div className="flex flex-col items-center gap-2">
-        <h2 className="text-lg font-bold text-gray-800" style={{ fontFamily: 'Quicksand, sans-serif' }}>DoveVAI</h2>
+        <h2 className="text-lg font-bold text-obsidian-primary" style={{ fontFamily: 'Quicksand, sans-serif' }}>DoveVAI</h2>
         <div className="flex gap-1">
           {[0, 1, 2].map(i => (
             <div
               key={i}
-              className="w-2 h-2 rounded-full bg-orange-400"
+              className="w-2 h-2 rounded-full bg-brand-orange"
               style={{ animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite` }}
             />
           ))}

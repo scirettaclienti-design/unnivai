@@ -96,8 +96,8 @@ class ErrorBoundary extends React.Component {
             } catch { /* private mode */ }
             if (!alreadyReloaded) {
                 return (
-                    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="min-h-screen flex items-center justify-center bg-obsidian-bg">
+                        <div className="w-8 h-8 border-2 border-brand-orange border-t-transparent rounded-full animate-spin" />
                     </div>
                 );
             }
@@ -108,30 +108,30 @@ class ErrorBoundary extends React.Component {
         // Fallback UI umano. Nessun stack, nessun toString(). Il dettaglio
         // tecnico e' gia' nei log (console + error_logs Supabase).
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 text-center">
-                <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
-                    <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="min-h-screen bg-obsidian-bg flex items-center justify-center p-6 text-center">
+                <div className="bg-obsidian-card p-8 rounded-2xl shadow-xl max-w-md w-full border border-obsidian-border">
+                    <div className="w-16 h-16 bg-status-error/15 text-status-error rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="10" />
                             <line x1="12" y1="8" x2="12" y2="12" />
                             <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-800 mb-2">Qualcosa non ha funzionato</h1>
-                    <p className="text-gray-500 mb-6">
+                    <h1 className="text-2xl font-bold text-obsidian-primary mb-2">Qualcosa non ha funzionato</h1>
+                    <p className="text-obsidian-secondary mb-6">
                         Non siamo riusciti a caricare questa schermata. L'errore è stato registrato
                         e lo guardiamo. Riprova, o torna alla home.
                     </p>
                     <div className="space-y-3">
                         <button
                             onClick={this.handleRetry}
-                            className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition"
+                            className="w-full py-3 bg-brand-orange text-obsidian-bg rounded-xl font-bold hover:bg-brand-orange-hover transition"
                         >
                             Riprova
                         </button>
                         <button
                             onClick={this.handleGoHome}
-                            className="w-full py-3 bg-white text-gray-600 border border-gray-200 rounded-xl font-bold hover:bg-gray-50 transition"
+                            className="w-full py-3 bg-obsidian-raised text-obsidian-primary border border-obsidian-border rounded-xl font-bold hover:bg-obsidian-card transition"
                         >
                             Torna alla home
                         </button>

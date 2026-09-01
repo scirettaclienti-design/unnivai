@@ -4,6 +4,7 @@ import { X, MapPin, Navigation, Globe, PhoneCall, CalendarCheck, Volume2, Square
 import confetti from 'canvas-confetti';
 import { resolvePoiPhoto } from '../../lib/poiPhoto';
 import { getCoverPalette, isPlacesPhoto } from '../../lib/categoryPalette';
+import { THEME } from '../../styles/themeTokens';
 
 export const POIDetailDrawer = ({
   poi,
@@ -70,7 +71,7 @@ export const POIDetailDrawer = ({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#c2410c', '#d97706', '#ffffff', '#1c1917'],
+      colors: [THEME.raw.accentPrimary, THEME.raw.accentDeep, THEME.raw.textPrimary, THEME.raw.surfaceElevated],
     });
     if (onUnlock) onUnlock(poi);
   };
@@ -87,11 +88,11 @@ export const POIDetailDrawer = ({
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-        className="absolute bottom-0 left-0 right-0 z-[1001] bg-white rounded-t-[2rem] shadow-[0_-15px_40px_rgba(0,0,0,0.12)] border-t border-stone-200/80 min-h-[38vh] max-h-[82vh] flex flex-col overflow-hidden font-quicksand"
+        className="absolute bottom-0 left-0 right-0 z-[1001] bg-obsidian-card rounded-t-[2rem] shadow-[0_-15px_40px_rgba(0,0,0,0.5)] border-t border-obsidian-border min-h-[38vh] max-h-[82vh] flex flex-col overflow-hidden font-quicksand"
       >
         {/* Grab Handle */}
         <div className="absolute top-0 left-0 right-0 h-4 flex justify-center items-center z-20 pointer-events-none">
-          <div className="w-10 h-1 bg-stone-400/60 rounded-full" />
+          <div className="w-10 h-1 bg-obsidian-border-elevated rounded-full" />
         </div>
 
         {/* Close Button */}
@@ -105,14 +106,13 @@ export const POIDetailDrawer = ({
         </button>
 
         {/* ─── COVER HEADER WITH SEAMLESS FADE ─── */}
-        <div className="w-full h-44 shrink-0 relative overflow-hidden bg-stone-900">
+        <div className="w-full h-44 shrink-0 relative overflow-hidden bg-obsidian-bg">
           {displayImage ? (
             <img
               loading="lazy"
               src={displayImage}
               alt={poiTitle}
               className="w-full h-full object-cover"
-              style={{ filter: 'saturate(.95) contrast(1.02) brightness(.96)' }}
             />
           ) : (
             <div
@@ -123,12 +123,9 @@ export const POIDetailDrawer = ({
             </div>
           )}
 
-          {/* Sfumatura progressiva verso il corpo bianco della scheda */}
+          {/* Sfumatura progressiva verso il corpo ossidiana della scheda */}
           <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.7) 18%, rgba(255,255,255,0) 65%)',
-            }}
+            className="absolute inset-0 pointer-events-none bg-gradient-to-t from-obsidian-card via-obsidian-card/70 to-transparent"
           />
         </div>
 
@@ -139,25 +136,25 @@ export const POIDetailDrawer = ({
           <div>
             <div className="flex items-center gap-2 mb-2">
               {isStepInTour ? (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-terracotta-500 text-white shadow-sm">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-brand-orange/15 text-brand-orange border border-brand-orange/30 shadow-sm">
                   {typeof poi.index === 'number' ? `Tappa ${poi.index + 1}` : 'Tappa Tour'}
                 </span>
               ) : (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-stone-100 text-stone-700 border border-stone-200/80">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-obsidian-raised text-obsidian-secondary border border-obsidian-border">
                   {poi.category || poi.type || 'Punto Mappa'}
                 </span>
               )}
 
               {(poi.city || poi.location) && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-stone-500">
-                  <MapPin size={11} className="text-stone-400" />
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-obsidian-secondary">
+                  <MapPin size={11} className="text-obsidian-secondary/60" />
                   {poi.city || poi.location}
                 </span>
               )}
             </div>
 
             <div className="flex items-start justify-between gap-3">
-              <h2 className="text-2xl font-black text-stone-950 tracking-tight leading-tight">
+              <h2 className="text-2xl font-black text-obsidian-primary tracking-tight leading-tight">
                 {poiTitle}
               </h2>
 
@@ -165,12 +162,12 @@ export const POIDetailDrawer = ({
                 <button
                   type="button"
                   onClick={toggleSpeech}
-                  className="p-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-full transition-colors active:scale-95 border border-stone-200/80 shrink-0"
+                  className="p-2.5 bg-obsidian-raised hover:bg-obsidian-border text-obsidian-secondary hover:text-obsidian-primary rounded-full transition-colors active:scale-95 border border-obsidian-border shrink-0"
                   title="Ascolta sintesi"
                   aria-label="Ascolta sintesi"
                 >
                   {isSpeaking ? (
-                    <Square size={16} fill="currentColor" className="text-terracotta-500 animate-pulse" />
+                    <Square size={16} fill="currentColor" className="text-brand-orange animate-pulse" />
                   ) : (
                     <Volume2 size={16} />
                   )}
@@ -181,10 +178,10 @@ export const POIDetailDrawer = ({
             {/* RATING GOOGLE PLACES (Renderizzato SOLO se dato reale) */}
             {hasValidRating && (
               <div className="flex items-center gap-1.5 mt-1.5">
-                <Star size={13} className="text-amber-500 fill-amber-500 shrink-0" />
-                <span className="font-bold text-xs text-stone-900">{parseFloat(poi.rating).toFixed(1)}</span>
+                <Star size={13} className="text-brand-orange fill-current shrink-0" />
+                <span className="font-bold text-xs text-obsidian-primary">{parseFloat(poi.rating).toFixed(1)}</span>
                 {poi.reviewsCount && (
-                  <span className="text-stone-400 text-xs font-medium">({poi.reviewsCount.toLocaleString('it-IT')})</span>
+                  <span className="text-obsidian-secondary text-xs font-medium">({poi.reviewsCount.toLocaleString('it-IT')})</span>
                 )}
               </div>
             )}
@@ -197,7 +194,7 @@ export const POIDetailDrawer = ({
                 <button
                   type="button"
                   onClick={() => window.open(poi.website_url, '_blank')}
-                  className="flex-1 bg-stone-50 hover:bg-stone-100 text-stone-800 font-bold py-2.5 px-3 rounded-xl border border-stone-200 text-xs flex items-center justify-center gap-1.5 transition-colors"
+                  className="flex-1 bg-obsidian-raised hover:bg-obsidian-border text-obsidian-primary font-bold py-2.5 px-3 rounded-xl border border-obsidian-border text-xs flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <Globe size={14} /> Sito web
                 </button>
@@ -205,8 +202,8 @@ export const POIDetailDrawer = ({
 
               {/* Gate K: numero di telefono come testo selezionabile */}
               {poi.phone_number && (
-                <div className="flex-1 bg-stone-50 text-stone-800 py-2.5 px-3 rounded-xl border border-stone-200 text-xs flex items-center justify-center gap-1.5 select-all">
-                  <PhoneCall size={13} className="text-stone-400" />
+                <div className="flex-1 bg-obsidian-raised text-obsidian-primary py-2.5 px-3 rounded-xl border border-obsidian-border text-xs flex items-center justify-center gap-1.5 select-all">
+                  <PhoneCall size={13} className="text-obsidian-secondary" />
                   <span className="font-semibold">{poi.phone_number}</span>
                 </div>
               )}
@@ -215,7 +212,7 @@ export const POIDetailDrawer = ({
                 <button
                   type="button"
                   onClick={() => window.open(poi.booking_url, '_blank')}
-                  className="flex-1 bg-stone-900 hover:bg-stone-800 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                  className="flex-1 bg-obsidian-raised hover:bg-obsidian-border text-obsidian-primary font-bold py-2.5 px-3 rounded-xl border border-obsidian-border text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
                 >
                   <CalendarCheck size={14} /> Prenota
                 </button>
@@ -226,32 +223,32 @@ export const POIDetailDrawer = ({
           {/* ─── NARRATIVA / DESCRIZIONE REALE ─── */}
           <div className="space-y-3 pt-1">
             {poi.historicalNotes && (
-              <div className="bg-stone-50/90 p-4 rounded-2xl border border-stone-200/80">
-                <div className="flex items-center gap-1.5 mb-2 text-stone-900 font-bold text-[11px] uppercase tracking-wider">
-                  <BookOpen size={13} className="text-terracotta-500" />
+              <div className="bg-obsidian-raised p-4 rounded-2xl border border-obsidian-border">
+                <div className="flex items-center gap-1.5 mb-2 text-obsidian-primary font-bold text-[11px] uppercase tracking-wider">
+                  <BookOpen size={13} className="text-brand-orange" />
                   <span>Cenni e contesto</span>
                 </div>
-                <p className="text-stone-700 text-xs sm:text-sm leading-relaxed font-medium">
+                <p className="text-obsidian-primary text-xs sm:text-sm leading-relaxed font-medium">
                   "{poi.historicalNotes}"
                 </p>
               </div>
             )}
 
             {poi.description && !poi.historicalNotes && poi.description !== "Punto d'interesse consigliato." && poi.description !== "Punto di interesse" && (
-              <div className="bg-stone-50/90 p-4 rounded-2xl border border-stone-200/80">
-                <p className="text-stone-700 text-xs sm:text-sm leading-relaxed font-medium">
+              <div className="bg-obsidian-raised p-4 rounded-2xl border border-obsidian-border">
+                <p className="text-obsidian-primary text-xs sm:text-sm leading-relaxed font-medium">
                   "{poi.description}"
                 </p>
               </div>
             )}
 
             {poi.funFacts?.length > 0 && (
-              <div className="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/60">
-                <div className="flex items-center gap-1.5 mb-1.5 text-amber-900 font-bold text-[11px] uppercase tracking-wider">
-                  <Lightbulb size={13} className="text-amber-600" />
+              <div className="bg-obsidian-raised p-4 rounded-2xl border border-obsidian-border">
+                <div className="flex items-center gap-1.5 mb-1.5 text-obsidian-primary font-bold text-[11px] uppercase tracking-wider">
+                  <Lightbulb size={13} className="text-brand-orange" />
                   <span>Dettaglio</span>
                 </div>
-                <p className="text-amber-950 text-xs leading-relaxed font-medium">
+                <p className="text-obsidian-primary text-xs leading-relaxed font-medium">
                   {poi.funFacts[0]}
                 </p>
               </div>
@@ -265,7 +262,7 @@ export const POIDetailDrawer = ({
                 <button
                   type="button"
                   disabled
-                  className="w-full bg-stone-100 border border-stone-200 text-stone-400 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-not-allowed"
+                  className="w-full bg-obsidian-raised border border-obsidian-border text-obsidian-secondary/50 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-not-allowed"
                 >
                   <MapPin size={15} /> Tappa completata
                 </button>
@@ -273,7 +270,7 @@ export const POIDetailDrawer = ({
                 <button
                   type="button"
                   onClick={() => onUnlock && onUnlock(poi)}
-                  className="w-full bg-terracotta-500 hover:bg-terracotta-600 text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md shadow-terracotta-500/20 active:scale-98 transition-all text-xs uppercase tracking-wider min-h-[46px]"
+                  className="w-full bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md shadow-brand-orange/20 active:scale-98 transition-all text-xs uppercase tracking-wider min-h-[46px]"
                 >
                   <MapPin size={15} /> Sono arrivato
                 </button>
@@ -282,7 +279,7 @@ export const POIDetailDrawer = ({
               <button
                 type="button"
                 onClick={() => onNavigate && onNavigate(poi)}
-                className="w-full bg-stone-900 hover:bg-stone-800 text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md shadow-stone-900/15 active:scale-98 transition-all text-xs tracking-wide min-h-[46px]"
+                className="w-full bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md shadow-brand-orange/20 active:scale-98 transition-all text-xs tracking-wide min-h-[46px]"
               >
                 <Navigation size={15} className="fill-current" />
                 Raggiungi questa tappa
@@ -291,7 +288,7 @@ export const POIDetailDrawer = ({
               <button
                 type="button"
                 onClick={() => onNavigate && onNavigate(poi)}
-                className="w-full bg-stone-900 hover:bg-stone-800 text-white py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md shadow-stone-900/15 active:scale-98 transition-all text-xs tracking-wide min-h-[46px]"
+                className="w-full bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-md shadow-brand-orange/20 active:scale-98 transition-all text-xs tracking-wide min-h-[46px]"
               >
                 <Navigation size={15} className="fill-current" />
                 Cammina fino a qui
@@ -302,7 +299,7 @@ export const POIDetailDrawer = ({
               <button
                 type="button"
                 onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${poi.latitude || poi.lat},${poi.longitude || poi.lng}&travelmode=transit`, '_blank')}
-                className="w-full mt-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 border border-stone-200 text-xs transition-colors"
+                className="w-full mt-2.5 bg-obsidian-raised hover:bg-obsidian-border text-obsidian-secondary hover:text-obsidian-primary py-3 rounded-xl font-bold flex items-center justify-center gap-2 border border-obsidian-border text-xs transition-colors"
               >
                 <Navigation size={13} /> Indicazioni con mezzi pubblici
               </button>

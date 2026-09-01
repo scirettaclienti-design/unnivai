@@ -1,25 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMapsLibrary, useMap } from '@vis.gl/react-google-maps';
+import { THEME } from '../styles/themeTokens';
 
-// Stili polyline per mezzo di trasporto — Brand DoveVAI
+// Stili polyline per mezzo di trasporto — Design System Ossidiana
 const ROUTE_STYLES = {
     WALKING: {
-        outer: { strokeColor: '#F97316', strokeWeight: 10, strokeOpacity: 0.2, zIndex: 40 },
-        inner: { strokeColor: '#F97316', strokeWeight: 4, strokeOpacity: 0.9, zIndex: 50,
+        outer: { strokeColor: THEME.raw.routeStroke, strokeWeight: 10, strokeOpacity: 0.2, zIndex: 40 },
+        inner: { strokeColor: THEME.raw.routeStroke, strokeWeight: 4, strokeOpacity: 0.9, zIndex: 50,
                  icons: [{ icon: { path: 'M 0,-0.5 0,0.5', strokeOpacity: 1, scale: 3 }, offset: '0', repeat: '12px' }] },
     },
     BICYCLING: {
-        outer: { strokeColor: '#10B981', strokeWeight: 10, strokeOpacity: 0.2, zIndex: 40 },
-        inner: { strokeColor: '#10B981', strokeWeight: 4, strokeOpacity: 0.9, zIndex: 50,
+        outer: { strokeColor: THEME.raw.routeStroke, strokeWeight: 10, strokeOpacity: 0.2, zIndex: 40 },
+        inner: { strokeColor: THEME.raw.routeStroke, strokeWeight: 4, strokeOpacity: 0.9, zIndex: 50,
                  icons: [{ icon: { path: 'M 0,-0.5 0,0.5', strokeOpacity: 1, scale: 3 }, offset: '0', repeat: '16px' }] },
     },
     DRIVING: {
-        outer: { strokeColor: '#C2703E', strokeWeight: 14, strokeOpacity: 0.25, zIndex: 40 },
-        inner: { strokeColor: '#D4A843', strokeWeight: 6, strokeOpacity: 1.0, zIndex: 50 },
+        outer: { strokeColor: THEME.raw.routeStroke, strokeWeight: 14, strokeOpacity: 0.25, zIndex: 40 },
+        inner: { strokeColor: THEME.raw.routeStroke, strokeWeight: 6, strokeOpacity: 1.0, zIndex: 50 },
     },
     TRANSIT: {
-        outer: { strokeColor: '#6366F1', strokeWeight: 12, strokeOpacity: 0.2, zIndex: 40 },
-        inner: { strokeColor: '#6366F1', strokeWeight: 5, strokeOpacity: 0.9, zIndex: 50 },
+        outer: { strokeColor: THEME.raw.routeStroke, strokeWeight: 12, strokeOpacity: 0.2, zIndex: 40 },
+        inner: { strokeColor: THEME.raw.routeStroke, strokeWeight: 5, strokeOpacity: 0.9, zIndex: 50 },
     },
 };
 

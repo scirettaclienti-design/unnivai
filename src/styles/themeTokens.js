@@ -18,6 +18,7 @@ const raw = {
     ivoryBadge: '#E5DFD1',
     borderSubtle: '#26211E',
     borderElevated: '#332C28',
+    routeStroke: '#5A5048',
     statusSuccess: '#10B981',
     statusError: '#EF4444',
     statusWarning: '#EAB308',

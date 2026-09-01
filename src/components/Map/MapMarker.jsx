@@ -3,6 +3,7 @@ import { AdvancedMarker } from '@vis.gl/react-google-maps';
 // DVAI-058: palette estratta in src/lib/categoryPalette.js per essere condivisa
 // tra MapMarker (pin mappa) e TourCover (copertine card "Per Te").
 import { getCategoryStyles } from '@/lib/categoryPalette';
+import { THEME } from '@/styles/themeTokens';
 
 export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
     const lat = Number(activity?.latitude || activity?.lat);
@@ -31,8 +32,8 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
                 {/* Pulse radar — tappa corrente o utente vicino (<20m) */}
                 {activity.isCurrentStep && (
                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-[-1]">
-                        <div className="w-16 h-16 rounded-full border-2 border-orange-400/50 animate-ping" />
-                        <div className="absolute inset-2 rounded-full bg-orange-400/10 animate-pulse" />
+                        <div className="w-16 h-16 rounded-full border-2 border-brand-orange/50 animate-ping" />
+                        <div className="absolute inset-2 rounded-full bg-brand-orange/10 animate-pulse" />
                     </div>
                 )}
 
@@ -43,15 +44,18 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
                     {/* The main badge body */}
                     <div 
                         className={`overflow-hidden flex items-center justify-center font-black ${isStep ? 'rounded-2xl px-3.5 py-2.5 min-w-[44px] min-h-[44px] text-lg' : 'w-10 h-10 rounded-full text-base'}`}
-                        style={{
+                        style={isStep ? {
+                            backgroundColor: THEME.raw.accentPrimary,
+                            border: `2px solid ${THEME.raw.textPrimary}`,
+                            boxShadow: '0 6px 14px rgba(0,0,0,0.28), 0 2px 4px rgba(0,0,0,0.16)',
+                        } : {
                             backgroundColor: styles.bg,
-                            border: `2px solid white`,
-                            // High-end 3D effect: top highlight, bottom shadow, outer drop shadow
+                            border: `2px solid ${THEME.raw.textPrimary}`,
                             boxShadow: `0 8px 16px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -4px 6px ${styles.border}`,
                             textShadow: '0 2px 4px rgba(0,0,0,0.3)'
                         }}
                     >
-                        <span className="text-white leading-none tracking-tight flex items-center justify-center">
+                        <span className={`${isStep ? 'text-obsidian-bg font-black' : 'text-white font-black'} leading-none tracking-tight flex items-center justify-center`}>
                             {/* FIX 5: tappa completata → segno di spunta (stato, non look fine). */}
                             {activity.isCompleted ? '✓' : (isStep ? stepNumber : styles.icon)}
                         </span>
@@ -60,10 +64,16 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
                     {/* Cute pointer at the bottom */}
                     <div 
                         className={`absolute left-1/2 -translate-x-1/2 rotate-45 ${isStep ? '-bottom-2 w-4 h-4' : '-bottom-1.5 w-3 h-3'}`}
-                        style={{
+                        style={isStep ? {
+                            backgroundColor: THEME.raw.accentPrimary,
+                            borderBottom: `2px solid ${THEME.raw.textPrimary}`,
+                            borderRight: `2px solid ${THEME.raw.textPrimary}`,
+                            boxShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+                            zIndex: -1
+                        } : {
                             backgroundColor: styles.bg,
-                            borderBottom: `2px solid white`,
-                            borderRight: `2px solid white`,
+                            borderBottom: `2px solid ${THEME.raw.textPrimary}`,
+                            borderRight: `2px solid ${THEME.raw.textPrimary}`,
                             boxShadow: `3px 3px 6px rgba(0,0,0,0.2), inset -2px -2px 3px ${styles.border}`,
                             zIndex: -1
                         }}

@@ -30,7 +30,9 @@ Copy `.env.example` to `.env` and fill in:
 ```
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
-VITE_MAPBOX_TOKEN=
+VITE_GOOGLE_MAPS_API_KEY=
+VITE_GOOGLE_MAP_ID=
+VITE_PLACES_PROXY_ENABLED=true
 VITE_OPENAI_API_KEY=   # Optional: enables real AI itinerary generation
 ```
 
@@ -95,7 +97,7 @@ All migrations live in `supabase/migrations/`. Apply them in filename order. RLS
 | Table | PK | Key columns | Notes |
 |---|---|---|---|
 | `tours` | `id` | `city`, `guide_id`, `is_live`, `price_eur`, `duration_minutes`, `image_urls` | `price_eur` added by `migration_add_filters.sql` |
-| `profiles` | `id` (= auth user id) | `full_name`, `avatar_url`, `bio`, `current_city`, `username` | Synced with `auth.users` |
+| `profiles` | `id` (= auth user id) | **colonne REALI, verificate su `information_schema` il 31/08**: `role`, `first_name`, `last_name`, `city`, `preferred_city`, `current_city_override`, `description`, `address`, `website`, `instagram_handle`, `menu_url`, `image_urls`, `ai_metadata`, `is_unlimited` | ⚠️ `full_name`, `avatar_url`, `bio`, `current_city`, `username` **NON esistono**: erano documentate qui e non sono mai state create. Il codice che le legge cade sui fallback |
 | `bookings` | `id` | `tour_id`, `user_id`, `status` (`pending_request`→`accepted`/`declined`) | |
 | `guide_requests` | `id` | `user_id`, `guide_id`, `tour_id`, `status` (`open`/`accepted`/`declined`/`completed`), `created_at`, `city`, `request_text`, `user_name`, `duration`, `category`, `notes` | Columns added across two migrations |
 | `guides_profile` | `id` | `user_id` (unique), `license_number`, `piva`, `bio`, `status`, `type` (`pro`/`host`), `operating_cities[]` | Created in `20260303` migration |
@@ -120,18 +122,29 @@ Validation is **non-blocking** via `validateData(schema, data, label)` (defined 
 
 ### Known Column Contract Issues (do not re-introduce)
 
-- **`avatar_url` vs `avatar_emoji`**: RESOLVED. `mapTourToUI` now checks `avatar_url` first, then `avatar_emoji`, then `'👋'`.
+- **`avatar_url` vs `avatar_emoji`**: ⚠️ voce da rileggere. `mapTourToUI:98` legge in realta'
+  `image_urls` per primo, poi `avatar_url`, poi `avatar_emoji`, poi `'👋'` — e **nessuna delle
+  due colonne intermedie esiste** su `profiles`. Funziona solo grazie a `image_urls`.
 - **`is_read` is the canonical field** for notification read state. Do not use `read` or `read_at` as primary boolean. `subscribeToNotifications()` in `dataService.js` still uses `n.is_read` — keep it that way.
 - **`price_eur` is prioritized** over `price` in `mapTourToUI()`. Both columns exist; `price_eur` requires `migration_add_filters.sql` to be applied.
-- **`getPendingBookingsForGuide`**: RESOLVED (ALTO-3). Now JOINs `profiles:user_id(full_name, avatar_url)` — `userName` and `userAvatar` are available in the result without a follow-up query.
-- **Explore.jsx direct supabase query**: RESOLVED (CRITICO-1). Now uses `profiles:guide_id(...)` JOIN and routes DB rows through `dataService.mapTourToUI()`. JSX uses `experience.imageUrl` (not `.image`).
+- **`getPendingBookingsForGuide`**: parzialmente. `dataService.js:587` JOINa
+  `profiles!user_id(first_name, last_name, image_urls)` — colonne reali, e su `bookings`
+  la FK esiste (a differenza di `tours`). La vecchia dicitura citava `full_name, avatar_url`,
+  che non esistono.
+- **Explore.jsx direct supabase query**: ⚠️ **NON risolta, e non lo e' mai stata.** Questa voce
+  diceva "RESOLVED (CRITICO-1)" ed era falsa. `Explore.jsx:99-103` embedda
+  `profiles(username, first_name, last_name, image_urls, bio)` e risponde **400 PGRST200**:
+  `tours` non ha **nessuna foreign key**, quindi PostgREST non puo' risolvere l'embed —
+  nemmeno con l'hint `profiles!guide_id(...)`. In piu' `username` e `bio` non esistono.
+  Stesso difetto in `dataService.js:332` (`subscribeToTours`). Misurato il 31/08.
 
 ### AI Itinerary Flow
 
 `aiRecommendationService.generateItinerary()`:
 1. Fetches simulated/real weather
 2. If `VITE_OPENAI_API_KEY` is set → calls `gpt-3.5-turbo` with partner business context injected into the system prompt
-3. Validates/geocodes AI-returned coordinates via Mapbox if missing
+3. Validates/geocodes AI-returned coordinates **via Google Places (proxy)** if missing —
+   *non* via Mapbox
 4. Falls back to `generateItineraryLocal()` with hardcoded city POIs + partner businesses from Supabase
 
 Business injection into itineraries: `dataService.getBusinessesByCityAndTags()` scores `businesses_profile` rows using tag affinity mapping and injects up to 3 sponsors per tour. Missing coordinates are resolved via Nominatim and cached back to Supabase.
@@ -141,7 +154,7 @@ Business injection into itineraries: `dataService.getBusinessesByCityAndTags()` 
 The `city` value is resolved through a priority chain managed by `userContextService`:
 1. **Manual** (user selects in TopBar → `CityContext.setCity()`)
 2. **GPS** (`useEnhancedGeolocation` → Nominatim reverse geocode)
-3. **Supabase profile** (`profiles.current_city` for authenticated users)
+3. **Supabase profile** (`profiles.current_city_override` for authenticated users — *non* `current_city`, che non esiste)
 4. **localStorage** (`user_city` key)
 5. **Fallback** hardcoded `'Roma'`
 
@@ -154,7 +167,11 @@ The `city` value is resolved through a priority chain managed by `userContextSer
 - Styling: Tailwind CSS v3 with `tailwindcss-animate` plugin. `clsx` + `tailwind-merge` for conditional classes (via `src/lib/utils.js`).
 - Animations: Framer Motion.
 - Icons: Lucide React.
-- Map: `react-map-gl` wrapping `mapbox-gl`, token via `VITE_MAPBOX_TOKEN`.
+- Map: **Google Maps** via `@vis.gl/react-google-maps` (`MapAPIWrapper` → `APIProvider`,
+  `UnnivaiMap` → `GoogleMapContainer`), chiave `VITE_GOOGLE_MAPS_API_KEY`.
+  Lo **stile** della mappa NON vive nel repo: sta nello stile cloud legato al Map ID
+  (`VITE_GOOGLE_MAP_ID`, fallback `28861a61c07876f819652d2d`), in Google Cloud Console.
+  Mapbox/`react-map-gl` sono in `package.json` ma **non usati da nessun codice vivo**.
 - Brand color: orange-500 (`#f97316`). Loading spinners use `border-orange-500`.
 - The app displays Italian text throughout. City defaults to `'Roma'` as fallback everywhere.
 - Demo/fallback data lives in `src/data/demoData.js`.

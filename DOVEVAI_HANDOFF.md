@@ -3,13 +3,13 @@
 Punto di partenza per chi (o quale sessione di Claude) riprende il progetto.
 Aggiornare in coda dopo ogni iterazione importante.
 
-**Ultimo aggiornamento**: 2026-08-29 — aperto il **BLOCCO ESTETICA** su branch
-`estetica` (direzione INCHIOSTRO & OSSIDIANA, fondo `#0E0C0B` per l'intera app;
-Antigravity in parallelo al funzionale per la scadenza piano del 3 settembre).
-Sessione precedente: 28/08, **GATE INTENT chiuso** (cinque diff in produzione).
-Le sezioni di questo file sono in ordine cronologico: **leggere dal fondo**, e
-in caso di conflitto vince sempre il blocco datato più recente.
-La nota storica del 17/07 (Gate KK, cache client stale) resta nel corpo del file.
+**Ultimo aggiornamento**: 2026-08-31 — **BLOCCO ESTETICO CHIUSO**: tutta l'app
+convertita a INCHIOSTRO & OSSIDIANA, mappa compresa. `estetica` pushata con
+preview attivo, **non mergiata** (si mergia quando le prime tre voci della coda
+sono chiuse). Trovato un difetto grave che ha l'eta' del progetto: la query tour
+di Esplora risponde 400 da aprile e a Roma nasconde tre tour veri. Lezioni #44 e
+#45. Le sezioni sono in ordine cronologico: **leggere dal fondo**, e in caso di
+conflitto vince il blocco datato piu' recente.
 
 ---
 
@@ -5761,6 +5761,143 @@ configurazione. Quindi: *lint verde su file rotto* e' un **falso segnale**,
 esattamente della stessa famiglia del *"verde in locale"* della regola locked
 #2. Il lint non e' una prova che il codice esista in forma valida — lo sono la
 suite e la build, e vanno girate entrambe prima di dire fatto.
+
+---
+
+## Sessione 31/08 — BLOCCO ESTETICO CHIUSO, e un difetto che ha un anno
+
+### Il blocco estetico e' CHIUSO
+
+Tutta l'app e' convertita a INCHIOSTRO & OSSIDIANA, **mappa compresa** — che era la
+superficie piu' carica di classi legacy nel censimento (~350 occorrenze fra
+`MapPage` e i suoi componenti). `estetica` e' **pushata**, con preview attivo:
+
+```
+https://unnivai-git-estetica-aispace-projects.vercel.app
+```
+
+**NON e' mergiata**, e resta cosi': il merge si fa quando le prime tre voci della
+coda sono chiuse (decisione del 30/08, motivo li').
+
+Fuori dalla conversione, di proposito: il **puntatore utente** sulla mappa, che
+verra' riscritto dai gate di navigazione — convertirlo adesso sarebbe lavoro da
+buttare.
+
+> ⚠️ **`estetica` e' indietro di un commit rispetto a main**: non contiene
+> `a10085b` (il cleanup mappa). Quindi nel preview che si sta guardando esistono
+> ancora `ExploreMiniMap.jsx`, `DOVEVAI_MAP_STYLES` e il `DEFAULT_MAP_ID`
+> duplicato. Non e' un problema di rendering, ma va saputo prima di leggere quel
+> codice sul branch.
+
+### Lo stile della mappa: dove vive davvero
+
+In **Google Cloud Console**, non nel repo:
+
+| | |
+|---|---|
+| Map ID | **DoveVai_Main** — `28861a61c07876f819652d2d` |
+| stile associato | **DoveVAI Base** — `8a0949df9e6e0302f2045af1` |
+
+**Salva e Pubblica sono due azioni separate**: salvare uno stile non lo mette in
+produzione. Chi cambia i colori e non vede niente cambiare, quasi sempre ha
+salvato e non pubblicato — e poi c'e' comunque la cache di Google, quindi si
+verifica su device e non subito.
+
+`MAP_MOODS` era un **sistema nominale**: undici mood, tutti con lo stesso Map ID,
+e `primaryColor`/`colorScheme`/`tilt`/`label` con zero letture in tutto il
+progetto. Ridotto in `a10085b` a cio' che e' vero (chiavi + `tags`).
+
+### Token semantici nuovi
+
+Tre di stato — `statusSuccess`, `statusError`, `statusWarning` — piu' `ivoryBadge`
+e `routeStroke`. Contrasti **misurati**, non stimati.
+
+---
+
+### DIFETTO GRAVE NUOVO — la query di Esplora e' rotta dal primo giorno
+
+`Explore.jsx:99-103` embedda `profiles(username, first_name, last_name, image_urls, bio)`
+e riceve **400 PGRST200**:
+
+```
+Could not find a relationship between 'tours' and 'profiles' in the schema cache
+```
+
+**`tours` non ha NESSUNA foreign key.** Verificato su `information_schema`. Quindi
+PostgREST non puo' risolvere l'embed — e **nemmeno l'hint esplicito**
+`profiles!guide_id(...)` funziona, provato. In piu' **`username` e `bio` non
+esistono** su `profiles`: sarebbero un secondo 400 appena sistemato il primo.
+
+`git log -S` dice che quella select e' li' da **`5c03e74`, l'import iniziale di
+aprile**. Non e' una regressione: e' codice che non ha **mai** funzionato contro
+questo schema.
+
+**Cosa nasconde.** In produzione ci sono **3 righe in `tours`, tutte a Roma, tutte
+`is_live`**. A Roma quel 400 le nasconde e la pagina mostra *"Nessuna guida ha
+ancora pubblicato un tour"* — che li' e' **falso**. Nelle altre citta' la stessa
+frase e' vera, e oggi i due casi sono indistinguibili a schermo.
+
+**Stesso difetto altrove**: `dataService.js:332` (`subscribeToTours`) usa lo stesso
+embed.
+
+### Voce 2 (sistema guide) — diagnosticata
+
+**Quattro superfici vive**, non una:
+
+| file:riga | superficie | rotta |
+|---|---|---|
+| `DashboardUser.jsx:211` | "Per Te" in Home | `/dashboard-user` |
+| `MapPage.jsx:835` | marker `globalTours` | `/map` |
+| `TourDetails.jsx:459` | scheda tour completa | `/tour-details/:id` |
+| `TourLive.jsx:54` | lista tour avviabili | `/tour-live` |
+
+(`Explore.jsx:99` sarebbe la quinta, ma prende 400 e non arriva a schermo.)
+
+**Il discriminante ESISTE gia': `isAiGenerated`.** I tour DB non lo hanno,
+i tour AI si' (`DashboardUser.jsx:339`). E' gia' usato per il ranking
+(`:84`, i tour di guida sono **promossi** di +3), per `isGuideTour`
+(`TourDetails.jsx:640`) e per il filtro raggio (`:423`, `:476`). **Non va
+introdotto niente.**
+
+**La cosa piu' importante di tutta la diagnosi**: a `DashboardUser.jsx:210-226` i
+tour DB si prendono **per primi**, e se ce ne sono **il motore AI non parte
+affatto**. Quindi *"Per Te" a Roma funziona per via di quelle tre righe, non
+perche' il motore funzioni*. Tre righe di database stavano mascherando lo stato
+reale del motore sulla citta' su cui si prova piu' spesso.
+
+---
+
+### LEZIONE #44 — un marker negativo cercato dove il codice non abita e' sempre verde
+
+Verificando che `DOVEVAI_MAP_STYLES` fosse sparito dal bundle di produzione, il
+primo controllo — fatto sull'entry e sui 26 chunk che l'entry nomina — dava
+**tutti i marker assenti**. Sembrava fatto. Era **falso**: `GoogleMapContainer`
+non vive nell'entry ne' in un chunk di primo livello, sta in `MapAPIWrapper-*.js`,
+nominato solo dentro `MapPage`, `Explore` e `TourBuilder`.
+
+Un marker negativo cercato in un file che non contiene quel codice **e' verde per
+costruzione**, e non dice niente. Servono due cose insieme:
+
+1. **ricorsione sui chunk** — seguire i riferimenti `"./X.js"` finche' non si
+   chiudono, non fermarsi al primo livello;
+2. **un marker POSITIVO nello stesso file** — qualcosa che *deve* esserci (qui il
+   Map ID). E' la prova che il file e' stato scaricato e letto davvero, e non che
+   si stava guardando altrove.
+
+Corollario misurato lo stesso giorno: una baseline presa **mentre un deploy sta
+partendo** non e' una baseline. I vecchi asset iniziano a dare 404 a meta'
+scaricamento e i conteggi diventano casuali.
+
+### LEZIONE #45 — i referti di Antigravity vanno letti contro il mandato, riga per riga
+
+**Tre casi nella stessa giornata** in cui una parte del mandato non e' stata
+eseguita e il referto **non lo diceva**: non una negazione, un'**omissione**. Il
+testo parla solo di cio' che e' stato fatto, e chi legge completa da solo.
+
+Il modo di leggerli non e' "sembra sensato?", e' **riga per riga contro il
+mandato**: per ogni punto chiesto, cercare nel referto la frase che lo copre. Se
+non c'e', **non e' stato fatto** — indipendentemente da quanto il resto sia
+convincente. Vale anche per i miei referti.
 
 ---
 

@@ -127,123 +127,56 @@ export const ActivityUISchema = z.object({
 
 // ─── MAP_MOODS ────────────────────────────────────────────────────────────────
 //
-// Maps Italian tour tags to a Google Cloud-based Map Style ID + brand colour.
-// Used by UnnivaiMap (to switch the basemap aesthetic) and MapPage (to tint
-// the transport-mode selector and Start Tour Bar accent).
+// Mappa i tag italiani dei tour a una CHIAVE DI MOOD. Nient'altro: questa
+// struttura non decide piu' l'aspetto della mappa, perche' non lo decideva.
 //
-// DVAI-030: I valori 'style' con prefisso GOOGLE_MAP_ID_* sono PLACEHOLDER.
-// Per attivarli: creare gli stili in Google Cloud Console → Map Styles,
-// poi sostituire ogni placeholder con il Map ID reale (es. '28861a61c07876f8').
-// Finché non configurati, tutti i mood usano il Map ID di default.
+// COSA C'ERA E PERCHE' NON C'E' PIU'. Ogni mood portava `style`, e tutti e
+// undici avevano lo STESSO valore (il Map ID di default): la promessa "stili
+// mappa adattivi al tipo di tour" era nominale, e in piu' quel campo, essendo
+// sempre verita', impediva a `VITE_GOOGLE_MAP_ID` di essere letto. Il Map ID
+// ora vive in UN SOLO posto, `Map/GoogleMapContainer.jsx`.
 //
-// Map IDs reali da configurare:
-//   romantico  → GOOGLE_MAP_ID_ROMANTIC   → toni caldi per percorsi romantici
-//   storia     → GOOGLE_MAP_ID_VINTAGE    → seppia muto per passeggiate storiche
-//   avventura  → GOOGLE_MAP_ID_OUTDOOR    → terrain-focused per avventura
-//   natura     → GOOGLE_MAP_ID_OUTDOOR    → idem avventura
-//   cibo       → GOOGLE_MAP_ID_LIGHT      → minimal clean per food & shopping
-//   shopping   → GOOGLE_MAP_ID_LIGHT      → idem cibo
-//   arte       → GOOGLE_MAP_ID_ROMANTIC   → idem romantico
-//   sorpresa   → GOOGLE_MAP_ID_DARK       → cinematografico drammatico
-//   sport      → GOOGLE_MAP_ID_SATELLITE  → satellite ibrido
+// Portavano anche `primaryColor`, `colorScheme`, `tilt` e `label`, con ZERO
+// letture in tutto il progetto (test compresi). Il commento diceva che MapPage
+// li usava per tingere il selettore di trasporto e la Start Tour Bar: non e'
+// mai stato vero. Valori conservati qui perche' sono una decisione di design,
+// non spazzatura — se un giorno si cablano, si riparte da questi:
 //
-// Keys in lowercase ASCII — no accent normalisation needed.
+//   mood        primaryColor  colorScheme     tilt
+//   romantico   #E11D48       FOLLOW_SYSTEM   45
+//   storia      #92400E       FOLLOW_SYSTEM   30
+//   avventura   #047857       LIGHT           60
+//   natura      #059669       LIGHT           45
+//   cibo        #EA580C       LIGHT            0
+//   shopping    #7C3AED       LIGHT            0
+//   arte        #9333EA       FOLLOW_SYSTEM   30
+//   sorpresa    #F59E0B       DARK            55
+//   sport       #0EA5E9       LIGHT           60
+//   notturno    #6366F1       DARK            45
+//   default     #F97316       FOLLOW_SYSTEM    0
 //
-// MAP_MOODS — stili mappa adattivi al tipo di tour
-// Usa il Map ID di default con colorScheme/mapTypeId per variare l'estetica.
-// Per stili avanzati: creare Map Styles nella Google Cloud Console e sostituire 'style' con Map ID reali.
-const DEFAULT_MAP_ID = '28861a61c07876f819652d2d';
-
+// `colorScheme` in particolare e' una prop supportata da
+// @vis.gl/react-google-maps: sarebbe l'unica leva davvero a portata di mano.
+// Cablarla ricrea l'istanza della mappa (mapId/renderingType/colorScheme sono
+// le tre chiavi che forzano il rimontaggio), quindi non e' gratis.
+//
+// Le CHIAVI restano tutte e undici: sono il vocabolario che il modello deve
+// produrre (validato da VALID_MOODS in aiRecommendationService) e il bersaglio
+// di getMoodForTags. Chiavi in ASCII minuscolo, nessuna normalizzazione accenti.
+//
 export const MAP_MOODS = {
-  romantico: {
-    tags:         ['Romantico'],
-    style:        DEFAULT_MAP_ID,
-    primaryColor: '#E11D48',
-    label:        'Romantico',
-    colorScheme:  'FOLLOW_SYSTEM',
-    tilt:         45,
-  },
-  storia: {
-    tags:         ['Storia', 'Cultura'],
-    style:        DEFAULT_MAP_ID,
-    primaryColor: '#92400E',
-    label:        'Cultura & Storia',
-    colorScheme:  'FOLLOW_SYSTEM',
-    tilt:         30,
-  },
-  avventura: {
-    tags:         ['Avventura'],
-    style:        DEFAULT_MAP_ID,
-    primaryColor: '#047857',
-    label:        'Avventura',
-    colorScheme:  'LIGHT',
-    tilt:         60,
-  },
-  natura: {
-    tags:         ['Natura'],
-    style:        DEFAULT_MAP_ID,
-    primaryColor: '#059669',
-    label:        'Natura',
-    colorScheme:  'LIGHT',
-    tilt:         45,
-  },
-  cibo: {
-    tags:         ['Cibo', 'Gastronomia'],
-    style:        DEFAULT_MAP_ID,
-    primaryColor: '#EA580C',
-    label:        'Gastronomia',
-    colorScheme:  'LIGHT',
-    tilt:         0,
-  },
-  shopping: {
-    tags:         ['Shopping'],
-    style:        DEFAULT_MAP_ID,
-    primaryColor: '#7C3AED',
-    label:        'Shopping',
-    colorScheme:  'LIGHT',
-    tilt:         0,
-  },
-  arte: {
-    tags:         ['Arte'],
-    style:        DEFAULT_MAP_ID,
-    primaryColor: '#9333EA',
-    label:        'Arte',
-    colorScheme:  'FOLLOW_SYSTEM',
-    tilt:         30,
-  },
-  sorpresa: {
-    tags:         ['Sorpresa'],
-    style:        DEFAULT_MAP_ID,
-    primaryColor: '#F59E0B',
-    label:        'Sorpresa',
-    colorScheme:  'DARK',
-    tilt:         55,
-  },
-  sport: {
-    tags:         ['Sport'],
-    style:        DEFAULT_MAP_ID,
-    primaryColor: '#0EA5E9',
-    label:        'Sport & Attività',
-    colorScheme:  'LIGHT',
-    tilt:         60,
-  },
-  // Notturno: attivato automaticamente dopo le 20
-  notturno: {
-    tags:         [],
-    style:        DEFAULT_MAP_ID,
-    primaryColor: '#6366F1',
-    label:        'Notturno',
-    colorScheme:  'DARK',
-    tilt:         45,
-  },
-  default: {
-    tags:         [],
-    style:        DEFAULT_MAP_ID,
-    primaryColor: '#F97316',
-    label:        'Esplora',
-    colorScheme:  'FOLLOW_SYSTEM',
-    tilt:         0,
-  },
+  romantico: { tags: ['Romantico'] },
+  storia:    { tags: ['Storia', 'Cultura'] },
+  avventura: { tags: ['Avventura'] },
+  natura:    { tags: ['Natura'] },
+  cibo:      { tags: ['Cibo', 'Gastronomia'] },
+  shopping:  { tags: ['Shopping'] },
+  arte:      { tags: ['Arte'] },
+  sorpresa:  { tags: ['Sorpresa'] },
+  sport:     { tags: ['Sport'] },
+  // Notturno: selezionato automaticamente dopo le 20 da getMoodForTags.
+  notturno:  { tags: [] },
+  default:   { tags: [] },
 }
 
 // getMoodForTags(tags) → mood key
@@ -253,7 +186,6 @@ export const MAP_MOODS = {
 //
 // Usage:
 //   const mood = getMoodForTags(tour.tags)       // e.g. 'romantico'
-//   const { style, primaryColor } = MAP_MOODS[mood]
 //
 export const getMoodForTags = (tags = []) => {
   // Auto notturno dopo le 20

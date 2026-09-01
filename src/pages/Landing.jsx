@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Globe, Compass, Users, MapPin, Star, Play, X, ChevronRight, ChevronLeft, Search, Brain, MessageCircle, CheckCircle, Clock, Navigation, Sparkles, Wifi, Battery, Signal } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -477,129 +477,238 @@ const HowItWorksModal = ({ onClose }) => {
 };
 
 /* ─────────────────────────────────────────────
+   HERO PHOTOS CONFIGURATION
+───────────────────────────────────────────── */
+/**
+ * Array di foto per l'hero a rotazione con didascalia (nome del posto e città).
+ * 
+ * COME INSERIRE LE FOTO REALI (10-15 elementi):
+ *   {
+ *     url: '/images/hero/colosseo-roma.webp', // percorso in /public/images/hero/... o URL statico/CDN
+ *     title: 'Colosseo',                      // nome del posto / monumento reale
+ *     city: 'Roma',                           // nome della città
+ *   }
+ */
+const HERO_PHOTOS = [
+    {
+        url: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1200',
+        title: 'Colosseo',
+        city: `Roma`,
+    },
+];
+
+/* ─────────────────────────────────────────────
    LANDING PAGE
 ───────────────────────────────────────────── */
 const Landing = () => {
     const [cityIdx, setCityIdx] = useState(0);
-    const [videoLoaded, setVideoLoaded] = useState(false);
+    const [photoIdx, setPhotoIdx] = useState(0);
+    const [captionVisible, setCaptionVisible] = useState(false);
     const [showHowItWorks, setShowHowItWorks] = useState(false);
     const containerRef = useRef(null);
     const { scrollY } = useScroll();
     const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
     const heroScale = useTransform(scrollY, [0, 400], [1, 1.08]);
+    const shouldReduceMotion = useReducedMotion();
 
     useEffect(() => {
         const t = setInterval(() => setCityIdx(i => (i + 1) % CITIES.length), 2000);
         return () => clearInterval(t);
     }, []);
 
+    // Gestione rotazione foto (5.5s), Ken Burns e sincronizzazione didascalia (+600ms ingresso, -400ms uscita)
+    useEffect(() => {
+        // La didascalia entra ~600ms dopo l'avvio della foto
+        const showCaptionTimer = setTimeout(() => {
+            setCaptionVisible(true);
+        }, 600);
+
+        // Se c'è solo 1 foto o prefers-reduced-motion, nessuna rotazione automatica
+        if (shouldReduceMotion || HERO_PHOTOS.length <= 1) {
+            return () => clearTimeout(showCaptionTimer);
+        }
+
+        // La didascalia esce ~400ms prima del cambio foto (a 5100ms su intervallo di 5500ms)
+        const hideCaptionTimer = setTimeout(() => {
+            setCaptionVisible(false);
+        }, 5100);
+
+        // Cambio foto al termine dei 5.5s con crossfade di 1.2s
+        const nextPhotoTimer = setTimeout(() => {
+            setPhotoIdx(i => (i + 1) % HERO_PHOTOS.length);
+            setCaptionVisible(false);
+        }, 5500);
+
+        return () => {
+            clearTimeout(showCaptionTimer);
+            clearTimeout(hideCaptionTimer);
+            clearTimeout(nextPhotoTimer);
+        };
+    }, [photoIdx, shouldReduceMotion]);
+
     useEffect(() => {
         const test = async () => { try { await supabase.from('explorers').select('id').limit(1); } catch { } };
         test();
     }, []);
 
+    const currentPhoto = HERO_PHOTOS[photoIdx] || HERO_PHOTOS[0] || null;
+
     return (
-        <div className="relative min-h-screen bg-obsidian-bg text-obsidian-primary overflow-hidden font-sans" ref={containerRef}>
+        <div className="relative min-h-screen bg-obsidian-bg text-obsidian-primary overflow-x-hidden font-sans" ref={containerRef}>
 
-            {/* VIDEO BG */}
-            <motion.div className="absolute inset-0 z-0" style={{ scale: heroScale, opacity: heroOpacity }}>
-                {/* Video solo su desktop — troppo pesante su mobile */}
-                <video autoPlay loop muted playsInline onCanPlayThrough={() => setVideoLoaded(true)}
-                    className={`hidden md:block w-full h-full object-cover transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}>
-                    <source src="https://videos.pexels.com/video-files/4456997/4456997-uhd_2560_1440_25fps.mp4" type="video/mp4" />
-                </video>
-                {/* Immagine statica su mobile + fallback desktop se video non carica */}
-                <img src="https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=1200" alt="Italia" className={`absolute inset-0 w-full h-full object-cover ${videoLoaded ? 'md:opacity-0' : 'opacity-100'}`} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/10 hidden md:block" />
-            </motion.div>
+            {/* HERO SECTION — occupa l'altezza utile dello schermo (100dvh) con la foto a pieno sfondo dietro a nav, titolo e CTA */}
+            <header className="relative min-h-[100dvh] md:min-h-screen flex flex-col justify-between overflow-hidden">
 
-            {/* PARTICLES */}
-            <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
-                {[...Array(12)].map((_, i) => (
-                    <motion.div key={i} className="absolute w-1 h-1 bg-brand-orange/40 rounded-full"
-                        style={{ left: `${8 + i * 8}%`, top: `${20 + (i % 3) * 20}%` }}
-                        animate={{ y: [-15, 15, -15], opacity: [0.2, 0.6, 0.2] }}
-                        transition={{ duration: 3 + i * 0.4, repeat: Infinity, ease: 'easeInOut', delay: i * 0.3 }} />
-                ))}
-            </div>
+                {/* HERO BACKGROUND PHOTOS WITH CROSSFADE & SLOW KEN BURNS */}
+                <motion.div className="absolute inset-0 z-0 overflow-hidden" style={{ scale: heroScale, opacity: heroOpacity }}>
+                    <AnimatePresence initial={false}>
+                        {currentPhoto && (
+                            <motion.div
+                                key={currentPhoto.url}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 1.2, ease: 'easeInOut' }}
+                                className="absolute inset-0 overflow-hidden"
+                            >
+                                <motion.img
+                                    src={currentPhoto.url}
+                                    alt={currentPhoto.title && currentPhoto.city ? `${currentPhoto.title}, ${currentPhoto.city}` : 'Hero background'}
+                                    className="w-full h-full object-cover object-[50%_85%] md:object-center origin-center"
+                                    initial={shouldReduceMotion ? { scale: 1, y: '0%' } : { scale: 1, y: '0%' }}
+                                    animate={shouldReduceMotion ? { scale: 1, y: '0%' } : { scale: 1.06, y: '-2%' }}
+                                    transition={shouldReduceMotion ? { duration: 0 } : { duration: 20, ease: 'linear' }}
+                                    loading={photoIdx === 0 ? 'eager' : 'lazy'}
+                                    fetchPriority={photoIdx === 0 ? 'high' : 'auto'}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-            {/* NAV */}
-            <motion.nav initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }}
-                className="relative z-10 flex justify-between items-center px-6 py-6 md:px-12">
-                <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 bg-brand-orange rounded-xl flex items-center justify-center shadow-lg">
-                        <Compass className="w-5 h-5 text-obsidian-bg" />
-                    </div>
-                    <span className="font-bold text-xl tracking-tight text-obsidian-primary">DOVEVAI</span>
+                    {/* Scrim neutri protettivi: base calibrata + dissolvenza inferiore verso l'ossidiana */}
+                    <div className="absolute inset-0 bg-black/35 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-obsidian-bg via-black/25 to-black/10 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/5 hidden md:block pointer-events-none" />
+                </motion.div>
+
+                {/* PARTICLES */}
+                <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
+                    {[...Array(12)].map((_, i) => (
+                        <motion.div key={i} className="absolute w-1 h-1 bg-brand-orange/40 rounded-full"
+                            style={{ left: `${8 + i * 8}%`, top: `${20 + (i % 3) * 20}%` }}
+                            animate={{ y: [-15, 15, -15], opacity: [0.2, 0.6, 0.2] }}
+                            transition={{ duration: 3 + i * 0.4, repeat: Infinity, ease: 'easeInOut', delay: i * 0.3 }} />
+                    ))}
                 </div>
-                <div className="flex items-center gap-4">
-                    <Link to="/login" className="text-sm font-semibold text-obsidian-secondary hover:text-obsidian-primary transition-colors">Accedi</Link>
-                    <Link to="/login">
-                        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                            className="px-4 py-2 bg-obsidian-card/80 backdrop-blur-md border border-obsidian-border rounded-full text-sm font-semibold text-obsidian-primary hover:bg-obsidian-raised transition-all">
-                            Inizia Gratis →
-                        </motion.button>
-                    </Link>
-                </div>
-            </motion.nav>
 
-            {/* HERO */}
-            <main className="relative z-10 flex flex-col items-center justify-center min-h-[90vh] text-center px-4">
-                <motion.div variants={stagger.container} initial="hidden" animate="show" className="flex flex-col items-center max-w-5xl mx-auto">
-                    <motion.div variants={stagger.item}>
-                        <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-brand-orange/10 backdrop-blur-md border border-brand-orange/30 text-xs font-bold tracking-widest uppercase mb-8 text-brand-orange">
-                            <span className="w-1.5 h-1.5 bg-brand-orange rounded-full animate-pulse" />Il futuro del viaggio è qui
-                        </span>
-                    </motion.div>
-                    {/* Gate EE — Hero riscritta V1. Frase-firma locked Ivano.
-                        Zero claim su persone V2. Zero "in tutta Italia" (promessa
-                        di copertura fisica): "in qualunque città scegli" (vero: il
-                        motore funziona ovunque ci siano POI). */}
-                    <motion.h1 variants={stagger.item} className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-[1.05] tracking-tight text-obsidian-primary">
-                        Il posto esiste.<br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange via-ochre-400 to-brand-orange-hover">Nessuno te lo aveva mostrato così.</span>
-                    </motion.h1>
-                    <motion.div variants={stagger.item} className="flex items-center gap-2 mb-5">
-                        <MapPin className="w-4 h-4 text-brand-orange flex-shrink-0" />
-                        <span className="text-obsidian-secondary text-sm font-medium">In qualunque città scegli — anche</span>
-                        <div className="relative h-6 overflow-hidden w-20">
-                            <AnimatePresence mode="wait">
-                                <motion.span key={cityIdx} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }}
-                                    transition={{ duration: 0.35 }} className="absolute inset-0 text-brand-orange font-bold text-sm">{CITIES[cityIdx]}</motion.span>
-                            </AnimatePresence>
+                {/* NAV */}
+                <motion.nav initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }}
+                    className="relative z-10 flex justify-between items-center px-6 py-6 md:px-12">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 bg-brand-orange rounded-xl flex items-center justify-center shadow-lg">
+                            <Compass className="w-5 h-5 text-obsidian-bg" />
                         </div>
-                    </motion.div>
-                    <motion.p variants={stagger.item} className="text-lg md:text-xl text-obsidian-secondary max-w-2xl mx-auto mb-10 leading-relaxed">
-                        L'AI ti costruisce un percorso su misura in qualunque città italiana,<br className="hidden md:block" />
-                        con luoghi veri e orari veri.
-                    </motion.p>
-                    <motion.div variants={stagger.item} className="flex flex-col sm:flex-row items-center gap-4 mb-16">
+                        <span className="font-bold text-xl tracking-tight text-obsidian-primary">DOVEVAI</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <Link to="/login" className="text-sm font-semibold text-obsidian-secondary hover:text-obsidian-primary transition-colors">Accedi</Link>
                         <Link to="/login">
-                            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                                className="group px-8 py-4 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-full font-bold text-base shadow-lg flex items-center gap-3">
-                                INIZIA L'AVVENTURA <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                                className="px-4 py-2 bg-obsidian-card/80 backdrop-blur-md border border-obsidian-border rounded-full text-sm font-semibold text-obsidian-primary hover:bg-obsidian-raised transition-all">
+                                Inizia Gratis →
                             </motion.button>
                         </Link>
-                        <motion.button onClick={() => setShowHowItWorks(true)}
-                            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                            className="flex items-center gap-2.5 px-6 py-4 bg-obsidian-card/80 backdrop-blur-md border border-obsidian-border rounded-full font-semibold text-sm text-obsidian-primary hover:bg-obsidian-raised transition-all">
-                            <div className="w-8 h-8 bg-obsidian-raised rounded-full flex items-center justify-center">
-                                <Play className="w-3 h-3 text-obsidian-primary fill-current ml-0.5" />
+                    </div>
+                </motion.nav>
+
+                {/* HERO MAIN */}
+                <main className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4 py-6">
+                    {/* Fascia di contrasto localizzata dietro al titolo (protegge il contrasto > 4.5:1 sulla zona centrale senza scurire il resto della foto) */}
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-96 max-w-4xl mx-auto bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0.12)_55%,transparent_80%)] pointer-events-none -z-10" />
+
+                    <motion.div variants={stagger.container} initial="hidden" animate="show" className="flex flex-col items-center max-w-5xl mx-auto relative z-10">
+                        <motion.div variants={stagger.item}>
+                            <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-brand-orange/10 backdrop-blur-md border border-brand-orange/30 text-xs font-bold tracking-widest uppercase mb-8 text-brand-orange">
+                                <span className="w-1.5 h-1.5 bg-brand-orange rounded-full animate-pulse" />Il futuro del viaggio è qui
+                            </span>
+                        </motion.div>
+                        {/* Gate EE — Hero riscritta V1. Frase-firma locked Ivano.
+                            Zero claim su persone V2. Zero "in tutta Italia" (promessa
+                            di copertura fisica): "in qualunque città scegli" (vero: il
+                            motore funziona ovunque ci siano POI). */}
+                        <motion.h1 variants={stagger.item} className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-[1.05] tracking-tight text-obsidian-primary">
+                            Il posto esiste.<br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange via-ochre-400 to-brand-orange-hover">Nessuno te lo aveva mostrato così.</span>
+                        </motion.h1>
+                        <motion.div variants={stagger.item} className="flex items-center gap-2 mb-5">
+                            <MapPin className="w-4 h-4 text-brand-orange flex-shrink-0" />
+                            <span className="text-obsidian-secondary text-sm font-medium">In qualunque città scegli — anche</span>
+                            <div className="relative h-6 overflow-hidden w-20">
+                                <AnimatePresence mode="wait">
+                                    <motion.span key={cityIdx} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }}
+                                        transition={{ duration: 0.35 }} className="absolute inset-0 text-brand-orange font-bold text-sm">{CITIES[cityIdx]}</motion.span>
+                                </AnimatePresence>
                             </div>
-                            Guarda come funziona
-                        </motion.button>
+                        </motion.div>
+                        <motion.p variants={stagger.item} className="text-lg md:text-xl text-obsidian-secondary max-w-2xl mx-auto mb-10 leading-relaxed">
+                            L'AI ti costruisce un percorso su misura in qualunque città italiana,<br className="hidden md:block" />
+                            con luoghi veri e orari veri.
+                        </motion.p>
+                        <motion.div variants={stagger.item} className="flex flex-col sm:flex-row items-center gap-4 mb-8 sm:mb-12">
+                            <Link to="/login">
+                                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                    className="group px-8 py-4 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-full font-bold text-base shadow-lg flex items-center gap-3">
+                                    INIZIA L'AVVENTURA <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </motion.button>
+                            </Link>
+                            <motion.button onClick={() => setShowHowItWorks(true)}
+                                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                                className="flex items-center gap-2.5 px-6 py-4 bg-obsidian-card/80 backdrop-blur-md border border-obsidian-border rounded-full font-semibold text-sm text-obsidian-primary hover:bg-obsidian-raised transition-all">
+                                <div className="w-8 h-8 bg-obsidian-raised rounded-full flex items-center justify-center">
+                                    <Play className="w-3 h-3 text-obsidian-primary fill-current ml-0.5" />
+                                </div>
+                                Guarda come funziona
+                            </motion.button>
+                        </motion.div>
+                        {/* Gate EE — Rimosso social proof fake:
+                            - conteggio utenti soddisfatti (numero inventato, al lancio
+                              non c'e' NESSUN utente. Anche se ci fossero, "soddisfatti"
+                              e' un'attribuzione senza recensione vera).
+                            - avatar da servizio foto stock (persone finte).
+                            - 5 stelle piene senza recensione dietro.
+                            Il social proof vero arrivera' quando ci saranno recensioni reali.
+                            Fino ad allora, nessun claim di popolarita'. */}
                     </motion.div>
-                    {/* Gate EE — Rimosso social proof fake:
-                        - conteggio utenti soddisfatti (numero inventato, al lancio
-                          non c'e' NESSUN utente. Anche se ci fossero, "soddisfatti"
-                          e' un'attribuzione senza recensione vera).
-                        - avatar da servizio foto stock (persone finte).
-                        - 5 stelle piene senza recensione dietro.
-                        Il social proof vero arrivera' quando ci saranno recensioni reali.
-                        Fino ad allora, nessun claim di popolarita'. */}
+                </main>
+
+                {/* DIDASCALIA FOTO HERO (entra a +600ms con fade/slide, esce a -400ms prima del cambio foto) */}
+                <AnimatePresence>
+                    {captionVisible && currentPhoto?.title && currentPhoto?.city && (
+                        <motion.div
+                            key={`${currentPhoto.title}-${currentPhoto.city}`}
+                            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 4 }}
+                            transition={{
+                                duration: shouldReduceMotion ? 0.3 : 0.5,
+                                ease: [0.25, 0.46, 0.45, 0.94],
+                            }}
+                            className="absolute bottom-3 right-4 sm:bottom-4 sm:right-6 z-10 pointer-events-none select-none flex items-center gap-1.5"
+                        >
+                            <MapPin className="w-3.5 h-3.5 text-obsidian-secondary/70 shrink-0" />
+                            <span className="text-[11px] text-obsidian-secondary font-medium tracking-wide">
+                                {currentPhoto.title} · {currentPhoto.city}
+                            </span>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* SCROLL PROMPT */}
+                <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2 }}
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 opacity-30 pointer-events-none">
+                    <div className="w-px h-6 bg-obsidian-border" /><div className="w-1.5 h-1.5 rounded-full bg-obsidian-border" />
                 </motion.div>
-            </main>
+            </header>
 
             {/* FEATURES */}
             <motion.section initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9, duration: 0.8 }}

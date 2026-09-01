@@ -13,7 +13,7 @@ const raw = {
     accentHover: '#EA580C',
     accentDeep: '#9A3412',
     textPrimary: '#F5F5F4',
-    textSecondary: '#A8A29E',
+    textSecondary: '#C4BEB6',
     ivoryBg: '#F5F2EB',
     ivoryBadge: '#E5DFD1',
     borderSubtle: '#26211E',

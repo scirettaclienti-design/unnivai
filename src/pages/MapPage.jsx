@@ -1528,20 +1528,20 @@ const MapPage = () => {
 
     // ─── RENDER ───────────────────────────────────────────────────────────────
     return (
-        <div className="relative w-full h-screen overflow-hidden bg-gray-50">
+        <div className="relative w-full h-screen overflow-hidden bg-obsidian-bg">
 
             {/* 1. MAP CONTAINER */}
             <div className="absolute inset-0 z-0">
                 {(!activeRoute || activeRoute.length === 0) && showRoute ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-50">
-                        <div className="bg-white p-6 rounded-2xl shadow-xl text-center max-w-sm mx-4">
-                            <div className="mx-auto w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mb-4">
+                    <div className="absolute inset-0 flex items-center justify-center bg-obsidian-bg/95 z-50">
+                        <div className="bg-obsidian-card p-6 rounded-2xl shadow-xl border border-obsidian-border text-center max-w-sm mx-4">
+                            <div className="mx-auto w-12 h-12 bg-brand-orange/10 text-brand-orange border border-brand-orange/20 rounded-full flex items-center justify-center mb-4">
                                 <MapPin size={24} />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-800 mb-2">Mappa non disponibile</h3>
-                            <p className="text-gray-500 text-sm mb-6">Questo tour non ha ancora un percorso geografico definito.</p>
+                            <h3 className="text-lg font-bold text-obsidian-primary mb-2">Mappa non disponibile</h3>
+                            <p className="text-obsidian-secondary text-sm mb-6">Questo tour non ha ancora un percorso geografico definito.</p>
                             <Link to="/dashboard-user">
-                                <button className="w-full bg-black text-white py-3 rounded-xl font-bold">Torna alla Home</button>
+                                <button className="w-full bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg py-3 rounded-xl font-bold transition-colors">Torna alla Home</button>
                             </Link>
                         </div>
                     </div>
@@ -1552,21 +1552,21 @@ const MapPage = () => {
                             Roma: copre il vuoto, perche' la mappa non monta finche' il
                             centro non e' risolto. Per questo il testo cambia. */}
                         {centerStatus === 'pending' && (
-                            <div className="absolute inset-0 z-20 flex items-center justify-center bg-gray-900/50 backdrop-blur-sm transition-opacity duration-500">
-                                <div className="bg-white/90 backdrop-blur-xl px-6 py-4 rounded-2xl shadow-2xl flex flex-col items-center gap-3 animate-in zoom-in-95">
-                                    <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                                    <span className="text-sm font-bold text-gray-800">Preparo la mappa</span>
-                                    {city && <span className="text-xs text-gray-500">su {city}</span>}
+                            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-500">
+                                <div className="bg-obsidian-card/90 backdrop-blur-xl border border-obsidian-border px-6 py-4 rounded-2xl shadow-2xl flex flex-col items-center gap-3 animate-in zoom-in-95">
+                                    <div className="w-8 h-8 border-4 border-brand-orange border-t-transparent rounded-full animate-spin" />
+                                    <span className="text-sm font-bold text-obsidian-primary">Preparo la mappa</span>
+                                    {city && <span className="text-xs text-obsidian-secondary">su {city}</span>}
                                 </div>
                             </div>
                         )}
                         {/* Stato onesto: il boot e' finito e non sappiamo dove sei. Mai Roma.
                             Uscibile: la barra di ricerca citta' resta montata sopra. */}
                         {centerStatus === 'unavailable' && (
-                            <div className="absolute inset-0 z-20 flex items-center justify-center bg-gray-50 px-8">
+                            <div className="absolute inset-0 z-20 flex items-center justify-center bg-obsidian-bg px-8">
                                 <div className="text-center max-w-xs">
-                                    <p className="text-gray-800 text-sm font-bold mb-1">Dimmi tu dove.</p>
-                                    <p className="text-gray-500 text-xs">Scegli una città dalla barra qui sopra e apro la mappa lì.</p>
+                                    <p className="text-obsidian-primary text-sm font-bold mb-1">Dimmi tu dove.</p>
+                                    <p className="text-obsidian-secondary text-xs">Scegli una città dalla barra qui sopra e apro la mappa lì.</p>
                                 </div>
                             </div>
                         )}
@@ -1625,7 +1625,7 @@ const MapPage = () => {
 
                         {/* Partner count badge */}
                         {(showRoute || isRoutePlannerOpen) && businessPartners.length > 0 && (
-                            <div className="absolute top-4 right-16 z-40 bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 animate-in fade-in pointer-events-none">
+                            <div className="absolute top-4 right-16 z-40 bg-brand-orange text-obsidian-bg text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 animate-in fade-in pointer-events-none">
                                 <Store size={12} />
                                 {businessPartners.length} partner compatibili
                             </div>
@@ -1686,38 +1686,38 @@ const MapPage = () => {
                                     al toggle URL bar. Fallback `svh` (small viewport height) per browser che
                                     non supportano dvh (Safari <15.4). Padding-bottom aumentato di 8px per
                                     respiro tattile sotto il pulsante. */}
-                                <div className={`fixed md:absolute inset-x-0 bottom-0 md:inset-x-auto md:top-4 md:left-4 z-[60] bg-white md:rounded-[24px] rounded-t-[32px] shadow-2xl md:w-[400px] flex flex-col transition-transform duration-500 ease-in-[cubic-bezier(0.32,0.72,0,1)] ${isRoutePlannerOpen && !isNavigating ? 'translate-y-0 md:h-[calc(100vh-32px)] md:max-h-[800px] h-[55dvh] max-h-[60dvh] supports-[not(height:100dvh)]:h-[55svh] supports-[not(height:100dvh)]:max-h-[60svh]' : 'translate-y-full md:-translate-x-[120%] md:translate-y-0'}`} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }}>
+                                <div className={`fixed md:absolute inset-x-0 bottom-0 md:inset-x-auto md:top-4 md:left-4 z-[60] bg-obsidian-card border border-obsidian-border md:rounded-[24px] rounded-t-[32px] shadow-2xl md:w-[400px] flex flex-col transition-transform duration-500 ease-in-[cubic-bezier(0.32,0.72,0,1)] ${isRoutePlannerOpen && !isNavigating ? 'translate-y-0 md:h-[calc(100vh-32px)] md:max-h-[800px] h-[55dvh] max-h-[60dvh] supports-[not(height:100dvh)]:h-[55svh] supports-[not(height:100dvh)]:max-h-[60svh]' : 'translate-y-full md:-translate-x-[120%] md:translate-y-0'}`} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }}>
                                     {/* Drag handle mobile */}
                                     <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
-                                        <div className="w-10 h-1 bg-gray-300 rounded-full" />
+                                        <div className="w-10 h-1 bg-obsidian-border-elevated rounded-full" />
                                     </div>
                                     {/* Header / Back */}
                                     <div className="flex items-start gap-3 p-4 pt-2 md:pt-6 shrink-0">
-                                        <button onClick={() => setIsRoutePlannerOpen(false)} className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors text-gray-700">
+                                        <button onClick={() => setIsRoutePlannerOpen(false)} className="p-2 -ml-2 rounded-full hover:bg-obsidian-raised transition-colors text-obsidian-secondary hover:text-obsidian-primary">
                                             <ArrowLeft size={22} />
                                         </button>
                                         <div className="flex-1 flex flex-col gap-2 relative">
                                             {/* Origin — 3 stati: loading, success, fallback */}
-                                            <div className="bg-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 border border-gray-200 min-h-[48px]">
+                                            <div className="bg-obsidian-raised rounded-xl px-4 py-3 flex items-center gap-3 border border-obsidian-border min-h-[48px]">
                                                 {localCenter ? (
                                                     <>
-                                                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]" />
+                                                        <div className="w-2.5 h-2.5 rounded-full bg-brand-orange shadow-[0_0_8px_rgba(249,115,22,0.4)]" />
                                                         <input
                                                             type="text"
                                                             value={customOriginAddress || (localCenter ? 'La tua posizione GPS' : '')}
                                                             onChange={(e) => setCustomOriginAddress(e.target.value)}
                                                             placeholder={isLocating ? 'Rilevamento GPS...' : 'Scrivi indirizzo di partenza'}
-                                                            className="flex-1 bg-transparent text-sm font-medium text-gray-800 placeholder:text-gray-400 outline-none min-w-0"
+                                                            className="flex-1 bg-transparent text-sm font-medium text-obsidian-primary placeholder:text-obsidian-secondary/60 outline-none min-w-0"
                                                         />
                                                     </>
                                                 ) : isLocating ? (
                                                     <>
-                                                        <div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                                                        <span className="text-sm font-medium text-gray-500">Rilevamento posizione...</span>
+                                                        <div className="w-3 h-3 border-2 border-brand-orange border-t-transparent rounded-full animate-spin" />
+                                                        <span className="text-sm font-medium text-obsidian-secondary">Rilevamento posizione...</span>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <div className="w-2 h-2 rounded-full border-2 border-amber-400 bg-amber-100" />
+                                                        <div className="w-2 h-2 rounded-full border-2 border-brand-orange/60 bg-brand-orange/20" />
                                                         <button
                                                             onClick={() => {
                                                                 if (!navigator.geolocation) return;
@@ -1733,7 +1733,7 @@ const MapPage = () => {
                                                                     { enableHighAccuracy: true, timeout: 8000 }
                                                                 );
                                                         }}
-                                                            className="text-sm font-medium text-blue-600 underline"
+                                                            className="text-sm font-medium text-brand-orange underline"
                                                         >
                                                             📍 Attiva posizione
                                                         </button>
@@ -1741,19 +1741,19 @@ const MapPage = () => {
                                                 )}
                                             </div>
                                             {/* Destination input */}
-                                            <div className="bg-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 border border-gray-200">
-                                                <MapPin size={16} className="text-orange-500" />
-                                                <span className="text-sm font-bold text-gray-900 truncate">
+                                            <div className="bg-obsidian-raised rounded-xl px-4 py-3 flex items-center gap-3 border border-obsidian-border">
+                                                <MapPin size={16} className="text-brand-orange" />
+                                                <span className="text-sm font-bold text-obsidian-primary truncate">
                                                     {selectedPOI?.name || selectedActivity?.name || tourData?.title || 'Destinazione'}
                                                 </span>
                                             </div>
                                             {/* Connection line */}
-                                            <div className="absolute left-[20px] top-[40px] bottom-[40px] w-0.5 border-l-2 border-dotted border-gray-300"></div>
+                                            <div className="absolute left-[20px] top-[40px] bottom-[40px] w-0.5 border-l-2 border-dotted border-obsidian-border"></div>
                                         </div>
                                     </div>
 
                                     {/* Transport Modes */}
-                                    <div className="flex px-4 gap-2 mt-2 pb-4 border-b border-gray-100">
+                                    <div className="flex px-4 gap-2 mt-2 pb-4 border-b border-obsidian-border">
                                         {[
                                             // DVAI-052: V1 nasconde "Mezzi pubblici" — Google Directions con waypoints
                                             // multipli non supporta TRANSIT (INVALID_REQUEST). Fix vero in V1.1.
@@ -1764,12 +1764,12 @@ const MapPage = () => {
                                             <button 
                                                 key={mode.id}
                                                 onClick={() => setPageTransportMode(mode.id)}
-                                                className={`flex flex-col items-center justify-center py-2.5 flex-1 rounded-xl transition-all ${pageTransportMode === mode.id ? 'bg-blue-50 text-blue-600 ring-1 ring-blue-500/50' : 'bg-transparent text-gray-500 hover:bg-gray-50'}`}
+                                                className={`flex flex-col items-center justify-center py-2.5 flex-1 rounded-xl transition-all ${pageTransportMode === mode.id ? 'bg-obsidian-raised text-obsidian-primary border border-obsidian-border-elevated shadow-sm' : 'bg-transparent text-obsidian-secondary hover:bg-obsidian-raised/50 hover:text-obsidian-primary border border-transparent'}`}
                                             >
                                                 <mode.icon size={22} className="mb-1" />
-                                                <span className={`text-[9px] font-bold uppercase tracking-wider ${pageTransportMode === mode.id ? 'text-blue-700' : ''}`}>{mode.label}</span>
+                                                <span className={`text-[9px] font-semibold uppercase tracking-wider ${pageTransportMode === mode.id ? 'text-obsidian-primary font-bold' : ''}`}>{mode.label}</span>
                                                 {pageTransportMode === mode.id && routeStats && !routeStats.error && routeStats.durationSec > 0 && (
-                                                    <span className="text-[11px] font-black mt-0.5">{Math.round(routeStats.durationSec / 60)} min</span>
+                                                    <span className="text-[11px] font-bold text-brand-orange mt-0.5">{Math.round(routeStats.durationSec / 60)} min</span>
                                                 )}
                                             </button>
                                         ))}
@@ -1777,31 +1777,31 @@ const MapPage = () => {
 
                                     {/* Route Options — scrollable */}
                                     <div className="flex-1 overflow-y-auto px-4 pt-2 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
-                                            <div className="bg-white p-4 rounded-xl shadow-md border border-gray-100 flex flex-col gap-0.5">
-                                                <h4 className="font-bold text-gray-900 text-sm">Percorso Consigliato</h4>
+                                            <div className="bg-obsidian-raised p-4 rounded-xl border border-obsidian-border flex flex-col gap-0.5">
+                                                <h4 className="font-bold text-obsidian-primary text-sm">Percorso Consigliato</h4>
                                                 {routeStats && !routeStats.error && routeStats.durationSec > 0 ? (
                                                     <div className="mt-1 flex items-baseline gap-2">
-                                                        <span className="text-2xl font-black text-green-600">{Math.round(routeStats.durationSec / 60)} min</span>
-                                                        <span className="text-sm font-bold text-gray-500">
+                                                        <span className="text-2xl font-black text-brand-orange">{Math.round(routeStats.durationSec / 60)} min</span>
+                                                        <span className="text-sm font-semibold text-obsidian-secondary">
                                                             ({routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m'})
                                                         </span>
                                                     </div>
                                                 ) : routeStats?.error ? (
-                                                    <p className="mt-1 text-sm text-amber-600 font-medium">Percorso non disponibile per questo mezzo</p>
+                                                    <p className="mt-1 text-sm text-status-warning font-medium">Percorso non disponibile per questo mezzo</p>
                                                 ) : (
                                                     <div className="mt-2 flex items-center gap-2">
-                                                        <div className="h-6 w-24 bg-gray-100 rounded animate-pulse" />
-                                                        <span className="text-xs text-gray-400">Calcolo percorso...</span>
+                                                        <div className="h-6 w-24 bg-obsidian-border rounded animate-pulse" />
+                                                        <span className="text-xs text-obsidian-secondary">Calcolo percorso...</span>
                                                     </div>
                                                 )}
                                             </div>
                                     </div>
 
                                     {/* Start Nav Button — sticky bottom */}
-                                    <div className="shrink-0 p-4 pt-2 md:pb-6 bg-white border-t border-gray-100">
+                                    <div className="shrink-0 p-4 pt-2 md:pb-6 bg-obsidian-card border-t border-obsidian-border">
                                         <button 
                                             onClick={handleStartNavigationReal}
-                                            className="w-full bg-blue-600 text-white font-black text-lg py-4 rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-3"
+                                            className="w-full bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg font-bold text-base md:text-lg py-4 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
                                         >
                                             <NavIcon size={24} className="animate-pulse" />
                                             Avvia Navigazione
@@ -1811,8 +1811,8 @@ const MapPage = () => {
                             </>
                         ) : null}
                         {loadingPartners && (
-                            <div className="absolute top-4 right-16 z-40 bg-white/80 backdrop-blur text-gray-600 text-xs font-medium px-3 py-1.5 rounded-full shadow flex items-center gap-1.5 pointer-events-none">
-                                <div className="w-3 h-3 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                            <div className="absolute top-4 right-16 z-40 bg-obsidian-card/90 backdrop-blur border border-obsidian-border text-obsidian-secondary text-xs font-medium px-3 py-1.5 rounded-full shadow flex items-center gap-1.5 pointer-events-none">
+                                <div className="w-3 h-3 border-2 border-brand-orange border-t-transparent rounded-full animate-spin" />
                                 Ricerca partner...
                             </div>
                         )}
@@ -1823,12 +1823,12 @@ const MapPage = () => {
             {/* 2. TOP CONTROLS */}
             <div className="absolute top-4 left-4 right-4 z-40 flex justify-between pointer-events-none">
                 {/* Back button pushed down slightly in nav mode to avoid OS status bar overlap */}
-                <Link to="/dashboard-user" className={`bg-white p-3 rounded-full shadow-xl pointer-events-auto text-gray-800 hover:scale-105 transition-all ${isNavigating ? 'mt-12' : ''}`}>
+                <Link to="/dashboard-user" className={`bg-obsidian-card/90 backdrop-blur border border-obsidian-border p-3 rounded-full shadow-xl pointer-events-auto text-obsidian-primary hover:bg-obsidian-raised transition-all ${isNavigating ? 'mt-12' : ''}`}>
                     <ArrowLeft size={20} />
                 </Link>
                 {showSearchHere && !isNavigating && (
                     <button onClick={handleSearchHere}
-                        className="bg-white text-gray-800 px-4 py-2 rounded-full shadow-xl font-bold text-sm flex items-center gap-2 pointer-events-auto animate-in fade-in slide-in-from-top-4">
+                        className="bg-obsidian-card/90 backdrop-blur border border-obsidian-border text-obsidian-primary hover:bg-obsidian-raised px-4 py-2 rounded-full shadow-xl font-bold text-sm flex items-center gap-2 pointer-events-auto animate-in fade-in slide-in-from-top-4">
                         <Search size={14} /> Cerca in questa zona
                     </button>
                 )}
@@ -1849,11 +1849,11 @@ const MapPage = () => {
                 serve una sola CTA in quel momento. */}
             {showRoute && !selectedActivity && !selectedPartner && tourData && !isNavigating && !isRoutePlannerOpen && (
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 w-[95%] max-w-md animate-in slide-in-from-bottom-10 pointer-events-auto">
-                    <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border border-white/40 flex items-center justify-between gap-3 ring-1 ring-black/5">
+                    <div className="bg-obsidian-card/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border border-obsidian-border flex items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-gray-900 text-lg leading-tight truncate">{tourData?.title || 'Il tuo Itinerario'}</h3>
-                            <p className="text-xs text-gray-500 flex items-center gap-1 mt-1 font-medium flex-wrap">
-                                <Clock size={12} className="text-orange-500" />
+                            <h3 className="font-bold text-obsidian-primary text-lg leading-tight truncate">{tourData?.title || 'Il tuo Itinerario'}</h3>
+                            <p className="text-xs text-obsidian-secondary flex items-center gap-1 mt-1 font-medium flex-wrap">
+                                <Clock size={12} className="text-brand-orange" />
                                 {routeStats && !routeStats.error && routeStats.durationSec > 0
                                     ? `${Math.round(routeStats.durationSec / 60)} min · ${routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m'} · `
                                     : routeStats?.error ? 'Percorso non calcolato · '
@@ -1861,7 +1861,7 @@ const MapPage = () => {
                                 }
                                 {activeRoute.length} Tappe
                                 {businessPartners.length > 0 && (
-                                    <span className="ml-1 text-orange-500 font-bold flex items-center gap-0.5">
+                                    <span className="ml-1 text-brand-orange font-semibold flex items-center gap-0.5">
                                         <Store size={10} /> {businessPartners.length} partner
                                     </span>
                                 )}
@@ -1869,7 +1869,7 @@ const MapPage = () => {
                         </div>
                         {/* Contatta Guida rimosso per mantenere il focus sulla mappa e audio */}
                         <button onClick={handleStartNavigationClick}
-                            className="bg-gradient-to-r from-orange-600 to-orange-500 text-white px-5 py-3 rounded-xl font-bold text-sm shadow-lg shadow-orange-200 hover:shadow-orange-300 active:scale-95 transition-all flex flex-col items-center justify-center leading-none gap-1 min-w-[68px]">
+                            className="bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg px-5 py-3 rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all flex flex-col items-center justify-center leading-none gap-1 min-w-[68px]">
                             <NavIcon size={18} className="animate-pulse" />
                             <span className="text-[10px] uppercase tracking-wider">Avvia</span>
                         </button>
@@ -1888,9 +1888,9 @@ const MapPage = () => {
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                         className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[80] pointer-events-none"
                     >
-                        <div className="bg-black/70 backdrop-blur-md px-8 py-4 rounded-2xl shadow-2xl text-center">
-                            <p className="text-white/60 text-xs font-medium uppercase tracking-widest mb-1">Prossima tappa</p>
-                            <h2 className="text-white text-xl font-bold" style={{ fontFamily: 'Quicksand, sans-serif' }}>{flyToLabel}</h2>
+                        <div className="bg-black/70 backdrop-blur-md px-8 py-4 rounded-2xl shadow-2xl text-center border border-obsidian-border/40">
+                            <p className="text-obsidian-secondary text-xs font-medium uppercase tracking-widest mb-1">Prossima tappa</p>
+                            <h2 className="text-obsidian-primary text-xl font-bold">{flyToLabel}</h2>
                         </div>
                     </motion.div>
                 )}
@@ -1921,8 +1921,8 @@ const MapPage = () => {
                     {/* Background-refetch indicator (city changed, stale data still showing) */}
                     {isFetchingTours && !isLoadingTours && (
                         <div className="flex justify-center mb-2 pointer-events-none">
-                            <span className="bg-white/80 backdrop-blur text-gray-500 text-xs font-medium px-3 py-1 rounded-full shadow flex items-center gap-1.5">
-                                <div className="w-2.5 h-2.5 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                            <span className="bg-obsidian-card/90 backdrop-blur border border-obsidian-border text-obsidian-secondary text-xs font-medium px-3 py-1 rounded-full shadow flex items-center gap-1.5">
+                                <div className="w-2.5 h-2.5 border-2 border-brand-orange border-t-transparent rounded-full animate-spin" />
                                 Aggiorno tour…
                             </span>
                         </div>
@@ -1932,19 +1932,19 @@ const MapPage = () => {
                         {/* Initial load skeletons — shown while React Query has no cached data for this city */}
                         {isLoadingTours ? (
                             Array.from({ length: 3 }).map((_, i) => (
-                                <div key={i} className="snap-center shrink-0 w-64 h-36 bg-white/70 rounded-2xl shadow-xl overflow-hidden ring-1 ring-black/5 animate-pulse">
-                                    <div className="w-full h-full bg-gray-200" />
+                                <div key={i} className="snap-center shrink-0 w-64 h-36 bg-obsidian-card border border-obsidian-border rounded-2xl shadow-xl overflow-hidden animate-pulse">
+                                    <div className="w-full h-full bg-obsidian-raised" />
                                 </div>
                             ))
                         ) : (
                             visibleDrawerItems.map(tour => (
                                 <div key={tour.id} onClick={() => handleTourClick(tour)}
-                                    className="snap-center shrink-0 w-64 h-36 bg-white rounded-2xl shadow-xl overflow-hidden relative cursor-pointer active:scale-95 transition-transform ring-1 ring-black/5">
+                                    className="snap-center shrink-0 w-64 h-36 bg-obsidian-card border border-obsidian-border rounded-2xl shadow-xl overflow-hidden relative cursor-pointer active:scale-95 transition-transform">
                                     <img src={tour.image} className="w-full h-full object-cover" alt="" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                                    <div className="absolute bottom-3 left-3 text-white">
+                                    <div className="absolute bottom-3 left-3 text-obsidian-primary">
                                         <h3 className="font-bold text-sm leading-tight mb-0.5 line-clamp-1">{tour.name}</h3>
-                                        <p className="text-[10px] font-medium opacity-90 uppercase tracking-wide bg-orange-500/90 inline-block px-1.5 py-0.5 rounded-md mt-1">
+                                        <p className="text-[10px] font-semibold text-brand-orange bg-obsidian-card/90 border border-brand-orange/30 inline-block px-1.5 py-0.5 rounded-md mt-1">
                                             €{tour.price} · {tour.duration}
                                         </p>
                                     </div>
@@ -1958,12 +1958,12 @@ const MapPage = () => {
             {/* 6. TOUR DETAIL CARD — visible during navigation too */}
             {selectedActivity && !isRoutePlannerOpen && (
                 <div className={`absolute z-[50] animate-in slide-in-from-bottom-5 duration-300 ${isNavigating ? 'bottom-4 left-4 right-4' : 'bottom-0 left-0 right-0 lg:bottom-8 lg:left-8 lg:w-[400px]'}`}>
-                    <div className={`bg-white shadow-2xl overflow-hidden ring-1 ring-black/5 ${isNavigating ? 'rounded-2xl' : 'rounded-t-3xl lg:rounded-3xl'}`}>
+                    <div className={`bg-obsidian-card border border-obsidian-border shadow-2xl overflow-hidden ${isNavigating ? 'rounded-2xl' : 'rounded-t-3xl lg:rounded-3xl'}`}>
                         {/* Image section — compact during navigation.
                             Gate FOTO: niente foto → header compatto, nessun
                             placeholder Unsplash. Meglio nessuna immagine che
                             l'immagine di un altro posto. */}
-                        <div className={`relative ${activityPhotoUrl ? 'bg-gray-100' : ''} ${isNavigating ? (activityPhotoUrl ? 'h-28' : 'h-10') : (activityPhotoUrl ? 'h-44' : 'h-12')}`}>
+                        <div className={`relative ${activityPhotoUrl ? 'bg-obsidian-raised' : ''} ${isNavigating ? (activityPhotoUrl ? 'h-28' : 'h-10') : (activityPhotoUrl ? 'h-44' : 'h-12')}`}>
                             {activityPhotoUrl && (
                                 <img src={activityPhotoUrl} className="w-full h-full object-cover" alt="" />
                             )}
@@ -1973,7 +1973,7 @@ const MapPage = () => {
                                 <X size={16} />
                             </button>
                             {selectedActivity.category && (
-                                <div className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                                <div className="absolute top-3 left-3 bg-brand-orange text-obsidian-bg text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
                                     {selectedActivity.category}
                                 </div>
                             )}
@@ -1990,25 +1990,24 @@ const MapPage = () => {
                             {/* Titolo sotto: quando non si naviga, oppure quando si
                                 naviga ma non c'è foto su cui sovrapporlo. */}
                             {(!isNavigating || !activityPhotoUrl) && (
-                                <h2 className={`font-bold text-gray-900 ${isNavigating ? 'text-base mb-1 truncate' : 'text-xl mb-1'}`}>{selectedActivity.name || selectedActivity.title || 'Punto di Interesse'}</h2>
+                                <h2 className={`font-bold text-obsidian-primary ${isNavigating ? 'text-base mb-1 truncate' : 'text-xl mb-1'}`}>{selectedActivity.name || selectedActivity.title || 'Punto di Interesse'}</h2>
                             )}
-                            <p className="text-gray-500 text-xs mb-2 font-medium flex items-center gap-1">
-                                <Clock size={12} /> {selectedActivity.duration || 'Durata flessibile'}
+                            <p className="text-obsidian-secondary text-xs mb-2 font-medium flex items-center gap-1">
+                                <Clock size={12} className="text-brand-orange" /> {selectedActivity.duration || 'Durata flessibile'}
                             </p>
-                            <p className={`text-gray-600 text-sm leading-relaxed line-clamp-2 ${isNavigating ? 'mb-2' : 'mb-4'}`}>{selectedActivity.description || "Punto chiave dell'itinerario selezionato dall'AI."}</p>
+                            <p className={`text-obsidian-secondary text-sm leading-relaxed line-clamp-2 ${isNavigating ? 'mb-2' : 'mb-4'}`}>{selectedActivity.description || "Punto chiave dell'itinerario selezionato dall'AI."}</p>
                             {selectedActivity.type === 'tour_entry' ? (
                                 <Link to={`/tour-details/${selectedActivity.id}`}
-                                    className="w-full bg-black text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors text-sm">
+                                    className="w-full bg-obsidian-raised hover:bg-obsidian-border text-obsidian-primary border border-obsidian-border py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors text-sm">
                                     Vedi Dettagli <ArrowRight size={16} />
                                 </Link>
                             ) : (
                                 <button onClick={isNavigating ? () => setSelectedActivity(null) : handleStartNavigationClick}
-                                    className={`w-full text-white py-3 rounded-full font-bold flex items-center justify-center gap-2 shadow-lg transition-all text-sm min-h-[44px] active:scale-95 ${
+                                    className={`w-full py-3 rounded-full font-bold flex items-center justify-center gap-2 shadow-lg transition-all text-sm min-h-[44px] active:scale-95 ${
                                         isNavigating
-                                            ? 'bg-gradient-to-r from-green-500 to-emerald-600 shadow-green-200'
-                                            : 'shadow-orange-300/40'
-                                    }`}
-                                    style={!isNavigating ? { background: 'linear-gradient(135deg, #C2703E, #D4A843)' } : undefined}>
+                                            ? 'bg-obsidian-raised text-obsidian-primary border border-obsidian-border'
+                                            : 'bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg'
+                                    }`}>
                                     {isNavigating ? <><MapPin size={16} /> Chiudi</> : <><NavIcon size={16} /> Naviga</>}
                                 </button>
                             )}
@@ -2020,9 +2019,9 @@ const MapPage = () => {
             {/* 7. BUSINESS PARTNER DETAIL CARD */}
             {selectedPartner && !isNavigating && (
                 <div className="absolute bottom-0 left-0 right-0 z-[50] lg:bottom-8 lg:left-8 lg:w-[400px] animate-in slide-in-from-bottom-5">
-                    <div className="bg-white rounded-t-3xl lg:rounded-3xl shadow-2xl overflow-hidden ring-2 ring-orange-200">
+                    <div className="bg-obsidian-card border border-obsidian-border rounded-t-3xl lg:rounded-3xl shadow-2xl overflow-hidden">
                         {/* Hero */}
-                        <div className="h-40 relative bg-gradient-to-br from-stone-300 to-stone-500">
+                        <div className="h-40 relative bg-obsidian-raised">
                             {/* F26 — l'<img> era montata senza guardia: con image null
                                 mostrava l'icona di immagine rotta. Il contenitore NON si
                                 rimuove (porta X, badge, nome e indirizzo in overlay bianco):
@@ -2037,7 +2036,7 @@ const MapPage = () => {
                                 <X size={16} />
                             </button>
                             {/* Partner badge */}
-                            <div className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md">
+                            <div className="absolute top-3 left-3 bg-brand-orange text-obsidian-bg text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md">
                                 <Sparkles size={10} /> Partner DoveVai
                             </div>
                             <div className="absolute bottom-3 left-4">
@@ -2053,10 +2052,10 @@ const MapPage = () => {
                             {(selectedPartner.ai_metadata?.vibe?.length > 0 || selectedPartner.ai_metadata?.style?.length > 0) && (
                                 <div className="flex flex-wrap gap-1.5 mb-3">
                                     {selectedPartner.ai_metadata.vibe?.map((v, i) => (
-                                        <span key={i} className="text-[10px] font-semibold bg-orange-50 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full">{v}</span>
+                                        <span key={i} className="text-[10px] font-semibold bg-brand-orange/10 text-brand-orange border border-brand-orange/20 px-2 py-0.5 rounded-full">{v}</span>
                                     ))}
                                     {selectedPartner.ai_metadata.style?.map((s, i) => (
-                                        <span key={i} className="text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full">{s}</span>
+                                        <span key={i} className="text-[10px] font-semibold bg-obsidian-raised text-obsidian-secondary border border-obsidian-border px-2 py-0.5 rounded-full">{s}</span>
                                     ))}
                                 </div>
                             )}
@@ -2064,23 +2063,23 @@ const MapPage = () => {
                             {selectedPartner.category_tags?.length > 0 && (
                                 <div className="flex gap-1.5 mb-3 flex-wrap">
                                     {selectedPartner.category_tags.map((t, i) => (
-                                        <span key={i} className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                        <span key={i} className="text-[10px] font-bold bg-obsidian-raised text-obsidian-secondary border border-obsidian-border px-2 py-0.5 rounded-full flex items-center gap-1">
                                             <Tag size={8} />{t}
                                         </span>
                                     ))}
                                 </div>
                             )}
-                            <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed mb-4">
+                            <p className="text-obsidian-secondary text-sm line-clamp-2 leading-relaxed mb-4">
                                 {selectedPartner.description || 'Attività partner — fai tappa qui durante il tour!'}
                             </p>
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => window.open(`https://maps.google.com/?q=${selectedPartner.latitude},${selectedPartner.longitude}`, '_blank')}
-                                    className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-orange-200 active:scale-95 transition-transform">
+                                    className="flex-1 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform">
                                     <NavIcon size={14} /> Vai qui
                                 </button>
                                 <button onClick={() => setSelectedPartner(null)}
-                                    className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-colors">
+                                    className="px-4 py-3 bg-obsidian-raised hover:bg-obsidian-border text-obsidian-secondary hover:text-obsidian-primary border border-obsidian-border rounded-xl font-medium text-sm transition-colors">
                                     Chiudi
                                 </button>
                             </div>
@@ -2153,9 +2152,9 @@ const MapPage = () => {
                         });
                     }
                 }}
-                className="absolute right-4 bottom-28 md:right-[50px] md:bottom-[100px] z-50 bg-white w-10 h-10 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.3)] flex items-center justify-center hover:bg-gray-50 active:bg-gray-100 group"
+                className="absolute right-4 bottom-28 md:right-[50px] md:bottom-[100px] z-50 bg-obsidian-card border border-obsidian-border text-obsidian-secondary hover:text-brand-orange hover:bg-obsidian-raised w-10 h-10 rounded-full shadow-xl flex items-center justify-center transition-colors group"
             >
-                <NavIcon size={20} className="text-gray-600 group-hover:text-blue-500 transition-colors" />
+                <NavIcon size={20} className="text-obsidian-secondary group-hover:text-brand-orange transition-colors" />
             </button>
 
             {/* 12. GEMINI DRAWER */}

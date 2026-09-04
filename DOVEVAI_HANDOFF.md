@@ -5284,12 +5284,72 @@ non un aggettivo di troppo, un **fatto affermato senza la misura che lo
 reggerebbe**. **Verdict device ancora da dare.**
 
 **2) Sistema guide: presente nell'interfaccia, inesistente in V1. TRE superfici.**
-- **guide inventate in TourDetails** — *Marco Polo 4.9*, *Chiara Esposito 4.6*,
+- ~~**guide inventate in TourDetails**~~ — *Marco Polo 4.9*, *Chiara Esposito 4.6*,
   con biografie fabbricate. E' il **pattern del Gate K**.
-- **"Richieste Attive"** nel Profilo, con bottone **"Apri Chat"**.
-- **modal "Tour su Misura"** con **"Invia alle Guide di X"**.
+  🟡 **PRIMO PEZZO CHIUSO NEL CODICE il 03/09 (su main). Verdict device PENDENTE.**
+- **"Richieste Attive"** nel Profilo, con bottone **"Apri Chat"**. — **aperta**
+- **modal "Tour su Misura"** con **"Invia alle Guide di X"**. — **aperta**
 **Da chiudere insieme, non una alla volta**: sono la stessa promessa fatta in
-tre posti, e toglierne una lascia le altre a confermarla.
+tre posti, e toglierne una lascia le altre a confermarla. **La voce 2 resta
+APERTA**: e' chiuso il primo dei tre pezzi, non la voce.
+
+**Cosa e' stato fatto (03/09) — la PORTA `GUIDE_TOURS_ENABLED`.**
+Costante esportata in `dataService.js`, `false` in V1, con il perche' scritto
+accanto. Chiude **tre usci**, tutti dentro quel file, tutti prima della query
+(zero costo di rete): `getToursByCity()` → `[]`, `getTourById()` → `null`
+(cade sul not-found di Gate D-1, nessun ramo di render nuovo),
+`subscribeToLiveTours()` → `null`. **Riaprire in V2 = cambiare quella riga.**
+
+**Non e' un filtro su `isAiGenerated`, e la diagnosi qui sotto va corretta**:
+quel flag **non esiste a livello dato** — non e' una colonna, non e' emesso da
+`mapTourToUI`, e' un campo di navigazione messo nel `location.state` dai path
+AI. Una condizione `!isAiGenerated` dentro `getToursByCity` sarebbe vera per
+ogni riga e spegnerebbe tutto **per assenza del flag, non per scelta**. Il
+discriminante vero e' la **sorgente**: l'unico writer di `tours` e' TourBuilder
+(flusso guida), quindi tutto cio' che esce di li' e' un tour-guida per
+costruzione.
+
+**Render protetti dentro lo stesso fix** (regola locked #5 — uccidere un mock
+senza proteggere il render):
+- **TourLive**: il banner `🔴 LIVE ORA / "2 tour attivi in questo momento"` era
+  **hardcoded**. A lista vuota sarebbe sopravvissuto affermando due tour sopra
+  zero card: lo spegnimento avrebbe **creato una bugia nuova**. Ora il numero e'
+  reale e il banner **non si monta a zero**. Aggiunto l'empty state promesso dal
+  commento in cima al file e mai costruito: *"Nessun tour live oggi"*.
+- **MapPage**: il drawer montava una **striscia orizzontale vuota e muta**. Ora
+  non si monta se non c'e' ne' una card ne' uno skeleton.
+- **Home**: gia' protetta. Verificato che il ramo AI **parta davvero** con lista
+  vuota (`[]` → `finalTours.length === 0` → motore AI).
+
+**COSA QUESTO NON CHIUDE** — dichiarato, non lasciato implicito:
+- **"Richieste Attive" + "Apri Chat"** nel Profilo e **modal "Tour su Misura"**
+  (`DashboardUser` `handleGuideRequest`/`submitGuideRequest`, `createGuideRequest`):
+  **non passano da `getToursByCity`**. La promessa resta in piedi in due posti.
+- **Esplora** (`Explore.jsx`, `.from('tours')` con embed `profiles(...)`): **la
+  porta non la copre**. Oggi non mostra tour-guida **per accidente, non per
+  scelta** — risponde 400 PGRST200 perche' `tours` non ha nessuna FK. **Il
+  giorno che quel 400 viene risolto, i tour-guida riappaiono li'.** E' l'unico
+  punto in cui questo lavoro si disfa da solo. Avviso piantato **sopra quella
+  query**, dove lavorera' chi ripara il 400, piu' l'elenco nel commento della
+  costante. Va al **suo gate** (AUDIT SCHEMA: serve la migration con la FK, e
+  vanno tolti `username`/`bio` che non esistono).
+- **Le identita' di guida fabbricate nei default** sopravvivono su ogni path che
+  resta: `mapTourToUI` genera `'Guida DoveVai'` / `'Esperto locale appassionato.'`,
+  `tourShape.js` genera `'DoveVai Guide'`.
+- **Gate PERSISTENZA** invariato: i tour AI non sono salvati, quindi "Vedi tutte"
+  → Esplora vuota (voce 6) non migliora.
+- **Il motore AI su Roma viene ESPOSTO, non aggiustato.** Le tre righe DB lo
+  mascheravano (i tour DB si prendevano per primi: se c'erano, l'AI non partiva).
+  Da ora "Per Te" a Roma mostra cio' che il motore produce davvero. Se ha buchi,
+  si vedono adesso — ed e' il punto, ma va messo in conto al verdict device.
+
+**Zero modifiche al DB**: le tre righe di Roma restano intatte. Servono a
+collaudare Esplora e tornano vive appena la porta si riapre.
+
+**Copertura persa, dichiarata**: lo smoke `2a` verificava che una scheda
+**popolata** renderizzasse senza crash. A porta chiusa non e' raggiungibile per
+rotta (i tour AI entrano in TourDetails solo via `location.state`). Il test ora
+asserisce il not-found; torna da solo quando la costante passa a `true`.
 
 **3) F55/F56 RIAPERTI sul caso CULTURA.** Visti su device il **30/08**:
 descrizioni intercambiabili (**aria / profumo / suono** su Duomo, Scala e Santa
@@ -5783,12 +5843,6 @@ Fuori dalla conversione, di proposito: il **puntatore utente** sulla mappa, che
 verra' riscritto dai gate di navigazione — convertirlo adesso sarebbe lavoro da
 buttare.
 
-> ⚠️ **`estetica` e' indietro di un commit rispetto a main**: non contiene
-> `a10085b` (il cleanup mappa). Quindi nel preview che si sta guardando esistono
-> ancora `ExploreMiniMap.jsx`, `DOVEVAI_MAP_STYLES` e il `DEFAULT_MAP_ID`
-> duplicato. Non e' un problema di rendering, ma va saputo prima di leggere quel
-> codice sul branch.
-
 ### Lo stile della mappa: dove vive davvero
 
 In **Google Cloud Console**, non nel repo:
@@ -5898,6 +5952,40 @@ Il modo di leggerli non e' "sembra sensato?", e' **riga per riga contro il
 mandato**: per ogni punto chiesto, cercare nel referto la frase che lo copre. Se
 non c'e', **non e' stato fatto** — indipendentemente da quanto il resto sia
 convincente. Vale anche per i miei referti.
+
+### LEZIONE #46 — una baseline costruita con l'ambiente sbagliato non e' una baseline
+
+Misurato il **03/09**, chiudendo la voce 2. Dopo il fix, `npx playwright test`
+dava **3 rossi**. Per capire se erano miei ho messo le modifiche in stash e
+rimisurato: **5 rossi senza il fix**. Il fix, quindi, ne *risanava* due.
+
+Erano falsi entrambi i numeri. La suite E2E gira contro il **bundle buildato**,
+e io avevo buildato con `npm run build` — che legge il `.env` reale, con
+`VITE_SUPABASE_URL` di **produzione**. Le fixture in `e2e/fixtures/mock-app.ts`
+intercettano `**/test.supabase.co/**` e iniettano la sessione sulla chiave
+`sb-test-auth-token`. Con l'URL di produzione **non intercettano niente**:
+niente sessione, niente mock, l'app non monta, e i test cadono per un motivo
+che non ha nulla a che vedere col codice. La suite si lancia **solo** con
+`npm run test:e2e`, che fa `build:e2e --mode e2e` (`.env.e2e`,
+`VITE_SUPABASE_URL=https://test.supabase.co`). Lanciata cosi': **6/6 verdi**,
+prima e dopo.
+
+**E' la stessa forma della #44**: li' un marker negativo cercato in un file che
+non contiene quel codice era verde per costruzione e non diceva niente; qui un
+test rosso in un ambiente che non puo' montare l'app e' rosso per costruzione e
+non dice niente. In entrambi i casi **la misura non tocca l'oggetto che dichiara
+di misurare** — e in entrambi i casi il risultato sembra informativo.
+
+Il corollario e' piu' scomodo del caso: per due giri ho creduto a un delta
+(3 rossi contro 5) e stavo per **prendermi il merito di due test risanati** che
+nessuno aveva mai rotto. Un delta fra due misure sbagliate resta sbagliato:
+**prima si valida il banco di prova, poi si legge il numero.** Il segnale che
+avrebbe dovuto fermarmi subito era che nel baseline falliva anche `2b`, un test
+che il mio lavoro non toccava in nessun modo.
+
+Regola operativa: **se un rosso non ha una spiegazione nel diff, il sospettato
+numero uno e' il banco di prova, non il codice.** E vale anche al contrario —
+un verde ottenuto con l'ambiente sbagliato non e' un verde.
 
 ---
 

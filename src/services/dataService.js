@@ -26,6 +26,59 @@ export function validateData(schema, data, label = '') {
     return data;
 }
 
+// ---------------------------------------------------------------------------
+// GUIDE_TOURS_ENABLED — la porta del sistema guide.
+//
+// PERCHE' E' CHIUSA (V1): il sistema guide esiste nell'interfaccia ma non
+// esiste come servizio. Non ci sono guide reali che prendono in carico una
+// prenotazione, quindi ogni tour della tabella `tours` mostrato a un
+// esploratore e' un'esperienza a pagamento offerta da qualcuno che non c'e'.
+// A Roma erano tre righe, e stavano anche mascherando lo stato reale del
+// motore AI in Home (i tour DB si prendevano per primi: se ce n'erano, il
+// motore non partiva affatto).
+//
+// COSA NON E': non e' un filtro su isAiGenerated. Quel flag non esiste a
+// livello dato — non e' una colonna, e' un campo di navigazione messo nel
+// location.state dai path AI. Una condizione `!isAiGenerated` qui sarebbe
+// vera per ogni riga (il flag e' sempre assente) e spegnerebbe tutto per
+// assenza, non per scelta. Il discriminante vero e' la SORGENTE: l'unico
+// writer di `tours` e' TourBuilder (flusso guida), quindi tutto cio' che
+// esce di qui e' un tour-guida per costruzione.
+//
+// QUANDO SI RIAPRE: in V2, quando esistono guide reali che rispondono. Si
+// riapre cambiando SOLO questa costante a `true`. Nessun'altra modifica:
+// i rami di fetch e di gestione errori sotto sono intatti.
+//
+// ZERO EFFETTI SUL DB: le righe restano dove sono. Servono a collaudare
+// Esplora (che oggi comunque prende 400 PGRST200 per assenza di FK) e
+// tornano vive appena la porta si riapre.
+//
+// DOVE VIVE LA PORTA — tre usci, tutti chiusi qui dentro:
+//   getToursByCity()  → []    (le liste: Home, MapPage, TourLive)
+//   getTourById()     → null  (il link diretto / bookmark → not-found Gate D-1)
+//   subscribeToLiveTours() → null (il canale realtime)
+//
+// ⚠️ COSA QUESTA PORTA **NON** COPRE — leggere prima di riparare Esplora.
+// La porta vive dentro i tre metodi qui sopra. Chi interroga `tours` con una
+// query PROPRIA le passa accanto, e i tour-guida riappaiono:
+//
+//   • src/pages/Explore.jsx:120-126 — `.from('tours').select('*, profiles(...)')`
+//     con `is_live=true`. Oggi NON e' a schermo per un motivo accidentale:
+//     risponde 400 PGRST200, perche' `tours` non ha nessuna foreign key e
+//     PostgREST non puo' risolvere l'embed (e `username`/`bio` non esistono
+//     su `profiles`). NON e' spenta: e' rotta. Il giorno che quel 400 viene
+//     risolto — migration con la FK — Esplora ricomincia a mostrare tour di
+//     guide inesistenti, a meno che il fix non passi da qui o non replichi
+//     questo controllo. E' l'unico punto in cui questo lavoro si puo' disfare
+//     da solo, senza che nessuno tocchi questo file. L'avviso gemello sta
+//     sopra quella query, dove lavorera' chi ripara il 400.
+//
+// Fuori perimetro per costruzione (flusso guida/business, non esploratore):
+// DashboardGuide.jsx:98, guide/TourBuilder.jsx:281/292, DashboardBusiness.jsx:726,
+// userContextService.js:148 (solo un count).
+// ---------------------------------------------------------------------------
+export const GUIDE_TOURS_ENABLED = false;
+
 class DataService {
     constructor() {
         this.useRealData = true; // Feature flag for safety
@@ -143,6 +196,13 @@ class DataService {
      * Returns mapped UI objects
      */
     async getToursByCity(city) {
+        // PORTA CHIUSA (V1) — corto circuito PRIMA della query: nessuna riga
+        // esce, e nessun costo di rete. `[]` e non `null`: i tre consumatori
+        // (DashboardUser:211 `tours && tours.length > 0`, MapPage:835
+        // `if (!tours) return []`, TourLive:54 `tours || []`) trattano
+        // l'array vuoto come "niente da mostrare", che e' la verita'.
+        if (!GUIDE_TOURS_ENABLED) return [];
+
         if (!this.useRealData) return null;
 
         try {
@@ -172,6 +232,12 @@ class DataService {
      * Get a single tour by ID for details page
      */
     async getTourById(id) {
+        // PORTA CHIUSA (V1) — copre il link diretto e il bookmark, che le liste
+        // filtrate non intercettano. `null` fa cadere TourDetails sul not-found
+        // onesto gia' esistente (Gate D-1: getTourRenderState → 'not-found',
+        // "Questo tour non esiste piu'"). Nessun ramo di render nuovo.
+        if (!GUIDE_TOURS_ENABLED) return null;
+
         if (!this.useRealData) return null;
 
         try {
@@ -320,6 +386,16 @@ class DataService {
      * Subscribe to live status changes (Realtime)
      */
     subscribeToLiveTours(callback) {
+        // PORTA CHIUSA (V1) — terzo uscio sugli stessi dati. La refetch qui
+        // sotto consegna `mapTourToUI(data)` al callback, cioe' un tour-guida
+        // gia' mappato. Oggi l'unico consumatore (TourLive.jsx:39) scarta il
+        // payload e si limita a invalidare la query — che ripassa dalla porta —
+        // quindi non perde nulla a schermo; ma basterebbe un consumatore che
+        // usa l'argomento per aggirare la porta in silenzio. Chiuso qui, non
+        // sul consumatore. In V1 questo canale realtime puo' solo trasportare
+        // dati di guide che non esistono: non lo apriamo affatto.
+        if (!GUIDE_TOURS_ENABLED) return null;
+
         if (!this.useRealData) return null;
 
         try {

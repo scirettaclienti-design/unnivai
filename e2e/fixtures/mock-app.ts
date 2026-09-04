@@ -32,6 +32,10 @@ const FAKE_SESSION = {
 }
 
 // Un tour "reale" fittizio: minimum shape per superare TourUISchema.
+// NB (Voce 2 — porta chiusa V1): questa riga ha `guide_id`, cioe' e' un
+// tour-guida. Con GUIDE_TOURS_ENABLED=false in dataService.js non arriva piu'
+// a schermo: la fixture serve ora a PROVARE che la porta blocca (smoke 2a),
+// non ad aprire una scheda. Resta valida cosi' com'e' anche per V2.
 export const FAKE_TOUR = {
     id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
     title: 'Tour E2E — passeggiata di prova',

@@ -43,14 +43,25 @@ test.describe('Smoke E2E — percorsi critici DoveVAI', () => {
         expect(errors, `Errori JS non gestiti:\n${errors.join('\n')}`).toHaveLength(0)
     })
 
-    test('2a) SCHEDA TOUR — un tour reale si apre, no ErrorBoundary', async ({ mockedPage: page }) => {
+    // Voce 2 — PORTA CHIUSA V1. Il sistema guide non esiste in V1: una riga
+    // `tours` (che e' sempre autorata da una guida — l'unico writer e'
+    // TourBuilder) non deve piu' aprire una scheda, nemmeno da link diretto o
+    // bookmark. FAKE_TOUR ha guide_id, quindi e' esattamente quel caso.
+    //
+    // Prima della porta questo test verificava che una scheda POPOLATA
+    // renderizzasse senza crash. Quella copertura non e' sostituibile via URL
+    // finche' la porta e' chiusa: i tour AI raggiungono TourDetails solo via
+    // location.state, non per rotta. Quando GUIDE_TOURS_ENABLED torna true in
+    // V2, questo test torna ad asserire che il tour si apre.
+    test('2a) SCHEDA TOUR — riga-guida (porta chiusa V1) → not-found onesto, NO crash', async ({ mockedPage: page }) => {
         const errors = await trackConsoleErrors(page)
         await page.goto(`/tour-details/${FAKE_TOUR.id}`)
         await page.waitForLoadState('domcontentloaded')
 
         await assertNoErrorBoundary(page)
-        // Almeno il titolo del tour fake appare.
-        await expect(page.getByText(FAKE_TOUR.title).first()).toBeVisible({ timeout: 10_000 })
+        // Il titolo del tour-guida NON deve comparire: la porta e' a monte.
+        await expect(page.getByText(FAKE_TOUR.title)).toHaveCount(0)
+        await expect(page.getByText(/Questo tour non esiste più/i)).toBeVisible({ timeout: 10_000 })
         expect(errors, `Errori JS non gestiti:\n${errors.join('\n')}`).toHaveLength(0)
     })
 

@@ -81,6 +81,11 @@ export default function TourLivePage() {
         // Ensure image property matches (dataService uses imageUrl, this page uses image)
         image: tour.imageUrl || tour.image
     }));
+
+    // Conteggio reale dei tour live, non una stringa fissa. Alimenta il banner
+    // (che non si monta a zero) e discrimina lista vs empty state.
+    const liveCount = liveTours.filter(t => t.live).length;
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
             <TopBar />
@@ -120,44 +125,76 @@ export default function TourLivePage() {
                         </div>
                     </div>
 
-                    {/* Live Status Banner */}
-                    <motion.div
-                        className="bg-gradient-to-r from-red-400 to-pink-400 rounded-2xl p-4 mb-6 text-white relative overflow-hidden"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8 }}
-                    >
+                    {/* Live Status Banner — solo se c'e' davvero qualcosa di live.
+                        Prima il conteggio era la stringa hardcoded "2 tour attivi
+                        in questo momento": sopravviveva a lista vuota e affermava
+                        due tour sopra zero card. Ora il numero e' quello reale, e
+                        il banner non si monta se il numero e' zero (regola locked
+                        #6: un fatto, non un aggettivo). */}
+                    {liveCount > 0 && (
                         <motion.div
-                            className="absolute inset-0 bg-white/10 rounded-2xl"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 1, delay: 0.3 }}
-                        />
-                        <div className="relative flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                                <motion.div
-                                    className="w-3 h-3 bg-white rounded-full"
-                                    animate={{ scale: [1, 1.2, 1] }}
-                                    transition={{ duration: 1, repeat: Infinity }}
-                                />
-                                <div>
-                                    <h3 className="font-bold">🔴 LIVE ORA</h3>
-                                    <p className="text-sm opacity-90">2 tour attivi in questo momento</p>
-                                </div>
-                            </div>
+                            className="bg-gradient-to-r from-red-400 to-pink-400 rounded-2xl p-4 mb-6 text-white relative overflow-hidden"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.8 }}
+                        >
                             <motion.div
-                                className="text-3xl"
-                                whileHover={{ scale: 1.3, rotate: 15 }}
-                            >
-                                📺
-                            </motion.div>
-                        </div>
-                    </motion.div>
+                                className="absolute inset-0 bg-white/10 rounded-2xl"
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ duration: 1, delay: 0.3 }}
+                            />
+                            <div className="relative flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <motion.div
+                                        className="w-3 h-3 bg-white rounded-full"
+                                        animate={{ scale: [1, 1.2, 1] }}
+                                        transition={{ duration: 1, repeat: Infinity }}
+                                    />
+                                    <div>
+                                        <h3 className="font-bold">🔴 LIVE ORA</h3>
+                                        <p className="text-sm opacity-90">
+                                            {liveCount === 1 ? '1 tour attivo in questo momento' : `${liveCount} tour attivi in questo momento`}
+                                        </p>
+                                    </div>
+                                </div>
+                                <motion.div
+                                    className="text-3xl"
+                                    whileHover={{ scale: 1.3, rotate: 15 }}
+                                >
+                                    📺
+                                </motion.div>
+                            </div>
+                        </motion.div>
+                    )}
                 </motion.div>
 
                 {/* Interactive Tour Cards */}
                 <div className="space-y-8">
-                    {
+                    {liveTours.length === 0 ? (
+                        // Empty state onesto (Gate J2, promesso nel commento in cima
+                        // al file e mai costruito). Nessun numero inventato, nessuna
+                        // promessa di guide: in V1 i tour in diretta non esistono
+                        // perche' non esistono guide che li conducono. Non diciamo
+                        // "torna piu' tardi" — non sappiamo se e quando.
+                        <div className="flex flex-col items-center justify-center py-14 text-center">
+                            <div className="w-14 h-14 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/40 flex items-center justify-center mx-auto mb-4 text-gray-500">
+                                <Calendar className="w-7 h-7 stroke-[1.5]" />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-800 mb-1">Nessun tour live oggi</h3>
+                            <p className="text-gray-600 text-sm mb-6 max-w-xs leading-relaxed">
+                                {currentCity
+                                    ? `Nessuna guida sta conducendo un tour a ${currentCity} in questo momento.`
+                                    : 'Nessuna guida sta conducendo un tour in questo momento.'}
+                            </p>
+                            <Link
+                                to="/ai-itinerary"
+                                className="px-5 py-2.5 bg-brand-orange text-obsidian-bg rounded-2xl text-sm font-bold hover:bg-brand-orange-hover transition-colors shadow-md shadow-brand-orange/20"
+                            >
+                                Crea il tuo percorso
+                            </Link>
+                        </div>
+                    ) : (
                         liveTours.map((tour, index) => (
                             <motion.div
                                 key={tour.id}
@@ -368,7 +405,7 @@ export default function TourLivePage() {
                                 </div>
                             </motion.div>
                         ))
-                    }
+                    )}
                 </div>
 
                 {/* Interactive Action Center */}

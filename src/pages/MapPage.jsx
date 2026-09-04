@@ -1916,7 +1916,12 @@ const MapPage = () => {
             )}
 
             {/* 5. EXPLORE DRAWER */}
-            {viewMode === 'tours' && !selectedActivity && !selectedPartner && !isNavigating && (
+            {/* Voce 2 — porta chiusa V1: con `tours` spenti la lista e' vuota e
+                il drawer montava una striscia orizzontale vuota, muta: niente
+                card, niente messaggio, solo spazio occupato sopra la mappa.
+                Ora il contenitore non si monta se non c'e' niente da mostrare
+                (ne' card ne' skeleton di caricamento). La mappa resta intera. */}
+            {viewMode === 'tours' && !selectedActivity && !selectedPartner && !isNavigating && (isLoadingTours || visibleDrawerItems.length > 0) && (
                 <div className="absolute left-0 w-full z-40 px-4 pointer-events-none" style={{ bottom: 'max(2rem, calc(env(safe-area-inset-bottom) + 0.5rem))' }}>
                     {/* Background-refetch indicator (city changed, stale data still showing) */}
                     {isFetchingTours && !isLoadingTours && (

@@ -55,6 +55,22 @@ describe('Gate E-1 — getTourRenderState', () => {
         expect(state).toBe('not-found');
     });
 
+    it('not-found per una RIGA-GUIDA aperta da link diretto (porta chiusa V1)', () => {
+        // Voce 2 — sistema guide spento in V1. La riga resta nel DB, ma
+        // getTourById corto-circuita su GUIDE_TOURS_ENABLED=false e ritorna
+        // null PRIMA della query. Da qui in poi il caso e' indistinguibile da
+        // "tour inesistente": hasTour=false su un UUID valido, fetch conclusa.
+        // Nessun ramo di render nuovo — riusa il not-found di Gate D-1
+        // ("Questo tour non esiste piu'").
+        const state = getTourRenderState({
+            hasTour: false,
+            isLikelyDbId: true,
+            isQueryLoading: false,
+            isQueryError: false,
+        });
+        expect(state).toBe('not-found');
+    });
+
     it('not-found quando query in errore (rete/RLS)', () => {
         // Mostriamo not-found onesto anche in errore invece che restare in
         // skeleton perpetuo (loading:true a vita se retry disabled).

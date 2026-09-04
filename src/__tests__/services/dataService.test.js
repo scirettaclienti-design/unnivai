@@ -381,7 +381,11 @@ describe('getToursByCity', () => {
     vi.clearAllMocks()
   })
 
-  it('returns mapped tours array on success', async () => {
+  // PORTA CHIUSA (V1) — il sistema guide non esiste in V1, quindi nessuna riga
+  // della tabella `tours` puo' arrivare a schermo. La porta e' GUIDE_TOURS_ENABLED
+  // in dataService.js. Questi due test fissano il contratto: array vuoto, e
+  // Supabase NON interrogato affatto.
+  it('porta chiusa: ritorna [] senza interrogare Supabase, anche con righe presenti', async () => {
     const rawTours = [
       { id: 't1', title: 'Tour 1', city: 'Roma', price_eur: 30 },
       { id: 't2', title: 'Tour 2', city: 'Roma', price_eur: 50 },
@@ -393,51 +397,18 @@ describe('getToursByCity', () => {
 
     const result = await dataService.getToursByCity('Roma')
 
-    // Returns mapped objects, not raw DB rows
-    expect(result).toHaveLength(2)
-    expect(result[0].id).toBe('t1')
-    expect(result[0].price).toBe(30)       // confirms mapTourToUI was called
-    expect(typeof result[0].images).toBe('object') // array present on mapped obj
-
-    // Verifies the correct table and filter were used
-    expect(supabase.from).toHaveBeenCalledWith('tours')
+    // Le righe esistono nel DB e restano intatte: semplicemente non escono di qui.
+    expect(result).toEqual([])
+    // Il corto circuito e' PRIMA della query: zero costo di rete.
+    expect(supabase.from).not.toHaveBeenCalled()
   })
 
-  it('returns null when Supabase returns an error', async () => {
-    vi.mocked(supabase.from).mockReturnValue(
-      createQueryBuilder({ data: null, error: { message: 'DB connection failed' } })
-    )
-
-    const result = await dataService.getToursByCity('Roma')
-    expect(result).toBeNull()
-  })
-
-  it('returns null when Supabase returns an empty array', async () => {
-    vi.mocked(supabase.from).mockReturnValue(
-      createQueryBuilder({ data: [], error: null })
-    )
-
-    const result = await dataService.getToursByCity('Roma')
-    expect(result).toBeNull()
-  })
-
-  it('returns null when Supabase throws unexpectedly', async () => {
-    vi.mocked(supabase.from).mockImplementation(() => {
-      throw new Error('Network error')
-    })
-
-    const result = await dataService.getToursByCity('Roma')
-    expect(result).toBeNull()
-  })
-
-  it('filters out tours that fail mapTourToUI (returns null for that item)', async () => {
-    // Simulate a row that causes mapTourToUI to return null (e.g. corrupted data)
-    // mapTourToUI catches exceptions internally and returns null.
-    // The .map() in getToursByCity does NOT filter nulls — this is intentional
-    // current behaviour. This test documents it.
+  it('porta chiusa: [] anche quando il DB avrebbe righe malformate', async () => {
+    // Prima della porta questo caso documentava che i null di mapTourToUI
+    // passavano nell'array. Ora non si arriva nemmeno a mappare.
     const rawTours = [
       { id: 't1', title: 'Valid', city: 'Roma' },
-      null, // malformed entry
+      null,
     ]
 
     vi.mocked(supabase.from).mockReturnValue(
@@ -445,10 +416,46 @@ describe('getToursByCity', () => {
     )
 
     const result = await dataService.getToursByCity('Roma')
-    // mapTourToUI(null) → null; the array still has length 2
-    expect(result).toHaveLength(2)
-    expect(result[0].id).toBe('t1')
-    expect(result[1]).toBeNull()
+    expect(result).toEqual([])
+    expect(supabase.from).not.toHaveBeenCalled()
+  })
+
+  it('porta chiusa: getTourById ritorna null senza interrogare Supabase', async () => {
+    // Un link diretto/bookmark a un tour-guida deve cadere sul not-found
+    // onesto di Gate D-1 (TourDetails getTourRenderState → 'not-found').
+    vi.mocked(supabase.from).mockReturnValue(
+      createQueryBuilder({ data: { id: 't1', title: 'Tour 1', city: 'Roma' }, error: null })
+    )
+
+    const result = await dataService.getTourById('aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee')
+
+    expect(result).toBeNull()
+    expect(supabase.from).not.toHaveBeenCalled()
+  })
+
+  // I tre casi qui sotto coprivano la gestione errori a porta APERTA (error /
+  // empty / throw → null). Quei rami vivono ancora nel codice e tornano
+  // esercitabili quando GUIDE_TOURS_ENABLED torna true in V2. Finche' la porta
+  // e' chiusa il contratto e' uno solo, ed e' piu' forte: qualunque cosa faccia
+  // il DB, di qui non esce niente e la rete non viene toccata.
+  it('porta chiusa: [] anche se il DB e\' in errore', async () => {
+    vi.mocked(supabase.from).mockReturnValue(
+      createQueryBuilder({ data: null, error: { message: 'DB connection failed' } })
+    )
+
+    const result = await dataService.getToursByCity('Roma')
+    expect(result).toEqual([])
+    expect(supabase.from).not.toHaveBeenCalled()
+  })
+
+  it('porta chiusa: [] anche se Supabase lancia', async () => {
+    vi.mocked(supabase.from).mockImplementation(() => {
+      throw new Error('Network error')
+    })
+
+    const result = await dataService.getToursByCity('Roma')
+    expect(result).toEqual([])
+    expect(supabase.from).not.toHaveBeenCalled()
   })
 })
 

@@ -65,6 +65,27 @@ function ExplorePage() {
             try {
                 let rawRows = [];
 
+                // ⚠️ LEGGERE PRIMA DI RIPARARE IL 400 DI QUESTA QUERY.
+                //
+                // Questa query risponde 400 PGRST200: `tours` non ha nessuna
+                // foreign key, quindi PostgREST non puo' risolvere l'embed
+                // `profiles(...)` — nemmeno con l'hint `profiles!guide_id(...)`.
+                // In piu' `username` e `bio` NON esistono su `profiles`.
+                // (La dicitura "CRITICO-1 fix" qui sotto e' vecchia: il fix non
+                // ha mai funzionato, la query non ha mai restituito una riga.)
+                //
+                // Il punto che conta: Esplora oggi non mostra tour-guida per
+                // ACCIDENTE, non per scelta. Il sistema guide e' spento in V1
+                // dalla porta GUIDE_TOURS_ENABLED in services/dataService.js,
+                // ma la porta vive dentro getToursByCity/getTourById — e questa
+                // query le passa accanto. Nel momento in cui il 400 viene
+                // risolto (migration che crea la FK), Esplora ricomincia a
+                // mostrare esperienze a pagamento di guide che non esistono.
+                //
+                // Quindi il fix del 400 NON e' completo senza una di queste due:
+                //   a) far passare Esplora da dataService.getToursByCity(), oppure
+                //   b) replicare qui il controllo su GUIDE_TOURS_ENABLED.
+                //
                 // CRITICO-1 fix: include profiles JOIN so guide name/avatar are
                 // available without a follow-up query per tour.
                 let query = supabase

@@ -200,46 +200,57 @@ const GuideProfileModal = ({ isOpen, onClose, guideName, guideAvatar, bio, ratin
                 </div>
 
                 <div className="px-6 pb-6 -mt-12 text-center">
-                    {/* Avatar */}
+                    {/* Avatar: la foto vera della guida, o un segnaposto neutro.
+                        Non un'emoji che finge un volto. */}
                     <div className="w-24 h-24 rounded-full bg-white p-1 mx-auto shadow-lg mb-3">
-                        <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-5xl">
-                            {guideAvatar}
+                        <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                            {guideAvatar
+                                ? <img src={guideAvatar} alt="" className="w-full h-full object-cover rounded-full" />
+                                : <Users className="w-10 h-10 text-gray-400 stroke-[1.5]" />}
                         </div>
                     </div>
 
-                    <h2 className="text-2xl font-black text-gray-800 mb-1">{guideName}</h2>
-                    <p className="text-xs font-bold text-olive-600 uppercase tracking-widest mb-4">Guida Ufficiale DoveVai</p>
+                    {/* Via l'etichetta "Guida Ufficiale DoveVai": affermava uno
+                        status ufficiale che nessun dato sostiene. */}
+                    <h2 className="text-2xl font-black text-gray-800 mb-4">
+                        {guideName || 'Profilo non disponibile'}
+                    </h2>
 
-                    {/* Stats */}
-                    <div className="flex justify-center space-x-6 mb-6">
-                        <div className="text-center">
-                            <div className="font-black text-xl text-gray-800">{rating}</div>
-                            <div className="text-[10px] text-gray-400 uppercase font-bold">Rating</div>
+                    {/* Stats — solo su recensioni VERE. Prima erano tre numeri:
+                        due che cadevano su default inventati (`tour.rating || 4.5`
+                        al call site) e "5+ Anni Exp" scritto direttamente nel JSX,
+                        senza alcuna fonte. Un rating senza recensioni non e' un
+                        rating: se non ce ne sono, il blocco non si monta. */}
+                    {Number.isFinite(rating) && Number.isFinite(reviews) && reviews > 0 && (
+                        <div className="flex justify-center space-x-6 mb-6">
+                            <div className="text-center">
+                                <div className="font-black text-xl text-gray-800">{rating}</div>
+                                <div className="text-[10px] text-gray-400 uppercase font-bold">Rating</div>
+                            </div>
+                            <div className="w-px bg-gray-200"></div>
+                            <div className="text-center">
+                                <div className="font-black text-xl text-gray-800">{reviews}</div>
+                                <div className="text-[10px] text-gray-400 uppercase font-bold">Recensioni</div>
+                            </div>
                         </div>
-                        <div className="w-px bg-gray-200"></div>
-                        <div className="text-center">
-                            <div className="font-black text-xl text-gray-800">{reviews}</div>
-                            <div className="text-[10px] text-gray-400 uppercase font-bold">Recensioni</div>
-                        </div>
-                        <div className="w-px bg-gray-200"></div>
-                        <div className="text-center">
-                            <div className="font-black text-xl text-gray-800">5+</div>
-                            <div className="text-[10px] text-gray-400 uppercase font-bold">Anni Exp</div>
-                        </div>
-                    </div>
+                    )}
 
+                    {/* Biografia: solo quella scritta dalla guida. Il fallback
+                        precedente ("Appassionato di storia locale e cultura sarda…")
+                        era una biografia inventata, e dichiarava la Sardegna per
+                        qualunque citta'. Non sostituito con un altro placeholder
+                        travestito da contenuto: se non c'e', si dice che non c'e'. */}
                     <div className="bg-gray-50 rounded-2xl p-4 text-left mb-6">
                         <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">Biografia</h4>
-                        <p className="text-sm text-gray-600 leading-relaxed font-medium">
-                            {bio || "Appassionato di storia locale e cultura sarda. Amo raccontare le storie nascoste che non troverai nelle guide turistiche tradizionali."}
+                        <p className={`text-sm leading-relaxed ${bio ? 'text-gray-600 font-medium' : 'text-gray-400 italic'}`}>
+                            {bio || 'Questa guida non ha ancora scritto una biografia.'}
                         </p>
                     </div>
 
-                    {/* Credentials */}
-                    <div className="flex gap-2 mb-6 justify-center">
-                        <span className="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full border border-green-200">Verificato</span>
-                        <span className="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full border border-blue-200">Esperto Locale</span>
-                    </div>
+                    {/* Via i badge "Verificato" ed "Esperto Locale": due credenziali
+                        affermate senza nessun processo di verifica dietro. Se un
+                        giorno la verifica esistera', il badge torna col dato che
+                        lo regge. */}
 
                     <button
                         onClick={onClose}
@@ -952,15 +963,21 @@ export default function TourDetailsPage() {
                     </motion.div>
                 ) : null}
 
-                {/* GUIDE PROFILE MODAL */}
+                {/* GUIDE PROFILE MODAL
+                    rating/reviews: solo il rating REALE della guida, calcolato
+                    sulle sue recensioni. Prima, senza recensioni, ripiegava su
+                    `tour.rating || 4.5`: due fabbricazioni in una riga — il
+                    rating del TOUR spacciato per rating della GUIDA, e un 4.5
+                    hardcoded quando mancava pure quello. Se la guida non ha
+                    recensioni, non ha un rating: null, e il blocco non si monta. */}
                 <GuideProfileModal
                     isOpen={showProfileModal}
                     onClose={() => setShowProfileModal(false)}
                     guideName={tour.guide}
                     guideAvatar={tour.guideAvatar}
                     bio={tour.guideBio}
-                    rating={guideRating.count > 0 ? guideRating.avg : (tour.rating || 4.5)}
-                    reviews={guideRating.count > 0 ? guideRating.count : (tour.reviews || 0)}
+                    rating={guideRating.count > 0 ? guideRating.avg : null}
+                    reviews={guideRating.count > 0 ? guideRating.count : null}
                 />
 
                 {/* --- SEZIONE RECENSIONI REALI --- */}

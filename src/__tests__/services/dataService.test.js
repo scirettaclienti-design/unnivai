@@ -323,9 +323,18 @@ describe('mapTourToUI', () => {
     expect(result.guide).toBe('marco_r')
   })
 
-  it('falls back to default guide name when profiles is missing', () => {
+  // Identita' guida: dato reale o null. Nessun default fabbricato.
+  it('guide e null quando profiles manca — nessun nome inventato', () => {
     const result = dataService.mapTourToUI({ ...minimalDbTour(), profiles: null })
-    expect(result.guide).toBe('Guida DoveVai')
+    expect(result.guide).toBeNull()
+  })
+
+  it('guideBio e null quando la guida non ha scritto una bio', () => {
+    // `bio` non e' nemmeno una colonna di `profiles` (verificato su
+    // information_schema il 04/09): prima di questo fix la frase 'Esperto
+    // locale appassionato.' usciva su OGNI tour, sempre, per chiunque.
+    const result = dataService.mapTourToUI({ ...minimalDbTour(), profiles: { first_name: 'Marco' } })
+    expect(result.guideBio).toBeNull()
   })
 
   it('uses avatar_url from profile JOIN when present', () => {
@@ -344,12 +353,12 @@ describe('mapTourToUI', () => {
     expect(result.guideAvatar).toBe('🧭')
   })
 
-  it('falls back to 👋 when neither avatar_url nor avatar_emoji are present', () => {
+  it('guideAvatar e null quando la guida non ha foto — nessuna emoji che finge un volto', () => {
     const result = dataService.mapTourToUI({
       ...minimalDbTour(),
       profiles: { username: 'marco_r' },
     })
-    expect(result.guideAvatar).toBe('👋')
+    expect(result.guideAvatar).toBeNull()
   })
 
 

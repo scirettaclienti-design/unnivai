@@ -36,10 +36,14 @@ export const TourUISchema = z.object({
   images:    z.array(z.string()).min(1),
 
   // Guide (flattened from profiles JOIN)
+  // Nullable per contratto: l'identita' della guida o esiste nel DB o non c'e'.
+  // Pretendere una stringa qui obbligava mapTourToUI a inventarla ('Guida
+  // DoveVai', '👋', 'Esperto locale appassionato.') — lo schema stesso era la
+  // ragione per cui esisteva la fabbricazione. Chi rende gestisce il null.
   guide_id:    z.string().nullable(),
-  guide:       z.string(),
-  guideAvatar: z.string(),
-  guideBio:    z.string(),
+  guide:       z.string().nullable(),
+  guideAvatar: z.string().nullable(),
+  guideBio:    z.string().nullable(),
 
   // Rich content
   highlights:  z.array(z.unknown()),

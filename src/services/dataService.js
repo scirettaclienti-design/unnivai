@@ -147,9 +147,28 @@ class DataService {
 
                 // Guide (Flattened for UI)
                 guide_id: dbTour.guide_id || null,
-                guide: (`${guideInfo.first_name || ''} ${guideInfo.last_name || ''}`).trim() || guideInfo.full_name || guideInfo.username || 'Guida DoveVai',
-                guideAvatar: (Array.isArray(guideInfo.image_urls) ? guideInfo.image_urls[0] : guideInfo.image_urls) || guideInfo.avatar_url || guideInfo.avatar_emoji || '👋',
-                guideBio: guideInfo.bio || 'Esperto locale appassionato.',
+                // Identita' guida: dato reale o NULL. Mai un default fabbricato.
+                //
+                // Prima cadevano su 'Guida DoveVai', '👋' e 'Esperto locale
+                // appassionato.': un nome, una faccia e una BIOGRAFIA inventati
+                // per una persona che non esiste. La bio era il caso peggiore, ed
+                // era anche permanente: `bio` NON e' una colonna di `profiles`
+                // (verificato su information_schema il 04/09), quindi
+                // `guideInfo.bio` e' sempre undefined e quella frase usciva su
+                // OGNI tour. Non era un fallback: era l'unico valore possibile.
+                //
+                // Ora null, e chi rende decide come dirlo (regola locked #1:
+                // nessun fallback produce mai contenuto). TourUISchema e' stato
+                // reso nullable su questi tre campi per la stessa ragione: uno
+                // schema che pretende una stringa costringe a inventarla.
+                //
+                // NB: `full_name`, `username`, `avatar_url` e `avatar_emoji` non
+                // esistono su `profiles` — restano nella catena solo perche'
+                // `dbTour.guide` puo' portarli da altre sorgenti. Dal JOIN su
+                // profiles non arrivano mai.
+                guide: (`${guideInfo.first_name || ''} ${guideInfo.last_name || ''}`).trim() || guideInfo.full_name || guideInfo.username || null,
+                guideAvatar: (Array.isArray(guideInfo.image_urls) ? guideInfo.image_urls[0] : guideInfo.image_urls) || guideInfo.avatar_url || guideInfo.avatar_emoji || null,
+                guideBio: guideInfo.bio || null,
 
                 // Rich Content
                 highlights: highlights,

@@ -19,6 +19,28 @@ import { supabase } from "../lib/supabase";
 // click. Sotto soglia: messaggio "DNA in formazione". Costante nominata.
 const DNA_MIN_CATEGORIZED = 12;
 
+// Stati di `guide_requests`, presi dal CHECK reale sul DB (verificato il
+// 04/09/2026 su information_schema, non a memoria):
+//   CHECK (status = ANY (ARRAY['open','accepted','declined','completed']))
+//
+// `'pending'` NON e' fra questi e non puo' esistere: era il valore su cui
+// ramificava il badge qui sotto, quindi il ramo "In attesa" non si e' mai
+// attivato e all'utente compariva la stringa grezza `open`. (Nota: la colonna
+// ha DEFAULT 'pending', che viola il suo stesso CHECK — trappola dormiente
+// documentata, si chiude nel gate schema.)
+//
+// ATTIVE = quelle su cui l'utente sta ancora aspettando qualcosa.
+// `declined` e `completed` sono chiuse: una richiesta rifiutata sotto un
+// titolo che la dice "attiva" e' un'affermazione falsa.
+const REQUEST_STATUS_ACTIVE = ['open', 'accepted'];
+
+const REQUEST_STATUS_LABEL = {
+    open: 'In attesa',
+    accepted: 'Accettata',
+    declined: 'Rifiutata',
+    completed: 'Completata',
+};
+
 export default function ProfilePage() {
     const { userId, firstName, city } = useUserContext();
     const { user } = useAuth();
@@ -108,11 +130,15 @@ export default function ProfilePage() {
                 }
 
                 // 3. Fetch Active Requests
+                // Prima il filtro era `.neq('status','completed')`: escludeva solo
+                // le completate, quindi le RIFIUTATE restavano in elenco sotto il
+                // titolo "Richieste Attive". Ora si chiede esplicitamente cosa e'
+                // attivo (REQUEST_STATUS_ACTIVE), invece di elencare cosa non lo e'.
                 const { data: requests, error: reqError } = await supabase
                     .from('guide_requests')
                     .select('*')
                     .eq('user_id', userId)
-                    .neq('status', 'completed')
+                    .in('status', REQUEST_STATUS_ACTIVE)
                     .order('created_at', { ascending: false })
                     .limit(100); // DVAI-024
 
@@ -355,15 +381,29 @@ export default function ProfilePage() {
                                         <div key={req.id} className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm flex flex-col space-y-2">
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <h4 className="font-bold text-gray-800 text-sm">Tour a {req.city}</h4>
-                                                    <p className="text-xs text-gray-500">{new Date(req.created_at).toLocaleDateString()} • {req.duration || 3} ore</p>
+                                                    <h4 className="font-bold text-gray-800 text-sm">{req.city ? `Tour a ${req.city}` : 'Richiesta di tour'}</h4>
+                                                    {/* La durata si stampa SOLO se c'e'. Prima era `req.duration || 3`:
+                                                        con il dato assente la schermata affermava tre ore che nessuno
+                                                        aveva mai scelto (regola locked #6 — un fatto, non un default
+                                                        di comodo). Nei dati reali una riga su sei ha duration NULL. */}
+                                                    <p className="text-xs text-gray-500">
+                                                        {[
+                                                            new Date(req.created_at).toLocaleDateString(),
+                                                            req.duration ? `${req.duration} ore` : null,
+                                                        ].filter(Boolean).join(' • ')}
+                                                    </p>
                                                 </div>
-                                                <span className={`px-2 py-1 text-[10px] font-bold rounded-lg ${req.status === 'pending' ? 'bg-orange-100 text-orange-600' :
-                                                    req.status === 'accepted' ? 'bg-green-100 text-green-600' :
-                                                        'bg-gray-100 text-gray-600'
-                                                    }`}>
-                                                    {req.status === 'pending' ? 'In attesa' : req.status === 'accepted' ? 'Accettata' : req.status}
-                                                </span>
+                                                {/* Badge sugli stati REALI del CHECK. Mai `req.status` grezzo: se
+                                                    arrivasse un valore fuori mappa non si stampa nulla, invece di
+                                                    mostrare una parola inglese di database all'utente. */}
+                                                {REQUEST_STATUS_LABEL[req.status] && (
+                                                    <span className={`px-2 py-1 text-[10px] font-bold rounded-lg shrink-0 ${req.status === 'open' ? 'bg-orange-100 text-orange-600' :
+                                                        req.status === 'accepted' ? 'bg-green-100 text-green-600' :
+                                                            'bg-gray-100 text-gray-600'
+                                                        }`}>
+                                                        {REQUEST_STATUS_LABEL[req.status]}
+                                                    </span>
+                                                )}
                                             </div>
                                             {req.guide_id && (
                                                 <div className="mt-2 pt-2 border-t border-indigo-50 flex items-center justify-between">

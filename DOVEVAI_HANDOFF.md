@@ -6348,12 +6348,35 @@ sessione** e che va preservato:
 | `src/pages/Landing.jsx` | +56/−56 circa: ocra → ambra su tutta la pagina, nuovo sistema a tre tinte calde (terracotta / ambra / arancione) |
 | `src/styles/themeTokens.js` | `textSecondary` `#C4BEB6` → `#A8A29E`, `statusError` `#EF4444` → `#F87171` |
 
-Sono ritocchi di una **sessione parallela**, non miei. **Non li ho toccati e
-non vanno persi.**
+Sono ritocchi di una **sessione parallela**, non miei. **Committati il 06/09 in
+`30f033c`** su richiesta di Ivano, per non perderli con un checkout sbagliato:
+il commit dichiara l'attribuzione e che sono verificati **solo meccanicamente**
+(suite 606/606, lint, build), **non su device e non nel merito estetico**. Chi
+li ha scritti puo' modificarli sopra liberamente.
 
-Untracked: `DIAGNOSI_VOCE2_PEZZI_2_3.md` — la diagnosi read-only su cui si
-basano i commit `75da262`, `33fd0bd` e `235ef59`. Parti ora **superate** (le
-tre corrette), parti ancora valide (tutto il pezzo 3).
+`DIAGNOSI_VOCE2_PEZZI_2_3.md` — la diagnosi read-only su cui si basano i commit
+`75da262`, `33fd0bd` e `235ef59`. Era untracked, **committata il 06/09 in
+`8621d56`**. Parti ora **superate** (le tre corrette), parti ancora valide
+(tutto il pezzo 3).
+
+**Working tree di `estetica` al 06/09: PULITO.** Branch a `30f033c`, allineato
+con `origin/estetica`. `main` pulito a `235ef59`, allineato con `origin/main`.
+
+### Produzione — i quattro commit sono LIVE, verificato il 06/09
+
+Tutti e quattro hanno un deployment **Production** su Vercel con stato
+`success`. Non solo: il bundle **servito** da `https://unnivai.vercel.app` e'
+stato scaricato e controllato con marker positivi e negativi (`grep -F`, vedi
+lezione #47), chunk per chunk:
+
+| chunk servito | marker positivo | marker negativi a zero |
+|---|---|---|
+| `TourDetails-*` (33 KB) | "Biografia", "non ha ancora scritto una biografia" | "cultura sarda", "Guida Ufficiale DoveVai", "Anni Exp", "Esperto Locale", "Verificato", "4.5", "Esperto locale appassionato" |
+| `Profile-*` (31 KB) | "Richiesta di tour", "In attesa", "Accettata" | il default `\|\|3} ore` |
+| `TourLive-*` (12 KB) | "Nessun tour live oggi" | "2 tour attivi in questo momento" |
+
+Il codice e' in produzione. **Cio' che manca e' solo lo sguardo umano su
+device** — che resta il punto 1 della ripartenza.
 
 ### DA DOVE SI RIPARTE — in quest'ordine
 

@@ -5393,9 +5393,25 @@ esiste per dire che quel numero e' una stima, e il tilde non e' decorativo.
 sistemano tutte e due le copie, e nessuna deve piu' mostrare un numero secco.
 Motore in due copie = regola locked #8.
 
-**5) "circa 4h 23min" nelle card "Per Te".** Da stabilire l'origine: **se viene
-da `tourTiming` va arrotondata**. Una stima non si mostra al minuto — il minuto
-afferma una precisione che il modulo dichiara di non avere.
+**5) "circa 4h 23min" nelle card "Per Te".** ✅ **ORIGINE STABILITA il 06/09**
+(era la domanda aperta di questa voce), rivista su schermata di produzione:
+`src/lib/tourTiming.js:186`, dentro `formatEstimate`.
+
+```js
+if (m === 0) return `circa ${h}h`;
+return `circa ${h}h ${m}min`;   // ← "circa 3h 54min", "circa 1h 38min"
+```
+
+Viene proprio da `tourTiming`, quindi **va arrotondata** come diceva la voce.
+Il punto e' che **la contraddizione sta DENTRO la funzione**, non a valle: il
+commento di `formatEstimate` dichiara *"il tilde non e' decorativo: e' la
+dichiarazione che il numero e' una stima"*, e tre righe dopo stampa il minuto.
+Il modulo dice di non sapere con precisione e nella stessa riga afferma i 54
+minuti.
+
+**Fix noto, un punto solo**: arrotondare sopra i 60 minuti (a 15 min, oppure
+alla sola ora). Sotto l'ora `~30 min` va gia' bene. **Non fatto**: chiuso il
+06/09 senza toccarlo, per non aprire lavoro a sessione in chiusura.
 
 **6) "Vedi tutte" in Home porta a Esplora vuota.** Da verificare **quale dei
 due**: routing sbagliato, o il Gate PERSISTENZA (i tour AI non sono salvati,
@@ -6378,15 +6394,34 @@ lezione #47), chunk per chunk:
 Il codice e' in produzione. **Cio' che manca e' solo lo sguardo umano su
 device** — che resta il punto 1 della ripartenza.
 
+### Prima occhiata su Home in produzione (06/09, Chrome desktop)
+
+Non e' il verdict device — **e' Chrome su desktop, non iPhone**, quindi la
+regola locked #3 NON e' soddisfatta e il gate resta aperto. Ma la domanda
+"il motore ha buchi?" ha avuto una prima risposta, ed e' buona.
+
+Home a Roma mostra **due tour AI veri**:
+- *"Scoperte nascoste di Roma"* — include **Osteria da Fortunata, rating 4.4**
+- *"Panorami e ... Roma"* — include **Piazza del P...**
+
+Sono POI reali di Google Places, non le tre righe DB. **La porta regge, il
+motore parte e produce contenuto vero su Roma.** Onesta anche la card *"Guide
+Locali — Persone del posto, non ancora disponibili"* col badge IN COSTRUZIONE.
+
+**L'unico difetto reso visibile da quella schermata e' la voce 5** — "circa 3h
+54min" / "circa 1h 38min", la stima al minuto. Origine ora stabilita (vedi
+voce 5 nella CODA): `tourTiming.js:186`.
+
 ### DA DOVE SI RIPARTE — in quest'ordine
 
-1. **VERDICT DEVICE su `https://unnivai.vercel.app`** — e' il collo di
-   bottiglia: **tre fix aspettano lo stesso giro** su iPhone.
-   - **Home / `/map` / `/tour-live` a Roma** (porta tour-guida): su Home vedrai
-     **per la prima volta cosa produce davvero il motore AI** senza le tre
-     righe DB a mascherarlo. Se ha buchi, si vedono adesso: e' il punto.
+1. **VERDICT DEVICE su `https://unnivai.vercel.app`, SU IPHONE** — e' il collo
+   di bottiglia: **tre fix aspettano lo stesso giro**.
+   - **Home a Roma**: gia' guardata da desktop e va (vedi sopra). Su iPhone
+     serve confermarla e guardare il resto.
+   - **`/map` e `/tour-live` a Roma** (porta tour-guida): **non ancora
+     guardate**, ne' da desktop ne' da telefono.
    - **Profilo → Richieste** (badge "In attesa"/"Accettata", niente rifiutate,
-     niente "3 ore" inventate).
+     niente "3 ore" inventate): **non ancora guardata**.
    - Il modal guida **non e' verificabile**: irraggiungibile a porta chiusa.
 2. **Le due decisioni**: chat con le guide, e modal "Tour su Misura". Sbloccano
    il resto della voce 2.
@@ -6399,3 +6434,37 @@ device** — che resta il punto 1 della ripartenza.
    solo conflitto**, `src/pages/Profile.jsx`. Risoluzione corretta: **tenere la
    logica di `main` dentro il markup di `estetica`**. `Explore.jsx` e
    `MapPage.jsx` auto-mergiano puliti.
+6. **Voce 5 della CODA** — la stima al minuto in `tourTiming.js:186`. Origine
+   stabilita, fix noto e circoscritto a un punto. E' il pezzo piu' economico
+   della coda: si chiude in mezz'ora, e ora e' anche visibile in produzione.
+
+### Riaprire il progetto a freddo — checklist
+
+Scritta il 06/09 pensando a una ripresa dopo un aggiornamento del computer.
+
+1. **Niente e' solo in locale.** Entrambi i branch sono pushati su
+   `origin`: `main` a `235ef59`, `estetica` a `37f44ea` (piu' i commit di
+   chiusura). Working tree puliti, **nessuno stash pendente**. Se la macchina
+   venisse azzerata, non si perde nulla di committato.
+2. **La trappola dei worktree.** `main` **non** e' in check-out nella cartella
+   principale: vive in `/Users/mac2023ivanosciretta/unnivai-1b`. La cartella
+   principale e' su `estetica`. Se dopo l'aggiornamento quel percorso non
+   esiste piu' (o si riclona da zero), `main` torna un branch normale e la
+   struttura a due worktree va ricreata — oppure si lavora in modo classico,
+   ricordando che **allora `git checkout main` funziona** e le istruzioni di
+   questo handoff sul push "dal worktree" vanno lette di conseguenza.
+   Comando per sapere sempre dove si e': `git worktree list`.
+3. **Prima di qualunque comando distruttivo** (`checkout`/`reset`/`clean`):
+   `git status` + `git worktree list`. Il 04/09 un `git apply --check` e'
+   stato lanciato sull'albero sbagliato proprio per non aver guardato.
+4. **La suite e' verde ma i due branch hanno numeri diversi**, ed e' normale:
+   `main` 608 test, `estetica` 606. La differenza sono i test della porta e
+   delle identita' guida, che vivono su `main`. Non e' una regressione.
+5. **La E2E si lancia SOLO con `npm run test:e2e`** (che fa
+   `build:e2e --mode e2e`). Un `npx playwright test` dopo un `npm run build`
+   normale usa il `.env` di produzione, le fixture non intercettano nulla e
+   la suite da' rossi che non sono regressioni. E' la lezione #46.
+6. **Il DB e' condiviso e vivo.** Progetto Supabase `UNNIVAI`
+   (`ahecpiwsdhghkndncejb`). Le RLS di `guide_requests` sono state ristrette
+   il 04/09: se qualcosa "non si vede piu'", prima di sospettare il codice
+   guardare le policy.

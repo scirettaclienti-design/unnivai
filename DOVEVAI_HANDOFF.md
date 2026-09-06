@@ -5286,14 +5286,34 @@ reggerebbe**. **Verdict device ancora da dare.**
 **2) Sistema guide: presente nell'interfaccia, inesistente in V1. TRE superfici.**
 - ~~**guide inventate in TourDetails**~~ — *Marco Polo 4.9*, *Chiara Esposito 4.6*,
   con biografie fabbricate. E' il **pattern del Gate K**.
-  🟡 **PRIMO PEZZO CHIUSO NEL CODICE il 03/09 (su main). Verdict device PENDENTE.**
-- **"Richieste Attive"** nel Profilo, con bottone **"Apri Chat"**. — **aperta**
+  🟡 **CHIUSO NEL CODICE il 04/09 (su main), in due commit: `b328062` la porta
+  ai tour-guida dal DB, `235ef59` le identita' fabbricate nei default.
+  Verdict device PENDENTE.**
+  (*Nota*: *Marco Polo* e *Chiara Esposito* **non esistevano piu' nel codice** —
+  questa voce era stale. Le fabbricazioni vere erano altre: 'Guida DoveVai',
+  '👋', 'Esperto locale appassionato.', "Guida Ufficiale DoveVai", "5+ ANNI
+  EXP", la bio "cultura sarda", i badge "Verificato"/"Esperto Locale" e un
+  `tour.rating || 4.5` spacciato per rating della guida.)
+- ~~**"Richieste Attive"** nel Profilo~~ — 🟡 **i tre difetti di verita' CHIUSI
+  il 04/09, commit `33fd0bd`** (badge su stati reali, declined fuori dalle
+  attive, durata non piu' inventata). **Il bottone "Apri Chat" resta**, e con
+  esso la decisione aperta qui sotto. Verdict device PENDENTE.
 - **modal "Tour su Misura"** con **"Invia alle Guide di X"**. — **aperta**
 **Da chiudere insieme, non una alla volta**: sono la stessa promessa fatta in
 tre posti, e toglierne una lascia le altre a confermarla. **La voce 2 resta
-APERTA**: e' chiuso il primo dei tre pezzi, non la voce.
+APERTA**: e' chiuso quello che si poteva chiudere senza decidere, non la voce.
 
-**Cosa e' stato fatto (03/09) — la PORTA `GUIDE_TOURS_ENABLED`.**
+**LE DUE DECISIONI CHE BLOCCANO IL RESTO — servono a Ivano, non sono tecniche.**
+1. **La chat con le guide resta in V1?** `ChatModalUser` **non e' finto**: e' un
+   canale di messaggi vero costruito su `notifications`, con sanitizzazione dei
+   contatti gia' dentro. La domanda non e' "e' un mock da spegnere", e' se V1
+   vuole promettere una chat con le guide.
+2. **Il modal "Tour su Misura" resta?** *"Invia alle Guide di {citta'}"* promette
+   un destinatario collettivo che nel DB e' **una persona sola** (un solo
+   profilo `role='guide'`).
+Finche' non sono decise, **non si tocca ne' l'uno ne' l'altro**.
+
+**Cosa e' stato fatto (04/09) — la PORTA `GUIDE_TOURS_ENABLED`.**
 Costante esportata in `dataService.js`, `false` in V1, con il perche' scritto
 accanto. Chiude **tre usci**, tutti dentro quel file, tutti prima della query
 (zero costo di rete): `getToursByCity()` → `[]`, `getTourById()` → `null`
@@ -5955,7 +5975,7 @@ convincente. Vale anche per i miei referti.
 
 ### LEZIONE #46 — una baseline costruita con l'ambiente sbagliato non e' una baseline
 
-Misurato il **03/09**, chiudendo la voce 2. Dopo il fix, `npx playwright test`
+Misurato il **04/09**, chiudendo la voce 2. Dopo il fix, `npx playwright test`
 dava **3 rossi**. Per capire se erano miei ho messo le modifiche in stash e
 rimisurato: **5 rossi senza il fix**. Il fix, quindi, ne *risanava* due.
 
@@ -6039,3 +6059,320 @@ mv .env .env.tmp && (npm run test:run; mv .env.tmp .env)
 
 Verifica che tutti i test passino anche senza `.env` (come in CI). Vedi
 `src/test/setup.js` per gli stub env di default.
+
+---
+
+## Sessione 04/09 — Audit estetica (fonte: sessione parallela)
+
+Esito dell'audit del branch `estetica` condotto in una sessione parallela e
+riportato da Ivano. **Non e' farina di questa sessione**: qui e' trascritto per
+non perderlo, con accanto i punti che ho potuto **corroborare in lettura sul
+codice** — segnati come tali. Dove non ho verificato, e' riportato come detto.
+
+### 1. Il verdetto device non esiste, tranne che su tre schermate
+
+**Nessun verdetto device formale esiste su nessuna conversione**, con
+l'eccezione di **tre schermate**. Tutto il resto del blocco estetico —
+Landing, Login, Notifiche, QuickPath, Photos, SurpriseTour, TourDetails,
+drawer POI, telaio globale — e' stato dichiarato chiuso **senza** che nessuno
+lo abbia guardato su iPhone e detto "va bene".
+
+E' la **regola locked #3** disattesa su scala di branch: *"Niente e' done
+finche' Ivano non verifica su iPhone"*. Non un gate saltato: quindici commit
+di conversione appoggiati su una verifica che non c'e'.
+
+### 2. Il confronto sul gradient non e' MAI stato fatto
+
+L'handoff (blocco del 29/08) lo chiedeva in termini espliciti:
+
+> una copertina con gradient **accanto** a una con foto Places vera, **stesso
+> fondo**. Se il gradient sembra un buco e la foto no, la conversione
+> **peggiora** l'app: non si procede.
+
+**Quel confronto non e' mai avvenuto.** Verificato in lettura il 04/09:
+- nessun verdict sulle copertine da nessuna parte in questo documento;
+- **zero test** su `categoryPalette` / `COVER_GRADIENTS`;
+- e lo **strumento** per farlo — `/cover-preview`, che esisteva apposta — e'
+  stato **rimosso** in `cb9bbe5` prima che il confronto fosse eseguito.
+
+Il gradient **e' stato ridisegnato** (`412c40f`): `src/lib/categoryPalette.js`,
+**9 regole di categoria + 1 fallback**, tre tier di luminanza (0.165 → 0.024),
+famiglia calda monocromatica, basi scure `#16100C` / `#0E0C0B`, icone Lucide.
+Ma ridisegnato non e' verificato, e la condizione posta era una condizione
+d'arresto, non un suggerimento.
+
+Resta inoltre aperta la decisione **"nove gradient o tre"**: il referto diceva
+che senza glifo, dentro lo stesso Tier, le copertine non si distinguono. **Il
+codice ha preso i nove**; la decisione non risulta chiusa da nessuna parte.
+
+### 3. Il divieto su navigazione e HUD e' stato aperto UNILATERALMENTE
+
+Il blocco del 29/08 e' esplicito: la regola "Antigravity dopo il funzionale"
+
+> **resta valida per navigazione e HUD**; non vale piu' per il resto.
+
+E' stata aperta lo stesso, senza che nessuno la revocasse. **Verificato in
+lettura**, i tre file convertiti:
+
+| file | righe (vs base `a10085b`) |
+|---|---|
+| `src/components/Map/NavigationHUD.jsx` | +40 / −79 |
+| `src/components/Map/POIPopupCard.jsx` | +16 / −16 |
+| `src/pages/MapPage.jsx` | +86 / −87 |
+
+**Il rischio e' accettato consapevolmente**: i gate nav funzionali — che
+richiedono una camminata vera — riscriveranno queste superfici. Il lavoro
+estetico fatto sopra **verra' buttato in parte o del tutto**. Non e' un
+incidente scoperto dopo: e' una scelta presa sapendo il costo.
+
+### 4. CONGELATO: nessun altro lavoro estetico sulla navigazione
+
+**Da questa sessione in poi**, lavoro estetico sulla navigazione **fermo**.
+Si riapre solo quando sono chiuse tutte e tre:
+
+1. **giro su device** (il verdetto che manca dal punto 1),
+2. **gradient** (confronto del punto 2 + decisione nove-o-tre),
+3. **gate nav funzionale chiuso**.
+
+Non e' una raccomandazione: e' il congelamento che il punto 3 rende necessario.
+Ogni pixel messo sulla navigazione prima che il funzionale sia chiuso e' un
+pixel che si riscrive.
+
+### 5. TourDetails: blocchi guida convertiti che verranno RIMOSSI
+
+`TourDetails.jsx` (+454 / −575 rispetto a `main`) contiene blocchi del sistema
+guida gia' convertiti a ossidiana — fra cui il modal profilo guida, con la sua
+etichetta "Guida DoveVai", il "5+ ANNI EXP" hardcoded e la biografia di
+fallback inventata.
+
+**Quei blocchi li rimuovono i pezzi 2 e 3 della voce 2.** E' lavoro di
+conversione gia' fatto su codice destinato a sparire. **Da non ripetere**:
+prima di rimettere mano a quelle superfici, aspettare che i pezzi 2/3 abbiano
+deciso cosa resta in piedi.
+
+### 6. `HERO_PHOTOS` e' vuoto — regola locked #1 violata
+
+**Verificato in lettura** (`src/pages/Landing.jsx:492-498`): `HERO_PHOTOS`
+contiene **una sola voce**, ed e' un **placeholder Unsplash**:
+
+```js
+const HERO_PHOTOS = [
+    { url: 'https://images.unsplash.com/photo-1552832230-...', title: 'Colosseo', city: `Roma` },
+];
+```
+
+La rotazione foto dell'hero (`65d2d58`) gira quindi **su un array da uno**, e
+la sola immagine e' uno stock. Sotto il claim **"il posto esiste"** questo e'
+**la regola locked #1**: *nessun fallback produce mai contenuto*. Una foto
+stock presentata come prova che il luogo e' reale e' esattamente cio' che il
+Gate VERITA' VISIVA (F26/DIFF 4) aveva tolto da `mapTourToUI`, rientrato dalla
+porta della Landing.
+
+**Le foto vere restano compito di Ivano.** Finche' non ci sono, l'hero non
+puo' affermare "il posto esiste".
+
+### 7. Debiti di design
+
+> ⚠️ **DA COMPLETARE — l'elenco non e' stato trasmesso a questa sessione.**
+> Il mandato rimanda al **punto 11 del riepilogo** dell'audit, che non e' mai
+> arrivato nel contesto di questa sessione: non e' in questo documento e non
+> mi e' stato incollato. **Non l'ho ricostruito a memoria di proposito** —
+> inventare un elenco di debiti dentro l'handoff sarebbe il difetto che questo
+> documento esiste per impedire. Va incollato qui sotto tale e quale.
+
+### 8. Ordine concordato
+
+Non negoziabile, e in questa sequenza:
+
+1. **device pass** — il giro su iPhone che non e' mai stato fatto (punto 1)
+2. **gradient** — confronto affiancato + decisione nove-o-tre (punto 2)
+3. **foto hero** — le foto vere, compito di Ivano (punto 6)
+4. **pezzi 2/3** della voce 2 — sistema guide, cosa resta e cosa sparisce
+5. **merge** di `estetica` in `main`
+
+### Nota di merge, misurata il 04/09
+
+`estetica` differisce da `main` su **45 file**, ma solo **tre** sono toccati da
+entrambi i lati dopo la base `a10085b`. Merge simulato in sola lettura
+(`git merge-tree`, nessun merge eseguito):
+
+| file | estetica | main | esito |
+|---|---|---|---|
+| `src/pages/Profile.jsx` | +194 / −210 | +49 / −9 | **CONFLITTO** |
+| `src/pages/Explore.jsx` | +91 / −72 | +21 / −0 | auto-merge pulito |
+| `src/pages/MapPage.jsx` | +86 / −87 | +6 / −1 | auto-merge pulito |
+
+**Un solo conflitto, e la causa e' nota**: entrambi i lati hanno riscritto lo
+stesso blocco JSX di "Richieste Attive" — `estetica` convertendolo a ossidiana,
+`main` mettendoci la logica di pezzo 2 (`REQUEST_STATUS_LABEL`, filtro attive,
+durata onesta). **Risoluzione corretta: tenere la logica di `main` dentro il
+markup di `estetica`.** Le due costanti in testa al file non confliggono (le
+tocca solo `main`): il conflitto e' circoscritto al blocco della card.
+
+Working tree di `estetica` al 04/09: **pulito** (solo un file di diagnosi non
+tracciato). `Onboarding.jsx` **e' committato** (`b64e5ba`), non pendente —
+l'avviso dell'handoff su `src/styles/` untracked e' anch'esso **superato**:
+`themeTokens.js` risulta tracciato. `/cover-preview` **non esiste piu'** su
+nessuno dei due branch.
+
+---
+
+## Sessione 04/09 — quattro gate chiusi su main, e una fuga di PII
+
+Sessione funzionale su `main`. **Quattro commit, tutti pushati, tutti con CI
+verde letta da `gh run watch --exit-status`, non assunta.**
+
+| commit | cosa chiude |
+|---|---|
+| `b328062` | **porta chiusa ai tour-guida dal DB** + empty state onesto su TourLive |
+| `75da262` | **RLS `guide_requests`**: SELECT owner-only, INSERT/UPDATE allineate |
+| `33fd0bd` | **"Richieste Attive"**: stati reali, solo attive, durata onesta |
+| `235ef59` | **identita' guida fabbricate** rimosse (nome, foto, bio, credenziali) |
+
+### La cosa piu' grave della giornata: PII leggibile da chiunque
+
+Non cercata: emersa ispezionando le RLS per un'altra diagnosi. **Verificata
+empiricamente**, non dedotta dalle policy — chiamata REST con la sola chiave
+anon (quella nel bundle client, quindi pubblica), **senza autenticazione**:
+
+```
+GET /rest/v1/guide_requests?select=id,user_name,city,status,request_text
+-> 200, righe reali
+```
+
+Tornavano **nome e cognome veri**, il testo libero delle richieste e, su una
+riga, **telefono, email, handle Instagram e link WhatsApp in chiaro**.
+
+Tre policy SELECT tutte PERMISSIVE (USING in OR, vince la piu' larga), due con
+ruolo `public` che **include `anon`**: bastava `status='open'` **oppure**
+`guide_id IS NULL`. Nessuna delle tre verificava un ruolo: si chiamavano
+"Guides..." ma il predicato non lo implementava. Il filtro `.eq('user_id')` di
+`Profile.jsx` sta **lato client**: nascondeva nella UI, non nei dati.
+
+Chiuse in due migration (`20260904_gate_rls_guide_requests_owner_only.sql` e
+`..._insert_update.sql`), applicate sul DB e verificate: anon `[]` anche sui
+vecchi bypass, owner 6 righe, estraneo 0, INSERT falsificato `42501`, dati
+intatti (6 righe, zero residui dei test).
+
+**Onesta' sulla portata**: il buco INSERT (`WITH CHECK (true)`, si creava una
+richiesta a nome di un altro) era **aperto e sfruttabile**. Quello UPDATE era
+**gia' latente**, mascherato dal gate SELECT — un `UPDATE ... WHERE` deve
+leggere la riga, e non la vedeva piu'. Droppare quella policy toglie una mina,
+non tappa una falla che perdeva.
+
+**RESIDUO DICHIARATO**: il proprietario puo' ancora scrivere `guide_id` sulla
+**propria** riga, assegnandosi una guida arbitraria (purche' sia un profilo
+esistente — lo impone la FK). Auto-inganno sui propri dati, non fuga verso
+terzi. Chiuderlo vuole una `WITH CHECK` che congeli `guide_id`.
+**Da ripulire, non urgente**: le quattro policy INSERT ora fanno lo stesso
+identico controllo, tre sono ridondanti per stratificazione storica.
+
+### Cosa NON chiudono questi quattro commit
+
+- **Esplora** (`Explore.jsx`) interroga `tours` per conto suo: la porta non la
+  vede. Oggi non mostra tour-guida **per accidente** (400 PGRST200, `tours` non
+  ha FK), **non per scelta**. Quando quel 400 sara' risolto **i tour-guida
+  riappaiono li'**. Avviso piantato sopra quella query, piu' l'elenco nel
+  commento della costante. Va al suo gate: serve la migration con la FK, e
+  vanno tolti `username`/`bio` che non esistono.
+- **`rating: Number(dbTour.rating) || 5.0`** in `mapTourToUI`: default
+  fabbricato app-wide (card, ordinamenti). Segnalato, non toccato.
+- **`DashboardGuide`** non vede ne' aggiorna piu' le richieste. In V1 il sistema
+  guide e' spento, quindi non toglie nulla di vivo — ma quando le guide
+  torneranno servira' una policy **dedicata che verifichi il ruolo**, non il
+  ripristino di quelle vecchie.
+- **Chi ha una richiesta rifiutata non lo vede piu' da nessuna parte.** Non ho
+  inventato un posto per dirglielo: e' una lacuna di prodotto da progettare,
+  non un filtro da riallargare.
+- **Il modal guida e' irraggiungibile** dietro `isGuideTour` a porta chiusa: il
+  commit `235ef59` toglie fabbricazioni **dormienti**. Tornano visibili con le
+  guide, cioe' quando nessuno le starebbe guardando.
+
+### Difetti di schema trovati, non toccati
+
+- **`guide_requests.status` ha `DEFAULT 'pending'` che viola il suo stesso
+  CHECK** (`open|accepted|declined|completed`). Trappola dormiente: il primo
+  INSERT che ometta `status` fallisce. Oggi non esplode solo perche'
+  `createGuideRequest` scrive `'open'` esplicito.
+- **`createGuideRequest` riceve `date` e `guests` e li SCARTA in silenzio** —
+  non esistono colonne. `TourDetails` li prende da un form che l'utente compila
+  davvero, e finiscono ricopiati a mano dentro il testo libero. L'interfaccia
+  chiede un dato e finge di riceverlo.
+- **`TourDetails` non passa `city`** nel payload: le richieste nate da li'
+  hanno `city NULL` (due righe reali su sei).
+- **`profiles` non ha `bio`, `username`, `avatar_url`, `full_name`,
+  `current_city`.** Il codice che le legge cade sui fallback. E' il motivo per
+  cui `guideBio` era *sempre* la frase inventata: non era un fallback, era
+  l'unico valore possibile.
+
+### LEZIONE #47 — un grep con il punto non escapato non misura quello che dici
+
+Verificando il bundle dopo aver tolto il `4.5` hardcoded, `grep -c "4.5"`
+rispondeva **2**, e stavo per riportarlo come residuo sopravvissuto. Era falso:
+**il punto e' un jolly regex**, e matchava `4,5`, `4/5`, `4V5`, `4W5`. Con
+`grep -F` letterale: **zero**.
+
+E' la **famiglia di #44 e #46**: una misura che non misura l'oggetto che
+dichiara di misurare, e che sembra informativa. Qui il difetto e' minuscolo —
+un carattere — ma il meccanismo e' identico, ed e' scattato **nella verifica
+stessa** di un fix contro le fabbricazioni.
+
+Regola operativa: **per i marker su bundle usare `grep -F`**, o escapare. E se
+un numero non torna, guardare il contesto invece di riportarlo.
+
+### Dove vive cosa — LEGGERE PRIMA DI TOCCARE I BRANCH
+
+- **`main` NON e' in check-out nella cartella principale.** Vive in un
+  **worktree separato**: `/Users/mac2023ivanosciretta/unnivai-1b`.
+  `git checkout main` dalla cartella principale **fallisce**. Il push di `main`
+  si fa da li'.
+- La cartella principale (`unnivai ricresa`) e' su **`estetica`**.
+- **Il lavoro funzionale nasce e vive su `main`**; `estetica` tiene solo
+  l'estetico e la narrazione dell'handoff. Niente in doppio: due copie
+  divergono e al merge non si capisce piu' quale sia quella vera.
+- Il 04/09 questo e' costato un trasferimento a mano: `Profile.jsx` diverge fra
+  i branch, due hunk su tre si applicavano, il terzo no. **La logica e' stata
+  riscritta dentro il markup di `main`, senza portare una sola classe da
+  `estetica`** (verificato: zero occorrenze di `obsidian`/`brand-orange` nel
+  diff).
+
+### Stato dei branch al 06/09
+
+**`main`** — pulito, sincronizzato con `origin/main`, a `235ef59`.
+
+**`estetica`** — a `ffbf425`, con **lavoro non committato che NON e' di questa
+sessione** e che va preservato:
+
+| file | cosa |
+|---|---|
+| `src/pages/Landing.jsx` | +56/−56 circa: ocra → ambra su tutta la pagina, nuovo sistema a tre tinte calde (terracotta / ambra / arancione) |
+| `src/styles/themeTokens.js` | `textSecondary` `#C4BEB6` → `#A8A29E`, `statusError` `#EF4444` → `#F87171` |
+
+Sono ritocchi di una **sessione parallela**, non miei. **Non li ho toccati e
+non vanno persi.**
+
+Untracked: `DIAGNOSI_VOCE2_PEZZI_2_3.md` — la diagnosi read-only su cui si
+basano i commit `75da262`, `33fd0bd` e `235ef59`. Parti ora **superate** (le
+tre corrette), parti ancora valide (tutto il pezzo 3).
+
+### DA DOVE SI RIPARTE — in quest'ordine
+
+1. **VERDICT DEVICE su `https://unnivai.vercel.app`** — e' il collo di
+   bottiglia: **tre fix aspettano lo stesso giro** su iPhone.
+   - **Home / `/map` / `/tour-live` a Roma** (porta tour-guida): su Home vedrai
+     **per la prima volta cosa produce davvero il motore AI** senza le tre
+     righe DB a mascherarlo. Se ha buchi, si vedono adesso: e' il punto.
+   - **Profilo → Richieste** (badge "In attesa"/"Accettata", niente rifiutate,
+     niente "3 ore" inventate).
+   - Il modal guida **non e' verificabile**: irraggiungibile a porta chiusa.
+2. **Le due decisioni**: chat con le guide, e modal "Tour su Misura". Sbloccano
+   il resto della voce 2.
+3. **Punto 11 dell'audit estetica** — l'elenco dei debiti di design non e' mai
+   arrivato: la sezione "Audit estetica" qui sopra ha un buco marcato
+   `⚠️ DA COMPLETARE`. Va incollato.
+4. **Ordine estetico gia' concordato** (sezione Audit): device pass → gradient
+   → foto hero → pezzi 2/3 → merge.
+5. **Merge `estetica` → `main`**: misurato il 04/09 con `git merge-tree`, **un
+   solo conflitto**, `src/pages/Profile.jsx`. Risoluzione corretta: **tenere la
+   logica di `main` dentro il markup di `estetica`**. `Explore.jsx` e
+   `MapPage.jsx` auto-mergiano puliti.

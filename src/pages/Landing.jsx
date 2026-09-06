@@ -155,17 +155,17 @@ const Step2Phone = ({ active }) => {
             <div className="px-3 pt-1 pb-2 bg-obsidian-bg">
                 <motion.div initial={{ opacity: 0 }} animate={active ? { opacity: 1 } : {}} transition={{ delay: 0.4 }}
                     className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 bg-ochre-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+                    <div className="w-8 h-8 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
                         <Brain className="w-4 h-4 text-obsidian-bg" />
                     </div>
                     <div className="flex-1">
                         <div className="flex items-center gap-1.5">
-                            <span className="text-ochre-400 text-[11px] font-bold">AI DoveVai</span>
+                            <span className="text-amber-400 text-[11px] font-bold">AI DoveVai</span>
                             {active && (
                                 <motion.div className="flex gap-0.5 items-center">
                                     {[0, 1, 2].map(i => (
                                         <motion.div key={i} animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.7, delay: i * 0.15 }}
-                                            className="w-1 h-1 bg-ochre-400 rounded-full" />
+                                            className="w-1 h-1 bg-amber-400 rounded-full" />
                                     ))}
                                 </motion.div>
                             )}
@@ -173,14 +173,14 @@ const Step2Phone = ({ active }) => {
                         <p className="text-obsidian-secondary text-[9px]">Esempio di itinerario</p>
                     </div>
                     <motion.div initial={{ scale: 0 }} animate={active ? { scale: 1 } : {}} transition={{ delay: 2.2, type: 'spring' }}
-                        className="bg-ochre-500/20 text-ochre-400 text-[9px] font-bold px-2 py-0.5 rounded-full border border-ochre-500/30">
+                        className="bg-amber-500/20 text-amber-400 text-[9px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
                         ✓ Pronto
                     </motion.div>
                 </motion.div>
                 {/* Progress bar */}
                 <div className="mt-2 bg-obsidian-raised rounded-full h-1 overflow-hidden">
                     <motion.div initial={{ width: '0%' }} animate={active ? { width: '100%' } : {}} transition={{ delay: 0.6, duration: 1.5, ease: 'easeOut' }}
-                        className="h-full bg-ochre-500 rounded-full" />
+                        className="h-full bg-amber-500 rounded-full" />
                 </div>
             </div>
             {/* Stops list */}
@@ -189,12 +189,12 @@ const Step2Phone = ({ active }) => {
                     <motion.div key={i} initial={{ x: 50, opacity: 0 }} animate={active ? { x: 0, opacity: 1 } : {}}
                         transition={{ delay: 0.8 + i * 0.25, type: 'spring', stiffness: 200 }}
                         className="flex items-center gap-2 bg-obsidian-raised border border-obsidian-border rounded-2xl px-2.5 py-2 overflow-hidden relative">
-                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-ochre-500 rounded-r" />
+                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-amber-500 rounded-r" />
                         <span className="text-lg flex-shrink-0">{stop.emoji}</span>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1 mb-0.5">
-                                <span className="text-ochre-400 text-[9px] font-black">{stop.time}</span>
-                                <span className="text-[8px] bg-ochre-500/15 text-ochre-400 px-1.5 rounded-full border border-ochre-500/20">{stop.cat}</span>
+                                <span className="text-amber-400 text-[9px] font-black">{stop.time}</span>
+                                <span className="text-[8px] bg-amber-500/15 text-amber-400 px-1.5 rounded-full border border-amber-500/20">{stop.cat}</span>
                             </div>
                             <p className="text-obsidian-primary text-[11px] font-semibold truncate">{stop.title}</p>
                         </div>
@@ -204,7 +204,7 @@ const Step2Phone = ({ active }) => {
             </div>
             {/* Bottom action */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={active ? { opacity: 1, y: 0 } : {}} transition={{ delay: 2.2 }}
-                className="mx-2.5 mb-2 bg-ochre-500 rounded-2xl py-2.5 flex items-center justify-center gap-2 shadow-lg">
+                className="mx-2.5 mb-2 bg-amber-500 rounded-2xl py-2.5 flex items-center justify-center gap-2 shadow-lg">
                 <Sparkles className="w-3.5 h-3.5 text-obsidian-bg" />
                 <span className="text-obsidian-bg text-[12px] font-bold">Salva Itinerario</span>
             </motion.div>
@@ -227,35 +227,39 @@ const Step2Phone = ({ active }) => {
 // Da 4 step a 3. Copy vero: parla solo di cio' che V1 fa.
 // Zero claim su guide certificate, feature V2/V3 live, prezzi promessi,
 // chat con la persona guida, copertura fisica ("in tutta Italia").
+// Tre tinte calde nettamente differenziate:
+// 1. Terracotta puro (Scoperta)
+// 2. Ambra/Oro solare (Pianificazione AI)
+// 3. Arancione DoveVAI (Esperienza reale)
 // ─────────────────────────────────────────────
 const STEPS = [
     {
         id: 0, label: '01', tag: 'Scoperta',
         title: 'Scegli la tua città',
         desc: 'Scegli dove sei o dove vai. La mappa mostra subito luoghi veri con coordinate vere e orari veri, in qualunque città scegli.',
-        gradient: 'from-terracotta-500 via-terracotta-400 to-ochre-500',
-        glow: 'rgba(234,88,12,0.3)',
-        meshColor: 'var(--terracotta-500)',
-        accent: 'var(--terracotta-400)',
+        gradient: 'from-[#D95D39] via-[#C2512D] to-[#9A3412]',
+        glow: 'rgba(217,93,57,0.35)',
+        meshColor: '#C2512D',
+        accent: '#E26D46',
         Phone: Step1Phone,
     },
     {
         id: 1, label: '02', tag: 'Pianificazione',
         title: "L'AI costruisce il tuo percorso",
         desc: "In pochi secondi un itinerario su misura per te, sui tuoi interessi. Zero elenchi sponsorizzati travestiti da consigli, zero prezzi finti.",
-        gradient: 'from-ochre-500 via-ochre-400 to-ochre-500',
-        glow: 'rgba(217,119,6,0.3)',
-        meshColor: 'var(--ochre-500)',
-        accent: 'var(--ochre-400)',
+        gradient: 'from-[#F59E0B] via-[#D97706] to-[#B45309]',
+        glow: 'rgba(245,158,11,0.35)',
+        meshColor: '#D97706',
+        accent: '#F59E0B',
         Phone: Step2Phone,
     },
     {
         id: 2, label: '03', tag: 'Esperienza',
         title: 'Vivi il percorso',
         desc: 'Mappa reale, coordinate reali. Ogni luogo nella sua vera posizione — nessun marker inventato, nessun elenco che paga per apparire.',
-        gradient: 'from-brand-orange via-ochre-500 to-terracotta-500',
-        glow: 'rgba(249,115,22,0.3)',
-        meshColor: 'var(--brand-orange)',
+        gradient: 'from-brand-orange via-brand-orange-hover to-brand-orange-deep',
+        glow: 'rgba(249,115,22,0.35)',
+        meshColor: 'var(--brand-orange-hover)',
         accent: 'var(--brand-orange)',
         Phone: Step1Phone,  // Riusa Step1Phone (mappa reale) per il terzo step "vivi il percorso"
     },
@@ -516,7 +520,7 @@ const Landing = () => {
         return () => clearInterval(t);
     }, []);
 
-    // Gestione rotazione foto (5.5s), Ken Burns e sincronizzazione didascalia (+600ms ingresso, -400ms uscita)
+    // Gestione rotazione foto (8.0s), Ken Burns e sincronizzazione didascalia (+600ms ingresso, -500ms uscita)
     useEffect(() => {
         // La didascalia entra ~600ms dopo l'avvio della foto
         const showCaptionTimer = setTimeout(() => {
@@ -528,16 +532,16 @@ const Landing = () => {
             return () => clearTimeout(showCaptionTimer);
         }
 
-        // La didascalia esce ~400ms prima del cambio foto (a 5100ms su intervallo di 5500ms)
+        // La didascalia esce ~500ms prima del cambio foto (a 7500ms su intervallo di 8000ms)
         const hideCaptionTimer = setTimeout(() => {
             setCaptionVisible(false);
-        }, 5100);
+        }, 7500);
 
-        // Cambio foto al termine dei 5.5s con crossfade di 1.2s
+        // Cambio foto al termine degli 8.0s per un movimento contemplativo, con crossfade di 1.2s
         const nextPhotoTimer = setTimeout(() => {
             setPhotoIdx(i => (i + 1) % HERO_PHOTOS.length);
             setCaptionVisible(false);
-        }, 5500);
+        }, 8000);
 
         return () => {
             clearTimeout(showCaptionTimer);
@@ -574,7 +578,7 @@ const Landing = () => {
                                 <motion.img
                                     src={currentPhoto.url}
                                     alt={currentPhoto.title && currentPhoto.city ? `${currentPhoto.title}, ${currentPhoto.city}` : 'Hero background'}
-                                    className="w-full h-full object-cover object-[50%_85%] md:object-center origin-center"
+                                    className="w-full h-full object-cover object-[50%_35%] md:object-center origin-center"
                                     initial={shouldReduceMotion ? { scale: 1, y: '0%' } : { scale: 1, y: '0%' }}
                                     animate={shouldReduceMotion ? { scale: 1, y: '0%' } : { scale: 1.06, y: '-2%' }}
                                     transition={shouldReduceMotion ? { duration: 0 } : { duration: 20, ease: 'linear' }}

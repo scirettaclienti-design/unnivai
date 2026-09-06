@@ -13,14 +13,14 @@ const raw = {
     accentHover: '#EA580C',
     accentDeep: '#9A3412',
     textPrimary: '#F5F5F4',
-    textSecondary: '#C4BEB6',
+    textSecondary: '#A8A29E',
     ivoryBg: '#F5F2EB',
     ivoryBadge: '#E5DFD1',
     borderSubtle: '#26211E',
     borderElevated: '#332C28',
     routeStroke: '#5A5048',
     statusSuccess: '#10B981',
-    statusError: '#EF4444',
+    statusError: '#F87171',
     statusWarning: '#EAB308',
 };
 

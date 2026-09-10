@@ -240,6 +240,67 @@ export function computeCumulativeOffsets(stops) {
 }
 
 /**
+ * ─── ORARIO ASSOLUTO — ora di partenza + offset cumulativo ──────────────────
+ *
+ * `computeCumulativeOffsets` dice "dopo quanto" (offset relativo). Questa
+ * funzione risponde alla domanda successiva, "a che ora", sommando un'ora di
+ * partenza nota a quell'offset. Non ricalcola nulla: riusa
+ * `computeCumulativeOffsets` così com'è — stessa regola del NULL ASSORBENTE
+ * (se un offset manca, l'orario di quella tappa e di tutte le successive è
+ * null, mai un'ora inventata).
+ *
+ * `startTime` è l'ora del dispositivo di chi fa la richiesta — non l'ora
+ * della città visitata: V1 è solo-Italia, fuso unico, nessuna conversione.
+ * Se un giorno l'app coprirà fusi diversi, questo è il punto dove andrebbe
+ * introdotta la conversione (oggi non serve: assunzione dichiarata).
+ *
+ * Il valore memorizzato è una stringa ISO, non un oggetto Date: il risultato
+ * di `generateItinerary` passa per `JSON.stringify` nella cache
+ * (`saveInsiderToCache`), e un Date sopravvive alla serializzazione solo come
+ * stringa — mantenerlo stringa fin da subito evita che lo stesso campo abbia
+ * due tipi diversi a seconda di cache hit o miss.
+ *
+ * LIMITE NOTO (preesistente, non introdotto qui): un tour servito da cache HIT
+ * porta l'orario calcolato alla PRIMA generazione, non a quando viene servito —
+ * come già succede a `timeContext` nella narrativa. Non si risolve qui.
+ *
+ * @param {Array} stops tappe già passate da computeStopTimings (hanno stayMinutes/travelMinutesFromPrev)
+ * @param {Date} startTime ora di partenza del tour
+ * @returns {Array} stessi stops, con `scheduledTime` aggiunto (stringa ISO o null)
+ */
+export function computeScheduledTimes(stops, startTime) {
+    if (!Array.isArray(stops) || stops.length === 0) return [];
+    const offsets = computeCumulativeOffsets(stops);
+    const validStart = startTime instanceof Date && !Number.isNaN(startTime.getTime());
+    return stops.map((s, i) => {
+        const offset = offsets[i];
+        const scheduledTime = (validStart && Number.isFinite(offset))
+            ? new Date(startTime.getTime() + offset * 60000).toISOString()
+            : null;
+        return { ...s, scheduledTime };
+    });
+}
+
+/**
+ * Etichetta HH:MM di un orario assoluto per la UI. Accetta sia la stringa ISO
+ * salvata su `scheduledTime` sia un oggetto Date (per chi lo passa già
+ * parsato). Stesso principio di `formatEstimate`/`formatOffsetLabel`: nessun
+ * dato grezzo raggiunge il render, e se non c'è niente di onesto da dire si
+ * ritorna null, non un placeholder.
+ *
+ * @param {string|Date|null} value
+ * @returns {string|null}
+ */
+export function formatClockTime(value) {
+    if (!value) return null;
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return null;
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+}
+
+/**
  * Etichetta di un offset per la UI. Unico punto in cui un offset diventa testo:
  * nessun numero secco raggiunge il render.
  *

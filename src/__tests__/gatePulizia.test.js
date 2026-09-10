@@ -103,6 +103,17 @@ describe('P5 — price non e\' piu\' defaultato a 0', () => {
         expect(step.price).toBe(12);
     });
 
+    it('G1 — normalizeTourStep: scheduledTime e\' pass-through, e assente vale null', () => {
+        const iso = new Date(2026, 8, 10, 15, 0, 0).toISOString();
+        const conOrario = normalizeTourStep({ title: 'Museo', scheduledTime: iso }, 0, 'Manfredonia');
+        expect(conOrario.scheduledTime).toBe(iso);
+
+        const senzaOrario = normalizeTourStep({ title: 'Museo' }, 0, 'Manfredonia');
+        expect(senzaOrario.scheduledTime).toBeNull();
+        expect(senzaOrario.scheduledTime).not.toBeUndefined();
+        expect(senzaOrario.scheduledTime).not.toBe('');
+    });
+
     it('canonicalizeStopsFromCandidates: la tappa non espone alcun campo price', () => {
         const candidates = [{
             place_id: 'pid-1', name: 'Osteria Sotto Casa', rating: 4.6,

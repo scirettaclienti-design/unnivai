@@ -370,6 +370,11 @@ export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma') {
         time: raw.time || null,
         stayMinutes: Number.isFinite(Number(raw.stayMinutes)) ? Number(raw.stayMinutes) : null,
         travelMinutesFromPrev: Number.isFinite(Number(raw.travelMinutesFromPrev)) ? Number(raw.travelMinutesFromPrev) : null,
+        // Orario assoluto (ISO string o null) — calcolato a monte in
+        // aiRecommendationService.js sommando l'ora di partenza agli offset
+        // cumulativi. Qui è puro pass-through, come stayMinutes/travelMinutesFromPrev:
+        // questo modulo non calcola, normalizza la shape.
+        scheduledTime: raw.scheduledTime || null,
         // `types` Google interi: la tabella di sosta ne ha bisogno a valle.
         types: Array.isArray(raw.types) ? raw.types : [],
 

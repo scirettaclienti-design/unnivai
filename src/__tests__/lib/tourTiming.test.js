@@ -13,6 +13,8 @@ import {
     formatEstimate,
     computeCumulativeOffsets,
     formatOffsetLabel,
+    computeScheduledTimes,
+    formatClockTime,
 } from '@/lib/tourTiming';
 
 // Gate RAGGIO — DIFF 1a. Test del modulo puro + marker negativo sul sorgente.
@@ -338,6 +340,133 @@ describe('formatOffsetLabel — nessun numero secco alla UI', () => {
         expect(formatOffsetLabel(null)).toBeNull();
         expect(formatOffsetLabel(undefined)).toBeNull();
         expect(formatOffsetLabel(NaN)).toBeNull();
+    });
+});
+
+// ─── G1 — orario assoluto = ora di partenza + offset cumulativo ──────────────
+//
+// NOTA SUL FUSO: gli startTime si costruiscono col costruttore LOCALE
+// `new Date(2026, 8, 10, 15, 0, 0)`, mai da una stringa ISO con la Z — che
+// verrebbe letta come UTC e darebbe "15:00" solo sulle macchine a UTC+0.
+// La suite gira senza TZ fissato: il test deve essere vero ovunque.
+
+describe('computeScheduledTimes — l\'ora di partenza incontra l\'offset', () => {
+    const START = () => new Date(2026, 8, 10, 15, 0, 0); // 10/09/2026, 15:00 locali
+
+    // A museum (60), B cafe (20), C restaurant (75), allineati in latitudine
+    // a 1 km l'uno dall'altro → 13 min di cammino per tratta.
+    const A = { title: 'A', types: ['museum'], latitude: 45.0, longitude: 9.0 };
+    const B = { title: 'B', types: ['cafe'], latitude: 45.0 + 1 / 111.19, longitude: 9.0 };
+    const C = { title: 'C', types: ['restaurant'], latitude: 45.0 + 2 / 111.19, longitude: 9.0 };
+
+    const timed = () => computeStopTimings([A, B, C]).stops;
+
+    it('la prima tappa e\' l\'ora di partenza esatta: offset 0, nessuno scarto', () => {
+        const start = START();
+        const out = computeScheduledTimes(timed(), start);
+        expect(out[0].scheduledTime).toBe(start.toISOString());
+        expect(formatClockTime(out[0].scheduledTime)).toBe('15:00');
+    });
+
+    it('ogni tappa e\' partenza + il suo offset cumulativo, al minuto', () => {
+        const start = START();
+        const stops = timed();
+        const offsets = computeCumulativeOffsets(stops);
+        // 0 ; 0+60+13 = 73 ; 73+20+13 = 106
+        expect(offsets).toEqual([0, 73, 106]);
+        const out = computeScheduledTimes(stops, start);
+        out.forEach((s, i) => {
+            expect(s.scheduledTime).toBe(new Date(start.getTime() + offsets[i] * 60000).toISOString());
+        });
+        // 15:00 + 1h13 = 16:13 ; 15:00 + 1h46 = 16:46
+        expect(out.map(s => formatClockTime(s.scheduledTime))).toEqual(['15:00', '16:13', '16:46']);
+    });
+
+    it('conserva i campi della tappa e non muta l\'input', () => {
+        const stops = timed();
+        const out = computeScheduledTimes(stops, START());
+        expect(out[1].title).toBe('B');
+        expect(out[1].stayMinutes).toBe(20);
+        expect(out[1].travelMinutesFromPrev).toBe(13);
+        expect(stops[1].scheduledTime).toBeUndefined();
+    });
+
+    it('lista vuota o non-array → nessun orario, senza lanciare', () => {
+        expect(computeScheduledTimes([], START())).toEqual([]);
+        expect(computeScheduledTimes(null, START())).toEqual([]);
+    });
+});
+
+describe('computeScheduledTimes — NULL ASSORBENTE ereditato dall\'offset', () => {
+    const START = () => new Date(2026, 8, 10, 15, 0, 0);
+
+    const A = { title: 'A', types: ['museum'], latitude: 45.0, longitude: 9.0 };
+    const B = { title: 'B', types: ['cafe'], latitude: 45.0 + 1 / 111.19, longitude: 9.0 };
+    // Tappa senza coordinate: travelMinutesFromPrev null da qui in poi.
+    const SENZA_COORD = { title: 'X', types: ['park'] };
+    const D = { title: 'D', types: ['restaurant'], latitude: 45.0 + 3 / 111.19, longitude: 9.0 };
+
+    it('una tappa senza coordinate annulla il SUO orario E quelli successivi', () => {
+        const stops = computeStopTimings([A, B, SENZA_COORD, D]).stops;
+        // Verificato esplicitamente sull'offset, non dato per scontato.
+        expect(computeCumulativeOffsets(stops)).toEqual([0, 73, null, null]);
+        const out = computeScheduledTimes(stops, START());
+        expect(out.map(s => s.scheduledTime)).toEqual([
+            START().toISOString(),
+            new Date(START().getTime() + 73 * 60000).toISOString(),
+            null,
+            null,
+        ]);
+    });
+
+    it('dopo il buco nessun orario e\' una stringa: mai un\'ora inventata', () => {
+        const stops = computeStopTimings([A, B, SENZA_COORD, D]).stops;
+        const out = computeScheduledTimes(stops, START());
+        expect(out.slice(2).every(s => s.scheduledTime === null)).toBe(true);
+        expect(out.slice(2).every(s => formatClockTime(s.scheduledTime) === null)).toBe(true);
+    });
+});
+
+describe('computeScheduledTimes — startTime non valido non produce orari', () => {
+    const stops = () => computeStopTimings([
+        { types: ['museum'], latitude: 45.0, longitude: 9.0 },
+        { types: ['cafe'], latitude: 45.0 + 1 / 111.19, longitude: 9.0 },
+    ]).stops;
+
+    it.each([
+        ['undefined', undefined],
+        ['null', null],
+        ['una stringa ISO non parsata', '2026-09-10T15:00:00'],
+        ['un numero (timestamp grezzo)', 1789045200000],
+        ['un Date invalido', new Date('non-una-data')],
+    ])('%s → ogni scheduledTime e\' null, senza lanciare', (_label, start) => {
+        const out = computeScheduledTimes(stops(), start);
+        expect(out).toHaveLength(2);
+        expect(out.every(s => s.scheduledTime === null)).toBe(true);
+    });
+});
+
+describe('formatClockTime — nessun orario grezzo alla UI', () => {
+    it('una stringa ISO valida diventa HH:MM', () => {
+        const d = new Date(2026, 8, 10, 9, 5, 0);
+        expect(formatClockTime(d.toISOString())).toBe('09:05');
+    });
+
+    it('accetta anche un Date gia\' parsato', () => {
+        expect(formatClockTime(new Date(2026, 8, 10, 18, 30, 0))).toBe('18:30');
+    });
+
+    it('ore e minuti sono sempre a due cifre', () => {
+        expect(formatClockTime(new Date(2026, 8, 10, 0, 0, 0))).toBe('00:00');
+        expect(formatClockTime(new Date(2026, 8, 10, 23, 59, 0))).toBe('23:59');
+    });
+
+    it('assente o non parsabile → null, la UI non monta niente', () => {
+        expect(formatClockTime(null)).toBeNull();
+        expect(formatClockTime(undefined)).toBeNull();
+        expect(formatClockTime('')).toBeNull();
+        expect(formatClockTime('domani pomeriggio')).toBeNull();
+        expect(formatClockTime(new Date('non-una-data'))).toBeNull();
     });
 });
 

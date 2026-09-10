@@ -6468,3 +6468,57 @@ Scritta il 06/09 pensando a una ripresa dopo un aggiornamento del computer.
    (`ahecpiwsdhghkndncejb`). Le RLS di `guide_requests` sono state ristrette
    il 04/09: se qualcosa "non si vede piu'", prima di sospettare il codice
    guardare le policy.
+
+---
+
+## Sessione 10/09 — Gate RAGGIO-CATEGORIA: la categoria richiesta diventa un vincolo di codice
+
+Diagnosi (09/09) e fix (09-10/09) di un difetto misurato dal vivo, non
+ipotizzato: la richiesta esplicita "le spiagge piu' belle" a Cabras
+restituiva **3 ristoranti**, zero spiagge. Causa provata con chiamate reali a
+Google Places e al traduttore GPT: Cabras e' nell'entroterra, le spiagge vere
+stanno a 9-12 km dal centro, ma la textsearch per "lidi"/"cale" (sinonimi
+corretti di "spiaggia" secondo il traduttore) porta anche ristoranti del
+centro (0.1-2.8 km) — "lido" e' un nome comune di locale da spiaggia in
+italiano. Con R=5 km sopravvivevano 10 candidati, tutti ristoranti: la soglia
+di widen (`filtered.length < 2`) contava il totale grezzo, non la pertinenza,
+quindi l'allargamento a 12 km non scattava mai. Il selettore riceveva un pool
+di soli ristoranti e ignorava l'istruzione di categoria scritta nel prompt —
+un'istruzione testuale non e' un vincolo.
+
+Fix, due parti:
+- `tourShape.js` — `applyRadiusFilter` accetta `opts.countForWiden`
+  (opzionale, retrocompatibile: comportamento storico invariato se assente):
+  il widen conta solo le tappe pertinenti, non il totale grezzo.
+- `aiRecommendationService.js` — nuova `candidateMatchesIntentCategoria` +
+  guard-rail deterministico: il pool viene filtrato per categoria PRIMA del
+  selettore, in codice, non nel prompt. Zero candidati in categoria anche
+  dopo il widen → stato vuoto esplicito (`_source: 'no-results'`), mai
+  sostituzione silenziosa.
+
+Verificato: suite verde (622 test su `estetica`, 624 su `main` — i due in
+piu' sono preesistenti su `main`, non di questa sessione), lint invariato
+(203 warning, 0 errori, identico prima e dopo il fix). Commit `c746b1b` su
+`estetica`, cherry-pick pulito (zero conflitti) `b7b07f7` su `main`, push +
+CI verde (Lint & Test + E2E Smoke):
+https://github.com/scirettaclienti-design/unnivai/actions/runs/34481212049
+
+**Limiti noti, lasciati aperti deliberatamente — non dimenticati:**
+
+1. **Il widen a 12 km non recupera tutto.** Nel caso Cabras rientra Is Arutas
+   (11.3 km) ma **non** Mari Ermi (12.2 km) — resta appena fuori raggio. La
+   regola `isSmallTown → 5 km` resta da rivedere: nei piccoli comuni le
+   attrattive stanno fuori dal centro amministrativo, e un raggio tarato su
+   una citta' penalizza proprio i casi che dovrebbe aiutare. **Non toccato in
+   questa sessione su vincolo esplicito** (ne' `isSmallTown` ne' la soglia dei
+   12 km) — va deciso a parte, con altri comuni piccoli misurati, non
+   speculando su Cabras da sola.
+2. **`candidateMatchesIntentCategoria` filtra per CONTRASTO, non per
+   appartenenza.** Un candidato con soli type generici (`point_of_interest`,
+   `establishment`, nessun type piu' specifico) **passa** il guard-rail anche
+   se non e' affermato che appartenga alla categoria richiesta. Scelta
+   deliberata, non un buco: escludere per assenza di segnale avrebbe buttato
+   via spiagge vere che Google non tagga sempre con
+   `natural_feature`/`tourist_attraction` — misurato: "Spiaggia di Maimoni" a
+   Cabras arriva anche con `types=[establishment, point_of_interest]`
+   soltanto, a seconda di quale query textsearch la trova per prima.

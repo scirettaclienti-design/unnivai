@@ -12,7 +12,7 @@ import { buildPromptFromSelections } from '../../pages/QuickPath';
 describe('Gate C Task 1 — buildPromptFromSelections', () => {
     it('Relax + Benessere → queries concrete (spa/hammam/terme), escludi cattedrali', () => {
         const p = buildPromptFromSelections({
-            main: 'relax', sub: 'benessere', time: 'pomeriggio',
+            main: 'relax', sub: 'benessere',
             duration: 'medio', group: 'coppia', city: 'Siracusa',
         });
         expect(p).toMatch(/A Siracusa cerco:/);
@@ -25,7 +25,7 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
 
     it('Relax senza sub → _default concreto (spa/giardini/spiagge)', () => {
         const p = buildPromptFromSelections({
-            main: 'relax', sub: '', time: '', duration: 'medio',
+            main: 'relax', sub: '', duration: 'medio',
             group: '', city: 'Siracusa',
         });
         expect(p).toMatch(/spa|giardini|spiagge/i);
@@ -37,7 +37,7 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
 
     it('Mare + Lungomare a Napoli → escludi chiese/musei', () => {
         const p = buildPromptFromSelections({
-            main: 'mare', sub: 'lungomare', time: 'sera',
+            main: 'mare', sub: 'lungomare',
             duration: 'lungo', group: 'amici', city: 'Napoli',
         });
         expect(p).toMatch(/A Napoli cerco:/);
@@ -47,7 +47,7 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
 
     it('Cibo NON aggiunge EXCLUSION_CLAUSE food-generica (isFoodMain=true)', () => {
         const p = buildPromptFromSelections({
-            main: 'cibo', sub: 'street', time: 'pomeriggio',
+            main: 'cibo', sub: 'street',
             duration: 'medio', group: 'coppia', city: 'Roma',
         });
         expect(p).toMatch(/street food|mercati|cucina/i);
@@ -58,7 +58,7 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
 
     it('Città + Rione a Roma → nessun Escludi (main storico/urbano)', () => {
         const p = buildPromptFromSelections({
-            main: 'citta', sub: 'rione', time: 'mattina',
+            main: 'citta', sub: 'rione',
             duration: 'veloce', group: 'solo', city: 'Roma',
         });
         expect(p).toMatch(/quartieri caratteristici|vicoli/i);
@@ -70,13 +70,13 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
 
     it('Cita numero tappe corretto per ogni durata', () => {
         const short = buildPromptFromSelections({
-            main: 'citta', sub: '', time: '', duration: 'veloce',
+            main: 'citta', sub: '', duration: 'veloce',
             group: '', city: 'Roma',
         });
         expect(short).toMatch(/Esattamente 2 tappe/);
 
         const long = buildPromptFromSelections({
-            main: 'citta', sub: '', time: '', duration: 'lungo',
+            main: 'citta', sub: '', duration: 'lungo',
             group: '', city: 'Roma',
         });
         expect(long).toMatch(/Esattamente 5-6 tappe/);
@@ -84,7 +84,7 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
 
     it('main sconosciuto → dominant di default, prompt non rotto', () => {
         const p = buildPromptFromSelections({
-            main: 'quantumteleport', sub: '', time: '', duration: 'medio',
+            main: 'quantumteleport', sub: '', duration: 'medio',
             group: '', city: 'Roma',
         });
         expect(p).toMatch(/monumenti principali/);
@@ -93,7 +93,7 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
 
     it('città vuota → variante "Cerco:" senza "A <city>"', () => {
         const p = buildPromptFromSelections({
-            main: 'relax', sub: 'benessere', time: '', duration: 'medio',
+            main: 'relax', sub: 'benessere', duration: 'medio',
             group: '', city: '',
         });
         expect(p).toMatch(/^Cerco:/);
@@ -108,15 +108,15 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
 
     it('selezioni diverse → prompt diversi (regression Gate H)', () => {
         const natura = buildPromptFromSelections({
-            main: 'natura', sub: 'parco', time: '', duration: 'medio',
+            main: 'natura', sub: 'parco', duration: 'medio',
             group: '', city: 'Catania',
         });
         const citta = buildPromptFromSelections({
-            main: 'citta', sub: 'centro', time: '', duration: 'medio',
+            main: 'citta', sub: 'centro', duration: 'medio',
             group: '', city: 'Catania',
         });
         const cibo = buildPromptFromSelections({
-            main: 'cibo', sub: 'street', time: '', duration: 'medio',
+            main: 'cibo', sub: 'street', duration: 'medio',
             group: '', city: 'Catania',
         });
         expect(natura).not.toBe(citta);
@@ -126,7 +126,7 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
 
     it('main "natura" → prompt contiene parole di natura, non "monumenti principali"', () => {
         const p = buildPromptFromSelections({
-            main: 'natura', sub: 'parco', time: '', duration: 'medio',
+            main: 'natura', sub: 'parco', duration: 'medio',
             group: '', city: 'Catania',
         });
         expect(p).toMatch(/parchi|giardini|aree verdi/i);
@@ -137,10 +137,37 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
 
     it('main "cibo" → prompt contiene "street food"/"trattorie", non "monumenti"', () => {
         const p = buildPromptFromSelections({
-            main: 'cibo', sub: 'street', time: '', duration: 'medio',
+            main: 'cibo', sub: 'street', duration: 'medio',
             group: '', city: 'Roma',
         });
         expect(p).toMatch(/street food|mercati|cucina di strada/i);
         expect(p).not.toMatch(/monumenti principali/);
+    });
+
+    // Gate ORA VERA — il wizard non chiede più una fascia oraria e il prompt non
+    // ne afferma nessuna. L'ora di partenza del tour è l'ora VERA della richiesta
+    // (new Date() in generateItinerary, G1): affermarne una nel prompt la
+    // contraddirebbe. ONESTÀ: questo test, così com'è, era GIÀ VERDE prima del
+    // fix — non passando `time`, TIME_LABEL[''] dava '' e nessuna fascia
+    // compariva. Il test che era davvero ROSSO è quello sotto.
+    it('il prompt non contiene MAI una fascia oraria (fix: QuickPath non la chiede più)', () => {
+        const p = buildPromptFromSelections({
+            main: 'relax', sub: 'benessere', duration: 'medio', group: 'coppia', city: 'Siracusa',
+        });
+        expect(p).not.toMatch(/al mattino|nel pomeriggio|in serata/i);
+    });
+
+    // Controllo dello strumento: anche passando `time` esplicito (com'era la
+    // vecchia firma), nessuna fascia oraria arriva nel prompt. Se questo
+    // passasse per caso — perché la regex non vede — il test sopra non
+    // proverebbe niente.
+    it('anche con un `time` esplicito residuo, la fascia oraria non entra nel prompt', () => {
+        for (const time of ['mattina', 'pomeriggio', 'sera']) {
+            const p = buildPromptFromSelections({
+                main: 'relax', sub: 'benessere', time,
+                duration: 'medio', group: 'coppia', city: 'Siracusa',
+            });
+            expect(p).not.toMatch(/al mattino|nel pomeriggio|in serata/i);
+        }
     });
 });

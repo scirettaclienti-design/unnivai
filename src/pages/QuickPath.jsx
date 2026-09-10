@@ -13,7 +13,7 @@ import { getCoverPalette } from "@/lib/categoryPalette";
 // Il DB non ha partner reali oggi; il codice attivo rischierebbe di rompere le
 // tappe vere con splice. La chiamata è commentata più sotto con TODO(V3).
 // import { dataService } from "@/services/dataService";
-import { ArrowLeft, ArrowRight, Building2, Trees, Waves, Mountain, Landmark, UtensilsCrossed, Sparkles, Bath, Compass, Sunrise, Sun, Sunset, Zap, Clock, Target, User, Heart, Users, UserCheck, CheckCircle2, RotateCcw, Home, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, Trees, Waves, Mountain, Landmark, UtensilsCrossed, Sparkles, Bath, Compass, Zap, Clock, Target, User, Heart, Users, UserCheck, CheckCircle2, RotateCcw, Home, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import BottomNavigation from "@/components/BottomNavigation";
@@ -198,11 +198,11 @@ const EXCLUDE_HINTS_BY_MAIN = {
     // già seleziona bene). "arte", "storia", "citta" non compaiono qui.
 };
 
-const TIME_LABEL = {
-    mattina:    'Al mattino',
-    pomeriggio: 'Nel pomeriggio',
-    sera:       'In serata',
-};
+// Gate ORA VERA — TIME_LABEL RIMOSSO. Il wizard non chiede più una fascia
+// oraria: iniettarne una nel prompt ("Al mattino") mentiva, perché il motore
+// fa partire il tour dall'ora VERA della richiesta (G1: `new Date()` in
+// generateItinerary). Alle 21:10 un tour "Al mattino" era una contraddizione.
+// L'unica sorgente di orario resta `timeContext`, derivato dall'ora reale.
 
 const STOP_COUNT = {
     veloce: 'Esattamente 2 tappe.',
@@ -220,10 +220,9 @@ const GROUP_LABEL = {
 const EXCLUSION_CLAUSE = 'Solo tappe di questa categoria: non aggiungere ristoranti, bar o caffè se non li ho chiesti esplicitamente.';
 const FOOD_MAIN_KEYS = new Set(['cibo']);
 
-export function buildPromptFromSelections({ main, sub, time, duration, group, city }) {
+export function buildPromptFromSelections({ main, sub, duration, group, city }) {
     const mainKey  = String(main  || '').toLowerCase().trim();
     const subKey   = String(sub   || '').toLowerCase().trim();
-    const timeKey  = String(time  || '').toLowerCase().trim();
     const durKey   = String(duration || '').toLowerCase().trim();
     const groupKey = String(group || '').toLowerCase().trim();
     const cityName = String(city  || '').trim();
@@ -232,7 +231,6 @@ export function buildPromptFromSelections({ main, sub, time, duration, group, ci
     const dominant = (bucket && (bucket[subKey] || bucket._default))
         || 'monumenti principali, piazze e vita locale';
 
-    const timeLabel  = TIME_LABEL[timeKey]  || '';
     const groupLabel = GROUP_LABEL[groupKey] || '';
     const stopCount  = STOP_COUNT[durKey]   || '';
     const isFoodMain = FOOD_MAIN_KEYS.has(mainKey);
@@ -240,11 +238,11 @@ export function buildPromptFromSelections({ main, sub, time, duration, group, ci
 
     // Gate C Task 1 — Brief operativo, non prosa. Prima frase: cosa cercare
     // (query concrete). Seconda: cosa escludere (rinforza vincoli.escludi).
-    // Terza: contesto (tempo, gruppo, numero tappe).
+    // Terza: contesto (gruppo, numero tappe). Gate ORA VERA: nessuna fascia
+    // oraria — l'orario del tour lo decide l'ora reale della richiesta.
     const sentence1 = cityName ? `A ${cityName} cerco: ${dominant}.` : `Cerco: ${dominant}.`;
     const sentence2 = excludeHint ? `Escludi: ${excludeHint}.` : '';
-    const contextParts = [timeLabel, groupLabel].filter(Boolean);
-    const sentence3 = contextParts.length > 0 ? contextParts.join(', ') + '.' : '';
+    const sentence3 = groupLabel ? `${groupLabel}.` : '';
     const sentence4 = stopCount;
     // EXCLUSION_CLAUSE (no food se non richiesto) va SOLO quando la categoria
     // non è già coperta da EXCLUDE_HINTS_BY_MAIN. Se il main è "citta"/"storia"/
@@ -377,32 +375,12 @@ const getAdaptiveOptions = (city) => {
     };
 };
 
-// Step 3: Time preferences
-const timeOptions = [
-    {
-        id: 'mattina',
-        title: 'Mattina',
-        icon: Sunrise,
-        time: '08:00 - 12:00',
-        description: 'Perfetto per iniziare la giornata con energia',
-    },
-    {
-        id: 'pomeriggio',
-        title: 'Pomeriggio',
-        icon: Sun,
-        time: '14:00 - 18:00',
-        description: 'Ideale per esplorare con calma',
-    },
-    {
-        id: 'sera',
-        title: 'Sera',
-        icon: Sunset,
-        time: '18:00 - 22:00',
-        description: 'Magico per atmosfere suggestive',
-    }
-];
+// Gate ORA VERA — `timeOptions` (lo step "Quando partiamo?") RIMOSSO.
+// Le tre fasce erano finte: "Mattina 08:00-12:00" veniva scelta anche alle
+// 21:10 e finiva nel prompt come affermazione. Il percorso parte sempre
+// dall'ora reale della richiesta. Il wizard passa da 6 a 5 step.
 
-// Step 4: Duration preferences
+// Step 3: Duration preferences
 const durationOptions = [
     {
         id: 'veloce',
@@ -427,7 +405,7 @@ const durationOptions = [
     }
 ];
 
-// Step 5: Group size preferences
+// Step 4: Group size preferences
 const groupOptions = [
     {
         id: 'solo',
@@ -482,7 +460,6 @@ export default function QuickPathPage() {
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedOption, setSelectedOption] = useState(null);
     const [selectedSubOption, setSelectedSubOption] = useState(null);
-    const [selectedTime, setSelectedTime] = useState(null);
     const [selectedDuration, setSelectedDuration] = useState(null);
     const [selectedGroup, setSelectedGroup] = useState(null);
 
@@ -518,17 +495,12 @@ export default function QuickPathPage() {
 
     const handleSubSelection = (subOption) => {
         setSelectedSubOption(subOption);
-        setCurrentStep(3);
-    };
-
-    const handleTimeSelection = (timeOption) => {
-        setSelectedTime(timeOption);
-        setCurrentStep(4);
+        setCurrentStep(3); // Gate ORA VERA: step 3 è ora "durata" (era "fascia oraria")
     };
 
     const handleDurationSelection = (durationOption) => {
         setSelectedDuration(durationOption);
-        setCurrentStep(5);
+        setCurrentStep(4);
     };
 
     const handleGroupSelection = (groupOption) => {
@@ -538,7 +510,7 @@ export default function QuickPathPage() {
         // ma <PaywallModal> non era mai renderizzato → utente bloccato senza
         // spiegazione. Ora il wizard prosegue sempre. Il cap 10/giorno server
         // (checkAndIncrementQuota → error-quota) è l'unico limite in V1.
-        setCurrentStep(6); // Move to loading step
+        setCurrentStep(5); // Move to loading step
         // TRIGGER GENERATION IMMEDIATELY ON FINAL SELECTION
         generateItinerary(groupOption);
     };
@@ -554,7 +526,7 @@ export default function QuickPathPage() {
     const generateItinerary = async (group) => {
         // Gate H — selectedOption è la STRING id (settata via
         // handleMainSelection(option.id) al click sulla box). Gli altri 4
-        // (sub/time/duration/group) sono OGGETTI (i loro onClick passano
+        // (sub/duration/group) sono OGGETTI (i loro onClick passano
         // l'oggetto intero). Prima il codice qui leggeva selectedOption?.id
         // che restituiva undefined → main=undefined → buildPromptFromSelections
         // cadeva sul dominant di default per ogni scelta → prompt sempre
@@ -563,7 +535,6 @@ export default function QuickPathPage() {
             city: activeCity,
             main: selectedOption,
             sub: selectedSubOption?.id,
-            time: selectedTime?.id,
             duration: selectedDuration?.id,
             group: group?.id,
         });
@@ -584,12 +555,11 @@ export default function QuickPathPage() {
         }, 35000);
 
         try {
-            // 1. Costruisci prompt dalle 5 selezioni (buildPromptFromSelections).
+            // 1. Costruisci prompt dalle 4 selezioni (buildPromptFromSelections).
             // Gate H: selectedOption è STRING (vedi commento in generateItinerary).
             const prompt = buildPromptFromSelections({
                 main:     selectedOption,
                 sub:      selectedSubOption?.id,
-                time:     selectedTime?.id,
                 duration: selectedDuration?.id,
                 group:    group?.id,
                 city:     activeCity,
@@ -686,7 +656,10 @@ export default function QuickPathPage() {
                 trackGeneratedTour({
                     mood: selectedSubOption?.title || '',
                     inspiration: selectedSubOption?.description || '',
-                    time: selectedTime?.title || '',
+                    // Gate ORA VERA — nessun `time`: il wizard non lo chiede
+                    // più. Conseguenza dichiarata: il preference graph perde
+                    // quel segnale sui tour QuickPath. Nessun sostituto —
+                    // impara comunque da mood/inspiration/duration/group/city.
                     duration: selectedDuration?.title || '',
                     group: group?.title || '',
                     city: activeCity,
@@ -727,7 +700,6 @@ export default function QuickPathPage() {
         setCurrentStep(1);
         setSelectedOption(null);
         setSelectedSubOption(null);
-        setSelectedTime(null);
         setSelectedDuration(null);
         setSelectedGroup(null);
         setGenerationStatus('idle');
@@ -769,14 +741,14 @@ export default function QuickPathPage() {
                     </div>
                 </motion.div>
 
-                {/* Progress Indicator: 6 step */}
+                {/* Progress Indicator: 5 step */}
                 <motion.div
                     className="flex items-center justify-center space-x-2 mb-8"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.4, delay: 0.1 }}
                 >
-                    {[1, 2, 3, 4, 5, 6].map((step) => (
+                    {[1, 2, 3, 4, 5].map((step) => (
                         <div
                             key={step}
                             className={`h-2 rounded-full transition-all duration-300 ${
@@ -890,61 +862,10 @@ export default function QuickPathPage() {
                         </motion.div>
                     )}
 
-                    {/* Step 3: Time Preference */}
+                    {/* Step 3: Duration */}
                     {currentStep === 3 && (
                         <motion.div
                             key="step3"
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 1.02 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            <div className="text-center mb-8">
-                                <h2 className="text-2xl font-bold text-obsidian-primary mb-2">Quando partiamo?</h2>
-                                <p className="text-obsidian-secondary text-sm">Scegli la fascia oraria preferita</p>
-                            </div>
-
-                            <div className="space-y-3">
-                                {timeOptions.map((timeOption, index) => {
-                                    const IconComponent = timeOption.icon || Sun;
-                                    return (
-                                        <motion.button
-                                            key={timeOption.id}
-                                            onClick={() => handleTimeSelection(timeOption)}
-                                            className="w-full bg-obsidian-card overflow-hidden rounded-[24px] p-4 border border-obsidian-border hover:border-brand-orange/60 hover:bg-obsidian-raised transition-all flex items-center justify-between group shadow-sm text-left cursor-pointer"
-                                            initial={{ opacity: 0, y: 15 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.04 }}
-                                            whileHover={{ x: 4 }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center text-obsidian-secondary group-hover:text-brand-orange group-hover:border-brand-orange/40 transition-colors shadow-sm shrink-0">
-                                                    <IconComponent className="w-6 h-6 stroke-[1.75]" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-bold text-base text-obsidian-primary group-hover:text-brand-orange transition-colors">
-                                                        {timeOption.title}
-                                                    </h3>
-                                                    <p className="text-obsidian-secondary text-xs font-semibold tracking-wider mt-0.5">
-                                                        {timeOption.time}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="text-obsidian-secondary group-hover:text-brand-orange transition-colors shrink-0">
-                                                <ArrowRight className="w-5 h-5" />
-                                            </div>
-                                        </motion.button>
-                                    );
-                                })}
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* Step 4: Duration */}
-                    {currentStep === 4 && (
-                        <motion.div
-                            key="step4"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
@@ -987,10 +908,10 @@ export default function QuickPathPage() {
                         </motion.div>
                     )}
 
-                    {/* Step 5: Group Size */}
-                    {currentStep === 5 && (
+                    {/* Step 4: Group Size */}
+                    {currentStep === 4 && (
                         <motion.div
-                            key="step5"
+                            key="step4"
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 1.02 }}
@@ -1030,10 +951,10 @@ export default function QuickPathPage() {
                         </motion.div>
                     )}
 
-                    {/* Step 6: GENERATION STATE */}
-                    {currentStep === 6 && (
+                    {/* Step 5: GENERATION STATE */}
+                    {currentStep === 5 && (
                         <motion.div
-                            key="step6"
+                            key="step5"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -1048,7 +969,6 @@ export default function QuickPathPage() {
                                     choices={{
                                         mood: mainOptions.find(o => o.id === selectedOption)?.title || selectedOption,
                                         inspiration: selectedSubOption?.title,
-                                        time: selectedTime?.title,
                                         duration: selectedDuration?.title,
                                         group: selectedGroup?.title
                                     }}

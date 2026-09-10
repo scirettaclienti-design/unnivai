@@ -6890,3 +6890,87 @@ verde.
 **Commit**: `5394486` su `main`. Pushato (`27c5175..5394486`), CI verde
 (`Lint & Test` + `E2E Smoke`):
 https://github.com/scirettaclienti-design/unnivai/actions/runs/34513496453
+
+---
+
+## Sessione 10/09 (7) — il modal "Dove ti trovi?" compare una sola volta per sessione, non a ogni route
+
+Segnalazione da test browser: il modal di onboarding città si riapriva oltre
+6 volte in una sessione, a ogni cambio di route (Home, Esplora, Profilo,
+dettaglio tour), e in un caso ha intercettato un click destinato a "Quiz
+Veloce" impedendo la navigazione.
+
+**Le tre domande, risposte prima di correggere:**
+
+1. **Cosa lo apre**: `useEffect` in `TopBar.jsx`, condizione
+   `needsCityChoice && !onboardingPrompted && !isCityModalOpen`.
+   `needsCityChoice` viene da `useUserContext.js:57` = `!gpsLoading &&
+   !effectiveCity`.
+2. **Perché si riapre a ogni route**: stato locale + remount. `TopBar` non
+   vive in un layout persistente — **14** componenti lo montano ciascuno per
+   conto proprio (13 pagine + `ComingSoonOverlay.jsx`), e `AnimatedAppRoutes`
+   (`App.jsx`) forza lo smontaggio a ogni cambio di `pathname`. Il flag
+   `onboardingPrompted` (prima `useState`) tornava `false` a ogni remount;
+   l'intento gia' scritto nel commento ("una sola volta per sessione") non
+   era implementato.
+3. **Il click intercettato**: NON z-index (`z-[9999]` è il massimo del
+   repo, nessuna competizione), NON un overlay rimasto montato
+   (`if (!isOpen) return null`, nessun `AnimatePresence` che trattenga
+   l'exit). È un backdrop `fixed inset-0 pointer-events-auto` che compare
+   *non richiesto* al remount, in una finestra di ~300ms in cui è già
+   cliccabile ma ancora quasi trasparente (fade-in della `motion.div`
+   sovrapposto al fade-in della pagina nuova, gestito da
+   `AnimatedAppRoutes`). Il click non va perso: viene *consumato* da
+   `onClose`, ecco perché la navigazione non parte senza errore visibile.
+
+**Scoperta non prevista, riportata invece che corretta**: il modal si apre
+al **primissimo render**, per qualunque utente senza città in localStorage —
+non solo per GPS negato/fallito. `useEnhancedGeolocation` inizializza
+`loading: false` (non `true`) e lo alza dentro un `useEffect`, che gira
+*dopo* il primo commit. Quindi al render 1, `needsCityChoice` è già `true`
+prima che il GPS abbia potuto rispondere. Il modal inoltre **non si chiude
+da solo** quando il GPS risolve la città pochi secondi dopo — resta lì
+finché l'utente non lo chiude a mano. **Non corretto in questa sessione**:
+tocca il contratto di `useUserContext`, letto da dashboard oltre che da
+`TopBar` — decisione da prendere a parte, non "dove vive il flag già
+proposto". Con il fix sotto, questo residuo passa da "il modal perseguita"
+a "il modal compare una volta di troppo al primissimo accesso, poi mai più
+nella sessione" — molto meno grave, ma non chiuso.
+
+**Fix**: `TopBar.jsx` — il flag `onboardingPrompted` vive in `sessionStorage`
+(`dvai_city_onboarding_prompted`, prefisso coerente con le chiavi correnti
+del repo — `unnivai_*` è legacy), non in `useState`: sopravvive al remount,
+non alla chiusura del tab. `isCityModalOpen` resta stato locale (corretto
+che riparta chiuso a ogni mount — è "l'abbiamo già proposto" che deve
+sopravvivere, non "è visivamente aperto ora"). L'apertura manuale (matita
+accanto a "Scegli città") resta sempre disponibile, indipendente dal flag.
+
+**Fix collaterale**, trovato mentre si verificava il primo: `AuthContext.jsx`
+→ `signOut` rimuoveva già `user_city`/`dvai_gps_data` (rimette il prossimo
+utente nello stato "senza città") ma non il flag di sessione — senza questa
+riga, quel prossimo utente sullo stesso tab non si sarebbe mai visto proporre
+la scelta città.
+
+**Test — verificato rosso→verde da me indipendentemente**, non solo dal
+report: `src/__tests__/components/topBar_cityModal.test.js` (nuovo, 7 casi,
+mock solo di infrastruttura — router/animazioni/contesti — la logica di
+apertura di `TopBar` gira vera). Isolati con `git stash` i soli due file del
+fix: **5/7 falliti** pre-fix (fallimento letterale sul sintomo — il modal
+ricompare al remount), **7/7 verdi** post-fix.
+
+Verificato (due volte, agente e io): 42 file, **667 test verdi** (660 prima
+di questa sessione), lint **fermo a 201 warning, 0 errori**, build verde.
+
+**Commit e push, entrambi su `main`:**
+```
+9c60de7  fix(topbar): il modal onboarding citta' compare una sola volta per sessione
+```
+Pushato (`dcb1535..9c60de7`), CI verde (`Lint & Test` + `E2E Smoke`):
+https://github.com/scirettaclienti-design/unnivai/actions/runs/34527939841
+
+**Voce aperta per una sessione futura**: la scoperta non prevista sopra —
+`needsCityChoice` vero al primo render per ogni utente senza città, non solo
+GPS fallito, e il modal che non si auto-chiude quando il GPS risolve dopo.
+Decisione da prendere: far partire `gpsLoading` a `true` finché il primo giro
+GPS non conclude, o gatare `needsCityChoice` su un flag "boot GPS concluso"
+esplicito — tocca `useUserContext.js`, letto anche da `DashboardUser.jsx`.

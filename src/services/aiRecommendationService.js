@@ -403,7 +403,7 @@ import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } fr
 // Gate RAGGIO DIFF 1a — stime di durata (sosta da types + spostamento haversine).
 // Va chiamato SEMPRE dopo l'ordinamento definitivo: lo spostamento e' una
 // proprieta' della coppia di tappe consecutive, non della singola tappa.
-import { computeStopTimings, totalTourMinutes } from '@/lib/tourTiming';
+import { computeStopTimings, totalTourMinutes, computeScheduledTimes } from '@/lib/tourTiming';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 
 // ─── DVAI-060 F2 — derive theme + fetch candidati reali ──────────────────────
@@ -1464,7 +1464,17 @@ export const aiRecommendationService = {
         const weatherIcon = weather?.condition === 'sunny' ? '☀️'
             : weather?.condition === 'rainy' ? '🌧️' : '⛅';
 
-        const hour = new Date().getHours();
+        // G1 — ora di partenza del tour = ora della richiesta (orologio del
+        // dispositivo). Un'unica cattura, riusata sia per `timeContext`
+        // (narrativa nel prompt) sia per l'orario assoluto delle tappe più
+        // sotto: stessa richiesta, stesso istante, non due `new Date()` che
+        // potrebbero divergere di qualche millisecondo.
+        // G3 (non qui): quando il prompt contiene un riferimento temporale
+        // esplicito ("domani", "sabato pomeriggio"), sarà questo il punto
+        // dove sostituire requestTime con l'ora derivata dal prompt invece
+        // che con "adesso".
+        const requestTime = new Date();
+        const hour = requestTime.getHours();
         const timeContext = hour >= 6 && hour < 11 ? 'mattina presto — le tappe devono includere colazione/bar e posti che aprono la mattina'
             : hour >= 11 && hour < 14 ? 'ora di pranzo — includi un ristorante locale (non turistico) come tappa centrale'
             : hour >= 14 && hour < 18 ? 'pomeriggio — musei, gallerie, panorami, passeggiate'
@@ -1600,7 +1610,8 @@ export const aiRecommendationService = {
                         const withinRadius = applyRadiusFilter(described, cityCenter, city);
                         // Ordina per prossimità geografica dopo la canonizzazione.
                         // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
-                        const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
+                        const timed = computeStopTimings(sortByProximity(withinRadius)).stops;
+                        const ordered = computeScheduledTimes(timed, requestTime);
                         return {
                             day: day.day ?? di + 1,
                             title: day.title ?? `Giorno ${di + 1} a ${city}`,
@@ -1839,7 +1850,8 @@ Schema JSON ESATTO:
 
                 // Ordina le tappe per prossimità geografica (nearest-neighbor greedy)
                 // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
-                const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
+                const timed = computeStopTimings(sortByProximity(withinRadius)).stops;
+                const ordered = computeScheduledTimes(timed, requestTime);
 
                 return {
                     day: day.day ?? di + 1,

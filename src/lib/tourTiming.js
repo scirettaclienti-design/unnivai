@@ -260,9 +260,11 @@ export function computeCumulativeOffsets(stops) {
  * stringa — mantenerlo stringa fin da subito evita che lo stesso campo abbia
  * due tipi diversi a seconda di cache hit o miss.
  *
- * LIMITE NOTO (preesistente, non introdotto qui): un tour servito da cache HIT
- * porta l'orario calcolato alla PRIMA generazione, non a quando viene servito —
- * come già succede a `timeContext` nella narrativa. Non si risolve qui.
+ * LIMITE CHIUSO (G1.1): un tour servito da cache HIT portava l'orario calcolato
+ * alla PRIMA generazione, non a quando veniva servito. Ora non più: il
+ * chiamante passa sempre da `refreshTourScheduledTimes` (qui sotto) prima di
+ * restituire, cache hit o miss. Resta aperto solo per `timeContext` nella
+ * narrativa, che è un'altra cosa e non si risolve qui.
  *
  * @param {Array} stops tappe già passate da computeStopTimings (hanno stayMinutes/travelMinutesFromPrev)
  * @param {Date} startTime ora di partenza del tour
@@ -279,6 +281,35 @@ export function computeScheduledTimes(stops, startTime) {
             : null;
         return { ...s, scheduledTime };
     });
+}
+
+/**
+ * ─── RILETTURA DA CACHE — orari sempre ricalcolati da ADESSO ────────────────
+ *
+ * Un tour salvato in cache non deve mai portare con sé uno `scheduledTime`
+ * calcolato al momento della generazione: quell'orario diventa falso appena
+ * passa il tempo (un tour generato alle 15:00 e riaperto alle 19:00 non può
+ * ancora dire "16:13" alla prima tappa). Gli offset
+ * (`stayMinutes`/`travelMinutesFromPrev`, via `computeCumulativeOffsets`)
+ * restano il dato stabile e cachabile; l'orario assoluto è sempre DERIVATO al
+ * momento in cui il tour viene servito, cache hit o cache miss che sia.
+ *
+ * Applica `computeScheduledTimes` a ogni giorno di un tour (shape
+ * `{ days: [{ stops: [...] }] }`), con la stessa `startTime` per tutti i
+ * giorni. Va chiamata SEMPRE subito prima di restituire un risultato al
+ * chiamante — mai prima del salvataggio in cache.
+ *
+ * @param {Array} days array di giorni, ciascuno con `stops`
+ * @param {Date} startTime ora da cui derivare gli orari (l'ora ATTUALE del
+ *   momento in cui si serve il tour, non quella di generazione)
+ * @returns {Array} stessi giorni, con `stops[].scheduledTime` ricalcolato
+ */
+export function refreshTourScheduledTimes(days, startTime) {
+    if (!Array.isArray(days)) return [];
+    return days.map(day => ({
+        ...day,
+        stops: computeScheduledTimes(Array.isArray(day?.stops) ? day.stops : [], startTime),
+    }));
 }
 
 /**

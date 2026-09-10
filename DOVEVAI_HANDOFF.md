@@ -6522,3 +6522,86 @@ https://github.com/scirettaclienti-design/unnivai/actions/runs/34481212049
    `natural_feature`/`tourist_attraction` — misurato: "Spiaggia di Maimoni" a
    Cabras arriva anche con `types=[establishment, point_of_interest]`
    soltanto, a seconda di quale query textsearch la trova per prima.
+
+---
+
+## Sessione 10/09 (2) — G1: orario assoluto delle tappe, ora di partenza = ora della richiesta
+
+Prima di questa sessione un tour esponeva solo durate relative:
+`stayMinutes`/`travelMinutesFromPrev` per tappa e un offset cumulativo
+("+45 min" dall'inizio), mai un orario di orologio — scelta storica
+deliberata (lezione F57: un orario affermato senza sapere quando l'utente
+parte e' un'invenzione). Diagnosi della sessione precedente (09/09, vedi
+sopra "mappare cosa esiste e cosa manca") aveva confermato: zero concetto di
+"ora di inizio" nel modello dati, zero gestione del fuso orario in tutto il
+repo.
+
+G1 introduce l'ora di partenza = **ora della richiesta**, presa
+dall'orologio del dispositivo (`new Date()`), e deriva l'orario assoluto di
+ogni tappa sommandola all'offset cumulativo **gia' calcolato** da
+`computeCumulativeOffsets` — nessun nuovo calcolo di durata, nessuna chiamata
+API nuova, nessuna modifica allo schema JSON del selettore GPT.
+
+**`src/lib/tourTiming.js`** — due funzioni pure nuove:
+- `computeScheduledTimes(stops, startTime)`: somma `startTime` a
+  `computeCumulativeOffsets(stops)`, offset per offset. Eredita la regola del
+  NULL ASSORBENTE: un offset mancante ⇒ `scheduledTime: null` per quella
+  tappa e per tutte le successive, mai un orario inventato. Il valore
+  salvato e' una **stringa ISO**, non un oggetto `Date` — sopravvive a
+  `JSON.stringify` nella cache di `generateItinerary` senza cambiare tipo fra
+  cache hit e cache miss.
+- `formatClockTime(value)`: stringa ISO o `Date` → `"HH:MM"`, o `null` se non
+  c'e' niente di onesto da dire. Stesso principio di `formatEstimate`/
+  `formatOffsetLabel`: nessun dato grezzo raggiunge il render.
+
+**`src/services/tourShape.js`** — `normalizeTourStep` porta `scheduledTime`
+come puro pass-through (`raw.scheduledTime || null`), stesso trattamento di
+`stayMinutes`/`travelMinutesFromPrev`: questo modulo normalizza la shape, non
+calcola.
+
+**`src/services/aiRecommendationService.js`** — dentro `generateItinerary`,
+una sola cattura di `new Date()` (`requestTime`) riusata sia per
+`timeContext` (narrativa nel prompt, invariata) sia per l'orario assoluto,
+nei due soli punti che producono le tappe finali (ramo Google-first e ramo
+legacy AI-first). `generateHomeTours` e `generateSystemPrewarmTour` — altre
+due funzioni, altri consumi di `computeStopTimings` — **non toccate**: G1
+riguarda i due entry point viaggiatore (Percorso Veloce, Crea il tuo
+Percorso), non la Home.
+
+**Percorso Veloce**: parte sempre dall'ora della richiesta — vero di
+default, perche' `generateItinerary` non riceve (e oggi non puo' ricevere)
+nessuna sovrascrittura: QuickPath.jsx non e' stato toccato in questa sessione
+(e' G2). **Crea il tuo Percorso**: stesso default; il riferimento temporale
+nel prompt libero ("domani", "sabato pomeriggio") non viene ancora letto — e'
+G3, il punto d'innesto e' gia' commentato in `aiRecommendationService.js`
+dove `requestTime` viene dichiarato.
+
+**ASSUNZIONE ESPLICITA SUL FUSO ORARIO (decisione presa, non un buco
+dimenticato):** l'app in V1 e' solo-Italia, fuso unico. "Ora della richiesta"
+significa letteralmente l'orologio di sistema del dispositivo che genera il
+tour (`new Date().getHours()`, invariato da prima di G1) — **non** un orario
+calcolato sul fuso della citta' visitata, che oggi non e' un dato che
+`cityCenterService` porta (solo lat/lng). Se un giorno l'app coprira' fusi
+diversi da quello italiano, il punto dove introdurre la conversione e' gia'
+segnato: il commento su `requestTime` in `generateItinerary` e il JSDoc di
+`computeScheduledTimes`.
+
+**⚠️ VOCE APERTA — cache e orari assoluti, BLOCCANTE prima di esporre
+`scheduledTime` in UI.** Un tour cachato conserva orari assoluti calcolati al
+momento della generazione; riaperto ore dopo mostrerebbe orari nel passato.
+Da risolvere prima di esporre `scheduledTime` in UI.
+
+Non e' un difetto introdotto da G1 (la stessa cache, `saveInsiderToCache`/
+`loadInsiderFromCache` in localStorage, gia' oggi rende stantia la narrativa
+legata a `timeContext` su cache HIT) — ma per `timeContext` lo stantio era
+solo di tono ("mattina presto" letto la sera), innocuo. Per `scheduledTime`
+lo stantio e' un'affermazione falsa e verificabile: "16:13" mostrato alle
+20:00 non e' impreciso, e' sbagliato, ed e' esattamente la classe di difetto
+che questo intero modulo (F57, poi G1) esiste per evitare. **Non risolto in
+questa sessione per vincolo esplicito** — la TTL/cache-key non e' stata
+toccata, e nessun componente oggi legge `scheduledTime` (verificato via grep,
+zero consumatori UI), quindi il rischio e' latente, non ancora manifestato.
+Va chiuso PRIMA che un qualunque componente inizi a leggere questo campo.
+
+Verificato: 38 file, **638 test verdi** (era 623 prima di questa sessione),
+lint invariato (203 warning, 0 errori, identico prima e dopo). Nessun commit.

@@ -6731,3 +6731,116 @@ cherry-pick, e trattandosi di una modifica al flusso wizard visibile
 (numerazione step, contenuto del prompt) sembra piu' prudente attendere un
 "vai" esplicito prima di spingerlo in produzione, coerente con la regola di
 questo handoff sul verdict device prima di esporre modifiche di flusso.
+
+---
+
+## Sessione 10/09 (5) — MERGE `estetica` → `main`: INCHIOSTRO & OSSIDIANA in produzione, zero identita' fabbricate riaperte
+
+Prima di fondere, una diagnosi dedicata (agente opus, verificata in modo
+indipendente su blob SHA e contenuto reale, non solo sul diff) aveva accertato
+che `main` aveva **7 commit assenti da `estetica`**: 3 erano gia' stati
+cherry-pickati in sessioni precedenti (G1, G1.1, raggio/categoria — blob
+bit-identici, verificato), gli altri 4 erano fix di verita'/sicurezza mai
+arrivati su `estetica`:
+
+1. **Identita' guida fabbricate rimosse** (`dataService.js`, `schemas.js`,
+   `TourDetails.jsx`) — su `estetica` sopravvivevano ancora, solo riverniciate
+   in ossidiana: `'Guida DoveVai'`, `'Esperto locale appassionato.'`, badge
+   "Verificato"/"Esperto Locale", `tour.rating || 4.5`.
+2. **Richieste Attive dice il vero** (`Profile.jsx`) — su `estetica` c'era
+   ancora `.neq('status','completed')`, niente `REQUEST_STATUS_ACTIVE`/
+   `REQUEST_STATUS_LABEL`, niente fallback per citta' nulla, "3 ore" inventate
+   quando `duration` mancava.
+3. **RLS `guide_requests`** — due migration assenti da `estetica` (chiudono
+   una fuga di PII reale: nome, telefono, email, Instagram leggibili con la
+   sola chiave `anon`).
+4. **Porta chiusa ai tour-guida dal DB** (`GUIDE_TOURS_ENABLED=false`) — idem.
+
+Diagnosi completa (7 commit, verdetto file-per-file, simulazione di merge con
+`git merge-file --diff3` su copie in scratchpad, zero scrittura nel repo)
+nella sessione precedente di questo handoff, subito sopra a questa.
+
+### La regola di risoluzione (decisa da Ivano, applicata senza eccezioni)
+
+**Struttura visiva → `estetica`. Contenuto/logica → `main`.** Corollario che
+decide i casi difficili: se `main` ha RIMOSSO qualcosa che `estetica` ha
+soltanto RICOLORATO, quella cosa resta RIMOSSA — una riverniciatura non vince
+mai su una rimozione.
+
+### Cosa e' successo nel merge reale (non nella simulazione)
+
+`git merge origin/estetica --no-ff` su `main` (worktree
+`/Users/mac2023ivanosciretta/unnivai-1b`) ha prodotto **esattamente i due
+conflitti previsti**, `TourDetails.jsx` e `Profile.jsx` — la previsione della
+diagnosi ha retto alla prova reale. Nessun altro file e' entrato in
+conflitto: `dataService.js`, `schemas.js`, `TourLive.jsx`, le due migration
+RLS, `Explore.jsx`, `MapPage.jsx` sono arrivati puliti (il motivo di fondo:
+`estetica` aveva gia' fatto un merge di `main` dentro di se' a `59ad4ae`,
+quindi gran parte dell'albero era gia' allineato).
+
+**La trappola vera non era una delle "5 zone" previste, era un
+disallineamento di git.** In `TourDetails.jsx`, un secondo blocco in
+conflitto (righe ~845-881) non era contenuto divergente: era `git` che
+appaiava il render di `<GuideProfileModal>` di `main` contro il badge
+Live/Type di `estetica` — entrambi i rami hanno un solo render del modal,
+nella stessa posizione logica. Una risoluzione meccanica ("prendi un lato
+intero") avrebbe prodotto o un modal duplicato o il ritorno silenzioso del
+`tour.rating || 4.5` nel call site sopravvissuto. Risolto a mano: badge
+Live/Type di estetica (struttura), call site del modal corretto con
+`rating={guideRating.count > 0 ? guideRating.avg : null}` (contenuto di
+main). Verificato: un solo `<GuideProfileModal` nel file, zero marker di
+conflitto residui, `npm run build` verde (conferma che il JSX manipolato a
+mano e' bilanciato).
+
+`Profile.jsx` ha avuto **una sola** zona in conflitto (non due come previsto
+— l'altra si e' auto-mergiata pulita): `REQUEST_STATUS_ACTIVE`,
+`REQUEST_STATUS_LABEL` e la query `.in('status', REQUEST_STATUS_ACTIVE)` sono
+arrivati senza conflitto, verificato.
+
+### Verifica — fatta due volte, dall'agente e poi da me indipendentemente
+
+Tutti i grep richiesti ("devono dare zero": `'Guida DoveVai'`, `'Esperto
+locale appassionato'`, `'Esperto Locale'`, `'Verificato'`, `'5+ ANNI EXP'`,
+`rating || 4.5`, `.neq('status','completed')`) — **rieseguiti da me dopo il
+report dell'agente**, stesso esito: ogni occorrenza rimasta e' un commento che
+documenta la rimozione, mai codice vivo nei due file a rischio. "Devono
+esserci" (`REQUEST_STATUS_ACTIVE`, `REQUEST_STATUS_LABEL`, fallback citta'
+nulla, `GUIDE_TOURS_ENABLED=false`, le due migration) — tutti presenti,
+verificato.
+
+**Una voce fuori perimetro, segnalata non nascosta**: `POIPopupCard.jsx:52`
+ha `poi.rating || 4.5` — codice vivo, non un commento. Verificato che
+preesiste **identico su entrambi i rami e sulla base comune** (`a10085b`):
+non e' una regressione di questo merge. Riguarda il rating di un POI Google,
+non l'identita' di una guida — fuori dal perimetro di questa sessione, resta
+una voce aperta per un'altra.
+
+**Lint**: misurato io stesso il baseline reale di `main` PRIMA del merge (non
+dato per assunto dal numero delle sessioni precedenti, che era quello di
+`estetica`): **199 warning, 0 errori** su `main` a `7eb4feb`, via worktree
+temporaneo dedicato. Dopo il merge: **201 warning, 0 errori** — +2, isolati
+per file (`App.jsx +1`, `NotificationBell.jsx +1`, `Photos.jsx +1`,
+`Notifications.jsx -1`, tutti da `estetica`, nessuno nei due file a rischio).
+`TourDetails.jsx` e `Profile.jsx` hanno conteggio warning identico pre/post.
+
+**Test**: 40 file, **656 test verdi** (verificato due volte, agente e io).
+Build di produzione verde.
+
+### Commit, push, CI
+
+```
+d4c5c08  merge(estetica): INCHIOSTRO & OSSIDIANA su main, senza riaprire le identita' fabbricate
+parents: 7eb4feb (main)  f12c495 (origin/estetica)
+```
+
+Pushato su `origin/main` (`7eb4feb..d4c5c08`). CI verde (`Lint & Test` +
+`E2E Smoke`): https://github.com/scirettaclienti-design/unnivai/actions/runs/34510891798
+
+**`main` e `estetica` sono ora allineati nel contenuto dei 41 file divergenti**
+(il tema ossidiana e' in produzione), con i 4 fix di verita'/sicurezza intatti
+su entrambi. `CLAUDE.md`, `DOVEVAI_HANDOFF.md` e `DIAGNOSI_VOCE2_PEZZI_2_3.md`
+sono arrivati su `main` come contenuto del merge (verificato: `main` non li
+aveva mai toccati dalla base comune, quindi prenderli da `estetica` non perde
+nulla). `estetica` come branch resta viva per lavoro futuro — non e' stata
+toccata da questa sessione, resta a `f12c495`, con `de23caa` (Gate ORA VERA)
+ancora da riportare su `main` se e quando deciso.

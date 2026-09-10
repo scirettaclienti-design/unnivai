@@ -155,3 +155,90 @@ describe('DVAI-055 — applyRadiusFilter', () => {
         expect(stops).toHaveLength(2);
     });
 });
+
+// ─── Gate RAGGIO-CATEGORIA — opts.countForWiden ───────────────────────────────
+//
+// Caso Cabras, richiesta "le spiagge piu' belle". Il paese e' nell'entroterra:
+// le spiagge vere stanno a 9-12 km, i ristoranti che la textsearch riporta per
+// le query "lidi"/"cale" stanno tutti dentro il centro (0.1-2.8 km).
+// Con la sola conta grezza sopravvivevano 10 candidati entro R=5 — tutti
+// ristoranti — quindi 10 >= 2 e il widen a 12 km NON scattava mai: le spiagge
+// restavano fuori per sempre e il selettore riceveva un pool di soli ristoranti.
+
+describe('Gate RAGGIO-CATEGORIA — applyRadiusFilter opts.countForWiden', () => {
+    let warnSpy;
+
+    beforeEach(() => {
+        warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        warnSpy.mockRestore();
+    });
+
+    // Cabras (Oristano), borgo: R=5 km, R_wider=12 km.
+    const CABRAS = { latitude: 39.9297, longitude: 8.5297, isSmallTown: true, radiusKm: 5 };
+    const aKm = (km) => CABRAS.latitude + (km / 111);
+
+    // 10 ristoranti dentro il paese (0.3 → 2.8 km), fuori categoria.
+    const RISTORANTI_VICINI = Array.from({ length: 10 }, (_, i) => ({
+        title: `Ristorante ${i + 1}`,
+        latitude: aKm(0.3 + i * 0.25),
+        longitude: CABRAS.longitude,
+        kind: 'food',
+    }));
+
+    // 2 spiagge vere a 9 e 11 km — fuori R=5, dentro R_wider=12.
+    const SPIAGGE_LONTANE = [
+        { title: 'Spiaggia di Maimoni', latitude: aKm(9), longitude: CABRAS.longitude, kind: 'natura' },
+        { title: 'Spiaggia Is Arutas', latitude: aKm(11), longitude: CABRAS.longitude, kind: 'natura' },
+    ];
+
+    const isNatura = (s) => s.kind === 'natura';
+
+    it('SCENARIO CABRAS — 10 fuori categoria entro 5 km non bloccano il widen: le 2 spiagge entrano', () => {
+        const stops = [...RISTORANTI_VICINI, ...SPIAGGE_LONTANE];
+        const result = applyRadiusFilter(stops, CABRAS, 'Cabras', { countForWiden: isNatura });
+        // Il widen e' scattato: le spiagge a 9 e 11 km sopravvivono.
+        expect(result.map(s => s.title)).toContain('Spiaggia di Maimoni');
+        expect(result.map(s => s.title)).toContain('Spiaggia Is Arutas');
+        // Il widen non e' un filtro di categoria: i vicini restano (li scarta il
+        // guard-rail deterministico a valle, in generateItinerary).
+        expect(result).toHaveLength(12);
+        // Il log dichiara le tappe PERTINENTI, non il totale grezzo.
+        const riga = warnSpy.mock.calls.map(a => String(a[0])).find(l => l.includes('allargo a'));
+        expect(riga).toContain('solo 0 tappe pertinenti entro 5 km');
+    });
+
+    it('RETROCOMPAT — senza countForWiden, 10 tappe entro raggio ⇒ nessun widen (le spiagge restano fuori)', () => {
+        const stops = [...RISTORANTI_VICINI, ...SPIAGGE_LONTANE];
+        const result = applyRadiusFilter(stops, CABRAS, 'Cabras');
+        expect(result).toHaveLength(10);
+        expect(result.map(s => s.title)).not.toContain('Spiaggia di Maimoni');
+        expect(warnSpy.mock.calls.map(a => String(a[0])).some(l => l.includes('allargo a'))).toBe(false);
+    });
+
+    it('countForWiden soddisfatto da >=2 tappe entro R ⇒ nessun widen (non allarga per abitudine)', () => {
+        const dueNaturaVicine = [
+            { title: 'Parco comunale', latitude: aKm(1), longitude: CABRAS.longitude, kind: 'natura' },
+            { title: 'Giardino Sinis', latitude: aKm(2), longitude: CABRAS.longitude, kind: 'natura' },
+        ];
+        const stops = [...dueNaturaVicine, ...SPIAGGE_LONTANE];
+        const result = applyRadiusFilter(stops, CABRAS, 'Cabras', { countForWiden: isNatura });
+        expect(result.map(s => s.title)).toEqual(['Parco comunale', 'Giardino Sinis']);
+    });
+
+    it('countForWiden non-funzione (undefined/null) ≡ comportamento storico', () => {
+        const stops = [...RISTORANTI_VICINI, ...SPIAGGE_LONTANE];
+        const storico = applyRadiusFilter(stops, CABRAS, 'Cabras');
+        expect(applyRadiusFilter(stops, CABRAS, 'Cabras', { countForWiden: undefined })).toEqual(storico);
+        expect(applyRadiusFilter(stops, CABRAS, 'Cabras', { countForWiden: null })).toEqual(storico);
+    });
+
+    it('countForWiden + allowWiden:false ⇒ il widen resta spento', () => {
+        const stops = [...RISTORANTI_VICINI, ...SPIAGGE_LONTANE];
+        const result = applyRadiusFilter(stops, CABRAS, 'Cabras', { countForWiden: isNatura, allowWiden: false });
+        expect(result).toHaveLength(10);
+        expect(result.map(s => s.title)).not.toContain('Spiaggia Is Arutas');
+    });
+});

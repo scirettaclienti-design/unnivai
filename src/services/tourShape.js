@@ -78,7 +78,7 @@ export function haversineKm(lat1, lng1, lat2, lng2) {
 export const widerRadiusKm = (small) => (small ? 12 : 20);
 
 export function applyRadiusFilter(rawStops, cityCenter, cityName, opts = {}) {
-    const { allowWiden = true, requireCenter = false } = opts;
+    const { allowWiden = true, requireCenter = false, countForWiden } = opts;
     if (!cityCenter || !Number.isFinite(cityCenter.latitude) || !Number.isFinite(cityCenter.longitude)) {
         // Gate TOUR-DISTANZA — opts.requireCenter (default FALSE, comportamento
         // storico invariato per i call site esistenti).
@@ -114,9 +114,24 @@ export function applyRadiusFilter(rawStops, cityCenter, cityName, opts = {}) {
         return true;
     });
 
+    // Gate RAGGIO-CATEGORIA — quante tappe "contano" per decidere se allargare.
+    // Default: ogni tappa sopravvissuta (comportamento storico invariato per
+    // tutti i chiamanti esistenti — normalizeTour, SurpriseTour, QuickPath,
+    // generateHomeTours — che non passano countForWiden).
+    // Un chiamante che sa distinguere le tappe pertinenti da quelle fuori tema
+    // (Path A: fuori categoria richiesta) passa countForWiden: il widen si
+    // attiva solo se le tappe CHE CONTANO sono meno di 2, anche se il totale
+    // grezzo è già alto. Misurato su Cabras: "spiagge/lidi/cale" a 5 km
+    // restituivano 10 candidati — ma tutti ristoranti — quindi il vecchio
+    // `filtered.length < 2` non allargava mai e le spiagge vere (11-12 km)
+    // restavano escluse per sempre.
+    const countRelevant = (stops) => typeof countForWiden === 'function'
+        ? stops.filter(countForWiden).length
+        : stops.length;
+
     let filtered = filterAt(R);
-    if (allowWiden && filtered.length < 2 && rawStops.length >= 2) {
-        console.warn(`[AI-radius] ${cityName || '?'}: solo ${filtered.length} tappe entro ${R} km, allargo a ${R_wider} km`);
+    if (allowWiden && countRelevant(filtered) < 2 && rawStops.length >= 2) {
+        console.warn(`[AI-radius] ${cityName || '?'}: solo ${countRelevant(filtered)} tappe pertinenti entro ${R} km, allargo a ${R_wider} km`);
         filtered = filterAt(R_wider);
     }
     return filtered;

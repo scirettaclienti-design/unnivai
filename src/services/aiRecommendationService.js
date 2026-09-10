@@ -399,7 +399,7 @@ const checkAndIncrementQuota = async () => {
 // sorgenti passano dal normalizer. Qui le importiamo per uso locale (regola 15
 // del prompt + filtro pre-verifyPOIWithPlaces che risparmia chiamate Google $)
 // E le re-esportiamo per non rompere aiRadius.test.js.
-import { isSmallTown, applyRadiusFilter, haversineKm } from './tourShape';
+import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } from './tourShape';
 // Gate RAGGIO DIFF 1a — stime di durata (sosta da types + spostamento haversine).
 // Va chiamato SEMPRE dopo l'ordinamento definitivo: lo spostamento e' una
 // proprieta' della coppia di tappe consecutive, non della singola tappa.
@@ -888,6 +888,64 @@ export const deriveKindFromQuery = (query) => {
         if (parole.some(w => matchaParolaIntera(q, w))) return kind;
     }
     return 'CULTURA';
+};
+
+// ─── Gate RAGGIO-CATEGORIA — il tema richiesto diventa un vincolo di codice ───
+//
+// Misurato a Cabras, richiesta "le spiagge piu' belle": il traduttore produce
+// queries=["spiagge","lidi","cale"] categoria=natura — corrette. Ma "lido" in
+// italiano e' anche un nome comune di ristorante, e "cale" fa match debole
+// contro esercizi generici del centro: la textsearch riporta 20/20 spiagge vere
+// per la prima query e ristoranti del paese per le altre due. Le spiagge stanno
+// a 9-12 km (Cabras e' nell'entroterra), i ristoranti a 0.1-2.8 km. Con R=5 km
+// sopravvivevano 10 candidati, tutti ristoranti: 10 >= 2, quindi il widen a
+// 12 km non scattava mai e il selettore riceveva un pool di soli ristoranti.
+// L'istruzione "categoria: natura, NON aggiungere ristoranti" nel prompt del
+// selettore non poteva salvarlo — non avendo altro fra cui scegliere, il
+// modello la ignorava e restituiva 3 ristoranti.
+//
+// Mappa intent.categoria (lessico libero del traduttore, vedi
+// INTENT_TRANSLATOR_PROMPT) → TOUR_CATEGORIES (lessico di normalizeStepCategory
+// in tourShape.js). Solo le 7 categorie con corrispondenza diretta e univoca
+// sono filtrabili in modo stretto. "misto" e le categorie trasversali
+// (nightlife, famiglia, romantico, sconosciuta) restano SENZA filtro stretto:
+// forzarle su UNA sola categoria tradirebbe la richiesta tanto quanto non
+// filtrare affatto — e' la stessa regola che il traduttore usa per decidere
+// quando scrivere "misto" (INTENT_TRANSLATOR_PROMPT: "misto solo se le query
+// coprono davvero piu' famiglie").
+const CATEGORIA_TO_TOUR_CATEGORY = {
+    natura: 'natura',
+    cibo: 'food',
+    storia: 'storia',
+    arte: 'arte',
+    cultura: 'cultura',
+    shopping: 'shopping',
+    relax: 'relax',
+};
+
+// Un candidato CONTRASTA con la categoria richiesta se almeno uno dei suoi
+// Google `types` si risolve, via normalizeStepCategory (CATEGORY_ALIASES di
+// tourShape.js), in una categoria CONCRETA diversa da quella target.
+// 'place' (fallback generico di point_of_interest/establishment) NON conta come
+// contrasto: e' zero segnale, non un segnale contrario. Escluderlo per quello
+// butterebbe via spiagge vere che Google non ha taggato con natural_feature o
+// tourist_attraction — misurato: "Spiaggia di Maimoni" a Cabras arriva anche con
+// types=[establishment, point_of_interest] soltanto, a seconda di quale query
+// textsearch la trova per prima (dedup per place_id tiene la prima vista).
+const candidateConflictsWithCategoria = (candidate, targetCategory) => {
+    const types = Array.isArray(candidate?.types) ? candidate.types : [];
+    return types.some(t => {
+        const cat = normalizeStepCategory(t);
+        return cat !== 'place' && cat !== targetCategory;
+    });
+};
+
+// Predicato pubblico — Exported per test. true = candidato ammesso per
+// `categoriaRaw` (o nessun filtro stretto applicabile → sempre ammesso).
+export const candidateMatchesIntentCategoria = (candidate, categoriaRaw) => {
+    const target = CATEGORIA_TO_TOUR_CATEGORY[String(categoriaRaw || '').toLowerCase()];
+    if (!target) return true;
+    return !candidateConflictsWithCategoria(candidate, target);
 };
 
 // ─── DVAI-060 F2 — Prompt selettore-narratore ────────────────────────────────
@@ -1425,6 +1483,14 @@ export const aiRecommendationService = {
         try {
             const { candidates: rawCandidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt);
 
+            // Gate RAGGIO-CATEGORIA — la categoria richiesta, quando e' una delle
+            // 7 filtrabili in modo stretto. undefined ⇒ nessun vincolo di
+            // categoria (path B, "misto", trasversali, traduttore caduto):
+            // comportamento bit-identico a prima di questo gate.
+            const categoriaTarget = (isFreeTextIntent && intent)
+                ? CATEGORIA_TO_TOUR_CATEGORY[String(intent.categoria || '').toLowerCase()]
+                : undefined;
+
             // Gate TOUR-DISTANZA — il raggio PRIMA della chiamata AI.
             //
             // Sonda 15/08 su dati reali: a Ippocampo la query NATURA restituisce
@@ -1439,7 +1505,17 @@ export const aiRecommendationService = {
             //
             // requireCenter:true — senza centro non si giudica la distanza, e un
             // filtro di sicurezza che si spegne da solo non è un filtro.
-            const candidates = applyRadiusFilter(rawCandidates, cityCenter, city, { requireCenter: true });
+            //
+            // countForWiden — Gate RAGGIO-CATEGORIA: la decisione di allargare il
+            // raggio conta solo i candidati IN CATEGORIA. Dieci ristoranti a 2 km
+            // non sono una risposta a "le spiagge piu' belle", e finche' erano
+            // contati come tali il widen non scattava mai.
+            let candidates = applyRadiusFilter(rawCandidates, cityCenter, city, {
+                requireCenter: true,
+                countForWiden: categoriaTarget
+                    ? (c) => candidateMatchesIntentCategoria(c, intent.categoria)
+                    : undefined,
+            });
             if (candidates.length < rawCandidates.length) {
                 const scartati = rawCandidates
                     .filter(c => !candidates.includes(c))
@@ -1452,6 +1528,22 @@ export const aiRecommendationService = {
                         return `${c.name || c.title || '?'} (${d})`;
                     });
                 console.warn(`[Gate TOUR-DISTANZA] ${city}: ${rawCandidates.length - candidates.length}/${rawCandidates.length} candidati scartati PRIMA della chiamata AI — [${scartati.join(' | ')}]`);
+            }
+
+            // Gate RAGGIO-CATEGORIA — guard-rail deterministico: un candidato fuori
+            // categoria non arriva MAI al selettore. Prima (countForWiden sopra) il
+            // widen non veniva sprecato su candidati che comunque sarebbero stati
+            // scartati qui; ora la garanzia e' nel codice, non nell'istruzione del
+            // prompt (che resta, piu' sotto, come rinforzo — ma non e' piu' l'unica
+            // barriera). Se il pool in-categoria e' vuoto anche dopo il widen,
+            // candidates diventa [] e il ramo `else` esistente sotto (Path A →
+            // no-results) se ne occupa, senza duplicare quella logica qui.
+            if (categoriaTarget) {
+                const beforeCategoria = candidates.length;
+                candidates = candidates.filter(c => candidateMatchesIntentCategoria(c, intent.categoria));
+                if (candidates.length < beforeCategoria) {
+                    console.warn(`[Gate RAGGIO-CATEGORIA] ${city}: ${beforeCategoria - candidates.length}/${beforeCategoria} candidati scartati per categoria≠"${intent.categoria}" prima del selettore`);
+                }
             }
 
             // Gate I — soglia minima 1 candidato (era 3). Un posto vero è meglio

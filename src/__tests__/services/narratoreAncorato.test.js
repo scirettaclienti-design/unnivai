@@ -271,3 +271,64 @@ describe('Gate NARRATORE ANCORATO F56 — transition non afferma cosa accade ORA
         expect(prompt()).toContain("Descrivi cosa c'è, non cosa sta succedendo");
     });
 });
+
+// ─── Gate ORA VERA — la clausola "momento del giorno" ────────────────────────
+// Test di REGOLA, non di regressione: il comportamento verificato qui è già
+// corretto oggi e nessun diff di questa sessione lo ha cambiato. Serve a
+// impedire che qualcuno reintroduca un default su `intent.vincoli.tempo`.
+//
+// Il traduttore d'intento (translateIntentToQueries) mette `tempo: null` ogni
+// volta che l'utente non nomina ESPLICITAMENTE un momento del giorno — e ora
+// che QuickPath non chiede più una fascia oraria, `null` è il caso normale per
+// ogni tour generato dal wizard. Con `tempo` nullo la clausola non deve entrare
+// nel prompt: sarebbe l'unico punto in cui il selettore riceverebbe un orario
+// che non è l'ora vera della richiesta.
+describe('Gate ORA VERA — "momento del giorno" solo se l\'utente lo ha chiesto', () => {
+    const promptWithIntent = (intent) => buildSelectorSystemPrompt({
+        city: 'Siracusa',
+        timeContext: 'sera — aperitivi, ristoranti, panorami al tramonto, locali con atmosfera',
+        weather: { condition: 'Sereno', temperature: 22 },
+        weatherIcon: '☀️',
+        prefs: {},
+        aiProfile: '',
+        cityCenter: { latitude: 37.0755, longitude: 15.2866, isSmallTown: false, radiusKm: 10 },
+        candidates: [MUSEO, RISTORANTE],
+        userPrompt: 'A Siracusa cerco: spa, hammam, terme, centri benessere.',
+        intent,
+    });
+
+    const INTENT_SENZA_TEMPO = {
+        queries: ['spa', 'hammam'],
+        categoria: 'relax',
+        oggetto_umano: 'centri benessere',
+        vincoli: { tempo: null, escludi: [], note: null },
+    };
+
+    it('controllo dello strumento: con tempo valorizzato la clausola C\'È', () => {
+        // Senza questa prova, gli `not.toContain` sotto non proverebbero nulla.
+        const p = promptWithIntent({
+            ...INTENT_SENZA_TEMPO,
+            vincoli: { ...INTENT_SENZA_TEMPO.vincoli, tempo: 'mattina' },
+        });
+        expect(p).toContain('momento del giorno');
+        expect(p).toContain('"mattina"');
+    });
+
+    it('tempo: null → nessuna clausola "momento del giorno"', () => {
+        const p = promptWithIntent(INTENT_SENZA_TEMPO);
+        expect(p).toContain('VINCOLI DELL\'UTENTE'); // il blocco intent resta
+        expect(p).not.toContain('momento del giorno');
+    });
+
+    it('vincoli senza la chiave `tempo` → nessuna clausola "momento del giorno"', () => {
+        const p = promptWithIntent({
+            ...INTENT_SENZA_TEMPO,
+            vincoli: { escludi: [], note: null },
+        });
+        expect(p).not.toContain('momento del giorno');
+    });
+
+    it('intent null (path B) → nessuna clausola "momento del giorno"', () => {
+        expect(promptWithIntent(null)).not.toContain('momento del giorno');
+    });
+});

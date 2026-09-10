@@ -13,8 +13,7 @@ import { getCoverPalette } from "@/lib/categoryPalette";
 // Il DB non ha partner reali oggi; il codice attivo rischierebbe di rompere le
 // tappe vere con splice. La chiamata è commentata più sotto con TODO(V3).
 // import { dataService } from "@/services/dataService";
-import { Brain } from "lucide-react";
-import { ArrowLeft, Waves, Mountain, Building2, Trees, ArrowRight, RotateCcw, Home, Sunrise, Sun, Sunset, Zap, Clock, Target, User, Heart, Users, UserCheck, MapPin, Calendar, Timer, UsersIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, Trees, Waves, Mountain, Landmark, UtensilsCrossed, Sparkles, Bath, Compass, Zap, Clock, Target, User, Heart, Users, UserCheck, CheckCircle2, RotateCcw, Home, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import BottomNavigation from "@/components/BottomNavigation";
@@ -30,9 +29,9 @@ import { DEMO_CITIES } from "@/data/demoData";
 // con quello che il motore FA davvero (soglia rating 4.2 + review), non con
 // promesse marketing tipo "scarto quelli per turisti" (bugia: non c'è filtro).
 const LOADING_STEPS = [
-    { emoji: '🔍', textFn: (city) => `Cerco i posti veri di ${city}...` },
-    { emoji: '⭐', textFn: () => 'Controllo cosa dicono quelli che ci sono stati...' },
-    { emoji: '✨', textFn: () => 'Ci siamo quasi.' },
+    { icon: Compass, textFn: (city) => `Cerco i posti veri di ${city}...` },
+    { icon: Sparkles, textFn: () => 'Controllo cosa dicono quelli che ci sono stati...' },
+    { icon: CheckCircle2, textFn: () => 'Ci siamo quasi.' },
 ];
 
 const LoadingSubSteps = ({ city }) => {
@@ -47,46 +46,48 @@ const LoadingSubSteps = ({ city }) => {
         return () => clearInterval(interval);
     }, []);
 
+    const CurrentIcon = LOADING_STEPS[Math.min(step, LOADING_STEPS.length - 1)].icon;
+
     return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="relative w-28 h-28 mb-8">
+            <div className="relative w-24 h-24 mb-8">
                 <motion.div
-                    className="absolute inset-0 border-4 border-t-terracotta-500 border-r-transparent border-b-orange-300 border-l-transparent rounded-full"
+                    className="absolute inset-0 border-4 border-obsidian-border border-t-brand-orange rounded-full"
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <motion.span
+                    <motion.div
                         key={step}
-                        initial={{ scale: 0.5, opacity: 0 }}
+                        initial={{ scale: 0.6, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="text-4xl"
+                        className="text-brand-orange"
                     >
-                        {LOADING_STEPS[Math.min(step, LOADING_STEPS.length - 1)].emoji}
-                    </motion.span>
+                        <CurrentIcon className="w-8 h-8 stroke-[1.75]" />
+                    </motion.div>
                 </div>
             </div>
-            <h2 className="text-xl font-bold text-gray-800 mb-3">Il tuo tour a {city}</h2>
+            <h2 className="text-xl font-bold text-obsidian-primary mb-2">Il tuo tour a {city}</h2>
             <AnimatePresence mode="wait">
                 <motion.p
                     key={step}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.3 }}
-                    className="text-gray-500 text-sm font-medium"
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="text-obsidian-secondary text-sm font-medium"
                 >
                     {LOADING_STEPS[Math.min(step, LOADING_STEPS.length - 1)].textFn(city)}
                 </motion.p>
             </AnimatePresence>
             {/* Progress dots */}
-            <div className="flex gap-1.5 mt-6">
+            <div className="flex gap-2 mt-6">
                 {LOADING_STEPS.map((_, i) => (
                     <motion.div
                         key={i}
                         className="w-2 h-2 rounded-full"
                         animate={{
-                            backgroundColor: i <= step ? '#f97316' : '#e5e7eb',
+                            backgroundColor: i <= step ? '#E8833A' : '#26211E',
                             scale: i === step ? 1.3 : 1,
                         }}
                         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
@@ -197,11 +198,11 @@ const EXCLUDE_HINTS_BY_MAIN = {
     // già seleziona bene). "arte", "storia", "citta" non compaiono qui.
 };
 
-const TIME_LABEL = {
-    mattina:    'Al mattino',
-    pomeriggio: 'Nel pomeriggio',
-    sera:       'In serata',
-};
+// Gate ORA VERA — TIME_LABEL RIMOSSO. Il wizard non chiede più una fascia
+// oraria: iniettarne una nel prompt ("Al mattino") mentiva, perché il motore
+// fa partire il tour dall'ora VERA della richiesta (G1: `new Date()` in
+// generateItinerary). Alle 21:10 un tour "Al mattino" era una contraddizione.
+// L'unica sorgente di orario resta `timeContext`, derivato dall'ora reale.
 
 const STOP_COUNT = {
     veloce: 'Esattamente 2 tappe.',
@@ -219,10 +220,9 @@ const GROUP_LABEL = {
 const EXCLUSION_CLAUSE = 'Solo tappe di questa categoria: non aggiungere ristoranti, bar o caffè se non li ho chiesti esplicitamente.';
 const FOOD_MAIN_KEYS = new Set(['cibo']);
 
-export function buildPromptFromSelections({ main, sub, time, duration, group, city }) {
+export function buildPromptFromSelections({ main, sub, duration, group, city }) {
     const mainKey  = String(main  || '').toLowerCase().trim();
     const subKey   = String(sub   || '').toLowerCase().trim();
-    const timeKey  = String(time  || '').toLowerCase().trim();
     const durKey   = String(duration || '').toLowerCase().trim();
     const groupKey = String(group || '').toLowerCase().trim();
     const cityName = String(city  || '').trim();
@@ -231,7 +231,6 @@ export function buildPromptFromSelections({ main, sub, time, duration, group, ci
     const dominant = (bucket && (bucket[subKey] || bucket._default))
         || 'monumenti principali, piazze e vita locale';
 
-    const timeLabel  = TIME_LABEL[timeKey]  || '';
     const groupLabel = GROUP_LABEL[groupKey] || '';
     const stopCount  = STOP_COUNT[durKey]   || '';
     const isFoodMain = FOOD_MAIN_KEYS.has(mainKey);
@@ -239,11 +238,11 @@ export function buildPromptFromSelections({ main, sub, time, duration, group, ci
 
     // Gate C Task 1 — Brief operativo, non prosa. Prima frase: cosa cercare
     // (query concrete). Seconda: cosa escludere (rinforza vincoli.escludi).
-    // Terza: contesto (tempo, gruppo, numero tappe).
+    // Terza: contesto (gruppo, numero tappe). Gate ORA VERA: nessuna fascia
+    // oraria — l'orario del tour lo decide l'ora reale della richiesta.
     const sentence1 = cityName ? `A ${cityName} cerco: ${dominant}.` : `Cerco: ${dominant}.`;
     const sentence2 = excludeHint ? `Escludi: ${excludeHint}.` : '';
-    const contextParts = [timeLabel, groupLabel].filter(Boolean);
-    const sentence3 = contextParts.length > 0 ? contextParts.join(', ') + '.' : '';
+    const sentence3 = groupLabel ? `${groupLabel}.` : '';
     const sentence4 = stopCount;
     // EXCLUSION_CLAUSE (no food se non richiesto) va SOLO quando la categoria
     // non è già coperta da EXCLUDE_HINTS_BY_MAIN. Se il main è "citta"/"storia"/
@@ -340,21 +339,21 @@ const CITY_CONFIG = {
 const getAdaptiveOptions = (city) => {
     const config = CITY_CONFIG[city] || CITY_CONFIG['default'];
 
-    // Map main keys to full option objects
+    // Map main keys to full option objects with linear icons
     const mainOptions = config.main.map(key => {
         switch (key) {
-            case 'citta': return { id: 'citta', title: 'Città', emoji: '🏙️', color: 'from-purple-400 to-indigo-400' };
-            case 'natura': return { id: 'natura', title: 'Natura', emoji: '🌿', color: 'from-emerald-400 to-green-400' };
-            case 'mare': return { id: 'mare', title: 'Mare', emoji: '🌊', color: 'from-blue-400 to-cyan-400' };
-            case 'montagna': return { id: 'montagna', title: 'Montagna', emoji: '⛰️', color: 'from-green-400 to-emerald-400' };
-            case 'storia': return { id: 'storia', title: 'Storia', emoji: '🏛️', color: 'from-amber-400 to-orange-400' };
-            case 'cibo': return { id: 'cibo', title: 'Gusto', emoji: '🍝', color: 'from-red-400 to-orange-400' };
-            case 'moda': return { id: 'moda', title: 'Fashion', emoji: '👠', color: 'from-pink-400 to-rose-400' };
-            case 'parchi': return { id: 'parchi', title: 'Parchi', emoji: '🌳', color: 'from-green-400 to-teal-400' };
-            case 'canali': return { id: 'canali', title: 'Navigli', emoji: '🛶', color: 'from-blue-500 to-indigo-500' };
-            case 'vulcano': return { id: 'vulcano', title: 'Vulcano', emoji: '🌋', color: 'from-red-600 to-orange-600' };
-            case 'relax': return { id: 'relax', title: 'Relax', emoji: '🧖', color: 'from-teal-300 to-cyan-300' };
-            default: return { id: key, title: key, emoji: '✨', color: 'from-gray-400 to-gray-500' };
+            case 'citta': return { id: 'citta', title: 'Città', icon: Building2, emoji: '🏙️' };
+            case 'natura': return { id: 'natura', title: 'Natura', icon: Trees, emoji: '🌿' };
+            case 'mare': return { id: 'mare', title: 'Mare', icon: Waves, emoji: '🌊' };
+            case 'montagna': return { id: 'montagna', title: 'Montagna', icon: Mountain, emoji: '⛰️' };
+            case 'storia': return { id: 'storia', title: 'Storia', icon: Landmark, emoji: '🏛️' };
+            case 'cibo': return { id: 'cibo', title: 'Gusto', icon: UtensilsCrossed, emoji: '🍝' };
+            case 'moda': return { id: 'moda', title: 'Fashion', icon: Sparkles, emoji: '👠' };
+            case 'parchi': return { id: 'parchi', title: 'Parchi', icon: Trees, emoji: '🌳' };
+            case 'canali': return { id: 'canali', title: 'Navigli', icon: Waves, emoji: '🛶' };
+            case 'vulcano': return { id: 'vulcano', title: 'Vulcano', icon: Mountain, emoji: '🌋' };
+            case 'relax': return { id: 'relax', title: 'Relax', icon: Bath, emoji: '🧖' };
+            default: return { id: key, title: key, icon: Sparkles, emoji: '✨' };
         }
     });
 
@@ -376,105 +375,65 @@ const getAdaptiveOptions = (city) => {
     };
 };
 
-// Step 3: Time preferences
-const timeOptions = [
-    {
-        id: 'mattina',
-        title: 'Mattina',
-        emoji: '🌅',
-        icon: Sunrise,
-        time: '08:00 - 12:00',
-        description: 'Perfetto per iniziare la giornata con energia',
-        color: 'from-yellow-400 to-orange-400'
-    },
-    {
-        id: 'pomeriggio',
-        title: 'Pomeriggio',
-        emoji: '☀️',
-        icon: Sun,
-        time: '14:00 - 18:00',
-        description: 'Ideale per esplorare con calma',
-        color: 'from-orange-400 to-red-400'
-    },
-    {
-        id: 'sera',
-        title: 'Sera',
-        emoji: '🌆',
-        icon: Sunset,
-        time: '18:00 - 22:00',
-        description: 'Magico per tramonti e atmosfere romantiche',
-        color: 'from-purple-400 to-pink-400'
-    }
-];
+// Gate ORA VERA — `timeOptions` (lo step "Quando partiamo?") RIMOSSO.
+// Le tre fasce erano finte: "Mattina 08:00-12:00" veniva scelta anche alle
+// 21:10 e finiva nel prompt come affermazione. Il percorso parte sempre
+// dall'ora reale della richiesta. Il wizard passa da 6 a 5 step.
 
-// Step 4: Duration preferences
+// Step 3: Duration preferences
 const durationOptions = [
     {
         id: 'veloce',
         title: 'Veloce',
-        emoji: '⚡',
         icon: Zap,
         duration: '1-2 ore',
         description: 'Perfetto per una pausa veloce',
-        color: 'from-green-400 to-emerald-400'
     },
     {
         id: 'medio',
         title: 'Medio',
-        emoji: '🚶',
         icon: Clock,
         duration: '2-4 ore',
         description: 'Tempo ideale per esplorare con calma',
-        color: 'from-blue-400 to-cyan-400'
     },
     {
         id: 'lungo',
         title: 'Lungo',
-        emoji: '🎯',
         icon: Target,
         duration: '4-6 ore',
         description: 'Immersione completa nell\'esperienza',
-        color: 'from-indigo-400 to-purple-400'
     }
 ];
 
-// Step 5: Group size preferences
+// Step 4: Group size preferences
 const groupOptions = [
     {
         id: 'solo',
         title: 'Solo',
-        emoji: '🧘',
         icon: User,
         size: '1 persona',
         description: 'Momento di tranquillità e riflessione',
-        color: 'from-gray-400 to-slate-400'
     },
     {
         id: 'coppia',
         title: 'In coppia',
-        emoji: '💕',
         icon: Heart,
         size: '2 persone',
-        description: 'Esperienza romantica e intima',
-        color: 'from-pink-400 to-rose-400'
+        description: 'Esperienza per due',
     },
     {
         id: 'amici',
         title: 'Con gli amici',
-        emoji: '👥',
         icon: Users,
         size: '3-6 persone',
         description: 'Divertimento e condivisione',
-        color: 'from-cyan-400 to-blue-400'
     },
     {
         id: 'famiglia',
         title: 'In famiglia',
-        emoji: '👨‍👩‍👧‍👦',
         icon: UserCheck,
         size: '4-8 persone',
         description: 'Adatto a tutte le età',
-        color: 'from-emerald-400 to-green-400'
     }
 ];
 
@@ -501,7 +460,6 @@ export default function QuickPathPage() {
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedOption, setSelectedOption] = useState(null);
     const [selectedSubOption, setSelectedSubOption] = useState(null);
-    const [selectedTime, setSelectedTime] = useState(null);
     const [selectedDuration, setSelectedDuration] = useState(null);
     const [selectedGroup, setSelectedGroup] = useState(null);
 
@@ -537,17 +495,12 @@ export default function QuickPathPage() {
 
     const handleSubSelection = (subOption) => {
         setSelectedSubOption(subOption);
-        setCurrentStep(3);
-    };
-
-    const handleTimeSelection = (timeOption) => {
-        setSelectedTime(timeOption);
-        setCurrentStep(4);
+        setCurrentStep(3); // Gate ORA VERA: step 3 è ora "durata" (era "fascia oraria")
     };
 
     const handleDurationSelection = (durationOption) => {
         setSelectedDuration(durationOption);
-        setCurrentStep(5);
+        setCurrentStep(4);
     };
 
     const handleGroupSelection = (groupOption) => {
@@ -557,7 +510,7 @@ export default function QuickPathPage() {
         // ma <PaywallModal> non era mai renderizzato → utente bloccato senza
         // spiegazione. Ora il wizard prosegue sempre. Il cap 10/giorno server
         // (checkAndIncrementQuota → error-quota) è l'unico limite in V1.
-        setCurrentStep(6); // Move to loading step
+        setCurrentStep(5); // Move to loading step
         // TRIGGER GENERATION IMMEDIATELY ON FINAL SELECTION
         generateItinerary(groupOption);
     };
@@ -573,7 +526,7 @@ export default function QuickPathPage() {
     const generateItinerary = async (group) => {
         // Gate H — selectedOption è la STRING id (settata via
         // handleMainSelection(option.id) al click sulla box). Gli altri 4
-        // (sub/time/duration/group) sono OGGETTI (i loro onClick passano
+        // (sub/duration/group) sono OGGETTI (i loro onClick passano
         // l'oggetto intero). Prima il codice qui leggeva selectedOption?.id
         // che restituiva undefined → main=undefined → buildPromptFromSelections
         // cadeva sul dominant di default per ogni scelta → prompt sempre
@@ -582,7 +535,6 @@ export default function QuickPathPage() {
             city: activeCity,
             main: selectedOption,
             sub: selectedSubOption?.id,
-            time: selectedTime?.id,
             duration: selectedDuration?.id,
             group: group?.id,
         });
@@ -603,12 +555,11 @@ export default function QuickPathPage() {
         }, 35000);
 
         try {
-            // 1. Costruisci prompt dalle 5 selezioni (buildPromptFromSelections).
+            // 1. Costruisci prompt dalle 4 selezioni (buildPromptFromSelections).
             // Gate H: selectedOption è STRING (vedi commento in generateItinerary).
             const prompt = buildPromptFromSelections({
                 main:     selectedOption,
                 sub:      selectedSubOption?.id,
-                time:     selectedTime?.id,
                 duration: selectedDuration?.id,
                 group:    group?.id,
                 city:     activeCity,
@@ -705,7 +656,10 @@ export default function QuickPathPage() {
                 trackGeneratedTour({
                     mood: selectedSubOption?.title || '',
                     inspiration: selectedSubOption?.description || '',
-                    time: selectedTime?.title || '',
+                    // Gate ORA VERA — nessun `time`: il wizard non lo chiede
+                    // più. Conseguenza dichiarata: il preference graph perde
+                    // quel segnale sui tour QuickPath. Nessun sostituto —
+                    // impara comunque da mood/inspiration/duration/group/city.
                     duration: selectedDuration?.title || '',
                     group: group?.title || '',
                     city: activeCity,
@@ -742,20 +696,26 @@ export default function QuickPathPage() {
         }
     };
 
-
     const resetSelection = () => {
         setCurrentStep(1);
         setSelectedOption(null);
         setSelectedSubOption(null);
-        setSelectedTime(null);
         setSelectedDuration(null);
         setSelectedGroup(null);
         setGenerationStatus('idle');
         setReadyTourData(null);
     };
 
+    const handleBack = () => {
+        if (currentStep > 1 && generationStatus === 'idle') {
+            setCurrentStep(prev => prev - 1);
+        } else {
+            navigate('/dashboard-user');
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
+        <div className="min-h-screen bg-obsidian-bg font-quicksand pb-24 text-obsidian-primary">
             <TopBar />
 
             <main className="max-w-md mx-auto px-4 py-8 pb-24">
@@ -764,35 +724,40 @@ export default function QuickPathPage() {
                     className="flex items-center mb-8"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
+                    transition={{ duration: 0.4 }}
                 >
-                    <Link to="/dashboard-user">
-                        <motion.button
-                            className="p-2 rounded-full bg-white/60 backdrop-blur-sm mr-4 hover:bg-white/80 transition-colors"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <ArrowLeft className="w-5 h-5 text-gray-700" />
-                        </motion.button>
-                    </Link>
+                    <motion.button
+                        onClick={handleBack}
+                        className="p-2 rounded-full bg-obsidian-raised hover:bg-obsidian-card text-obsidian-primary border border-obsidian-border transition-colors mr-4 cursor-pointer"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        aria-label="Indietro"
+                    >
+                        <ArrowLeft className="w-5 h-5 text-obsidian-primary" />
+                    </motion.button>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800">Percorso Veloce</h1>
-                        <p className="text-gray-600 text-sm">Scopri qualcosa di speciale in pochi minuti</p>
+                        <h1 className="text-2xl font-bold text-obsidian-primary tracking-tight">Percorso Veloce</h1>
+                        <p className="text-obsidian-secondary text-sm">Scopri qualcosa di speciale in pochi minuti</p>
                     </div>
                 </motion.div>
 
-                {/* Progress Indicator: 6 step (ultimo = riepilogo/completamento) */}
+                {/* Progress Indicator: 5 step */}
                 <motion.div
                     className="flex items-center justify-center space-x-2 mb-8"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
                 >
-                    {[1, 2, 3, 4, 5, 6].map((step) => (
+                    {[1, 2, 3, 4, 5].map((step) => (
                         <div
                             key={step}
-                            className={`w-3 h-3 rounded-full transition-all duration-300 ${currentStep >= step ? 'bg-terracotta-400' : 'bg-gray-300'
-                                } ${currentStep === step ? 'scale-125' : ''}`}
+                            className={`h-2 rounded-full transition-all duration-300 ${
+                                currentStep === step
+                                    ? 'w-6 bg-brand-orange shadow-sm shadow-brand-orange/30'
+                                    : currentStep > step
+                                    ? 'w-2 bg-brand-orange/60'
+                                    : 'w-2 bg-obsidian-raised border border-obsidian-border'
+                            }`}
                         />
                     ))}
                 </motion.div>
@@ -802,40 +767,41 @@ export default function QuickPathPage() {
                     {currentStep === 1 && (
                         <motion.div
                             key="step1"
-                            initial={{ opacity: 0, scale: 0.95 }}
+                            initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 1.05, filter: "blur(10px)" }}
-                            transition={{ duration: 0.5 }}
+                            exit={{ opacity: 0, scale: 1.02 }}
+                            transition={{ duration: 0.3 }}
                         >
-                            <div className="text-center mb-10">
-                                <h2 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">Il tuo mood oggi?</h2>
-                                <p className="text-gray-500 font-medium">L'ambiente perfetto per iniziare</p>
+                            <div className="text-center mb-8">
+                                <h2 className="text-2xl font-bold text-obsidian-primary mb-2 tracking-tight">Il tuo mood oggi?</h2>
+                                <p className="text-obsidian-secondary text-sm">L'ambiente perfetto per iniziare</p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                {mainOptions.map((option, index) => (
-                                    <motion.button
-                                        key={option.id}
-                                        onClick={() => handleMainSelection(option.id)}
-                                        className="relative bg-white p-6 rounded-[2rem] shadow-sm border-2 border-transparent hover:border-gray-100 hover:shadow-xl transition-all duration-300 group overflow-hidden text-left h-48 flex flex-col justify-between"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.1 }}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                    >
-                                        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${option.color} opacity-10 rounded-bl-[4rem] group-hover:scale-150 transition-transform duration-500`} />
+                            <div className="grid grid-cols-2 gap-3.5">
+                                {mainOptions.map((option, index) => {
+                                    const IconComponent = option.icon || Sparkles;
+                                    return (
+                                        <motion.button
+                                            key={option.id}
+                                            onClick={() => handleMainSelection(option.id)}
+                                            className="relative bg-obsidian-card p-5 rounded-[24px] border border-obsidian-border hover:border-brand-orange/60 hover:bg-obsidian-raised transition-all duration-200 group overflow-hidden text-left h-44 flex flex-col justify-between shadow-sm cursor-pointer"
+                                            initial={{ opacity: 0, y: 15 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.04 }}
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                        >
+                                            <div className="w-12 h-12 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center text-obsidian-secondary group-hover:text-brand-orange group-hover:border-brand-orange/40 transition-colors shadow-sm">
+                                                <IconComponent className="w-6 h-6 stroke-[1.75]" />
+                                            </div>
 
-                                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${option.color} flex items-center justify-center text-2xl shadow-lg group-hover:rotate-12 transition-transform`}>
-                                            {option.emoji}
-                                        </div>
-
-                                        <div>
-                                            <h3 className="font-bold text-xl text-gray-900">{option.title}</h3>
-                                            <div className="h-1 w-0 group-hover:w-full bg-gray-900 mt-2 transition-all duration-500 rounded-full" />
-                                        </div>
-                                    </motion.button>
-                                ))}
+                                            <div>
+                                                <h3 className="font-bold text-lg text-obsidian-primary group-hover:text-brand-orange transition-colors">{option.title}</h3>
+                                                <div className="h-0.5 w-0 group-hover:w-8 bg-brand-orange mt-2 transition-all duration-300 rounded-full" />
+                                            </div>
+                                        </motion.button>
+                                    );
+                                })}
                             </div>
                         </motion.div>
                     )}
@@ -844,64 +810,51 @@ export default function QuickPathPage() {
                     {currentStep === 2 && selectedOption && (
                         <motion.div
                             key="step2"
-                            initial={{ opacity: 0, x: 50 }}
+                            initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -50 }}
-                            transition={{ duration: 0.5 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
                         >
                             <div className="text-center mb-8">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Cosa ti ispira?</h2>
-                                <p className="text-gray-500">Scegli l'esperienza che fa per te</p>
+                                <h2 className="text-2xl font-bold text-obsidian-primary mb-2">Cosa ti ispira?</h2>
+                                <p className="text-obsidian-secondary text-sm">Scegli l'esperienza che fa per te</p>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 {subOptions[selectedOption]?.map((subOption, index) => (
                                     <motion.button
                                         key={subOption.id}
                                         onClick={() => handleSubSelection(subOption)}
-                                        className="w-full bg-white rounded-[2rem] p-4 shadow-sm border border-gray-100 hover:shadow-lg hover:border-terracotta-200 transition-all flex items-center gap-5 group text-left relative overflow-hidden"
-                                        initial={{ opacity: 0, y: 20 }}
+                                        className="w-full bg-obsidian-card rounded-[24px] p-4 border border-obsidian-border hover:border-brand-orange/60 hover:bg-obsidian-raised transition-all flex items-center gap-4 group text-left relative overflow-hidden shadow-sm cursor-pointer"
+                                        initial={{ opacity: 0, y: 15 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.1 }}
-                                        whileHover={{ x: 5 }}
+                                        transition={{ delay: index * 0.04 }}
+                                        whileHover={{ x: 4 }}
+                                        whileTap={{ scale: 0.98 }}
                                     >
-                                        {/* Gate 2 FASE 3 — Box preview: se sub ha URL Unsplash legacy dal
-                                            CITY_CONFIG, la usiamo (Gate C rifarà il CITY_CONFIG). Se assente,
-                                            fallback illustrato = gradient categoryPalette (coerente TourCover
-                                            DVAI-058) + emoji sopra. Zero Unsplash generici di fallback. */}
+                                        {/* Box preview: gradient categoryPalette deterministico (DVAI-058) */}
                                         <div
-                                            className="relative w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden shadow-inner"
+                                            className="relative w-20 h-20 flex-shrink-0 rounded-2xl overflow-hidden border border-obsidian-border shadow-inner flex items-center justify-center"
                                             style={{
-                                                background: subOption.image
-                                                    ? 'transparent'
-                                                    : getCoverPalette(selectedOption, null).gradient,
+                                                background: getCoverPalette(selectedOption, null).gradient,
                                             }}
                                         >
-                                            {subOption.image ? (
-                                                <img
-                                                    src={subOption.image}
-                                                    alt={subOption.title || 'Esperienza'}
-                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                                    onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-4xl opacity-70 select-none">
-                                                    {subOption.emoji}
-                                                </div>
-                                            )}
-                                            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                                            <div className="absolute bottom-1 right-1 bg-white/90 backdrop-blur rounded-lg px-2 py-1 text-lg shadow-sm">
+                                            <div className="w-full h-full flex items-center justify-center text-3xl opacity-60 select-none">
                                                 {subOption.emoji}
                                             </div>
                                         </div>
 
-                                        <div className="flex-1 pr-4">
-                                            <h3 className="font-bold text-lg text-gray-900 mb-1 group-hover:text-terracotta-600 transition-colors">{subOption.title}</h3>
-                                            <p className="text-xs text-gray-500 leading-relaxed font-medium line-clamp-2">{subOption.description}</p>
+                                        <div className="flex-1 min-w-0 pr-2">
+                                            <h3 className="font-bold text-base text-obsidian-primary mb-1 group-hover:text-brand-orange transition-colors truncate">
+                                                {subOption.title}
+                                            </h3>
+                                            <p className="text-xs text-obsidian-secondary leading-relaxed line-clamp-2 font-medium">
+                                                {subOption.description}
+                                            </p>
                                         </div>
 
-                                        <div className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity text-terracotta-500">
-                                            <ArrowRight />
+                                        <div className="text-obsidian-secondary group-hover:text-brand-orange transition-colors shrink-0">
+                                            <ArrowRight className="w-5 h-5" />
                                         </div>
                                     </motion.button>
                                 ))}
@@ -909,130 +862,99 @@ export default function QuickPathPage() {
                         </motion.div>
                     )}
 
-                    {/* Step 3: Time Preference */}
+                    {/* Step 3: Duration */}
                     {currentStep === 3 && (
                         <motion.div
                             key="step3"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 1.1 }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            <div className="text-center mb-10">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Quando partiamo?</h2>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4">
-                                {timeOptions.map((timeOption, index) => (
-                                    <motion.button
-                                        key={timeOption.id}
-                                        onClick={() => handleTimeSelection(timeOption)}
-                                        className="relative bg-white overflow-hidden rounded-[2.5rem] p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all group"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.1 }}
-                                        whileTap={{ scale: 0.98 }}
-                                    >
-                                        <div className={`absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b ${timeOption.color}`} />
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${timeOption.color} bg-opacity-10 flex items-center justify-center text-3xl shadow-sm text-white`}>
-                                                    {timeOption.emoji}
-                                                </div>
-                                                <div className="text-left">
-                                                    <h3 className="font-bold text-xl text-gray-900">{timeOption.title}</h3>
-                                                    <p className="text-gray-400 text-xs font-bold tracking-wider uppercase mt-1">{timeOption.time}</p>
-                                                </div>
-                                            </div>
-                                            <div className="w-8 h-8 rounded-full border-2 border-gray-100 group-hover:bg-gray-900 group-hover:border-gray-900 transition-colors" />
-                                        </div>
-                                    </motion.button>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* Step 4: Duration */}
-                    {currentStep === 4 && (
-                        <motion.div
-                            key="step4"
-                            initial={{ opacity: 0, x: 50 }}
+                            initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -50 }}
-                            transition={{ duration: 0.5 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
                         >
-                            <div className="text-center mb-10">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Quanto tempo hai?</h2>
+                            <div className="text-center mb-8">
+                                <h2 className="text-2xl font-bold text-obsidian-primary mb-2">Quanto tempo hai?</h2>
+                                <p className="text-obsidian-secondary text-sm">Regola il ritmo della visita</p>
                             </div>
 
                             <div className="grid grid-cols-3 gap-3">
-                                {durationOptions.map((durationOption, index) => (
-                                    <motion.button
-                                        key={durationOption.id}
-                                        onClick={() => handleDurationSelection(durationOption)}
-                                        className="bg-white rounded-[2rem] p-4 py-8 shadow-sm border border-gray-200 hover:border-gray-900 hover:shadow-xl transition-all flex flex-col items-center gap-3 group"
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: index * 0.1 }}
-                                        whileHover={{ y: -5 }}
-                                    >
-                                        <div className="text-4xl group-hover:scale-125 transition-transform duration-300 filter grayscale group-hover:grayscale-0">
-                                            {durationOption.emoji}
-                                        </div>
-                                        <div className="text-center">
-                                            <h3 className="font-bold text-gray-900 text-sm">{durationOption.title}</h3>
-                                            <p className="text-[10px] text-gray-400 mt-1">{durationOption.duration}</p>
-                                        </div>
-                                    </motion.button>
-                                ))}
+                                {durationOptions.map((durationOption, index) => {
+                                    const IconComponent = durationOption.icon || Clock;
+                                    return (
+                                        <motion.button
+                                            key={durationOption.id}
+                                            onClick={() => handleDurationSelection(durationOption)}
+                                            className="bg-obsidian-card rounded-[24px] p-4 py-6 border border-obsidian-border hover:border-brand-orange/60 hover:bg-obsidian-raised transition-all flex flex-col items-center gap-3 group shadow-sm cursor-pointer"
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: index * 0.04 }}
+                                            whileHover={{ y: -3 }}
+                                            whileTap={{ scale: 0.97 }}
+                                        >
+                                            <div className="w-11 h-11 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center text-obsidian-secondary group-hover:text-brand-orange group-hover:border-brand-orange/40 transition-colors shadow-sm">
+                                                <IconComponent className="w-5 h-5 stroke-[1.75]" />
+                                            </div>
+                                            <div className="text-center">
+                                                <h3 className="font-bold text-obsidian-primary text-sm group-hover:text-brand-orange transition-colors">
+                                                    {durationOption.title}
+                                                </h3>
+                                                <p className="text-[11px] text-obsidian-secondary mt-0.5 font-medium">
+                                                    {durationOption.duration}
+                                                </p>
+                                            </div>
+                                        </motion.button>
+                                    );
+                                })}
                             </div>
                         </motion.div>
                     )}
 
-                    {/* Step 5: Group Size */}
+                    {/* Step 4: Group Size */}
+                    {currentStep === 4 && (
+                        <motion.div
+                            key="step4"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.02 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <div className="text-center mb-8">
+                                <h2 className="text-2xl font-bold text-obsidian-primary mb-2">Chi c'è con te?</h2>
+                                <p className="text-obsidian-secondary text-sm">Adatteremo tappe e pause al gruppo</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3.5">
+                                {groupOptions.map((groupOption, index) => {
+                                    const IconComponent = groupOption.icon || User;
+                                    return (
+                                        <motion.button
+                                            key={groupOption.id}
+                                            onClick={() => handleGroupSelection(groupOption)}
+                                            className="bg-obsidian-card rounded-[24px] p-5 border border-obsidian-border hover:border-brand-orange/60 hover:bg-obsidian-raised transition-all text-left relative overflow-hidden group shadow-sm cursor-pointer"
+                                            initial={{ opacity: 0, y: 15 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.04 }}
+                                            whileTap={{ scale: 0.97 }}
+                                        >
+                                            <div className="w-11 h-11 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center text-obsidian-secondary group-hover:text-brand-orange group-hover:border-brand-orange/40 transition-colors shadow-sm mb-3">
+                                                <IconComponent className="w-5 h-5 stroke-[1.75]" />
+                                            </div>
+                                            <h3 className="font-bold text-base text-obsidian-primary group-hover:text-brand-orange transition-colors">
+                                                {groupOption.title}
+                                            </h3>
+                                            <p className="text-xs text-obsidian-secondary mt-0.5 font-medium">
+                                                {groupOption.size}
+                                            </p>
+                                        </motion.button>
+                                    );
+                                })}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Step 5: GENERATION STATE */}
                     {currentStep === 5 && (
                         <motion.div
                             key="step5"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 1.1 }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            <div className="text-center mb-10">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-2">Chi c'è con te?</h2>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                {groupOptions.map((groupOption, index) => (
-                                    <motion.button
-                                        key={groupOption.id}
-                                        onClick={() => handleGroupSelection(groupOption)}
-                                        className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:border-terracotta-100 transition-all text-left relative overflow-hidden group"
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.1 }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        <div className="absolute top-0 right-0 p-4 opacity-10 font-bold text-6xl group-hover:opacity-20 transition-opacity">
-                                            {groupOption.emoji}
-                                        </div>
-                                        <div className="relative z-10">
-                                            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${groupOption.color} flex items-center justify-center text-white shadow-md mb-4`}>
-                                                <groupOption.icon size={20} />
-                                            </div>
-                                            <h3 className="font-bold text-lg text-gray-900">{groupOption.title}</h3>
-                                            <p className="text-xs text-gray-500 mt-1 font-medium">{groupOption.size}</p>
-                                        </div>
-                                    </motion.button>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* Step 6: GENERATION STATE */}
-                    {currentStep === 6 && (
-                        <motion.div
-                            key="step6"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -1047,7 +969,6 @@ export default function QuickPathPage() {
                                     choices={{
                                         mood: mainOptions.find(o => o.id === selectedOption)?.title || selectedOption,
                                         inspiration: selectedSubOption?.title,
-                                        time: selectedTime?.title,
                                         duration: selectedDuration?.title,
                                         group: selectedGroup?.title
                                     }}
@@ -1071,26 +992,22 @@ export default function QuickPathPage() {
                                 />
                             )}
 
-                            {/* Gate 2 FASE 3 — Due messaggi distinti per due cause distinte.
-                                Voce brand locked Ivano. */}
-                            {/* Gate B — Se il motore ha risolto oggetto_umano dal traduttore
-                                (path A: free-text), il messaggio è specifico. Altrimenti fallback
-                                al testo generico (path B: solo checkbox). */}
+                            {/* Gate 2 FASE 3 — Due messaggi distinti per due cause distinte */}
                             {generationStatus === 'error-nothing' && (
-                                <div className="text-center py-16 px-6 max-w-md mx-auto">
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                                <div className="bg-obsidian-card border border-obsidian-border rounded-[28px] p-8 text-center max-w-md mx-auto shadow-2xl">
+                                    <h3 className="text-2xl font-bold text-obsidian-primary mb-3">
                                         {generationError?.oggetto_umano
                                             ? `A ${activeCity} non troviamo ${generationError.oggetto_umano}.`
                                             : 'Non basta per un tour.'}
                                     </h3>
-                                    <p className="text-gray-600 leading-relaxed mb-8">
+                                    <p className="text-obsidian-secondary text-sm leading-relaxed mb-8 font-medium">
                                         {generationError?.oggetto_umano
                                             ? 'Cambia richiesta e riprovo.'
                                             : `A ${activeCity} non ci sono abbastanza posti veri per quello che hai chiesto. Cambia una scelta e riprovo.`}
                                     </p>
                                     <button
                                         onClick={() => { setGenerationStatus('idle'); resetSelection(); }}
-                                        className="px-6 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-colors"
+                                        className="px-6 py-3.5 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-xl font-bold transition-colors w-full sm:w-auto shadow-md shadow-brand-orange/20 cursor-pointer"
                                     >
                                         Cambia una scelta
                                     </button>
@@ -1098,14 +1015,14 @@ export default function QuickPathPage() {
                             )}
 
                             {generationStatus === 'error-technical' && (
-                                <div className="text-center py-16 px-6 max-w-md mx-auto">
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-3">Non riesco a raggiungere i posti.</h3>
-                                    <p className="text-gray-600 leading-relaxed mb-8">
+                                <div className="bg-obsidian-card border border-obsidian-border rounded-[28px] p-8 text-center max-w-md mx-auto shadow-2xl">
+                                    <h3 className="text-2xl font-bold text-obsidian-primary mb-3">Non riesco a raggiungere i posti.</h3>
+                                    <p className="text-obsidian-secondary text-sm leading-relaxed mb-8 font-medium">
                                         Riprova tra un attimo.
                                     </p>
                                     <button
                                         onClick={() => { setGenerationStatus('idle'); generateItinerary(selectedGroup); }}
-                                        className="px-6 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-colors"
+                                        className="px-6 py-3.5 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-xl font-bold transition-colors w-full sm:w-auto shadow-md shadow-brand-orange/20 cursor-pointer"
                                     >
                                         Riprova
                                     </button>
@@ -1113,18 +1030,17 @@ export default function QuickPathPage() {
                             )}
 
                             {generationStatus === 'error-quota' && (
-                                // Gate D-6: cap 10/giorno onesto. Copy locked coerente con
-                                // AiItinerary + SurpriseTour. Non è un errore tecnico, non
-                                // c'è un pulsante "Riprova" — l'utente riproverà domani.
-                                <div className="text-center py-16 px-6 max-w-md mx-auto">
-                                    <div className="text-5xl mb-4">🌅</div>
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-3">Hai esplorato tanto oggi.</h3>
-                                    <p className="text-gray-600 leading-relaxed mb-8">
+                                <div className="bg-obsidian-card border border-obsidian-border rounded-[28px] p-8 text-center max-w-md mx-auto shadow-2xl">
+                                    <div className="w-14 h-14 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center text-brand-orange mx-auto mb-4 shadow-sm">
+                                        <Clock className="w-7 h-7 stroke-[1.75]" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-obsidian-primary mb-3">Hai esplorato tanto oggi.</h3>
+                                    <p className="text-obsidian-secondary text-sm leading-relaxed mb-8 font-medium">
                                         Domani nuove esperienze.
                                     </p>
                                     <button
                                         onClick={() => navigate('/dashboard-user')}
-                                        className="px-6 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-colors"
+                                        className="px-6 py-3.5 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-xl font-bold transition-colors w-full sm:w-auto shadow-md shadow-brand-orange/20 cursor-pointer"
                                     >
                                         Torna alla home
                                     </button>
@@ -1133,12 +1049,12 @@ export default function QuickPathPage() {
                         </motion.div>
                     )}
 
-
                 </AnimatePresence>
             </main>
 
             <BottomNavigation />
-        </div >
+        </div>
     );
 }
+
 

@@ -1,3 +1,5 @@
+import { THEME } from "./src/styles/themeTokens.js";
+
 /** @type {import('tailwindcss').Config} */
 export default {
     darkMode: ["class"],
@@ -50,6 +52,27 @@ export default {
                     "4": "var(--chart-4)",
                     "5": "var(--chart-5)",
                 },
+                // Scala Design System Canonico: Inchiostro & Ossidiana
+                obsidian: {
+                    bg: "var(--obsidian-bg)",
+                    card: "var(--obsidian-card)",
+                    raised: "var(--obsidian-raised)",
+                    border: "var(--obsidian-border)",
+                    "border-elevated": "var(--obsidian-border-elevated)",
+                    primary: "var(--text-primary)",
+                    secondary: "var(--text-secondary)",
+                },
+                brand: {
+                    orange: "var(--brand-orange)",
+                    "orange-hover": "var(--brand-orange-hover)",
+                    "orange-deep": "var(--brand-orange-deep)",
+                },
+                ivory: {
+                    bg: "var(--ivory-bg)",
+                    text: "var(--ivory-text)",
+                    icon: "var(--ivory-icon)",
+                    badge: THEME.raw.ivoryBadge,
+                },
                 ochre: {
                     50: "var(--ochre-50)",
                     100: "var(--ochre-100)",
@@ -73,6 +96,11 @@ export default {
                     300: "var(--olive-300)",
                     400: "var(--olive-400)",
                     500: "var(--olive-500)",
+                },
+                status: {
+                    success: THEME.raw.statusSuccess,
+                    error: THEME.raw.statusError,
+                    warning: THEME.raw.statusWarning,
                 },
                 sidebar: {
                     DEFAULT: "var(--sidebar-background)",

@@ -1,6 +1,5 @@
 // DVAI-058 — Palette categorie condivisa cross-app.
 // Single source of truth per: MapMarker (pin mappa) + TourCover (copertine "Per Te").
-// Estratta 1:1 da MapMarker.jsx per zero cambio comportamento sui pin mappa.
 
 export const getCategoryStyles = (category, type) => {
     const typeStr = (type || '').toLowerCase();
@@ -36,35 +35,163 @@ export const getCategoryStyles = (category, type) => {
     return { bg: '#ef4444', border: '#b91c1c', icon: '📌' };
 };
 
-// DVAI-058 — Palette dedicata alle copertine (ramo B TourCover).
-// Wrappa getCategoryStyles + estende il match a categorie che nella lista tour
-// "Per Te" appaiono ma non hanno corrispettivo diretto nei pin mappa
-// (walking, romance, cultura, tramonto). Sui pin mappa quei valori non arrivano
-// mai come `category`, quindi il match esteso vive solo qui.
-const COVER_EXTRA = [
-    { keys: ['walking', 'segret', 'vicoli', 'passeggia'], style: { bg: '#f59e0b', border: '#b45309', icon: '👣' } },
-    { keys: ['romance', 'tramonto', 'sunset', 'magia'],   style: { bg: '#e11d48', border: '#9f1239', icon: '🌅' } },
-    { keys: ['cultur', 'insider'],                        style: { bg: '#0ea5e9', border: '#0369a1', icon: '✨' } },
+import {
+    UtensilsCrossed,
+    Landmark,
+    Trees,
+    Palette,
+    Coffee,
+    ShoppingBag,
+    Footprints,
+    Sunset,
+    Sparkles,
+    Compass,
+} from 'lucide-react';
+
+// DVAI-058 / Blocco Estetica — Palette Definitiva Copertine: Temperatura Aperta
+//
+// Regole del Brand:
+// 1. Tre Tier di luminosità nettamente staccati (Luce Alta ≈ 0.155, Luce Media ≈ 0.069, Luce Profonda ≈ 0.024).
+// 2. Variazione di temperatura circoscritta rigorosamente alla famiglia calda (Rosso-Terracotta → Ambra-Oro).
+// 3. Zero tinte estranee (no blu, verde, viola, rosa).
+// 4. Icone lineari monocromatiche (stesso set dell'Onboarding).
+
+const COVER_GRADIENTS = [
+    // ─── TIER 1: LUCE ALTA (L media ≈ 0.155 | range: 0.142 - 0.165) ──────────
+    {
+        keys: ['walking', 'segret', 'vicoli', 'passeggia', 'avventura'],
+        style: {
+            tier: 'high',
+            luminance: 0.165,
+            tone: 'Ambra dorata solare',
+            bg: '#F59E0B',
+            icon: '👣',
+            IconComponent: Footprints,
+            gradient: 'radial-gradient(ellipse at 80% 15%, rgba(251, 191, 36, 0.45) 0%, transparent 65%), linear-gradient(145deg, #78350F 0%, #451A03 55%, #16100C 100%)',
+        },
+    },
+    {
+        keys: ['food', 'cibo', 'ristorazione', 'restaurant'],
+        style: {
+            tier: 'high',
+            luminance: 0.158,
+            tone: 'Arancio vivo zafferano',
+            bg: '#F97316',
+            icon: '🍝',
+            IconComponent: UtensilsCrossed,
+            gradient: 'radial-gradient(ellipse at 80% 15%, rgba(249, 115, 22, 0.48) 0%, transparent 65%), linear-gradient(145deg, #68341A 0%, #381A0E 55%, #16100C 100%)',
+        },
+    },
+    {
+        keys: ['shopping', 'negozio', 'mercato'],
+        style: {
+            tier: 'high',
+            luminance: 0.142,
+            tone: 'Rame chiaro tufo',
+            bg: '#EA580C',
+            icon: '🛍️',
+            IconComponent: ShoppingBag,
+            gradient: 'radial-gradient(ellipse at 80% 15%, rgba(234, 88, 12, 0.45) 0%, transparent 65%), linear-gradient(140deg, #5C2D16 0%, #33180D 55%, #16100C 100%)',
+        },
+    },
+
+    // ─── TIER 2: LUCE MEDIA (L media ≈ 0.069 | range: 0.065 - 0.074) ─────────
+    {
+        keys: ['storia', 'history', 'museo', 'museum', 'monumento'],
+        style: {
+            tier: 'mid',
+            luminance: 0.074,
+            tone: 'Bronzo antico minerale',
+            bg: '#D97706',
+            icon: '🏛️',
+            IconComponent: Landmark,
+            gradient: 'radial-gradient(ellipse at 50% 20%, rgba(217, 119, 6, 0.30) 0%, transparent 70%), linear-gradient(160deg, #3A2214 0%, #20130C 60%, #0E0C0B 100%)',
+        },
+    },
+    {
+        keys: ['art', 'arte', 'galleria'],
+        style: {
+            tier: 'mid',
+            luminance: 0.068,
+            tone: 'Terracotta argilla toscana',
+            bg: '#EA580C',
+            icon: '🎨',
+            IconComponent: Palette,
+            gradient: 'radial-gradient(ellipse at 50% 20%, rgba(225, 29, 72, 0.22) 0%, transparent 70%), linear-gradient(160deg, #3D1815 0%, #22100F 60%, #0E0C0B 100%)',
+        },
+    },
+    {
+        keys: ['coffee', 'bar', 'cafe', 'relax'],
+        style: {
+            tier: 'mid',
+            luminance: 0.065,
+            tone: 'Moka tostato e cuoio bruno',
+            bg: '#D97706',
+            icon: '☕',
+            IconComponent: Coffee,
+            gradient: 'radial-gradient(ellipse at 50% 20%, rgba(180, 83, 9, 0.25) 0%, transparent 70%), linear-gradient(160deg, #301B12 0%, #1A100B 60%, #0E0C0B 100%)',
+        },
+    },
+
+    // ─── TIER 3: LUCE PROFONDA (L media ≈ 0.024 | range: 0.022 - 0.026) ──────
+    {
+        keys: ['romance', 'tramonto', 'sunset', 'magia', 'nightlife'],
+        style: {
+            tier: 'low',
+            luminance: 0.026,
+            tone: 'Brace serale mattone scuro',
+            bg: '#F97316',
+            icon: '🌅',
+            IconComponent: Sunset,
+            gradient: 'radial-gradient(ellipse at 50% 10%, rgba(239, 68, 68, 0.18) 0%, transparent 65%), linear-gradient(180deg, #220F0D 0%, #0E0C0B 65%)',
+        },
+    },
+    {
+        keys: ['natura', 'parco', 'park', 'verde'],
+        style: {
+            tier: 'low',
+            luminance: 0.022,
+            tone: 'Terra d\'ombra corteccia',
+            bg: '#EA580C',
+            icon: '🌲',
+            IconComponent: Trees,
+            gradient: 'radial-gradient(ellipse at 50% 10%, rgba(202, 138, 4, 0.16) 0%, transparent 65%), linear-gradient(180deg, #1C150C 0%, #0E0C0B 65%)',
+        },
+    },
+    {
+        keys: ['cultur', 'insider', 'speciale'],
+        style: {
+            tier: 'low',
+            luminance: 0.025,
+            tone: 'Ossidiana ambrata profonda',
+            bg: '#FB923C',
+            icon: '✨',
+            IconComponent: Sparkles,
+            gradient: 'radial-gradient(ellipse at 50% 10%, rgba(254, 240, 138, 0.20) 0%, transparent 70%), linear-gradient(180deg, #1E140D 0%, #0E0C0B 65%)',
+        },
+    },
 ];
 
 export const getCoverPalette = (category, type) => {
     const catLower = (category || '').toLowerCase();
-    const extra = COVER_EXTRA.find(rule => rule.keys.some(k => catLower.includes(k)));
-    const styles = extra ? extra.style : getCategoryStyles(category, type);
+    const matched = COVER_GRADIENTS.find(rule => rule.keys.some(k => catLower.includes(k)));
+    if (matched) {
+        return matched.style;
+    }
+    const styles = getCategoryStyles(category, type);
     return {
-        bg: styles.bg,
-        border: styles.border,
+        bg: '#F97316',
+        tier: 'mid',
+        luminance: 0.069,
+        tone: 'Caldo neutro',
+        border: '#18120E',
         icon: styles.icon,
-        gradient: `linear-gradient(135deg, ${styles.bg} 0%, ${styles.border} 100%)`,
+        IconComponent: Compass,
+        gradient: 'radial-gradient(ellipse at 50% 20%, rgba(217, 119, 6, 0.30) 0%, transparent 70%), linear-gradient(160deg, #3A2214 0%, #20130C 60%, #0E0C0B 100%)',
     };
 };
 
 // DVAI-058 — Rileva se un URL immagine è una foto Google Places verificata.
-// Serve al TourCover per decidere il ramo (A foto reale vs B illustrato):
-// - places-proxy (dev + prod)
-// - googleusercontent (CDN Google)
-// - maps.googleapis.com/maps/api/place/photo (endpoint diretto)
-// Tutto il resto (Unsplash, hardcoded fallback, blob:) → ramo B.
 const PLACES_URL_PATTERNS = [
     /\/places-proxy\??/i,
     /__dev\/places-proxy/i,
@@ -76,3 +203,4 @@ export const isPlacesPhoto = (url) => {
     if (!url || typeof url !== 'string') return false;
     return PLACES_URL_PATTERNS.some(p => p.test(url));
 };
+

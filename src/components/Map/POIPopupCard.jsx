@@ -56,10 +56,10 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
     // We'll just display them if passed in `poi` object.
     
     return (
-        <div className="w-64 md:w-72 bg-white rounded-xl overflow-hidden shadow-2xl flex flex-col pointer-events-auto relative">
+        <div className="w-64 md:w-72 bg-obsidian-card rounded-xl overflow-hidden shadow-2xl border border-obsidian-border flex flex-col pointer-events-auto relative">
             {/* Header Image */}
             {displayImage ? (
-                <div className="h-32 relative shrink-0 bg-gray-100">
+                <div className="h-32 relative shrink-0 bg-obsidian-raised">
                     <img loading="lazy" src={displayImage} alt={poi.name || poi.title} className="w-full h-full object-cover transition-opacity duration-700 opacity-100" />
                     <button 
                         onClick={(e) => { e.stopPropagation(); onClose(); }}
@@ -70,12 +70,12 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
                 </div>
             ) : photoPhase === 'pending' ? (
                 // Ricerca in corso — l'unico caso in cui lo spinner è onesto.
-                <div className="h-32 relative shrink-0 bg-gray-50 flex items-center justify-center">
-                    <div className="w-6 h-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin opacity-50" />
+                <div className="h-32 relative shrink-0 bg-obsidian-raised flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-brand-orange border-t-transparent rounded-full animate-spin opacity-60" />
                     <div className="absolute top-2 right-2 z-10">
                         <button
                             onClick={(e) => { e.stopPropagation(); onClose(); }}
-                            className="p-1.5 bg-gray-200 hover:bg-gray-300 rounded-full text-gray-600 transition-colors"
+                            className="p-1.5 bg-obsidian-raised hover:bg-obsidian-border rounded-full text-obsidian-secondary hover:text-obsidian-primary border border-obsidian-border transition-colors"
                         >
                             <X size={14} strokeWidth={3} />
                         </button>
@@ -88,7 +88,7 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
                 <div className="relative shrink-0 flex justify-end px-2 pt-2">
                     <button
                         onClick={(e) => { e.stopPropagation(); onClose(); }}
-                        className="p-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-colors"
+                        className="p-1.5 bg-obsidian-raised hover:bg-obsidian-border rounded-full text-obsidian-secondary hover:text-obsidian-primary border border-obsidian-border transition-colors"
                     >
                         <X size={14} strokeWidth={3} />
                     </button>
@@ -97,28 +97,28 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
             
             {/* Content */}
             <div className="p-3">
-                <h3 className="font-bold text-gray-900 text-base leading-tight mb-1 truncate">
+                <h3 className="font-bold text-obsidian-primary text-base leading-tight mb-1 truncate">
                     {poi.name || poi.title}
                 </h3>
                 
                 {/* Rating & Category */}
                 <div className="flex items-center gap-1.5 mb-2">
-                    <span className="text-sm font-bold text-gray-800">{rating.toFixed(1)}</span>
-                    <div className="flex text-yellow-500">
+                    <span className="text-sm font-semibold text-obsidian-primary">{rating.toFixed(1)}</span>
+                    <div className="flex text-brand-orange">
                         {[1, 2, 3, 4, 5].map(star => (
                             <Star key={star} size={12} fill={star <= Math.round(rating) ? 'currentColor' : 'none'} strokeWidth={1.5} />
                         ))}
                     </div>
-                    <span className="text-xs text-gray-500">({reviews})</span>
-                    <span className="text-xs text-gray-300 mx-0.5">•</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-md truncate max-w-[80px]">
+                    <span className="text-xs text-obsidian-secondary">({reviews})</span>
+                    <span className="text-xs text-obsidian-border-elevated mx-0.5">•</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-1.5 py-0.5 rounded-md truncate max-w-[80px]">
                         {poi.category || poi.type || 'Punto Mappa'}
                     </span>
                 </div>
 
                 {/* Address/Description */}
-                <p className="text-xs text-gray-500 line-clamp-2 mb-3 pr-2 flex items-start gap-1">
-                    <MapPin size={12} className="shrink-0 mt-0.5 text-gray-400" />
+                <p className="text-xs text-obsidian-secondary line-clamp-2 mb-3 pr-2 flex items-start gap-1">
+                    <MapPin size={12} className="shrink-0 mt-0.5 text-obsidian-secondary/70" />
                     {poi.description || poi.address || poi.vicinity || `Punto di interesse${poi.city ? ` a ${poi.city}` : ''}`}
                 </p>
 
@@ -126,14 +126,14 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
                 <div className="flex gap-2 mt-auto">
                     <button 
                         onClick={(e) => { e.stopPropagation(); onNavigate && onNavigate(poi); }}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                        className="flex-1 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-lg py-2 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow-md active:scale-95"
                     >
                         <Navigation size={14} className="fill-current rotate-45" />
                         Apri Direzioni
                     </button>
                     {poi.id && (
                         <button 
-                            className="p-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors flex shrink-0 items-center justify-center"
+                            className="p-2 border border-obsidian-border bg-obsidian-raised text-obsidian-secondary hover:text-obsidian-primary hover:bg-obsidian-border rounded-lg transition-colors flex shrink-0 items-center justify-center"
                             title="Salva posizione"
                         >
                             <Map size={14} />

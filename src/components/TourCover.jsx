@@ -13,11 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getCoverPalette, isPlacesPhoto } from '@/lib/categoryPalette';
 
 // Overlay identico su TUTTE le copertine (leggibilità testo bianco).
-const BRAND_OVERLAY = 'linear-gradient(to top, rgba(20,12,6,.85) 0%, rgba(20,12,6,.35) 45%, rgba(20,12,6,0) 100%)';
-
-// Filtro CSS uniforme per il ramo A. Legge sat/contrasto + velo warm sepia
-// leggerissimo, così luce/dominante di ogni foto si accordano in famiglia.
-const BRAND_PHOTO_FILTER = 'saturate(.92) contrast(1.03) sepia(.03) brightness(.98)';
+const BRAND_OVERLAY = 'linear-gradient(to top, rgba(14,12,11,.90) 0%, rgba(14,12,11,.35) 45%, rgba(14,12,11,0) 80%)';
 
 export default function TourCover({
     cover,
@@ -26,6 +22,9 @@ export default function TourCover({
     title = '',
     verified,
     animateKey,
+    showGlyph = true,
+    gradientOverride,
+    overlay,
     className = '',
     children,
 }) {
@@ -36,11 +35,15 @@ export default function TourCover({
         || (verified === undefined && !imgError && isPlacesPhoto(cover));
 
     const palette = getCoverPalette(category, type);
+    const IconComponent = palette.IconComponent;
+
+    // Overlay brand attivo solo se richiesto esplicitamente o se sono presenti children sovrapposti
+    const showOverlay = overlay !== undefined ? overlay : Boolean(children);
 
     return (
         <div className={`absolute inset-0 overflow-hidden ${className}`}>
             {branchA ? (
-                // ─── RAMO A: foto Places con trattamento brand uniforme ────────
+                // ─── RAMO A: foto Places reale al 100% (zero filtri di attenuazione) ────
                 <AnimatePresence mode="popLayout">
                     <motion.img
                         key={animateKey || cover}
@@ -53,35 +56,36 @@ export default function TourCover({
                         loading="lazy"
                         onError={() => setImgError(true)}
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700"
-                        style={{ filter: BRAND_PHOTO_FILTER }}
                     />
                 </AnimatePresence>
             ) : (
-                // ─── RAMO B: illustrato per categoria ─────────────────────────
+                // ─── RAMO B: illustrato per categoria (icona lineare monocroma) ─
                 <div
-                    className="absolute inset-0 w-full h-full flex items-center justify-center"
-                    style={{ background: palette.gradient }}
+                    className="absolute inset-0 w-full h-full flex items-center justify-center relative"
+                    style={{ background: gradientOverride || palette.gradient }}
                     aria-hidden="true"
                 >
-                    <span
-                        className="select-none"
-                        style={{
-                            fontSize: 'clamp(4rem, 22vw, 8rem)',
-                            opacity: 0.18,
-                            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,.25))',
-                        }}
-                    >
-                        {palette.icon}
-                    </span>
+                    {/* Alone di luce speculare diffuso */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/10 pointer-events-none" />
+                    {showGlyph && IconComponent && (
+                        <div className="relative z-10 p-3.5 rounded-2xl bg-black/20 backdrop-blur-[2px] border border-white/5 shadow-2xl">
+                            <IconComponent
+                                className="w-10 h-10 stroke-[1.5] text-brand-orange/50 drop-shadow-sm"
+                                aria-hidden="true"
+                            />
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Overlay brand IDENTICO su ramo A e B → leggibilità testo bianco + famiglia visiva */}
-            <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: BRAND_OVERLAY }}
-                aria-hidden="true"
-            />
+            {/* Overlay brand IDENTICO su ramo A e B → leggibilità quando c'è testo sovrapposto */}
+            {showOverlay && (
+                <div
+                    className="absolute inset-0 pointer-events-none z-10"
+                    style={{ background: BRAND_OVERLAY }}
+                    aria-hidden="true"
+                />
+            )}
 
             {/* Slot per badge/testo sovrapposto (rating, titolo, meta) */}
             {children}

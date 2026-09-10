@@ -3,13 +3,13 @@
 Punto di partenza per chi (o quale sessione di Claude) riprende il progetto.
 Aggiornare in coda dopo ogni iterazione importante.
 
-**Ultimo aggiornamento**: 2026-08-29 — aperto il **BLOCCO ESTETICA** su branch
-`estetica` (direzione INCHIOSTRO & OSSIDIANA, fondo `#0E0C0B` per l'intera app;
-Antigravity in parallelo al funzionale per la scadenza piano del 3 settembre).
-Sessione precedente: 28/08, **GATE INTENT chiuso** (cinque diff in produzione).
-Le sezioni di questo file sono in ordine cronologico: **leggere dal fondo**, e
-in caso di conflitto vince sempre il blocco datato più recente.
-La nota storica del 17/07 (Gate KK, cache client stale) resta nel corpo del file.
+**Ultimo aggiornamento**: 2026-08-31 — **BLOCCO ESTETICO CHIUSO**: tutta l'app
+convertita a INCHIOSTRO & OSSIDIANA, mappa compresa. `estetica` pushata con
+preview attivo, **non mergiata** (si mergia quando le prime tre voci della coda
+sono chiuse). Trovato un difetto grave che ha l'eta' del progetto: la query tour
+di Esplora risponde 400 da aprile e a Roma nasconde tre tour veri. Lezioni #44 e
+#45. Le sezioni sono in ordine cronologico: **leggere dal fondo**, e in caso di
+conflitto vince il blocco datato piu' recente.
 
 ---
 
@@ -5284,12 +5284,92 @@ non un aggettivo di troppo, un **fatto affermato senza la misura che lo
 reggerebbe**. **Verdict device ancora da dare.**
 
 **2) Sistema guide: presente nell'interfaccia, inesistente in V1. TRE superfici.**
-- **guide inventate in TourDetails** — *Marco Polo 4.9*, *Chiara Esposito 4.6*,
+- ~~**guide inventate in TourDetails**~~ — *Marco Polo 4.9*, *Chiara Esposito 4.6*,
   con biografie fabbricate. E' il **pattern del Gate K**.
-- **"Richieste Attive"** nel Profilo, con bottone **"Apri Chat"**.
-- **modal "Tour su Misura"** con **"Invia alle Guide di X"**.
+  🟡 **CHIUSO NEL CODICE il 04/09 (su main), in due commit: `b328062` la porta
+  ai tour-guida dal DB, `235ef59` le identita' fabbricate nei default.
+  Verdict device PENDENTE.**
+  (*Nota*: *Marco Polo* e *Chiara Esposito* **non esistevano piu' nel codice** —
+  questa voce era stale. Le fabbricazioni vere erano altre: 'Guida DoveVai',
+  '👋', 'Esperto locale appassionato.', "Guida Ufficiale DoveVai", "5+ ANNI
+  EXP", la bio "cultura sarda", i badge "Verificato"/"Esperto Locale" e un
+  `tour.rating || 4.5` spacciato per rating della guida.)
+- ~~**"Richieste Attive"** nel Profilo~~ — 🟡 **i tre difetti di verita' CHIUSI
+  il 04/09, commit `33fd0bd`** (badge su stati reali, declined fuori dalle
+  attive, durata non piu' inventata). **Il bottone "Apri Chat" resta**, e con
+  esso la decisione aperta qui sotto. Verdict device PENDENTE.
+- **modal "Tour su Misura"** con **"Invia alle Guide di X"**. — **aperta**
 **Da chiudere insieme, non una alla volta**: sono la stessa promessa fatta in
-tre posti, e toglierne una lascia le altre a confermarla.
+tre posti, e toglierne una lascia le altre a confermarla. **La voce 2 resta
+APERTA**: e' chiuso quello che si poteva chiudere senza decidere, non la voce.
+
+**LE DUE DECISIONI CHE BLOCCANO IL RESTO — servono a Ivano, non sono tecniche.**
+1. **La chat con le guide resta in V1?** `ChatModalUser` **non e' finto**: e' un
+   canale di messaggi vero costruito su `notifications`, con sanitizzazione dei
+   contatti gia' dentro. La domanda non e' "e' un mock da spegnere", e' se V1
+   vuole promettere una chat con le guide.
+2. **Il modal "Tour su Misura" resta?** *"Invia alle Guide di {citta'}"* promette
+   un destinatario collettivo che nel DB e' **una persona sola** (un solo
+   profilo `role='guide'`).
+Finche' non sono decise, **non si tocca ne' l'uno ne' l'altro**.
+
+**Cosa e' stato fatto (04/09) — la PORTA `GUIDE_TOURS_ENABLED`.**
+Costante esportata in `dataService.js`, `false` in V1, con il perche' scritto
+accanto. Chiude **tre usci**, tutti dentro quel file, tutti prima della query
+(zero costo di rete): `getToursByCity()` → `[]`, `getTourById()` → `null`
+(cade sul not-found di Gate D-1, nessun ramo di render nuovo),
+`subscribeToLiveTours()` → `null`. **Riaprire in V2 = cambiare quella riga.**
+
+**Non e' un filtro su `isAiGenerated`, e la diagnosi qui sotto va corretta**:
+quel flag **non esiste a livello dato** — non e' una colonna, non e' emesso da
+`mapTourToUI`, e' un campo di navigazione messo nel `location.state` dai path
+AI. Una condizione `!isAiGenerated` dentro `getToursByCity` sarebbe vera per
+ogni riga e spegnerebbe tutto **per assenza del flag, non per scelta**. Il
+discriminante vero e' la **sorgente**: l'unico writer di `tours` e' TourBuilder
+(flusso guida), quindi tutto cio' che esce di li' e' un tour-guida per
+costruzione.
+
+**Render protetti dentro lo stesso fix** (regola locked #5 — uccidere un mock
+senza proteggere il render):
+- **TourLive**: il banner `🔴 LIVE ORA / "2 tour attivi in questo momento"` era
+  **hardcoded**. A lista vuota sarebbe sopravvissuto affermando due tour sopra
+  zero card: lo spegnimento avrebbe **creato una bugia nuova**. Ora il numero e'
+  reale e il banner **non si monta a zero**. Aggiunto l'empty state promesso dal
+  commento in cima al file e mai costruito: *"Nessun tour live oggi"*.
+- **MapPage**: il drawer montava una **striscia orizzontale vuota e muta**. Ora
+  non si monta se non c'e' ne' una card ne' uno skeleton.
+- **Home**: gia' protetta. Verificato che il ramo AI **parta davvero** con lista
+  vuota (`[]` → `finalTours.length === 0` → motore AI).
+
+**COSA QUESTO NON CHIUDE** — dichiarato, non lasciato implicito:
+- **"Richieste Attive" + "Apri Chat"** nel Profilo e **modal "Tour su Misura"**
+  (`DashboardUser` `handleGuideRequest`/`submitGuideRequest`, `createGuideRequest`):
+  **non passano da `getToursByCity`**. La promessa resta in piedi in due posti.
+- **Esplora** (`Explore.jsx`, `.from('tours')` con embed `profiles(...)`): **la
+  porta non la copre**. Oggi non mostra tour-guida **per accidente, non per
+  scelta** — risponde 400 PGRST200 perche' `tours` non ha nessuna FK. **Il
+  giorno che quel 400 viene risolto, i tour-guida riappaiono li'.** E' l'unico
+  punto in cui questo lavoro si disfa da solo. Avviso piantato **sopra quella
+  query**, dove lavorera' chi ripara il 400, piu' l'elenco nel commento della
+  costante. Va al **suo gate** (AUDIT SCHEMA: serve la migration con la FK, e
+  vanno tolti `username`/`bio` che non esistono).
+- **Le identita' di guida fabbricate nei default** sopravvivono su ogni path che
+  resta: `mapTourToUI` genera `'Guida DoveVai'` / `'Esperto locale appassionato.'`,
+  `tourShape.js` genera `'DoveVai Guide'`.
+- **Gate PERSISTENZA** invariato: i tour AI non sono salvati, quindi "Vedi tutte"
+  → Esplora vuota (voce 6) non migliora.
+- **Il motore AI su Roma viene ESPOSTO, non aggiustato.** Le tre righe DB lo
+  mascheravano (i tour DB si prendevano per primi: se c'erano, l'AI non partiva).
+  Da ora "Per Te" a Roma mostra cio' che il motore produce davvero. Se ha buchi,
+  si vedono adesso — ed e' il punto, ma va messo in conto al verdict device.
+
+**Zero modifiche al DB**: le tre righe di Roma restano intatte. Servono a
+collaudare Esplora e tornano vive appena la porta si riapre.
+
+**Copertura persa, dichiarata**: lo smoke `2a` verificava che una scheda
+**popolata** renderizzasse senza crash. A porta chiusa non e' raggiungibile per
+rotta (i tour AI entrano in TourDetails solo via `location.state`). Il test ora
+asserisce il not-found; torna da solo quando la costante passa a `true`.
 
 **3) F55/F56 RIAPERTI sul caso CULTURA.** Visti su device il **30/08**:
 descrizioni intercambiabili (**aria / profumo / suono** su Duomo, Scala e Santa
@@ -5313,9 +5393,25 @@ esiste per dire che quel numero e' una stima, e il tilde non e' decorativo.
 sistemano tutte e due le copie, e nessuna deve piu' mostrare un numero secco.
 Motore in due copie = regola locked #8.
 
-**5) "circa 4h 23min" nelle card "Per Te".** Da stabilire l'origine: **se viene
-da `tourTiming` va arrotondata**. Una stima non si mostra al minuto — il minuto
-afferma una precisione che il modulo dichiara di non avere.
+**5) "circa 4h 23min" nelle card "Per Te".** ✅ **ORIGINE STABILITA il 06/09**
+(era la domanda aperta di questa voce), rivista su schermata di produzione:
+`src/lib/tourTiming.js:186`, dentro `formatEstimate`.
+
+```js
+if (m === 0) return `circa ${h}h`;
+return `circa ${h}h ${m}min`;   // ← "circa 3h 54min", "circa 1h 38min"
+```
+
+Viene proprio da `tourTiming`, quindi **va arrotondata** come diceva la voce.
+Il punto e' che **la contraddizione sta DENTRO la funzione**, non a valle: il
+commento di `formatEstimate` dichiara *"il tilde non e' decorativo: e' la
+dichiarazione che il numero e' una stima"*, e tre righe dopo stampa il minuto.
+Il modulo dice di non sapere con precisione e nella stessa riga afferma i 54
+minuti.
+
+**Fix noto, un punto solo**: arrotondare sopra i 60 minuti (a 15 min, oppure
+alla sola ora). Sotto l'ora `~30 min` va gia' bene. **Non fatto**: chiuso il
+06/09 senza toccarlo, per non aprire lavoro a sessione in chiusura.
 
 **6) "Vedi tutte" in Home porta a Esplora vuota.** Da verificare **quale dei
 due**: routing sbagliato, o il Gate PERSISTENZA (i tour AI non sono salvati,
@@ -5764,6 +5860,171 @@ suite e la build, e vanno girate entrambe prima di dire fatto.
 
 ---
 
+## Sessione 31/08 — BLOCCO ESTETICO CHIUSO, e un difetto che ha un anno
+
+### Il blocco estetico e' CHIUSO
+
+Tutta l'app e' convertita a INCHIOSTRO & OSSIDIANA, **mappa compresa** — che era la
+superficie piu' carica di classi legacy nel censimento (~350 occorrenze fra
+`MapPage` e i suoi componenti). `estetica` e' **pushata**, con preview attivo:
+
+```
+https://unnivai-git-estetica-aispace-projects.vercel.app
+```
+
+**NON e' mergiata**, e resta cosi': il merge si fa quando le prime tre voci della
+coda sono chiuse (decisione del 30/08, motivo li').
+
+Fuori dalla conversione, di proposito: il **puntatore utente** sulla mappa, che
+verra' riscritto dai gate di navigazione — convertirlo adesso sarebbe lavoro da
+buttare.
+
+### Lo stile della mappa: dove vive davvero
+
+In **Google Cloud Console**, non nel repo:
+
+| | |
+|---|---|
+| Map ID | **DoveVai_Main** — `28861a61c07876f819652d2d` |
+| stile associato | **DoveVAI Base** — `8a0949df9e6e0302f2045af1` |
+
+**Salva e Pubblica sono due azioni separate**: salvare uno stile non lo mette in
+produzione. Chi cambia i colori e non vede niente cambiare, quasi sempre ha
+salvato e non pubblicato — e poi c'e' comunque la cache di Google, quindi si
+verifica su device e non subito.
+
+`MAP_MOODS` era un **sistema nominale**: undici mood, tutti con lo stesso Map ID,
+e `primaryColor`/`colorScheme`/`tilt`/`label` con zero letture in tutto il
+progetto. Ridotto in `a10085b` a cio' che e' vero (chiavi + `tags`).
+
+### Token semantici nuovi
+
+Tre di stato — `statusSuccess`, `statusError`, `statusWarning` — piu' `ivoryBadge`
+e `routeStroke`. Contrasti **misurati**, non stimati.
+
+---
+
+### DIFETTO GRAVE NUOVO — la query di Esplora e' rotta dal primo giorno
+
+`Explore.jsx:99-103` embedda `profiles(username, first_name, last_name, image_urls, bio)`
+e riceve **400 PGRST200**:
+
+```
+Could not find a relationship between 'tours' and 'profiles' in the schema cache
+```
+
+**`tours` non ha NESSUNA foreign key.** Verificato su `information_schema`. Quindi
+PostgREST non puo' risolvere l'embed — e **nemmeno l'hint esplicito**
+`profiles!guide_id(...)` funziona, provato. In piu' **`username` e `bio` non
+esistono** su `profiles`: sarebbero un secondo 400 appena sistemato il primo.
+
+`git log -S` dice che quella select e' li' da **`5c03e74`, l'import iniziale di
+aprile**. Non e' una regressione: e' codice che non ha **mai** funzionato contro
+questo schema.
+
+**Cosa nasconde.** In produzione ci sono **3 righe in `tours`, tutte a Roma, tutte
+`is_live`**. A Roma quel 400 le nasconde e la pagina mostra *"Nessuna guida ha
+ancora pubblicato un tour"* — che li' e' **falso**. Nelle altre citta' la stessa
+frase e' vera, e oggi i due casi sono indistinguibili a schermo.
+
+**Stesso difetto altrove**: `dataService.js:332` (`subscribeToTours`) usa lo stesso
+embed.
+
+### Voce 2 (sistema guide) — diagnosticata
+
+**Quattro superfici vive**, non una:
+
+| file:riga | superficie | rotta |
+|---|---|---|
+| `DashboardUser.jsx:211` | "Per Te" in Home | `/dashboard-user` |
+| `MapPage.jsx:835` | marker `globalTours` | `/map` |
+| `TourDetails.jsx:459` | scheda tour completa | `/tour-details/:id` |
+| `TourLive.jsx:54` | lista tour avviabili | `/tour-live` |
+
+(`Explore.jsx:99` sarebbe la quinta, ma prende 400 e non arriva a schermo.)
+
+**Il discriminante ESISTE gia': `isAiGenerated`.** I tour DB non lo hanno,
+i tour AI si' (`DashboardUser.jsx:339`). E' gia' usato per il ranking
+(`:84`, i tour di guida sono **promossi** di +3), per `isGuideTour`
+(`TourDetails.jsx:640`) e per il filtro raggio (`:423`, `:476`). **Non va
+introdotto niente.**
+
+**La cosa piu' importante di tutta la diagnosi**: a `DashboardUser.jsx:210-226` i
+tour DB si prendono **per primi**, e se ce ne sono **il motore AI non parte
+affatto**. Quindi *"Per Te" a Roma funziona per via di quelle tre righe, non
+perche' il motore funzioni*. Tre righe di database stavano mascherando lo stato
+reale del motore sulla citta' su cui si prova piu' spesso.
+
+---
+
+### LEZIONE #44 — un marker negativo cercato dove il codice non abita e' sempre verde
+
+Verificando che `DOVEVAI_MAP_STYLES` fosse sparito dal bundle di produzione, il
+primo controllo — fatto sull'entry e sui 26 chunk che l'entry nomina — dava
+**tutti i marker assenti**. Sembrava fatto. Era **falso**: `GoogleMapContainer`
+non vive nell'entry ne' in un chunk di primo livello, sta in `MapAPIWrapper-*.js`,
+nominato solo dentro `MapPage`, `Explore` e `TourBuilder`.
+
+Un marker negativo cercato in un file che non contiene quel codice **e' verde per
+costruzione**, e non dice niente. Servono due cose insieme:
+
+1. **ricorsione sui chunk** — seguire i riferimenti `"./X.js"` finche' non si
+   chiudono, non fermarsi al primo livello;
+2. **un marker POSITIVO nello stesso file** — qualcosa che *deve* esserci (qui il
+   Map ID). E' la prova che il file e' stato scaricato e letto davvero, e non che
+   si stava guardando altrove.
+
+Corollario misurato lo stesso giorno: una baseline presa **mentre un deploy sta
+partendo** non e' una baseline. I vecchi asset iniziano a dare 404 a meta'
+scaricamento e i conteggi diventano casuali.
+
+### LEZIONE #45 — i referti di Antigravity vanno letti contro il mandato, riga per riga
+
+**Tre casi nella stessa giornata** in cui una parte del mandato non e' stata
+eseguita e il referto **non lo diceva**: non una negazione, un'**omissione**. Il
+testo parla solo di cio' che e' stato fatto, e chi legge completa da solo.
+
+Il modo di leggerli non e' "sembra sensato?", e' **riga per riga contro il
+mandato**: per ogni punto chiesto, cercare nel referto la frase che lo copre. Se
+non c'e', **non e' stato fatto** — indipendentemente da quanto il resto sia
+convincente. Vale anche per i miei referti.
+
+### LEZIONE #46 — una baseline costruita con l'ambiente sbagliato non e' una baseline
+
+Misurato il **04/09**, chiudendo la voce 2. Dopo il fix, `npx playwright test`
+dava **3 rossi**. Per capire se erano miei ho messo le modifiche in stash e
+rimisurato: **5 rossi senza il fix**. Il fix, quindi, ne *risanava* due.
+
+Erano falsi entrambi i numeri. La suite E2E gira contro il **bundle buildato**,
+e io avevo buildato con `npm run build` — che legge il `.env` reale, con
+`VITE_SUPABASE_URL` di **produzione**. Le fixture in `e2e/fixtures/mock-app.ts`
+intercettano `**/test.supabase.co/**` e iniettano la sessione sulla chiave
+`sb-test-auth-token`. Con l'URL di produzione **non intercettano niente**:
+niente sessione, niente mock, l'app non monta, e i test cadono per un motivo
+che non ha nulla a che vedere col codice. La suite si lancia **solo** con
+`npm run test:e2e`, che fa `build:e2e --mode e2e` (`.env.e2e`,
+`VITE_SUPABASE_URL=https://test.supabase.co`). Lanciata cosi': **6/6 verdi**,
+prima e dopo.
+
+**E' la stessa forma della #44**: li' un marker negativo cercato in un file che
+non contiene quel codice era verde per costruzione e non diceva niente; qui un
+test rosso in un ambiente che non puo' montare l'app e' rosso per costruzione e
+non dice niente. In entrambi i casi **la misura non tocca l'oggetto che dichiara
+di misurare** — e in entrambi i casi il risultato sembra informativo.
+
+Il corollario e' piu' scomodo del caso: per due giri ho creduto a un delta
+(3 rossi contro 5) e stavo per **prendermi il merito di due test risanati** che
+nessuno aveva mai rotto. Un delta fra due misure sbagliate resta sbagliato:
+**prima si valida il banco di prova, poi si legge il numero.** Il segnale che
+avrebbe dovuto fermarmi subito era che nel baseline falliva anche `2b`, un test
+che il mio lavoro non toccava in nessun modo.
+
+Regola operativa: **se un rosso non ha una spiegazione nel diff, il sospettato
+numero uno e' il banco di prova, non il codice.** E vale anche al contrario —
+un verde ottenuto con l'ambiente sbagliato non e' un verde.
+
+---
+
 ## REGOLE LOCKED (voce brand + processo)
 
 1. **Nessun fallback produce mai contenuto**. Se il motore fallisce → errore
@@ -5814,3 +6075,659 @@ mv .env .env.tmp && (npm run test:run; mv .env.tmp .env)
 
 Verifica che tutti i test passino anche senza `.env` (come in CI). Vedi
 `src/test/setup.js` per gli stub env di default.
+
+---
+
+## Sessione 04/09 — Audit estetica (fonte: sessione parallela)
+
+Esito dell'audit del branch `estetica` condotto in una sessione parallela e
+riportato da Ivano. **Non e' farina di questa sessione**: qui e' trascritto per
+non perderlo, con accanto i punti che ho potuto **corroborare in lettura sul
+codice** — segnati come tali. Dove non ho verificato, e' riportato come detto.
+
+### 1. Il verdetto device non esiste, tranne che su tre schermate
+
+**Nessun verdetto device formale esiste su nessuna conversione**, con
+l'eccezione di **tre schermate**. Tutto il resto del blocco estetico —
+Landing, Login, Notifiche, QuickPath, Photos, SurpriseTour, TourDetails,
+drawer POI, telaio globale — e' stato dichiarato chiuso **senza** che nessuno
+lo abbia guardato su iPhone e detto "va bene".
+
+E' la **regola locked #3** disattesa su scala di branch: *"Niente e' done
+finche' Ivano non verifica su iPhone"*. Non un gate saltato: quindici commit
+di conversione appoggiati su una verifica che non c'e'.
+
+### 2. Il confronto sul gradient non e' MAI stato fatto
+
+L'handoff (blocco del 29/08) lo chiedeva in termini espliciti:
+
+> una copertina con gradient **accanto** a una con foto Places vera, **stesso
+> fondo**. Se il gradient sembra un buco e la foto no, la conversione
+> **peggiora** l'app: non si procede.
+
+**Quel confronto non e' mai avvenuto.** Verificato in lettura il 04/09:
+- nessun verdict sulle copertine da nessuna parte in questo documento;
+- **zero test** su `categoryPalette` / `COVER_GRADIENTS`;
+- e lo **strumento** per farlo — `/cover-preview`, che esisteva apposta — e'
+  stato **rimosso** in `cb9bbe5` prima che il confronto fosse eseguito.
+
+Il gradient **e' stato ridisegnato** (`412c40f`): `src/lib/categoryPalette.js`,
+**9 regole di categoria + 1 fallback**, tre tier di luminanza (0.165 → 0.024),
+famiglia calda monocromatica, basi scure `#16100C` / `#0E0C0B`, icone Lucide.
+Ma ridisegnato non e' verificato, e la condizione posta era una condizione
+d'arresto, non un suggerimento.
+
+Resta inoltre aperta la decisione **"nove gradient o tre"**: il referto diceva
+che senza glifo, dentro lo stesso Tier, le copertine non si distinguono. **Il
+codice ha preso i nove**; la decisione non risulta chiusa da nessuna parte.
+
+### 3. Il divieto su navigazione e HUD e' stato aperto UNILATERALMENTE
+
+Il blocco del 29/08 e' esplicito: la regola "Antigravity dopo il funzionale"
+
+> **resta valida per navigazione e HUD**; non vale piu' per il resto.
+
+E' stata aperta lo stesso, senza che nessuno la revocasse. **Verificato in
+lettura**, i tre file convertiti:
+
+| file | righe (vs base `a10085b`) |
+|---|---|
+| `src/components/Map/NavigationHUD.jsx` | +40 / −79 |
+| `src/components/Map/POIPopupCard.jsx` | +16 / −16 |
+| `src/pages/MapPage.jsx` | +86 / −87 |
+
+**Il rischio e' accettato consapevolmente**: i gate nav funzionali — che
+richiedono una camminata vera — riscriveranno queste superfici. Il lavoro
+estetico fatto sopra **verra' buttato in parte o del tutto**. Non e' un
+incidente scoperto dopo: e' una scelta presa sapendo il costo.
+
+### 4. CONGELATO: nessun altro lavoro estetico sulla navigazione
+
+**Da questa sessione in poi**, lavoro estetico sulla navigazione **fermo**.
+Si riapre solo quando sono chiuse tutte e tre:
+
+1. **giro su device** (il verdetto che manca dal punto 1),
+2. **gradient** (confronto del punto 2 + decisione nove-o-tre),
+3. **gate nav funzionale chiuso**.
+
+Non e' una raccomandazione: e' il congelamento che il punto 3 rende necessario.
+Ogni pixel messo sulla navigazione prima che il funzionale sia chiuso e' un
+pixel che si riscrive.
+
+### 5. TourDetails: blocchi guida convertiti che verranno RIMOSSI
+
+`TourDetails.jsx` (+454 / −575 rispetto a `main`) contiene blocchi del sistema
+guida gia' convertiti a ossidiana — fra cui il modal profilo guida, con la sua
+etichetta "Guida DoveVai", il "5+ ANNI EXP" hardcoded e la biografia di
+fallback inventata.
+
+**Quei blocchi li rimuovono i pezzi 2 e 3 della voce 2.** E' lavoro di
+conversione gia' fatto su codice destinato a sparire. **Da non ripetere**:
+prima di rimettere mano a quelle superfici, aspettare che i pezzi 2/3 abbiano
+deciso cosa resta in piedi.
+
+### 6. `HERO_PHOTOS` e' vuoto — regola locked #1 violata
+
+**Verificato in lettura** (`src/pages/Landing.jsx:492-498`): `HERO_PHOTOS`
+contiene **una sola voce**, ed e' un **placeholder Unsplash**:
+
+```js
+const HERO_PHOTOS = [
+    { url: 'https://images.unsplash.com/photo-1552832230-...', title: 'Colosseo', city: `Roma` },
+];
+```
+
+La rotazione foto dell'hero (`65d2d58`) gira quindi **su un array da uno**, e
+la sola immagine e' uno stock. Sotto il claim **"il posto esiste"** questo e'
+**la regola locked #1**: *nessun fallback produce mai contenuto*. Una foto
+stock presentata come prova che il luogo e' reale e' esattamente cio' che il
+Gate VERITA' VISIVA (F26/DIFF 4) aveva tolto da `mapTourToUI`, rientrato dalla
+porta della Landing.
+
+**Le foto vere restano compito di Ivano.** Finche' non ci sono, l'hero non
+puo' affermare "il posto esiste".
+
+### 7. Debiti di design
+
+> ⚠️ **DA COMPLETARE — l'elenco non e' stato trasmesso a questa sessione.**
+> Il mandato rimanda al **punto 11 del riepilogo** dell'audit, che non e' mai
+> arrivato nel contesto di questa sessione: non e' in questo documento e non
+> mi e' stato incollato. **Non l'ho ricostruito a memoria di proposito** —
+> inventare un elenco di debiti dentro l'handoff sarebbe il difetto che questo
+> documento esiste per impedire. Va incollato qui sotto tale e quale.
+
+### 8. Ordine concordato
+
+Non negoziabile, e in questa sequenza:
+
+1. **device pass** — il giro su iPhone che non e' mai stato fatto (punto 1)
+2. **gradient** — confronto affiancato + decisione nove-o-tre (punto 2)
+3. **foto hero** — le foto vere, compito di Ivano (punto 6)
+4. **pezzi 2/3** della voce 2 — sistema guide, cosa resta e cosa sparisce
+5. **merge** di `estetica` in `main`
+
+### Nota di merge, misurata il 04/09
+
+`estetica` differisce da `main` su **45 file**, ma solo **tre** sono toccati da
+entrambi i lati dopo la base `a10085b`. Merge simulato in sola lettura
+(`git merge-tree`, nessun merge eseguito):
+
+| file | estetica | main | esito |
+|---|---|---|---|
+| `src/pages/Profile.jsx` | +194 / −210 | +49 / −9 | **CONFLITTO** |
+| `src/pages/Explore.jsx` | +91 / −72 | +21 / −0 | auto-merge pulito |
+| `src/pages/MapPage.jsx` | +86 / −87 | +6 / −1 | auto-merge pulito |
+
+**Un solo conflitto, e la causa e' nota**: entrambi i lati hanno riscritto lo
+stesso blocco JSX di "Richieste Attive" — `estetica` convertendolo a ossidiana,
+`main` mettendoci la logica di pezzo 2 (`REQUEST_STATUS_LABEL`, filtro attive,
+durata onesta). **Risoluzione corretta: tenere la logica di `main` dentro il
+markup di `estetica`.** Le due costanti in testa al file non confliggono (le
+tocca solo `main`): il conflitto e' circoscritto al blocco della card.
+
+Working tree di `estetica` al 04/09: **pulito** (solo un file di diagnosi non
+tracciato). `Onboarding.jsx` **e' committato** (`b64e5ba`), non pendente —
+l'avviso dell'handoff su `src/styles/` untracked e' anch'esso **superato**:
+`themeTokens.js` risulta tracciato. `/cover-preview` **non esiste piu'** su
+nessuno dei due branch.
+
+---
+
+## Sessione 04/09 — quattro gate chiusi su main, e una fuga di PII
+
+Sessione funzionale su `main`. **Quattro commit, tutti pushati, tutti con CI
+verde letta da `gh run watch --exit-status`, non assunta.**
+
+| commit | cosa chiude |
+|---|---|
+| `b328062` | **porta chiusa ai tour-guida dal DB** + empty state onesto su TourLive |
+| `75da262` | **RLS `guide_requests`**: SELECT owner-only, INSERT/UPDATE allineate |
+| `33fd0bd` | **"Richieste Attive"**: stati reali, solo attive, durata onesta |
+| `235ef59` | **identita' guida fabbricate** rimosse (nome, foto, bio, credenziali) |
+
+### La cosa piu' grave della giornata: PII leggibile da chiunque
+
+Non cercata: emersa ispezionando le RLS per un'altra diagnosi. **Verificata
+empiricamente**, non dedotta dalle policy — chiamata REST con la sola chiave
+anon (quella nel bundle client, quindi pubblica), **senza autenticazione**:
+
+```
+GET /rest/v1/guide_requests?select=id,user_name,city,status,request_text
+-> 200, righe reali
+```
+
+Tornavano **nome e cognome veri**, il testo libero delle richieste e, su una
+riga, **telefono, email, handle Instagram e link WhatsApp in chiaro**.
+
+Tre policy SELECT tutte PERMISSIVE (USING in OR, vince la piu' larga), due con
+ruolo `public` che **include `anon`**: bastava `status='open'` **oppure**
+`guide_id IS NULL`. Nessuna delle tre verificava un ruolo: si chiamavano
+"Guides..." ma il predicato non lo implementava. Il filtro `.eq('user_id')` di
+`Profile.jsx` sta **lato client**: nascondeva nella UI, non nei dati.
+
+Chiuse in due migration (`20260904_gate_rls_guide_requests_owner_only.sql` e
+`..._insert_update.sql`), applicate sul DB e verificate: anon `[]` anche sui
+vecchi bypass, owner 6 righe, estraneo 0, INSERT falsificato `42501`, dati
+intatti (6 righe, zero residui dei test).
+
+**Onesta' sulla portata**: il buco INSERT (`WITH CHECK (true)`, si creava una
+richiesta a nome di un altro) era **aperto e sfruttabile**. Quello UPDATE era
+**gia' latente**, mascherato dal gate SELECT — un `UPDATE ... WHERE` deve
+leggere la riga, e non la vedeva piu'. Droppare quella policy toglie una mina,
+non tappa una falla che perdeva.
+
+**RESIDUO DICHIARATO**: il proprietario puo' ancora scrivere `guide_id` sulla
+**propria** riga, assegnandosi una guida arbitraria (purche' sia un profilo
+esistente — lo impone la FK). Auto-inganno sui propri dati, non fuga verso
+terzi. Chiuderlo vuole una `WITH CHECK` che congeli `guide_id`.
+**Da ripulire, non urgente**: le quattro policy INSERT ora fanno lo stesso
+identico controllo, tre sono ridondanti per stratificazione storica.
+
+### Cosa NON chiudono questi quattro commit
+
+- **Esplora** (`Explore.jsx`) interroga `tours` per conto suo: la porta non la
+  vede. Oggi non mostra tour-guida **per accidente** (400 PGRST200, `tours` non
+  ha FK), **non per scelta**. Quando quel 400 sara' risolto **i tour-guida
+  riappaiono li'**. Avviso piantato sopra quella query, piu' l'elenco nel
+  commento della costante. Va al suo gate: serve la migration con la FK, e
+  vanno tolti `username`/`bio` che non esistono.
+- **`rating: Number(dbTour.rating) || 5.0`** in `mapTourToUI`: default
+  fabbricato app-wide (card, ordinamenti). Segnalato, non toccato.
+- **`DashboardGuide`** non vede ne' aggiorna piu' le richieste. In V1 il sistema
+  guide e' spento, quindi non toglie nulla di vivo — ma quando le guide
+  torneranno servira' una policy **dedicata che verifichi il ruolo**, non il
+  ripristino di quelle vecchie.
+- **Chi ha una richiesta rifiutata non lo vede piu' da nessuna parte.** Non ho
+  inventato un posto per dirglielo: e' una lacuna di prodotto da progettare,
+  non un filtro da riallargare.
+- **Il modal guida e' irraggiungibile** dietro `isGuideTour` a porta chiusa: il
+  commit `235ef59` toglie fabbricazioni **dormienti**. Tornano visibili con le
+  guide, cioe' quando nessuno le starebbe guardando.
+
+### Difetti di schema trovati, non toccati
+
+- **`guide_requests.status` ha `DEFAULT 'pending'` che viola il suo stesso
+  CHECK** (`open|accepted|declined|completed`). Trappola dormiente: il primo
+  INSERT che ometta `status` fallisce. Oggi non esplode solo perche'
+  `createGuideRequest` scrive `'open'` esplicito.
+- **`createGuideRequest` riceve `date` e `guests` e li SCARTA in silenzio** —
+  non esistono colonne. `TourDetails` li prende da un form che l'utente compila
+  davvero, e finiscono ricopiati a mano dentro il testo libero. L'interfaccia
+  chiede un dato e finge di riceverlo.
+- **`TourDetails` non passa `city`** nel payload: le richieste nate da li'
+  hanno `city NULL` (due righe reali su sei).
+- **`profiles` non ha `bio`, `username`, `avatar_url`, `full_name`,
+  `current_city`.** Il codice che le legge cade sui fallback. E' il motivo per
+  cui `guideBio` era *sempre* la frase inventata: non era un fallback, era
+  l'unico valore possibile.
+
+### LEZIONE #47 — un grep con il punto non escapato non misura quello che dici
+
+Verificando il bundle dopo aver tolto il `4.5` hardcoded, `grep -c "4.5"`
+rispondeva **2**, e stavo per riportarlo come residuo sopravvissuto. Era falso:
+**il punto e' un jolly regex**, e matchava `4,5`, `4/5`, `4V5`, `4W5`. Con
+`grep -F` letterale: **zero**.
+
+E' la **famiglia di #44 e #46**: una misura che non misura l'oggetto che
+dichiara di misurare, e che sembra informativa. Qui il difetto e' minuscolo —
+un carattere — ma il meccanismo e' identico, ed e' scattato **nella verifica
+stessa** di un fix contro le fabbricazioni.
+
+Regola operativa: **per i marker su bundle usare `grep -F`**, o escapare. E se
+un numero non torna, guardare il contesto invece di riportarlo.
+
+### Dove vive cosa — LEGGERE PRIMA DI TOCCARE I BRANCH
+
+- **`main` NON e' in check-out nella cartella principale.** Vive in un
+  **worktree separato**: `/Users/mac2023ivanosciretta/unnivai-1b`.
+  `git checkout main` dalla cartella principale **fallisce**. Il push di `main`
+  si fa da li'.
+- La cartella principale (`unnivai ricresa`) e' su **`estetica`**.
+- **Il lavoro funzionale nasce e vive su `main`**; `estetica` tiene solo
+  l'estetico e la narrazione dell'handoff. Niente in doppio: due copie
+  divergono e al merge non si capisce piu' quale sia quella vera.
+- Il 04/09 questo e' costato un trasferimento a mano: `Profile.jsx` diverge fra
+  i branch, due hunk su tre si applicavano, il terzo no. **La logica e' stata
+  riscritta dentro il markup di `main`, senza portare una sola classe da
+  `estetica`** (verificato: zero occorrenze di `obsidian`/`brand-orange` nel
+  diff).
+
+### Stato dei branch al 06/09
+
+**`main`** — pulito, sincronizzato con `origin/main`, a `235ef59`.
+
+**`estetica`** — a `ffbf425`, con **lavoro non committato che NON e' di questa
+sessione** e che va preservato:
+
+| file | cosa |
+|---|---|
+| `src/pages/Landing.jsx` | +56/−56 circa: ocra → ambra su tutta la pagina, nuovo sistema a tre tinte calde (terracotta / ambra / arancione) |
+| `src/styles/themeTokens.js` | `textSecondary` `#C4BEB6` → `#A8A29E`, `statusError` `#EF4444` → `#F87171` |
+
+Sono ritocchi di una **sessione parallela**, non miei. **Committati il 06/09 in
+`30f033c`** su richiesta di Ivano, per non perderli con un checkout sbagliato:
+il commit dichiara l'attribuzione e che sono verificati **solo meccanicamente**
+(suite 606/606, lint, build), **non su device e non nel merito estetico**. Chi
+li ha scritti puo' modificarli sopra liberamente.
+
+`DIAGNOSI_VOCE2_PEZZI_2_3.md` — la diagnosi read-only su cui si basano i commit
+`75da262`, `33fd0bd` e `235ef59`. Era untracked, **committata il 06/09 in
+`8621d56`**. Parti ora **superate** (le tre corrette), parti ancora valide
+(tutto il pezzo 3).
+
+**Working tree di `estetica` al 06/09: PULITO.** Branch a `30f033c`, allineato
+con `origin/estetica`. `main` pulito a `235ef59`, allineato con `origin/main`.
+
+### Produzione — i quattro commit sono LIVE, verificato il 06/09
+
+Tutti e quattro hanno un deployment **Production** su Vercel con stato
+`success`. Non solo: il bundle **servito** da `https://unnivai.vercel.app` e'
+stato scaricato e controllato con marker positivi e negativi (`grep -F`, vedi
+lezione #47), chunk per chunk:
+
+| chunk servito | marker positivo | marker negativi a zero |
+|---|---|---|
+| `TourDetails-*` (33 KB) | "Biografia", "non ha ancora scritto una biografia" | "cultura sarda", "Guida Ufficiale DoveVai", "Anni Exp", "Esperto Locale", "Verificato", "4.5", "Esperto locale appassionato" |
+| `Profile-*` (31 KB) | "Richiesta di tour", "In attesa", "Accettata" | il default `\|\|3} ore` |
+| `TourLive-*` (12 KB) | "Nessun tour live oggi" | "2 tour attivi in questo momento" |
+
+Il codice e' in produzione. **Cio' che manca e' solo lo sguardo umano su
+device** — che resta il punto 1 della ripartenza.
+
+### Prima occhiata su Home in produzione (06/09, Chrome desktop)
+
+Non e' il verdict device — **e' Chrome su desktop, non iPhone**, quindi la
+regola locked #3 NON e' soddisfatta e il gate resta aperto. Ma la domanda
+"il motore ha buchi?" ha avuto una prima risposta, ed e' buona.
+
+Home a Roma mostra **due tour AI veri**:
+- *"Scoperte nascoste di Roma"* — include **Osteria da Fortunata, rating 4.4**
+- *"Panorami e ... Roma"* — include **Piazza del P...**
+
+Sono POI reali di Google Places, non le tre righe DB. **La porta regge, il
+motore parte e produce contenuto vero su Roma.** Onesta anche la card *"Guide
+Locali — Persone del posto, non ancora disponibili"* col badge IN COSTRUZIONE.
+
+**L'unico difetto reso visibile da quella schermata e' la voce 5** — "circa 3h
+54min" / "circa 1h 38min", la stima al minuto. Origine ora stabilita (vedi
+voce 5 nella CODA): `tourTiming.js:186`.
+
+### DA DOVE SI RIPARTE — in quest'ordine
+
+1. **VERDICT DEVICE su `https://unnivai.vercel.app`, SU IPHONE** — e' il collo
+   di bottiglia: **tre fix aspettano lo stesso giro**.
+   - **Home a Roma**: gia' guardata da desktop e va (vedi sopra). Su iPhone
+     serve confermarla e guardare il resto.
+   - **`/map` e `/tour-live` a Roma** (porta tour-guida): **non ancora
+     guardate**, ne' da desktop ne' da telefono.
+   - **Profilo → Richieste** (badge "In attesa"/"Accettata", niente rifiutate,
+     niente "3 ore" inventate): **non ancora guardata**.
+   - Il modal guida **non e' verificabile**: irraggiungibile a porta chiusa.
+2. **Le due decisioni**: chat con le guide, e modal "Tour su Misura". Sbloccano
+   il resto della voce 2.
+3. **Punto 11 dell'audit estetica** — l'elenco dei debiti di design non e' mai
+   arrivato: la sezione "Audit estetica" qui sopra ha un buco marcato
+   `⚠️ DA COMPLETARE`. Va incollato.
+4. **Ordine estetico gia' concordato** (sezione Audit): device pass → gradient
+   → foto hero → pezzi 2/3 → merge.
+5. **Merge `estetica` → `main`**: misurato il 04/09 con `git merge-tree`, **un
+   solo conflitto**, `src/pages/Profile.jsx`. Risoluzione corretta: **tenere la
+   logica di `main` dentro il markup di `estetica`**. `Explore.jsx` e
+   `MapPage.jsx` auto-mergiano puliti.
+6. **Voce 5 della CODA** — la stima al minuto in `tourTiming.js:186`. Origine
+   stabilita, fix noto e circoscritto a un punto. E' il pezzo piu' economico
+   della coda: si chiude in mezz'ora, e ora e' anche visibile in produzione.
+
+### Riaprire il progetto a freddo — checklist
+
+Scritta il 06/09 pensando a una ripresa dopo un aggiornamento del computer.
+
+1. **Niente e' solo in locale.** Entrambi i branch sono pushati su
+   `origin`: `main` a `235ef59`, `estetica` a `37f44ea` (piu' i commit di
+   chiusura). Working tree puliti, **nessuno stash pendente**. Se la macchina
+   venisse azzerata, non si perde nulla di committato.
+2. **La trappola dei worktree.** `main` **non** e' in check-out nella cartella
+   principale: vive in `/Users/mac2023ivanosciretta/unnivai-1b`. La cartella
+   principale e' su `estetica`. Se dopo l'aggiornamento quel percorso non
+   esiste piu' (o si riclona da zero), `main` torna un branch normale e la
+   struttura a due worktree va ricreata — oppure si lavora in modo classico,
+   ricordando che **allora `git checkout main` funziona** e le istruzioni di
+   questo handoff sul push "dal worktree" vanno lette di conseguenza.
+   Comando per sapere sempre dove si e': `git worktree list`.
+3. **Prima di qualunque comando distruttivo** (`checkout`/`reset`/`clean`):
+   `git status` + `git worktree list`. Il 04/09 un `git apply --check` e'
+   stato lanciato sull'albero sbagliato proprio per non aver guardato.
+4. **La suite e' verde ma i due branch hanno numeri diversi**, ed e' normale:
+   `main` 608 test, `estetica` 606. La differenza sono i test della porta e
+   delle identita' guida, che vivono su `main`. Non e' una regressione.
+5. **La E2E si lancia SOLO con `npm run test:e2e`** (che fa
+   `build:e2e --mode e2e`). Un `npx playwright test` dopo un `npm run build`
+   normale usa il `.env` di produzione, le fixture non intercettano nulla e
+   la suite da' rossi che non sono regressioni. E' la lezione #46.
+6. **Il DB e' condiviso e vivo.** Progetto Supabase `UNNIVAI`
+   (`ahecpiwsdhghkndncejb`). Le RLS di `guide_requests` sono state ristrette
+   il 04/09: se qualcosa "non si vede piu'", prima di sospettare il codice
+   guardare le policy.
+
+---
+
+## Sessione 10/09 — Gate RAGGIO-CATEGORIA: la categoria richiesta diventa un vincolo di codice
+
+Diagnosi (09/09) e fix (09-10/09) di un difetto misurato dal vivo, non
+ipotizzato: la richiesta esplicita "le spiagge piu' belle" a Cabras
+restituiva **3 ristoranti**, zero spiagge. Causa provata con chiamate reali a
+Google Places e al traduttore GPT: Cabras e' nell'entroterra, le spiagge vere
+stanno a 9-12 km dal centro, ma la textsearch per "lidi"/"cale" (sinonimi
+corretti di "spiaggia" secondo il traduttore) porta anche ristoranti del
+centro (0.1-2.8 km) — "lido" e' un nome comune di locale da spiaggia in
+italiano. Con R=5 km sopravvivevano 10 candidati, tutti ristoranti: la soglia
+di widen (`filtered.length < 2`) contava il totale grezzo, non la pertinenza,
+quindi l'allargamento a 12 km non scattava mai. Il selettore riceveva un pool
+di soli ristoranti e ignorava l'istruzione di categoria scritta nel prompt —
+un'istruzione testuale non e' un vincolo.
+
+Fix, due parti:
+- `tourShape.js` — `applyRadiusFilter` accetta `opts.countForWiden`
+  (opzionale, retrocompatibile: comportamento storico invariato se assente):
+  il widen conta solo le tappe pertinenti, non il totale grezzo.
+- `aiRecommendationService.js` — nuova `candidateMatchesIntentCategoria` +
+  guard-rail deterministico: il pool viene filtrato per categoria PRIMA del
+  selettore, in codice, non nel prompt. Zero candidati in categoria anche
+  dopo il widen → stato vuoto esplicito (`_source: 'no-results'`), mai
+  sostituzione silenziosa.
+
+Verificato: suite verde (622 test su `estetica`, 624 su `main` — i due in
+piu' sono preesistenti su `main`, non di questa sessione), lint invariato
+(203 warning, 0 errori, identico prima e dopo il fix). Commit `c746b1b` su
+`estetica`, cherry-pick pulito (zero conflitti) `b7b07f7` su `main`, push +
+CI verde (Lint & Test + E2E Smoke):
+https://github.com/scirettaclienti-design/unnivai/actions/runs/34481212049
+
+**Limiti noti, lasciati aperti deliberatamente — non dimenticati:**
+
+1. **Il widen a 12 km non recupera tutto.** Nel caso Cabras rientra Is Arutas
+   (11.3 km) ma **non** Mari Ermi (12.2 km) — resta appena fuori raggio. La
+   regola `isSmallTown → 5 km` resta da rivedere: nei piccoli comuni le
+   attrattive stanno fuori dal centro amministrativo, e un raggio tarato su
+   una citta' penalizza proprio i casi che dovrebbe aiutare. **Non toccato in
+   questa sessione su vincolo esplicito** (ne' `isSmallTown` ne' la soglia dei
+   12 km) — va deciso a parte, con altri comuni piccoli misurati, non
+   speculando su Cabras da sola.
+2. **`candidateMatchesIntentCategoria` filtra per CONTRASTO, non per
+   appartenenza.** Un candidato con soli type generici (`point_of_interest`,
+   `establishment`, nessun type piu' specifico) **passa** il guard-rail anche
+   se non e' affermato che appartenga alla categoria richiesta. Scelta
+   deliberata, non un buco: escludere per assenza di segnale avrebbe buttato
+   via spiagge vere che Google non tagga sempre con
+   `natural_feature`/`tourist_attraction` — misurato: "Spiaggia di Maimoni" a
+   Cabras arriva anche con `types=[establishment, point_of_interest]`
+   soltanto, a seconda di quale query textsearch la trova per prima.
+
+---
+
+## Sessione 10/09 (2) — G1: orario assoluto delle tappe, ora di partenza = ora della richiesta
+
+Prima di questa sessione un tour esponeva solo durate relative:
+`stayMinutes`/`travelMinutesFromPrev` per tappa e un offset cumulativo
+("+45 min" dall'inizio), mai un orario di orologio — scelta storica
+deliberata (lezione F57: un orario affermato senza sapere quando l'utente
+parte e' un'invenzione). Diagnosi della sessione precedente (09/09, vedi
+sopra "mappare cosa esiste e cosa manca") aveva confermato: zero concetto di
+"ora di inizio" nel modello dati, zero gestione del fuso orario in tutto il
+repo.
+
+G1 introduce l'ora di partenza = **ora della richiesta**, presa
+dall'orologio del dispositivo (`new Date()`), e deriva l'orario assoluto di
+ogni tappa sommandola all'offset cumulativo **gia' calcolato** da
+`computeCumulativeOffsets` — nessun nuovo calcolo di durata, nessuna chiamata
+API nuova, nessuna modifica allo schema JSON del selettore GPT.
+
+**`src/lib/tourTiming.js`** — due funzioni pure nuove:
+- `computeScheduledTimes(stops, startTime)`: somma `startTime` a
+  `computeCumulativeOffsets(stops)`, offset per offset. Eredita la regola del
+  NULL ASSORBENTE: un offset mancante ⇒ `scheduledTime: null` per quella
+  tappa e per tutte le successive, mai un orario inventato. Il valore
+  salvato e' una **stringa ISO**, non un oggetto `Date` — sopravvive a
+  `JSON.stringify` nella cache di `generateItinerary` senza cambiare tipo fra
+  cache hit e cache miss.
+- `formatClockTime(value)`: stringa ISO o `Date` → `"HH:MM"`, o `null` se non
+  c'e' niente di onesto da dire. Stesso principio di `formatEstimate`/
+  `formatOffsetLabel`: nessun dato grezzo raggiunge il render.
+
+**`src/services/tourShape.js`** — `normalizeTourStep` porta `scheduledTime`
+come puro pass-through (`raw.scheduledTime || null`), stesso trattamento di
+`stayMinutes`/`travelMinutesFromPrev`: questo modulo normalizza la shape, non
+calcola.
+
+**`src/services/aiRecommendationService.js`** — dentro `generateItinerary`,
+una sola cattura di `new Date()` (`requestTime`) riusata sia per
+`timeContext` (narrativa nel prompt, invariata) sia per l'orario assoluto,
+nei due soli punti che producono le tappe finali (ramo Google-first e ramo
+legacy AI-first). `generateHomeTours` e `generateSystemPrewarmTour` — altre
+due funzioni, altri consumi di `computeStopTimings` — **non toccate**: G1
+riguarda i due entry point viaggiatore (Percorso Veloce, Crea il tuo
+Percorso), non la Home.
+
+**Percorso Veloce**: parte sempre dall'ora della richiesta — vero di
+default, perche' `generateItinerary` non riceve (e oggi non puo' ricevere)
+nessuna sovrascrittura: QuickPath.jsx non e' stato toccato in questa sessione
+(e' G2). **Crea il tuo Percorso**: stesso default; il riferimento temporale
+nel prompt libero ("domani", "sabato pomeriggio") non viene ancora letto — e'
+G3, il punto d'innesto e' gia' commentato in `aiRecommendationService.js`
+dove `requestTime` viene dichiarato.
+
+**ASSUNZIONE ESPLICITA SUL FUSO ORARIO (decisione presa, non un buco
+dimenticato):** l'app in V1 e' solo-Italia, fuso unico. "Ora della richiesta"
+significa letteralmente l'orologio di sistema del dispositivo che genera il
+tour (`new Date().getHours()`, invariato da prima di G1) — **non** un orario
+calcolato sul fuso della citta' visitata, che oggi non e' un dato che
+`cityCenterService` porta (solo lat/lng). Se un giorno l'app coprira' fusi
+diversi da quello italiano, il punto dove introdurre la conversione e' gia'
+segnato: il commento su `requestTime` in `generateItinerary` e il JSDoc di
+`computeScheduledTimes`.
+
+**✅ CHIUSA il 10/09, commit `5ccb8b6` su `estetica` / `7eb4feb` su `main`
+(G1.1).** Era: *"Un tour cachato conserva orari assoluti calcolati al momento
+della generazione; riaperto ore dopo mostrerebbe orari nel passato. Da
+risolvere prima di esporre `scheduledTime` in UI."*
+
+Non era un difetto introdotto da G1 (la stessa cache, `saveInsiderToCache`/
+`loadInsiderFromCache` in localStorage, gia' rendeva stantia la narrativa
+legata a `timeContext` su cache HIT) — ma per `timeContext` lo stantio era
+solo di tono ("mattina presto" letto la sera), innocuo. Per `scheduledTime`
+lo stantio sarebbe stato un'affermazione falsa e verificabile: "16:13"
+mostrato alle 20:00 non e' impreciso, e' sbagliato, ed e' esattamente la
+classe di difetto che questo intero modulo (F57, poi G1) esiste per evitare.
+
+Fix: `generateItinerary` non calcola piu' `scheduledTime` prima di cachare —
+salva solo gli offset (`stayMinutes`/`travelMinutesFromPrev`, dato stabile).
+L'orario assoluto si deriva SEMPRE al momento in cui il tour viene servito,
+cache hit o miss, con `refreshTourScheduledTimes` (nuova, `tourTiming.js`).
+Verificato rosso senza il fix (revert temporaneo del cache-hit, asserzione
+decisiva fallita) e verde con il fix — dettagli nella sessione qui sotto.
+
+Verificato: 38 file, **638 test verdi** (era 623 prima di questa sessione),
+lint invariato (203 warning, 0 errori, identico prima e dopo). Nessun commit.
+
+---
+
+## Sessione 10/09 (3) — G1.1: chiusa la voce aperta sulla cache, live su main
+
+Chiude la voce aperta dalla sessione precedente (vedi sopra, ora marcata
+✅). `generateItinerary` calcolava `scheduledTime` PRIMA di salvare in cache:
+un tour generato alle 15:00 e riaperto alle 19:00 tornava da
+`loadInsiderFromCache` as-is, con gli stessi orari "15:00, 16:13, 16:46" —
+falsi alle 19:00. Fix in due file:
+
+- `tourTiming.js` — nuova `refreshTourScheduledTimes(days, startTime)`:
+  applica `computeScheduledTimes` (gia' esistente) a ogni giorno di un tour,
+  stessa `startTime` per tutti i giorni, stesso null assorbente ereditato.
+- `aiRecommendationService.js` — dentro `generateItinerary`: il cache-hit
+  ora ricalcola sempre da `new Date()` catturato al momento della lettura
+  (non `requestTime`, che a quel punto della funzione non esiste ancora — e'
+  giusto cosi': e' un "adesso" diverso, di chi legge ora, non di chi ha
+  generato allora). I due rami di generazione (Google-first, legacy
+  AI-first) non calcolano piu' `scheduledTime` prima di `saveInsiderToCache`:
+  lo calcolano solo alla restituzione finale, sia sul path fresh sia — via lo
+  stesso meccanismo — sul cache-hit. Aggiunto `startTimeAnchored: false` sul
+  risultato: sempre `false` oggi, zero rami condizionali. G3 (non questa
+  sessione) decidera' quando un tour ancorato a un riferimento temporale
+  esplicito nel prompt smette di essere ricalcolato da "adesso".
+
+**Verificato rosso→verde**: revert temporaneo del solo cache-hit (`return
+cached` invece di ricalcolare), il test di integrazione fallisce esattamente
+sull'asserzione decisiva (`expected undefined to be '2026-09-10T17:00:00.000Z'`).
+File ripristinato, suite riverificata verde.
+
+**Test**: `tourTiming.test.js` esteso con 8 test puri su
+`refreshTourScheduledTimes` (due ore diverse → due timeline diverse, stessi
+offset invariati, piu' giorni con stessa `startTime`, non-mutazione, `days`
+non-array, null assorbente). Nuovo `cacheOrariFreschi.test.js`: integrazione
+completa attraverso `generateItinerary` con `vi.useFakeTimers()` —
+`setSystemTime(15:00)` → genera (3 spiagge, offset `[0,43,86]`) →
+`setSystemTime(19:00)` → stessa richiesta, stesso `cacheKey` → verifica
+ZERO chiamate di rete aggiuntive (vero cache hit, non rigenerazione) e orari
+`['19:00','19:43','20:26']` invece dei precedenti `['15:00','15:43','16:26']`.
+
+Verificato: 39 file, **647 test verdi** (638 prima di questa sessione), lint
+invariato (203 warning, 0 errori).
+
+**Commit e produzione**:
+
+| | hash | dove |
+|---|---|---|
+| G1.1 | `5ccb8b6` | estetica |
+| G1.1 (cherry-pick) | `7eb4feb` | main, pushato |
+
+CI su `main` per `7eb4feb`: `Lint & Test` ✓ success, `E2E Smoke` ✓ success —
+https://github.com/scirettaclienti-design/unnivai/actions/runs/34490631919
+
+`scheduledTime` resta senza consumatori UI (verificato via grep prima di
+questa sessione): il campo e' corretto end-to-end (generazione e rilettura),
+ma ancora invisibile all'utente. Prossimo passo naturale, non fatto qui:
+wiring UI (chi lo mostra) e G3 (riferimento temporale dal prompt libero).
+
+---
+
+## Sessione 10/09 (4) — G2: Gate ORA VERA, rimossa la fascia oraria finta da Percorso Veloce
+
+Il wizard "Percorso Veloce" (`QuickPath.jsx`) chiedeva una fascia oraria
+("Mattina 08:00-12:00" / "Pomeriggio" / "Sera") e la iniettava come testo
+fisso nel prompt mandato al motore, indipendentemente dall'ora reale — un
+tour generato alle 21:10 poteva dirsi "Al mattino". G1 aveva gia' insegnato
+al motore a derivare gli orari delle tappe dall'ora vera della richiesta
+(`new Date()` in `generateItinerary`); questo fix chiude il cerchio lato
+input: il wizard non afferma piu' nessuna fascia, il percorso parte sempre
+da adesso.
+
+**Verifica critica preliminare — la parte che contava di piu' in questa
+sessione**: prima di rimuovere qualunque cosa, verificato che nessun
+fallback nascosto riempia `intent.vincoli.tempo` quando l'utente non
+specifica un momento del giorno. Letta per intero `translateIntentToQueries`
+(l'unico punto che assegna `tempo` e' un ternario con `: null`, nessun
+default a valle) e ogni lettura di `intent` nel service — i fallback
+esistenti sono su `categoria`/`queries`/`oggetto_umano`, mai su `tempo`. La
+clausola "momento del giorno" nel prompt del selettore (`intentBlock`) e'
+condizionale: assente se `tempo` e' null. **Nessun fallback nascosto
+trovato** — se ci fosse stato, la sessione si sarebbe fermata li' invece di
+procedere con la rimozione. Nota su F28 (mai riprodotto in una diagnosi
+precedente): la sola sorgente residua di orario nel prompt e' `timeContext`,
+derivato dall'ora VERA (`new Date()`), corretto per design — non e' un
+fallback preselezionato.
+
+**`QuickPath.jsx`** — rimossi: `timeOptions`, `selectedTime`,
+`handleTimeSelection`, lo step "Quando partiamo?" (JSX), l'iniezione
+`TIME_LABEL` dentro `buildPromptFromSelections` (il parametro `time` e'
+uscito dalla firma della funzione), la prop morta `choices.time` verso
+`QuickPathSummary` (verificato di nuovo: il componente non la legge mai, non
+toccato). Wizard da **6 a 5 step**, rinumerazione coerente su handler
+(`setCurrentStep`), condizioni JSX, `key` di `AnimatePresence`, commenti e
+progress indicator (`[1,2,3,4,5,6]` → `[1,2,3,4,5]`).
+
+**Conseguenza dichiarata, non compensata**: `trackGeneratedTour` non manda
+piu' `time` al preference graph (`useAILearning`) sui tour generati da
+QuickPath. Perdita accettata: il graph impara comunque da
+mood/inspiration/duration/group/city.
+
+**Test — con una correzione metodologica onesta**: il test rosso→verde
+previsto dal design, cosi' com'era specificato, risultava **gia' verde
+prima del fix** (senza passare `time`, `TIME_LABEL['']` dava gia' stringa
+vuota — il test non provava nulla). Aggiunto un secondo test, che passa
+`time` esplicito su mattina/pomeriggio/sera: quello e' risultato
+effettivamente rosso pre-fix (`"...Al mattino, per una coppia..."` nel
+prompt) e verde post-fix — verificato entrambi gli stati, non solo
+dichiarato. Aggiunto anche un test di REGOLA su `buildSelectorSystemPrompt`
+(comportamento gia' corretto oggi, blocca regressioni future — non e' un
+rosso→verde di questa sessione) e un test end-to-end che ispeziona il body
+reale mandato al selettore attraverso l'intera catena wizard → traduttore →
+selettore, con zero "momento del giorno" e zero `TIME_LABEL`.
+
+Verificato: 40 file, **654 test verdi** (647 prima di questa sessione), lint
+invariato (203 warning, 0 errori), build di produzione verde.
+
+**Commit**: `de23caa` su `estetica`. Non ancora portato su `main` — a
+differenza delle sessioni G1/G1.1, in questa non e' stato chiesto il
+cherry-pick, e trattandosi di una modifica al flusso wizard visibile
+(numerazione step, contenuto del prompt) sembra piu' prudente attendere un
+"vai" esplicito prima di spingerlo in produzione, coerente con la regola di
+questo handoff sul verdict device prima di esporre modifiche di flusso.

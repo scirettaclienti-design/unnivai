@@ -105,6 +105,12 @@ export const AuthProvider = ({ children }) => {
         Object.keys(sessionStorage)
             .filter(k => k.startsWith('dvai_smart_notif_'))
             .forEach(k => sessionStorage.removeItem(k));
+        // Gate AA.2: qui sopra abbiamo appena rimosso 'user_city' e
+        // 'dvai_gps_data', cioe' abbiamo rimesso il prossimo utente nello
+        // stato "senza citta'". Se il flag "onboarding gia' proposto"
+        // sopravvivesse al logout, a quell'utente la citta' non verrebbe mai
+        // chiesta nello stesso tab. Va pulito insieme alla citta'.
+        try { sessionStorage.removeItem('dvai_city_onboarding_prompted'); } catch { /* storage ko */ }
         queryClient.clear(); // Svuota tutta la cache React Query
         setUser(null);
         setIsPasswordRecovery(false);

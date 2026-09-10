@@ -10,6 +10,29 @@ import { useAuth } from "../context/AuthContext";
 import { useCity } from "../context/CityContext";
 import { Edit2 } from "lucide-react";
 
+// Gate AA.2: flag "onboarding citta' gia' proposto in questa sessione".
+// Prefisso dvai_ come le altre chiavi correnti (dvai_onboarding_done,
+// dvai_chunk_reload_attempted, dvai_gps_data). NON esportato: TopBar.jsx
+// esporta un componente React e un export aggiuntivo farebbe scattare
+// react-refresh/only-export-components.
+const ONBOARDING_PROMPTED_KEY = 'dvai_city_onboarding_prompted';
+
+function readOnboardingPrompted() {
+    try {
+        return sessionStorage.getItem(ONBOARDING_PROMPTED_KEY) === 'true';
+    } catch {
+        // sessionStorage bloccato (private mode strict): si degrada al
+        // comportamento precedente — proposta a ogni mount, mai un crash.
+        return false;
+    }
+}
+
+function markOnboardingPrompted() {
+    try {
+        sessionStorage.setItem(ONBOARDING_PROMPTED_KEY, 'true');
+    } catch { /* storage non disponibile */ }
+}
+
 export default function TopBar() {
     // Unified Context Source
     const {
@@ -43,11 +66,24 @@ export default function TopBar() {
     // Trigger UNA SOLA VOLTA per sessione: se l'utente chiude senza scegliere
     // (X in alto a destra), non lo perseguitiamo. Puo' aprire manualmente
     // con Edit2 accanto a "Scegli citta'".
-    const [onboardingPrompted, setOnboardingPrompted] = useState(false);
+    //
+    // Il flag vive in sessionStorage, NON in useState, perche' TopBar non sta
+    // in un layout persistente: 13 pagine + ComingSoonOverlay lo montano
+    // ognuna per conto proprio. Con lo stato locale ogni cambio di route
+    // smontava il TopBar precedente, il flag tornava false e il modal si
+    // riapriva — l'opposto dell'intento dichiarato qui sopra, e con un
+    // backdrop fixed inset-0 che si mangiava il primo click della pagina
+    // nuova. sessionStorage e' la mappatura naturale di "per sessione":
+    // sopravvive al remount, non alla chiusura del tab.
+    // `isCityModalOpen` resta invece stato locale: e' giusto che riparta
+    // chiuso a ogni mount — cio' che deve sopravvivere e' "l'abbiamo gia'
+    // proposto", non "e' visivamente aperto ORA".
+    const [onboardingPrompted, setOnboardingPrompted] = useState(readOnboardingPrompted);
     useEffect(() => {
         if (needsCityChoice && !onboardingPrompted && !isCityModalOpen) {
             setIsCityModalOpen(true);
             setOnboardingPrompted(true);
+            markOnboardingPrompted();
         }
     }, [needsCityChoice, onboardingPrompted, isCityModalOpen]);
 

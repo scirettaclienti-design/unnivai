@@ -9,6 +9,7 @@ import { normalizeTour } from "@/services/tourShape";
 // usato al posto degli Unsplash generici per il rendering delle box wizard.
 import { resolveCityCenter, CityCenterUnresolvedError } from "@/services/cityCenterService";
 import { getCoverPalette } from "@/lib/categoryPalette";
+import { PROGRESS_STEPS, effectiveProgressStep } from "@/lib/quickPathProgress";
 // Gate 2 FASE 3 — businesses partner: SOSPESI in QuickPath (V3, non V1).
 // Il DB non ha partner reali oggi; il codice attivo rischierebbe di rompere le
 // tappe vere con splice. La chiamata è commentata più sotto con TODO(V3).
@@ -741,25 +742,31 @@ export default function QuickPathPage() {
                     </div>
                 </motion.div>
 
-                {/* Progress Indicator: 5 step */}
+                {/* Progress Indicator: 4 segmenti fissi — le scelte reali
+                    (ambiente, attività, durata, gruppo). currentStep arriva a
+                    5 (generazione), ma la generazione non è una scelta: resta
+                    sul quarto segmento, evidenziato come raggiunto. */}
                 <motion.div
                     className="flex items-center justify-center space-x-2 mb-8"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.4, delay: 0.1 }}
                 >
-                    {[1, 2, 3, 4, 5].map((step) => (
-                        <div
-                            key={step}
-                            className={`h-2 rounded-full transition-all duration-300 ${
-                                currentStep === step
-                                    ? 'w-6 bg-brand-orange shadow-sm shadow-brand-orange/30'
-                                    : currentStep > step
-                                    ? 'w-2 bg-brand-orange/60'
-                                    : 'w-2 bg-obsidian-raised border border-obsidian-border'
-                            }`}
-                        />
-                    ))}
+                    {PROGRESS_STEPS.map((step) => {
+                        const effectiveStep = effectiveProgressStep(currentStep);
+                        return (
+                            <div
+                                key={step}
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                    effectiveStep === step
+                                        ? 'w-6 bg-brand-orange shadow-sm shadow-brand-orange/30'
+                                        : effectiveStep > step
+                                        ? 'w-2 bg-brand-orange/60'
+                                        : 'w-2 bg-obsidian-raised border border-obsidian-border'
+                                }`}
+                            />
+                        );
+                    })}
                 </motion.div>
 
                 <AnimatePresence mode="wait">

@@ -6844,3 +6844,49 @@ aveva mai toccati dalla base comune, quindi prenderli da `estetica` non perde
 nulla). `estetica` come branch resta viva per lavoro futuro — non e' stata
 toccata da questa sessione, resta a `f12c495`, con `de23caa` (Gate ORA VERA)
 ancora da riportare su `main` se e quando deciso.
+
+---
+
+## Sessione 10/09 (6) — barra di avanzamento del Percorso Veloce: 4 segmenti fissi, non 5
+
+**Primo task, esito riportato prima di procedere** (come richiesto): `git
+merge-base --is-ancestor de23caa origin/main` → SI, e' antenato. Entrato col
+merge `d4c5c08` (sessione precedente). Il fix della barra **non era mai stato
+fatto**: `de23caa` aveva rinumerato gli step da 6 a 5 ma la progress bar era
+rimasta un array letterale pari al totale di `currentStep` — prima `[1..6]`,
+poi `[1..5]` — mai un conteggio indipendente dagli step del wizard.
+
+**Nota onesta sul sintomo**: il sintomo riportato ("i segmenti passano da 5 a
+4 a 3 a 2 avanzando negli step") non ha riscontro letterale nella storia del
+file — ho controllato ogni versione (`24292a4`, `cb58368`, `de23caa`,
+`d4c5c08`): l'array e' sempre stato un letterale fisso (`.map` su
+`[1,2,...,N]`), mai un conteggio che si riduce con `currentStep`. Il difetto
+REALE, misurabile e stabile, era un altro: il totale era **5**, quando le
+scelte vere dell'utente sono **4** (ambiente, attivita', durata, gruppo) — la
+generazione (`currentStep` 5) non e' una scelta, e' l'esito delle quattro
+precedenti. La correzione (4 segmenti fissi) soddisfa comunque esattamente il
+fatto-quando richiesto, a prescindere da come il sintomo era stato descritto
+a voce.
+
+**Fix**: `PROGRESS_STEPS = [1,2,3,4]` e `effectiveProgressStep(currentStep) =
+Math.min(currentStep, 4)`, estratte in un modulo nuovo,
+`src/lib/quickPathProgress.js` — non dentro `QuickPath.jsx`. Motivo misurato,
+non teorico: tenerle nel file del componente avrebbe aggiunto 2 warning
+ESLint (`react-refresh/only-export-components`, la stessa regola che gia'
+oggi segnala `buildPromptFromSelections`) — verificato: 201 → 203 col codice
+nello stesso file, 201 → 201 col modulo separato. Nessuno step aggiunto o
+rimosso, nessun cambio alla generazione: solo la progress bar.
+
+**Verificato rosso→verde due volte** (prima di spostare il modulo, poi di
+nuovo dopo lo spostamento, con `git stash` mirato sui soli file del fix — non
+sull'intero working tree): senza `quickPathProgress.js` l'import fallisce
+(`TypeError: effectiveProgressStep is not a function`, poi errore di
+transform Vite dopo lo spostamento), con il modulo il test passa.
+
+Verificato: 41 file, **660 test verdi** (656 prima di questa sessione), lint
+**fermo a 201 warning, 0 errori** (misurato prima e dopo, non assunto), build
+verde.
+
+**Commit**: `5394486` su `main`. Pushato (`27c5175..5394486`), CI verde
+(`Lint & Test` + `E2E Smoke`):
+https://github.com/scirettaclienti-design/unnivai/actions/runs/34513496453

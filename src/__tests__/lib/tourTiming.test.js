@@ -14,6 +14,7 @@ import {
     computeCumulativeOffsets,
     formatOffsetLabel,
     computeScheduledTimes,
+    refreshTourScheduledTimes,
     formatClockTime,
 } from '@/lib/tourTiming';
 
@@ -467,6 +468,115 @@ describe('formatClockTime — nessun orario grezzo alla UI', () => {
         expect(formatClockTime('')).toBeNull();
         expect(formatClockTime('domani pomeriggio')).toBeNull();
         expect(formatClockTime(new Date('non-una-data'))).toBeNull();
+    });
+});
+
+// ─── G1.1 — l'orario si ricalcola da ADESSO a ogni riletura ──────────────────
+//
+// Stessa nota sul fuso del blocco G1: gli startTime si costruiscono col
+// costruttore LOCALE, mai da stringa ISO con la Z.
+
+describe('refreshTourScheduledTimes — stesso tour, ora diversa, orari diversi', () => {
+    // Stesse tre tappe del blocco G1: A museum (60), B cafe (20), C restaurant
+    // (75), a 1 km l'una dall'altra → 13 min per tratta, offset [0, 73, 106].
+    const A = { title: 'A', types: ['museum'], latitude: 45.0, longitude: 9.0 };
+    const B = { title: 'B', types: ['cafe'], latitude: 45.0 + 1 / 111.19, longitude: 9.0 };
+    const C = { title: 'C', types: ['restaurant'], latitude: 45.0 + 2 / 111.19, longitude: 9.0 };
+
+    const tour = () => [{ day: 1, title: 'Giorno 1', stops: computeStopTimings([A, B, C]).stops }];
+
+    const ALLE_15 = () => new Date(2026, 8, 10, 15, 0, 0);
+    const ALLE_19 = () => new Date(2026, 8, 10, 19, 0, 0);
+
+    // Il test decisivo: e' lo STESSO tour (stessi offset), servito a due ore
+    // diverse. Se l'orario fosse un dato salvato invece che derivato, le due
+    // liste sarebbero identiche — ed e' esattamente il difetto F57.
+    it('lo stesso tour servito a due ore diverse produce due timeline diverse', () => {
+        const alle15 = refreshTourScheduledTimes(tour(), ALLE_15());
+        const alle19 = refreshTourScheduledTimes(tour(), ALLE_19());
+
+        expect(alle15[0].stops.map(s => formatClockTime(s.scheduledTime)))
+            .toEqual(['15:00', '16:13', '16:46']);
+        expect(alle19[0].stops.map(s => formatClockTime(s.scheduledTime)))
+            .toEqual(['19:00', '20:13', '20:46']);
+    });
+
+    it('ogni orario e\' il suo startTime + l\'offset cumulativo, invariato fra le due letture', () => {
+        const stops = computeStopTimings([A, B, C]).stops;
+        const offsets = computeCumulativeOffsets(stops);
+        expect(offsets).toEqual([0, 73, 106]);
+
+        for (const start of [ALLE_15(), ALLE_19()]) {
+            const out = refreshTourScheduledTimes([{ stops }], start);
+            out[0].stops.forEach((s, i) => {
+                expect(s.scheduledTime).toBe(new Date(start.getTime() + offsets[i] * 60000).toISOString());
+            });
+            // L'offset e' il dato stabile: non cambia con l'ora di lettura.
+            expect(computeCumulativeOffsets(out[0].stops)).toEqual(offsets);
+        }
+    });
+
+    it('conserva gli altri campi del giorno e delle tappe', () => {
+        const out = refreshTourScheduledTimes(tour(), ALLE_15());
+        expect(out[0].day).toBe(1);
+        expect(out[0].title).toBe('Giorno 1');
+        expect(out[0].stops[1].title).toBe('B');
+        expect(out[0].stops[1].stayMinutes).toBe(20);
+        expect(out[0].stops[1].travelMinutesFromPrev).toBe(13);
+    });
+
+    it('ogni giorno riceve la STESSA startTime: non c\'e\' "il giorno 2 parte quando finisce il giorno 1"', () => {
+        const due = [
+            { day: 1, stops: computeStopTimings([A, B, C]).stops },
+            { day: 2, stops: computeStopTimings([A, B]).stops },
+        ];
+        const out = refreshTourScheduledTimes(due, ALLE_15());
+        expect(out).toHaveLength(2);
+        expect(out[0].stops[0].scheduledTime).toBe(ALLE_15().toISOString());
+        expect(out[1].stops[0].scheduledTime).toBe(ALLE_15().toISOString());
+        expect(formatClockTime(out[1].stops[1].scheduledTime)).toBe('16:13');
+    });
+
+    it('non muta i giorni in ingresso', () => {
+        const input = tour();
+        refreshTourScheduledTimes(input, ALLE_15());
+        expect(input[0].stops[0].scheduledTime).toBeUndefined();
+    });
+
+    it('days non-array o assente → [], senza lanciare', () => {
+        expect(refreshTourScheduledTimes(undefined, ALLE_15())).toEqual([]);
+        expect(refreshTourScheduledTimes(null, ALLE_15())).toEqual([]);
+        expect(refreshTourScheduledTimes({ days: [] }, ALLE_15())).toEqual([]);
+        expect(refreshTourScheduledTimes([], ALLE_15())).toEqual([]);
+    });
+
+    it('un giorno con stops assente o non-array esce con stops: []', () => {
+        const out = refreshTourScheduledTimes([{ day: 1 }, { day: 2, stops: null }, null], ALLE_15());
+        expect(out.map(d => d.stops)).toEqual([[], [], []]);
+        expect(out[0].day).toBe(1);
+    });
+});
+
+describe('refreshTourScheduledTimes — NULL ASSORBENTE ereditato', () => {
+    const A = { title: 'A', types: ['museum'], latitude: 45.0, longitude: 9.0 };
+    const B = { title: 'B', types: ['cafe'], latitude: 45.0 + 1 / 111.19, longitude: 9.0 };
+    const SENZA_COORD = { title: 'X', types: ['park'] };
+    const D = { title: 'D', types: ['restaurant'], latitude: 45.0 + 3 / 111.19, longitude: 9.0 };
+
+    it('una tappa senza coordinate annulla il suo orario E i successivi, a qualunque ora si legga', () => {
+        const stops = computeStopTimings([A, B, SENZA_COORD, D]).stops;
+        // Verificato esplicitamente sull'offset, non dato per scontato.
+        expect(computeCumulativeOffsets(stops)).toEqual([0, 73, null, null]);
+
+        for (const start of [new Date(2026, 8, 10, 15, 0, 0), new Date(2026, 8, 10, 19, 0, 0)]) {
+            const out = refreshTourScheduledTimes([{ stops }], start);
+            expect(out[0].stops.map(s => s.scheduledTime)).toEqual([
+                start.toISOString(),
+                new Date(start.getTime() + 73 * 60000).toISOString(),
+                null,
+                null,
+            ]);
+        }
     });
 });
 

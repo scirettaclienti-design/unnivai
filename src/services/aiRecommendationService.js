@@ -403,7 +403,7 @@ import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } fr
 // Gate RAGGIO DIFF 1a — stime di durata (sosta da types + spostamento haversine).
 // Va chiamato SEMPRE dopo l'ordinamento definitivo: lo spostamento e' una
 // proprieta' della coppia di tappe consecutive, non della singola tappa.
-import { computeStopTimings, totalTourMinutes, computeScheduledTimes } from '@/lib/tourTiming';
+import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes } from '@/lib/tourTiming';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 
 // ─── DVAI-060 F2 — derive theme + fetch candidati reali ──────────────────────
@@ -1452,7 +1452,16 @@ export const aiRecommendationService = {
             : 'noRadius';
         const cacheKey = insiderCacheKey(city, prefs, userPrompt, aiProfile) + '_' + centerFingerprint;
         const cached = loadInsiderFromCache(cacheKey);
-        if (cached) return cached;
+        if (cached) {
+            // G1.1 — un tour da cache non porta con sé l'orario calcolato alla
+            // generazione: si ricalcola SEMPRE da adesso, sommando gli offset
+            // già salvati (stayMinutes/travelMinutesFromPrev su ogni stop).
+            // `new Date()` qui, non `requestTime`: quest'ultimo non esiste
+            // ancora a questo punto della funzione (viene dopo), ed è giusto
+            // così — è un'istanza diversa di "adesso", quella di CHI STA
+            // LEGGENDO ora, non di chi ha generato allora.
+            return { ...cached, days: refreshTourScheduledTimes(cached.days, new Date()) };
+        }
 
         // DVAI-050 — Cache MISS: quota giornaliera utente (10/day).
         // Blocco 2.1 FASE 2: opts.skipUserQuota=true bypassa il conteggio utente
@@ -1610,8 +1619,7 @@ export const aiRecommendationService = {
                         const withinRadius = applyRadiusFilter(described, cityCenter, city);
                         // Ordina per prossimità geografica dopo la canonizzazione.
                         // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
-                        const timed = computeStopTimings(sortByProximity(withinRadius)).stops;
-                        const ordered = computeScheduledTimes(timed, requestTime);
+                        const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
                         return {
                             day: day.day ?? di + 1,
                             title: day.title ?? `Giorno ${di + 1} a ${city}`,
@@ -1627,9 +1635,9 @@ export const aiRecommendationService = {
                     // alla UI di mostrare un banner onesto ("un solo posto").
                     if (finalDays.length > 0 && finalDays[0].stops.length >= 1) {
                         const singleStop = finalDays[0].stops.length === 1;
-                        const result = { days: finalDays, _source: 'google-first', _singleStop: singleStop };
+                        const result = { days: finalDays, _source: 'google-first', _singleStop: singleStop, startTimeAnchored: false };
                         saveInsiderToCache(cacheKey, result);
-                        return result;
+                        return { ...result, days: refreshTourScheduledTimes(result.days, requestTime) };
                     }
                     // Gate B/I — Path A: 0 tappe canoniche → errore onesto (no fallback).
                     if (isFreeTextIntent) {
@@ -1850,8 +1858,7 @@ Schema JSON ESATTO:
 
                 // Ordina le tappe per prossimità geografica (nearest-neighbor greedy)
                 // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
-                const timed = computeStopTimings(sortByProximity(withinRadius)).stops;
-                const ordered = computeScheduledTimes(timed, requestTime);
+                const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
 
                 return {
                     day: day.day ?? di + 1,
@@ -1890,10 +1897,10 @@ Schema JSON ESATTO:
             const finalDays = verifiedSanitized.filter(d => d.stops.length > 0);
             if (finalDays.length === 0) throw new Error('All POIs invalid after Places verification');
 
-            const result = { days: finalDays };
+            const result = { days: finalDays, startTimeAnchored: false };
             // DVAI-050: persisti in cache 24h. Il fallback locale NON viene cachato.
             saveInsiderToCache(cacheKey, result);
-            return result;
+            return { ...result, days: refreshTourScheduledTimes(result.days, requestTime) };
 
         } catch (err) {
             clearTimeout(timeoutId);

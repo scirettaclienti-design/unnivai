@@ -6586,22 +6586,148 @@ diversi da quello italiano, il punto dove introdurre la conversione e' gia'
 segnato: il commento su `requestTime` in `generateItinerary` e il JSDoc di
 `computeScheduledTimes`.
 
-**⚠️ VOCE APERTA — cache e orari assoluti, BLOCCANTE prima di esporre
-`scheduledTime` in UI.** Un tour cachato conserva orari assoluti calcolati al
-momento della generazione; riaperto ore dopo mostrerebbe orari nel passato.
-Da risolvere prima di esporre `scheduledTime` in UI.
+**✅ CHIUSA il 10/09, commit `5ccb8b6` su `estetica` / `7eb4feb` su `main`
+(G1.1).** Era: *"Un tour cachato conserva orari assoluti calcolati al momento
+della generazione; riaperto ore dopo mostrerebbe orari nel passato. Da
+risolvere prima di esporre `scheduledTime` in UI."*
 
-Non e' un difetto introdotto da G1 (la stessa cache, `saveInsiderToCache`/
-`loadInsiderFromCache` in localStorage, gia' oggi rende stantia la narrativa
+Non era un difetto introdotto da G1 (la stessa cache, `saveInsiderToCache`/
+`loadInsiderFromCache` in localStorage, gia' rendeva stantia la narrativa
 legata a `timeContext` su cache HIT) — ma per `timeContext` lo stantio era
 solo di tono ("mattina presto" letto la sera), innocuo. Per `scheduledTime`
-lo stantio e' un'affermazione falsa e verificabile: "16:13" mostrato alle
-20:00 non e' impreciso, e' sbagliato, ed e' esattamente la classe di difetto
-che questo intero modulo (F57, poi G1) esiste per evitare. **Non risolto in
-questa sessione per vincolo esplicito** — la TTL/cache-key non e' stata
-toccata, e nessun componente oggi legge `scheduledTime` (verificato via grep,
-zero consumatori UI), quindi il rischio e' latente, non ancora manifestato.
-Va chiuso PRIMA che un qualunque componente inizi a leggere questo campo.
+lo stantio sarebbe stato un'affermazione falsa e verificabile: "16:13"
+mostrato alle 20:00 non e' impreciso, e' sbagliato, ed e' esattamente la
+classe di difetto che questo intero modulo (F57, poi G1) esiste per evitare.
+
+Fix: `generateItinerary` non calcola piu' `scheduledTime` prima di cachare —
+salva solo gli offset (`stayMinutes`/`travelMinutesFromPrev`, dato stabile).
+L'orario assoluto si deriva SEMPRE al momento in cui il tour viene servito,
+cache hit o miss, con `refreshTourScheduledTimes` (nuova, `tourTiming.js`).
+Verificato rosso senza il fix (revert temporaneo del cache-hit, asserzione
+decisiva fallita) e verde con il fix — dettagli nella sessione qui sotto.
 
 Verificato: 38 file, **638 test verdi** (era 623 prima di questa sessione),
 lint invariato (203 warning, 0 errori, identico prima e dopo). Nessun commit.
+
+---
+
+## Sessione 10/09 (3) — G1.1: chiusa la voce aperta sulla cache, live su main
+
+Chiude la voce aperta dalla sessione precedente (vedi sopra, ora marcata
+✅). `generateItinerary` calcolava `scheduledTime` PRIMA di salvare in cache:
+un tour generato alle 15:00 e riaperto alle 19:00 tornava da
+`loadInsiderFromCache` as-is, con gli stessi orari "15:00, 16:13, 16:46" —
+falsi alle 19:00. Fix in due file:
+
+- `tourTiming.js` — nuova `refreshTourScheduledTimes(days, startTime)`:
+  applica `computeScheduledTimes` (gia' esistente) a ogni giorno di un tour,
+  stessa `startTime` per tutti i giorni, stesso null assorbente ereditato.
+- `aiRecommendationService.js` — dentro `generateItinerary`: il cache-hit
+  ora ricalcola sempre da `new Date()` catturato al momento della lettura
+  (non `requestTime`, che a quel punto della funzione non esiste ancora — e'
+  giusto cosi': e' un "adesso" diverso, di chi legge ora, non di chi ha
+  generato allora). I due rami di generazione (Google-first, legacy
+  AI-first) non calcolano piu' `scheduledTime` prima di `saveInsiderToCache`:
+  lo calcolano solo alla restituzione finale, sia sul path fresh sia — via lo
+  stesso meccanismo — sul cache-hit. Aggiunto `startTimeAnchored: false` sul
+  risultato: sempre `false` oggi, zero rami condizionali. G3 (non questa
+  sessione) decidera' quando un tour ancorato a un riferimento temporale
+  esplicito nel prompt smette di essere ricalcolato da "adesso".
+
+**Verificato rosso→verde**: revert temporaneo del solo cache-hit (`return
+cached` invece di ricalcolare), il test di integrazione fallisce esattamente
+sull'asserzione decisiva (`expected undefined to be '2026-09-10T17:00:00.000Z'`).
+File ripristinato, suite riverificata verde.
+
+**Test**: `tourTiming.test.js` esteso con 8 test puri su
+`refreshTourScheduledTimes` (due ore diverse → due timeline diverse, stessi
+offset invariati, piu' giorni con stessa `startTime`, non-mutazione, `days`
+non-array, null assorbente). Nuovo `cacheOrariFreschi.test.js`: integrazione
+completa attraverso `generateItinerary` con `vi.useFakeTimers()` —
+`setSystemTime(15:00)` → genera (3 spiagge, offset `[0,43,86]`) →
+`setSystemTime(19:00)` → stessa richiesta, stesso `cacheKey` → verifica
+ZERO chiamate di rete aggiuntive (vero cache hit, non rigenerazione) e orari
+`['19:00','19:43','20:26']` invece dei precedenti `['15:00','15:43','16:26']`.
+
+Verificato: 39 file, **647 test verdi** (638 prima di questa sessione), lint
+invariato (203 warning, 0 errori).
+
+**Commit e produzione**:
+
+| | hash | dove |
+|---|---|---|
+| G1.1 | `5ccb8b6` | estetica |
+| G1.1 (cherry-pick) | `7eb4feb` | main, pushato |
+
+CI su `main` per `7eb4feb`: `Lint & Test` ✓ success, `E2E Smoke` ✓ success —
+https://github.com/scirettaclienti-design/unnivai/actions/runs/34490631919
+
+`scheduledTime` resta senza consumatori UI (verificato via grep prima di
+questa sessione): il campo e' corretto end-to-end (generazione e rilettura),
+ma ancora invisibile all'utente. Prossimo passo naturale, non fatto qui:
+wiring UI (chi lo mostra) e G3 (riferimento temporale dal prompt libero).
+
+---
+
+## Sessione 10/09 (4) — G2: Gate ORA VERA, rimossa la fascia oraria finta da Percorso Veloce
+
+Il wizard "Percorso Veloce" (`QuickPath.jsx`) chiedeva una fascia oraria
+("Mattina 08:00-12:00" / "Pomeriggio" / "Sera") e la iniettava come testo
+fisso nel prompt mandato al motore, indipendentemente dall'ora reale — un
+tour generato alle 21:10 poteva dirsi "Al mattino". G1 aveva gia' insegnato
+al motore a derivare gli orari delle tappe dall'ora vera della richiesta
+(`new Date()` in `generateItinerary`); questo fix chiude il cerchio lato
+input: il wizard non afferma piu' nessuna fascia, il percorso parte sempre
+da adesso.
+
+**Verifica critica preliminare — la parte che contava di piu' in questa
+sessione**: prima di rimuovere qualunque cosa, verificato che nessun
+fallback nascosto riempia `intent.vincoli.tempo` quando l'utente non
+specifica un momento del giorno. Letta per intero `translateIntentToQueries`
+(l'unico punto che assegna `tempo` e' un ternario con `: null`, nessun
+default a valle) e ogni lettura di `intent` nel service — i fallback
+esistenti sono su `categoria`/`queries`/`oggetto_umano`, mai su `tempo`. La
+clausola "momento del giorno" nel prompt del selettore (`intentBlock`) e'
+condizionale: assente se `tempo` e' null. **Nessun fallback nascosto
+trovato** — se ci fosse stato, la sessione si sarebbe fermata li' invece di
+procedere con la rimozione. Nota su F28 (mai riprodotto in una diagnosi
+precedente): la sola sorgente residua di orario nel prompt e' `timeContext`,
+derivato dall'ora VERA (`new Date()`), corretto per design — non e' un
+fallback preselezionato.
+
+**`QuickPath.jsx`** — rimossi: `timeOptions`, `selectedTime`,
+`handleTimeSelection`, lo step "Quando partiamo?" (JSX), l'iniezione
+`TIME_LABEL` dentro `buildPromptFromSelections` (il parametro `time` e'
+uscito dalla firma della funzione), la prop morta `choices.time` verso
+`QuickPathSummary` (verificato di nuovo: il componente non la legge mai, non
+toccato). Wizard da **6 a 5 step**, rinumerazione coerente su handler
+(`setCurrentStep`), condizioni JSX, `key` di `AnimatePresence`, commenti e
+progress indicator (`[1,2,3,4,5,6]` → `[1,2,3,4,5]`).
+
+**Conseguenza dichiarata, non compensata**: `trackGeneratedTour` non manda
+piu' `time` al preference graph (`useAILearning`) sui tour generati da
+QuickPath. Perdita accettata: il graph impara comunque da
+mood/inspiration/duration/group/city.
+
+**Test — con una correzione metodologica onesta**: il test rosso→verde
+previsto dal design, cosi' com'era specificato, risultava **gia' verde
+prima del fix** (senza passare `time`, `TIME_LABEL['']` dava gia' stringa
+vuota — il test non provava nulla). Aggiunto un secondo test, che passa
+`time` esplicito su mattina/pomeriggio/sera: quello e' risultato
+effettivamente rosso pre-fix (`"...Al mattino, per una coppia..."` nel
+prompt) e verde post-fix — verificato entrambi gli stati, non solo
+dichiarato. Aggiunto anche un test di REGOLA su `buildSelectorSystemPrompt`
+(comportamento gia' corretto oggi, blocca regressioni future — non e' un
+rosso→verde di questa sessione) e un test end-to-end che ispeziona il body
+reale mandato al selettore attraverso l'intera catena wizard → traduttore →
+selettore, con zero "momento del giorno" e zero `TIME_LABEL`.
+
+Verificato: 40 file, **654 test verdi** (647 prima di questa sessione), lint
+invariato (203 warning, 0 errori), build di produzione verde.
+
+**Commit**: `de23caa` su `estetica`. Non ancora portato su `main` — a
+differenza delle sessioni G1/G1.1, in questa non e' stato chiesto il
+cherry-pick, e trattandosi di una modifica al flusso wizard visibile
+(numerazione step, contenuto del prompt) sembra piu' prudente attendere un
+"vai" esplicito prima di spingerlo in produzione, coerente con la regola di
+questo handoff sul verdict device prima di esporre modifiche di flusso.

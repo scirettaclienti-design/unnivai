@@ -280,8 +280,42 @@ describe('mapTourToUI', () => {
 
   // --- defaults ------------------------------------------------------------
 
-  it('defaults rating to 5.0 when absent', () => {
-    expect(dataService.mapTourToUI(minimalDbTour()).rating).toBe(5.0)
+  // F37 — questo test diceva `expect(...rating).toBe(5.0)`: certificava la
+  // fabbricazione invece di impedirla. `rating: Number(dbTour.rating) || 5.0`
+  // dava il voto PIENO a ogni tour senza recensioni — non un ripiego neutro,
+  // il massimo possibile — ed era l'unico valore che la maggior parte dei tour
+  // potesse avere, visto che `reviews` a fianco resta 0.
+  //
+  // Convenzione gia' scelta dal progetto sullo stesso dato, Profile.jsx:113:
+  //   rating: tour.rating || null, // rating reale del tour o niente (mai 5 finto)
+  it('non inventa un rating quando il DB non ce l\'ha: null, mai 5.0', () => {
+    expect(dataService.mapTourToUI(minimalDbTour()).rating).toBeNull()
+  })
+
+  it('tratta 0 e i valori non numerici come "nessun voto", non come voto', () => {
+    expect(dataService.mapTourToUI({ ...minimalDbTour(), rating: 0 }).rating).toBeNull()
+    expect(dataService.mapTourToUI({ ...minimalDbTour(), rating: null }).rating).toBeNull()
+    expect(dataService.mapTourToUI({ ...minimalDbTour(), rating: '' }).rating).toBeNull()
+    expect(dataService.mapTourToUI({ ...minimalDbTour(), rating: 'ottimo' }).rating).toBeNull()
+  })
+
+  it('un rating reale passa intatto, anche se arriva come stringa dal DB', () => {
+    expect(dataService.mapTourToUI({ ...minimalDbTour(), rating: 4.3 }).rating).toBe(4.3)
+    expect(dataService.mapTourToUI({ ...minimalDbTour(), rating: '4.3' }).rating).toBe(4.3)
+  })
+
+  // Il null deve essere LEGITTIMO per lo schema, non tollerato con un errore in
+  // console: TourUISchema.rating pretendeva `z.number()`, ed era proprio lo
+  // schema la ragione per cui il 5.0 doveva esistere (stessa dinamica gia'
+  // corretta su guide/guideAvatar/guideBio).
+  it('il rating null non fa scattare la validazione di TourUISchema', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    dataService.mapTourToUI(minimalDbTour())
+    const schemaErrors = spy.mock.calls.filter(
+      args => typeof args[0] === 'string' && args[0].includes('[Schema]')
+    )
+    spy.mockRestore()
+    expect(schemaErrors).toEqual([])
   })
 
   it('defaults maxParticipants to 10 when absent', () => {

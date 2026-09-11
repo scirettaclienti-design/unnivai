@@ -304,10 +304,23 @@ const RULES = [
         // Attiva subito. Gate D-5 + J2 hanno tolto tutti gli alert() dal codice.
     },
     {
+        // F37 (08/09) — la regola c'era e NON VEDEVA. Il pattern era solo
+        // `Math.random() … (rating|reviews)`, cioe' in UN verso soltanto, e il
+        // codice reale era scritto nell'altro:
+        //   const [reviews, setReviews] = useState(poi.user_ratings_total || Math.floor(Math.random() * 500) + 50);
+        // Qui `reviews` precede `Math.random()`, quindi POIPopupCard.jsx:53 e'
+        // passata sotto questa regola per tutta la sua vita — ad allowlist
+        // vuota, con lo zero che sembrava una prova. Uno zero non provato col
+        // metodo sonda non e' uno zero (lezione #26).
+        //
+        // Ora bidirezionale. Residuo misurato dopo il fix: 0 righe di codice
+        // (l'unica occorrenza del pattern nel repo e' dentro il commento che
+        // documenta la rimozione in POIPopupCard, e lo scanner salta le righe
+        // che iniziano con //).
         name: 'no-math-random-in-rating-or-reviews',
-        pattern: /Math\.random\(\)[\s\S]{0,80}?(rating|reviews)/i,
+        pattern: /Math\.random\(\)[\s\S]{0,80}?(rating|reviews)|(rating|reviews)[\s\S]{0,80}?Math\.random\(\)/i,
         allowlist: [],
-        message: 'Rating/reviews via Math.random(). Genera dato falso; usa dati reali dal DB o mostra vuoto.',
+        message: 'Rating/reviews via Math.random(). Genera dato falso — e per giunta INSTABILE: lo stesso oggetto mostra un numero diverso a ogni montaggio. Usa dati reali dal DB/Places o non mostrare il blocco.',
     },
     // Gate O.2 — Nessun default hardcoded 'Roma' o `temperatureC: N` come
     // valore-ponte. Catch tre pattern:

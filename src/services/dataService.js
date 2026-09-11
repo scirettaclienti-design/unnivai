@@ -136,7 +136,22 @@ class DataService {
                 originalPrice: dbTour.original_price != null ? Number(dbTour.original_price) : null,
 
                 // Stats
-                rating: Number(dbTour.rating) || 5.0,
+                // F37 — rating reale o niente, mai il 5.0 di prima. Quel default
+                // dava il voto PIENO a ogni tour senza recensioni: non un
+                // ripiego neutro, il massimo possibile. Ed era anche l'unico
+                // valore che la maggior parte dei tour poteva avere, visto che
+                // `reviews` a fianco resta 0.
+                //
+                // Convenzione gia' scelta dal progetto sullo stesso dato:
+                // Profile.jsx:113 (`rating: tour.rating || null, // rating reale
+                // del tour o niente (mai 5 finto)`). Chi rende decide come
+                // dirlo, come per guide/guideAvatar/guideBio qui sotto.
+                // TourUISchema.rating e' stato reso nullable per la stessa
+                // ragione: uno schema che pretende un numero costringe a
+                // inventarlo.
+                rating: Number.isFinite(Number(dbTour.rating)) && Number(dbTour.rating) > 0
+                    ? Number(dbTour.rating)
+                    : null,
                 reviews: Number(dbTour.reviews_count) || 0,
                 participants: Number(dbTour.current_participants) || 0,
                 maxParticipants: Number(dbTour.max_participants) || 10,

@@ -280,16 +280,26 @@ export default function TourLivePage() {
                                             </motion.div>
                                             <div className="flex-1">
                                                 <h4 className="font-bold text-gray-800">La tua guida: {tour.guide}</h4>
-                                                <div className="flex items-center space-x-4 mt-1">
-                                                    <div className="flex items-center">
-                                                        <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                                                        <span className="text-sm font-medium">{tour.rating}</span>
-                                                        <span className="text-xs text-gray-500 ml-1">({tour.reviews})</span>
+                                                {/* F37 — il cluster rating si monta solo su voto REALE
+                                                    con recensioni reali. Prima usciva sempre, perche'
+                                                    mapTourToUI ripiegava su 5.0: un tour senza
+                                                    recensioni mostrava "★ 5.0 (0) — 💬 0 recensioni",
+                                                    cioe' il voto massimo accanto alla prova che nessuno
+                                                    l'aveva dato. Ora rating e' null e senza questo
+                                                    guard resterebbe una stella nuda con "(0)".
+                                                    Stessa forma di TourDetails.jsx:218. */}
+                                                {Number.isFinite(tour.rating) && Number.isFinite(tour.reviews) && tour.reviews > 0 && (
+                                                    <div className="flex items-center space-x-4 mt-1">
+                                                        <div className="flex items-center">
+                                                            <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                                                            <span className="text-sm font-medium">{tour.rating}</span>
+                                                            <span className="text-xs text-gray-500 ml-1">({tour.reviews})</span>
+                                                        </div>
+                                                        <div className="text-xs text-gray-500">
+                                                            💬 {tour.reviews} recensioni
+                                                        </div>
                                                     </div>
-                                                    <div className="text-xs text-gray-500">
-                                                        💬 {tour.reviews} recensioni
-                                                    </div>
-                                                </div>
+                                                )}
                                             </div>
                                         </div>
                                     </motion.div>

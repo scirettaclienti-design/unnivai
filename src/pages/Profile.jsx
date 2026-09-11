@@ -634,15 +634,26 @@ export default function ProfilePage() {
                                         </div>
                                         <h3 className="text-2xl font-bold leading-tight mb-2">{selectedTour.title}</h3>
                                         <div className="flex items-center space-x-2 text-xs text-obsidian-secondary">
-                                            <div className="flex">
-                                                {Array.from({ length: 5 }).map((_, i) => (
-                                                    <Star
-                                                        key={i}
-                                                        className={`w-3 h-3 ${i < selectedTour.rating ? 'text-brand-orange fill-current' : 'text-obsidian-border'}`}
-                                                    />
-                                                ))}
-                                            </div>
-                                            <span>•</span>
+                                            {/* F37 — la fila di stelle si monta solo su voto reale.
+                                                `rating` qui e' null per costruzione (:113, "mai 5
+                                                finto"), e `i < null` e' sempre falso: senza guard
+                                                uscivano CINQUE stelle spente, che non dicono
+                                                "nessun voto" ma "voto zero su cinque". Il "•" sta
+                                                dentro il guard, altrimenti resta orfano davanti
+                                                alla data. */}
+                                            {Number.isFinite(selectedTour.rating) && selectedTour.rating > 0 && (
+                                                <>
+                                                    <div className="flex">
+                                                        {Array.from({ length: 5 }).map((_, i) => (
+                                                            <Star
+                                                                key={i}
+                                                                className={`w-3 h-3 ${i < selectedTour.rating ? 'text-brand-orange fill-current' : 'text-obsidian-border'}`}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                    <span>•</span>
+                                                </>
+                                            )}
                                             <span>{selectedTour.date}</span>
                                         </div>
                                     </div>

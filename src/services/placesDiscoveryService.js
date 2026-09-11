@@ -239,7 +239,14 @@ Formato JSON richiesto:
         latitude: parseFloat(p.latitude),
         longitude: parseFloat(p.longitude),
         type: p.type || 'place',
-        rating: typeof p.rating === 'number' ? p.rating : 4.5,
+        // F37 — via il `: 4.5`. Era un voto scritto a mano assegnato a un POI
+        // quando il dato non c'era, e finiva a schermo come un rating qualunque
+        // (Explore/DashboardUser leggono `s.rating` e mostrano il numero).
+        // Null: chi rende gia' filtra sui finiti > 0 e semplicemente non lo mostra.
+        // NB: questo ramo e' il motore legacy AI-first; anche `p.rating`, quando
+        // c'e', e' un numero prodotto dal modello, non da Google. Fuori perimetro
+        // di questo fix, ma e' la stessa famiglia di problema.
+        rating: typeof p.rating === 'number' ? p.rating : null,
         city: cityName,
         image: null,
       }));

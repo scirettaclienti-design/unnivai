@@ -26,7 +26,13 @@ export const TourUISchema = z.object({
   originalPrice:   z.number().nonnegative().nullable(),
 
   // Stats — finite() rejects NaN that can slip through Number() coercions
-  rating:          z.number().finite().min(0).max(5),
+  //
+  // rating nullable (F37): un tour senza recensioni non ha un voto. Prima
+  // mapTourToUI ripiegava su 5.0 e lo schema, pretendendo un numero, era la
+  // ragione per cui quel 5.0 doveva esistere — stessa dinamica gia' corretta
+  // su guide/guideAvatar/guideBio qui sotto. Ora null e' il valore legittimo
+  // di "voto assente" e chi rende lo tratta.
+  rating:          z.number().finite().min(0).max(5).nullable(),
   reviews:         z.number().int().nonnegative(),
   participants:    z.number().int().nonnegative(),
   maxParticipants: z.number().int().positive(),

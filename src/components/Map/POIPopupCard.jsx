@@ -48,13 +48,25 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
         return () => { cancelled = true; };
     }, [poi.googlePlaceId, poi.city, displayImage]);
 
-    // Fake rating since we might not always have it mapped
-    const [rating, setRating] = useState(poi.rating || 4.5);
-    const [reviews, setReviews] = useState(poi.user_ratings_total || Math.floor(Math.random() * 500) + 50);
+    // F37 — il voto non si inventa. Qui c'era, dichiarato nel commento stesso
+    // ("Fake rating since we might not always have it mapped"):
+    //   rating  = poi.rating || 4.5
+    //   reviews = poi.user_ratings_total || Math.floor(Math.random() * 500) + 50
+    //
+    // Il secondo era peggio di un default fisso: Math.random() gira a ogni
+    // montaggio, quindi lo STESSO luogo mostrava un conteggio recensioni
+    // diverso a ogni apertura del popup. Ed era anche l'unico ramo possibile:
+    // il chiamante (MapPage.jsx:1496) scrive `reviewsCount`, non
+    // `user_ratings_total`, quindi il lato sinistro era sempre undefined e il
+    // numero casuale usciva SEMPRE, anche per un POI Google con recensioni vere.
+    //
+    // Stessa convenzione del fratello POIDetailDrawer.jsx:81/178-186, che sulla
+    // stessa identica sorgente (selectedPOI di MapPage) gia' fa cosi': il
+    // blocco rating si monta solo su dato reale, e il conteggio solo se c'e'.
+    const hasValidRating = Number.isFinite(poi.rating) && poi.rating > 0;
+    const reviewsCount = poi.reviewsCount ?? poi.user_ratings_total;
+    const hasValidReviews = Number.isFinite(reviewsCount) && reviewsCount > 0;
 
-    // If it's a native Google POI, the POI Drawer was fetching live ratings.
-    // We'll just display them if passed in `poi` object.
-    
     return (
         <div className="w-64 md:w-72 bg-obsidian-card rounded-xl overflow-hidden shadow-2xl border border-obsidian-border flex flex-col pointer-events-auto relative">
             {/* Header Image */}
@@ -101,16 +113,25 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
                     {poi.name || poi.title}
                 </h3>
                 
-                {/* Rating & Category */}
+                {/* Rating & Category — il rating si monta SOLO su voto reale.
+                    Il separatore "•" sta dentro il blocco rating, non prima
+                    della categoria: senza voto la riga resta la sola categoria,
+                    senza un puntino orfano davanti. */}
                 <div className="flex items-center gap-1.5 mb-2">
-                    <span className="text-sm font-semibold text-obsidian-primary">{rating.toFixed(1)}</span>
-                    <div className="flex text-brand-orange">
-                        {[1, 2, 3, 4, 5].map(star => (
-                            <Star key={star} size={12} fill={star <= Math.round(rating) ? 'currentColor' : 'none'} strokeWidth={1.5} />
-                        ))}
-                    </div>
-                    <span className="text-xs text-obsidian-secondary">({reviews})</span>
-                    <span className="text-xs text-obsidian-border-elevated mx-0.5">•</span>
+                    {hasValidRating && (
+                        <>
+                            <span className="text-sm font-semibold text-obsidian-primary">{Number(poi.rating).toFixed(1)}</span>
+                            <div className="flex text-brand-orange">
+                                {[1, 2, 3, 4, 5].map(star => (
+                                    <Star key={star} size={12} fill={star <= Math.round(poi.rating) ? 'currentColor' : 'none'} strokeWidth={1.5} />
+                                ))}
+                            </div>
+                            {hasValidReviews && (
+                                <span className="text-xs text-obsidian-secondary">({reviewsCount.toLocaleString('it-IT')})</span>
+                            )}
+                            <span className="text-xs text-obsidian-border-elevated mx-0.5">•</span>
+                        </>
+                    )}
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-1.5 py-0.5 rounded-md truncate max-w-[80px]">
                         {poi.category || poi.type || 'Punto Mappa'}
                     </span>

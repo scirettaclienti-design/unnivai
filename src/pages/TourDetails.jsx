@@ -344,7 +344,11 @@ const PlaceDetailsView = ({ place, onBack }) => {
                         <div className="flex flex-wrap gap-2">
                             {place.highlights.map((h, i) => (
                                 <span key={i} className="px-3 py-1.5 bg-obsidian-card border border-obsidian-border text-obsidian-secondary text-xs font-bold rounded-lg">
-                                    {String(h).replace(/^[^\s]+\s/, '')} {/* Strip leading emoji if present */}
+                                    {/* Nome intero. Qui c'era lo stesso strip della sezione "Cosa ti
+                                        aspetta": `place` è il tour stesso (PlaceDetailsView riceve
+                                        place={tour}), quindi è lo STESSO array `highlights` e la
+                                        stessa mutilazione, solo nel ramo place. */}
+                                    {String(h)}
                                 </span>
                             ))}
                         </div>
@@ -1042,7 +1046,14 @@ export default function TourDetailsPage() {
                                         transition={{ duration: 0.3, delay: index * 0.05 }}
                                     >
                                         <Sparkles size={14} className="text-obsidian-secondary shrink-0" />
-                                        <span className="font-medium text-obsidian-primary text-sm">{String(highlight).replace(/^[^\s]+\s/, '')}</span>
+                                        {/* Il nome della tappa si mostra INTERO. Qui c'era uno strip
+                                            `.replace(/^[^\s]+\s/, '')` che toglieva la prima parola più
+                                            lo spazio seguente: nato per ripulire il default fittizio
+                                            "✨ Esperienza autentica" (rimosso da Gate PULIZIA P5), ma
+                                            applicato ai titoli di tappe reali mutilava e basta —
+                                            "Trattoria Portixedda" -> "Portixedda". Nessuna sorgente viva
+                                            di `highlights` prefissa più nulla da togliere. */}
+                                        <span className="font-medium text-obsidian-primary text-sm">{String(highlight)}</span>
                                     </motion.div>
                                 ))}
                             </div>

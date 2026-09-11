@@ -7203,3 +7203,104 @@ prima di decidere); `SurpriseTour.jsx:274`/`QuickPath.jsx:638` (`rating:5.0`
 secco, già sotto rinvio dichiarato "Blocco 2.2/2.3"); il `rating:4.5` nel
 prompt OpenAI di `placesDiscoveryService.js:203` (sorgente a monte, fix del
 prompt da valutare a parte).
+
+---
+
+## Sessione 11/09 (3) — C1 e C2 chiusi: niente più deformazione del testo italiano reale
+
+Le due voci più forti dell'audit di Parte 2 della sessione precedente,
+corrette. Prima un report di conferma (C3, C4, S1-S6, più i tre punti
+lasciati fuori dal sweep rating) — nessuna correzione lì, solo lettura.
+
+**Sul `rating:4.5` nel prompt OpenAI** (`placesDiscoveryService.js:203`,
+motore AI-first legacy `discoverPOIs`, ancora raggiungibile come fallback):
+verificato che **non è un esempio di formato innocuo**. È un valore concreto
+dentro il JSON-di-esempio mostrato al modello (`gpt-4o-mini`, temperatura
+0.4), senza nessuna istruzione tipo "ometti se non lo conosci" — per il
+comportamento noto dei modelli (i valori d'esempio in un few-shot tendono a
+essere ricopiati) è plausibile che il modello restituisca letteralmente 4.5
+per ogni POI che inventa, dato che non ha mai un rating reale da riportare.
+Il fix F37 della sessione precedente (`null` quando `p.rating` non è un
+numero) non blocca questo: se il modello scrive `4.5`, è un numero valido, e
+passa. Sorgente di fabbricazione a monte, non risolta — riportata, non
+corretta (fuori dai due interventi di questa sessione).
+
+### Intervento 1 — C1, via la normalizzazione Title Case
+
+**Verifica preliminare — nessuna sorgente viva di input libero dipende dalla
+trasformazione.** Cercate tutte le tabelle indicizzate per città
+(`CITY_COORDS`, `CITY_CONFIG`, `cityImages`, `DEMO_CITIES`) e ogni confronto
+letterale su nome città. Le uniche due che contano (`CITY_COORDS` in
+`userContextService.js`, `CITY_CONFIG` in `QuickPath.jsx`) hanno chiavi a
+parola singola — verificato, 12 città, nessuna composta (dato misurato da
+Ivano sul DB: stesso numero, stessa forma). L'unica sorgente di testo
+scritto a mano è l'`<input>` del `CityModal`, che è esattamente il caso
+normale, non un blocco.
+
+**Rimossa** (non sostituita) nei quattro punti: `userContextService.js`
+(x2), `TopBar.jsx` (`handleSaveCity`), `QuickPath.jsx`. Nuovo
+`src/lib/cityKey.js` (`findCityKey`): un motore solo per il lookup a chiave,
+condiviso da `CITY_COORDS` e `CITY_CONFIG` — restituisce la **chiave** della
+tabella corrispondente a meno di maiuscole/minuscole, mai una stringa
+riscritta. Principio: *il lookup si adatta, il dato no.*
+
+**Scostamento necessario, dichiarato**: tre query Supabase `.eq('city', city)`
+diventate `.ilike('city', city)` (`dataService.js` `getToursByCity` e
+`getActivities`/simile, `userContextService.js`) — senza la normalizzazione
+a monte, un utente che digita "roma" minuscolo avrebbe smesso di trovare le
+righe "Roma". Stesso pattern già in uso altrove nello stesso repo
+(`dataService.getBusinessesByCityAndTags`, `MapPage.jsx`), non un'invenzione
+nuova.
+
+### Intervento 2 — C2, accenti nei tag
+
+Nuovo `src/lib/promptTags.js` (`extractPromptTags`), estratto da
+`AiItinerary.jsx:705`. Il vecchio `.replace(/[^\w\s]/gi, '')` su `\w` senza
+flag Unicode è ASCII-only: "città"→"citt", "perché"→"perch", "è"→"" (tag
+vuoto). Nuova classe `[^\p{L}\p{N}]/gu`: tiene lettere accentate e cifre,
+comportamento su punteggiatura invariato. **Apostrofo trattato da
+separatore**, non da carattere da cancellare — elisione italiana:
+"un'esperienza" → "esperienza" (tag utile), non "unesperienza" (non matcha
+nulla). Coperte forma ASCII e tipografica (tastiere mobili).
+
+Stesso pattern ASCII-only cercato altrove nel repo: **solo lì**. Altri strip
+di accenti trovati (`placesDiscoveryService.js` `slugForCache`,
+`normalizeForNameMatch`) sono deliberati e corretti nel loro contesto (chiave
+di cache, confronto), non un dato mostrato — riportati per completezza, non
+toccati.
+
+**Nota fuori scope, non toccata**: `QuickPath.jsx:449` ha ancora una guardia
+`activeCity.length > 25 → 'Roma'` — "Castelnuovo di Garfagnana" è esattamente
+25 caratteri. Stessa famiglia di difetto (una guardia che sostituisce il
+dato invece di dichiararlo ignoto), non in questo intervento.
+
+### Verifica — rifatta da me indipendentemente, non solo dal report
+
+**In Node**, prima di procedere: `findCityKey`/normalizzazione rimossa →
+"Reggio Emilia", "L'Aquila", "San Giovanni Rotondo" sopravvivono intatte.
+`extractPromptTags` → "città", "perché", "però" sopravvivono intatte, "è"
+resta un tag vero (non più stringa vuota), "un'esperienza" → "un" +
+"esperienza".
+
+**Rosso→verde, isolato con `git stash` sui soli file di ciascun
+intervento**: Intervento 1 — **19/59 falliti** pre-fix (incluso
+`expected 'Reggio Emilia' to be 'Reggio emilia'`, letterale sul difetto),
+**75/75 verdi** post-fix. Intervento 2 — **3/11 falliti** pre-fix, **28/28
+verdi** post-fix.
+
+Verificato (due volte, agente e io): 48 file, **739 test verdi** (680
+prima), lint **fermo a 197 warning, 0 errori**, build verde.
+
+**Commit e push, entrambi su `main`:**
+```
+bced240  fix(testo): niente più deformazione del testo italiano reale (C1 nomi città, C2 accenti nei tag)
+```
+Pushato (`3b421de..bced240`), CI verde (`Lint & Test` + `E2E Smoke`):
+https://github.com/scirettaclienti-design/unnivai/actions/runs/34620320752
+
+**Voci aperte residue** (non toccate in questa sessione): C3, C4, S1-S6
+(vedi sessione precedente); `QuickPath.jsx:449` (guardia lunghezza-nome che
+sostituisce "Castelnuovo di Garfagnana" con "Roma"); il `rating:4.5` nel
+prompt OpenAI di `placesDiscoveryService.js:203`, ora con la verifica sopra
+che non è innocuo; `SurpriseTour.jsx:274`/`QuickPath.jsx:638` (`rating:5.0`
+secco, sotto rinvio dichiarato "Blocco 2.2/2.3").

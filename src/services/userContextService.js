@@ -1,6 +1,9 @@
 import { supabase } from '../lib/supabase';
 import { dataService } from './dataService';
 import { weatherService } from './weatherService';
+// Gate C1 — un motore solo per il lookup citta' a chiave (regola locked #8):
+// stesso helper qui su CITY_COORDS e in QuickPath su CITY_CONFIG.
+import { findCityKey } from '../lib/cityKey';
 
 class UserContextService {
     async getUserContext(gpsLocation = null, manualCity = null) {
@@ -121,10 +124,21 @@ class UserContextService {
             }
         }
 
-        // Final Capitalization (solo se city esiste come stringa valida).
-        if (city && typeof city === 'string') {
-            city = city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
-        }
+        // Gate C1 — RIMOSSA la "Final Capitalization"
+        // (`city.charAt(0).toUpperCase() + city.slice(1).toLowerCase()`).
+        //
+        // Era nata per far matchare chiavi di tabelle a una parola sola, ma su
+        // un nome composto distruggeva il dato: "Reggio Emilia" -> "Reggio
+        // emilia", "L'Aquila" -> "L'aquila", "San Giovanni Rotondo" -> "San
+        // giovanni rotondo". E il valore storpiato non restava in RAM: da qui
+        // scendeva in localStorage e su profiles.current_city_override.
+        //
+        // Il nome arriva gia' corretto da Google (reverse geocoding, long_name)
+        // o dall'utente che lo digita. Qualunque trasformazione puo' solo
+        // peggiorarlo, mai migliorarlo: il dato esce di qui come e' entrato.
+        // Dove serviva il match case-insensitive (CITY_COORDS qui sotto,
+        // CITY_CONFIG in QuickPath, .ilike sulle query Supabase) si adatta il
+        // CONFRONTO, non il dato.
 
         // Fetch Weather solo se abbiamo una citta' concreta.
         if (city) {
@@ -147,7 +161,13 @@ class UserContextService {
                     const { count, error } = await supabase
                         .from('tours')
                         .select('*', { count: 'exact', head: true })
-                        .eq('city', city);
+                        // Gate C1 — .ilike al posto di .eq: tolta la
+                        // normalizzazione a monte, "roma" digitato minuscolo
+                        // non deve smettere di trovare le righe "Roma". Il
+                        // confronto e' case-insensitive, il dato resta intatto.
+                        // Stesso pattern gia' in uso in dataService
+                        // (getBusinessesByCityAndTags) e in MapPage.
+                        .ilike('city', city);
 
                     if (!error && count !== null) {
                         toursCount = count;
@@ -219,10 +239,19 @@ class UserContextService {
             'Perugia': { lat: 43.1107, lng: 12.3908 }
         };
 
-        const normalized = cityName.charAt(0).toUpperCase() + cityName.slice(1).toLowerCase();
-        if (CITY_COORDS[normalized]) {
-            console.log(`📍 Using Fast Coords for ${normalized}`);
-            return CITY_COORDS[normalized];
+        // Gate C1 — lookup case-insensitive sulle CHIAVI della tabella.
+        //
+        // Prima si normalizzava l'INPUT ("roma" -> "Roma") e poi si indicizzava
+        // esatto. Funzionava sulle 12 chiavi a parola singola e rompeva tutto
+        // il resto. Ora e' il confronto ad adattarsi: si cerca la chiave che
+        // corrisponde a meno di maiuscole/minuscole, e si restituiscono le
+        // COORDINATE. `cityName` non viene mai riscritto — quello che scende al
+        // geocoding Google qui sotto e' il nome originale, accenti e spazi
+        // compresi ("Reggio Emilia" resta "Reggio Emilia").
+        const fastPathKey = findCityKey(CITY_COORDS, cityName);
+        if (fastPathKey) {
+            console.log(`📍 Using Fast Coords for ${fastPathKey}`);
+            return CITY_COORDS[fastPathKey];
         }
 
         try {

@@ -243,7 +243,13 @@ class DataService {
             const { data, error } = await supabase
                 .from('tours')
                 .select(`*`)
-                .eq('city', city)
+                // Gate C1 — .ilike al posto di .eq. Tolta la normalizzazione
+                // Title Case a monte, il nome citta' arriva qui come l'utente
+                // l'ha scritto: "roma" minuscolo non deve smettere di trovare
+                // le righe "Roma". Il confronto si adatta al dato, non
+                // viceversa. Stesso pattern gia' usato da
+                // getBusinessesByCityAndTags in questo stesso file.
+                .ilike('city', city)
                 .order('is_live', { ascending: false })
                 .limit(100); // DVAI-024
 
@@ -605,7 +611,9 @@ class DataService {
                     opening_hours, website_url, image_url,
                     admission_fee, duration_minutes
                 `)
-                .eq('city', city)
+                // Gate C1 — vedi getToursByCity: confronto case-insensitive
+                // ora che il nome citta' non viene piu' riscritto a monte.
+                .ilike('city', city)
                 .limit(100); // DVAI-024
 
             if (error) {

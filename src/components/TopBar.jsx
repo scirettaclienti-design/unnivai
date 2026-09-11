@@ -93,9 +93,19 @@ export default function TopBar() {
 
     const handleSaveCity = (newCity) => {
         if (newCity && newCity.trim() !== "") {
-            // ⚡ Normalize City Name (Title Case) to ensure key lookups work
-            const normalized = newCity.trim().charAt(0).toUpperCase() + newCity.trim().slice(1).toLowerCase();
-            setCity(normalized);
+            // Gate C1 — RIMOSSA la normalizzazione Title Case.
+            //
+            // Il commento originale diceva "to ensure key lookups work": era
+            // vero solo per le tabelle a chiave singola (CITY_COORDS,
+            // CITY_CONFIG). Su tutto il resto era distruttiva, e qui e' il
+            // punto peggiore in cui poteva stare: questo `setCity` e'
+            // `CityContext.updateCity`, che scrive in localStorage E su
+            // profiles.current_city_override. "Reggio Emilia" digitata
+            // dall'utente veniva PERSISTITA come "Reggio emilia".
+            //
+            // Ora si salva quello che l'utente ha scritto, solo trimmato. I
+            // lookup a chiave sono stati resi case-insensitive dove serviva.
+            setCity(newCity.trim());
         }
         setIsCityModalOpen(false);
     };

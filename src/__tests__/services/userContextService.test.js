@@ -225,13 +225,77 @@ describe('userContextService.getUserContext()', () => {
       expect(ctx.city).toBeNull()
     })
 
-    it('capitalises city names to title-case', async () => {
+    // ── Gate C1 — il nome citta' non si riscrive ───────────────────────────
+    //
+    // Questo blocco sostituisce il vecchio test 'capitalises city names to
+    // title-case', che fotografava il difetto invece di un requisito: la
+    // "Final Capitalization" (charAt(0).toUpperCase() + slice(1).toLowerCase())
+    // andava bene solo sui nomi a parola singola e distruggeva tutti gli altri.
+    // Il valore non restava in RAM: scendeva in localStorage e su
+    // profiles.current_city_override.
+
+    // Queste citta' NON sono nel fast-path CITY_COORDS, quindi getUserContext
+    // prova il geocoding Google per le coordinate. Lo stub tiene il test
+    // offline e veloce: le coordinate qui non c'entrano, conta solo il nome.
+    const stubOfflineGeocoder = () =>
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+
+    it('non deforma un nome citta\' composto: "Reggio Emilia" resta "Reggio Emilia"', async () => {
       stubGuest()
-      // 'bologna' → getCoordinatesForCity normalises → 'Bologna' (in fast-path cache)
-      // so no fetch is triggered; only capitalisation is exercised.
+      stubOfflineGeocoder()
+      localStorage.setItem('user_city', 'Reggio Emilia')
+      const ctx = await userContextService.getUserContext(null, null)
+      expect(ctx.city).toBe('Reggio Emilia')
+    })
+
+    it('non deforma un nome con apostrofo: "L\'Aquila" resta "L\'Aquila"', async () => {
+      stubGuest()
+      stubOfflineGeocoder()
+      localStorage.setItem('user_city', "L'Aquila")
+      const ctx = await userContextService.getUserContext(null, null)
+      expect(ctx.city).toBe("L'Aquila")
+    })
+
+    it('non deforma un nome accentato: "Forlì" resta intatto', async () => {
+      stubGuest()
+      stubOfflineGeocoder()
+      localStorage.setItem('user_city', 'Forlì')
+      const ctx = await userContextService.getUserContext(null, null)
+      expect(ctx.city).toBe('Forlì')
+    })
+
+    it('non deforma un nome lungo: "San Giovanni Rotondo" resta "San Giovanni Rotondo"', async () => {
+      stubGuest()
+      stubOfflineGeocoder()
+      localStorage.setItem('user_city', 'San Giovanni Rotondo')
+      const ctx = await userContextService.getUserContext(null, null)
+      expect(ctx.city).toBe('San Giovanni Rotondo')
+    })
+
+    it('non "corregge" nemmeno il minuscolo: quello che entra e\' quello che esce', async () => {
+      stubGuest()
+      // Il dato non si tocca. Il match case-insensitive vive nei lookup
+      // (CITY_COORDS qui, CITY_CONFIG in QuickPath, .ilike su Supabase).
       localStorage.setItem('user_city', 'bologna')
       const ctx = await userContextService.getUserContext(null, null)
-      expect(ctx.city).toBe('Bologna')
+      expect(ctx.city).toBe('bologna')
+    })
+
+    it('il nome dal reverse geocode Google arriva intatto fino al contesto', async () => {
+      stubGuest()
+      // Google restituisce gia' il nome corretto: "Reggio Emilia". Prima
+      // veniva riscritto in "Reggio emilia" un istante dopo essere arrivato.
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok:   true,
+        json: () => Promise.resolve({
+          results: [{ address_components: [{ types: ['locality'], long_name: 'Reggio Emilia' }] }],
+        }),
+      }))
+      const ctx = await userContextService.getUserContext(
+        { latitude: 44.6979, longitude: 10.6307 },
+        null
+      )
+      expect(ctx.city).toBe('Reggio Emilia')
     })
   })
 
@@ -413,12 +477,36 @@ describe('userContextService.getCoordinatesForCity()', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
-  it('normalises city name casing before the fast-path cache lookup (roma → Roma)', async () => {
+  // Gate C1 — il fast-path deve continuare a funzionare SENZA che il nome
+  // citta' venga riscritto a monte: e' il CONFRONTO a essere
+  // case-insensitive, non il dato a essere normalizzato.
+  it('il fast-path CITY_COORDS e\' case-insensitive (roma → coords di Roma)', async () => {
     const fetchSpy = vi.fn()
     vi.stubGlobal('fetch', fetchSpy)
     const coords = await userContextService.getCoordinatesForCity('roma')
     expect(coords).toEqual({ lat: 41.9028, lng: 12.4964 })
     expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('il fast-path CITY_COORDS regge anche il maiuscolo (MILANO)', async () => {
+    const fetchSpy = vi.fn()
+    vi.stubGlobal('fetch', fetchSpy)
+    const coords = await userContextService.getCoordinatesForCity('MILANO')
+    expect(coords).toEqual({ lat: 45.4642, lng: 9.1900 })
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
+  it('per una citta\' fuori dal fast-path il nome arriva INTATTO al geocoder', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok:   true,
+      json: () => Promise.resolve({ results: [{ geometry: { location: { lat: 44.69, lng: 10.63 } } }] }),
+    })
+    vi.stubGlobal('fetch', fetchSpy)
+    await userContextService.getCoordinatesForCity('Reggio Emilia')
+    // Il nome non deve essere stato riscritto prima di finire nella query.
+    const calledUrl = fetchSpy.mock.calls[0][0]
+    expect(calledUrl).toContain(encodeURIComponent('Reggio Emilia'))
+    expect(calledUrl).not.toContain(encodeURIComponent('Reggio emilia'))
   })
 
   it('fetches from Google Geocoding for a city not in the fast-path cache', async () => {

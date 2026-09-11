@@ -10,6 +10,9 @@ import { normalizeTour } from "@/services/tourShape";
 import { resolveCityCenter, CityCenterUnresolvedError } from "@/services/cityCenterService";
 import { getCoverPalette } from "@/lib/categoryPalette";
 import { PROGRESS_STEPS, effectiveProgressStep } from "@/lib/quickPathProgress";
+// Gate C1 — un motore solo per il lookup citta' a chiave (regola locked #8):
+// stesso helper qui su CITY_CONFIG e in userContextService su CITY_COORDS.
+import { findCityKey } from "@/lib/cityKey";
 // Gate 2 FASE 3 — businesses partner: SOSPESI in QuickPath (V3, non V1).
 // Il DB non ha partner reali oggi; il codice attivo rischierebbe di rompere le
 // tappe vere con splice. La chiamata è commentata più sotto con TODO(V3).
@@ -337,8 +340,16 @@ const CITY_CONFIG = {
 };
 
 // HELPER: Component-ready options generator
+//
+// Gate C1 — il lookup su CITY_CONFIG passa da findCityKey: e' la CHIAVE a
+// essere confrontata a meno di maiuscole, non la citta' a essere riscritta.
+// Prima qui arrivava un nome gia' deformato in Title Case da :446; ora arriva
+// il nome vero. 'default' e' escluso esplicitamente perche' e' la voce di
+// fallback, non il nome di una citta': senza l'esclusione un utente che
+// scrivesse "default" ci finirebbe dentro per via traversa.
 const getAdaptiveOptions = (city) => {
-    const config = CITY_CONFIG[city] || CITY_CONFIG['default'];
+    const configKey = findCityKey(CITY_CONFIG, city, ['default']);
+    const config = CITY_CONFIG[configKey] || CITY_CONFIG['default'];
 
     // Map main keys to full option objects with linear icons
     const mainOptions = config.main.map(key => {
@@ -441,9 +452,15 @@ const groupOptions = [
 // ⚠️ FIXED ARCHITECTURE: PARENT-CONTROLLED GENERATION
 export default function QuickPathPage() {
     const { city, lat, lng, weatherCondition, temperatureC } = useUserContext();
-    const activeCityRaw = city || 'Roma';
-    // ⚡ Normalize & Sanitize City
-    let activeCity = activeCityRaw.charAt(0).toUpperCase() + activeCityRaw.slice(1).toLowerCase();
+    // Gate C1 — RIMOSSA la normalizzazione Title Case.
+    //
+    // `activeCity` non resta in pagina: finisce nel prompt per il traduttore
+    // ("A Reggio emilia cerco:"), nel titolo del tour generato, in
+    // `cityFallback`, e nei messaggi d'errore mostrati all'utente. Riscriverlo
+    // qui significava mostrare e generare su un nome sbagliato.
+    // Il lookup su CITY_CONFIG (getAdaptiveOptions) e' ora case-insensitive:
+    // non ha piu' bisogno che la stringa arrivi gia' deformata.
+    let activeCity = city || 'Roma';
 
     // 🛡️ RECOVERY: If city is coordinates (e.g. "Lat: 41...") or invalid, default to Roma
     if (activeCity.includes('Lat') || activeCity.includes(':') || activeCity.length > 25) {

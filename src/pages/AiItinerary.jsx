@@ -11,6 +11,9 @@ import { normalizeTour } from "../services/tourShape";
 // Nessun numero secco e nessuna stringa costruita a mano in questa pagina:
 // la forma testuale di un tempo vive tutta in tourTiming.js.
 import { computeCumulativeOffsets, formatOffsetLabel, formatEstimate } from "@/lib/tourTiming";
+// Gate C2 — i tag dal prompt libero vivono in un motore solo, con test propri.
+// La vecchia riga inline cancellava ogni lettera accentata: vedi promptTags.js.
+import { extractPromptTags } from "@/lib/promptTags";
 import { useAILearning } from "../hooks/useAILearning"; // DVAI-045
 import { useToast } from "../hooks/use-toast";
 // Gate 2 FASE 3 — resolveCityCenter come sorgente unica del centro città.
@@ -39,6 +42,7 @@ const preferences = [
 export function shouldReplaceDay(newDay) {
     return Array.isArray(newDay?.stops) && newDay.stops.length > 0;
 }
+
 
 export default function AIItineraryPage() {
     const [currentStep, setCurrentStep] = useState(0);
@@ -702,7 +706,8 @@ export default function AIItineraryPage() {
                                         city: activeCity || 'Roma',
                                         tags: [
                                             "AI",
-                                            ...(userPrompt ? userPrompt.split(/\s+/).map(w => w.replace(/[^\w\s]/gi, '')) : []),
+                                            // Gate C2 — vedi src/lib/promptTags.js.
+                                            ...extractPromptTags(userPrompt),
                                             ...(userPreferences.find(p => p.id === 'interests')?.selected || [])
                                         ],
                                         // stops grezzi dall'AI: il normalizer fa tutto il resto.

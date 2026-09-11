@@ -6974,3 +6974,61 @@ GPS fallito, e il modal che non si auto-chiude quando il GPS risolve dopo.
 Decisione da prendere: far partire `gpsLoading` a `true` finché il primo giro
 GPS non conclude, o gatare `needsCityChoice` su un flag "boot GPS concluso"
 esplicito — tocca `useUserContext.js`, letto anche da `DashboardUser.jsx`.
+
+---
+
+## Sessione 11/09 — "Cosa ti aspetta": i nomi delle tappe non sono più mutilati
+
+Segnalazione da test browser sul tour "Piazze e Storia di Oristano":
+"Portixedda" invece di "Trattoria Portixedda", "di Santa Maria Assunta"
+invece di "Cattedrale di Santa Maria Assunta", "'Lo Zen'" invece di
+"Spaghetteria 'Lo Zen'".
+
+**Le tre domande, risposte prima di correggere:**
+
+1. **Sorgente**: `tour.highlights` — DIVERSA da "Programma del Tour" (che
+   legge `tour.steps`/`tour.itinerary` senza trasformazioni). Stessa tappa,
+   due sorgenti e due trattamenti nella stessa pagina. Quattro punti la
+   popolano, tutti senza prefisso: `DashboardUser.jsx`/`Notifications.jsx`
+   (`stops.slice(0,3).map(s => s.title)`, titoli veri da Google Places —
+   la fonte quasi certa del caso segnalato), `QuickPath.jsx` (titoli di
+   selezione wizard), `dataService.js` (`dbTour.highlights` dal DB, in
+   pratica sempre `[]`: `TourBuilder.jsx` non ha quel campo).
+2. **Trasformazione**: `String(highlight).replace(/^[^\s]+\s/, '')` —
+   rimuove la prima parola più lo spazio seguente, incondizionatamente.
+3. **Voluta per un caso morto, non per uno vivo**: nata per ripulire un
+   default fittizio con emoji (`"✨ Esperienza autentica"`, rimosso da Gate
+   PULIZIA P5) — commento trovato sul secondo sito del bug, `{/* Strip
+   leading emoji if present */}`, conferma esplicita dell'intento
+   originale. Sweep sull'intero repo (`src/` + `supabase/`): nessuna
+   sorgente viva prefissa più nulla da togliere. Lo strip mutilava nomi
+   veri senza ragione residua.
+
+**Scostamento dalla diagnosi preliminare, trovato dall'agente**: il regex
+non era in un solo punto ma in **due** — anche in `PlaceDetailsView`
+("Punti di Forza", riga ~347). Non è un array diverso: `PlaceDetailsView`
+riceve `place={tour}`, quindi è lo stesso `highlights` mutilato anche nel
+ramo place (tour `type` hotel/food/shop/service). Corretti entrambi.
+
+**Fix**: `TourDetails.jsx`, i due siti diventano `{String(highlight)}` /
+`{String(h)}` senza lo strip. `TourLive.jsx` e `Profile.jsx` renderizzavano
+già `{highlight}` grezzo — il troncamento era isolato a `TourDetails.jsx`.
+
+**Test — verificato rosso→verde da me indipendentemente**:
+`src/__tests__/pages/tourDetails_highlights.test.js` (nuovo, 3 casi,
+render RTL completo di `TourDetails` con mock solo di infrastruttura — la
+pipeline dati vera, `normalizeTour`, e il JSX della sezione girano veri).
+Isolato con `git stash` il solo file del fix: **2/3 falliti** pre-fix
+(fallimento letterale — "Portixedda" trovato al posto di "Trattoria
+Portixedda"), **3/3 verdi** post-fix.
+
+Verificato (due volte, agente e io): 43 file, **670 test verdi** (667
+prima di questa sessione), lint **fermo a 201 warning, 0 errori**, build
+verde.
+
+**Commit e push, entrambi su `main`:**
+```
+e1266be  fix(tourdetails): i nomi delle tappe in "Cosa ti aspetta" compaiono interi
+```
+Pushato (`0f627f5..e1266be`), CI verde (`Lint & Test` + `E2E Smoke`):
+https://github.com/scirettaclienti-design/unnivai/actions/runs/34602554996

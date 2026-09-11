@@ -7032,3 +7032,174 @@ e1266be  fix(tourdetails): i nomi delle tappe in "Cosa ti aspetta" compaiono int
 ```
 Pushato (`0f627f5..e1266be`), CI verde (`Lint & Test` + `E2E Smoke`):
 https://github.com/scirettaclienti-design/unnivai/actions/runs/34602554996
+
+---
+
+## Sessione 11/09 (2) — F37: il voto non si inventa mai. Più un audit di trasformazioni orfane (Parte 2, solo diagnosi)
+
+Task in due parti: Parte 1 — correggere ogni voto (rating) fabbricato in
+tutta l'app. Parte 2 — cercare, SENZA correggere, altre trasformazioni
+(strip/replace/slice/troncamenti) nate per ripulire contenuti di ripiego
+ormai rimossi, sullo stile del bug dei nomi troncati chiuso nella sessione
+precedente.
+
+### Parte 1 — i voti fabbricati, corretti
+
+**`POIPopupCard.jsx:51-53`** — due difetti, non uno:
+```js
+// Fake rating since we might not always have it mapped
+const [rating, setRating] = useState(poi.rating || 4.5);
+const [reviews, setReviews] = useState(poi.user_ratings_total || Math.floor(Math.random() * 500) + 50);
+```
+Il secondo era peggio di un default fisso: `Math.random()` gira a ogni
+montaggio, lo stesso POI mostrava un conteggio recensioni diverso a ogni
+apertura del popup — questo è il difetto **F37**, annotato ne "La CODA" da
+tempo e mai chiuso prima d'ora. Ed era anche l'**unico ramo raggiungibile**:
+il chiamante (`MapPage.jsx:1496`) scrive `reviewsCount`, non
+`user_ratings_total` — il lato sinistro dell'`||` era sempre `undefined`,
+quindi il numero casuale usciva SEMPRE, anche per un POI Google con
+recensioni vere il cui conteggio reale veniva scartato.
+
+Fix: `hasValidRating = Number.isFinite(poi.rating) && poi.rating > 0`, il
+blocco rating si monta solo su quello — stessa convenzione già in uso dal
+fratello `POIDetailDrawer.jsx:81`, che riceve lo stesso identico oggetto
+(`selectedPOI` di `MapPage`). Il separatore "•" spostato dentro il blocco
+rating: senza voto la riga resta la sola categoria, senza un puntino orfano.
+Il conteggio ora legge `poi.reviewsCount ?? poi.user_ratings_total`.
+
+**`dataService.js:139` (`mapTourToUI`)** — `Number(dbTour.rating) || 5.0` →
+`null`. Non era un ripiego neutro: era il **voto pieno** per ogni tour senza
+recensioni. Convenzione già scelta dal progetto sullo stesso dato,
+`Profile.jsx:113`: *"rating reale del tour o niente (mai 5 finto)"* — usata
+come riferimento invece di inventarne una nuova. `TourUISchema.rating` reso
+`.nullable()`: lo schema che pretendeva un numero era proprio la ragione per
+cui il 5.0 doveva esistere, stessa dinamica già corretta su
+`guide`/`guideAvatar`/`guideBio` nello stesso file.
+
+**Propagazione**: `TourLive.jsx` e `Profile.jsx` mostravano il rating/le
+stelle senza guard — con `null` al posto di `5.0` sarebbe uscito "★ 5.0 (0)"
+diventato una stella nuda con "(0)" (`TourLive`), o **cinque stelle spente**
+che dicono "voto zero su cinque" invece di "nessun voto" (`Profile.jsx:641`,
+`i < null` è sempre falso). Entrambi guardati sulla stessa forma già in uso
+nel repo (`TourDetails.jsx:218`).
+
+**Terzo punto, stessa classe esatta dei due nominati**:
+`placesDiscoveryService.js` (motore AI-first legacy), `: 4.5` → `null`.
+
+**Sweep esaustivo** (`|| 4.5`, `|| 5.0`, `defaultRating`, `Math.random`, ecc.)
+— tabella completa nel report della sessione, qui il riassunto:
+- **Corretti** (fallback su dato mancante): i tre sopra.
+- **Trovati, NON corretti** (letterali incondizionati, non fallback — sotto
+  un rinvio già scritto nel repo, "cleanup Blocco 2.2/2.3"):
+  `SurpriseTour.jsx:274` e `QuickPath.jsx:638`, entrambi `rating: 5.0` secco.
+  Più `placesDiscoveryService.js:203`: `"rating": 4.5` dentro il template
+  JSON del prompt OpenAI — sorgente A MONTE del fabbricato (il modello copia
+  gli esempi, lezione #27), fix del prompt è una decisione a parte.
+- **Con "rating" nel nome ma non un voto fabbricato** (soglie di qualità
+  `QUALITY_THRESHOLDS`, chiavi di ordinamento `qualityScore`, log
+  diagnostici, occorrenze dentro commenti): verificati uno per uno, nessun
+  intervento — dettaglio nel report.
+
+**Bonus trovato per caso**: la regola anti-fake
+`no-math-random-in-rating-or-reviews` (`src/__tests__/anti-fake.test.js`)
+aveva un pattern **monodirezionale** (`Math\.random\(\).*?(rating|reviews)`)
+e il codice reale era scritto nell'altro verso (`reviews` precede
+`Math.random()` sulla riga) — la regola non vedeva la violazione per cui era
+stata scritta, per tutta la vita del file, ad allowlist vuota. Resa
+bidirezionale.
+
+**Test — verificato rosso→verde da me indipendentemente**: nuovo
+`poiPopupCard_rating.test.js` (7 casi, incluso un test che monta lo stesso
+POI **sei volte** e verifica che l'output sia identico — prova diretta
+contro `Math.random`), `dataService.test.js` esteso (il test esistente
+`'defaults rating to 5.0 when absent'` **certificava la fabbricazione** —
+riscritto, non affiancato). Isolati con `git stash` i 6 file di fix: **9/85
+falliti** pre-fix, **85/85 verdi** post-fix.
+
+Verificato (due volte, agente e io, incluse le due scoperte più forti di
+Parte 2 rifatte a mano): 44 file, **680 test verdi** (670 prima), lint **197
+warning, 0 errori** (201 prima — **4 in meno**, non un regresso: due
+`useState` morti rimossi, inizializzati da prop e mai aggiornati dai loro
+setter, diventati valori derivati; portavano anche due warning
+`rules-of-hooks`), build verde.
+
+### Parte 2 — trasformazioni orfane: SOLO diagnosi, zero correzioni
+
+Nessuna riga toccata in questa parte. Elenco completo nel report della
+sessione; qui i quattro casi con danno dimostrato e le voci sospette.
+
+**C1 — normalizzazione "Title Case" della città** (`userContextService.js:126,222`,
+`TopBar.jsx:97`, `QuickPath.jsx:446`, tutte `s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()`).
+Nata per far matchare chiavi di lookup di tabelle mock — commento esplicito
+a `TopBar.jsx:96`. **Sorgente MEZZA morta**: le tabelle che l'hanno
+giustificata in parte sono sparite (`CITY_IMAGES`, `MOCK_ROUTES`), in parte
+vive ancora (`CITY_COORDS`, `CITY_CONFIG`) con chiavi a una sola parola —
+quindi metà della trasformazione (la maiuscola iniziale) serve ancora,
+l'altra metà (minuscolo forzato sul resto) è perdita secca. **Danno reale,
+verificato in Node**: "Reggio Emilia" → "Reggio emilia", "L'Aquila" →
+"L'aquila", "San Giovanni Rotondo" → "San giovanni rotondo". Il danno viene
+anche **persistito**: `CityContext.updateCity` scrive il valore già
+storpiato su `localStorage` e su Supabase (`profiles.current_city_override`,
+cross-device). **NON corretto**: la sorgente non è morta del tutto come nel
+caso highlights, e la forma giusta ("Reggio Emilia" per parola, ma
+"Vico del Gargano" con preposizioni minuscole, "L'Aquila" con l'apostrofo)
+è una decisione di prodotto, non una deduzione — più la domanda se i valori
+già storpiati in DB/localStorage si migrano.
+
+**C2 — split del prompt libero in tag, lettere accentate perse**
+(`AiItinerary.jsx:705`, `userPrompt.split(/\s+/).map(w => w.replace(/[^\w\s]/gi, ''))`).
+Nessun commento. `\w` senza flag `u` è ASCII-only. **Danno reale, verificato
+in Node**: "città"→"citt", "perché"→"perch", "è"→"" (tag vuoto). Non
+inerte: `MapPage.jsx:860` passa questi tag a `fetchMatchingBusinesses` — il
+matching dei partner viene interrogato con frammenti come "citt". **NON
+corretto**: fuori dai due punti nominati dal task, riportato in attesa.
+
+**C3 — iniziali/nome del recensore** (`TourDetails.jsx:961,963`,
+`(review.profiles?.full_name || 'U').charAt(0)`, `|| 'Utente'`). La sorgente
+REALE è morta (`profiles.full_name` non esiste, verificato su
+`information_schema` il 31/08 — vedi sezione Schema in cima a questo file),
+quella fabbricata è l'unica raggiungibile. **Danno oggi: latente**, non
+attuale — il blocco è gated da `reviews.length > 0` e la query torna sempre
+`[]`. Diventerà danno reale il giorno che si sistema il contratto colonne.
+
+**C4 — identità guida fabbricata, spedita ad altri utenti**
+(`DashboardGuide.jsx:88`, `|| 'Guida'`). **Sorgente viva**: `'Guida'` non è
+solo mostrato, è interpolato in notifiche in uscita verso ALTRI utenti (es.
+`` `💶 Offerta da ${guideProfile?.full_name}: €${offerPrice}` ``). Danno reale
+quando `user_metadata.full_name` manca (caso comune: il signup scrive
+`first_name`/`last_name` separati). Attenuante: il file è dietro
+`V1LockedGuard`, spento in V1.
+
+**Sospette, non provate** (S1-S6 nel report): un filtro `JUDGMENT_PATTERNS`
+che potrebbe cancellare frasi vere contenenti parole comuni come "consiglio"
+o "una perla"; un `.slice(0,180)` senza ellissi (confrontato con
+`Notifications.jsx:451/679`, che è la forma onesta, con `…`); uno
+`stripEmojis` la cui sorgente circolare è il codice stesso (Gate S.4 le
+aggiunge, questo le toglie); un `place.types[0]` che scavalca il normalizer
+canonico già esistente; un profilo vettoriale sintetico (`SurpriseTour.jsx:191-192`)
+asserito al modello come fatto vero sull'utente.
+
+**Perché nessuna correzione, nemmeno per C1** (che sfiorava la soglia
+dell'eccezione — danno dimostrato E persistito, più del caso highlights):
+1. sorgente mezza morta, non morta del tutto come nel caso highlights;
+2. la forma corretta è una decisione di prodotto (title-case per parola con
+   eccezioni su preposizioni/apostrofi), non deducibile dal codice da sola.
+
+Regola applicata: nel dubbio non si corregge.
+
+**Commit e push, entrambi su `main`:**
+```
+0831aea  fix(rating): il voto non si inventa mai (F37) + sweep completo dei fallback
+```
+Pushato (`4f49c2f..0831aea`), CI verde (`Lint & Test` + `E2E Smoke`):
+https://github.com/scirettaclienti-design/unnivai/actions/runs/34609654259
+
+**Voci aperte per sessioni future, in ordine di forza dell'evidenza**: C1
+(danno dimostrato e persistito — serve solo una decisione su title-case per
+parola vs. attuale, più migrazione dati storpiati); C2 (danno dimostrato,
+tag di matching partner corrotti); C4 (danno reale ma dietro guard V1
+spento); C3 (danno latente); S1-S6 (sospette, da verificare con dati reali
+prima di decidere); `SurpriseTour.jsx:274`/`QuickPath.jsx:638` (`rating:5.0`
+secco, già sotto rinvio dichiarato "Blocco 2.2/2.3"); il `rating:4.5` nel
+prompt OpenAI di `placesDiscoveryService.js:203` (sorgente a monte, fix del
+prompt da valutare a parte).

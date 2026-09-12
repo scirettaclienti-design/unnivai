@@ -3,13 +3,19 @@
 Punto di partenza per chi (o quale sessione di Claude) riprende il progetto.
 Aggiornare in coda dopo ogni iterazione importante.
 
-**Ultimo aggiornamento**: 2026-08-31 — **BLOCCO ESTETICO CHIUSO**: tutta l'app
-convertita a INCHIOSTRO & OSSIDIANA, mappa compresa. `estetica` pushata con
-preview attivo, **non mergiata** (si mergia quando le prime tre voci della coda
-sono chiuse). Trovato un difetto grave che ha l'eta' del progetto: la query tour
-di Esplora risponde 400 da aprile e a Roma nasconde tre tour veri. Lezioni #44 e
-#45. Le sezioni sono in ordine cronologico: **leggere dal fondo**, e in caso di
-conflitto vince il blocco datato piu' recente.
+**Ultimo aggiornamento**: 2026-09-11 — **`estetica` MERGIATA in `main`**
+(`d4c5c08`): il tema INCHIOSTRO & OSSIDIANA e' in produzione, i 4 fix di
+verita'/sicurezza che `main` aveva e `estetica` no sono sopravvissuti intatti
+(verificato riga per riga). Dopo il merge, 5 sessioni di fix sono atterrate
+**solo su `main`**: barra di avanzamento QuickPath, modal citta' che si
+riapriva a ogni route, nomi tappa troncati in "Cosa ti aspetta", voti
+inventati (F37, sweep completo), normalizzazione Title Case della citta' e
+perdita di accenti nei tag del prompt libero. `estetica` come branch e'
+**rimasta ferma a `f12c495`**, prima di tutti questi — se riprende lavoro
+estetico, e' indietro di 6 commit funzionali fino al prossimo merge. 739 test
+verdi su `main`, lint 197 warning/0 errori. Le sezioni sono in ordine
+cronologico: **leggere dal fondo**, e in caso di conflitto vince il blocco
+datato piu' recente.
 
 ---
 

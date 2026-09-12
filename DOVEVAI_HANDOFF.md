@@ -7310,3 +7310,66 @@ sostituisce "Castelnuovo di Garfagnana" con "Roma"); il `rating:4.5` nel
 prompt OpenAI di `placesDiscoveryService.js:203`, ora con la verifica sopra
 che non è innocuo; `SurpriseTour.jsx:274`/`QuickPath.jsx:638` (`rating:5.0`
 secco, sotto rinvio dichiarato "Blocco 2.2/2.3").
+
+---
+
+## Sessione 12/09 — RLS guide_requests: una sola policy per operazione, tutte owner-only
+
+Terzo (e presumibilmente ultimo) gate RLS su questa tabella, dopo i due del
+04/09 (SELECT owner-only, poi INSERT falsificabile + UPDATE self-assign
+chiusi). **Non un buco di sicurezza**, una fragilità: quattro policy INSERT
+tutte identiche (stesso `with check auth.uid() = user_id`), UPDATE/DELETE su
+ruolo `public` invece di `authenticated`, UPDATE senza `with check` esplicito.
+
+**Verificato su `pg_policies` in produzione PRIMA di scrivere la migration**
+(non dedotto dalle migration esistenti): esattamente lo stato che Ivano
+aveva misurato — 1 SELECT corretta, 4 INSERT identiche, 1 UPDATE senza
+`with check`, 1 DELETE. Nessuna delle quattro INSERT aveva una condizione
+diversa dalle altre — il vincolo "fermati se ne trovi una diversa" non è
+scattato.
+
+**Migration** (`supabase/migrations/20260912_gate_rls_guide_requests_dedup_policies.sql`,
+applicata via `apply_migration` sul progetto UNNIVAI): crea le tre policy
+nuove (`guide_requests_insert_owner_only`, `guide_requests_update_owner_only`
+con `with check` esplicito in più oltre allo `using`, `guide_requests_delete_owner_only`)
+PRIMA di droppare le sei vecchie, tutto in una transazione — mai un istante
+in cui la tabella resta senza una via di scrittura per il proprietario.
+SELECT non toccata.
+
+**Verifica funzionale — non solo la forma delle policy, il comportamento
+reale**: un test end-to-end via SQL diretto, dentro una transazione con
+`ROLLBACK` finale (zero dati reali toccati, confermato: 0 righe residue con
+`city='RLS-TEST'` dopo). Simulati due utenti reali del DB (solo UUID, mai
+letti dati personali) scambiando `request.jwt.claim.sub` a metà transazione.
+**9/9 controlli passati**: come proprietario, insert/select/update/delete
+sulla propria riga riescono tutti; insert a nome di un altro e update che
+tenta di riassegnare `user_id` falliscono entrambi per violazione RLS; un
+secondo utente non vede (0 righe), non aggiorna (0 righe) e non cancella
+(0 righe) la riga altrui.
+
+**Esito query finale su `pg_policies`** (FATTO QUANDO punto 1):
+```
+DELETE  guide_requests_delete_owner_only  authenticated  auth.uid()=user_id
+INSERT  guide_requests_insert_owner_only  authenticated  with_check auth.uid()=user_id
+SELECT  guide_requests_select_owner_only  authenticated  auth.uid()=user_id   (invariata)
+UPDATE  guide_requests_update_owner_only  authenticated  auth.uid()=user_id + with_check auth.uid()=user_id
+```
+Esattamente 4 policy, una per operazione, tutte `authenticated`, tutte
+owner-only.
+
+`get_advisors` (security): nessuna nuova voce legata a `guide_requests` dopo
+la migration — i finding esistenti (search_path mutabile su varie funzioni,
+`spatial_ref_sys` senza RLS, postgis in public, funzioni SECURITY DEFINER
+eseguibili da anon/authenticated, leaked password protection disattivata,
+`public.guides` con RLS ma senza policy) sono tutti pre-esistenti e fuori
+perimetro di questa sessione.
+
+Suite JS invariata (la modifica è solo DB-side, nessun file `src/` toccato):
+**739/739 verde**, lint fermo a 197 warning/0 errori.
+
+**Commit e push, entrambi su `main`:**
+```
+898f238  fix(rls): guide_requests — una sola policy per operazione, tutte owner-only
+```
+Pushato (`76522b9..898f238`), CI verde (`Lint & Test` + `E2E Smoke`):
+https://github.com/scirettaclienti-design/unnivai/actions/runs/34697138479

@@ -7373,3 +7373,112 @@ Suite JS invariata (la modifica è solo DB-side, nessun file `src/` toccato):
 ```
 Pushato (`76522b9..898f238`), CI verde (`Lint & Test` + `E2E Smoke`):
 https://github.com/scirettaclienti-design/unnivai/actions/runs/34697138479
+
+---
+
+## Sessione 13/09 — il taglio a 20 non precede più il filtro di categoria
+
+`fetchRealPOICandidates` (`aiRecommendationService.js:692`, non esportata)
+chiudeva con `return { candidates: all.slice(0, 20), intent }`. Il pool
+veniva troncato **dentro** la funzione, prima che il chiamante (`:1503`)
+applicasse raggio e categoria. Il taglio ordina per
+`qualityScore = rating * ln(1+recensioni)`, dominato dal volume di
+recensioni: una famiglia a basso traffico poteva uscire **per intero** dai
+primi 20 anche con la sua query andata benissimo. Il Gate RAGGIO-CATEGORIA
+costruito la settimana scorsa scattava a vuoto — non si recupera ciò che è
+stato buttato prima di guardarlo.
+
+**Evidenza numerica, Cabras, "le spiagge più belle".** Le due query rumorose
+del traduttore ("lidi", "cale" — "lido" è nome comune di ristorante) pescano
+12+12 ristoranti del paese, ~2000 recensioni, **qs ≈ 35**. La query buona
+("spiagge") pesca le 3 spiagge vere del Sinis, ~200 recensioni, **qs ≈ 24**.
+27 candidati totali, i 24 ristoranti occupano **tutti e 20** i posti:
+al selettore arrivavano **0 spiagge su 3**, e la richiesta finiva su
+`_source: "no-results"` — il selettore non veniva nemmeno pagato. Dopo il
+fix: **3 spiagge su 3**, `3 luoghi disponibili` nel body del selettore,
+zero ristoranti.
+
+**I tre cambi.** (1) `fetchRealPOICandidates` non taglia più: raccoglie,
+deduplica per `place_id`, ordina per qualityScore, restituisce il pool
+intero. (2) Il calcolo di `categoriaTarget` e il blocco `applyRadiusFilter`
+restano dove sono, ma ora operano sull'insieme completo. (3) Il taglio
+`candidates = candidates.slice(0, 20)` vive nel chiamante, subito dopo il
+filtro di categoria e prima della soglia minima. **Il 20 resta 20.**
+
+**Perché `slice(0,20)` lì dà ancora "i migliori 20":** l'ordinamento per
+qualityScore è impostato una volta sola a monte, e sia `applyRadiusFilter`
+(`tourShape.js:105`, `rawStops.filter(...)`) sia il `.filter()` di categoria
+sono `Array.prototype.filter` — che preserva l'ordine. Verificato leggendo
+entrambe, non dato per scontato. Nessun riordino intermedio.
+
+**Il taglio è INCONDIZIONATO**, fuori dall'`if (categoriaTarget)`, e non è
+un dettaglio: `CATEGORIA_TO_TOUR_CATEGORY` (`:916`) ha **7 chiavi** (natura,
+cibo, storia, arte, cultura, shopping, relax). Tutto il resto —  path B
+(`intent` null), "misto", e le trasversali nightlife/famiglia/romantico/
+sconosciuta — ha `categoriaTarget` **undefined** e **non passa mai** dal
+filtro di categoria. Dentro quell'`if`, questi casi non verrebbero più
+troncati affatto: prompt senza tetto, a crescere col numero di query.
+
+**Cambio di semantica voluto su `countForWiden`** (dichiarato, non nascosto):
+la decisione di allargare il raggio conta i candidati in categoria su
+**tutto** il pool raccolto, non più sui soli top-20 per qualityScore. Prima
+contava dentro un insieme già impoverito dal taglio, quindi allargava (o non
+allargava) sulla base di una disponibilità falsata. La logica dentro
+`applyRadiusFilter` **non è toccata**: cambia solo cosa le viene passato come
+`rawStops`.
+
+**Nuovo confine di responsabilità.** Prima: la funzione raccoglie, deduplica,
+ordina **e taglia**; il chiamante filtra raggio e categoria su un pool già
+tagliato. Ora: la funzione **raccoglie, deduplica, ordina e basta** — è la
+sorgente del pool, non decide chi ci sta; il chiamante filtra raggio, filtra
+categoria se applicabile, **poi** taglia — è lui che conosce i vincoli della
+richiesta, quindi è lui a decidere chi entra nel prompt. Un solo call site
+oltre alla definizione (`:1503`), verificato con grep: nessun altro si
+aspettava un array già tagliato.
+
+**Il vincolo sui test.** `gateIntentLogs.test.js:16-27` asseriva **stringhe
+letterali del sorgente**, cioè COM'È SCRITTO il codice e non cosa fa:
+```js
+expect(src).toContain('all.slice(0, 20)');
+expect(src).toContain('const qsA = (a.rating || 0) * Math.log(1 + (a.user_ratings_total || 0));');
+const bloccoLog = src.slice(src.indexOf('[Gate B] merge:') - 900, ... + 600);
+expect(bloccoLog).not.toContain('all.splice'); // .push, `all =`
+```
+Sarebbe diventato rosso con qualunque forma del fix, senza che nessuna delle
+due garanzie fosse venuta meno. Riscritto **sul comportamento**, end-to-end:
+```js
+expect(stato.selectorBody).toContain('20 luoghi disponibili');
+expect(stato.selectorBody).not.toContain('Chiosco Civetta');  // 5.0 stelle, 5 recensioni
+expect(stato.selectorBody).toContain('Posto Solido 1');        // 4.1 stelle, 500 recensioni
+```
+Il secondo `it` copre la categoria vincolante (3 spiagge su 3 al selettore).
+La civetta ha il **rating più alto del pool**: cade solo se il volume di
+recensioni pesa — è così che la formula resta verificata senza grepparla.
+Il resto del file (customKind, applyQualityThreshold, i marker dei log,
+`deriveKindFromQuery`) **non è stato riscritto**, e resta verde: il marker
+`[Gate B] merge:` esiste ancora nel sorgente, ora su una riga che dichiara
+"nessun taglio qui".
+
+**Rosso→verde, isolato con `git stash` sul solo `aiRecommendationService.js`**
+(il test è stato scritto prima del fix e girato contro il sorgente intatto):
+
+| test | pre-fix | post-fix |
+|---|---|---|
+| `raggioCategoria` › 27 candidati, le 3 spiagge arrivano TUTTE | **rosso**, `expected 1 to be 2` (aiCalls: selettore mai chiamato) | verde |
+| `gateIntentLogs` › i 20 si scelgono DOPO il filtro di categoria | **rosso**, `expected 1 to be 2` | verde |
+| `gateIntentLogs` › 21 candidati → 20 al selettore | verde (invarianza: il taglio era già 20) | verde |
+| `raggioCategoria` › "misto" con 27 candidati resta tagliato a 20 | verde (guardia anti-regressione) | verde |
+
+Il rosso è `aiCalls: 1` invece di `2`: con le spiagge mangiate dal taglio il
+pool in-categoria era vuoto, si finiva su `no-results` e il selettore non
+veniva **mai** chiamato. Gli scenari Cabras preesistenti non lo vedevano
+perché usano 13 candidati totali — sotto la soglia di 20, dove il taglio non
+taglia niente.
+
+**48 file, 742 test verdi (739 prima), lint fermo a 197 warning / 0 errori,
+build verde in 2.52s.**
+
+**Commit e push, entrambi su `main`:**
+```
+79f54fa  fix(candidati): il taglio a 20 non precede più il filtro di categoria
+```

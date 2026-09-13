@@ -680,7 +680,8 @@ export async function translateIntentToQueries(userPrompt, cityName) {
 // Gate B — Path A (userPrompt presente):
 //   1. translateIntentToQueries → { queries[], categoria, oggetto_umano, vincoli }
 //   2. discoverRealPOIs con customQuery per ogni query (skipLegacyFallback=true)
-//   3. Merge + top-20
+//   3. Merge + dedup + ordinamento per qualityScore (NON taglia: il taglio a 20
+//      vive nel chiamante, dopo i filtri di raggio e categoria)
 //   Ritorna { candidates, intent }. Se 0 candidati o traduttore fallisce, intent
 //   può contenere info per errore onesto (o essere null).
 //
@@ -777,28 +778,26 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
         const qsB = (b.rating || 0) * Math.log(1 + (b.user_ratings_total || 0));
         return qsB - qsA;
     });
-    // Gate INTENT (28/08) — DIAGNOSTICA sul taglio. Era completamente invisibile,
-    // ed e' il candidato piu' forte per i POI che spariscono: le tre liste
-    // diventano UN ranking solo per qualityScore = rating * ln(1+reviews), che
-    // e' dominato dal volume di recensioni. Una famiglia a basso traffico (le
-    // chiese antiche minori, ~300 recensioni) puo' uscire per intero dai top-20
-    // anche quando la sua query ha funzionato benissimo, perche' perde contro
-    // ristoranti e musei con due ordini di grandezza in piu'.
-    // Il "piu' alto escluso" e' il dato che serve: se e' della famiglia chiesta,
-    // il taglio sta mangiando esattamente cio' che l'utente voleva.
-    if (all.length > 20) {
-        const primoEscluso = all[20];
-        const qsEscluso = (primoEscluso.rating || 0) * Math.log(1 + (primoEscluso.user_ratings_total || 0));
-        console.info(
-            `[Gate B] merge: ${all.length} candidati -> top 20 | esclusi per ranking: ${all.length - 20}` +
-            ` | il piu' alto escluso: "${primoEscluso.name || primoEscluso.title || '?'}"` +
-            ` score=${qsEscluso.toFixed(1)} (rating=${primoEscluso.rating ?? '?'}, reviews=${primoEscluso.user_ratings_total ?? '?'})`
-        );
-    }
+    // Gate TAGLIO-DOPO-CATEGORIA — qui NON si taglia piu'.
+    //
+    // Fino al 13/09 questa funzione chiudeva con `all.slice(0, 20)`, e il
+    // chiamante riceveva un pool gia' troncato su cui applicare raggio e
+    // categoria. Il taglio era cieco alla categoria: le tre liste diventano UN
+    // ranking per qualityScore = rating * ln(1+reviews), dominato dal volume di
+    // recensioni, quindi una famiglia a basso traffico (le chiese antiche
+    // minori ~300 recensioni; le spiagge del Sinis ~200) poteva uscire PER
+    // INTERO dai primi 20 anche con la sua query andata benissimo — battuta da
+    // ristoranti e musei con due ordini di grandezza in piu'. Il guard-rail di
+    // categoria a valle non poteva recuperarla: non c'era piu' niente da
+    // filtrare. Misurato a Cabras: 24 ristoranti + 3 spiagge = 27 candidati, i
+    // ristoranti occupano tutti i 20 posti, zero spiagge al selettore.
+    //
+    // Il taglio vive ora nel chiamante, DOPO raggio e categoria — vedi
+    // "Gate TAGLIO-DOPO-CATEGORIA" in generateItinerary. Qui resta la sola
+    // diagnostica su cosa il merge ha prodotto.
+    console.info(`[Gate B] merge: ${all.length} candidati dedup, ordinati per qualityScore (nessun taglio qui)`);
 
-    // Tronco a top-20: abbastanza per far scegliere all'AI, non troppo per non
-    // gonfiare il prompt (ogni candidato costa ~40 token).
-    return { candidates: all.slice(0, 20), intent };
+    return { candidates: all, intent };
 };
 
 // Ordina tappe per prossimità (nearest-neighbor greedy)
@@ -1564,6 +1563,44 @@ export const aiRecommendationService = {
                     console.warn(`[Gate RAGGIO-CATEGORIA] ${city}: ${beforeCategoria - candidates.length}/${beforeCategoria} candidati scartati per categoria≠"${intent.categoria}" prima del selettore`);
                 }
             }
+
+            // ─── Gate TAGLIO-DOPO-CATEGORIA (13/09) — il taglio a 20, QUI ────
+            //
+            // Era l'ultima riga di fetchRealPOICandidates, cioe' PRIMA di
+            // raggio e categoria: un taglio cieco a cosa l'utente aveva
+            // chiesto. A Cabras, "le spiagge piu' belle", i 24 ristoranti che
+            // "lidi"/"cale" riportano hanno ~2000 recensioni contro le ~200
+            // delle 3 spiagge vere: per qualityScore stavano tutti davanti, si
+            // prendevano i 20 posti, e il filtro di categoria qui sotto
+            // trovava un pool gia' senza spiagge. Il guard-rail scattava a
+            // vuoto — non si recupera cio' che e' stato buttato prima.
+            //
+            // Spostato qui, `slice(0, 20)` significa "i 20 migliori per
+            // qualita' FRA quelli che hanno superato raggio e categoria":
+            // l'ordine per qualityScore decrescente e' quello impostato una
+            // sola volta dentro fetchRealPOICandidates, e sia applyRadiusFilter
+            // sia il .filter() di categoria sopra sono Array.prototype.filter,
+            // che preserva l'ordine — nessun riordino intermedio.
+            //
+            // INCONDIZIONATO, fuori dall'if (categoriaTarget) di proposito:
+            // path B e le categorie trasversali ("misto", nightlife, famiglia,
+            // romantico, sconosciuta) hanno categoriaTarget undefined e non
+            // passano MAI dal filtro qui sopra. Dentro quell'if non verrebbero
+            // piu' troncate affatto — prompt senza tetto, a crescere col
+            // numero di query.
+            //
+            // Il 20 resta il numero di sempre: abbastanza per far scegliere
+            // all'AI, non tanto da gonfiare il prompt (~40 token a candidato).
+            if (candidates.length > 20) {
+                const primoEscluso = candidates[20];
+                const qsEscluso = (primoEscluso.rating || 0) * Math.log(1 + (primoEscluso.user_ratings_total || 0));
+                console.info(
+                    `[Gate B] taglio: ${candidates.length} candidati ammessi -> top 20 | esclusi per ranking: ${candidates.length - 20}` +
+                    ` | il piu' alto escluso: "${primoEscluso.name || primoEscluso.title || '?'}"` +
+                    ` score=${qsEscluso.toFixed(1)} (rating=${primoEscluso.rating ?? '?'}, reviews=${primoEscluso.user_ratings_total ?? '?'})`
+                );
+            }
+            candidates = candidates.slice(0, 20);
 
             // Gate I — soglia minima 1 candidato (era 3). Un posto vero è meglio
             // di zero. Un tour di 1 tappa con Villa Bellini > messaggio bugiardo

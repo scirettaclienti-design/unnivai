@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { deriveKindFromQuery, QUERY_KIND_LEXICON } from '@/services/aiRecommendationService';
+import {
+    aiRecommendationService,
+    deriveKindFromQuery,
+    QUERY_KIND_LEXICON,
+} from '@/services/aiRecommendationService';
 import { QUALITY_THRESHOLDS } from '@/services/placesDiscoveryService';
 
 // Gate INTENT (28/08) — questo diff aggiunge SOLO LOG.
@@ -12,20 +16,154 @@ const readSrc = (rel) => readFileSync(join(REPO, 'src', rel), 'utf8');
 
 // ─── Il vincolo che conta ────────────────────────────────────────────────────
 
-describe('Gate INTENT — nessun cambio di comportamento', () => {
-    it('il ranking del merge e il taglio a 20 sono invariati', () => {
-        const src = readSrc('services/aiRecommendationService.js');
-        // Il taglio resta 20 e resta dopo lo stesso sort per qualityScore.
-        expect(src).toContain('all.slice(0, 20)');
-        expect(src).toContain('const qsA = (a.rating || 0) * Math.log(1 + (a.user_ratings_total || 0));');
-        // Il log del taglio NON deve poter modificare `all`: nessuna mutazione
-        // dentro il blocco diagnostico (niente splice/sort/push su `all`).
-        const bloccoLog = src.slice(src.indexOf('[Gate B] merge:') - 900, src.indexOf('[Gate B] merge:') + 600);
-        expect(bloccoLog).not.toContain('all.splice');
-        expect(bloccoLog).not.toContain('all.push');
-        expect(bloccoLog).not.toContain('all =');
+// ─── Il taglio a 20, provato sul COMPORTAMENTO ───────────────────────────────
+//
+// Questo blocco asseriva stringhe letterali del sorgente — `all.slice(0, 20)` e
+// la riga esatta del qualityScore — cioe' verificava COM'E' SCRITTO il codice,
+// non cosa fa. Il 13/09 il taglio si e' spostato da fetchRealPOICandidates al
+// chiamante (dopo i filtri di raggio e categoria) e quelle stringhe sono
+// sparite per costruzione: il test sarebbe diventato rosso senza che nessuna
+// delle due garanzie fosse venuta meno. Riscritto su cio' che deve restare
+// vero comunque il codice sia disposto:
+//   1. al selettore non arrivano MAI piu' di 20 candidati;
+//   2. i 20 sono i migliori per qualityScore = rating * ln(1+recensioni) — non
+//      per rating nudo;
+//   3. quando la categoria vincola, i 20 si scelgono DOPO averla applicata.
+
+const CABRAS = { latitude: 39.9297, longitude: 8.5297, isSmallTown: true, radiusKm: 5 };
+
+const poi = ({ id, name, km, types, rating, reviews }) => ({
+    place_id: id,
+    name,
+    geometry: { location: { lat: CABRAS.latitude + (km / 111), lng: CABRAS.longitude } },
+    rating,
+    user_ratings_total: reviews,
+    business_status: 'OPERATIONAL',
+    types,
+});
+
+// 1ª chiamata al proxy = traduttore d'intento, 2ª = selettore. `selectorBody`
+// e' il body della seconda: e' li' che si legge cosa gli e' stato dato.
+const harness = ({ intent, perQuery }) => {
+    const stato = { aiCalls: 0, selectorBody: null };
+    const fn = vi.fn(async (url, init) => {
+        const u = String(url);
+        if (u.includes('openai-proxy')) {
+            const payload = stato.aiCalls === 0
+                ? intent
+                : { days: [{ day: 1, title: 'T', stops: [] }] };
+            if (stato.aiCalls === 1) stato.selectorBody = String(init?.body ?? '');
+            stato.aiCalls += 1;
+            return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify(payload) } }] }) };
+        }
+        if (u.includes('textsearch')) {
+            const decoded = decodeURIComponent(u);
+            const hit = Object.keys(perQuery).find(q => decoded.includes(`${q} Cabras`) || decoded.includes(`${q}+Cabras`));
+            return { ok: true, json: async () => ({ status: 'OK', results: hit ? perQuery[hit] : [] }) };
+        }
+        if (u.includes('details')) return { ok: true, json: async () => ({ status: 'OK', result: {} }) };
+        throw new Error(`fetch inatteso: ${u}`);
+    });
+    return { fn, stato };
+};
+
+const GENERICI = ['establishment', 'point_of_interest'];
+const RISTORANTE = ['establishment', 'food', 'point_of_interest', 'restaurant'];
+const SPIAGGIA = ['establishment', 'natural_feature', 'point_of_interest'];
+
+describe('Gate INTENT — il taglio a 20 e il suo ranking (comportamento)', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        try { window.localStorage.clear(); } catch { /* jsdom */ }
+    });
+    afterEach(() => { vi.unstubAllGlobals(); });
+
+    it('21 candidati ammessi → al selettore ne arrivano 20, e il 21° e\' quello col qualityScore piu\' basso', async () => {
+        // 20 "solidi": 4.1 stelle su 500 recensioni → qs = 4.1*ln(501) ≈ 25.5.
+        // 1 "civetta": 5.0 stelle su 5 recensioni  → qs = 5.0*ln(6)   ≈  9.0.
+        // La civetta ha il rating PIU' ALTO del pool: se il ranking fosse per
+        // rating nudo sarebbe prima, e a cadere sarebbe un solido. Cade lei
+        // solo se il volume di recensioni pesa — cioe' se la formula e' quella.
+        const solidi = (n, from) => Array.from({ length: n }, (_, i) => poi({
+            id: `pid-solido-${from + i}`,
+            name: `Posto Solido ${from + i}`,
+            km: 0.2 + (from + i) * 0.15,   // tutti entro R=5 km
+            types: GENERICI, rating: 4.1, reviews: 500,
+        }));
+        const civetta = poi({
+            id: 'pid-civetta', name: 'Chiosco Civetta',
+            km: 1.1, types: GENERICI, rating: 5.0, reviews: 5,
+        });
+
+        // maxResults di discoverRealPOIs e' 12 per query: 12 + 9 = 21.
+        const { fn, stato } = harness({
+            // Query di UNA parola: il proxy serializza con URLSearchParams, che
+            // codifica lo spazio come "+", e il routing del mock confronta
+            // `<query> Cabras` / `<query>+Cabras`.
+            intent: {
+                queries: ['panorami', 'scorci'],
+                categoria: 'misto',              // nessun filtro stretto di categoria
+                oggetto_umano: 'posti belli',
+                vincoli: { tempo: null, escludi: [], note: null },
+            },
+            perQuery: {
+                panorami: solidi(12, 1),
+                scorci: [...solidi(8, 13), civetta],
+            },
+        });
+        vi.stubGlobal('fetch', fn);
+
+        await aiRecommendationService.generateItinerary(
+            'Cabras', { interests: ['Natura'] }, 'portami in posti belli', {}, '', CABRAS,
+        );
+
+        expect(stato.aiCalls).toBe(2);
+        // Il messaggio utente del selettore dichiara la dimensione del pool.
+        expect(stato.selectorBody).toContain('20 luoghi disponibili');
+        // L'escluso e' la civetta, nonostante sia la meglio votata.
+        expect(stato.selectorBody).not.toContain('Chiosco Civetta');
+        expect(stato.selectorBody).toContain('Posto Solido 1');
     });
 
+    it('quando la categoria vincola, i 20 si scelgono DOPO il filtro di categoria', async () => {
+        // 24 ristoranti (2000 recensioni, qs ≈ 35) + 3 spiagge (200, qs ≈ 23).
+        // In un ranking puro i ristoranti prendono tutti e 20 i posti: se il
+        // taglio precedesse il filtro di categoria, al selettore arriverebbero
+        // zero spiagge e la richiesta "spiagge" resterebbe senza risposta.
+        const risto = (pfx, n, kmStart) => Array.from({ length: n }, (_, i) => poi({
+            id: `pid-${pfx}-${i}`, name: `Ristorante ${pfx} ${i}`,
+            km: kmStart + i * 0.2, types: RISTORANTE, rating: 4.6, reviews: 2000,
+        }));
+        const spiagge = ['Maimoni', 'Is Arutas', 'Mari Ermi'].map((n, i) => poi({
+            id: `pid-sp-${i}`, name: `Spiaggia ${n}`,
+            km: 9 + i * 1.2, types: SPIAGGIA, rating: 4.4, reviews: 200,
+        }));
+
+        const { fn, stato } = harness({
+            intent: {
+                queries: ['spiagge', 'lidi', 'cale'],
+                categoria: 'natura',
+                oggetto_umano: 'spiagge',
+                vincoli: { tempo: null, escludi: [], note: null },
+            },
+            perQuery: { spiagge, lidi: risto('lido', 12, 0.2), cale: risto('cala', 12, 2.6) },
+        });
+        vi.stubGlobal('fetch', fn);
+
+        await aiRecommendationService.generateItinerary(
+            'Cabras', { interests: ['Natura'] }, 'le spiagge piu belle', {}, '', CABRAS,
+        );
+
+        expect(stato.aiCalls).toBe(2);
+        expect(stato.selectorBody).toContain('3 luoghi disponibili');
+        for (const n of ['Spiaggia Maimoni', 'Spiaggia Is Arutas', 'Spiaggia Mari Ermi']) {
+            expect(stato.selectorBody, `${n} non e' arrivata al selettore`).toContain(n);
+        }
+        expect(stato.selectorBody).not.toContain('Ristorante');
+    });
+});
+
+describe('Gate INTENT — nessun cambio di comportamento', () => {
     it('customKind resta derivato SOLO da intent.categoria, non dal lessico', () => {
         const src = readSrc('services/aiRecommendationService.js');
         expect(src).toContain("const customKind = CATEGORIA_TO_KIND[String(intent.categoria || '').toLowerCase()] || 'CULTURA';");

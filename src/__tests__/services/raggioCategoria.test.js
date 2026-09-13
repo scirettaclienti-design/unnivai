@@ -115,6 +115,23 @@ const SPIAGGE = [
     place({ id: 'pid-mari-ermi', name: 'Spiaggia Mari Ermi', km: 11.5, types: SPIAGGIA_TYPES, reviews: 200 }),
 ];
 
+// La folla: 24 ristoranti DIVERSI, 12 per ciascuna delle due query rumorose
+// ("lidi" e "cale" pescano esercizi diversi). `maxResults` di discoverRealPOIs
+// e' 12 per query, quindi 12+12 e' il massimo ottenibile da due query.
+// Con 2000 recensioni il loro qualityScore (~35) sta sopra quello di qualunque
+// spiaggia (~24): in un ranking puro occupano tutti e 24 i primi posti.
+// Distanze: tutte entro R=5 km, come i ristoranti veri del paese.
+const folla = (prefix, nome, kmStart) => Array.from({ length: 12 }, (_, i) => place({
+    id: `pid-${prefix}-${i + 1}`,
+    name: `${nome} Ristorante Folla ${i + 1}`,
+    km: kmStart + i * 0.2,
+    types: RISTORANTE_TYPES,
+    rating: 4.6,
+    reviews: 2000,
+}));
+const RISTORANTI_LIDI = folla('lido', 'Lido', 0.2);   // 0.2 → 2.4 km
+const RISTORANTI_CALE = folla('cala', 'Cala', 2.6);   // 2.6 → 4.8 km
+
 const INTENT_SPIAGGE = {
     queries: ['spiagge', 'lidi', 'cale'],
     categoria: 'natura',
@@ -222,6 +239,95 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
         expect(result.days[0].stops).toEqual([]);
         // Il selettore non e' mai stato pagato: solo il traduttore ha girato.
         expect(stato.aiCalls).toBe(1);
+    });
+
+    // ─── Il taglio a 20 non deve precedere il filtro di categoria ─────────────
+    //
+    // Gli scenari qui sopra usano 13 candidati totali (10 ristoranti + 3
+    // spiagge): sotto la soglia di 20, dove il taglio non taglia nulla e il
+    // difetto non si vede. Quando i candidati grezzi superano i 20, invece,
+    // l'ordine delle operazioni diventa decisivo.
+    //
+    // "lidi" e "cale" sono due query DIVERSE e riportano ristoranti diversi:
+    // 12 + 12 = 24 ristoranti del paese, tutti con ~2000 recensioni, contro 3
+    // spiagge vere con 200-300 recensioni. Per qualityScore = rating*ln(1+rec)
+    // i ristoranti stanno tutti sopra le spiagge (~35 contro ~24): un taglio ai
+    // primi 20 fatto PRIMA di guardare la categoria si porta via le spiagge per
+    // intero, e nessun guard-rail successivo puo' recuperarle — non ci sono
+    // piu'. Il widen del raggio non aiuta: allarga su un pool gia' svuotato.
+    it('27 candidati, 24 fuori categoria in testa al ranking: le 3 spiagge arrivano TUTTE al selettore', async () => {
+        const { fn, stato } = routeFetch({
+            perQuery: { spiagge: SPIAGGE, lidi: RISTORANTI_LIDI, cale: RISTORANTI_CALE },
+            selectorPayload: {
+                days: [{
+                    day: 1, title: 'Il vento del Sinis',
+                    stops: [
+                        { place_id: 'pid-maimoni', description: 'Sabbia di quarzo sotto i piedi' },
+                        { place_id: 'pid-arutas', description: 'I chicchi bianchi rotolano nell’acqua' },
+                        { place_id: 'pid-mari-ermi', description: 'Il maestrale piega i giunchi' },
+                    ],
+                }],
+            },
+        });
+        vi.stubGlobal('fetch', fn);
+
+        const result = await aiRecommendationService.generateItinerary(
+            'Cabras', { interests: ['Natura'] }, 'le spiagge piu belle', {}, '', CABRAS,
+        );
+
+        // (1) Il selettore e' stato chiamato: con il taglio prima del filtro di
+        //     categoria il pool in-categoria sarebbe vuoto e qui si finirebbe
+        //     su "no-results" senza mai pagare la seconda chiamata.
+        expect(stato.aiCalls).toBe(2);
+        expect(stato.selectorBody).toBeTruthy();
+
+        // (2) La prova che conta: TUTTE e tre le spiagge, non "almeno una".
+        //     Nessun candidato in categoria e' stato perso per strada.
+        for (const nome of ['Spiaggia di Maimoni', 'Spiaggia Is Arutas', 'Spiaggia Mari Ermi']) {
+            expect(stato.selectorBody, `${nome} non e' arrivata al selettore`).toContain(nome);
+        }
+        // Il messaggio utente del selettore dichiara la dimensione del pool.
+        expect(stato.selectorBody).toContain('3 luoghi disponibili');
+        expect(stato.selectorBody).not.toContain('Ristorante Folla');
+
+        // (3) Il pool grezzo era davvero sopra la soglia di 20 — senza questo il
+        //     test non proverebbe nulla: 24 scartati su 27, non su 20.
+        const riga = warnLines().find(l => l.includes('[Gate RAGGIO-CATEGORIA]'));
+        expect(riga).toBeTruthy();
+        expect(riga).toContain('24/27 candidati scartati per categoria≠"natura"');
+
+        // (4) Il risultato finale: tre spiagge, zero food.
+        expect(result._source).toBe('google-first');
+        expect(result.days[0].stops.map(s => s.title).sort()).toEqual(
+            ['Spiaggia Is Arutas', 'Spiaggia Mari Ermi', 'Spiaggia di Maimoni'],
+        );
+    });
+
+    // Il taglio spostato dopo il filtro di categoria deve restare
+    // INCONDIZIONATO: "misto" (come path B) non passa mai dal filtro, e se il
+    // taglio vivesse dentro quel ramo questi casi non verrebbero piu' troncati
+    // affatto — prompt senza tetto, a crescere col numero di query.
+    it('NON-REGRESSIONE — "misto" con 27 candidati: il taglio a 20 vale lo stesso', async () => {
+        const { fn, stato } = routeFetch({
+            perQuery: { spiagge: SPIAGGE, lidi: RISTORANTI_LIDI, cale: RISTORANTI_CALE },
+            intent: { ...INTENT_SPIAGGE, categoria: 'misto', oggetto_umano: 'un giro insider' },
+            selectorPayload: {
+                days: [{
+                    day: 1, title: 'Un giro',
+                    stops: [{ place_id: 'pid-lido-1', description: 'Tovaglie di carta e fritto misto' }],
+                }],
+            },
+        });
+        vi.stubGlobal('fetch', fn);
+
+        await aiRecommendationService.generateItinerary(
+            'Cabras', { interests: ['Natura'] }, 'sorprendimi', {}, '', CABRAS,
+        );
+
+        // Nessun filtro di categoria (24 ristoranti entro 5 km, niente widen),
+        // ma il pool al selettore resta tagliato a 20.
+        expect(warnLines().some(l => l.includes('[Gate RAGGIO-CATEGORIA]'))).toBe(false);
+        expect(stato.selectorBody).toContain('20 luoghi disponibili');
     });
 
     it('NON-REGRESSIONE — categoria "misto": nessun filtro stretto, il pool arriva intero al selettore', async () => {

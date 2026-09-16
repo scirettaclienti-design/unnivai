@@ -76,11 +76,18 @@ export function useAILearning() {
         }
     });
 
-    // Gate SEME (L1): seme onboarding, stato SEPARATO dal brain, letto una sola
-    // volta in modo sincrono al mount (initializer) → gia' disponibile al primo
-    // render, prima che parta la query 'home-experiences'. NON confluisce mai in
+    // Gate SEME (L1): seme onboarding, stato SEPARATO dal brain, letto in modo
+    // sincrono al mount (initializer) → gia' disponibile al primo render, prima
+    // che parta la query 'home-experiences'. NON confluisce mai in
     // learningState.preferenceGraph.
-    const [onboardingSeed] = useState(readOnboardingSeed);
+    //
+    // Gate SEME (L2): ora ha un setter. La lettura sincrona dal localStorage
+    // resta il valore di PARTENZA (nessun ritardo nel path critico), ma non e'
+    // piu' l'ultima parola: l'effect di sync-in qui sotto lo rimpiazza col
+    // valore del server appena arriva. Serve perche' il localStorage viene
+    // cancellato al logout (AuthContext, chiave user-derived) e non esiste su
+    // un secondo device: senza questo, il seme continuerebbe a sparire.
+    const [onboardingSeed, setOnboardingSeed] = useState(readOnboardingSeed);
 
     const syncTimerRef = useRef(null);
     const hasSyncedFromDb = useRef(false);
@@ -93,6 +100,48 @@ export function useAILearning() {
         const loadFromDb = async () => {
             const dbPrefs = await dataService.getUserPreferences(userId);
             if (!dbPrefs) return;
+
+            // ─── Gate SEME (L2): il seme del server vince ─────────────────────
+            // getUserPreferences fa select('*'), quindi onboarding_seed arriva
+            // gia' con questa chiamata: nessun round-trip in piu', nessuna
+            // funzione di lettura dedicata.
+            //
+            // CHI VINCE se locale e server divergono: il SERVER, sempre, una
+            // volta che ha risposto. Il seme e' un dato dell'UTENTE, non della
+            // sessione o del device: se ha rifatto l'onboarding su un altro
+            // telefono, quella e' la sua dichiarazione piu' recente, e il
+            // localStorage di questo device e' solo una cache che puo' essere
+            // vecchia. La regola opposta ("vince il locale") renderebbe il
+            // valore dipendente da quale device apri per primo.
+            //
+            // Il caso onboarding_seed NULL (utente che non ha mai sincronizzato,
+            // o che ha fatto l'onboarding prima di questo gate) NON tocca il
+            // valore locale: NULL significa "il server non sa", non "il server
+            // dice vuoto". La distinzione NULL vs [] esiste in colonna proprio
+            // per questo — [] e' uno skip esplicito e vince come ogni altro
+            // valore. LIMITE NOTO, non chiuso qui: in quel caso il seme locale
+            // non viene spinto sul server. Farlo vorrebbe dire una scrittura
+            // dentro un path di sola lettura, con un fallimento che nessuna UI
+            // sta guardando — cioe' esattamente il pattern che questo gate
+            // elimina. Per quegli utenti il seme resta locale finche' non
+            // rifanno l'onboarding.
+            if (Array.isArray(dbPrefs.onboarding_seed)) {
+                const serverSeed = dbPrefs.onboarding_seed.filter(x => typeof x === 'string');
+                setOnboardingSeed(prev => {
+                    // Identita' referenziale stabile se il valore non cambia:
+                    // onboardingSeed e' una dipendenza del useMemo dei pesi, un
+                    // array nuovo a parita' di contenuto ricalcolerebbe per nulla.
+                    const same = prev.length === serverSeed.length
+                        && prev.every((v, i) => v === serverSeed[i]);
+                    return same ? prev : serverSeed;
+                });
+                // Riallinea la cache locale al server (best-effort: la fonte di
+                // verita' e' comunque la colonna, questo serve solo al prossimo
+                // mount sincrono).
+                try {
+                    localStorage.setItem(ONBOARDING_SEED_KEY, JSON.stringify(serverSeed));
+                } catch { /* quota: il server resta la fonte di verita' */ }
+            }
 
             setLearningState(prev => {
                 // Merge: DB ha priorità se più recente, ma non perdiamo dati locali
@@ -239,6 +288,13 @@ export function useAILearning() {
     // Gate SEME (L1): il seme onboarding entra QUI come 2o arg (prima era []).
     // computeWeights lo somma (+0.3/id normalizzato) ai click impliciti del grafo
     // e ri-normalizza. Il seme resta fuori dal grafo: influenza solo i pesi.
+    //
+    // Gate SEME (L2): onboardingSeed ora e' uno stato che PUO' cambiare dopo il
+    // mount (quando risponde il sync-in dal server), non piu' solo il valore
+    // dell'initializer. La dipendenza regge senza modifiche perche' setState
+    // sostituisce il riferimento dell'array: il memo ricalcola quando e solo
+    // quando il contenuto e' davvero cambiato (il setter sopra riusa il
+    // riferimento precedente a parita' di valore).
     const weights = useMemo(() => {
         return computeWeights(learningState.preferenceGraph, onboardingSeed);
     }, [learningState.preferenceGraph, onboardingSeed]);
@@ -272,6 +328,16 @@ export function useAILearning() {
         // Gate SEME (L1): true se l'onboarding ha seminato almeno un gusto.
         // Serve a DashboardUser per attivare il ranking DNA dal giorno 0 (R1),
         // senza aspettare 3 interazioni reali. NON altera il conteggio DNA.
+        //
+        // Gate SEME (L2): puo' passare da false a true DOPO il mount, quando il
+        // seme arriva dal server su un device che non ce l'aveva in cache (il
+        // caso "nuovo accesso dopo logout"). DashboardUser:204 lo usa come
+        // membro della queryKey di 'home-experiences' via hasPreferences: il
+        // cambio provoca un refetch sotto la chiave nuova, che e' il
+        // comportamento voluto (il seme e' arrivato, il ranking deve cambiare).
+        // Non e' un caso nuovo per quella query: totalInteractions, gia' membro
+        // della stessa chiave, cambia allo stesso identico momento per effetto
+        // del sync-in.
         hasSeed: onboardingSeed.length > 0,
         trackGeneratedTour,
         trackTourView,

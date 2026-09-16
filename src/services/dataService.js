@@ -765,6 +765,53 @@ class DataService {
         }
     }
 
+    /**
+     * Gate SEME (L2) — scrive SOLO il seme onboarding, niente altro.
+     *
+     * Funzione DEDICATA di proposito: NON riusare upsertUserPreferences qui.
+     * Quella scrive sempre anche preference_data / interactions /
+     * total_interactions con i valori che le passi, quindi un utente che rifa'
+     * l'onboarding da un client che non ha ancora sincronizzato il proprio
+     * grafo comportamentale se lo vedrebbe sovrascritto con {} / [] / 0 — la
+     * stessa perdita silenziosa di dati che questo gate elimina, solo spostata
+     * su un'altra colonna.
+     *
+     * Il payload contiene SOLO user_id + onboarding_seed: su conflitto
+     * PostgREST genera un ON CONFLICT DO UPDATE SET limitato alle colonne
+     * presenti nel payload, quindi preference_data e interactions della riga
+     * esistente restano intatti (verificato dal vivo il 16/09/2026 contro il
+     * progetto reale con la chiave anon e una sessione utente vera, non
+     * dedotto dalla doc). Su riga nuova le colonne assenti prendono i loro
+     * DEFAULT ('{}', '[]', 0).
+     *
+     * Ritorna { success, error }: l'errore NON viene loggato e basta, viene
+     * restituito al chiamante, che ha l'obbligo di mostrarlo. Un fallimento di
+     * salvataggio del seme deve essere visibile all'utente, mai silenzioso —
+     * il seme pesa +0.3 per categoria in computeWeights, e' meta' del DNA.
+     *
+     * La LETTURA non ha una funzione propria: getUserPreferences() qui sopra
+     * fa gia' select('*') e quindi porta onboarding_seed senza costi, ed e'
+     * gia' chiamata una volta sola al mount da useAILearning. Una
+     * getOnboardingSeed() dedicata sarebbe un secondo round-trip per un dato
+     * che e' gia' sul filo.
+     *
+     * @param {string} userId
+     * @param {string[]} seed - array di id CORE; [] = skip esplicito
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async upsertOnboardingSeed(userId, seed) {
+        if (!userId) return { success: false, error: 'No user ID' };
+        try {
+            const { error } = await supabase
+                .from('user_preferences')
+                .upsert({ user_id: userId, onboarding_seed: seed }, { onConflict: 'user_id' });
+            if (error) return { success: false, error: error.message };
+            return { success: true };
+        } catch (err) {
+            return { success: false, error: err.message };
+        }
+    }
+
     // ─── REVIEWS ────────────────────────────────────────────────────────────────
 
     async getReviewsByGuide(guideId) {

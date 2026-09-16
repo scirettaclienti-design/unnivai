@@ -82,6 +82,15 @@ export const AuthProvider = ({ children }) => {
             // condiviso il prossimo utente ereditava grafo e gusti del precedente.
             'unnivai_ai_learning_brain_v2',
             // Gate SEME (L1): seme onboarding, user-derived → va pulito al logout.
+            // Gate SEME (L2): la riga resta, e ora non e' piu' distruttiva. Qui
+            // si cancella SOLO la cache locale: la fonte di verita' e'
+            // user_preferences.onboarding_seed sul server, che il logout non
+            // tocca e che useAILearning rilegge al primo mount autenticato.
+            // Prima di L2 questa era l'UNICA copia esistente del seme, quindi il
+            // logout lo distruggeva per sempre — la pulizia era comunque giusta
+            // (su device condiviso il prossimo utente erediterebbe i gusti del
+            // precedente), il difetto stava a monte: non c'era nessun altro
+            // posto dove il seme vivesse.
             'unnivai_onboarding_seed_v1',
             'dvai_gps_data',
             'dvai_onboarding_done',

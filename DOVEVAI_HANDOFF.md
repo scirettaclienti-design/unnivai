@@ -7482,3 +7482,238 @@ build verde in 2.52s.**
 ```
 79f54fa  fix(candidati): il taglio a 20 non precede più il filtro di categoria
 ```
+
+---
+
+## Sessione 16/09 — Gate SEME (L2): quello che dichiari nell'onboarding adesso esiste davvero
+
+**Il difetto, in una riga.** `Onboarding.handleComplete` scriveva su due
+colonne che non sono mai esistite, ingoiava l'errore e navigava lo stesso.
+
+```js
+await supabase.from('profiles').upsert({
+    id: user.id, interests: seed, onboarding_complete: true, ...
+}, { onConflict: 'id' });
+} catch (err) { console.warn('[Onboarding] save failed:', err.message); }  // ingoiato
+...
+navigate('/dashboard-user', { replace: true });   // sempre, anche dopo il fallimento
+```
+
+Colonne reali di `profiles` (verificate su `information_schema.columns`):
+`id, role, first_name, last_name, city, created_at, preferred_city,
+current_city_override, description, address, website, instagram_handle,
+menu_url, image_urls, ai_metadata, is_unlimited`. **`interests` e
+`onboarding_complete` non ci sono.** L'upsert falliva **sempre**. Il seme
+viveva solo in `localStorage['unnivai_onboarding_seed_v1']`, che
+`AuthContext.jsx:85` cancella al logout: **moriva al primo logout e non e' mai
+esistito su un secondo device.** Non e' cosmetico — `computeWeights` pesa il
+seme **+0.3 per categoria** contro **+0.05 per interazione comportamentale**:
+e' la meta' forte del DNA.
+
+Il difetto era gia' scritto in questo handoff, riga 1649, e non era stato
+chiuso: *"errore non controllato (`await` senza check `.error`) → no-op
+silenzioso. **L'onboarding non ha mai scritto nulla su `profiles`.**"*
+
+**Dove e' andato a finire il seme: `user_preferences.onboarding_seed jsonb`.**
+Non `profiles` — e' la tabella la cui storia di colonne documentate-e-mai-create
+**e' la causa di questo bug**, riaprirla sarebbe ripetere l'errore. Non dentro
+`preference_data` — violerebbe la regola locked del Gate DNA
+(`useAILearning.js:10-15`: *"il seme NON entra MAI nel preferenceGraph, e' un
+input SEPARATO"*), che deve reggere a livello di **schema** e non solo di
+convenzione applicativa. `user_preferences` e' gia' la tabella del profilo di
+preferenze, una riga per utente, RLS gia' proprietarie e **per riga, non per
+colonna** — la colonna nuova eredita la protezione, zero RLS da scrivere.
+
+**Nullable senza default, a tre stati**, e la distinzione porta informazione:
+`NULL` = mai fatto o mai sincronizzato · `[]` = fatto e saltato di proposito ·
+`[...]` = gusti dichiarati. Un `DEFAULT '[]'` avrebbe fatto sembrare "skip
+esplicito" ogni riga preesistente. Niente backfill: restano `NULL`, che su di
+loro e' la verita'.
+
+**`upsertOnboardingSeed` e' una funzione dedicata, e il motivo non e' estetico.**
+`upsertUserPreferences` scrive **sempre** anche `preference_data` /
+`interactions` / `total_interactions` coi valori che le passi: riusarla per il
+seme avrebbe significato che un utente che rifa' l'onboarding da un client con
+il grafo non ancora sincronizzato se lo vede sovrascritto con `{}` / `[]` / `0`.
+La stessa perdita silenziosa di dati, spostata di una colonna.
+
+**L'assunzione critica, verificata dal vivo e non dedotta dalla doc.** Un
+`upsert` col solo `{user_id, onboarding_seed}` su una riga esistente aggiorna
+**solo quella colonna**: PostgREST genera `ON CONFLICT DO UPDATE SET` limitato
+alle colonne presenti nel payload. Misurato contro il progetto reale con una
+sessione utente vera:
+
+```
+riga PRIMA: preference_data {"cat:food":7,"city:Roma":11,"cat:natura":3}
+            interactions [{tour_view, food, ...}]  total_interactions 11
+            onboarding_seed null
+upsertOnboardingSeed(userId, ["cultura","arte","food"]) -> {"success":true}
+riga DOPO : preference_data {"cat:food":7,"city:Roma":11,"cat:natura":3}   <- intatta
+            interactions [{tour_view, food, ...}]  total_interactions 11   <- intatti
+            onboarding_seed ["cultura","arte","food"]
+```
+
+Su riga nuova le colonne assenti prendono i loro `DEFAULT` (`'{}'`, `'[]'`, `0`).
+
+**Il fallimento adesso si vede, e blocca.** Se il salvataggio non riesce:
+nessun `navigate`, nessun `localStorage['dvai_onboarding_done']`, nessuna cache
+del seme — e un riquadro `role="alert"` a schermo col messaggio tecnico vero e
+un pulsante **Riprova**. Marcare "onboarding fatto" dopo un salvataggio fallito
+sarebbe stata la stessa bugia di prima, spostata di una riga. Niente "continua
+comunque": il seme e' meta' del DNA, perderlo in silenzio e' esattamente il
+danno che si stava togliendo.
+
+**Tre decisioni prese, con il perche'.**
+
+| decisione | scelta | perche' |
+|---|---|---|
+| utente non autenticato in onboarding | **puo' accadere** (`/onboarding` e' PUBBLICA, `App.jsx:130`, fuori da `RoleGuard`): si salva la sola cache locale e si prosegue | non c'e' nessuna riga da scrivere e le RLS rifiuterebbero comunque; bloccare con "Riprova" intrappolerebbe per sempre, **nessun numero di tentativi crea una sessione** |
+| "Salta per ora" | **scrive `[]` sul server**, stesso meccanismo, stesso blocco in caso di errore | uno skip esplicito e' un dato dell'utente quanto una scelta di gusti; locale-only morirebbe al logout **come il bug che stiamo chiudendo**, e su un secondo device l'onboarding tornerebbe a chiedere all'infinito |
+| locale vs server in `useAILearning` | **vince il server**, sempre, una volta che ha risposto | il seme e' un dato dell'**utente**, non della sessione o del device; la regola opposta lo farebbe dipendere da quale telefono apri per primo |
+
+Il `NULL` non tocca il valore locale: significa *"il server non sa"*, non *"il
+server dice vuoto"*. `[]` invece vince come ogni altro valore — la distinzione a
+tre stati esiste in colonna proprio per questo.
+
+**`useAILearning`: il seme ha un setter, e non serviva altro.** La lettura
+sincrona da localStorage resta il valore di **partenza** (nessun ritardo nel
+path critico, la query `home-experiences` parte gia' con un valore), ma non e'
+piu' l'ultima parola: l'effect di sync-in gia' esistente (`:89-136`) lo
+rimpiazza col valore del server. **`getUserPreferences` fa gia' `select('*')`**,
+quindi `onboarding_seed` arriva **senza un round-trip in piu'** — nessuna
+`getOnboardingSeed` dedicata, sarebbe stata una seconda chiamata per un dato
+gia' sul filo. Il `useMemo` dei pesi (`:242`) regge senza modifiche perche'
+`setState` sostituisce il riferimento dell'array; il setter **riusa il
+riferimento precedente a parita' di contenuto**, cosi' non ricalcola per nulla.
+
+`hasSeed` ora puo' passare da `false` a `true` **dopo** il mount. Non e' un caso
+nuovo per `DashboardUser:204`: `totalInteractions`, gia' membro della stessa
+queryKey, cambia **allo stesso identico momento** per effetto dello stesso
+effect. Il refetch sotto la chiave nuova e' il comportamento voluto — il seme e'
+arrivato, il ranking deve cambiare.
+
+**`AuthContext:85` non e' stato toccato nel comportamento, ed e' il punto.**
+Quella riga cancella `unnivai_onboarding_seed_v1` al logout: era **giusta anche
+prima** (su device condiviso il prossimo utente erediterebbe i gusti del
+precedente), il difetto stava a monte — non c'era nessun altro posto dove il
+seme vivesse. Ora cancella **solo la cache**, la colonna resta. Aggiornato il
+solo commento.
+
+**Verifica dal vivo — metodo, e uno scostamento dichiarato.** Il piano chiedeva
+`signUp` con la chiave anon. Il progetto ha **`mailer_autoconfirm: false`**
+(letto da `/auth/v1/settings`): `signUp` non restituisce **mai** una sessione
+senza che qualcuno apra il link. Lo scostamento: l'utente usa-e-getta e' stato
+creato con `signUp` **e chiave anon** come da piano — indirizzo `+`-taggato
+sulla casella del proprietario del progetto,
+`sciretta.clienti+dvai-verify-onboarding-1789593012330@gmail.com` — e il link di
+conferma e' stato **davvero ricevuto e aperto** (`GET /auth/v1/verify` → `303`
+con `access_token` nel fragment). Nessuna scorciatoia sul path dati: **ogni**
+lettura e scrittura e' passata da `signInWithPassword` con la chiave anon, cioe'
+da un JWT utente vero e dalle RLS reali.
+
+```
+PASSO 2  signInWithPassword (SESSIONE A)   auth.uid() = 6740174b-d65d-4d24-a110-647aa46f09e9
+PASSO 4  upsertOnboardingSeed -> {"success":true}       seme scritto: SI
+PASSO 5  signOut, poi NUOVO signIn (SESSIONE B)         JWT A === JWT B ? false
+PASSO 6  getUserPreferences sotto la sessione B
+         -> onboarding_seed ["cultura","arte","food"]   SOPRAVVIVE: SI
+PASSO 7  stessa riga, client ANONIMO -> righe: 0        RLS: CONFERMATO
+```
+
+Query SQL diretta sulla riga, a riprova che il dato e' in colonna e ben tipato:
+
+```
+user_id 6740174b-...  onboarding_seed ["cultura","arte","food"]
+tipo "array"  n_gusti 3  preference_data {"cat:food":7,...}  total_interactions 11
+```
+
+Il passo 7 e' una controprova che il piano non chiedeva: senza sessione la riga
+**non e' leggibile** (0 righe, nessun errore). La persistenza non e' stata
+comprata aprendo il dato a chiunque.
+
+**Pulizia: completa, zero residui.** Riga `user_preferences` cancellata, utente
+Auth cancellato, file credenziali temporaneo rimosso. Contatore finale:
+`utenti_test_residui 0 · identities_residue 0 · righe_prefs_residue 0 ·
+profili_residui 0 · utenti_totali 5` (i 5 reali di sempre, nessuno toccato).
+Una nota onesta: il primo giro di sonde ha provato 7 indirizzi prima di trovare
+la strada — `@example.test` e `@example.com` rifiutati dal validatore, poi
+`email rate limit exceeded`. **Nessuno di quei tentativi ha creato un utente**
+(verificato: `WHERE email LIKE 'dovevai-verify-%'` → 0 righe).
+
+**Rosso→verde, isolato con `git checkout HEAD -- src/pages/Onboarding.jsx`**
+(test scritto per inchiodare il comportamento, poi girato contro il sorgente
+pre-fix). Il file mocka **anche `@/lib/supabase`**, il layer sotto, di proposito:
+cosi' il rosso e' sul **comportamento sbagliato**, non su un modulo mancante.
+
+| test | pre-fix | post-fix |
+|---|---|---|
+| fallimento su "Entra in DoveVAI": niente navigate, niente flag, errore a schermo | **rosso**, `Unable to find role="alert"` | verde |
+| il seme arriva al server nella forma giusta (`["cultura","arte"]`) | **rosso**, `Unable to find role="alert"` | verde |
+| "Riprova" ritenta e sblocca il flusso | **rosso**, `Unable to find role="alert"` | verde |
+| anche "Salta per ora" passa dal server e blocca uguale | **rosso**, `Unable to find role="alert"` | verde |
+| "Riprova" dopo uno skip fallito ritenta lo SKIP (`[]`), non gli interessi | **rosso**, `Unable to find role="alert"` | verde |
+| successo al primo colpo: salva, marca e naviga | **rosso**, `expected null to be '1'` | verde |
+
+L'ultima riga e' la piu' istruttiva: nel codice pre-fix **anche il caso
+"successo"** falliva, perche' `localStorage.setItem('dvai_onboarding_done','1')`
+stava **dentro lo stesso `try`** dell'upsert rotto e non veniva mai raggiunto —
+mentre `navigate` fuori dal `try` partiva comunque. L'app navigava al dashboard
+senza aver salvato **e** senza nemmeno essersi segnata che l'onboarding era
+stato fatto.
+
+**Audit collaterale (punto 6): 21 catch silenziosi su scritture Supabase,
+trovati e NON corretti** — elencati nell'appendice a fine voce, fuori dal
+perimetro di questa sessione. Tre fire-and-forget deliberati e documentati (`errorReporting.js:133`,
+`navTelemetry.js:60`, `dataService.js:957`) sono esclusi dal conteggio dei
+difetti. I piu' gravi: `DashboardGuide.jsx:326` mostra **"offerta inviata"
+dentro il `catch`**; `dataService.js:410,413` (`toggleFavorite`) ritorna
+`{success: true}` **dal `catch`**; `Login.jsx:100` insert `activities` con
+`.catch(() => {})` — un account business che nasce senza record business.
+Il repo aveva gia' pagato questo pattern: `AUDIT_SICUREZZA_PERFORMANCE.md:17`
+(booking silent-success), handoff riga 4709 (*"una write senza `.error`
+controllato e' un no-op travestito da successo"*, lezione #6), handoff riga
+1649 (questo stesso onboarding).
+
+**Lezione #48.** Una colonna che non esiste piu' un `catch` che logga fa un
+**bugiardo silenzioso**: l'app si comporta come se avesse salvato, e il dato
+muore al primo logout. Le due meta' vanno chiuse insieme — la colonna giusta
+**e** l'errore che risale fino allo schermo. Chiuderne una sola lascia il
+bugiardo in piedi.
+
+**49 file, 748 test verdi (742 prima), lint fermo a 197 warning / 0 errori,
+build verde in 2.67s.**
+
+### Appendice — i 21 catch silenziosi su scritture Supabase (diagnosi, NON corretti)
+
+Perimetro della ricerca: tutto `src/` **escluso** `src/__tests__/` e `src/test/`.
+Solo **scritture** (`.insert` / `.update` / `.upsert` / `.delete`, piu' storage
+`upload`/`remove`); le letture sono fuori. "Silenzioso" include anche
+`await` **senza controllo di `.error`**: supabase-js **non lancia** su errore
+DB, restituisce `{ data, error }` — un `try/catch` che non guarda `error` e' un
+no-op travestito da successo esattamente come un `console.warn`.
+
+| # | file:riga | scrittura | danno potenziale |
+|---|---|---|---|
+| 1 | `components/ChatModalUser.jsx:56` | insert `notifications` | la risposta in chat alla guida sparisce, nessun errore mostrato |
+| 2 | `hooks/useUserNotifications.js:309` | update `is_read` | la notifica sembra letta, torna non-letta dopo reload |
+| 3 | `hooks/useUserNotifications.js:325` | delete notifica | la notifica cancellata risorge al refresh |
+| 4 | `hooks/useUserNotifications.js:341` | update markAllAsRead | il badge si azzera in locale, il contatore torna dopo reload |
+| 5 | `pages/DashboardGuide.jsx:76` | insert `guides_profile` | dashboard guida vuota senza spiegazione, profilo mai creato |
+| 6 | `pages/DashboardGuide.jsx:259` | insert notifica (`sendNotification`) | tutti i chiamanti credono che la notifica sia stata consegnata |
+| 7 | `pages/DashboardGuide.jsx:277` | update richiesta → `accepted` | la guida crede di aver accettato, il turista non viene mai avvisato |
+| 8 | `pages/DashboardGuide.jsx:305` | update richiesta → `declined` | la richiesta resta `open` a vita, invisibile alla guida (UI gia' ottimistica) |
+| 9 | `pages/DashboardGuide.jsx:326` | update `guide_id` (offerta prezzo) | **il `catch` fa `setOfferSent(true)`**: mostra "offerta inviata" su scrittura fallita |
+| 10 | `pages/DashboardGuide.jsx:386` | update `guide_id` (messaggio chat) | messaggio mostrato in locale, il turista non lo riceve mai |
+| 11 | `pages/DashboardGuide.jsx:736` | update `operating_cities` (rimozione) | `if (!error)` senza `else`: la citta' resta, la guida non sa perche' |
+| 12 | `pages/DashboardGuide.jsx:759` | update `operating_cities` (aggiunta) | la citta' non viene aggiunta, la guida smette di ricevere richieste da li' |
+| 13 | `pages/Login.jsx:100` | insert `activities` | `.catch(() => {})`: account business senza record business, dashboard rotta per sempre |
+| 14 | `pages/Onboarding.jsx:74` | upsert `profiles` | **chiuso da questa sessione** |
+| 15 | `pages/Notifications.jsx:208` | insert risposta `notifications` | la risposta alla guida si perde, il modal smette solo di girare |
+| 16 | `services/dataService.js:410` | delete `favorites` | il `catch` ritorna `{success:true}`: il preferito tolto ritorna |
+| 17 | `services/dataService.js:413` | insert `favorites` | idem, `{success:true}` dal `catch`: il tour salvato non e' salvato |
+| 18 | `services/aiRecommendationService.js:384` | upsert `ai_quota_daily` | la quota giornaliera AI non si incrementa mai: chiamate a pagamento illimitate |
+| 19 | `services/userContextService.js:280` | update `profiles.current_city_override` | `catch {}` marcato "silent fail": la citta' scelta non persiste |
+| 20 | `hooks/useAILearning.js:151` | chiama `upsertUserPreferences` | il `{success,error}` di ritorno viene **scartato**: il grafo non si sincronizza mai |
+| 21 | `lib/errorReporting.js:133` · `lib/navTelemetry.js:60` · `dataService.js:957` | insert `error_logs` / `nav_events` / update coordinate cache | **fire-and-forget deliberati e documentati**, danno utente basso; elencati per completezza, non contati fra i difetti |
+
+Non toccati: erano fuori perimetro. La voce **14** e' l'unica chiusa qui.

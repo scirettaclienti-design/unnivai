@@ -157,6 +157,33 @@ describe('Gate MERITO — pesi DNA diversi non condividono la cache', () => {
     });
 });
 
+describe('Gate MERITO — la categoria richiesta resta un vincolo di codice, non un punteggio', () => {
+    it('intent "cibo" + dnaWeights fortissimi su natura: il parco non arriva mai al selettore', async () => {
+        // candidateMatchesIntentCategoria (invariato da questo Gate) scarta il
+        // parco PRIMA che selectScoredCandidatePool veda il pool: nessun
+        // punteggio, per quanto favorevole, puo' far rientrare una tappa fuori
+        // categoria. Qui il parco avrebbe voto/recensioni ottimi e affinita'
+        // DNA massima (natura:1) — se la categoria non fosse un vincolo di
+        // codice ma solo un fattore di punteggio, batterebbe facilmente la
+        // trattoria (food:0 nello stesso dnaWeights).
+        const trattoria = place({ id: 'pid-trattoria', name: 'Trattoria Sarda', km: 0.5, types: ['restaurant', 'food'], rating: 4.3, reviews: 50 });
+        const parco = place({ id: 'pid-parco', name: 'Parco del Sinis', km: 0.5, types: ['park', 'natural_feature'], rating: 4.9, reviews: 800 });
+
+        const { fn, stato } = routeFetch({
+            perQuery: { ristoranti: [trattoria, parco] },
+            intent: INTENT_CIBO,
+            selectorPayload: { days: [{ day: 1, stops: [{ place_id: 'pid-trattoria', description: 'x' }] }] },
+        });
+        vi.stubGlobal('fetch', fn);
+
+        await aiRecommendationService.generateItinerary('Cabras', {}, 'un ristorante buono', {}, '', CABRAS, { dnaWeights: { natura: 1, food: 0 } });
+
+        const body = stato.selectorBodies[0];
+        expect(body).toContain('Trattoria Sarda');
+        expect(body).not.toContain('Parco del Sinis');
+    });
+});
+
 describe('Gate MERITO — varieta: niente 3 tappe consecutive dello stesso tipo', () => {
     it('un\'ordinazione con 3 ristoranti di fila viene riordinata prima di tornare', async () => {
         const r1 = place({ id: 'pid-r1', name: 'Ristorante Uno', km: 0.3, types: ['restaurant'], rating: 4.5, reviews: 50 });

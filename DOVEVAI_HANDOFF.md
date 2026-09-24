@@ -7900,3 +7900,21 @@ Suite ora 775/775.
 Segnalato all'utente in chat, non dato per scontato che il metodo del
 sub-agente andasse bene — stessa regola gia' scritta in `RIPARTENZA_17-09.md`
 punto 2.
+
+---
+
+**Stato verificato, 24/09 — due gate chiusi.**
+
+- **Gate MERITO** (`c1bf7c6`, `f20f1cf`, CI verde:
+  https://github.com/scirettaclienti-design/unnivai/actions/runs/36020027302):
+  il pool di candidati offerto al selettore AI non favorisce piu' i posti con
+  piu' recensioni — sopra soglia qualita', a scegliere sono affinita' DNA,
+  unicita' e voto.
+
+- **Taglio a monte in `discoverRealPOIs`** (`e157fe8`, CI verde:
+  https://github.com/scirettaclienti-design/unnivai/actions/runs/36021527980):
+  un posto valido con poche recensioni non viene piu' scartato dal taglio a
+  12 candidati per query prima ancora di arrivare al Gate MERITO. Misurato:
+  su 14 candidati borgo/CULTURA tutti sopra soglia, una gemma (voto 4.9, 8
+  recensioni) restava esclusa se il taglio ordinava per qualityScore, ed e'
+  presente se il taglio rispetta l'ordine originale di Google.

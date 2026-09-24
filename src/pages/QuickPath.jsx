@@ -665,7 +665,9 @@ export default function QuickPathPage() {
                     : selectedDuration?.id === 'lungo' ? 300
                     : 180, // medio
                 price_eur: 0,
-                rating: 5.0,
+                // Gate PULIZIA (24/09): via `rating: 5.0` fisso. Un tour AI non
+                // ha recensioni: un voto sempre a 5 non era un default onesto,
+                // era un'invenzione permanente. Nessun rating qui.
                 stops: rawStops,
                 isAiGenerated: true,
                 tags: ['AI', group?.title, 'QuickPath',

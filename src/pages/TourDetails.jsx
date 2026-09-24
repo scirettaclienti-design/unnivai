@@ -886,13 +886,21 @@ export default function TourDetailsPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-bold text-lg text-obsidian-primary">{tour.guide}</h4>
-                                    <div className="flex items-center space-x-3 mb-3">
-                                        <div className="flex items-center">
-                                            <Star className="w-4 h-4 text-obsidian-secondary fill-current mr-1" />
-                                            <span className="font-bold text-obsidian-primary text-sm">{guideRating.count > 0 ? guideRating.avg : (tour.rating || '—')}</span>
-                                            <span className="text-xs text-obsidian-secondary ml-1">({guideRating.count > 0 ? guideRating.count : (tour.reviews || 0)} recensioni)</span>
+                                    {/* Gate PULIZIA (24/09) — stesso schema di GuideProfileModal
+                                        qui sotto: solo su recensioni VERE. Prima ripiegava su
+                                        `tour.rating || '—'` e `tour.reviews || 0` — un trattino
+                                        e uno zero spacciati per dati, quando `tours` non ha
+                                        nemmeno una colonna `rating` (CLAUDE.md). Una guida senza
+                                        recensioni non ha un rating: il blocco non si monta. */}
+                                    {guideRating.count > 0 && (
+                                        <div className="flex items-center space-x-3 mb-3">
+                                            <div className="flex items-center">
+                                                <Star className="w-4 h-4 text-obsidian-secondary fill-current mr-1" />
+                                                <span className="font-bold text-obsidian-primary text-sm">{guideRating.avg}</span>
+                                                <span className="text-xs text-obsidian-secondary ml-1">({guideRating.count} recensioni)</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                     {tour.guideBio && (
                                         <p className="text-obsidian-secondary text-sm leading-relaxed">{tour.guideBio}</p>
                                     )}

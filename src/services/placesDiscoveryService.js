@@ -199,8 +199,7 @@ Formato JSON richiesto:
       "description": "Descrizione specifica e interessante (max 120 caratteri)",
       "latitude": 41.xxxx,
       "longitude": 15.xxxx,
-      "type": "church|piazza|monument|restaurant|park|museum|palazzo|viewpoint",
-      "rating": 4.5
+      "type": "church|piazza|monument|restaurant|park|museum|palazzo|viewpoint"
     }
   ]
 }`;
@@ -243,10 +242,17 @@ Formato JSON richiesto:
         // quando il dato non c'era, e finiva a schermo come un rating qualunque
         // (Explore/DashboardUser leggono `s.rating` e mostrano il numero).
         // Null: chi rende gia' filtra sui finiti > 0 e semplicemente non lo mostra.
-        // NB: questo ramo e' il motore legacy AI-first; anche `p.rating`, quando
-        // c'e', e' un numero prodotto dal modello, non da Google. Fuori perimetro
-        // di questo fix, ma e' la stessa famiglia di problema.
-        rating: typeof p.rating === 'number' ? p.rating : null,
+        //
+        // Gate PULIZIA (24/09): rimosso anche `typeof p.rating === 'number' ?
+        // p.rating : null`. Questo ramo e' il motore legacy AI-first: il
+        // "rating" nel JSON che il modello restituisce non e' mai un dato
+        // Google, e' un numero scritto dal modello — che puo' benissimo essere
+        // il 4.5 dell'esempio few-shot del prompt (rimosso qui sopra, ma un
+        // guard lato codice non deve dipendere dal prompt per essere corretto).
+        // Un number valido passava il vecchio guard senza che nulla lo
+        // distinguesse da un voto vero. Ora e' sempre null: questo ramo non ha
+        // MAI una fonte verificata di rating.
+        rating: null,
         city: cityName,
         image: null,
       }));

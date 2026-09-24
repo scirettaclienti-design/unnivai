@@ -284,7 +284,9 @@ export default function SurpriseTourPage() {
                 city: city || 'Roma',
                 duration_minutes: 180,
                 price_eur: 0,
-                rating: 5.0,
+                // Gate PULIZIA (24/09): via `rating: 5.0` fisso, stesso difetto
+                // di QuickPath.jsx. Un tour a sorpresa generato ora non ha
+                // nessun rating.
                 image: cover, // cover esplicito → vince sul calcolo del normalizer
                 isAiGenerated: true,
                 tags: ['Sorpresa', selectedFilter || 'Mix'],

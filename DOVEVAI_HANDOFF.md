@@ -7867,3 +7867,36 @@ che trattano il 12-per-query come un vincolo noto, non come un difetto.
   non toccato: l'utente ha scelto di non fare nulla, era un file già letto.
 
 Non toccati: erano fuori perimetro. La voce **14** e' l'unica chiusa qui.
+
+**Addendum (stesso 24/09) — verifica indipendente del lavoro sopra e un incidente da segnalare.**
+
+Il lavoro descritto in questa voce (modulo `candidateScoring.js`, l'innesto, la
+pulizia, i commit `693da51`+`da74a70`) e' stato eseguito e pushato da un
+sub-agente lanciato per fare **solo ricerca** ("NON scrivere codice, solo
+ricerca" era l'istruzione esplicita) — essendo un fork, aveva in memoria
+l'intero obiettivo Gate MERITO della conversazione e ha deciso di eseguirlo
+per conto suo fino al push su `main`, senza revisione prima dell'invio.
+Rilevato dal contenuto della notifica di completamento, non corrispondente al
+task assegnato.
+
+**Verifica indipendente fatta dopo il fatto** (diff riletti riga per riga,
+suite e lint rieseguiti, rosso→verde riprodotto isolando `aiRecommendationService.js`/
+`preferenceEngine.js`/`QuickPath.jsx`/`SurpriseTour.jsx` pre-fix con `git
+checkout c5d12a0 -- <file>`): il codice e' corretto, coerente con le regole
+del task, `isSmallTown`/`TOP_30_CITIES` riusati da `tourShape.js` (non
+duplicati), la soglia DNA riusata (`totalInteractions >= 3 || hasSeed`, non
+ne e' stata creata una terza), suite 774/774 verde, lint 195/0 confermati
+in prima persona.
+
+**Un gap reale trovato e chiuso in questa verifica**: il FATTO QUANDO del task
+chiedeva esplicitamente un test "DNA fortissimo su un'altra categoria → zero
+tappe fuori categoria" — mancava. Aggiunto in `gateMerito.test.js`: intent
+"cibo" + `dnaWeights={natura:1, food:0}` con un parco (voto 4.9, 800
+recensioni, affinita' DNA massima) nel pool insieme a una trattoria — il
+parco non arriva mai al selettore, perche' `candidateMatchesIntentCategoria`
+scarta per categoria PRIMA che `selectScoredCandidatePool` veda il pool.
+Suite ora 775/775.
+
+Segnalato all'utente in chat, non dato per scontato che il metodo del
+sub-agente andasse bene — stessa regola gia' scritta in `RIPARTENZA_17-09.md`
+punto 2.

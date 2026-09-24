@@ -7716,4 +7716,154 @@ no-op travestito da successo esattamente come un `console.warn`.
 | 20 | `hooks/useAILearning.js:151` | chiama `upsertUserPreferences` | il `{success,error}` di ritorno viene **scartato**: il grafo non si sincronizza mai |
 | 21 | `lib/errorReporting.js:133` · `lib/navTelemetry.js:60` · `dataService.js:957` | insert `error_logs` / `nav_events` / update coordinate cache | **fire-and-forget deliberati e documentati**, danno utente basso; elencati per completezza, non contati fra i difetti |
 
+## Sessione 24/09 — Gate MERITO: le tappe non si scelgono più per numero di recensioni
+
+**Il difetto, in una riga.** Il pool offerto al selettore AI era ordinato per
+`qualityScore = rating * ln(1+recensioni)`: un locale con 4.6 stelle e 180
+recensioni perdeva sempre contro una catena da 4.4 e 5.000, a parità o
+vantaggio di voto. Le recensioni pesavano come **merito**, non solo come prova
+che il posto esiste.
+
+**Decisione presa (non discussa, gia' arrivata scritta dall'utente):**
+recensioni → **filtro di qualità** (voto ≥4.2 e ≥20 recensioni; 4.0/10 fuori
+da `TOP_30_CITIES`, riusata da `tourShape.js`, non duplicata). Sopra soglia,
+punteggio `0.45×affinità DNA + 0.35×unicità + 0.20×voto` — mai il numero di
+recensioni. Costanti dichiarate provvisorie nel codice, da tarare dopo il
+lancio con dati reali (nessuno ne ha oggi).
+
+**Nuovo modulo `src/services/candidateScoring.js`** (puro, testato isolato):
+- `passesQualityThreshold` — la soglia, dipende da `isSmallTown(city)`.
+- Vocabolario Places→CORE_CATEGORIES **nuovo e separato** da
+  `normalizeCategory`/`CATEGORY_ALIASES` di `preferenceEngine.js`: quello resta
+  intoccato — è il cancello di SCRITTURA del preference graph, allargarlo in
+  passato costò un reset del database (regola locked, ribadita dal task).
+  Questo mapper è di sola lettura, usato solo per calcolare l'affinità di un
+  candidato, mai per scrivere nel grafo.
+- `computeAffinityScore` — 0 se il candidato non matcha nessuna CORE_CATEGORY
+  o se `dnaWeights` è vuoto: un utente nuovo senza seme non ha bisogno di un
+  caso speciale, il termine si azzera da solo (regola UTENTE NUOVO — vedi
+  sotto per la soglia che decide quando `dnaWeights` è vuoto per design).
+- `identifyIcons` — "icona" = recensioni **stretamente sopra** il valore alla
+  soglia del decimo superiore del pool, non posizionalmente i primi N per
+  ordine di sort. Necessario: con un pool uniforme (es. 20 candidati identici
+  per voto/recensioni), la versione posizionale marcava 1-2 icone per un
+  pareggio di sort, e il tetto-icone ne buttava via una a caso senza motivo —
+  misurato rifacendo verde `gateIntentLogs.test.js` (vedi sotto).
+- `computeUniquenessScore` — normalizzazione min-max su `ln(1+recensioni)`
+  **dentro il pool corrente** (non una scala assoluta), più penalità 0.5× se
+  lo stesso nome compare più volte nel pool. Dichiarata approssimazione: una
+  vera detection di catena cross-città richiederebbe uno storico che oggi non
+  esiste, e non è stata simulata.
+- `selectScoredCandidatePool` — sostituisce, nel chiamante, il vecchio
+  `.sort(qualityScore).slice(0,20)`: filtra soglia → punteggio → **tetto 1
+  icona applicato PRIMA che il pool arrivi al selettore** (se il pool offerto
+  contiene al massimo un'icona, nessuna scelta a valle — umana o del modello —
+  può produrne un tour con più di una: la garanzia sta nel pool) → ordina →
+  taglia a 20.
+- `enforceCategoryVariety` — riordino a costo minimo (uno scambio) sulle
+  tappe finali già ordinate per prossimità, se 3 consecutive condividono
+  `.type`. Se tutte le tappe restanti condividono il tipo, dichiarato: non fa
+  niente, non c'è nulla con cui scambiare.
+
+**Innestato in `aiRecommendationService.js`:** il vecchio blocco "Gate
+TAGLIO-DOPO-CATEGORIA" (13/09) è sostituito da una chiamata a
+`selectScoredCandidatePool` nello stesso punto (dopo raggio+categoria, che
+restano vincoli di codice invariati — questo modulo non li tocca né li
+bypassa). `enforceCategoryVariety` applicato dopo `sortByProximity`, prima di
+`computeStopTimings` (le stime di durata devono vedere l'ordine finale).
+Cache (`insiderCacheKey`): aggiunta l'impronta dei pesi DNA
+(`weightsFingerprint`, nuova funzione) — **non** basta `aiProfile` testuale,
+che mostra solo le top-3 categorie sopra il 20% arrotondate: due vettori di
+pesi diversi possono produrre la stessa stringa pur pesando l'affinità in modo
+diverso. Prefix cache bumpato a `unnivai_insiderf9_merito_` (i tour vecchi
+riflettono un pool scelto con un criterio diverso).
+
+**Trovato mappando il codice per questo task, fuori dal perimetro dichiarato,
+corretto perché altrimenti la formula sarebbe inerte per il flusso più usato:**
+`QuickPath.jsx` leggeva `getAIContext` come variabile mai destrutturata
+dall'hook (`const { trackGeneratedTour } = useAILearning()`). `typeof
+getAIContext === 'function'` su un identificatore inesistente **non lancia**
+(comportamento speciale di `typeof`): tornava silenziosamente `false`, e
+`aiProfile` era **sempre `''`** per il wizard Percorso Veloce. Il DNA non ha
+mai raggiunto il selettore da quel flusso. Corretto: `getAIContext, weights,
+totalInteractions, hasSeed` ora destrutturati, `aiProfile = getAIContext?.()
+|| ''`, `dnaWeights` passato via `opts` solo se `totalInteractions >= 3 ||
+hasSeed` (stessa soglia di `DashboardUser.jsx:182`, non ne è stata creata una
+terza — era una delle due domande poste dal task, e la risposta è: resta
+quella, l'altra — `Profile.jsx:20`, `>=12 categorizzate` — è solo per la UI
+"DNA in formazione", non governa nessun ranking).
+
+**Pulizia (item 8 del task):**
+- `DashboardUser.jsx:50-87` — `rankByPreferences`/`getAffinityScore` rimossi
+  integralmente: grep su tutto `src/` non trovava altre chiamate oltre alla
+  definizione. Il ranking vero dei tour reali (righe 213-219 dello stesso
+  file) passa da `getTourAffinity` dell'hook, mai da queste due funzioni morte.
+- `SurpriseTour.jsx` — rimosse dallo `userPrompt` le righe "Dati Storici
+  Inconsci Utente"/"Interessi storici calcolati" (il DNA iniettato nella
+  frase, invece che nel parametro `aiProfile` — lo stesso anti-pattern che il
+  Gate INTENT F65 aveva già chiuso altrove). Restava "Categoria di oggi", una
+  scelta esplicita cliccata dall'utente, non un'inferenza dal grafo: quella
+  resta. `aiProfile` ora arriva da `getAIContext()` (prima era `''`
+  hardcoded), `dnaWeights` con la stessa soglia di cui sopra.
+- `AiItinerary.jsx` — già passava `aiProfile` correttamente; aggiunto solo
+  `dnaWeights` via `opts` sulla chiamata principale. Il `regenerateDay` più
+  sotto nello stesso file passa ancora `''` hardcoded come `aiProfile`: NON
+  toccato, fuori dal perimetro dichiarato (rigenera un giorno con un tour già
+  esistente, non il flusso di generazione principale) — segnalato, non chiuso.
+- `preferenceEngine.js:weightsToAIProfile` — rimossa la clausola `Evita se
+  possibile: <categorie deboli>` (regola 6 del task: nessuna frase negativa
+  sotto soglia). Aggiornato `intentPulito.test.js`, che asseriva quella frase
+  come comportamento intenzionale (era il difetto F65 storico: quella stessa
+  frase, iniettata nello userPrompt, deviava il traduttore d'intento).
+
+**Trovato, NON corretto — segnalato, fuori scope:** `discoverRealPOIs`
+(`placesDiscoveryService.js:822-825`) ha una **sua propria** ranking-per-
+qualityScore + taglio a `maxResults=12` **per singola query**, prima ancora
+che i risultati delle query si uniscano nel pool che questo Gate MERITO vede.
+È lo stesso pattern (recensioni come merito), a un livello più a monte, con la
+sua soglia (`applyQualityThreshold`, differenziata per `kind` — NATURA/RELAX
+4.0/20, CULTURA 4.0/50 — vedi storia dei bump del prefix cache più sopra nel
+sorgente) e il suo scopo dichiarato (contenere le chiamate Places, non solo
+scegliere). Con query molto affollate (>12 risultati pertinenti) un posto di
+qualità con poche recensioni può non sopravvivere fin qui, e il Gate MERITO
+non lo vede mai. Non toccato: cambiarlo tocca un file diverso, una soglia
+diversa già tarata per `kind`, e test esistenti (`raggioCategoria.test.js`)
+che trattano il 12-per-query come un vincolo noto, non come un difetto.
+
+**Verificato da me:**
+- Ogni regola del Gate MERITO ha un test end-to-end (`gateMerito.test.js`,
+  visto rosso contro il codice pre-fix, poi verde) che verifica cosa **arriva
+  al selettore** — non cosa il selettore risponde — stesso principio di
+  `raggioCategoria.test.js`: locale-batte-catena, soglia esclude anche con
+  9999 recensioni, tetto icone, cache non condivisa tra pesi diversi, varietà
+  di sequenza. Più `candidateScoring.test.js`, 21 test unitari sulle funzioni
+  pure.
+- `gateIntentLogs.test.js` (test pre-esistente sul vecchio ranking) andava
+  rosso con la prima versione di `identifyIcons` (posizionale): un pool di 20
+  candidati identici per voto/recensioni perdeva un membro per un pareggio di
+  sort. Corretto lì, non nel test — il test era giusto, l'implementazione no.
+- Prova su una città diversa da Roma: **simulata**, non dal vivo — questo
+  ambiente non ha accesso di rete/chiavi Google reali per un test live. Pool
+  di 15 posti plausibili per Matera (fuori `TOP_30_CITIES`): la catena
+  turistica da 6.200 recensioni/4.3 voto e un posto mediocre da 3.9/3.000
+  recensioni finiscono esclusi/demossi, i posti da 4.5-4.9 voto e 42-320
+  recensioni salgono in cima. Dettaglio completo riportato in chat, non su
+  file (era uno script usa-e-getta in scratchpad, non nel repo). **Manca
+  ancora una verifica dal vivo su device/città reale** — stesso limite già
+  segnalato per il verdict iPhone, non chiuso da questa sessione.
+- Suite: 774 test verdi (748 prima, +26 nuovi). Lint: 195 warning / 0 errori
+  (era 197). Build pulita.
+
+**Cosa resta aperto:**
+- Le costanti 0.45/0.35/0.20 e le soglie 4.2/20 – 4.0/10 sono provvisorie,
+  nessun dato le ha tarate.
+- `discoverRealPOIs` maxResults=12 per query (sopra) — stesso pattern, un
+  livello più a monte, non toccato.
+- `AiItinerary.jsx` `regenerateDay` — `aiProfile` ancora hardcoded `''`.
+- Verdict device reale (iPhone/città non-Roma) — mai fatto, resta il collo di
+  bottiglia più vecchio del progetto.
+- `estetica` (worktree `unnivai ricresa`) ha un commit (`ce1a1ea`, solo
+  `RIPARTENZA_17-09.md`) non presente su `main` — segnalato a inizio sessione,
+  non toccato: l'utente ha scelto di non fare nulla, era un file già letto.
+
 Non toccati: erano fuori perimetro. La voce **14** e' l'unica chiusa qui.

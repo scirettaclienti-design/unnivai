@@ -818,11 +818,37 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
     );
     // 2. Soglia qualità differenziata per tema, con scale-down se pochi.
     const { pois: qualified, scaleLevel } = applyQualityThreshold(cleaned, effectiveKind, isSmall);
-    // 3. Ordinamento per qualityScore (rating × ln(1+total)).
-    const ranked = qualified
-      .map(p => ({ ...p, _qs: qualityScore(p) }))
-      .sort((a, b) => b._qs - a._qs)
-      .slice(0, maxResults);
+    // 3. Taglio a maxResults — Gate MERITO-A-MONTE (24/09): NON più per
+    //    qualityScore.
+    //
+    //    Fino ad oggi questo punto ordinava i candidati GIA' sopra soglia per
+    //    qualityScore = rating*ln(1+reviews) e teneva solo i primi
+    //    `maxResults` (12): un secondo taglio-per-recensioni, un livello piu'
+    //    a monte di quello che il Gate MERITO (aiRecommendationService.js /
+    //    candidateScoring.js) ha gia' tolto dal pool finale. Su una query
+    //    affollata (>12 risultati pertinenti in una sola textsearch — musei
+    //    e chiese di un borgo, per dire), un posto valido (gia' sopra soglia
+    //    qualita' per il suo kind/scaleLevel) ma con poche recensioni non
+    //    sopravviveva MAI fino a candidateScoring: nessuna affinita' DNA
+    //    poteva farlo rientrare, perche' non arrivava nemmeno al pool.
+    //
+    //    Misurato (non dedotto) su 14 candidati borgo/CULTURA — 13 "popolari"
+    //    (rating 4.1, 200-2600 recensioni) + 1 gemma (rating 4.9, 8
+    //    recensioni) in posizione 4: TUTTI e 14 passano applyQualityThreshold
+    //    (livello 1). Ordinando per qualityScore e tagliando a 12, la gemma
+    //    (qs≈10.8) perde contro tutti i 13 popolari (qs minimo ≈21.7) e resta
+    //    fuori. Test: discoveryTaglioAMonte.test.js.
+    //
+    //    Ora: si taglia a `maxResults` nell'ORDINE ORIGINALE di `qualified`
+    //    (quello restituito da Google per la query, filtrato ma mai
+    //    ri-ordinato da noi) — stesso numero finale di candidati, stesso
+    //    numero di chiamate Places (questo taglio e' sui risultati GIA'
+    //    ricevuti da UNA textsearch, non ne aggiunge). `qualityScore` resta
+    //    esportata e usata altrove (discoverAllThemes, riga ~866) — non
+    //    toccata: qui serve solo per il filtro di soglia a monte
+    //    (applyQualityThreshold), non piu' per decidere chi sopravvive al
+    //    taglio.
+    const ranked = qualified.slice(0, maxResults);
 
     if (ranked.length === 0) {
       // Gate B — Path A: 0 candidati REALI significa "la richiesta non ha risposta
@@ -832,8 +858,9 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
       return discoverPOIs(cityName, lat, lng, themeType);
     }
 
-    // 5. Rimuovo _qs (era solo per debug) e salvo in cache.
-    const finalPois = ranked.map(p => { const { _qs, ...rest } = p; return buildPOIFromCandidate(rest, cityName); });
+    // 5. Salvo in cache. Gate MERITO-A-MONTE: niente più _qs da spogliare, il
+    //    taglio sopra non ri-ordina più per qualityScore (vedi commento).
+    const finalPois = ranked.map(p => buildPOIFromCandidate(p, cityName));
     saveToCache(cacheKey, finalPois);
     if (scaleLevel > 1) {
       console.info(`[DVAI-060] ${cityName}/${effectiveQuery} scale-down livello ${scaleLevel}, ${finalPois.length} POI`);

@@ -109,15 +109,15 @@ export function weightsToAIProfile(weights = {}) {
 
     if (sorted.length === 0) return '';
 
+    // Gate MERITO — rimossa la clausola "Evita se possibile: <categorie deboli>".
+    // Il profilo narrativo mandato al modello non deve contenere frasi negative
+    // ne' conclusioni sotto soglia: un peso basso su una categoria non e' un
+    // rifiuto dell'utente, e' spesso solo un dato che manca ancora (utente
+    // nuovo, o con gusti che semplicemente non toccano quella categoria).
+    // Il termine "evitare" apparteneva al vecchio schema deviava-l'intento
+    // (Gate INTENT F65): qui resta solo cio' che l'utente preferisce di piu'.
     const dominant = sorted.slice(0, 3).map(([cat, w]) => `${cat} (${Math.round(w * 100)}%)`);
-    const avoided = Object.entries(weights).filter(([, v]) => v < 0.15).map(([cat]) => cat);
-
-    const parts = [
-        `Preferenze dominanti: ${dominant.join(', ')}.`,
-        avoided.length > 0 ? `Evita se possibile: ${avoided.join(', ')}.` : '',
-    ].filter(Boolean);
-
-    return parts.join(' ');
+    return `Preferenze dominanti: ${dominant.join(', ')}.`;
 }
 
 /**

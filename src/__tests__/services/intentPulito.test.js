@@ -101,34 +101,39 @@ describe('F65 — il profilo NON e\' stato tolto: e\' stato rimesso al suo posto
         expect(src).toContain('14. PROFILO UTENTE IMPLICITO');
     });
 
-    it('la chiave di cache discrimina ancora sul profilo', () => {
+    it('la chiave di cache discrimina ancora sul profilo (e, dal Gate MERITO, anche sui pesi DNA)', () => {
         // insiderCacheKey riceve userPrompt E aiProfile separatamente: togliere
         // il profilo dalla frase non fa collidere due utenti con gusti diversi.
+        // Gate MERITO (24/09): aggiunta l'impronta dei pesi grezzi (dnaWeights),
+        // perche' aiProfile e' testo narrativo (solo le top-3 categorie sopra il
+        // 20%, arrotondate) e due vettori di pesi diversi possono produrre la
+        // stessa stringa pur pesando l'affinita' dei candidati diversamente.
         const src = readSrc('services/aiRecommendationService.js');
-        expect(src).toContain('const insiderCacheKey = (city, prefs, userPrompt, aiProfile) =>');
-        expect(src).toContain('[city, prefs?.duration, prefs?.group, prefs?.pace, userPrompt, aiProfile]');
+        expect(src).toContain('const insiderCacheKey = (city, prefs, userPrompt, aiProfile, dnaWeights) =>');
+        expect(src).toContain('[city, prefs?.duration, prefs?.group, prefs?.pace, userPrompt, aiProfile, weightsFingerprint(dnaWeights)]');
     });
 });
 
 describe('F65 — il difetto documentato: cosa arrivava al traduttore', () => {
-    // Ricostruisce il profilo che l'utente-tipo food-dominante produce, e prova
-    // che contiene proprio l'istruzione che deviava l'intento.
+    // Ricostruisce il profilo che l'utente-tipo food-dominante produce.
     const PESI_FOOD = { food: 0.72, cultura: 0.31, natura: 0.05, shopping: 0.03 };
 
-    it('un profilo food-dominante contiene "Evita se possibile: natura"', () => {
+    it('un profilo food-dominante contiene le preferenze dominanti, MAI "Evita" (Gate MERITO, 24/09)', () => {
+        // Prima (fino al 24/09) il profilo aggiungeva "Evita se possibile:
+        // <categorie deboli>" — la stessa frase che, quando finiva nella frase
+        // utente (il difetto F65 sopra), deviava l'intento. Il Gate MERITO ha
+        // rimosso la clausola alla fonte: un peso basso non e' un rifiuto.
         const profilo = weightsToAIProfile(PESI_FOOD);
         expect(profilo).toContain('Preferenze dominanti');
         expect(profilo).toContain('food');
-        expect(profilo).toContain('Evita se possibile');
-        expect(profilo).toContain('natura');
+        expect(profilo).not.toContain('Evita');
     });
 
     it('quella stringa non puo\' piu\' finire dentro la frase dell\'utente', () => {
         // La forma vecchia — frase + profilo concatenati — non e' piu' costruita
         // in nessun punto del codice: se tornasse, il primo test di questo file
         // diventa rosso. Qui si asserisce l'altra meta': che la funzione che
-        // genera il profilo esista ancora e produca ancora quel testo, cioe' che
-        // il difetto sia stato chiuso spostando il dato, non svuotandolo.
+        // genera il profilo esista ancora e produca ancora testo (non svuotato).
         const profilo = weightsToAIProfile(PESI_FOOD);
         expect(profilo.length).toBeGreaterThan(0);
         const bad = codeLines().filter(l => /userPrompt[^)]*\[Profilo/.test(l.text));

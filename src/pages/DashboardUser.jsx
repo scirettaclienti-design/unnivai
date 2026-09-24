@@ -47,45 +47,6 @@ const THEME_EMOJIS = {};
 // come placeholderData react-query — spacciati per reali. Ora la UI ha
 // skeleton (isPending) + empty state onesto + errore, non tour inventati.
 
-/**
- * Riordina tour/esperienze in base al preference graph dell'utente.
- * Tour con categorie che matchano le preferenze vengono promossi in cima.
- */
-const rankByPreferences = (tours, graph) => {
-    if (!graph || Object.keys(graph).length === 0) return tours;
-
-    return [...tours].sort((a, b) => {
-        const scoreA = getAffinityScore(a, graph);
-        const scoreB = getAffinityScore(b, graph);
-        return scoreB - scoreA; // Score più alto → più in alto
-    });
-};
-
-const getAffinityScore = (tour, graph) => {
-    let score = 0;
-    const cat = (tour.category || tour.type || '').toLowerCase();
-    const city = (tour.city || '').toLowerCase();
-    const tags = tour.category_tags || [];
-
-    // Match per categoria/tipo
-    for (const [key, val] of Object.entries(graph)) {
-        if (key.startsWith('cat:') && cat.includes(key.replace('cat:', '').toLowerCase())) score += val * 2;
-        if (key.startsWith('type:') && cat.includes(key.replace('type:', '').toLowerCase())) score += val;
-        if (key.startsWith('city:') && city.includes(key.replace('city:', '').toLowerCase())) score += val;
-    }
-
-    // Match per tag
-    for (const tag of tags) {
-        const tagLow = tag.toLowerCase();
-        if (graph[`cat:${tagLow}`]) score += graph[`cat:${tagLow}`];
-    }
-
-    // Boost per tour reali (non AI-generated)
-    if (!tour.isAiGenerated) score += 3;
-
-    return score;
-};
-
 const DashboardUser = () => {
     // Gate O.1: lat/lng non più letti qui. Il centro POI viene da resolveCityCenter
     // (Places-auth), non dal GPS. GPS/meteo restano disponibili via useUserContext

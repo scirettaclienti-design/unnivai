@@ -481,7 +481,17 @@ export default function QuickPathPage() {
     const [selectedDuration, setSelectedDuration] = useState(null);
     const [selectedGroup, setSelectedGroup] = useState(null);
 
-    const { trackGeneratedTour } = useAILearning();
+    // Gate MERITO (24/09): `getAIContext`/`weights`/`totalInteractions`/`hasSeed`
+    // NON erano destrutturati qui — la riga sotto leggeva `getAIContext` come
+    // variabile globale mai dichiarata. `typeof x === 'function'` su un
+    // identificatore inesistente non lancia (comportamento speciale di
+    // `typeof`): ritornava silenziosamente false, e aiProfile era SEMPRE ''.
+    // QuickPath è il flusso wizard, probabilmente il più usato: il DNA non ha
+    // mai raggiunto il selettore da qui. Trovato mappando il codice per
+    // questo task, non era nel perimetro dichiarato — corretto perché la nuova
+    // formula di punteggio (0.45 affinità DNA) è inutile se dnaWeights è
+    // sempre vuoto per l'unico flusso che lo popolava "di riferimento".
+    const { trackGeneratedTour, getAIContext, weights, totalInteractions, hasSeed } = useAILearning();
     // Gate E-2: hasHitPaywall + unlockPremium + showPaywall rimossi (paywall
     // morto). Prima: dopo 10 tour vita hasHitPaywall=true → click su gruppo
     // apriva showPaywall, ma <PaywallModal> non era MAI renderizzato nel JSX,
@@ -598,7 +608,9 @@ export default function QuickPathPage() {
             };
 
             // 4. aiProfile dal graph learning (come fa AiItinerary).
-            const aiProfile = (typeof getAIContext === 'function' ? getAIContext() : '') || '';
+            const aiProfile = getAIContext?.() || '';
+            // Gate SEME (L1) — stessa soglia di DashboardUser.jsx:182.
+            const hasPreferences = totalInteractions >= 3 || hasSeed;
 
             // 5. CHIAMATA MOTORE — stessa firma di AiItinerary, un solo motore.
             const result = await aiRecommendationService.generateItinerary(
@@ -608,6 +620,7 @@ export default function QuickPathPage() {
                 { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
                 aiProfile,
                 cityCenter,
+                { dnaWeights: hasPreferences ? weights : {} },
             );
 
             if (timedOut) return; // il timeout ha già gestito l'errore

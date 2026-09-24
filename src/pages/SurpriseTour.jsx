@@ -77,7 +77,7 @@ export default function SurpriseTourPage() {
     // DVAI-055: estraggo lat/lng dal userContext per il vincolo geografico
     const { city, userId, firstName, lat, lng } = useUserContext();
     const { toast } = useToast();
-    const { userDNAPreferences } = useAILearning();
+    const { userDNAPreferences, getAIContext, weights, totalInteractions, hasSeed } = useAILearning();
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -197,12 +197,24 @@ export default function SurpriseTourPage() {
             // DVAI-055: rimosso il "20 km" mal collocato dal userPrompt — il vincolo
             // geografico è ora nel system prompt (regola 15) via cityCenter, e il
             // filtro Haversine a valle lo garantisce anche se l'AI non lo rispetta.
+            //
+            // Gate MERITO (24/09): rimosse "Dati Storici Inconsci Utente" /
+            // "Interessi storici calcolati" da questa frase — erano il DNA
+            // (preference graph) iniettato nello userPrompt invece che nel
+            // parametro aiProfile dedicato, lo stesso anti-pattern che il Gate
+            // INTENT F65 aveva gia' rimosso altrove (vedi intentPulito.test.js).
+            // "Categoria di oggi" resta: è una scelta esplicita dell'utente
+            // (tema cliccato), non un'inferenza dal grafo.
             const prompt = `Sei l'intelligenza di Unnivai. Genera un'esperienza a sorpresa esaltante a ${city || 'Roma'}.
-            Dati Storici Inconsci Utente: Cerca ritmi di viaggio [${userProfile.expectedPace}] in compagnia di [${userProfile.expectedGroup}].
-            Interessi storici calcolati: ${userProfile.interests.join(', ')}.
             Categoria di oggi: ${suggestedTheme ? suggestedTheme : selectedFilter || 'Mix delle sue più profonde passioni storiche'}.
             L'esperienza DEVE essere fuori dai soliti schemi turistici commerciali e sembrare magia pura, calzando i suoi gusti inconsci.
             NON inventare coordinate.`;
+
+            // Gate SEME (L1) — stessa soglia di DashboardUser.jsx:182, non ne
+            // creiamo una terza: il DNA pesa da subito con un seme onboarding,
+            // altrimenti serve un minimo di interazioni reali.
+            const hasPreferences = totalInteractions >= 3 || hasSeed;
+            const aiProfile = (typeof getAIContext === 'function' ? getAIContext() : '') || '';
 
             // 2. Call AI Service
             const result = await aiRecommendationService.generateItinerary(
@@ -214,10 +226,11 @@ export default function SurpriseTourPage() {
                 },
                 prompt,
                 {},
-                '',
+                aiProfile,
                 // DVAI-055: cityCenter dal userContext. Se lat/lng assenti, no filtro
                 // (retrocompat: fallback al comportamento precedente).
-                Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null
+                Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null,
+                { dnaWeights: hasPreferences ? weights : {} }
             );
 
             // Gate NARRATORE/POI (Fase 2a) — il check storico

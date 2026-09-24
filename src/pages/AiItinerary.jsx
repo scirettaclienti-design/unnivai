@@ -86,7 +86,7 @@ export default function AIItineraryPage() {
     // e DEMO_CITIES contiene 18 città su tutte quelle italiane.
 
     // DVAI-045: leggi le preferenze apprese dall'AI
-    const { userDNAPreferences, trackGeneratedTour, trackInteraction, getAIContext } = useAILearning();
+    const { userDNAPreferences, trackGeneratedTour, trackInteraction, getAIContext, weights, totalInteractions, hasSeed } = useAILearning();
     const { toast } = useToast();
 
     // Gate 2 FASE 3 — cityCenter risolto autoritativamente da resolveCityCenter
@@ -186,6 +186,11 @@ export default function AIItineraryPage() {
                 throw ccErr;
             }
 
+            // Gate SEME (L1) — stessa soglia di DashboardUser.jsx:182, non ne
+            // creiamo una terza: il DNA pesa da subito con un seme onboarding,
+            // altrimenti serve un minimo di interazioni reali.
+            const hasPreferences = totalInteractions >= 3 || hasSeed;
+
             const result = await aiRecommendationService.generateItinerary(
                 activeCity,
                 prefsObject,
@@ -193,6 +198,7 @@ export default function AIItineraryPage() {
                 { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
                 aiProfile, // Tour DNA iniettato nel system prompt
                 cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)
+                { dnaWeights: hasPreferences ? weights : {} }, // Gate MERITO — affinità nella formula di scoring
             );
 
             // Gate B — Path A no-results: il motore ha risolto oggetto_umano dal

@@ -258,7 +258,12 @@ export const verifyPOIWithPlaces = async (poi, city) => {
 // Gate 3 T1: prefix bumped da 'unnivai_insiderf7_soglia_' — buildPlacesProxyUrl
 // ora fa default language=it, i tour insider cached prima contenevano POI con
 // nomi inglesi ("Syracuse Cathedral").
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf8_it_';
+// Gate MERITO: prefix bumped da 'unnivai_insiderf8_it_' — il pool offerto al
+// selettore non e' piu' ordinato per qualityScore (rating*ln(1+reviews)) ma per
+// soglia+punteggio affinita'/unicita'/voto. I tour cached col vecchio motore
+// riflettono un pool diverso, andrebbero riletti come se fossero ancora la
+// scelta giusta.
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf9_merito_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -267,8 +272,14 @@ const djb2 = (s) => {
     return (h >>> 0).toString(36);
 };
 
-const insiderCacheKey = (city, prefs, userPrompt, aiProfile) => {
-    const parts = [city, prefs?.duration, prefs?.group, prefs?.pace, userPrompt, aiProfile].filter(Boolean).join('|');
+// Gate MERITO — dnaWeights entra nella chiave via la sua impronta (non il testo
+// narrativo di aiProfile: quello mostra solo le top-3 categorie sopra il 20% e
+// arrotonda le percentuali, due vettori di pesi diversi possono produrre la
+// STESSA stringa narrativa pur pesando l'affinita' dei candidati in modo
+// diverso). Due utenti con gusti diversi non devono mai leggere lo stesso
+// itinerario dalla cache dell'altro.
+export const insiderCacheKey = (city, prefs, userPrompt, aiProfile, dnaWeights) => {
+    const parts = [city, prefs?.duration, prefs?.group, prefs?.pace, userPrompt, aiProfile, weightsFingerprint(dnaWeights)].filter(Boolean).join('|');
     return INSIDER_CACHE_PREFIX + city.replace(/\s+/g, '_') + '_' + djb2(parts);
 };
 
@@ -405,6 +416,9 @@ import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } fr
 // proprieta' della coppia di tappe consecutive, non della singola tappa.
 import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes } from '@/lib/tourTiming';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
+// Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
+// posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
+import { selectScoredCandidatePool, enforceCategoryVariety, weightsFingerprint } from './candidateScoring';
 
 // ─── DVAI-060 F2 — derive theme + fetch candidati reali ──────────────────────
 //
@@ -1449,7 +1463,7 @@ export const aiRecommendationService = {
         const centerFingerprint = cityCenter && Number.isFinite(cityCenter.latitude)
             ? `${cityCenter.latitude.toFixed(3)},${cityCenter.longitude.toFixed(3)},r55f2`
             : 'noRadius';
-        const cacheKey = insiderCacheKey(city, prefs, userPrompt, aiProfile) + '_' + centerFingerprint;
+        const cacheKey = insiderCacheKey(city, prefs, userPrompt, aiProfile, opts.dnaWeights) + '_' + centerFingerprint;
         const cached = loadInsiderFromCache(cacheKey);
         if (cached) {
             // G1.1 — un tour da cache non porta con sé l'orario calcolato alla
@@ -1564,43 +1578,36 @@ export const aiRecommendationService = {
                 }
             }
 
-            // ─── Gate TAGLIO-DOPO-CATEGORIA (13/09) — il taglio a 20, QUI ────
+            // ─── Gate MERITO — soglia + punteggio, QUI, al posto del taglio ──
             //
-            // Era l'ultima riga di fetchRealPOICandidates, cioe' PRIMA di
-            // raggio e categoria: un taglio cieco a cosa l'utente aveva
-            // chiesto. A Cabras, "le spiagge piu' belle", i 24 ristoranti che
-            // "lidi"/"cale" riportano hanno ~2000 recensioni contro le ~200
-            // delle 3 spiagge vere: per qualityScore stavano tutti davanti, si
-            // prendevano i 20 posti, e il filtro di categoria qui sotto
-            // trovava un pool gia' senza spiagge. Il guard-rail scattava a
-            // vuoto — non si recupera cio' che e' stato buttato prima.
+            // Fino al 24/09 questo punto ordinava per qualityScore (il taglio
+            // a 20 era gia' stato spostato qui il 13/09, dopo raggio e
+            // categoria — vedi git blame per quella storia). qualityScore =
+            // rating * ln(1+reviews) e' dominato dal volume di recensioni: un
+            // posto con 5.000 recensioni batteva sempre uno con 180, anche a
+            // parita' o vantaggio di voto. Le recensioni pesavano come merito.
             //
-            // Spostato qui, `slice(0, 20)` significa "i 20 migliori per
-            // qualita' FRA quelli che hanno superato raggio e categoria":
-            // l'ordine per qualityScore decrescente e' quello impostato una
-            // sola volta dentro fetchRealPOICandidates, e sia applyRadiusFilter
-            // sia il .filter() di categoria sopra sono Array.prototype.filter,
-            // che preserva l'ordine — nessun riordino intermedio.
+            // Ora: le recensioni sono un FILTRO di qualita' (soglia minima
+            // rating+recensioni, piu' bassa fuori dalle TOP_30_CITIES), non
+            // piu' un merito. Sopra soglia, l'ordine viene da un punteggio
+            // 0.45 affinita' DNA + 0.35 unicita' + 0.20 voto (mai il numero di
+            // recensioni). Il tetto icone (al massimo 1 candidato "molto
+            // recensito" nel pool) e' applicato QUI, prima che qualunque
+            // scelta a valle veda i candidati: nessuna tappa fuori dal pool
+            // puo' entrare nel tour, quindi il pool stesso e' la garanzia.
             //
-            // INCONDIZIONATO, fuori dall'if (categoriaTarget) di proposito:
-            // path B e le categorie trasversali ("misto", nightlife, famiglia,
-            // romantico, sconosciuta) hanno categoriaTarget undefined e non
-            // passano MAI dal filtro qui sopra. Dentro quell'if non verrebbero
-            // piu' troncate affatto — prompt senza tetto, a crescere col
-            // numero di query.
-            //
-            // Il 20 resta il numero di sempre: abbastanza per far scegliere
-            // all'AI, non tanto da gonfiare il prompt (~40 token a candidato).
-            if (candidates.length > 20) {
-                const primoEscluso = candidates[20];
-                const qsEscluso = (primoEscluso.rating || 0) * Math.log(1 + (primoEscluso.user_ratings_total || 0));
+            // dnaWeights arriva da opts (vedi generateItinerary): {} per un
+            // utente sotto soglia di interazioni e senza seme onboarding —
+            // l'affinita' si azzera da sola (regola UTENTE NUOVO), unicita' e
+            // voto restano attivi comunque.
+            const beforeMerito = candidates.length;
+            candidates = selectScoredCandidatePool(candidates, { city, dnaWeights: opts.dnaWeights || {}, limit: 20 });
+            if (beforeMerito > 0) {
                 console.info(
-                    `[Gate B] taglio: ${candidates.length} candidati ammessi -> top 20 | esclusi per ranking: ${candidates.length - 20}` +
-                    ` | il piu' alto escluso: "${primoEscluso.name || primoEscluso.title || '?'}"` +
-                    ` score=${qsEscluso.toFixed(1)} (rating=${primoEscluso.rating ?? '?'}, reviews=${primoEscluso.user_ratings_total ?? '?'})`
+                    `[Gate MERITO] ${city}: ${beforeMerito} candidati -> ${candidates.length} ammessi ` +
+                    `(soglia qualita' + punteggio affinita'/unicita'/voto, tetto 1 icona, limite 20)`
                 );
             }
-            candidates = candidates.slice(0, 20);
 
             // Gate I — soglia minima 1 candidato (era 3). Un posto vero è meglio
             // di zero. Un tour di 1 tappa con Villa Bellini > messaggio bugiardo
@@ -1654,9 +1661,11 @@ export const aiRecommendationService = {
                         // Applica il filtro raggio come safety (DVAI-055-b): quasi no-op
                         // perché discoverRealPOIs ha già filtrato per prossimità query.
                         const withinRadius = applyRadiusFilter(described, cityCenter, city);
-                        // Ordina per prossimità geografica dopo la canonizzazione.
-                        // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
-                        const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
+                        // Ordina per prossimità geografica dopo la canonizzazione, poi
+                        // applica la varietà (Gate MERITO — niente 3 tappe consecutive
+                        // dello stesso tipo: riordino a costo minimo, mai una riselezione).
+                        // DIFF 1a: le stime SUBITO dopo il sort/varietà, mai prima.
+                        const ordered = computeStopTimings(enforceCategoryVariety(sortByProximity(withinRadius))).stops;
                         return {
                             day: day.day ?? di + 1,
                             title: day.title ?? `Giorno ${di + 1} a ${city}`,

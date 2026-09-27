@@ -11,7 +11,6 @@
  *   3. Cache everything in localStorage (1-hour TTL) to minimise API calls
  */
 
-import { supabase } from '../lib/supabase';
 import { buildPlacesProxyUrl, isPlacesProxyEnabled, BLACKLIST_TYPES } from './aiRecommendationService';
 import { isSmallTown, widerRadiusKm } from './tourShape';
 
@@ -57,274 +56,22 @@ const saveToCache = (key, data) => {
   } catch { /* localStorage full */ }
 };
 
-// ─── Proxy helper ────────────────────────────────────────────────────────────────
-const callOpenAIProxy = async (payload, signal) => {
-  const { data: { session } } = await supabase.auth.getSession();
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const anonKey     = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'apikey': anonKey,
-  };
-  if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`;
-  }
 
-  const response = await fetch(`${supabaseUrl}/functions/v1/openai-proxy`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ endpoint: '/chat/completions', ...payload }),
-    ...(signal ? { signal } : {}),
-  });
 
-  if (!response.ok) {
-    const errBody = await response.json().catch(() => ({}));
-    throw new Error(`Proxy ${response.status}: ${errBody?.error ?? response.statusText}`);
-  }
 
-  return response.json();
-};
 
-// ─── THEME DEFINITIONS ──────────────────────────────────────────────────────────
-const THEME_PROMPTS = {
-  food: 'ristoranti tipici, trattorie storiche, panifici artigianali, mercati alimentari, pizzerie locali',
-  walking: 'piazze principali, chiese storiche, monumenti, fontane, punti panoramici, portali antichi',
-  romance: 'punti panoramici al tramonto, giardini, passeggi romantici, belvederi, vicoli caratteristici',
-  art: 'musei, chiese affrescate, palazzi storici, gallerie, architettura barocca o romanica',
-  nature: 'parchi pubblici, aree verdi, percorsi naturalistici, villa comunale, oasi naturali',
-};
-
-// ─── GOOGLE PLACES SDK PHOTO ENRICHMENT ─────────────────────────────────────────
-const waitForGoogleMaps = () => new Promise((resolve) => {
-  if (window.google?.maps?.places) {
-    resolve(window.google.maps.places);
-    return;
-  }
-  let elapsed = 0;
-  const interval = setInterval(() => {
-    elapsed += 300;
-    if (window.google?.maps?.places) {
-      clearInterval(interval);
-      resolve(window.google.maps.places);
-    }
-    if (elapsed > 12000) {
-      clearInterval(interval);
-      resolve(null);
-    }
-  }, 300);
-});
-
-// DVAI-049 — Places via REST proxy server-side: niente dipendenza dal JS SDK,
-// funziona anche su pagine senza MapAPIWrapper (es. dashboard).
-const fetchPlacePhoto = async (placeName, cityName) => {
-  // DVAI-050: se il proxy Places è OFF (es. prod senza secret), skip silenzioso.
-  if (!isPlacesProxyEnabled()) return null;
-  // Gate V: timeout 5s (AbortController). Uniformita' con tutte le fetch Places.
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
-  try {
-    const searchQuery = `${placeName} ${cityName} Italia`;
-    const findUrl = buildPlacesProxyUrl({
-      path: 'place/findplacefromtext',
-      input: searchQuery,
-      inputtype: 'textquery',
-      fields: 'photos,name',
-    });
-    const res = await fetch(findUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (!res.ok) return null;
-    const data = await res.json();
-    const ref = data?.candidates?.[0]?.photos?.[0]?.photo_reference;
-    if (!ref) return null;
-    return buildPlacesProxyUrl({
-      path: 'place/photo',
-      maxwidth: '600',
-      photo_reference: ref,
-    });
-  } catch (e) {
-    clearTimeout(timeoutId);
-    const reason = e.name === 'AbortError' ? 'timeout (5s)' : e.message;
-    console.warn(`[PlacesPhoto] fetch failed: ${reason}`);
-    return null;
-  }
-};
-
-const enrichWithPhotos = async (pois, cityName) => {
-  if (!pois || pois.length === 0) return pois;
-
-  // DVAI-049: niente dipendenza JS SDK; fetchPlacePhoto va via proxy REST.
-  const enrichPromises = pois.slice(0, 5).map(async (poi) => {
-    try {
-      const photoUrl = await fetchPlacePhoto(poi.name || poi.title, cityName);
-      return { ...poi, image: photoUrl || poi.image };
-    } catch (e) {
-      console.warn(`[PlacesPhoto] Failed for "${poi.name}":`, e.message);
-      return poi;
-    }
-  });
-
-  const enriched = await Promise.all(enrichPromises);
-  return [...enriched, ...pois.slice(5)];
-};
-
-// ─── POI DISCOVERY VIA OPENAI PROXY ─────────────────────────────────────────────
-const discoverPOIs = async (cityName, lat, lng, themeType = 'walking') => {
-  const cacheKey = `${cityName.replace(/\s+/g, '_')}_${themeType}`;
-  const cached = loadFromCache(cacheKey);
-  if (cached) {
-    return cached;
-  }
-
-  const themeDesc = THEME_PROMPTS[themeType] || THEME_PROMPTS.walking;
-
-  const systemPrompt = `Sei un esperto di turismo e geografia italiana. Conosci ogni singolo paese e città d'Italia, inclusi i borghi più piccoli.
-Rispondi ESCLUSIVAMENTE in JSON valido, senza markdown, senza commenti.`;
-
-  const userPrompt = `Elenca 4-5 punti di interesse REALI e VERIFICABILI a "${cityName}" (Italia, coordinate centro: ${lat.toFixed(4)}, ${lng.toFixed(4)}).
-Tematica: ${themeDesc}.
-
-REGOLE FONDAMENTALI:
-- I nomi devono essere REALI (esistono veramente nel paese/città)
-- Le coordinate devono essere PRECISE e nel raggio di 3km dal centro
-- Le descrizioni devono essere specifiche per quel luogo (non generiche)
-- Se ${cityName} è un piccolo paese, includi anche luoghi delle frazioni/aree limitrofe
-
-Formato JSON richiesto:
-{
-  "pois": [
-    {
-      "name": "Nome reale del luogo",
-      "description": "Descrizione specifica e interessante (max 120 caratteri)",
-      "latitude": 41.xxxx,
-      "longitude": 15.xxxx,
-      "type": "church|piazza|monument|restaurant|park|museum|palazzo|viewpoint"
-    }
-  ]
-}`;
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-  try {
-    // DVAI-001: proxy invece di chiamata diretta OpenAI
-    const data = await callOpenAIProxy({
-      model: 'gpt-4o-mini',  // DVAI-020
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.4,
-      max_tokens: 1200,
-    }, controller.signal);
-
-    clearTimeout(timeoutId);
-
-    const raw = data.choices?.[0]?.message?.content;
-    if (!raw) throw new Error('Empty response');
-
-    const parsed = JSON.parse(raw);
-    const pois = (parsed.pois || parsed.points || [])
-      .filter(p => p.name && p.latitude && p.longitude)
-      .map(p => ({
-        id: `ai-poi-${p.name.replace(/\s+/g, '-').toLowerCase().substring(0, 30)}`,
-        name: p.name,
-        title: p.name,
-        description: p.description || `Punto di interesse a ${cityName}`,
-        lat: parseFloat(p.latitude),
-        lng: parseFloat(p.longitude),
-        latitude: parseFloat(p.latitude),
-        longitude: parseFloat(p.longitude),
-        type: p.type || 'place',
-        // F37 — via il `: 4.5`. Era un voto scritto a mano assegnato a un POI
-        // quando il dato non c'era, e finiva a schermo come un rating qualunque
-        // (Explore/DashboardUser leggono `s.rating` e mostrano il numero).
-        // Null: chi rende gia' filtra sui finiti > 0 e semplicemente non lo mostra.
-        //
-        // Gate PULIZIA (24/09): rimosso anche `typeof p.rating === 'number' ?
-        // p.rating : null`. Questo ramo e' il motore legacy AI-first: il
-        // "rating" nel JSON che il modello restituisce non e' mai un dato
-        // Google, e' un numero scritto dal modello — che puo' benissimo essere
-        // il 4.5 dell'esempio few-shot del prompt (rimosso qui sopra, ma un
-        // guard lato codice non deve dipendere dal prompt per essere corretto).
-        // Un number valido passava il vecchio guard senza che nulla lo
-        // distinguesse da un voto vero. Ora e' sempre null: questo ramo non ha
-        // MAI una fonte verificata di rating.
-        rating: null,
-        city: cityName,
-        image: null,
-      }));
-
-    if (pois.length === 0) {
-      const fallback = buildLocalFallback(cityName, lat, lng, themeType);
-      const enriched = await enrichWithPhotos(fallback, cityName);
-      if (enriched.length > 0) saveToCache(cacheKey, enriched);
-      return enriched;
-    }
-
-    const enriched = await enrichWithPhotos(pois, cityName);
-    saveToCache(cacheKey, enriched);
-    return enriched;
-
-  } catch (err) {
-    clearTimeout(timeoutId);
-    console.warn(`[Discovery] OpenAI proxy failed for ${cityName}/${themeType}:`, err.message);
-    const fallback = buildLocalFallback(cityName, lat, lng, themeType);
-    return enrichWithPhotos(fallback, cityName);
-  }
-};
-
-const buildLocalFallback = (cityName, lat, lng, themeType) => {
-  const templates = {
-    food: [
-      { name: `Ristorante tipico di ${cityName}`, type: 'restaurant' },
-      { name: `Panificio artigianale`, type: 'restaurant' },
-      { name: `Trattoria del centro`, type: 'restaurant' },
-      { name: `Bar della piazza`, type: 'restaurant' },
-    ],
-    walking: [
-      { name: `Chiesa Madre di ${cityName}`, type: 'church' },
-      { name: `Piazza principale di ${cityName}`, type: 'piazza' },
-      { name: `Centro storico di ${cityName}`, type: 'monument' },
-      { name: `Corso principale`, type: 'piazza' },
-    ],
-    romance: [
-      { name: `Belvedere di ${cityName}`, type: 'viewpoint' },
-      { name: `Giardini pubblici`, type: 'park' },
-      { name: `Villa comunale`, type: 'park' },
-      { name: `Passeggiata al tramonto`, type: 'viewpoint' },
-    ],
-    art: [
-      { name: `Chiesa parrocchiale di ${cityName}`, type: 'church' },
-      { name: `Palazzo storico comunale`, type: 'palazzo' },
-      { name: `Museo civico`, type: 'museum' },
-      { name: `Portale antico`, type: 'monument' },
-    ],
-    nature: [
-      { name: `Parco comunale di ${cityName}`, type: 'park' },
-      { name: `Area verde`, type: 'park' },
-      { name: `Percorso naturalistico`, type: 'park' },
-      { name: `Villa con giardino`, type: 'park' },
-    ],
-  };
-
-  // Gate II (16/07): questo fallback e' dead code post-Gate II — la Home
-  // usa generateHomeTours che accetta pool VUOTI (nessun tour se non ci sono
-  // POI reali) invece di iniettare template inventati. La funzione resta
-  // esportata per retrocompat di eventuali call site legacy, ma restituisce
-  // array VUOTO (regola locked #1: nessun fallback produce mai contenuto).
-  //
-  // Prima: templates di nomi tipo "Parco comunale di Troina" con coord
-  // Math.random + rating 4.5 hardcoded + description placeholder — tutti fake.
-  // Con Gate II qualunque tour tematico riceve narrazione vera dall'AI su POI
-  // reali Google. Se non ci sono POI reali, il tour non esiste.
-  console.info(`[DVAI-060] fallback POIs richiesti per ${cityName}/${themeType} → return []`);
-  // Riferimento non usato per evitare warning noUnusedVars sulla const items.
-  void templates;
-  return [];
-};
+// ─── Gate SOLO-GOOGLE (27/09) — motore AI-first RIMOSSO ─────────────────────
+//
+// Qui vivevano `discoverPOIs` (chiedeva al modello 4-5 POI con nome e
+// coordinate, via openai-proxy) e `buildLocalFallback` (giа' neutralizzato da
+// Gate II: ritornava sempre []). `discoverPOIs` era il fallback interno dei tre
+// cammini di errore di `discoverRealPOIs`; adesso quei cammini ritornano [].
+// Con loro escono `THEME_PROMPTS`, `callOpenAIProxy` e gli helper foto
+// (`waitForGoogleMaps`, `fetchPlacePhoto`, `enrichWithPhotos`): nessun
+// chiamante residuo in tutto `src/`, verificato con grep prima di rimuoverli.
+// I luoghi, da qui in avanti, arrivano SOLO da Places textsearch.
 
 // ─── DVAI-060 — MOTORE GOOGLE-FIRST ─────────────────────────────────────────────
 //
@@ -745,19 +492,17 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
     customQuery,
     // customKind: soglia da usare quando la query non è mappata (default CULTURA).
     customKind = 'CULTURA',
-    // skipLegacyFallback: se true, discoverRealPOIs NON cade su discoverPOIs
-    // (vecchio motore AI-first che inventa nomi) su nessun cammino di errore.
-    // Ritorna [] onestamente. Usato dal path A.
-    skipLegacyFallback = false,
+    // Gate SOLO-GOOGLE (27/09): `skipLegacyFallback` RIMOSSA. Era l'interruttore
+    // che distingueva chi cadeva sul motore AI-first (path B) da chi no (path A).
+    // Ora nessuno ci cade, perche' quel motore non esiste piu': il comportamento
+    // del path A e' diventato l'unico comportamento.
   } = opts;
 
   const isSmall = forceSmallTown ?? isSmallTown(cityName);
 
-  // Se il proxy Places è OFF: path B tollera il fallback storico, path A no.
-  if (!isPlacesProxyEnabled()) {
-    if (skipLegacyFallback) return [];
-    return discoverPOIs(cityName, lat, lng, themeType);
-  }
+  // Gate SOLO-GOOGLE (27/09): proxy Places OFF → pool vuoto, per TUTTI i
+  // percorsi. Prima il path B cadeva su discoverPOIs (motore AI-first).
+  if (!isPlacesProxyEnabled()) return [];
 
   const themeCfg = THEME_TEXTSEARCH[themeType] || THEME_TEXTSEARCH.walking;
   const effectiveQuery = customQuery ? String(customQuery).trim() : themeCfg.query;
@@ -857,11 +602,10 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
     const ranked = qualified.slice(0, maxResults);
 
     if (ranked.length === 0) {
-      // Gate B — Path A: 0 candidati REALI significa "la richiesta non ha risposta
-      // in questa città". Errore onesto. Non cadere sul vecchio motore.
-      if (skipLegacyFallback) return [];
-      console.warn(`[DVAI-060] ${cityName}/${effectiveQuery}: 0 candidati Google-first, fallback AI-first`);
-      return discoverPOIs(cityName, lat, lng, themeType);
+      // Gate SOLO-GOOGLE: 0 candidati REALI significa "la richiesta non ha
+      // risposta in questa citta'". Errore onesto, per tutti i percorsi.
+      console.warn(`[Gate SOLO-GOOGLE] ${cityName}/${effectiveQuery}: 0 candidati Google-first → pool vuoto`);
+      return [];
     }
 
     // 5. Salvo in cache. Gate MERITO-A-MONTE: niente più _qs da spogliare, il
@@ -873,13 +617,9 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
     }
     return finalPois;
   } catch (err) {
-    // Gate B — Path A: errori di rete NON diventano tour finti. Ritorna [].
-    if (skipLegacyFallback) {
-      console.warn(`[DVAI-060] ${cityName}/${effectiveQuery} textsearch fallita: ${err.message} — path A, no fallback`);
-      return [];
-    }
-    console.warn(`[DVAI-060] textsearch fallita per ${cityName}/${effectiveQuery}: ${err.message} → fallback AI-first`);
-    return discoverPOIs(cityName, lat, lng, themeType);
+    // Gate SOLO-GOOGLE: un errore di rete NON diventa un tour finto. Ritorna [].
+    console.warn(`[Gate SOLO-GOOGLE] ${cityName}/${effectiveQuery} textsearch fallita: ${err.message} → pool vuoto`);
+    return [];
   }
 };
 
@@ -920,7 +660,8 @@ const discoverAllThemes = async (cityName, lat, lng) => {
   // dopo la dedup → si spegne downstream.
   const themes = ['food', 'cultura', 'romance', 'nature'];
   const results = {};
-  // DVAI-060: motore primario Google-first; fallback a discoverPOIs interno.
+  // DVAI-060: motore Google-first, unico. Gate SOLO-GOOGLE (27/09): nessun
+  // fallback interno — un tema senza candidati Google resta vuoto.
   await Promise.all(themes.map(async (theme) => {
     results[theme] = await discoverRealPOIs(cityName, lat, lng, theme);
   }));
@@ -1101,11 +842,10 @@ export const fetchPlaceDetailsForTour = async (placeId, cityName, candidateHints
 };
 
 export const placesDiscoveryService = {
-  discoverPOIs,           // legacy AI-first (usato come fallback interno)
+  // Gate SOLO-GOOGLE (27/09): via `discoverPOIs` (motore AI-first) e gli helper
+  // foto `enrichWithPhotos`/`fetchPlacePhoto`, che servivano solo a lui.
   discoverRealPOIs,       // DVAI-060 Google-first
   discoverAllThemes,
-  enrichWithPhotos,
-  fetchPlacePhoto,
   fetchPlaceOpeningHours, // Gate N.1
   fetchPlaceDetailsForTour, // Gate N.2 (precompute deterministico)
 };

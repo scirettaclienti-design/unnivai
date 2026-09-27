@@ -690,7 +690,12 @@ const DashboardUser = () => {
                                     <Compass className="w-6 h-6 stroke-[1.5]" />
                                 </div>
                                 <p className="text-obsidian-primary text-sm mb-1 font-semibold">{city ? `Nessuna guida ha ancora pubblicato un tour a ${city}.` : 'Nessuna guida ha ancora pubblicato un tour qui.'}</p>
-                                <p className="text-obsidian-secondary text-xs mb-4">Il motore AI ne costruisce uno adesso, sui luoghi veri della città.</p>
+                                {/* Gate SOLO-GOOGLE (27/09) — la riga precedente diceva
+                                    "Il motore AI ne costruisce uno adesso": non era vero
+                                    proprio qui, dove si arriva DOPO che il motore ha girato
+                                    e non ha prodotto niente. Questo ramo è solo lo stato
+                                    vuoto: il caricamento ha i suoi skeleton, più sopra. */}
+                                <p className="text-obsidian-secondary text-xs mb-4">Qui intorno non trovo ancora luoghi verificati da proporti.</p>
                                 <Link
                                     to="/ai-itinerary"
                                     className="px-5 py-2.5 bg-brand-orange text-obsidian-bg rounded-2xl text-xs font-bold hover:bg-brand-orange-hover transition-colors shadow-md shadow-brand-orange/20"

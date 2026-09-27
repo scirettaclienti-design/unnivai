@@ -642,7 +642,6 @@ const FETCH_ALLOWLIST = new Set([
     'src/services/weatherService.js',          // open-meteo weather + geocoding — Blocco 2
     'src/services/poiService.js',              // Overpass API legacy — Blocco 2
     'src/services/dataService.js',             // Nominatim geocoding business fallback (V3) — Blocco 2
-    'src/services/aiRecommendationService.js', // verifyPOIWithPlaces legacy (discoverPOIs fallback AI-first) — Blocco 2
 ]);
 
 // Gate S — Storage key user-derived DEVONO contenere userId.

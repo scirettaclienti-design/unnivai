@@ -272,14 +272,16 @@ describe('Gate INTENT — i marker dei log esistono nel sorgente', () => {
     });
 });
 
-// ─── La correzione del difetto introdotto dal DIFF 1a ────────────────────────
+// ─── I types delle tappe vengono dal candidato Google ────────────────────────
 
-describe('Gate INTENT — correzione del path legacy (difetto del DIFF 1a)', () => {
-    it('il ramo AI-first non finge piu\' di leggere i types dal modello', () => {
+describe('Gate INTENT — i types vengono dal candidato Google, non dal modello', () => {
+    it('i types delle tappe canonizzate arrivano dal candidato reale', () => {
+        // Gate SOLO-GOOGLE (27/09): l'asserzione gemella — `not.toContain('types:
+        // Array.isArray(s.types) ...')`, dove `s` era lo stop del MODELLO — è uscita
+        // insieme al ramo AI-first che la rendeva possibile. Senza quel ramo non puo'
+        // piu' fallire, e un test che non puo' fallire e' rumore. Resta la metà viva:
+        // sul percorso Google-first i types sono quelli del candidato (`c`).
         const src = readSrc('services/aiRecommendationService.js');
-        // `s` e' lo stop del MODELLO: non ha mai avuto types, lo schema glielo vieta.
-        expect(src).not.toContain('types: Array.isArray(s.types) ? s.types : []');
-        // Sul path Google-first invece i types VERI arrivano dal candidato.
         expect(src).toContain('types: Array.isArray(c.types) ? c.types : []');
     });
 });

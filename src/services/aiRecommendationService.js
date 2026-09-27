@@ -18,7 +18,8 @@ Max 150 car per la nota, 80 car per il fun fact.`;
 // In dev: middleware Vite su /__dev/places-proxy (sempre attivo).
 // In prod: Edge Function Supabase places-proxy, gated da VITE_PLACES_PROXY_ENABLED.
 // Quando il flag prod è OFF, isPlacesProxyEnabled() ritorna false e i caller
-// (verifyPOIWithPlaces / fetchPlacePhoto) saltano la chiamata senza bloccare l'UI.
+// (discoverRealPOIs, fetchPlaceOpeningHours, fetchPlaceDetailsForTour) saltano
+// la chiamata: pool vuoto, nessun luogo inventato al suo posto.
 export const isPlacesProxyEnabled = () => {
     if (import.meta.env.DEV) return true;
     const flag = import.meta.env.VITE_PLACES_PROXY_ENABLED;
@@ -97,35 +98,6 @@ const callOpenAIProxy = async (payload, signal) => {
 // come tour reale. Ora ogni fallimento del motore rilancia un errore onesto:
 // la UI mostra un messaggio, mai un tour finto.
 
-// ─── DVAI-034 / DVAI-051: Verifica POI con Google Places + type-check ───────────
-/**
- * Verifica un singolo POI contro Google Places Text Search.
- * Ritorna true se il POI esiste E il suo tipo è coerente con quanto detto dall'AI.
- *
- * Type-check (DVAI-051): l'AI può fornire un nome che esiste su Google ma di tipo
- * completamente diverso (es. "Fratelli Puglisi gelateria" mentre il vero locale è
- * un'officina). Mappiamo poi.type → set di Google "types" attesi; se l'intersezione
- * è vuota scartiamo il POI.
- */
-// DVAI-051: i types `establishment` e `point_of_interest` sono ~universali su Google,
-// quindi NON vanno mai usati come whitelist (porterebbero a falsi positivi).
-const EXPECTED_GOOGLE_TYPES = {
-    food:       ['restaurant','cafe','bakery','meal_takeaway','meal_delivery','food','bar','ice_cream','night_club','liquor_store'],
-    cibo:       ['restaurant','cafe','bakery','meal_takeaway','meal_delivery','food','bar','ice_cream'],
-    // DVAI-051: cultura/storia/arte/natura accettano `point_of_interest` perché Google
-    // spesso lo usa come unico type su attrazioni minori (es. teatri, palazzi storici).
-    // La blacklist negativa resta a tagliare officine/banche/uffici comunali.
-    cultura:    ['museum','art_gallery','tourist_attraction','church','place_of_worship','library','university','synagogue','hindu_temple','mosque','point_of_interest'],
-    storia:     ['museum','tourist_attraction','church','place_of_worship','cemetery','synagogue','hindu_temple','mosque','point_of_interest'],
-    arte:       ['museum','art_gallery','tourist_attraction','point_of_interest'],
-    natura:     ['park','natural_feature','tourist_attraction','campground','zoo','aquarium','point_of_interest'],
-    shopping:   ['store','shopping_mall','clothing_store','jewelry_store','book_store','home_goods_store','department_store','supermarket'],
-    // permissivo: non blocchiamo
-    relax:      [],
-    place:      [],
-    default:    [],
-};
-
 // DVAI-051: blacklist sempre attiva — se Google classifica il candidato come uno di
 // questi tipi, lo scartiamo a prescindere dal type richiesto. Sono attività che non
 // hanno senso come tappa turistica di un tour AI.
@@ -141,100 +113,13 @@ export const BLACKLIST_TYPES = new Set([
     'school','primary_school','secondary_school',
 ]);
 
-// DVAI-057: export nominato per test unitari (rimane usato internamente sotto).
-export const verifyPOIWithPlaces = async (poi, city) => {
-    try {
-        // DVAI-050: se il proxy Places è OFF in prod, skip silenzioso (best-effort)
-        if (!isPlacesProxyEnabled()) return true;
-        // DVAI-060 F2: skip la verifica se il POI viene dal motore Google-first —
-        // ha già `googlePlaceId` (canonicizzato da discoverRealPOIs con textsearch
-        // + business_status + soglia qualità). Rifare findplacefromtext qui è pura
-        // ridondanza + costo Google inutile. Vantaggio: -5 chiamate per tour AI.
-        if (poi.googlePlaceId) return true;
-        // DVAI-049: Places via proxy (CORS bloccato sull'endpoint REST diretto)
-        const searchQuery = poi.photo_query || `${poi.title} ${city} Italy`;
-        const proxyUrl = buildPlacesProxyUrl({
-            path: 'place/findplacefromtext',
-            input: searchQuery,
-            inputtype: 'textquery',
-            // DVAI-051: aggiunto "types" (Basic Data, gratis) per il type-check.
-            // DVAI-057: aggiunto `business_status` per scartare CLOSED_TEMPORARILY / CLOSED_PERMANENTLY
-            // ("esiste su Google" ≠ "aperto oggi"). Senza il campo nella field mask Google non lo ritorna.
-            fields: 'name,geometry,place_id,rating,opening_hours,photos,types,business_status',
-            locationbias: `circle:50000@${poi.latitude},${poi.longitude}`,
-        });
-        const res = await fetch(proxyUrl);
-        if (!res.ok) return true;
-
-        const data = await res.json();
-        if (data.status !== 'OK' || !data.candidates?.length) {
-            console.warn(`[DVAI-034] POI non trovato su Places: "${poi.title}" → rimosso`);
-            return false;
-        }
-
-        const place = data.candidates[0];
-        const placeTypes = Array.isArray(place.types) ? place.types : [];
-
-        // DVAI-057: scarta luoghi che Google conosce ma che non sono più operativi
-        // (CLOSED_TEMPORARILY / CLOSED_PERMANENTLY). Se il campo manca (proxy vecchio
-        // o Google non lo ritorna) → tratta come OPERATIONAL per compat (non peggiora
-        // il baseline: prima non c'era filtro affatto).
-        if (place.business_status && place.business_status !== 'OPERATIONAL') {
-            console.warn(`[DVAI-057] POI "${poi.title}" → business_status=${place.business_status} → scartato (chiuso)`);
-            return false;
-        }
-
-        // DVAI-051: blacklist sempre attiva — se il candidato è un servizio commerciale
-        // non turistico (officina, banca, ospedale…), scarta a prescindere.
-        const hitBlacklist = placeTypes.find(t => BLACKLIST_TYPES.has(t));
-        if (hitBlacklist) {
-            console.warn(`[DVAI-051] POI "${poi.title}" → Google=${placeTypes.join('|')} (${hitBlacklist}) → scartato (blacklist)`);
-            return false;
-        }
-
-        // DVAI-051: type-check positivo. Se l'AI ha dichiarato una famiglia (es. food,
-        // cultura, natura) verifico che il candidato Google contenga almeno un tipo
-        // della famiglia attesa.
-        const aiType = (poi.type || '').toLowerCase();
-        const expected = EXPECTED_GOOGLE_TYPES[aiType];
-        if (expected && expected.length > 0) {
-            const hasMatch = placeTypes.some(t => expected.includes(t));
-            if (!hasMatch) {
-                console.warn(`[DVAI-051] POI "${poi.title}": AI=${aiType}, Google=${placeTypes.join('|')} → scartato (no match)`);
-                return false;
-            }
-        }
-
-        // Correggi coordinate se distanti > 5km
-        if (place.geometry?.location) {
-            const { lat, lng } = place.geometry.location;
-            const distKm = Math.sqrt(
-                Math.pow((lat - poi.latitude) * 111, 2) +
-                Math.pow((lng - poi.longitude) * 111 * Math.cos(poi.latitude * Math.PI / 180), 2)
-            );
-            if (distKm > 5) {
-                poi.latitude = lat;
-                poi.longitude = lng;
-            }
-        }
-
-        // Arricchisci con dati Google Places
-        if (place.place_id) poi.googlePlaceId = place.place_id;
-        if (place.rating) poi.googleRating = place.rating;
-        if (place.opening_hours?.open_now !== undefined) poi.openNow = place.opening_hours.open_now;
-        if (place.photos?.[0]?.photo_reference) {
-            poi.googlePhoto = buildPlacesProxyUrl({
-                path: 'place/photo',
-                maxwidth: '600',
-                photo_reference: place.photos[0].photo_reference,
-            });
-        }
-
-        return true;
-    } catch {
-        return true;
-    }
-};
+// Gate SOLO-GOOGLE (27/09) — `verifyPOIWithPlaces` RIMOSSA.
+// Verificava a posteriori su Places i POI che il vecchio motore AI-first faceva
+// inventare al modello (nome + coordinate), scartando quelli che Google non
+// ritrovava. Rimosso quel motore, la funzione non aveva piu' nessun chiamante:
+// sul percorso Google-first i luoghi arrivano gia' da textsearch con
+// `place_id`, e `canonicalizeStopsFromCandidates` e' l'unico cancello.
+// Con lei esce anche EXPECTED_GOOGLE_TYPES, che serviva solo al suo type-check.
 
 // DVAI-050 — Cache TTL 24h del tour insider per (city + dna_hash) e quota.
 // DVAI-055-b: prefix bumped da 'unnivai_insider_' per invalidare i tour cached
@@ -408,7 +293,7 @@ const checkAndIncrementQuota = async () => {
 //
 // DVAI-055-b sposta le utility geografiche in tourShape.js perché TUTTE le
 // sorgenti passano dal normalizer. Qui le importiamo per uso locale (regola 15
-// del prompt + filtro pre-verifyPOIWithPlaces che risparmia chiamate Google $)
+// del prompt + filtro raggio prima del selettore, che risparmia chiamate Google $)
 // E le re-esportiamo per non rompere aiRadius.test.js.
 import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } from './tourShape';
 // Gate RAGGIO DIFF 1a — stime di durata (sosta da types + spostamento haversine).
@@ -1696,7 +1581,7 @@ export const aiRecommendationService = {
                             _oggetto_umano: intent?.oggetto_umano || 'quello che hai chiesto',
                         };
                     }
-                    console.warn(`[DVAI-060 F2] Google-first ha prodotto 0 tappe canoniche per "${city}", fallback AI-first`);
+                    console.warn(`[Gate SOLO-GOOGLE] path B: Google-first ha prodotto 0 tappe canoniche per "${city}" → risultato vuoto`);
                 } catch (err) {
                     clearTimeout(timeoutId);
                     if (err instanceof AiQuotaExceededError) throw err;
@@ -1711,7 +1596,7 @@ export const aiRecommendationService = {
                             _oggetto_umano: intent?.oggetto_umano || 'quello che hai chiesto',
                         };
                     }
-                    console.warn(`[DVAI-060 F2] Selettore fallito (${err.name === 'AbortError' ? 'timeout' : err.message}) → fallback AI-first`);
+                    console.warn(`[Gate SOLO-GOOGLE] path B: selettore fallito (${err.name === 'AbortError' ? 'timeout' : err.message}) → risultato vuoto`);
                 }
             } else {
                 // Gate B/I — Path A: 0 candidati Places → errore onesto (no fallback).
@@ -1726,7 +1611,8 @@ export const aiRecommendationService = {
                         _oggetto_umano: intent?.oggetto_umano || 'quello che hai chiesto',
                     };
                 }
-                // Path B: 0 candidati → fallback AI-first (retrocompat).
+                // Gate SOLO-GOOGLE — Path B: 0 candidati → risultato vuoto, come
+                // il Percorso A. Prima cadeva sul motore AI-first (rimosso).
             }
         } catch (err) {
             if (err instanceof AiQuotaExceededError) throw err;
@@ -1741,14 +1627,23 @@ export const aiRecommendationService = {
                     _oggetto_umano: 'quello che hai chiesto',
                 };
             }
-            console.warn(`[DVAI-060 F2] fetchRealPOICandidates ha errore, fallback AI-first: ${err.message}`);
+            console.warn(`[Gate SOLO-GOOGLE] path B: fetchRealPOICandidates in errore ("${err.message}") → risultato vuoto`);
         }
-        // ─── FINE RAMO GOOGLE-FIRST — sotto: vecchio flusso AI-first (fallback) ─
-        // ⚠️ Gate B — SAFETY BELT: se isFreeTextIntent=true e siamo arrivati qui,
-        //     è un bug logico (una via non prevista sopra). Bloccare hard con
-        //     errore onesto invece di far girare il vecchio motore che INVENTA nomi.
+        // ─── FINE RAMO GOOGLE-FIRST ─────────────────────────────────────────
+        //
+        // Gate SOLO-GOOGLE (27/09) — qui sotto c'era il vecchio motore AI-first:
+        // ~200 righe che chiedevano al modello di INVENTARE i luoghi (nome +
+        // coordinate) e tenevano solo quelli che `verifyPOIWithPlaces` ritrovava
+        // su Google. Era l'ultimo ramo in cui il modello PRODUCEVA luoghi invece
+        // di scegliere fra luoghi veri, e serviva solo al Percorso B (prefs senza
+        // frase: AiItinerary abilita "Genera" anche con i soli interessi,
+        // AiItinerary.jsx:451). Il Percorso A era gia' bloccato dalla safety belt.
+        //
+        // Ora il Percorso B si comporta come il Percorso A: se Google non ha
+        // candidati validi il risultato e' VUOTO e la UI lo dice. Nessun percorso
+        // dell'app fa piu' generare luoghi al modello.
         if (isFreeTextIntent) {
-            console.error('[Gate B] SAFETY BELT: raggiunto vecchio AI-first con userPrompt presente. Blocco.');
+            console.error('[Gate SOLO-GOOGLE] SAFETY BELT: path A arrivato in fondo senza un ramo di uscita a monte. Blocco.');
             return {
                 days: [{ stops: [] }],
                 _source: 'no-results-safety',
@@ -1757,209 +1652,18 @@ export const aiRecommendationService = {
                 _oggetto_umano: 'quello che hai chiesto',
             };
         }
-
-        const systemPrompt = `Sei un insider locale italiano — non una guida turistica, non un'enciclopedia. Sei l'amico che vive a ${city} da sempre e sa dove portare la gente per farla innamorare della città.
-
-REGOLE ASSOLUTE:
-1. Rispondi SOLO con JSON valido. Zero testo fuori dal JSON. Zero commenti. Zero markdown.
-2. Le coordinate DEVONO essere precise al punto esatto del POI (ingresso principale), non al centro della strada. Latitudine tra 36-47, Longitudine tra 6-19 (Italia).
-3. MAI iniziare con la tappa più ovvia/turistica della città. La prima tappa è una perla nascosta.
-4. Il tour ha una NARRATIVA — non è una lista. Ogni tappa porta logicamente alla successiva.
-5. Tra una tappa e l'altra, aggiungi nel campo "transition" cosa si vede camminando. NON dire cosa sta accadendo ORA lungo il percorso e non dedurlo dall'ora (non sai se i bar aprano, se ci sia gente, se le luci siano accese), e non attribuire alla strada dettagli che non sai esistano li'. Descrivi cosa c'e', non cosa sta succedendo.
-6. Per ogni tappa: perché vale la pena andarci ORA (${timeContext}).
-7. Le descrizioni sono evocative, dirette, mai da Wikipedia. Max 120 caratteri.
-7-bis. NON ATTRIBUIRE A UN POSTO CONTENUTI CHE NON SAI ESISTANO LI'. Di ogni luogo sai solo nome, tipo, indirizzo: da li' non si deduce quali opere, mostre, sale, piatti o eventi ci siano. Vietato scrivere che un posto ospita, espone o propone qualcosa se non risulta dai dati. Se la scelta e' tra generico e falso, vince il generico.
-8. CONTESTO GRUPPO: se "coppia" → posti intimi, tramonti, tavoli per due. Se "amici" → locali vivaci, street food, piazze sociali. Se "famiglia" → posti kid-friendly, gelato, parchi. Se "solo" → caffè con vista, librerie, angoli tranquilli.
-9. NON AFFERMARE MAI se un posto è aperto o chiuso, e NON dedurlo dall'ora: non ricevi i suoi orari. Un orario di apertura o chiusura che credi di sapere è una tua supposizione, e scriverla la trasforma in una bugia. Vietato citare orari di apertura o chiusura in qualsiasi campo, per qualsiasi tipo di posto.
-10. Per città NON top-6 (Roma/Milano/Firenze/Napoli/Venezia/Torino): sii conservativo. Suggerisci SOLO posti che sei CERTO esistano. Meglio 3 tappe sicure che 5 inventate. Se non conosci un posto specifico, usa la categoria ("un'enoteca storica nel centro") piuttosto che un nome falso.
-11. Per tour multi-giorno: il giorno 2 riprende dove finisce il giorno 1. Narrativa continua, non ripartire da zero.
-12. Il TITOLO nasce dalle TAPPE CHE HAI SCELTO, non da un modello: deve poter valere solo per QUESTO tour. Se lo si potesse incollare su un tour diverso della stessa citta', e' sbagliato. Se le tappe sono gastronomiche il titolo parla di cibo, se sono musei parla d'arte. Forma evocativa "<aggettivo/immagine> <sostantivo> di <citta'>", mai "Tour di <citta'>". NON riusare formule gia' sentite.
-13. Includi "photo_query" per ogni tappa: la stringa di ricerca Google Places più precisa per trovare la foto reale del posto (es: "Caffè Greco Via Condotti Roma").${aiProfile ? `
-14. PROFILO UTENTE IMPLICITO (adatta il tour a questi gusti senza menzionarli esplicitamente): ${aiProfile}` : ''}${cityCenter && Number.isFinite(cityCenter.latitude) ? `
-15. VINCOLO GEOGRAFICO ASSOLUTO: tutte le tappe DEVONO trovarsi entro ${(cityCenter.radiusKm ?? ((cityCenter.isSmallTown ?? isSmallTown(city)) ? 5 : 10))} km dal centro (${cityCenter.latitude.toFixed(4)}, ${cityCenter.longitude.toFixed(4)}), che è ${city}. ${(cityCenter.isSmallTown ?? isSmallTown(city)) ? `Trattandosi di un borgo piccolo, resta ENTRO il territorio comunale di ${city}. NON aggiungere località vicine famose (es. Taormina, Cefalù, Amalfi) anche se pensi arricchiscano il tour: l'utente vuole scoprire ${city}, non altrove.` : `Non spostarti in comuni vicini né in provincia.`} Meglio 3 tappe reali dentro ${city} che 5 sparse nel raggio provinciale.` : ''}
-
-Schema JSON ESATTO:
-{
-  "days": [{
-    "day": 1,
-    "title": "Titolo evocativo unico (NON 'Giorno 1 a ${city}')",
-    "weather": { "condition": "${weather?.condition || 'Soleggiato'}", "temperature": ${weather?.temperature || 22}, "icon": "${weatherIcon}" },
-    "suggestedTransit": "walking|bus|metro",
-    "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
-    "stops": [{
-      "title": "Nome REALE del posto (deve esistere su Google Maps)",
-      "description": "Descrizione evocativa, diretta, da insider (max 120 car)",
-      "transition": "Come arrivi alla prossima tappa (distanza, cosa vedi camminando)",
-      "insiderTip": "Consiglio da local",
-      "bestTime": "Perché questo è il momento giusto — oppure null se non hai un motivo vero, senza citare orari",
-      "photo_query": "Nome Posto Indirizzo Città (per ricerca Google Places foto)",
-      "type": "cultura|storia|food|shopping|relax|arte|natura",
-      "location": "Indirizzo reale o quartiere",
-      "latitude": 41.9028,
-      "longitude": 12.4964
-    }]
-  }]
-}`;
-
-        const lines = [
-            `Città: ${city}`,
-            `Orario attuale: ${hour}:00 — ${timeContext}`,
-            `Meteo: ${weather?.condition ?? 'soleggiato'}, ${weather?.temperature ?? 20}°C`,
-            prefs?.duration   ? `Durata tour: ${prefs.duration}` : '',
-            prefs?.budget     ? `Budget: ${prefs.budget}` : '',
-            prefs?.interests?.length
-                ? `Interessi: ${Array.isArray(prefs.interests) ? prefs.interests.join(', ') : prefs.interests}` : '',
-            prefs?.group      ? `Gruppo: ${prefs.group}` : '',
-            prefs?.pace       ? `Ritmo: ${prefs.pace}` : '',
-            userPrompt        ? `Richiesta: ${userPrompt}` : '',
-        ].filter(Boolean);
-
-        const numDays = prefs?.duration === '2-3 Giorni' ? 2 : 1;
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 35_000);
-
-        try {
-            // DVAI-001: chiamata tramite proxy, mai diretta ad OpenAI dal client
-            const data = await callOpenAIProxy({
-                model: 'gpt-4o-mini',  // DVAI-020: aggiornato da gpt-3.5-turbo
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    {
-                        role: 'user',
-                        content: `Genera un itinerario di ${numDays} giorno/i con 4-5 tappe per giorno.\n${lines.join('\n')}`,
-                    },
-                ],
-                response_format: { type: 'json_object' },
-                temperature: 0.7,
-                max_tokens: 2000,
-            }, controller.signal);
-
-            clearTimeout(timeoutId);
-
-            const raw = data.choices?.[0]?.message?.content;
-            if (!raw) throw new Error('Empty AI response');
-
-            const parsed = JSON.parse(raw);
-            const days = Array.isArray(parsed) ? parsed : (parsed.days ?? []);
-            if (!Array.isArray(days) || days.length === 0) throw new Error('AI returned no days');
-
-            const VALID_MOODS = new Set(['romantico','storia','avventura','natura','cibo','shopping','arte','sorpresa','sport']);
-            const VALID_TRANSIT = new Set(['bus','metro','walking']);
-            const sanitized = days.map((day, di) => {
-                const rawStops = (day.stops ?? [])
-                    .map(s => {
-                        const lat = parseFloat(s.latitude);
-                        const lng = parseFloat(s.longitude);
-                        // Validazione stretta: coordinate reali in Italia, titolo e descrizione presenti
-                        if (!s.title || !lat || !lng || isNaN(lat) || isNaN(lng)) return null;
-                        if (lat < 36 || lat > 47 || lng < 6 || lng > 19) {
-                            console.warn(`[AI] Scartata tappa "${s.title}": coordinate fuori Italia (${lat},${lng})`);
-                            return null;
-                        }
-                        if ((s.description || '').length < 10) {
-                            console.warn(`[AI] Scartata tappa "${s.title}": descrizione troppo corta`);
-                            return null;
-                        }
-                        return {
-                            ...s,
-                            latitude: lat,
-                            longitude: lng,
-                            // Gate PULIZIA P5 — via `price: … : 0` e `rating: … : 4.5`.
-                            // Lo schema del prompt legacy non li chiede piu' (:1367-1369),
-                            // quindi il default era l'unica sorgente: un prezzo e un voto
-                            // inventati dal codice e mostrati come dati del posto.
-                            rating: typeof s.rating === 'number' ? Math.min(s.rating, 5) : null,
-                            // Gate RAGGIO DIFF 1a — durata inventata rimossa, vedi tourTiming.js.
-                            //
-                            // CORREZIONE Gate INTENT (28/08): qui c'era un ternario che
-                            // leggeva i types dallo stop `s` col solito guard su array —
-                            // NB: la forma letterale non si scrive, un test la asserisce
-                            // assente e un commento la farebbe fallire (lezione #34).
-                            // Leggeva da `s`, cioe' lo stop prodotto dal MODELLO. Su questo path non
-                            // esiste nessun candidato Google da cui prendere i types: e'
-                            // il ramo AI-first legacy, dove il modello inventa il posto
-                            // (title + coordinate). Il modello non produce `types` e lo
-                            // schema glielo vieta, quindi quella riga valutava SEMPRE `[]`
-                            // fingendo di leggere qualcosa.
-                            //
-                            // Non e' correggibile in `c.types` come sul path Google-first
-                            // (:1208): `c` qui non esiste. Resta `[]` ESPLICITO, che e' la
-                            // verita' — su questo ramo i types Google non ci sono e la
-                            // sosta cade sul default dichiarato di tourTiming.js.
-                            // Limite noto e circoscritto: il ramo scatta solo con meno di
-                            // 3 candidati Google. Se un giorno vorra' durate vere, la
-                            // strada e' passare da place/details, non da `s`.
-                            types: [],
-                            transition: s.transition || null,
-                            insiderTip: s.insiderTip || null,
-                            bestTime: s.bestTime || null,
-                        };
-                    })
-                    .filter(Boolean);
-
-                // DVAI-055: filtro raggio PRIMA del sort. Se sort venisse prima,
-                // ottimizzerebbe una sequenza di tappe che poi verrebbero scartate.
-                const withinRadius = applyRadiusFilter(rawStops, cityCenter, city);
-
-                // Ordina le tappe per prossimità geografica (nearest-neighbor greedy)
-                // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
-                const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
-
-                return {
-                    day: day.day ?? di + 1,
-                    title: day.title ?? `Giorno ${di + 1} a ${city}`,
-                    weather: day.weather ?? {
-                        condition: 'Soleggiato',
-                        temperature: weather?.temperature ?? 22,
-                        icon: weatherIcon,
-                    },
-                    suggestedTransit: VALID_TRANSIT.has(day.suggestedTransit) ? day.suggestedTransit : 'walking',
-                    mapMood: VALID_MOODS.has(day.mapMood) ? day.mapMood : 'default',
-                    stops: ordered,
-                };
-            }).filter(d => d.stops.length > 0);
-
-            if (sanitized.length === 0) throw new Error('All stops invalid after sanitization');
-
-            // DVAI-034: Verifica POI con Google Places (async per ogni stop)
-            // Rimuove POI inesistenti e corregge coordinate imprecise.
-            // La verifica è best-effort: errori non bloccano l'itinerario.
-            const verifiedSanitized = await Promise.all(
-                sanitized.map(async (day) => {
-                    const verifiedStops = await Promise.all(
-                        day.stops.map(async (stop) => {
-                            const isValid = await verifyPOIWithPlaces(stop, city);
-                            return isValid ? stop : null;
-                        })
-                    );
-                    return {
-                        ...day,
-                        stops: verifiedStops.filter(Boolean),
-                    };
-                })
-            );
-
-            const finalDays = verifiedSanitized.filter(d => d.stops.length > 0);
-            if (finalDays.length === 0) throw new Error('All POIs invalid after Places verification');
-
-            const result = { days: finalDays, startTimeAnchored: false };
-            // DVAI-050: persisti in cache 24h. Il fallback locale NON viene cachato.
-            saveInsiderToCache(cacheKey, result);
-            return { ...result, days: refreshTourScheduledTimes(result.days, requestTime) };
-
-        } catch (err) {
-            clearTimeout(timeoutId);
-            // Gate D-5: nessun fallback statico. Ogni errore risale al chiamante
-            // che mostra un messaggio onesto ("L'AI sta avendo un momento
-            // difficile. Riprova."). Prima cadeva su generateItineraryLocal
-            // che tirava fuori Colosseo/Pantheon anche per città Sicilia.
-            const reason = err.name === 'AbortError' ? 'timeout (35s)' : err.message;
-            if (!(err instanceof AiQuotaExceededError)) {
-                console.warn(`[AI] Itinerary failed (${reason}) → rethrow onesto (no static fallback)`);
-            }
-            throw err;
-        }
+        // Percorso B — `_pathB` distingue il messaggio in UI: qui non esistono ne'
+        // una frase dell'utente ne' un `oggetto_umano` dal traduttore d'intento,
+        // quindi il testo del Percorso A ("non troviamo <oggetto>", "cambia
+        // richiesta") non si applica.
+        console.info(`[Gate SOLO-GOOGLE] path B "${city}" — 0 tappe da Google, nessun luogo generato dal modello`);
+        return {
+            days: [{ stops: [] }],
+            _source: 'no-results',
+            _pathB: true,
+            _query: [],
+            _categoria: 'sconosciuta',
+        };
     },
 
     // ─── Gate N.2 — System precompute deterministico ──────────────────────────

@@ -18,10 +18,13 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { buildSelectorSystemPrompt } from '../../services/aiRecommendationService';
 
-// Il letterale va cercato su TUTTO il file, non prompt per prompt: i tre prompt
-// che lo contenevano erano il selettore, il titleHint del tema insider
-// (buildUnifiedHomeToursPrompt, "Per Te") e il punto 12 del prompt legacy.
-// Un marker sul sorgente prende anche una quarta porta che oggi non esiste.
+// Il letterale va cercato su TUTTO il file, non prompt per prompt: i prompt che
+// lo contengono sono il selettore e il titleHint del tema insider
+// (buildUnifiedHomeToursPrompt, "Per Te").
+// Gate SOLO-GOOGLE (27/09): erano TRE — il terzo era il system prompt del motore
+// AI-first, rimosso insieme al motore. I conteggi qui sotto scendono da 3 a 2 per
+// quel motivo, non perche' una regola sia stata indebolita.
+// Un marker sul sorgente prende anche una terza porta che oggi non esiste.
 // Le righe di commento si escludono: le note di gate CITANO cio' che e' stato
 // rimosso e falserebbero il conteggio (lezione #26).
 const serviceCode = () => readFileSync(
@@ -142,11 +145,13 @@ describe('Gate NARRATORE ANCORATO DIFF 1 — il titolo dettato, su TUTTI i promp
         expect(serviceCode()).not.toContain('I vicoli segreti di');
     });
 
-    it('anche gli altri due prompt derivano il titolo dalle tappe', () => {
+    it('anche l\'altro prompt deriva il titolo dalle tappe', () => {
         const src = serviceCode();
         // titleHint del tema insider (prompt "Per Te")
         expect(src).toContain('DERIVATO dalle tappe che hai scelto');
-        // punto 12 del prompt legacy
+        // Regola del selettore (:1010). Gate SOLO-GOOGLE (27/09): la stessa frase
+        // stava anche al punto 12 del prompt legacy, uscito col motore AI-first —
+        // qui resta perche' il selettore la porta, non per retrocompatibilita'.
         expect(src).toContain('Il TITOLO nasce dalle TAPPE CHE HAI SCELTO');
     });
 });
@@ -180,9 +185,10 @@ describe('Gate NARRATORE ANCORATO DIFF 3 — nessun orario inventato, nessuno st
 
     it('tutti i prompt vietano di AFFERMARE stati di apertura', () => {
         const src = serviceCode();
-        // due copie della regola (selettore + "Per Te") piu' il punto 9 legacy
+        // Due copie della regola: selettore + "Per Te". Gate SOLO-GOOGLE: la terza
+        // era il punto 9 del prompt legacy, uscito col motore AI-first.
         const occorrenze = src.split('NON AFFERMARE MAI se un posto è aperto o chiuso').length - 1;
-        expect(occorrenze).toBe(3);
+        expect(occorrenze).toBe(2);
     });
 
     it('open_now non entra piu\' nel payload del selettore', () => {
@@ -216,10 +222,11 @@ describe('Gate NARRATORE ANCORATO F55 — non attribuire contenuti che non si sa
         expect(p).not.toContain('CULTURA');
     });
 
-    it('il divieto e\' presente in tutti e tre i prompt', () => {
+    it('il divieto e\' presente in entrambi i prompt vivi', () => {
         const src = serviceCode();
+        // Gate SOLO-GOOGLE: da 3 a 2 — il terzo prompt era quello del motore AI-first.
         const n = src.split('NON ATTRIBUIRE A UN POSTO CONTENUTI').length - 1;
-        expect(n).toBe(3);
+        expect(n).toBe(2);
     });
 
     it('dichiara esplicitamente cosa il modello SA', () => {
@@ -257,10 +264,11 @@ describe('Gate NARRATORE ANCORATO F55 — non attribuire contenuti che non si sa
 });
 
 describe('Gate NARRATORE ANCORATO F56 — transition non afferma cosa accade ORA', () => {
-    it('il divieto temporale e\' su tutti e tre i prompt', () => {
+    it('il divieto temporale e\' su entrambi i prompt vivi', () => {
         const src = serviceCode();
+        // Gate SOLO-GOOGLE: da 3 a 2 — il terzo prompt era quello del motore AI-first.
         const n = src.split('NON dire cosa sta accadendo ORA').length - 1;
-        expect(n).toBe(3);
+        expect(n).toBe(2);
     });
 
     it('la frase vista su device e\' un contro-esempio', () => {

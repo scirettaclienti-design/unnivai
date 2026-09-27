@@ -204,11 +204,21 @@ export default function AIItineraryPage() {
             // Gate B — Path A no-results: il motore ha risolto oggetto_umano dal
             // traduttore d'intento. Toast onesto con "A ${city} non troviamo ${oggetto}".
             if (result?._source === 'no-results' || result?._source === 'no-results-error' || result?._source === 'no-results-safety') {
+                // Gate SOLO-GOOGLE (27/09) — due messaggi, perché i due percorsi
+                // non hanno la stessa informazione. Percorso A ha la frase
+                // dell'utente e un `oggetto_umano` dal traduttore d'intento;
+                // Percorso B (solo interessi selezionati, `_pathB`) non ha né
+                // l'una né l'altro: dirgli "cambia richiesta" sarebbe assurdo,
+                // non ha scritto niente.
                 const oggetto = result?._oggetto_umano || 'quello che hai chiesto';
-                console.warn(`[AiItinerary] path A no-results (source=${result._source}, oggetto="${oggetto}")`);
+                console.warn(`[AiItinerary] no-results (source=${result._source}, path=${result?._pathB ? 'B' : 'A'}, oggetto="${oggetto}")`);
                 toast({
-                    title: `A ${activeCity} non troviamo ${oggetto}.`,
-                    description: 'Cambia richiesta e riprovo.',
+                    title: result?._pathB
+                        ? `A ${activeCity} non trovo luoghi verificati per questi interessi.`
+                        : `A ${activeCity} non troviamo ${oggetto}.`,
+                    description: result?._pathB
+                        ? 'Prova ad aggiungerne uno.'
+                        : 'Cambia richiesta e riprovo.',
                     type: 'info',
                     duration: 6000,
                 });

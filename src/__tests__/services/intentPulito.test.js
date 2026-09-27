@@ -96,10 +96,10 @@ describe('F65 — il profilo NON e\' stato tolto: e\' stato rimesso al suo posto
         expect(src).toContain('• richiesta utente: "${(userPrompt || \'\').slice(0, 300)}"');
     });
 
-    it('il path legacy ha la sua regola dedicata al profilo', () => {
-        const src = readSrc('services/aiRecommendationService.js');
-        expect(src).toContain('14. PROFILO UTENTE IMPLICITO');
-    });
+    // Gate SOLO-GOOGLE (27/09): rimosso "il path legacy ha la sua regola dedicata
+    // al profilo" (asseriva `14. PROFILO UTENTE IMPLICITO` nel system prompt del
+    // motore AI-first). Quel prompt non esiste più: il motore che faceva inventare
+    // i luoghi al modello è stato rimosso, e con lui la sua regola 14.
 
     it('la chiave di cache discrimina ancora sul profilo (e, dal Gate MERITO, anche sui pesi DNA)', () => {
         // insiderCacheKey riceve userPrompt E aiProfile separatamente: togliere

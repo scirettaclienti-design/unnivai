@@ -51,7 +51,7 @@ const formatMinutes = (min) => {
 
 import { useUserContext } from "@/hooks/useUserContext";
 import { useAILearning } from "@/hooks/useAILearning";
-import { aiRecommendationService } from "@/services/aiRecommendationService";
+import { aiRecommendationService, QUOTA_USER_MESSAGE } from "@/services/aiRecommendationService";
 import { normalizeTour } from "@/services/tourShape";
 import { useToast } from "@/hooks/use-toast";
 
@@ -160,9 +160,9 @@ export default function SurpriseTourPage() {
             if (quotaStatus.exceeded) {
                 console.log('[DVAI-061] shuffleExperience: quota exceeded → flash pulsante + toast (no spinner, no delay)');
                 triggerQuotaFlash();
+                // Gate QUOTA-SERVER — testo deciso da Ivano, identico al server.
                 toast({
-                    title: 'Hai esplorato tanto oggi',
-                    description: 'Le tue esperienze di oggi sono esaurite. Domani ne troverai di nuove, cucite su di te.',
+                    title: QUOTA_USER_MESSAGE,
                     type: 'info',
                     duration: 5000,
                 });
@@ -317,8 +317,8 @@ export default function SurpriseTourPage() {
                 // dove ha cliccato, sempre.
                 triggerQuotaFlash();
                 setGenerationError({
-                    title: 'Hai esplorato tanto oggi',
-                    description: 'Le tue esperienze di oggi sono esaurite. Domani ne troverai di nuove, cucite su di te.'
+                    title: error.userMessage || QUOTA_USER_MESSAGE,
+                    description: '',
                 });
             } else {
                 // DVAI-051: NON cadere più su mock numerico. Toast in-app coerente.
@@ -391,9 +391,11 @@ export default function SurpriseTourPage() {
                     <h2 className="text-xl font-bold text-obsidian-primary mb-2">
                         {generationError.title}
                     </h2>
-                    <p className="text-xs text-obsidian-secondary max-w-xs leading-relaxed font-medium mb-8">
-                        {generationError.description}
-                    </p>
+                    {generationError.description ? (
+                        <p className="text-xs text-obsidian-secondary max-w-xs leading-relaxed font-medium mb-8">
+                            {generationError.description}
+                        </p>
+                    ) : <div className="mb-6" />}
                     <div className="w-full max-w-xs space-y-3">
                         <button
                             onClick={() => { setGenerationError(null); shuffleExperience(); }}

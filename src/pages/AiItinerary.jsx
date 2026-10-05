@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
 import { useUserContext } from "../hooks/useUserContext";
-import { aiRecommendationService } from "../services/aiRecommendationService";
+import { aiRecommendationService, QUOTA_USER_MESSAGE } from "../services/aiRecommendationService";
 import { normalizeTour } from "../services/tourShape";
 // Gate RAGGIO DIFF 1b — offset cumulativo e formattazione delle stime.
 // Nessun numero secco e nessuna stringa costruita a mano in questa pagina:
@@ -247,9 +247,9 @@ export default function AIItineraryPage() {
             // DVAI-050 — cap anti-abuso 10/giorno: messaggio gentile, non paywall
             if (error?.code === 'QUOTA_EXCEEDED') {
                 // DVAI-056: copy locked — voce DoveVAI, non punitiva. Type info + 5s.
+                // Gate QUOTA-SERVER — testo dal server (utente o tetto globale).
                 toast({
-                    title: 'Hai esplorato tanto oggi',
-                    description: 'Le tue esperienze di oggi sono esaurite. Domani ne troverai di nuove, cucite su di te.',
+                    title: error.userMessage || QUOTA_USER_MESSAGE,
                     type: 'info',
                     duration: 5000,
                 });
@@ -319,6 +319,9 @@ export default function AIItineraryPage() {
             );
         } catch (err) {
             console.warn('[AI] regenerateDay failed:', err.message);
+            if (err?.code === 'QUOTA_EXCEEDED') {
+                toast({ title: err.userMessage || QUOTA_USER_MESSAGE, type: 'info', duration: 5000 });
+            }
         } finally {
             setIsGenerating(false);
         }

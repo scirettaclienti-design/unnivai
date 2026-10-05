@@ -45,6 +45,11 @@ export default defineConfig({
     alias: {
       // Mirrors vite.config.js so imports like '@/services/...' work in tests
       '@': path.resolve(__dirname, './src'),
+      // Gate QUOTA-SERVER — le Edge Function (Deno) importano da URL. Sotto
+      // Vitest li reindirizziamo a sostituti locali, cosi' il test esegue il
+      // file index.ts vero, senza modificarlo.
+      'https://deno.land/std@0.177.0/http/server.ts': path.resolve(__dirname, './src/test/mocks/edge/denoServe.js'),
+      'https://esm.sh/@supabase/supabase-js@2.39.0': path.resolve(__dirname, './src/test/mocks/edge/supabaseEdge.js'),
     },
   },
 })

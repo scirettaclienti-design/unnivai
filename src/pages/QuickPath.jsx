@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { aiRecommendationService } from "@/services/aiRecommendationService";
+import { aiRecommendationService, QUOTA_USER_MESSAGE } from "@/services/aiRecommendationService";
 import { normalizeTour } from "@/services/tourShape";
 // Gate 2 FASE 3 — servizi centrali del motore reale.
 // resolveCityCenter: unica sorgente autoritativa del centro città (mai GPS).
@@ -503,7 +503,7 @@ export default function QuickPathPage() {
     //   idle | loading | success | 'error-nothing' | 'error-technical' | 'error-quota'
     // "error-nothing"   → messaggio brand ("Non basta per un tour.")
     // "error-technical" → messaggio infra ("Non riesco a raggiungere i posti.")
-    // "error-quota"     → cap 10/giorno onesto ("Hai esplorato tanto oggi.")
+    // "error-quota"     → limite del server (Gate QUOTA-SERVER), testo dal server
     //                     coerente con AiItinerary + SurpriseTour. Prima era
     //                     confuso con "technical" e mentiva sui "posti".
     const [generationStatus, setGenerationStatus] = useState('idle');
@@ -716,7 +716,7 @@ export default function QuickPathPage() {
             // - Altro → tecnico (rete, timeout OpenAI, etc.)
             const isQuotaErr = err?.code === 'QUOTA_EXCEEDED';
             if (isQuotaErr) {
-                setGenerationError({ reason: 'quota', detail: 'quota_exceeded' });
+                setGenerationError({ reason: 'quota', detail: 'quota_exceeded', message: err.userMessage || QUOTA_USER_MESSAGE });
                 setGenerationStatus('error-quota');
                 return;
             }
@@ -1073,10 +1073,8 @@ export default function QuickPathPage() {
                                     <div className="w-14 h-14 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center text-brand-orange mx-auto mb-4 shadow-sm">
                                         <Clock className="w-7 h-7 stroke-[1.75]" />
                                     </div>
-                                    <h3 className="text-2xl font-bold text-obsidian-primary mb-3">Hai esplorato tanto oggi.</h3>
-                                    <p className="text-obsidian-secondary text-sm leading-relaxed mb-8 font-medium">
-                                        Domani nuove esperienze.
-                                    </p>
+                                    {/* Gate QUOTA-SERVER — testo deciso da Ivano, arriva dal server. */}
+                                    <h3 className="text-2xl font-bold text-obsidian-primary mb-8">{generationError?.message || QUOTA_USER_MESSAGE}</h3>
                                     <button
                                         onClick={() => navigate('/dashboard-user')}
                                         className="px-6 py-3.5 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-xl font-bold transition-colors w-full sm:w-auto shadow-md shadow-brand-orange/20 cursor-pointer"

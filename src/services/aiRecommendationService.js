@@ -53,7 +53,7 @@ export const buildPlacesProxyUrl = (params) => {
  * @param {AbortSignal} [signal]
  * @returns {Promise<object>} La risposta JSON di OpenAI
  */
-const callOpenAIProxy = async (payload, signal) => {
+const callOpenAIProxy = async (payload, signal, quota) => {
   const { data: { session } } = await supabase.auth.getSession();
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -76,12 +76,21 @@ const callOpenAIProxy = async (payload, signal) => {
   const response = await fetch(`${supabaseUrl}/functions/v1/openai-proxy`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ endpoint: '/chat/completions', ...payload }),
+    // Gate QUOTA-SERVER — `dv` dice al proxy a quale generazione appartiene la
+    // chiamata (biglietto). Senza `dv` il proxy la conta come chiamata di contorno.
+    body: JSON.stringify({ endpoint: '/chat/completions', ...payload, ...(quota ? { dv: quota } : {}) }),
     ...(signal ? { signal } : {}),
   });
 
   if (!response.ok) {
     const errBody = await response.json().catch(() => ({}));
+    // Gate QUOTA-SERVER — il limite lo decide il server; il testo arriva da lì.
+    if (response.status === 429 && (errBody?.code === 'QUOTA_EXCEEDED' || errBody?.code === 'GLOBAL_QUOTA_EXCEEDED')) {
+      throw new AiQuotaExceededError(0, {
+        scope: errBody.code === 'GLOBAL_QUOTA_EXCEEDED' ? 'global' : 'user',
+        message: typeof errBody.error === 'string' ? errBody.error : undefined,
+      });
+    }
     const errMsg = `Proxy ${response.status}: ${errBody?.error ?? response.statusText}`;
     console.error('[AI Proxy] Errore:', errMsg);
     throw new Error(errMsg);
@@ -186,13 +195,43 @@ const saveInsiderToCache = (key, data) => {
 };
 
 // DVAI-050 — Quota anti-abuso: max 10 generazioni AI nuove (cache-miss) al giorno per utente.
-// Tabella public.ai_quota_daily (user_id, day, count). Cache miss → +1.
+// Gate QUOTA-SERVER — il conteggio lo fa SOLO openai-proxy (public.ai_quota_consume,
+// chiave di servizio). Il client legge la propria riga di ai_quota_daily per
+// mostrare quante generazioni restano, e non la scrive mai.
 const DAILY_QUOTA = 10;
+
+// Testi decisi da Ivano, identici a quelli del server (openai-proxy/index.ts).
+export const QUOTA_USER_MESSAGE = 'Per oggi hai usato tutti i tuoi percorsi. Domani se ne aprono altri.';
+export const QUOTA_GLOBAL_MESSAGE = 'Oggi Unnivai ha raggiunto il limite di percorsi. Domani se ne aprono altri.';
+
 export class AiQuotaExceededError extends Error {
-    constructor(remaining = 0) { super('AI daily quota exceeded'); this.code = 'QUOTA_EXCEEDED'; this.remaining = remaining; }
+    constructor(remaining = 0, { scope = 'user', message } = {}) {
+        super('AI daily quota exceeded');
+        this.code = 'QUOTA_EXCEEDED';
+        this.remaining = remaining;
+        this.scope = scope;
+        this.userMessage = message || (scope === 'global' ? QUOTA_GLOBAL_MESSAGE : QUOTA_USER_MESSAGE);
+    }
 }
 
-const todayStr = () => new Date().toISOString().slice(0, 10);
+// Giorno della quota = mezzanotte Europe/Rome, come nel server.
+const todayStr = () => new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Rome', year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(new Date());
+
+// Biglietto di generazione: tutte le chiamate di UNA generazione (traduttore
+// d'intento + selettore) lo condividono, il server la conta una volta sola.
+const newGenerationTicket = (kind) => {
+    let ticket = globalThis.crypto?.randomUUID?.();
+    if (!ticket) {
+        const b = globalThis.crypto.getRandomValues(new Uint8Array(16));
+        b[6] = (b[6] & 0x0f) | 0x40; // uuid v4
+        b[8] = (b[8] & 0x3f) | 0x80;
+        const h = [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+        ticket = `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+    }
+    return { purpose: 'generation', ticket, kind };
+};
 
 // DVAI-061 — Preflight della quota lato client. Legge SENZA incrementare.
 // Serve per feedback immediato sul pulsante (SurpriseTour "click morto"):
@@ -203,14 +242,14 @@ const todayStr = () => new Date().toISOString().slice(0, 10);
 //   { authenticated: bool, count: number, remaining: number, exceeded: bool }
 //
 // Su errore (RLS/rete): ritorna { exceeded: false } — NON blocchiamo l'utente
-// per un errore infrastrutturale. checkAndIncrementQuota poi rifà il controllo
-// autoritativo nel path di generazione.
+// per un errore infrastrutturale. Il controllo autoritativo lo fa openai-proxy
+// (Gate QUOTA-SERVER).
 export const getDailyQuotaStatus = async () => {
     try {
         const { data: { session } } = await supabase.auth.getSession();
         const userId = session?.user?.id;
         if (!userId) {
-            // Guest: bypass quota (come in checkAndIncrementQuota).
+            // Guest: la quota ospite (per IP) e' solo sul server, il client non la legge.
             return { authenticated: false, count: 0, remaining: DAILY_QUOTA, exceeded: false };
         }
 
@@ -247,42 +286,13 @@ export const getDailyQuotaStatus = async () => {
     }
 };
 
-const checkAndIncrementQuota = async () => {
-    try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id;
-        if (!userId) return; // guest: niente quota, niente DB
-
-        // Task 3 — account is_unlimited (settato server-side via service_role)
-        // salta conteggio e upsert. Vedi migration 20260711_is_unlimited_profiles.sql.
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('is_unlimited')
-            .eq('id', userId)
-            .maybeSingle();
-        if (profile?.is_unlimited === true) return;
-
-        const day = todayStr();
-        const { data: row } = await supabase
-            .from('ai_quota_daily')
-            .select('count')
-            .eq('user_id', userId)
-            .eq('day', day)
-            .maybeSingle();
-
-        const current = row?.count ?? 0;
-        if (current >= DAILY_QUOTA) {
-            throw new AiQuotaExceededError(0);
-        }
-
-        await supabase
-            .from('ai_quota_daily')
-            .upsert({ user_id: userId, day, count: current + 1 }, { onConflict: 'user_id,day' });
-    } catch (e) {
-        if (e instanceof AiQuotaExceededError) throw e;
-        // Su errori di rete/RLS non blocchiamo l'utente: log e proseguiamo.
-        console.warn('[ai-quota] check failed, proseguo:', e?.message || e);
-    }
+// Gate QUOTA-SERVER — sostituisce checkAndIncrementQuota. NON scrive nulla e
+// non e' una protezione: il limite lo applica openai-proxy. Serve solo a non
+// spendere chiamate Google Places quando si sa gia' che il server rifiutera'.
+// Su errore (rete/RLS) non blocca: decide il server.
+const assertQuotaAvailable = async () => {
+    const status = await getDailyQuotaStatus();
+    if (status.exceeded) throw new AiQuotaExceededError(0);
 };
 
 // DVAI-055 / DVAI-055-b — Vincolo geografico "tappe dentro il raggio della città".
@@ -520,14 +530,16 @@ ZERO PROSA. ZERO SPIEGAZIONI FUORI JSON.`;
 
 /**
  * Traduce il free-text dell'utente in { queries, categoria, oggetto_umano, vincoli }.
- * NON consuma la quota giornaliera (10/day) — è pre-processing, non generazione.
+ * Gate QUOTA-SERVER — con `quota` (biglietto della generazione) la chiamata e'
+ * la prima delle due della stessa generazione: il server la conta una volta sola.
  *
  * @param {string} userPrompt   frase in italiano dell'utente
  * @param {string} cityName     città target (contesto per il modello)
+ * @param {object} [quota]      biglietto di generazione (newGenerationTicket)
  * @returns {Promise<object>}   { queries[], categoria, oggetto_umano, vincoli }
  * @throws                       se OpenAI proxy fallisce o JSON non parsabile
  */
-export async function translateIntentToQueries(userPrompt, cityName) {
+export async function translateIntentToQueries(userPrompt, cityName, quota) {
     const prompt = String(userPrompt || '').trim();
     if (!prompt) {
         throw new Error('translateIntentToQueries: userPrompt vuoto');
@@ -545,7 +557,7 @@ export async function translateIntentToQueries(userPrompt, cityName) {
         response_format: { type: 'json_object' },
         temperature: 0.3, // locked: determinismo
         max_tokens: 200,
-    });
+    }, undefined, quota);
     const raw = data?.choices?.[0]?.message?.content;
     if (!raw) throw new Error('translateIntentToQueries: no AI response');
 
@@ -589,7 +601,7 @@ export async function translateIntentToQueries(userPrompt, cityName) {
 //   Ritorna { candidates, intent: null }.
 //
 // Se cityCenter non ha lat/lng, ritorna { candidates: [], intent: null }.
-const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = '') => {
+const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = '', quota = undefined) => {
     const lat = cityCenter?.latitude;
     const lng = cityCenter?.longitude;
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { candidates: [], intent: null };
@@ -603,9 +615,11 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
     if (isFreeText) {
         // Path A — Gate B: free-text guida la ricerca.
         try {
-            intent = await translateIntentToQueries(userPrompt, cityName);
+            intent = await translateIntentToQueries(userPrompt, cityName, quota);
             console.info(`[Gate B] intent tradotto: queries=${JSON.stringify(intent.queries)} categoria=${intent.categoria} oggetto="${intent.oggetto_umano}" source=${intent._source}`);
         } catch (translatorErr) {
+            // Quota esaurita non e' un traduttore giu': deve arrivare alla UI.
+            if (translatorErr instanceof AiQuotaExceededError) throw translatorErr;
             console.warn(`[Gate B] translateIntentToQueries fallito: ${translatorErr.message}`);
             // Traduttore giù → path A resta path A (fail-closed), NON ricadere su path B.
             // Ritorna intent minimo con oggetto_umano generico per il messaggio d'errore.
@@ -1335,6 +1349,10 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates) => {
 
 export const aiRecommendationService = {
 
+    // Gate QUOTA-SERVER — SurpriseTour.jsx:158 chiama il preflight come metodo:
+    // prima non c'era, la chiamata lanciava TypeError e il preflight non partiva mai.
+    getDailyQuotaStatus,
+
     // ─── ITINERARY GENERATION ────────────────────────────────────────────────
     // DVAI-055 — cityCenter opzionale: { latitude, longitude, radiusKm?, isSmallTown? }.
     // Se passato, attiva il vincolo geografico A monte (regola 15 nel prompt) e A
@@ -1362,11 +1380,12 @@ export const aiRecommendationService = {
         }
 
         // DVAI-050 — Cache MISS: quota giornaliera utente (10/day).
-        // Blocco 2.1 FASE 2: opts.skipUserQuota=true bypassa il conteggio utente
-        // (usato dal precompute sistema che ha il suo cap syswarm cap 6/day).
+        // Gate QUOTA-SERVER — qui solo il preflight in lettura; il conteggio lo
+        // fa openai-proxy sul biglietto. opts.skipUserQuota salta solo il preflight.
         if (!opts.skipUserQuota) {
-            await checkAndIncrementQuota();
+            await assertQuotaAvailable();
         }
+        const quotaTicket = newGenerationTicket('itinerary');
 
         const weatherIcon = weather?.condition === 'sunny' ? '☀️'
             : weather?.condition === 'rainy' ? '🌧️' : '⛅';
@@ -1398,7 +1417,7 @@ export const aiRecommendationService = {
         // candidati, errore onesto con oggetto_umano.
         const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
         try {
-            const { candidates: rawCandidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt);
+            const { candidates: rawCandidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket);
 
             // Gate RAGGIO-CATEGORIA — la categoria richiesta, quando e' una delle
             // 7 filtrabili in modo stretto. undefined ⇒ nessun vincolo di
@@ -1515,7 +1534,7 @@ export const aiRecommendationService = {
                         response_format: { type: 'json_object' },
                         temperature: 0.7,
                         max_tokens: 2000,
-                    }, controller.signal);
+                    }, controller.signal, quotaTicket);
                     clearTimeout(timeoutId);
 
                     const raw = data.choices?.[0]?.message?.content;
@@ -1745,11 +1764,12 @@ export const aiRecommendationService = {
         const cached = loadInsiderFromCache(cacheKey);
         if (cached) return cached;
 
-        // Quota: 1 call = 1 conteggio (come generateItinerary). skipUserQuota
-        // solo per contexts di sistema (non usato qui in V1).
+        // Quota: 1 call = 1 generazione (biglietto home_tours: il server concede
+        // 4000 max_tokens solo a questo tipo). skipUserQuota salta solo il preflight.
         if (!opts.skipUserQuota) {
-            await checkAndIncrementQuota();
+            await assertQuotaAvailable();
         }
+        const quotaTicket = newGenerationTicket('home_tours');
 
         const weatherIcon = weather?.condition === 'sunny' ? '☀️'
             : weather?.condition === 'rainy' ? '🌧️' : '⛅';
@@ -1779,7 +1799,7 @@ export const aiRecommendationService = {
                 response_format: { type: 'json_object' },
                 temperature: 0.7,
                 max_tokens: 4000,
-            }, controller.signal);
+            }, controller.signal, quotaTicket);
             clearTimeout(timeoutId);
 
             const raw = data.choices?.[0]?.message?.content;

@@ -269,15 +269,49 @@ describe('openai-proxy — quota applicata dal server', () => {
     expect(openaiCalls()).toBe(0);
   });
 
-  it('max_tokens: 2000 al massimo, 4000 solo per biglietti home_tours; n forzato a 1', async () => {
-    await call({ token: 'tok-anna', payload: { max_tokens: 16000, n: 5 } });
-    await generation({ token: 'tok-anna', kind: 'itinerary', calls: 1 });
+  it('max_tokens: itinerary 2000; home_tours e chiamate senza biglietto fino a 4000; n forzato a 1', async () => {
+    await call({ token: 'tok-anna', payload: { max_tokens: 16000, n: 5 } }); // senza biglietto → 4000
+    await generation({ token: 'tok-anna', kind: 'itinerary', calls: 1 });    // max_tokens 2000 → 2000
+    await call({ token: 'tok-anna', dv: { purpose: 'generation', ticket: newTicket(), kind: 'itinerary' }, payload: { max_tokens: 4000 } }); // → 2000
     const dv = { purpose: 'generation', ticket: newTicket(), kind: 'home_tours' };
     await call({ token: 'tok-anna', dv, payload: { max_tokens: 4000 } });
     await call({ token: 'tok-anna', payload: {} }); // nessun max_tokens → 2000
-    expect(openaiBodies.map(b => b.max_tokens)).toEqual([2000, 2000, 4000, 2000]);
+    expect(openaiBodies.map(b => b.max_tokens)).toEqual([4000, 2000, 2000, 4000, 2000]);
     expect(openaiBodies[0].n).toBeUndefined();
     expect(openaiBodies.every(b => b.dv === undefined)).toBe(true);
+  });
+
+  // Compatibilita' col client in produzione (db44413, 12/09): non manda biglietti
+  // e la Home (generateHomeTours) chiede 4000 token. Con il tetto a 2000 per le
+  // chiamate senza biglietto il JSON dei 5 tour veniva troncato → Home vuota.
+  it('client vecchio: la richiesta della Home (4000 token, nessun biglietto) passa intera', async () => {
+    const longContent = JSON.stringify({ tours: Array.from({ length: 5 }, (_, i) => ({ title: `Tour ${i}`, stops: [] })) });
+    fetch.mockImplementationOnce(async (url, init) => {
+      openaiBodies.push(JSON.parse(init.body));
+      return new Response(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content: longContent } }] }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      });
+    });
+    const r = await call({
+      token: 'tok-anna',
+      payload: {
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'prompt Home' },
+          { role: 'user', content: 'Costruisci i tour. Ricorda: place_id dal blocco tema corrispondente, voce insider concreta, MAI aggettivi vuoti, tappe con description sensoriale specifica.' },
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.7,
+        max_tokens: 4000,
+      },
+    });
+    expect(r.status).toBe(200);
+    expect(openaiBodies[0].max_tokens).toBe(4000);
+    const body = await r.json();
+    expect(body.choices[0].finish_reason).toBe('stop');
+    expect(body.choices[0].message.content).toBe(longContent);
+    // e conta come chiamata di contorno, non come generazione
+    expect(fakeQuota.global).toBe(0);
   });
 
   it('account is_unlimited: nessun limite personale', async () => {

@@ -14,6 +14,8 @@
  *     massimo 2 chiamate in 10 minuti (traduttore d'intento + selettore).
  *   - chiamate di contorno (chat, monumenti, meteo, business, e qualunque
  *     richiesta senza `dv`): utente 40/giorno, ospite 15/giorno per IP.
+ *   - max_tokens: 2000 per i biglietti 'itinerary'; 4000 per 'home_tours' e per
+ *     le richieste senza biglietto (compatibilita' col client vecchio).
  *   - giorno = mezzanotte Europe/Rome (calcolato nella funzione SQL).
  *   - se il controllo fallisce per qualunque motivo: 503, OpenAI NON viene chiamato.
  *
@@ -31,8 +33,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 const OPENAI_BASE = 'https://api.openai.com/v1';
 
 const ALLOWED_MODELS = new Set(['gpt-4o-mini']);
-const MAX_TOKENS_DEFAULT = 2000;
-const MAX_TOKENS_HOME_TOURS = 4000; // generateHomeTours: fino a 5 tour narrati in 1 chiamata
+const MAX_TOKENS_DEFAULT = 2000;   // tetto dei biglietti 'itinerary' e default se manca max_tokens
+const MAX_TOKENS_LARGE = 4000;     // biglietti 'home_tours' (fino a 5 tour narrati in 1 chiamata)
+                                   // e chiamate SENZA biglietto: il client in produzione
+                                   // fino al 12/09 (db44413) manda la Home senza biglietto
+                                   // a 4000 token. Gia' contate come contorno (40/15 al giorno).
 
 const LIMITS = {
   user:  { generation: 10, aux: 40 },
@@ -216,11 +221,13 @@ serve(async (req: Request) => {
     return json(429, { error: MSG_USER_LIMIT, code: 'QUOTA_EXCEEDED', remaining: 0 });
   }
 
-  const tokenCap = meta.purpose === 'generation' && quota.ticket_kind === 'home_tours'
-    ? MAX_TOKENS_HOME_TOURS
-    : MAX_TOKENS_DEFAULT;
+  const tokenCap = meta.purpose === 'generation' && quota.ticket_kind !== 'home_tours'
+    ? MAX_TOKENS_DEFAULT
+    : MAX_TOKENS_LARGE;
   const asked = Number(openAiPayload.max_tokens);
-  openAiPayload.max_tokens = Number.isFinite(asked) && asked > 0 ? Math.min(asked, tokenCap) : tokenCap;
+  openAiPayload.max_tokens = Number.isFinite(asked) && asked > 0
+    ? Math.min(asked, tokenCap)
+    : Math.min(MAX_TOKENS_DEFAULT, tokenCap);
 
   const quotaHeaders: Record<string, string> = typeof quota.remaining === 'number'
     ? { 'x-quota-remaining': String(quota.remaining) }

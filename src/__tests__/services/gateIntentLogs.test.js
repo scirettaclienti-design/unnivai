@@ -170,7 +170,9 @@ describe('Gate INTENT — nessun cambio di comportamento', () => {
         // `deriveKindFromQuery` non deve comparire nell'assegnazione di customKind
         // ne' essere passata a discoverRealPOIs: in questo diff e' diagnostica.
         const dopo = src.slice(src.indexOf('const customKind ='));
-        const chiamata = dopo.slice(0, dopo.indexOf('lists = await Promise.all') + 400);
+        // Gate INTERESSI-VERI: Promise.all → settleSearches (una ricerca fallita
+        // non butta via le altre). L'asserzione sotto non cambia.
+        const chiamata = dopo.slice(0, dopo.indexOf('lists = await settleSearches') + 400);
         expect(chiamata).toContain('customQuery: q, customKind');
         expect(chiamata).not.toMatch(/customKind:\s*deriveKindFromQuery/);
     });

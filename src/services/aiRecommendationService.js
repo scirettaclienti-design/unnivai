@@ -321,23 +321,33 @@ import { selectScoredCandidatePool, enforceCategoryVariety, weightsFingerprint }
 // luoghi reali dalla textsearch Google e li racconta con voce insider).
 //
 // derivePrimaryThemes: dai prefs utente ai temi textsearch (max 3, con
-// fallback mix walking+art+food se nessuno).
+// fallback mix cultura+food se nessuno).
 // fetchRealPOICandidates: chiama placesDiscoveryService.discoverRealPOIs in
 // parallelo su tutti i temi, mescola, deduplica per place_id, ordina per QS,
 // tronca a top-N per non gonfiare il prompt AI.
 
-const INTEREST_TO_THEME = {
+// Gate INTERESSI-VERI — ogni VALORE qui deve essere una chiave di
+// THEME_TEXTSEARCH (placesDiscoveryService). Fino al 06/10 `arte`, `storia`,
+// `cultura` e `musei` puntavano a `art`, rinominato `cultura` dal Gate P.1:
+// nessuna query, TypeError prima della fetch, e la UI diceva "non trovo luoghi
+// verificati" senza aver mai interpellato Google. themeCompleteness.test.js
+// fallisce da solo se un valore resta senza ricerca.
+export const INTEREST_TO_THEME = {
     // Mapping case-insensitive delle etichette UI (AiItinerary picker + DNA quiz)
     // ai temi supportati da discoverRealPOIs.
     'cibo':          'food',
     'food':          'food',
     'gastronomia':   'food',
     'ristoranti':    'food',
-    'arte':          'art',
-    'art':           'art',
-    'storia':        'art',
-    'cultura':       'art',
-    'musei':         'art',
+    'arte':          'cultura',
+    'art':           'cultura',
+    'storia':        'cultura',
+    'cultura':       'cultura',
+    'musei':         'cultura',
+    // `walking` e' stato assorbito da `cultura` (Gate P.1: monumenti, centro
+    // storico): passeggiare in citta' cerca quello.
+    'passeggiate':   'cultura',
+    'passeggiata':   'cultura',
     'natura':        'nature',
     'nature':        'nature',
     'parchi':        'nature',
@@ -354,7 +364,9 @@ const INTEREST_TO_THEME = {
 // DVAI-060 F2: se prefs non ha interessi (featured insider, DashboardUser
 // passa solo duration+group+pace), uso un mix curato "tour insider classico":
 // una piazza/monumento, un palazzo o museo, una trattoria. Il giro tipico.
-const DEFAULT_MIX_THEMES = ['walking', 'art', 'food'];
+// Gate INTERESSI-VERI: era ['walking', 'art', 'food'] — due temi su tre senza
+// query. `cultura` copre piazza/monumento E palazzo/museo (Gate P.1).
+export const DEFAULT_MIX_THEMES = ['cultura', 'food'];
 
 // Case-insensitive lookup. Tokens possono essere stringhe libere o oggetti UI.
 const extractInterestTokens = (prefs) => {
@@ -601,6 +613,22 @@ export async function translateIntentToQueries(userPrompt, cityName, quota) {
 //   Ritorna { candidates, intent: null }.
 //
 // Se cityCenter non ha lat/lng, ritorna { candidates: [], intent: null }.
+// Gate INTERESSI-VERI — piu' ricerche in parallelo: una che fallisce non butta
+// via le altre (prima Promise.all scartava tutto al primo rifiuto). Se nessuna
+// ha prodotto luoghi e almeno una e' fallita, non si puo' dire "non c'e'
+// niente": si rilancia l'errore di ricerca (code PLACES_SEARCH_FAILED).
+const settleSearches = async (promises, label) => {
+    const settled = await Promise.allSettled(promises);
+    const lists = settled.filter(r => r.status === 'fulfilled').map(r => r.value);
+    const failed = settled.filter(r => r.status === 'rejected').map(r => r.reason);
+    if (failed.length > 0) {
+        const found = lists.reduce((n, l) => n + (Array.isArray(l) ? l.length : 0), 0);
+        console.warn(`[Gate INTERESSI-VERI] ${label}: ${failed.length}/${settled.length} ricerche fallite, ${found} luoghi dalle altre`);
+        if (found === 0) throw failed[0];
+    }
+    return lists;
+};
+
 const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = '', quota = undefined) => {
     const lat = cityCenter?.latitude;
     const lng = cityCenter?.longitude;
@@ -661,17 +689,19 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
             ` | ${divergenti}/${perQuery.length} divergenti`
         );
 
-        lists = await Promise.all(
+        lists = await settleSearches(
             queriesToRun.map(q => placesDiscoveryService.discoverRealPOIs(
                 cityName, lat, lng, null,
                 { customQuery: q, customKind, skipLegacyFallback: true }
-            ))
+            )),
+            `path A ${cityName}`,
         );
     } else {
         // Path B — comportamento invariato: temi hardcoded da prefs.
         const themes = derivePrimaryThemes(prefs);
-        lists = await Promise.all(
-            themes.map(t => placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t))
+        lists = await settleSearches(
+            themes.map(t => placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t)),
+            `path B ${cityName} [${themes.join(',')}]`,
         );
     }
 
@@ -1615,7 +1645,11 @@ export const aiRecommendationService = {
                             _oggetto_umano: intent?.oggetto_umano || 'quello che hai chiesto',
                         };
                     }
-                    console.warn(`[Gate SOLO-GOOGLE] path B: selettore fallito (${err.name === 'AbortError' ? 'timeout' : err.message}) → risultato vuoto`);
+                    // Gate INTERESSI-VERI — Google HA risposto: un selettore caduto non
+                    // e' "non trovo luoghi verificati". Errore vero → la UI mostra il
+                    // suo messaggio di errore, non quello dei zero risultati.
+                    console.warn(`[Gate SOLO-GOOGLE] path B: selettore fallito (${err.name === 'AbortError' ? 'timeout' : err.message}) → errore`);
+                    throw err;
                 }
             } else {
                 // Gate B/I — Path A: 0 candidati Places → errore onesto (no fallback).
@@ -1635,6 +1669,17 @@ export const aiRecommendationService = {
             }
         } catch (err) {
             if (err instanceof AiQuotaExceededError) throw err;
+            // Gate INTERESSI-VERI — la ricerca su Google non si e' potuta fare
+            // (rete, HTTP, eccezione): ne' "non trovo" ne' "non troviamo X".
+            // Vale per i due percorsi; il Percorso B porta anche `_pathB`.
+            if (err?.code === 'PLACES_SEARCH_FAILED') {
+                console.warn(`[Gate INTERESSI-VERI] ${isFreeTextIntent ? 'path A' : 'path B'} "${city}": ricerca fallita (${err.message}) → search-error`);
+                return {
+                    days: [{ stops: [] }],
+                    _source: 'search-error',
+                    ...(isFreeTextIntent ? {} : { _pathB: true }),
+                };
+            }
             // Gate B — Path A: qualunque errore in fetch → errore onesto (no fallback).
             if (isFreeTextIntent) {
                 console.warn(`[Gate B] path A fetchRealPOICandidates errore "${err.message}" → errore onesto (no fallback AI-first)`);
@@ -1646,7 +1691,10 @@ export const aiRecommendationService = {
                     _oggetto_umano: 'quello che hai chiesto',
                 };
             }
-            console.warn(`[Gate SOLO-GOOGLE] path B: fetchRealPOICandidates in errore ("${err.message}") → risultato vuoto`);
+            // Gate INTERESSI-VERI — Percorso B: un errore che non e' di ricerca
+            // (selettore, bug) non diventa "non trovo": si rilancia.
+            console.warn(`[Gate SOLO-GOOGLE] path B: errore ("${err.message}") → rilancio`);
+            throw err;
         }
         // ─── FINE RAMO GOOGLE-FIRST ─────────────────────────────────────────
         //

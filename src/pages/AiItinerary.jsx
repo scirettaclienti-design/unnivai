@@ -6,6 +6,7 @@ import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
 import { useUserContext } from "../hooks/useUserContext";
 import { aiRecommendationService, QUOTA_USER_MESSAGE } from "../services/aiRecommendationService";
+import { PLACES_SEARCH_ERROR_MESSAGE } from "../services/placesDiscoveryService";
 import { normalizeTour } from "../services/tourShape";
 // Gate RAGGIO DIFF 1b — offset cumulativo e formattazione delle stime.
 // Nessun numero secco e nessuna stringa costruita a mano in questa pagina:
@@ -201,6 +202,17 @@ export default function AIItineraryPage() {
                 { dnaWeights: hasPreferences ? weights : {} }, // Gate MERITO — affinità nella formula di scoring
             );
 
+            // Gate INTERESSI-VERI — la ricerca non si e' potuta fare (rete, HTTP,
+            // eccezione). Non e' "non trovo": Google non ha risposto. Testo
+            // deciso da Ivano, identico per i due percorsi.
+            if (result?._source === 'search-error') {
+                console.warn(`[AiItinerary] search-error (path=${result?._pathB ? 'B' : 'A'})`);
+                toast({ title: PLACES_SEARCH_ERROR_MESSAGE, type: 'warning', duration: 6000 });
+                setGeneratedItinerary(null);
+                setCurrentStep(0);
+                return;
+            }
+
             // Gate B — Path A no-results: il motore ha risolto oggetto_umano dal
             // traduttore d'intento. Toast onesto con "A ${city} non troviamo ${oggetto}".
             if (result?._source === 'no-results' || result?._source === 'no-results-error' || result?._source === 'no-results-safety') {
@@ -304,6 +316,11 @@ export default function AIItineraryPage() {
             // sostituiva il giorno visualizzato con uno vuoto, in silenzio.
             // Meglio il vecchio contenuto vero che il vuoto.
             const newDay = result.days?.[0];
+            if (result?._source === 'search-error') {
+                // Gate INTERESSI-VERI — il giorno resta, ma il motivo e' la rete.
+                toast({ title: PLACES_SEARCH_ERROR_MESSAGE, type: 'warning', duration: 6000 });
+                return;
+            }
             if (!shouldReplaceDay(newDay)) {
                 console.warn(`[AI] regenerateDay: 0 tappe → giorno ${dayNumber} invariato (source=${result?._source || 'unknown'})`);
                 toast({

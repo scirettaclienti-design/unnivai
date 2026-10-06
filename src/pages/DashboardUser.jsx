@@ -11,7 +11,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from "@tanstack/react-query";
 import { dataService, createGuideRequest } from "@/services/dataService";
 import { useAILearning } from '../hooks/useAILearning';
-import { placesDiscoveryService } from '@/services/placesDiscoveryService';
+import { placesDiscoveryService, PlacesSearchError, PLACES_SEARCH_ERROR_MESSAGE } from '@/services/placesDiscoveryService';
+
+// Gate INTERESSI-VERI — tre esiti diversi, tre testi diversi:
+//   ricerca Google fallita (rete/HTTP/eccezione) → testo di connessione
+//   quota esaurita                               → testo del server
+//   altro errore (narratore, bug)                → errore generico
+// Il "non trovo luoghi verificati" resta SOLO per lo stato vuoto vero.
+const experiencesErrorText = (err) => {
+    if (err?.code === 'PLACES_SEARCH_FAILED') return PLACES_SEARCH_ERROR_MESSAGE;
+    if (err?.code === 'QUOTA_EXCEEDED' && err?.userMessage) return err.userMessage;
+    return 'Non riesco a caricare le esperienze';
+};
 import { normalizeTour } from '@/services/tourShape';
 import { totalTourMinutes, formatEstimate } from '@/lib/tourTiming';
 import { resolveCityCenter, CityCenterUnresolvedError } from '@/services/cityCenterService';
@@ -161,7 +172,7 @@ const DashboardUser = () => {
     // Gate O.2: `enabled: !!city`. Se la citta' non e' ancora risolta,
     // la query NON parte → skeleton in UI. Zero fallback 'Roma' che
     // trapelano allo user come contenuto-ponte finto.
-    const { data: experiences, isError: experiencesError, isPending: experiencesLoading, refetch: refetchExperiences } = useQuery({
+    const { data: experiences, isError: experiencesError, error: experiencesErrorObj, isPending: experiencesLoading, refetch: refetchExperiences } = useQuery({
         queryKey: ['home-experiences', city, totalInteractions, hasPreferences],
         enabled: !!city,
         queryFn: async () => {
@@ -193,6 +204,12 @@ const DashboardUser = () => {
                     cityCenter = await resolveCityCenter(currentCity);
                 } catch (err) {
                     if (err instanceof CityCenterUnresolvedError) {
+                        // Gate INTERESSI-VERI — 'proxy' = la ricerca su Google non si
+                        // e' potuta fare: errore, non stato vuoto. 'not_found' = Google
+                        // ha risposto che la citta' non c'e': stato vuoto vero.
+                        if (err.reason === 'proxy') {
+                            throw new PlacesSearchError(`cityCenter: ${err.message}`, err);
+                        }
                         console.warn(`[Per Te] cityCenter irrisolto (${err.reason}) per "${currentCity}" — empty state`);
                         return [];
                     }
@@ -213,6 +230,9 @@ const DashboardUser = () => {
                         currentCity, cityCenter.latitude, cityCenter.longitude
                     );
                 } catch (e) {
+                    // Gate INTERESSI-VERI — nessun tema ha luoghi E almeno una ricerca
+                    // e' fallita: non si puo' dire "non trovo". Errore visibile.
+                    if (e?.code === 'PLACES_SEARCH_FAILED') throw e;
                     console.warn('[Per Te] discoverAllThemes fallita:', e.message);
                 }
 
@@ -247,7 +267,13 @@ const DashboardUser = () => {
                         aiProfile: getAIContext?.() || '',
                     });
                 } catch (err) {
+                    // Gate INTERESSI-VERI — quota esaurita non e' "non trovo".
+                    if (err?.code === 'QUOTA_EXCEEDED') throw err;
                     console.warn('[Per Te] generateHomeTours errore:', err.message);
+                }
+                // Google aveva luoghi ma il narratore e' caduto: errore, non stato vuoto.
+                if (homeToursResult?._source === 'error') {
+                    throw new Error(`generateHomeTours: ${homeToursResult._error || 'errore'}`);
                 }
 
                 // Mapping output → shape UI. Ogni tour del narratore diventa una
@@ -598,7 +624,7 @@ const DashboardUser = () => {
                     <div className="flex overflow-x-auto gap-3 pb-6 -mx-6 px-6 scrollbar-hide snap-x">
                         {experiencesError ? (
                             <div className="flex flex-col items-center justify-center py-8 w-full text-center">
-                                <p className="text-obsidian-secondary text-sm mb-3">Non riesco a caricare le esperienze</p>
+                                <p className="text-obsidian-secondary text-sm mb-3">{experiencesErrorText(experiencesErrorObj)}</p>
                                 <button onClick={() => refetchExperiences()} className="px-4 py-2 bg-brand-orange text-obsidian-bg rounded-xl text-sm font-bold active:scale-95 transition-transform">Riprova</button>
                             </div>
                         ) : experiencesLoading ? (

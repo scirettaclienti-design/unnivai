@@ -19,24 +19,28 @@ import {
 // ─── derivePrimaryThemes ──────────────────────────────────────────────────────
 
 describe('DVAI-060 F2 — derivePrimaryThemes', () => {
-    it('senza interests → mix default walking+art+food (featured insider)', () => {
+    // Gate INTERESSI-VERI (06/10): il mix era ['walking', 'art', 'food'], e
+    // questo test lo confermava — ma `walking` e `art` non hanno una ricerca in
+    // THEME_TEXTSEARCH dal Gate P.1, quindi il mix non arrivava mai a Google.
+    // `cultura` copre piazza/monumento e palazzo/museo.
+    it('senza interests → mix default cultura+food (featured insider)', () => {
         expect(derivePrimaryThemes({ duration: '1 Giorno', group: 'solo' }))
-            .toEqual(['walking', 'art', 'food']);
+            .toEqual(['cultura', 'food']);
     });
 
     it('senza prefs → mix default', () => {
-        expect(derivePrimaryThemes()).toEqual(['walking', 'art', 'food']);
-        expect(derivePrimaryThemes(null)).toEqual(['walking', 'art', 'food']);
+        expect(derivePrimaryThemes()).toEqual(['cultura', 'food']);
+        expect(derivePrimaryThemes(null)).toEqual(['cultura', 'food']);
     });
 
     it('interests=["Cibo"] → ["food"]', () => {
         expect(derivePrimaryThemes({ interests: ['Cibo'] })).toEqual(['food']);
     });
 
-    it('interests=["Arte","Storia","Cultura"] → ["art"] (dedup)', () => {
-        // Tutti mappano su art → un solo tema dopo dedup.
+    it('interests=["Arte","Storia","Cultura"] → ["cultura"] (dedup)', () => {
+        // Tutti mappano su cultura (era `art`, chiave senza ricerca) → un tema.
         expect(derivePrimaryThemes({ interests: ['Arte', 'Storia', 'Cultura'] }))
-            .toEqual(['art']);
+            .toEqual(['cultura']);
     });
 
     it('interests=["Cibo","Arte","Natura","Shopping"] → primi 3 (max 3)', () => {
@@ -45,7 +49,7 @@ describe('DVAI-060 F2 — derivePrimaryThemes', () => {
         });
         expect(themes.length).toBeLessThanOrEqual(3);
         expect(themes[0]).toBe('food');
-        expect(themes[1]).toBe('art');
+        expect(themes[1]).toBe('cultura');
         expect(themes[2]).toBe('nature');
     });
 
@@ -60,9 +64,10 @@ describe('DVAI-060 F2 — derivePrimaryThemes', () => {
     });
 
     it('interest sconosciuto → fallback mix default', () => {
-        // "Teatro" non è in INTEREST_TO_THEME → fallback su default mix.
+        // "Teatro" non è in INTEREST_TO_THEME → fallback su default mix
+        // (Gate INTERESSI-VERI: cultura+food, entrambi con una ricerca).
         expect(derivePrimaryThemes({ interests: ['Teatro'] }))
-            .toEqual(['walking', 'art', 'food']);
+            .toEqual(['cultura', 'food']);
     });
 
     it('interest come oggetto UI con .title accettato', () => {

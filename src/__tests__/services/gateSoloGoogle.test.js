@@ -72,7 +72,11 @@ describe('Gate SOLO-GOOGLE — Percorso B (solo interessi, nessuna frase)', () =
         expect(result.days[0].stops).toEqual([]);
     });
 
-    it('(c) textsearch in errore → risultato vuoto, nessuna chiamata al modello', async () => {
+    // Gate INTERESSI-VERI (06/10): con la textsearch in errore il risultato e'
+    // 'search-error', non 'no-results' — prima la UI diceva "non trovo luoghi
+    // verificati" senza che Google avesse risposto. L'invariante di questo gate
+    // resta intatto: nessuna chiamata al modello, nessuna tappa.
+    it('(c) textsearch in errore → search-error, nessuna chiamata al modello', async () => {
         const { fn, stato } = routeFetch({ textsearch: TEXTSEARCH_KO });
         vi.stubGlobal('fetch', fn);
 
@@ -81,7 +85,7 @@ describe('Gate SOLO-GOOGLE — Percorso B (solo interessi, nessuna frase)', () =
         );
 
         expect(stato.aiCalls).toBe(0);
-        expect(result._source).toBe('no-results');
+        expect(result._source).toBe('search-error');
         expect(result._pathB).toBe(true);
         expect(result.days[0].stops).toEqual([]);
     });
@@ -99,14 +103,17 @@ describe('Gate SOLO-GOOGLE — discoverAllThemes (il pool di "Per Te")', () => {
         expect(tutti).toEqual([]);
     });
 
-    it('(c) textsearch in errore → tutti i temi vuoti, nessuna chiamata al modello', async () => {
+    // Gate INTERESSI-VERI (06/10): tutte le ricerche in errore → errore di
+    // ricerca (la Home mostra il testo di connessione), non pool vuoti che
+    // diventerebbero "non trovo". Sempre zero chiamate al modello.
+    it('(c) textsearch in errore → PlacesSearchError, nessuna chiamata al modello', async () => {
         const { fn, stato } = routeFetch({ textsearch: TEXTSEARCH_KO });
         vi.stubGlobal('fetch', fn);
 
-        const pools = await placesDiscoveryService.discoverAllThemes('Cabras', CABRAS.latitude, CABRAS.longitude);
+        await expect(placesDiscoveryService.discoverAllThemes('Cabras', CABRAS.latitude, CABRAS.longitude))
+            .rejects.toMatchObject({ code: 'PLACES_SEARCH_FAILED' });
 
         expect(stato.aiCalls).toBe(0);
-        expect(Object.values(pools).flat()).toEqual([]);
     });
 });
 

@@ -119,6 +119,32 @@ const THEME_TEXTSEARCH = {
   nightlife: { query: 'bar cocktail pub locale musica vino',                                kind: 'FOOD' },
 };
 
+// Gate INTERESSI-VERI — la ricerca di riserva DEVE essere una chiave di
+// THEME_TEXTSEARCH. Prima era `walking`, morto dal Gate P.1: un tema sconosciuto
+// cadeva su undefined e `themeCfg.query` lanciava un TypeError prima della fetch.
+// `cultura` e' la chiave che ha assorbito `walking` (monumenti, centro storico).
+// themeCompleteness.test.js controlla che esista.
+const FALLBACK_THEME = 'cultura';
+
+// Temi della Home ("Per Te"), dichiarati qui perche' il test di completezza li
+// possa confrontare con THEME_TEXTSEARCH.
+const HOME_THEMES = ['food', 'cultura', 'romance', 'nature'];
+
+// Gate INTERESSI-VERI — "la ricerca e' fallita" non e' "Google ha risposto zero".
+// Rete giu', HTTP non-2xx, status di errore di Google, proxy spento, eccezione
+// nell'elaborazione → PlacesSearchError. Solo ZERO_RESULTS (o risultati che non
+// passano i filtri) restituisce []: e' l'unico caso in cui "non trovo" e' vero.
+export const PLACES_SEARCH_ERROR_MESSAGE = 'Connessione instabile: non riesco a cercare adesso. Riprova tra un momento.';
+
+export class PlacesSearchError extends Error {
+  constructor(message, cause) {
+    super(message);
+    this.name = 'PlacesSearchError';
+    this.code = 'PLACES_SEARCH_FAILED'; // riconoscibile anche senza import (dipendenza circolare)
+    if (cause) this.cause = cause;
+  }
+}
+
 // Google `types` → tipo interno DoveVAI usato dai motori (rendering marker/cover).
 const mapGoogleTypeToOurType = (types = []) => {
   const set = new Set(types);
@@ -472,14 +498,15 @@ const buildPOIFromCandidate = (place, cityName) => {
  * @param {string} cityName    città target (usata anche come contesto per la query)
  * @param {number} lat         latitudine centro
  * @param {number} lng         longitudine centro
- * @param {string} themeType   'food' | 'walking' | 'romance' | 'art' | 'nature'
+ * @param {string} themeType   una chiave di THEME_TEXTSEARCH (sconosciuta → FALLBACK_THEME)
  * @param {object} [opts]      { radiusMeters, maxResults, forceSmallTown }
- * @returns {Promise<Array>}   lista di POI (compatibile con discoverPOIs)
+ * @returns {Promise<Array>}   lista di POI; [] SOLO se Google ha risposto e non c'e' niente di valido
+ * @throws {PlacesSearchError} se la ricerca non si e' potuta fare (rete, HTTP, status, eccezione)
  */
 // Gate B — Slugify per cache key con customQuery (evita chars invalidi nel prefix).
 const slugForCache = (s) => String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 40);
 
-const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts = {}) => {
+const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, opts = {}) => {
   const {
     radiusMeters,
     maxResults = 12,
@@ -500,11 +527,15 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
 
   const isSmall = forceSmallTown ?? isSmallTown(cityName);
 
-  // Gate SOLO-GOOGLE (27/09): proxy Places OFF → pool vuoto, per TUTTI i
-  // percorsi. Prima il path B cadeva su discoverPOIs (motore AI-first).
-  if (!isPlacesProxyEnabled()) return [];
+  // Gate SOLO-GOOGLE (27/09): proxy Places OFF → nessun motore di riserva.
+  // Gate INTERESSI-VERI: e' una ricerca che non si puo' fare, non una risposta
+  // vuota di Google → errore, non [].
+  if (!isPlacesProxyEnabled()) throw new PlacesSearchError('places-proxy disabilitato');
 
-  const themeCfg = THEME_TEXTSEARCH[themeType] || THEME_TEXTSEARCH.walking;
+  if (!customQuery && !THEME_TEXTSEARCH[themeType]) {
+    console.warn(`[Gate INTERESSI-VERI] tema "${themeType}" senza ricerca → uso "${FALLBACK_THEME}"`);
+  }
+  const themeCfg = THEME_TEXTSEARCH[themeType] || THEME_TEXTSEARCH[FALLBACK_THEME];
   const effectiveQuery = customQuery ? String(customQuery).trim() : themeCfg.query;
   const effectiveKind = customQuery ? customKind : themeCfg.kind;
   // Gate INTENT (28/08) — il bias della textsearch segue il raggio MASSIMO del
@@ -541,6 +572,13 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
   // discoverAllThemes (Home) e generateWeatherSocialTip (notifiche).
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5000);
+  // Gate INTERESSI-VERI — tre esiti distinti, non uno solo:
+  //   1. la ricerca non si fa (rete, timeout, HTTP, status di errore) → PlacesSearchError
+  //   2. Google risponde ZERO_RESULTS                                  → []
+  //   3. Google risponde OK                                            → filtri e POI
+  // Prima 1 e 2 finivano nello stesso `return []`, e la UI diceva "non trovo"
+  // anche quando nessuno aveva cercato.
+  let data;
   try {
     const url = buildPlacesProxyUrl({
       path: 'place/textsearch',
@@ -550,11 +588,25 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
     });
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeoutId);
-    if (!res.ok) throw new Error(`textsearch HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.status !== 'OK' || !Array.isArray(data.results)) {
-      throw new Error(`textsearch status=${data.status}`);
-    }
+    if (!res.ok) throw new PlacesSearchError(`textsearch HTTP ${res.status}`);
+    data = await res.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    const reason = err?.name === 'AbortError' ? 'timeout (5s)' : err?.message;
+    console.warn(`[Gate INTERESSI-VERI] ${cityName}/${effectiveQuery} textsearch fallita: ${reason}`);
+    throw err instanceof PlacesSearchError ? err : new PlacesSearchError(`textsearch fallita: ${reason}`, err);
+  }
+
+  if (data?.status === 'ZERO_RESULTS') {
+    console.info(`[Gate INTERESSI-VERI] ${cityName}/${effectiveQuery}: Google ha risposto ZERO_RESULTS`);
+    return [];
+  }
+  if (data?.status !== 'OK' || !Array.isArray(data.results)) {
+    console.warn(`[Gate INTERESSI-VERI] ${cityName}/${effectiveQuery} textsearch status=${data?.status}`);
+    throw new PlacesSearchError(`textsearch status=${data?.status}`);
+  }
+
+  try {
 
     // 1. Esclusioni hard (business_status, blacklist types, aree geografiche, rumore).
     //    Gate NARRATORE/POI: isCityItself gira QUI, prima di applyQualityThreshold —
@@ -617,9 +669,10 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = 'walking', opts 
     }
     return finalPois;
   } catch (err) {
-    // Gate SOLO-GOOGLE: un errore di rete NON diventa un tour finto. Ritorna [].
-    console.warn(`[Gate SOLO-GOOGLE] ${cityName}/${effectiveQuery} textsearch fallita: ${err.message} → pool vuoto`);
-    return [];
+    // Gate SOLO-GOOGLE: un errore NON diventa un tour finto.
+    // Gate INTERESSI-VERI: e non diventa nemmeno un "non trovo".
+    console.warn(`[Gate INTERESSI-VERI] ${cityName}/${effectiveQuery} elaborazione risultati fallita: ${err.message}`);
+    throw new PlacesSearchError(`elaborazione risultati fallita: ${err.message}`, err);
   }
 };
 
@@ -658,13 +711,28 @@ const dedupePOIsAcrossThemes = (allPOIs) => {
 const discoverAllThemes = async (cityName, lat, lng) => {
   // Gate P.1: 4 temi (walking morto). 3 se `romance` non produce POI distinti
   // dopo la dedup → si spegne downstream.
-  const themes = ['food', 'cultura', 'romance', 'nature'];
   const results = {};
   // DVAI-060: motore Google-first, unico. Gate SOLO-GOOGLE (27/09): nessun
   // fallback interno — un tema senza candidati Google resta vuoto.
-  await Promise.all(themes.map(async (theme) => {
-    results[theme] = await discoverRealPOIs(cityName, lat, lng, theme);
-  }));
+  //
+  // Gate INTERESSI-VERI — una ricerca fallita non butta via le altre: se almeno
+  // un tema ha trovato luoghi, la Home li usa. Se NESSUN tema ha luoghi e almeno
+  // una ricerca e' fallita, non si puo' dire "non c'e' niente" → errore.
+  const settled = await Promise.allSettled(
+    HOME_THEMES.map(theme => discoverRealPOIs(cityName, lat, lng, theme)),
+  );
+  const failed = [];
+  settled.forEach((s, i) => {
+    if (s.status === 'fulfilled') results[HOME_THEMES[i]] = s.value;
+    else { results[HOME_THEMES[i]] = []; failed.push(s.reason); }
+  });
+  if (failed.length > 0) {
+    const found = Object.values(results).reduce((n, a) => n + a.length, 0);
+    console.warn(`[Gate INTERESSI-VERI] Per Te ${cityName}: ${failed.length}/${HOME_THEMES.length} ricerche fallite, ${found} luoghi dalle altre`);
+    if (found === 0) {
+      throw failed[0] instanceof PlacesSearchError ? failed[0] : new PlacesSearchError('discoverAllThemes fallita', failed[0]);
+    }
+  }
   return dedupePOIsAcrossThemes(results);
 };
 
@@ -853,6 +921,9 @@ export const placesDiscoveryService = {
 // Export nominato per test unitari senza toccare la superficie del service.
 export {
   discoverRealPOIs,
+  THEME_TEXTSEARCH, // Gate INTERESSI-VERI — test di completezza
+  FALLBACK_THEME,   // Gate INTERESSI-VERI
+  HOME_THEMES,      // Gate INTERESSI-VERI
   qualityScore,
   passesHardExclusions,
   applyQualityThreshold,

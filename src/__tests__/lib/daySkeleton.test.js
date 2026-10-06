@@ -109,11 +109,36 @@ describe('buildDaySkeleton — ritmo e tetto', () => {
         expect(stops(sk)).toEqual([2, 1, 1]);
     });
 
-    it('Intenso con dopocena → 6 momenti × 2 = 12, tagliato a 8 dalla sera', () => {
+    it('Intenso con dopocena → 2+1+2+1+1+2 = 9, tagliato a 8 dalla sera', () => {
         const sk = buildDaySkeleton({ window: giorno, pace: 'Intenso' });
         expect(keys(sk)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena', 'dopocena']);
         expect(sk.days[0].totalStops).toBe(MAX_STOPS_PER_DAY);
-        expect(stops(sk)).toEqual([2, 2, 1, 1, 1, 1]);
+        expect(stops(sk)).toEqual([2, 1, 2, 1, 1, 1]);
+    });
+
+    // P3 — prima correzione: nessuno pranza (o cena) due volte.
+    it('pranzo e cena fanno sempre 1 tappa, qualunque sia il ritmo', () => {
+        const pasti = (pace) => buildDaySkeleton({ window: giorno, pace }).days[0].moments
+            .filter(m => m.key === 'pranzo' || m.key === 'cena').map(m => m.stops);
+        for (const pace of ['Rilassato', 'Attivo', 'Intenso', undefined]) {
+            expect(pasti(pace)).toEqual([1, 1]);
+        }
+    });
+
+    it('Intenso aggiunge tappe solo a mattina, pomeriggio e dopocena', () => {
+        const sk = buildDaySkeleton({ window: giorno, pace: 'Intenso', interests: ['Vita Notturna'] });
+        const doppi = sk.days[0].moments.filter(m => m.stops > 1).map(m => m.key);
+        expect(doppi.every(k => ['mattina', 'pomeriggio', 'dopocena'].includes(k))).toBe(true);
+        // Senza dopocena (Famiglia): niente da tagliare, 2+1+2+1+1.
+        const famiglia = buildDaySkeleton({ window: giorno, pace: 'Intenso', group: 'Famiglia' });
+        expect(stops(famiglia)).toEqual([2, 1, 2, 1, 1]);
+    });
+
+    it('category del chiamante vale come categoria esplicita; il testo vince', () => {
+        expect(buildDaySkeleton({ window: giorno, category: 'natura' }).days[0].moments
+            .every(m => m.categories.length === 1 && m.categories[0] === 'natura')).toBe(true);
+        expect(buildDaySkeleton({ window: giorno, category: 'natura', text: 'ristoranti' }).explicitCategory)
+            .toBe('cibo');
     });
 
     it('ritmo assente → Attivo', () => {

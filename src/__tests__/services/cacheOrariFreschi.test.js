@@ -84,11 +84,15 @@ const routeFetch = () => vi.fn(async (url) => {
 });
 routeFetch.calls = 0;
 
-const ALLE_15 = () => new Date(2026, 8, 10, 15, 0, 0);
-const ALLE_19 = () => new Date(2026, 8, 10, 19, 0, 0);
+// P3 — ora di ROMA esplicita: lo scheletro della giornata legge l'ora sul fuso
+// del tour, e la CI gira in UTC (15:00 locali in CI sarebbero le 17:00 a Roma).
+const ALLE_15 = () => new Date('2026-09-10T15:00:00+02:00');
+const ALLE_19 = () => new Date('2026-09-10T19:00:00+02:00');
+const piu = (d, min) => new Date(d.getTime() + min * 60000);
 
+// P3 — Intenso: alle 15:00 un Veloce di 2 ore e' tutto pomeriggio, 2 tappe.
 const genera = () => aiRecommendationService.generateItinerary(
-    'Cabras', { interests: ['Natura'] }, 'le spiagge piu belle', {}, '', CABRAS,
+    'Cabras', { interests: ['Natura'], pace: 'Intenso' }, 'le spiagge piu belle', {}, '', CABRAS,
 );
 
 describe('G1.1 — stessa richiesta, due ore diverse: l\'orario segue l\'orologio', () => {
@@ -121,9 +125,9 @@ describe('G1.1 — stessa richiesta, due ore diverse: l\'orario segue l\'orologi
         const stops15 = primo.days[0].stops;
         expect(stops15.length).toBeGreaterThanOrEqual(2);
 
-        // Gli offset sono il dato stabile: 0, 30+13, 43+30+13.
+        // Gli offset sono il dato stabile: 0, 30+13.
         const offsets = computeCumulativeOffsets(stops15);
-        expect(offsets).toEqual([0, 43, 86]);
+        expect(offsets).toEqual([0, 43]);
 
         // La prima tappa E' l'ora della richiesta, al millisecondo. Le altre
         // sono quell'ora piu' il loro offset.
@@ -131,7 +135,8 @@ describe('G1.1 — stessa richiesta, due ore diverse: l\'orario segue l\'orologi
         stops15.forEach((s, i) => {
             expect(s.scheduledTime).toBe(new Date(ALLE_15().getTime() + offsets[i] * 60000).toISOString());
         });
-        expect(stops15.map(s => formatClockTime(s.scheduledTime))).toEqual(['15:00', '15:43', '16:26']);
+        expect(stops15.map(s => formatClockTime(s.scheduledTime)))
+            .toEqual([formatClockTime(ALLE_15()), formatClockTime(piu(ALLE_15(), 43))]);
 
         const chiamateRete = fn.mock.calls.length;
         expect(chiamateRete).toBeGreaterThan(0);
@@ -157,9 +162,10 @@ describe('G1.1 — stessa richiesta, due ore diverse: l\'orario segue l\'orologi
         expect(computeCumulativeOffsets(stops19)).toEqual(offsets);
 
         // (4) L'asserzione decisiva: gli orari partono dalle 19:00, non dalle
-        //     15:00. Prima del fix questa riga leggeva ['15:00','15:43','16:26'].
+        //     15:00. Prima del fix questa riga leggeva ['15:00','15:43'].
         expect(stops19[0].scheduledTime).toBe(ALLE_19().toISOString());
-        expect(stops19.map(s => formatClockTime(s.scheduledTime))).toEqual(['19:00', '19:43', '20:26']);
+        expect(stops19.map(s => formatClockTime(s.scheduledTime)))
+            .toEqual([formatClockTime(ALLE_19()), formatClockTime(piu(ALLE_19(), 43))]);
         expect(stops19.map(s => s.scheduledTime)).not.toEqual(stops15.map(s => s.scheduledTime));
     });
 });

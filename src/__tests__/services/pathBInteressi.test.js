@@ -37,6 +37,15 @@ const SELECTOR = {
     }],
 };
 
+
+// P3 — lo scheletro della giornata dipende dall'ora: senza un orologio fisso
+// questo test cambierebbe esito con l'ora in cui gira la CI. Ora di ROMA
+// esplicita (+02:00): la CI gira in UTC. Si finge solo Date, non i timer.
+const pinRomeClock = (iso) => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(iso));
+};
+
 let textsearchQueries;
 const routeFetch = () => vi.fn(async (url) => {
     const u = decodeURIComponent(String(url)).replace(/\+/g, ' ');
@@ -60,8 +69,10 @@ describe('Gate INTERESSI-VERI — il Percorso B chiama davvero Google', () => {
         vi.clearAllMocks();
         textsearchQueries = [];
         try { window.localStorage.clear(); } catch { /* jsdom */ }
+        // 10:00 → la mattina, dove i musei del fixture sono ammessi.
+        pinRomeClock('2026-10-07T10:00:00+02:00');
     });
-    afterEach(() => { vi.unstubAllGlobals(); });
+    afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
     it('"arte" + "passeggiate" → textsearch reale su Google e un tour vero', async () => {
         vi.stubGlobal('fetch', routeFetch());

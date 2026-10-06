@@ -68,18 +68,15 @@ describe('Gate C Task 1 — buildPromptFromSelections', () => {
         expect(p).toMatch(/non aggiungere ristoranti, bar o caffè/);
     });
 
-    it('Cita numero tappe corretto per ogni durata', () => {
-        const short = buildPromptFromSelections({
-            main: 'citta', sub: '', duration: 'veloce',
-            group: '', city: 'Roma',
-        });
-        expect(short).toMatch(/Esattamente 2 tappe/);
-
-        const long = buildPromptFromSelections({
-            main: 'citta', sub: '', duration: 'lungo',
-            group: '', city: 'Roma',
-        });
-        expect(long).toMatch(/Esattamente 5-6 tappe/);
+    // P3 — il numero di tappe lo decide lo scheletro, non il testo.
+    it('nessuna durata inietta un numero di tappe nel testo', () => {
+        for (const duration of ['veloce', 'medio', 'lungo']) {
+            const p = buildPromptFromSelections({
+                main: 'citta', sub: '', duration,
+                group: '', city: 'Roma',
+            });
+            expect(p).not.toMatch(/Esattamente|\d+(-\d+)? tappe/);
+        }
     });
 
     it('main sconosciuto → dominant di default, prompt non rotto', () => {

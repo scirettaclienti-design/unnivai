@@ -15,6 +15,9 @@
  *     sovrappone alla finestra per almeno 60 minuti, e viene tagliato ai bordi.
  *   · Ritmo: Rilassato 1 tappa per momento; Attivo 1 (2 se il momento, gia'
  *     tagliato, dura almeno 3 ore); Intenso 2. Senza ritmo: Attivo.
+ *     Pranzo e cena fanno SEMPRE 1 tappa, qualunque sia il ritmo: nessuno
+ *     pranza due volte. Il ritmo aggiunge tappe solo a mattina, pomeriggio e
+ *     dopocena (P3, prima correzione).
  *   · Dopocena solo con interesse Vita Notturna o ritmo Intenso; mai con
  *     gruppo Famiglia.
  *   · Interessi: Arte/Storia/Cultura privilegiano le categorie di cultura in
@@ -39,6 +42,9 @@ import { romeDate, romeParts } from './tourWindow';
 export const MIN_OVERLAP_MINUTES = 60;
 export const MAX_STOPS_PER_DAY = 8;
 const LONG_MOMENT_MINUTES = 180;
+// P3 — i soli momenti in cui il ritmo puo' mettere piu' di una tappa.
+// Pranzo e cena sono un pasto ciascuno; l'aperitivo e' uno.
+const EXPANDABLE_KEYS = new Set(['mattina', 'pomeriggio', 'dopocena']);
 
 const CULTURE_CATEGORIES = ['cultura', 'monumenti', 'musei'];
 const MEAL_KEYS = new Set(['pranzo', 'aperitivo', 'cena']);
@@ -75,7 +81,8 @@ export function normalizePace(pace) {
     return 'attivo';
 }
 
-const stopsFor = (pace, minutes) => {
+const stopsFor = (key, pace, minutes) => {
+    if (!EXPANDABLE_KEYS.has(key)) return 1;
     if (pace === 'rilassato') return 1;
     if (pace === 'intenso') return 2;
     return minutes >= LONG_MOMENT_MINUTES ? 2 : 1;
@@ -126,12 +133,15 @@ const capStops = (moments) => {
  * @param {string[]} [p.interests] es. ['Arte', 'Cibo', 'Vita Notturna']
  * @param {string} [p.group]      es. 'Famiglia', 'In famiglia', 'Coppia'
  * @param {string} [p.text]       la frase dell'utente (per la categoria esplicita)
+ * @param {string} [p.category]   categoria gia' resa vincolante dal chiamante (P3:
+ *   il filtro di categoria del Gate RAGGIO-CATEGORIA). Vale come una categoria
+ *   nominata nel testo; se il testo ne nomina una, vince il testo.
  * @returns {{ explicitCategory: string|null, days: Array<{ date: string,
  *   totalStops: number, moments: Array<{ key: string, label: string,
  *   start: Date, end: Date, minutes: number, categories: string[],
  *   preferred: string[], stops: number, careful: boolean }> }> }}
  */
-export function buildDaySkeleton({ window: tw, pace, interests = [], group = '', text = '' } = {}) {
+export function buildDaySkeleton({ window: tw, pace, interests = [], group = '', text = '', category = null } = {}) {
     const windows = Array.isArray(tw?.windows) && tw.windows.length > 0
         ? tw.windows
         : (tw?.start && tw?.end ? [{ date: tw.date, start: tw.start, end: tw.end }] : []);
@@ -141,7 +151,7 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
     const isFamily = norm(group).includes('famiglia');
     const allowDopocena = !isFamily && (interestSet.has('vita notturna') || paceKey === 'intenso');
     const careful = interestSet.has('cibo');
-    const explicitCategory = parseExplicitCategory(text);
+    const explicitCategory = parseExplicitCategory(text) ?? (category || null);
 
     const days = windows.map((w) => {
         const day = civilDay(w.start);
@@ -171,7 +181,7 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
                 minutes,
                 categories,
                 preferred,
-                stops: stopsFor(paceKey, minutes),
+                stops: stopsFor(m.key, paceKey, minutes),
                 careful: careful && MEAL_KEYS.has(m.key),
             });
         }

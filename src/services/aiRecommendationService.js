@@ -311,7 +311,13 @@ import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } fr
 // proprieta' della coppia di tappe consecutive, non della singola tappa.
 import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes } from '@/lib/tourTiming';
 // Gate FINESTRA TEMPORALE (G3) — quando parte il tour lo decide il codice, non il modello.
-import { resolveTourWindow, romeHour } from '@/lib/tourWindow';
+import { resolveTourWindow, romeHour, romeParts } from '@/lib/tourWindow';
+// P3 — lo scheletro della giornata guida la scelta dei luoghi.
+import { buildDaySkeleton } from '@/lib/daySkeleton';
+import {
+    flattenSkeleton, bucketCandidates, missingMomentThemes,
+    repairMomentSelection, scheduleMomentPlan,
+} from './momentSelection';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
@@ -884,6 +890,56 @@ const candidateConflictsWithCategoria = (candidate, targetCategory) => {
     });
 };
 
+// P3 — la categoria stretta del Gate RAGGIO-CATEGORIA nel vocabolario dello
+// scheletro (dayMoments.js). Serve solo a mostrare al selettore la categoria
+// giusta per ogni momento: il pool e' gia' ristretto dal codice.
+const TOUR_CATEGORY_TO_SKELETON = {
+    food: 'cibo',
+    natura: 'natura',
+    storia: 'cultura',
+    arte: 'musei',
+    cultura: 'cultura',
+    shopping: 'shopping',
+    relax: 'relax',
+};
+
+// P3 — ricerca mirata per i momenti rimasti senza candidati. Gli stessi
+// cancelli del pool principale: raggio, categoria stretta (se c'e'), soglia e
+// punteggio del Gate MERITO. Il tetto di 1 icona e' gia' speso dal pool
+// principale: qui maxIcons 0. Una ricerca che fallisce non fa cadere il tour:
+// il momento resta vuoto e viene tolto, e il report lo dice.
+const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria }) => {
+    const { placesDiscoveryService } = await import('./placesDiscoveryService');
+    const settled = await Promise.allSettled(themes.map(t => placesDiscoveryService.discoverRealPOIs(
+        city, cityCenter.latitude, cityCenter.longitude, t,
+    )));
+    settled.forEach((r, i) => {
+        if (r.status === 'rejected') console.warn(`[P3 SCHELETRO] ricerca mirata "${themes[i]}" fallita: ${r.reason?.message}`);
+    });
+    const knownIds = new Set(known.map(c => c.place_id || c.googlePlaceId));
+    const seen = new Set();
+    let extra = settled
+        .filter(r => r.status === 'fulfilled' && Array.isArray(r.value))
+        .flatMap(r => r.value)
+        .filter(c => {
+            const id = c.place_id || c.googlePlaceId;
+            if (!id || knownIds.has(id) || seen.has(id)) return false;
+            seen.add(id);
+            return true;
+        });
+    extra = applyRadiusFilter(extra, cityCenter, city, { requireCenter: true });
+    if (categoria) extra = extra.filter(c => candidateMatchesIntentCategoria(c, categoria));
+    return selectScoredCandidatePool(extra, { city, dnaWeights, limit: 5 * themes.length, maxIcons: 0 });
+};
+
+// P3 — il report della riparazione, in chiaro nei log (e in `_momentReport`).
+const logMomentReport = (city, r) => {
+    for (const m of r.momentiTolti) console.warn(`[P3 SCHELETRO] ${city}: momento ${m.momento} (${m.label}) TOLTO — ${m.motivo}`);
+    for (const x of r.scartate) console.warn(`[P3 SCHELETRO] ${city}: scartata ${x.place_id} (${x.momento ?? '—'}) — ${x.motivo}`);
+    for (const x of r.riempite) console.info(`[P3 SCHELETRO] ${city}: ${x.momento} riempito dal codice con "${x.name}" (merito)`);
+    for (const x of r.tolte) console.warn(`[P3 SCHELETRO] ${city}: tolta ${x.place_id} (${x.momento}) — ${x.motivo}`);
+};
+
 // Predicato pubblico — Exported per test. true = candidato ammesso per
 // `categoriaRaw` (o nessun filtro stretto applicabile → sempre ammesso).
 export const candidateMatchesIntentCategoria = (candidate, categoriaRaw) => {
@@ -907,7 +963,7 @@ export const candidateMatchesIntentCategoria = (candidate, categoriaRaw) => {
 // PROMPT COSTRUITO, non l'output del modello: l'output e' non deterministico e
 // nessun test puo' provare che sia migliorato. Raggiungerlo attraverso
 // generateItinerary renderebbe il test dipendente dagli interni del motore.
-export const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, cityCenter, candidates, userPrompt, intent }) => {
+export const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, cityCenter, candidates, userPrompt, intent, moments = null, buckets = null }) => {
     const candidatesLite = candidates.map(p => {
         const lite = {
             place_id: p.place_id || p.googlePlaceId,
@@ -953,21 +1009,54 @@ export const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherI
    Questi vincoli sono NON NEGOZIABILI. Meglio consegnare meno tappe che tradire la richiesta.`
         : '';
 
+    // P3 — con lo scheletro, la scelta e' per MOMENTO: numero di tappe e
+    // candidati li decide il codice, il modello sceglie dentro ciascuno.
+    // Senza momenti (scheletro vuoto: finestra fuori dalla giornata) resta la
+    // scelta libera di prima.
+    const hasMoments = Array.isArray(moments) && moments.length > 0;
+    const hhmm = (d) => {
+        const p = romeParts(d);
+        return `${String(p.h).padStart(2, '0')}:${String(p.mi).padStart(2, '0')}`;
+    };
+    const momentsBlock = hasMoments
+        ? moments.map(m => {
+            const ids = (buckets?.get(m.id) || []).map(c => c.place_id || c.googlePlaceId);
+            return `   • ${m.id} — ${m.label} ${hhmm(m.start)}–${hhmm(m.end)} — ESATTAMENTE ${m.stops} ${m.stops === 1 ? 'tappa' : 'tappe'}${m.careful ? ' (da scegliere con cura)' : ''} — candidati: ${JSON.stringify(ids)}`;
+        }).join('\n')
+        : '';
+    const sceltaBlock = hasMoments
+        ? `1. SCELTA — la giornata ha già i suoi MOMENTI, con orario e numero di tappe.
+   Per OGNI momento scegli ESATTAMENTE il numero di tappe indicato, SOLO tra i
+   place_id elencati per QUEL momento. Mai lo stesso luogo in due momenti.
+   Ogni tappa porta il campo "moment" con l'id del suo momento.
+   Una tappa fuori dal suo momento, in più o con un place_id non elencato viene
+   scartata e sostituita dal codice.
+${momentsBlock}
+   Dentro ogni momento scegli i più adatti a:
+   • gruppo: ${groupLabel}
+   • richiesta utente: "${(userPrompt || '').slice(0, 300)}"${aiProfile ? `
+   • profilo implicito: ${aiProfile}` : ''}`
+        : `1. SCELTA — 4-5 luoghi tra i ${N} disponibili, quelli più adatti a:
+   • orario: ${timeContext}
+   • gruppo: ${groupLabel}
+   • richiesta utente: "${(userPrompt || '').slice(0, 300)}"${aiProfile ? `
+   • profilo implicito: ${aiProfile}` : ''}`;
+    const ordineBlock = hasMoments
+        ? `2. ORDINE — le tappe escono nell'ordine dei momenti. Dentro un momento con
+   più tappe, un ordine che ${transitHint} abbia senso NARRATIVO, non solo geometrico.`
+        : `2. ORDINE — costruisci un percorso che ${transitHint} abbia senso NARRATIVO,
+   non solo geometrico. La prima tappa è una perla, non l'ovvio (es. una piazza
+   secondaria o una chiesa poco battuta, non il monumento più famoso).`;
+
     return `SEI L'INSIDER DI ${city} — un local che ti mostra la sua città, non una guida turistica, non Wikipedia, non un elenco.
 
 ⚠️ NON scegli tu i luoghi. Io ti do una lista di ${N} luoghi REALI di ${city}, già verificati su Google (rating, tipo, foto).${radiusInfo}${intentBlock}
 
 Il tuo lavoro in 3 mosse:
 
-1. SCELTA — 4-5 luoghi tra i ${N} disponibili, quelli più adatti a:
-   • orario: ${timeContext}
-   • gruppo: ${groupLabel}
-   • richiesta utente: "${(userPrompt || '').slice(0, 300)}"${aiProfile ? `
-   • profilo implicito: ${aiProfile}` : ''}
+${sceltaBlock}
 
-2. ORDINE — costruisci un percorso che ${transitHint} abbia senso NARRATIVO,
-   non solo geometrico. La prima tappa è una perla, non l'ovvio (es. una piazza
-   secondaria o una chiesa poco battuta, non il monumento più famoso).
+${ordineBlock}
 
 3. VOCE — per ogni tappa, racconta come un local sussurra un segreto:
 
@@ -1069,7 +1158,8 @@ FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
     "suggestedTransit": "walking|bus|metro",
     "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
     "stops": [{
-      "place_id": "ChIJ...",
+      "place_id": "ChIJ...",${hasMoments ? `
+      "moment": "id del momento (es. ${moments[0].id})",` : ''}
       "description": "voce insider sensoriale (max 120 car)",
       "insiderTip": "consiglio da local (max 100 car)",
       "bestTime": "perché ORA (max 100 car) — oppure null se non hai un motivo vero",
@@ -1555,14 +1645,71 @@ export const aiRecommendationService = {
                 );
             }
 
+            // ─── P3 — lo scheletro della giornata guida la scelta ──────────
+            //
+            // Lo scheletro (P2) dice per ogni momento orario, categorie e numero
+            // di tappe. I candidati gia' trovati si dividono fra i momenti per
+            // categoria; solo un momento rimasto vuoto fa una ricerca mirata
+            // (al massimo 2 per generazione: oggi + 2 chiamate Places).
+            //
+            // Testo: come la finestra (G3), nel Percorso Veloce il testo lo
+            // scrive il wizard ("Escludi: musei…") e non si legge — conterebbe
+            // "musei" come richiesta. Categoria: quando il codice ha gia'
+            // ristretto il pool a una categoria (Gate RAGGIO-CATEGORIA), quella
+            // e' la richiesta esplicita e vale per tutti i momenti.
+            const skeleton = buildDaySkeleton({
+                window: tourWindow,
+                pace: prefs?.pace,
+                interests: extractInterestTokens(prefs),
+                group: prefs?.group,
+                text: opts.pathType === 'custom' ? userPrompt : '',
+                category: categoriaTarget ? (TOUR_CATEGORY_TO_SKELETON[categoriaTarget] || categoriaTarget) : null,
+            });
+            const moments = candidates.length >= 1 ? flattenSkeleton(skeleton) : [];
+            let anyCategory = !!categoriaTarget;
+            let buckets = moments.length > 0 ? bucketCandidates(moments, candidates, { anyCategory }) : null;
+            // Percorso A: se NESSUN luogo trovato per la frase sta in NESSUN
+            // momento, la frase chiede qualcosa che la tabella dei momenti non
+            // nomina (terme, spa…). E' una richiesta esplicita: vale per tutti
+            // i momenti, come una categoria nominata, e gli orari restano.
+            // Cercare altro (musei, trattorie) tradirebbe la richiesta.
+            if (buckets && isFreeTextIntent && !anyCategory && [...buckets.values()].every(b => b.length === 0)) {
+                console.info(`[P3 SCHELETRO] ${city}: nessun candidato sta in un momento → la richiesta vale per tutti i momenti`);
+                anyCategory = true;
+                buckets = bucketCandidates(moments, candidates, { anyCategory });
+            }
+            const extraThemes = buckets ? missingMomentThemes(moments, buckets) : [];
+            if (extraThemes.length > 0) {
+                const extra = await searchMomentCandidates({
+                    city, cityCenter, themes: extraThemes, known: candidates,
+                    dnaWeights: opts.dnaWeights || {},
+                    categoria: categoriaTarget ? intent.categoria : null,
+                });
+                candidates = [...candidates, ...extra];
+                buckets = bucketCandidates(moments, candidates, { anyCategory });
+            }
+            if (moments.length > 0) {
+                console.info(
+                    `[P3 SCHELETRO] ${city}: ${moments.length} momenti — ` +
+                    moments.map(m => `${m.id}×${m.stops}(${(buckets.get(m.id) || []).length} cand.)`).join(', ') +
+                    (extraThemes.length ? ` | ricerche mirate: ${extraThemes.join(', ')}` : ' | nessuna ricerca mirata')
+                );
+            }
+            // Al selettore vanno solo i candidati di almeno un momento.
+            const selectorCandidates = buckets
+                ? [...new Map([...buckets.values()].flat().map(c => [c.place_id || c.googlePlaceId, c])).values()]
+                : candidates;
+
             // Gate I — soglia minima 1 candidato (era 3). Un posto vero è meglio
             // di zero. Un tour di 1 tappa con Villa Bellini > messaggio bugiardo
             // "A Catania non troviamo parchi" (Catania ha Villa Bellini).
-            if (candidates.length >= 1) {
+            if (selectorCandidates.length >= 1) {
                 const selectorPrompt = buildSelectorSystemPrompt({
                     city, timeContext, weather, weatherIcon,
-                    prefs, aiProfile, cityCenter, candidates, userPrompt,
+                    prefs, aiProfile, cityCenter, candidates: selectorCandidates, userPrompt,
                     intent, // Gate B — clausole dure (categoria/escludi/tempo/note) nel prompt
+                    moments: moments.length > 0 ? moments : null,
+                    buckets,
                 });
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 35_000);
@@ -1571,7 +1718,7 @@ export const aiRecommendationService = {
                         model: 'gpt-4o-mini',
                         messages: [
                             { role: 'system', content: selectorPrompt },
-                            { role: 'user', content: `Costruisci il tour, ${candidates.length} luoghi disponibili. Ricorda: place_id dalla lista, voce insider concreta.` },
+                            { role: 'user', content: `Costruisci il tour, ${selectorCandidates.length} luoghi disponibili. Ricorda: place_id dalla lista, voce insider concreta.` },
                         ],
                         response_format: { type: 'json_object' },
                         temperature: 0.7,
@@ -1587,8 +1734,56 @@ export const aiRecommendationService = {
 
                     const VALID_MOODS = new Set(['romantico','storia','avventura','natura','cibo','shopping','arte','sorpresa','sport']);
                     const VALID_TRANSIT = new Set(['bus','metro','walking']);
+                    const dayMeta = (day, di) => ({
+                        day: day?.day ?? di + 1,
+                        title: day?.title ?? `Giorno ${di + 1} a ${city}`,
+                        weather: day?.weather ?? { condition: weather?.condition || 'Soleggiato', temperature: weather?.temperature ?? 22, icon: weatherIcon },
+                        suggestedTransit: VALID_TRANSIT.has(day?.suggestedTransit) ? day.suggestedTransit : 'walking',
+                        mapMood: VALID_MOODS.has(day?.mapMood) ? day.mapMood : 'default',
+                    });
 
-                    const finalDays = days.map((day, di) => {
+                    // P3 — con lo scheletro il codice controlla la risposta e la
+                    // ripara (momento sbagliato, numero sbagliato, luogo
+                    // inventato), poi mette gli orari dentro ogni momento.
+                    let momentReport = null;
+                    const finalDays = moments.length > 0
+                        ? (() => {
+                            const aiStops = days.flatMap(d => (Array.isArray(d?.stops) ? d.stops : []));
+                            // Gate NARRATORE/POI (regola #16) — una tappa del
+                            // modello senza descrizione non vale come scelta.
+                            // Se il narratore non ne ha raccontata NESSUNA, il
+                            // tour non si serve: il codice ripara i buchi di un
+                            // racconto, non sostituisce un racconto che manca.
+                            const muteStops = aiStops.filter(st => !hasNonEmptyDescription(st));
+                            if (muteStops.length > 0) {
+                                const byId = new Map(candidates.map(c => [c.place_id || c.googlePlaceId, c]));
+                                const nomi = muteStops.map(st => byId.get(st.place_id)?.name || st.place_id || '?');
+                                console.warn(`[Gate NARRATORE/POI] ${city}: ${muteStops.length}/${aiStops.length} tappe scartate → descrizione assente — [${nomi.join(' | ')}]`);
+                            }
+                            if (muteStops.length === aiStops.length) return [];
+                            const { plan, report } = repairMomentSelection({
+                                moments, buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
+                            });
+                            const sched = scheduleMomentPlan(plan, tourWindow.windows.map(w => w.start));
+                            momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes };
+                            logMomentReport(city, momentReport);
+                            return sched.days.map((dayStops, di) => {
+                                // Stessa canonicalizzazione (e stessi guard del
+                                // narratore) delle tappe scelte dal modello.
+                                const canon = canonicalizeStopsFromCandidates(
+                                    dayStops.map(s => ({ ...(s.narration || {}), place_id: s.candidate.place_id || s.candidate.googlePlaceId })),
+                                    candidates,
+                                ).map((stop, i) => ({
+                                    ...stop,
+                                    moment: dayStops[i].moment.key,
+                                    momentLabel: dayStops[i].moment.label,
+                                    waitMinutesBefore: dayStops[i].waitMinutesBefore,
+                                    ...(dayStops[i].source === 'riparata' ? { repaired: true } : {}),
+                                }));
+                                return { ...dayMeta(days[di] || days[0], di), stops: computeStopTimings(canon).stops };
+                            }).filter(d => d.stops.length > 0);
+                        })()
+                        : days.map((day, di) => {
                         const aiStops = Array.isArray(day.stops) ? day.stops : [];
                         // Canonicizza: title/lat/lng/rating/googlePhoto dai candidati.
                         // Scarta stop con place_id non appartenente ai candidati (AI-halluc).
@@ -1612,14 +1807,7 @@ export const aiRecommendationService = {
                         // dello stesso tipo: riordino a costo minimo, mai una riselezione).
                         // DIFF 1a: le stime SUBITO dopo il sort/varietà, mai prima.
                         const ordered = computeStopTimings(enforceCategoryVariety(sortByProximity(withinRadius))).stops;
-                        return {
-                            day: day.day ?? di + 1,
-                            title: day.title ?? `Giorno ${di + 1} a ${city}`,
-                            weather: day.weather ?? { condition: weather?.condition || 'Soleggiato', temperature: weather?.temperature ?? 22, icon: weatherIcon },
-                            suggestedTransit: VALID_TRANSIT.has(day.suggestedTransit) ? day.suggestedTransit : 'walking',
-                            mapMood: VALID_MOODS.has(day.mapMood) ? day.mapMood : 'default',
-                            stops: ordered,
-                        };
+                        return { ...dayMeta(day, di), stops: ordered };
                     }).filter(d => d.stops.length > 0);
 
                     // Gate I — soglia minima 1 tappa (era 3). Un posto vero è
@@ -1627,7 +1815,10 @@ export const aiRecommendationService = {
                     // alla UI di mostrare un banner onesto ("un solo posto").
                     if (finalDays.length > 0 && finalDays[0].stops.length >= 1) {
                         const singleStop = finalDays[0].stops.length === 1;
-                        const result = { days: finalDays, _source: 'google-first', _singleStop: singleStop };
+                        const result = {
+                            days: finalDays, _source: 'google-first', _singleStop: singleStop,
+                            ...(momentReport ? { _momentReport: momentReport } : {}),
+                        };
                         saveInsiderToCache(cacheKey, result);
                         return { ...result, ...windowFields, days: refreshTourScheduledTimes(result.days, dayStarts) };
                     }
@@ -1665,7 +1856,9 @@ export const aiRecommendationService = {
                 }
             } else {
                 // Gate B/I — Path A: 0 candidati Places → errore onesto (no fallback).
-                // Con soglia >= 1, questo ramo scatta solo per candidates === 0.
+                // Scatta per candidates === 0, oppure (P3) quando nessun
+                // momento dello scheletro ha un candidato valido: nessun
+                // luogo inventato, il risultato e' vuoto e onesto.
                 if (isFreeTextIntent) {
                     console.info(`[Gate B] path A "${city}" — 0 candidati Places → errore onesto (no fallback AI-first)`);
                     return {

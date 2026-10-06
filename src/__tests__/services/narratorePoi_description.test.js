@@ -106,16 +106,28 @@ const routeFetch = (selectorPayload) => {
     });
 };
 
+
+// P3 — lo scheletro della giornata dipende dall'ora: senza un orologio fisso
+// questo test cambierebbe esito con l'ora in cui gira la CI. Ora di ROMA
+// esplicita (+02:00): la CI gira in UTC. Si finge solo Date, non i timer.
+const pinRomeClock = (iso) => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(iso));
+};
+
 describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         // Cache insider + cache intent + cache POI vivono tutte in localStorage:
         // senza pulizia il secondo test leggerebbe il risultato del primo.
         try { window.localStorage.clear(); } catch { /* jsdom ha sempre storage */ }
+        // 10:00, Veloce di 2 ore → solo la mattina, 1 tappa (Attivo).
+        pinRomeClock('2026-10-07T10:00:00+02:00');
     });
 
     afterEach(() => {
         vi.unstubAllGlobals();
+        vi.useRealTimers();
     });
 
     it('2 tappe di cui 1 senza description → resta 1 tappa, il tour esiste', async () => {
@@ -204,12 +216,14 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
             }],
         }));
 
+        // P3 — Intenso: la mattina fa 2 tappe, quante ne racconta il modello.
         const result = await aiRecommendationService.generateItinerary(
-            CITY, { interests: ['Arte'] }, 'cerco musei', {}, '', CENTER,
+            CITY, { interests: ['Arte'], pace: 'Intenso' }, 'cerco musei', {}, '', CENTER,
         );
 
         expect(result._source).toBe('google-first');
         expect(result.days[0].stops).toHaveLength(2);
+        expect(result.days[0].stops.every(s => s.description)).toBe(true);
         expect(result._singleStop).toBe(false);
     });
 });

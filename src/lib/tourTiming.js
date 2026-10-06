@@ -220,9 +220,18 @@ export function computeCumulativeOffsets(stops) {
     const out = [];
     let acc = 0;
     let broken = false;
+    // P3 — `waitMinutesBefore`: l'attesa prima di una tappa, quando il suo
+    // momento comincia dopo che la precedente e' finita (si esce dal museo alle
+    // 11:00, il pranzo e' alle 12:30). La scrive solo lo scheletro, che la
+    // calcola da regole sue: assente significa "nessuna attesa", non "non lo
+    // so", quindi qui vale 0 e non assorbe. Sulla prima tappa e' la distanza
+    // dall'inizio della finestra: se la mattina e' stata tolta, il pranzo resta
+    // alle 12:30.
+    const wait = (s) => (Number.isFinite(s?.waitMinutesBefore) && s.waitMinutesBefore > 0 ? s.waitMinutesBefore : 0);
     for (let i = 0; i < stops.length; i++) {
-        // La prima tappa e' l'origine: 0, e il suo travel null non entra nel giro.
-        if (i === 0) { out.push(0); continue; }
+        // La prima tappa e' l'origine: 0 (piu' l'eventuale attesa), e il suo
+        // travel null non entra nel giro.
+        if (i === 0) { acc = wait(stops[0]); out.push(acc); continue; }
         if (broken) { out.push(null); continue; }
         const prevStay = stops[i - 1]?.stayMinutes;
         const travel = stops[i]?.travelMinutesFromPrev;
@@ -233,7 +242,7 @@ export function computeCumulativeOffsets(stops) {
             out.push(null);
             continue;
         }
-        acc += prevStay + travel;
+        acc += prevStay + travel + wait(stops[i]);
         out.push(acc);
     }
     return out;

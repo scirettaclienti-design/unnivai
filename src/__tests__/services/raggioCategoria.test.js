@@ -165,13 +165,21 @@ const routeFetch = ({ perQuery, selectorPayload, intent = INTENT_SPIAGGE }) => {
 
 const warnLines = () => console.warn.mock?.calls?.map(a => String(a[0])) ?? [];
 
+// P3 — lo scheletro della giornata dipende dall'ora: orologio fisso, ora di
+// ROMA esplicita (la CI gira in UTC), si finge solo Date. Alle 10:00 un
+// percorso "Lungo" (6 ore) apre mattina, pranzo e pomeriggio: 3 tappe, quante
+// ne sceglie il selettore in questi scenari.
+const PREFS = { interests: ['Natura'], duration: 'Lungo' };
+
 describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
     beforeEach(() => {
         // NON resetAllMocks/restoreAllMocks: azzerano i mock globali di setup.js.
         vi.clearAllMocks();
         try { window.localStorage.clear(); } catch { /* jsdom */ }
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2026-10-07T10:00:00+02:00'));
     });
-    afterEach(() => { vi.unstubAllGlobals(); });
+    afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
     it('le spiagge lontane arrivano al selettore, i ristoranti vicini NO', async () => {
         const { fn, stato } = routeFetch({
@@ -192,7 +200,7 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
         vi.stubGlobal('fetch', fn);
 
         const result = await aiRecommendationService.generateItinerary(
-            'Cabras', { interests: ['Natura'] }, 'le spiagge piu belle', {}, '', CABRAS,
+            'Cabras', PREFS, 'le spiagge piu belle', {}, '', CABRAS,
         );
 
         // (1) La prova diretta: il selettore E' stato chiamato, e nel suo prompt
@@ -230,7 +238,7 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
         vi.stubGlobal('fetch', fn);
 
         const result = await aiRecommendationService.generateItinerary(
-            'Cabras', { interests: ['Natura'] }, 'le spiagge piu belle', {}, '', CABRAS,
+            'Cabras', PREFS, 'le spiagge piu belle', {}, '', CABRAS,
         );
 
         expect(result._source).toBe('no-results');
@@ -272,7 +280,7 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
         vi.stubGlobal('fetch', fn);
 
         const result = await aiRecommendationService.generateItinerary(
-            'Cabras', { interests: ['Natura'] }, 'le spiagge piu belle', {}, '', CABRAS,
+            'Cabras', PREFS, 'le spiagge piu belle', {}, '', CABRAS,
         );
 
         // (1) Il selettore e' stato chiamato: con il taglio prima del filtro di
@@ -321,7 +329,7 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
         vi.stubGlobal('fetch', fn);
 
         await aiRecommendationService.generateItinerary(
-            'Cabras', { interests: ['Natura'] }, 'sorprendimi', {}, '', CABRAS,
+            'Cabras', PREFS, 'sorprendimi', {}, '', CABRAS,
         );
 
         // Nessun filtro di categoria (24 ristoranti entro 5 km, niente widen),
@@ -348,7 +356,7 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
         vi.stubGlobal('fetch', fn);
 
         const result = await aiRecommendationService.generateItinerary(
-            'Cabras', { interests: ['Natura'] }, 'sorprendimi', {}, '', CABRAS,
+            'Cabras', PREFS, 'sorprendimi', {}, '', CABRAS,
         );
 
         // Nessuna riga di scarto per categoria: il gate non gira su "misto".
@@ -357,6 +365,12 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
         // storico, i ristoranti arrivano al selettore e finiscono nel tour.
         expect(stato.selectorBody).toContain('Lido Ristorante');
         expect(result._source).toBe('google-first');
-        expect(result.days[0].stops).toHaveLength(2);
+        // P3 — il selettore ne sceglie 2, ma nello scheletro (10:00–16:00) i
+        // ristoranti stanno solo a pranzo: 1 tappa. Mattina e pomeriggio non
+        // hanno candidati (le ricerche mirate qui non trovano niente) e sono
+        // tolti, e il report lo dice.
+        expect(result.days[0].stops).toHaveLength(1);
+        expect(result.days[0].stops[0].moment).toBe('pranzo');
+        expect(result._momentReport.momentiTolti.map(m => m.momento)).toEqual(['g1-mattina', 'g1-pomeriggio']);
     });
 });

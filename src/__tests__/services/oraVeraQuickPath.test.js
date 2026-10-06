@@ -67,13 +67,24 @@ const routeFetch = ({ intent = INTENT_RELAX, selectorPayload }) => {
     return { fn, stato };
 };
 
+
+// P3 — lo scheletro della giornata dipende dall'ora: senza un orologio fisso
+// questo test cambierebbe esito con l'ora in cui gira la CI. Ora di ROMA
+// esplicita (+02:00): la CI gira in UTC. Si finge solo Date, non i timer.
+const pinRomeClock = (iso) => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(iso));
+};
+
 describe('Gate ORA VERA — dal wizard al selettore, zero fascia oraria', () => {
     beforeEach(() => {
         // NON resetAllMocks/restoreAllMocks: azzerano i mock globali di setup.js.
         vi.clearAllMocks();
         try { window.localStorage.clear(); } catch { /* jsdom */ }
+        // 9:30, Medio (4 ore) → mattina 3h (2 tappe) + pranzo (1): 3 tappe.
+        pinRomeClock('2026-10-07T09:30:00+02:00');
     });
-    afterEach(() => { vi.unstubAllGlobals(); });
+    afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
     it('il body mandato al selettore non contiene "momento del giorno" né una fascia dal wizard', async () => {
         const prompt = buildPromptFromSelections({

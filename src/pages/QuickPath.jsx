@@ -208,11 +208,9 @@ const EXCLUDE_HINTS_BY_MAIN = {
 // generateItinerary). Alle 21:10 un tour "Al mattino" era una contraddizione.
 // L'unica sorgente di orario resta `timeContext`, derivato dall'ora reale.
 
-const STOP_COUNT = {
-    veloce: 'Esattamente 2 tappe.',
-    medio:  'Esattamente 3-4 tappe.',
-    lungo:  'Esattamente 5-6 tappe.',
-};
+// P3 — STOP_COUNT RIMOSSO. "Esattamente N tappe" nel testo era un numero
+// chiesto al modello; ora il numero di tappe lo decide lo scheletro della
+// giornata (daySkeleton.js), dalla finestra che la durata scelta apre.
 
 const GROUP_LABEL = {
     solo:     'da esplorare in solitudine',
@@ -224,10 +222,11 @@ const GROUP_LABEL = {
 const EXCLUSION_CLAUSE = 'Solo tappe di questa categoria: non aggiungere ristoranti, bar o caffè se non li ho chiesti esplicitamente.';
 const FOOD_MAIN_KEYS = new Set(['cibo']);
 
-export function buildPromptFromSelections({ main, sub, duration, group, city }) {
+// P3 — `duration` non entra piu' nel testo (vedi STOP_COUNT sopra): la
+// durata arriva al motore da prefs.duration e apre la finestra.
+export function buildPromptFromSelections({ main, sub, group, city }) {
     const mainKey  = String(main  || '').toLowerCase().trim();
     const subKey   = String(sub   || '').toLowerCase().trim();
-    const durKey   = String(duration || '').toLowerCase().trim();
     const groupKey = String(group || '').toLowerCase().trim();
     const cityName = String(city  || '').trim();
 
@@ -236,24 +235,22 @@ export function buildPromptFromSelections({ main, sub, duration, group, city }) 
         || 'monumenti principali, piazze e vita locale';
 
     const groupLabel = GROUP_LABEL[groupKey] || '';
-    const stopCount  = STOP_COUNT[durKey]   || '';
     const isFoodMain = FOOD_MAIN_KEYS.has(mainKey);
     const excludeHint = EXCLUDE_HINTS_BY_MAIN[mainKey] || '';
 
     // Gate C Task 1 — Brief operativo, non prosa. Prima frase: cosa cercare
     // (query concrete). Seconda: cosa escludere (rinforza vincoli.escludi).
-    // Terza: contesto (gruppo, numero tappe). Gate ORA VERA: nessuna fascia
+    // Terza: contesto (gruppo). Gate ORA VERA: nessuna fascia
     // oraria — l'orario del tour lo decide l'ora reale della richiesta.
     const sentence1 = cityName ? `A ${cityName} cerco: ${dominant}.` : `Cerco: ${dominant}.`;
     const sentence2 = excludeHint ? `Escludi: ${excludeHint}.` : '';
     const sentence3 = groupLabel ? `${groupLabel}.` : '';
-    const sentence4 = stopCount;
     // EXCLUSION_CLAUSE (no food se non richiesto) va SOLO quando la categoria
     // non è già coperta da EXCLUDE_HINTS_BY_MAIN. Se il main è "citta"/"storia"/
     // "arte" (nessun exclude hint), la clausola food generica compare come prima.
     const sentence5 = (!isFoodMain && !excludeHint) ? EXCLUSION_CLAUSE : '';
 
-    return [sentence1, sentence2, sentence3, sentence4, sentence5].filter(Boolean).join(' ');
+    return [sentence1, sentence2, sentence3, sentence5].filter(Boolean).join(' ');
 }
 
 // Gate VERITÀ VISIVA (F26) DIFF 5 — rimossa la proprieta' `image` (26 URL

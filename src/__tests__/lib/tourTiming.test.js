@@ -597,3 +597,21 @@ describe('marker negativo — la timeline non mostra piu\' un orario', () => {
         expect(/'--:--'|"--:--"/.test(src)).toBe(false);
     });
 });
+
+describe('refreshTourScheduledTimes — G3, una partenza per giorno', () => {
+    const giorno = () => ({ stops: [{ stayMinutes: 30, travelMinutesFromPrev: null }, { stayMinutes: 30, travelMinutesFromPrev: 10 }] });
+    const MAR = new Date('2026-10-06T07:30:00Z');
+    const MER = new Date('2026-10-07T07:30:00Z');
+
+    it('con un array, il giorno i parte da startTime[i]', () => {
+        const out = refreshTourScheduledTimes([giorno(), giorno()], [MAR, MER]);
+        expect(out[0].stops[0].scheduledTime).toBe(MAR.toISOString());
+        expect(out[1].stops[0].scheduledTime).toBe(MER.toISOString());
+        expect(out[1].stops[1].scheduledTime).toBe(new Date(MER.getTime() + 40 * 60000).toISOString());
+    });
+
+    it('un giorno senza la sua partenza ha orari null, non quelli del giorno prima', () => {
+        const out = refreshTourScheduledTimes([giorno(), giorno()], [MAR]);
+        expect(out[1].stops.map(s => s.scheduledTime)).toEqual([null, null]);
+    });
+});

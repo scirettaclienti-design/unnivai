@@ -306,9 +306,13 @@ export function computeScheduledTimes(stops, startTime) {
  */
 export function refreshTourScheduledTimes(days, startTime) {
     if (!Array.isArray(days)) return [];
-    return days.map(day => ({
+    // G3 — un array di Date = una partenza per giorno ("2-3 Giorni", una
+    // finestra per ciascuno). Un giorno senza la sua partenza ha orari null:
+    // riusare quella del giorno prima direbbe un'ora falsa.
+    const startFor = (i) => (Array.isArray(startTime) ? (startTime[i] ?? null) : startTime);
+    return days.map((day, i) => ({
         ...day,
-        stops: computeScheduledTimes(Array.isArray(day?.stops) ? day.stops : [], startTime),
+        stops: computeScheduledTimes(Array.isArray(day?.stops) ? day.stops : [], startFor(i)),
     }));
 }
 

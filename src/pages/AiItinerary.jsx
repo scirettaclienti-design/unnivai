@@ -199,7 +199,9 @@ export default function AIItineraryPage() {
                 { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
                 aiProfile, // Tour DNA iniettato nel system prompt
                 cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)
-                { dnaWeights: hasPreferences ? weights : {} }, // Gate MERITO — affinità nella formula di scoring
+                // Gate MERITO — affinità nella formula di scoring.
+                // G3 — 'custom': la finestra temporale legge "domani", "sabato pomeriggio"…
+                { dnaWeights: hasPreferences ? weights : {}, pathType: 'custom' },
             );
 
             // Gate INTERESSI-VERI — la ricerca non si e' potuta fare (rete, HTTP,

@@ -620,7 +620,8 @@ export default function QuickPathPage() {
                 { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
                 aiProfile,
                 cityCenter,
-                { dnaWeights: hasPreferences ? weights : {} },
+                // G3 — Percorso Veloce: parte SEMPRE da adesso, il testo non conta.
+                { dnaWeights: hasPreferences ? weights : {}, pathType: 'quick' },
             );
 
             if (timedOut) return; // il timeout ha già gestito l'errore

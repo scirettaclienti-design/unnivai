@@ -310,6 +310,8 @@ import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } fr
 // Va chiamato SEMPRE dopo l'ordinamento definitivo: lo spostamento e' una
 // proprieta' della coppia di tappe consecutive, non della singola tappa.
 import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes } from '@/lib/tourTiming';
+// Gate FINESTRA TEMPORALE (G3) — quando parte il tour lo decide il codice, non il modello.
+import { resolveTourWindow, romeHour } from '@/lib/tourWindow';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
@@ -1397,16 +1399,33 @@ export const aiRecommendationService = {
             ? `${cityCenter.latitude.toFixed(3)},${cityCenter.longitude.toFixed(3)},r55f2`
             : 'noRadius';
         const cacheKey = insiderCacheKey(city, prefs, userPrompt, aiProfile, opts.dnaWeights) + '_' + centerFingerprint;
+        // G3 — la finestra temporale del tour, calcolata in codice da: frase
+        // dell'utente, ora della richiesta, tipo di percorso, durata scelta.
+        // `start` sostituisce `new Date()` come partenza del tour, sia per gli
+        // orari delle tappe sia per la fascia del timeContext. Si calcola PRIMA
+        // della cache: "domani" letto oggi e "domani" letto fra una settimana
+        // sono due martedì diversi, anche se il cacheKey è lo stesso.
+        // opts.pathType: 'custom' (Crea il tuo Percorso) legge il testo;
+        // assente o 'quick' = da adesso, il comportamento di prima.
+        const requestTime = new Date();
+        const tourWindow = resolveTourWindow({
+            text: userPrompt, requestTime, pathType: opts.pathType, duration: prefs?.duration,
+        });
+        // "2-3 Giorni": ogni giorno parte dalla sua finestra.
+        const dayStarts = tourWindow.windows.length > 1 ? tourWindow.windows.map(w => w.start) : tourWindow.start;
+        const windowFields = {
+            startTimeAnchored: tourWindow.anchored,
+            shiftedToNextDay: tourWindow.shiftedToNextDay,
+            tourWindow,
+        };
+
         const cached = loadInsiderFromCache(cacheKey);
         if (cached) {
             // G1.1 — un tour da cache non porta con sé l'orario calcolato alla
-            // generazione: si ricalcola SEMPRE da adesso, sommando gli offset
-            // già salvati (stayMinutes/travelMinutesFromPrev su ogni stop).
-            // `new Date()` qui, non `requestTime`: quest'ultimo non esiste
-            // ancora a questo punto della funzione (viene dopo), ed è giusto
-            // così — è un'istanza diversa di "adesso", quella di CHI STA
-            // LEGGENDO ora, non di chi ha generato allora.
-            return { ...cached, days: refreshTourScheduledTimes(cached.days, new Date()) };
+            // generazione: si ricalcola SEMPRE dalla finestra di CHI STA
+            // LEGGENDO ora, sommando gli offset già salvati
+            // (stayMinutes/travelMinutesFromPrev su ogni stop).
+            return { ...cached, ...windowFields, days: refreshTourScheduledTimes(cached.days, dayStarts) };
         }
 
         // DVAI-050 — Cache MISS: quota giornaliera utente (10/day).
@@ -1420,17 +1439,10 @@ export const aiRecommendationService = {
         const weatherIcon = weather?.condition === 'sunny' ? '☀️'
             : weather?.condition === 'rainy' ? '🌧️' : '⛅';
 
-        // G1 — ora di partenza del tour = ora della richiesta (orologio del
-        // dispositivo). Un'unica cattura, riusata sia per `timeContext`
-        // (narrativa nel prompt) sia per l'orario assoluto delle tappe più
-        // sotto: stessa richiesta, stesso istante, non due `new Date()` che
-        // potrebbero divergere di qualche millisecondo.
-        // G3 (non qui): quando il prompt contiene un riferimento temporale
-        // esplicito ("domani", "sabato pomeriggio"), sarà questo il punto
-        // dove sostituire requestTime con l'ora derivata dal prompt invece
-        // che con "adesso".
-        const requestTime = new Date();
-        const hour = requestTime.getHours();
+        // G3 — la fascia del timeContext si legge dalla PARTENZA del tour
+        // (tourWindow.start, ora di Roma), non dall'ora della richiesta:
+        // "domani" chiesto alle 20:57 è un tour del mattino, non della sera.
+        const hour = romeHour(tourWindow.start);
         const timeContext = hour >= 6 && hour < 11 ? 'mattina presto — le tappe devono includere colazione/bar e posti che aprono la mattina'
             : hour >= 11 && hour < 14 ? 'ora di pranzo — includi un ristorante locale (non turistico) come tappa centrale'
             : hour >= 14 && hour < 18 ? 'pomeriggio — musei, gallerie, panorami, passeggiate'
@@ -1615,9 +1627,9 @@ export const aiRecommendationService = {
                     // alla UI di mostrare un banner onesto ("un solo posto").
                     if (finalDays.length > 0 && finalDays[0].stops.length >= 1) {
                         const singleStop = finalDays[0].stops.length === 1;
-                        const result = { days: finalDays, _source: 'google-first', _singleStop: singleStop, startTimeAnchored: false };
+                        const result = { days: finalDays, _source: 'google-first', _singleStop: singleStop };
                         saveInsiderToCache(cacheKey, result);
-                        return { ...result, days: refreshTourScheduledTimes(result.days, requestTime) };
+                        return { ...result, ...windowFields, days: refreshTourScheduledTimes(result.days, dayStarts) };
                     }
                     // Gate B/I — Path A: 0 tappe canoniche → errore onesto (no fallback).
                     if (isFreeTextIntent) {

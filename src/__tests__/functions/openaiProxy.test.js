@@ -39,7 +39,7 @@ function createFakeQuota() {
       }
       const t = tickets.get(p.p_ticket);
       if (t) {
-        if (t.subject !== subject || t.calls >= 2) return { allowed: false, reason: 'ticket' };
+        if (t.subject !== subject || t.calls >= (t.kind === 'itinerary' ? 3 : 2)) return { allowed: false, reason: 'ticket' };
         t.calls += 1;
         return { allowed: true, reason: 'ticket', ticket_kind: t.kind };
       }
@@ -135,7 +135,8 @@ function call({ token, ip = '203.0.113.7', dv, payload = {} } = {}) {
 }
 
 // Una generazione = traduttore d'intento + selettore, stesso biglietto.
-async function generation({ token, ip, kind = 'itinerary', calls = 2 } = {}) {
+// Itinerario: traduttore d'intento + selettore + narratore = 3 chiamate.
+async function generation({ token, ip, kind = 'itinerary', calls = 3 } = {}) {
   const dv = { purpose: 'generation', ticket: newTicket(), kind };
   const res = [];
   for (let i = 0; i < calls; i++) res.push(await call({ token, ip, dv }));
@@ -148,18 +149,17 @@ const openaiCalls = () => fetch.mock.calls.length;
 describe('openai-proxy — quota applicata dal server', () => {
   it("utente loggato: l'11ª generazione viene rifiutata e OpenAI non viene chiamato", async () => {
     for (let i = 0; i < 10; i++) {
-      const [r1, r2] = await generation({ token: 'tok-anna' });
-      expect(r1.status).toBe(200);
-      expect(r2.status).toBe(200);
+      const res = await generation({ token: 'tok-anna' });
+      expect(res.map(r => r.status)).toEqual([200, 200, 200]);
     }
-    expect(openaiCalls()).toBe(20); // 10 generazioni × (traduttore + selettore)
+    expect(openaiCalls()).toBe(30); // 10 generazioni × (traduttore + selettore + narratore)
 
     const [eleventh] = await generation({ token: 'tok-anna', calls: 1 });
     expect(eleventh.status).toBe(429);
     const body = await eleventh.json();
     expect(body.code).toBe('QUOTA_EXCEEDED');
     expect(body.error).toBe(USER_TEXT);
-    expect(openaiCalls()).toBe(20);
+    expect(openaiCalls()).toBe(30);
 
     // Il limite e' per persona: un altro utente genera ancora.
     const [other] = await generation({ token: 'tok-bruno', calls: 1 });
@@ -244,8 +244,14 @@ describe('openai-proxy — quota applicata dal server', () => {
     expect(openaiCalls()).toBe(0);
   });
 
-  it('biglietto: massimo 2 chiamate; la 3ª con lo stesso biglietto e\' rifiutata', async () => {
-    const res = await generation({ token: 'tok-anna', calls: 3 });
+  it("biglietto 'itinerary': la 3ª chiamata passa, la 4ª con lo stesso biglietto e' rifiutata", async () => {
+    const res = await generation({ token: 'tok-anna', calls: 4 });
+    expect(res.map(r => r.status)).toEqual([200, 200, 200, 403]);
+    expect(openaiCalls()).toBe(3);
+  });
+
+  it("biglietto 'home_tours': resta a 2 chiamate, la 3ª e' rifiutata", async () => {
+    const res = await generation({ token: 'tok-anna', kind: 'home_tours', calls: 3 });
     expect(res.map(r => r.status)).toEqual([200, 200, 403]);
     expect(openaiCalls()).toBe(2);
   });
@@ -269,14 +275,14 @@ describe('openai-proxy — quota applicata dal server', () => {
     expect(openaiCalls()).toBe(0);
   });
 
-  it('max_tokens: itinerary 2000; home_tours e chiamate senza biglietto fino a 4000; n forzato a 1', async () => {
+  it('max_tokens: itinerary, home_tours e chiamate senza biglietto fino a 4000; default 2000; n forzato a 1', async () => {
     await call({ token: 'tok-anna', payload: { max_tokens: 16000, n: 5 } }); // senza biglietto → 4000
     await generation({ token: 'tok-anna', kind: 'itinerary', calls: 1 });    // max_tokens 2000 → 2000
-    await call({ token: 'tok-anna', dv: { purpose: 'generation', ticket: newTicket(), kind: 'itinerary' }, payload: { max_tokens: 4000 } }); // → 2000
+    await call({ token: 'tok-anna', dv: { purpose: 'generation', ticket: newTicket(), kind: 'itinerary' }, payload: { max_tokens: 4000 } }); // → 4000
     const dv = { purpose: 'generation', ticket: newTicket(), kind: 'home_tours' };
     await call({ token: 'tok-anna', dv, payload: { max_tokens: 4000 } });
     await call({ token: 'tok-anna', payload: {} }); // nessun max_tokens → 2000
-    expect(openaiBodies.map(b => b.max_tokens)).toEqual([4000, 2000, 2000, 4000, 2000]);
+    expect(openaiBodies.map(b => b.max_tokens)).toEqual([4000, 2000, 4000, 4000, 2000]);
     expect(openaiBodies[0].n).toBeUndefined();
     expect(openaiBodies.every(b => b.dv === undefined)).toBe(true);
   });

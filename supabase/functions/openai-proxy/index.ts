@@ -11,11 +11,12 @@
  *   - generazione = un "biglietto" (`dv.ticket`, uuid scelto dal client). Il
  *     primo uso conta +1 (utente 10/giorno, ospite 5/giorno per IP, tetto
  *     globale AI_GLOBAL_DAILY_CAP, default 1000). Lo stesso biglietto vale al
- *     massimo 2 chiamate in 10 minuti (traduttore d'intento + selettore).
+ *     massimo, in 10 minuti: 'itinerary' 3 chiamate (traduttore d'intento +
+ *     selettore + narratore), 'home_tours' 2.
  *   - chiamate di contorno (chat, monumenti, meteo, business, e qualunque
  *     richiesta senza `dv`): utente 40/giorno, ospite 15/giorno per IP.
- *   - max_tokens: 2000 per i biglietti 'itinerary'; 4000 per 'home_tours' e per
- *     le richieste senza biglietto (compatibilita' col client vecchio).
+ *   - max_tokens: tetto 4000 per ogni chiamata (biglietti 'itinerary' e
+ *     'home_tours', richieste senza biglietto); 2000 se il client non lo indica.
  *   - giorno = mezzanotte Europe/Rome (calcolato nella funzione SQL).
  *   - se il controllo fallisce per qualunque motivo: 503, OpenAI NON viene chiamato.
  *
@@ -33,11 +34,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 const OPENAI_BASE = 'https://api.openai.com/v1';
 
 const ALLOWED_MODELS = new Set(['gpt-4o-mini']);
-const MAX_TOKENS_DEFAULT = 2000;   // tetto dei biglietti 'itinerary' e default se manca max_tokens
-const MAX_TOKENS_LARGE = 4000;     // biglietti 'home_tours' (fino a 5 tour narrati in 1 chiamata)
-                                   // e chiamate SENZA biglietto: il client in produzione
-                                   // fino al 12/09 (db44413) manda la Home senza biglietto
-                                   // a 4000 token. Gia' contate come contorno (40/15 al giorno).
+const MAX_TOKENS_DEFAULT = 2000;   // default se manca max_tokens
+const MAX_TOKENS_CAP = 4000;       // tetto per ogni chiamata. 'itinerary': il selettore di un
+                                   // tour "2-3 Giorni" (15 tappe) risponde con ~2100 token
+                                   // (misurato il 06/10: 2054/2098/2115), oltre il vecchio
+                                   // tetto 2000. 'home_tours': fino a 5 tour in 1 chiamata.
+                                   // Senza biglietto: il client in produzione fino al 12/09
+                                   // (db44413) manda la Home a 4000 token (contata come contorno).
 
 const LIMITS = {
   user:  { generation: 10, aux: 40 },
@@ -221,13 +224,10 @@ serve(async (req: Request) => {
     return json(429, { error: MSG_USER_LIMIT, code: 'QUOTA_EXCEEDED', remaining: 0 });
   }
 
-  const tokenCap = meta.purpose === 'generation' && quota.ticket_kind !== 'home_tours'
-    ? MAX_TOKENS_DEFAULT
-    : MAX_TOKENS_LARGE;
   const asked = Number(openAiPayload.max_tokens);
   openAiPayload.max_tokens = Number.isFinite(asked) && asked > 0
-    ? Math.min(asked, tokenCap)
-    : Math.min(MAX_TOKENS_DEFAULT, tokenCap);
+    ? Math.min(asked, MAX_TOKENS_CAP)
+    : MAX_TOKENS_DEFAULT;
 
   const quotaHeaders: Record<string, string> = typeof quota.remaining === 'number'
     ? { 'x-quota-remaining': String(quota.remaining) }

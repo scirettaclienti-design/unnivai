@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# Gate QUOTA-SERVER — prova la migration 20261005_ai_quota_server_side.sql su un
+# Gate QUOTA-SERVER — prova le migration 20261005_ai_quota_server_side.sql e
+# 20261006_ai_ticket_itinerary_3_calls.sql su un
 # Postgres 17 vero (Docker), con auth/profiles/ruoli finti come su Supabase.
 # Non tocca nessun database remoto. Uso: bash scripts/test-ai-quota-sql.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MIGRATION="$ROOT/supabase/migrations/20261005_ai_quota_server_side.sql"
+# Biglietto 'itinerary' a 3 chiamate (traduttore + selettore + narratore).
+MIGRATION_3CALLS="$ROOT/supabase/migrations/20261006_ai_ticket_itinerary_3_calls.sql"
 NAME="dv-quota-sql-test-$$"
 
 cleanup() { docker rm -f "$NAME" >/dev/null 2>&1 || true; }
@@ -62,6 +65,8 @@ SQL
 echo "→ applico la migration (due volte: deve essere idempotente)"
 psql < "$MIGRATION"
 psql < "$MIGRATION"
+psql < "$MIGRATION_3CALLS"
+psql < "$MIGRATION_3CALLS"
 
 echo "→ asserzioni"
 psql <<'SQL'
@@ -86,12 +91,14 @@ DO $$ DECLARE r jsonb; t uuid; BEGIN
   PERFORM pg_temp.ok((SELECT count FROM ai_quota_daily WHERE user_id = '11111111-1111-1111-1111-111111111111') = 10, 'contatore utente fermo a 10');
 END $$;
 
--- Biglietto: la 3a chiamata e' rifiutata; un biglietto altrui e' rifiutato.
+-- Biglietto 'itinerary': la 3a chiamata passa, la 4a e' rifiutata; un biglietto altrui e' rifiutato.
 DO $$ DECLARE r jsonb; t uuid := gen_random_uuid(); BEGIN
   PERFORM pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000);
   PERFORM pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000);
   r := pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000);
-  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'ticket', 'biglietto: 3a chiamata rifiutata');
+  PERFORM pg_temp.ok((r->>'allowed')::boolean AND r->>'reason' = 'ticket', 'biglietto itinerary: 3a chiamata ammessa');
+  r := pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000);
+  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'ticket', 'biglietto itinerary: 4a chiamata rifiutata');
   r := pg_temp.gen('guest', 'hash-x', (SELECT id FROM ai_generation_ticket LIMIT 1), 5, 1000);
   PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'ticket', 'biglietto di un altro soggetto rifiutato');
   PERFORM pg_temp.ok((SELECT count FROM ai_quota_daily WHERE user_id = '22222222-2222-2222-2222-222222222222') = 4, 'riga preesistente (3) +1 = 4');
@@ -128,11 +135,13 @@ DO $$ DECLARE r jsonb; BEGIN
   END LOOP;
 END $$;
 
--- home_tours: il tipo del biglietto torna anche sulla 2a chiamata.
+-- home_tours: il tipo del biglietto torna anche sulla 2a chiamata; resta a 2 chiamate.
 DO $$ DECLARE r jsonb; t uuid := gen_random_uuid(); BEGIN
   PERFORM pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000, 'home_tours');
   r := pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000, 'itinerary');
   PERFORM pg_temp.ok(r->>'ticket_kind' = 'home_tours', 'tipo biglietto fissato alla creazione');
+  r := pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000, 'itinerary');
+  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'ticket', 'biglietto home_tours: 3a chiamata rifiutata');
 END $$;
 
 -- Chiamate di contorno: 40 per utente, 15 per ospite.

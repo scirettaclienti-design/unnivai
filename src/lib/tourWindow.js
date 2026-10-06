@@ -20,7 +20,8 @@
  *       - nessuna indicazione di tempo           → da adesso;
  *       - un giorno futuro ("domani", "sabato",
  *         "il 15 ottobre", "fra 3 giorni"…)      → giornata intera 9:30–22:30;
- *       - giorno + fascia ("sabato pomeriggio") → dall'inizio della fascia;
+ *       - giorno + fascia ("sabato pomeriggio") → dall'inizio della fascia
+ *         (le fasce vengono dalla tabella unica, dayMoments.js);
  *       - "stasera"                             → oggi, dalle 18:00 o da adesso
  *                                                 se e' piu' tardi;
  *       - "alle 17"                             → da quell'ora.
@@ -36,21 +37,28 @@
  * V1 e' solo-Italia, quindi un fuso fisso e dichiarato.
  */
 
+import { MOMENT_BY_KEY } from './dayMoments';
+
 export const TOUR_TIME_ZONE = 'Europe/Rome';
 
-// Giornata "intera": quando un percorso puo' ragionevolmente iniziare e finire.
-export const DAY_START = { h: 9, m: 30 };
-export const DAY_END = { h: 22, m: 30 };
+// P2 — fasce e bordi della giornata NON si scrivono qui: si leggono dalla
+// tabella unica dei momenti (dayMoments.js). La giornata "intera" va
+// dall'inizio della mattina alla fine della cena; il dopocena e' un'estensione
+// che decide lo scheletro (daySkeleton.js), non la finestra.
+export const DAY_START = MOMENT_BY_KEY.mattina.start;
+export const DAY_END = MOMENT_BY_KEY.cena.end;
 
 // Sotto questa soglia prima di DAY_END non c'e' un percorso, c'e' un saluto.
 export const MIN_WINDOW_MINUTES = 60;
 
-// Fasce nominabili. `end` e' la fine quando l'utente non sceglie una durata.
+// Fasce nominabili nel testo. `end` e' la fine quando l'utente non sceglie una
+// durata. "sera" non e' un momento della tabella: e' aperitivo + cena.
+const span = (from, to) => ({ start: MOMENT_BY_KEY[from].start, end: MOMENT_BY_KEY[to].end });
 export const FASCE = {
-    mattina:    { start: { h: 9, m: 30 },  end: { h: 13, m: 0 } },
-    pranzo:     { start: { h: 12, m: 30 }, end: { h: 15, m: 0 } },
-    pomeriggio: { start: { h: 15, m: 0 },  end: { h: 18, m: 0 } },
-    sera:       { start: { h: 18, m: 0 },  end: { h: 22, m: 30 } },
+    mattina:    span('mattina', 'mattina'),
+    pranzo:     span('pranzo', 'pranzo'),
+    pomeriggio: span('pomeriggio', 'pomeriggio'),
+    sera:       span('aperitivo', 'cena'),
 };
 
 // Durate del Percorso Veloce (QuickPath: "1-2 ore", "2-4 ore", "4-6 ore"):

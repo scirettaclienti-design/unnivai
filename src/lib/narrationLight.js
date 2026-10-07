@@ -142,3 +142,67 @@ export function filterTimeIncoherent(text, { arrival, sunrise, sunset } = {}) {
     if (removed.length === 0) return { text: String(text), removed };
     return { text: kept.length > 0 ? kept.join(' ') : null, removed };
 }
+
+// ─── Gate PAROLE VIETATE — dal log alla rimozione ───────────────────────────
+//
+// L'UNICO elenco delle parole vietate al narratore. Prima viveva solo come
+// testo dentro due prompt (narratore e "Per Te"), e nessun codice lo
+// controllava: il modello poteva usarle e arrivavano a schermo ("piatti
+// tradizionali", tour di Roma del 7/10). Ora i due prompt lo leggono da qui
+// (bannedWordsPromptLines: stesso testo di prima, carattere per carattere) e
+// filterBannedWords toglie la frase che ne contiene una.
+//
+// Il prompt dice "usate sole senza contesto": il codice non sa giudicare il
+// contesto, quindi toglie la frase in ogni caso. Meglio una frase in meno che
+// una frase da brochure a schermo.
+export const BANNED_VOICE_WORDS = [
+    'storico', 'tradizionale', 'unico', 'caratteristico', 'suggestivo', 'tipico',
+    'affascinante', 'magico', 'imperdibile',
+];
+// Formule che solo il prompt "Per Te" mostra al modello; il filtro le toglie ovunque.
+export const BANNED_VOICE_PHRASES_HOME = ['ottima scelta', 'perfetta scelta'];
+
+/** Le due righe dell'elenco nel testo dei prompt, identiche a quelle di prima. */
+export function bannedWordsPromptLines(extra = []) {
+    const q = (w) => `"${w}"`;
+    const first = BANNED_VOICE_WORDS.slice(0, 6).map(q).join(', ');
+    const rest = [...BANNED_VOICE_WORDS.slice(6), ...extra].map(q).join(', ');
+    return `${first},\n${rest} — usate sole senza contesto.`;
+}
+
+// Le varianti di genere/numero e l'avverbio, dalla forma base:
+//   storico → storico/storica/storici/storiche/storicamente
+//   suggestivo → suggestivo/a/i/e/suggestivamente
+//   tradizionale → tradizionale/i/tradizionalmente
+//   affascinante → affascinante/i/affascinantemente
+// Parola intera (\b): "storia", "comunita'", "tipografia", "magazzino" restano.
+const variantPattern = (w) => {
+    if (w.includes(' ')) return w.split(' ').join('\\s+');
+    if (w.endsWith('co')) return `${w.slice(0, -1)}(?:o|a|i|he|amente)`;
+    if (w.endsWith('vo')) return `${w.slice(0, -1)}(?:o|a|i|e|amente)`;
+    if (w.endsWith('le')) return `${w.slice(0, -1)}(?:e|i|mente)`;
+    if (w.endsWith('e')) return `${w.slice(0, -1)}(?:e|i|emente)`;
+    return w;
+};
+const BANNED_RULES = [...BANNED_VOICE_WORDS, ...BANNED_VOICE_PHRASES_HOME]
+    .map(w => ({ word: w, re: new RegExp(`\\b${variantPattern(w)}\\b`) }));
+
+/**
+ * Toglie le frasi che contengono una parola vietata. Mai riscritte; un testo
+ * fatto solo di frasi vietate diventa null (nessun testo sostitutivo).
+ * @param {string|null} text
+ * @returns {{ text: string|null, removed: Array<{ frase: string, parole: string[] }> }}
+ */
+export function filterBannedWords(text) {
+    if (text == null || String(text).trim() === '') return { text: null, removed: [] };
+    const kept = [];
+    const removed = [];
+    for (const s of splitSentences(String(text).trim())) {
+        const t = norm(s);
+        const parole = BANNED_RULES.filter(r => r.re.test(t)).map(r => r.word);
+        if (parole.length > 0) removed.push({ frase: s, parole });
+        else kept.push(s);
+    }
+    if (removed.length === 0) return { text: String(text), removed };
+    return { text: kept.length > 0 ? kept.join(' ') : null, removed };
+}

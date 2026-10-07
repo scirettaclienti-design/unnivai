@@ -364,3 +364,15 @@ describe('Gate ORA VERA — "momento del giorno" solo se l\'utente lo ha chiesto
         expect(promptWithIntent(null)).not.toContain('momento del giorno');
     });
 });
+
+// Gate PAROLE VIETATE — l'elenco ora vive in narrationLight.js e il prompt lo
+// interpola: il testo che arriva al modello deve essere identico a prima.
+describe('Gate PAROLE VIETATE — il prompt del narratore e\' invariato', () => {
+    it('le due righe dell\'elenco sono quelle di prima, carattere per carattere', () => {
+        expect(prompt()).toContain(
+            'REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):\n'
+            + '"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",\n'
+            + '"affascinante", "magico", "imperdibile" — usate sole senza contesto.\n\nREGOLE STRUTTURA:',
+        );
+    });
+});

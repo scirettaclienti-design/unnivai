@@ -281,6 +281,62 @@ describe('Gate NARRATORE-DOPO — il narratore racconta le tappe finali', () => 
         expect(result._narrationReport.nonRaccontate.map(x => x.place_id)).toEqual([saltata]);
     });
 
+    // ─── Gate PAROLE VIETATE ────────────────────────────────────────────
+    const TRADIZIONALI = 'Il profumo dei piatti tradizionali riempie la sala. Prova la carbonara.';
+
+    it('parole vietate: la frase con "tradizionali" viene tolta, resta solo "Prova la carbonara."', async () => {
+        const cena = byName('Da Teo').place_id;
+        const { fn } = routeFetch({
+            selector: sel(GIORNO_1),
+            narrator: narratore({ text: (t) => (t.place_id === cena ? TRADIZIONALI : `Da ${t.nome} il selciato e' liscio.`) }),
+        });
+        vi.stubGlobal('fetch', fn);
+
+        const result = await genera(ROMANO, ARTE_CIBO_RILASSATO);
+        const s = allStops(result).find(x => x.place_id === cena);
+        expect(s.description).toBe('Prova la carbonara.');
+        expect(result._narrationReport.frasiTolte.some(f => f.place_id === cena && f.regole.includes('parola-vietata'))).toBe(true);
+    });
+
+    it('parole vietate: vale anche per una tappa letta dalla CACHE', async () => {
+        const cena = byName('Da Teo').place_id;
+        const { fn, stato } = routeFetch({ selector: sel(GIORNO_1) });
+        vi.stubGlobal('fetch', fn);
+        await genera(ROMANO, ARTE_CIBO_RILASSATO);
+
+        // Una voce di cache scritta prima del controllo: la frase vietata e' li'.
+        const key = Object.keys(window.localStorage).find(k => k.startsWith('unnivai_insiderf10_narratore_'));
+        const entry = JSON.parse(window.localStorage.getItem(key));
+        for (const d of entry.data.days) for (const st of d.stops) if (st.place_id === cena) {
+            st.description = TRADIZIONALI;
+            st.insiderTip = 'Un posto tipico. Chiedi il pane.';
+            st.bestTime = 'Atmosfera magica.';
+        }
+        window.localStorage.setItem(key, JSON.stringify(entry));
+
+        const r2 = await genera(ROMANO, ARTE_CIBO_RILASSATO);
+        expect(stato.calls.filter(c => c === 'narratore')).toHaveLength(1); // e' davvero un cache HIT
+        const s = allStops(r2).find(x => x.place_id === cena);
+        expect(s.description).toBe('Prova la carbonara.');
+        expect(s.insiderTip).toBe('Chiedi il pane.');
+        expect(s.bestTime).toBeNull();
+    });
+
+    it('parole vietate: descrizione fatta solo di frasi vietate → campo vuoto, nessun sostituto', async () => {
+        const cena = byName('Da Teo').place_id;
+        const { fn } = routeFetch({
+            selector: sel(GIORNO_1),
+            narrator: narratore({ text: (t) => (t.place_id === cena ? 'Cucina tradizionale. Un locale unico.' : `Da ${t.nome} il selciato e' liscio.`) }),
+        });
+        vi.stubGlobal('fetch', fn);
+
+        const result = await genera(ROMANO, ARTE_CIBO_RILASSATO);
+        const s = allStops(result).find(x => x.place_id === cena);
+        expect(s).toBeTruthy();
+        expect(s.description).toBeNull();
+        expect(result._narrationReport.nonRaccontate.map(x => x.place_id)).toContain(cena);
+    });
+
     it('cache: la stessa richiesta in un\'altra DATA non riusa la narrazione', async () => {
         const { fn, stato } = routeFetch({ selector: sel(GIORNO_1) });
         vi.stubGlobal('fetch', fn);

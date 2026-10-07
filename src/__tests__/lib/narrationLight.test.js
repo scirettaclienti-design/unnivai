@@ -101,3 +101,68 @@ describe('filterTimeIncoherent — una frase incoerente con l\'arrivo viene tolt
         expect(filterTimeIncoherent(text, { arrival: null, sunrise, sunset }).text).toBe(text);
     });
 });
+
+// ─── Gate PAROLE VIETATE — dal log alla rimozione ──────────────────────────
+// Le parole vietate erano solo nel testo dei prompt: nessun controllo in codice.
+// "tradizionali" e' passata a schermo nel tour di Roma del 7/10. Ora la frase
+// che le contiene viene TOLTA, mai riscritta, sullo stesso schema della luce.
+import { filterBannedWords, BANNED_VOICE_WORDS, BANNED_VOICE_PHRASES_HOME, bannedWordsPromptLines } from '../../lib/narrationLight';
+
+describe('filterBannedWords — una frase con una parola vietata viene tolta', () => {
+    it('"tradizionali" → la frase sparisce, resta solo l\'altra', () => {
+        const out = filterBannedWords('Il profumo dei piatti tradizionali riempie la sala. Prova la carbonara.');
+        expect(out.text).toBe('Prova la carbonara.');
+        expect(out.removed).toHaveLength(1);
+        expect(out.removed[0].parole).toEqual(['tradizionale']);
+    });
+
+    it('maiuscole e varianti di genere/numero e l\'avverbio', () => {
+        for (const frase of ['Tradizionale e basta.', 'Le ricette TRADIZIONALI.', 'Si mangia tradizionalmente.',
+            'Una piazza storica.', 'I vicoli storici.', 'Botteghe storiche.', 'Storicamente qui.',
+            'Un posto unico.', 'Le uniche panche.', 'Tipiche osterie.', 'Viste suggestive.',
+            'Una sera magica.', 'Luci affascinanti.', 'Mostre imperdibili.', 'Dettagli caratteristici.']) {
+            expect(filterBannedWords(frase).text, frase).toBeNull();
+        }
+    });
+
+    it('nessun falso positivo su parole che contengono la radice', () => {
+        for (const frase of ['La storia del quartiere.', 'Il bancone è di marmo.', 'Una comunità che si conosce.',
+            'Una tipografia sulla destra.', 'Il magazzino è sul retro.']) {
+            expect(filterBannedWords(frase).text, frase).toBe(frase);
+        }
+    });
+
+    it('descrizione fatta solo di frasi vietate → null (nessun testo sostitutivo)', () => {
+        expect(filterBannedWords('Un luogo magico. Atmosfera unica e suggestiva.')).toEqual({
+            text: null,
+            removed: [
+                { frase: 'Un luogo magico.', parole: ['magico'] },
+                { frase: 'Atmosfera unica e suggestiva.', parole: ['unico', 'suggestivo'] },
+            ],
+        });
+    });
+
+    it('le formule della Home ("ottima scelta", "perfetta scelta") sono vietate anche qui', () => {
+        expect(filterBannedWords('Ottima scelta per cena. Il pane arriva caldo.').text).toBe('Il pane arriva caldo.');
+    });
+
+    it('testo vuoto o nullo → null, nessuna frase tolta', () => {
+        expect(filterBannedWords(null)).toEqual({ text: null, removed: [] });
+        expect(filterBannedWords('  ')).toEqual({ text: null, removed: [] });
+    });
+});
+
+describe('Gate PAROLE VIETATE — un elenco solo, prompt invariati', () => {
+    it('l\'elenco del codice e\' quello che i prompt mostrano al modello, carattere per carattere', () => {
+        expect(BANNED_VOICE_WORDS).toEqual(['storico', 'tradizionale', 'unico', 'caratteristico', 'suggestivo', 'tipico', 'affascinante', 'magico', 'imperdibile']);
+        expect(BANNED_VOICE_PHRASES_HOME).toEqual(['ottima scelta', 'perfetta scelta']);
+        expect(bannedWordsPromptLines()).toBe(
+            '"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",\n'
+            + '"affascinante", "magico", "imperdibile" — usate sole senza contesto.',
+        );
+        expect(bannedWordsPromptLines(BANNED_VOICE_PHRASES_HOME)).toBe(
+            '"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",\n'
+            + '"affascinante", "magico", "imperdibile", "ottima scelta", "perfetta scelta" — usate sole senza contesto.',
+        );
+    });
+});

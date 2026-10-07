@@ -322,6 +322,8 @@ import { resolveTourWindow, romeParts } from '@/lib/tourWindow';
 // Gate NARRATORE-DOPO — alba/tramonto nel codice, controllo luce/ora, fascia dalla tabella.
 import { sunTimes } from '@/lib/sunTimes';
 import { filterTimeIncoherent } from '@/lib/narrationLight';
+// Gate PAROLE VIETATE — l'unico elenco: i prompt lo mostrano, il filtro lo applica.
+import { filterBannedWords, bannedWordsPromptLines, BANNED_VOICE_PHRASES_HOME } from '@/lib/narrationLight';
 import { momentAtClock } from '@/lib/dayMoments';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
 import { buildDaySkeleton } from '@/lib/daySkeleton';
@@ -1224,8 +1226,7 @@ VOCE — per ogni tappa, racconta come un local sussurra un segreto:
      ✗ "Le luci dei bar si accendono lentamente"  ← cosa accade ORA, che non sai"
 
 REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
-"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",
-"affascinante", "magico", "imperdibile" — usate sole senza contesto.
+${bannedWordsPromptLines()}
 
 REGOLE STRUTTURA:
 - NON AFFERMARE MAI se un posto è aperto o chiuso, e NON dedurlo dall'ora.
@@ -1393,8 +1394,7 @@ REGOLE:
      ✗ "Le luci dei bar si accendono lentamente"  ← cosa accade ORA, che non sai"
 
 REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
-"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",
-"affascinante", "magico", "imperdibile", "ottima scelta", "perfetta scelta" — usate sole senza contesto.
+${bannedWordsPromptLines(BANNED_VOICE_PHRASES_HOME)}
 
 REGOLE STRUTTURA:
 - NON AFFERMARE MAI se un posto è aperto o chiuso, e NON dedurlo dall'ora.
@@ -1579,6 +1579,8 @@ const logNarratorViolations = (stops, path) => {
 const VALID_MOODS = new Set(['romantico', 'storia', 'avventura', 'natura', 'cibo', 'shopping', 'arte', 'sorpresa', 'sport']);
 const VALID_TRANSIT = new Set(['bus', 'metro', 'walking']);
 const NARRATION_TEXT_FIELDS = ['description', 'insiderTip', 'bestTime', 'transition'];
+// Gate PAROLE VIETATE — i campi in cui una frase con una parola vietata si toglie.
+const BANNED_WORD_FIELDS = ['description', 'insiderTip', 'bestTime'];
 const ROMA_FALLBACK = { latitude: 41.9028, longitude: 12.4964 };
 
 const clockLabel = (value) => {
@@ -1610,8 +1612,10 @@ const sunForDay = (day, i, tourWindow, cityCenter) => {
 const cleanText = (v) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 
 /**
- * Il controllo luce/ora su un tour gia' raccontato. Gira dopo la narrazione e
- * di nuovo a ogni lettura da cache (gli orari si ricalcolano da adesso).
+ * Il controllo sul racconto di un tour gia' raccontato: parole vietate
+ * (Gate PAROLE VIETATE) e luce/ora. Gira dopo la narrazione e di nuovo a ogni
+ * lettura da cache (gli orari si ricalcolano da adesso; e una voce di cache
+ * scritta prima di un controllo lo riceve comunque).
  * description/insiderTip/bestTime si giudicano all'arrivo; transition alla
  * partenza (arrivo + sosta), perche' racconta il cammino verso la prossima.
  */
@@ -1628,6 +1632,17 @@ const guardNarrationLight = (days, starts, tourWindow, cityCenter) => {
                 const departure = arrival && Number.isFinite(s.stayMinutes)
                     ? new Date(arrival.getTime() + s.stayMinutes * 60000) : arrival;
                 const next = { ...s };
+                // Gate PAROLE VIETATE — prima si tolgono le frasi con una parola
+                // vietata (description, insiderTip, bestTime). Prima di questo
+                // gate l'elenco stava solo nel prompt e nessuno lo controllava.
+                for (const campo of BANNED_WORD_FIELDS) {
+                    if (next[campo] == null) continue;
+                    const r = filterBannedWords(next[campo]);
+                    next[campo] = r.text;
+                    for (const x of r.removed) {
+                        frasiTolte.push({ place_id: s.place_id, title: s.title, campo, frase: x.frase, regole: ['parola-vietata'], parole: x.parole, arrivo: clockLabel(arrival) });
+                    }
+                }
                 for (const campo of NARRATION_TEXT_FIELDS) {
                     if (next[campo] == null) continue;
                     const at = campo === 'transition' ? departure : arrival;
@@ -2091,7 +2106,7 @@ export const aiRecommendationService = {
                         };
                         logNarratorViolations(allStops, 'narratore');
                         for (const f of frasiTolte) {
-                            console.warn(`[Gate NARRATORE-DOPO] ${city}: tolta frase (${f.regole.join(',')}) da ${f.campo} di "${f.title}" @${f.arrivo} — "${f.frase}"`);
+                            console.warn(`[Gate NARRATORE-DOPO] ${city}: tolta frase (${[...f.regole, ...(f.parole || [])].join(',')}) da ${f.campo} di "${f.title}" @${f.arrivo} — "${f.frase}"`);
                         }
                         if (narrationReport.nonRaccontate.length > 0) {
                             console.warn(`[Gate NARRATORE-DOPO] ${city}: ${narrationReport.nonRaccontate.length}/${allStops.length} tappe senza racconto — [${narrationReport.nonRaccontate.map(x => x.title).join(' | ')}]`);

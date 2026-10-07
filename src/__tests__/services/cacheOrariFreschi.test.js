@@ -87,7 +87,10 @@ routeFetch.calls = 0;
 // P3 — ora di ROMA esplicita: lo scheletro della giornata legge l'ora sul fuso
 // del tour, e la CI gira in UTC (15:00 locali in CI sarebbero le 17:00 a Roma).
 const ALLE_15 = () => new Date('2026-09-10T15:00:00+02:00');
-const ALLE_19 = () => new Date('2026-09-10T19:00:00+02:00');
+// Gate NARRATORE-DOPO: la seconda richiesta resta nella STESSA fascia (pomeriggio,
+// 14:30–18:00). Alle 19:00 sarebbe aperitivo, e la chiave di cache ora porta il
+// primo momento della finestra: li' il racconto si riscrive, non si riusa.
+const ALLE_17 = () => new Date('2026-09-10T17:00:00+02:00');
 const piu = (d, min) => new Date(d.getTime() + min * 60000);
 
 // P3 — Intenso: alle 15:00 un Veloce di 2 ore e' tutto pomeriggio, 2 tappe.
@@ -141,8 +144,8 @@ describe('G1.1 — stessa richiesta, due ore diverse: l\'orario segue l\'orologi
         const chiamateRete = fn.mock.calls.length;
         expect(chiamateRete).toBeGreaterThan(0);
 
-        // ─── Ore 19:00 — STESSA richiesta, stesso cacheKey ───────────────────
-        vi.setSystemTime(ALLE_19());
+        // ─── Ore 17:00 — STESSA richiesta, stesso cacheKey ───────────────────
+        vi.setSystemTime(ALLE_17());
 
         const secondo = await genera();
 
@@ -157,15 +160,15 @@ describe('G1.1 — stessa richiesta, due ore diverse: l\'orario segue l\'orologi
         expect(secondo._source).toBe('google-first');
 
         // (3) Gli offset sono identici: e' lo STESSO tour, stesse tappe.
-        const stops19 = secondo.days[0].stops;
-        expect(stops19.map(s => s.title)).toEqual(stops15.map(s => s.title));
-        expect(computeCumulativeOffsets(stops19)).toEqual(offsets);
+        const stops17 = secondo.days[0].stops;
+        expect(stops17.map(s => s.title)).toEqual(stops15.map(s => s.title));
+        expect(computeCumulativeOffsets(stops17)).toEqual(offsets);
 
-        // (4) L'asserzione decisiva: gli orari partono dalle 19:00, non dalle
+        // (4) L'asserzione decisiva: gli orari partono dalle 17:00, non dalle
         //     15:00. Prima del fix questa riga leggeva ['15:00','15:43'].
-        expect(stops19[0].scheduledTime).toBe(ALLE_19().toISOString());
-        expect(stops19.map(s => formatClockTime(s.scheduledTime)))
-            .toEqual([formatClockTime(ALLE_19()), formatClockTime(piu(ALLE_19(), 43))]);
-        expect(stops19.map(s => s.scheduledTime)).not.toEqual(stops15.map(s => s.scheduledTime));
+        expect(stops17[0].scheduledTime).toBe(ALLE_17().toISOString());
+        expect(stops17.map(s => formatClockTime(s.scheduledTime)))
+            .toEqual([formatClockTime(ALLE_17()), formatClockTime(piu(ALLE_17(), 43))]);
+        expect(stops17.map(s => s.scheduledTime)).not.toEqual(stops15.map(s => s.scheduledTime));
     });
 });

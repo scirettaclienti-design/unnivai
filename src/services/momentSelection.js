@@ -169,6 +169,27 @@ export function missingMomentThemes(moments, buckets, max = MAX_EXTRA_SEARCHES) 
     return themes;
 }
 
+/**
+ * Gate NARRATORE-DOPO — i temi da cercare per i momenti che il pool non riesce
+ * a RIEMPIRE, non solo per quelli vuoti. Con "2-3 Giorni" il pranzo del giorno 3
+ * ha lo stesso bucket del pranzo del giorno 1: non e' vuoto, ma i ristoranti
+ * finiscono prima di arrivarci. Si simula la riparazione senza il modello
+ * (tutto riempito per merito) e si guarda quali momenti restano corti.
+ * Stesso tetto di ricerche (MAX_EXTRA_SEARCHES), nell'ordine della giornata.
+ */
+export function shortMomentThemes(moments, buckets, pool, max = MAX_EXTRA_SEARCHES) {
+    const { plan } = repairMomentSelection({ moments, buckets, aiStops: [], pool });
+    const filled = new Map(plan.map(p => [p.moment.id, p.stops.length]));
+    const themes = [];
+    for (const m of moments) {
+        if ((filled.get(m.id) || 0) >= m.stops) continue;
+        const theme = (m.categories || []).map(c => MOMENT_CATEGORY_TO_THEME[c]).find(Boolean);
+        if (theme && !themes.includes(theme)) themes.push(theme);
+        if (themes.length >= max) break;
+    }
+    return themes;
+}
+
 // ─── 3. Controllo e riparazione della risposta del selettore ─────────────────
 
 const NARRATION_FIELDS = ['description', 'insiderTip', 'bestTime', 'transition', 'type'];
@@ -246,13 +267,15 @@ export function repairMomentSelection({ moments, buckets, aiStops, pool, dnaWeig
             if (!poolIds.has(s.place_id)) { reject(s, 'luogo non fra i candidati'); continue; }
             if (!c) { reject(s, 'fuori dal suo momento'); continue; }
             if (used.has(s.place_id)) { reject(s, 'gia\' usato'); continue; }
-            if (!hasDescription(s)) { reject(s, 'senza descrizione'); continue; }
+            // Gate NARRATORE-DOPO — il selettore non scrive testi: una tappa
+            // vale per il suo luogo e il suo momento. Il racconto arriva dopo,
+            // dal narratore, sulle tappe finali.
             take(s, c);
         }
         for (let i = 0; i < unassigned.length && chosen.length < m.stops; i++) {
             const s = unassigned[i];
             const c = inBucket.get(s.place_id);
-            if (!c || used.has(s.place_id) || !hasDescription(s)) continue;
+            if (!c || used.has(s.place_id)) continue;
             take(s, c);
             unassigned.splice(i, 1);
             i -= 1;

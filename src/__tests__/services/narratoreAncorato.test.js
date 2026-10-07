@@ -16,7 +16,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { buildSelectorSystemPrompt } from '../../services/aiRecommendationService';
+import { buildSelectorSystemPrompt, buildNarratorSystemPrompt } from '../../services/aiRecommendationService';
 
 // Il letterale va cercato su TUTTO il file, non prompt per prompt: i prompt che
 // lo contengono sono il selettore e il titleHint del tema insider
@@ -54,7 +54,7 @@ const RISTORANTE = {
     longitude: 12.3265,
 };
 
-const prompt = () => buildSelectorSystemPrompt({
+const selectorPrompt = () => buildSelectorSystemPrompt({
     city: 'Venezia',
     timeContext: 'notte — locali, jazz bar, piazze illuminate, passeggiate notturne',
     weather: { condition: 'Sereno', temperature: 18 },
@@ -67,25 +67,48 @@ const prompt = () => buildSelectorSystemPrompt({
     intent: null,
 });
 
-describe('Gate NARRATORE ANCORATO DIFF 1 — il prompt del selettore', () => {
+// Gate NARRATORE-DOPO — le regole di VOCE sono passate dal prompt del
+// selettore a quello del narratore, che scrive DOPO, sulle tappe finali. Le
+// asserzioni su voce, titolo, bestTime, insiderTip e transition qui sotto
+// leggono il narratore; quelle sul payload dei candidati (types, open_now)
+// restano sul selettore, che e' l'unico a ricevere la lista dei candidati.
+const prompt = () => buildNarratorSystemPrompt({
+    city: 'Venezia',
+    weather: { condition: 'Sereno', temperature: 18 },
+    prefs: {},
+    aiProfile: '',
+    userPrompt: '',
+    giorni: [{
+        giorno: 1, data: '2026-10-06', alba: '07:12', tramonto: '18:41',
+        tappe: [MUSEO, RISTORANTE].map((c, i) => ({
+            place_id: c.place_id, nome: c.name, categoria: i === 0 ? 'arte' : 'food',
+            types: c.types, momento: i === 0 ? 'Mattina' : 'Pranzo', arrivo: i === 0 ? '09:30' : '12:30',
+        })),
+    }],
+});
+
+describe('Gate NARRATORE ANCORATO DIFF 1 — il prompt del narratore (era del selettore)', () => {
     it('controllo dello strumento: il prompt contiene davvero i candidati e i loro types', () => {
         // Prima di fidarsi di un `not.toContain`, provare che lo strumento
         // vedrebbe una presenza nota. Se questo fallisse, gli zero sotto non
         // proverebbero niente.
-        const p = prompt();
+        const p = selectorPrompt();
         expect(p).toContain('Collezione Peggy Guggenheim');
         expect(p).toContain('Osteria al Squero');
         expect(p).toContain('museum');
         expect(p).toContain('restaurant');
+        // e il narratore e' davvero il prompt delle regole di voce
+        expect(prompt()).toContain('SEI IL NARRATORE DI Venezia');
     });
 
     it('non detta piu\' il titolo che veniva copiato alla lettera', () => {
         expect(prompt()).not.toContain('I vicoli segreti di');
+        expect(selectorPrompt()).not.toContain('I vicoli segreti di');
     });
 
     it('il titolo deve derivare dalle tappe scelte, non da un modello', () => {
         const p = prompt();
-        expect(p).toContain('nasce dalle TAPPE CHE HAI SCELTO');
+        expect(p).toContain('nasce dalle TAPPE CHE RACCONTI');
         // deve restare vietata la forma piatta
         expect(p).toContain('Tour di ');
     });
@@ -137,6 +160,7 @@ describe('Gate NARRATORE ANCORATO DIFF 1 — il titolo dettato, su TUTTI i promp
         // Se questo fallisse, lo zero qui sotto non proverebbe niente.
         const src = serviceCode();
         expect(src).toContain('buildSelectorSystemPrompt');
+        expect(src).toContain('buildNarratorSystemPrompt');
         expect(src).toContain('buildUnifiedHomeToursPrompt');
         expect(src).toContain('titleHint');
     });
@@ -149,10 +173,9 @@ describe('Gate NARRATORE ANCORATO DIFF 1 — il titolo dettato, su TUTTI i promp
         const src = serviceCode();
         // titleHint del tema insider (prompt "Per Te")
         expect(src).toContain('DERIVATO dalle tappe che hai scelto');
-        // Regola del selettore (:1010). Gate SOLO-GOOGLE (27/09): la stessa frase
-        // stava anche al punto 12 del prompt legacy, uscito col motore AI-first —
-        // qui resta perche' il selettore la porta, non per retrocompatibilita'.
-        expect(src).toContain('Il TITOLO nasce dalle TAPPE CHE HAI SCELTO');
+        // Regola del narratore. Gate NARRATORE-DOPO: stava nel selettore, che
+        // non scrive piu' titoli; il narratore li scrive dalle tappe che racconta.
+        expect(src).toContain('Il TITOLO di ogni giorno nasce dalle TAPPE CHE RACCONTI');
     });
 });
 
@@ -185,7 +208,7 @@ describe('Gate NARRATORE ANCORATO DIFF 3 — nessun orario inventato, nessuno st
 
     it('tutti i prompt vietano di AFFERMARE stati di apertura', () => {
         const src = serviceCode();
-        // Due copie della regola: selettore + "Per Te". Gate SOLO-GOOGLE: la terza
+        // Due copie della regola: narratore (era nel selettore) + "Per Te". Gate SOLO-GOOGLE: la terza
         // era il punto 9 del prompt legacy, uscito col motore AI-first.
         const occorrenze = src.split('NON AFFERMARE MAI se un posto è aperto o chiuso').length - 1;
         expect(occorrenze).toBe(2);
@@ -195,6 +218,7 @@ describe('Gate NARRATORE ANCORATO DIFF 3 — nessun orario inventato, nessuno st
         const src = serviceCode();
         expect(src).not.toContain('lite.open_now');
         // il prompt del selettore non deve nemmeno nominarlo
+        expect(selectorPrompt()).not.toContain('open_now');
         expect(prompt()).not.toContain('open_now');
     });
 
@@ -216,7 +240,7 @@ describe('Gate NARRATORE ANCORATO F55 — non attribuire contenuti che non si sa
     it('controllo dello strumento: il prompt porta i types e non la categoria UI collassata', () => {
         // Causa A esclusa in FASE A: al modello arrivano i types Google, non
         // "CULTURA". Se questo cambiasse, la diagnosi andrebbe rifatta.
-        const p = prompt();
+        const p = selectorPrompt();
         expect(p).toContain('museum');
         expect(p).toContain('restaurant');
         expect(p).not.toContain('CULTURA');

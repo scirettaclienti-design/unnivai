@@ -157,7 +157,11 @@ export const BLACKLIST_TYPES = new Set([
 // soglia+punteggio affinita'/unicita'/voto. I tour cached col vecchio motore
 // riflettono un pool diverso, andrebbero riletti come se fossero ancora la
 // scelta giusta.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf9_merito_';
+// Gate NARRATORE-DOPO: prefix bumped da 'unnivai_insiderf9_merito_' — il
+// racconto ora e' scritto sulle tappe finali con il loro orario, e la chiave
+// porta data, primo momento e interessi. I tour cached prima hanno testi
+// scritti dal selettore, senza orario: non vanno serviti.
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf10_narratore_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -173,7 +177,10 @@ const djb2 = (s) => {
 // diverso). Due utenti con gusti diversi non devono mai leggere lo stesso
 // itinerario dalla cache dell'altro.
 export const insiderCacheKey = (city, prefs, userPrompt, aiProfile, dnaWeights) => {
-    const parts = [city, prefs?.duration, prefs?.group, prefs?.pace, userPrompt, aiProfile, weightsFingerprint(dnaWeights)].filter(Boolean).join('|');
+    // Gate NARRATORE-DOPO — gli interessi entrano nella chiave: Arte+Cibo e
+    // Natura sono due tour diversi anche con la stessa frase.
+    const interests = [...extractInterestTokens(prefs)].sort().join(',');
+    const parts = [city, prefs?.duration, prefs?.group, prefs?.pace, interests, userPrompt, aiProfile, weightsFingerprint(dnaWeights)].filter(Boolean).join('|');
     return INSIDER_CACHE_PREFIX + city.replace(/\s+/g, '_') + '_' + djb2(parts);
 };
 
@@ -311,11 +318,15 @@ import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } fr
 // proprieta' della coppia di tappe consecutive, non della singola tappa.
 import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes } from '@/lib/tourTiming';
 // Gate FINESTRA TEMPORALE (G3) — quando parte il tour lo decide il codice, non il modello.
-import { resolveTourWindow, romeHour, romeParts } from '@/lib/tourWindow';
+import { resolveTourWindow, romeParts } from '@/lib/tourWindow';
+// Gate NARRATORE-DOPO — alba/tramonto nel codice, controllo luce/ora, fascia dalla tabella.
+import { sunTimes } from '@/lib/sunTimes';
+import { filterTimeIncoherent } from '@/lib/narrationLight';
+import { momentAtClock } from '@/lib/dayMoments';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
 import { buildDaySkeleton } from '@/lib/daySkeleton';
 import {
-    flattenSkeleton, bucketCandidates, missingMomentThemes,
+    flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan,
 } from './momentSelection';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
@@ -908,7 +919,7 @@ const TOUR_CATEGORY_TO_SKELETON = {
 // punteggio del Gate MERITO. Il tetto di 1 icona e' gia' speso dal pool
 // principale: qui maxIcons 0. Una ricerca che fallisce non fa cadere il tour:
 // il momento resta vuoto e viene tolto, e il report lo dice.
-const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria }) => {
+const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5 }) => {
     const { placesDiscoveryService } = await import('./placesDiscoveryService');
     const settled = await Promise.allSettled(themes.map(t => placesDiscoveryService.discoverRealPOIs(
         city, cityCenter.latitude, cityCenter.longitude, t,
@@ -929,7 +940,7 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
         });
     extra = applyRadiusFilter(extra, cityCenter, city, { requireCenter: true });
     if (categoria) extra = extra.filter(c => candidateMatchesIntentCategoria(c, categoria));
-    return selectScoredCandidatePool(extra, { city, dnaWeights, limit: 5 * themes.length, maxIcons: 0 });
+    return selectScoredCandidatePool(extra, { city, dnaWeights, limit: perTheme * themes.length, maxIcons: 0 });
 };
 
 // P3 — il report della riparazione, in chiaro nei log (e in `_momentReport`).
@@ -963,7 +974,9 @@ export const candidateMatchesIntentCategoria = (candidate, categoriaRaw) => {
 // PROMPT COSTRUITO, non l'output del modello: l'output e' non deterministico e
 // nessun test puo' provare che sia migliorato. Raggiungerlo attraverso
 // generateItinerary renderebbe il test dipendente dagli interni del motore.
-export const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, cityCenter, candidates, userPrompt, intent, moments = null, buckets = null }) => {
+// Gate NARRATORE-DOPO — `weather`/`weatherIcon` non servono piu' qui: il meteo
+// lo riceve il narratore, e il selettore non scrive il blocco "weather".
+export const buildSelectorSystemPrompt = ({ city, timeContext, prefs, aiProfile, cityCenter, candidates, userPrompt, intent, moments = null, buckets = null }) => {
     const candidatesLite = candidates.map(p => {
         const lite = {
             place_id: p.place_id || p.googlePlaceId,
@@ -1013,24 +1026,46 @@ export const buildSelectorSystemPrompt = ({ city, timeContext, weather, weatherI
     // candidati li decide il codice, il modello sceglie dentro ciascuno.
     // Senza momenti (scheletro vuoto: finestra fuori dalla giornata) resta la
     // scelta libera di prima.
+    //
+    // Gate NARRATORE-DOPO — il selettore restituisce SOLO place_id e momento.
+    // Il racconto lo scrive il narratore (buildNarratorSystemPrompt), DOPO che
+    // il codice ha riparato, ordinato e messo l'orario alle tappe. E il
+    // messaggio dichiara le tappe di OGNI giorno: con "2-3 Giorni" il modello
+    // restituiva un giorno solo, perche' l'elenco piatto dei momenti non diceva
+    // che i giorni erano tre.
     const hasMoments = Array.isArray(moments) && moments.length > 0;
     const hhmm = (d) => {
         const p = romeParts(d);
         return `${String(p.h).padStart(2, '0')}:${String(p.mi).padStart(2, '0')}`;
     };
-    const momentsBlock = hasMoments
-        ? moments.map(m => {
-            const ids = (buckets?.get(m.id) || []).map(c => c.place_id || c.googlePlaceId);
-            return `   • ${m.id} — ${m.label} ${hhmm(m.start)}–${hhmm(m.end)} — ESATTAMENTE ${m.stops} ${m.stops === 1 ? 'tappa' : 'tappe'}${m.careful ? ' (da scegliere con cura)' : ''} — candidati: ${JSON.stringify(ids)}`;
-        }).join('\n')
-        : '';
+    const momentLine = (m) => {
+        const ids = (buckets?.get(m.id) || []).map(c => c.place_id || c.googlePlaceId);
+        return `     • ${m.id} — ${m.label} ${hhmm(m.start)}–${hhmm(m.end)} — ESATTAMENTE ${m.stops} ${m.stops === 1 ? 'tappa' : 'tappe'}${m.careful ? ' (da scegliere con cura)' : ''} — candidati: ${JSON.stringify(ids)}`;
+    };
+    const dayGroups = [];
+    if (hasMoments) {
+        for (const m of moments) {
+            const di = m.dayIndex ?? 0;
+            if (!dayGroups[di]) dayGroups[di] = [];
+            dayGroups[di].push(m);
+        }
+    }
+    const days = dayGroups.filter(Boolean);
+    const totalStops = hasMoments ? moments.reduce((a, m) => a + m.stops, 0) : 0;
+    const momentsBlock = days.map((ms) => {
+        const n = ms.reduce((a, m) => a + m.stops, 0);
+        const p = romeParts(ms[0].start);
+        return `   Giorno ${(ms[0].dayIndex ?? 0) + 1} (${p.d} ${MESI[p.m - 1]}) — ${n} ${n === 1 ? 'tappa' : 'tappe'}:\n${ms.map(momentLine).join('\n')}`;
+    }).join('\n');
     const sceltaBlock = hasMoments
-        ? `1. SCELTA — la giornata ha già i suoi MOMENTI, con orario e numero di tappe.
-   Per OGNI momento scegli ESATTAMENTE il numero di tappe indicato, SOLO tra i
-   place_id elencati per QUEL momento. Mai lo stesso luogo in due momenti.
+        ? `1. SCELTA — il percorso ha ${days.length} ${days.length === 1 ? 'giorno' : 'giorni'} e ${totalStops} tappe in tutto.
+   Restituiscile TUTTE, per TUTTI i giorni, in un'unica lista "stops".
+   Ogni momento ha già orario e numero di tappe: per OGNI momento scegli
+   ESATTAMENTE il numero di tappe indicato, SOLO tra i place_id elencati per
+   QUEL momento. Mai lo stesso luogo due volte, nemmeno in giorni diversi.
    Ogni tappa porta il campo "moment" con l'id del suo momento.
    Una tappa fuori dal suo momento, in più o con un place_id non elencato viene
-   scartata e sostituita dal codice.
+   scartata e sostituita dal codice; un momento lasciato vuoto lo riempie il codice.
 ${momentsBlock}
    Dentro ogni momento scegli i più adatti a:
    • gruppo: ${groupLabel}
@@ -1043,22 +1078,84 @@ ${momentsBlock}
    • profilo implicito: ${aiProfile}` : ''}`;
     const ordineBlock = hasMoments
         ? `2. ORDINE — le tappe escono nell'ordine dei momenti. Dentro un momento con
-   più tappe, un ordine che ${transitHint} abbia senso NARRATIVO, non solo geometrico.`
-        : `2. ORDINE — costruisci un percorso che ${transitHint} abbia senso NARRATIVO,
+   più tappe, un ordine che ${transitHint} abbia senso, non solo geometrico.`
+        : `2. ORDINE — costruisci un percorso che ${transitHint} abbia senso,
    non solo geometrico. La prima tappa è una perla, non l'ovvio (es. una piazza
    secondaria o una chiesa poco battuta, non il monumento più famoso).`;
 
-    return `SEI L'INSIDER DI ${city} — un local che ti mostra la sua città, non una guida turistica, non Wikipedia, non un elenco.
+    return `SEI L'INSIDER DI ${city} — un local che sa dove portarti, non una guida turistica, non un elenco.
 
 ⚠️ NON scegli tu i luoghi. Io ti do una lista di ${N} luoghi REALI di ${city}, già verificati su Google (rating, tipo, foto).${radiusInfo}${intentBlock}
 
-Il tuo lavoro in 3 mosse:
+Il tuo lavoro in 2 mosse:
 
 ${sceltaBlock}
 
 ${ordineBlock}
 
-3. VOCE — per ogni tappa, racconta come un local sussurra un segreto:
+⛔ NON scrivere testi: niente descrizioni, consigli, titoli. Li scrive un altro
+passaggio, dopo, sulle tappe che il codice avrà fissato con il loro orario.
+
+FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
+{
+  "stops": [
+    { "place_id": "ChIJ..."${hasMoments ? `, "moment": "id del momento (es. ${moments[0].id})"` : ''} }
+  ]
+}
+
+Il place_id DEVE essere uno di quelli della lista qui sotto — altri id verranno scartati.
+
+Ecco i ${N} luoghi REALI (usa i place_id da qui):
+${JSON.stringify(candidatesLite, null, 2)}`;
+};
+
+// Oltre questo numero di tappe il narratore scrive solo description e
+// insiderTip: 24 tappe con quattro campi ciascuna sfiorano il tetto di 4000
+// token del proxy, e un JSON troncato non si legge (si perderebbe tutto).
+const LONG_TOUR_STOPS = 15;
+
+const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+
+// ─── Gate NARRATORE-DOPO — il prompt del narratore ──────────────────────────
+//
+// Terza chiamata della generazione (biglietto 'itinerary': traduttore,
+// selettore, narratore). Riceve le tappe FINALI — gia' riparate, ordinate e con
+// l'orario calcolato dal codice — e le racconta. Per ogni tappa: nome,
+// categoria, types, momento, orario di arrivo, data; per ogni giorno alba e
+// tramonto della citta' (src/lib/sunTimes.js). Le tappe arrivano nel messaggio
+// utente, dopo "TAPPE FINALI:".
+//
+// Le regole di voce sono quelle che stavano nel prompt del selettore-narratore,
+// spostate qui senza indebolirle. In piu' la regola LUCE E ORA: il racconto
+// parla della luce dell'orario di arrivo. Il codice la controlla comunque
+// (src/lib/narrationLight.js): una frase incoerente viene tolta, mai riscritta.
+// Exported per test.
+export const buildNarratorSystemPrompt = ({ city, weather, prefs, aiProfile, userPrompt, giorni }) => {
+    const groupLabel = prefs?.group || 'chiunque';
+    const nTappe = (giorni || []).reduce((a, g) => a + (g.tappe?.length || 0), 0);
+    return `SEI IL NARRATORE DI ${city} — un local che ti mostra la sua città, non una guida turistica, non Wikipedia, non un elenco.
+
+Le tappe sono GIÀ decise: ${nTappe} tappe in ${(giorni || []).length} ${(giorni || []).length === 1 ? 'giorno' : 'giorni'}, nell'ordine in cui si camminano, ognuna con il suo orario di arrivo.
+NON aggiungere, togliere o spostare tappe: racconta TUTTE quelle che ricevi, una per una, con il loro place_id.${nTappe > LONG_TOUR_STOPS ? `
+Sono molte tappe: per ognuna scrivi description e insiderTip, e metti "bestTime": null e "transition": null.
+Una risposta troncata perde il racconto di TUTTE le tappe.` : ''}
+
+Contesto:
+• gruppo: ${groupLabel}
+• richiesta utente: "${(userPrompt || '').slice(0, 300)}"
+• meteo: ${weather?.condition || 'sereno'} ${weather?.temperature || 22}°${aiProfile ? `
+• profilo implicito: ${aiProfile}` : ''}
+
+Di ogni tappa ricevi: place_id, nome, categoria, "types", momento della giornata, orario di arrivo (HH:MM).
+Di ogni giorno ricevi: data, alba e tramonto di ${city}.
+
+LUCE E ORA — racconta la luce e il momento dell'ORARIO DI ARRIVO di quella tappa:
+   • "tramonto" solo se l'arrivo è entro 45 minuti dal tramonto di quel giorno;
+   • alba, notte, stelle, luce del mattino, sole di mezzogiorno: solo se l'orario
+     di arrivo li rende veri;
+   • nel dubbio, non parlare di luce. Una frase incoerente con l'orario viene tolta.
+
+VOCE — per ogni tappa, racconta come un local sussurra un segreto:
 
    ⚠️ REGOLA SOPRA TUTTE: gli esempi ✓ qui sotto mostrano il REGISTRO, non il
    contenuto. NON copiarli e NON trasporli su un posto di tipo diverso. Ogni
@@ -1108,8 +1205,8 @@ ${ordineBlock}
      ✗ "Non perderti la sezione dedicata agli artisti emergenti"  ← contenuto INVENTATO
 
    bestTime (max 100 car): perché ORA — ma SOLO se il motivo è verificabile dai
-     dati che ti ho dato (momento della giornata, meteo, stagione). NON ricevi
-     orari di apertura o chiusura: NON citare ore.
+     dati che ti ho dato (orario di arrivo, alba e tramonto, meteo, stagione).
+     NON ricevi orari di apertura o chiusura: NON citare ore.
      Se non hai un motivo vero, scrivi "bestTime": null. Il campo è opzionale e
      l'interfaccia lo omette: un motivo inventato è peggio di un campo assente.
      ✓ "Con il cielo coperto di oggi non si cammina controluce"  ← meteo, che hai
@@ -1135,16 +1232,16 @@ REGOLE STRUTTURA:
   Non ricevi i suoi orari: qualunque frase sull'apertura sarebbe inventata.
   Vietato scrivere "aperto adesso", "chiuso a quest'ora", "lo trovi ancora aperto",
   e vietato citare orari di apertura o chiusura in QUALSIASI campo.
-  Puoi dire cosa si vede o si sente in questo momento della giornata
-  (contesto: ${timeContext}); mai se il posto è accessibile.
+  Puoi dire cosa si vede o si sente all'orario di arrivo di quella tappa;
+  mai se il posto è accessibile.
 - COERENZA COL TIPO: ogni frase che scrivi su una tappa deve essere compatibile
   col suo "types". Prima di scrivere, rileggi il "types" di QUEL candidato.
   Un consiglio gastronomico su un museo, o una nota su una sala espositiva in un
   bar, è un errore che invalida la tappa.
-- Adatta il TIPO di posto al gruppo: coppia→intimo, amici→vivace, famiglia→kid-friendly, solo→contemplativo.
-- Il TITOLO nasce dalle TAPPE CHE HAI SCELTO e dalla richiesta dell'utente, non
-  da un modello. Deve poter valere solo per QUESTO tour: se lo si potesse
-  incollare su un tour diverso di ${city}, è sbagliato. Forma evocativa
+- Adatta il tono al gruppo: coppia→intimo, amici→vivace, famiglia→kid-friendly, solo→contemplativo.
+- Il TITOLO di ogni giorno nasce dalle TAPPE CHE RACCONTI e dalla richiesta
+  dell'utente, non da un modello. Deve poter valere solo per QUESTO giorno: se lo
+  si potesse incollare su un tour diverso di ${city}, è sbagliato. Forma evocativa
   ("<aggettivo/immagine> <sostantivo> di ${city}"), mai "Tour di ${city}".
   Se le tappe sono gastronomiche il titolo parla di cibo; se sono musei parla
   d'arte. NON usare formule già sentite: inventane una da queste tappe.
@@ -1154,27 +1251,20 @@ FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
   "days": [{
     "day": 1,
     "title": "Titolo evocativo unico",
-    "weather": { "condition": "${weather?.condition || 'Soleggiato'}", "temperature": ${weather?.temperature || 22}, "icon": "${weatherIcon}" },
     "suggestedTransit": "walking|bus|metro",
     "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
     "stops": [{
-      "place_id": "ChIJ...",${hasMoments ? `
-      "moment": "id del momento (es. ${moments[0].id})",` : ''}
+      "place_id": "lo stesso place_id che hai ricevuto",
       "description": "voce insider sensoriale (max 120 car)",
-      "insiderTip": "consiglio da local (max 100 car)",
+      "insiderTip": "consiglio da local (max 100 car) — oppure null",
       "bestTime": "perché ORA (max 100 car) — oppure null se non hai un motivo vero",
-      "transition": "cosa vedi camminando (max 80 car)",
-      "type": "cultura|storia|food|shopping|relax|arte|natura"
+      "transition": "cosa vedi camminando (max 80 car)"
     }]
   }]
 }
 
-⚠️ NON produrre: title/latitude/longitude/rating/googlePhoto/address.
-Li ho già io e li prenderò dal candidato che tu identifichi con place_id.
-Il place_id DEVE essere uno di quelli della lista qui sotto — altri id verranno scartati.
-
-Ecco i ${N} luoghi REALI (usa i place_id da qui):
-${JSON.stringify(candidatesLite, null, 2)}`;
+⚠️ NON produrre: nome/latitude/longitude/rating/foto/indirizzo/orari.
+Li ho già io. Un giorno per ogni giorno ricevuto, una tappa per ogni tappa ricevuta.`;
 };
 
 // Gate II (16/07) — Hash FNV-1a 32-bit per cache key deterministica su
@@ -1374,7 +1464,10 @@ export const hasNonEmptyDescription = (s) => !!(s?.description && String(s.descr
 // dall'AI description/insiderTip/bestTime/transition/time/suggestedMinutes.
 // Se AI ha inventato un place_id inesistente, quello stop viene scartato.
 // Exported per test.
-export const canonicalizeStopsFromCandidates = (aiStops, candidates) => {
+// Gate NARRATORE-DOPO — `guard: false` quando le tappe non portano ancora un
+// racconto (generateItinerary: il narratore scrive dopo, e i guard girano su
+// quello, via logNarratorViolations). Default invariato per la Home.
+export const canonicalizeStopsFromCandidates = (aiStops, candidates, { guard = true } = {}) => {
     const byId = new Map();
     for (const c of candidates) {
         const k = c.place_id || c.googlePlaceId;
@@ -1444,16 +1537,23 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates) => {
     //
     // Qui si logga DOPO il filtro: una tappa scartata per place_id inventato non
     // esiste, e segnalarne il testo sarebbe rumore su qualcosa che nessuno vedra'.
+    if (guard) logNarratorViolations(stops, 'canonicalize');
+
+    return stops;
+};
+
+// Gli invarianti del narratore, solo log (vedi sopra). Estratto dal corpo di
+// canonicalizeStopsFromCandidates per girare anche DOPO la narrazione
+// separata di generateItinerary (path=narratore).
+const logNarratorViolations = (stops, path) => {
     try {
         // Gate INTENT (28/08) — LOG DI INGRESSO. Chiude il problema lasciato
         // aperto dal DIFF 4: fino a ieri "zero violazioni" e "guard mai
         // eseguito" producevano lo STESSO silenzio, e un giro device che non
         // trova violazioni non poteva distinguere le due cose.
-        // Il campo `path` risponde dal campo alla domanda sulla copertura: il
-        // guard vive solo dentro questa funzione, chiamata da generateItinerary
-        // Google-first (:1380) e generateHomeTours (:1814). Il ramo AI-first
-        // legacy ha una catena sua e NON ci passa — due path su tre coperti.
-        console.info(`[Narratore] check avviato, ${stops.length} tappe, path=canonicalize`);
+        // Il campo `path` dice da quale porta e' passato il controllo:
+        // canonicalize (Home) o narratore (generateItinerary).
+        console.info(`[Narratore] check avviato, ${stops.length} tappe, path=${path}`);
         for (const v of findTourViolations(stops)) {
             const poi = stops[v.indice]?.title || '(senza titolo)';
             console.warn(
@@ -1465,9 +1565,166 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates) => {
         // difetto che sorveglia: qui si osserva, non si decide nulla.
         console.warn('[Narratore] guard non eseguiti:', e?.message);
     }
-
-    return stops;
 };
+
+// ─── Gate NARRATORE-DOPO — narrazione delle tappe finali ────────────────────
+//
+// Il narratore scrive DOPO che il codice ha fissato tappe e orari. Qui:
+//   · la partenza di ogni giorno, legata alla SUA finestra (windowIndex): un
+//     giorno rimasto vuoto e tolto non deve spostare gli orari dei successivi;
+//   · alba e tramonto del giorno, dal codice (sunTimes);
+//   · la chiamata al narratore e l'applicazione del racconto per place_id;
+//   · il controllo luce/ora (narrationLight): frase incoerente → tolta.
+
+const VALID_MOODS = new Set(['romantico', 'storia', 'avventura', 'natura', 'cibo', 'shopping', 'arte', 'sorpresa', 'sport']);
+const VALID_TRANSIT = new Set(['bus', 'metro', 'walking']);
+const NARRATION_TEXT_FIELDS = ['description', 'insiderTip', 'bestTime', 'transition'];
+const ROMA_FALLBACK = { latitude: 41.9028, longitude: 12.4964 };
+
+const clockLabel = (value) => {
+    if (!value) return null;
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return null;
+    const p = romeParts(d);
+    return `${String(p.h).padStart(2, '0')}:${String(p.mi).padStart(2, '0')}`;
+};
+const tableClock = ({ h, m }) => `${String(h % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+
+// La partenza di ogni giorno: un Date per un percorso di un giorno (com'era),
+// un array allineato ai giorni per "2-3 Giorni".
+const dayStartsFor = (days, tourWindow) => {
+    const windows = tourWindow?.windows || [];
+    if (windows.length <= 1) return tourWindow?.start;
+    return (days || []).map((d, i) => windows[d?.windowIndex ?? i]?.start ?? null);
+};
+
+const sunForDay = (day, i, tourWindow, cityCenter) => {
+    const w = (tourWindow?.windows || [])[day?.windowIndex ?? i] || tourWindow?.windows?.[0];
+    const date = w?.date || tourWindow?.date || null;
+    const [y, m, d] = String(date || '').split('-').map(Number);
+    const lat = Number.isFinite(cityCenter?.latitude) ? cityCenter.latitude : ROMA_FALLBACK.latitude;
+    const lng = Number.isFinite(cityCenter?.longitude) ? cityCenter.longitude : ROMA_FALLBACK.longitude;
+    return { date, ...sunTimes({ y, m, d }, lat, lng) };
+};
+
+const cleanText = (v) => (typeof v === 'string' && v.trim() ? v.trim() : null);
+
+/**
+ * Il controllo luce/ora su un tour gia' raccontato. Gira dopo la narrazione e
+ * di nuovo a ogni lettura da cache (gli orari si ricalcolano da adesso).
+ * description/insiderTip/bestTime si giudicano all'arrivo; transition alla
+ * partenza (arrivo + sosta), perche' racconta il cammino verso la prossima.
+ */
+const guardNarrationLight = (days, starts, tourWindow, cityCenter) => {
+    const frasiTolte = [];
+    const timed = refreshTourScheduledTimes(days, starts);
+    const out = (days || []).map((day, di) => {
+        const sun = sunForDay(day, di, tourWindow, cityCenter);
+        return {
+            ...day,
+            stops: (day.stops || []).map((s, si) => {
+                const iso = timed[di]?.stops?.[si]?.scheduledTime;
+                const arrival = iso ? new Date(iso) : null;
+                const departure = arrival && Number.isFinite(s.stayMinutes)
+                    ? new Date(arrival.getTime() + s.stayMinutes * 60000) : arrival;
+                const next = { ...s };
+                for (const campo of NARRATION_TEXT_FIELDS) {
+                    if (next[campo] == null) continue;
+                    const at = campo === 'transition' ? departure : arrival;
+                    const r = filterTimeIncoherent(next[campo], { arrival: at, sunrise: sun.sunrise, sunset: sun.sunset });
+                    next[campo] = r.text;
+                    for (const x of r.removed) {
+                        frasiTolte.push({ place_id: s.place_id, title: s.title, campo, frase: x.frase, regole: x.regole, arrivo: clockLabel(at) });
+                    }
+                }
+                return next;
+            }),
+        };
+    });
+    return { days: out, frasiTolte };
+};
+
+/**
+ * La terza chiamata: racconta le tappe finali. Non lancia mai, tranne per la
+ * quota (AiQuotaExceededError): un narratore caduto lascia le tappe senza testo
+ * e lo dice nel report, ma non butta un percorso gia' scelto e verificato.
+ */
+const narrateFinalDays = async ({ city, days, starts, tourWindow, cityCenter, weather, prefs, aiProfile, userPrompt, quotaTicket }) => {
+    const timed = refreshTourScheduledTimes(days, starts);
+    const giorni = timed.map((d, i) => {
+        const sun = sunForDay(d, i, tourWindow, cityCenter);
+        return {
+            giorno: i + 1,
+            data: sun.date,
+            alba: clockLabel(sun.sunrise),
+            tramonto: clockLabel(sun.sunset),
+            tappe: d.stops.map(s => {
+                const arrivo = clockLabel(s.scheduledTime);
+                const p = s.scheduledTime ? romeParts(new Date(s.scheduledTime)) : null;
+                return {
+                    place_id: s.place_id,
+                    nome: s.title,
+                    categoria: s.type || 'place',
+                    types: (s.types || []).slice(0, 5),
+                    momento: s.momentLabel || (p ? momentAtClock(p.h, p.mi).label : null),
+                    arrivo,
+                };
+            }),
+        };
+    });
+    const nTappe = giorni.reduce((a, g) => a + g.tappe.length, 0);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 35_000);
+    try {
+        const data = await callOpenAIProxy({
+            model: 'gpt-4o-mini',
+            messages: [
+                { role: 'system', content: buildNarratorSystemPrompt({ city, weather, prefs, aiProfile, userPrompt, giorni }) },
+                { role: 'user', content: `Racconta tutte le ${nTappe} tappe, nell'ordine dato, con il loro place_id.\nTAPPE FINALI:\n${JSON.stringify(giorni)}` },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.7,
+            max_tokens: 4000,
+        }, controller.signal, quotaTicket);
+        clearTimeout(timeoutId);
+        const raw = data?.choices?.[0]?.message?.content;
+        if (!raw) throw new Error('Empty AI response (narratore)');
+        const parsed = JSON.parse(raw);
+        const nDays = Array.isArray(parsed?.days) ? parsed.days : (Array.isArray(parsed?.stops) ? [{ stops: parsed.stops }] : []);
+        const byId = new Map();
+        for (const d of nDays) {
+            for (const st of (Array.isArray(d?.stops) ? d.stops : [])) {
+                if (st?.place_id && !byId.has(st.place_id)) byId.set(st.place_id, st);
+            }
+        }
+        return { byId, meta: nDays, giorni, error: null };
+    } catch (err) {
+        clearTimeout(timeoutId);
+        if (err instanceof AiQuotaExceededError) throw err;
+        const msg = err?.name === 'AbortError' ? 'timeout' : (err?.message || String(err));
+        console.warn(`[Gate NARRATORE-DOPO] ${city}: narratore caduto (${msg}) → tappe senza racconto`);
+        return { byId: new Map(), meta: [], giorni, error: msg };
+    }
+};
+
+// Il racconto sulle tappe, per place_id. Una tappa che il narratore non ha
+// raccontato resta con nome e categoria e i campi di testo null: nessun testo
+// inventato al suo posto.
+const applyNarration = (days, { byId, meta }, city) => days.map((day, di) => {
+    const m = meta[di] || {};
+    return {
+        ...day,
+        title: cleanText(m.title) || day.title || `Giorno ${di + 1} a ${city}`,
+        suggestedTransit: VALID_TRANSIT.has(m.suggestedTransit) ? m.suggestedTransit : (day.suggestedTransit || 'walking'),
+        mapMood: VALID_MOODS.has(m.mapMood) ? m.mapMood : (day.mapMood || 'default'),
+        stops: day.stops.map(s => {
+            const n = byId.get(s.place_id) || {};
+            const next = { ...s };
+            for (const campo of NARRATION_TEXT_FIELDS) next[campo] = cleanText(n[campo]);
+            return next;
+        }),
+    };
+});
 
 export const aiRecommendationService = {
 
@@ -1488,7 +1745,6 @@ export const aiRecommendationService = {
         const centerFingerprint = cityCenter && Number.isFinite(cityCenter.latitude)
             ? `${cityCenter.latitude.toFixed(3)},${cityCenter.longitude.toFixed(3)},r55f2`
             : 'noRadius';
-        const cacheKey = insiderCacheKey(city, prefs, userPrompt, aiProfile, opts.dnaWeights) + '_' + centerFingerprint;
         // G3 — la finestra temporale del tour, calcolata in codice da: frase
         // dell'utente, ora della richiesta, tipo di percorso, durata scelta.
         // `start` sostituisce `new Date()` come partenza del tour, sia per gli
@@ -1501,8 +1757,17 @@ export const aiRecommendationService = {
         const tourWindow = resolveTourWindow({
             text: userPrompt, requestTime, pathType: opts.pathType, duration: prefs?.duration,
         });
-        // "2-3 Giorni": ogni giorno parte dalla sua finestra.
-        const dayStarts = tourWindow.windows.length > 1 ? tourWindow.windows.map(w => w.start) : tourWindow.start;
+        // Gate NARRATORE-DOPO — il primo momento della finestra, letto dalla
+        // tabella dei momenti (dayMoments.js). Serve al timeContext e alla
+        // chiave di cache: una narrazione scritta per martedi' mattina non si
+        // riusa mercoledi', ne' martedi' pomeriggio. Data e momento entrano
+        // nella chiave; ritmo, gruppo e interessi ci sono gia' (insiderCacheKey).
+        const firstMoment = (() => {
+            const p = romeParts(tourWindow.start);
+            return momentAtClock(p.h, p.mi);
+        })();
+        const cacheKey = insiderCacheKey(city, prefs, userPrompt, aiProfile, opts.dnaWeights)
+            + '_' + centerFingerprint + '_' + tourWindow.date + '_' + firstMoment.key;
         const windowFields = {
             startTimeAnchored: tourWindow.anchored,
             shiftedToNextDay: tourWindow.shiftedToNextDay,
@@ -1515,7 +1780,11 @@ export const aiRecommendationService = {
             // generazione: si ricalcola SEMPRE dalla finestra di CHI STA
             // LEGGENDO ora, sommando gli offset già salvati
             // (stayMinutes/travelMinutesFromPrev su ogni stop).
-            return { ...cached, ...windowFields, days: refreshTourScheduledTimes(cached.days, dayStarts) };
+            // Gate NARRATORE-DOPO — e il controllo luce/ora rigira su quegli
+            // orari: stessa data e stessa fascia, ma i minuti possono essere altri.
+            const starts = dayStartsFor(cached.days, tourWindow);
+            const { days } = guardNarrationLight(cached.days, starts, tourWindow, cityCenter);
+            return { ...cached, ...windowFields, days: refreshTourScheduledTimes(days, starts) };
         }
 
         // DVAI-050 — Cache MISS: quota giornaliera utente (10/day).
@@ -1532,12 +1801,10 @@ export const aiRecommendationService = {
         // G3 — la fascia del timeContext si legge dalla PARTENZA del tour
         // (tourWindow.start, ora di Roma), non dall'ora della richiesta:
         // "domani" chiesto alle 20:57 è un tour del mattino, non della sera.
-        const hour = romeHour(tourWindow.start);
-        const timeContext = hour >= 6 && hour < 11 ? 'mattina presto — le tappe devono includere colazione/bar e posti che aprono la mattina'
-            : hour >= 11 && hour < 14 ? 'ora di pranzo — includi un ristorante locale (non turistico) come tappa centrale'
-            : hour >= 14 && hour < 18 ? 'pomeriggio — musei, gallerie, panorami, passeggiate'
-            : hour >= 18 && hour < 22 ? 'sera — aperitivi, ristoranti, panorami al tramonto, locali con atmosfera'
-            : 'notte — locali, jazz bar, piazze illuminate, passeggiate notturne';
+        // Gate NARRATORE-DOPO — la fascia viene dalla tabella dei momenti, non
+        // da soglie orarie scritte qui (erano una seconda tabella, divergente:
+        // 'sera' cominciava alle 18 qui e l'aperitivo alle 18 la' solo per caso).
+        const timeContext = `${firstMoment.label} (${tableClock(firstMoment.start)}–${tableClock(firstMoment.end)}) — ${firstMoment.categories.join(', ')}`;
 
         // ─── DVAI-060 F2 — RAMO GOOGLE-FIRST (motore selettore-narratore) ───────
         // Prova a ottenere candidati REALI da Google. Se >=3, usa il nuovo prompt
@@ -1637,11 +1904,14 @@ export const aiRecommendationService = {
             // l'affinita' si azzera da sola (regola UTENTE NUOVO), unicita' e
             // voto restano attivi comunque.
             const beforeMerito = candidates.length;
-            candidates = selectScoredCandidatePool(candidates, { city, dnaWeights: opts.dnaWeights || {}, limit: 20 });
+            // Gate NARRATORE-DOPO — 20 candidati per giorno: con "2-3 Giorni"
+            // un pool da 20 finiva i ristoranti prima del pranzo del giorno 3.
+            const nDays = Math.max(1, tourWindow.windows.length);
+            candidates = selectScoredCandidatePool(candidates, { city, dnaWeights: opts.dnaWeights || {}, limit: 20 * nDays });
             if (beforeMerito > 0) {
                 console.info(
                     `[Gate MERITO] ${city}: ${beforeMerito} candidati -> ${candidates.length} ammessi ` +
-                    `(soglia qualita' + punteggio affinita'/unicita'/voto, tetto 1 icona, limite 20)`
+                    `(soglia qualita' + punteggio affinita'/unicita'/voto, tetto 1 icona, limite ${20 * nDays})`
                 );
             }
 
@@ -1678,10 +1948,12 @@ export const aiRecommendationService = {
                 anyCategory = true;
                 buckets = bucketCandidates(moments, candidates, { anyCategory });
             }
-            const extraThemes = buckets ? missingMomentThemes(moments, buckets) : [];
+            // Gate NARRATORE-DOPO — si cerca per i momenti che il pool non riesce
+            // a riempire, non solo per quelli vuoti (vedi shortMomentThemes).
+            const extraThemes = buckets ? shortMomentThemes(moments, buckets, candidates) : [];
             if (extraThemes.length > 0) {
                 const extra = await searchMomentCandidates({
-                    city, cityCenter, themes: extraThemes, known: candidates,
+                    city, cityCenter, themes: extraThemes, known: candidates, perTheme: 5 * nDays,
                     dnaWeights: opts.dnaWeights || {},
                     categoria: categoriaTarget ? intent.categoria : null,
                 });
@@ -1705,7 +1977,7 @@ export const aiRecommendationService = {
             // "A Catania non troviamo parchi" (Catania ha Villa Bellini).
             if (selectorCandidates.length >= 1) {
                 const selectorPrompt = buildSelectorSystemPrompt({
-                    city, timeContext, weather, weatherIcon,
+                    city, timeContext,
                     prefs, aiProfile, cityCenter, candidates: selectorCandidates, userPrompt,
                     intent, // Gate B — clausole dure (categoria/escludi/tempo/note) nel prompt
                     moments: moments.length > 0 ? moments : null,
@@ -1714,32 +1986,42 @@ export const aiRecommendationService = {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 35_000);
                 try {
+                    // Gate NARRATORE-DOPO — 2ª chiamata: il selettore restituisce
+                    // SOLO place_id (e momento). Pochi token: niente testi.
                     const data = await callOpenAIProxy({
                         model: 'gpt-4o-mini',
                         messages: [
                             { role: 'system', content: selectorPrompt },
-                            { role: 'user', content: `Costruisci il tour, ${selectorCandidates.length} luoghi disponibili. Ricorda: place_id dalla lista, voce insider concreta.` },
+                            { role: 'user', content: `Scegli le tappe, ${selectorCandidates.length} luoghi disponibili. Solo place_id${moments.length > 0 ? ' e moment' : ''}, dalla lista.` },
                         ],
                         response_format: { type: 'json_object' },
                         temperature: 0.7,
-                        max_tokens: 2000,
+                        max_tokens: 1000,
                     }, controller.signal, quotaTicket);
                     clearTimeout(timeoutId);
 
                     const raw = data.choices?.[0]?.message?.content;
                     if (!raw) throw new Error('Empty AI response (F2)');
                     const parsed = JSON.parse(raw);
-                    const days = Array.isArray(parsed) ? parsed : (parsed.days ?? []);
-                    if (!Array.isArray(days) || days.length === 0) throw new Error('AI returned no days (F2)');
+                    // Formato: { stops: [...] }. Accettato anche { days: [{ stops }] }:
+                    // un modello che raggruppa per giorno non perde la scelta.
+                    // Di ogni tappa si tengono SOLO place_id e momento: un testo
+                    // scritto dal selettore non entra mai nel tour.
+                    const rawStops = Array.isArray(parsed?.stops)
+                        ? parsed.stops
+                        : (Array.isArray(parsed?.days) ? parsed.days : (Array.isArray(parsed) ? parsed : []))
+                            .flatMap(d => (Array.isArray(d?.stops) ? d.stops : []));
+                    const aiStops = rawStops
+                        .filter(st => st && typeof st.place_id === 'string')
+                        .map(st => ({ place_id: st.place_id, ...(typeof st.moment === 'string' ? { moment: st.moment } : {}) }));
+                    if (aiStops.length === 0) throw new Error('AI returned no stops (F2)');
 
-                    const VALID_MOODS = new Set(['romantico','storia','avventura','natura','cibo','shopping','arte','sorpresa','sport']);
-                    const VALID_TRANSIT = new Set(['bus','metro','walking']);
-                    const dayMeta = (day, di) => ({
-                        day: day?.day ?? di + 1,
-                        title: day?.title ?? `Giorno ${di + 1} a ${city}`,
-                        weather: day?.weather ?? { condition: weather?.condition || 'Soleggiato', temperature: weather?.temperature ?? 22, icon: weatherIcon },
-                        suggestedTransit: VALID_TRANSIT.has(day?.suggestedTransit) ? day.suggestedTransit : 'walking',
-                        mapMood: VALID_MOODS.has(day?.mapMood) ? day.mapMood : 'default',
+                    const baseMeta = (di) => ({
+                        day: di + 1,
+                        title: `Giorno ${di + 1} a ${city}`,
+                        weather: { condition: weather?.condition || 'Soleggiato', temperature: weather?.temperature ?? 22, icon: weatherIcon },
+                        suggestedTransit: 'walking',
+                        mapMood: 'default',
                     });
 
                     // P3 — con lo scheletro il codice controlla la risposta e la
@@ -1748,19 +2030,6 @@ export const aiRecommendationService = {
                     let momentReport = null;
                     const finalDays = moments.length > 0
                         ? (() => {
-                            const aiStops = days.flatMap(d => (Array.isArray(d?.stops) ? d.stops : []));
-                            // Gate NARRATORE/POI (regola #16) — una tappa del
-                            // modello senza descrizione non vale come scelta.
-                            // Se il narratore non ne ha raccontata NESSUNA, il
-                            // tour non si serve: il codice ripara i buchi di un
-                            // racconto, non sostituisce un racconto che manca.
-                            const muteStops = aiStops.filter(st => !hasNonEmptyDescription(st));
-                            if (muteStops.length > 0) {
-                                const byId = new Map(candidates.map(c => [c.place_id || c.googlePlaceId, c]));
-                                const nomi = muteStops.map(st => byId.get(st.place_id)?.name || st.place_id || '?');
-                                console.warn(`[Gate NARRATORE/POI] ${city}: ${muteStops.length}/${aiStops.length} tappe scartate → descrizione assente — [${nomi.join(' | ')}]`);
-                            }
-                            if (muteStops.length === aiStops.length) return [];
                             const { plan, report } = repairMomentSelection({
                                 moments, buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
                             });
@@ -1768,11 +2037,10 @@ export const aiRecommendationService = {
                             momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes };
                             logMomentReport(city, momentReport);
                             return sched.days.map((dayStops, di) => {
-                                // Stessa canonicalizzazione (e stessi guard del
-                                // narratore) delle tappe scelte dal modello.
                                 const canon = canonicalizeStopsFromCandidates(
-                                    dayStops.map(s => ({ ...(s.narration || {}), place_id: s.candidate.place_id || s.candidate.googlePlaceId })),
+                                    dayStops.map(s => ({ place_id: s.candidate.place_id || s.candidate.googlePlaceId })),
                                     candidates,
+                                    { guard: false },
                                 ).map((stop, i) => ({
                                     ...stop,
                                     moment: dayStops[i].moment.key,
@@ -1780,47 +2048,64 @@ export const aiRecommendationService = {
                                     waitMinutesBefore: dayStops[i].waitMinutesBefore,
                                     ...(dayStops[i].source === 'riparata' ? { repaired: true } : {}),
                                 }));
-                                return { ...dayMeta(days[di] || days[0], di), stops: computeStopTimings(canon).stops };
+                                // windowIndex: il giorno resta legato alla SUA
+                                // finestra anche se un giorno prima viene tolto.
+                                return { ...baseMeta(di), windowIndex: di, stops: computeStopTimings(canon).stops };
                             }).filter(d => d.stops.length > 0);
                         })()
-                        : days.map((day, di) => {
-                        const aiStops = Array.isArray(day.stops) ? day.stops : [];
-                        // Canonicizza: title/lat/lng/rating/googlePhoto dai candidati.
-                        // Scarta stop con place_id non appartenente ai candidati (AI-halluc).
-                        const canonized = canonicalizeStopsFromCandidates(aiStops, candidates);
-                        // Gate NARRATORE/POI (Fase 2b) — regola locked #16, stesso
-                        // predicato di generateHomeTours. Se il narratore non ha
-                        // prodotto una descrizione vera, la tappa non entra.
-                        // Un giorno che resta a 0 tappe viene eliminato dal
-                        // .filter() in coda al map, e il flusso cade da solo nel
-                        // ramo di uscita onesto (:1184 → _source 'no-results').
-                        const described = canonized.filter(hasNonEmptyDescription);
-                        if (described.length < canonized.length) {
-                            const scartate = canonized.filter(s => !hasNonEmptyDescription(s)).map(s => s.title || '?');
-                            console.warn(`[Gate NARRATORE/POI] ${city}: ${canonized.length - described.length}/${canonized.length} tappe scartate → descrizione assente — [${scartate.join(' | ')}]`);
-                        }
-                        // Applica il filtro raggio come safety (DVAI-055-b): quasi no-op
-                        // perché discoverRealPOIs ha già filtrato per prossimità query.
-                        const withinRadius = applyRadiusFilter(described, cityCenter, city);
-                        // Ordina per prossimità geografica dopo la canonizzazione, poi
-                        // applica la varietà (Gate MERITO — niente 3 tappe consecutive
-                        // dello stesso tipo: riordino a costo minimo, mai una riselezione).
-                        // DIFF 1a: le stime SUBITO dopo il sort/varietà, mai prima.
-                        const ordered = computeStopTimings(enforceCategoryVariety(sortByProximity(withinRadius))).stops;
-                        return { ...dayMeta(day, di), stops: ordered };
-                    }).filter(d => d.stops.length > 0);
+                        : (() => {
+                            // Canonicizza: title/lat/lng/rating/googlePhoto dai candidati.
+                            // Scarta stop con place_id non appartenente ai candidati (AI-halluc).
+                            const canonized = canonicalizeStopsFromCandidates(aiStops, candidates, { guard: false });
+                            // Applica il filtro raggio come safety (DVAI-055-b).
+                            const withinRadius = applyRadiusFilter(canonized, cityCenter, city);
+                            // Ordina per prossimità, poi la varietà (Gate MERITO);
+                            // DIFF 1a: le stime SUBITO dopo il sort/varietà, mai prima.
+                            const ordered = computeStopTimings(enforceCategoryVariety(sortByProximity(withinRadius))).stops;
+                            return [{ ...baseMeta(0), windowIndex: 0, stops: ordered }].filter(d => d.stops.length > 0);
+                        })();
 
                     // Gate I — soglia minima 1 tappa (era 3). Un posto vero è
                     // meglio di zero. Se 1 tappa, il flag _singleStop segnala
                     // alla UI di mostrare un banner onesto ("un solo posto").
                     if (finalDays.length > 0 && finalDays[0].stops.length >= 1) {
-                        const singleStop = finalDays[0].stops.length === 1;
-                        const result = {
-                            days: finalDays, _source: 'google-first', _singleStop: singleStop,
-                            ...(momentReport ? { _momentReport: momentReport } : {}),
+                        // ─── Gate NARRATORE-DOPO — 3ª chiamata: il racconto ─────
+                        // Le tappe sono finali: riparate, ordinate, con orario.
+                        // Il narratore le racconta; il codice toglie le frasi di
+                        // luce/ora incoerenti con l'arrivo. Una tappa non
+                        // raccontata resta, senza testo, e il report lo dice.
+                        const starts = dayStartsFor(finalDays, tourWindow);
+                        const narration = await narrateFinalDays({
+                            city, days: finalDays, starts, tourWindow, cityCenter,
+                            weather, prefs, aiProfile, userPrompt, quotaTicket,
+                        });
+                        const { days: narratedDays, frasiTolte } = guardNarrationLight(
+                            applyNarration(finalDays, narration, city), starts, tourWindow, cityCenter,
+                        );
+                        const allStops = narratedDays.flatMap(d => d.stops);
+                        const narrationReport = {
+                            raccontate: allStops.filter(hasNonEmptyDescription).length,
+                            nonRaccontate: allStops.filter(st => !hasNonEmptyDescription(st)).map(st => ({ place_id: st.place_id, title: st.title })),
+                            frasiTolte,
+                            errore: narration.error,
                         };
-                        saveInsiderToCache(cacheKey, result);
-                        return { ...result, ...windowFields, days: refreshTourScheduledTimes(result.days, dayStarts) };
+                        logNarratorViolations(allStops, 'narratore');
+                        for (const f of frasiTolte) {
+                            console.warn(`[Gate NARRATORE-DOPO] ${city}: tolta frase (${f.regole.join(',')}) da ${f.campo} di "${f.title}" @${f.arrivo} — "${f.frase}"`);
+                        }
+                        if (narrationReport.nonRaccontate.length > 0) {
+                            console.warn(`[Gate NARRATORE-DOPO] ${city}: ${narrationReport.nonRaccontate.length}/${allStops.length} tappe senza racconto — [${narrationReport.nonRaccontate.map(x => x.title).join(' | ')}]`);
+                        }
+                        const singleStop = narratedDays[0].stops.length === 1;
+                        const result = {
+                            days: narratedDays, _source: 'google-first', _singleStop: singleStop,
+                            ...(momentReport ? { _momentReport: momentReport } : {}),
+                            _narrationReport: narrationReport,
+                        };
+                        // Un narratore caduto non si mette in cache: la prossima
+                        // richiesta deve poter avere il suo racconto.
+                        if (!narration.error) saveInsiderToCache(cacheKey, result);
+                        return { ...result, ...windowFields, days: refreshTourScheduledTimes(result.days, starts) };
                     }
                     // Gate B/I — Path A: 0 tappe canoniche → errore onesto (no fallback).
                     if (isFreeTextIntent) {

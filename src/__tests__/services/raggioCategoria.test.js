@@ -205,7 +205,8 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
 
         // (1) La prova diretta: il selettore E' stato chiamato, e nel suo prompt
         //     ci sono SOLO le spiagge. Nessun ristorante fra cui scegliere.
-        expect(stato.aiCalls).toBe(2);
+        // Gate NARRATORE-DOPO: traduttore + selettore + narratore.
+        expect(stato.aiCalls).toBe(3);
         expect(stato.selectorBody).toBeTruthy();
         expect(stato.selectorBody).toContain('Spiaggia di Maimoni');
         expect(stato.selectorBody).toContain('Spiaggia Is Arutas');
@@ -286,7 +287,8 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
         // (1) Il selettore e' stato chiamato: con il taglio prima del filtro di
         //     categoria il pool in-categoria sarebbe vuoto e qui si finirebbe
         //     su "no-results" senza mai pagare la seconda chiamata.
-        expect(stato.aiCalls).toBe(2);
+        // Gate NARRATORE-DOPO: traduttore + selettore + narratore.
+        expect(stato.aiCalls).toBe(3);
         expect(stato.selectorBody).toBeTruthy();
 
         // (2) La prova che conta: TUTTE e tre le spiagge, non "almeno una".

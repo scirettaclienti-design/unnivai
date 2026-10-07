@@ -86,7 +86,9 @@ const INTENT = {
     vincoli: { tempo: null, escludi: [], note: null },
 };
 
-// 1ª chiamata AI = traduttore d'intento, 2ª = selettore-narratore.
+// 1ª chiamata AI = traduttore d'intento, 2ª = selettore, 3ª = narratore
+// (Gate NARRATORE-DOPO: selettore e narratore ricevono la stessa risposta finta;
+// il selettore ne tiene solo i place_id, il narratore i testi).
 const routeFetch = (selectorPayload) => {
     let aiCall = 0;
     return vi.fn(async (url) => {
@@ -130,7 +132,7 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
         vi.useRealTimers();
     });
 
-    it('2 tappe di cui 1 senza description → resta 1 tappa, il tour esiste', async () => {
+    it('Veloce 2 ore alle 10 → una tappa sola, il tour esiste e accende _singleStop', async () => {
         vi.stubGlobal('fetch', routeFetch({
             days: [{
                 day: 1,
@@ -154,7 +156,13 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
         expect(result._singleStop).toBe(true);
     });
 
-    it('tutte le tappe senza description → nessun tour servito, _source no-results', async () => {
+    // Gate NARRATORE-DOPO — la regola #16 cambia SU QUESTO PATH, per decisione
+    // esplicita del task: il racconto arriva DOPO la scelta, sulle tappe finali,
+    // e una tappa che il narratore non racconta NON viene piu' tolta. Resta con
+    // nome e categoria, i campi di testo null (nessun testo inventato al loro
+    // posto), e il report (_narrationReport + console.warn) lo dice. Su
+    // generateHomeTours la regola #16 resta com'era (describe sotto).
+    it('il narratore non racconta nessuna tappa → il tour resta, tappe senza testo, il report le elenca', async () => {
         vi.stubGlobal('fetch', routeFetch({
             days: [{
                 day: 1,
@@ -170,15 +178,21 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
             CITY, { interests: ['Arte'] }, 'cerco musei', {}, '', CENTER,
         );
 
-        expect(result._source).toBe('no-results');
-        expect(result.days[0].stops).toEqual([]);
-        // Il ramo di uscita onesto porta con sé l'oggetto per il copy utente.
-        expect(result._oggetto_umano).toBe('musei');
+        expect(result._source).toBe('google-first');
+        const stops = result.days[0].stops;
+        expect(stops.length).toBeGreaterThan(0);
+        for (const st of stops) {
+            expect(st.title).toBeTruthy();
+            expect(st.type).toBeTruthy();
+            expect(st.description).toBeNull();
+        }
+        expect(result._narrationReport.nonRaccontate.map(x => x.title)).toEqual(stops.map(st => st.title));
     });
 
-    it('il console.warn di scarto riporta quante tappe e quali nomi (serve sul campo)', async () => {
+    it('il console.warn delle tappe senza racconto riporta quante e quali (serve sul campo)', async () => {
         // setup.js:82 silenzia console.warn globalmente: il log non arriva su
         // stdout, quindi l'unico modo di provare che il segnale esiste è lo spy.
+        // Intenso: la mattina fa 2 tappe, il narratore ne racconta una.
         vi.stubGlobal('fetch', routeFetch({
             days: [{
                 day: 1,
@@ -190,28 +204,31 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
             }],
         }));
 
-        await aiRecommendationService.generateItinerary(
-            CITY, { interests: ['Arte'] }, 'cerco musei', {}, '', CENTER,
+        const result = await aiRecommendationService.generateItinerary(
+            CITY, { interests: ['Arte'], pace: 'Intenso' }, 'cerco musei', {}, '', CENTER,
         );
+        expect(result.days[0].stops).toHaveLength(2);
 
         const righe = console.warn.mock.calls
             .map(args => String(args[0]))
-            .filter(m => m.includes('[Gate NARRATORE/POI]'));
+            .filter(m => m.includes('[Gate NARRATORE-DOPO]') && m.includes('senza racconto'));
 
         expect(righe).toHaveLength(1);
-        expect(righe[0]).toContain('1/2 tappe scartate');
-        expect(righe[0]).toContain('Museo del Sale'); // il nome della tappa scartata
+        expect(righe[0]).toContain('1/2 tappe senza racconto');
+        expect(righe[0]).toContain('Museo del Sale'); // il nome della tappa non raccontata
         expect(righe[0]).toContain(CITY);
     });
 
-    it('NON-REGRESSIONE: tutte le tappe descritte → nessuna viene scartata', async () => {
+    it('NON-REGRESSIONE: tutte le tappe descritte → tutte raccontate, nessuna nel report', async () => {
         vi.stubGlobal('fetch', routeFetch({
             days: [{
                 day: 1,
                 title: 'Ippocampo tra sale e pietra',
                 stops: [
                     { place_id: 'pid-uno', description: 'Il vento porta il sale fin dentro le mura' },
-                    { place_id: 'pid-due', description: 'Le vasche cambiano colore col tramonto' },
+                    // Era "Le vasche cambiano colore col tramonto": su una tappa
+                    // delle 10 il controllo luce/ora la toglie (Gate NARRATORE-DOPO).
+                    { place_id: 'pid-due', description: 'Le vasche hanno bordi di pietra bianca' },
                 ],
             }],
         }));
@@ -224,6 +241,7 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
         expect(result._source).toBe('google-first');
         expect(result.days[0].stops).toHaveLength(2);
         expect(result.days[0].stops.every(s => s.description)).toBe(true);
+        expect(result._narrationReport.nonRaccontate).toEqual([]);
         expect(result._singleStop).toBe(false);
     });
 });

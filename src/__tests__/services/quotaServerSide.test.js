@@ -96,25 +96,30 @@ describe('Gate QUOTA-SERVER — client', () => {
         vi.mocked(supabase.from).mockReset();
     });
 
-    it('traduttore e selettore della STESSA generazione portano lo stesso biglietto', async () => {
+    it('traduttore, selettore e narratore della STESSA generazione portano lo stesso biglietto', async () => {
         vi.stubGlobal('fetch', routeFetch(normal));
         const tour = await genera();
         expect(tour._source).toBe('google-first');
 
-        expect(proxyBodies).toHaveLength(2);
-        const [traduttore, selettore] = proxyBodies.map(b => b.dv);
+        // Gate NARRATORE-DOPO: 3 chiamate, il massimo che il biglietto 'itinerary' ammette.
+        expect(proxyBodies).toHaveLength(3);
+        const [traduttore, selettore, narratore] = proxyBodies.map(b => b.dv);
         expect(traduttore).toEqual({ purpose: 'generation', ticket: expect.stringMatching(UUID_RE), kind: 'itinerary' });
         expect(selettore).toEqual(traduttore);
+        expect(narratore).toEqual(traduttore);
     });
 
     it('due generazioni diverse → due biglietti diversi', async () => {
-        vi.stubGlobal('fetch', routeFetch((n) => ai(n % 2 === 0 ? INTENT : SELECTOR)));
+        // Gate NARRATORE-DOPO: 3 chiamate per generazione (traduttore, selettore, narratore).
+        vi.stubGlobal('fetch', routeFetch((n) => ai(n % 3 === 0 ? INTENT : SELECTOR)));
         await genera('le spiagge piu belle');
         await genera('spiagge tranquille al tramonto');
-        expect(proxyBodies).toHaveLength(4);
-        expect(proxyBodies[0].dv.ticket).toBe(proxyBodies[1].dv.ticket);
-        expect(proxyBodies[2].dv.ticket).toBe(proxyBodies[3].dv.ticket);
-        expect(proxyBodies[2].dv.ticket).not.toBe(proxyBodies[0].dv.ticket);
+        expect(proxyBodies).toHaveLength(6);
+        expect(proxyBodies[1].dv.ticket).toBe(proxyBodies[0].dv.ticket);
+        expect(proxyBodies[2].dv.ticket).toBe(proxyBodies[0].dv.ticket);
+        expect(proxyBodies[4].dv.ticket).toBe(proxyBodies[3].dv.ticket);
+        expect(proxyBodies[5].dv.ticket).toBe(proxyBodies[3].dv.ticket);
+        expect(proxyBodies[3].dv.ticket).not.toBe(proxyBodies[0].dv.ticket);
     });
 
     it('il client non scrive MAI ai_quota_daily (solo lettura per il preflight)', async () => {

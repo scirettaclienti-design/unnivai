@@ -51,12 +51,13 @@ const SELECTOR_PAYLOAD = {
 };
 
 const routeFetch = () => {
-    const stato = { aiCalls: 0, selectorBody: null };
+    const stato = { aiCalls: 0, selectorBody: null, narratorBody: null };
     const fn = vi.fn(async (url, init) => {
         const u = String(url);
         if (u.includes('openai-proxy')) {
             const payload = stato.aiCalls === 0 ? INTENT : SELECTOR_PAYLOAD;
             if (stato.aiCalls === 1) stato.selectorBody = String(init?.body ?? '');
+            if (stato.aiCalls === 2) stato.narratorBody = String(init?.body ?? '');
             stato.aiCalls += 1;
             return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify(payload) } }] }) };
         }
@@ -105,8 +106,11 @@ describe('G3 — "domani" sposta la partenza del tour, non solo le parole', () =
         expect(result.startTimeAnchored).toBe(true);
 
         // La fascia narrativa si legge da start (9:30 → mattina), non dalle 20:57.
-        expect(stato.selectorBody).toContain('mattina presto');
-        expect(stato.selectorBody).not.toContain('sera — aperitivi');
+        // Gate NARRATORE-DOPO: la fascia arriva al NARRATORE, tappa per tappa,
+        // come momento della tabella e orario di arrivo calcolato dal codice.
+        expect(stato.narratorBody).toContain('\\"momento\\":\\"Mattina\\"');
+        expect(stato.narratorBody).toContain('\\"arrivo\\":\\"09:30\\"');
+        expect(stato.narratorBody).not.toContain('20:57');
 
         // Cache HIT nello stesso istante: stessa finestra, stessa prima tappa.
         const chiamate = fn.mock.calls.length;

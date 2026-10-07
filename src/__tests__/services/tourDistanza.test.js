@@ -159,7 +159,8 @@ describe('Gate TOUR-DISTANZA — generateItinerary scarta prima di chiamare l’
         expect(result._source).toBe('google-first');
         expect(result.days[0].stops.map(s => s.title)).toEqual(['Lido']);
         // Il selettore È stato chiamato: il filtro non blocca i tour buoni.
-        expect(stato.aiCalls).toBe(2);
+        // Gate NARRATORE-DOPO: traduttore + selettore + narratore.
+        expect(stato.aiCalls).toBe(3);
         // Solo la villa lontana è finita nel log di scarto.
         const riga = warnLines().find(l => l.includes('[Gate TOUR-DISTANZA]'));
         expect(riga).toContain('1/2 candidati scartati');

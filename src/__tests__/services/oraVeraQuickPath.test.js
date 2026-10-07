@@ -115,7 +115,8 @@ describe('Gate ORA VERA — dal wizard al selettore, zero fascia oraria', () => 
         // (0) Controllo dello strumento: il selettore E' stato chiamato e il suo
         //     body contiene davvero il prompt del wizard e i candidati. Senza
         //     questo, i `not.toContain` sotto non proverebbero niente.
-        expect(stato.aiCalls).toBe(2);
+        // Gate NARRATORE-DOPO: traduttore + selettore + narratore.
+        expect(stato.aiCalls).toBe(3);
         expect(stato.selectorBody).toBeTruthy();
         expect(stato.selectorBody).toContain('Hammam Ortigia');
         expect(stato.selectorBody).toContain('A Siracusa cerco');

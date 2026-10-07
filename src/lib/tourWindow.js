@@ -63,8 +63,10 @@ export const FASCE = {
 
 // Durate del Percorso Veloce (QuickPath: "1-2 ore", "2-4 ore", "4-6 ore"):
 // si prende l'estremo alto, e' la promessa che la card fa all'utente.
-const QUICK_MINUTES = { veloce: 120, medio: 240, lungo: 360 };
-const QUICK_DEFAULT_MINUTES = 120;
+// Esportate: la card del Percorso Veloce, senza orari, mostra QUESTA durata
+// (la finestra che il motore ha davvero aperto), non un numero suo.
+export const QUICK_MINUTES = { veloce: 120, medio: 240, lungo: 360 };
+export const QUICK_DEFAULT_MINUTES = 120;
 
 const MULTI_DAY_COUNT = 3;
 

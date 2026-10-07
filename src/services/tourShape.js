@@ -375,6 +375,13 @@ export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma') {
         // cumulativi. Qui è puro pass-through, come stayMinutes/travelMinutesFromPrev:
         // questo modulo non calcola, normalizza la shape.
         scheduledTime: raw.scheduledTime || null,
+        // Gate MOMENTO + DURATA VERA — il momento che lo scheletro ha dato alla
+        // tappa (daySkeleton/momentSelection) passa cosi' com'e': senza, le
+        // schermate ricostruivano l'intestazione dall'orario e una tappa
+        // d'aperitivo alle 17:50 finiva sotto "Pomeriggio" (stopMoments.js).
+        moment: raw.moment,
+        momentLabel: raw.momentLabel,
+        waitMinutesBefore: raw.waitMinutesBefore,
         // `types` Google interi: la tabella di sosta ne ha bisogno a valle.
         types: Array.isArray(raw.types) ? raw.types : [],
 

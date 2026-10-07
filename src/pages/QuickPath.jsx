@@ -13,6 +13,9 @@ import { PROGRESS_STEPS, effectiveProgressStep } from "@/lib/quickPathProgress";
 // Gate C1 — un motore solo per il lookup citta' a chiave (regola locked #8):
 // stesso helper qui su CITY_CONFIG e in userContextService su CITY_COORDS.
 import { findCityKey } from "@/lib/cityKey";
+// Gate MOMENTO + DURATA VERA — la durata del Percorso Veloce sta in un posto
+// solo: la finestra del motore. La card la legge da li', non la riscrive.
+import { QUICK_MINUTES, QUICK_DEFAULT_MINUTES } from "@/lib/tourWindow";
 // Gate 2 FASE 3 — businesses partner: SOSPESI in QuickPath (V3, non V1).
 // Il DB non ha partner reali oggi; il codice attivo rischierebbe di rompere le
 // tappe vere con splice. La chiamata è commentata più sotto con TODO(V3).
@@ -659,9 +662,11 @@ export default function QuickPathPage() {
                 title: dayTitle,
                 description: tourDescription,
                 city: activeCity,
-                duration_minutes: selectedDuration?.id === 'veloce' ? 90
-                    : selectedDuration?.id === 'lungo' ? 300
-                    : 180, // medio
+                // Gate MOMENTO + DURATA VERA — la durata del motore (la finestra
+                // che ha aperto per questa scelta), usata dalla card solo se le
+                // tappe non hanno orari: con gli orari vince la durata vera
+                // (QuickPathSummary, tourSpanMinutes).
+                duration_minutes: QUICK_MINUTES[selectedDuration?.id] ?? QUICK_DEFAULT_MINUTES,
                 price_eur: 0,
                 // Gate PULIZIA (24/09): via `rating: 5.0` fisso. Un tour AI non
                 // ha recensioni: un voto sempre a 5 non era un default onesto,

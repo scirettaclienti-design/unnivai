@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { MapPin, Navigation, Clock, Users, ArrowRight, Sparkles, Home } from 'lucide-react';
 import { getCoverPalette } from '@/lib/categoryPalette';
 import { TourStopsByMoment } from '@/components/TourStopsByMoment';
+import { tourSpanMinutes } from '@/lib/tourTiming';
 
 // Gate PULIZIA P1 — formatta minuti → "45 min" / "3h" / "1h 30m".
 // Il vecchio inline `(min % 60 || '')` trattava lo 0 come falsy e stampava
@@ -19,7 +20,10 @@ const formatMinutes = (min) => {
 export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
     if (!tourData) return null;
 
-    const durationLabel = formatMinutes(tourData.duration_minutes);
+    // Gate MOMENTO + DURATA VERA — la durata e' quella del tour sull'orologio
+    // (prima tappa → fine dell'ultima). Senza orari, duration_minutes: la
+    // durata del motore che QuickPath legge da tourWindow.js.
+    const durationLabel = formatMinutes(tourSpanMinutes(tourData.steps) ?? tourData.duration_minutes);
 
     // Gate VERITÀ VISIVA (F26) DIFF 4 — via lo stock Unsplash di ripiego.
     // Questa e' la copertina del tour appena generato: se non c'e' una foto

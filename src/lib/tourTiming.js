@@ -173,6 +173,26 @@ export function totalTourMinutes(stops) {
 }
 
 /**
+ * Gate MOMENTO + DURATA VERA — quanto dura il tour sull'orologio: dall'arrivo
+ * alla prima tappa alla fine della sosta nell'ultima (scheduledTime + sosta).
+ * Comprende le attese fino all'inizio di un momento, che totalTourMinutes non
+ * conta. Senza un orario o senza la sosta finale non si puo' dire: null, e il
+ * chiamante usa la durata del motore.
+ * @param {Array} stops tappe con scheduledTime (ISO) e stayMinutes
+ * @returns {number|null} minuti, o null
+ */
+export function tourSpanMinutes(stops) {
+    if (!Array.isArray(stops) || stops.length === 0) return null;
+    const first = stops[0];
+    const last = stops[stops.length - 1];
+    if (!first?.scheduledTime || !last?.scheduledTime || !Number.isFinite(last.stayMinutes)) return null;
+    const start = new Date(first.scheduledTime).getTime();
+    const end = new Date(last.scheduledTime).getTime() + last.stayMinutes * 60000;
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
+    return Math.round((end - start) / 60000);
+}
+
+/**
  * Formatta una stima per la UI. Il tilde NON e' decorativo: e' la dichiarazione
  * che il numero e' una stima. Chi mostra durate deve passare da qui.
  * @returns {string|null} null se non c'e' niente di onesto da dire

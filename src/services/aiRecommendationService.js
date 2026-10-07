@@ -1580,7 +1580,53 @@ const VALID_MOODS = new Set(['romantico', 'storia', 'avventura', 'natura', 'cibo
 const VALID_TRANSIT = new Set(['bus', 'metro', 'walking']);
 const NARRATION_TEXT_FIELDS = ['description', 'insiderTip', 'bestTime', 'transition'];
 // Gate PAROLE VIETATE — i campi in cui una frase con una parola vietata si toglie.
-const BANNED_WORD_FIELDS = ['description', 'insiderTip', 'bestTime'];
+// P3d: anche `transition`, che le schermate della mappa mostrano.
+const BANNED_WORD_FIELDS = ['description', 'insiderTip', 'bestTime', 'transition'];
+
+/**
+ * Gate PAROLE VIETATE — il filtro su UNA tappa, uguale per l'itinerario e per i
+ * tour "Per Te" della Home. Il nome proprio della tappa (title/name, da Google)
+ * non fa scattare il filtro: "Museo Storico della Liberazione" e' un nome.
+ * @returns {{ stop: object, removed: Array<{ campo: string, frase: string, parole: string[] }> }}
+ */
+const scrubBannedWords = (stop) => {
+    const next = { ...stop };
+    const removed = [];
+    const exempt = [stop?.title, stop?.name].filter(Boolean);
+    for (const campo of BANNED_WORD_FIELDS) {
+        if (next[campo] == null) continue;
+        const r = filterBannedWords(next[campo], { exempt });
+        next[campo] = r.text;
+        for (const x of r.removed) removed.push({ campo, frase: x.frase, parole: x.parole });
+    }
+    return { stop: next, removed };
+};
+
+const logBannedRemovals = (city, title, removed, path) => {
+    for (const x of removed) {
+        console.warn(`[Gate PAROLE VIETATE] ${city} (${path}): tolta frase (${x.parole.join(',')}) da ${x.campo} di "${title}" — "${x.frase}"`);
+    }
+};
+
+/**
+ * Gate PAROLE VIETATE (P3d) — i tour "Per Te" letti dalla cache passano dallo
+ * stesso filtro della generazione, con la stessa regola #16 della Home: una
+ * tappa rimasta senza descrizione esce, un tour rimasto senza tappe esce.
+ * Se una tappa esce, le stime di cammino si ricalcolano sulle tappe rimaste
+ * (computeStopTimings): lo spostamento e' una proprieta' della coppia.
+ */
+const scrubHomeTours = (result, city) => ({
+    ...result,
+    tours: (result?.tours || []).map(t => {
+        const scrubbed = (t.stops || []).map(st => {
+            const r = scrubBannedWords(st);
+            logBannedRemovals(city, st.title, r.removed, 'home-cache');
+            return r.stop;
+        });
+        const kept = scrubbed.filter(hasNonEmptyDescription);
+        return { ...t, stops: kept.length < scrubbed.length ? computeStopTimings(kept).stops : kept };
+    }).filter(t => t.stops.length > 0),
+});
 const ROMA_FALLBACK = { latitude: 41.9028, longitude: 12.4964 };
 
 const clockLabel = (value) => {
@@ -1635,13 +1681,11 @@ const guardNarrationLight = (days, starts, tourWindow, cityCenter) => {
                 // Gate PAROLE VIETATE — prima si tolgono le frasi con una parola
                 // vietata (description, insiderTip, bestTime). Prima di questo
                 // gate l'elenco stava solo nel prompt e nessuno lo controllava.
-                for (const campo of BANNED_WORD_FIELDS) {
-                    if (next[campo] == null) continue;
-                    const r = filterBannedWords(next[campo]);
-                    next[campo] = r.text;
-                    for (const x of r.removed) {
-                        frasiTolte.push({ place_id: s.place_id, title: s.title, campo, frase: x.frase, regole: ['parola-vietata'], parole: x.parole, arrivo: clockLabel(arrival) });
-                    }
+                // P3d: con il nome della tappa esente e anche su transition.
+                const banned = scrubBannedWords(next);
+                Object.assign(next, banned.stop);
+                for (const x of banned.removed) {
+                    frasiTolte.push({ place_id: s.place_id, title: s.title, campo: x.campo, frase: x.frase, regole: ['parola-vietata'], parole: x.parole, arrivo: clockLabel(arrival) });
                 }
                 for (const campo of NARRATION_TEXT_FIELDS) {
                     if (next[campo] == null) continue;
@@ -2315,7 +2359,8 @@ export const aiRecommendationService = {
             .join('|');
         const cacheKey = `hometours_v1_${city.replace(/\s+/g, '_')}_${centerFingerprint}_${hashStr(poolStr)}`;
         const cached = loadInsiderFromCache(cacheKey);
-        if (cached) return cached;
+        // Gate PAROLE VIETATE (P3d) — anche la lettura dalla cache passa dal filtro.
+        if (cached) return scrubHomeTours(cached, city);
 
         // Quota: 1 call = 1 generazione (biglietto home_tours: il server concede
         // 4000 max_tokens solo a questo tipo). skipUserQuota salta solo il preflight.
@@ -2387,6 +2432,15 @@ export const aiRecommendationService = {
                     if (seenPlaceIds.has(pid)) return false;
                     seenPlaceIds.add(pid);
                     return true;
+                });
+
+                // Gate PAROLE VIETATE (P3d) — stesso filtro e stesso elenco
+                // dell'itinerario, PRIMA della regola II.2: una descrizione fatta
+                // solo di frasi vietate diventa vuota, e la tappa esce qui sotto.
+                canonized = canonized.map(st => {
+                    const r = scrubBannedWords(st);
+                    logBannedRemovals(city, st.title, r.removed, 'home');
+                    return r.stop;
                 });
 
                 // Gate II.2 — regola locked: description vuota → stop scartato.

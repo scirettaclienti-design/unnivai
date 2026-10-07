@@ -187,18 +187,39 @@ const variantPattern = (w) => {
 const BANNED_RULES = [...BANNED_VOICE_WORDS, ...BANNED_VOICE_PHRASES_HOME]
     .map(w => ({ word: w, re: new RegExp(`\\b${variantPattern(w)}\\b`) }));
 
+// Gate PAROLE VIETATE (P3d) — eccezioni FISSE: espressioni che contengono una
+// parola vietata ma non sono linguaggio da brochure. Si neutralizzano prima del
+// controllo; il resto della frase si controlla normalmente, quindi "Il centro
+// storico e' magico" viene tolta per "magico". L'altra eccezione e' il nome
+// proprio della tappa (opzione `exempt`): "Museo Storico della Liberazione" e'
+// un nome, non un aggettivo.
+export const BANNED_WORD_FIXED_EXCEPTIONS = ['centro storico', 'centri storici'];
+const FIXED_EXCEPTION_RES = [/\bcentr[oi]\s+storic[oi]\b/g];
+
+const neutralize = (normalized, exempt) => {
+    let t = normalized;
+    for (const re of FIXED_EXCEPTION_RES) t = t.replace(re, ' ');
+    for (const name of exempt) {
+        const n = norm(name || '').replace(/\s+/g, ' ').trim();
+        if (n) t = t.split(n).join(' ');
+    }
+    return t;
+};
+
 /**
  * Toglie le frasi che contengono una parola vietata. Mai riscritte; un testo
  * fatto solo di frasi vietate diventa null (nessun testo sostitutivo).
  * @param {string|null} text
+ * @param {{ exempt?: string[] }} [opts] nomi propri (es. il nome della tappa)
+ *   che non fanno scattare il filtro
  * @returns {{ text: string|null, removed: Array<{ frase: string, parole: string[] }> }}
  */
-export function filterBannedWords(text) {
+export function filterBannedWords(text, { exempt = [] } = {}) {
     if (text == null || String(text).trim() === '') return { text: null, removed: [] };
     const kept = [];
     const removed = [];
     for (const s of splitSentences(String(text).trim())) {
-        const t = norm(s);
+        const t = neutralize(norm(s).replace(/\s+/g, ' '), exempt);
         const parole = BANNED_RULES.filter(r => r.re.test(t)).map(r => r.word);
         if (parole.length > 0) removed.push({ frase: s, parole });
         else kept.push(s);

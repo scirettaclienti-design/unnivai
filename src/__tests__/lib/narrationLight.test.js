@@ -166,3 +166,36 @@ describe('Gate PAROLE VIETATE — un elenco solo, prompt invariati', () => {
         );
     });
 });
+
+// ─── Gate PAROLE VIETATE (P3d) — eccezioni fisse ──────────────────────────
+describe('filterBannedWords — eccezioni fisse, senza togliere frasi buone', () => {
+    it('"centro storico" non fa scattare il filtro, nemmeno al plurale', () => {
+        for (const frase of ['Passeggia nel centro storico fino al Duomo.', 'I centri storici qui sono stretti.', 'Il Centro Storico è in salita.']) {
+            expect(filterBannedWords(frase).text, frase).toBe(frase);
+        }
+    });
+
+    it('"centro storico" con un\'altra parola vietata → la frase viene tolta lo stesso', () => {
+        const out = filterBannedWords('Il centro storico è magico. Le scale sono ripide.');
+        expect(out.text).toBe('Le scale sono ripide.');
+        expect(out.removed[0].parole).toEqual(['magico']);
+    });
+
+    it('"storico" fuori da "centro storico" resta vietato', () => {
+        expect(filterBannedWords('Un palazzo storico sul centro.').text).toBeNull();
+    });
+
+    it('il nome proprio della tappa non fa scattare il filtro', () => {
+        const nome = 'Museo Storico della Liberazione';
+        const frase = 'Il Museo Storico della Liberazione ha sale fresche anche ad agosto.';
+        expect(filterBannedWords(frase, { exempt: [nome] }).text).toBe(frase);
+        // senza il nome esente la stessa frase verrebbe tolta: l'eccezione e' quella
+        expect(filterBannedWords(frase).text).toBeNull();
+    });
+
+    it('nome della tappa + un\'altra parola vietata → tolta', () => {
+        const out = filterBannedWords('Il Museo Storico della Liberazione è imperdibile.', { exempt: ['Museo Storico della Liberazione'] });
+        expect(out.text).toBeNull();
+        expect(out.removed[0].parole).toEqual(['imperdibile']);
+    });
+});

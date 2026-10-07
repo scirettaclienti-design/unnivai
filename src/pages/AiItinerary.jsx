@@ -8,10 +8,11 @@ import { useUserContext } from "../hooks/useUserContext";
 import { aiRecommendationService, QUOTA_USER_MESSAGE } from "../services/aiRecommendationService";
 import { PLACES_SEARCH_ERROR_MESSAGE } from "../services/placesDiscoveryService";
 import { normalizeTour } from "../services/tourShape";
-// Gate RAGGIO DIFF 1b — offset cumulativo e formattazione delle stime.
-// Nessun numero secco e nessuna stringa costruita a mano in questa pagina:
-// la forma testuale di un tempo vive tutta in tourTiming.js.
-import { computeCumulativeOffsets, formatOffsetLabel, formatEstimate } from "@/lib/tourTiming";
+// Gate RAGGIO DIFF 1b — la sosta stimata ("~30 min") si formatta in tourTiming.js.
+import { formatEstimate } from "@/lib/tourTiming";
+// Gate TAPPE PER MOMENTO — tappe raggruppate per momento (dayMoments.js) con
+// l'orario reale di arrivo (scheduledTime). Lo scarto "+1h31" non si mostra piu'.
+import { groupStopsByDayAndMoment, stopClockLabel } from "@/lib/stopMoments";
 // Gate C2 — i tag dal prompt libero vivono in un motore solo, con test propri.
 // La vecchia riga inline cancellava ogni lettera accentata: vedi promptTags.js.
 import { extractPromptTags } from "@/lib/promptTags";
@@ -604,38 +605,40 @@ export default function AIItineraryPage() {
                                         </div>
 
                                         {/* Stops Timeline */}
-                                        {/* Gate RAGGIO DIFF 1b — gli offset si DERIVANO qui, al render,
-                                            dai campi che computeStopTimings ha gia' messo sulle tappe.
-                                            Non si persistono e non si chiedono al modello: un cumulativo
-                                            salvato sarebbe vero solo finche' l'ordine non cambia, e
-                                            l'ordine lo decide sortByProximity a monte. */}
-                                        <div className="space-y-3">
-                                            {(() => {
-                                                const offsets = computeCumulativeOffsets(day.stops);
-                                                return day.stops.map((stop, index) => {
+                                        {/* Gate TAPPE PER MOMENTO — le tappe del giorno, per momento della
+                                            giornata (nomi e confini da dayMoments.js), con l'orario reale di
+                                            arrivo calcolato dal motore. Il giorno lo sceglie gia' il navigatore
+                                            qui sopra: qui si raggruppa per momento, nell'ordine delle tappe. */}
+                                        <div className="space-y-5">
+                                            {groupStopsByDayAndMoment(day.stops).flatMap(d => d.groups).map((group, gi) => (
+                                                <div key={`${group.moment?.key ?? 'senza'}-${gi}`} className="space-y-3">
+                                                    {group.moment && (
+                                                        <h3 data-moment-header className="text-[11px] font-bold text-brand-orange uppercase tracking-widest px-1">
+                                                            {group.moment.label}
+                                                        </h3>
+                                                    )}
+                                                    {group.items.map(({ stop, index, timeLabel }) => {
                                                 const IconComponent = (typeof stop.icon === 'string'
                                                     ? { Camera, ShoppingBag, Utensils, Eye, Coffee, MapPin }[stop.icon] || MapPin
                                                     : stop.icon) || MapPin;
 
-                                                // "Inizio" per la prima tappa, "+35 min" per le altre,
-                                                // null se un addendo manca (e allora non si monta nulla).
-                                                const offsetLabel = formatOffsetLabel(offsets[index]);
                                                 // La sosta e' un'altra informazione: quanto stai QUI, non
-                                                // quanto e' passato dall'inizio. Sta sulla card, non nella
-                                                // colonna, e porta il tilde della stima.
+                                                // a che ora arrivi. Sta sulla card, non nella colonna, e
+                                                // porta il tilde della stima.
                                                 const stayLabel = formatEstimate(stop.stayMinutes);
 
                                                 return (
                                                     <div
                                                         key={stop.title ?? index}
+                                                        data-stop-card
                                                         className="bg-obsidian-card rounded-2xl border border-obsidian-border overflow-hidden shadow-sm"
                                                     >
                                                         <div className="flex">
                                                             {/* Left column + Icon — VINCOLO TECNICO: min-w-[64px] INVARIATO */}
                                                             <div className="flex flex-col items-center justify-start bg-obsidian-raised border-r border-obsidian-border px-3 py-4 min-w-[64px]">
-                                                                {/* Gate RAGGIO DIFF 1b — offset su scala neutra, senza accento */}
-                                                                {offsetLabel && (
-                                                                    <span className="text-obsidian-secondary font-bold text-xs mb-2 whitespace-nowrap">{offsetLabel}</span>
+                                                                {/* Gate TAPPE PER MOMENTO — l'orario reale di arrivo; senza scheduledTime niente */}
+                                                                {timeLabel && (
+                                                                    <span className="text-obsidian-primary font-bold text-xs mb-2 whitespace-nowrap tabular-nums">{timeLabel}</span>
                                                                 )}
                                                                 <div className="w-9 h-9 bg-obsidian-card border border-obsidian-border rounded-full flex items-center justify-center text-obsidian-primary">
                                                                     <IconComponent className="w-4 h-4 text-obsidian-secondary" />
@@ -654,7 +657,9 @@ export default function AIItineraryPage() {
                                                                     )}
                                                                 </div>
 
-                                                                <p className="text-xs text-obsidian-secondary mb-2 line-clamp-2 leading-relaxed">{stop.description}</p>
+                                                                {stop.description && (
+                                                                    <p data-stop-description className="text-xs text-obsidian-secondary mb-2 line-clamp-2 leading-relaxed">{stop.description}</p>
+                                                                )}
 
                                                                 <div className="flex items-center justify-between">
                                                                     <div className="flex items-center gap-2">
@@ -690,8 +695,9 @@ export default function AIItineraryPage() {
                                                         </div>
                                                     </div>
                                                 );
-                                                });
-                                            })()}
+                                                    })}
+                                                </div>
+                                            ))}
                                         </div>
                                     </motion.div>
                                 ))}
@@ -817,10 +823,12 @@ export default function AIItineraryPage() {
                                     )}
 
                                     <div className="grid grid-cols-2 gap-3">
-                                        {selectedStop.time && (
+                                        {/* Gate TAPPE PER MOMENTO — l'orario e' quello calcolato (scheduledTime),
+                                            non il vecchio campo `time` scritto dal modello. */}
+                                        {stopClockLabel(selectedStop) && (
                                             <div className="bg-obsidian-raised border border-obsidian-border rounded-xl p-2.5">
                                                 <h4 className="font-bold text-obsidian-secondary text-[10px] uppercase tracking-wider">Orario</h4>
-                                                <p className="text-xs font-semibold text-obsidian-primary mt-0.5">{selectedStop.time}</p>
+                                                <p className="text-xs font-semibold text-obsidian-primary mt-0.5">{stopClockLabel(selectedStop)}</p>
                                             </div>
                                         )}
                                         {selectedStop.rating && (

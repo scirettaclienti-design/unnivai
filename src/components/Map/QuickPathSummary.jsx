@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Navigation, Clock, Users, ArrowRight, Sparkles, Home } from 'lucide-react';
 import { getCoverPalette } from '@/lib/categoryPalette';
+import { TourStopsByMoment } from '@/components/TourStopsByMoment';
 
 // Gate PULIZIA P1 — formatta minuti → "45 min" / "3h" / "1h 30m".
 // Il vecchio inline `(min % 60 || '')` trattava lo 0 come falsy e stampava
@@ -124,20 +125,8 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                                     WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 26px, black 100%)',
                                 }}
                             >
-                                {tourData.steps.map((step, idx) => (
-                                    <div key={idx} className="flex items-start gap-3 bg-obsidian-card p-3 rounded-xl border border-obsidian-border shadow-sm relative overflow-hidden group">
-                                        {idx !== tourData.steps.length - 1 && (
-                                            <div className="absolute left-[1.35rem] top-8 bottom-[-12px] w-0.5 bg-obsidian-border z-0" />
-                                        )}
-                                        <div className="w-6 h-6 rounded-full bg-brand-orange text-obsidian-bg flex items-center justify-center text-[11px] font-bold shrink-0 relative z-10 shadow-sm mt-0.5">
-                                            {idx + 1}
-                                        </div>
-                                        <div className="flex-1 min-w-0 relative z-10">
-                                            <p className="text-sm font-bold text-obsidian-primary leading-tight">{step.name || step.title || `Tappa ${idx+1}`}</p>
-                                            <p className="text-xs text-obsidian-secondary mt-1 leading-relaxed font-medium">{step.description || step.category || 'Esplorazione consigliata'}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                                {/* Gate TAPPE PER MOMENTO — per momento, con l'orario reale; niente testo di riempimento. */}
+                                <TourStopsByMoment stops={tourData.steps} />
                             </div>
                         </div>
                     )}

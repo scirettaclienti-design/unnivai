@@ -5,6 +5,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
 import { getCoverPalette } from "@/lib/categoryPalette";
+import { TourStopsByMoment } from "@/components/TourStopsByMoment";
 
 // Gate VERITÀ VISIVA (F26) DIFF 5 — rimossi CITY_IMAGES e getAdaptiveImage.
 // Senza foto reale la copertina e' null e cade nel ramo B illustrato
@@ -531,20 +532,8 @@ export default function SurpriseTourPage() {
                                             WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 26px, black 100%)',
                                         }}
                                     >
-                                        {mappedTour.stops.map((step, idx) => (
-                                            <div key={idx} className="flex items-start gap-3 bg-obsidian-card p-3 rounded-xl border border-obsidian-border shadow-sm relative overflow-hidden group">
-                                                {idx !== mappedTour.stops.length - 1 && (
-                                                    <div className="absolute left-[1.35rem] top-8 bottom-[-12px] w-0.5 bg-obsidian-border z-0" />
-                                                )}
-                                                <div className="w-6 h-6 rounded-full bg-brand-orange text-obsidian-bg flex items-center justify-center text-[11px] font-bold shrink-0 relative z-10 shadow-sm mt-0.5">
-                                                    {idx + 1}
-                                                </div>
-                                                <div className="flex-1 min-w-0 relative z-10">
-                                                    <p className="text-sm font-bold text-obsidian-primary leading-tight">{step.name || step.title || `Tappa ${idx+1}`}</p>
-                                                    <p className="text-xs text-obsidian-secondary mt-1 leading-relaxed font-medium">{step.description || step.category || 'Esplorazione consigliata'}</p>
-                                                </div>
-                                            </div>
-                                        ))}
+                                        {/* Gate TAPPE PER MOMENTO — per momento, con l'orario reale; niente testo di riempimento. */}
+                                        <TourStopsByMoment stops={mappedTour.stops} />
                                     </div>
                                 </div>
                             )}

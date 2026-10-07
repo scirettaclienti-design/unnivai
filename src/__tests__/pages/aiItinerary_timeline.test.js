@@ -3,17 +3,16 @@ import { createElement } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 // Gate RAGGIO DIFF 1b — il CABLAGGIO della timeline, non il calcolo.
+// Gate TAPPE PER MOMENTO — la colonna sinistra non mostra piu' lo scarto
+// dall'inizio ("Inizio", "+35 min") ma l'ORARIO REALE di arrivo, cioe'
+// `scheduledTime` gia' calcolato dal motore. Il test resta quello che era: monta
+// la pagina e legge le coppie (titolo della tappa, etichetta nella SUA colonna)
+// nell'ordine del DOM, perche' un `stops[index + 1]` nel render passerebbe
+// verde su qualunque test puro.
 //
-// I test puri su computeCumulativeOffsets e formatOffsetLabel provano che i
-// numeri e le etichette sono giusti. Non provano che l'etichetta giusta finisca
-// sulla RIGA giusta: un `offsets[index + 1]` nel render passerebbe verde su
-// tutta la suite pura. Questo file monta la pagina e legge le coppie
-// (titolo della tappa, etichetta nella sua colonna) nell'ordine del DOM.
-//
-// Mock SOLO di infrastruttura, mai del calcolo: `computeCumulativeOffsets` e
-// `formatOffsetLabel` girano veri. Le tappe arrivano gia' con `stayMinutes` e
-// `travelMinutesFromPrev` valorizzati, come le consegna computeStopTimings in
-// produzione, cosi' il test misura il tratto fra il dato e il pixel.
+// Mock SOLO di infrastruttura. Le tappe arrivano con `scheduledTime` e
+// `stayMinutes` come le consegna il motore; la terza NON ha scheduledTime
+// (un orario che il motore non sa), e la sua colonna deve restare vuota.
 vi.mock('framer-motion', async () => {
     const React = await import('react');
     const OMIT = new Set([
@@ -59,13 +58,15 @@ vi.mock('@/services/aiRecommendationService', () => ({
 
 import AiItinerary from '../../pages/AiItinerary';
 
-// Quattro tappe. Il buco sta sulla TERZA: `travelMinutesFromPrev: null`.
-// Offset attesi: 0 | 0+30+5=35 | null (buco) | null (assorbito).
+// Quattro tappe, orari di ROMA espliciti (la CI gira in UTC). La terza non ha
+// un orario: la sua colonna resta vuota, e il vuoto NON contagia la quarta —
+// l'orario e' un dato della tappa, non un cumulativo.
+const at = (hhmm) => new Date(`2026-10-08T${hhmm}:00+02:00`).toISOString();
 const STOPS = [
-    { title: 'Tappa Alfa',  type: 'cultura', description: 'a', stayMinutes: 30, travelMinutesFromPrev: null, latitude: 41.1, longitude: 12.1 },
-    { title: 'Tappa Bravo', type: 'food',    description: 'b', stayMinutes: 20, travelMinutesFromPrev: 5,    latitude: 41.2, longitude: 12.2 },
-    { title: 'Tappa Char',  type: 'natura',  description: 'c', stayMinutes: 45, travelMinutesFromPrev: null, latitude: 41.3, longitude: 12.3 },
-    { title: 'Tappa Delta', type: 'relax',   description: 'd', stayMinutes: 60, travelMinutesFromPrev: 10,   latitude: 41.4, longitude: 12.4 },
+    { title: 'Tappa Alfa',  type: 'cultura', description: 'a', stayMinutes: 30, travelMinutesFromPrev: null, scheduledTime: at('09:30'), latitude: 41.1, longitude: 12.1 },
+    { title: 'Tappa Bravo', type: 'food',    description: 'b', stayMinutes: 20, travelMinutesFromPrev: 5,    scheduledTime: at('12:30'), latitude: 41.2, longitude: 12.2 },
+    { title: 'Tappa Char',  type: 'natura',  description: 'c', stayMinutes: 45, travelMinutesFromPrev: null, scheduledTime: null,       latitude: 41.3, longitude: 12.3 },
+    { title: 'Tappa Delta', type: 'relax',   description: 'd', stayMinutes: 60, travelMinutesFromPrev: 10,   scheduledTime: at('14:40'), latitude: 41.4, longitude: 12.4 },
 ];
 
 const DAY = { day: 1, title: 'Giorno 1 a Roma', stops: STOPS };
@@ -103,49 +104,41 @@ beforeEach(() => {
     generateItinerary.mockResolvedValue({ days: [DAY] });
 });
 
-describe('DIFF 1b — cablaggio della timeline (render)', () => {
-    it('ogni etichetta sta sulla riga della SUA tappa', async () => {
+describe('DIFF 1b — cablaggio della timeline (render), orario reale', () => {
+    it('ogni orario sta sulla riga della SUA tappa', async () => {
         const { container } = await mountTimeline();
         expect(readRows(container).map(r => [r.titolo, r.offset])).toEqual([
-            ['Tappa Alfa', 'Inizio'],
-            ['Tappa Bravo', '+35 min'],
+            ['Tappa Alfa', '09:30'],
+            ['Tappa Bravo', '12:30'],
             ['Tappa Char', null],
-            ['Tappa Delta', null],
+            ['Tappa Delta', '14:40'],
         ]);
     });
 
-    it('la prima tappa legge "Inizio", e non e\' la seconda a leggerlo', async () => {
+    it('nessuno scarto dall\'inizio: niente "Inizio", niente "+N min"', async () => {
         const { container } = await mountTimeline();
-        const rows = readRows(container);
-        expect(rows[0].offset).toBe('Inizio');
-        expect(rows[1].offset).not.toBe('Inizio');
+        expect(container.textContent).not.toContain('Inizio');
+        expect(container.textContent).not.toMatch(/\+\s*\d+\s*(h|min)/);
     });
 
-    it('la tappa col travel null non mostra offset, e nemmeno quelle dopo', async () => {
+    it('la tappa senza scheduledTime non mostra orario, e non lo inventa', async () => {
         const { container } = await mountTimeline();
         const rows = readRows(container);
-        expect(rows[2].offset).toBeNull();
-        expect(rows[3].offset).toBeNull();
-        // e la tappa col buco e\' davvero la terza, non un\'altra
         expect(rows[2].titolo).toBe('Tappa Char');
+        expect(rows[2].offset).toBeNull();
     });
 
-    it('l\'ordine delle etichette segue l\'ordine delle tappe', async () => {
+    it('l\'ordine delle righe segue l\'ordine delle tappe', async () => {
         const { container } = await mountTimeline();
-        const rows = readRows(container);
-        expect(rows.map(r => r.titolo)).toEqual(STOPS.map(s => s.title));
-        expect(rows.map(r => r.offset)).toEqual(['Inizio', '+35 min', null, null]);
+        expect(readRows(container).map(r => r.titolo)).toEqual(STOPS.map(s => s.title));
     });
 
-    it('la sosta sta sulla card, non nella colonna dell\'offset', async () => {
+    it('la sosta sta sulla card, non nella colonna dell\'orario', async () => {
         const { container } = await mountTimeline();
         const rows = readRows(container);
-        // "~45 min" e\' la sosta della terza tappa: sta a destra...
         expect(rows[2].colonnaDestra).toContain('~45 min');
-        // ...e la colonna sinistra della terza tappa non contiene nulla,
-        // perche\' il suo offset e\' null. Le due misure non si mescolano.
         expect(rows[2].offset).toBeNull();
         expect(rows[0].colonnaDestra).toContain('~30 min');
-        expect(rows[0].offset).toBe('Inizio');
+        expect(rows[0].offset).toBe('09:30');
     });
 });

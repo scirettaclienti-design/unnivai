@@ -587,8 +587,13 @@ describe('marker negativo — la timeline non mostra piu\' un orario', () => {
         expect(/stop\.time\b/.test(aiItinerary())).toBe(false);
     });
 
-    it('l\'etichetta dell\'offset passa da formatOffsetLabel, non da una stringa a mano', () => {
-        expect(/formatOffsetLabel\(/.test(aiItinerary())).toBe(true);
+    // Gate TAPPE PER MOMENTO — la colonna mostra l'orario REALE di arrivo
+    // (scheduledTime), formattato da src/lib/stopMoments.js; lo scarto
+    // dall'inizio (formatOffsetLabel) non si mostra piu' sulle tappe del tour.
+    it('l\'orario passa da stopMoments.js, non da una stringa a mano, e lo scarto non c\'e\' piu\'', () => {
+        const src = aiItinerary();
+        expect(/groupStopsByDayAndMoment\(/.test(src)).toBe(true);
+        expect(/formatOffsetLabel|computeCumulativeOffsets/.test(src)).toBe(false);
     });
 
     it('nessun orario costruito: niente toLocaleTimeString, getHours, `--:--`', () => {

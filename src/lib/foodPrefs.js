@@ -18,11 +18,15 @@
 // creare cicli fra candidateScoring, momentSelection e questo file.
 
 // ─── Vocabolario ─────────────────────────────────────────────────────────────
+// P7b2 — `opzione`: come la dieta entra nella ricerca. Si AGGIUNGE alla
+// richiesta ("trattoria romana" → "trattoria romana con opzioni vegetariane"),
+// non la sostituisce: le parole di cucina e stile restano.
+// `parole`: se la richiesta nomina gia' la dieta, non si ripete.
 export const DIETE = {
-    vegetariano:   { label: 'Vegetariano',   criterio: 'vegetariano',   come: 'come vegetariani' },
-    vegano:        { label: 'Vegano',        criterio: 'vegano',        come: 'come vegani' },
-    senza_glutine: { label: 'Senza glutine', criterio: 'senza glutine', come: 'con opzioni senza glutine' },
-    halal:         { label: 'Halal',         criterio: 'halal',         come: 'come halal' },
+    vegetariano:   { label: 'Vegetariano',   criterio: 'vegetariano',   opzione: 'vegetariane',   come: 'come vegetariani',          parole: ['vegetarian', 'veggie'] },
+    vegano:        { label: 'Vegano',        criterio: 'vegano',        opzione: 'vegane',        come: 'come vegani',               parole: ['vegan'] },
+    senza_glutine: { label: 'Senza glutine', criterio: 'senza glutine', opzione: 'senza glutine', come: 'con opzioni senza glutine', parole: ['senza glutine', 'gluten', 'celiac'] },
+    halal:         { label: 'Halal',         criterio: 'halal',         opzione: 'halal',         come: 'come halal',                parole: ['halal'] },
 };
 
 // Tetto di price_level di Google (0 gratis … 4 molto caro) per ogni budget.
@@ -169,21 +173,73 @@ export const foodPrefsFingerprint = (fp) => (hasFoodPrefs(fp)
 // ─── Dieta: la ricerca del cibo ──────────────────────────────────────────────
 export const dietCriteria = (dieta) => asDieta(dieta).map(d => DIETE[d].criterio);
 
-/** La query della ricerca mirata del cibo, con il criterio dentro. */
-export const dietFoodQuery = (dieta, base = 'ristorante trattoria') => {
-    const c = dietCriteria(dieta);
-    return c.length > 0 ? `${base} ${c.join(' ')}` : base;
+// P7b2 — "con opzioni vegetariane", "con opzioni vegetariane e senza glutine".
+export const dietOptionPhrase = (dieta) => {
+    const o = asDieta(dieta).map(d => DIETE[d].opzione);
+    if (o.length === 0) return '';
+    return `con opzioni ${o.length === 1 ? o[0] : `${o.slice(0, -1).join(', ')} e ${o[o.length - 1]}`}`;
 };
 
-/** Una query del cibo con il criterio aggiunto (per le query scritte dal traduttore). */
+/**
+ * Una query del cibo con la dieta AGGIUNTA come opzione: le parole della
+ * richiesta (cucina, stile: "romana", "siciliana", "di pesce", "tipica")
+ * restano tutte. Le diete gia' nominate nella query non si ripetono.
+ */
 export const withDietCriteria = (query, dieta) => {
-    const c = dietCriteria(dieta).filter(x => !String(query).toLowerCase().includes(x));
-    return c.length > 0 ? `${query} ${c.join(' ')}` : query;
+    const q = String(query || '').trim();
+    const mancano = asDieta(dieta).filter(d => !DIETE[d].parole.some(w => q.toLowerCase().includes(w)));
+    const frase = dietOptionPhrase(mancano);
+    return frase ? `${q} ${frase}` : q;
 };
 
-/** Marca i candidati arrivati da una ricerca con il criterio. */
-export const markDietSearched = (candidates, dieta) => (Array.isArray(candidates) ? candidates : [])
-    .map(c => ({ ...c, _dietaCercata: asDieta(dieta) }));
+/** La query della ricerca mirata del cibo (base del codice), con la dieta come opzione. */
+export const dietFoodQuery = (dieta, base = 'ristorante trattoria') => withDietCriteria(base, dieta);
+
+// P7b2 — se la richiesta + la dieta trovano pochi locali, si ALLARGA la
+// richiesta tenendo la dieta: "ristorante con opzioni vegetariane". Mai una
+// ricerca del cibo senza la dieta: il vincolo resta rigido.
+export const DIET_MIN_RESULTS = 3;
+export const DIET_WIDE_BASE = 'ristorante';
+export const dietSearchChain = (query, dieta) => {
+    const prima = withDietCriteria(query, dieta);
+    const larga = withDietCriteria(DIET_WIDE_BASE, dieta);
+    return prima === larga ? [prima] : [prima, larga];
+};
+
+/**
+ * Esegue la catena: la prima ricerca; se trova meno di DIET_MIN_RESULTS
+ * locali, la ricerca allargata, e unisce (senza doppioni). Ogni risultato e'
+ * marcato con la dieta e con la ricerca che lo ha trovato (`_ricercaCibo`).
+ * @param {(q: string) => Promise<Array>} run - la ricerca (textsearch)
+ * @returns {Promise<{ results: Array, ricerche: string[] }>}
+ */
+export const searchFoodWithDiet = async (run, query, dieta) => {
+    const chain = dietSearchChain(query, dieta);
+    const seen = new Set();
+    const results = [];
+    const ricerche = [];
+    for (const q of chain) {
+        if (ricerche.length > 0 && results.length >= DIET_MIN_RESULTS) break;
+        let found;
+        if (ricerche.length === 0) {
+            found = await run(q); // la prima: un errore arriva a chi chiama (rete giu' non e' "non trovo")
+        } else {
+            try { found = await run(q); } catch { break; } // l'allargamento non fa cadere quello che c'e'
+        }
+        ricerche.push(q);
+        for (const c of markDietSearched(found, dieta, q)) {
+            const id = c.place_id || c.googlePlaceId || c.name;
+            if (seen.has(id)) continue;
+            seen.add(id);
+            results.push(c);
+        }
+    }
+    return { results, ricerche };
+};
+
+/** Marca i candidati arrivati da una ricerca con il criterio (e quale ricerca). */
+export const markDietSearched = (candidates, dieta, ricerca = null) => (Array.isArray(candidates) ? candidates : [])
+    .map(c => ({ ...c, _dietaCercata: asDieta(dieta), ...(ricerca ? { _ricercaCibo: ricerca } : {}) }));
 
 const dietOk = (c, dieta) => {
     const cercata = Array.isArray(c?._dietaCercata) ? c._dietaCercata : [];

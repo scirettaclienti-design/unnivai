@@ -118,6 +118,11 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                         )}
                     </div>
 
+                    {/* P7b2 — riga onesta sulla dieta: "cercati come", mai "e' vegetariano". */}
+                    {tourData.dietNote && (
+                        <p data-diet-note className="text-obsidian-secondary text-xs px-1">{tourData.dietNote}</p>
+                    )}
+
                     {/* Tappe Generate (descrizioni intere, senza troncamento forzato) */}
                     {tourData.steps?.length > 0 && (
                         <div className="mt-4 bg-obsidian-raised/60 rounded-2xl p-3.5 border border-obsidian-border">

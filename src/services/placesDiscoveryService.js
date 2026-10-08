@@ -13,7 +13,7 @@
 
 import { buildPlacesProxyUrl, isPlacesProxyEnabled, BLACKLIST_TYPES } from './aiRecommendationService';
 import { isSmallTown, widerRadiusKm } from './tourShape';
-import { dietFoodQuery, markDietSearched } from '../lib/foodPrefs';
+import { searchFoodWithDiet } from '../lib/foodPrefs';
 
 // DVAI-055-b: prefix bumped da 'unnivai_poiv2_' per invalidare i POI tematici
 // cached prima del filtro raggio centralizzato nel normalizer. I tour tematici
@@ -711,11 +711,13 @@ const dedupePOIsAcrossThemes = (allPOIs) => {
 const searchHomeTheme = async (cityName, lat, lng, theme, foodPrefs) => {
   const dieta = foodPrefs?.dieta || [];
   if (theme !== 'food' || dieta.length === 0) return discoverRealPOIs(cityName, lat, lng, theme);
-  const found = await discoverRealPOIs(cityName, lat, lng, null, {
-    customQuery: dietFoodQuery(dieta, THEME_TEXTSEARCH.food.query),
+  // P7b2 — la dieta come opzione accodata alla query del tema; se trova poco,
+  // la ricerca si allarga tenendo la dieta (lib/foodPrefs searchFoodWithDiet).
+  const { results } = await searchFoodWithDiet((q) => discoverRealPOIs(cityName, lat, lng, null, {
+    customQuery: q,
     customKind: THEME_TEXTSEARCH.food.kind,
-  });
-  return markDietSearched(found, dieta);
+  }), THEME_TEXTSEARCH.food.query, dieta);
+  return results;
 };
 
 const discoverAllThemes = async (cityName, lat, lng, { foodPrefs = null } = {}) => {

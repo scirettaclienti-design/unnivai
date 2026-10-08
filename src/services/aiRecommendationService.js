@@ -357,7 +357,7 @@ export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './to
 import { selectScoredCandidatePool, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport } from './candidateScoring';
 import {
     resolveFoodPrefs, applyFoodConstraints, foodPrefBonus, foodPrefsFingerprint, hasFoodPrefs,
-    withDietCriteria, dietFoodQuery, markDietSearched, dietNoteLine, dietCriteria, hierarchyPromptBlock, priceLevelOf,
+    searchFoodWithDiet, dietNoteLine, dietCriteria, hierarchyPromptBlock, priceLevelOf,
 } from '@/lib/foodPrefs';
 
 // ─── DVAI-060 F2 — derive theme + fetch candidati reali ──────────────────────
@@ -740,12 +740,18 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
 
         lists = await settleSearches(
             queriesToRun.map(q => {
-                const isFood = dieta.length > 0 && deriveKindFromQuery(q) === 'FOOD';
-                const search = placesDiscoveryService.discoverRealPOIs(
+                // P7b2 — query di cibo + dieta: le parole della richiesta restano
+                // ("trattoria romana con opzioni vegetariane"); se trova poco si
+                // allarga tenendo la dieta (searchFoodWithDiet), mai senza.
+                if (dieta.length > 0 && deriveKindFromQuery(q) === 'FOOD') {
+                    return searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(
+                        cityName, lat, lng, null, { customQuery: fq, customKind, skipLegacyFallback: true },
+                    ), q, dieta).then(r => r.results);
+                }
+                return placesDiscoveryService.discoverRealPOIs(
                     cityName, lat, lng, null,
-                    { customQuery: isFood ? withDietCriteria(q, dieta) : q, customKind, skipLegacyFallback: true }
+                    { customQuery: q, customKind, skipLegacyFallback: true }
                 );
-                return isFood ? search.then(r => markDietSearched(r, dieta)) : search;
             }),
             `path A ${cityName}`,
         );
@@ -754,9 +760,9 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
         const themes = derivePrimaryThemes(prefs);
         lists = await settleSearches(
             themes.map(t => (t === 'food' && dieta.length > 0
-                ? placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, null, {
-                    customQuery: dietFoodQuery(dieta, THEME_FOOD_QUERY), customKind: 'FOOD',
-                }).then(r => markDietSearched(r, dieta))
+                ? searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, null, {
+                    customQuery: fq, customKind: 'FOOD',
+                }), THEME_FOOD_QUERY, dieta).then(r => r.results)
                 : placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t))),
             `path B ${cityName} [${themes.join(',')}]`,
         );
@@ -963,13 +969,17 @@ const TOUR_CATEGORY_TO_SKELETON = {
 // P7b — la ricerca mirata del cibo (pranzo, cena) con la dieta porta il
 // criterio; dopo, gli stessi vincoli del pool principale (budget, dieta).
 const THEME_FOOD_QUERY = 'trattoria ristorante pizzeria osteria';
+// P7b2 — il tipo di cucina, solo se Google lo dice (types come
+// "italian_restaurant", "vegetarian_restaurant"); altrimenti null, mai dedotto.
+const cuisineOf = (c) => (Array.isArray(c?.types) ? c.types : [])
+    .find(t => /_restaurant$/.test(t) && t !== 'fast_food_restaurant')?.replace(/_restaurant$/, '') || null;
 const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null }) => {
     const { placesDiscoveryService } = await import('./placesDiscoveryService');
     const dieta = foodPrefs?.dieta || [];
     const settled = await Promise.allSettled(themes.map(t => (t === 'food' && dieta.length > 0
-        ? placesDiscoveryService.discoverRealPOIs(city, cityCenter.latitude, cityCenter.longitude, null, {
-            customQuery: dietFoodQuery(dieta, THEME_FOOD_QUERY), customKind: 'FOOD',
-        }).then(r => markDietSearched(r, dieta))
+        ? searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(city, cityCenter.latitude, cityCenter.longitude, null, {
+            customQuery: fq, customKind: 'FOOD',
+        }), THEME_FOOD_QUERY, dieta).then(r => r.results)
         : placesDiscoveryService.discoverRealPOIs(city, cityCenter.latitude, cityCenter.longitude, t))));
     settled.forEach((r, i) => {
         if (r.status === 'rejected') console.warn(`[P3 SCHELETRO] ricerca mirata "${themes[i]}" fallita: ${r.reason?.message}`);
@@ -2576,8 +2586,10 @@ export const aiRecommendationService = {
                             const c = byIdCibo.get(st.place_id) || {};
                             return {
                                 title: st.title,
+                                cucina: cuisineOf(c),
                                 price_level: priceLevelOf(c),
                                 criterio: Array.isArray(c._dietaCercata) && c._dietaCercata.length ? dietCriteria(c._dietaCercata).join(', ') : null,
+                                ricerca: c._ricercaCibo || null,
                             };
                         });
                         const dietNote = food.dieta.length > 0 && tappePasto.some(x => x.criterio) ? dietNoteLine(food.dieta) : null;
@@ -3084,8 +3096,9 @@ export const aiRecommendationService = {
                         tappePasto: finalTours.flatMap(t => t.stops.filter(isMealPlace).map(st => {
                             const c = tuttiCandidati.find(x => homePid(x) === st.place_id) || {};
                             return {
-                                tour: t.themeType, title: st.title, price_level: priceLevelOf(c),
+                                tour: t.themeType, title: st.title, cucina: cuisineOf(c), price_level: priceLevelOf(c),
                                 criterio: Array.isArray(c._dietaCercata) && c._dietaCercata.length ? dietCriteria(c._dietaCercata).join(', ') : null,
+                                ricerca: c._ricercaCibo || null,
                             };
                         })),
                     },
@@ -3299,11 +3312,13 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
             const food = resolveFoodPrefs({ onboarding: ctx.onboardingPrefs });
             const isMealRecipe = recipe.kind === 'FOOD' && /pranzo|ristorante|cucina|trattoria|osteria/i.test(`${recipe.categoria} ${recipe.query}`);
             const useDiet = isMealRecipe && food.dieta.length > 0;
-            let candidates = await placesDiscoveryService.discoverRealPOIs(
+            const runRecipe = (q) => placesDiscoveryService.discoverRealPOIs(
                 city, cc.latitude, cc.longitude, null,
-                { customQuery: useDiet ? withDietCriteria(recipe.query, food.dieta) : recipe.query, customKind: recipe.kind, skipLegacyFallback: true, maxResults: 5 }
+                { customQuery: q, customKind: recipe.kind, skipLegacyFallback: true, maxResults: 5 }
             );
-            if (useDiet) candidates = markDietSearched(candidates, food.dieta);
+            let candidates = useDiet
+                ? (await searchFoodWithDiet(runRecipe, recipe.query, food.dieta)).results
+                : await runRecipe(recipe.query);
             if (hasFoodPrefs(food) && Array.isArray(candidates)) {
                 const fc = applyFoodConstraints(candidates, food, isMealPlace);
                 if (fc.tolti.length > 0) console.info(`[SmartNotif] ${city}: ${fc.tolti.length} tolti dai vincoli — ${fc.tolti.map(x => `${x.name} (${x.motivo})`).join(' | ')}`);

@@ -492,7 +492,7 @@ export default function QuickPathPage() {
     // questo task, non era nel perimetro dichiarato — corretto perché la nuova
     // formula di punteggio (0.45 affinità DNA) è inutile se dnaWeights è
     // sempre vuoto per l'unico flusso che lo popolava "di riferimento".
-    const { trackGeneratedTour, getAIContext, dnaWeights, dnaShare } = useAILearning();
+    const { trackGeneratedTour, getAIContext, dnaWeights, dnaShare, onboardingPrefs } = useAILearning();
     // Gate E-2: hasHitPaywall + unlockPremium + showPaywall rimossi (paywall
     // morto). Prima: dopo 10 tour vita hasHitPaywall=true → click su gruppo
     // apriva showPaywall, ma <PaywallModal> non era MAI renderizzato nel JSX,
@@ -623,7 +623,9 @@ export default function QuickPathPage() {
                 aiProfile,
                 cityCenter,
                 // G3 — Percorso Veloce: parte SEMPRE da adesso, il testo non conta.
-                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'quick' },
+                // P7b2 — dieta e budget del primo accesso, con la stessa gerarchia
+                // di Crea il tuo percorso (la applica il motore).
+                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'quick', onboardingPrefs },
             );
 
             if (timedOut) return; // il timeout ha già gestito l'errore
@@ -682,6 +684,8 @@ export default function QuickPathPage() {
                 included: [],
                 notIncluded: [],
                 center: { latitude: cityCenter.latitude, longitude: cityCenter.longitude },
+                // P7b2 — riga onesta sulla dieta, se un pasto e' stato cercato col criterio.
+                dietNote: result?.days?.[0]?.dietNote || null,
             }, {
                 cityFallback: activeCity,
                 cityCenter, // enforceRadius default (on): il raggio si applica.

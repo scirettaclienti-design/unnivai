@@ -107,7 +107,8 @@ describe('P7b — dieta vegetariana: il criterio nella ricerca e la riga onesta'
 
     beforeEach(() => {
         INTENT = { queries: ['museo', 'trattoria'], categoria: 'misto', oggetto_umano: 'la Roma dei romani', vincoli: { tempo: null, escludi: [], note: null } };
-        PERQUERY = { museo: MUSEI, trattoria: NORMALI, 'trattoria vegetariano': VEG, 'trattoria ristorante pizzeria osteria vegetariano': VEG };
+        // P7b2 — la dieta si accoda come opzione: "trattoria con opzioni vegetariane".
+        PERQUERY = { museo: MUSEI, trattoria: NORMALI, 'trattoria con opzioni vegetariane': VEG, 'trattoria ristorante pizzeria osteria con opzioni vegetariane': VEG };
     });
 
     it('ogni ricerca del cibo porta "vegetariano"; i ristoranti senza criterio non arrivano al selettore', async () => {
@@ -116,7 +117,7 @@ describe('P7b — dieta vegetariana: il criterio nella ricerca e la riga onesta'
 
         const cibo = queries.filter(q => /trattoria|ristorante/.test(q));
         expect(cibo.length).toBeGreaterThan(0);
-        for (const q of cibo) expect(q, q).toContain('vegetariano');
+        for (const q of cibo) expect(q, q).toContain('con opzioni vegetariane');
         const ids = selectorIds();
         for (const p of NORMALI) expect(ids).not.toContain(p.place_id);
         expect(ids.some(id => VEG.some(v => v.place_id === id))).toBe(true);
@@ -137,7 +138,7 @@ describe('P7b — dieta vegetariana: il criterio nella ricerca e la riga onesta'
     it('senza dieta: nessun criterio, nessuna riga (comportamento di prima)', async () => {
         vi.stubGlobal('fetch', routeFetch());
         const r = await genera('Domani voglio vivere Roma da romano', {}, {});
-        expect(queries.some(q => q.includes('vegetariano'))).toBe(false);
+        expect(queries.some(q => q.includes('vegetarian'))).toBe(false);
         expect(r.days[0].dietNote).toBeUndefined();
         expect(r._vincoliCibo).toBeUndefined();
     });
@@ -252,7 +253,7 @@ describe('P7b — gerarchia: il testo scritto vince sul DNA (e sul primo accesso
     it('il testo che chiede pesce sospende il "vegetariano" del primo accesso (fonte piu\' bassa)', async () => {
         vi.stubGlobal('fetch', routeFetch());
         const r = await genera('voglio una cena di pesce', {}, { onboardingPrefs: { dieta: ['vegetariano'], budget: '€€', stile: null } });
-        expect(queries.some(q => q.includes('vegetariano'))).toBe(false);
+        expect(queries.some(q => q.includes('vegetarian'))).toBe(false);
         expect(r._vincoliCibo).toMatchObject({ dieta: [], dietaSospesa: ['vegetariano'], budget: '€€' });
     });
 
@@ -271,7 +272,10 @@ describe('P7b — "Per Te": il tour food cerca col criterio, il budget filtra', 
         vi.stubGlobal('fetch', routeFetch());
         await placesDiscoveryService.discoverAllThemes('Roma', ROMA.latitude, ROMA.longitude, { foodPrefs: { dieta: ['senza_glutine'] } });
         const food = queries.filter(q => q.startsWith('trattoria ristorante pizzeria osteria'));
-        expect(food).toEqual(['trattoria ristorante pizzeria osteria senza glutine Roma']);
+        expect(food).toEqual(['trattoria ristorante pizzeria osteria con opzioni senza glutine Roma']);
+        // P7b2 — zero risultati: si allarga tenendo la dieta, mai senza.
+        expect(queries).toContain('ristorante con opzioni senza glutine Roma');
+        expect(queries.every(q => !/^(trattoria|ristorante)/.test(q) || q.includes('senza glutine'))).toBe(true);
     });
 
     it('prepareHomePools: budget € toglie i 3-4 da ogni pool; un pasto non cercato col criterio esce', () => {
@@ -297,7 +301,7 @@ describe('P7b — notifiche: rispettano dieta e budget', () => {
             onboardingPrefs: { dieta: ['vegetariano'], budget: '€', stile: null },
         });
         expect(queries.length).toBeGreaterThan(0);
-        for (const q of queries) expect(q).toContain('vegetariano');
+        for (const q of queries) expect(q).toContain('con opzioni vegetariane');
         const prompt = calls.map(c => `${c.sys}\n${c.user}`).join('\n');
         expect(calls.length).toBeGreaterThan(0);          // il modello e' stato chiamato davvero
         expect(prompt).toContain('Trattoria Veg');        // con il locale ammesso

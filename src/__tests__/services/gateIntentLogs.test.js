@@ -176,10 +176,12 @@ describe('Gate INTENT — nessun cambio di comportamento', () => {
         const dopo = src.slice(src.indexOf('const customKind ='));
         // Gate INTERESSI-VERI: Promise.all → settleSearches (una ricerca fallita
         // non butta via le altre). L'asserzione sotto non cambia.
-        const chiamata = dopo.slice(0, dopo.indexOf('lists = await settleSearches') + 400);
-        // P7b — con una dieta, la query di tipo cibo porta il criterio
-        // (withDietCriteria): cambia la QUERY, non customKind.
-        expect(chiamata).toContain('customQuery: isFood ? withDietCriteria(q, dieta) : q, customKind');
+        // P7b2 — il blocco delle ricerche del percorso A arriva fino alla sua
+        // etichetta: con la dieta c'e' un ramo in piu' (searchFoodWithDiet), che
+        // cambia la QUERY, non customKind.
+        const chiamata = dopo.slice(0, dopo.indexOf('`path A ${cityName}`'));
+        expect(chiamata).toContain('customQuery: q, customKind');
+        expect(chiamata).toContain('{ customQuery: fq, customKind, skipLegacyFallback: true }');
         expect(chiamata).not.toMatch(/customKind:\s*deriveKindFromQuery/);
     });
 

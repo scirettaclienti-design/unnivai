@@ -79,7 +79,7 @@ export default function SurpriseTourPage() {
     // DVAI-055: estraggo lat/lng dal userContext per il vincolo geografico
     const { city, userId, firstName, lat, lng } = useUserContext();
     const { toast } = useToast();
-    const { userDNAPreferences, getAIContext, dnaWeights, dnaShare } = useAILearning();
+    const { userDNAPreferences, getAIContext, dnaWeights, dnaShare, onboardingPrefs } = useAILearning();
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -224,7 +224,9 @@ export default function SurpriseTourPage() {
                 {
                     interests: userProfile.interests,
                     duration: 'Mezza Giornata',
-                    budget: 'Medio'
+                    // P7b2 — via `budget: 'Medio'`: era un valore scritto qui, non
+                    // una scelta dell'utente, e dal P7b il budget del wizard vince
+                    // sul primo accesso. Ora vale il budget del primo accesso.
                 },
                 prompt,
                 {},
@@ -232,7 +234,8 @@ export default function SurpriseTourPage() {
                 // DVAI-055: cityCenter dal userContext. Se lat/lng assenti, no filtro
                 // (retrocompat: fallback al comportamento precedente).
                 Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null,
-                { dnaWeights: hasPreferences ? dnaWeights : {} }
+                // P7b2 — dieta e budget del primo accesso, stessa gerarchia di Crea.
+                { dnaWeights: hasPreferences ? dnaWeights : {}, onboardingPrefs }
             );
 
             // Gate NARRATORE/POI (Fase 2a) — il check storico
@@ -297,6 +300,8 @@ export default function SurpriseTourPage() {
                 // Passo gli stops grezzi: il normalizer estrae title/description/transition/...
                 // e mappa googlePhoto → image, lat/lng/latitude/longitude entrambi.
                 stops: surpriseTour.stops,
+                // P7b2 — riga onesta sulla dieta, se un pasto e' stato cercato col criterio.
+                dietNote: surpriseTour.dietNote || null,
             }, {
                 cityFallback: city || 'Roma',
                 // DVAI-055-b: doppio filtro innocuo — generateItinerary ha già filtrato con
@@ -524,6 +529,11 @@ export default function SurpriseTourPage() {
                                     </>
                                 )}
                             </div>
+
+                            {/* P7b2 — riga onesta sulla dieta: "cercati come", mai "e' vegetariano". */}
+                            {mappedTour.dietNote && (
+                                <p data-diet-note className="text-obsidian-secondary text-xs px-1">{mappedTour.dietNote}</p>
+                            )}
 
                             {/* Tappe Generate (Linguaggio QuickPath) */}
                             {Array.isArray(mappedTour.stops) && mappedTour.stops.length > 0 && (

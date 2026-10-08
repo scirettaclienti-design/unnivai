@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import {
     candidateMomentCategories, flattenSkeleton, bucketCandidates,
-    missingMomentThemes, repairMomentSelection, scheduleMomentPlan, MAX_EXTRA_SEARCHES,
+    missingMomentThemes, shortMomentThemes, repairMomentSelection, scheduleMomentPlan, MAX_EXTRA_SEARCHES,
 } from '../../services/momentSelection';
 import { buildDaySkeleton } from '../../lib/daySkeleton';
 import { resolveTourWindow } from '../../lib/tourWindow';
@@ -54,9 +54,30 @@ describe('bucketCandidates + missingMomentThemes', () => {
         expect(b.get('g1-aperitivo')).toEqual([]);
     });
 
-    it('anyCategory (richiesta esplicita gia\' filtrata dal codice) → ogni candidato vale per ogni momento', () => {
+    it('anyCategory (richiesta esplicita gia\' filtrata dal codice) → ogni candidato vale per ogni momento, tranne pranzo e cena', () => {
         const b = bucketCandidates(moments, pool, { anyCategory: true });
-        expect([...b.values()].every(l => l.length === 2)).toBe(true);
+        for (const [id, l] of b) {
+            if (id.endsWith('-pranzo') || id.endsWith('-cena')) expect(l.map(c => c.name), id).toEqual(['Trattoria A']);
+            else expect(l, id).toHaveLength(2);
+        }
+    });
+
+    it('P3e — anyCategory + mealOnlyIds: un ristorante cercato per i pasti non va negli altri momenti', () => {
+        const risto = pool.find(c => c.name === 'Trattoria A');
+        const b = bucketCandidates(moments, pool, { anyCategory: true, mealOnlyIds: new Set([risto.place_id]) });
+        expect(b.get('g1-pranzo').map(c => c.name)).toEqual(['Trattoria A']);
+        expect(b.get('g1-cena').map(c => c.name)).toEqual(['Trattoria A']);
+        expect(b.get('g1-mattina').map(c => c.name)).toEqual(['Museo A']);
+        expect(b.get('g1-aperitivo').map(c => c.name)).toEqual(['Museo A']);
+    });
+
+    it('P3e — la ricerca mirata del cibo per i pasti viene prima degli altri momenti (tetto 2)', () => {
+        // Nessun candidato: mattina/pomeriggio → cultura, aperitivo → nightlife,
+        // pranzo/cena → food. Il cibo non deve restare fuori dal tetto.
+        const empty = bucketCandidates(moments, []);
+        const themes = shortMomentThemes(moments, empty, []);
+        expect(themes[0]).toBe('food');
+        expect(themes).toHaveLength(MAX_EXTRA_SEARCHES);
     });
 
     it('ricerca mirata solo per i momenti vuoti, senza doppioni, al massimo 2', () => {

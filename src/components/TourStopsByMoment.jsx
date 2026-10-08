@@ -1,5 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { groupStopsByDayAndMoment } from '@/lib/stopMoments';
+
+// P3e — la dissolvenza in cima alla lista scorrevole (trasparente nei primi
+// 26px) copriva la PRIMA intestazione di momento, che a lista ferma sta
+// proprio li' (10–26px dal bordo): a schermo la prima tappa sembrava senza
+// momento. La dissolvenza serve solo quando c'e' qualcosa che scorre sotto il
+// bordo: si accende appena la lista e' scorsa. Stessa sfumatura di prima.
+const TOP_FADE = 'linear-gradient(to bottom, transparent 0%, black 26px, black 100%)';
+
+export function TopFadeScroll({ className, children }) {
+    const [scrolled, setScrolled] = useState(false);
+    return (
+        <div
+            className={className}
+            data-top-fade={scrolled ? 'on' : 'off'}
+            onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}
+            style={scrolled ? { maskImage: TOP_FADE, WebkitMaskImage: TOP_FADE } : undefined}
+        >
+            {children}
+        </div>
+    );
+}
 
 // Gate TAPPE PER MOMENTO — l'elenco compatto delle tappe di un tour, raggruppato
 // per giorno (solo se i giorni sono piu' d'uno) e per momento della giornata,

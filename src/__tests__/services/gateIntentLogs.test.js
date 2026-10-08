@@ -73,10 +73,14 @@ const SPIAGGIA = ['establishment', 'natural_feature', 'point_of_interest'];
 
 describe('Gate INTENT — il taglio a 20 e il suo ranking (comportamento)', () => {
     beforeEach(() => {
+        // P3e — orologio fisso (ora di Roma, pomeriggio): senza, l'esito dipendeva
+        // dall'ora della CI (a pranzo o a cena entra solo un posto dove mangiare).
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2026-10-07T15:00:00+02:00'));
         vi.clearAllMocks();
         try { window.localStorage.clear(); } catch { /* jsdom */ }
     });
-    afterEach(() => { vi.unstubAllGlobals(); });
+    afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
     it('21 candidati ammessi → al selettore ne arrivano 20, e il 21° e\' quello col qualityScore piu\' basso', async () => {
         // 20 "solidi": 4.1 stelle su 500 recensioni → qs = 4.1*ln(501) ≈ 25.5.

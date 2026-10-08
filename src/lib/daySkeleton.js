@@ -24,7 +24,10 @@
  *     mattina e pomeriggio; Natura e Shopping il pomeriggio; Cibo non aggiunge
  *     momenti ma segna pranzo, aperitivo e cena "da scegliere con cura".
  *   · Una categoria nominata nel testo ("ristoranti", "musei", "bar") vale per
- *     tutti i momenti; gli orari restano.
+ *     tutti i momenti tranne pranzo e cena; gli orari restano.
+ *   · P3e — Pranzo e cena sono SEMPRE un posto dove mangiare: le loro
+ *     categorie restano quelle della tabella (cibo), qualunque categoria abbia
+ *     scelto l'utente. L'aperitivo segue la categoria scelta (una vista va bene).
  *   · Massimo 8 tappe per giorno.
  *
  * ─── IL DOPOCENA E LA FINESTRA ───────────────────────────────────────────────
@@ -48,6 +51,8 @@ const EXPANDABLE_KEYS = new Set(['mattina', 'pomeriggio', 'dopocena']);
 
 const CULTURE_CATEGORIES = ['cultura', 'monumenti', 'musei'];
 const MEAL_KEYS = new Set(['pranzo', 'aperitivo', 'cena']);
+/** P3e — i momenti che restano cibo anche con una categoria esplicita. */
+export const FOOD_ONLY_MOMENT_KEYS = new Set(['pranzo', 'cena']);
 
 const norm = (v) => String(v ?? '')
     .toLowerCase()
@@ -135,7 +140,8 @@ const capStops = (moments) => {
  * @param {string} [p.text]       la frase dell'utente (per la categoria esplicita)
  * @param {string} [p.category]   categoria gia' resa vincolante dal chiamante (P3:
  *   il filtro di categoria del Gate RAGGIO-CATEGORIA). Vale come una categoria
- *   nominata nel testo; se il testo ne nomina una, vince il testo.
+ *   nominata nel testo; se il testo ne nomina una, vince il testo. In
+ *   entrambi i casi pranzo e cena restano cibo.
  * @returns {{ explicitCategory: string|null, days: Array<{ date: string,
  *   totalStops: number, moments: Array<{ key: string, label: string,
  *   start: Date, end: Date, minutes: number, categories: string[],
@@ -169,7 +175,7 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
             const minutes = Math.round((end - start) / 60000);
             if (minutes < MIN_OVERLAP_MINUTES) continue;
 
-            const { categories, preferred } = explicitCategory
+            const { categories, preferred } = explicitCategory && !FOOD_ONLY_MOMENT_KEYS.has(m.key)
                 ? { categories: [explicitCategory], preferred: [explicitCategory] }
                 : prioritize(m.categories, preferredFor(m.key, interestSet));
 

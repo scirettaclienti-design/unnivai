@@ -24,6 +24,7 @@
 
 import { computeCandidateScore } from './candidateScoring';
 import { resolveStayMinutes, travelMinutes } from '../lib/tourTiming';
+import { FOOD_ONLY_MOMENT_KEYS } from '../lib/daySkeleton';
 
 // ─── Categorie dello scheletro, dai types Google ─────────────────────────────
 //
@@ -138,20 +139,26 @@ export function flattenSkeleton(skeleton) {
  * @param {object} [o]
  * @param {boolean} [o.anyCategory] true quando il pool e' gia' ristretto a una
  *   categoria dal codice (Gate RAGGIO-CATEGORIA): la richiesta esplicita vince
- *   e ogni candidato vale per ogni momento — gli orari restano.
+ *   e ogni candidato vale per ogni momento — gli orari restano. Tranne pranzo
+ *   e cena (P3e): li' entra solo un posto dove mangiare.
+ * @param {Set<string>} [o.mealOnlyIds] place_id cercati SOLO per pranzo e cena
+ *   (fuori dalla categoria scelta): con anyCategory non vanno negli altri momenti.
  * @returns {Map<string, Array>} id momento → candidati ammessi (ordine del pool)
  */
-export function bucketCandidates(moments, candidates, { anyCategory = false } = {}) {
+export function bucketCandidates(moments, candidates, { anyCategory = false, mealOnlyIds = null } = {}) {
     const pool = Array.isArray(candidates) ? candidates.filter(idOf) : [];
     const cats = new Map(pool.map(c => [idOf(c), candidateMomentCategories(c)]));
     const buckets = new Map();
     for (const m of moments) {
-        buckets.set(m.id, anyCategory
-            ? [...pool]
+        buckets.set(m.id, anyCategory && !FOOD_ONLY_MOMENT_KEYS.has(m.key)
+            ? pool.filter(c => !mealOnlyIds?.has(idOf(c)))
             : pool.filter(c => (m.categories || []).some(k => cats.get(idOf(c)).has(k))));
     }
     return buckets;
 }
+
+/** P3e — un posto dove mangiare: sta nella categoria `cibo` dello scheletro. */
+export const isMealPlace = (candidate) => candidateMomentCategories(candidate).has('cibo');
 
 /**
  * I temi da cercare per i momenti rimasti senza candidati: uno per momento
@@ -175,13 +182,16 @@ export function missingMomentThemes(moments, buckets, max = MAX_EXTRA_SEARCHES) 
  * ha lo stesso bucket del pranzo del giorno 1: non e' vuoto, ma i ristoranti
  * finiscono prima di arrivarci. Si simula la riparazione senza il modello
  * (tutto riempito per merito) e si guarda quali momenti restano corti.
- * Stesso tetto di ricerche (MAX_EXTRA_SEARCHES), nell'ordine della giornata.
+ * Stesso tetto di ricerche (MAX_EXTRA_SEARCHES), nell'ordine della giornata,
+ * ma pranzo e cena prima (P3e): un pasto senza ristorante si salta, quindi la
+ * ricerca del cibo non deve restare fuori dal tetto.
  */
 export function shortMomentThemes(moments, buckets, pool, max = MAX_EXTRA_SEARCHES) {
     const { plan } = repairMomentSelection({ moments, buckets, aiStops: [], pool });
     const filled = new Map(plan.map(p => [p.moment.id, p.stops.length]));
     const themes = [];
-    for (const m of moments) {
+    const meals = moments.filter(m => FOOD_ONLY_MOMENT_KEYS.has(m.key));
+    for (const m of [...meals, ...moments.filter(m => !FOOD_ONLY_MOMENT_KEYS.has(m.key))]) {
         if ((filled.get(m.id) || 0) >= m.stops) continue;
         const theme = (m.categories || []).map(c => MOMENT_CATEGORY_TO_THEME[c]).find(Boolean);
         if (theme && !themes.includes(theme)) themes.push(theme);

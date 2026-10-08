@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Navigation, Clock, Users, ArrowRight, Sparkles, Home } from 'lucide-react';
 import { getCoverPalette } from '@/lib/categoryPalette';
-import { TourStopsByMoment } from '@/components/TourStopsByMoment';
+import { TourStopsByMoment, TopFadeScroll } from '@/components/TourStopsByMoment';
 import { tourSpanMinutes } from '@/lib/tourTiming';
 
 // Gate PULIZIA P1 — formatta minuti → "45 min" / "3h" / "1h 30m".
@@ -122,16 +122,10 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                     {tourData.steps?.length > 0 && (
                         <div className="mt-4 bg-obsidian-raised/60 rounded-2xl p-3.5 border border-obsidian-border">
                             <h4 className="text-[10px] font-bold text-obsidian-secondary uppercase tracking-widest mb-2 px-1">Itinerario Generato</h4>
-                            <div
-                                className="space-y-3 max-h-[260px] overflow-y-auto pr-2 pt-2.5 pb-1 scrollbar-thin scrollbar-thumb-obsidian-border"
-                                style={{
-                                    maskImage: 'linear-gradient(to bottom, transparent 0%, black 26px, black 100%)',
-                                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 26px, black 100%)',
-                                }}
-                            >
+                            <TopFadeScroll className="space-y-3 max-h-[260px] overflow-y-auto pr-2 pt-2.5 pb-1 scrollbar-thin scrollbar-thumb-obsidian-border">
                                 {/* Gate TAPPE PER MOMENTO — per momento, con l'orario reale; niente testo di riempimento. */}
                                 <TourStopsByMoment stops={tourData.steps} />
-                            </div>
+                            </TopFadeScroll>
                         </div>
                     )}
 

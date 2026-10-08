@@ -58,6 +58,21 @@ describe('buildDaySkeleton — la tabella', () => {
         expect(sk.days[0].moments[0].end.toISOString()).toBe(iso('2026-10-05T17:00:00+02:00'));
     });
 
+    it('P3e — una categoria scelta (testo o chiamante) non tocca pranzo e cena; l\'aperitivo la segue', () => {
+        const giorno = custom('domani', LUN_2057);
+        for (const sk of [
+            buildDaySkeleton({ window: giorno, category: 'cultura' }),
+            buildDaySkeleton({ window: giorno, text: 'musei' }),
+        ]) {
+            const by = Object.fromEntries(sk.days[0].moments.map(m => [m.key, m]));
+            expect(by.pranzo.categories).toEqual(['cibo']);
+            expect(by.cena.categories).toEqual(['cibo']);
+            expect(by.pranzo.stops).toBe(1);
+            expect(by.aperitivo.categories).toEqual([sk.explicitCategory]);
+            expect(by.mattina.categories).toEqual([sk.explicitCategory]);
+        }
+    });
+
     it('"ristoranti stasera" → tutti i momenti cibo, orari invariati', () => {
         const w = custom('ristoranti stasera', LUN_1500);
         const sk = buildDaySkeleton({ window: w, pace: 'Attivo', text: 'ristoranti stasera' });
@@ -135,8 +150,12 @@ describe('buildDaySkeleton — ritmo e tetto', () => {
     });
 
     it('category del chiamante vale come categoria esplicita; il testo vince', () => {
-        expect(buildDaySkeleton({ window: giorno, category: 'natura' }).days[0].moments
+        // P3e — tranne pranzo e cena, che restano cibo.
+        const moments = buildDaySkeleton({ window: giorno, category: 'natura' }).days[0].moments;
+        expect(moments.filter(m => m.key !== 'pranzo' && m.key !== 'cena')
             .every(m => m.categories.length === 1 && m.categories[0] === 'natura')).toBe(true);
+        expect(moments.filter(m => m.key === 'pranzo' || m.key === 'cena').map(m => m.categories))
+            .toEqual([['cibo'], ['cibo']]);
         expect(buildDaySkeleton({ window: giorno, category: 'natura', text: 'ristoranti' }).explicitCategory)
             .toBe('cibo');
     });

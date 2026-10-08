@@ -81,7 +81,9 @@ describe('Gate ORA VERA — dal wizard al selettore, zero fascia oraria', () => 
         // NON resetAllMocks/restoreAllMocks: azzerano i mock globali di setup.js.
         vi.clearAllMocks();
         try { window.localStorage.clear(); } catch { /* jsdom */ }
-        // 9:30, Medio (4 ore) → mattina 3h (2 tappe) + pranzo (1): 3 tappe.
+        // 9:30, Medio (4 ore) → mattina 3h (2 tappe) + pranzo (1). P3e: qui
+        // ci sono solo spa, e a pranzo entra solo un posto dove mangiare: il
+        // pranzo si salta e restano le 2 tappe del mattino.
         pinRomeClock('2026-10-07T09:30:00+02:00');
     });
     afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
@@ -133,6 +135,6 @@ describe('Gate ORA VERA — dal wizard al selettore, zero fascia oraria', () => 
 
         // (3) Il tour esiste comunque: la rimozione non ha rotto la generazione.
         expect(result._source).toBe('google-first');
-        expect(result.days[0].stops).toHaveLength(3);
+        expect(result.days[0].stops.map(st => st.moment)).toEqual(['mattina', 'mattina']);
     });
 });

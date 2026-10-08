@@ -122,8 +122,12 @@ describe('Gate TOUR-DISTANZA — generateItinerary scarta prima di chiamare l’
         // NON resetAllMocks/restoreAllMocks: azzerano i mock globali di setup.js.
         vi.clearAllMocks();
         try { window.localStorage.clear(); } catch { /* jsdom */ }
+        // P3e — orologio fisso (ora di Roma, pomeriggio): senza, l'esito dipendeva
+        // dall'ora della CI (a pranzo o a cena entra solo un posto dove mangiare).
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2026-10-07T15:00:00+02:00'));
     });
-    afterEach(() => { vi.unstubAllGlobals(); });
+    afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
     it('(a) candidati oltre raggio scartati PRIMA della chiamata AI', async () => {
         const { fn, stato } = routeFetch([PLACE(VILLA_LONTANA)], { days: [] });

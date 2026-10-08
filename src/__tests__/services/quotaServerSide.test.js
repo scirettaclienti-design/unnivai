@@ -87,6 +87,10 @@ describe('Gate QUOTA-SERVER — client', () => {
             data: { session: { user: { id: 'user-anna' }, access_token: 'jwt-anna' } },
         });
         vi.mocked(supabase.from).mockImplementation((table) => trackingBuilder(table));
+        // P3e — orologio fisso (ora di Roma, pomeriggio): senza, l'esito dipendeva
+        // dall'ora della CI (a pranzo o a cena entra solo un posto dove mangiare).
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2026-10-07T15:00:00+02:00'));
     });
 
     afterEach(() => {

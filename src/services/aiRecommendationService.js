@@ -329,7 +329,7 @@ import { momentAtClock } from '@/lib/dayMoments';
 import { buildDaySkeleton } from '@/lib/daySkeleton';
 import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
-    repairMomentSelection, scheduleMomentPlan,
+    repairMomentSelection, scheduleMomentPlan, isMealPlace,
 } from './momentSelection';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
@@ -921,6 +921,9 @@ const TOUR_CATEGORY_TO_SKELETON = {
 // punteggio del Gate MERITO. Il tetto di 1 icona e' gia' speso dal pool
 // principale: qui maxIcons 0. Una ricerca che fallisce non fa cadere il tour:
 // il momento resta vuoto e viene tolto, e il report lo dice.
+// P3e — un posto dove mangiare passa anche fuori dalla categoria stretta: serve
+// a pranzo e cena, che restano cibo qualunque categoria sia stata scelta. Il
+// chiamante lo tiene fuori dagli altri momenti (mealOnlyIds).
 const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5 }) => {
     const { placesDiscoveryService } = await import('./placesDiscoveryService');
     const settled = await Promise.allSettled(themes.map(t => placesDiscoveryService.discoverRealPOIs(
@@ -941,7 +944,7 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
             return true;
         });
     extra = applyRadiusFilter(extra, cityCenter, city, { requireCenter: true });
-    if (categoria) extra = extra.filter(c => candidateMatchesIntentCategoria(c, categoria));
+    if (categoria) extra = extra.filter(c => candidateMatchesIntentCategoria(c, categoria) || isMealPlace(c));
     return selectScoredCandidatePool(extra, { city, dnaWeights, limit: perTheme * themes.length, maxIcons: 0 });
 };
 
@@ -2165,7 +2168,15 @@ export const aiRecommendationService = {
                     categoria: categoriaTarget ? intent.categoria : null,
                 });
                 candidates = [...candidates, ...extra];
-                buckets = bucketCandidates(moments, candidates, { anyCategory });
+                // P3e — con la categoria che vale per tutti i momenti, un
+                // ristorante trovato fuori da quella categoria serve SOLO a
+                // pranzo e cena: mai al mattino di un tour Rioni Storici.
+                const mealOnlyIds = anyCategory
+                    ? new Set(extra
+                        .filter(c => isMealPlace(c) && !(categoriaTarget && candidateMatchesIntentCategoria(c, intent.categoria)))
+                        .map(c => c.place_id || c.googlePlaceId))
+                    : null;
+                buckets = bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds });
             }
             if (moments.length > 0) {
                 console.info(

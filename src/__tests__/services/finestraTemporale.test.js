@@ -73,6 +73,7 @@ const routeFetch = () => {
 // Lunedi' 5 ottobre 2026, 20:57 a Roma. Offset esplicito: la CI gira in UTC.
 const LUNEDI_2057 = new Date('2026-10-05T20:57:00+02:00');
 const MARTEDI_0930 = new Date('2026-10-06T09:30:00+02:00');
+const LUNEDI_1500 = new Date('2026-10-05T15:00:00+02:00');
 
 describe('G3 — "domani" sposta la partenza del tour, non solo le parole', () => {
     beforeEach(() => {
@@ -127,14 +128,17 @@ describe('G3 — "domani" sposta la partenza del tour, non solo le parole', () =
         const { fn } = routeFetch();
         vi.stubGlobal('fetch', fn);
         vi.useFakeTimers();
-        vi.setSystemTime(LUNEDI_2057);
+        // P3e — alle 20:57 il Veloce copre solo la cena, e a cena entra solo un
+        // posto dove mangiare: qui ci sono solo spiagge. Il pomeriggio verifica
+        // la stessa cosa (parte da adesso, non domani alle 9:30).
+        vi.setSystemTime(LUNEDI_1500);
 
         const result = await aiRecommendationService.generateItinerary(
             'Cabras', { interests: ['Natura'] },
             'Domani voglio vivere le spiagge da sardo', {}, '', CABRAS,
             { pathType: 'quick' },
         );
-        expect(result.days[0].stops[0].scheduledTime).toBe(LUNEDI_2057.toISOString());
+        expect(result.days[0].stops[0].scheduledTime).toBe(LUNEDI_1500.toISOString());
         expect(result.startTimeAnchored).toBe(false);
     });
 });

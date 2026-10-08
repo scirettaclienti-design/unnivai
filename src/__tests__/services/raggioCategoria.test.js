@@ -167,8 +167,9 @@ const warnLines = () => console.warn.mock?.calls?.map(a => String(a[0])) ?? [];
 
 // P3 — lo scheletro della giornata dipende dall'ora: orologio fisso, ora di
 // ROMA esplicita (la CI gira in UTC), si finge solo Date. Alle 10:00 un
-// percorso "Lungo" (6 ore) apre mattina, pranzo e pomeriggio: 3 tappe, quante
-// ne sceglie il selettore in questi scenari.
+// percorso "Lungo" (6 ore) apre mattina, pranzo e pomeriggio. P3e: a pranzo
+// entra solo un posto dove mangiare, e qui la ricerca del cibo non trova
+// niente: il pranzo si salta, le spiagge vanno a mattina e pomeriggio.
 const PREFS = { interests: ['Natura'], duration: 'Lungo' };
 
 describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
@@ -220,12 +221,11 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
         expect(riga).toBeTruthy();
         expect(riga).toContain('10/13 candidati scartati per categoria≠"natura"');
 
-        // (4) Il risultato: tre spiagge, zero food.
+        // (4) Il risultato: solo spiagge, zero food, e nessuna sotto "Pranzo".
         expect(result._source).toBe('google-first');
         const stops = result.days[0].stops;
-        expect(stops.map(s => s.title).sort()).toEqual(
-            ['Spiaggia Is Arutas', 'Spiaggia Mari Ermi', 'Spiaggia di Maimoni'],
-        );
+        expect(stops.map(s => s.moment)).toEqual(['mattina', 'pomeriggio']);
+        expect(stops.every(s => SPIAGGE.some(p => p.name === s.title))).toBe(true);
         expect(stops.every(s => s.type !== 'restaurant')).toBe(true);
         expect(stops.some(s => (s.types || []).some(t => ['restaurant', 'food', 'bar', 'cafe'].includes(t)))).toBe(false);
     });
@@ -306,11 +306,11 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
         expect(riga).toBeTruthy();
         expect(riga).toContain('24/27 candidati scartati per categoria≠"natura"');
 
-        // (4) Il risultato finale: tre spiagge, zero food.
+        // (4) Il risultato finale: solo spiagge, zero food, pranzo saltato (P3e).
         expect(result._source).toBe('google-first');
-        expect(result.days[0].stops.map(s => s.title).sort()).toEqual(
-            ['Spiaggia Is Arutas', 'Spiaggia Mari Ermi', 'Spiaggia di Maimoni'],
-        );
+        const stops = result.days[0].stops;
+        expect(stops.map(s => s.moment)).toEqual(['mattina', 'pomeriggio']);
+        expect(stops.every(s => SPIAGGE.some(p => p.name === s.title))).toBe(true);
     });
 
     // Il taglio spostato dopo il filtro di categoria deve restare

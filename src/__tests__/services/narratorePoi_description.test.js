@@ -138,7 +138,7 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
                 day: 1,
                 title: 'Ippocampo tra sale e pietra',
                 stops: [
-                    { place_id: 'pid-uno', description: 'Il vento porta il sale fin dentro le mura' },
+                    { place_id: 'pid-uno', description: 'Dai merli si vede il sale fin dentro le mura' },
                     { place_id: 'pid-due', description: '' },
                 ],
             }],
@@ -198,7 +198,7 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
                 day: 1,
                 title: 'Ippocampo tra sale e pietra',
                 stops: [
-                    { place_id: 'pid-uno', description: 'Il vento porta il sale fin dentro le mura' },
+                    { place_id: 'pid-uno', description: 'Dai merli si vede il sale fin dentro le mura' },
                     { place_id: 'pid-due', description: '' },
                 ],
             }],
@@ -225,7 +225,7 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
                 day: 1,
                 title: 'Ippocampo tra sale e pietra',
                 stops: [
-                    { place_id: 'pid-uno', description: 'Il vento porta il sale fin dentro le mura' },
+                    { place_id: 'pid-uno', description: 'Dai merli si vede il sale fin dentro le mura' },
                     // Era "Le vasche cambiano colore col tramonto": su una tappa
                     // delle 10 il controllo luce/ora la toglie (Gate NARRATORE-DOPO).
                     { place_id: 'pid-due', description: 'Le vasche hanno bordi di pietra bianca' },
@@ -278,7 +278,7 @@ describe('Gate NARRATORE/POI Fase 2b — generateHomeTours invariato dopo l\'est
                 themeType: 'cultura',
                 title: 'Cultura a Ippocampo',
                 stops: [
-                    { place_id: 'pid-uno', description: 'Il vento porta il sale fin dentro le mura' },
+                    { place_id: 'pid-uno', description: 'Dai merli si vede il sale fin dentro le mura' },
                     { place_id: 'pid-due', description: '  ' },
                 ],
             }],
@@ -319,7 +319,7 @@ describe('Gate NARRATORE/POI Fase 2b — generateHomeTours invariato dopo l\'est
                 themeType: 'cultura',
                 title: 'Cultura a Ippocampo',
                 stops: [
-                    { place_id: 'pid-uno', description: 'Il vento porta il sale fin dentro le mura' },
+                    { place_id: 'pid-uno', description: 'Dai merli si vede il sale fin dentro le mura' },
                     { place_id: 'pid-due', description: 'Le vasche cambiano colore col tramonto' },
                 ],
             }],

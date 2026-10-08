@@ -145,47 +145,85 @@ export function filterTimeIncoherent(text, { arrival, sunrise, sunset } = {}) {
 
 // ─── Gate PAROLE VIETATE — dal log alla rimozione ───────────────────────────
 //
-// L'UNICO elenco delle parole vietate al narratore. Prima viveva solo come
-// testo dentro due prompt (narratore e "Per Te"), e nessun codice lo
-// controllava: il modello poteva usarle e arrivavano a schermo ("piatti
-// tradizionali", tour di Roma del 7/10). Ora i due prompt lo leggono da qui
-// (bannedWordsPromptLines: stesso testo di prima, carattere per carattere) e
-// filterBannedWords toglie la frase che ne contiene una.
+// L'UNICO elenco delle parole vietate in TUTTO il testo generato: narratore
+// dell'itinerario, tour "Per Te" della Home e notifiche. I prompt lo leggono da
+// qui (bannedWordsPromptLines) e il filtro (filterBannedWords) toglie la frase
+// che ne contiene una, in generazione e in lettura dalla cache.
 //
-// Il prompt dice "usate sole senza contesto": il codice non sa giudicare il
-// contesto, quindi toglie la frase in ogni caso. Meglio una frase in meno che
-// una frase da brochure a schermo.
+// P3d-b — e' l'unione degli elenchi che fino all'08/10 vivevano separati:
+//   · narratore e "Per Te": aggettivi da brochure;
+//   · solo "Per Te": "ottima scelta", "perfetta scelta";
+//   · prompt delle notifiche: aggettivi vuoti, verbi da menu, giudizi;
+//   · filtro delle notifiche (JUDGMENT_PATTERNS): giudizi e "un must"/"una perla"…
+// Il codice non sa giudicare il contesto: toglie la frase in ogni caso. Meglio
+// una frase in meno che una frase da brochure a schermo.
 export const BANNED_VOICE_WORDS = [
+    // aggettivi da brochure (narratore, "Per Te")
     'storico', 'tradizionale', 'unico', 'caratteristico', 'suggestivo', 'tipico',
     'affascinante', 'magico', 'imperdibile',
+    // aggettivi vuoti (notifiche)
+    'spettacolare', 'indimenticabile', 'atmosfera intima', 'vista mozzafiato',
+    // verbi da menu (notifiche)
+    'sorseggia', 'gusta', 'immergiti', 'assapora',
+    // giudizi e raccomandazioni ("Per Te", notifiche)
+    'ottima scelta', 'perfetta scelta', 'ottima idea', 'ottimo posto',
+    'vale la pena', 'da provare', 'consigliato', 'consiglio', 'perfetto per',
+    'ideale per', 'assolutamente da', 'non perdere',
+    'un must', 'una chicca', 'una scoperta', 'una perla', 'un gioiello',
 ];
-// Formule che solo il prompt "Per Te" mostra al modello; il filtro le toglie ovunque.
-export const BANNED_VOICE_PHRASES_HOME = ['ottima scelta', 'perfetta scelta'];
 
-/** Le due righe dell'elenco nel testo dei prompt, identiche a quelle di prima. */
-export function bannedWordsPromptLines(extra = []) {
+/**
+ * Le righe dell'elenco per il testo dei prompt (narratore, "Per Te", notifiche).
+ * Una riga ogni 8 voci; la frase che ne contiene una viene tolta.
+ */
+export function bannedWordsPromptLines() {
     const q = (w) => `"${w}"`;
-    const first = BANNED_VOICE_WORDS.slice(0, 6).map(q).join(', ');
-    const rest = [...BANNED_VOICE_WORDS.slice(6), ...extra].map(q).join(', ');
-    return `${first},\n${rest} — usate sole senza contesto.`;
+    const lines = [];
+    for (let i = 0; i < BANNED_VOICE_WORDS.length; i += 8) {
+        lines.push(BANNED_VOICE_WORDS.slice(i, i + 8).map(q).join(', '));
+    }
+    return `${lines.join(',\n')} — mai, in nessun campo: la frase che ne contiene una viene tolta.`;
 }
 
-// Le varianti di genere/numero e l'avverbio, dalla forma base:
+// Varianti di genere/numero, avverbio e forme del verbo, dalla forma base:
 //   storico → storico/storica/storici/storiche/storicamente
 //   suggestivo → suggestivo/a/i/e/suggestivamente
 //   tradizionale → tradizionale/i/tradizionalmente
 //   affascinante → affascinante/i/affascinantemente
-// Parola intera (\b): "storia", "comunita'", "tipografia", "magazzino" restano.
+//   consigliato → consigliato/a/i/e
+//   assapora (verbo) → assapora/assaporare/assaporate/assaporando/assaporano
+// Parola intera (\b): "storia", "comunita'", "tipografia", "gusto" restano.
+const VERBS = new Set(['sorseggia', 'gusta', 'assapora']);
 const variantPattern = (w) => {
     if (w.includes(' ')) return w.split(' ').join('\\s+');
+    if (VERBS.has(w)) return `${w.slice(0, -1)}(?:a|are|ate|ando|ano)`;
     if (w.endsWith('co')) return `${w.slice(0, -1)}(?:o|a|i|he|amente)`;
     if (w.endsWith('vo')) return `${w.slice(0, -1)}(?:o|a|i|e|amente)`;
+    if (w.endsWith('to')) return `${w.slice(0, -1)}(?:o|a|i|e)`;
     if (w.endsWith('le')) return `${w.slice(0, -1)}(?:e|i|mente)`;
     if (w.endsWith('e')) return `${w.slice(0, -1)}(?:e|i|emente)`;
     return w;
 };
-const BANNED_RULES = [...BANNED_VOICE_WORDS, ...BANNED_VOICE_PHRASES_HOME]
+const BANNED_RULES = BANNED_VOICE_WORDS
     .map(w => ({ word: w, re: new RegExp(`\\b${variantPattern(w)}\\b`) }));
+
+// ─── P3d-b — niente attacchi da audioguida ──────────────────────────────────
+//
+// Una frase che APRE con un'impressione dei sensi ("L'aria…", "Il profumo…",
+// "Camminando senti…") viene tolta, come una parola vietata. Conta solo
+// l'apertura: "Bastano pochi passi per togliersi la folla" resta, e resta
+// anche "Dal muretto il panorama arriva fino al Gianicolo" (non apre col
+// panorama). "Venti minuti" non e' il vento: le parole sono intere.
+export const SENSORY_OPENERS = ['profumo', 'odore', 'aria', 'vento', 'silenzio', 'panorama', 'camminando senti'];
+const SENSORY_OPENER_RE = new RegExp(
+    String.raw`^[\s"'«“(]*(?:(?:il|lo|la|l'|i|gli|le|un|una|un'|che|quel|quell'|quella|questo|questa)\s*)?` +
+    String.raw`(?:profum[oi]|odor[ei]|aria|vento|silenzio|panorama|camminando\b[^.!?…]*?\bsent\w*)\b`,
+);
+
+/** true se la frase apre con un'impressione dei sensi. */
+export function opensWithSenses(sentence) {
+    return SENSORY_OPENER_RE.test(norm(sentence).replace(/\s+/g, ' ').trim());
+}
 
 // Gate PAROLE VIETATE (P3d) — eccezioni FISSE: espressioni che contengono una
 // parola vietata ma non sono linguaggio da brochure. Si neutralizzano prima del
@@ -207,12 +245,13 @@ const neutralize = (normalized, exempt) => {
 };
 
 /**
- * Toglie le frasi che contengono una parola vietata. Mai riscritte; un testo
- * fatto solo di frasi vietate diventa null (nessun testo sostitutivo).
+ * Toglie le frasi che contengono una parola vietata, e (P3d-b) quelle che aprono
+ * con un'impressione dei sensi. Mai riscritte; un testo fatto solo di frasi
+ * tolte diventa null (nessun testo sostitutivo).
  * @param {string|null} text
  * @param {{ exempt?: string[] }} [opts] nomi propri (es. il nome della tappa)
- *   che non fanno scattare il filtro
- * @returns {{ text: string|null, removed: Array<{ frase: string, parole: string[] }> }}
+ *   che non fanno scattare il filtro delle parole
+ * @returns {{ text: string|null, removed: Array<{ frase: string, parole: string[], regola: 'parola-vietata'|'apertura-sensi' }> }}
  */
 export function filterBannedWords(text, { exempt = [] } = {}) {
     if (text == null || String(text).trim() === '') return { text: null, removed: [] };
@@ -221,9 +260,24 @@ export function filterBannedWords(text, { exempt = [] } = {}) {
     for (const s of splitSentences(String(text).trim())) {
         const t = neutralize(norm(s).replace(/\s+/g, ' '), exempt);
         const parole = BANNED_RULES.filter(r => r.re.test(t)).map(r => r.word);
-        if (parole.length > 0) removed.push({ frase: s, parole });
+        if (parole.length > 0) removed.push({ frase: s, parole, regola: 'parola-vietata' });
+        else if (opensWithSenses(s)) removed.push({ frase: s, parole: [], regola: 'apertura-sensi' });
         else kept.push(s);
     }
     if (removed.length === 0) return { text: String(text), removed };
     return { text: kept.length > 0 ? kept.join(' ') : null, removed };
 }
+
+// ─── P3d-b — la regola "perche' qui" per il campo description ────────────────
+// Stesso testo nel prompt del narratore e in quello di "Per Te".
+export const DESCRIPTION_RULE_PROMPT = `   description — la frase "PERCHÉ QUI": UNA frase, massimo 20 parole.
+     Dice cosa guardare, da dove guardarlo o quando: un dettaglio che sa solo
+     chi c'è stato. Niente aggettivi generici.
+     NON aprire con un'impressione dei sensi (profumo, odore, aria, vento,
+     silenzio, panorama, "camminando senti"): una frase che apre così viene tolta.
+     GIUSTO: "L'ombra vera è sotto gli alberi grandi, non lungo i vialetti."
+     GIUSTO: "Bastano pochi passi di lato per togliersi la folla dall'inquadratura."
+     GIUSTO: "Se ha piovuto da poco, i vialetti in terra battuta diventano fango."
+     SBAGLIATO: "L'aria fresca qui è un sollievo dopo la passeggiata."
+     SBAGLIATO: "Il profumo della pasta fresca riempie l'aria."
+     SBAGLIATO: "L'odore del sugo si mescola al profumo del pane."`;

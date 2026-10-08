@@ -14,6 +14,7 @@
  * che veniva copiato. La prova vera è un giro su device.
  */
 import { describe, it, expect } from 'vitest';
+import { bannedWordsPromptLines } from '../../lib/narrationLight';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { buildSelectorSystemPrompt, buildNarratorSystemPrompt } from '../../services/aiRecommendationService';
@@ -365,14 +366,13 @@ describe('Gate ORA VERA — "momento del giorno" solo se l\'utente lo ha chiesto
     });
 });
 
-// Gate PAROLE VIETATE — l'elenco ora vive in narrationLight.js e il prompt lo
-// interpola: il testo che arriva al modello deve essere identico a prima.
-describe('Gate PAROLE VIETATE — il prompt del narratore e\' invariato', () => {
-    it('le due righe dell\'elenco sono quelle di prima, carattere per carattere', () => {
+// Gate PAROLE VIETATE — l'elenco vive in narrationLight.js e il prompt lo
+// interpola. P3d-b: e' l'elenco unico di tutto il testo generato.
+describe('Gate PAROLE VIETATE — il prompt del narratore mostra l\'elenco unico', () => {
+    it('le righe dell\'elenco sono quelle di bannedWordsPromptLines(), carattere per carattere', () => {
         expect(prompt()).toContain(
             'REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):\n'
-            + '"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",\n'
-            + '"affascinante", "magico", "imperdibile" — usate sole senza contesto.\n\nREGOLE STRUTTURA:',
+            + bannedWordsPromptLines() + '\n\nREGOLE STRUTTURA:',
         );
     });
 });

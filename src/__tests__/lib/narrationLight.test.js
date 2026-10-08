@@ -106,7 +106,7 @@ describe('filterTimeIncoherent — una frase incoerente con l\'arrivo viene tolt
 // Le parole vietate erano solo nel testo dei prompt: nessun controllo in codice.
 // "tradizionali" e' passata a schermo nel tour di Roma del 7/10. Ora la frase
 // che le contiene viene TOLTA, mai riscritta, sullo stesso schema della luce.
-import { filterBannedWords, BANNED_VOICE_WORDS, BANNED_VOICE_PHRASES_HOME, bannedWordsPromptLines } from '../../lib/narrationLight';
+import { filterBannedWords, BANNED_VOICE_WORDS, bannedWordsPromptLines } from '../../lib/narrationLight';
 
 describe('filterBannedWords — una frase con una parola vietata viene tolta', () => {
     it('"tradizionali" → la frase sparisce, resta solo l\'altra', () => {
@@ -136,8 +136,8 @@ describe('filterBannedWords — una frase con una parola vietata viene tolta', (
         expect(filterBannedWords('Un luogo magico. Atmosfera unica e suggestiva.')).toEqual({
             text: null,
             removed: [
-                { frase: 'Un luogo magico.', parole: ['magico'] },
-                { frase: 'Atmosfera unica e suggestiva.', parole: ['unico', 'suggestivo'] },
+                { frase: 'Un luogo magico.', parole: ['magico'], regola: 'parola-vietata' },
+                { frase: 'Atmosfera unica e suggestiva.', parole: ['unico', 'suggestivo'], regola: 'parola-vietata' },
             ],
         });
     });
@@ -152,17 +152,25 @@ describe('filterBannedWords — una frase con una parola vietata viene tolta', (
     });
 });
 
-describe('Gate PAROLE VIETATE — un elenco solo, prompt invariati', () => {
+describe('Gate PAROLE VIETATE — un elenco solo (P3d-b: per tutto il testo generato)', () => {
     it('l\'elenco del codice e\' quello che i prompt mostrano al modello, carattere per carattere', () => {
-        expect(BANNED_VOICE_WORDS).toEqual(['storico', 'tradizionale', 'unico', 'caratteristico', 'suggestivo', 'tipico', 'affascinante', 'magico', 'imperdibile']);
-        expect(BANNED_VOICE_PHRASES_HOME).toEqual(['ottima scelta', 'perfetta scelta']);
+        // P3d-b — unione di narratore, "Per Te" e notifiche (prompt e filtro).
+        expect(BANNED_VOICE_WORDS).toEqual([
+            'storico', 'tradizionale', 'unico', 'caratteristico', 'suggestivo', 'tipico',
+            'affascinante', 'magico', 'imperdibile',
+            'spettacolare', 'indimenticabile', 'atmosfera intima', 'vista mozzafiato',
+            'sorseggia', 'gusta', 'immergiti', 'assapora',
+            'ottima scelta', 'perfetta scelta', 'ottima idea', 'ottimo posto',
+            'vale la pena', 'da provare', 'consigliato', 'consiglio', 'perfetto per',
+            'ideale per', 'assolutamente da', 'non perdere',
+            'un must', 'una chicca', 'una scoperta', 'una perla', 'un gioiello',
+        ]);
         expect(bannedWordsPromptLines()).toBe(
-            '"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",\n'
-            + '"affascinante", "magico", "imperdibile" — usate sole senza contesto.',
-        );
-        expect(bannedWordsPromptLines(BANNED_VOICE_PHRASES_HOME)).toBe(
-            '"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico",\n'
-            + '"affascinante", "magico", "imperdibile", "ottima scelta", "perfetta scelta" — usate sole senza contesto.',
+            '"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico", "affascinante", "magico",\n'
+            + '"imperdibile", "spettacolare", "indimenticabile", "atmosfera intima", "vista mozzafiato", "sorseggia", "gusta", "immergiti",\n'
+            + '"assapora", "ottima scelta", "perfetta scelta", "ottima idea", "ottimo posto", "vale la pena", "da provare", "consigliato",\n'
+            + '"consiglio", "perfetto per", "ideale per", "assolutamente da", "non perdere", "un must", "una chicca", "una scoperta",\n'
+            + '"una perla", "un gioiello" — mai, in nessun campo: la frase che ne contiene una viene tolta.',
         );
     });
 });

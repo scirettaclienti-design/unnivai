@@ -340,7 +340,7 @@ import { resolveTourWindow, romeParts } from '@/lib/tourWindow';
 import { sunTimes } from '@/lib/sunTimes';
 import { filterTimeIncoherent } from '@/lib/narrationLight';
 // Gate PAROLE VIETATE — l'unico elenco: i prompt lo mostrano, il filtro lo applica.
-import { filterBannedWords, bannedWordsPromptLines, BANNED_VOICE_PHRASES_HOME } from '@/lib/narrationLight';
+import { filterBannedWords, bannedWordsPromptLines, DESCRIPTION_RULE_PROMPT } from '@/lib/narrationLight';
 import { momentAtClock } from '@/lib/dayMoments';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
@@ -1201,14 +1201,10 @@ VOCE — per ogni tappa, racconta come un local sussurra un segreto:
    e' meglio di "la sala 3 ha una panca davanti al quadro piu' piccolo" (che non
    puoi sapere).
 
-   description (max 120 car): un dettaglio sensoriale specifico, cosa vedi/senti/odori.
-     Scegli l'esempio del tipo GIUSTO per quel POI. Nota come ognuno dica una cosa
-     vera di QUEL TIPO di posto, non un contenuto di quel singolo luogo:
-     ✓ museo/galleria — "Le sale in fondo restano le più silenziose, sempre"
-     ✓ chiesa        — "Dentro la temperatura scende di colpo, anche in agosto"
-     ✓ ristorante/bar — "Si sentono più le posate che le voci, con quel soffitto basso"
-     ✓ parco/natura  — "L'ombra vera è sotto gli alberi grandi, non lungo i vialetti"
-     ✓ panorama      — "Bastano pochi passi di lato per togliersi la folla dall'inquadratura"
+${DESCRIPTION_RULE_PROMPT}
+     Il dettaglio vale per QUEL TIPO di posto, non è un contenuto di quel singolo luogo:
+     ✓ museo/galleria — "Le sale in fondo restano le più vuote: si guarda senza teste davanti."
+     ✓ chiesa        — "Guarda il soffitto dalla navata laterale, dal centro la luce abbaglia."
      ✗ "Chiesa barocca del XVIII secolo, patrimonio della città"  ← da enciclopedia
      ✗ "L'eco risuona tra le opere contemporanee esposte"  ← contenuto INVENTATO
 
@@ -1528,9 +1524,8 @@ REGOLE:
    e' meglio di "la sala 3 ha una panca davanti al quadro piu' piccolo" (che non
    puoi sapere).
 
-   description (max 120 car): un dettaglio sensoriale specifico, cosa vedi/senti/odori.
-     ✓ "Il pavimento e' consumato dai piedi di 300 anni di parrocchiani"
-     ✗ "Chiesa barocca del XVIII secolo, patrimonio della citta'"
+${DESCRIPTION_RULE_PROMPT}
+     ✗ "Chiesa barocca del XVIII secolo, patrimonio della citta'"  ← da enciclopedia
 
    insiderTip (max 100 car): un consiglio pratico che solo chi ci vive sa.
      ✓ "Chiedi il caffe' al bancone, seduto costa il doppio"
@@ -1554,7 +1549,7 @@ REGOLE:
      ✗ "Le luci dei bar si accendono lentamente"  ← cosa accade ORA, che non sai"
 
 REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
-${bannedWordsPromptLines(BANNED_VOICE_PHRASES_HOME)}
+${bannedWordsPromptLines()}
 
 REGOLE STRUTTURA:
 - NON AFFERMARE MAI se un posto è aperto o chiuso, e NON dedurlo dall'ora.
@@ -1747,7 +1742,9 @@ const BANNED_WORD_FIELDS = ['description', 'insiderTip', 'bestTime', 'transition
  * Gate PAROLE VIETATE — il filtro su UNA tappa, uguale per l'itinerario e per i
  * tour "Per Te" della Home. Il nome proprio della tappa (title/name, da Google)
  * non fa scattare il filtro: "Museo Storico della Liberazione" e' un nome.
- * @returns {{ stop: object, removed: Array<{ campo: string, frase: string, parole: string[] }> }}
+ * P3d-b: anche le frasi che aprono con un'impressione dei sensi (regola
+ * 'apertura-sensi'), con lo stesso filtro.
+ * @returns {{ stop: object, removed: Array<{ campo: string, frase: string, parole: string[], regola: string }> }}
  */
 const scrubBannedWords = (stop) => {
     const next = { ...stop };
@@ -1757,14 +1754,14 @@ const scrubBannedWords = (stop) => {
         if (next[campo] == null) continue;
         const r = filterBannedWords(next[campo], { exempt });
         next[campo] = r.text;
-        for (const x of r.removed) removed.push({ campo, frase: x.frase, parole: x.parole });
+        for (const x of r.removed) removed.push({ campo, frase: x.frase, parole: x.parole, regola: x.regola });
     }
     return { stop: next, removed };
 };
 
 const logBannedRemovals = (city, title, removed, path) => {
     for (const x of removed) {
-        console.warn(`[Gate PAROLE VIETATE] ${city} (${path}): tolta frase (${x.parole.join(',')}) da ${x.campo} di "${title}" — "${x.frase}"`);
+        console.warn(`[Gate PAROLE VIETATE] ${city} (${path}): tolta frase (${x.parole.join(',') || x.regola}) da ${x.campo} di "${title}" — "${x.frase}"`);
     }
 };
 
@@ -1854,7 +1851,7 @@ const guardNarrationLight = (days, starts, tourWindow, cityCenter) => {
                 const banned = scrubBannedWords(next);
                 Object.assign(next, banned.stop);
                 for (const x of banned.removed) {
-                    frasiTolte.push({ place_id: s.place_id, title: s.title, campo: x.campo, frase: x.frase, regole: ['parola-vietata'], parole: x.parole, arrivo: clockLabel(arrival) });
+                    frasiTolte.push({ place_id: s.place_id, title: s.title, campo: x.campo, frase: x.frase, regole: [x.regola], parole: x.parole, arrivo: clockLabel(arrival) });
                 }
                 for (const campo of NARRATION_TEXT_FIELDS) {
                     if (next[campo] == null) continue;
@@ -3048,9 +3045,9 @@ REGOLE MESSAGE (locked):
 - Il motivo DEVE essere costruito SOLO sui dati che ti ho dato sopra (ora, temperatura, meteo, distanza, open_now, rating).
 - NIENTE riferimenti all'ora esatta (es. "sono le 18:12"): il title lo copre, e "sono le HH:MM" scade in un minuto se l'utente apre in ritardo.
 - NIENTE fatti inventati sul posto: no "il pub dove producono la birra", no "storia dal 1960". Se non è nei dati sopra, non lo sai.
-- NIENTE aggettivi vuoti: "spettacolare", "unico", "indimenticabile", "atmosfera intima", "vista mozzafiato".
-- NIENTE verbi da menu: "sorseggia", "gusta", "immergiti", "assapora".
-- NIENTE formule di giudizio o raccomandazione: "ottima scelta", "vale la pena", "da provare", "consigliato", "perfetto per", "ideale per", "imperdibile", "consiglio", "assolutamente da". Sono opinioni su un posto che non hai mai visto. Il message finisce dopo l'ultimo FATTO verificabile: nessuna coda di opinione, nessuna chiusura da recensione.
+- NIENTE aggettivi vuoti, verbi da menu, formule di giudizio o raccomandazione. Parole VIETATE:
+${bannedWordsPromptLines()}
+  Sono opinioni su un posto che non hai mai visto. Il message finisce dopo l'ultimo FATTO verificabile: nessuna coda di opinione, nessuna chiusura da recensione.
 - Otto parole per far alzare l'utente dal divano. Voce di persona, non di app.
 
 LIMITI DURI:
@@ -3093,19 +3090,16 @@ oppure
                 return null;
             }
 
-            // Gate T.2: post-processing anti-giudizio. Il prompt vieta esplicitamente
-            // le formule di raccomandazione, ma l'AI ogni tanto ne inserisce una in
-            // coda ("Ottima scelta per un dolce.", "Da provare!"). Le tagliamo dopo:
-            // trova la frase con il verdetto → rimuovi dall'inizio della frase alla
-            // fine (fino a punto/esclamativo/interrogativo/EOL). Se la coda pulita
-            // e' vuota o solo punteggiatura, ferma al primo punto conservando i fatti.
-            const JUDGMENT_PATTERNS = [
-                /\.\s*(?:ottima scelta|ottima idea|ottimo posto|vale la pena|da provare|consigliato|consiglio|perfetto per|ideale per|imperdibile|assolutamente da|non perdere)[^.!?]*[.!?]?/gi,
-                /\.\s*(?:un must|una chicca|una scoperta|una perla|un gioiello)[^.!?]*[.!?]?/gi,
-            ];
-            let cleanMessage = String(parsed.message);
-            for (const p of JUDGMENT_PATTERNS) cleanMessage = cleanMessage.replace(p, '.');
-            cleanMessage = cleanMessage.replace(/\s+/g, ' ').replace(/\s+\./g, '.').trim();
+            // Gate T.2 → P3d-b: post-processing anti-giudizio con l'elenco UNICO
+            // (narrationLight.js), lo stesso del narratore e di "Per Te". Prima qui
+            // c'era un elenco a parte (JUDGMENT_PATTERNS) che tagliava solo le code
+            // dopo il primo punto. Ora la frase con una parola vietata si toglie,
+            // ovunque sia; i nomi dei candidati non fanno scattare il filtro.
+            const scrubbed = filterBannedWords(String(parsed.message), { exempt: enriched.map(c => c.name) });
+            for (const x of scrubbed.removed) {
+                console.warn(`[SmartNotif] ${city}/${slot}: tolta frase (${x.parole.join(',') || x.regola}) — "${x.frase}"`);
+            }
+            const cleanMessage = String(scrubbed.text || '').replace(/\s+/g, ' ').trim();
             if (!cleanMessage || cleanMessage.length < 20) {
                 console.warn(`[SmartNotif] ${city}/${slot}: message post-cleanup vuoto/troppo corto → scarto`);
                 return null;

@@ -6,6 +6,7 @@ import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
 import { useUserContext } from "../hooks/useUserContext";
 import { aiRecommendationService, QUOTA_USER_MESSAGE } from "../services/aiRecommendationService";
+import { AI_ENGINE_MESSAGE, isAiEngineError } from "../lib/aiEngineError";
 import { PLACES_SEARCH_ERROR_MESSAGE } from "../services/placesDiscoveryService";
 import { normalizeTour } from "../services/tourShape";
 // Gate RAGGIO DIFF 1b — la sosta stimata ("~30 min") si formatta in tourTiming.js.
@@ -268,6 +269,9 @@ export default function AIItineraryPage() {
                     type: 'info',
                     duration: 5000,
                 });
+            } else if (isAiEngineError(error)) {
+                // Gate P8b — OpenAI ha rifiutato o non ha risposto: testo fisso.
+                toast({ title: AI_ENGINE_MESSAGE, type: 'warning', duration: 6000 });
             } else {
                 toast({
                     title: "L'AI sta avendo un momento difficile",
@@ -341,6 +345,8 @@ export default function AIItineraryPage() {
             console.warn('[AI] regenerateDay failed:', err.message);
             if (err?.code === 'QUOTA_EXCEEDED') {
                 toast({ title: err.userMessage || QUOTA_USER_MESSAGE, type: 'info', duration: 5000 });
+            } else if (isAiEngineError(err)) {
+                toast({ title: AI_ENGINE_MESSAGE, type: 'warning', duration: 6000 });
             }
         } finally {
             setIsGenerating(false);

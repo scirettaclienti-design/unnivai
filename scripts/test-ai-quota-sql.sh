@@ -9,6 +9,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MIGRATION="$ROOT/supabase/migrations/20261005_ai_quota_server_side.sql"
 # Biglietto 'itinerary' a 3 chiamate (traduttore + selettore + narratore).
 MIGRATION_3CALLS="$ROOT/supabase/migrations/20261006_ai_ticket_itinerary_3_calls.sql"
+# Gate P8b — rimborso della generazione quando OpenAI fallisce.
+MIGRATION_REFUND="$ROOT/supabase/migrations/20261008_ai_quota_refund.sql"
 NAME="dv-quota-sql-test-$$"
 
 cleanup() { docker rm -f "$NAME" >/dev/null 2>&1 || true; }
@@ -67,6 +69,8 @@ psql < "$MIGRATION"
 psql < "$MIGRATION"
 psql < "$MIGRATION_3CALLS"
 psql < "$MIGRATION_3CALLS"
+psql < "$MIGRATION_REFUND"
+psql < "$MIGRATION_REFUND"
 
 echo "→ asserzioni"
 psql <<'SQL'
@@ -203,6 +207,78 @@ END $$;
 RESET ROLE;
 
 SELECT pg_temp.ok(NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'ai_quota_daily' AND cmd <> 'SELECT'), 'su ai_quota_daily resta solo la policy SELECT');
+SQL
+
+echo "→ asserzioni rimborso (Gate P8b)"
+psql <<'SQL'
+CREATE FUNCTION pg_temp.ok(cond boolean, msg text) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN IF cond IS NOT TRUE THEN RAISE EXCEPTION 'FALLITO: %', msg; END IF; RAISE NOTICE 'ok  %', msg; END $$;
+SET ROLE service_role;
+
+-- Ospite: generazione contata, poi rimborsata → personale e globale tornano indietro.
+DO $$ DECLARE r jsonb; t uuid := gen_random_uuid(); g0 int; BEGIN
+  g0 := coalesce((SELECT count FROM ai_quota_global WHERE day = (now() AT TIME ZONE 'Europe/Rome')::date), 0);
+  r := public.ai_quota_consume('guest', 'hash-r', 'generation', t, 'itinerary', 5, 1000);
+  PERFORM pg_temp.ok((r->>'allowed')::boolean, 'rimborso ospite: generazione contata');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_guest WHERE ip_hash = 'hash-r') = 1, 'rimborso ospite: personale a 1');
+  r := public.ai_quota_refund('guest', 'hash-r', t);
+  PERFORM pg_temp.ok((r->>'refunded')::boolean, 'rimborso ospite: refunded=true');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_guest WHERE ip_hash = 'hash-r') = 0, 'rimborso ospite: personale torna a 0');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_global WHERE day = (now() AT TIME ZONE 'Europe/Rome')::date) = g0, 'rimborso ospite: globale torna indietro');
+  PERFORM pg_temp.ok(NOT EXISTS (SELECT 1 FROM ai_generation_ticket WHERE id = t), 'rimborso ospite: biglietto chiuso');
+  r := public.ai_quota_refund('guest', 'hash-r', t);
+  PERFORM pg_temp.ok(NOT (r->>'refunded')::boolean, 'rimborso ospite: il secondo rimborso dello stesso biglietto non fa niente');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_guest WHERE ip_hash = 'hash-r') = 0, 'rimborso ospite: mai sotto zero');
+END $$;
+
+-- Utente: rimborso personale e globale; biglietto altrui o inesistente: niente.
+DO $$ DECLARE r jsonb; t uuid := gen_random_uuid(); c0 int; g0 int; BEGIN
+  c0 := (SELECT count FROM ai_quota_daily WHERE user_id = '22222222-2222-2222-2222-222222222222' AND day = (now() AT TIME ZONE 'Europe/Rome')::date);
+  g0 := (SELECT count FROM ai_quota_global WHERE day = (now() AT TIME ZONE 'Europe/Rome')::date);
+  PERFORM public.ai_quota_consume('user', '22222222-2222-2222-2222-222222222222', 'generation', t, 'itinerary', 10, 1000);
+  r := public.ai_quota_refund('guest', 'hash-intruso', t);
+  PERFORM pg_temp.ok(NOT (r->>'refunded')::boolean, 'biglietto di un altro soggetto: nessun rimborso');
+  r := public.ai_quota_refund('user', '22222222-2222-2222-2222-222222222222', gen_random_uuid());
+  PERFORM pg_temp.ok(NOT (r->>'refunded')::boolean, 'biglietto inesistente: nessun rimborso');
+  r := public.ai_quota_refund('user', '22222222-2222-2222-2222-222222222222', t);
+  PERFORM pg_temp.ok((r->>'refunded')::boolean, 'rimborso utente: refunded=true');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_daily WHERE user_id = '22222222-2222-2222-2222-222222222222' AND day = (now() AT TIME ZONE 'Europe/Rome')::date) = c0, 'rimborso utente: personale torna indietro');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_global WHERE day = (now() AT TIME ZONE 'Europe/Rome')::date) = g0, 'rimborso utente: globale torna indietro');
+END $$;
+
+-- Utente illimitato: il personale non era contato e non si tocca; il globale si.
+DO $$ DECLARE r jsonb; t uuid := gen_random_uuid(); g0 int; BEGIN
+  g0 := (SELECT count FROM ai_quota_global WHERE day = (now() AT TIME ZONE 'Europe/Rome')::date);
+  PERFORM public.ai_quota_consume('user', '33333333-3333-3333-3333-333333333333', 'generation', t, 'itinerary', 10, 1000);
+  r := public.ai_quota_refund('user', '33333333-3333-3333-3333-333333333333', t);
+  PERFORM pg_temp.ok((r->>'refunded')::boolean, 'rimborso illimitato: refunded=true');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_global WHERE day = (now() AT TIME ZONE 'Europe/Rome')::date) = g0, 'rimborso illimitato: globale torna indietro');
+  PERFORM pg_temp.ok(NOT EXISTS (SELECT 1 FROM ai_quota_daily WHERE user_id = '33333333-3333-3333-3333-333333333333' AND count < 0), 'rimborso illimitato: nessun contatore negativo');
+END $$;
+
+-- Il rimborso va al giorno in cui il biglietto e' stato aperto, non a oggi.
+DO $$ DECLARE r jsonb; t uuid := gen_random_uuid(); ieri date := (now() AT TIME ZONE 'Europe/Rome')::date - 1; BEGIN
+  INSERT INTO ai_quota_guest (ip_hash, day, count) VALUES ('hash-ieri', ieri, 2);
+  INSERT INTO ai_quota_global (day, count) VALUES (ieri, 7);
+  INSERT INTO ai_generation_ticket (id, subject, kind, created_at) VALUES (t, 'guest:hash-ieri', 'itinerary', now() - interval '1 day');
+  r := public.ai_quota_refund('guest', 'hash-ieri', t);
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_guest WHERE ip_hash = 'hash-ieri' AND day = ieri) = 1, 'rimborso sul giorno del biglietto (personale)');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_global WHERE day = ieri) = 6, 'rimborso sul giorno del biglietto (globale)');
+END $$;
+RESET ROLE;
+
+SET ROLE authenticated;
+DO $$ BEGIN
+  BEGIN PERFORM public.ai_quota_refund('user', '11111111-1111-1111-1111-111111111111', gen_random_uuid()); RAISE EXCEPTION 'FALLITO: authenticated execute refund';
+  EXCEPTION WHEN insufficient_privilege THEN RAISE NOTICE 'ok  authenticated: ai_quota_refund negata'; END;
+END $$;
+RESET ROLE;
+SET ROLE anon;
+DO $$ BEGIN
+  BEGIN PERFORM public.ai_quota_refund('guest', 'h', gen_random_uuid()); RAISE EXCEPTION 'FALLITO: anon execute refund';
+  EXCEPTION WHEN insufficient_privilege THEN RAISE NOTICE 'ok  anon: ai_quota_refund negata'; END;
+END $$;
+RESET ROLE;
 SQL
 
 echo "✓ migration ai_quota: tutte le asserzioni passate"

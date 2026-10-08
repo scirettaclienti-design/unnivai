@@ -51,6 +51,23 @@ function createFakeQuota() {
       tickets.set(p.p_ticket, { subject, kind: p.p_ticket_kind, calls: 1 });
       return { allowed: true, reason: 'ok', ticket_kind: p.p_ticket_kind, remaining: isUnlimited ? null : p.p_limit - r.count };
     },
+    // Gate P8b — modello di public.ai_quota_refund: stesso soggetto, una volta
+    // per biglietto, personale (non per gli illimitati) e globale, mai sotto 0.
+    refund(p) {
+      const subject = `${p.p_subject_kind}:${p.p_subject}`;
+      const t = tickets.get(p.p_ticket);
+      if (!t || t.subject !== subject) return { refunded: false, reason: 'no_ticket' };
+      const isUnlimited = p.p_subject_kind === 'user' && unlimited.has(p.p_subject);
+      if (!isUnlimited) { const r = row(subject); r.count = Math.max(0, r.count - 1); }
+      global = Math.max(0, global - 1);
+      tickets.delete(p.p_ticket);
+      return { refunded: true, reason: 'ok' };
+    },
+    /** Generazioni contate per un soggetto ('user:<id>' | 'guest:<hash>'), o la somma di tutti. */
+    count(subject) {
+      if (subject) return personal.get(subject)?.count ?? 0;
+      return [...personal.values()].reduce((a, r) => a + r.count, 0);
+    },
   };
 }
 
@@ -60,6 +77,7 @@ let fakeQuota;
 let rpcImpl;
 let openaiBodies;
 let handler;
+let rpcCalls;
 
 const USERS = { 'tok-anna': 'user-anna', 'tok-bruno': 'user-bruno' };
 
@@ -83,7 +101,10 @@ beforeEach(async () => {
   vi.stubGlobal('Deno', { env: { get: (k) => env[k] } });
 
   fakeQuota = createFakeQuota();
+  rpcCalls = [];
   rpcImpl = async (name, params) => {
+    rpcCalls.push(name);
+    if (name === 'ai_quota_refund') return { data: fakeQuota.refund(params), error: null };
     if (name !== 'ai_quota_consume') return { data: null, error: { message: `rpc sconosciuta ${name}` } };
     return { data: fakeQuota.consume(params), error: null };
   };
@@ -325,5 +346,126 @@ describe('openai-proxy — quota applicata dal server', () => {
     for (let i = 0; i < 12; i++) {
       expect((await generation({ token: 'tok-anna', calls: 1 }))[0].status).toBe(200);
     }
+  });
+});
+
+// ─── Gate P8b — guasti di OpenAI ─────────────────────────────────────────────
+//
+// Rosso sul codice di prima: il proxy inoltrava { error: <oggetto OpenAI> } con
+// lo status di OpenAI (il client mostrava "[object Object]"), non scriveva
+// niente nel log e la generazione restava contata.
+describe('openai-proxy — guasti di OpenAI: log, risposta stabile, rimborso', () => {
+  const ENGINE_TEXT = 'Il motore si è fermato un attimo. Riprova tra qualche minuto.';
+  const PROMPT_SEGRETO = 'Prompt segreto di anna.rossi@example.com';
+
+  const openaiFails = (status, error) => vi.mocked(fetch).mockImplementation(async (url, init) => {
+    openaiBodies.push(JSON.parse(init.body));
+    return new Response(JSON.stringify({ error }), { status, headers: { 'Content-Type': 'application/json' } });
+  });
+  const logLines = (spy) => spy.mock.calls.map(a => a.map(String).join(' '));
+  const genCall = (opts = {}) => call({
+    ...opts,
+    dv: opts.dv ?? { purpose: 'generation', ticket: newTicket(), kind: 'itinerary' },
+    payload: { messages: [{ role: 'user', content: PROMPT_SEGRETO }] },
+  });
+
+  let errSpy;
+  beforeEach(() => { errSpy = vi.spyOn(console, 'error').mockImplementation(() => {}); vi.spyOn(console, 'info').mockImplementation(() => {}); });
+  afterEach(() => { errSpy.mockRestore(); });
+
+  it('429 insufficient_quota (ospite) → log con il codice, tipo "credito esaurito", contatori non aumentano', async () => {
+    openaiFails(429, {
+      message: 'You exceeded your current quota, please check your plan and billing details. Key sk-proj-ABCDEF123456 owner mario@example.com',
+      type: 'insufficient_quota', code: 'insufficient_quota', param: null,
+    });
+
+    const res = await genCall();
+    const body = await res.json();
+
+    expect(res.status).toBe(502);
+    expect(body).toEqual({ error: ENGINE_TEXT, code: 'OPENAI_CREDIT_EXHAUSTED', source: 'openai', refunded: true });
+    expect(fakeQuota.count()).toBe(0);
+    expect(fakeQuota.global).toBe(0);
+    expect(rpcCalls).toEqual(['ai_quota_consume', 'ai_quota_refund']);
+
+    const lines = logLines(errSpy).filter(l => l.includes('OpenAI errore'));
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toContain('status=429');
+    expect(lines[0]).toContain('code=insufficient_quota');
+    expect(lines[0]).toContain('type=insufficient_quota');
+    expect(lines[0]).toContain('You exceeded your current quota');
+    const all = logLines(errSpy).join('\n');
+    for (const vietato of ['sk-test', 'sk-proj-ABCDEF123456', 'mario@example.com', 'anna.rossi', 'Prompt segreto', '203.0.113.7']) {
+      expect(all).not.toContain(vietato);
+    }
+  });
+
+  it('429 insufficient_quota (utente) → rimborso personale e globale', async () => {
+    await generation({ token: 'tok-anna' }); // 1 generazione andata a buon fine
+    expect(fakeQuota.count('user:user-anna')).toBe(1);
+    openaiFails(429, { message: 'quota', type: 'insufficient_quota', code: 'insufficient_quota' });
+
+    const res = await genCall({ token: 'tok-anna' });
+
+    expect((await res.json()).code).toBe('OPENAI_CREDIT_EXHAUSTED');
+    expect(fakeQuota.count('user:user-anna')).toBe(1);
+    expect(fakeQuota.global).toBe(1);
+  });
+
+  it('429 rate_limit_exceeded → tipo "troppe richieste"', async () => {
+    openaiFails(429, { message: 'Rate limit reached for gpt-4o-mini', type: 'requests', code: 'rate_limit_exceeded' });
+    const body = await (await genCall()).json();
+    expect(body.code).toBe('OPENAI_RATE_LIMITED');
+    expect(body.error).toBe(ENGINE_TEXT);
+    expect(fakeQuota.global).toBe(0);
+  });
+
+  it('500 di OpenAI → tipo "errore generico", rimborsato', async () => {
+    openaiFails(500, { message: 'The server had an error', type: 'server_error', code: null });
+    const body = await (await genCall()).json();
+    expect(body.code).toBe('OPENAI_ERROR');
+    expect(fakeQuota.global).toBe(0);
+    expect(logLines(errSpy).some(l => l.includes('status=500') && l.includes('type=server_error'))).toBe(true);
+  });
+
+  it('errore di rete verso OpenAI → OPENAI_ERROR, log "network", contatori non aumentano', async () => {
+    vi.mocked(fetch).mockImplementation(async () => { throw new TypeError('error sending request: connection refused'); });
+
+    const res = await genCall();
+    const body = await res.json();
+
+    expect(res.status).toBe(502);
+    expect(body).toEqual({ error: ENGINE_TEXT, code: 'OPENAI_ERROR', source: 'openai', refunded: true });
+    expect(fakeQuota.count()).toBe(0);
+    expect(fakeQuota.global).toBe(0);
+    expect(logLines(errSpy).some(l => l.includes('status=network') && l.includes('connection refused'))).toBe(true);
+  });
+
+  it('guasto sulla 2ª chiamata dello stesso biglietto → la generazione si rimborsa una volta sola', async () => {
+    const dv = { purpose: 'generation', ticket: newTicket(), kind: 'itinerary' };
+    expect((await call({ dv })).status).toBe(200);
+    expect(fakeQuota.global).toBe(1);
+    openaiFails(503, { message: 'overloaded', type: 'server_error' });
+
+    await call({ dv });
+    expect(fakeQuota.global).toBe(0);
+    await call({ dv }); // il biglietto e' stato chiuso: riapre (+1) e fallisce (-1)
+    expect(fakeQuota.global).toBe(0);
+    expect(fakeQuota.count()).toBe(0);
+  });
+
+  it('chiamata di contorno (senza biglietto) che fallisce → stessa risposta stabile, nessun rimborso', async () => {
+    openaiFails(429, { message: 'quota', type: 'insufficient_quota', code: 'insufficient_quota' });
+    const body = await (await call({})).json();
+    expect(body.code).toBe('OPENAI_CREDIT_EXHAUSTED');
+    expect(body.refunded).toBe(false);
+    expect(rpcCalls).toEqual(['ai_quota_consume']);
+  });
+
+  it('la nostra quota esaurita resta com\'era: 429 QUOTA_EXCEEDED con il testo attuale', async () => {
+    for (let i = 0; i < 5; i++) await generation({});
+    const res = await genCall();
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ error: USER_TEXT, code: 'QUOTA_EXCEEDED', remaining: 0 });
   });
 });

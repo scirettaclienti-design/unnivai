@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2, Award, Crosshair, WifiOff, MessageSquare, Tag } from 'lucide-react';
 import { aiRecommendationService, buildInsiderPool } from '@/services/aiRecommendationService';
+import { AI_ENGINE_MESSAGE, isAiEngineError } from '@/lib/aiEngineError';
 import { useUserContext } from '../hooks/useUserContext';
 import GpsActivationBanner from '../components/GpsActivationBanner';
 import BottomNavigation from '../components/BottomNavigation';
@@ -21,6 +22,8 @@ import { placesDiscoveryService, PlacesSearchError, PLACES_SEARCH_ERROR_MESSAGE 
 const experiencesErrorText = (err) => {
     if (err?.code === 'PLACES_SEARCH_FAILED') return PLACES_SEARCH_ERROR_MESSAGE;
     if (err?.code === 'QUOTA_EXCEEDED' && err?.userMessage) return err.userMessage;
+    // Gate P8b — OpenAI ha rifiutato o non ha risposto.
+    if (isAiEngineError(err)) return AI_ENGINE_MESSAGE;
     return 'Non riesco a caricare le esperienze';
 };
 import { normalizeTour } from '@/services/tourShape';
@@ -257,7 +260,7 @@ const DashboardUser = () => {
                     });
                 } catch (err) {
                     // Gate INTERESSI-VERI — quota esaurita non e' "non trovo".
-                    if (err?.code === 'QUOTA_EXCEEDED') throw err;
+                    if (err?.code === 'QUOTA_EXCEEDED' || isAiEngineError(err)) throw err;
                     console.warn('[Per Te] generateHomeTours errore:', err.message);
                 }
                 // Google aveva luoghi ma il narratore e' caduto: errore, non stato vuoto.

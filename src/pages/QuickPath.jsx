@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { aiRecommendationService, QUOTA_USER_MESSAGE } from "@/services/aiRecommendationService";
+import { AI_ENGINE_MESSAGE, isAiEngineError } from "@/lib/aiEngineError";
 import { normalizeTour } from "@/services/tourShape";
 // Gate 2 FASE 3 — servizi centrali del motore reale.
 // resolveCityCenter: unica sorgente autoritativa del centro città (mai GPS).
@@ -500,10 +501,11 @@ export default function QuickPathPage() {
 
     // GENERATION STATE (LIFTED UP)
     // Gate 2 FASE 3 + Gate D-6 — status esteso con reason per messaggi distinti.
-    //   idle | loading | success | 'error-nothing' | 'error-technical' | 'error-quota'
+    //   idle | loading | success | 'error-nothing' | 'error-technical' | 'error-quota' | 'error-engine'
     // "error-nothing"   → messaggio brand ("Non basta per un tour.")
     // "error-technical" → messaggio infra ("Non riesco a raggiungere i posti.")
     // "error-quota"     → limite del server (Gate QUOTA-SERVER), testo dal server
+    // "error-engine"    → OpenAI ha rifiutato o non ha risposto (Gate P8b)
     //                     coerente con AiItinerary + SurpriseTour. Prima era
     //                     confuso con "technical" e mentiva sui "posti".
     const [generationStatus, setGenerationStatus] = useState('idle');
@@ -721,6 +723,12 @@ export default function QuickPathPage() {
             if (isQuotaErr) {
                 setGenerationError({ reason: 'quota', detail: 'quota_exceeded', message: err.userMessage || QUOTA_USER_MESSAGE });
                 setGenerationStatus('error-quota');
+                return;
+            }
+            // Gate P8b — il motore si e' fermato (OpenAI o proxy): testo fisso.
+            if (isAiEngineError(err)) {
+                setGenerationError({ reason: 'engine', detail: err.kind });
+                setGenerationStatus('error-engine');
                 return;
             }
             const isCityCenterErr = err instanceof CityCenterUnresolvedError;
@@ -1062,6 +1070,18 @@ export default function QuickPathPage() {
                                     <p className="text-obsidian-secondary text-sm leading-relaxed mb-8 font-medium">
                                         Riprova tra un attimo.
                                     </p>
+                                    <button
+                                        onClick={() => { setGenerationStatus('idle'); generateItinerary(selectedGroup); }}
+                                        className="px-6 py-3.5 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-xl font-bold transition-colors w-full sm:w-auto shadow-md shadow-brand-orange/20 cursor-pointer"
+                                    >
+                                        Riprova
+                                    </button>
+                                </div>
+                            )}
+
+                            {generationStatus === 'error-engine' && (
+                                <div data-engine-error className="bg-obsidian-card border border-obsidian-border rounded-[28px] p-8 text-center max-w-md mx-auto shadow-2xl">
+                                    <h3 className="text-2xl font-bold text-obsidian-primary mb-8">{AI_ENGINE_MESSAGE}</h3>
                                     <button
                                         onClick={() => { setGenerationStatus('idle'); generateItinerary(selectedGroup); }}
                                         className="px-6 py-3.5 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-xl font-bold transition-colors w-full sm:w-auto shadow-md shadow-brand-orange/20 cursor-pointer"

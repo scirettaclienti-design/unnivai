@@ -73,27 +73,38 @@ const callOpenAIProxy = async (payload, signal, quota) => {
 
   console.log('[AI Proxy] Chiamata →', `${supabaseUrl}/functions/v1/openai-proxy`, session ? '(autenticato)' : '(anonimo)');
 
-  const response = await fetch(`${supabaseUrl}/functions/v1/openai-proxy`, {
-    method: 'POST',
-    headers,
-    // Gate QUOTA-SERVER — `dv` dice al proxy a quale generazione appartiene la
-    // chiamata (biglietto). Senza `dv` il proxy la conta come chiamata di contorno.
-    body: JSON.stringify({ endpoint: '/chat/completions', ...payload, ...(quota ? { dv: quota } : {}) }),
-    ...(signal ? { signal } : {}),
-  });
+  let response;
+  try {
+    response = await fetch(`${supabaseUrl}/functions/v1/openai-proxy`, {
+      method: 'POST',
+      headers,
+      // Gate QUOTA-SERVER — `dv` dice al proxy a quale generazione appartiene la
+      // chiamata (biglietto). Senza `dv` il proxy la conta come chiamata di contorno.
+      body: JSON.stringify({ endpoint: '/chat/completions', ...payload, ...(quota ? { dv: quota } : {}) }),
+      ...(signal ? { signal } : {}),
+    });
+  } catch (err) {
+    // Gate P8b — il motore non risponde (rete o timeout del client).
+    const kind = err?.name === 'AbortError' ? 'timeout' : 'network';
+    console.error(`[AI Proxy] Errore: nessuna risposta (${kind})`);
+    throw new AiEngineError(kind);
+  }
 
   if (!response.ok) {
     const errBody = await response.json().catch(() => ({}));
+    const code = typeof errBody?.code === 'string' ? errBody.code : null;
     // Gate QUOTA-SERVER — il limite lo decide il server; il testo arriva da lì.
-    if (response.status === 429 && (errBody?.code === 'QUOTA_EXCEEDED' || errBody?.code === 'GLOBAL_QUOTA_EXCEEDED')) {
+    if (response.status === 429 && (code === 'QUOTA_EXCEEDED' || code === 'GLOBAL_QUOTA_EXCEEDED')) {
       throw new AiQuotaExceededError(0, {
-        scope: errBody.code === 'GLOBAL_QUOTA_EXCEEDED' ? 'global' : 'user',
+        scope: code === 'GLOBAL_QUOTA_EXCEEDED' ? 'global' : 'user',
         message: typeof errBody.error === 'string' ? errBody.error : undefined,
       });
     }
-    const errMsg = `Proxy ${response.status}: ${errBody?.error ?? response.statusText}`;
-    console.error('[AI Proxy] Errore:', errMsg);
-    throw new Error(errMsg);
+    // Gate P8b — ogni altro rifiuto (OpenAI giu', credito, troppe richieste,
+    // proxy) e' un guasto del motore: un tipo, mai un oggetto nel messaggio.
+    const kind = AI_ENGINE_KIND_BY_CODE[code] || 'proxy';
+    console.error(`[AI Proxy] Errore: ${response.status} ${code || 'senza codice'} (${kind})`);
+    throw new AiEngineError(kind, response.status);
   }
 
   return response.json();
@@ -211,6 +222,12 @@ const DAILY_QUOTA = 10;
 export const QUOTA_USER_MESSAGE = 'Per oggi hai usato tutti i tuoi percorsi. Domani se ne aprono altri.';
 export const QUOTA_GLOBAL_MESSAGE = 'Oggi Unnivai ha raggiunto il limite di percorsi. Domani se ne aprono altri.';
 
+// Gate P8b — guasto del motore: classe e testo in src/lib/aiEngineError.js.
+export { AI_ENGINE_MESSAGE, AiEngineError } from '@/lib/aiEngineError';
+// Quota esaurita e motore giu' arrivano alla UI: nessun catch li traveste da
+// "nessun risultato" o da tour vuoto.
+const mustReachUi = (err) => err instanceof AiQuotaExceededError || err instanceof AiEngineError;
+
 export class AiQuotaExceededError extends Error {
     constructor(remaining = 0, { scope = 'user', message } = {}) {
         super('AI daily quota exceeded');
@@ -325,6 +342,7 @@ import { filterTimeIncoherent } from '@/lib/narrationLight';
 // Gate PAROLE VIETATE — l'unico elenco: i prompt lo mostrano, il filtro lo applica.
 import { filterBannedWords, bannedWordsPromptLines, BANNED_VOICE_PHRASES_HOME } from '@/lib/narrationLight';
 import { momentAtClock } from '@/lib/dayMoments';
+import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
 import { buildDaySkeleton } from '@/lib/daySkeleton';
 import {
@@ -667,8 +685,8 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
             intent = await translateIntentToQueries(userPrompt, cityName, quota);
             console.info(`[Gate B] intent tradotto: queries=${JSON.stringify(intent.queries)} categoria=${intent.categoria} oggetto="${intent.oggetto_umano}" source=${intent._source}`);
         } catch (translatorErr) {
-            // Quota esaurita non e' un traduttore giu': deve arrivare alla UI.
-            if (translatorErr instanceof AiQuotaExceededError) throw translatorErr;
+            // Quota esaurita o motore giu' non sono "non trovo": arrivano alla UI.
+            if (mustReachUi(translatorErr)) throw translatorErr;
             console.warn(`[Gate B] translateIntentToQueries fallito: ${translatorErr.message}`);
             // Traduttore giù → path A resta path A (fail-closed), NON ricadere su path B.
             // Ritorna intent minimo con oggetto_umano generico per il messaggio d'errore.
@@ -2339,7 +2357,7 @@ export const aiRecommendationService = {
                     console.warn(`[Gate SOLO-GOOGLE] path B: Google-first ha prodotto 0 tappe canoniche per "${city}" → risultato vuoto`);
                 } catch (err) {
                     clearTimeout(timeoutId);
-                    if (err instanceof AiQuotaExceededError) throw err;
+                    if (mustReachUi(err)) throw err;
                     // Gate B — Path A: selettore fallito → errore tecnico onesto (no fallback).
                     if (isFreeTextIntent) {
                         console.warn(`[Gate B] path A selettore fallito (${err.name === 'AbortError' ? 'timeout' : err.message}) → errore onesto (no fallback AI-first)`);
@@ -2376,7 +2394,7 @@ export const aiRecommendationService = {
                 // il Percorso A. Prima cadeva sul motore AI-first (rimosso).
             }
         } catch (err) {
-            if (err instanceof AiQuotaExceededError) throw err;
+            if (mustReachUi(err)) throw err;
             // Gate INTERESSI-VERI — la ricerca su Google non si e' potuta fare
             // (rete, HTTP, eccezione): ne' "non trovo" ne' "non troviamo X".
             // Vale per i due percorsi; il Percorso B porta anche `_pathB`.
@@ -2690,7 +2708,7 @@ export const aiRecommendationService = {
             return result;
         } catch (err) {
             clearTimeout(timeoutId);
-            if (err instanceof AiQuotaExceededError) throw err;
+            if (mustReachUi(err)) throw err;
             console.warn(`[generateHomeTours] fallita: ${err.name === 'AbortError' ? 'timeout' : err.message}`);
             // Fail-CLOSED: nessun tour di ripiego finto. Chi consuma decide
             // (empty state onesto). Regola locked #1: nessun fallback produce

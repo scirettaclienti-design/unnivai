@@ -24,6 +24,13 @@
  * contato per hash SHA-256 di (AI_QUOTA_IP_SALT + IP). L'IP in chiaro non esce
  * da questa funzione. JWT presente ma non valido → 401.
  *
+ * Guasti di OpenAI (Gate P8b): errore HTTP, risposta illeggibile, rete o
+ * timeout → una riga di log (status, error.code, error.type, messaggio breve
+ * ripulito: mai la chiave, mai il prompt, mai dati dell'utente), risposta al
+ * client con forma stabile { error, code, source: 'openai' } dove code e'
+ * OPENAI_CREDIT_EXHAUSTED | OPENAI_RATE_LIMITED | OPENAI_ERROR, e rimborso della
+ * generazione (public.ai_quota_refund) se la chiamata aveva un biglietto.
+ *
  * La OPENAI_API_KEY rimane esclusivamente sul server Supabase.
  * Deploy: supabase functions deploy openai-proxy --no-verify-jwt
  */
@@ -54,6 +61,11 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // Testi decisi da Ivano: non modificarli senza di lui.
 const MSG_USER_LIMIT   = 'Per oggi hai usato tutti i tuoi percorsi. Domani se ne aprono altri.';
 const MSG_GLOBAL_LIMIT = 'Oggi Unnivai ha raggiunto il limite di percorsi. Domani se ne aprono altri.';
+// Gate P8b — guasto di OpenAI (credito, troppe richieste, errore, nessuna risposta).
+const MSG_ENGINE_DOWN  = 'Il motore si è fermato un attimo. Riprova tra qualche minuto.';
+
+// Oltre questo tempo OpenAI "non risponde": la generazione si rimborsa.
+const UPSTREAM_TIMEOUT_MS = 60_000;
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin':  '*',
@@ -133,6 +145,32 @@ async function resolveSubject(req: Request, sb: any): Promise<Subject> {
 
 type Meta = { purpose: 'generation'; ticket: string; kind: string } | { purpose: 'aux' };
 
+// ─── Gate P8b — guasti di OpenAI ─────────────────────────────────────────────
+
+type EngineCode = 'OPENAI_CREDIT_EXHAUSTED' | 'OPENAI_RATE_LIMITED' | 'OPENAI_ERROR';
+
+/** Il tipo di guasto, dallo status e dal corpo d'errore di OpenAI. */
+export function classifyOpenAiError(status: number, code: unknown, type: unknown): EngineCode {
+  if (code === 'insufficient_quota' || type === 'insufficient_quota' || code === 'billing_hard_limit_reached') {
+    return 'OPENAI_CREDIT_EXHAUSTED';
+  }
+  if (status === 429) return 'OPENAI_RATE_LIMITED';
+  return 'OPENAI_ERROR';
+}
+
+/** Messaggio breve per il log: niente chiavi, token, email, a capo; max 160 caratteri. */
+export function scrubLogText(text: unknown): string {
+  return String(text ?? '')
+    .replace(/sk-[A-Za-z0-9_\-]{4,}/g, 'sk-***')
+    .replace(/Bearer\s+\S+/gi, 'Bearer ***')
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '***@***')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 160);
+}
+
+const plain = (v: unknown) => (typeof v === 'string' && v ? scrubLogText(v).slice(0, 60) : '-');
+
 function parseMeta(dv: unknown): Meta {
   if (!dv || typeof dv !== 'object') return { purpose: 'aux' };
   const m = dv as Record<string, unknown>;
@@ -186,16 +224,19 @@ serve(async (req: Request) => {
   // ─── Quota: prima di OpenAI, fail-closed ───────────────────────────────────
   let quota: Record<string, unknown>;
   let meta: Meta;
+  // deno-lint-ignore no-explicit-any
+  let sb: any = null;
+  let subject: Subject | null = null;
   try {
     meta = parseMeta(dv);
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!SUPABASE_URL || !SERVICE_KEY) throw new Error('SUPABASE_URL / SERVICE_ROLE_KEY mancanti');
-    const sb = createClient(SUPABASE_URL, SERVICE_KEY, {
+    sb = createClient(SUPABASE_URL, SERVICE_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    const subject = await resolveSubject(req, sb);
+    subject = await resolveSubject(req, sb);
     const { data, error } = await sb.rpc('ai_quota_consume', {
       p_subject_kind: subject.kind,
       p_subject: subject.id,
@@ -233,6 +274,35 @@ serve(async (req: Request) => {
     ? { 'x-quota-remaining': String(quota.remaining) }
     : {};
 
+  // Gate P8b — un guasto di OpenAI: log, rimborso della generazione, risposta stabile.
+  const engineDown = async (
+    code: EngineCode,
+    log: { status: number | string; code?: unknown; type?: unknown; message?: unknown },
+  ) => {
+    console.error(
+      `[openai-proxy] OpenAI errore status=${log.status} code=${plain(log.code)} ` +
+      `type=${plain(log.type)} esito=${code} msg="${scrubLogText(log.message)}"`,
+    );
+    let refunded = false;
+    if (meta.purpose === 'generation' && sb && subject) {
+      try {
+        const { data, error } = await sb.rpc('ai_quota_refund', {
+          p_subject_kind: subject.kind,
+          p_subject: subject.id,
+          p_ticket: meta.ticket,
+        });
+        if (error) throw new Error(error.message ?? String(error));
+        refunded = data?.refunded === true;
+      } catch (err) {
+        console.error('[openai-proxy] rimborso generazione fallito:', scrubLogText(err));
+      }
+      console.info(`[openai-proxy] rimborso generazione: ${refunded ? 'fatto' : 'niente da rimborsare'}`);
+    }
+    return json(502, { error: MSG_ENGINE_DOWN, code, source: 'openai', refunded });
+  };
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
   try {
     const upstream = await fetch(`${OPENAI_BASE}${endpoint}`, {
       method: 'POST',
@@ -241,15 +311,22 @@ serve(async (req: Request) => {
         Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify(openAiPayload),
+      signal: controller.signal,
     });
 
     if (!upstream.ok) {
       const errData = await upstream.json().catch(() => ({}));
-      return json(upstream.status, { error: errData }, quotaHeaders);
+      clearTimeout(timer);
+      const e = (errData && typeof errData === 'object' ? (errData as Record<string, unknown>).error : null) ?? {};
+      const err = (typeof e === 'object' && e) ? e as Record<string, unknown> : { message: e };
+      return await engineDown(classifyOpenAiError(upstream.status, err.code, err.type), {
+        status: upstream.status, code: err.code, type: err.type, message: err.message,
+      });
     }
 
     // DVAI-044: Se stream=true, inoltriamo il body SSE direttamente al client
     if (isStreaming && upstream.body) {
+      clearTimeout(timer); // lo stream dura quanto deve: il tetto vale solo per la prima risposta
       return new Response(upstream.body, {
         status: 200,
         headers: {
@@ -263,10 +340,23 @@ serve(async (req: Request) => {
     }
 
     // Risposta JSON standard (non-streaming)
-    const data = await upstream.json();
+    let data: unknown;
+    try {
+      data = await upstream.json();
+    } catch (err) {
+      return await engineDown('OPENAI_ERROR', { status: upstream.status, type: 'invalid_json', message: String(err) });
+    } finally {
+      clearTimeout(timer);
+    }
     return json(upstream.status, data, quotaHeaders);
 
   } catch (err) {
-    return json(502, { error: 'Upstream OpenAI request failed', detail: String(err) });
+    clearTimeout(timer);
+    const timeout = (err as Error)?.name === 'AbortError';
+    return await engineDown('OPENAI_ERROR', {
+      status: timeout ? 'timeout' : 'network',
+      type: timeout ? 'timeout' : 'network',
+      message: timeout ? `nessuna risposta in ${UPSTREAM_TIMEOUT_MS / 1000}s` : String(err),
+    });
   }
 });

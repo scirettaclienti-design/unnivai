@@ -53,6 +53,7 @@ const formatMinutes = (min) => {
 import { useUserContext } from "@/hooks/useUserContext";
 import { useAILearning } from "@/hooks/useAILearning";
 import { aiRecommendationService, QUOTA_USER_MESSAGE } from "@/services/aiRecommendationService";
+import { AI_ENGINE_MESSAGE, isAiEngineError } from "@/lib/aiEngineError";
 import { normalizeTour } from "@/services/tourShape";
 import { useToast } from "@/hooks/use-toast";
 
@@ -321,6 +322,9 @@ export default function SurpriseTourPage() {
                     title: error.userMessage || QUOTA_USER_MESSAGE,
                     description: '',
                 });
+            } else if (isAiEngineError(error)) {
+                // Gate P8b — OpenAI ha rifiutato o non ha risposto: testo fisso.
+                setGenerationError({ title: AI_ENGINE_MESSAGE, description: '' });
             } else {
                 // DVAI-051: NON cadere più su mock numerico. Toast in-app coerente.
                 setGenerationError({

@@ -9,6 +9,10 @@ import TopBar from "../components/TopBar";
 import TourCover from "../components/TourCover";
 import { isPlacesPhoto } from "@/lib/categoryPalette";
 import { formatEstimate } from "@/lib/tourTiming";
+// Gate MOMENTO NEL DETTAGLIO — stesso raggruppamento di AiItinerary,
+// QuickPathSummary e SurpriseTour: momento dalla tappa (o dal suo orario),
+// orario = scheduledTime gia' calcolato dal motore. Niente orari calcolati qui.
+import { groupStopsByDayAndMoment } from "@/lib/stopMoments";
 
 import { useAuth } from "../context/AuthContext";
 import BottomNavigation from "../components/BottomNavigation";
@@ -1086,8 +1090,8 @@ export default function TourDetailsPage() {
                                             <MapPin size={18} className="mr-2 text-obsidian-secondary inline-block" />
                                             Programma del Tour ({totalSteps} tappe)
                                         </h3>
-                                        <div className="space-y-3">
-                                            {source.map((step, index) => {
+                                        {(() => {
+                                            const renderStep = (step, index, timeLabel) => {
                                                 const stepTitle = step.title || step.name || step.activity || `Tappa ${index + 1}`;
                                                 const stepImage = step.image || null;
                                                 const stepCategory = step.category && step.category !== 'place' ? step.category : null;
@@ -1120,10 +1124,18 @@ export default function TourDetailsPage() {
                                                                 <p className="text-sm font-bold text-obsidian-primary leading-tight">
                                                                     {stepTitle}
                                                                 </p>
-                                                                {stepMinutes && (
-                                                                    <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-obsidian-raised border border-obsidian-border text-obsidian-secondary text-[10px] font-semibold">
-                                                                        <Clock size={11} className="text-obsidian-secondary" /> {stepMinutes}
-                                                                    </span>
+                                                                {(timeLabel || stepMinutes) && (
+                                                                    <div className="shrink-0 flex items-center gap-1.5">
+                                                                        {/* Gate MOMENTO NEL DETTAGLIO — l'orario reale di arrivo; senza scheduledTime niente */}
+                                                                        {timeLabel && (
+                                                                            <span className="text-xs font-bold text-obsidian-primary tabular-nums">{timeLabel}</span>
+                                                                        )}
+                                                                        {stepMinutes && (
+                                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-obsidian-raised border border-obsidian-border text-obsidian-secondary text-[10px] font-semibold">
+                                                                                <Clock size={11} className="text-obsidian-secondary" /> {stepMinutes}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
                                                                 )}
                                                             </div>
 
@@ -1199,8 +1211,37 @@ export default function TourDetailsPage() {
                                                         )}
                                                     </div>
                                                 );
-                                            })}
-                                        </div>
+                                            };
+                                            // Gate MOMENTO NEL DETTAGLIO — giorni e momenti CONSECUTIVI,
+                                            // nell'ordine delle tappe: qui non si riordina niente.
+                                            // Senza orari ne' momenti c'e' un solo gruppo senza
+                                            // intestazione: la lista e' quella di prima.
+                                            const days = groupStopsByDayAndMoment(source);
+                                            const multiDay = days.length > 1;
+                                            return (
+                                                <div className="space-y-4">
+                                                    {days.map((day, di) => (
+                                                        <div key={day.dayKey ?? `giorno-${di}`} data-day-group className="space-y-3">
+                                                            {multiDay && (
+                                                                <h4 className="text-xs font-bold text-obsidian-primary px-1 capitalize">
+                                                                    Giorno {di + 1}{day.dayLabel ? ` · ${day.dayLabel}` : ''}
+                                                                </h4>
+                                                            )}
+                                                            {day.groups.map((group, gi) => (
+                                                                <div key={`${group.moment?.key ?? 'senza'}-${gi}`} data-moment-group className="space-y-3">
+                                                                    {group.moment && (
+                                                                        <h4 data-moment-header className="text-[11px] font-bold text-brand-orange uppercase tracking-widest px-1">
+                                                                            {group.moment.label}
+                                                                        </h4>
+                                                                    )}
+                                                                    {group.items.map(({ stop, index, timeLabel }) => renderStep(stop, index, timeLabel))}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 );
                             })()}

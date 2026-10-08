@@ -274,12 +274,14 @@ describe('P7a — "Per Te": tour con meno di 3 tappe e luogo ceduto', () => {
     const FOOD = [poi('f1', 'Da Enzo', 1), poi('f2', 'Armando', 2), poi('f3', 'Roscioli', 1.5)];
     const INSIDER = [poi('c1', 'Pantheon', 0.5), poi('i1', 'Museo Barracco', 1), poi('i2', 'Casa di Goethe', 1.1), poi('i3', 'Cripta dei Cappuccini', 1.3)];
 
-    it('un tour "Per Te" con 2 tappe non viene mostrato', async () => {
+    it('un tour "Per Te" con 2 tappe non viene mostrato (se il pool non ha altro: P7a2)', async () => {
         vi.stubGlobal('fetch', proxyFetch({ tours: [
             { themeType: 'cultura', title: 'Cultura', stops: [stop('c1'), stop('c2'), stop('c3')] },
             { themeType: 'food', title: 'Food', stops: [stop('f1'), stop('f2')] },
         ] }));
-        const res = await home({ cultura: CULTURA, food: FOOD });
+        // P7a2 — con un terzo luogo nel pool il tour verrebbe completato in
+        // codice (perTePieno.test.js): qui il pool food ha solo le sue 2 tappe.
+        const res = await home({ cultura: CULTURA, food: FOOD.slice(0, 2) });
         expect(res.tours.map(t => t.themeType)).toEqual(['cultura']);
         expect(res._report.scarti.filter(s => /meno di 3 tappe/.test(s.motivo))).toHaveLength(2);
     });

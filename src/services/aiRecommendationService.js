@@ -352,7 +352,7 @@ import {
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
-import { selectScoredCandidatePool, enforceCategoryVariety, weightsFingerprint, obviousnessReport } from './candidateScoring';
+import { selectScoredCandidatePool, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport } from './candidateScoring';
 
 // ─── DVAI-060 F2 — derive theme + fetch candidati reali ──────────────────────
 //
@@ -1360,12 +1360,23 @@ export const buildInsiderPool = (themedPools, cityCenter, city, size = HOME_INSI
  *      luogo solo se al suo tema ne restano almeno HOME_TOUR_STOPS.max,
  *      altrimenti il luogo resta al tema. Prima ogni luogo insider compariva
  *      due volte, e il tour che arrivava dopo perdeva la tappa in silenzio.
+ *   3. P7a2 — MERITO anche nei temi: ogni pool di tema si ordina col punteggio
+ *      di Gate MERITO (unicita' + voto, il DNA solo con fiducia), misurato su
+ *      TUTTI i candidati della generazione, con al massimo UNA icona per tema.
+ *      Prima i temi arrivavano al modello nell'ordine di Google, e il modello
+ *      sceglieva i primi: Musei Capitolini, Giardino degli Aranci. L'insider
+ *      e' gia' ordinato da buildInsiderPool e qui non si riordina.
  */
-export const prepareHomePools = (themedCandidates, cityCenter, city) => {
+export const prepareHomePools = (themedCandidates, cityCenter, city, { dnaWeights = { _share: 0 } } = {}) => {
     const pools = {};
     for (const [theme, arr] of Object.entries(themedCandidates || {})) {
         if (!Array.isArray(arr) || arr.length === 0) continue;
         pools[theme] = applyRadiusFilter(arr, cityCenter, city);
+    }
+    const tutti = [...new Map(Object.values(pools).flat().map(p => [homePid(p) || p?.name, p])).values()];
+    for (const theme of Object.keys(pools)) {
+        if (theme === 'insider') continue;
+        pools[theme] = rankByMerit(pools[theme], { reference: tutti, dnaWeights, maxIcons: 1 });
     }
     const owner = new Map();
     let doppioniTemi = 0;
@@ -2499,12 +2510,15 @@ export const aiRecommendationService = {
                         }
                         const singleStop = narratedDays[0].stops.length === 1;
                         const ovvieta = obviousnessReport(allStops, candidatiGenerazione);
+                        const famosita = famositaReport(allStops, city, candidatiGenerazione);
+                        console.info(`[P7a2 famosita'] ${city}: mediana ${famosita.mediana ?? '-'} recensioni, ${famosita.sopraSoglia}/${famosita.tappe} tappe sopra ${famosita.soglia}`);
                         console.info(`[P7a ovvieta'] ${city}: ${ovvieta.nelTop10}/${ovvieta.tappe} tappe nel 10% piu' recensito (${ovvieta.candidati} candidati, soglia ${ovvieta.sogliaRecensioni ?? '-'} recensioni)`);
                         const result = {
                             days: narratedDays, _source: 'google-first', _singleStop: singleStop,
                             ...(momentReport ? { _momentReport: momentReport } : {}),
                             _narrationReport: narrationReport,
                             _ovvieta: ovvieta,
+                            _famosita: famosita,
                         };
                         // Un narratore caduto non si mette in cache: la prossima
                         // richiesta deve poter avere il suo racconto.
@@ -2687,7 +2701,10 @@ export const aiRecommendationService = {
     async generateHomeTours({ city, cityCenter, themedCandidates, prefs = {}, aiProfile = '', weather = {}, opts = {} } = {}) {
         // Gate PER TE — distanza e doppioni si decidono QUI, prima del prompt
         // (prepareHomePools). Un pool rimasto vuoto non entra nel prompt.
-        const nonEmptyPools = prepareHomePools(themedCandidates, cityCenter, city);
+        // P7a2 — i pool dei temi si ordinano per merito dentro prepareHomePools;
+        // il DNA entra solo con fiducia (opts.dnaWeights._share > 0).
+        const dnaWeights = opts.dnaWeights && opts.dnaWeights._share > 0 ? opts.dnaWeights : { _share: 0 };
+        const nonEmptyPools = prepareHomePools(themedCandidates, cityCenter, city, { dnaWeights });
         if (Object.keys(nonEmptyPools).length === 0) {
             return { tours: [], _source: 'no-pools' };
         }
@@ -2713,7 +2730,10 @@ export const aiRecommendationService = {
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([theme, arr]) => `${theme}:${arr.map(p => p.place_id || p.googlePlaceId).sort().join(',')}`)
             .join('|');
-        const cacheKey = `hometours_v1_${city.replace(/\s+/g, '_')}_${centerFingerprint}_${romeDay}_${moment.key}_${hashStr(poolStr)}`;
+        // P7a2 — l'ordine dei pool dipende dal DNA: con fiducia, i pesi entrano
+        // nella chiave (senza fiducia la chiave resta quella di prima).
+        const dnaKey = dnaWeights._share > 0 ? `|dna:${weightsFingerprint(dnaWeights)}` : '';
+        const cacheKey = `hometours_v1_${city.replace(/\s+/g, '_')}_${centerFingerprint}_${romeDay}_${moment.key}_${hashStr(poolStr + dnaKey)}`;
         const cached = loadInsiderFromCache(cacheKey);
         // Gate PAROLE VIETATE (P3d) — anche la lettura dalla cache passa dal filtro.
         if (cached) return scrubHomeTours(cached, city);
@@ -2837,8 +2857,39 @@ export const aiRecommendationService = {
                 return { tour, themeType, canonized };
             });
 
+            // (1b) P7a2 — RIEMPIRE PRIMA DI NASCONDERE. Un tour che rischia di
+            // restare sotto le 3 tappe (contando solo quelle gia' sicure:
+            // descrizione presente e nessuna frase tolta) riceve in codice delle
+            // RISERVE: i migliori candidati Gate MERITO rimasti nel SUO pool
+            // (gia' entro il raggio, gia' ordinato per merito), che nessun altro
+            // tour usa. Una riserva in piu' del necessario, perche' la sua
+            // descrizione puo' non passare i filtri. Le riserve ricevono la
+            // descrizione nella stessa seconda chiamata della riscrittura, dentro
+            // il biglietto 'home_tours': nessuna chiamata in piu'. Si usano solo
+            // se, dopo la riscrittura, il tour e' ancora sotto le 3 tappe.
+            const usati = new Set();
+            for (const pt of prepared) for (const st of pt?.canonized || []) if (st.place_id) usati.add(st.place_id);
+            prepared.forEach((pt) => {
+                if (!pt) return;
+                const sicure = pt.canonized.filter(st => hasNonEmptyDescription(st) && st._tolte.length === 0).length;
+                const mancano = HOME_TOUR_STOPS.min - sicure;
+                pt.riserve = [];
+                if (mancano <= 0) return;
+                const pool = nonEmptyPools[pt.themeType] || [];
+                for (const c of pool) {
+                    if (pt.riserve.length >= mancano + 1) break;
+                    const pid = homePid(c);
+                    if (!pid || usati.has(pid)) continue;
+                    const [st] = canonicalizeStopsFromCandidates([{ place_id: pid }], pool, { guard: false });
+                    if (!st) continue;
+                    usati.add(pid);
+                    pt.riserve.push({ ...st, _tolte: [] });
+                }
+            });
+
             // (2) P3d-c — la riscrittura. Una tappa senza descrizione o con una
             // frase tolta dalla descrizione si riscrive; il resto non si tocca.
+            // P7a2: nella stessa chiamata, la descrizione delle riserve.
             const rewriteItems = [];
             prepared.forEach((pt, ti) => {
                 if (!pt) return;
@@ -2849,11 +2900,18 @@ export const aiRecommendationService = {
                         tolte: st._tolte, exempt: [st.title, st.name].filter(Boolean),
                     });
                 });
+                pt.riserve.forEach((st, ri) => {
+                    rewriteItems.push({
+                        key: `${ti}:r${ri}`, place_id: st.place_id, nome: st.title, types: st.types,
+                        tolte: [], exempt: [st.title, st.name].filter(Boolean),
+                    });
+                });
             });
             const rewrite = rewriteItems.length > 0
                 ? await rewriteDescriptions({ city, items: rewriteItems, quotaTicket })
                 : null;
 
+            const aggiunte = [];
             const finalTours = prepared.map((pt, ti) => {
                 if (!pt) return null;
                 const { tour, themeType } = pt;
@@ -2872,6 +2930,19 @@ export const aiRecommendationService = {
                     return false;
                 }).map(({ _tolte, ...st }) => st);
 
+                // P7a2 — sotto le 3 tappe: si completa con le riserve che hanno
+                // ricevuto una descrizione (in ordine di merito).
+                if (canonized.length < HOME_TOUR_STOPS.min) {
+                    pt.riserve.forEach((st, ri) => {
+                        if (canonized.length >= HOME_TOUR_STOPS.min) return;
+                        const desc = rewrite?.byKey.get(`${ti}:r${ri}`);
+                        if (!desc) return;
+                        const { _tolte, ...clean } = st;
+                        canonized.push({ ...clean, description: desc });
+                        aggiunte.push({ tour: themeType, title: st.title, place_id: st.place_id });
+                    });
+                }
+
                 // Safety filtro raggio: il pool e' gia' entro il raggio
                 // (prepareHomePools), qui non dovrebbe togliere niente — se lo
                 // fa, il motivo si vede.
@@ -2885,7 +2956,9 @@ export const aiRecommendationService = {
                     console.warn(`[Per Te] ${city}: tour "${themeType}" senza tappe dopo gli scarti → non servito`);
                 } else if (ordered.length < HOME_TOUR_STOPS.min) {
                     // P7a — un tour "Per Te" con meno di 3 tappe non e' un tour.
-                    for (const st of ordered) scarta(themeType, st.title, `tour con meno di ${HOME_TOUR_STOPS.min} tappe`);
+                    // P7a2 — si arriva qui solo se il pool non aveva piu' riserve
+                    // valide (o la loro descrizione non ha passato i filtri).
+                    for (const st of ordered) scarta(themeType, st.title, `tour con meno di ${HOME_TOUR_STOPS.min} tappe: nessun candidato valido rimasto nel pool`);
                 }
 
                 return {
@@ -2905,6 +2978,9 @@ export const aiRecommendationService = {
                     .map(p => [homePid(p) || p?.title, p]),
             ).values()];
             const ovvieta = obviousnessReport(finalTours.flatMap(t => t.stops), tuttiCandidati);
+            // P7a2 — famosita': mediana delle recensioni delle tappe servite e
+            // tappe sopra 5.000 (citta') / 1.000 (borghi).
+            const famosita = famositaReport(finalTours.flatMap(t => t.stops), city, tuttiCandidati);
 
             const report = {
                 tourProposti: rawTours.length,
@@ -2920,9 +2996,11 @@ export const aiRecommendationService = {
                 giorno: romeDay,
                 riscrittura: rewrite?.report ?? null,
                 cedutiAccettati: accettatiCeduti,
-                ovvieta,
+                aggiunte,
+                famosita,
+                ovvieta, // solo per confronto (P7a)
             };
-            console.info(`[Per Te] ${city}: ${report.tourServiti}/${report.tourProposti} tour, ${report.tappeServite}/${report.tappeRaccontate} tappe servite, ${scarti.length} scarti, ${tokenRisposta ?? '?'}/${MAX_TOKENS} token${truncated ? ', risposta tagliata' : ''}, ovvieta' ${ovvieta.nelTop10}/${ovvieta.tappe}`);
+            console.info(`[Per Te] ${city}: ${report.tourServiti}/${report.tourProposti} tour, ${report.tappeServite}/${report.tappeRaccontate} tappe servite (${aggiunte.length} aggiunte in codice), ${scarti.length} scarti, ${tokenRisposta ?? '?'}/${MAX_TOKENS} token${truncated ? ', risposta tagliata' : ''}, famosita' mediana ${famosita.mediana ?? '-'} / ${famosita.sopraSoglia} sopra ${famosita.soglia}, ovvieta' ${ovvieta.nelTop10}/${ovvieta.tappe}`);
             const result = { tours: finalTours, _source: 'unified-home', _report: report };
             saveInsiderToCache(cacheKey, { tours: finalTours, _source: 'unified-home' });
             return result;

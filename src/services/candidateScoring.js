@@ -188,6 +188,75 @@ export const selectScoredCandidatePool = (candidates, { city, dnaWeights = {}, l
     return out;
 };
 
+// ─── P7a2 — ordinare un pool per merito, senza soglia ───────────────────────
+//
+// Stesso punteggio e stesso tetto icone di selectScoredCandidatePool, ma per
+// i pool dei temi di "Per Te": niente soglia di qualita' (quei candidati hanno
+// gia' passato la soglia del LORO tema in placesDiscoveryService, e i borghi
+// vivono di scale-down) e niente taglio a `limit`.
+//
+// `reference` e' l'insieme su cui si misurano unicita' e icone: per "Per Te"
+// tutti i candidati della generazione, come per l'insider. Un tema con 12
+// luoghi avrebbe sempre il "suo" decimo piu' recensito anche se nessuno e'
+// famoso: misurato sulla citta', un'icona e' un'icona davvero.
+// Le icone oltre `maxIcons` escono dal pool: non arrivano al modello.
+// A parita' di punteggio resta l'ordine di partenza (quello della ricerca).
+export const rankByMerit = (pool, { reference, dnaWeights = { _share: 0 }, maxIcons = 1 } = {}) => {
+    const idOf = (c) => c?.place_id || c?.googlePlaceId || c?.name;
+    const list = Array.isArray(pool) ? pool : [];
+    const ref = Array.isArray(reference) && reference.length > 0 ? reference : list;
+    const icons = identifyIcons(ref);
+    const scored = list.map((c, i) => ({
+        candidate: c,
+        i,
+        score: computeCandidateScore(c, ref, dnaWeights),
+        isIcon: icons.has(idOf(c)),
+    }));
+    scored.sort((a, b) => (b.score - a.score) || (a.i - b.i));
+    const out = [];
+    let iconsUsed = 0;
+    for (const s of scored) {
+        if (s.isIcon) {
+            if (iconsUsed >= maxIcons) continue;
+            iconsUsed += 1;
+        }
+        out.push(s.candidate);
+    }
+    return out;
+};
+
+// ─── P7a2 — famosita': mediana delle recensioni e tappe sopra soglia ────────
+//
+// Nel resoconto di ogni generazione. La soglia e' assoluta (non relativa ai
+// candidati come l'ovvieta' al 10%): 5.000 recensioni in citta', 1.000 nei
+// borghi (isSmallTown). Le tappe servite non portano il numero di recensioni:
+// si legge dai candidati, per place_id.
+export const FAMOSITA_SOGLIA = { citta: 5000, borgo: 1000 };
+
+export const famositaReport = (stops, city, candidates = []) => {
+    const idOf = (c) => c?.place_id || c?.googlePlaceId || null;
+    const byId = new Map((Array.isArray(candidates) ? candidates : []).filter(idOf).map(c => [idOf(c), c]));
+    const list = Array.isArray(stops) ? stops : [];
+    const conRec = list.map(s => {
+        const own = Number(s?.user_ratings_total ?? s?.reviewsCount);
+        const rec = Number.isFinite(own) && own > 0 ? own : Number(byId.get(idOf(s))?.user_ratings_total);
+        return { title: s?.title || s?.name || idOf(s), rec: Number.isFinite(rec) ? rec : null };
+    });
+    const valori = conRec.map(x => x.rec).filter(Number.isFinite).sort((a, b) => a - b);
+    const n = valori.length;
+    const mediana = n === 0 ? null : (n % 2 ? valori[(n - 1) / 2] : (valori[n / 2 - 1] + valori[n / 2]) / 2);
+    const soglia = isSmallTown(city) ? FAMOSITA_SOGLIA.borgo : FAMOSITA_SOGLIA.citta;
+    const famose = conRec.filter(x => Number.isFinite(x.rec) && x.rec > soglia);
+    return {
+        tappe: list.length,
+        conRecensioni: n,
+        mediana,
+        soglia,
+        sopraSoglia: famose.length,
+        famose: famose.map(x => `${x.title} (${x.rec})`),
+    };
+};
+
 // ─── Varieta': niente 3 tappe consecutive dello stesso tipo ─────────────────
 //
 // Opera sull'ORDINE finale delle tappe scelte (dopo canonicalizzazione e

@@ -259,6 +259,8 @@ const DashboardUser = () => {
                         },
                         prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' },
                         aiProfile: getAIContext?.() || '',
+                        // P7a2 — i pool dei temi si ordinano per merito come l'insider.
+                        opts: { dnaWeights: dnaShare > 0 ? dnaWeights : { _share: 0 } },
                     });
                 } catch (err) {
                     // Gate INTERESSI-VERI — quota esaurita non e' "non trovo".

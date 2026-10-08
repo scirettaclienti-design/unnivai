@@ -11,8 +11,9 @@
  *   - generazione = un "biglietto" (`dv.ticket`, uuid scelto dal client). Il
  *     primo uso conta +1 (utente 10/giorno, ospite 5/giorno per IP, tetto
  *     globale AI_GLOBAL_DAILY_CAP, default 1000). Lo stesso biglietto vale al
- *     massimo, in 10 minuti: 'itinerary' 3 chiamate (traduttore d'intento +
- *     selettore + narratore), 'home_tours' 2.
+ *     massimo, in 10 minuti: 'itinerary' 4 chiamate (traduttore d'intento +
+ *     selettore + narratore + riscrittura delle descrizioni, P3d-c),
+ *     'home_tours' 2 (tour + riscrittura). Il limite vive in ai_quota_consume.
  *   - chiamate di contorno (chat, monumenti, meteo, business, e qualunque
  *     richiesta senza `dv`): utente 40/giorno, ospite 15/giorno per IP.
  *   - max_tokens: tetto 4000 per ogni chiamata (biglietti 'itinerary' e

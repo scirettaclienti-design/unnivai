@@ -119,7 +119,7 @@ describe('filterBannedWords — una frase con una parola vietata viene tolta', (
     it('maiuscole e varianti di genere/numero e l\'avverbio', () => {
         for (const frase of ['Tradizionale e basta.', 'Le ricette TRADIZIONALI.', 'Si mangia tradizionalmente.',
             'Una piazza storica.', 'I vicoli storici.', 'Botteghe storiche.', 'Storicamente qui.',
-            'Un posto unico.', 'Le uniche panche.', 'Tipiche osterie.', 'Viste suggestive.',
+            'Un\'esperienza unica.', 'Tipiche osterie.', 'Viste suggestive.',
             'Una sera magica.', 'Luci affascinanti.', 'Mostre imperdibili.', 'Dettagli caratteristici.']) {
             expect(filterBannedWords(frase).text, frase).toBeNull();
         }
@@ -137,7 +137,7 @@ describe('filterBannedWords — una frase con una parola vietata viene tolta', (
             text: null,
             removed: [
                 { frase: 'Un luogo magico.', parole: ['magico'], regola: 'parola-vietata' },
-                { frase: 'Atmosfera unica e suggestiva.', parole: ['unico', 'suggestivo'], regola: 'parola-vietata' },
+                { frase: 'Atmosfera unica e suggestiva.', parole: ['suggestivo'], regola: 'parola-vietata' },
             ],
         });
     });
@@ -156,21 +156,23 @@ describe('Gate PAROLE VIETATE — un elenco solo (P3d-b: per tutto il testo gene
     it('l\'elenco del codice e\' quello che i prompt mostrano al modello, carattere per carattere', () => {
         // P3d-b — unione di narratore, "Per Te" e notifiche (prompt e filtro).
         expect(BANNED_VOICE_WORDS).toEqual([
-            'storico', 'tradizionale', 'unico', 'caratteristico', 'suggestivo', 'tipico',
+            'storico', 'tradizionale', 'esperienza unica', 'caratteristico', 'suggestivo', 'tipico',
             'affascinante', 'magico', 'imperdibile',
             'spettacolare', 'indimenticabile', 'atmosfera intima', 'vista mozzafiato',
-            'sorseggia', 'gusta', 'immergiti', 'assapora',
+            'sorseggia', 'immergiti', 'assapora',
             'ottima scelta', 'perfetta scelta', 'ottima idea', 'ottimo posto',
-            'vale la pena', 'da provare', 'consigliato', 'consiglio', 'perfetto per',
-            'ideale per', 'assolutamente da', 'non perdere',
-            'un must', 'una chicca', 'una scoperta', 'una perla', 'un gioiello',
+            'vale la pena', 'da provare', 'consigliato', 'perfetto per',
+            'ideale per', 'assolutamente da', 'da non perdere',
+            'un must', 'una chicca', 'una perla', 'un gioiello',
+            'racconta una storia', 'raccontano storie', 'ogni angolo', 'viaggio nel tempo',
+            'goditi', "è un'esperienza", 'raccontano molto',
         ]);
         expect(bannedWordsPromptLines()).toBe(
-            '"storico", "tradizionale", "unico", "caratteristico", "suggestivo", "tipico", "affascinante", "magico",\n'
-            + '"imperdibile", "spettacolare", "indimenticabile", "atmosfera intima", "vista mozzafiato", "sorseggia", "gusta", "immergiti",\n'
-            + '"assapora", "ottima scelta", "perfetta scelta", "ottima idea", "ottimo posto", "vale la pena", "da provare", "consigliato",\n'
-            + '"consiglio", "perfetto per", "ideale per", "assolutamente da", "non perdere", "un must", "una chicca", "una scoperta",\n'
-            + '"una perla", "un gioiello" — mai, in nessun campo: la frase che ne contiene una viene tolta.',
+            '"storico", "tradizionale", "esperienza unica", "caratteristico", "suggestivo", "tipico", "affascinante", "magico",\n'
+            + '"imperdibile", "spettacolare", "indimenticabile", "atmosfera intima", "vista mozzafiato", "sorseggia", "immergiti", "assapora",\n'
+            + '"ottima scelta", "perfetta scelta", "ottima idea", "ottimo posto", "vale la pena", "da provare", "consigliato", "perfetto per",\n'
+            + '"ideale per", "assolutamente da", "da non perdere", "un must", "una chicca", "una perla", "un gioiello", "racconta una storia",\n'
+            + '"raccontano storie", "ogni angolo", "viaggio nel tempo", "goditi", "è un\'esperienza", "raccontano molto" — mai, in nessun campo: la frase che ne contiene una viene tolta.',
         );
     });
 });

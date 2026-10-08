@@ -1932,6 +1932,141 @@ const narrateFinalDays = async ({ city, days, starts, tourWindow, cityCenter, we
     }
 };
 
+// ─── P3d-c — riscrivere invece di cancellare ────────────────────────────────
+//
+// Dopo i filtri (parole vietate, aperture dei sensi, luce/ora) una descrizione
+// puo' restare vuota o perdere una frase. Prima la tappa restava muta (o, in
+// "Per Te", usciva). Ora le tappe da rifare vanno al modello in UNA sola
+// chiamata, con il motivo di ognuna ("hai usato 'magica'"), dentro lo stesso
+// biglietto della generazione. Il testo nuovo ripassa dagli STESSI filtri: se
+// non passa, il campo resta com'era (vuoto, se era vuoto). Mai un secondo giro.
+// Si riscrive solo `description`: e' il campo che decide se la tappa si vede.
+
+/** Il motivo, in parole del modello, di una frase tolta da un filtro. */
+const rewriteReason = (x) => {
+    const regole = x.regole || (x.regola ? [x.regola] : []);
+    if (regole.includes('parola-vietata')) return `hai usato ${(x.parole || []).map(p => `"${p}"`).join(', ')}`;
+    if (regole.includes('apertura-sensi')) return "apriva con un'impressione dei sensi";
+    return `parlava di ${regole.map(r => `"${r}"`).join(', ')} ma l'arrivo è alle ${x.arrivo || '?'}`;
+};
+
+export const buildRewriteSystemPrompt = ({ city }) => `Sei la voce di Unnivai a ${city}: un local, non una guida turistica.
+Alcune descrizioni di tappa sono state tolte dai nostri controlli. Per ognuna ti dico
+cosa è stato tolto e perché. Riscrivi SOLO il campo description, una per tappa.
+
+${DESCRIPTION_RULE_PROMPT}
+
+Di ogni luogo sai SOLO: nome, "types", momento e orario di arrivo. NON attribuirgli
+contenuti che non sai esistano lì (opere, piatti, mostre, eventi, servizi).
+NON parlare di luce o di ora (tramonto, alba, sera, notte, mattina) se l'orario di
+arrivo non lo rende vero. NON dire se il posto è aperto o chiuso.
+
+Parole e frasi VIETATE (la frase che ne contiene una viene tolta, e questa volta il
+campo resta vuoto):
+${bannedWordsPromptLines()}
+
+Rispondi in JSON puro: { "stops": [ { "place_id": "...", "description": "..." } ] }
+Se per una tappa non hai una frase vera, scrivi "description": null.`;
+
+/**
+ * UNA chiamata di riscrittura per le tappe che i filtri hanno svuotato o
+ * accorciato.
+ * @param {object} p
+ * @param {string} p.city
+ * @param {Array<{ key: string, place_id: string, nome: string, types: string[],
+ *   momento?: string|null, arrivo?: string|null, tolte: Array, exempt: string[],
+ *   arrival?: Date|null, sun?: { sunrise: Date|null, sunset: Date|null }|null }>} p.items
+ * @param {object} [p.quotaTicket] il biglietto della generazione
+ * @returns {Promise<{ byKey: Map<string, string>, report: object }>}
+ *   byKey: solo le descrizioni riscritte che hanno passato i filtri
+ */
+const rewriteDescriptions = async ({ city, items, quotaTicket }) => {
+    const report = { richieste: items.length, riscritte: 0, ancoraVuote: [], scartate: [], errore: null, token: null };
+    const byKey = new Map();
+    if (items.length === 0) return { byKey, report };
+    const tappe = items.map(it => ({
+        place_id: it.place_id,
+        nome: it.nome,
+        types: (it.types || []).slice(0, 5),
+        ...(it.momento ? { momento: it.momento } : {}),
+        ...(it.arrivo ? { arrivo: it.arrivo } : {}),
+        tolto: it.tolte.length > 0
+            ? it.tolte.map(x => ({ frase: x.frase, motivo: rewriteReason(x) }))
+            : [{ frase: null, motivo: 'mancava la descrizione' }],
+    }));
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25_000);
+    try {
+        const data = await callOpenAIProxy({
+            model: 'gpt-4o-mini',
+            messages: [
+                { role: 'system', content: buildRewriteSystemPrompt({ city }) },
+                { role: 'user', content: `Riscrivi ${tappe.length} descrizioni, una per tappa, con il loro place_id.\nTAPPE:\n${JSON.stringify(tappe)}` },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.5,
+            max_tokens: Math.min(1500, 120 + 80 * tappe.length),
+        }, controller.signal, quotaTicket);
+        clearTimeout(timeoutId);
+        report.token = data?.usage?.total_tokens ?? null;
+        const parsed = JSON.parse(data?.choices?.[0]?.message?.content || '{}');
+        const out = new Map((Array.isArray(parsed?.stops) ? parsed.stops : [])
+            .filter(st => st && typeof st.place_id === 'string')
+            .map(st => [st.place_id, cleanText(st.description)]));
+        for (const it of items) {
+            const text = out.get(it.place_id) ?? null;
+            if (!text) { report.ancoraVuote.push(it.nome); continue; }
+            // Gli STESSI filtri della prima volta.
+            const voce = filterBannedWords(text, { exempt: it.exempt });
+            const ora = filterTimeIncoherent(voce.text, {
+                arrival: it.arrival || null, sunrise: it.sun?.sunrise || null, sunset: it.sun?.sunset || null,
+            });
+            for (const x of [...voce.removed, ...ora.removed]) {
+                report.scartate.push({ title: it.nome, frase: x.frase, motivo: rewriteReason(x) });
+            }
+            if (ora.text) { byKey.set(it.key, ora.text); report.riscritte += 1; } else report.ancoraVuote.push(it.nome);
+        }
+    } catch (err) {
+        clearTimeout(timeoutId);
+        // La riscrittura non fa mai cadere un tour gia' fatto: quota, motore giu',
+        // timeout → i campi restano come li hanno lasciati i filtri.
+        report.errore = err?.code || (err?.name === 'AbortError' ? 'timeout' : (err?.message || String(err)));
+        report.ancoraVuote = items.map(it => it.nome);
+    }
+    console.info(`[P3d-c RISCRITTURA] ${city}: ${report.riscritte}/${report.richieste} descrizioni riscritte` +
+        (report.errore ? ` (errore: ${report.errore})` : '') +
+        (report.scartate.length ? `, ${report.scartate.length} frasi riscritte di nuovo tolte` : ''));
+    for (const x of report.scartate) {
+        console.warn(`[P3d-c RISCRITTURA] ${city}: "${x.title}" — riscrittura tolta (${x.motivo}): "${x.frase}"`);
+    }
+    return { byKey, report };
+};
+
+/**
+ * Le tappe dell'itinerario da riscrivere: descrizione vuota, o una frase tolta
+ * dalla descrizione. Ogni tappa porta arrivo e alba/tramonto del suo giorno,
+ * per ripassare dal filtro di luce/ora.
+ */
+const itineraryRewriteItems = (days, frasiTolte, starts, tourWindow, cityCenter) => {
+    const timed = refreshTourScheduledTimes(days, starts);
+    const items = [];
+    (days || []).forEach((day, di) => {
+        const sun = sunForDay(day, di, tourWindow, cityCenter);
+        (day.stops || []).forEach((s, si) => {
+            const tolte = frasiTolte.filter(f => f.place_id === s.place_id && f.campo === 'description');
+            if (hasNonEmptyDescription(s) && tolte.length === 0) return;
+            const iso = timed[di]?.stops?.[si]?.scheduledTime;
+            items.push({
+                key: `${di}:${si}`, place_id: s.place_id, nome: s.title, types: s.types,
+                momento: s.momentLabel || null, arrivo: iso ? clockLabel(new Date(iso)) : null,
+                tolte, exempt: [s.title, s.name].filter(Boolean),
+                arrival: iso ? new Date(iso) : null, sun,
+            });
+        });
+    });
+    return items;
+};
+
 // Il racconto sulle tappe, per place_id. Una tappa che il narratore non ha
 // raccontato resta con nome e categoria e i campi di testo null: nessun testo
 // inventato al suo posto.
@@ -2312,15 +2447,34 @@ export const aiRecommendationService = {
                             city, days: finalDays, starts, tourWindow, cityCenter,
                             weather, prefs, aiProfile, userPrompt, quotaTicket,
                         });
-                        const { days: narratedDays, frasiTolte } = guardNarrationLight(
+                        const guarded = guardNarrationLight(
                             applyNarration(finalDays, narration, city), starts, tourWindow, cityCenter,
                         );
+                        const { frasiTolte } = guarded;
+                        // P3d-c — le descrizioni svuotate o accorciate dai filtri si
+                        // riscrivono UNA volta, nello stesso biglietto. Con il
+                        // narratore caduto no: niente da riscrivere, e niente secondo giro.
+                        let riscrittura = null;
+                        let narratedDays = guarded.days;
+                        if (!narration.error) {
+                            const items = itineraryRewriteItems(narratedDays, frasiTolte, starts, tourWindow, cityCenter);
+                            if (items.length > 0) {
+                                const rw = await rewriteDescriptions({ city, items, quotaTicket });
+                                riscrittura = rw.report;
+                                narratedDays = narratedDays.map((day, di) => ({
+                                    ...day,
+                                    stops: day.stops.map((st, si) => (rw.byKey.has(`${di}:${si}`)
+                                        ? { ...st, description: rw.byKey.get(`${di}:${si}`) } : st)),
+                                }));
+                            }
+                        }
                         const allStops = narratedDays.flatMap(d => d.stops);
                         const narrationReport = {
                             raccontate: allStops.filter(hasNonEmptyDescription).length,
                             nonRaccontate: allStops.filter(st => !hasNonEmptyDescription(st)).map(st => ({ place_id: st.place_id, title: st.title })),
                             frasiTolte,
                             errore: narration.error,
+                            riscrittura,
                         };
                         logNarratorViolations(allStops, 'narratore');
                         for (const f of frasiTolte) {
@@ -2606,7 +2760,11 @@ export const aiRecommendationService = {
             };
             let tappeRaccontate = 0;
 
-            const finalTours = rawTours.map(tour => {
+            // P3d-c — tre passi: (1) ogni tour si prepara e passa dai filtri;
+            // (2) UNA riscrittura per tutte le descrizioni svuotate o accorciate,
+            // nello stesso biglietto 'home_tours'; (3) la regola II.2 scarta solo
+            // le tappe ancora vuote, poi raggio e stime.
+            const prepared = rawTours.map(tour => {
                 const themeType = tour?.themeType;
                 const pool = nonEmptyPools[themeType];
                 const aiStops = Array.isArray(tour?.stops) ? tour.stops : [];
@@ -2641,27 +2799,49 @@ export const aiRecommendationService = {
                 });
 
                 // Gate PAROLE VIETATE (P3d) — stesso filtro e stesso elenco
-                // dell'itinerario, PRIMA della regola II.2: una descrizione fatta
-                // solo di frasi vietate diventa vuota, e la tappa esce qui sotto.
+                // dell'itinerario, PRIMA della regola II.2.
                 canonized = canonized.map(st => {
                     const r = scrubBannedWords(st);
                     logBannedRemovals(city, st.title, r.removed, 'home');
-                    return { ...r.stop, _vietate: r.removed.some(x => x.campo === 'description') };
+                    return { ...r.stop, _tolte: r.removed.filter(x => x.campo === 'description') };
                 });
+                return { tour, themeType, canonized };
+            });
+
+            // (2) P3d-c — la riscrittura. Una tappa senza descrizione o con una
+            // frase tolta dalla descrizione si riscrive; il resto non si tocca.
+            const rewriteItems = [];
+            prepared.forEach((pt, ti) => {
+                if (!pt) return;
+                pt.canonized.forEach((st, si) => {
+                    if (hasNonEmptyDescription(st) && st._tolte.length === 0) return;
+                    rewriteItems.push({
+                        key: `${ti}:${si}`, place_id: st.place_id, nome: st.title, types: st.types,
+                        tolte: st._tolte, exempt: [st.title, st.name].filter(Boolean),
+                    });
+                });
+            });
+            const rewrite = rewriteItems.length > 0
+                ? await rewriteDescriptions({ city, items: rewriteItems, quotaTicket })
+                : null;
+
+            const finalTours = prepared.map((pt, ti) => {
+                if (!pt) return null;
+                const { tour, themeType } = pt;
+                let canonized = pt.canonized.map((st, si) => (rewrite?.byKey.has(`${ti}:${si}`)
+                    ? { ...st, description: rewrite.byKey.get(`${ti}:${si}`) } : st));
 
                 // Gate II.2 — regola locked: description vuota → stop scartato.
                 // Mai placeholder "Luogo di interesse". Meno tappe > tappe vuote.
-                // Gate NARRATORE/POI (Fase 2b): il predicato inline è diventato
-                // hasNonEmptyDescription, condiviso con generateItinerary. Stesso
-                // corpo, stessa posizione nella catena, stesso ordine rispetto
-                // al dedup cross-tour sopra: comportamento invariato.
+                // P3d-c: qui arrivano solo le tappe che nemmeno la riscrittura ha
+                // salvato.
                 canonized = canonized.filter(st => {
                     if (hasNonEmptyDescription(st)) return true;
-                    scarta(themeType, st.title, st._vietate
-                        ? 'descrizione vuota dopo il filtro parole vietate'
+                    scarta(themeType, st.title, st._tolte.length > 0
+                        ? 'descrizione vuota dopo il filtro parole vietate e la riscrittura'
                         : 'descrizione assente');
                     return false;
-                }).map(({ _vietate, ...st }) => st);
+                }).map(({ _tolte, ...st }) => st);
 
                 // Safety filtro raggio: il pool e' gia' entro il raggio
                 // (prepareHomePools), qui non dovrebbe togliere niente — se lo
@@ -2698,6 +2878,7 @@ export const aiRecommendationService = {
                 troncata: truncated,
                 momento: moment.key,
                 giorno: romeDay,
+                riscrittura: rewrite?.report ?? null,
             };
             console.info(`[Per Te] ${city}: ${report.tourServiti}/${report.tourProposti} tour, ${report.tappeServite}/${report.tappeRaccontate} tappe servite, ${scarti.length} scarti, ${tokenRisposta ?? '?'}/${MAX_TOKENS} token${truncated ? ', risposta tagliata' : ''}`);
             const result = { tours: finalTours, _source: 'unified-home', _report: report };

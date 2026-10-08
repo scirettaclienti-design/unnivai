@@ -326,7 +326,7 @@ describe('Gate NARRATORE-DOPO — il narratore racconta le tappe finali', () => 
         const cena = byName('Da Teo').place_id;
         const { fn } = routeFetch({
             selector: sel(GIORNO_1),
-            narrator: narratore({ text: (t) => (t.place_id === cena ? 'Cucina tradizionale. Un locale unico.' : `Da ${t.nome} il selciato e' liscio.`) }),
+            narrator: narratore({ text: (t) => (t.place_id === cena ? 'Cucina tradizionale. Un locale magico.' : `Da ${t.nome} il selciato e' liscio.`) }),
         });
         vi.stubGlobal('fetch', fn);
 

@@ -91,19 +91,20 @@ const SBAGLIATO = [
 describe('P3d-b — un elenco solo per tutto il testo generato', () => {
     it("l'elenco unico contiene le parole di narratore, \"Per Te\" e notifiche (prompt e filtro)", () => {
         for (const w of [
-            'storico', 'tradizionale', 'unico', 'caratteristico', 'suggestivo', 'tipico', 'affascinante', 'magico', 'imperdibile',
+            // P3d-c: senza i falsi positivi "unico", "gusta", "consiglio", "non perdere", "una scoperta"
+            'storico', 'tradizionale', 'esperienza unica', 'caratteristico', 'suggestivo', 'tipico', 'affascinante', 'magico', 'imperdibile',
             'ottima scelta', 'perfetta scelta',
             'spettacolare', 'indimenticabile', 'atmosfera intima', 'vista mozzafiato',
-            'sorseggia', 'gusta', 'immergiti', 'assapora',
-            'vale la pena', 'da provare', 'consigliato', 'perfetto per', 'ideale per', 'consiglio', 'assolutamente da',
-            'ottima idea', 'ottimo posto', 'non perdere', 'un must', 'una chicca', 'una scoperta', 'una perla', 'un gioiello',
+            'sorseggia', 'immergiti', 'assapora',
+            'vale la pena', 'da provare', 'consigliato', 'perfetto per', 'ideale per', 'assolutamente da',
+            'ottima idea', 'ottimo posto', 'da non perdere', 'un must', 'una chicca', 'una perla', 'un gioiello',
         ]) expect(BANNED_VOICE_WORDS, w).toContain(w);
         expect(new Set(BANNED_VOICE_WORDS).size).toBe(BANNED_VOICE_WORDS.length);
         expect(voce.BANNED_VOICE_PHRASES_HOME).toBeUndefined(); // nessun elenco a parte
     });
 
     it('"assapora" (e le sue forme) → frase tolta', () => {
-        for (const f of ['Assapora la carbonara al bancone.', 'Da assaporare piano.', 'Si gusta in piedi.', 'Un caffè consigliato.']) {
+        for (const f of ['Assapora la carbonara al bancone.', 'Da assaporare piano.', 'Un caffè consigliato.']) {
             expect(filterBannedWords(f).text, f).toBeNull();
         }
         expect(filterBannedWords('Il gusto della casa è nel pane.').text).toBe('Il gusto della casa è nel pane.');

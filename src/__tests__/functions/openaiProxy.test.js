@@ -39,7 +39,7 @@ function createFakeQuota() {
       }
       const t = tickets.get(p.p_ticket);
       if (t) {
-        if (t.subject !== subject || t.calls >= (t.kind === 'itinerary' ? 3 : 2)) return { allowed: false, reason: 'ticket' };
+        if (t.subject !== subject || t.calls >= (t.kind === 'itinerary' ? 4 : 2)) return { allowed: false, reason: 'ticket' };
         t.calls += 1;
         return { allowed: true, reason: 'ticket', ticket_kind: t.kind };
       }
@@ -265,10 +265,12 @@ describe('openai-proxy — quota applicata dal server', () => {
     expect(openaiCalls()).toBe(0);
   });
 
-  it("biglietto 'itinerary': la 3ª chiamata passa, la 4ª con lo stesso biglietto e' rifiutata", async () => {
-    const res = await generation({ token: 'tok-anna', calls: 4 });
-    expect(res.map(r => r.status)).toEqual([200, 200, 200, 403]);
-    expect(openaiCalls()).toBe(3);
+  // P3d-c — traduttore + selettore + narratore + riscrittura = 4 chiamate.
+  it("biglietto 'itinerary': la 4ª chiamata (riscrittura) passa, la 5ª con lo stesso biglietto e' rifiutata", async () => {
+    const res = await generation({ token: 'tok-anna', calls: 5 });
+    expect(res.map(r => r.status)).toEqual([200, 200, 200, 200, 403]);
+    expect(openaiCalls()).toBe(4);
+    expect(fakeQuota.count('user:user-anna')).toBe(1); // sempre UNA generazione
   });
 
   it("biglietto 'home_tours': resta a 2 chiamate, la 3ª e' rifiutata", async () => {

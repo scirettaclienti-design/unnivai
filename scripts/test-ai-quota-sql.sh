@@ -11,6 +11,8 @@ MIGRATION="$ROOT/supabase/migrations/20261005_ai_quota_server_side.sql"
 MIGRATION_3CALLS="$ROOT/supabase/migrations/20261006_ai_ticket_itinerary_3_calls.sql"
 # Gate P8b — rimborso della generazione quando OpenAI fallisce.
 MIGRATION_REFUND="$ROOT/supabase/migrations/20261008_ai_quota_refund.sql"
+# Gate P3d-c — biglietto 'itinerary' a 4 chiamate (+ riscrittura).
+MIGRATION_4CALLS="$ROOT/supabase/migrations/20261008_ai_ticket_itinerary_4_calls.sql"
 NAME="dv-quota-sql-test-$$"
 
 cleanup() { docker rm -f "$NAME" >/dev/null 2>&1 || true; }
@@ -71,6 +73,8 @@ psql < "$MIGRATION_3CALLS"
 psql < "$MIGRATION_3CALLS"
 psql < "$MIGRATION_REFUND"
 psql < "$MIGRATION_REFUND"
+psql < "$MIGRATION_4CALLS"
+psql < "$MIGRATION_4CALLS"
 
 echo "→ asserzioni"
 psql <<'SQL'
@@ -95,14 +99,16 @@ DO $$ DECLARE r jsonb; t uuid; BEGIN
   PERFORM pg_temp.ok((SELECT count FROM ai_quota_daily WHERE user_id = '11111111-1111-1111-1111-111111111111') = 10, 'contatore utente fermo a 10');
 END $$;
 
--- Biglietto 'itinerary': la 3a chiamata passa, la 4a e' rifiutata; un biglietto altrui e' rifiutato.
+-- Biglietto 'itinerary' (P3d-c): la 4a chiamata (riscrittura) passa, la 5a e' rifiutata; un biglietto altrui e' rifiutato.
 DO $$ DECLARE r jsonb; t uuid := gen_random_uuid(); BEGIN
   PERFORM pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000);
   PERFORM pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000);
   r := pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000);
   PERFORM pg_temp.ok((r->>'allowed')::boolean AND r->>'reason' = 'ticket', 'biglietto itinerary: 3a chiamata ammessa');
   r := pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000);
-  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'ticket', 'biglietto itinerary: 4a chiamata rifiutata');
+  PERFORM pg_temp.ok((r->>'allowed')::boolean AND r->>'reason' = 'ticket', 'biglietto itinerary: 4a chiamata (riscrittura) ammessa');
+  r := pg_temp.gen('user', '22222222-2222-2222-2222-222222222222', t, 10, 1000);
+  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'ticket', 'biglietto itinerary: 5a chiamata rifiutata');
   r := pg_temp.gen('guest', 'hash-x', (SELECT id FROM ai_generation_ticket LIMIT 1), 5, 1000);
   PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'ticket', 'biglietto di un altro soggetto rifiutato');
   PERFORM pg_temp.ok((SELECT count FROM ai_quota_daily WHERE user_id = '22222222-2222-2222-2222-222222222222') = 4, 'riga preesistente (3) +1 = 4');

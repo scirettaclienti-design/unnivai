@@ -156,20 +156,30 @@ export function filterTimeIncoherent(text, { arrival, sunrise, sunset } = {}) {
 //   · prompt delle notifiche: aggettivi vuoti, verbi da menu, giudizi;
 //   · filtro delle notifiche (JUDGMENT_PATTERNS): giudizi e "un must"/"una perla"…
 // Il codice non sa giudicare il contesto: toglie la frase in ogni caso. Meglio
-// una frase in meno che una frase da brochure a schermo.
+// una frase in meno che una frase da brochure a schermo — e dal P3d-c la frase
+// tolta da una descrizione il modello la riscrive una volta (rewriteDescriptions).
+//
+// P3d-c — falsi positivi tolti dall'elenco: "consiglio" ("Consiglio: entra dal
+// lato"), "unico/unica" come parola sola ("l'unica panchina all'ombra"; resta
+// "esperienza unica"), "non perdere" ("per non perdere il bus"; resta "da non
+// perdere"), "una scoperta" ("una scoperta archeologica"), "gusta" ("si gusta
+// in piedi"; resta "assapora"). Aggiunte le frasi generiche.
 export const BANNED_VOICE_WORDS = [
     // aggettivi da brochure (narratore, "Per Te")
-    'storico', 'tradizionale', 'unico', 'caratteristico', 'suggestivo', 'tipico',
+    'storico', 'tradizionale', 'esperienza unica', 'caratteristico', 'suggestivo', 'tipico',
     'affascinante', 'magico', 'imperdibile',
     // aggettivi vuoti (notifiche)
     'spettacolare', 'indimenticabile', 'atmosfera intima', 'vista mozzafiato',
     // verbi da menu (notifiche)
-    'sorseggia', 'gusta', 'immergiti', 'assapora',
+    'sorseggia', 'immergiti', 'assapora',
     // giudizi e raccomandazioni ("Per Te", notifiche)
     'ottima scelta', 'perfetta scelta', 'ottima idea', 'ottimo posto',
-    'vale la pena', 'da provare', 'consigliato', 'consiglio', 'perfetto per',
-    'ideale per', 'assolutamente da', 'non perdere',
-    'un must', 'una chicca', 'una scoperta', 'una perla', 'un gioiello',
+    'vale la pena', 'da provare', 'consigliato', 'perfetto per',
+    'ideale per', 'assolutamente da', 'da non perdere',
+    'un must', 'una chicca', 'una perla', 'un gioiello',
+    // frasi generiche (P3d-c): dicono che il posto e' interessante senza dire perche'
+    'racconta una storia', 'raccontano storie', 'ogni angolo', 'viaggio nel tempo',
+    'goditi', "è un'esperienza", 'raccontano molto',
 ];
 
 /**
@@ -192,9 +202,14 @@ export function bannedWordsPromptLines() {
 //   affascinante → affascinante/i/affascinantemente
 //   consigliato → consigliato/a/i/e
 //   assapora (verbo) → assapora/assaporare/assaporate/assaporando/assaporano
+//   racconta una storia / raccontano storie → raccontare (una) storia/storie,
+//     in ogni forma del verbo: "sembrano raccontare storie" e' la stessa frase
 // Parola intera (\b): "storia", "comunita'", "tipografia", "gusto" restano.
-const VERBS = new Set(['sorseggia', 'gusta', 'assapora']);
+// Le voci si normalizzano come il testo (accenti, apostrofi): "è" → "e".
+const VERBS = new Set(['sorseggia', 'assapora']);
+const STORY_PATTERN = String.raw`raccont(?:a|ano|are|ando)\s+(?:una\s+|delle\s+|le\s+)?stori(?:a|e)`;
 const variantPattern = (w) => {
+    if (w === 'racconta una storia' || w === 'raccontano storie') return STORY_PATTERN;
     if (w.includes(' ')) return w.split(' ').join('\\s+');
     if (VERBS.has(w)) return `${w.slice(0, -1)}(?:a|are|ate|ando|ano)`;
     if (w.endsWith('co')) return `${w.slice(0, -1)}(?:o|a|i|he|amente)`;
@@ -204,8 +219,13 @@ const variantPattern = (w) => {
     if (w.endsWith('e')) return `${w.slice(0, -1)}(?:e|i|emente)`;
     return w;
 };
-const BANNED_RULES = BANNED_VOICE_WORDS
-    .map(w => ({ word: w, re: new RegExp(`\\b${variantPattern(w)}\\b`) }));
+// Due voci con lo stesso schema ("racconta una storia", "raccontano storie")
+// contano una volta sola: vale la prima.
+const BANNED_RULES = [];
+for (const w of BANNED_VOICE_WORDS) {
+    const src = variantPattern(norm(w));
+    if (!BANNED_RULES.some(r => r.src === src)) BANNED_RULES.push({ word: w, src, re: new RegExp(`\\b${src}\\b`) });
+}
 
 // ─── P3d-b — niente attacchi da audioguida ──────────────────────────────────
 //

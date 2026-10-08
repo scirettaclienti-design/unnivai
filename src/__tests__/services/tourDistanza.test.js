@@ -152,7 +152,7 @@ describe('Gate TOUR-DISTANZA — generateItinerary scarta prima di chiamare l’
     it('NON-REGRESSIONE: candidati dentro il raggio arrivano all’AI', async () => {
         const { fn, stato } = routeFetch(
             [PLACE(vicino('Lido')), PLACE(VILLA_LONTANA)],
-            { days: [{ day: 1, title: 'Un giro', stops: [{ place_id: 'pid-Lido', description: 'Il vento porta il sale' }] }] },
+            { days: [{ day: 1, title: 'Un giro', stops: [{ place_id: 'pid-Lido', description: 'Dal molo si vedono le barche tirate a secco.' }] }] },
         );
         vi.stubGlobal('fetch', fn);
 
@@ -175,7 +175,7 @@ describe('Gate TOUR-DISTANZA — generateItinerary scarta prima di chiamare l’
     it('nessuno scartato → nessuna riga di log (il marker non è rumore)', async () => {
         const { fn } = routeFetch(
             [PLACE(vicino('Lido'))],
-            { days: [{ day: 1, title: 'Un giro', stops: [{ place_id: 'pid-Lido', description: 'Il vento porta il sale' }] }] },
+            { days: [{ day: 1, title: 'Un giro', stops: [{ place_id: 'pid-Lido', description: 'Dal molo si vedono le barche tirate a secco.' }] }] },
         );
         vi.stubGlobal('fetch', fn);
 

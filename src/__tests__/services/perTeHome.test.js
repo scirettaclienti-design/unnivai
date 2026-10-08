@@ -182,10 +182,12 @@ describe('Per Te — nessuno scarto silenzioso', () => {
         const warn = vi.spyOn(console, 'warn');
         vi.stubGlobal('fetch', proxyFetch(JSON.stringify({
             tours: [
-                tourJson('cultura', ['c1', 'c2', 'inventato']),
+                // P7a — ogni tour ha 3 tappe buone: sotto le 3 un tour non si
+                // serve piu', e qui si vogliono vedere gli SCARTI di tappa.
+                tourJson('cultura', ['c1', 'c2', 'c4', 'inventato']),
                 // c1 ripetuto: il secondo tour lo perde
-                { themeType: 'food', title: 'Food', stops: [stop('f1'), stop('f2'), { place_id: 'f3', description: 'Un posto magico.' }] },
-                { themeType: 'nature', title: 'Verde', stops: [stop('n1'), stop('c1')] },
+                { themeType: 'food', title: 'Food', stops: [stop('f1'), stop('f2'), stop('f4'), { place_id: 'f3', description: 'Un posto magico.' }] },
+                { themeType: 'nature', title: 'Verde', stops: [stop('n1'), stop('n2'), stop('n3'), stop('c1')] },
             ],
         })));
         const res = await home(POOLS);
@@ -195,7 +197,7 @@ describe('Per Te — nessuno scarto silenzioso', () => {
         expect(res._report.scarti).toHaveLength(3);
         const righe = warn.mock.calls.map(c => String(c[0])).filter(l => l.includes('[Per Te]') && l.includes('scartata'));
         expect(righe).toHaveLength(3);
-        expect(res._report.tappeRaccontate).toBe(8);
-        expect(res._report.tappeServite).toBe(5);
+        expect(res._report.tappeRaccontate).toBe(12);
+        expect(res._report.tappeServite).toBe(9);
     });
 });

@@ -216,8 +216,16 @@ describe('P3d-c — "Per Te": la tappa non si perde', () => {
         cultura: [
             { place_id: 'pid-uno', name: 'Torre Capitania', latitude: CENTER.latitude, longitude: CENTER.longitude, rating: 4.6, type: 'museum', types: ['museum'], city: CITY },
             { place_id: 'pid-due', name: 'Museo del Sale', latitude: CENTER.latitude + 0.001, longitude: CENTER.longitude, rating: 4.4, type: 'museum', types: ['museum'], city: CITY },
+            // P7a — sotto le 3 tappe un tour "Per Te" non si serve: due tappe
+            // pulite in piu' (EXTRA), che non chiedono riscrittura.
+            { place_id: 'pid-tre', name: 'Chiesa Madre', latitude: CENTER.latitude + 0.002, longitude: CENTER.longitude, rating: 4.5, type: 'church', types: ['church'], city: CITY },
+            { place_id: 'pid-quattro', name: 'Porta Marina', latitude: CENTER.latitude + 0.003, longitude: CENTER.longitude, rating: 4.3, type: 'monument', types: ['tourist_attraction'], city: CITY },
         ],
     };
+    const EXTRA = [
+        { place_id: 'pid-tre', description: 'Sul sagrato si vendono le reti la domenica.' },
+        { place_id: 'pid-quattro', description: 'La porta guarda il molo dei pescatori.' },
+    ];
     let homeCalls;
     const homeFetch = (tourPayload, rewrite) => vi.fn(async (url, init) => {
         if (!String(url).includes('openai-proxy')) throw new Error(`fetch inatteso: ${url}`);
@@ -228,7 +236,7 @@ describe('P3d-c — "Per Te": la tappa non si perde', () => {
         const payload = isRw ? rewrite(JSON.parse(String(body.messages[1].content).split('TAPPE:\n')[1])) : tourPayload;
         return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify(payload) } }] }) };
     });
-    const tour = (stops) => ({ tours: [{ themeType: 'cultura', title: 'Cultura a Ippocampo', stops }] });
+    const tour = (stops) => ({ tours: [{ themeType: 'cultura', title: 'Cultura a Ippocampo', stops: [...stops, ...EXTRA] }] });
     const home = () => aiRecommendationService.generateHomeTours({ city: CITY, cityCenter: CENTER, themedCandidates: POOL, opts: { skipUserQuota: true } });
 
     beforeEach(() => {
@@ -248,7 +256,7 @@ describe('P3d-c — "Per Te": la tappa non si perde', () => {
         expect(new Set(homeCalls.map(c => c.body.dv?.ticket)).size).toBe(1);
         expect(homeCalls[0].body.dv.kind).toBe('home_tours');
         const stops = res.tours[0].stops;
-        expect(stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-uno']);
+        expect(stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre', 'pid-uno']);
         expect(stops.find(s => s.place_id === 'pid-uno').description).toBe('Dai merli si vede la salina intera.');
         expect(res._report.scarti).toEqual([]);
         expect(res._report.riscrittura).toMatchObject({ richieste: 1, riscritte: 1 });
@@ -261,7 +269,7 @@ describe('P3d-c — "Per Te": la tappa non si perde', () => {
         ]), (tappe) => ({ stops: tappe.map(t => ({ place_id: t.place_id, description: "Un'esperienza unica." })) })));
         const res = await home();
         expect(homeCalls.filter(c => c.kind === 'riscrittura')).toHaveLength(1);
-        expect(res.tours[0].stops.map(s => s.place_id)).toEqual(['pid-due']);
+        expect(res.tours[0].stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre']);
         expect(res._report.scarti[0].motivo).toContain('riscrittura');
     });
 });

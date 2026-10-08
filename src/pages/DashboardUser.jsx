@@ -147,14 +147,15 @@ const DashboardUser = () => {
         }
     };
 
-    const { userDNAPreferences, preferenceGraph, totalInteractions, getAIContext, getTourAffinity, hasSeed } = useAILearning();
+    const { userDNAPreferences, preferenceGraph, totalInteractions, getAIContext, getTourAffinity, dnaShare, dnaWeights } = useAILearning();
     // Gate SEME (L1): il ranking DNA (:216 tour reali, :359 riordino) si attiva
     // con >=3 interazioni reali OPPURE con un seme onboarding non vuoto — cosi'
     // gli interessi scelti contano dal primo ingresso (R1). hasSeed e' disponibile
     // sincrono al primo render (letto da localStorage nell'initializer del hook),
     // quindi la query 'home-experiences' parte gia' col valore giusto. La queryKey
     // NON cambia struttura: hasPreferences ne era gia' membro.
-    const hasPreferences = totalInteractions >= 3 || hasSeed;
+    // P7a — "Per Te" solo quando il DNA ha fiducia (>= 5 eventi, o un seme).
+    const hasPreferences = dnaShare > 0;
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
     useEffect(() => {
@@ -243,7 +244,8 @@ const DashboardUser = () => {
                 // filtro di distanza (Gate PER TE — buildInsiderPool). Il narratore
                 // sceglie la "perla" mescolando categorie. I doppioni con i temi
                 // li toglie il motore prima del prompt (prepareHomePools).
-                const insiderPool = buildInsiderPool(themedPools, cityCenter, currentCity);
+                // P7a — insider col punteggio di Gate MERITO; il DNA entra solo con fiducia.
+                const insiderPool = buildInsiderPool(themedPools, cityCenter, currentCity, undefined, dnaShare > 0 ? dnaWeights : { _share: 0 });
 
                 // Call unificata: 1 sola call OpenAI, N tour narrati.
                 let homeToursResult = { tours: [] };

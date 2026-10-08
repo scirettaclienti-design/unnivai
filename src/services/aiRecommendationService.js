@@ -352,7 +352,7 @@ import {
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
-import { selectScoredCandidatePool, enforceCategoryVariety, weightsFingerprint } from './candidateScoring';
+import { selectScoredCandidatePool, enforceCategoryVariety, weightsFingerprint, obviousnessReport } from './candidateScoring';
 
 // ─── DVAI-060 F2 — derive theme + fetch candidati reali ──────────────────────
 //
@@ -1326,9 +1326,14 @@ const homePid = (p) => p?.place_id || p?.googlePlaceId || null;
  * Gate PER TE — il blocco insider: i luoghi migliori di TUTTI i temi, scelti
  * DOPO il filtro di distanza (prima si sceglievano i 15 migliori e poi si
  * scartavano quelli lontani, e l'insider restava corto).
- * Punteggio: rating × ln(1+recensioni), lo stesso che DashboardUser usava.
+ *
+ * P7a — punteggio di Gate MERITO (selectScoredCandidatePool: unicita' + voto,
+ * soglia di qualita', al massimo UNA icona del decimo piu' recensito), non piu'
+ * voto × ln(1+recensioni): quella formula premiava proprio i luoghi piu'
+ * famosi, e "Per Te" sceglieva Musei Capitolini. A parita' di voto vince il
+ * meno recensito. Il DNA entra solo se ha fiducia (`dnaWeights._share`).
  */
-export const buildInsiderPool = (themedPools, cityCenter, city, size = HOME_INSIDER_SIZE) => {
+export const buildInsiderPool = (themedPools, cityCenter, city, size = HOME_INSIDER_SIZE, dnaWeights = { _share: 0 }) => {
     const union = new Map();
     for (const pois of Object.values(themedPools || {})) {
         if (!Array.isArray(pois)) continue;
@@ -1337,10 +1342,9 @@ export const buildInsiderPool = (themedPools, cityCenter, city, size = HOME_INSI
             if (pid && !union.has(pid)) union.set(pid, p);
         }
     }
-    const score = (p) => (p.rating || 0) * Math.log(1 + (p.user_ratings_total || 0));
-    return applyRadiusFilter([...union.values()], cityCenter, city)
-        .sort((a, b) => score(b) - score(a))
-        .slice(0, size);
+    return selectScoredCandidatePool(applyRadiusFilter([...union.values()], cityCenter, city), {
+        city, dnaWeights, limit: size, maxIcons: 1,
+    });
 };
 
 /**
@@ -1376,6 +1380,11 @@ export const prepareHomePools = (themedCandidates, cityCenter, city) => {
     }
     let allInsider = 0;
     let alTema = 0;
+    // P7a — i luoghi che l'insider ha ceduto al tema. Se il modello li mette
+    // comunque nell'insider e nessun altro tour li usa, generateHomeTours li
+    // accetta invece di scartarli. Non enumerabile: Object.keys(pools) resta
+    // l'elenco dei temi.
+    const ceduti = new Map();
     if (pools.insider) {
         const kept = [];
         const seen = new Set();
@@ -1392,10 +1401,12 @@ export const prepareHomePools = (themedCandidates, cityCenter, city) => {
                 allInsider++;
             } else {
                 alTema++;
+                ceduti.set(pid, { poi: p, tema: t });
             }
         }
         pools.insider = kept;
     }
+    Object.defineProperty(pools, 'ceduti', { value: ceduti, enumerable: false });
     for (const t of Object.keys(pools)) if (pools[t].length === 0) delete pools[t];
     if (doppioniTemi + allInsider + alTema > 0) {
         console.info(`[Per Te] ${city}: doppioni nel pool — ${allInsider} luoghi lasciati all'insider e tolti dal tema, ${alTema} lasciati al tema e tolti dall'insider, ${doppioniTemi} fra temi`);
@@ -2264,6 +2275,9 @@ export const aiRecommendationService = {
             // l'affinita' si azzera da sola (regola UTENTE NUOVO), unicita' e
             // voto restano attivi comunque.
             const beforeMerito = candidates.length;
+            // P7a — i candidati PRIMA di Gate MERITO: e' su questi che si misura
+            // l'ovvieta' (quante tappe stanno nel loro 10% piu' recensito).
+            const candidatiGenerazione = candidates;
             // Gate NARRATORE-DOPO — 20 candidati per giorno: con "2-3 Giorni"
             // un pool da 20 finiva i ristoranti prima del pranzo del giorno 3.
             const nDays = Math.max(1, tourWindow.windows.length);
@@ -2484,10 +2498,13 @@ export const aiRecommendationService = {
                             console.warn(`[Gate NARRATORE-DOPO] ${city}: ${narrationReport.nonRaccontate.length}/${allStops.length} tappe senza racconto — [${narrationReport.nonRaccontate.map(x => x.title).join(' | ')}]`);
                         }
                         const singleStop = narratedDays[0].stops.length === 1;
+                        const ovvieta = obviousnessReport(allStops, candidatiGenerazione);
+                        console.info(`[P7a ovvieta'] ${city}: ${ovvieta.nelTop10}/${ovvieta.tappe} tappe nel 10% piu' recensito (${ovvieta.candidati} candidati, soglia ${ovvieta.sogliaRecensioni ?? '-'} recensioni)`);
                         const result = {
                             days: narratedDays, _source: 'google-first', _singleStop: singleStop,
                             ...(momentReport ? { _momentReport: momentReport } : {}),
                             _narrationReport: narrationReport,
+                            _ovvieta: ovvieta,
                         };
                         // Un narratore caduto non si mette in cache: la prossima
                         // richiesta deve poter avere il suo racconto.
@@ -2764,9 +2781,15 @@ export const aiRecommendationService = {
             // (2) UNA riscrittura per tutte le descrizioni svuotate o accorciate,
             // nello stesso biglietto 'home_tours'; (3) la regola II.2 scarta solo
             // le tappe ancora vuote, poi raggio e stime.
+            // P7a — un luogo ceduto dall'insider al suo tema torna buono per
+            // l'insider se NESSUN altro tour della risposta lo usa.
+            const ceduti = nonEmptyPools.ceduti || new Map();
+            const usatoAltrove = (pid) => rawTours.some(t => t?.themeType !== 'insider'
+                && Array.isArray(t?.stops) && t.stops.some(st => st?.place_id === pid));
+            const accettatiCeduti = [];
             const prepared = rawTours.map(tour => {
                 const themeType = tour?.themeType;
-                const pool = nonEmptyPools[themeType];
+                let pool = nonEmptyPools[themeType];
                 const aiStops = Array.isArray(tour?.stops) ? tour.stops : [];
                 tappeRaccontate += aiStops.length;
                 if (!pool) {
@@ -2781,6 +2804,12 @@ export const aiRecommendationService = {
                 const poolIds = new Set(pool.map(homePid).filter(Boolean));
                 const known = aiStops.filter(st => {
                     if (st && poolIds.has(st.place_id)) return true;
+                    if (themeType === 'insider' && st && ceduti.has(st.place_id) && !usatoAltrove(st.place_id)) {
+                        pool = [...pool, ceduti.get(st.place_id).poi];
+                        poolIds.add(st.place_id);
+                        accettatiCeduti.push(st.place_id);
+                        return true;
+                    }
                     scarta(themeType, st?.place_id, `place_id non fra i candidati del tema "${themeType}"`);
                     return false;
                 });
@@ -2854,6 +2883,9 @@ export const aiRecommendationService = {
                 const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
                 if (ordered.length === 0) {
                     console.warn(`[Per Te] ${city}: tour "${themeType}" senza tappe dopo gli scarti → non servito`);
+                } else if (ordered.length < HOME_TOUR_STOPS.min) {
+                    // P7a — un tour "Per Te" con meno di 3 tappe non e' un tour.
+                    for (const st of ordered) scarta(themeType, st.title, `tour con meno di ${HOME_TOUR_STOPS.min} tappe`);
                 }
 
                 return {
@@ -2864,7 +2896,15 @@ export const aiRecommendationService = {
                     stops: ordered,
                 };
             })
-                .filter(t => t && t.stops.length > 0);
+                .filter(t => t && t.stops.length >= HOME_TOUR_STOPS.min);
+
+            // P7a — ovvieta': quante tappe servite stanno nel 10% piu' recensito
+            // dei candidati di questa generazione.
+            const tuttiCandidati = [...new Map(
+                [...Object.values(nonEmptyPools).flat(), ...[...ceduti.values()].map(c => c.poi)]
+                    .map(p => [homePid(p) || p?.title, p]),
+            ).values()];
+            const ovvieta = obviousnessReport(finalTours.flatMap(t => t.stops), tuttiCandidati);
 
             const report = {
                 tourProposti: rawTours.length,
@@ -2879,8 +2919,10 @@ export const aiRecommendationService = {
                 momento: moment.key,
                 giorno: romeDay,
                 riscrittura: rewrite?.report ?? null,
+                cedutiAccettati: accettatiCeduti,
+                ovvieta,
             };
-            console.info(`[Per Te] ${city}: ${report.tourServiti}/${report.tourProposti} tour, ${report.tappeServite}/${report.tappeRaccontate} tappe servite, ${scarti.length} scarti, ${tokenRisposta ?? '?'}/${MAX_TOKENS} token${truncated ? ', risposta tagliata' : ''}`);
+            console.info(`[Per Te] ${city}: ${report.tourServiti}/${report.tourProposti} tour, ${report.tappeServite}/${report.tappeRaccontate} tappe servite, ${scarti.length} scarti, ${tokenRisposta ?? '?'}/${MAX_TOKENS} token${truncated ? ', risposta tagliata' : ''}, ovvieta' ${ovvieta.nelTop10}/${ovvieta.tappe}`);
             const result = { tours: finalTours, _source: 'unified-home', _report: report };
             saveInsiderToCache(cacheKey, { tours: finalTours, _source: 'unified-home' });
             return result;

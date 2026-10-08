@@ -16,10 +16,13 @@ import { supabase } from "../lib/supabase";
 // Gate D-1 tourDetailsMock, era rientrata qui).
 
 import { useUserContext } from "@/hooks/useUserContext";
+import { useAILearning } from "@/hooks/useAILearning";
 
 export default function TourLivePage() {
     // 1. Consume Context
     const { city: currentCity } = useUserContext();
+    // P7a — salvare un tour insegna al DNA (+0,2) le categorie vere delle sue tappe.
+    const { trackDnaEvent } = useAILearning();
 
     // Determine which icons to use based on category string
     const getCategoryIcon = (category) => {
@@ -407,7 +410,7 @@ export default function TourLivePage() {
                                             className="bg-gradient-to-r from-olive-400 to-olive-500 text-white p-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
                                             whileHover={{ scale: 1.1, rotate: 15 }}
                                             whileTap={{ scale: 0.9 }}
-                                            onClick={() => dataService.toggleFavorite(tour.id)}
+                                            onClick={() => dataService.toggleFavorite(tour.id).then(r => { if (r?.added) trackDnaEvent?.('tour_saved', tour.steps || [], { city: tour.city || currentCity }); })}
                                         >
                                             <Heart className="w-6 h-6" />
                                         </motion.button>

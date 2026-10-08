@@ -108,15 +108,23 @@ describe('Gate PAROLE VIETATE (P3d) — tour "Per Te" della Home', () => {
         cultura: [
             { place_id: 'pid-uno', name: 'Torre Capitania', latitude: CENTER.latitude, longitude: CENTER.longitude, rating: 4.6, type: 'museum', city: CITY },
             { place_id: 'pid-due', name: 'Museo del Sale', latitude: CENTER.latitude + 0.001, longitude: CENTER.longitude, rating: 4.4, type: 'museum', city: CITY },
+            // P7a — sotto le 3 tappe un tour "Per Te" non si serve: due tappe
+            // pulite in piu' (EXTRA), cosi' i test guardano solo il filtro.
+            { place_id: 'pid-tre', name: 'Chiesa Madre', latitude: CENTER.latitude + 0.002, longitude: CENTER.longitude, rating: 4.5, type: 'church', city: CITY },
+            { place_id: 'pid-quattro', name: 'Porta Marina', latitude: CENTER.latitude + 0.003, longitude: CENTER.longitude, rating: 4.3, type: 'monument', city: CITY },
         ],
     };
+    const EXTRA = [
+        { place_id: 'pid-tre', description: 'Sul sagrato si vendono le reti la domenica.' },
+        { place_id: 'pid-quattro', description: 'La porta guarda il molo dei pescatori.' },
+    ];
     const homeFetch = (payload) => vi.fn(async (url) => {
         if (String(url).includes('openai-proxy')) {
             return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify(payload) } }] }) };
         }
         throw new Error(`fetch inatteso: ${url}`);
     });
-    const tour = (stops) => ({ tours: [{ themeType: 'cultura', title: 'Cultura a Ippocampo', stops }] });
+    const tour = (stops) => ({ tours: [{ themeType: 'cultura', title: 'Cultura a Ippocampo', stops: [...stops, ...EXTRA] }] });
     const home = () => aiRecommendationService.generateHomeTours({ city: CITY, cityCenter: CENTER, themedCandidates: POOL, opts: { skipUserQuota: true } });
 
     beforeEach(() => {
@@ -145,12 +153,12 @@ describe('Gate PAROLE VIETATE (P3d) — tour "Per Te" della Home', () => {
         await home();
         const key = Object.keys(window.localStorage).find(k => k.startsWith('hometours_v1_'));
         const entry = JSON.parse(window.localStorage.getItem(key));
-        entry.data.tours[0].stops[0].description = 'Un portico storico sul mare. Le panche sono di pietra.';
+        entry.data.tours[0].stops.find(s => s.place_id === 'pid-uno').description = 'Un portico storico sul mare. Le panche sono di pietra.';
         window.localStorage.setItem(key, JSON.stringify(entry));
 
         const res = await home();
         expect(fn.mock.calls.filter(([u]) => String(u).includes('openai-proxy'))).toHaveLength(1); // cache HIT
-        expect(res.tours[0].stops[0].description).toBe('Le panche sono di pietra.');
+        expect(res.tours[0].stops.find(s => s.place_id === 'pid-uno').description).toBe('Le panche sono di pietra.');
     });
 
     it('descrizione fatta solo di frasi vietate → la tappa esce, come per la regola #16 della Home', async () => {
@@ -159,6 +167,6 @@ describe('Gate PAROLE VIETATE (P3d) — tour "Per Te" della Home', () => {
             { place_id: 'pid-due', description: 'Le vasche hanno bordi bianchi.' },
         ])));
         const res = await home();
-        expect(res.tours[0].stops.map(s => s.place_id)).toEqual(['pid-due']);
+        expect(res.tours[0].stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre']);
     });
 });

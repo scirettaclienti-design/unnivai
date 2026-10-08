@@ -18,6 +18,7 @@
 // vanno riviste dopo il lancio con dati reali di conversione/soddisfazione.
 
 import { isSmallTown } from './tourShape';
+import { mapTypeToCoreCategory } from './preferenceEngine';
 
 // ─── Soglia di qualita' (filtro, non classifica) ────────────────────────────
 export const QUALITY_THRESHOLDS = {
@@ -34,43 +35,15 @@ export const passesQualityThreshold = (candidate, city) => {
 
 // ─── Vocabolario Places → CORE_CATEGORIES (sola lettura) ────────────────────
 //
-// Separato di proposito da normalizeCategory/CATEGORY_ALIASES in
-// preferenceEngine.js: quello e' il cancello di SCRITTURA del preference
-// graph, e allargarlo in passato costo' un reset del database. Questo mapper
-// non scrive mai nel grafo: legge i `types` grezzi di Google Places e li
-// traduce nelle 8 CORE_CATEGORIES del DNA, solo per calcolare un'affinita'
-// candidato-per-candidato. E' un'approssimazione lessicale, non un giudizio
-// editoriale: un `type` puo' comparire in piu' righe se Google lo usa in
-// contesti ambigui (es. `store` che e' quasi sempre shopping).
+// P7a — una sola mappa dei tipi per tutto il DNA: quella di preferenceEngine
+// (mapTypeToCoreCategory), che e' anche quella con cui il DNA impara dalle
+// tappe. Qui, per l'affinita' di un CANDIDATO, i tipi generici
+// (point_of_interest, establishment) restano senza categoria: zero segnale,
+// non segnale contrario.
 const CORE_CATEGORIES = ['cultura', 'food', 'nightlife', 'natura', 'avventura', 'shopping', 'relax', 'arte'];
 
-const PLACE_TYPE_TO_CORE_CATEGORY = {
-    // cultura
-    museum: 'cultura', church: 'cultura', synagogue: 'cultura', mosque: 'cultura',
-    hindu_temple: 'cultura', place_of_worship: 'cultura', monument: 'cultura',
-    historical_landmark: 'cultura', tourist_attraction: 'cultura', castle: 'cultura',
-    // arte
-    art_gallery: 'arte', performing_arts_theater: 'arte', theater: 'arte',
-    // food
-    restaurant: 'food', food: 'food', cafe: 'food', bakery: 'food',
-    meal_takeaway: 'food', meal_delivery: 'food', winery: 'food',
-    // nightlife
-    bar: 'nightlife', night_club: 'nightlife', casino: 'nightlife',
-    // natura
-    natural_feature: 'natura', park: 'natura', beach: 'natura', national_park: 'natura',
-    campground: 'natura', hiking_area: 'natura', forest: 'natura',
-    // avventura
-    amusement_park: 'avventura', zoo: 'avventura', aquarium: 'avventura',
-    stadium: 'avventura', bowling_alley: 'avventura', gym: 'avventura', sports_complex: 'avventura',
-    // shopping
-    store: 'shopping', shopping_mall: 'shopping', clothing_store: 'shopping',
-    jewelry_store: 'shopping', market: 'shopping', department_store: 'shopping',
-    // relax
-    spa: 'relax', beauty_salon: 'relax', wellness_center: 'relax',
-};
-
-// Esportato per test/riuso. true = `type` riconosciuto nel vocabolario DNA.
-export const mapPlaceTypeToCoreCategory = (type) => PLACE_TYPE_TO_CORE_CATEGORY[type] || null;
+// Esportato per test/riuso. Categoria del `type`, o null.
+export const mapPlaceTypeToCoreCategory = (type) => mapTypeToCoreCategory(type);
 
 // Ritorna l'insieme (Set) di CORE_CATEGORIES a cui il candidato corrisponde,
 // via i suoi `types` Google grezzi. Puo' essere vuoto (nessun type riconosciuto:
@@ -79,7 +52,7 @@ export const mapCandidateToCoreCategories = (candidate) => {
     const types = Array.isArray(candidate?.types) ? candidate.types : [];
     const out = new Set();
     for (const t of types) {
-        const cat = PLACE_TYPE_TO_CORE_CATEGORY[t];
+        const cat = mapTypeToCoreCategory(t);
         if (cat) out.add(cat);
     }
     return out;
@@ -160,11 +133,25 @@ export const computeUniquenessScore = (candidate, pool) => {
 // ─── Punteggio finale ────────────────────────────────────────────────────────
 export const SCORE_WEIGHTS = { affinita: 0.45, unicita: 0.35, voto: 0.20 };
 
+// P7a — il peso dell'affinita' segue la FIDUCIA del DNA (`dnaWeights._share`,
+// da computeDnaShare): 0 sotto 5 eventi, fino a 0,45 a 20 eventi, al massimo
+// 0,15 con i soli semi del primo accesso. Il resto si divide fra unicita' e
+// voto nelle stesse proporzioni di sempre (35:20). Senza `_share` (chiamanti
+// e test che passano solo i pesi) vale 0,45, come prima del P7a.
+export const dnaShareOf = (dnaWeights = {}) => (
+    Number.isFinite(dnaWeights?._share) ? Math.max(0, Math.min(SCORE_WEIGHTS.affinita, dnaWeights._share)) : SCORE_WEIGHTS.affinita
+);
+
 export const computeCandidateScore = (candidate, pool, dnaWeights = {}) => {
-    const affinita = computeAffinityScore(candidate, dnaWeights);
+    const share = dnaShareOf(dnaWeights);
+    const affinita = share > 0 ? computeAffinityScore(candidate, dnaWeights) : 0;
     const unicita = computeUniquenessScore(candidate, pool);
     const voto = (Number(candidate?.rating) || 0) / 5;
-    return SCORE_WEIGHTS.affinita * affinita + SCORE_WEIGHTS.unicita * unicita + SCORE_WEIGHTS.voto * voto;
+    const resto = 1 - share;
+    const base = SCORE_WEIGHTS.unicita + SCORE_WEIGHTS.voto;
+    return share * affinita
+        + resto * (SCORE_WEIGHTS.unicita / base) * unicita
+        + resto * (SCORE_WEIGHTS.voto / base) * voto;
 };
 
 // ─── Selezione del pool finale ───────────────────────────────────────────────
@@ -231,6 +218,22 @@ export const enforceCategoryVariety = (stops) => {
 // Fingerprint dei pesi DNA per la cache — vedi insiderCacheKey in
 // aiRecommendationService.js. Esportato per test diretti sulla stabilita'/
 // discriminazione dell'hash.
+// ─── P7a — ovvieta': quante tappe stanno nel 10% piu' recensito ─────────────
+// Stessa definizione delle "icone" (identifyIcons): il decimo superiore per
+// numero di recensioni fra i CANDIDATI della generazione. Va nel resoconto di
+// ogni generazione, per sapere quanto scegliamo i luoghi piu' ovvi.
+export const obviousnessReport = (stops, candidates) => {
+    const idOf = (c) => c?.place_id || c?.googlePlaceId || c?.name || c?.title;
+    const pool = Array.isArray(candidates) ? candidates : [];
+    const icons = identifyIcons(pool);
+    const reviews = pool.map(c => Number(c?.user_ratings_total) || 0).sort((a, b) => a - b);
+    const n = reviews.length;
+    const soglia = n > 0 ? reviews[n - Math.max(1, Math.ceil(n * 0.1)) - 1] ?? null : null;
+    const list = Array.isArray(stops) ? stops : [];
+    const ovvie = list.filter(s => icons.has(idOf(s))).map(s => s.title || s.name || idOf(s));
+    return { tappe: list.length, nelTop10: ovvie.length, ovvie, candidati: n, sogliaRecensioni: soglia };
+};
+
 export const weightsFingerprint = (dnaWeights) => {
     if (!dnaWeights || typeof dnaWeights !== 'object') return '';
     return Object.entries(dnaWeights)

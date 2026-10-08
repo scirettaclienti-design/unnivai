@@ -262,6 +262,10 @@ describe('Gate NARRATORE/POI Fase 2b — generateHomeTours invariato dopo l\'est
         cultura: [
             { place_id: 'pid-uno', name: 'Torre Capitania', latitude: CENTER.latitude, longitude: CENTER.longitude, rating: 4.6, type: 'museum', city: CITY },
             { place_id: 'pid-due', name: 'Museo del Sale', latitude: CENTER.latitude, longitude: CENTER.longitude, rating: 4.4, type: 'museum', city: CITY },
+            // P7a — un tour "Per Te" sotto le 3 tappe non si serve: due tappe
+            // in piu', sempre descritte, perche' i test guardino la descrizione.
+            { place_id: 'pid-tre', name: 'Chiesa Madre', latitude: CENTER.latitude, longitude: CENTER.longitude, rating: 4.5, type: 'church', city: CITY },
+            { place_id: 'pid-quattro', name: 'Porta Marina', latitude: CENTER.latitude, longitude: CENTER.longitude, rating: 4.3, type: 'monument', city: CITY },
         ],
     };
 
@@ -280,6 +284,8 @@ describe('Gate NARRATORE/POI Fase 2b — generateHomeTours invariato dopo l\'est
                 stops: [
                     { place_id: 'pid-uno', description: 'Dai merli si vede il sale fin dentro le mura' },
                     { place_id: 'pid-due', description: '  ' },
+                    { place_id: 'pid-tre', description: 'Sul sagrato si vendono le reti la domenica' },
+                    { place_id: 'pid-quattro', description: 'La porta guarda il molo dei pescatori' },
                 ],
             }],
         }));
@@ -290,8 +296,9 @@ describe('Gate NARRATORE/POI Fase 2b — generateHomeTours invariato dopo l\'est
 
         expect(res._source).toBe('unified-home');
         expect(res.tours).toHaveLength(1);
-        expect(res.tours[0].stops).toHaveLength(1);
-        expect(res.tours[0].stops[0].title).toBe('Torre Capitania');
+        expect(res.tours[0].stops).toHaveLength(3);
+        expect(res.tours[0].stops.map(st => st.title)).toContain('Torre Capitania');
+        expect(res.tours[0].stops.map(st => st.title)).not.toContain('Museo del Sale');
     });
 
     it('tour i cui stop restano tutti senza description → tour escluso, come prima', async () => {
@@ -321,6 +328,7 @@ describe('Gate NARRATORE/POI Fase 2b — generateHomeTours invariato dopo l\'est
                 stops: [
                     { place_id: 'pid-uno', description: 'Dai merli si vede il sale fin dentro le mura' },
                     { place_id: 'pid-due', description: 'Le vasche cambiano colore col tramonto' },
+                    { place_id: 'pid-tre', description: 'Sul sagrato si vendono le reti la domenica' },
                 ],
             }],
         }));
@@ -330,6 +338,6 @@ describe('Gate NARRATORE/POI Fase 2b — generateHomeTours invariato dopo l\'est
         });
 
         expect(res.tours).toHaveLength(1);
-        expect(res.tours[0].stops).toHaveLength(2);
+        expect(res.tours[0].stops).toHaveLength(3);
     });
 });

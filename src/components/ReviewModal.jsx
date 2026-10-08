@@ -4,7 +4,7 @@ import { Star, X, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { dataService } from '@/services/dataService';
 
-export default function ReviewModal({ isOpen, onClose, tourId, guideId, bookingId, guideName, tourTitle }) {
+export default function ReviewModal({ isOpen, onClose, tourId, guideId, bookingId, guideName, tourTitle, onSubmitted }) {
     const [rating, setRating] = useState(0);
     const [hoveredStar, setHoveredStar] = useState(0);
     const [comment, setComment] = useState('');
@@ -30,6 +30,8 @@ export default function ReviewModal({ isOpen, onClose, tourId, guideId, bookingI
             if (!result.success) throw new Error(result.error);
 
             toast({ title: 'Grazie per la recensione!', description: 'Il tuo feedback aiuta la community.', type: 'success' });
+            // P7a — chi apre la recensione e conosce le tappe ci aggancia il DNA.
+            onSubmitted?.(rating);
             onClose();
         } catch (err) {
             toast({

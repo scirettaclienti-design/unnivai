@@ -89,7 +89,7 @@ export default function AIItineraryPage() {
     // e DEMO_CITIES contiene 18 città su tutte quelle italiane.
 
     // DVAI-045: leggi le preferenze apprese dall'AI
-    const { userDNAPreferences, trackGeneratedTour, trackInteraction, getAIContext, weights, totalInteractions, hasSeed } = useAILearning();
+    const { userDNAPreferences, trackGeneratedTour, trackDnaEvent, getAIContext, dnaWeights, dnaShare } = useAILearning();
     const { toast } = useToast();
 
     // Gate 2 FASE 3 — cityCenter risolto autoritativamente da resolveCityCenter
@@ -189,10 +189,9 @@ export default function AIItineraryPage() {
                 throw ccErr;
             }
 
-            // Gate SEME (L1) — stessa soglia di DashboardUser.jsx:182, non ne
-            // creiamo una terza: il DNA pesa da subito con un seme onboarding,
-            // altrimenti serve un minimo di interazioni reali.
-            const hasPreferences = totalInteractions >= 3 || hasSeed;
+            // P7a — il DNA pesa quanto sa davvero (dnaShare, dalla fiducia):
+            // 0 sotto 5 eventi con categoria, 15% al massimo coi soli semi.
+            const hasPreferences = dnaShare > 0;
 
             const result = await aiRecommendationService.generateItinerary(
                 activeCity,
@@ -203,7 +202,7 @@ export default function AIItineraryPage() {
                 cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)
                 // Gate MERITO — affinità nella formula di scoring.
                 // G3 — 'custom': la finestra temporale legge "domani", "sabato pomeriggio"…
-                { dnaWeights: hasPreferences ? weights : {}, pathType: 'custom' },
+                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'custom' },
             );
 
             // Gate INTERESSI-VERI — la ricerca non si e' potuta fare (rete, HTTP,
@@ -292,6 +291,9 @@ export default function AIItineraryPage() {
     const regenerateDay = async (dayNumber) => {
         if (!generatedItinerary) return;
         setIsGenerating(true);
+        // P7a — "Rigenera giorno" e' un rifiuto del giorno: −0,1 alle
+        // categorie vere delle sue tappe.
+        trackDnaEvent?.('regenerate_day', generatedItinerary.find(d => d.day === dayNumber)?.stops || [], { city: activeCity });
 
         const prefsObject = userPreferences.reduce((acc, pref) => {
             acc[pref.id] = pref.selected;
@@ -315,8 +317,10 @@ export default function AIItineraryPage() {
                 { ...prefsObject, duration: 'Mezza Giornata' },
                 `Rigenera solo il giorno ${dayNumber} con varianti diverse rispetto al precedente.`,
                 { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
-                '',
+                // P7a — il DNA passa come nelle altre sezioni (prima: '' e niente pesi).
+                getAIContext?.() || '',
                 cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)
+                { dnaWeights: dnaShare > 0 ? dnaWeights : {} },
             );
             // Gate NARRATORE/POI (Fase 2a) — `if (newDay)` non bastava:
             // { stops: [] } è truthy, quindi il payload onesto del motore
@@ -684,7 +688,7 @@ export default function AIItineraryPage() {
 
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => { setSelectedStop(stop); trackInteraction?.('stop_detail_view', { category: stop.type, city: activeCity, title: stop.title }); }}
+                                                                        onClick={() => { setSelectedStop(stop); trackDnaEvent?.('stop_detail', [stop], { city: activeCity }); }}
                                                                         className="text-obsidian-secondary hover:text-obsidian-primary text-xs font-bold transition-colors cursor-pointer"
                                                                     >
                                                                         Dettagli →

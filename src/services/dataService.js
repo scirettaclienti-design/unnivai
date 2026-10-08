@@ -408,14 +408,16 @@ class DataService {
             if (existing) {
                 // Remove
                 await supabase.from('favorites').delete().eq('id', existing.id);
-            } else {
-                // Add
-                await supabase.from('favorites').insert({
-                    user_id: session.user.id,
-                    tour_id: tourId
-                });
+                return { success: true, added: false };
             }
-            return { success: true };
+            // Add
+            const { error: insertError } = await supabase.from('favorites').insert({
+                user_id: session.user.id,
+                tour_id: tourId
+            });
+            // P7a — `added` dice al chiamante che il tour e' stato davvero
+            // salvato (serve al DNA: +0,2 solo su un salvataggio vero).
+            return { success: true, added: !insertError };
         } catch (err) {
             console.warn('Favorite toggle error (silent):', err);
             return { success: true };

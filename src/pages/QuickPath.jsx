@@ -492,7 +492,7 @@ export default function QuickPathPage() {
     // questo task, non era nel perimetro dichiarato — corretto perché la nuova
     // formula di punteggio (0.45 affinità DNA) è inutile se dnaWeights è
     // sempre vuoto per l'unico flusso che lo popolava "di riferimento".
-    const { trackGeneratedTour, getAIContext, weights, totalInteractions, hasSeed } = useAILearning();
+    const { trackGeneratedTour, getAIContext, dnaWeights, dnaShare } = useAILearning();
     // Gate E-2: hasHitPaywall + unlockPremium + showPaywall rimossi (paywall
     // morto). Prima: dopo 10 tour vita hasHitPaywall=true → click su gruppo
     // apriva showPaywall, ma <PaywallModal> non era MAI renderizzato nel JSX,
@@ -612,7 +612,7 @@ export default function QuickPathPage() {
             // 4. aiProfile dal graph learning (come fa AiItinerary).
             const aiProfile = getAIContext?.() || '';
             // Gate SEME (L1) — stessa soglia di DashboardUser.jsx:182.
-            const hasPreferences = totalInteractions >= 3 || hasSeed;
+            const hasPreferences = dnaShare > 0; // P7a — fiducia del DNA
 
             // 5. CHIAMATA MOTORE — stessa firma di AiItinerary, un solo motore.
             const result = await aiRecommendationService.generateItinerary(
@@ -623,7 +623,7 @@ export default function QuickPathPage() {
                 aiProfile,
                 cityCenter,
                 // G3 — Percorso Veloce: parte SEMPRE da adesso, il testo non conta.
-                { dnaWeights: hasPreferences ? weights : {}, pathType: 'quick' },
+                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'quick' },
             );
 
             if (timedOut) return; // il timeout ha già gestito l'errore

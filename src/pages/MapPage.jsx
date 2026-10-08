@@ -29,6 +29,7 @@ import { supabase } from '../lib/supabase';
 import { logNavEvent } from '../lib/navTelemetry';
 import { haversineM, pickActiveStep } from '../lib/navGeo';
 import NavDebugPanel from '../components/NavDebugPanel';
+import { useAILearning } from '../hooks/useAILearning';
 import './MapPage.css';
 
 // GATE DEBUG PANEL: strumento di calibrazione nav, NON feature di prodotto.
@@ -271,6 +272,9 @@ const fetchMatchingBusinesses = async (lat, lng, tourTags = [], radiusM = 2500, 
 // ─── MAIN COMPONENT ────────────────────────────────────────────────────────────
 const MapPage = () => {
     const location = useLocation();
+    // P7a — il DNA impara dal tour completato e dalla valutazione, con le
+    // categorie vere delle tappe (tourData.steps porta i `types` Google).
+    const { trackDnaEvent } = useAILearning();
     const navigate = useNavigate();
     const { city, lat, lng, isLoading: userContextLoading } = useUserContext();
     const { isManual } = useCity();
@@ -1412,6 +1416,11 @@ const MapPage = () => {
             // la UI di successo si congela (regola locked #11: nessuno stato
             // completato torna indietro per una fluttuazione GPS).
             if (newCompleted.length >= totalSteps) {
+                // P7a — tour completato: +0,3 alle categorie vere delle tappe.
+                // Una volta sola: dopo questo punto il latch ferma tutto.
+                if (!navCompletedRef.current) {
+                    trackDnaEvent?.('tour_completed', tourData?.steps?.length ? tourData.steps : activeRoute, { city: tourData?.city || null });
+                }
                 navCompletedRef.current = true;
                 if (watchId) { navigator.geolocation.clearWatch(watchId); setWatchId(null); }
                 setNextStepDistanceM(null);
@@ -2177,6 +2186,8 @@ const MapPage = () => {
                     guideId={reviewModalData.guideId}
                     guideName={reviewModalData.guideName}
                     tourTitle={tourData?.title}
+                    // P7a — voto >= 4: +0,3; voto <= 2: −0,3 alle categorie delle tappe.
+                    onSubmitted={(rating) => trackDnaEvent?.('tour_rated', tourData?.steps?.length ? tourData.steps : activeRoute, { rating, city: tourData?.city || null })}
                 />
             )}
 

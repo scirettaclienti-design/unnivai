@@ -5,8 +5,8 @@ import { computeWeights, normalizeCategory, CORE_CATEGORIES } from '../../servic
 
 // Gate SEME (L1) — prima rete su computeWeights col 2o argomento (seme onboarding).
 // Il seme e' un array piatto di id CORE seminati dall'onboarding. Entra a +0.3/id
-// normalizzato, si somma ai click impliciti del grafo (+0.05/count), poi tutto
-// viene ri-normalizzato col peso massimo = 1.0.
+// e si somma agli eventi pesati del grafo (`dna:<cat>`). P7a: niente piu'
+// normalizzazione sul massimo.
 
 // Le 7 voci onboarding e i loro id CORE seminati (specchio di Onboarding.jsx).
 const ONBOARDING_SEEDS = {
@@ -43,14 +43,14 @@ describe('computeWeights — seme onboarding (2o arg)', () => {
         expect(computeWeights(graph, ['romantic'])).toEqual(computeWeights(graph, []));
     });
 
-    it('seme + grafo: additivo, poi normalizzato a max 1.0', () => {
-        // cultura ha 2 click (0.1), food e' seminato (0.3): il seme deve spingere
-        // food sopra cultura, entrambi > 0, il max diventa 1.0.
-        const w = computeWeights({ 'cat:cultura': 2 }, ['food']);
-        expect(w.food).toBe(1.0);            // peso massimo → 1.0
-        expect(w.cultura).toBeGreaterThan(0); // il click implicito resta
-        expect(w.cultura).toBeLessThan(w.food);
-        expect(Math.max(...Object.values(w))).toBe(1.0);
+    it('seme + eventi: additivo, SENZA normalizzazione sul massimo (P7a)', () => {
+        // Prima: tutto ri-normalizzato col massimo = 1.0, cosi' un seme solo
+        // diventava "food 100%". Ora il seme vale 0,3 e un "Dettagli" su un
+        // museo 0,05: i numeri dicono quanto il DNA sa davvero.
+        const w = computeWeights({ 'dna:cultura': 0.05, 'dna:events': 1 }, ['food']);
+        expect(w.food).toBe(0.3);
+        expect(w.cultura).toBe(0.05);
+        expect(Math.max(...Object.values(w))).toBe(0.3);
     });
 
     it('ogni id seminato dalle 7 voci supera normalizeCategory (nessun null)', () => {

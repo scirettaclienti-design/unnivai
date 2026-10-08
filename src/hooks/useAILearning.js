@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { dataService } from '../services/dataService';
-import { computeWeights, weightsToAIProfile, tourAffinityScore, applyEvent, normalizeCategory } from '../services/preferenceEngine';
+import { computeWeights, weightsToAIProfile, tourAffinityScore, normalizeCategory, applyDnaEvent, computeDnaShare, dnaEventCount, tourCoreCategories } from '../services/preferenceEngine';
 
 // Fase 2 Gate DNA: bump chiave localStorage (v1→v2). Il "brain" v1 conteneva
 // chiavi cat: sporche (nomi-sezione, "guide"): ignorandolo, i client ripartono
@@ -249,6 +249,34 @@ export function useAILearning() {
         syncToDb();
     }, [syncToDb]);
 
+    // ─── P7a — eventi che contano, con la categoria vera delle tappe ──────────
+    // kind: 'tour_completed' | 'tour_saved' | 'tour_rated' | 'stop_detail' |
+    // 'regenerate_day' | 'stop_skipped' (pesi in DNA_EVENT_WEIGHTS). `stops`
+    // sono le tappe (con `types` Google e/o `type`): la categoria si ricava da
+    // li', mai dall'etichetta del tour. Nessuna categoria → nessun evento.
+    const trackDnaEvent = useCallback((kind, stops = [], opts = {}) => {
+        const categories = tourCoreCategories(stops);
+        if (categories.length === 0) return;
+        setLearningState(prev => {
+            const graph = applyDnaEvent(prev.preferenceGraph, kind, categories, opts);
+            if (graph === prev.preferenceGraph) return prev;
+            const interaction = {
+                type: `dna_${kind}`,
+                data: { categories, ...(Number.isFinite(opts.rating) ? { rating: opts.rating } : {}) },
+                timestamp: new Date().toISOString(),
+                category: categories[0],
+                city: opts.city || null,
+            };
+            return {
+                ...prev,
+                interactions: [interaction, ...prev.interactions].slice(0, MAX_INTERACTIONS),
+                preferenceGraph: graph,
+                totalInteractions: prev.totalInteractions + 1,
+            };
+        });
+        syncToDb();
+    }, [syncToDb]);
+
     // ─── Track tour generation (retrocompatibile) ─────────────────────────────
     // Gate E-2: rimosso incremento generatedToursCount (serviva solo al paywall).
     const trackGeneratedTour = useCallback((preferences) => {
@@ -295,9 +323,19 @@ export function useAILearning() {
     // sostituisce il riferimento dell'array: il memo ricalcola quando e solo
     // quando il contenuto e' davvero cambiato (il setter sopra riusa il
     // riferimento precedente a parita' di valore).
+    //
+    // P7a: niente piu' normalizzazione sul massimo (un clic non diventa 100%),
+    // e accanto ai pesi la FIDUCIA: `dnaShare` = quanto il DNA pesa nel
+    // punteggio (0 sotto 5 eventi, 0,45 a 20; 0,15 al massimo coi soli semi).
+    // `dnaWeights` = pesi + `_share`, da passare al motore.
     const weights = useMemo(() => {
         return computeWeights(learningState.preferenceGraph, onboardingSeed);
     }, [learningState.preferenceGraph, onboardingSeed]);
+    const dnaShare = useMemo(
+        () => computeDnaShare(learningState.preferenceGraph, onboardingSeed),
+        [learningState.preferenceGraph, onboardingSeed],
+    );
+    const dnaWeights = useMemo(() => ({ ...weights, _share: dnaShare }), [weights, dnaShare]);
 
     // ─── Build AI context string da pesi strutturati ─────────────────────────
     const getAIContext = useCallback(() => {
@@ -310,13 +348,14 @@ export function useAILearning() {
         // (senza normalizzare): produceva testi tipo "Categorie preferite: guide,
         // Scelto per te, Consigliato dall'AI" — nomi di sezioni UI + una feature
         // spenta (guide) spacciati per gusti dentro il prompt AI.
-        return weightsToAIProfile(weights) || '';
-    }, [weights]);
+        return weightsToAIProfile(dnaWeights) || '';
+    }, [dnaWeights]);
 
     // ─── Score affinità per ranking tour ─────────────────────────────────────
+    // P7a: senza fiducia il DNA non riordina niente (punteggio neutro).
     const getTourAffinity = useCallback((tour) => {
-        return tourAffinityScore(tour, weights);
-    }, [weights]);
+        return dnaShare > 0 ? tourAffinityScore(tour, weights) : 50;
+    }, [weights, dnaShare]);
 
     // Gate E-2: unlockPremium + hasHitPaywall rimossi. Il paywall gate è morto:
     // modello di lancio locked = nessun paywall in V1. Il PaywallModal component
@@ -324,7 +363,11 @@ export function useAILearning() {
 
     return {
         ...learningState,
-        weights, // Pesi normalizzati 0.0-1.0 per categorie
+        weights, // Pesi 0.0-1.0 per categorie (P7a: non piu' normalizzati sul massimo)
+        dnaWeights, // pesi + `_share` (fiducia), quello che va al motore
+        dnaShare, // 0..0,45: quanto pesa il DNA nel punteggio
+        dnaEvents: dnaEventCount(learningState.preferenceGraph),
+        trackDnaEvent,
         // Gate SEME (L1): true se l'onboarding ha seminato almeno un gusto.
         // Serve a DashboardUser per attivare il ranking DNA dal giorno 0 (R1),
         // senza aspettare 3 interazioni reali. NON altera il conteggio DNA.

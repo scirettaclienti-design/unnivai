@@ -79,7 +79,7 @@ export default function SurpriseTourPage() {
     // DVAI-055: estraggo lat/lng dal userContext per il vincolo geografico
     const { city, userId, firstName, lat, lng } = useUserContext();
     const { toast } = useToast();
-    const { userDNAPreferences, getAIContext, weights, totalInteractions, hasSeed } = useAILearning();
+    const { userDNAPreferences, getAIContext, dnaWeights, dnaShare } = useAILearning();
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -215,7 +215,7 @@ export default function SurpriseTourPage() {
             // Gate SEME (L1) — stessa soglia di DashboardUser.jsx:182, non ne
             // creiamo una terza: il DNA pesa da subito con un seme onboarding,
             // altrimenti serve un minimo di interazioni reali.
-            const hasPreferences = totalInteractions >= 3 || hasSeed;
+            const hasPreferences = dnaShare > 0; // P7a — fiducia del DNA
             const aiProfile = (typeof getAIContext === 'function' ? getAIContext() : '') || '';
 
             // 2. Call AI Service
@@ -232,7 +232,7 @@ export default function SurpriseTourPage() {
                 // DVAI-055: cityCenter dal userContext. Se lat/lng assenti, no filtro
                 // (retrocompat: fallback al comportamento precedente).
                 Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng } : null,
-                { dnaWeights: hasPreferences ? weights : {} }
+                { dnaWeights: hasPreferences ? dnaWeights : {} }
             );
 
             // Gate NARRATORE/POI (Fase 2a) — il check storico

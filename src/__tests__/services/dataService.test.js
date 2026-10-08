@@ -535,7 +535,7 @@ describe('toggleFavorite', () => {
 
     const result = await dataService.toggleFavorite('tour-123')
 
-    expect(result).toEqual({ success: true })
+    expect(result).toEqual({ success: true, added: true })
     expect(insertBuilder.insert).toHaveBeenCalledWith({
       user_id: 'user-123',
       tour_id: 'tour-123',
@@ -555,7 +555,7 @@ describe('toggleFavorite', () => {
 
     const result = await dataService.toggleFavorite('tour-123')
 
-    expect(result).toEqual({ success: true })
+    expect(result).toEqual({ success: true, added: false })
     expect(deleteBuilder.delete).toHaveBeenCalled()
   })
 })

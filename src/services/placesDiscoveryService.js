@@ -677,33 +677,29 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, 
 };
 
 // Gate P.1: dedup globale POI cross-tema via place_id. Un POI compare in un
-// solo tour: quello dove il suo qualityScore (rating × ln(1+total)) è massimo.
+// solo tour.
 // Prima: "Duomo di Siracusa" appariva sia in walking che in art come featured;
 // due card mostravano lo stesso POI di punta e la stessa cover Places.
 // Effetto atteso: temi che perdono tutti i POI si spengono (filter(Boolean)
 // downstream). Meglio meno tour distinti che tour ridondanti.
+//
+// P7a — la dedup non premia piu' il piu' recensito. Il POI resta al PRIMO
+// tema che lo trova (ordine di HOME_THEMES), e dentro ogni tema l'ordine resta
+// quello della ricerca. Prima ogni tema veniva riordinato per qualityScore
+// (rating × ln(1+recensioni)): in testa al blocco che arriva al modello
+// finivano sempre i luoghi piu' famosi.
 const dedupePOIsAcrossThemes = (allPOIs) => {
-  const bestByPlaceId = new Map();
+  const owner = new Map();
+  const deduped = Object.fromEntries(Object.keys(allPOIs).map(t => [t, []]));
   for (const [theme, pois] of Object.entries(allPOIs)) {
     if (!Array.isArray(pois)) continue;
     for (const poi of pois) {
       const pid = poi.place_id || poi.googlePlaceId;
       if (!pid) continue;
-      const score = qualityScore(poi);
-      const current = bestByPlaceId.get(pid);
-      if (!current || score > current.score) {
-        bestByPlaceId.set(pid, { poi, theme, score });
-      }
+      if (owner.has(pid)) continue;
+      owner.set(pid, theme);
+      deduped[theme].push(poi);
     }
-  }
-  const deduped = Object.fromEntries(Object.keys(allPOIs).map(t => [t, []]));
-  for (const { poi, theme } of bestByPlaceId.values()) {
-    deduped[theme].push(poi);
-  }
-  // Riordina ogni tema per qualityScore (sort locale post-dedup, preserva
-  // l'ordinamento tra POI rimasti nel tema).
-  for (const theme of Object.keys(deduped)) {
-    deduped[theme].sort((a, b) => qualityScore(b) - qualityScore(a));
   }
   return deduped;
 };
@@ -925,6 +921,7 @@ export {
   FALLBACK_THEME,   // Gate INTERESSI-VERI
   HOME_THEMES,      // Gate INTERESSI-VERI
   qualityScore,
+  dedupePOIsAcrossThemes, // P7a — test della dedup neutra
   passesHardExclusions,
   applyQualityThreshold,
   QUALITY_THRESHOLDS,

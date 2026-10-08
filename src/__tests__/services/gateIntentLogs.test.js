@@ -177,7 +177,9 @@ describe('Gate INTENT — nessun cambio di comportamento', () => {
         // Gate INTERESSI-VERI: Promise.all → settleSearches (una ricerca fallita
         // non butta via le altre). L'asserzione sotto non cambia.
         const chiamata = dopo.slice(0, dopo.indexOf('lists = await settleSearches') + 400);
-        expect(chiamata).toContain('customQuery: q, customKind');
+        // P7b — con una dieta, la query di tipo cibo porta il criterio
+        // (withDietCriteria): cambia la QUERY, non customKind.
+        expect(chiamata).toContain('customQuery: isFood ? withDietCriteria(q, dieta) : q, customKind');
         expect(chiamata).not.toMatch(/customKind:\s*deriveKindFromQuery/);
     });
 

@@ -37,8 +37,8 @@ const clickByText = (text) => fireEvent.click(screen.getByText(text).closest('bu
 
 // welcome → interessi
 const gotoInterests = () => clickByText('Iniziamo!');
-// interessi → pronto
-const gotoReady = () => clickByText('Continua');
+// interessi → dieta → a tavola → pronto (P7b: due schermate in piu', saltabili)
+const gotoReady = () => { clickByText('Continua'); clickByText('Continua'); clickByText('Continua'); };
 // pronto → salva (handleComplete)
 const finish = () => clickByText('Entra in DoveVAI');
 
@@ -56,7 +56,9 @@ describe('Gate SEME (L1) — derivazione seme dalle voci INTERESTS (via UI)', ()
         finish();
 
         await waitFor(() => expect(localStorage.getItem(SEED_KEY)).not.toBeNull());
-        expect(readSeed().sort()).toEqual(['arte', 'cultura']);
+        // P7b — il seme separa interessi, vincoli e gusti; senza scelte a tavola, nessun vincolo.
+        expect(readSeed()).toMatchObject({ v: 2, vincoli: { dieta: [], budget: null }, gusti: { stile: null } });
+        expect(readSeed().interessi.sort()).toEqual(['arte', 'cultura']);
     });
 
     it('selezione di tutte e 7 le voci → 7 id CORE + arte, deduplicati (8 unici)', async () => {
@@ -68,7 +70,7 @@ describe('Gate SEME (L1) — derivazione seme dalle voci INTERESTS (via UI)', ()
         finish();
 
         await waitFor(() => expect(localStorage.getItem(SEED_KEY)).not.toBeNull());
-        const seed = readSeed();
+        const seed = readSeed().interessi;
         expect(seed.slice().sort()).toEqual(
             ['arte', 'avventura', 'cultura', 'food', 'natura', 'nightlife', 'relax', 'shopping']
         );

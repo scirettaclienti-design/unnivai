@@ -163,14 +163,17 @@ export const computeCandidateScore = (candidate, pool, dnaWeights = {}) => {
 // qualunque tappa arrivi al selettore AI: se il pool offerto contiene al
 // massimo un'icona, nessuna scelta a valle (umana o del modello) puo' produrre
 // un tour con piu' di un'icona — la garanzia sta nel pool, non nell'istruzione.
-export const selectScoredCandidatePool = (candidates, { city, dnaWeights = {}, limit = 20, maxIcons = 1 } = {}) => {
+// P7b — `bonus(c)`: una spinta che si somma al punteggio (lo stile a tavola,
+// lib/foodPrefs.js). Non esclude nessuno: sposta solo l'ordine. Senza `bonus`
+// il punteggio e' identico a prima.
+export const selectScoredCandidatePool = (candidates, { city, dnaWeights = {}, limit = 20, maxIcons = 1, bonus = null } = {}) => {
     const idOf = (c) => c?.place_id || c?.googlePlaceId || c?.name;
     const pool = (Array.isArray(candidates) ? candidates : []).filter(c => passesQualityThreshold(c, city));
     const icons = identifyIcons(pool);
 
     const scored = pool.map(c => ({
         candidate: c,
-        score: computeCandidateScore(c, pool, dnaWeights),
+        score: computeCandidateScore(c, pool, dnaWeights) + (bonus ? bonus(c) : 0),
         isIcon: icons.has(idOf(c)),
     }));
     scored.sort((a, b) => b.score - a.score);
@@ -201,7 +204,7 @@ export const selectScoredCandidatePool = (candidates, { city, dnaWeights = {}, l
 // famoso: misurato sulla citta', un'icona e' un'icona davvero.
 // Le icone oltre `maxIcons` escono dal pool: non arrivano al modello.
 // A parita' di punteggio resta l'ordine di partenza (quello della ricerca).
-export const rankByMerit = (pool, { reference, dnaWeights = { _share: 0 }, maxIcons = 1 } = {}) => {
+export const rankByMerit = (pool, { reference, dnaWeights = { _share: 0 }, maxIcons = 1, bonus = null } = {}) => {
     const idOf = (c) => c?.place_id || c?.googlePlaceId || c?.name;
     const list = Array.isArray(pool) ? pool : [];
     const ref = Array.isArray(reference) && reference.length > 0 ? reference : list;
@@ -209,7 +212,7 @@ export const rankByMerit = (pool, { reference, dnaWeights = { _share: 0 }, maxIc
     const scored = list.map((c, i) => ({
         candidate: c,
         i,
-        score: computeCandidateScore(c, ref, dnaWeights),
+        score: computeCandidateScore(c, ref, dnaWeights) + (bonus ? bonus(c) : 0),
         isIcon: icons.has(idOf(c)),
     }));
     scored.sort((a, b) => (b.score - a.score) || (a.i - b.i));

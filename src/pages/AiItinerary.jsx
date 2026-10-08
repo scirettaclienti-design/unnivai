@@ -89,7 +89,7 @@ export default function AIItineraryPage() {
     // e DEMO_CITIES contiene 18 città su tutte quelle italiane.
 
     // DVAI-045: leggi le preferenze apprese dall'AI
-    const { userDNAPreferences, trackGeneratedTour, trackDnaEvent, getAIContext, dnaWeights, dnaShare } = useAILearning();
+    const { userDNAPreferences, trackGeneratedTour, trackDnaEvent, getAIContext, dnaWeights, dnaShare, onboardingPrefs } = useAILearning();
     const { toast } = useToast();
 
     // Gate 2 FASE 3 — cityCenter risolto autoritativamente da resolveCityCenter
@@ -202,7 +202,9 @@ export default function AIItineraryPage() {
                 cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)
                 // Gate MERITO — affinità nella formula di scoring.
                 // G3 — 'custom': la finestra temporale legge "domani", "sabato pomeriggio"…
-                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'custom' },
+                // P7b — dieta, budget e stile del primo accesso. Il budget del
+                // wizard (prefsObject.budget) vince: la gerarchia la applica il motore.
+                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'custom', onboardingPrefs },
             );
 
             // Gate INTERESSI-VERI — la ricerca non si e' potuta fare (rete, HTTP,
@@ -320,7 +322,7 @@ export default function AIItineraryPage() {
                 // P7a — il DNA passa come nelle altre sezioni (prima: '' e niente pesi).
                 getAIContext?.() || '',
                 cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)
-                { dnaWeights: dnaShare > 0 ? dnaWeights : {} },
+                { dnaWeights: dnaShare > 0 ? dnaWeights : {}, onboardingPrefs },
             );
             // Gate NARRATORE/POI (Fase 2a) — `if (newDay)` non bastava:
             // { stops: [] } è truthy, quindi il payload onesto del motore
@@ -592,6 +594,10 @@ export default function AIItineraryPage() {
                                                     <p className="text-obsidian-secondary text-xs mt-0.5">
                                                         {day.stops.length} tappe programmate
                                                     </p>
+                                                    {/* P7b — riga onesta: "cercati come", mai "e' vegetariano". */}
+                                                    {day.dietNote && (
+                                                        <p data-diet-note className="text-obsidian-secondary text-[11px] mt-1">{day.dietNote}</p>
+                                                    )}
                                                 </div>
                                                 <button
                                                     type="button"

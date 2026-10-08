@@ -13,6 +13,7 @@
 
 import { buildPlacesProxyUrl, isPlacesProxyEnabled, BLACKLIST_TYPES } from './aiRecommendationService';
 import { isSmallTown, widerRadiusKm } from './tourShape';
+import { dietFoodQuery, markDietSearched } from '../lib/foodPrefs';
 
 // DVAI-055-b: prefix bumped da 'unnivai_poiv2_' per invalidare i POI tematici
 // cached prima del filtro raggio centralizzato nel normalizer. I tour tematici
@@ -704,7 +705,20 @@ const dedupePOIsAcrossThemes = (allPOIs) => {
   return deduped;
 };
 
-const discoverAllThemes = async (cityName, lat, lng) => {
+// P7b — `foodPrefs.dieta`: il tema food cerca con il criterio dentro la query
+// ("trattoria ristorante pizzeria osteria vegetariano") e i suoi risultati
+// portano `_dietaCercata`. Gli altri temi non cambiano.
+const searchHomeTheme = async (cityName, lat, lng, theme, foodPrefs) => {
+  const dieta = foodPrefs?.dieta || [];
+  if (theme !== 'food' || dieta.length === 0) return discoverRealPOIs(cityName, lat, lng, theme);
+  const found = await discoverRealPOIs(cityName, lat, lng, null, {
+    customQuery: dietFoodQuery(dieta, THEME_TEXTSEARCH.food.query),
+    customKind: THEME_TEXTSEARCH.food.kind,
+  });
+  return markDietSearched(found, dieta);
+};
+
+const discoverAllThemes = async (cityName, lat, lng, { foodPrefs = null } = {}) => {
   // Gate P.1: 4 temi (walking morto). 3 se `romance` non produce POI distinti
   // dopo la dedup → si spegne downstream.
   const results = {};
@@ -715,7 +729,7 @@ const discoverAllThemes = async (cityName, lat, lng) => {
   // un tema ha trovato luoghi, la Home li usa. Se NESSUN tema ha luoghi e almeno
   // una ricerca e' fallita, non si puo' dire "non c'e' niente" → errore.
   const settled = await Promise.allSettled(
-    HOME_THEMES.map(theme => discoverRealPOIs(cityName, lat, lng, theme)),
+    HOME_THEMES.map(theme => searchHomeTheme(cityName, lat, lng, theme, foodPrefs)),
   );
   const failed = [];
   settled.forEach((s, i) => {

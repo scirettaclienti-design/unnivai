@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { dataService } from '../services/dataService';
 import { computeWeights, weightsToAIProfile, tourAffinityScore, normalizeCategory, applyDnaEvent, computeDnaShare, dnaEventCount, tourCoreCategories } from '../services/preferenceEngine';
+import { parseSeed, seedFoodPrefs, buildSeed } from '../lib/foodPrefs';
 
 // Fase 2 Gate DNA: bump chiave localStorage (v1→v2). Il "brain" v1 conteneva
 // chiavi cat: sporche (nomi-sezione, "guide"): ignorandolo, i client ripartono
@@ -20,15 +21,19 @@ const SYNC_DEBOUNCE_MS = 3000;
 // Gate SEME (L1): lettura SINCRONA del seme (nessun async nel path critico).
 // JSON malformato/assente → [] (regola #1: nessun fallback produce contenuto,
 // mai categorie di default). Filtra a sole stringhe per robustezza.
-function readOnboardingSeed() {
+// P7b — il seme ha due forme (array di interessi, oppure { interessi,
+// vincoli, gusti }): parseSeed le legge entrambe. Al DNA vanno SOLO gli
+// interessi, come prima; dieta, budget e stile escono a parte (onboardingPrefs).
+function readRawSeed() {
     try {
         const raw = localStorage.getItem(ONBOARDING_SEED_KEY);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed.filter(x => typeof x === 'string') : [];
+        return raw ? JSON.parse(raw) : null;
     } catch {
-        return [];
+        return null;
     }
+}
+function readOnboardingSeed() {
+    return parseSeed(readRawSeed())?.interessi || [];
 }
 
 /**
@@ -88,6 +93,8 @@ export function useAILearning() {
     // cancellato al logout (AuthContext, chiave user-derived) e non esiste su
     // un secondo device: senza questo, il seme continuerebbe a sparire.
     const [onboardingSeed, setOnboardingSeed] = useState(readOnboardingSeed);
+    // P7b — dieta, budget e stile del primo accesso (vincoli e gusti).
+    const [onboardingPrefs, setOnboardingPrefs] = useState(() => seedFoodPrefs(readRawSeed()));
 
     const syncTimerRef = useRef(null);
     const hasSyncedFromDb = useRef(false);
@@ -125,8 +132,10 @@ export function useAILearning() {
             // sta guardando — cioe' esattamente il pattern che questo gate
             // elimina. Per quegli utenti il seme resta locale finche' non
             // rifanno l'onboarding.
-            if (Array.isArray(dbPrefs.onboarding_seed)) {
-                const serverSeed = dbPrefs.onboarding_seed.filter(x => typeof x === 'string');
+            const parsedServer = parseSeed(dbPrefs.onboarding_seed);
+            if (parsedServer) {
+                const serverSeed = parsedServer.interessi;
+                setOnboardingPrefs(seedFoodPrefs(dbPrefs.onboarding_seed));
                 setOnboardingSeed(prev => {
                     // Identita' referenziale stabile se il valore non cambia:
                     // onboardingSeed e' una dipendenza del useMemo dei pesi, un
@@ -139,7 +148,7 @@ export function useAILearning() {
                 // verita' e' comunque la colonna, questo serve solo al prossimo
                 // mount sincrono).
                 try {
-                    localStorage.setItem(ONBOARDING_SEED_KEY, JSON.stringify(serverSeed));
+                    localStorage.setItem(ONBOARDING_SEED_KEY, JSON.stringify(dbPrefs.onboarding_seed));
                 } catch { /* quota: il server resta la fonte di verita' */ }
             }
 
@@ -357,6 +366,21 @@ export function useAILearning() {
         return dnaShare > 0 ? tourAffinityScore(tour, weights) : 50;
     }, [weights, dnaShare]);
 
+    // ─── P7b — modifica di dieta, budget e stile dal Profilo ─────────────────
+    // Riscrive il seme conservando gli interessi. Stesso percorso del primo
+    // accesso: il server e' la fonte di verita', il localStorage la cache; un
+    // fallimento si restituisce al chiamante, che lo deve mostrare.
+    const saveFoodPrefs = useCallback(async (next = {}) => {
+        const seed = buildSeed({ interessi: onboardingSeed, ...next });
+        if (userId) {
+            const r = await dataService.upsertOnboardingSeed(userId, seed);
+            if (!r?.success) return { success: false, error: r?.error || 'Errore sconosciuto' };
+        }
+        try { localStorage.setItem(ONBOARDING_SEED_KEY, JSON.stringify(seed)); } catch { /* cache */ }
+        setOnboardingPrefs(seedFoodPrefs(seed));
+        return { success: true };
+    }, [userId, onboardingSeed]);
+
     // Gate E-2: unlockPremium + hasHitPaywall rimossi. Il paywall gate è morto:
     // modello di lancio locked = nessun paywall in V1. Il PaywallModal component
     // resta nel repo per V2/V3 ma non è più raggiungibile da nessun codepath.
@@ -382,6 +406,9 @@ export function useAILearning() {
         // della stessa chiave, cambia allo stesso identico momento per effetto
         // del sync-in.
         hasSeed: onboardingSeed.length > 0,
+        // P7b — { dieta: [], budget: '€'|null, stile: 'trattoria'|null } dal primo accesso.
+        onboardingPrefs,
+        saveFoodPrefs,
         trackGeneratedTour,
         trackTourView,
         trackCategoryClick,

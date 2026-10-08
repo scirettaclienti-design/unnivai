@@ -187,11 +187,13 @@ const djb2 = (s) => {
 // STESSA stringa narrativa pur pesando l'affinita' dei candidati in modo
 // diverso). Due utenti con gusti diversi non devono mai leggere lo stesso
 // itinerario dalla cache dell'altro.
-export const insiderCacheKey = (city, prefs, userPrompt, aiProfile, dnaWeights) => {
+export const insiderCacheKey = (city, prefs, userPrompt, aiProfile, dnaWeights, foodPrefs = null) => {
     // Gate NARRATORE-DOPO — gli interessi entrano nella chiave: Arte+Cibo e
     // Natura sono due tour diversi anche con la stessa frase.
     const interests = [...extractInterestTokens(prefs)].sort().join(',');
-    const parts = [city, prefs?.duration, prefs?.group, prefs?.pace, interests, userPrompt, aiProfile, weightsFingerprint(dnaWeights)].filter(Boolean).join('|');
+    // P7b — dieta, budget e stile cambiano il pool: entrano nella chiave (vuoti
+    // = chiave identica a prima).
+    const parts = [city, prefs?.duration, prefs?.group, prefs?.pace, interests, userPrompt, aiProfile, weightsFingerprint(dnaWeights), foodPrefsFingerprint(foodPrefs)].filter(Boolean).join('|');
     return INSIDER_CACHE_PREFIX + city.replace(/\s+/g, '_') + '_' + djb2(parts);
 };
 
@@ -353,6 +355,10 @@ export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './to
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
 import { selectScoredCandidatePool, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport } from './candidateScoring';
+import {
+    resolveFoodPrefs, applyFoodConstraints, foodPrefBonus, foodPrefsFingerprint, hasFoodPrefs,
+    withDietCriteria, dietFoodQuery, markDietSearched, dietNoteLine, dietCriteria, hierarchyPromptBlock, priceLevelOf,
+} from '@/lib/foodPrefs';
 
 // ─── DVAI-060 F2 — derive theme + fetch candidati reali ──────────────────────
 //
@@ -668,7 +674,11 @@ const settleSearches = async (promises, label) => {
     return lists;
 };
 
-const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = '', quota = undefined) => {
+const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = '', quota = undefined, foodPrefs = null) => {
+    // P7b — con una dieta, OGNI ricerca del cibo fatta qui porta il criterio:
+    // le query del traduttore di tipo cibo (deriveKindFromQuery) e il tema
+    // food del Percorso B. I risultati portano `_dietaCercata`.
+    const dieta = foodPrefs?.dieta || [];
     const lat = cityCenter?.latitude;
     const lng = cityCenter?.longitude;
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { candidates: [], intent: null };
@@ -729,17 +739,25 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
         );
 
         lists = await settleSearches(
-            queriesToRun.map(q => placesDiscoveryService.discoverRealPOIs(
-                cityName, lat, lng, null,
-                { customQuery: q, customKind, skipLegacyFallback: true }
-            )),
+            queriesToRun.map(q => {
+                const isFood = dieta.length > 0 && deriveKindFromQuery(q) === 'FOOD';
+                const search = placesDiscoveryService.discoverRealPOIs(
+                    cityName, lat, lng, null,
+                    { customQuery: isFood ? withDietCriteria(q, dieta) : q, customKind, skipLegacyFallback: true }
+                );
+                return isFood ? search.then(r => markDietSearched(r, dieta)) : search;
+            }),
             `path A ${cityName}`,
         );
     } else {
         // Path B — comportamento invariato: temi hardcoded da prefs.
         const themes = derivePrimaryThemes(prefs);
         lists = await settleSearches(
-            themes.map(t => placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t)),
+            themes.map(t => (t === 'food' && dieta.length > 0
+                ? placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, null, {
+                    customQuery: dietFoodQuery(dieta, THEME_FOOD_QUERY), customKind: 'FOOD',
+                }).then(r => markDietSearched(r, dieta))
+                : placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t))),
             `path B ${cityName} [${themes.join(',')}]`,
         );
     }
@@ -942,11 +960,17 @@ const TOUR_CATEGORY_TO_SKELETON = {
 // P3e — un posto dove mangiare passa anche fuori dalla categoria stretta: serve
 // a pranzo e cena, che restano cibo qualunque categoria sia stata scelta. Il
 // chiamante lo tiene fuori dagli altri momenti (mealOnlyIds).
-const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5 }) => {
+// P7b — la ricerca mirata del cibo (pranzo, cena) con la dieta porta il
+// criterio; dopo, gli stessi vincoli del pool principale (budget, dieta).
+const THEME_FOOD_QUERY = 'trattoria ristorante pizzeria osteria';
+const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null }) => {
     const { placesDiscoveryService } = await import('./placesDiscoveryService');
-    const settled = await Promise.allSettled(themes.map(t => placesDiscoveryService.discoverRealPOIs(
-        city, cityCenter.latitude, cityCenter.longitude, t,
-    )));
+    const dieta = foodPrefs?.dieta || [];
+    const settled = await Promise.allSettled(themes.map(t => (t === 'food' && dieta.length > 0
+        ? placesDiscoveryService.discoverRealPOIs(city, cityCenter.latitude, cityCenter.longitude, null, {
+            customQuery: dietFoodQuery(dieta, THEME_FOOD_QUERY), customKind: 'FOOD',
+        }).then(r => markDietSearched(r, dieta))
+        : placesDiscoveryService.discoverRealPOIs(city, cityCenter.latitude, cityCenter.longitude, t))));
     settled.forEach((r, i) => {
         if (r.status === 'rejected') console.warn(`[P3 SCHELETRO] ricerca mirata "${themes[i]}" fallita: ${r.reason?.message}`);
     });
@@ -963,7 +987,11 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
         });
     extra = applyRadiusFilter(extra, cityCenter, city, { requireCenter: true });
     if (categoria) extra = extra.filter(c => candidateMatchesIntentCategoria(c, categoria) || isMealPlace(c));
-    return selectScoredCandidatePool(extra, { city, dnaWeights, limit: perTheme * themes.length, maxIcons: 0 });
+    if (foodPrefs) extra = applyFoodConstraints(extra, foodPrefs, isMealPlace).candidates;
+    return selectScoredCandidatePool(extra, {
+        city, dnaWeights, limit: perTheme * themes.length, maxIcons: 0,
+        bonus: foodPrefs ? (c) => foodPrefBonus(c, foodPrefs, isMealPlace) : null,
+    });
 };
 
 // P3 — il report della riparazione, in chiaro nei log (e in `_momentReport`).
@@ -999,7 +1027,7 @@ export const candidateMatchesIntentCategoria = (candidate, categoriaRaw) => {
 // generateItinerary renderebbe il test dipendente dagli interni del motore.
 // Gate NARRATORE-DOPO — `weather`/`weatherIcon` non servono piu' qui: il meteo
 // lo riceve il narratore, e il selettore non scrive il blocco "weather".
-export const buildSelectorSystemPrompt = ({ city, timeContext, prefs, aiProfile, cityCenter, candidates, userPrompt, intent, moments = null, buckets = null }) => {
+export const buildSelectorSystemPrompt = ({ city, timeContext, prefs, aiProfile, cityCenter, candidates, userPrompt, intent, moments = null, buckets = null, foodPrefs = null }) => {
     const candidatesLite = candidates.map(p => {
         const lite = {
             place_id: p.place_id || p.googlePlaceId,
@@ -1108,7 +1136,7 @@ ${momentsBlock}
 
     return `SEI L'INSIDER DI ${city} — un local che sa dove portarti, non una guida turistica, non un elenco.
 
-⚠️ NON scegli tu i luoghi. Io ti do una lista di ${N} luoghi REALI di ${city}, già verificati su Google (rating, tipo, foto).${radiusInfo}${intentBlock}
+⚠️ NON scegli tu i luoghi. Io ti do una lista di ${N} luoghi REALI di ${city}, già verificati su Google (rating, tipo, foto).${radiusInfo}${intentBlock}${hierarchyPromptBlock(foodPrefs)}
 
 Il tuo lavoro in 2 mosse:
 
@@ -1367,16 +1395,25 @@ export const buildInsiderPool = (themedPools, cityCenter, city, size = HOME_INSI
  *      sceglieva i primi: Musei Capitolini, Giardino degli Aranci. L'insider
  *      e' gia' ordinato da buildInsiderPool e qui non si riordina.
  */
-export const prepareHomePools = (themedCandidates, cityCenter, city, { dnaWeights = { _share: 0 } } = {}) => {
+export const prepareHomePools = (themedCandidates, cityCenter, city, { dnaWeights = { _share: 0 }, foodPrefs = null } = {}) => {
     const pools = {};
     for (const [theme, arr] of Object.entries(themedCandidates || {})) {
         if (!Array.isArray(arr) || arr.length === 0) continue;
         pools[theme] = applyRadiusFilter(arr, cityCenter, city);
+        // P7b — i vincoli (budget, dieta) in codice, su ogni pool, insider compreso.
+        if (hasFoodPrefs(foodPrefs)) {
+            const fc = applyFoodConstraints(pools[theme], foodPrefs, isMealPlace);
+            if (fc.tolti.length > 0) console.warn(`[P7b VINCOLI] Per Te ${city}/${theme}: ${fc.tolti.length} tolti — ${fc.tolti.map(x => `${x.name} (${x.motivo})`).join(' | ')}`);
+            pools[theme] = fc.candidates;
+        }
     }
     const tutti = [...new Map(Object.values(pools).flat().map(p => [homePid(p) || p?.name, p])).values()];
     for (const theme of Object.keys(pools)) {
         if (theme === 'insider') continue;
-        pools[theme] = rankByMerit(pools[theme], { reference: tutti, dnaWeights, maxIcons: 1 });
+        pools[theme] = rankByMerit(pools[theme], {
+            reference: tutti, dnaWeights, maxIcons: 1,
+            bonus: hasFoodPrefs(foodPrefs) ? (c) => foodPrefBonus(c, foodPrefs, isMealPlace) : null,
+        });
     }
     const owner = new Map();
     let doppioniTemi = 0;
@@ -2148,7 +2185,11 @@ export const aiRecommendationService = {
             const p = romeParts(tourWindow.start);
             return momentAtClock(p.h, p.mi);
         })();
-        const cacheKey = insiderCacheKey(city, prefs, userPrompt, aiProfile, opts.dnaWeights)
+        // P7b — dieta, budget e stile, con la gerarchia applicata: testo →
+        // wizard (prefs.budget) → primo accesso (opts.onboardingPrefs).
+        const food = resolveFoodPrefs({ userPrompt, wizardBudget: prefs?.budget, onboarding: opts.onboardingPrefs });
+        const foodOn = hasFoodPrefs(food);
+        const cacheKey = insiderCacheKey(city, prefs, userPrompt, aiProfile, opts.dnaWeights, food)
             + '_' + centerFingerprint + '_' + tourWindow.date + '_' + firstMoment.key;
         const windowFields = {
             startTimeAnchored: tourWindow.anchored,
@@ -2198,7 +2239,7 @@ export const aiRecommendationService = {
         // candidati, errore onesto con oggetto_umano.
         const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
         try {
-            const { candidates: rawCandidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket);
+            const { candidates: rawCandidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket, food);
 
             // Gate RAGGIO-CATEGORIA — la categoria richiesta, quando e' una delle
             // 7 filtrabili in modo stretto. undefined ⇒ nessun vincolo di
@@ -2285,6 +2326,16 @@ export const aiRecommendationService = {
             // utente sotto soglia di interazioni e senza seme onboarding —
             // l'affinita' si azzera da sola (regola UTENTE NUOVO), unicita' e
             // voto restano attivi comunque.
+            // P7b — i VINCOLI, in codice, prima di Gate MERITO: budget (fuori i
+            // price_level sopra il tetto) e dieta (un posto dove mangiare resta
+            // solo se trovato da una ricerca col criterio).
+            if (foodOn) {
+                const fc = applyFoodConstraints(candidates, food, isMealPlace);
+                candidates = fc.candidates;
+                if (fc.tolti.length > 0) {
+                    console.warn(`[P7b VINCOLI] ${city}: ${fc.tolti.length} candidati tolti — ${fc.tolti.map(x => `${x.name} (${x.motivo})`).join(' | ')}`);
+                }
+            }
             const beforeMerito = candidates.length;
             // P7a — i candidati PRIMA di Gate MERITO: e' su questi che si misura
             // l'ovvieta' (quante tappe stanno nel loro 10% piu' recensito).
@@ -2292,7 +2343,9 @@ export const aiRecommendationService = {
             // Gate NARRATORE-DOPO — 20 candidati per giorno: con "2-3 Giorni"
             // un pool da 20 finiva i ristoranti prima del pranzo del giorno 3.
             const nDays = Math.max(1, tourWindow.windows.length);
-            candidates = selectScoredCandidatePool(candidates, { city, dnaWeights: opts.dnaWeights || {}, limit: 20 * nDays });
+            // P7b — lo stile a tavola e' una spinta (bonus), non un filtro.
+            const foodBonus = foodOn ? (c) => foodPrefBonus(c, food, isMealPlace) : null;
+            candidates = selectScoredCandidatePool(candidates, { city, dnaWeights: opts.dnaWeights || {}, limit: 20 * nDays, bonus: foodBonus });
             if (beforeMerito > 0) {
                 console.info(
                     `[Gate MERITO] ${city}: ${beforeMerito} candidati -> ${candidates.length} ammessi ` +
@@ -2341,6 +2394,7 @@ export const aiRecommendationService = {
                     city, cityCenter, themes: extraThemes, known: candidates, perTheme: 5 * nDays,
                     dnaWeights: opts.dnaWeights || {},
                     categoria: categoriaTarget ? intent.categoria : null,
+                    foodPrefs: foodOn ? food : null,
                 });
                 candidates = [...candidates, ...extra];
                 // P3e — con la categoria che vale per tutti i momenti, un
@@ -2375,6 +2429,7 @@ export const aiRecommendationService = {
                     intent, // Gate B — clausole dure (categoria/escludi/tempo/note) nel prompt
                     moments: moments.length > 0 ? moments : null,
                     buckets,
+                    foodPrefs: foodOn ? food : null,
                 });
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 35_000);
@@ -2513,8 +2568,25 @@ export const aiRecommendationService = {
                         const famosita = famositaReport(allStops, city, candidatiGenerazione);
                         console.info(`[P7a2 famosita'] ${city}: mediana ${famosita.mediana ?? '-'} recensioni, ${famosita.sopraSoglia}/${famosita.tappe} tappe sopra ${famosita.soglia}`);
                         console.info(`[P7a ovvieta'] ${city}: ${ovvieta.nelTop10}/${ovvieta.tappe} tappe nel 10% piu' recensito (${ovvieta.candidati} candidati, soglia ${ovvieta.sogliaRecensioni ?? '-'} recensioni)`);
+                        // P7b — le tappe pasto e il criterio usato; la riga onesta
+                        // a schermo solo se un pasto servito e' stato davvero
+                        // cercato col criterio.
+                        const byIdCibo = new Map(candidates.map(c => [c.place_id || c.googlePlaceId, c]));
+                        const tappePasto = allStops.filter(isMealPlace).map(st => {
+                            const c = byIdCibo.get(st.place_id) || {};
+                            return {
+                                title: st.title,
+                                price_level: priceLevelOf(c),
+                                criterio: Array.isArray(c._dietaCercata) && c._dietaCercata.length ? dietCriteria(c._dietaCercata).join(', ') : null,
+                            };
+                        });
+                        const dietNote = food.dieta.length > 0 && tappePasto.some(x => x.criterio) ? dietNoteLine(food.dieta) : null;
+                        const vincoliCibo = { ...food, tappePasto, dietNote };
+                        if (foodOn) console.info(`[P7b VINCOLI] ${city}: dieta=${food.dieta.join('+') || '-'} (${food.dietaFonte || '-'}), budget=${food.budget || '-'} (${food.budgetFonte || '-'}), stile=${food.stile || '-'} | pasti: ${tappePasto.map(x => `${x.title} [pl=${x.price_level ?? '?'}, ${x.criterio || 'senza criterio'}]`).join(' | ') || 'nessuno'}`);
+                        if (dietNote) for (const d of narratedDays) d.dietNote = dietNote;
                         const result = {
                             days: narratedDays, _source: 'google-first', _singleStop: singleStop,
+                            ...(foodOn ? { _vincoliCibo: vincoliCibo } : {}),
                             ...(momentReport ? { _momentReport: momentReport } : {}),
                             _narrationReport: narrationReport,
                             _ovvieta: ovvieta,
@@ -2704,7 +2776,9 @@ export const aiRecommendationService = {
         // P7a2 — i pool dei temi si ordinano per merito dentro prepareHomePools;
         // il DNA entra solo con fiducia (opts.dnaWeights._share > 0).
         const dnaWeights = opts.dnaWeights && opts.dnaWeights._share > 0 ? opts.dnaWeights : { _share: 0 };
-        const nonEmptyPools = prepareHomePools(themedCandidates, cityCenter, city, { dnaWeights });
+        // P7b — "Per Te" non ha testo ne' wizard: vale il primo accesso.
+        const food = resolveFoodPrefs({ onboarding: opts.onboardingPrefs });
+        const nonEmptyPools = prepareHomePools(themedCandidates, cityCenter, city, { dnaWeights, foodPrefs: food });
         if (Object.keys(nonEmptyPools).length === 0) {
             return { tours: [], _source: 'no-pools' };
         }
@@ -2732,7 +2806,8 @@ export const aiRecommendationService = {
             .join('|');
         // P7a2 — l'ordine dei pool dipende dal DNA: con fiducia, i pesi entrano
         // nella chiave (senza fiducia la chiave resta quella di prima).
-        const dnaKey = dnaWeights._share > 0 ? `|dna:${weightsFingerprint(dnaWeights)}` : '';
+        const dnaKey = (dnaWeights._share > 0 ? `|dna:${weightsFingerprint(dnaWeights)}` : '')
+            + (hasFoodPrefs(food) ? `|cibo:${foodPrefsFingerprint(food)}` : '');
         const cacheKey = `hometours_v1_${city.replace(/\s+/g, '_')}_${centerFingerprint}_${romeDay}_${moment.key}_${hashStr(poolStr + dnaKey)}`;
         const cached = loadInsiderFromCache(cacheKey);
         // Gate PAROLE VIETATE (P3d) — anche la lettura dalla cache passa dal filtro.
@@ -2961,12 +3036,17 @@ export const aiRecommendationService = {
                     for (const st of ordered) scarta(themeType, st.title, `tour con meno di ${HOME_TOUR_STOPS.min} tappe: nessun candidato valido rimasto nel pool`);
                 }
 
+                // P7b — la riga onesta, se il tour ha un pasto cercato col criterio.
+                const byIdPool = new Map((nonEmptyPools[themeType] || []).map(c => [homePid(c), c]));
+                const pastoCercato = food.dieta.length > 0 && ordered.some(st => isMealPlace(st)
+                    && Array.isArray(byIdPool.get(st.place_id)?._dietaCercata) && byIdPool.get(st.place_id)._dietaCercata.length > 0);
                 return {
                     themeType,
                     title: tour.title || `Tour di ${city}`,
                     mapMood: VALID_MOODS.has(tour.mapMood) ? tour.mapMood : 'default',
                     suggestedTransit: VALID_TRANSIT.has(tour.suggestedTransit) ? tour.suggestedTransit : 'walking',
                     stops: ordered,
+                    ...(pastoCercato ? { dietNote: dietNoteLine(food.dieta) } : {}),
                 };
             })
                 .filter(t => t && t.stops.length >= HOME_TOUR_STOPS.min);
@@ -2998,6 +3078,18 @@ export const aiRecommendationService = {
                 cedutiAccettati: accettatiCeduti,
                 aggiunte,
                 famosita,
+                ...(hasFoodPrefs(food) ? {
+                    vincoliCibo: {
+                        ...food,
+                        tappePasto: finalTours.flatMap(t => t.stops.filter(isMealPlace).map(st => {
+                            const c = tuttiCandidati.find(x => homePid(x) === st.place_id) || {};
+                            return {
+                                tour: t.themeType, title: st.title, price_level: priceLevelOf(c),
+                                criterio: Array.isArray(c._dietaCercata) && c._dietaCercata.length ? dietCriteria(c._dietaCercata).join(', ') : null,
+                            };
+                        })),
+                    },
+                } : {}),
                 ovvieta, // solo per confronto (P7a)
             };
             console.info(`[Per Te] ${city}: ${report.tourServiti}/${report.tourProposti} tour, ${report.tappeServite}/${report.tappeRaccontate} tappe servite (${aggiunte.length} aggiunte in codice), ${scarti.length} scarti, ${tokenRisposta ?? '?'}/${MAX_TOKENS} token${truncated ? ', risposta tagliata' : ''}, famosita' mediana ${famosita.mediana ?? '-'} / ${famosita.sopraSoglia} sopra ${famosita.soglia}, ovvieta' ${ovvieta.nelTop10}/${ovvieta.tappe}`);
@@ -3200,10 +3292,23 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
 
             // 3. Places textsearch via placesDiscoveryService (customQuery + customKind).
             const { placesDiscoveryService } = await import('./placesDiscoveryService');
-            const candidates = await placesDiscoveryService.discoverRealPOIs(
+            // P7b — le notifiche rispettano dieta e budget del primo accesso.
+            // Dieta: una ricetta di pasto (pranzo, ristorante, cucina) cerca con
+            // il criterio dentro la query; un posto dove mangiare trovato
+            // altrimenti non si propone. Budget: fuori i price_level sopra il tetto.
+            const food = resolveFoodPrefs({ onboarding: ctx.onboardingPrefs });
+            const isMealRecipe = recipe.kind === 'FOOD' && /pranzo|ristorante|cucina|trattoria|osteria/i.test(`${recipe.categoria} ${recipe.query}`);
+            const useDiet = isMealRecipe && food.dieta.length > 0;
+            let candidates = await placesDiscoveryService.discoverRealPOIs(
                 city, cc.latitude, cc.longitude, null,
-                { customQuery: recipe.query, customKind: recipe.kind, skipLegacyFallback: true, maxResults: 5 }
+                { customQuery: useDiet ? withDietCriteria(recipe.query, food.dieta) : recipe.query, customKind: recipe.kind, skipLegacyFallback: true, maxResults: 5 }
             );
+            if (useDiet) candidates = markDietSearched(candidates, food.dieta);
+            if (hasFoodPrefs(food) && Array.isArray(candidates)) {
+                const fc = applyFoodConstraints(candidates, food, isMealPlace);
+                if (fc.tolti.length > 0) console.info(`[SmartNotif] ${city}: ${fc.tolti.length} tolti dai vincoli — ${fc.tolti.map(x => `${x.name} (${x.motivo})`).join(' | ')}`);
+                candidates = fc.candidates;
+            }
             if (!Array.isArray(candidates) || candidates.length === 0) {
                 console.info(`[SmartNotif] ${city}/${recipe.query}: 0 candidati Places → skip`);
                 return null;

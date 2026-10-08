@@ -7,6 +7,7 @@ import { resolveCityCenter } from '@/services/cityCenterService';
 // (signature hash + salt privato). Nessuno fuori dalla fabbrica puo'
 // produrre un record che passi isValidAiNotification.
 import { makeAiNotification, isValidAiNotification } from '@/lib/aiNotificationFactory';
+import { readLocalFoodPrefs } from '@/lib/foodPrefs';
 
 const isGeneratedId = (id) =>
     typeof id === 'string' &&
@@ -238,6 +239,8 @@ export function useUserNotifications(userId, city, firstName, ctx = {}) {
                     temperatureC: ctx.temperatureC,
                     condition: ctx.condition,
                     cityCenter,
+                    // P7b — dieta e budget del primo accesso (cache locale del seme).
+                    onboardingPrefs: readLocalFoodPrefs(),
                 });
                 if (tip?.title && tip?.message) {
                     // Gate Q: la fabbrica produce il record con signature opaca.

@@ -17,9 +17,19 @@ import {
     ShoppingBag,
     AlertTriangle,
     RefreshCw,
+    Ban,
+    Leaf,
+    Sprout,
+    Wheat,
+    Moon as MoonIcon,
+    Wallet,
+    ChefHat,
+    Soup,
+    Sandwich,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { dataService } from '@/services/dataService';
+import { buildSeed } from '@/lib/foodPrefs';
 
 const INTERESTS = [
     { id: 'food',      icon: UtensilsCrossed, label: 'Mangiare e bere',      seeds: ['food'] },
@@ -30,6 +40,29 @@ const INTERESTS = [
     { id: 'relax',     icon: Coffee,          label: 'Ritmo lento',          seeds: ['relax'] },
     { id: 'shopping',  icon: ShoppingBag,     label: 'Shopping e mercati',   seeds: ['shopping'] },
 ];
+
+// P7b — vincoli (dieta, budget) e gusti (stile) a tavola. Tutto saltabile:
+// nessuna scelta = nessun vincolo. Il seme si salva separando le due cose
+// (lib/foodPrefs.js buildSeed): { interessi, vincoli: { dieta, budget }, gusti: { stile } }.
+const DIETE_OPTIONS = [
+    { id: 'nessuna',       icon: Ban,      label: 'Nessuna restrizione' },
+    { id: 'vegetariano',   icon: Leaf,     label: 'Vegetariano' },
+    { id: 'vegano',        icon: Sprout,   label: 'Vegano' },
+    { id: 'senza_glutine', icon: Wheat,    label: 'Senza glutine' },
+    { id: 'halal',         icon: MoonIcon, label: 'Halal' },
+];
+const BUDGET_OPTIONS = [
+    { id: '€',   label: '€',   hint: 'Spendere poco' },
+    { id: '€€',  label: '€€',  hint: 'Una via di mezzo' },
+    { id: '€€€', label: '€€€', hint: "Per un'occasione" },
+];
+const STILE_OPTIONS = [
+    { id: 'autore',    icon: ChefHat,  label: "Cucina d'autore" },
+    { id: 'trattoria', icon: Soup,     label: 'Trattoria' },
+    { id: 'street',    icon: Sandwich, label: 'Street food' },
+];
+// Ultimo passo (manifesto 0, interessi 1, dieta 2, budget e stile 3, strada 4).
+const LAST_STEP = 4;
 
 const ONBOARDING_SEED_KEY = 'unnivai_onboarding_seed_v1';
 
@@ -60,6 +93,9 @@ export default function Onboarding() {
     const [step, setStep] = useState(0);
     const [direction, setDirection] = useState(1);
     const [selectedInterests, setSelectedInterests] = useState([]);
+    const [dieta, setDieta] = useState([]);
+    const [budget, setBudget] = useState(null);
+    const [stile, setStile] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     // Gate SEME (L2): un fallimento di salvataggio del seme NON e' piu' un
     // console.warn. Vive qui e viene renderizzato: l'utente lo vede e riprova.
@@ -75,7 +111,7 @@ export default function Onboarding() {
 
     const goNext = () => {
         setDirection(1);
-        setStep(s => Math.min(s + 1, 2));
+        setStep(s => Math.min(s + 1, LAST_STEP));
     };
     const goBack = () => {
         setDirection(-1);
@@ -143,7 +179,21 @@ export default function Onboarding() {
         navigate('/dashboard-user', { replace: true });
     };
 
-    const handleComplete = () => persistSeed(computeSeed(selectedInterests));
+    const handleComplete = () => persistSeed(buildSeed({
+        interessi: computeSeed(selectedInterests), dieta, budget, stile,
+    }));
+
+    // "Nessuna restrizione" esclude le altre, e le altre escludono lei.
+    const toggleDieta = (id) => {
+        if (id === 'nessuna') { setDieta([]); return; }
+        setDieta(prev => (prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]));
+    };
+    // "Salta questa domanda": si passa oltre senza vincolo.
+    const skipQuestion = () => {
+        if (step === 2) setDieta([]);
+        if (step === 3) { setBudget(null); setStile(null); }
+        goNext();
+    };
 
     // "Salta per ora" passa dallo STESSO meccanismo e scrive [] sul server.
     // Uno skip esplicito e' un dato dell'utente quanto una scelta di gusti
@@ -168,8 +218,8 @@ export default function Onboarding() {
                 <span className="text-xs font-black tracking-widest uppercase text-obsidian-secondary">
                     DoveVAI
                 </span>
-                <div className="flex items-center space-x-2" aria-label={`Passo ${step + 1} di 3`}>
-                    {[0, 1, 2].map((i) => (
+                <div className="flex items-center space-x-2" aria-label={`Passo ${step + 1} di ${LAST_STEP + 1}`}>
+                    {Array.from({ length: LAST_STEP + 1 }, (_, i) => i).map((i) => (
                         <span
                             key={i}
                             className={`h-1 rounded-full transition-all duration-300 ${
@@ -257,8 +307,82 @@ export default function Onboarding() {
                             </div>
                         )}
 
-                        {/* ─── STEP 2: Passaggio alla Strada ─── */}
+                        {/* ─── STEP 2: Cosa non mangi? (P7b, scelta multipla) ─── */}
                         {step === 2 && (
+                            <div className="space-y-4">
+                                <div>
+                                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-obsidian-primary">
+                                        Cosa non mangi?
+                                    </h2>
+                                    <p className="text-obsidian-secondary text-xs sm:text-sm mt-1 font-medium">
+                                        Cerchiamo i locali con questo criterio. Puoi sceglierne più d'uno.
+                                    </p>
+                                </div>
+                                <div className="space-y-2.5 pt-1">
+                                    {DIETE_OPTIONS.map(opt => (
+                                        <ChoiceButton
+                                            key={opt.id}
+                                            icon={opt.icon}
+                                            label={opt.label}
+                                            selected={opt.id === 'nessuna' ? dieta.length === 0 : dieta.includes(opt.id)}
+                                            onClick={() => toggleDieta(opt.id)}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ─── STEP 3: Budget a pasto e stile a tavola (P7b) ─── */}
+                        {step === 3 && (
+                            <div className="space-y-5">
+                                <div>
+                                    <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-obsidian-primary">
+                                        A tavola
+                                    </h2>
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="text-sm font-black tracking-tight text-obsidian-primary">Quanto vuoi spendere a pasto?</p>
+                                    <div className="grid grid-cols-3 gap-2.5">
+                                        {BUDGET_OPTIONS.map(opt => {
+                                            const isSelected = budget === opt.id;
+                                            return (
+                                                <motion.button
+                                                    key={opt.id}
+                                                    type="button"
+                                                    onClick={() => setBudget(isSelected ? null : opt.id)}
+                                                    className={`p-3 rounded-2xl border text-center transition-all ${
+                                                        isSelected
+                                                            ? 'bg-ivory-bg border-ivory-bg text-ivory-text font-black shadow-md'
+                                                            : 'bg-obsidian-card border-obsidian-border text-obsidian-primary font-bold hover:bg-obsidian-raised'
+                                                    }`}
+                                                    whileTap={{ scale: 0.98 }}
+                                                >
+                                                    <span className="block text-base tracking-tight">{opt.label}</span>
+                                                    <span className={`block text-[11px] font-medium mt-0.5 ${isSelected ? 'text-ivory-text' : 'text-obsidian-secondary'}`}>{opt.hint}</span>
+                                                </motion.button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="text-sm font-black tracking-tight text-obsidian-primary">Che stile a tavola?</p>
+                                    <div className="space-y-2.5">
+                                        {STILE_OPTIONS.map(opt => (
+                                            <ChoiceButton
+                                                key={opt.id}
+                                                icon={opt.icon}
+                                                label={opt.label}
+                                                selected={stile === opt.id}
+                                                onClick={() => setStile(stile === opt.id ? null : opt.id)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ─── STEP 4: Passaggio alla Strada ─── */}
+                        {step === LAST_STEP && (
                             <div className="space-y-5">
                                 <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-obsidian-primary leading-[1.08]">
                                     Ora tocca<br />alla strada.
@@ -316,7 +440,7 @@ export default function Onboarding() {
                 )}
 
                 <div className="flex space-x-3">
-                    {step > 0 && step < 2 && (
+                    {step > 0 && step < LAST_STEP && (
                         <button
                             type="button"
                             onClick={goBack}
@@ -327,7 +451,7 @@ export default function Onboarding() {
                         </button>
                     )}
 
-                    {step < 2 ? (
+                    {step < LAST_STEP ? (
                         <button
                             type="button"
                             onClick={goNext}
@@ -360,6 +484,19 @@ export default function Onboarding() {
                     )}
                 </div>
 
+                {(step === 2 || step === 3) && (
+                    <div className="text-center">
+                        <button
+                            type="button"
+                            onClick={skipQuestion}
+                            disabled={isSaving}
+                            className="text-xs font-bold text-obsidian-secondary hover:text-obsidian-primary transition-colors py-1 disabled:opacity-50"
+                        >
+                            Salta questa domanda
+                        </button>
+                    </div>
+                )}
+
                 {step < 2 && (
                     <div className="text-center">
                         <button
@@ -374,5 +511,29 @@ export default function Onboarding() {
                 )}
             </footer>
         </div>
+    );
+}
+
+// P7b — lo stesso bottone delle scelte di interessi (stile grafico esistente).
+function ChoiceButton({ icon: IconComponent, label, selected, onClick }) {
+    return (
+        <motion.button
+            type="button"
+            onClick={onClick}
+            aria-pressed={selected}
+            className={`w-full p-4 rounded-2xl flex items-center transition-all border text-left ${
+                selected
+                    ? 'bg-ivory-bg border-ivory-bg text-ivory-text font-black shadow-md'
+                    : 'bg-obsidian-card border-obsidian-border text-obsidian-primary font-bold hover:bg-obsidian-raised'
+            }`}
+            whileTap={{ scale: 0.98 }}
+        >
+            <div className="flex items-center space-x-3.5">
+                <div className={`p-2 rounded-xl transition-colors ${selected ? 'bg-ivory-badge' : 'bg-obsidian-raised'}`}>
+                    <IconComponent className={`w-4 h-4 stroke-[2.4] ${selected ? 'text-ivory-icon' : 'text-brand-orange'}`} />
+                </div>
+                <span className="text-sm tracking-tight">{label}</span>
+            </div>
+        </motion.button>
     );
 }

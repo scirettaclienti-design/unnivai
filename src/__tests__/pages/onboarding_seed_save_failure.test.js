@@ -69,14 +69,23 @@ const DB_ERROR = "column user_preferences.onboarding_seed does not exist";
 
 const clickByText = (text) => fireEvent.click(screen.getByText(text).closest('button'));
 const gotoInterests = () => clickByText('Iniziamo!');
-const gotoReady = () => clickByText('Continua');
+// P7b — interessi → dieta → a tavola → pronto. `aTavola` sceglie sulle due
+// schermate nuove (dieta multipla, budget e stile).
+const gotoReady = (aTavola = null) => {
+    clickByText('Continua');
+    for (const d of aTavola?.dieta || []) clickByText(d);
+    clickByText('Continua');
+    if (aTavola?.budget) clickByText(aTavola.budget);
+    if (aTavola?.stile) clickByText(aTavola.stile);
+    clickByText('Continua');
+};
 const finish = () => clickByText('Entra in DoveVAI');
 
 // welcome → scegli "Storia e arte" → pronto → conferma
-const runWizardToEnd = () => {
+const runWizardToEnd = (aTavola = null) => {
     gotoInterests();
     clickByText('Storia e arte');
-    gotoReady();
+    gotoReady(aTavola);
     finish();
 };
 
@@ -114,17 +123,38 @@ describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
         expect(localStorage.getItem(SEED_KEY)).toBeNull();
     });
 
-    it('il seme arriva al server nella forma giusta (["cultura","arte"])', async () => {
+    it('il seme arriva al server nella forma giusta: interessi, vincoli (dieta, budget) e gusti (stile) separati', async () => {
         upsertOnboardingSeedMock.mockResolvedValue({ success: false, error: DB_ERROR });
 
         render(createElement(Onboarding));
-        runWizardToEnd();
+        runWizardToEnd({ dieta: ['Vegetariano', 'Senza glutine'], budget: '€', stile: 'Trattoria' });
         await screen.findByRole('alert');
 
         expect(upsertOnboardingSeedMock).toHaveBeenCalledTimes(1);
         const [userId, seed] = upsertOnboardingSeedMock.mock.calls[0];
         expect(userId).toBe('11111111-2222-3333-4444-555555555555');
-        expect([...seed].sort()).toEqual(['arte', 'cultura']);
+        expect([...seed.interessi].sort()).toEqual(['arte', 'cultura']);
+        expect(seed.vincoli).toEqual({ dieta: ['vegetariano', 'senza_glutine'], budget: '€' });
+        expect(seed.gusti).toEqual({ stile: 'trattoria' });
+    });
+
+    it('le domande a tavola sono saltabili: "Salta questa domanda" → nessun vincolo', async () => {
+        upsertOnboardingSeedMock.mockResolvedValue({ success: true });
+
+        render(createElement(Onboarding));
+        gotoInterests();
+        clickByText('Storia e arte');
+        clickByText('Continua');
+        clickByText('Vegano');
+        clickByText('Salta questa domanda');
+        clickByText('€€€');
+        clickByText('Salta questa domanda');
+        finish();
+
+        await waitFor(() => expect(navigateMock).toHaveBeenCalled());
+        const [, seed] = upsertOnboardingSeedMock.mock.calls[0];
+        expect(seed.vincoli).toEqual({ dieta: [], budget: null });
+        expect(seed.gusti).toEqual({ stile: null });
     });
 
     it('"Riprova" ritenta e, se il server risponde, sblocca il flusso', async () => {
@@ -139,7 +169,7 @@ describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
 
         await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/dashboard-user', { replace: true }));
         expect(localStorage.getItem(DONE_KEY)).toBe('1');
-        expect(JSON.parse(localStorage.getItem(SEED_KEY)).sort()).toEqual(['arte', 'cultura']);
+        expect(JSON.parse(localStorage.getItem(SEED_KEY)).interessi.sort()).toEqual(['arte', 'cultura']);
         expect(screen.queryByRole('alert')).toBeNull();
     });
 
@@ -186,7 +216,7 @@ describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
 
         await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/dashboard-user', { replace: true }));
         expect(localStorage.getItem(DONE_KEY)).toBe('1');
-        expect(JSON.parse(localStorage.getItem(SEED_KEY)).sort()).toEqual(['arte', 'cultura']);
+        expect(JSON.parse(localStorage.getItem(SEED_KEY)).interessi.sort()).toEqual(['arte', 'cultura']);
         expect(screen.queryByRole('alert')).toBeNull();
     });
 });

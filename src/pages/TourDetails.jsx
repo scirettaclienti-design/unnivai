@@ -1090,6 +1090,10 @@ export default function TourDetailsPage() {
                                             <MapPin size={18} className="mr-2 text-obsidian-secondary inline-block" />
                                             Programma del Tour ({totalSteps} tappe)
                                         </h3>
+                                        {/* P7b — riga onesta sulla dieta: "cercati come", mai "e' vegetariano". */}
+                                        {tour.dietNote && (
+                                            <p data-diet-note className="text-obsidian-secondary text-xs -mt-2 mb-4">{tour.dietNote}</p>
+                                        )}
                                         {(() => {
                                             const renderStep = (step, index, timeLabel) => {
                                                 const stepTitle = step.title || step.name || step.activity || `Tappa ${index + 1}`;

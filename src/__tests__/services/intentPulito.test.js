@@ -109,9 +109,10 @@ describe('F65 — il profilo NON e\' stato tolto: e\' stato rimesso al suo posto
         // 20%, arrotondate) e due vettori di pesi diversi possono produrre la
         // stessa stringa pur pesando l'affinita' dei candidati diversamente.
         const src = readSrc('services/aiRecommendationService.js');
-        expect(src).toContain('const insiderCacheKey = (city, prefs, userPrompt, aiProfile, dnaWeights) =>');
+        expect(src).toContain('const insiderCacheKey = (city, prefs, userPrompt, aiProfile, dnaWeights, foodPrefs = null) =>');
         // Gate NARRATORE-DOPO: entrano anche gli interessi (ordinati), fra il ritmo e la frase.
-        expect(src).toContain('[city, prefs?.duration, prefs?.group, prefs?.pace, interests, userPrompt, aiProfile, weightsFingerprint(dnaWeights)]');
+        // P7b: e in coda dieta/budget/stile (vuoti = chiave identica a prima).
+        expect(src).toContain('[city, prefs?.duration, prefs?.group, prefs?.pace, interests, userPrompt, aiProfile, weightsFingerprint(dnaWeights), foodPrefsFingerprint(foodPrefs)]');
     });
 });
 

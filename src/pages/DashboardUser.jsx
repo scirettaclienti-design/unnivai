@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from "@tanstack/react-query";
 import { dataService, createGuideRequest } from "@/services/dataService";
 import { useAILearning } from '../hooks/useAILearning';
+import { resolveFoodPrefs, foodPrefsFingerprint } from '@/lib/foodPrefs';
 import { placesDiscoveryService, PlacesSearchError, PLACES_SEARCH_ERROR_MESSAGE } from '@/services/placesDiscoveryService';
 
 // Gate INTERESSI-VERI — tre esiti diversi, tre testi diversi:
@@ -147,7 +148,7 @@ const DashboardUser = () => {
         }
     };
 
-    const { userDNAPreferences, preferenceGraph, totalInteractions, getAIContext, getTourAffinity, dnaShare, dnaWeights } = useAILearning();
+    const { userDNAPreferences, preferenceGraph, totalInteractions, getAIContext, getTourAffinity, dnaShare, dnaWeights, onboardingPrefs } = useAILearning();
     // Gate SEME (L1): il ranking DNA (:216 tour reali, :359 riordino) si attiva
     // con >=3 interazioni reali OPPURE con un seme onboarding non vuoto — cosi'
     // gli interessi scelti contano dal primo ingresso (R1). hasSeed e' disponibile
@@ -177,7 +178,7 @@ const DashboardUser = () => {
     // la query NON parte → skeleton in UI. Zero fallback 'Roma' che
     // trapelano allo user come contenuto-ponte finto.
     const { data: experiences, isError: experiencesError, error: experiencesErrorObj, isPending: experiencesLoading, refetch: refetchExperiences } = useQuery({
-        queryKey: ['home-experiences', city, totalInteractions, hasPreferences],
+        queryKey: ['home-experiences', city, totalInteractions, hasPreferences, foodPrefsFingerprint(onboardingPrefs)],
         enabled: !!city,
         queryFn: async () => {
             const currentCity = city;
@@ -230,8 +231,10 @@ const DashboardUser = () => {
                 // Pool candidati per tema (Places-first, cache condivisa Gate DD).
                 let themedPools = {};
                 try {
+                    // P7b — con una dieta il tema food cerca col criterio dentro.
                     themedPools = await placesDiscoveryService.discoverAllThemes(
-                        currentCity, cityCenter.latitude, cityCenter.longitude
+                        currentCity, cityCenter.latitude, cityCenter.longitude,
+                        { foodPrefs: resolveFoodPrefs({ onboarding: onboardingPrefs }) },
                     );
                 } catch (e) {
                     // Gate INTERESSI-VERI — nessun tema ha luoghi E almeno una ricerca
@@ -260,7 +263,7 @@ const DashboardUser = () => {
                         prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' },
                         aiProfile: getAIContext?.() || '',
                         // P7a2 — i pool dei temi si ordinano per merito come l'insider.
-                        opts: { dnaWeights: dnaShare > 0 ? dnaWeights : { _share: 0 } },
+                        opts: { dnaWeights: dnaShare > 0 ? dnaWeights : { _share: 0 }, onboardingPrefs },
                     });
                 } catch (err) {
                     // Gate INTERESSI-VERI — quota esaurita non e' "non trovo".
@@ -330,6 +333,8 @@ const DashboardUser = () => {
                         suggestedTransit: tour.suggestedTransit || 'walking',
                         mapMood: tour.mapMood || 'default',
                         featuredPoi,
+                        // P7b — riga onesta sulla dieta (solo se un pasto e' stato cercato col criterio).
+                        dietNote: tour.dietNote || null,
                     }, {
                         cityFallback: currentCity,
                         cityCenter: { latitude: cityCenter.latitude, longitude: cityCenter.longitude },

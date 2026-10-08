@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2, Award, Crosshair, WifiOff, MessageSquare, Tag } from 'lucide-react';
-import { aiRecommendationService } from '@/services/aiRecommendationService';
+import { aiRecommendationService, buildInsiderPool } from '@/services/aiRecommendationService';
 import { useUserContext } from '../hooks/useUserContext';
 import GpsActivationBanner from '../components/GpsActivationBanner';
 import BottomNavigation from '../components/BottomNavigation';
@@ -236,22 +236,11 @@ const DashboardUser = () => {
                     console.warn('[Per Te] discoverAllThemes fallita:', e.message);
                 }
 
-                // Pool insider: unione top-15 by qualityScore da tutti i temi.
-                // Il narratore sceglie la "perla" mescolando categorie.
-                const allPoisSeen = new Map();
-                for (const pois of Object.values(themedPools)) {
-                    if (!Array.isArray(pois)) continue;
-                    for (const p of pois) {
-                        const pid = p.place_id || p.googlePlaceId || p.title;
-                        if (pid && !allPoisSeen.has(pid)) allPoisSeen.set(pid, p);
-                    }
-                }
-                const insiderPool = [...allPoisSeen.values()]
-                    .sort((a, b) =>
-                        ((b.rating || 0) * Math.log(1 + (b.user_ratings_total || 0))) -
-                        ((a.rating || 0) * Math.log(1 + (a.user_ratings_total || 0)))
-                    )
-                    .slice(0, 15);
+                // Pool insider: i migliori luoghi di tutti i temi, scelti DOPO il
+                // filtro di distanza (Gate PER TE — buildInsiderPool). Il narratore
+                // sceglie la "perla" mescolando categorie. I doppioni con i temi
+                // li toglie il motore prima del prompt (prepareHomePools).
+                const insiderPool = buildInsiderPool(themedPools, cityCenter, currentCity);
 
                 // Call unificata: 1 sola call OpenAI, N tour narrati.
                 let homeToursResult = { tours: [] };

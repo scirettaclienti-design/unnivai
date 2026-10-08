@@ -1295,12 +1295,151 @@ const hashStr = (s) => {
 // Regole voce identiche a buildSelectorSystemPrompt (locked): fatti sensoriali,
 // zero aggettivi vuoti, insiderTip pratico da local, bestTime "perche' ORA".
 // Un place_id in un solo tour (dedup post-processing lato codice).
-const buildUnifiedHomeToursPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, cityCenter, themedCandidates }) => {
+// ─── Gate PER TE — il pool dei tour "Per Te" si decide in codice ─────────────
+//
+// Tappe per tour chieste al modello. Il prompt le legge da qui, e da qui le
+// legge anche la regola dei doppioni (un tema cede un luogo all'insider solo
+// se gliene restano abbastanza per un tour completo).
+export const HOME_TOUR_STOPS = { min: 3, max: 5 };
+const HOME_INSIDER_SIZE = 15;
+
+const homePid = (p) => p?.place_id || p?.googlePlaceId || null;
+
+/**
+ * Gate PER TE — il blocco insider: i luoghi migliori di TUTTI i temi, scelti
+ * DOPO il filtro di distanza (prima si sceglievano i 15 migliori e poi si
+ * scartavano quelli lontani, e l'insider restava corto).
+ * Punteggio: rating × ln(1+recensioni), lo stesso che DashboardUser usava.
+ */
+export const buildInsiderPool = (themedPools, cityCenter, city, size = HOME_INSIDER_SIZE) => {
+    const union = new Map();
+    for (const pois of Object.values(themedPools || {})) {
+        if (!Array.isArray(pois)) continue;
+        for (const p of pois) {
+            const pid = homePid(p) || p?.title;
+            if (pid && !union.has(pid)) union.set(pid, p);
+        }
+    }
+    const score = (p) => (p.rating || 0) * Math.log(1 + (p.user_ratings_total || 0));
+    return applyRadiusFilter([...union.values()], cityCenter, city)
+        .sort((a, b) => score(b) - score(a))
+        .slice(0, size);
+};
+
+/**
+ * Gate PER TE — i candidati che arrivano al modello.
+ *
+ *   1. DISTANZA, in codice: oltre il raggio (10 km in citta', 5 nei borghi;
+ *      20/12 se ne restano troppo pochi — applyRadiusFilter) il candidato non
+ *      entra nel prompt. Il modello non riceve coordinate: chiedergli di
+ *      rispettare una distanza era chiedergli una cosa che non poteva fare, e
+ *      le tappe lontane si pagavano per poi buttarle.
+ *   2. DOPPIONI: ogni luogo una sola volta. Fra i temi vince il primo; il
+ *      blocco insider (fatto con i luoghi migliori di tutti i temi) si tiene un
+ *      luogo solo se al suo tema ne restano almeno HOME_TOUR_STOPS.max,
+ *      altrimenti il luogo resta al tema. Prima ogni luogo insider compariva
+ *      due volte, e il tour che arrivava dopo perdeva la tappa in silenzio.
+ */
+export const prepareHomePools = (themedCandidates, cityCenter, city) => {
+    const pools = {};
+    for (const [theme, arr] of Object.entries(themedCandidates || {})) {
+        if (!Array.isArray(arr) || arr.length === 0) continue;
+        pools[theme] = applyRadiusFilter(arr, cityCenter, city);
+    }
+    const owner = new Map();
+    let doppioniTemi = 0;
+    for (const theme of Object.keys(pools).filter(t => t !== 'insider')) {
+        pools[theme] = pools[theme].filter(p => {
+            const pid = homePid(p);
+            if (!pid) return true;
+            if (owner.has(pid)) { doppioniTemi++; return false; }
+            owner.set(pid, theme);
+            return true;
+        });
+    }
+    let allInsider = 0;
+    let alTema = 0;
+    if (pools.insider) {
+        const kept = [];
+        const seen = new Set();
+        for (const p of pools.insider) {
+            const pid = homePid(p);
+            if (!pid) { kept.push(p); continue; }
+            if (seen.has(pid)) continue;
+            seen.add(pid);
+            const t = owner.get(pid);
+            if (!t) { kept.push(p); continue; }
+            if (pools[t].length - 1 >= HOME_TOUR_STOPS.max) {
+                pools[t] = pools[t].filter(x => homePid(x) !== pid);
+                kept.push(p);
+                allInsider++;
+            } else {
+                alTema++;
+            }
+        }
+        pools.insider = kept;
+    }
+    for (const t of Object.keys(pools)) if (pools[t].length === 0) delete pools[t];
+    if (doppioniTemi + allInsider + alTema > 0) {
+        console.info(`[Per Te] ${city}: doppioni nel pool — ${allInsider} luoghi lasciati all'insider e tolti dal tema, ${alTema} lasciati al tema e tolti dall'insider, ${doppioniTemi} fra temi`);
+    }
+    return pools;
+};
+
+/**
+ * Gate PER TE — la risposta del modello, anche tagliata.
+ * Con finish_reason 'length' il JSON si interrompe a meta': prima JSON.parse
+ * lanciava e "Per Te" andava in errore, buttando anche i tour gia' completi.
+ * Qui si tengono i tour CHIUSI dell'array `tours`; quello tagliato si perde.
+ * @returns {{ tours: Array, truncated: boolean }}
+ */
+export const parseHomeToursResponse = (raw) => {
+    try {
+        const parsed = JSON.parse(raw);
+        return { tours: Array.isArray(parsed) ? parsed : (parsed?.tours ?? []), truncated: false };
+    } catch { /* risposta incompleta: si recuperano i tour chiusi */ }
+    const str = String(raw || '');
+    const key = str.indexOf('"tours"');
+    const open = key >= 0 ? str.indexOf('[', key) : str.indexOf('[');
+    const tours = [];
+    if (open < 0) return { tours, truncated: true };
+    let depth = 0;
+    let start = -1;
+    let inStr = false;
+    let esc = false;
+    for (let j = open + 1; j < str.length; j++) {
+        const ch = str[j];
+        if (inStr) {
+            if (esc) esc = false;
+            else if (ch === '\\') esc = true;
+            else if (ch === '"') inStr = false;
+            continue;
+        }
+        if (ch === '"') { inStr = true; continue; }
+        if (ch === '{') { if (depth === 0) start = j; depth++; }
+        else if (ch === '}') {
+            depth--;
+            if (depth === 0 && start >= 0) {
+                try { tours.push(JSON.parse(str.slice(start, j + 1))); } catch { /* tour malformato: si salta */ }
+                start = -1;
+            }
+        } else if (ch === ']' && depth === 0) break;
+    }
+    return { tours, truncated: true };
+};
+
+// Gate PER TE — nessuno scarto silenzioso: ogni tappa raccontata e poi tolta
+// lascia una riga con il motivo.
+const logHomeDiscard = (city, tour, title, motivo) => {
+    console.warn(`[Per Te] ${city}: scartata "${title || '?'}" (tour ${tour}) — ${motivo}`);
+};
+
+const buildUnifiedHomeToursPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, themedCandidates }) => {
     const groupLabel = prefs?.group || 'chiunque';
     const transitHint = prefs?.pace === 'intenso' ? 'con qualche mezzo' : 'a piedi';
-    const radiusInfo = cityCenter && Number.isFinite(cityCenter.latitude)
-        ? ` Tutte le tappe devono restare entro ${(cityCenter.radiusKm ?? ((cityCenter.isSmallTown ?? isSmallTown(city)) ? 5 : 10))} km dal centro di ${city}.`
-        : '';
+    // Gate PER TE — via la frase "Tutte le tappe devono restare entro N km":
+    // il modello non riceve coordinate e non poteva verificarla. La distanza
+    // la decide il codice prima del prompt (prepareHomePools).
 
     // Meta per tema: titolo suggerito + focus categoria (per aiutare l'AI a
     // non mescolare cibo in un tour cultura).
@@ -1337,9 +1476,9 @@ ${JSON.stringify(lite, null, 2)}`;
 
     return `SEI L'INSIDER DI ${city} — un local che ti mostra la sua citta', non una guida turistica, non Wikipedia, non un elenco.
 
-⚠️ NON scegli tu i luoghi. Io ti do ${totalPois} luoghi REALI di ${city}, gia' verificati su Google (rating, tipo, foto), raggruppati per TEMA.${radiusInfo}
+⚠️ NON scegli tu i luoghi. Io ti do ${totalPois} luoghi REALI di ${city}, gia' verificati su Google (rating, tipo, foto), raggruppati per TEMA.
 
-Il tuo lavoro: produci ${themeList.length} tour distinti (uno per TEMA), ognuno di 3-5 tappe.
+Il tuo lavoro: produci ${themeList.length} tour distinti (uno per TEMA), ognuno di ${HOME_TOUR_STOPS.min}-${HOME_TOUR_STOPS.max} tappe.
 
 Contesto:
 • orario: ${timeContext}
@@ -1347,7 +1486,7 @@ Contesto:
 • meteo: ${weather?.condition || 'sereno'} ${weather?.temperature || 22}°${aiProfile ? `\n• profilo utente: ${aiProfile}` : ''}
 
 REGOLE:
-1. SCELTA — per ogni tour, scegli 3-5 tra i SUOI candidati (quelli piu' adatti a orario/gruppo/meteo).
+1. SCELTA — per ogni tour, scegli ${HOME_TOUR_STOPS.min}-${HOME_TOUR_STOPS.max} tra i SUOI candidati (quelli piu' adatti a orario/gruppo/meteo).
 2. ORDINE — costruisci un percorso che ${transitHint} abbia senso NARRATIVO, non solo geometrico.
 3. VOCE — per ogni tappa racconta come un local sussurra un segreto:
 
@@ -1623,9 +1762,18 @@ const scrubHomeTours = (result, city) => ({
             logBannedRemovals(city, st.title, r.removed, 'home-cache');
             return r.stop;
         });
-        const kept = scrubbed.filter(hasNonEmptyDescription);
+        // Gate PER TE — nessuno scarto silenzioso, anche dalla cache.
+        const kept = scrubbed.filter(st => {
+            if (hasNonEmptyDescription(st)) return true;
+            logHomeDiscard(city, t.themeType, st.title, 'descrizione vuota dopo il filtro parole vietate (cache)');
+            return false;
+        });
         return { ...t, stops: kept.length < scrubbed.length ? computeStopTimings(kept).stops : kept };
-    }).filter(t => t.stops.length > 0),
+    }).filter(t => {
+        if (t.stops.length > 0) return true;
+        console.warn(`[Per Te] ${city}: tour "${t.themeType}" senza tappe dopo gli scarti (cache) → non servito`);
+        return false;
+    }),
 });
 const ROMA_FALLBACK = { latitude: 41.9028, longitude: 12.4964 };
 
@@ -2340,16 +2488,27 @@ export const aiRecommendationService = {
     // @param {object} params.opts { skipUserQuota? }
     // @returns {Promise<{ tours: Array, _source: string }>}
     async generateHomeTours({ city, cityCenter, themedCandidates, prefs = {}, aiProfile = '', weather = {}, opts = {} } = {}) {
-        // Filtro pool vuoti: se un tema non ha POI, non entra nel prompt.
-        const nonEmptyPools = Object.fromEntries(
-            Object.entries(themedCandidates || {}).filter(([, arr]) => Array.isArray(arr) && arr.length > 0)
-        );
+        // Gate PER TE — distanza e doppioni si decidono QUI, prima del prompt
+        // (prepareHomePools). Un pool rimasto vuoto non entra nel prompt.
+        const nonEmptyPools = prepareHomePools(themedCandidates, cityCenter, city);
         if (Object.keys(nonEmptyPools).length === 0) {
             return { tours: [], _source: 'no-pools' };
         }
 
-        // Cache key: city + cityCenter fingerprint + hash del pool aggregato.
-        // Include place_id ordinati per stabilita' tra call.
+        // Gate PER TE — il momento della giornata, sull'ora di Roma, dalla
+        // tabella dei momenti (dayMoments.js). Prima qui c'erano cinque soglie
+        // scritte a mano (6/11/14/18/22) sull'ora del TELEFONO: una seconda
+        // tabella, divergente da quella che usa il resto dell'app.
+        const now = new Date();
+        const nowRome = romeParts(now);
+        const moment = momentAtClock(nowRome.h, nowRome.mi);
+        const romeDay = `${nowRome.y}-${String(nowRome.m).padStart(2, '0')}-${String(nowRome.d).padStart(2, '0')}`;
+        const timeContext = `${moment.label} (${tableClock(moment.start)}–${tableClock(moment.end)}) — ${moment.categories.join(', ')}`;
+
+        // Cache key: city + cityCenter fingerprint + DATA e MOMENTO (ora di
+        // Roma) + hash del pool aggregato. Gate PER TE — data e momento
+        // entrano nella chiave: un racconto scritto per il pranzo non si
+        // riusa a cena, ne' il giorno dopo.
         const centerFingerprint = cityCenter && Number.isFinite(cityCenter.latitude)
             ? `${cityCenter.latitude.toFixed(3)},${cityCenter.longitude.toFixed(3)}`
             : 'noRadius';
@@ -2357,7 +2516,7 @@ export const aiRecommendationService = {
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([theme, arr]) => `${theme}:${arr.map(p => p.place_id || p.googlePlaceId).sort().join(',')}`)
             .join('|');
-        const cacheKey = `hometours_v1_${city.replace(/\s+/g, '_')}_${centerFingerprint}_${hashStr(poolStr)}`;
+        const cacheKey = `hometours_v1_${city.replace(/\s+/g, '_')}_${centerFingerprint}_${romeDay}_${moment.key}_${hashStr(poolStr)}`;
         const cached = loadInsiderFromCache(cacheKey);
         // Gate PAROLE VIETATE (P3d) — anche la lettura dalla cache passa dal filtro.
         if (cached) return scrubHomeTours(cached, city);
@@ -2371,18 +2530,13 @@ export const aiRecommendationService = {
 
         const weatherIcon = weather?.condition === 'sunny' ? '☀️'
             : weather?.condition === 'rainy' ? '🌧️' : '⛅';
-        const hour = new Date().getHours();
-        const timeContext = hour >= 6 && hour < 11 ? 'mattina presto — colazione/bar e posti che aprono la mattina'
-            : hour >= 11 && hour < 14 ? 'ora di pranzo — includi un ristorante locale (non turistico)'
-            : hour >= 14 && hour < 18 ? 'pomeriggio — musei, gallerie, panorami, passeggiate'
-            : hour >= 18 && hour < 22 ? 'sera — aperitivi, ristoranti, panorami al tramonto'
-            : 'notte — locali, jazz bar, piazze illuminate';
 
         const prompt = buildUnifiedHomeToursPrompt({
             city, timeContext, weather, weatherIcon,
-            prefs, aiProfile, cityCenter, themedCandidates: nonEmptyPools,
+            prefs, aiProfile, themedCandidates: nonEmptyPools,
         });
 
+        const MAX_TOKENS = 4000;
         // Timeout 45s: prompt piu' grande + output 4000 tokens = puo' richiedere
         // ~15-25s reali. Insider da solo era 35s con 2000 tokens.
         const controller = new AbortController();
@@ -2396,40 +2550,66 @@ export const aiRecommendationService = {
                 ],
                 response_format: { type: 'json_object' },
                 temperature: 0.7,
-                max_tokens: 4000,
+                max_tokens: MAX_TOKENS,
             }, controller.signal, quotaTicket);
             clearTimeout(timeoutId);
 
             const raw = data.choices?.[0]?.message?.content;
             if (!raw) throw new Error('Empty AI response (generateHomeTours)');
-            const parsed = JSON.parse(raw);
-            const rawTours = Array.isArray(parsed) ? parsed : (parsed.tours ?? []);
-            if (!Array.isArray(rawTours) || rawTours.length === 0) throw new Error('AI returned no tours (generateHomeTours)');
+            const finishReason = data.choices?.[0]?.finish_reason ?? null;
+            const tokenRisposta = Number.isFinite(data.usage?.completion_tokens) ? data.usage.completion_tokens : null;
+            // Gate PER TE — risposta tagliata (max_tokens): si servono i tour
+            // completi, mai un errore per questo.
+            const { tours: rawTours, truncated } = parseHomeToursResponse(raw);
+            if (truncated) {
+                console.warn(`[Per Te] ${city}: risposta tagliata (finish_reason=${finishReason}, ${tokenRisposta ?? '?'}/${MAX_TOKENS} token) → ${rawTours.length} tour completi recuperati`);
+            }
+            if (!Array.isArray(rawTours) || (rawTours.length === 0 && !truncated)) throw new Error('AI returned no tours (generateHomeTours)');
 
-            const VALID_MOODS = new Set(['romantico', 'storia', 'avventura', 'natura', 'cibo', 'shopping', 'arte', 'sorpresa', 'sport']);
-            const VALID_TRANSIT = new Set(['bus', 'metro', 'walking']);
             // Dedup cross-tour: primo tour che usa un place_id lo tiene, i tour
             // successivi che lo referenziano lo perdono. Ordine tipico: insider
             // prima (perle nascoste), poi tematici. Se l'AI cambia ordine, la
             // regola resta stabile — prima il primo.
             const seenPlaceIds = new Set();
+            // Gate PER TE — il resoconto: quante tappe il modello ha raccontato,
+            // quante arrivano a schermo, e perche' le altre no.
+            const scarti = [];
+            const scarta = (tour, title, motivo) => {
+                scarti.push({ tour, title: title || '?', motivo });
+                logHomeDiscard(city, tour, title, motivo);
+            };
+            let tappeRaccontate = 0;
 
             const finalTours = rawTours.map(tour => {
-                const themeType = tour.themeType;
+                const themeType = tour?.themeType;
                 const pool = nonEmptyPools[themeType];
+                const aiStops = Array.isArray(tour?.stops) ? tour.stops : [];
+                tappeRaccontate += aiStops.length;
                 if (!pool) {
                     console.warn(`[generateHomeTours] AI ha proposto themeType "${themeType}" fuori dai pool → tour scartato`);
+                    for (const st of aiStops) scarta(themeType, st?.place_id, `tour con tema "${themeType}" fuori dai pool`);
                     return null;
                 }
 
-                const aiStops = Array.isArray(tour.stops) ? tour.stops : [];
-                let canonized = canonicalizeStopsFromCandidates(aiStops, pool);
+                // Gate PER TE — un place_id che non e' fra i candidati di QUESTO
+                // tema si toglie qui, con il suo motivo (prima lo diceva solo
+                // canonicalizeStopsFromCandidates, senza dire di quale tour).
+                const poolIds = new Set(pool.map(homePid).filter(Boolean));
+                const known = aiStops.filter(st => {
+                    if (st && poolIds.has(st.place_id)) return true;
+                    scarta(themeType, st?.place_id, `place_id non fra i candidati del tema "${themeType}"`);
+                    return false;
+                });
+                let canonized = canonicalizeStopsFromCandidates(known, pool);
 
                 // Dedup cross-tour su place_id.
                 canonized = canonized.filter(s => {
                     const pid = s.place_id || s.googlePlaceId;
                     if (!pid) return true; // no id → mantengo, e' un edge case da controllare
-                    if (seenPlaceIds.has(pid)) return false;
+                    if (seenPlaceIds.has(pid)) {
+                        scarta(themeType, s.title, 'gia\' in un altro tour');
+                        return false;
+                    }
                     seenPlaceIds.add(pid);
                     return true;
                 });
@@ -2440,7 +2620,7 @@ export const aiRecommendationService = {
                 canonized = canonized.map(st => {
                     const r = scrubBannedWords(st);
                     logBannedRemovals(city, st.title, r.removed, 'home');
-                    return r.stop;
+                    return { ...r.stop, _vietate: r.removed.some(x => x.campo === 'description') };
                 });
 
                 // Gate II.2 — regola locked: description vuota → stop scartato.
@@ -2449,12 +2629,26 @@ export const aiRecommendationService = {
                 // hasNonEmptyDescription, condiviso con generateItinerary. Stesso
                 // corpo, stessa posizione nella catena, stesso ordine rispetto
                 // al dedup cross-tour sopra: comportamento invariato.
-                canonized = canonized.filter(hasNonEmptyDescription);
+                canonized = canonized.filter(st => {
+                    if (hasNonEmptyDescription(st)) return true;
+                    scarta(themeType, st.title, st._vietate
+                        ? 'descrizione vuota dopo il filtro parole vietate'
+                        : 'descrizione assente');
+                    return false;
+                }).map(({ _vietate, ...st }) => st);
 
-                // Safety filtro raggio (Places gia' filtrato ma difense-in-depth).
+                // Safety filtro raggio: il pool e' gia' entro il raggio
+                // (prepareHomePools), qui non dovrebbe togliere niente — se lo
+                // fa, il motivo si vede.
                 const withinRadius = applyRadiusFilter(canonized, cityCenter, city);
+                for (const st of canonized) {
+                    if (!withinRadius.includes(st)) scarta(themeType, st.title, 'oltre il raggio');
+                }
                 // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
                 const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
+                if (ordered.length === 0) {
+                    console.warn(`[Per Te] ${city}: tour "${themeType}" senza tappe dopo gli scarti → non servito`);
+                }
 
                 return {
                     themeType,
@@ -2466,8 +2660,22 @@ export const aiRecommendationService = {
             })
                 .filter(t => t && t.stops.length > 0);
 
-            const result = { tours: finalTours, _source: 'unified-home' };
-            saveInsiderToCache(cacheKey, result);
+            const report = {
+                tourProposti: rawTours.length,
+                tourServiti: finalTours.length,
+                tappeRaccontate,
+                tappeServite: finalTours.reduce((n, t) => n + t.stops.length, 0),
+                scarti,
+                tokenRisposta,
+                maxTokens: MAX_TOKENS,
+                finishReason,
+                troncata: truncated,
+                momento: moment.key,
+                giorno: romeDay,
+            };
+            console.info(`[Per Te] ${city}: ${report.tourServiti}/${report.tourProposti} tour, ${report.tappeServite}/${report.tappeRaccontate} tappe servite, ${scarti.length} scarti, ${tokenRisposta ?? '?'}/${MAX_TOKENS} token${truncated ? ', risposta tagliata' : ''}`);
+            const result = { tours: finalTours, _source: 'unified-home', _report: report };
+            saveInsiderToCache(cacheKey, { tours: finalTours, _source: 'unified-home' });
             return result;
         } catch (err) {
             clearTimeout(timeoutId);

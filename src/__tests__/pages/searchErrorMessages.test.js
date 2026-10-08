@@ -87,6 +87,8 @@ vi.mock('@/services/aiRecommendationService', () => ({
         generateItinerary: (...a) => generateItinerary(...a),
         generateHomeTours: (...a) => generateHomeTours(...a),
     },
+    // Gate PER TE — DashboardUser costruisce l'insider con buildInsiderPool.
+    buildInsiderPool: () => [],
     QUOTA_USER_MESSAGE: 'quota',
 }));
 

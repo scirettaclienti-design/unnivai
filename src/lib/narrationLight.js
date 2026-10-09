@@ -293,31 +293,36 @@ export function filterBannedWords(text, { exempt = [] } = {}) {
 // P3d-e — la frase "perche' qui" si costruisce sui FATTI (Wikipedia, Wikidata,
 // OpenStreetMap) e sui dati della tappa: gli esempi di prima ("gli alberi
 // grandi", "i vialetti") insegnavano proprio a inventare dettagli.
-export const DESCRIPTION_RULE_PROMPT = `   description — la frase "PERCHÉ QUI": UNA frase, massimo 20 parole.
-     Usa SOLO i fatti forniti, il nome della tappa o i suoi dati (tipo, momento, orario).
-     LUOGHI: un fatto concreto preso dai fatti, più cosa guardare, da dove guardarlo o quando.
-     SENZA FATTI: sul luogo dici SOLO il nome e il tipo; il resto è "perché qui, per te"
-     con i dati che ricevi (momento, arrivo, tramonto se ancora davanti, minuti dalla
-     tappa prima, motivo della scelta).
+// P3d-i — la VOCE del "perche' qui": il motivo si traduce in un perche', non si
+// cita; l'orario e' un gancio dentro la frase; un verbo, al massimo 2 frasi.
+// Esempi: 3 giusti e 3 sbagliati, tutti presi dalle prove reali P3d-g.
+export const DESCRIPTION_RULE_PROMPT = `   description — il "PERCHÉ QUI": massimo 2 frasi, sempre con un verbo, massimo 30 parole.
+     Usa SOLO i fatti forniti, il nome della tappa o i suoi dati.
+     LUOGHI CON FATTI: un fatto concreto preso dai fatti, più cosa guardare o quando.
+     SENZA FATTI: sul luogo dici SOLO il nome e il tipo; il resto è "perché qui, per te".
+     IL MOTIVO SI TRADUCE, NON SI CITA: non ripetere mai il testo della richiesta, né
+     "per la tua richiesta", "giro insider", "scelto per il tour", "trovato cercando".
+     Di' il legame con parole tue: "la vista che cercavi", "per chi ama le chiese barocche".
+     I gusti del profilo si nominano solo se sono nel "motivo".
+     L'ORARIO È UN GANCIO DENTRO LA FRASE, non una coda attaccata alla fine:
+     "ci arrivi alle <arrivo>, mezz'ora prima del tramonto" (con l'orario e il tramonto
+     veri che ricevi), mai "… Arriverai alle <arrivo>." come frase a parte.
      MAI un giudizio che non sia scritto nei fatti (migliore, unico, cuore di,
      straordinario, incantevole, incontaminato, imperdibile, "uno dei", "vista su…",
-     meno frequentato, nascosto, tranquillo…): la frase viene tolta.
-     LOCALI: perché il locale è qui per te, con i dati che ricevi (momento, tipo,
-     fascia di prezzo, minuti a piedi dalla tappa prima, motivo della scelta).
-     MAI piatti, arredi o atmosfera che i dati non dicono.
+     meno frequentato, nascosto, tranquillo, maestoso, "a disposizione"…): la frase viene tolta.
+     LOCALI: perché il locale è qui per te, con i dati (momento, tipo dal nome, fascia di
+     prezzo, minuti a piedi dalla tappa prima, motivo). MAI piatti, arredi o atmosfera.
      MAI nominare un oggetto (albero, finestra, giardino, fontana, murales, laghetto,
      scala, terrazza, acqua, quadri, soffitti…) che non compare nei fatti o nel nome:
      la frase viene tolta.
      NON aprire con un'impressione dei sensi (profumo, odore, aria, vento,
      silenzio, panorama, "camminando senti"): una frase che apre così viene tolta.
-     GIUSTO: "Aperti nel 1734, sono considerati il primo museo pubblico al mondo."  ← dai fatti
-     GIUSTO: "Per il pranzo: trattoria, fascia €€, a 6 minuti dalla tappa prima."  ← dai dati del locale
-     GIUSTO: "Un belvedere a 8 minuti dalla tappa prima: è qui per la tua richiesta, la Roma dei romani."  ← senza fatti, solo dati
-     SBAGLIATO: "Affacciata su Roma, è uno dei migliori punti panoramici della città."  ← giudizi non nei fatti
-     SBAGLIATO: "L'ombra vera è sotto gli alberi grandi, non lungo i vialetti."  ← alberi: non nei fatti
-     SBAGLIATO: "L'aria fresca qui è un sollievo dopo la passeggiata."
-     SBAGLIATO: "Il profumo della pasta fresca riempie l'aria."
-     SBAGLIATO: "L'odore del sugo si mescola al profumo del pane."`;
+     GIUSTO: "L'Aventino è uno dei sette colli su cui venne fondata Roma, il più a sud."
+     GIUSTO: "Piazza Colonna deve il suo nome alla colonna di Marco Aurelio, che qui sorge sin dall'antichità."
+     GIUSTO: "La fontana dell'Amenano è una fontana monumentale del 1867 sul lato sud di piazza del Duomo."
+     SBAGLIATO: "Un belvedere a 18:00, per la tua richiesta: un giro insider, trovato cercando "belvedere panorama"."  ← cita richiesta e ricerca, nessun verbo
+     SBAGLIATO: "Piazza Umbrella, un luogo per la tua richiesta, un giro insider."  ← cita la richiesta, nessun verbo
+     SBAGLIATO: "Un'osteria a disposizione, scelto per il tuo dopocena."  ← "a disposizione" sembra dire che è aperta; cita il motivo`;
 
 // ─── P3d-e — oggetti concreti: solo se i fatti o il nome li nominano ─────────
 //
@@ -515,6 +520,55 @@ export function filterInventedObjects(text, { fatti = [], nomi = [], fattiSu = n
     return { text: kept.length > 0 ? kept.join(' ') : null, removed };
 }
 
+// ─── P3d-i — la voce: il motivo si traduce, non si cita ──────────────────────
+//
+// Dalle prove reali P3d-g: "Un belvedere a 18:00, per la tua richiesta: un giro
+// insider, trovato cercando…", "Piazza Umbrella, un luogo per la tua richiesta",
+// "… Arriverai qui per la tua richiesta alle 09:30.", "scelta per il tour della
+// cultura". Vere, ma nella voce di un modulo. Una frase che cita il motivo o la
+// richiesta, che e' un elenco senza verbo ("Per il pranzo: osteria, fascia €€")
+// o che e' solo l'orario attaccato in coda, si toglie e va alla riscrittura come
+// le altre (poi, se serve, frase sicura del codice, che ha la sua voce).
+const CITAZIONI_MOTIVO = [
+    ['per la tua richiesta', /\bper\s+(?:la\s+)?(?:tua|vostra)\s+richiesta\b|\bper\s+la\s+richiesta\b/],
+    ['giro insider', /\binsider\b/],
+    ['scelto per il tour', /\bscelt[oaie]\s+per\s+(?:il|questo|un)\s+(?:tuo\s+)?(?:tour|giro|percorso)\b|\bper\s+il\s+tour\b/],
+    ['trovato cercando', /\btrovat[oaie]\s+cercando\b|\bcercando\s+"/],
+];
+const ELENCO_SENZA_VERBO = /^(?:per\s+(?:il|la|l')\s*(?:pranzo|cena|aperitivo|mattina|pomeriggio|dopocena)\s*:|[a-z']+,\s*fascia\b|(?:un|una|uno|un')\s+\w+\s+a\s+\d{1,2}[:.]\d{2}\b)/;
+const CODA_ORARIO = /^(?:arriverai|arrivi|ci\s+arrivi|arrivo)\b[^.!?]{0,40}\balle\s+\d{1,2}[:.]?\d{0,2}\s*[.!]?$/;
+
+/** I problemi di voce di una frase (vuoto = voce ok). */
+export function voiceIssues(sentence, { richiesta = '', oggetto = '' } = {}) {
+    const t = norm(sentence).replace(/\s+/g, ' ').trim();
+    const out = [];
+    for (const [nome, re] of CITAZIONI_MOTIVO) if (re.test(t)) out.push(nome);
+    const ogg = norm(oggetto || '').replace(/\s+/g, ' ').trim();
+    if (ogg.split(' ').filter(w => w.length > 2).length >= 2 && t.includes(ogg)) out.push('ripete la richiesta');
+    const ric = norm(richiesta || '').replace(/[^a-z0-9 ']/g, ' ').replace(/\s+/g, ' ').trim();
+    if (ric.split(' ').length >= 4 && t.replace(/[^a-z0-9 ']/g, ' ').replace(/\s+/g, ' ').includes(ric)) out.push('ripete la richiesta');
+    if (ELENCO_SENZA_VERBO.test(t)) out.push('elenco senza verbo');
+    if (CODA_ORARIO.test(t)) out.push('orario in coda');
+    return [...new Set(out)];
+}
+
+/**
+ * Toglie le frasi con un problema di voce (P3d-i, regola 'voce').
+ * @returns {{ text: string|null, removed: Array<{ frase: string, oggetti: string[], regola: 'voce' }> }}
+ */
+export function filterVoice(text, ctx = {}) {
+    if (text == null || String(text).trim() === '') return { text: null, removed: [] };
+    const kept = [];
+    const removed = [];
+    for (const s of splitSentences(String(text).trim())) {
+        const v = voiceIssues(s, ctx);
+        if (v.length > 0) removed.push({ frase: s, oggetti: v, regola: 'voce' });
+        else kept.push(s);
+    }
+    if (removed.length === 0) return { text: String(text), removed };
+    return { text: kept.length > 0 ? kept.join(' ') : null, removed };
+}
+
 // ─── P3d-e — la frase sicura, costruita dal codice ───────────────────────────
 //
 // Quando nemmeno la riscrittura passa i controlli, la descrizione non resta
@@ -524,10 +578,6 @@ export function filterInventedObjects(text, { fatti = [], nomi = [], fattiSu = n
 const MOMENT_DEL = {
     mattina: 'della mattina', pranzo: 'del pranzo', pomeriggio: 'del pomeriggio',
     aperitivo: "dell'aperitivo", cena: 'della cena', dopocena: 'del dopocena',
-};
-const MOMENT_PER = {
-    mattina: 'Per la mattina', pranzo: 'Per il pranzo', pomeriggio: 'Per il pomeriggio',
-    aperitivo: "Per l'aperitivo", cena: 'Per la cena', dopocena: 'Per il dopocena',
 };
 const momentKeyOf = (m) => {
     const k = norm(m || '').trim();
@@ -564,10 +614,82 @@ export const isPanoramaStop = (stop) => /\b(belveder|terrazz|panoram|punto di vi
 const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 const fascia = (pl) => (Number.isFinite(pl) && pl >= 1 && pl <= 4 ? `fascia ${'€'.repeat(pl)}` : null);
 
+// ─── P3d-i — la frase sicura ha la sua voce ──────────────────────────────────
+//
+// Prima: "Belvedere, tappa dell'aperitivo: arrivo alle 18:00, il tramonto è alle
+// 18:37." — vera, ma un modulo. Ora: 5 varianti per famiglia di tappa (panorama,
+// chiesa, museo, verde, piazza, altro, locale), scelta FISSA per tappa (stessa
+// tappa = stessa frase), sempre con un verbo, al massimo 2 frasi, l'orario come
+// gancio ("ci arrivi alle 18, mezz'ora prima del tramonto"). Solo dati veri:
+// nome, tipo, momento, orario, tramonto, minuti dalla tappa prima, fascia.
+const ARTICOLO = {
+    trattoria: 'una', osteria: "un'", pizzeria: 'una', pasticceria: 'una', gelateria: 'una', enoteca: "un'",
+    forno: 'un', bar: 'un', taverna: 'una', belvedere: 'un', 'terrazza panoramica': 'una', basilica: 'una',
+    chiesa: 'una', cattedrale: 'una', museo: 'un', galleria: 'una', pinacoteca: 'una', piazza: 'una',
+    giardino: 'un', parco: 'un', villa: 'una', palazzo: 'un', castello: 'un', fontana: 'una', mercato: 'un',
+    teatro: 'un', bastione: 'un', terme: 'delle', 'luogo di culto': 'un', ristorante: 'un', 'caffè': 'un',
+    'cibo da asporto': 'un locale di', biblioteca: 'una', 'palazzo comunale': 'un',
+};
+const conArticolo = (tipo) => {
+    const art = ARTICOLO[tipo];
+    if (!art) return 'una tappa';
+    return art.endsWith("'") ? `${art}${tipo}` : `${art} ${tipo}`;
+};
+const MOMENTO_PER = {
+    mattina: 'la mattina', pranzo: 'il pranzo', pomeriggio: 'il pomeriggio',
+    aperitivo: "l'aperitivo", cena: 'la cena', dopocena: 'il dopocena',
+};
+const MANGI = { pranzo: 'pranzi', cena: 'ceni', aperitivo: "prendi l'aperitivo", mattina: 'fai colazione', dopocena: 'ti fermi' };
+const famiglia = (stop, tipo) => {
+    if (isPanoramaStop(stop)) return 'panorama';
+    if (/^(basilica|chiesa|cattedrale|luogo di culto)$/.test(tipo)) return 'chiesa';
+    if (/^(museo|galleria|pinacoteca)$/.test(tipo)) return 'museo';
+    if (/^(parco|giardino|villa)$/.test(tipo)) return 'verde';
+    if (tipo === 'piazza') return 'piazza';
+    return 'altro';
+};
+// Il verbo della visita, che vale per QUEL tipo di posto (non dice com'e').
+const VISITA = {
+    panorama: (n) => `ti fermi a guardare da ${n}`, chiesa: (n) => `passi da ${n}`, museo: (n) => `passi da ${n}`,
+    verde: (n) => `cammini in ${n}`, piazza: (n) => `attraversi ${n}`, altro: (n) => `ti fermi a ${n}`,
+};
+const orarioParlato = (hhmm) => {
+    const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const h = Number(m[1]);
+    return m[2] === '00' ? `alle ${h}` : `alle ${h}:${m[2]}`;
+};
+const toMin = (hhmm) => { const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
+const anticipo = (min) => {
+    if (min <= 0 || min > 150) return null;
+    if (min >= 25 && min <= 35) return "mezz'ora";
+    if (min >= 55 && min <= 65) return "un'ora";
+    if (min >= 85 && min <= 95) return "un'ora e mezza";
+    return `${Math.round(min / 5) * 5 || min} minuti`;
+};
+const seme = (s) => { let h = 2166136261; for (const ch of String(s || '')) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h; };
+
+const VARIANTI_LUOGO = [
+    (c) => `Per ${c.Mper}, ${c.N}${c.At ? `: ci arrivi ${c.At}` : ' è sul tuo percorso'}${c.D ? `, ${c.D}` : ''}.`,
+    (c) => `${c.D ? `${cap(c.D)} trovi` : 'Trovi'} ${c.N}, ${c.T} per ${c.Mper}${c.At ? `: ci arrivi ${c.At}` : ''}.`,
+    (c) => `Per ${c.Mper} ${c.visita}${c.At ? `, e ci arrivi ${c.At}` : ''}${c.D ? `, ${c.D}` : ''}.`,
+    (c) => `Arrivi a ${c.N}${c.At ? ` ${c.At}` : ''}: ${c.T} per ${c.Mper}${c.D ? `, ${c.D}` : ''}.`,
+    (c) => `${cap(c.T)} per ${c.Mper}: ${c.N}${c.D ? `, ${c.D}` : ''}, ${c.At ? `ci arrivi ${c.At}` : 'è la prossima sosta'}.`,
+];
+const VARIANTI_LOCALE = [
+    (c) => `Per ${c.Mper} ti fermi a ${c.N}, ${c.T}${c.F ? ` ${c.F}` : ''}${c.D ? `, ${c.D}` : ''}.`,
+    (c) => `${c.N} è ${c.T}${c.F ? ` ${c.F}` : ''} per ${c.Mper}${c.D ? `, ${c.D}` : ''}${c.At ? `: ci arrivi ${c.At}` : ''}.`,
+    (c) => `${c.D ? `${cap(c.D)} c'è` : "C'è"} ${c.N}, ${c.T}${c.F ? ` ${c.F}` : ''}: qui ${c.mangi}.`,
+    (c) => `${cap(c.mangi)} da ${c.N}${c.At ? ` ${c.At}` : ''}: ${c.T}${c.F ? ` ${c.F}` : ''}${c.D ? `, ${c.D}` : ''}.`,
+    (c) => `${c.N}, ${c.T}${c.F ? ` ${c.F}` : ''}, è la sosta ${c.Mdi}${c.D ? `: ${c.D}` : ''}.`,
+];
+export const SAFE_VARIANTS = { luogo: VARIANTI_LUOGO.length, locale: VARIANTI_LOCALE.length };
+
 /**
- * La frase sicura di una tappa. Mai vuota.
+ * La frase sicura di una tappa. Mai vuota, sempre con un verbo, al massimo 2 frasi.
+ * Stessa tappa (place_id, o nome) = stessa variante.
  * @param {object} p
- * @param {object} p.stop          title/name, types
+ * @param {object} p.stop          place_id, title/name, types
  * @param {string|null} [p.momento] chiave o etichetta del momento ('pranzo', 'Pranzo')
  * @param {string|null} [p.orario]  'HH:MM' di arrivo
  * @param {string|null} [p.tramonto] 'HH:MM' del tramonto vero (solo per i panorami)
@@ -578,23 +700,30 @@ const fascia = (pl) => (Number.isFinite(pl) && pl >= 1 && pl <= 4 ? `fascia ${'�
 export function safeDescription({ stop, momento = null, orario = null, tramonto = null, locale = false, priceLevel = null, minutiDaPrima = null } = {}) {
     const tipo = tipoTappa(stop);
     const mk = momentKeyOf(momento);
-    if (locale) {
-        const parti = [tipo, fascia(priceLevel),
-            Number.isFinite(minutiDaPrima) && minutiDaPrima > 0 ? `a ${Math.round(minutiDaPrima)} minuti a piedi dalla tappa prima` : null,
-        ].filter(Boolean);
-        const head = mk ? `${MOMENT_PER[mk]}: ` : '';
-        const corpo = head ? parti.join(', ') : cap(parti.join(', '));
-        return `${head}${corpo}${orario ? `, arrivo alle ${orario}` : ''}.`;
-    }
-    let frase = cap(tipo);  // cap: un nome resta com'e' (gia' maiuscolo)
-    if (mk) frase += `, tappa ${MOMENT_DEL[mk]}`;
-    if (orario) frase += `: arrivo alle ${orario}`;
+    const N = String(stop?.title || stop?.name || 'questa tappa').trim();
+    const fam = famiglia(stop, tipo);
     // Il tramonto solo se e' ancora davanti: con l'orario, se l'arrivo e' prima
     // del tramonto; senza orario ("Per Te"), solo di pomeriggio o all'aperitivo.
-    const toMin = (hhmm) => { const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
-    const tramontoDavanti = orario
+    const panorama = isPanoramaStop(stop);
+    const davanti = orario
         ? (toMin(orario) !== null && toMin(tramonto) !== null && toMin(orario) <= toMin(tramonto))
         : (mk === 'pomeriggio' || mk === 'aperitivo');
-    if (tramonto && tramontoDavanti && isPanoramaStop(stop)) frase += `${orario ? ',' : ':'} il tramonto è alle ${tramonto}`;
-    return `${frase}.`;
+    const prima = panorama && tramonto && davanti && orario ? anticipo(toMin(tramonto) - toMin(orario)) : null;
+    const ora = orarioParlato(orario);
+    const c = {
+        N, T: conArticolo(tipo),
+        Mper: MOMENTO_PER[mk] || 'questa parte della giornata',
+        Mdi: MOMENT_DEL[mk] || 'di questa parte della giornata',
+        At: ora ? `${ora}${prima ? `, ${prima} prima del tramonto` : ''}` : null,
+        D: Number.isFinite(minutiDaPrima) && minutiDaPrima > 0 ? `a ${Math.round(minutiDaPrima)} minuti a piedi dalla tappa prima` : null,
+        F: fascia(priceLevel) ? `in ${fascia(priceLevel)}` : null,
+        mangi: MANGI[mk] || 'ti fermi a mangiare',
+        visita: (VISITA[fam] || VISITA.altro)(N),
+    };
+    const varianti = locale ? VARIANTI_LOCALE : VARIANTI_LUOGO;
+    let frase = varianti[seme(stop?.place_id || N) % varianti.length](c);
+    // Senza orario, ma con il tramonto ancora davanti (pomeriggio, aperitivo):
+    // una seconda frase, solo per i panorami.
+    if (panorama && tramonto && davanti && !orario) frase += ` Il tramonto oggi è alle ${tramonto}.`;
+    return frase;
 }

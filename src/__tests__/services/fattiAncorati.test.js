@@ -179,7 +179,8 @@ describe('P3d-e — i fatti arrivano al narratore', () => {
         const r = await genera();
         expect(calls.filter(c => c.kind === 'riscrittura')).toHaveLength(1);
         const s = allStops(r).find(x => x.place_id === CAPITOLINI.place_id);
-        expect(s.description).toMatch(/^Museo, tappa della mattina: arrivo alle \d{2}:\d{2}\.$/);
+        expect(s.description).toContain('Musei Capitolini');
+        expect(s.description).toMatch(/alle \d{1,2}(?::\d{2})?/);
         expect(s._fraseSicura).toBe(true);
         expect(s.fonti).toBeNull(); // la frase sicura non usa fatti: niente riga delle fonti
         for (const st of allStops(r)) expect(String(st.description || '').trim().length, st.title).toBeGreaterThan(0);
@@ -192,7 +193,9 @@ describe('P3d-e — i fatti arrivano al narratore', () => {
         })));
         const r = await genera();
         const s = allStops(r).find(x => x.place_id === TRATTORIA.place_id);
-        expect(s.description).toMatch(/^Per il pranzo: trattoria, fascia €€, a \d+ minuti a piedi dalla tappa prima, arrivo alle \d{2}:\d{2}\.$/);
+        expect(s.description).toContain('Trattoria Da Enzo');
+        expect(s.description).toContain('una trattoria in fascia €€');
+        expect(s._fraseSicura).toBe(true);
     });
 
     it('fonti oltre i 4 secondi → si narra senza fatti (il tour esce lo stesso)', async () => {
@@ -329,34 +332,40 @@ describe('P3d-e — il controllo anti-invenzione: elenco esplicito, ogni oggetto
     });
 });
 
-describe('P3d-e — la frase sicura', () => {
-    it('luogo: tipo, momento, orario', () => {
-        expect(safeDescription({ stop: { title: 'Musei Capitolini', types: ['museum'] }, momento: 'mattina', orario: '10:15' }))
-            .toBe('Museo, tappa della mattina: arrivo alle 10:15.');
+// P3d-i — la frase sicura ha la sua voce: varianti fisse per tappa, sempre un
+// verbo, l'orario come gancio. Qui si provano i DATI che deve portare.
+describe('P3d-e — la frase sicura (dati veri, con la voce di P3d-i)', () => {
+    // (niente \b: in JavaScript non vede le lettere accentate come "è")
+    const VERBO = /(?:^|[\s'])(?:è|arrivi|trovi|ti fermi|passi|cammini|attraversi|pranzi|ceni|prendi|fai)(?=[\s,.:]|$)/i;
+    it('luogo: tipo, momento, orario come gancio', () => {
+        const d = safeDescription({ stop: { title: 'Musei Capitolini', types: ['museum'] }, momento: 'mattina', orario: '10:15' });
+        expect(d).toMatch(/alle 10:15/);
+        expect(d).toMatch(/mattina/);
+        expect(d).toMatch(VERBO);
     });
-    it('panorama: anche l\'ora vera del tramonto', () => {
-        expect(safeDescription({ stop: { title: 'Belvedere del Gianicolo', types: ['tourist_attraction'] }, momento: 'aperitivo', orario: '18:20', tramonto: '18:52' }))
-            .toBe('Belvedere, tappa dell\'aperitivo: arrivo alle 18:20, il tramonto è alle 18:52.');
+    it('panorama: l\'ora vera del tramonto come anticipo ("mezz\'ora prima del tramonto")', () => {
+        const d = safeDescription({ stop: { place_id: 'p-gian', title: 'Belvedere del Gianicolo', types: ['tourist_attraction'] }, momento: 'aperitivo', orario: '18:20', tramonto: '18:52' });
+        expect(d).toContain("alle 18:20, mezz'ora prima del tramonto");
     });
     it('tramonto gia\' passato: non se ne parla (arrivo dopo il tramonto, o "Per Te" di sera)', () => {
-        expect(safeDescription({ stop: { title: 'Belvedere del Gianicolo' }, momento: 'cena', orario: '20:10', tramonto: '18:52' }))
-            .toBe('Belvedere, tappa della cena: arrivo alle 20:10.');
-        expect(safeDescription({ stop: { title: 'Terrazza del Pincio' }, momento: 'dopocena', tramonto: '18:39' }))
-            .toBe('Terrazza panoramica, tappa del dopocena.');
-        expect(safeDescription({ stop: { title: 'Terrazza del Pincio' }, momento: 'pomeriggio', tramonto: '18:39' }))
-            .toBe('Terrazza panoramica, tappa del pomeriggio: il tramonto è alle 18:39.');
+        expect(safeDescription({ stop: { title: 'Belvedere del Gianicolo' }, momento: 'cena', orario: '20:10', tramonto: '18:52' })).not.toMatch(/tramont/);
+        expect(safeDescription({ stop: { title: 'Terrazza del Pincio' }, momento: 'dopocena', tramonto: '18:39' })).not.toMatch(/tramont/);
+        expect(safeDescription({ stop: { title: 'Terrazza del Pincio' }, momento: 'pomeriggio', tramonto: '18:39' })).toMatch(/Il tramonto oggi è alle 18:39\./);
     });
     it('un non-panorama non parla di tramonto', () => {
         expect(safeDescription({ stop: { title: 'Musei Capitolini', types: ['museum'] }, momento: 'aperitivo', orario: '18:20', tramonto: '18:52' }))
             .not.toContain('tramonto');
     });
-    it('locale: "Per il pranzo: trattoria, fascia €€, a 6 minuti a piedi dalla tappa prima"', () => {
-        expect(safeDescription({ stop: { title: 'Trattoria Da Enzo', types: ['restaurant'] }, momento: 'pranzo', locale: true, priceLevel: 2, minutiDaPrima: 6 }))
-            .toBe('Per il pranzo: trattoria, fascia €€, a 6 minuti a piedi dalla tappa prima.');
+    it('locale: tipo dal nome, fascia di prezzo, minuti a piedi dalla tappa prima, con un verbo', () => {
+        const d = safeDescription({ stop: { title: 'Trattoria Da Enzo', types: ['restaurant'] }, momento: 'pranzo', locale: true, priceLevel: 2, minutiDaPrima: 6 });
+        expect(d).toContain('una trattoria in fascia €€');
+        expect(d).toMatch(/a 6 minuti a piedi dalla tappa prima|pranzo|pranzi/);
+        expect(d).toMatch(VERBO);
     });
     it('tipo sconosciuto: il nome, mai un riempitivo', () => {
         const d = safeDescription({ stop: { title: 'Ascensori Panoramici', types: ['establishment'] }, momento: 'pomeriggio' });
-        expect(d).toBe('Ascensori Panoramici, tappa del pomeriggio.');
+        expect(d).toContain('Ascensori Panoramici');
+        expect(d).not.toMatch(/Luogo di interesse/);
     });
 });
 

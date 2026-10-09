@@ -344,7 +344,7 @@ import { filterTimeIncoherent } from '@/lib/narrationLight';
 // Gate PAROLE VIETATE — l'unico elenco: i prompt lo mostrano, il filtro lo applica.
 import { filterBannedWords, bannedWordsPromptLines, DESCRIPTION_RULE_PROMPT } from '@/lib/narrationLight';
 // P3d-e — fatti aperti sulle tappe finali, controllo anti-invenzione, frase sicura.
-import { filterInventedObjects, safeDescription, CONCRETE_OBJECTS, tipoTappa, isPanoramaStop } from '@/lib/narrationLight';
+import { filterInventedObjects, filterVoice, safeDescription, CONCRETE_OBJECTS, tipoTappa, isPanoramaStop } from '@/lib/narrationLight';
 import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock } from '@/lib/dayMoments';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
@@ -1238,7 +1238,7 @@ LUCE E ORA — racconta la luce e il momento dell'ORARIO DI ARRIVO di quella tap
    • nel dubbio, non parlare di luce. Una frase incoerente con l'orario viene tolta.
 
 FATTI — la regola sopra tutte:
-   ⚠️ gli esempi ✓ qui sotto mostrano il REGISTRO, non il contenuto. NON copiarli
+   ⚠️ gli esempi qui sotto mostrano il REGISTRO, non il contenuto. NON copiarli
    e NON trasporli su un posto di tipo diverso.
 
    ⛔ NON ATTRIBUIRE A UN POSTO CONTENUTI CHE NON SAI ESISTANO LI'.
@@ -1258,26 +1258,16 @@ FATTI — la regola sopra tutte:
 
    SENZA FATTI ("fatti": []): sul luogo dici SOLO il nome e il "tipo". Il resto è
    "perché qui, per te", fatto solo di dati: momento, arrivo, tramonto se ancora
-   davanti, minuti dalla tappa prima, "motivo" e il legame con la richiesta.
-     ✓ "Un belvedere a 8 minuti dalla tappa prima: è qui per la tua richiesta, la Roma dei romani."
-     ✗ "Affacciata su Roma, è uno dei migliori punti panoramici della città."  ← giudizi non nei fatti
-     ✗ "Una piazza che rappresenta il cuore culturale di Catania."  ← giudizio non nei fatti
+   davanti, minuti dalla tappa prima, e il "motivo" DETTO CON PAROLE TUE (mai citato).
 
    LUOGHI CON FATTI: un fatto concreto preso dai "fatti" + cosa guardare o quando arrivi.
    "fatti_su" dice DI CHE LUOGO parlano i fatti: se non è la tappa (i fatti del Pincio
-   per la Terrazza del Pincio), nominalo: "Sul Pincio, colle di Roma, …" — mai
+   per la Terrazza del Pincio), nominalo ("Sul Pincio, colle di Roma, …"): mai
    "Un colle di Roma" detto della terrazza.
-     ✓ (fatti: "Aperti al pubblico nell'anno 1734, sotto papa Clemente XII…")
-       "Aperti nel 1734 sotto Clemente XII, sono considerati il primo museo pubblico al mondo."
-     ✓ (fatti vuoti) "Una basilica: la tappa che apre la tua mattina."
-     ✗ "Guarda il soffitto dalla navata laterale"  ← il soffitto non è nei fatti
    LOCALI: perché è qui per te, con i dati — mai piatti, arredi o atmosfera.
    Chiamalo con il suo "tipo": un'osteria non diventa una trattoria.
-     ✓ "Per il pranzo: trattoria, fascia €€, a 6 minuti dalla tappa prima."
-     ✓ "Cercata con opzioni vegetariane, fascia €: a 4 minuti dalla tappa prima."
-     ✗ "Il profumo del pane appena sfornato accoglie chi entra"  ← niente nei dati
-     ✗ "Chiesa barocca del XVIII secolo, patrimonio della città"  ← una scheda, non cosa guardare
-     ✗ "L'eco risuona tra le opere contemporanee esposte"  ← contenuto INVENTATO
+   Gli esempi della description (sotto) sono le sole frasi d'esempio: tre giuste e
+   tre sbagliate, tutte da prove vere.
    Un oggetto concreto (${CONCRETE_OBJECTS.slice(0, 16).map(o => o.nome).join(', ')}…) che
    non compare nei fatti o nel nome viene tolto dal codice, con la sua frase.
 
@@ -2058,6 +2048,7 @@ const rewriteReason = (x) => {
     if (regole.includes('apertura-sensi')) return "apriva con un'impressione dei sensi";
     if (regole.includes('invenzione')) return `nominava ${(x.oggetti || []).map(o => `"${o}"`).join(', ')}, che non risulta dai fatti né dal nome`;
     if (regole.includes('giudizio')) return `dava un giudizio (${(x.oggetti || []).map(o => `"${o}"`).join(', ')}) che non è scritto nei fatti`;
+    if (regole.includes('voce')) return `la voce non va (${(x.oggetti || []).join(', ')}): di' il perché con parole tue, l'orario dentro la frase, con un verbo`;
     if (regole.includes('attribuzione')) return `attribuiva alla tappa i fatti di "${x.fattiSu || '?'}" senza nominarlo`;
     if (regole.includes('tipo-locale')) return `chiamava il locale ${(x.oggetti || []).map(o => `"${o}"`).join(', ')}, ma il nome dice "${x.tipoNome || '?'}"`;
     if (regole.includes('ancoraggio')) return 'riscrivila usando i fatti e i dati forniti';
@@ -2103,7 +2094,7 @@ Se per una tappa non hai una frase vera, scrivi "description": null.`;
  * @returns {Promise<{ byKey: Map<string, string>, report: object }>}
  *   byKey: solo le descrizioni riscritte che hanno passato i filtri
  */
-const rewriteDescriptions = async ({ city, items, quotaTicket }) => {
+const rewriteDescriptions = async ({ city, items, quotaTicket, voce = {} }) => {
     const report = { richieste: items.length, riscritte: 0, ancoraVuote: [], scartate: [], errore: null, token: null };
     const byKey = new Map();
     if (items.length === 0) return { byKey, report };
@@ -2152,12 +2143,14 @@ const rewriteDescriptions = async ({ city, items, quotaTicket }) => {
             if (!text) { report.ancoraVuote.push(it.nome); continue; }
             // Gli STESSI filtri della prima volta, piu' (P3d-e) il controllo
             // anti-invenzione sui fatti e sul nome.
-            const voce = filterBannedWords(text, { exempt: it.exempt });
-            const ora = filterTimeIncoherent(voce.text, {
+            const parole = filterBannedWords(text, { exempt: it.exempt });
+            const ora = filterTimeIncoherent(parole.text, {
                 arrival: it.arrival || null, sunrise: it.sun?.sunrise || null, sunset: it.sun?.sunset || null,
             });
-            const vero = filterInventedObjects(ora.text, { fatti: it.fatti || [], nomi: it.exempt, fattiSu: it.fattiSu || null });
-            for (const x of [...voce.removed, ...ora.removed, ...vero.removed]) {
+            const vero0 = filterInventedObjects(ora.text, { fatti: it.fatti || [], nomi: it.exempt, fattiSu: it.fattiSu || null });
+            const vv = filterVoice(vero0.text, voce);
+            const vero = { text: vv.text, removed: [...vero0.removed, ...vv.removed] };
+            for (const x of [...parole.removed, ...ora.removed, ...vero.removed]) {
                 report.scartate.push({ title: it.nome, frase: x.frase, motivo: rewriteReason(x) });
             }
             if (vero.text) { byKey.set(it.key, vero.text); report.riscritte += 1; } else report.ancoraVuote.push(it.nome);
@@ -2220,13 +2213,16 @@ const itineraryRewriteItems = (days, frasiTolte, starts, tourWindow, cityCenter,
 const factsAbout = (entry) => (entry?.fonti || []).find(f => f?.fonte === 'wikipedia' || f?.fonte === 'wikidata')?.titolo || null;
 
 /** Il controllo anti-invenzione sulle descrizioni di un itinerario raccontato. */
-const guardInventions = (days, facts) => {
+const guardInventions = (days, facts, voce = {}) => {
     const frasiTolte = [];
     const out = (days || []).map(day => ({
         ...day,
         stops: (day.stops || []).map(s => {
             if (!s.description) return s;
-            const r = filterInventedObjects(s.description, { fatti: facts.get(s.place_id)?.fatti || [], nomi: [s.title, s.name].filter(Boolean), fattiSu: factsAbout(facts.get(s.place_id)) });
+            const r0 = filterInventedObjects(s.description, { fatti: facts.get(s.place_id)?.fatti || [], nomi: [s.title, s.name].filter(Boolean), fattiSu: factsAbout(facts.get(s.place_id)) });
+            // P3d-i — poi la voce: motivo citato, elenco senza verbo, orario in coda.
+            const rv = filterVoice(r0.text, voce);
+            const r = { text: rv.text, removed: [...r0.removed, ...rv.removed] };
             for (const x of r.removed) {
                 frasiTolte.push({ place_id: s.place_id, title: s.title, campo: 'description', frase: x.frase, regole: [x.regola], oggetti: x.oggetti, ...(x.tipoNome ? { tipoNome: x.tipoNome } : {}) });
             }
@@ -2264,17 +2260,21 @@ export const localeReasons = (c, { food = null, dnaWeights = {} } = {}) => {
  * P3d-g — perche' il motore ha scelto questo LUOGO per l'utente: la ricerca che
  * l'ha trovato, la richiesta, il tema del tour, il DNA. Solo criteri veri.
  */
+// P3d-i — il SENSO del tema, non la sua etichetta: il modello lo traduce in un
+// perche' ("per chi cerca il verde"), non lo cita ("scelto per il tour del verde").
 const TEMA_LABEL = {
-    insider: 'tour "insider" di Per Te', food: 'tour del cibo', cultura: 'tour della cultura',
-    romance: 'tour in coppia', nature: 'tour del verde', storia: 'tema storia', arte: 'tema arte',
-    natura: 'tema natura', relax: 'tema relax', shopping: 'tema shopping', nightlife: 'tema sera',
+    insider: 'posti scelti per merito più che per fama', food: 'chi viaggia anche per mangiare',
+    cultura: 'chi cerca arte e storia', romance: 'una giornata in due', nature: 'chi cerca il verde',
+    storia: 'chi cerca la storia', arte: "chi cerca l'arte", natura: 'chi cerca la natura',
+    relax: 'chi vuole rallentare', shopping: 'chi ama girare per negozi', nightlife: 'chi vive la sera',
 };
 export const placeReasons = (c, { intent = null, dnaWeights = {}, tema = null } = {}) => {
     const motivo = [];
-    if (intent?.oggetto_umano) motivo.push(`per la richiesta dell'utente: ${intent.oggetto_umano}`);
-    if (c?._ricerca) motivo.push(`trovato cercando "${c._ricerca}"`);
+    // Il motivo arriva come SENSO da tradurre: mai da citare (P3d-i).
+    if (intent?.oggetto_umano) motivo.push(`l'utente vuole: ${intent.oggetto_umano}`);
+    if (c?._ricerca) motivo.push(`risponde a: ${c._ricerca}`);
     const t = tema || c?._tema;
-    if (t && TEMA_LABEL[t]) motivo.push(`scelto per il ${TEMA_LABEL[t]}`);
+    if (t && TEMA_LABEL[t]) motivo.push(`pensato per ${TEMA_LABEL[t]}`);
     if (c && dnaShareOf(dnaWeights) > 0 && Object.keys(dnaWeights || {}).some(k => k !== '_share') && computeAffinityScore(c, dnaWeights) >= 0.5) {
         motivo.push('in linea con il profilo dell\'utente (DNA)');
     }
@@ -2770,7 +2770,8 @@ export const aiRecommendationService = {
                             applyNarration(daysForNarration, narration, city), starts, tourWindow, cityCenter,
                         );
                         // P3d-e — il controllo anti-invenzione, dopo voce e luce.
-                        const invented = guardInventions(guardedLight.days, facts);
+                        const voce = { richiesta: userPrompt, oggetto: intent?.oggetto_umano || '' };
+                        const invented = guardInventions(guardedLight.days, facts, voce);
                         const guarded = { days: invented.days, frasiTolte: [...guardedLight.frasiTolte, ...invented.frasiTolte] };
                         const { frasiTolte } = guarded;
                         // P3d-c — le descrizioni svuotate o accorciate dai filtri si
@@ -2781,7 +2782,7 @@ export const aiRecommendationService = {
                         if (!narration.error) {
                             const items = itineraryRewriteItems(narratedDays, frasiTolte, starts, tourWindow, cityCenter, facts, locali, luoghi);
                             if (items.length > 0) {
-                                const rw = await rewriteDescriptions({ city, items, quotaTicket });
+                                const rw = await rewriteDescriptions({ city, items, quotaTicket, voce });
                                 riscrittura = rw.report;
                                 narratedDays = narratedDays.map((day, di) => ({
                                     ...day,
@@ -3218,7 +3219,9 @@ export const aiRecommendationService = {
                     const fatti = facts.get(st.place_id)?.fatti || [];
                     if (!locali.has(st.place_id)) motivoPerTe.set(st.place_id, placeReasons(poolById.get(st.place_id), { dnaWeights, tema: pt.themeType }));
                     const ora = filterTimeIncoherent(st.description, { arrival: now, sunrise: sunNow.sunrise, sunset: sunNow.sunset });
-                    const r = filterInventedObjects(ora.text, { fatti, nomi: [st.title, st.name].filter(Boolean), fattiSu: factsAbout(facts.get(st.place_id)) });
+                    const r0 = filterInventedObjects(ora.text, { fatti, nomi: [st.title, st.name].filter(Boolean), fattiSu: factsAbout(facts.get(st.place_id)) });
+                    const rv = filterVoice(r0.text);
+                    const r = { text: rv.text, removed: [...r0.removed, ...rv.removed] };
                     for (const x of [...ora.removed, ...r.removed]) {
                         console.warn(`[P3d-g FATTI] ${city} (home): tolta frase (${(x.oggetti || x.regole || []).join(',')}) da "${st.title}" — "${x.frase}"`);
                     }

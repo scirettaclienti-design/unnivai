@@ -142,9 +142,11 @@ describe('Gate NARRATORE ANCORATO DIFF 1 — il prompt del narratore (era del se
         expect(p).toContain('NON copiarli');
     });
 
+    // P3d-i — della description restano solo 3 esempi giusti e 3 sbagliati, presi
+    // dalle prove reali P3d-g; gli altri ✗ (insiderTip, bestTime, transition) restano.
     it('gli esempi ✗ restano: insegnano cosa evitare e non vengono imitati', () => {
         const p = prompt();
-        expect(p).toContain('Chiesa barocca del XVIII secolo');
+        expect(p).toContain('SBAGLIATO: "Piazza Umbrella, un luogo per la tua richiesta, un giro insider."');
         expect(p).toContain('Consigliata visita mattutina');
     });
 
@@ -293,7 +295,9 @@ describe('Gate NARRATORE ANCORATO F55 — non attribuire contenuti che non si sa
     it('le due frasi false viste su device sono ora contro-esempi espliciti', () => {
         const p = prompt();
         expect(p).toContain('artisti emergenti"  ← contenuto INVENTATO');
-        expect(p).toContain('opere contemporanee esposte"  ← contenuto INVENTATO');
+        // P3d-i: "opere contemporanee esposte" era un esempio della description;
+        // ora lo copre il codice (oggetti concreti) e la regola "NON ATTRIBUIRE".
+        expect(p).toContain("NON ATTRIBUIRE A UN POSTO CONTENUTI CHE NON SAI ESISTANO LI'");
     });
 });
 

@@ -278,7 +278,8 @@ describe('Gate NARRATORE-DOPO — il narratore racconta le tappe finali', () => 
         expect(s).toBeTruthy();
         expect(s.title).toBe('Galleria Doria Pamphilj');
         expect(s.type).toBeTruthy();
-        expect(s.description).toMatch(/^Galleria, tappa del pomeriggio: arrivo alle \d{2}:\d{2}\.$/);
+        expect(s.description).toContain('Galleria Doria Pamphilj');
+        expect(s.description).toMatch(/pomeriggio/);
         expect(s._fraseSicura).toBe(true);
         expect(s.insiderTip ?? null).toBeNull();
         expect(result._narrationReport.nonRaccontate.map(x => x.place_id)).toEqual([saltata]);
@@ -340,7 +341,8 @@ describe('Gate NARRATORE-DOPO — il narratore racconta le tappe finali', () => 
         const result = await genera(ROMANO, ARTE_CIBO_RILASSATO);
         const s = allStops(result).find(x => x.place_id === cena);
         expect(s).toBeTruthy();
-        expect(s.description).toMatch(/^Per la cena: ristorante/);
+        expect(s.description).toContain('Da Teo');
+        expect(s.description).toMatch(/un ristorante/);
         expect(s.description).not.toMatch(/tradizional|magico/);
         expect(s._fraseSicura).toBe(true);
         expect(result._narrationReport.nonRaccontate.map(x => x.place_id)).toContain(cena);

@@ -135,8 +135,8 @@ describe('P3d-c — itinerario: riscrivere invece di cancellare', () => {
         // regola "perché qui" ed esempi GIUSTO/SBAGLIATO nel prompt di riscrittura
         const sys = rw.body.messages[0].content;
         expect(sys).toContain('PERCHÉ QUI');
-        expect(sys).toContain('GIUSTO: "Per il pranzo: trattoria, fascia €€, a 6 minuti dalla tappa prima."');
-        expect(sys).toContain('SBAGLIATO: "Il profumo della pasta fresca riempie l\'aria."');
+        expect(sys).toContain('GIUSTO: "L\'Aventino è uno dei sette colli su cui venne fondata Roma, il più a sud."');
+        expect(sys).toContain('SBAGLIATO: "Piazza Umbrella, un luogo per la tua richiesta, un giro insider."');
         // stesso biglietto della generazione
         const tickets = new Set(calls.map(c => c.body.dv?.ticket));
         expect(tickets.size).toBe(1);
@@ -157,7 +157,7 @@ describe('P3d-c — itinerario: riscrivere invece di cancellare', () => {
         const r = await genera();
         expect(kinds().filter(k => k === 'riscrittura')).toHaveLength(1);
         const lib = allStops(r).find(s => s.place_id === LIBERAZIONE.place_id);
-        expect(lib.description).toMatch(/^Museo, tappa della mattina: arrivo alle \d{2}:\d{2}\.$/);
+        expect(lib.description).toContain('Museo Storico della Liberazione');
         expect(lib._fraseSicura).toBe(true);
         expect(r._narrationReport.riscrittura.riscritte).toBe(0);
         expect(r._narrationReport.riscrittura.scartate[0].motivo).toContain('"magico"');
@@ -281,7 +281,7 @@ describe('P3d-c — "Per Te": la tappa non si perde', () => {
         expect(res.tours[0].stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre', 'pid-uno']);
         const uno = res.tours[0].stops.find(s => s.place_id === 'pid-uno');
         expect(uno._fraseSicura).toBe(true);
-        expect(uno.description).toMatch(/^Museo, tappa d/);
+        expect(uno.description).toContain('Torre Capitania');
         expect(res._report.scarti).toEqual([]);
         // P3d-g — tutte senza fatti, tutte riscritte male → tutte frase sicura.
         expect(res._report.frasiSicure.map(x => x.title).sort()).toEqual(['Chiesa Madre', 'Museo del Sale', 'Porta Marina', 'Torre Capitania']);

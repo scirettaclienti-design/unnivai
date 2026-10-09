@@ -83,6 +83,19 @@ const GIUSTO = [
     'Aperti nel 1734, sono considerati il primo museo pubblico al mondo.',
     'Per il pranzo: trattoria, fascia €€, a 6 minuti dalla tappa prima.',
 ];
+// P3d-i — gli esempi del prompt: 3 giusti e 3 sbagliati dalle prove reali P3d-g.
+const GIUSTO_P3DI = [
+    "L'Aventino è uno dei sette colli su cui venne fondata Roma, il più a sud.",
+    "Piazza Colonna deve il suo nome alla colonna di Marco Aurelio, che qui sorge sin dall'antichità.",
+    "La fontana dell'Amenano è una fontana monumentale del 1867 sul lato sud di piazza del Duomo.",
+];
+const SBAGLIATO_P3DI = [
+    'Un belvedere a 18:00, per la tua richiesta: un giro insider, trovato cercando "belvedere panorama".',
+    'Piazza Umbrella, un luogo per la tua richiesta, un giro insider.',
+    "Un'osteria a disposizione, scelto per il tuo dopocena.",
+];
+// Le aperture dei sensi restano tolte dal filtro (P3d-b), anche se non sono
+// piu' fra gli esempi del prompt.
 const SBAGLIATO = [
     "L'aria fresca qui è un sollievo dopo la passeggiata.",
     "Il profumo della pasta fresca riempie l'aria.",
@@ -209,11 +222,11 @@ describe('P3d-b — narratore dell\'itinerario', () => {
         const p = prompts.find(x => x.includes('SEI IL NARRATORE'));
         expect(p).toBeTruthy();
         expect(p).toContain('PERCHÉ QUI');
-        expect(p).toContain('UNA frase, massimo 20 parole');
-        expect(p).toContain('cosa guardare, da dove guardarlo o quando');
+        expect(p).toContain('massimo 2 frasi, sempre con un verbo');
+        expect(p).toContain('cosa guardare o quando');
         expect(p).toContain("NON aprire con un'impressione dei sensi");
-        for (const f of GIUSTO) expect(p).toContain(`GIUSTO: "${f}"`);
-        for (const f of SBAGLIATO) expect(p).toContain(`SBAGLIATO: "${f}"`);
+        for (const f of GIUSTO_P3DI) expect(p).toContain(`GIUSTO: "${f}"`);
+        for (const f of SBAGLIATO_P3DI) expect(p).toContain(`SBAGLIATO: "${f}"`);
         expect(p).toContain(bannedWordsPromptLines());
         expect(p).not.toContain('cosa vedi/senti/odori');
     });
@@ -297,9 +310,9 @@ describe('P3d-b — "Per Te" della Home', () => {
         await home();
         const p = prompts[0];
         expect(p).toContain('PERCHÉ QUI');
-        expect(p).toContain('UNA frase, massimo 20 parole');
-        for (const f of GIUSTO) expect(p).toContain(`GIUSTO: "${f}"`);
-        for (const f of SBAGLIATO) expect(p).toContain(`SBAGLIATO: "${f}"`);
+        expect(p).toContain('massimo 2 frasi, sempre con un verbo');
+        for (const f of GIUSTO_P3DI) expect(p).toContain(`GIUSTO: "${f}"`);
+        for (const f of SBAGLIATO_P3DI) expect(p).toContain(`SBAGLIATO: "${f}"`);
         expect(p).toContain(bannedWordsPromptLines());
         expect(p).not.toContain('cosa vedi/senti/odori');
     });

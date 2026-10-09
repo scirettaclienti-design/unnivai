@@ -42,8 +42,9 @@ describe('P3d-g — le 8 frasi ✗ di P3d-e vengono tolte', () => {
         expect(r.removed[0]).toMatchObject({ regola: 'tipo-locale', oggetti: ['trattoria'], tipoNome: 'osteria' });
         // il nome vince sul tipo Google ("bar")
         expect(tipoTappa({ title: 'Osteria Navona', types: ['bar', 'establishment', 'food'] })).toBe('osteria');
-        expect(safeDescription({ stop: { title: 'Osteria Navona', types: ['bar', 'food'] }, momento: 'cena', locale: true, priceLevel: 2, minutiDaPrima: 6 }))
-            .toBe('Per la cena: osteria, fascia €€, a 6 minuti a piedi dalla tappa prima.');
+        const sicura = safeDescription({ stop: { title: 'Osteria Navona', types: ['bar', 'food'] }, momento: 'cena', locale: true, priceLevel: 2, minutiDaPrima: 6 });
+        expect(sicura).toContain("un'osteria in fascia €€");
+        expect(sicura).not.toMatch(/trattoria|\bbar\b/);
         // e la stessa frase con il tipo giusto passa
         expect(filterInventedObjects('Osteria, fascia €€, a 6 minuti dalla tappa prima.', { nomi: ['Osteria Navona'] }).removed).toEqual([]);
     });
@@ -97,9 +98,10 @@ describe('P3d-g — un giudizio passa solo se e\' scritto nei fatti', () => {
 
 describe('P3d-g — il "perche\' qui, per te" di un luogo senza fatti si fa con i dati', () => {
     it('placeReasons: richiesta, ricerca che l\'ha trovato, tema del tour', () => {
+        // P3d-i — il SENSO da tradurre, non un'etichetta da citare.
         expect(placeReasons({ _ricerca: 'belvedere panorama Roma' }, { intent: { oggetto_umano: 'la Roma dei romani' } }))
-            .toEqual(['per la richiesta dell\'utente: la Roma dei romani', 'trovato cercando "belvedere panorama Roma"']);
-        expect(placeReasons({}, { tema: 'romance' })).toEqual(['scelto per il tour in coppia']);
+            .toEqual(['l\'utente vuole: la Roma dei romani', 'risponde a: belvedere panorama Roma']);
+        expect(placeReasons({}, { tema: 'romance' })).toEqual(['pensato per una giornata in due']);
     });
 });
 
@@ -173,7 +175,7 @@ describe('P3d-g — itinerario: dati per ogni tappa, giudizi tolti, mai vuota', 
         const tappe = JSON.parse(calls.find(c => c.kind === 'narratore').user.split('TAPPE FINALI:\n')[1]).flatMap(g => g.tappe);
         const belv = tappe.find(t => t.place_id === BELV.place_id);
         expect(belv.tipo).toBe('belvedere');
-        expect(belv.motivo).toEqual(['per la richiesta dell\'utente: la Roma dei romani', 'trovato cercando "belvedere"']);
+        expect(belv.motivo).toEqual(['l\'utente vuole: la Roma dei romani', 'risponde a: belvedere']);
         expect(typeof belv.tramonto_ancora_davanti).toBe('boolean');
         expect('minuti_a_piedi_da_prima' in belv).toBe(true);
         const ost = tappe.find(t => t.place_id === OSTERIA.place_id);
@@ -193,23 +195,23 @@ describe('P3d-g — itinerario: dati per ogni tappa, giudizi tolti, mai vuota', 
         expect(rw).toHaveLength(1);
         const item = JSON.parse(rw[0].user.split('TAPPE:\n')[1]).find(t => t.place_id === BELV.place_id);
         expect(item.tolto[0].motivo).toMatch(/giudizio/);
-        expect(item.motivo).toContain('per la richiesta dell\'utente: la Roma dei romani');
+        expect(item.motivo).toContain('l\'utente vuole: la Roma dei romani');
         const s = allStops(r).find(x => x.place_id === BELV.place_id);
         expect(s._fraseSicura).toBe(true);
-        expect(s.description).toMatch(/^Belvedere, tappa della mattina: arrivo alle \d{2}:\d{2}/);
+        expect(s.description).toContain('Belvedere Tarpeo');
         for (const st of allStops(r)) expect(String(st.description || '').trim().length, st.title).toBeGreaterThan(0);
     });
 
     it('Osteria Navona chiamata "trattoria" dal narratore → tolta, la riscrittura riceve tipo "osteria"', async () => {
         vi.stubGlobal('fetch', routeFetch(
             (t) => ({ place_id: t.place_id, description: t.place_id === OSTERIA.place_id ? 'Trattoria, fascia €€, a 6 minuti dalla tappa prima.' : 'Una tappa sul percorso.' }),
-            (tappe) => ({ stops: tappe.map(t => ({ place_id: t.place_id, description: `Per il pranzo: ${t.tipo}, fascia €€.` })) }),
+            (tappe) => ({ stops: tappe.map(t => ({ place_id: t.place_id, description: `Pranzi in un'${t.tipo} in fascia €€.` })) }),
         ));
         const r = await genera();
         const item = JSON.parse(calls.find(c => c.kind === 'riscrittura').user.split('TAPPE:\n')[1]).find(t => t.place_id === OSTERIA.place_id);
         expect(item.tipo).toBe('osteria');
         expect(item.tolto[0].motivo).toContain('il nome dice "osteria"');
-        expect(allStops(r).find(x => x.place_id === OSTERIA.place_id).description).toBe('Per il pranzo: osteria, fascia €€.');
+        expect(allStops(r).find(x => x.place_id === OSTERIA.place_id).description).toBe("Pranzi in un'osteria in fascia €€.");
     });
 });
 
@@ -255,10 +257,11 @@ describe('P3d-g — "Per Te": luce e ora sull\'ora di adesso', () => {
         const belv = res.tours[0].stops.find(s => s.place_id === 'pid-belv');
         expect(belv.description).not.toMatch(/tramont/i);
         expect(belv._fraseSicura).toBe(true);
-        expect(belv.description).toBe('Belvedere, tappa del dopocena.');
+        expect(belv.description).toContain('Belvedere del Faro');
+        expect(belv.description).toMatch(/dopocena/);
         const item = homeCalls[1].tappe.find(t => t.place_id === 'pid-belv');
         expect(item.tramonto_ancora_davanti).toBe(false);
-        expect(item.motivo).toEqual(['scelto per il tour in coppia']);
+        expect(item.motivo).toEqual(['pensato per una giornata in due']);
         for (const st of res.tours[0].stops) expect(String(st.description || '').trim().length).toBeGreaterThan(0);
     });
 });

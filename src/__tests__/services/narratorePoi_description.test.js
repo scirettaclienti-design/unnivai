@@ -187,7 +187,7 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
             expect(st.title).toBeTruthy();
             expect(st.type).toBeTruthy();
             expect(st._fraseSicura).toBe(true);
-            expect(st.description).toMatch(/: arrivo alle \d{2}:\d{2}\.$/);
+            expect(st.description).toMatch(/alle \d{1,2}(?::\d{2})?/); // P3d-i: l'orario come gancio
         }
         expect(result._narrationReport.nonRaccontate.map(x => x.title)).toEqual(stops.map(st => st.title));
     });

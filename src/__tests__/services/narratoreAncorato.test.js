@@ -261,8 +261,9 @@ describe('Gate NARRATORE ANCORATO F55 — non attribuire contenuti che non si sa
     // che il narratore NON riceve: ora dice esattamente cosa riceve.
     it('dichiara esplicitamente cosa il modello SA — e solo quello che riceve davvero', () => {
         const p = prompt();
-        expect(p).toContain('Di ogni tappa ricevi: place_id, nome, categoria, "types", momento della giornata');
-        expect(p).toContain('"fatti": un elenco [{testo, fonte}]');
+        expect(p).toContain('Di ogni tappa ricevi: place_id, nome, "tipo"');
+        expect(p).toContain('"fatti": un');
+        expect(p).toContain('elenco [{testo, fonte}]');
         expect(p).toContain('NON ricevi rating, recensioni, indirizzi');
         expect(p).not.toContain('nome, "types", rating, numero di recensioni');
         expect(p).toContain('NON si deduce cosa c\'e\' dentro');

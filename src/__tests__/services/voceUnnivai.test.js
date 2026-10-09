@@ -264,7 +264,10 @@ describe('P3d-b — "Per Te" della Home', () => {
         const stops = res.tours[0]?.stops || [];
         expect(stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre', 'pid-uno']);
         expect(stops.find(s => s.place_id === 'pid-uno')._fraseSicura).toBe(true);
-        expect(stops.find(s => s.place_id === 'pid-due').description).toBe('Le vasche hanno bordi bianchi.');
+        // P3d-g — senza fatti, il testo del selettore non resta se la riscrittura
+        // ancorata non arriva: frase sicura, e "Assapora" sparito comunque.
+        expect(stops.find(s => s.place_id === 'pid-due').description).not.toMatch(/assapora/i);
+        expect(stops.find(s => s.place_id === 'pid-due')._fraseSicura).toBe(true);
     });
 
     it('dalla CACHE: apertura dei sensi tolta, nessuna nuova chiamata', async () => {
@@ -274,13 +277,15 @@ describe('P3d-b — "Per Te" della Home', () => {
         ]));
         vi.stubGlobal('fetch', fn);
         await home();
+        const proxy = () => fn.mock.calls.filter(([u]) => String(u).includes('openai-proxy')).length;
+        const dopoLaPrima = proxy();
         const key = Object.keys(window.localStorage).find(k => k.startsWith('hometours_v1_'));
         const entry = JSON.parse(window.localStorage.getItem(key));
         entry.data.tours[0].stops.find(s => s.place_id === 'pid-uno').description = "L'aria qui è ferma. La pietra è chiara.";
         window.localStorage.setItem(key, JSON.stringify(entry));
         const res = await home();
         // P3d-e — le richieste dei fatti (Wikipedia, Overpass) non sono chiamate al motore.
-        expect(fn.mock.calls.filter(([u]) => String(u).includes('openai-proxy'))).toHaveLength(1);
+        expect(proxy()).toBe(dopoLaPrima); // cache HIT
         expect(res.tours[0].stops.find(s => s.place_id === 'pid-uno').description).toBe('La pietra è chiara.');
     });
 

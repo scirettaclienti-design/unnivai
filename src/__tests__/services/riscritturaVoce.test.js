@@ -266,7 +266,8 @@ describe('P3d-c — "Per Te": la tappa non si perde', () => {
         expect(stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre', 'pid-uno']);
         expect(stops.find(s => s.place_id === 'pid-uno').description).toBe('Dai merli si vede la salina intera.');
         expect(res._report.scarti).toEqual([]);
-        expect(res._report.riscrittura).toMatchObject({ richieste: 1, riscritte: 1 });
+        // P3d-g — tutte e 4 le tappe vanno alla riscrittura ancorata (nessuna ha fatti).
+        expect(res._report.riscrittura).toMatchObject({ richieste: 4, riscritte: 4 });
     });
 
     // P3d-e — la tappa non esce piu': mai una descrizione vuota, frase sicura.
@@ -282,6 +283,7 @@ describe('P3d-c — "Per Te": la tappa non si perde', () => {
         expect(uno._fraseSicura).toBe(true);
         expect(uno.description).toMatch(/^Museo, tappa d/);
         expect(res._report.scarti).toEqual([]);
-        expect(res._report.frasiSicure.map(x => x.title)).toEqual(['Torre Capitania']);
+        // P3d-g — tutte senza fatti, tutte riscritte male → tutte frase sicura.
+        expect(res._report.frasiSicure.map(x => x.title).sort()).toEqual(['Chiesa Madre', 'Museo del Sale', 'Porta Marina', 'Torre Capitania']);
     });
 });

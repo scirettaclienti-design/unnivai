@@ -151,7 +151,10 @@ describe('P7a2 — un tour a 2 tappe si completa in codice', () => {
     it('il tour con abbastanza tappe non riceve riserve (e niente chiamata in piu\')', async () => {
         vi.stubGlobal('fetch', homeFetch({ tours: [{ themeType: 'cultura', title: 'Cultura', stops: [stop('c1'), stop('c2'), stop('c3')] }] }));
         const res = await home({ cultura: CULTURA });
-        expect(calls.map(c => c.kind)).toEqual(['tour']);
+        // P3d-g — la riscrittura ancorata ai dati parte sempre (stesso biglietto,
+        // al massimo 2 chiamate): ma senza riserve dentro.
+        expect(calls.map(c => c.kind)).toEqual(['tour', 'riscrittura']);
+        expect(calls[1].tappe.map(t => t.place_id).sort()).toEqual(['c1', 'c2', 'c3']);
         expect(res._report.aggiunte).toEqual([]);
     });
 });
@@ -161,7 +164,7 @@ describe('P7a2 — senza candidati validi il tour si nasconde', () => {
         vi.stubGlobal('fetch', homeFetch({ tours: [{ themeType: 'food', title: 'Food', stops: [stop('f1'), stop('f2')] }] }));
         const res = await home({ food: [poi('f1', 'Da Enzo', 1), poi('f2', 'Armando', 1.2)] });
         expect(res.tours).toEqual([]);
-        expect(calls.map(c => c.kind)).toEqual(['tour']); // niente da completare, niente riscrittura
+        expect(calls.map(c => c.kind)).toEqual(['tour', 'riscrittura']); // P3d-g: la riscrittura ancorata, nessuna riserva
         expect(res._report.scarti.map(s => s.motivo)).toEqual([
             'tour con meno di 3 tappe: nessun candidato valido rimasto nel pool',
             'tour con meno di 3 tappe: nessun candidato valido rimasto nel pool',

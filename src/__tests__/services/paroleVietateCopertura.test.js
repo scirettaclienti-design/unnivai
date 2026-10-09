@@ -140,7 +140,9 @@ describe('Gate PAROLE VIETATE (P3d) — tour "Per Te" della Home', () => {
         ])));
         const res = await home();
         const uno = res.tours[0].stops.find(s => s.place_id === 'pid-uno');
-        expect(uno.description).toBe('La pietra è chiara.');
+        // P3d-g — senza fatti e senza riscrittura arrivata: frase sicura, mai "storico".
+        expect(uno.description).not.toMatch(/storic/);
+        expect(uno._fraseSicura).toBe(true);
         expect(uno.transition).toBeNull();
     });
 
@@ -151,13 +153,14 @@ describe('Gate PAROLE VIETATE (P3d) — tour "Per Te" della Home', () => {
         ]));
         vi.stubGlobal('fetch', fn);
         await home();
+        const dopoLaPrima = fn.mock.calls.filter(([u]) => String(u).includes('openai-proxy')).length;
         const key = Object.keys(window.localStorage).find(k => k.startsWith('hometours_v1_'));
         const entry = JSON.parse(window.localStorage.getItem(key));
         entry.data.tours[0].stops.find(s => s.place_id === 'pid-uno').description = 'Un portico storico sul mare. La pietra è chiara.';
         window.localStorage.setItem(key, JSON.stringify(entry));
 
         const res = await home();
-        expect(fn.mock.calls.filter(([u]) => String(u).includes('openai-proxy'))).toHaveLength(1); // cache HIT
+        expect(fn.mock.calls.filter(([u]) => String(u).includes('openai-proxy'))).toHaveLength(dopoLaPrima); // cache HIT
         expect(res.tours[0].stops.find(s => s.place_id === 'pid-uno').description).toBe('La pietra è chiara.');
     });
 

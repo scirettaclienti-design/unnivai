@@ -296,7 +296,12 @@ export function filterBannedWords(text, { exempt = [] } = {}) {
 export const DESCRIPTION_RULE_PROMPT = `   description — la frase "PERCHÉ QUI": UNA frase, massimo 20 parole.
      Usa SOLO i fatti forniti, il nome della tappa o i suoi dati (tipo, momento, orario).
      LUOGHI: un fatto concreto preso dai fatti, più cosa guardare, da dove guardarlo o quando.
-     Senza fatti: il tipo di posto e il momento, niente dettagli che non hai.
+     SENZA FATTI: sul luogo dici SOLO il nome e il tipo; il resto è "perché qui, per te"
+     con i dati che ricevi (momento, arrivo, tramonto se ancora davanti, minuti dalla
+     tappa prima, motivo della scelta).
+     MAI un giudizio che non sia scritto nei fatti (migliore, unico, cuore di,
+     straordinario, incantevole, incontaminato, imperdibile, "uno dei", "vista su…",
+     meno frequentato, nascosto, tranquillo…): la frase viene tolta.
      LOCALI: perché il locale è qui per te, con i dati che ricevi (momento, tipo,
      fascia di prezzo, minuti a piedi dalla tappa prima, motivo della scelta).
      MAI piatti, arredi o atmosfera che i dati non dicono.
@@ -307,6 +312,8 @@ export const DESCRIPTION_RULE_PROMPT = `   description — la frase "PERCHÉ QUI
      silenzio, panorama, "camminando senti"): una frase che apre così viene tolta.
      GIUSTO: "Aperti nel 1734, sono considerati il primo museo pubblico al mondo."  ← dai fatti
      GIUSTO: "Per il pranzo: trattoria, fascia €€, a 6 minuti dalla tappa prima."  ← dai dati del locale
+     GIUSTO: "Un belvedere a 8 minuti dalla tappa prima: è qui per la tua richiesta, la Roma dei romani."  ← senza fatti, solo dati
+     SBAGLIATO: "Affacciata su Roma, è uno dei migliori punti panoramici della città."  ← giudizi non nei fatti
      SBAGLIATO: "L'ombra vera è sotto gli alberi grandi, non lungo i vialetti."  ← alberi: non nei fatti
      SBAGLIATO: "L'aria fresca qui è un sollievo dopo la passeggiata."
      SBAGLIATO: "Il profumo della pasta fresca riempie l'aria."
@@ -349,6 +356,7 @@ export const CONCRETE_OBJECTS = [
     { nome: 'ponte', re: /\bpont[ei]\b/, ok: /\bpont[ei]\b/ },
     { nome: 'torre', re: /\btorr[ei]\b/, ok: /\btorr/ },
     { nome: 'cancello', re: /\bcancell[oi]\b/, ok: /\bcancell/ },
+    { nome: 'tetti', re: /\btett[oi]\b/, ok: /\btett[oi]\b/ },
     { nome: 'panchina', re: /\b(?:panchin[ae]|panc(?:a|he))\b/, ok: /\b(?:panchin|panc(?:a|he)\b)/ },
     // arte
     { nome: 'murales', re: /\b(?:murales|murale|murali|graffiti|street art)\b/, ok: /\b(?:mural|graffit|street art)/ },
@@ -382,6 +390,88 @@ export const CONCRETE_OBJECTS = [
     { nome: 'cornetto', re: /\bcornett[oi]\b/, ok: /\bcornett/ },
 ];
 
+// ─── P3d-g — giudizi: solo se sono scritti nei fatti ─────────────────────────
+//
+// Senza fatti il modello scriveva valutazioni che nessuno puo' verificare:
+// "uno dei migliori punti panoramici", "il cuore culturale di Catania",
+// "collezioni uniche", "natura incontaminata", "vista incantevole sui tetti".
+// Una frase con un giudizio di questo elenco resta solo se lo STESSO giudizio
+// compare nei fatti della tappa ("uno dei sette colli" e' nei fatti
+// dell'Aventino: passa). Il nome della tappa non conta come fatto, ma non fa
+// scattare il controllo ("Unico Bar" e' un nome). Elenco esplicito e testato.
+export const UNSUPPORTED_JUDGMENTS = [
+    { nome: 'migliore', re: /\b(?:miglior[ei]|peggior[ei])\b/ },
+    { nome: 'unico', re: /\b(?:unic[oaie]|unich[ei]|unicita)\b/ },
+    { nome: 'cuore di', re: /\bcuore\b/ },
+    { nome: 'uno dei', re: /\b(?:uno|una)\s+(?:dei|degli|delle)\b|\b(?:tra|fra)\s+i\s+(?:piu|miglior)/ },
+    { nome: 'superlativo', re: /\b\w{3,}issim[oaie]\b|\bpiu\s+(?:bell|antic|grand|famos|amat|visitat|suggestiv|importan|panoramic|spettacolar|caratteristic|autentic)\w*/ },
+    { nome: 'vista su', re: /\b(?:vista|viste|veduta|visuale|panorama|affacci\w*|si\s+apre|domin\w*|ammirar\w*)\b[^.!?;]{0,40}?\b(?:su|sul|sullo|sulla|sui|sugli|sulle|verso)\b/ },
+    { nome: 'straordinario', re: /\b(?:straordinari|incredibil|eccezional|splendid|meraviglios|stupend|magnific|sublim|mozzafiat|incantevol|incanto|pittoresc|iconic|emblematic|rinomat|famos|celebr[ei]\b)\w*/ },
+    { nome: 'incontaminato', re: /\b(?:incontaminat|selvagg|autentic|genuin|vero\s+cuore)\w*/ },
+    { nome: 'imperdibile', re: /\b(?:imperdibil|da\s+non\s+perdere|da\s+scoprire|invita\s+a|perfett|ideal[ei])\w*/ },
+    { nome: 'meno frequentato', re: /\b(?:meno|poco)\s+(?:frequentat|conosciut|battut|turistic)\w*|\blontan\w*\s+dall[ae]?\s+(?:folla|turisti|caos)|\bfuori\s+dai\s+(?:circuiti|percorsi)|\bnascost[oaie]\b|\bsegret[oaie]\b/ },
+    { nome: 'tranquillo', re: /\b(?:tranquill|rilassant|accoglient|intim[oaie]\b|raccolt[oaie]\b)\w*/ },
+    // P3d-g, dopo le prove reali: "un ingresso maestoso… ricco di storia e
+    // bellezza", "un'osteria a disposizione" (alle 00:04: sembra aperta).
+    { nome: 'maestoso', re: /\b(?:maestos|imponent|grandios|sontuos|elegant|prestigios)\w*|\bricc[oaih]e?\s+di\b|\bbellezz[ae]\b|\bpien[oa]\s+di\s+(?:storia|fascino|vita)\b/ },
+    { nome: 'a disposizione', re: /\ba\s+(?:tua\s+)?disposizione\b|\bdisponibil\w*|\bti\s+aspett\w*|\bsempre\s+apert\w*/ },
+];
+
+// ─── P3d-g — i fatti di un altro luogo si dicono con il suo nome ─────────────
+// "Terrazza del Pincio" riceve i fatti del Pincio ("Il Pincio è un colle di
+// Roma"): la frase "Un colle di Roma" li attribuisce alla terrazza. Se i fatti
+// parlano di un luogo con un altro nome (`fattiSu`), una frase che usa il suo
+// tipo ("colle") senza nominarlo viene tolta.
+const tipoDelFatto = (fatti, fattiSu) => {
+    const testo = norm(factsCorpus(fatti, []));
+    const nome = norm(fattiSu || '').replace(/\([^)]*\)/g, '').trim();
+    const m = testo.match(/\be\s+(?:un|una|un')\s*([a-z]{4,})\b/) || testo.match(new RegExp(`${nome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:\\s*([a-z]{4,})`));
+    return m ? m[1] : null;
+};
+export function misattributedFact(sentence, { fatti = [], fattiSu = null, nomi = [] } = {}) {
+    if (!fattiSu) return null;
+    const nomeFatti = norm(fattiSu).replace(/\([^)]*\)/g, '').trim();
+    const nomiTappa = nomi.map(n => norm(n || ''));
+    // Stesso luogo: stesso nome. "Terrazza del Pincio" contiene "pincio" ma NON
+    // e' il Pincio: e' proprio il caso da controllare.
+    if (!nomeFatti || nomiTappa.some(n => n.trim() === nomeFatti)) return null;
+    const tipo = tipoDelFatto(fatti, fattiSu);
+    if (!tipo || nomiTappa.some(n => n.includes(tipo))) return null;
+    const t = norm(sentence);
+    const nominato = nomeFatti.split(/\s+/).filter(w => w.length > 3).some(w => t.includes(w));
+    return !nominato && new RegExp(`\\b${tipo}\\b`).test(t) ? tipo : null;
+}
+
+/** I giudizi di una frase assenti dai fatti (il nome della tappa e' neutralizzato). */
+export function unsupportedJudgments(sentence, factsText, nomi = []) {
+    let t = norm(sentence).replace(/\s+/g, ' ');
+    for (const n of nomi) {
+        const nn = norm(n || '').replace(/\s+/g, ' ').trim();
+        if (nn) t = t.split(nn).join(' ');
+    }
+    const c = norm(factsText || '').replace(/\s+/g, ' ');
+    return UNSUPPORTED_JUDGMENTS.filter(j => j.re.test(t) && !j.re.test(c)).map(j => j.nome);
+}
+
+// ─── P3d-g — il tipo del locale lo dice il nome ──────────────────────────────
+// "Osteria Navona" e' un'osteria anche se Google dice "bar": se il nome dice il
+// tipo, una frase che lo chiama con un altro tipo di locale viene tolta.
+const TIPI_LOCALE = [
+    ['trattoria', /\btrattori[ae]\b/], ['osteria', /\b(?:osteri[ae]|hostaria)\b/], ['pizzeria', /\bpizzeri[ae]\b/],
+    ['enoteca', /\benotec[ah]e?\b/], ['bar', /\bbar\b/], ['ristorante', /\bristorant[ei]\b/],
+    ['taverna', /\btavern[ae]\b/], ['bistrot', /\bbistrot\b/], ['pasticceria', /\bpasticceri[ae]\b/],
+    ['gelateria', /\bgelateri[ae]\b/],
+];
+export const localeTypeOfName = (name) => (TIPI_LOCALE.find(([, re]) => re.test(norm(name || ''))) || [null])[0];
+/** I tipi di locale nominati nella frase che contraddicono il tipo detto dal nome. */
+export function contradictedLocaleTypes(sentence, nomi = []) {
+    const tipoNome = nomi.map(localeTypeOfName).find(Boolean);
+    if (!tipoNome) return [];
+    let t = norm(sentence);
+    for (const n of nomi) { const nn = norm(n || '').trim(); if (nn) t = t.split(nn).join(' '); }
+    return TIPI_LOCALE.filter(([k, re]) => k !== tipoNome && re.test(t)).map(([k]) => k);
+}
+
 /** Gli oggetti concreti nominati in una frase e assenti dal corpus (fatti + nome). */
 export function inventedObjects(sentence, corpus) {
     const t = norm(sentence).replace(/\s+/g, ' ');
@@ -396,19 +486,29 @@ export const factsCorpus = (fatti = [], nomi = []) => [
 ].filter(Boolean).join(' \n ');
 
 /**
- * Toglie le frasi che nominano un oggetto concreto assente dai fatti e dal nome.
+ * Toglie le frasi che dicono cose non sostenute: un oggetto concreto assente
+ * dai fatti e dal nome (P3d-e, regola 'invenzione'); un giudizio assente dai
+ * fatti (P3d-g, 'giudizio'); un tipo di locale diverso da quello del nome
+ * (P3d-g, 'tipo-locale').
  * @param {string|null} text
  * @param {{ fatti?: Array<{ testo: string }|string>, nomi?: string[] }} ctx
- * @returns {{ text: string|null, removed: Array<{ frase: string, oggetti: string[], regola: 'invenzione' }> }}
+ * @returns {{ text: string|null, removed: Array<{ frase: string, oggetti: string[], regola: 'invenzione'|'giudizio'|'tipo-locale' }> }}
  */
-export function filterInventedObjects(text, { fatti = [], nomi = [] } = {}) {
+export function filterInventedObjects(text, { fatti = [], nomi = [], fattiSu = null } = {}) {
     if (text == null || String(text).trim() === '') return { text: null, removed: [] };
     const corpus = factsCorpus(fatti, nomi);
+    const soloFatti = factsCorpus(fatti, []);
     const kept = [];
     const removed = [];
     for (const s of splitSentences(String(text).trim())) {
         const oggetti = inventedObjects(s, corpus);
+        const giudizi = oggetti.length ? [] : unsupportedJudgments(s, soloFatti, nomi);
+        const tipi = oggetti.length || giudizi.length ? [] : contradictedLocaleTypes(s, nomi);
+        const altro = oggetti.length || giudizi.length || tipi.length ? null : misattributedFact(s, { fatti, fattiSu, nomi });
+        if (altro) { removed.push({ frase: s, oggetti: [altro], regola: 'attribuzione', fattiSu }); continue; }
         if (oggetti.length > 0) removed.push({ frase: s, oggetti, regola: 'invenzione' });
+        else if (giudizi.length > 0) removed.push({ frase: s, oggetti: giudizi, regola: 'giudizio' });
+        else if (tipi.length > 0) removed.push({ frase: s, oggetti: tipi, regola: 'tipo-locale', tipoNome: nomi.map(localeTypeOfName).find(Boolean) });
         else kept.push(s);
     }
     if (removed.length === 0) return { text: String(text), removed };
@@ -438,7 +538,7 @@ const momentKeyOf = (m) => {
 const TIPO_DAL_NOME = [
     [/\btrattori/, 'trattoria'], [/\bosteri|\bhostaria/, 'osteria'], [/\bpizzeri/, 'pizzeria'],
     [/\bpasticceri/, 'pasticceria'], [/\bgelateri/, 'gelateria'], [/\benotec/, 'enoteca'],
-    [/\bforno\b|\bpanifici/, 'forno'], [/\bbelveder/, 'belvedere'], [/\bterrazz/, 'terrazza panoramica'],
+    [/\bforno\b|\bpanifici/, 'forno'], [/\bbar\b/, 'bar'], [/\btavern/, 'taverna'], [/\bbelveder/, 'belvedere'], [/\bterrazz/, 'terrazza panoramica'],
     [/\bbasilic/, 'basilica'], [/\bchies/, 'chiesa'], [/\bduomo\b|\bcattedral/, 'cattedrale'],
     [/\bmuse[oi]|\bmusei\b/, 'museo'], [/\bgalleri/, 'galleria'], [/\bpinacotec/, 'pinacoteca'],
     [/\bpiazz/, 'piazza'], [/\bgiardin/, 'giardino'], [/\bparco\b/, 'parco'], [/\bvilla\b/, 'villa'],

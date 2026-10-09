@@ -291,7 +291,7 @@ describe('P3d-e — il controllo anti-invenzione: elenco esplicito, ogni oggetto
         cupola: 'La cupola domina.', campanile: 'Il campanile è storto.', colonne: 'Le colonne sono di marmo.',
         portico: 'Il portico ripara.', cortile: 'Il cortile è interno.', chiostro: 'Il chiostro è quieto.',
         balcone: 'Il balcone dà sulla via.', ponte: 'Il ponte è vicino.', torre: 'La torre è alta.',
-        cancello: 'Il cancello è di ferro.', panchina: 'Una panchina guarda il mare.', murales: 'I murales coprono il muro.',
+        cancello: 'Il cancello è di ferro.', tetti: 'Si vedono i tetti rossi.', panchina: 'Una panchina guarda il mare.', murales: 'I murales coprono il muro.',
         quadri: 'I quadri sono piccoli.', affreschi: 'Gli affreschi sono chiari.', statua: 'La statua è in bronzo.',
         mosaici: 'I mosaici sono dorati.', vetrate: 'Le vetrate sono colorate.', altare: "L'altare è in fondo.",
         tavolini: 'I tavolini sono fuori.', bancone: 'Il bancone è lungo.', 'forno a legna': "C'è un forno a legna.",

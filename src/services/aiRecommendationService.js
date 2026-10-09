@@ -344,7 +344,7 @@ import { filterTimeIncoherent } from '@/lib/narrationLight';
 // Gate PAROLE VIETATE — l'unico elenco: i prompt lo mostrano, il filtro lo applica.
 import { filterBannedWords, bannedWordsPromptLines, DESCRIPTION_RULE_PROMPT } from '@/lib/narrationLight';
 // P3d-e — fatti aperti sulle tappe finali, controllo anti-invenzione, frase sicura.
-import { filterInventedObjects, safeDescription, CONCRETE_OBJECTS } from '@/lib/narrationLight';
+import { filterInventedObjects, safeDescription, CONCRETE_OBJECTS, tipoTappa, isPanoramaStop } from '@/lib/narrationLight';
 import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock } from '@/lib/dayMoments';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
@@ -742,6 +742,10 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
             ` | ${divergenti}/${perQuery.length} divergenti`
         );
 
+        // P3d-g — ogni candidato porta la ricerca che l'ha trovato (`_ricerca`):
+        // e' il "perche' qui" vero di una tappa senza fatti. Solo un dato in
+        // piu': la scelta non lo legge.
+        const conRicerca = (q) => (list) => (Array.isArray(list) ? list.map(p => (p && !p._ricerca ? { ...p, _ricerca: q } : p)) : list);
         lists = await settleSearches(
             queriesToRun.map(q => {
                 // P7b2 — query di cibo + dieta: le parole della richiesta restano
@@ -750,24 +754,25 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
                 if (dieta.length > 0 && deriveKindFromQuery(q) === 'FOOD') {
                     return searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(
                         cityName, lat, lng, null, { customQuery: fq, customKind, skipLegacyFallback: true },
-                    ), q, dieta).then(r => r.results);
+                    ), q, dieta).then(r => r.results).then(conRicerca(q));
                 }
                 return placesDiscoveryService.discoverRealPOIs(
                     cityName, lat, lng, null,
                     { customQuery: q, customKind, skipLegacyFallback: true }
-                );
+                ).then(conRicerca(q));
             }),
             `path A ${cityName}`,
         );
     } else {
         // Path B — comportamento invariato: temi hardcoded da prefs.
         const themes = derivePrimaryThemes(prefs);
+        const conTema = (t) => (list) => (Array.isArray(list) ? list.map(p => (p && !p._tema ? { ...p, _tema: t } : p)) : list);
         lists = await settleSearches(
             themes.map(t => (t === 'food' && dieta.length > 0
                 ? searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, null, {
                     customQuery: fq, customKind: 'FOOD',
-                }), THEME_FOOD_QUERY, dieta).then(r => r.results)
-                : placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t))),
+                }), THEME_FOOD_QUERY, dieta).then(r => r.results).then(conTema(t))
+                : placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t).then(conTema(t)))),
             `path B ${cityName} [${themes.join(',')}]`,
         );
     }
@@ -984,7 +989,9 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
         ? searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(city, cityCenter.latitude, cityCenter.longitude, null, {
             customQuery: fq, customKind: 'FOOD',
         }), THEME_FOOD_QUERY, dieta).then(r => r.results)
-        : placesDiscoveryService.discoverRealPOIs(city, cityCenter.latitude, cityCenter.longitude, t))));
+        : placesDiscoveryService.discoverRealPOIs(city, cityCenter.latitude, cityCenter.longitude, t))
+        // P3d-g — il tema della ricerca mirata, come dato del "perche' qui".
+        .then(list => (Array.isArray(list) ? list.map(p => (p && !p._tema ? { ...p, _tema: t } : p)) : list))));
     settled.forEach((r, i) => {
         if (r.status === 'rejected') console.warn(`[P3 SCHELETRO] ricerca mirata "${themes[i]}" fallita: ${r.reason?.message}`);
     });
@@ -1215,11 +1222,12 @@ Contesto:
 • meteo: ${weather?.condition || 'sereno'} ${weather?.temperature || 22}°${aiProfile ? `
 • profilo implicito: ${aiProfile}` : ''}
 
-Di ogni tappa ricevi: place_id, nome, categoria, "types", momento della giornata,
-orario di arrivo (HH:MM) e "fatti": un elenco [{testo, fonte}] da Wikipedia, Wikidata
-o OpenStreetMap (può essere vuoto). Le tappe dove si mangia o si beve hanno "locale": true
-e in più "price_level" (0-4 di Google, oppure null), "minuti_a_piedi_da_prima" (oppure null
-per la prima tappa) e "motivo": perché il motore l'ha scelta per questo utente.
+Di ogni tappa ricevi: place_id, nome, "tipo" (in italiano: per i locali vince il nome,
+"Osteria X" è un'osteria), categoria, "types", momento della giornata, orario di arrivo
+(HH:MM), "tramonto_ancora_davanti" (true/false), "minuti_a_piedi_da_prima" (null per la
+prima tappa), "motivo" (perché il motore l'ha scelta per questo utente) e "fatti": un
+elenco [{testo, fonte}] da Wikipedia, Wikidata o OpenStreetMap (può essere vuoto).
+Le tappe dove si mangia o si beve hanno "locale": true e "price_level" (0-4, oppure null).
 Di ogni giorno ricevi: data, alba e tramonto di ${city}.
 NON ricevi rating, recensioni, indirizzi, orari di apertura né foto: non citarli.
 
@@ -1243,12 +1251,28 @@ FATTI — la regola sopra tutte:
    La specificità sta nei FATTI: date, autori, primati, misure che ricevi.
    Senza fatti, se la scelta è tra generico e inventato, VINCE IL GENERICO.
 
-   LUOGHI: un fatto concreto preso dai "fatti" + cosa guardare o quando arrivi.
+   GIUDIZI: un giudizio (migliore, unico, cuore di, straordinario, incantevole,
+   incontaminato, imperdibile, "uno dei", "vista su…", meno frequentato, nascosto,
+   tranquillo…) passa SOLO se è scritto nei "fatti" di quella tappa. Se no, la frase
+   viene tolta dal codice.
+
+   SENZA FATTI ("fatti": []): sul luogo dici SOLO il nome e il "tipo". Il resto è
+   "perché qui, per te", fatto solo di dati: momento, arrivo, tramonto se ancora
+   davanti, minuti dalla tappa prima, "motivo" e il legame con la richiesta.
+     ✓ "Un belvedere a 8 minuti dalla tappa prima: è qui per la tua richiesta, la Roma dei romani."
+     ✗ "Affacciata su Roma, è uno dei migliori punti panoramici della città."  ← giudizi non nei fatti
+     ✗ "Una piazza che rappresenta il cuore culturale di Catania."  ← giudizio non nei fatti
+
+   LUOGHI CON FATTI: un fatto concreto preso dai "fatti" + cosa guardare o quando arrivi.
+   "fatti_su" dice DI CHE LUOGO parlano i fatti: se non è la tappa (i fatti del Pincio
+   per la Terrazza del Pincio), nominalo: "Sul Pincio, colle di Roma, …" — mai
+   "Un colle di Roma" detto della terrazza.
      ✓ (fatti: "Aperti al pubblico nell'anno 1734, sotto papa Clemente XII…")
        "Aperti nel 1734 sotto Clemente XII, sono considerati il primo museo pubblico al mondo."
      ✓ (fatti vuoti) "Una basilica: la tappa che apre la tua mattina."
      ✗ "Guarda il soffitto dalla navata laterale"  ← il soffitto non è nei fatti
    LOCALI: perché è qui per te, con i dati — mai piatti, arredi o atmosfera.
+   Chiamalo con il suo "tipo": un'osteria non diventa una trattoria.
      ✓ "Per il pranzo: trattoria, fascia €€, a 6 minuti dalla tappa prima."
      ✓ "Cercata con opzioni vegetariane, fascia €: a 4 minuti dalla tappa prima."
      ✗ "Il profumo del pane appena sfornato accoglie chi entra"  ← niente nei dati
@@ -1943,7 +1967,7 @@ const guardNarrationLight = (days, starts, tourWindow, cityCenter) => {
  * quota (AiQuotaExceededError): un narratore caduto lascia le tappe senza testo
  * e lo dice nel report, ma non butta un percorso gia' scelto e verificato.
  */
-const narrateFinalDays = async ({ city, days, starts, tourWindow, cityCenter, weather, prefs, aiProfile, userPrompt, quotaTicket, facts = new Map(), locali = new Map() }) => {
+const narrateFinalDays = async ({ city, days, starts, tourWindow, cityCenter, weather, prefs, aiProfile, userPrompt, quotaTicket, facts = new Map(), locali = new Map(), luoghi = new Map() }) => {
     const timed = refreshTourScheduledTimes(days, starts);
     const giorni = timed.map((d, i) => {
         const sun = sunForDay(d, i, tourWindow, cityCenter);
@@ -1958,21 +1982,26 @@ const narrateFinalDays = async ({ city, days, starts, tourWindow, cityCenter, we
                 // P3d-e — i fatti (solo testo e fonte) e, per i locali, i dati
                 // che il motore ha gia': fascia di prezzo, minuti dalla tappa
                 // prima, motivo della scelta.
+                // P3d-g — per OGNI tappa: il tipo (dal nome, se lo dice: "Osteria
+                // Navona" e' un'osteria), i minuti dalla tappa prima, se il
+                // tramonto e' ancora davanti e il motivo della scelta. Senza fatti,
+                // il "perche' qui, per te" si scrive solo con questi.
                 const loc = locali.get(s.place_id);
+                const arrivoMs = s.scheduledTime ? new Date(s.scheduledTime).getTime() : NaN;
                 return {
                     place_id: s.place_id,
                     nome: s.title,
+                    tipo: tipoTappa(s),
                     categoria: s.type || 'place',
                     types: (s.types || []).slice(0, 5),
                     momento: s.momentLabel || (p ? momentAtClock(p.h, p.mi).label : null),
                     arrivo,
+                    tramonto_ancora_davanti: Number.isFinite(arrivoMs) && sun.sunset ? arrivoMs <= sun.sunset.getTime() : null,
+                    minuti_a_piedi_da_prima: Number.isFinite(s.travelMinutesFromPrev) ? s.travelMinutesFromPrev : null,
                     fatti: (facts.get(s.place_id)?.fatti || []).map(f => ({ testo: f.testo, fonte: f.fonte })),
-                    ...(loc ? {
-                        locale: true,
-                        price_level: loc.price_level,
-                        minuti_a_piedi_da_prima: Number.isFinite(s.travelMinutesFromPrev) ? s.travelMinutesFromPrev : null,
-                        motivo: loc.motivo,
-                    } : {}),
+                    ...(factsAbout(facts.get(s.place_id)) ? { fatti_su: factsAbout(facts.get(s.place_id)) } : {}),
+                    motivo: loc ? loc.motivo : (luoghi.get(s.place_id)?.motivo || []),
+                    ...(loc ? { locale: true, price_level: loc.price_level } : {}),
                 };
             }),
         };
@@ -2028,6 +2057,9 @@ const rewriteReason = (x) => {
     if (regole.includes('parola-vietata')) return `hai usato ${(x.parole || []).map(p => `"${p}"`).join(', ')}`;
     if (regole.includes('apertura-sensi')) return "apriva con un'impressione dei sensi";
     if (regole.includes('invenzione')) return `nominava ${(x.oggetti || []).map(o => `"${o}"`).join(', ')}, che non risulta dai fatti né dal nome`;
+    if (regole.includes('giudizio')) return `dava un giudizio (${(x.oggetti || []).map(o => `"${o}"`).join(', ')}) che non è scritto nei fatti`;
+    if (regole.includes('attribuzione')) return `attribuiva alla tappa i fatti di "${x.fattiSu || '?'}" senza nominarlo`;
+    if (regole.includes('tipo-locale')) return `chiamava il locale ${(x.oggetti || []).map(o => `"${o}"`).join(', ')}, ma il nome dice "${x.tipoNome || '?'}"`;
     if (regole.includes('ancoraggio')) return 'riscrivila usando i fatti e i dati forniti';
     return `parlava di ${regole.map(r => `"${r}"`).join(', ')} ma l'arrivo è alle ${x.arrivo || '?'}`;
 };
@@ -2039,12 +2071,15 @@ Riscrivi SOLO il campo description, una per tappa.
 
 ${DESCRIPTION_RULE_PROMPT}
 
-Di ogni tappa sai SOLO: nome, "types", momento e orario di arrivo (se ci sono) e
-"fatti" [{testo, fonte}] da Wikipedia, Wikidata o OpenStreetMap (può essere vuoto).
-Le tappe con "locale": true hanno anche price_level, minuti a piedi dalla tappa
-prima e "motivo" (perché il motore l'ha scelta per l'utente).
-OGNI frase usa SOLO i fatti, il nome o questi dati. Luoghi: un fatto concreto più
-cosa guardare o quando. Locali: perché è qui per l'utente, con i dati.
+Di ogni tappa sai SOLO: nome, "tipo", "types", momento e orario di arrivo (se ci sono),
+tramonto ancora davanti o no, minuti a piedi dalla tappa prima, "motivo" (perché il
+motore l'ha scelta per l'utente) e "fatti" [{testo, fonte}] da Wikipedia, Wikidata o
+OpenStreetMap (può essere vuoto), con "fatti_su" se parlano di un altro luogo (nominalo).
+Le tappe con "locale": true hanno anche price_level.
+OGNI frase usa SOLO i fatti, il nome o questi dati. Luoghi con fatti: un fatto
+concreto più cosa guardare o quando. Luoghi SENZA fatti: del luogo solo nome e tipo,
+poi perché è qui per l'utente, con i dati. Locali: perché è qui per l'utente, con i
+dati, chiamandoli con il loro "tipo". Nessun giudizio che non sia nei fatti.
 NON attribuirgli contenuti che non sono nei fatti (opere, piatti, mostre, eventi,
 servizi, oggetti). NON parlare di luce o di ora (tramonto, alba, sera, notte,
 mattina) se l'orario di arrivo non lo rende vero. NON dire se il posto è aperto o chiuso.
@@ -2080,12 +2115,13 @@ const rewriteDescriptions = async ({ city, items, quotaTicket }) => {
         ...(it.arrivo ? { arrivo: it.arrivo } : {}),
         // P3d-e — i fatti e, per i locali, i dati della scelta.
         fatti: (it.fatti || []).map(f => ({ testo: f.testo, fonte: f.fonte })),
-        ...(it.locale ? {
-            locale: true,
-            price_level: it.locale.price_level ?? null,
-            minuti_a_piedi_da_prima: Number.isFinite(it.locale.minuti) ? it.locale.minuti : null,
-            motivo: it.locale.motivo || [],
-        } : {}),
+        ...(it.fattiSu ? { fatti_su: it.fattiSu } : {}),
+        // P3d-g — per ogni tappa i dati del "perche' qui, per te".
+        tipo: tipoTappa({ title: it.nome, types: it.types }),
+        minuti_a_piedi_da_prima: Number.isFinite(it.minuti) ? it.minuti : (Number.isFinite(it.locale?.minuti) ? it.locale.minuti : null),
+        ...(typeof it.tramontoDavanti === 'boolean' ? { tramonto_ancora_davanti: it.tramontoDavanti } : {}),
+        motivo: it.locale?.motivo || it.motivo || [],
+        ...(it.locale ? { locale: true, price_level: it.locale.price_level ?? null } : {}),
         tolto: it.tolte.length > 0
             ? it.tolte.map(x => ({ frase: x.frase, motivo: rewriteReason(x) }))
             : (it.ancora
@@ -2120,7 +2156,7 @@ const rewriteDescriptions = async ({ city, items, quotaTicket }) => {
             const ora = filterTimeIncoherent(voce.text, {
                 arrival: it.arrival || null, sunrise: it.sun?.sunrise || null, sunset: it.sun?.sunset || null,
             });
-            const vero = filterInventedObjects(ora.text, { fatti: it.fatti || [], nomi: it.exempt });
+            const vero = filterInventedObjects(ora.text, { fatti: it.fatti || [], nomi: it.exempt, fattiSu: it.fattiSu || null });
             for (const x of [...voce.removed, ...ora.removed, ...vero.removed]) {
                 report.scartate.push({ title: it.nome, frase: x.frase, motivo: rewriteReason(x) });
             }
@@ -2147,7 +2183,7 @@ const rewriteDescriptions = async ({ city, items, quotaTicket }) => {
  * dalla descrizione. Ogni tappa porta arrivo e alba/tramonto del suo giorno,
  * per ripassare dal filtro di luce/ora.
  */
-const itineraryRewriteItems = (days, frasiTolte, starts, tourWindow, cityCenter, facts = new Map(), locali = new Map()) => {
+const itineraryRewriteItems = (days, frasiTolte, starts, tourWindow, cityCenter, facts = new Map(), locali = new Map(), luoghi = new Map()) => {
     const timed = refreshTourScheduledTimes(days, starts);
     const items = [];
     (days || []).forEach((day, di) => {
@@ -2162,6 +2198,10 @@ const itineraryRewriteItems = (days, frasiTolte, starts, tourWindow, cityCenter,
                 tolte, exempt: [s.title, s.name].filter(Boolean),
                 arrival: iso ? new Date(iso) : null, sun,
                 fatti: facts.get(s.place_id)?.fatti || [],
+                fattiSu: factsAbout(facts.get(s.place_id)),
+                minuti: s.travelMinutesFromPrev,
+                tramontoDavanti: iso && sun.sunset ? new Date(iso).getTime() <= sun.sunset.getTime() : undefined,
+                motivo: luoghi.get(s.place_id)?.motivo || [],
                 ...(locali.has(s.place_id) ? { locale: { ...locali.get(s.place_id), minuti: s.travelMinutesFromPrev } } : {}),
             });
         });
@@ -2176,6 +2216,9 @@ const itineraryRewriteItems = (days, frasiTolte, starts, tourWindow, cityCenter,
 // dai fatti e dal nome si toglie, come le altre. La tappa va alla riscrittura
 // (una volta); se la riscrittura non passa, la frase sicura del codice.
 
+/** P3d-g — il titolo del luogo di cui parlano i fatti (Pincio per la Terrazza del Pincio). */
+const factsAbout = (entry) => (entry?.fonti || []).find(f => f?.fonte === 'wikipedia' || f?.fonte === 'wikidata')?.titolo || null;
+
 /** Il controllo anti-invenzione sulle descrizioni di un itinerario raccontato. */
 const guardInventions = (days, facts) => {
     const frasiTolte = [];
@@ -2183,9 +2226,9 @@ const guardInventions = (days, facts) => {
         ...day,
         stops: (day.stops || []).map(s => {
             if (!s.description) return s;
-            const r = filterInventedObjects(s.description, { fatti: facts.get(s.place_id)?.fatti || [], nomi: [s.title, s.name].filter(Boolean) });
+            const r = filterInventedObjects(s.description, { fatti: facts.get(s.place_id)?.fatti || [], nomi: [s.title, s.name].filter(Boolean), fattiSu: factsAbout(facts.get(s.place_id)) });
             for (const x of r.removed) {
-                frasiTolte.push({ place_id: s.place_id, title: s.title, campo: 'description', frase: x.frase, regole: ['invenzione'], oggetti: x.oggetti });
+                frasiTolte.push({ place_id: s.place_id, title: s.title, campo: 'description', frase: x.frase, regole: [x.regola], oggetti: x.oggetti, ...(x.tipoNome ? { tipoNome: x.tipoNome } : {}) });
             }
             return r.removed.length > 0 ? { ...s, description: r.text } : s;
         }),
@@ -2215,6 +2258,35 @@ export const localeReasons = (c, { food = null, dnaWeights = {} } = {}) => {
     }
     if (c._ricercaCibo) motivo.push(`trovato con la ricerca "${c._ricercaCibo}"`);
     return motivo;
+};
+
+/**
+ * P3d-g — perche' il motore ha scelto questo LUOGO per l'utente: la ricerca che
+ * l'ha trovato, la richiesta, il tema del tour, il DNA. Solo criteri veri.
+ */
+const TEMA_LABEL = {
+    insider: 'tour "insider" di Per Te', food: 'tour del cibo', cultura: 'tour della cultura',
+    romance: 'tour in coppia', nature: 'tour del verde', storia: 'tema storia', arte: 'tema arte',
+    natura: 'tema natura', relax: 'tema relax', shopping: 'tema shopping', nightlife: 'tema sera',
+};
+export const placeReasons = (c, { intent = null, dnaWeights = {}, tema = null } = {}) => {
+    const motivo = [];
+    if (intent?.oggetto_umano) motivo.push(`per la richiesta dell'utente: ${intent.oggetto_umano}`);
+    if (c?._ricerca) motivo.push(`trovato cercando "${c._ricerca}"`);
+    const t = tema || c?._tema;
+    if (t && TEMA_LABEL[t]) motivo.push(`scelto per il ${TEMA_LABEL[t]}`);
+    if (c && dnaShareOf(dnaWeights) > 0 && Object.keys(dnaWeights || {}).some(k => k !== '_share') && computeAffinityScore(c, dnaWeights) >= 0.5) {
+        motivo.push('in linea con il profilo dell\'utente (DNA)');
+    }
+    return motivo;
+};
+const placeInfoFor = (stops, byIdCandidate, ctx) => {
+    const out = new Map();
+    for (const s of stops) {
+        if (isLocaleStop(s)) continue;
+        out.set(s.place_id, { motivo: placeReasons(byIdCandidate.get(s.place_id), ctx) });
+    }
+    return out;
 };
 
 /** I dati dei locali fra le tappe finali, per il narratore e la frase sicura. */
@@ -2681,6 +2753,7 @@ export const aiRecommendationService = {
                         const byIdCand = new Map(candidates.map(c => [c.place_id || c.googlePlaceId, c]));
                         const finalStops = finalDays.flatMap(d => d.stops);
                         const locali = localeInfoFor(finalStops, byIdCand, { food: foodOn ? food : null, dnaWeights: opts.dnaWeights || {} });
+                        const luoghi = placeInfoFor(finalStops, byIdCand, { intent, dnaWeights: opts.dnaWeights || {} });
                         const daysForNarration = finalDays.map(d => ({
                             ...d,
                             stops: d.stops.map(st => (locali.has(st.place_id) ? { ...st, priceLevel: locali.get(st.place_id).price_level } : st)),
@@ -2691,7 +2764,7 @@ export const aiRecommendationService = {
                         const facts = factsRes.byId;
                         const narration = await narrateFinalDays({
                             city, days: daysForNarration, starts, tourWindow, cityCenter,
-                            weather, prefs, aiProfile, userPrompt, quotaTicket, facts, locali,
+                            weather, prefs, aiProfile, userPrompt, quotaTicket, facts, locali, luoghi,
                         });
                         const guardedLight = guardNarrationLight(
                             applyNarration(daysForNarration, narration, city), starts, tourWindow, cityCenter,
@@ -2706,7 +2779,7 @@ export const aiRecommendationService = {
                         let riscrittura = null;
                         let narratedDays = guarded.days;
                         if (!narration.error) {
-                            const items = itineraryRewriteItems(narratedDays, frasiTolte, starts, tourWindow, cityCenter, facts, locali);
+                            const items = itineraryRewriteItems(narratedDays, frasiTolte, starts, tourWindow, cityCenter, facts, locali, luoghi);
                             if (items.length > 0) {
                                 const rw = await rewriteDescriptions({ city, items, quotaTicket });
                                 riscrittura = rw.report;
@@ -3131,19 +3204,33 @@ export const aiRecommendationService = {
             })), { city });
             const facts = factsRes.byId;
             const locali = localeInfoFor(sceltePerTe, poolById, { food: hasFoodPrefs(food) ? food : null, dnaWeights });
+            // P3d-g — "Per Te" e' adesso: la luce e l'ora si controllano sull'ora
+            // di ADESSO (il tramonto non compare dopo cena), e ogni tappa ha il
+            // suo motivo (tema del tour, DNA).
+            const sunNow = sunTimes({ y: nowRome.y, m: nowRome.m, d: nowRome.d },
+                Number.isFinite(cityCenter?.latitude) ? cityCenter.latitude : ROMA_FALLBACK.latitude,
+                Number.isFinite(cityCenter?.longitude) ? cityCenter.longitude : ROMA_FALLBACK.longitude);
+            const tramontoDavantiOra = sunNow.sunset ? now.getTime() <= sunNow.sunset.getTime() : undefined;
+            const motivoPerTe = new Map();
             prepared.forEach((pt) => {
                 if (!pt) return;
                 pt.canonized = pt.canonized.map(st => {
                     const fatti = facts.get(st.place_id)?.fatti || [];
-                    const r = filterInventedObjects(st.description, { fatti, nomi: [st.title, st.name].filter(Boolean) });
-                    for (const x of r.removed) {
-                        console.warn(`[P3d-e FATTI] ${city} (home): tolta frase (${x.oggetti.join(',')}) da "${st.title}" — "${x.frase}"`);
+                    if (!locali.has(st.place_id)) motivoPerTe.set(st.place_id, placeReasons(poolById.get(st.place_id), { dnaWeights, tema: pt.themeType }));
+                    const ora = filterTimeIncoherent(st.description, { arrival: now, sunrise: sunNow.sunrise, sunset: sunNow.sunset });
+                    const r = filterInventedObjects(ora.text, { fatti, nomi: [st.title, st.name].filter(Boolean), fattiSu: factsAbout(facts.get(st.place_id)) });
+                    for (const x of [...ora.removed, ...r.removed]) {
+                        console.warn(`[P3d-g FATTI] ${city} (home): tolta frase (${(x.oggetti || x.regole || []).join(',')}) da "${st.title}" — "${x.frase}"`);
                     }
+                    const tolte = [...ora.removed.map(x => ({ ...x })), ...r.removed.map(x => ({ ...x, regole: [x.regola] }))];
                     return {
                         ...st,
-                        description: r.removed.length > 0 ? r.text : st.description,
-                        _tolte: [...st._tolte, ...r.removed.map(x => ({ ...x, regole: ['invenzione'] }))],
-                        _ancora: fatti.length > 0 || locali.has(st.place_id),
+                        description: tolte.length > 0 ? r.text : st.description,
+                        _tolte: [...st._tolte, ...tolte],
+                        // P3d-g — ogni tappa si riscrive ancorata ai fatti o ai dati:
+                        // il selettore l'ha raccontata senza fatti e senza dati.
+                        _ancora: true,
+                        _senzaFatti: fatti.length === 0,
                         ...(locali.has(st.place_id) ? { priceLevel: locali.get(st.place_id).price_level } : {}),
                     };
                 });
@@ -3192,6 +3279,10 @@ export const aiRecommendationService = {
                         momento: moment.label,
                         tolte: st._tolte, exempt: [st.title, st.name].filter(Boolean),
                         fatti: facts.get(st.place_id)?.fatti || [],
+                        fattiSu: factsAbout(facts.get(st.place_id)),
+                        motivo: motivoPerTe.get(st.place_id) || [],
+                        tramontoDavanti: tramontoDavantiOra,
+                        arrival: now, sun: sunNow,
                         ...(locali.has(st.place_id) ? { locale: locali.get(st.place_id) } : {}),
                         ancora: st._ancora, attuale: st.description || null,
                     });
@@ -3202,6 +3293,8 @@ export const aiRecommendationService = {
                         key: `${ti}:r${ri}`, place_id: st.place_id, nome: st.title, types: st.types,
                         momento: moment.label,
                         tolte: [], exempt: [st.title, st.name].filter(Boolean),
+                        motivo: loc ? [] : placeReasons(poolById.get(st.place_id), { dnaWeights, tema: pt.themeType }),
+                        tramontoDavanti: tramontoDavantiOra, arrival: now, sun: sunNow,
                         ...(loc ? { locale: loc } : {}),
                     });
                 });
@@ -3221,15 +3314,24 @@ export const aiRecommendationService = {
                 const { tour, themeType } = pt;
                 // P3d-e — una tappa riscritta con dei fatti porta le sue fonti
                 // (_conFatti); una non riscritta resta com'era dopo i filtri.
-                let canonized = pt.canonized.map((st, si) => (rewrite?.byKey.has(`${ti}:${si}`)
-                    ? { ...st, description: rewrite.byKey.get(`${ti}:${si}`), _conFatti: (facts.get(st.place_id)?.fatti || []).length > 0 } : st));
+                // P3d-g — il testo del selettore non resta MAI: e' scritto senza
+                // fatti e senza dati (prova reale: "un ingresso maestoso… ricco di
+                // storia e bellezza" era sopravvissuto per una tappa con fatti).
+                // Se la riscrittura ancorata non e' arrivata o non passa, frase
+                // sicura del codice.
+                let canonized = pt.canonized.map((st, si) => {
+                    if (rewrite?.byKey.has(`${ti}:${si}`)) {
+                        return { ...st, description: rewrite.byKey.get(`${ti}:${si}`), _conFatti: (facts.get(st.place_id)?.fatti || []).length > 0 };
+                    }
+                    return { ...st, description: null };
+                });
 
                 // Gate II.2 — mai placeholder "Luogo di interesse".
                 // P3d-e: mai nemmeno una descrizione vuota. Una tappa che neanche
                 // la riscrittura ha salvato riceve, dopo l'ordinamento, la frase
                 // sicura del codice (tipo, momento, per i locali fascia e minuti):
                 // solo dati veri, non un riempitivo.
-                canonized = canonized.map(({ _tolte, _ancora, ...st }) => st);
+                canonized = canonized.map(({ _tolte, _ancora, _senzaFatti, ...st }) => st);
 
                 // P7a2 — sotto le 3 tappe: si completa con le riserve che hanno
                 // ricevuto una descrizione (in ordine di merito).

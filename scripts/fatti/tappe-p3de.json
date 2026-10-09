@@ -1,0 +1,253 @@
+[
+ {
+  "prova": "roma",
+  "city": "Roma",
+  "name": "Belvedere Tarpeo",
+  "nomeGoogle": "Belvedere Tarpeo",
+  "place_id": "ChIJxy7Ts0BhLxMRBMzATVixF1M",
+  "lat": 41.8916005,
+  "lng": 12.4824864,
+  "types": [
+   "establishment",
+   "point_of_interest",
+   "tourist_attraction"
+  ]
+ },
+ {
+  "prova": "roma",
+  "city": "Roma",
+  "name": "Terrazza Belvedere Aventino",
+  "nomeGoogle": "Terrazza Belvedere Aventino",
+  "place_id": "ChIJrbg1x1thLxMRNN10TZgYjWY",
+  "lat": 41.8854348,
+  "lng": 12.479942,
+  "types": [
+   "establishment",
+   "point_of_interest",
+   "tourist_attraction"
+  ]
+ },
+ {
+  "prova": "roma",
+  "city": "Roma",
+  "name": "Belvedere Cederna",
+  "nomeGoogle": "Belvedere Cederna",
+  "place_id": "ChIJG1D9OwBhLxMRP8IMOVzX8Yg",
+  "lat": 41.8920952,
+  "lng": 12.489715,
+  "types": [
+   "establishment",
+   "point_of_interest"
+  ]
+ },
+ {
+  "prova": "catania",
+  "city": "Catania",
+  "name": "Piazza Vincenzo Bellini",
+  "nomeGoogle": "Piazza Vincenzo Bellini",
+  "place_id": "ChIJhYwAADLjExMRZOXGpli3Yjo",
+  "lat": 37.5045379,
+  "lng": 15.0906724,
+  "types": [
+   "route"
+  ]
+ },
+ {
+  "prova": "catania",
+  "city": "Catania",
+  "name": "Porta Garibaldi",
+  "nomeGoogle": "Porta Garibaldi",
+  "place_id": "ChIJhVn-jdniExMRlAlDXwl--r0",
+  "lat": 37.4996307,
+  "lng": 15.0739144,
+  "types": [
+   "establishment",
+   "point_of_interest",
+   "tourist_attraction"
+  ]
+ },
+ {
+  "prova": "catania",
+  "city": "Catania",
+  "name": "Belvedere Di Carminello",
+  "nomeGoogle": "Belvedere Di Carminello",
+  "place_id": "ChIJdQr9cPX7ExMRxA2GjNivuuU",
+  "lat": 37.5695219,
+  "lng": 15.1268025,
+  "types": [
+   "establishment",
+   "point_of_interest"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Hortus Urbis",
+  "nomeGoogle": "Hortus Urbis",
+  "place_id": "ChIJ9VM8Vd9hLxMR7Lg1D2qZzQk",
+  "lat": 41.8674831,
+  "lng": 12.5005071,
+  "types": [
+   "establishment",
+   "park",
+   "point_of_interest",
+   "tourist_attraction",
+   "zoo"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Belvedere del Salviati · Terrazza Panoramica Passeggiata del Gianicolo",
+  "nomeGoogle": "Belvedere del Salviati · Terrazza Panoramica Passeggiata del Gianicolo",
+  "place_id": "ChIJk0ZgdUJgLxMRUVv6OAQzlIQ",
+  "lat": 41.8917246,
+  "lng": 12.4611328,
+  "types": [
+   "establishment",
+   "point_of_interest"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Terrazza del Pincio",
+  "nomeGoogle": "Terrazza del Pincio",
+  "place_id": "ChIJxTF2FABhLxMRMCggaPaPG6s",
+  "lat": 41.9111207,
+  "lng": 12.4779391,
+  "types": [
+   "establishment",
+   "point_of_interest",
+   "tourist_attraction"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Basilica dei Santi XII Apostoli",
+  "nomeGoogle": "Basilica dei Santi XII Apostoli",
+  "place_id": "ChIJ6x0jp1JgLxMR85M3neiLoao",
+  "lat": 41.8982697,
+  "lng": 12.4829881,
+  "types": [
+   "church",
+   "establishment",
+   "place_of_worship",
+   "point_of_interest",
+   "tourist_attraction"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Galleria Colonna",
+  "nomeGoogle": "Galleria Colonna",
+  "place_id": "ChIJoZRZT01gLxMR0C1IBGiGv1c",
+  "lat": 41.8975648,
+  "lng": 12.4847388,
+  "types": [
+   "establishment",
+   "museum",
+   "point_of_interest"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Musei Capitolini",
+  "nomeGoogle": "Musei Capitolini",
+  "place_id": "ChIJ8-wGeU9gLxMR--zJtnpGod4",
+  "lat": 41.8929428,
+  "lng": 12.4825577,
+  "types": [
+   "establishment",
+   "museum",
+   "point_of_interest",
+   "tourist_attraction"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Gianicolo Belvedere",
+  "nomeGoogle": "Gianicolo Belvedere",
+  "place_id": "ChIJN-GsUwBhLxMR8GJzcAWRRtE",
+  "lat": 41.8915625,
+  "lng": 12.4611054,
+  "types": [
+   "establishment",
+   "point_of_interest"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Passeggiata del Gianicolo",
+  "nomeGoogle": "Passeggiata del Gianicolo",
+  "place_id": "ChIJ5UhoMkBgLxMRRqdZYHXQnfs",
+  "lat": 41.8935924,
+  "lng": 12.4605683,
+  "types": [
+   "route"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Piazza del Campidoglio",
+  "nomeGoogle": "Piazza del Campidoglio",
+  "place_id": "ChIJOclom0xgLxMRURy9OLL7Hg4",
+  "lat": 41.8933592,
+  "lng": 12.4828018,
+  "types": [
+   "establishment",
+   "point_of_interest",
+   "tourist_attraction"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Ingresso di Villa Pamphili",
+  "nomeGoogle": "Ingresso di Villa Pamphili",
+  "place_id": "ChIJ7fEBMeFfLxMRy1kiqZvuJ70",
+  "lat": 41.8905967,
+  "lng": 12.4329212,
+  "types": [
+   "establishment",
+   "park",
+   "point_of_interest"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Villa Doria Pamphili",
+  "nomeGoogle": "Villa Doria Pamphili",
+  "place_id": "ChIJYeUz0BpgLxMRBNr_z8ge-CA",
+  "lat": 41.8852777,
+  "lng": 12.4416104,
+  "types": [
+   "establishment",
+   "park",
+   "point_of_interest",
+   "tourist_attraction"
+  ]
+ },
+ {
+  "prova": "perte",
+  "city": "Roma",
+  "name": "Giardino delle Cascate",
+  "nomeGoogle": "Giardino delle Cascate",
+  "place_id": "ChIJ24mMFhyLJRMRyTrm_FhBUZk",
+  "lat": 41.8275496,
+  "lng": 12.4677168,
+  "types": [
+   "establishment",
+   "park",
+   "point_of_interest",
+   "tourist_attraction"
+  ]
+ }
+]

@@ -217,7 +217,9 @@ describe('P3d-e — fetchFactsForStops: abbinamento stretto e tetto di tempo', (
         expect(namesMatch('Museo Centrale del Risorgimento', 'Museo centrale del Risorgimento al Vittoriano', 'Roma')).toBe(true);
         expect(namesMatch('Museo Nazionale Romano, Palazzo Massimo alle Terme', 'Museo nazionale romano di palazzo Massimo', 'Roma')).toBe(true);
         // i falsi abbinamenti visti nella diagnosi
-        expect(namesMatch('Gianicolo Belvedere', 'Gianicolo', 'Roma')).toBe(false);
+        // P3d-h: "Gianicolo Belvedere" → "Gianicolo" ora SI' (il belvedere e' sul
+        // colle; "Belvedere" non fa il nome): lo tengono vero il raggio e il tipo.
+        expect(namesMatch('Gianicolo Belvedere', 'Gianicolo', 'Roma')).toBe(true);
         expect(namesMatch('Terrazza Belvedere Aventino', 'Lungotevere Aventino', 'Roma')).toBe(false);
         expect(namesMatch('Palazzo degli Elefanti', "Palazzo dell'Università (Catania)", 'Catania')).toBe(false);
         expect(namesMatch("Giardino di Sant'Alessio", 'Basilica dei Santi Bonifacio e Alessio', 'Roma')).toBe(false);
@@ -230,13 +232,15 @@ describe('P3d-e — fetchFactsForStops: abbinamento stretto e tetto di tempo', (
         expect(kindsCompatible(stopKinds({ name: 'Piazza del Quirinale', types: ['establishment'] }), stopKinds({ name: 'piazza di Roma' }))).toBe(true);
     });
 
-    it('Overpass: UNA sola interrogazione per tutte le tappe, raggio 100 m', () => {
+    // P3d-h — raggio per tipo (parco 800 m, museo 200 m) e nome per radice.
+    it('Overpass: UNA sola interrogazione per tutte le tappe, raggio per tipo', () => {
         const q = buildOverpassQuery([
-            { name: 'Giardino degli Aranci', lat: 41.885, lng: 12.48 },
-            { name: 'Musei Capitolini', lat: 41.893, lng: 12.482 },
+            { name: 'Giardino degli Aranci', lat: 41.885, lng: 12.48, types: ['park'] },
+            { name: 'Musei Capitolini', lat: 41.893, lng: 12.482, types: ['museum'] },
         ], 'Roma');
-        expect(q.match(/nwr\(around:100,/g)).toHaveLength(2);
-        expect(q).toContain('"name"~"capitolini",i');
+        expect(q.match(/nwr\(around:/g)).toHaveLength(2);
+        expect(q).toContain('nwr(around:800,41.885,12.48)');
+        expect(q).toContain('nwr(around:200,41.893,12.482)["name"~"capitolin",i]');
         expect(q.startsWith('[out:json]')).toBe(true);
     });
 

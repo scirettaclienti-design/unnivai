@@ -343,6 +343,9 @@ import { sunTimes } from '@/lib/sunTimes';
 import { filterTimeIncoherent } from '@/lib/narrationLight';
 // Gate PAROLE VIETATE — l'unico elenco: i prompt lo mostrano, il filtro lo applica.
 import { filterBannedWords, bannedWordsPromptLines, DESCRIPTION_RULE_PROMPT } from '@/lib/narrationLight';
+// P3d-e — fatti aperti sulle tappe finali, controllo anti-invenzione, frase sicura.
+import { filterInventedObjects, safeDescription, CONCRETE_OBJECTS } from '@/lib/narrationLight';
+import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock } from '@/lib/dayMoments';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
@@ -354,10 +357,11 @@ import {
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
-import { selectScoredCandidatePool, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport } from './candidateScoring';
+import { selectScoredCandidatePool, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport, computeAffinityScore, dnaShareOf } from './candidateScoring';
 import {
     resolveFoodPrefs, applyFoodConstraints, foodPrefBonus, foodPrefsFingerprint, hasFoodPrefs,
     searchFoodWithDiet, dietNoteLine, dietCriteria, hierarchyPromptBlock, priceLevelOf,
+    matchesStile, STILI,
 } from '@/lib/foodPrefs';
 
 // ─── DVAI-060 F2 — derive theme + fetch candidati reali ──────────────────────
@@ -1185,6 +1189,10 @@ const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'lug
 // categoria, types, momento, orario di arrivo, data; per ogni giorno alba e
 // tramonto della citta' (src/lib/sunTimes.js). Le tappe arrivano nel messaggio
 // utente, dopo "TAPPE FINALI:".
+// P3d-e — in piu', per ogni tappa, i FATTI aperti (factsService) e, per i
+// locali, price_level, minuti a piedi dalla tappa prima e motivo della scelta.
+// Il prompt dichiarava "rating, recensioni, indirizzo", che il narratore non
+// ha mai ricevuto: ora dice esattamente cosa riceve.
 //
 // Le regole di voce sono quelle che stavano nel prompt del selettore-narratore,
 // spostate qui senza indebolirle. In piu' la regola LUCE E ORA: il racconto
@@ -1207,8 +1215,13 @@ Contesto:
 • meteo: ${weather?.condition || 'sereno'} ${weather?.temperature || 22}°${aiProfile ? `
 • profilo implicito: ${aiProfile}` : ''}
 
-Di ogni tappa ricevi: place_id, nome, categoria, "types", momento della giornata, orario di arrivo (HH:MM).
+Di ogni tappa ricevi: place_id, nome, categoria, "types", momento della giornata,
+orario di arrivo (HH:MM) e "fatti": un elenco [{testo, fonte}] da Wikipedia, Wikidata
+o OpenStreetMap (può essere vuoto). Le tappe dove si mangia o si beve hanno "locale": true
+e in più "price_level" (0-4 di Google, oppure null), "minuti_a_piedi_da_prima" (oppure null
+per la prima tappa) e "motivo": perché il motore l'ha scelta per questo utente.
 Di ogni giorno ricevi: data, alba e tramonto di ${city}.
+NON ricevi rating, recensioni, indirizzi, orari di apertura né foto: non citarli.
 
 LUCE E ORA — racconta la luce e il momento dell'ORARIO DI ARRIVO di quella tappa:
    • "tramonto" solo se l'arrivo è entro 45 minuti dal tramonto di quel giorno;
@@ -1216,69 +1229,57 @@ LUCE E ORA — racconta la luce e il momento dell'ORARIO DI ARRIVO di quella tap
      di arrivo li rende veri;
    • nel dubbio, non parlare di luce. Una frase incoerente con l'orario viene tolta.
 
-VOCE — per ogni tappa, racconta come un local sussurra un segreto:
-
-   ⚠️ REGOLA SOPRA TUTTE: gli esempi ✓ qui sotto mostrano il REGISTRO, non il
-   contenuto. NON copiarli e NON trasporli su un posto di tipo diverso. Ogni
-   frase deve nascere dal luogo che stai descrivendo e dal suo "types".
+FATTI — la regola sopra tutte:
+   ⚠️ gli esempi ✓ qui sotto mostrano il REGISTRO, non il contenuto. NON copiarli
+   e NON trasporli su un posto di tipo diverso.
 
    ⛔ NON ATTRIBUIRE A UN POSTO CONTENUTI CHE NON SAI ESISTANO LI'.
-   Di ogni luogo sai SOLO questo: nome, "types", rating, numero di recensioni,
-   indirizzo. Nient'altro. Da li' NON si deduce cosa c'e' dentro: quali opere,
-   quali mostre, quali sale, quali piatti, quali servizi, quali eventi.
-   Vietato scrivere che un posto ospita, espone, propone o contiene qualcosa,
-   se non risulta dai dati che hai.
+   OGNI frase usa SOLO i fatti forniti, il nome della tappa o i suoi dati
+   (categoria, momento, orario, e per i locali price_level, minuti, motivo).
+   Dal nome e dai "types" NON si deduce cosa c'e' dentro: quali opere, quali
+   sale, quali piatti, quali arredi, quali alberi o fontane.
 
-   COME SI RISOLVE LA TENSIONE (leggi: e' la regola che decide):
-   ti chiedo di essere SPECIFICO e insieme di NON INVENTARE. Non e' una
-   contraddizione: la specificita' deve stare su cio' che e' deducibile dai dati
-   che hai, o su cio' che vale per QUEL TIPO di posto in generale — non su
-   contenuti asseriti di quel singolo luogo.
-   Se la scelta e' tra generico e falso, VINCE IL GENERICO.
-   "Dentro la temperatura scende di colpo" (vero di quasi ogni chiesa in pietra)
-   e' meglio di "la sala 3 ha una panca davanti al quadro piu' piccolo" (che non
-   puoi sapere).
+   COME SI RISOLVE LA TENSIONE: ti chiedo di essere SPECIFICO e di NON INVENTARE.
+   La specificità sta nei FATTI: date, autori, primati, misure che ricevi.
+   Senza fatti, se la scelta è tra generico e inventato, VINCE IL GENERICO.
+
+   LUOGHI: un fatto concreto preso dai "fatti" + cosa guardare o quando arrivi.
+     ✓ (fatti: "Aperti al pubblico nell'anno 1734, sotto papa Clemente XII…")
+       "Aperti nel 1734 sotto Clemente XII, sono considerati il primo museo pubblico al mondo."
+     ✓ (fatti vuoti) "Una basilica: la tappa che apre la tua mattina."
+     ✗ "Guarda il soffitto dalla navata laterale"  ← il soffitto non è nei fatti
+   LOCALI: perché è qui per te, con i dati — mai piatti, arredi o atmosfera.
+     ✓ "Per il pranzo: trattoria, fascia €€, a 6 minuti dalla tappa prima."
+     ✓ "Cercata con opzioni vegetariane, fascia €: a 4 minuti dalla tappa prima."
+     ✗ "Il profumo del pane appena sfornato accoglie chi entra"  ← niente nei dati
+     ✗ "Chiesa barocca del XVIII secolo, patrimonio della città"  ← una scheda, non cosa guardare
+     ✗ "L'eco risuona tra le opere contemporanee esposte"  ← contenuto INVENTATO
+   Un oggetto concreto (${CONCRETE_OBJECTS.slice(0, 16).map(o => o.nome).join(', ')}…) che
+   non compare nei fatti o nel nome viene tolto dal codice, con la sua frase.
 
 ${DESCRIPTION_RULE_PROMPT}
-     Il dettaglio vale per QUEL TIPO di posto, non è un contenuto di quel singolo luogo:
-     ✓ museo/galleria — "Le sale in fondo restano le più vuote: si guarda senza teste davanti."
-     ✓ chiesa        — "Guarda il soffitto dalla navata laterale, dal centro la luce abbaglia."
-     ✗ "Chiesa barocca del XVIII secolo, patrimonio della città"  ← da enciclopedia
-     ✗ "L'eco risuona tra le opere contemporanee esposte"  ← contenuto INVENTATO
 
-   insiderTip (max 100 car): un consiglio pratico che solo chi ci vive sa.
-     ⚠️ DEVE essere pertinente al "types" del POI. Un consiglio da bar su un museo
-     è un errore grave: non si chiede un dolce in una galleria d'arte.
-     Se per QUEL posto non hai un consiglio pertinente e concreto, scrivi
-     "insiderTip": null. Nessun consiglio è meglio di un consiglio di un'altra
-     categoria: il campo è opzionale e l'interfaccia lo omette senza problemi.
-     ✓ museo/galleria — "Percorrilo al contrario: dall'ultima sala verso l'ingresso"
-     ✓ chiesa        — "Siediti qualche minuto prima di guardare: gli occhi si abituano al buio"
-     ✓ ristorante/bar — "Chiedi il caffè al bancone, seduto costa il doppio"
-     ✓ parco/natura  — "Se ha piovuto da poco, i vialetti in terra battuta diventano fango"
-     ✓ panorama      — "Dai le spalle al sole, altrimenti le foto vengono controluce"
+   insiderTip (max 100 car): un consiglio pratico SOLO se nasce dai fatti o dai
+     dati della tappa. Altrimenti "insiderTip": null — il campo è opzionale e
+     l'interfaccia lo omette. Nessun consiglio è meglio di un consiglio di un'altra
+     categoria o di un consiglio inventato.
      ✗ "Consigliata visita mattutina"  ← generico e inutile
      ✗ "Entra dalla porta laterale, quella principale è chiusa lun/mar"  ← ORARI che non hai
      ✗ "Non perderti la sezione dedicata agli artisti emergenti"  ← contenuto INVENTATO
 
    bestTime (max 100 car): perché ORA — ma SOLO se il motivo è verificabile dai
-     dati che ti ho dato (orario di arrivo, alba e tramonto, meteo, stagione).
-     NON ricevi orari di apertura o chiusura: NON citare ore.
-     Se non hai un motivo vero, scrivi "bestTime": null. Il campo è opzionale e
-     l'interfaccia lo omette: un motivo inventato è peggio di un campo assente.
+     dati che ti ho dato (orario di arrivo, alba e tramonto, meteo, data).
+     NON ricevi orari di apertura o chiusura: NON citare ore di apertura.
+     Se non hai un motivo vero, scrivi "bestTime": null:
+     un motivo inventato è peggio di un campo assente.
      ✓ "Con il cielo coperto di oggi non si cammina controluce"  ← meteo, che hai
      ✗ "Alle 17 la luce entra dalla vetrata sud e colpisce l'altare"  ← orario inventato
-     ✗ "Momento migliore: pomeriggio"
 
-   transition (max 80 car): cosa vedi camminando alla prossima tappa. Un dettaglio.
-     Varia: non tutte le strade hanno balconi. Guarda cosa c'è davvero fra i due punti.
-     ⛔ NON dire cosa sta accadendo ORA lungo il percorso, e non dedurlo dall'ora:
-     non sai se i bar stiano aprendo, se ci sia gente, se le luci siano accese.
-     Descrivi cosa c'è, non cosa sta succedendo.
-     ✓ "Il ponte è stretto, si passa uno alla volta"
-     ✓ "Sulla destra un muro di mattoni con una targa quasi illeggibile"
-     ✗ "Prosegui verso la prossima tappa a 5 min a piedi"
-     ✗ "Le luci dei bar si accendono lentamente"  ← cosa accade ORA, che non sai"
+   transition (max 80 car): il passaggio alla prossima tappa, SOLO con dati veri
+     (il nome della prossima tappa, i minuti a piedi). Non descrivere strade,
+     muri o vetrine che non conosci; se non hai niente di vero, "transition": null.
+     ⛔ NON dire cosa sta accadendo ORA lungo il percorso (gente, luci, bar che aprono).
+     ✗ "Le luci dei bar si accendono lentamente"  ← cosa accade ORA, che non sai
 
 REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
 ${bannedWordsPromptLines()}
@@ -1288,8 +1289,7 @@ REGOLE STRUTTURA:
   Non ricevi i suoi orari: qualunque frase sull'apertura sarebbe inventata.
   Vietato scrivere "aperto adesso", "chiuso a quest'ora", "lo trovi ancora aperto",
   e vietato citare orari di apertura o chiusura in QUALSIASI campo.
-  Puoi dire cosa si vede o si sente all'orario di arrivo di quella tappa;
-  mai se il posto è accessibile.
+  Puoi dire quando arrivi; mai se il posto è accessibile.
 - COERENZA COL TIPO: ogni frase che scrivi su una tappa deve essere compatibile
   col suo "types". Prima di scrivere, rileggi il "types" di QUEL candidato.
   Un consiglio gastronomico su un museo, o una nota su una sala espositiva in un
@@ -1311,10 +1311,10 @@ FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
     "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
     "stops": [{
       "place_id": "lo stesso place_id che hai ricevuto",
-      "description": "voce insider sensoriale (max 120 car)",
-      "insiderTip": "consiglio da local (max 100 car) — oppure null",
+      "description": "la frase PERCHÉ QUI, solo con fatti e dati (max 160 car)",
+      "insiderTip": "consiglio dai fatti o dai dati (max 100 car) — oppure null",
       "bestTime": "perché ORA (max 100 car) — oppure null se non hai un motivo vero",
-      "transition": "cosa vedi camminando (max 80 car)"
+      "transition": "passaggio alla prossima tappa con dati veri (max 80 car) — oppure null"
     }]
   }]
 }
@@ -1943,7 +1943,7 @@ const guardNarrationLight = (days, starts, tourWindow, cityCenter) => {
  * quota (AiQuotaExceededError): un narratore caduto lascia le tappe senza testo
  * e lo dice nel report, ma non butta un percorso gia' scelto e verificato.
  */
-const narrateFinalDays = async ({ city, days, starts, tourWindow, cityCenter, weather, prefs, aiProfile, userPrompt, quotaTicket }) => {
+const narrateFinalDays = async ({ city, days, starts, tourWindow, cityCenter, weather, prefs, aiProfile, userPrompt, quotaTicket, facts = new Map(), locali = new Map() }) => {
     const timed = refreshTourScheduledTimes(days, starts);
     const giorni = timed.map((d, i) => {
         const sun = sunForDay(d, i, tourWindow, cityCenter);
@@ -1955,6 +1955,10 @@ const narrateFinalDays = async ({ city, days, starts, tourWindow, cityCenter, we
             tappe: d.stops.map(s => {
                 const arrivo = clockLabel(s.scheduledTime);
                 const p = s.scheduledTime ? romeParts(new Date(s.scheduledTime)) : null;
+                // P3d-e — i fatti (solo testo e fonte) e, per i locali, i dati
+                // che il motore ha gia': fascia di prezzo, minuti dalla tappa
+                // prima, motivo della scelta.
+                const loc = locali.get(s.place_id);
                 return {
                     place_id: s.place_id,
                     nome: s.title,
@@ -1962,6 +1966,13 @@ const narrateFinalDays = async ({ city, days, starts, tourWindow, cityCenter, we
                     types: (s.types || []).slice(0, 5),
                     momento: s.momentLabel || (p ? momentAtClock(p.h, p.mi).label : null),
                     arrivo,
+                    fatti: (facts.get(s.place_id)?.fatti || []).map(f => ({ testo: f.testo, fonte: f.fonte })),
+                    ...(loc ? {
+                        locale: true,
+                        price_level: loc.price_level,
+                        minuti_a_piedi_da_prima: Number.isFinite(s.travelMinutesFromPrev) ? s.travelMinutesFromPrev : null,
+                        motivo: loc.motivo,
+                    } : {}),
                 };
             }),
         };
@@ -2016,22 +2027,30 @@ const rewriteReason = (x) => {
     const regole = x.regole || (x.regola ? [x.regola] : []);
     if (regole.includes('parola-vietata')) return `hai usato ${(x.parole || []).map(p => `"${p}"`).join(', ')}`;
     if (regole.includes('apertura-sensi')) return "apriva con un'impressione dei sensi";
+    if (regole.includes('invenzione')) return `nominava ${(x.oggetti || []).map(o => `"${o}"`).join(', ')}, che non risulta dai fatti né dal nome`;
+    if (regole.includes('ancoraggio')) return 'riscrivila usando i fatti e i dati forniti';
     return `parlava di ${regole.map(r => `"${r}"`).join(', ')} ma l'arrivo è alle ${x.arrivo || '?'}`;
 };
 
 export const buildRewriteSystemPrompt = ({ city }) => `Sei la voce di Unnivai a ${city}: un local, non una guida turistica.
-Alcune descrizioni di tappa sono state tolte dai nostri controlli. Per ognuna ti dico
-cosa è stato tolto e perché. Riscrivi SOLO il campo description, una per tappa.
+Alcune descrizioni di tappa vanno riscritte: o sono state tolte dai nostri controlli,
+o vanno ancorate ai fatti. Per ognuna ti dico cosa è stato tolto e perché.
+Riscrivi SOLO il campo description, una per tappa.
 
 ${DESCRIPTION_RULE_PROMPT}
 
-Di ogni luogo sai SOLO: nome, "types", momento e orario di arrivo. NON attribuirgli
-contenuti che non sai esistano lì (opere, piatti, mostre, eventi, servizi).
-NON parlare di luce o di ora (tramonto, alba, sera, notte, mattina) se l'orario di
-arrivo non lo rende vero. NON dire se il posto è aperto o chiuso.
+Di ogni tappa sai SOLO: nome, "types", momento e orario di arrivo (se ci sono) e
+"fatti" [{testo, fonte}] da Wikipedia, Wikidata o OpenStreetMap (può essere vuoto).
+Le tappe con "locale": true hanno anche price_level, minuti a piedi dalla tappa
+prima e "motivo" (perché il motore l'ha scelta per l'utente).
+OGNI frase usa SOLO i fatti, il nome o questi dati. Luoghi: un fatto concreto più
+cosa guardare o quando. Locali: perché è qui per l'utente, con i dati.
+NON attribuirgli contenuti che non sono nei fatti (opere, piatti, mostre, eventi,
+servizi, oggetti). NON parlare di luce o di ora (tramonto, alba, sera, notte,
+mattina) se l'orario di arrivo non lo rende vero. NON dire se il posto è aperto o chiuso.
 
 Parole e frasi VIETATE (la frase che ne contiene una viene tolta, e questa volta il
-campo resta vuoto):
+campo diventa una frase di servizio scritta dal codice):
 ${bannedWordsPromptLines()}
 
 Rispondi in JSON puro: { "stops": [ { "place_id": "...", "description": "..." } ] }
@@ -2059,9 +2078,19 @@ const rewriteDescriptions = async ({ city, items, quotaTicket }) => {
         types: (it.types || []).slice(0, 5),
         ...(it.momento ? { momento: it.momento } : {}),
         ...(it.arrivo ? { arrivo: it.arrivo } : {}),
+        // P3d-e — i fatti e, per i locali, i dati della scelta.
+        fatti: (it.fatti || []).map(f => ({ testo: f.testo, fonte: f.fonte })),
+        ...(it.locale ? {
+            locale: true,
+            price_level: it.locale.price_level ?? null,
+            minuti_a_piedi_da_prima: Number.isFinite(it.locale.minuti) ? it.locale.minuti : null,
+            motivo: it.locale.motivo || [],
+        } : {}),
         tolto: it.tolte.length > 0
             ? it.tolte.map(x => ({ frase: x.frase, motivo: rewriteReason(x) }))
-            : [{ frase: null, motivo: 'mancava la descrizione' }],
+            : (it.ancora
+                ? [{ frase: it.attuale || null, motivo: rewriteReason({ regole: ['ancoraggio'] }) }]
+                : [{ frase: null, motivo: 'mancava la descrizione' }]),
     }));
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 25_000);
@@ -2074,7 +2103,7 @@ const rewriteDescriptions = async ({ city, items, quotaTicket }) => {
             ],
             response_format: { type: 'json_object' },
             temperature: 0.5,
-            max_tokens: Math.min(1500, 120 + 80 * tappe.length),
+            max_tokens: Math.min(2500, 120 + 90 * tappe.length),
         }, controller.signal, quotaTicket);
         clearTimeout(timeoutId);
         report.token = data?.usage?.total_tokens ?? null;
@@ -2085,15 +2114,17 @@ const rewriteDescriptions = async ({ city, items, quotaTicket }) => {
         for (const it of items) {
             const text = out.get(it.place_id) ?? null;
             if (!text) { report.ancoraVuote.push(it.nome); continue; }
-            // Gli STESSI filtri della prima volta.
+            // Gli STESSI filtri della prima volta, piu' (P3d-e) il controllo
+            // anti-invenzione sui fatti e sul nome.
             const voce = filterBannedWords(text, { exempt: it.exempt });
             const ora = filterTimeIncoherent(voce.text, {
                 arrival: it.arrival || null, sunrise: it.sun?.sunrise || null, sunset: it.sun?.sunset || null,
             });
-            for (const x of [...voce.removed, ...ora.removed]) {
+            const vero = filterInventedObjects(ora.text, { fatti: it.fatti || [], nomi: it.exempt });
+            for (const x of [...voce.removed, ...ora.removed, ...vero.removed]) {
                 report.scartate.push({ title: it.nome, frase: x.frase, motivo: rewriteReason(x) });
             }
-            if (ora.text) { byKey.set(it.key, ora.text); report.riscritte += 1; } else report.ancoraVuote.push(it.nome);
+            if (vero.text) { byKey.set(it.key, vero.text); report.riscritte += 1; } else report.ancoraVuote.push(it.nome);
         }
     } catch (err) {
         clearTimeout(timeoutId);
@@ -2116,7 +2147,7 @@ const rewriteDescriptions = async ({ city, items, quotaTicket }) => {
  * dalla descrizione. Ogni tappa porta arrivo e alba/tramonto del suo giorno,
  * per ripassare dal filtro di luce/ora.
  */
-const itineraryRewriteItems = (days, frasiTolte, starts, tourWindow, cityCenter) => {
+const itineraryRewriteItems = (days, frasiTolte, starts, tourWindow, cityCenter, facts = new Map(), locali = new Map()) => {
     const timed = refreshTourScheduledTimes(days, starts);
     const items = [];
     (days || []).forEach((day, di) => {
@@ -2130,10 +2161,119 @@ const itineraryRewriteItems = (days, frasiTolte, starts, tourWindow, cityCenter)
                 momento: s.momentLabel || null, arrivo: iso ? clockLabel(new Date(iso)) : null,
                 tolte, exempt: [s.title, s.name].filter(Boolean),
                 arrival: iso ? new Date(iso) : null, sun,
+                fatti: facts.get(s.place_id)?.fatti || [],
+                ...(locali.has(s.place_id) ? { locale: { ...locali.get(s.place_id), minuti: s.travelMinutesFromPrev } } : {}),
             });
         });
     });
     return items;
+};
+
+// ─── P3d-e — narratore ancorato ai fatti ────────────────────────────────────
+//
+// Dopo i filtri di voce e di luce, il controllo anti-invenzione: una frase
+// della descrizione che nomina un oggetto concreto (CONCRETE_OBJECTS) assente
+// dai fatti e dal nome si toglie, come le altre. La tappa va alla riscrittura
+// (una volta); se la riscrittura non passa, la frase sicura del codice.
+
+/** Il controllo anti-invenzione sulle descrizioni di un itinerario raccontato. */
+const guardInventions = (days, facts) => {
+    const frasiTolte = [];
+    const out = (days || []).map(day => ({
+        ...day,
+        stops: (day.stops || []).map(s => {
+            if (!s.description) return s;
+            const r = filterInventedObjects(s.description, { fatti: facts.get(s.place_id)?.fatti || [], nomi: [s.title, s.name].filter(Boolean) });
+            for (const x of r.removed) {
+                frasiTolte.push({ place_id: s.place_id, title: s.title, campo: 'description', frase: x.frase, regole: ['invenzione'], oggetti: x.oggetti });
+            }
+            return r.removed.length > 0 ? { ...s, description: r.text } : s;
+        }),
+    }));
+    return { days: out, frasiTolte };
+};
+
+/**
+ * Perche' il motore ha scelto questo locale per l'utente: solo criteri che il
+ * codice ha davvero applicato (vincolo di dieta, budget, stile, DNA, ricerca).
+ * Mai "e' vegetariano": "cercato con opzioni vegetariane".
+ */
+export const localeReasons = (c, { food = null, dnaWeights = {} } = {}) => {
+    const motivo = [];
+    if (!c) return motivo;
+    const dieta = Array.isArray(c._dietaCercata) ? c._dietaCercata : [];
+    if (dieta.length > 0) motivo.push(`cercato con il criterio "${dietCriteria(dieta).join(', ')}" (vincolo dell'utente)`);
+    const pl = priceLevelOf(c);
+    if (food?.budget && Number.isFinite(food.maxPriceLevel) && pl !== null && pl <= food.maxPriceLevel) {
+        motivo.push(`dentro il budget ${food.budget} dell'utente`);
+    }
+    if (food?.stile && STILI[food.stile] && matchesStile(c, food.stile)) {
+        motivo.push(`stile "${STILI[food.stile].label}", tra i gusti dell'utente`);
+    }
+    if (dnaShareOf(dnaWeights) > 0 && Object.keys(dnaWeights || {}).some(k => k !== '_share') && computeAffinityScore(c, dnaWeights) >= 0.5) {
+        motivo.push('in linea con il profilo dell\'utente (DNA)');
+    }
+    if (c._ricercaCibo) motivo.push(`trovato con la ricerca "${c._ricercaCibo}"`);
+    return motivo;
+};
+
+/** I dati dei locali fra le tappe finali, per il narratore e la frase sicura. */
+const localeInfoFor = (stops, byIdCandidate, ctx) => {
+    const out = new Map();
+    for (const s of stops) {
+        if (!isLocaleStop(s)) continue;
+        const c = byIdCandidate.get(s.place_id);
+        out.set(s.place_id, { price_level: priceLevelOf(c || s), motivo: localeReasons(c, ctx) });
+    }
+    return out;
+};
+
+/**
+ * Le fonti a schermo: solo sulle tappe raccontate con dei fatti (non sulla
+ * frase sicura, che non ne usa).
+ */
+const withFonti = (stop, facts) => {
+    const f = facts.get(stop.place_id);
+    const usaFatti = f && f.fatti.length > 0 && f.fonti.length > 0 && !stop._fraseSicura && hasNonEmptyDescription(stop);
+    return { ...stop, fonti: usaFatti ? f.fonti : null };
+};
+
+/**
+ * Mai una descrizione vuota (P3d-e): la tappa senza descrizione — o con la
+ * frase sicura di una lettura precedente, che porta l'orario di allora — riceve
+ * la frase sicura costruita sugli orari di adesso. Gira in generazione e a ogni
+ * lettura dalla cache, DOPO il controllo luce/ora.
+ */
+const applySafeDescriptions = (days, starts, tourWindow, cityCenter) => {
+    const timed = refreshTourScheduledTimes(days, starts);
+    let n = 0;
+    const out = (days || []).map((day, di) => {
+        const sun = sunForDay(day, di, tourWindow, cityCenter);
+        return {
+            ...day,
+            stops: (day.stops || []).map((s, si) => {
+                if (hasNonEmptyDescription(s) && !s._fraseSicura) return s;
+                const iso = timed[di]?.stops?.[si]?.scheduledTime;
+                const p = iso ? romeParts(new Date(iso)) : null;
+                n += 1;
+                return {
+                    ...s,
+                    description: safeDescription({
+                        stop: s,
+                        momento: s.moment || s.momentLabel || (p ? momentAtClock(p.h, p.mi).key : null),
+                        orario: iso ? clockLabel(new Date(iso)) : null,
+                        tramonto: clockLabel(sun.sunset),
+                        locale: isLocaleStop(s),
+                        priceLevel: Number.isFinite(s.priceLevel) ? s.priceLevel : null,
+                        minutiDaPrima: s.travelMinutesFromPrev,
+                    }),
+                    _fraseSicura: true,
+                    fonti: null,
+                };
+            }),
+        };
+    });
+    return { days: out, frasiSicure: n };
 };
 
 // Il racconto sulle tappe, per place_id. Una tappa che il narratore non ha
@@ -2216,7 +2356,9 @@ export const aiRecommendationService = {
             // Gate NARRATORE-DOPO — e il controllo luce/ora rigira su quegli
             // orari: stessa data e stessa fascia, ma i minuti possono essere altri.
             const starts = dayStartsFor(cached.days, tourWindow);
-            const { days } = guardNarrationLight(cached.days, starts, tourWindow, cityCenter);
+            const { days: lit } = guardNarrationLight(cached.days, starts, tourWindow, cityCenter);
+            // P3d-e — mai una descrizione vuota, e la frase sicura sugli orari di adesso.
+            const { days } = applySafeDescriptions(lit, starts, tourWindow, cityCenter);
             return { ...cached, ...windowFields, days: refreshTourScheduledTimes(days, starts) };
         }
 
@@ -2533,13 +2675,30 @@ export const aiRecommendationService = {
                         // luce/ora incoerenti con l'arrivo. Una tappa non
                         // raccontata resta, senza testo, e il report lo dice.
                         const starts = dayStartsFor(finalDays, tourWindow);
+                        // P3d-e — i fatti aperti delle tappe FINALI (mai dei
+                        // candidati), con il tetto di 4 secondi, e i dati dei
+                        // locali (fascia di prezzo, motivo della scelta).
+                        const byIdCand = new Map(candidates.map(c => [c.place_id || c.googlePlaceId, c]));
+                        const finalStops = finalDays.flatMap(d => d.stops);
+                        const locali = localeInfoFor(finalStops, byIdCand, { food: foodOn ? food : null, dnaWeights: opts.dnaWeights || {} });
+                        const daysForNarration = finalDays.map(d => ({
+                            ...d,
+                            stops: d.stops.map(st => (locali.has(st.place_id) ? { ...st, priceLevel: locali.get(st.place_id).price_level } : st)),
+                        }));
+                        const factsRes = await fetchFactsForStops(finalStops.map(st => ({
+                            place_id: st.place_id, name: st.title, lat: Number(st.latitude), lng: Number(st.longitude), types: st.types,
+                        })), { city });
+                        const facts = factsRes.byId;
                         const narration = await narrateFinalDays({
-                            city, days: finalDays, starts, tourWindow, cityCenter,
-                            weather, prefs, aiProfile, userPrompt, quotaTicket,
+                            city, days: daysForNarration, starts, tourWindow, cityCenter,
+                            weather, prefs, aiProfile, userPrompt, quotaTicket, facts, locali,
                         });
-                        const guarded = guardNarrationLight(
-                            applyNarration(finalDays, narration, city), starts, tourWindow, cityCenter,
+                        const guardedLight = guardNarrationLight(
+                            applyNarration(daysForNarration, narration, city), starts, tourWindow, cityCenter,
                         );
+                        // P3d-e — il controllo anti-invenzione, dopo voce e luce.
+                        const invented = guardInventions(guardedLight.days, facts);
+                        const guarded = { days: invented.days, frasiTolte: [...guardedLight.frasiTolte, ...invented.frasiTolte] };
                         const { frasiTolte } = guarded;
                         // P3d-c — le descrizioni svuotate o accorciate dai filtri si
                         // riscrivono UNA volta, nello stesso biglietto. Con il
@@ -2547,7 +2706,7 @@ export const aiRecommendationService = {
                         let riscrittura = null;
                         let narratedDays = guarded.days;
                         if (!narration.error) {
-                            const items = itineraryRewriteItems(narratedDays, frasiTolte, starts, tourWindow, cityCenter);
+                            const items = itineraryRewriteItems(narratedDays, frasiTolte, starts, tourWindow, cityCenter, facts, locali);
                             if (items.length > 0) {
                                 const rw = await rewriteDescriptions({ city, items, quotaTicket });
                                 riscrittura = rw.report;
@@ -2558,13 +2717,25 @@ export const aiRecommendationService = {
                                 }));
                             }
                         }
+                        // P3d-e — le tappe ancora senza descrizione (narratore caduto,
+                        // riscrittura che non passa) ricevono la frase sicura del
+                        // codice; le altre, se raccontate con dei fatti, le fonti.
+                        const nonRaccontate = narratedDays.flatMap(d => d.stops)
+                            .filter(st => !hasNonEmptyDescription(st)).map(st => ({ place_id: st.place_id, title: st.title }));
+                        const safe = applySafeDescriptions(narratedDays, starts, tourWindow, cityCenter);
+                        narratedDays = safe.days.map(d => ({ ...d, stops: d.stops.map(st => withFonti(st, facts)) }));
                         const allStops = narratedDays.flatMap(d => d.stops);
                         const narrationReport = {
-                            raccontate: allStops.filter(hasNonEmptyDescription).length,
-                            nonRaccontate: allStops.filter(st => !hasNonEmptyDescription(st)).map(st => ({ place_id: st.place_id, title: st.title })),
+                            raccontate: allStops.filter(st => hasNonEmptyDescription(st) && !st._fraseSicura).length,
+                            nonRaccontate,
+                            frasiSicure: allStops.filter(st => st._fraseSicura).map(st => ({ place_id: st.place_id, title: st.title, description: st.description })),
                             frasiTolte,
                             errore: narration.error,
                             riscrittura,
+                            fatti: {
+                                ...factsRes.report,
+                                perTappa: allStops.map(st => ({ place_id: st.place_id, title: st.title, fatti: facts.get(st.place_id)?.fatti || [] })),
+                            },
                         };
                         logNarratorViolations(allStops, 'narratore');
                         for (const f of frasiTolte) {
@@ -2944,6 +3115,40 @@ export const aiRecommendationService = {
                 return { tour, themeType, canonized };
             });
 
+            // (1a) P3d-e — i fatti aperti delle tappe SCELTE (mai dei candidati),
+            // con il tetto di 4 secondi. Poi il controllo anti-invenzione sulle
+            // descrizioni del selettore, che le ha scritte senza fatti: una frase
+            // con un oggetto assente dai fatti e dal nome si toglie. Le tappe con
+            // dei fatti, e i locali, si riscrivono ancorate ai fatti e ai dati
+            // nella stessa seconda chiamata della riscrittura (biglietto
+            // 'home_tours', nessuna chiamata in piu').
+            const poolById = new Map();
+            for (const arr of Object.values(nonEmptyPools)) for (const c of (Array.isArray(arr) ? arr : [])) if (homePid(c)) poolById.set(homePid(c), c);
+            for (const c of ceduti.values()) if (homePid(c?.poi)) poolById.set(homePid(c.poi), c.poi);
+            const sceltePerTe = prepared.flatMap(pt => pt?.canonized || []);
+            const factsRes = await fetchFactsForStops(sceltePerTe.map(st => ({
+                place_id: st.place_id, name: st.title, lat: Number(st.latitude), lng: Number(st.longitude), types: st.types,
+            })), { city });
+            const facts = factsRes.byId;
+            const locali = localeInfoFor(sceltePerTe, poolById, { food: hasFoodPrefs(food) ? food : null, dnaWeights });
+            prepared.forEach((pt) => {
+                if (!pt) return;
+                pt.canonized = pt.canonized.map(st => {
+                    const fatti = facts.get(st.place_id)?.fatti || [];
+                    const r = filterInventedObjects(st.description, { fatti, nomi: [st.title, st.name].filter(Boolean) });
+                    for (const x of r.removed) {
+                        console.warn(`[P3d-e FATTI] ${city} (home): tolta frase (${x.oggetti.join(',')}) da "${st.title}" — "${x.frase}"`);
+                    }
+                    return {
+                        ...st,
+                        description: r.removed.length > 0 ? r.text : st.description,
+                        _tolte: [...st._tolte, ...r.removed.map(x => ({ ...x, regole: ['invenzione'] }))],
+                        _ancora: fatti.length > 0 || locali.has(st.place_id),
+                        ...(locali.has(st.place_id) ? { priceLevel: locali.get(st.place_id).price_level } : {}),
+                    };
+                });
+            });
+
             // (1b) P7a2 — RIEMPIRE PRIMA DI NASCONDERE. Un tour che rischia di
             // restare sotto le 3 tappe (contando solo quelle gia' sicure:
             // descrizione presente e nessuna frase tolta) riceve in codice delle
@@ -2981,16 +3186,23 @@ export const aiRecommendationService = {
             prepared.forEach((pt, ti) => {
                 if (!pt) return;
                 pt.canonized.forEach((st, si) => {
-                    if (hasNonEmptyDescription(st) && st._tolte.length === 0) return;
+                    if (hasNonEmptyDescription(st) && st._tolte.length === 0 && !st._ancora) return;
                     rewriteItems.push({
                         key: `${ti}:${si}`, place_id: st.place_id, nome: st.title, types: st.types,
+                        momento: moment.label,
                         tolte: st._tolte, exempt: [st.title, st.name].filter(Boolean),
+                        fatti: facts.get(st.place_id)?.fatti || [],
+                        ...(locali.has(st.place_id) ? { locale: locali.get(st.place_id) } : {}),
+                        ancora: st._ancora, attuale: st.description || null,
                     });
                 });
                 pt.riserve.forEach((st, ri) => {
+                    const loc = isLocaleStop(st) ? localeInfoFor([st], poolById, { food: hasFoodPrefs(food) ? food : null, dnaWeights }).get(st.place_id) : null;
                     rewriteItems.push({
                         key: `${ti}:r${ri}`, place_id: st.place_id, nome: st.title, types: st.types,
+                        momento: moment.label,
                         tolte: [], exempt: [st.title, st.name].filter(Boolean),
+                        ...(loc ? { locale: loc } : {}),
                     });
                 });
             });
@@ -2999,23 +3211,25 @@ export const aiRecommendationService = {
                 : null;
 
             const aggiunte = [];
+            const frasiSicure = [];
+            const sunOggi = sunTimes({ y: nowRome.y, m: nowRome.m, d: nowRome.d },
+                Number.isFinite(cityCenter?.latitude) ? cityCenter.latitude : ROMA_FALLBACK.latitude,
+                Number.isFinite(cityCenter?.longitude) ? cityCenter.longitude : ROMA_FALLBACK.longitude);
+            const tramontoOggi = clockLabel(sunOggi.sunset);
             const finalTours = prepared.map((pt, ti) => {
                 if (!pt) return null;
                 const { tour, themeType } = pt;
+                // P3d-e — una tappa riscritta con dei fatti porta le sue fonti
+                // (_conFatti); una non riscritta resta com'era dopo i filtri.
                 let canonized = pt.canonized.map((st, si) => (rewrite?.byKey.has(`${ti}:${si}`)
-                    ? { ...st, description: rewrite.byKey.get(`${ti}:${si}`) } : st));
+                    ? { ...st, description: rewrite.byKey.get(`${ti}:${si}`), _conFatti: (facts.get(st.place_id)?.fatti || []).length > 0 } : st));
 
-                // Gate II.2 — regola locked: description vuota → stop scartato.
-                // Mai placeholder "Luogo di interesse". Meno tappe > tappe vuote.
-                // P3d-c: qui arrivano solo le tappe che nemmeno la riscrittura ha
-                // salvato.
-                canonized = canonized.filter(st => {
-                    if (hasNonEmptyDescription(st)) return true;
-                    scarta(themeType, st.title, st._tolte.length > 0
-                        ? 'descrizione vuota dopo il filtro parole vietate e la riscrittura'
-                        : 'descrizione assente');
-                    return false;
-                }).map(({ _tolte, ...st }) => st);
+                // Gate II.2 — mai placeholder "Luogo di interesse".
+                // P3d-e: mai nemmeno una descrizione vuota. Una tappa che neanche
+                // la riscrittura ha salvato riceve, dopo l'ordinamento, la frase
+                // sicura del codice (tipo, momento, per i locali fascia e minuti):
+                // solo dati veri, non un riempitivo.
+                canonized = canonized.map(({ _tolte, _ancora, ...st }) => st);
 
                 // P7a2 — sotto le 3 tappe: si completa con le riserve che hanno
                 // ricevuto una descrizione (in ordine di merito).
@@ -3038,7 +3252,24 @@ export const aiRecommendationService = {
                     if (!withinRadius.includes(st)) scarta(themeType, st.title, 'oltre il raggio');
                 }
                 // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
-                const ordered = computeStopTimings(sortByProximity(withinRadius)).stops;
+                // P3d-e: la frase sicura dopo le stime (i minuti dalla tappa prima).
+                const ordered = computeStopTimings(sortByProximity(withinRadius)).stops.map(st => {
+                    const conFonti = st._conFatti && hasNonEmptyDescription(st);
+                    const { _conFatti, ...clean } = st;
+                    if (hasNonEmptyDescription(clean)) return { ...clean, fonti: conFonti ? facts.get(st.place_id)?.fonti || null : null };
+                    frasiSicure.push({ tour: themeType, title: st.title });
+                    return {
+                        ...clean,
+                        description: safeDescription({
+                            stop: clean, momento: moment.key, tramonto: tramontoOggi,
+                            locale: isLocaleStop(clean),
+                            priceLevel: Number.isFinite(clean.priceLevel) ? clean.priceLevel : priceLevelOf(poolById.get(clean.place_id)),
+                            minutiDaPrima: clean.travelMinutesFromPrev,
+                        }),
+                        _fraseSicura: true,
+                        fonti: null,
+                    };
+                });
                 if (ordered.length === 0) {
                     console.warn(`[Per Te] ${city}: tour "${themeType}" senza tappe dopo gli scarti → non servito`);
                 } else if (ordered.length < HOME_TOUR_STOPS.min) {
@@ -3087,6 +3318,11 @@ export const aiRecommendationService = {
                 momento: moment.key,
                 giorno: romeDay,
                 riscrittura: rewrite?.report ?? null,
+                frasiSicure,
+                fatti: {
+                    ...factsRes.report,
+                    perTappa: finalTours.flatMap(t => t.stops.map(st => ({ tour: t.themeType, place_id: st.place_id, title: st.title, fatti: facts.get(st.place_id)?.fatti || [] }))),
+                },
                 cedutiAccettati: accettatiCeduti,
                 aggiunte,
                 famosita,

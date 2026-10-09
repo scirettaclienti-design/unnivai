@@ -289,15 +289,212 @@ export function filterBannedWords(text, { exempt = [] } = {}) {
 }
 
 // ─── P3d-b — la regola "perche' qui" per il campo description ────────────────
-// Stesso testo nel prompt del narratore e in quello di "Per Te".
+// Stesso testo nel prompt del narratore, in quello di "Per Te" e nella riscrittura.
+// P3d-e — la frase "perche' qui" si costruisce sui FATTI (Wikipedia, Wikidata,
+// OpenStreetMap) e sui dati della tappa: gli esempi di prima ("gli alberi
+// grandi", "i vialetti") insegnavano proprio a inventare dettagli.
 export const DESCRIPTION_RULE_PROMPT = `   description — la frase "PERCHÉ QUI": UNA frase, massimo 20 parole.
-     Dice cosa guardare, da dove guardarlo o quando: un dettaglio che sa solo
-     chi c'è stato. Niente aggettivi generici.
+     Usa SOLO i fatti forniti, il nome della tappa o i suoi dati (tipo, momento, orario).
+     LUOGHI: un fatto concreto preso dai fatti, più cosa guardare, da dove guardarlo o quando.
+     Senza fatti: il tipo di posto e il momento, niente dettagli che non hai.
+     LOCALI: perché il locale è qui per te, con i dati che ricevi (momento, tipo,
+     fascia di prezzo, minuti a piedi dalla tappa prima, motivo della scelta).
+     MAI piatti, arredi o atmosfera che i dati non dicono.
+     MAI nominare un oggetto (albero, finestra, giardino, fontana, murales, laghetto,
+     scala, terrazza, acqua, quadri, soffitti…) che non compare nei fatti o nel nome:
+     la frase viene tolta.
      NON aprire con un'impressione dei sensi (profumo, odore, aria, vento,
      silenzio, panorama, "camminando senti"): una frase che apre così viene tolta.
-     GIUSTO: "L'ombra vera è sotto gli alberi grandi, non lungo i vialetti."
-     GIUSTO: "Bastano pochi passi di lato per togliersi la folla dall'inquadratura."
-     GIUSTO: "Se ha piovuto da poco, i vialetti in terra battuta diventano fango."
+     GIUSTO: "Aperti nel 1734, sono considerati il primo museo pubblico al mondo."  ← dai fatti
+     GIUSTO: "Per il pranzo: trattoria, fascia €€, a 6 minuti dalla tappa prima."  ← dai dati del locale
+     SBAGLIATO: "L'ombra vera è sotto gli alberi grandi, non lungo i vialetti."  ← alberi: non nei fatti
      SBAGLIATO: "L'aria fresca qui è un sollievo dopo la passeggiata."
      SBAGLIATO: "Il profumo della pasta fresca riempie l'aria."
      SBAGLIATO: "L'odore del sugo si mescola al profumo del pane."`;
+
+// ─── P3d-e — oggetti concreti: solo se i fatti o il nome li nominano ─────────
+//
+// Il controllo in codice anti-invenzione. Una frase della descrizione che
+// nomina un oggetto concreto di questo elenco resta solo se l'oggetto compare
+// nei fatti della tappa o nel suo nome; altrimenti si toglie (e la descrizione
+// va alla riscrittura, una volta; se fallisce ancora, frase sicura dal codice).
+// `re`: come l'oggetto si riconosce nella frase; `ok`: come si riconosce nei
+// fatti e nel nome (piu' largo: "Pinacoteca" nei fatti ammette i quadri).
+// Elenco esplicito e testato uno per uno (narrationLight.test / fattiAncorati.test).
+export const CONCRETE_OBJECTS = [
+    // natura
+    { nome: 'albero', re: /\balber[oi]\b|\balberat[oi]\b/, ok: /\balber/ },
+    { nome: 'pini', re: /\bpin[oi]\b/, ok: /\bpin[oi]\b|\bpinet/ },
+    { nome: 'palme', re: /\bpalm[ae]\b/, ok: /\bpalm[ae]\b/ },
+    { nome: 'ulivi', re: /\b(?:ulivi?|ulivo|olivi?|olivo)\b/, ok: /\b(?:uliv|oliv)/ },
+    { nome: 'aranci', re: /\baranc(?:i|io)\b/, ok: /\baranc/ },
+    { nome: 'giardino', re: /\bgiardin[oi]\b/, ok: /\bgiardin/ },
+    { nome: 'prato', re: /\bprat[oi]\b/, ok: /\bprat[oi]\b/ },
+    { nome: 'fiori', re: /\b(?:fior[ei]|fioritur[ae]|aiuol[ae]|roseto)\b/, ok: /\b(?:fior|aiuol|roset)/ },
+    { nome: 'laghetto', re: /\b(?:laghett[oi]|lag(?:o|hi)|stagn[oi])\b/, ok: /\b(?:lag(?:o|hi|hett)|stagn)/ },
+    { nome: 'acqua', re: /\bacqu[ae]\b/, ok: /\bacqu/ },
+    // architettura
+    { nome: 'finestra', re: /\bfinestr(?:a|e|one|oni|ella|elle)\b/, ok: /\bfinestr/ },
+    { nome: 'fontana', re: /\bfontan(?:a|e|ella|elle)\b/, ok: /\bfontan/ },
+    { nome: 'scala', re: /\b(?:scal[ae]|scalinat[ae]|scalin[oi]|gradin[oi]|gradinat[ae])\b/, ok: /\b(?:scal|gradin)/ },
+    { nome: 'terrazza', re: /\bterrazz(?:a|e|ino|ini)\b/, ok: /\bterrazz/ },
+    { nome: 'soffitti', re: /\bsoffitt[oi]\b/, ok: /\bsoffitt/ },
+    { nome: 'cupola', re: /\bcupol[ae]\b/, ok: /\bcupol/ },
+    { nome: 'campanile', re: /\bcampanil[ei]\b/, ok: /\bcampanil/ },
+    { nome: 'colonne', re: /\bcolonn(?:a|e|ato)\b/, ok: /\bcolonn/ },
+    { nome: 'portico', re: /\bportic(?:o|i|ato)\b/, ok: /\bportic/ },
+    { nome: 'cortile', re: /\bcortil[ei]\b/, ok: /\bcortil/ },
+    { nome: 'chiostro', re: /\bchiostr[oi]\b/, ok: /\bchiostr/ },
+    { nome: 'balcone', re: /\bbalcon[ei]\b/, ok: /\bbalcon/ },
+    { nome: 'ponte', re: /\bpont[ei]\b/, ok: /\bpont[ei]\b/ },
+    { nome: 'torre', re: /\btorr[ei]\b/, ok: /\btorr/ },
+    { nome: 'cancello', re: /\bcancell[oi]\b/, ok: /\bcancell/ },
+    { nome: 'panchina', re: /\b(?:panchin[ae]|panc(?:a|he))\b/, ok: /\b(?:panchin|panc(?:a|he)\b)/ },
+    // arte
+    { nome: 'murales', re: /\b(?:murales|murale|murali|graffiti|street art)\b/, ok: /\b(?:mural|graffit|street art)/ },
+    { nome: 'quadri', re: /\b(?:quadr[oi]|dipint[oi])\b/, ok: /\b(?:quadr[oi]|dipint|pinacotec|pittur|pittor)/ },
+    { nome: 'affreschi', re: /\baffresc(?:o|hi)\b/, ok: /\baffresc/ },
+    { nome: 'statua', re: /\bstatu[ae]\b/, ok: /\b(?:statu|scultur)/ },
+    { nome: 'mosaici', re: /\bmosaic[oi]\b/, ok: /\bmosaic/ },
+    { nome: 'vetrate', re: /\bvetrat[ae]\b/, ok: /\bvetrat/ },
+    { nome: 'altare', re: /\baltar[ei]\b/, ok: /\baltar/ },
+    // locali: arredi e piatti
+    { nome: 'tavolini', re: /\btavol(?:ini|ino|i|o)\b/, ok: /\btavol/ },
+    { nome: 'bancone', re: /\bbancon[ei]\b/, ok: /\bbancon/ },
+    { nome: 'forno a legna', re: /\bforno a legna\b/, ok: /\blegna\b/ },
+    { nome: 'pergola', re: /\bpergol(?:a|e|ato)\b/, ok: /\bpergol/ },
+    { nome: 'dehors', re: /\bdehors\b/, ok: /\bdehors\b|all'aperto/ },
+    { nome: 'cucina a vista', re: /\bcucina a vista\b/, ok: /\bcucina a vista\b/ },
+    { nome: 'vino', re: /\bvin[oi]\b/, ok: /\b(?:vin[oi]\b|enotec|cantin)/ },
+    { nome: 'pizza', re: /\bpizz[ae]\b/, ok: /\bpizz/ },
+    { nome: 'gelato', re: /\bgelat[oi]\b/, ok: /\bgelat/ },
+    { nome: 'pesce', re: /\bpesc[ei]\b/, ok: /\b(?:pesc[ei]|frutti di mare)\b/ },
+    { nome: 'carbonara', re: /\bcarbonara\b/, ok: /\bcarbonara\b/ },
+    { nome: 'amatriciana', re: /\bamatriciana\b/, ok: /\bamatriciana\b/ },
+    { nome: 'cacio e pepe', re: /\bcacio e pepe\b/, ok: /\bcacio e pepe\b/ },
+    { nome: 'suppli', re: /\bsuppli\b/, ok: /\bsuppli\b/ },
+    { nome: 'carciofi', re: /\bcarciof[oi]\b/, ok: /\bcarciof/ },
+    { nome: 'arancini', re: /\barancin[ei]\b/, ok: /\barancin/ },
+    { nome: 'cannoli', re: /\bcannol[oi]\b/, ok: /\bcannol/ },
+    { nome: 'granita', re: /\bgranit[ae]\b/, ok: /\bgranit[ae]\b/ },
+    { nome: 'maritozzo', re: /\bmaritozz[oi]\b/, ok: /\bmaritozz/ },
+    { nome: 'tiramisu', re: /\btiramisu\b/, ok: /\btiramisu\b/ },
+    { nome: 'cornetto', re: /\bcornett[oi]\b/, ok: /\bcornett/ },
+];
+
+/** Gli oggetti concreti nominati in una frase e assenti dal corpus (fatti + nome). */
+export function inventedObjects(sentence, corpus) {
+    const t = norm(sentence).replace(/\s+/g, ' ');
+    const c = norm(corpus || '').replace(/\s+/g, ' ');
+    return CONCRETE_OBJECTS.filter(o => o.re.test(t) && !o.ok.test(c)).map(o => o.nome);
+}
+
+/** Il corpus contro cui si controlla: i testi dei fatti e i nomi della tappa. */
+export const factsCorpus = (fatti = [], nomi = []) => [
+    ...(Array.isArray(fatti) ? fatti : []).map(f => (typeof f === 'string' ? f : f?.testo || '')),
+    ...(Array.isArray(nomi) ? nomi : []),
+].filter(Boolean).join(' \n ');
+
+/**
+ * Toglie le frasi che nominano un oggetto concreto assente dai fatti e dal nome.
+ * @param {string|null} text
+ * @param {{ fatti?: Array<{ testo: string }|string>, nomi?: string[] }} ctx
+ * @returns {{ text: string|null, removed: Array<{ frase: string, oggetti: string[], regola: 'invenzione' }> }}
+ */
+export function filterInventedObjects(text, { fatti = [], nomi = [] } = {}) {
+    if (text == null || String(text).trim() === '') return { text: null, removed: [] };
+    const corpus = factsCorpus(fatti, nomi);
+    const kept = [];
+    const removed = [];
+    for (const s of splitSentences(String(text).trim())) {
+        const oggetti = inventedObjects(s, corpus);
+        if (oggetti.length > 0) removed.push({ frase: s, oggetti, regola: 'invenzione' });
+        else kept.push(s);
+    }
+    if (removed.length === 0) return { text: String(text), removed };
+    return { text: kept.length > 0 ? kept.join(' ') : null, removed };
+}
+
+// ─── P3d-e — la frase sicura, costruita dal codice ───────────────────────────
+//
+// Quando nemmeno la riscrittura passa i controlli, la descrizione non resta
+// vuota: una frase fatta SOLO di dati della tappa (tipo, momento, orario; per i
+// panorami l'ora vera del tramonto; per i locali fascia di prezzo e minuti a
+// piedi dalla tappa prima). Non dice niente che il codice non sappia.
+const MOMENT_DEL = {
+    mattina: 'della mattina', pranzo: 'del pranzo', pomeriggio: 'del pomeriggio',
+    aperitivo: "dell'aperitivo", cena: 'della cena', dopocena: 'del dopocena',
+};
+const MOMENT_PER = {
+    mattina: 'Per la mattina', pranzo: 'Per il pranzo', pomeriggio: 'Per il pomeriggio',
+    aperitivo: "Per l'aperitivo", cena: 'Per la cena', dopocena: 'Per il dopocena',
+};
+const momentKeyOf = (m) => {
+    const k = norm(m || '').trim();
+    return MOMENT_DEL[k] ? k : null;
+};
+
+// Il tipo, in italiano, dal nome (se lo dice) o dai types Google.
+const TIPO_DAL_NOME = [
+    [/\btrattori/, 'trattoria'], [/\bosteri|\bhostaria/, 'osteria'], [/\bpizzeri/, 'pizzeria'],
+    [/\bpasticceri/, 'pasticceria'], [/\bgelateri/, 'gelateria'], [/\benotec/, 'enoteca'],
+    [/\bforno\b|\bpanifici/, 'forno'], [/\bbelveder/, 'belvedere'], [/\bterrazz/, 'terrazza panoramica'],
+    [/\bbasilic/, 'basilica'], [/\bchies/, 'chiesa'], [/\bduomo\b|\bcattedral/, 'cattedrale'],
+    [/\bmuse[oi]|\bmusei\b/, 'museo'], [/\bgalleri/, 'galleria'], [/\bpinacotec/, 'pinacoteca'],
+    [/\bpiazz/, 'piazza'], [/\bgiardin/, 'giardino'], [/\bparco\b/, 'parco'], [/\bvilla\b/, 'villa'],
+    [/\bpalazz/, 'palazzo'], [/\bcastell/, 'castello'], [/\bfontan/, 'fontana'], [/\bmercat/, 'mercato'],
+    [/\bteatr/, 'teatro'], [/\bbastion/, 'bastione'], [/\bterme\b/, 'terme'],
+];
+const TIPO_DAI_TYPES = [
+    ['church', 'chiesa'], ['place_of_worship', 'luogo di culto'], ['museum', 'museo'], ['art_gallery', 'galleria'],
+    ['park', 'parco'], ['restaurant', 'ristorante'], ['cafe', 'caffè'], ['bakery', 'forno'], ['bar', 'bar'],
+    ['meal_takeaway', 'cibo da asporto'], ['library', 'biblioteca'], ['city_hall', 'palazzo comunale'],
+];
+export const tipoTappa = (stop) => {
+    const n = norm(stop?.title || stop?.name || '');
+    for (const [re, t] of TIPO_DAL_NOME) if (re.test(n)) return t;
+    const types = Array.isArray(stop?.types) ? stop.types : [];
+    for (const [g, t] of TIPO_DAI_TYPES) if (types.includes(g)) return t;
+    // Tipo sconosciuto: il nome, che e' un dato vero.
+    return String(stop?.title || stop?.name || 'tappa').trim();
+};
+export const isPanoramaStop = (stop) => /\b(belveder|terrazz|panoram|punto di vista)/.test(norm(stop?.title || stop?.name || ''))
+    || (Array.isArray(stop?.types) && stop.types.includes('scenic_spot'));
+
+const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+const fascia = (pl) => (Number.isFinite(pl) && pl >= 1 && pl <= 4 ? `fascia ${'€'.repeat(pl)}` : null);
+
+/**
+ * La frase sicura di una tappa. Mai vuota.
+ * @param {object} p
+ * @param {object} p.stop          title/name, types
+ * @param {string|null} [p.momento] chiave o etichetta del momento ('pranzo', 'Pranzo')
+ * @param {string|null} [p.orario]  'HH:MM' di arrivo
+ * @param {string|null} [p.tramonto] 'HH:MM' del tramonto vero (solo per i panorami)
+ * @param {boolean} [p.locale]
+ * @param {number|null} [p.priceLevel]
+ * @param {number|null} [p.minutiDaPrima] minuti a piedi dalla tappa prima
+ */
+export function safeDescription({ stop, momento = null, orario = null, tramonto = null, locale = false, priceLevel = null, minutiDaPrima = null } = {}) {
+    const tipo = tipoTappa(stop);
+    const mk = momentKeyOf(momento);
+    if (locale) {
+        const parti = [tipo, fascia(priceLevel),
+            Number.isFinite(minutiDaPrima) && minutiDaPrima > 0 ? `a ${Math.round(minutiDaPrima)} minuti a piedi dalla tappa prima` : null,
+        ].filter(Boolean);
+        const head = mk ? `${MOMENT_PER[mk]}: ` : '';
+        const corpo = head ? parti.join(', ') : cap(parti.join(', '));
+        return `${head}${corpo}${orario ? `, arrivo alle ${orario}` : ''}.`;
+    }
+    let frase = cap(tipo);  // cap: un nome resta com'e' (gia' maiuscolo)
+    if (mk) frase += `, tappa ${MOMENT_DEL[mk]}`;
+    if (orario) frase += `: arrivo alle ${orario}`;
+    // Il tramonto solo se e' ancora davanti: con l'orario, se l'arrivo e' prima
+    // del tramonto; senza orario ("Per Te"), solo di pomeriggio o all'aperitivo.
+    const toMin = (hhmm) => { const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
+    const tramontoDavanti = orario
+        ? (toMin(orario) !== null && toMin(tramonto) !== null && toMin(orario) <= toMin(tramonto))
+        : (mk === 'pomeriggio' || mk === 'aperitivo');
+    if (tramonto && tramontoDavanti && isPanoramaStop(stop)) frase += `${orario ? ',' : ':'} il tramonto è alle ${tramonto}`;
+    return `${frase}.`;
+}

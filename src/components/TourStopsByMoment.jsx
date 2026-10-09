@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { groupStopsByDayAndMoment } from '@/lib/stopMoments';
+import { FactSources } from '@/components/FactSources';
 
 // P3e — la dissolvenza in cima alla lista scorrevole (trasparente nei primi
 // 26px) copriva la PRIMA intestazione di momento, che a lista ferma sta
@@ -69,6 +70,8 @@ export function TourStopsByMoment({ stops }) {
                                         {stop.description && (
                                             <p data-stop-description className="text-xs text-obsidian-secondary mt-1 leading-relaxed font-medium">{stop.description}</p>
                                         )}
+                                        {/* P3d-e — attribuzione, solo sotto le tappe raccontate con dei fatti */}
+                                        {stop.description && <FactSources fonti={stop.fonti} />}
                                     </div>
                                 </div>
                             ))}

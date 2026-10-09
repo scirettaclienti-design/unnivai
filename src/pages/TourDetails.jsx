@@ -13,6 +13,7 @@ import { formatEstimate } from "@/lib/tourTiming";
 // QuickPathSummary e SurpriseTour: momento dalla tappa (o dal suo orario),
 // orario = scheduledTime gia' calcolato dal motore. Niente orari calcolati qui.
 import { groupStopsByDayAndMoment } from "@/lib/stopMoments";
+import { FactSources } from "@/components/FactSources";
 
 import { useAuth } from "../context/AuthContext";
 import BottomNavigation from "../components/BottomNavigation";
@@ -1165,6 +1166,8 @@ export default function TourDetailsPage() {
                                                                     {stepDesc}
                                                                 </p>
                                                             )}
+                                                            {/* P3d-e — attribuzione dei fatti aperti usati dal racconto */}
+                                                            {stepDesc && <FactSources fonti={step.fonti} />}
 
                                                             {/* Momento editoriale insider tip */}
                                                             {stepInsider && (

@@ -9,6 +9,7 @@ import { aiRecommendationService, QUOTA_USER_MESSAGE } from "../services/aiRecom
 import { AI_ENGINE_MESSAGE, isAiEngineError } from "../lib/aiEngineError";
 import { PLACES_SEARCH_ERROR_MESSAGE } from "../services/placesDiscoveryService";
 import { normalizeTour } from "../services/tourShape";
+import { FactSources } from "@/components/FactSources";
 // Gate RAGGIO DIFF 1b — la sosta stimata ("~30 min") si formatta in tourTiming.js.
 import { formatEstimate } from "@/lib/tourTiming";
 // Gate TAPPE PER MOMENTO — tappe raggruppate per momento (dayMoments.js) con
@@ -676,6 +677,8 @@ export default function AIItineraryPage() {
                                                                 {stop.description && (
                                                                     <p data-stop-description className="text-xs text-obsidian-secondary mb-2 line-clamp-2 leading-relaxed">{stop.description}</p>
                                                                 )}
+                                                                {/* P3d-e — attribuzione dei fatti aperti */}
+                                                                {stop.description && <FactSources fonti={stop.fonti} className="-mt-1 mb-2" />}
 
                                                                 <div className="flex items-center justify-between">
                                                                     <div className="flex items-center gap-2">
@@ -830,6 +833,7 @@ export default function AIItineraryPage() {
                                     {selectedStop.description && (
                                         <p className="text-xs text-obsidian-secondary leading-relaxed">{selectedStop.description}</p>
                                     )}
+                                    {selectedStop.description && <FactSources fonti={selectedStop.fonti} />}
 
                                     {selectedStop.insiderTip && (
                                         <div className="bg-obsidian-raised/60 border border-obsidian-border rounded-xl p-3">

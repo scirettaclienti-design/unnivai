@@ -192,12 +192,14 @@ describe('Per Te — nessuno scarto silenzioso', () => {
         })));
         const res = await home(POOLS);
         const motivi = res._report.scarti.map(s => s.motivo);
-        expect(motivi.some(m => /non fra i candidati/.test(m))).toBe(true);
-        expect(motivi.some(m => /descrizione/.test(m))).toBe(true);
-        expect(res._report.scarti).toHaveLength(3);
+        expect(motivi.every(m => /non fra i candidati/.test(m))).toBe(true);
+        // P3d-e — f3 ("Un posto magico.") non e' piu' uno scarto: resta con la
+        // frase sicura del codice, e il resoconto lo dice.
+        expect(res._report.scarti).toHaveLength(2);
+        expect(res._report.frasiSicure.map(x => x.tour)).toEqual(['food']);
         const righe = warn.mock.calls.map(c => String(c[0])).filter(l => l.includes('[Per Te]') && l.includes('scartata'));
-        expect(righe).toHaveLength(3);
+        expect(righe).toHaveLength(2);
         expect(res._report.tappeRaccontate).toBe(12);
-        expect(res._report.tappeServite).toBe(9);
+        expect(res._report.tappeServite).toBe(10);
     });
 });

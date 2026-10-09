@@ -81,8 +81,10 @@ const genera = () => aiRecommendationService.generateItinerary(
 );
 const allStops = (r) => r.days.flatMap(d => d.stops);
 const kinds = () => calls.map(c => c.kind);
-const BUONA = 'Guarda la facciata dal lato del cortile: da lì si vede intera.';
-const PULITA = 'Le scale sono di pietra chiara.';
+// P3d-e — testi senza oggetti concreti (cortile, scale…): qui si prova la
+// riscrittura P3d-c, non il controllo anti-invenzione (fattiAncorati.test.js).
+const BUONA = 'La facciata si vede intera solo dal lato opposto della strada.';
+const PULITA = 'La pietra della facciata è chiara.';
 const MAGICA = 'Il belvedere regala una vista che appare magica.';
 
 describe('P3d-c — elenco: via i falsi positivi, dentro le frasi generiche', () => {
@@ -133,7 +135,7 @@ describe('P3d-c — itinerario: riscrivere invece di cancellare', () => {
         // regola "perché qui" ed esempi GIUSTO/SBAGLIATO nel prompt di riscrittura
         const sys = rw.body.messages[0].content;
         expect(sys).toContain('PERCHÉ QUI');
-        expect(sys).toContain('GIUSTO: "L\'ombra vera è sotto gli alberi grandi, non lungo i vialetti."');
+        expect(sys).toContain('GIUSTO: "Per il pranzo: trattoria, fascia €€, a 6 minuti dalla tappa prima."');
         expect(sys).toContain('SBAGLIATO: "Il profumo della pasta fresca riempie l\'aria."');
         // stesso biglietto della generazione
         const tickets = new Set(calls.map(c => c.body.dv?.ticket));
@@ -146,14 +148,17 @@ describe('P3d-c — itinerario: riscrivere invece di cancellare', () => {
         expect(r._narrationReport.riscrittura).toMatchObject({ richieste: 1, riscritte: 1, ancoraVuote: [] });
     });
 
-    it('riscrittura ancora vietata → campo vuoto e nessun secondo giro', async () => {
+    // P3d-e — mai vuota: dopo l'unica riscrittura fallita, la frase sicura del codice.
+    it('riscrittura ancora vietata → frase sicura del codice e nessun secondo giro', async () => {
         rewriteFn = (tappe) => ({ stops: tappe.map(t => ({ place_id: t.place_id, description: 'Un posto magico, da non perdere.' })) });
         vi.stubGlobal('fetch', routeFetch((t) => ({
             place_id: t.place_id, description: t.place_id === LIBERAZIONE.place_id ? MAGICA : PULITA,
         })));
         const r = await genera();
         expect(kinds().filter(k => k === 'riscrittura')).toHaveLength(1);
-        expect(allStops(r).find(s => s.place_id === LIBERAZIONE.place_id).description).toBeNull();
+        const lib = allStops(r).find(s => s.place_id === LIBERAZIONE.place_id);
+        expect(lib.description).toMatch(/^Museo, tappa della mattina: arrivo alle \d{2}:\d{2}\.$/);
+        expect(lib._fraseSicura).toBe(true);
         expect(r._narrationReport.riscrittura.riscritte).toBe(0);
         expect(r._narrationReport.riscrittura.scartate[0].motivo).toContain('"magico"');
     });
@@ -188,24 +193,26 @@ describe('P3d-c — itinerario: riscrivere invece di cancellare', () => {
         expect(r._narrationReport.riscrittura).toBeNull();
     });
 
-    it('riscrittura che fallisce (motore giù) → il tour esce lo stesso, il campo resta vuoto', async () => {
+    it('riscrittura che fallisce (motore giù) → il tour esce lo stesso, con la frase sicura', async () => {
         rewriteFn = 'errore';
         vi.stubGlobal('fetch', routeFetch((t) => ({
             place_id: t.place_id, description: t.place_id === LIBERAZIONE.place_id ? MAGICA : PULITA,
         })));
         const r = await genera();
         expect(r._source).toBe('google-first');
-        expect(allStops(r).find(s => s.place_id === LIBERAZIONE.place_id).description).toBeNull();
+        expect(allStops(r).find(s => s.place_id === LIBERAZIONE.place_id)._fraseSicura).toBe(true);
         expect(r._narrationReport.riscrittura.errore).toBe('AI_ENGINE_DOWN');
     });
 
     it('la riscrittura ripassa anche dal filtro di luce/ora', async () => {
-        rewriteFn = (tappe) => ({ stops: tappe.map(t => ({ place_id: t.place_id, description: 'Vieni qui per le stelle sopra il cortile.' })) });
+        rewriteFn = (tappe) => ({ stops: tappe.map(t => ({ place_id: t.place_id, description: 'Vieni qui per le stelle.' })) });
         vi.stubGlobal('fetch', routeFetch((t) => ({
             place_id: t.place_id, description: t.place_id === LIBERAZIONE.place_id ? MAGICA : PULITA,
         })));
         const r = await genera(); // Liberazione: mattina → "stelle" e' incoerente
-        expect(allStops(r).find(s => s.place_id === LIBERAZIONE.place_id).description).toBeNull();
+        const lib = allStops(r).find(s => s.place_id === LIBERAZIONE.place_id);
+        expect(lib.description).not.toContain('stelle');
+        expect(lib._fraseSicura).toBe(true);
     });
 });
 
@@ -262,14 +269,19 @@ describe('P3d-c — "Per Te": la tappa non si perde', () => {
         expect(res._report.riscrittura).toMatchObject({ richieste: 1, riscritte: 1 });
     });
 
-    it('riscrittura ancora vietata → la tappa esce (regola #16), nessun secondo giro', async () => {
+    // P3d-e — la tappa non esce piu': mai una descrizione vuota, frase sicura.
+    it('riscrittura ancora vietata → la tappa resta con la frase sicura, nessun secondo giro', async () => {
         vi.stubGlobal('fetch', homeFetch(tour([
             { place_id: 'pid-uno', description: 'Un posto magico.' },
             { place_id: 'pid-due', description: 'Le vasche hanno bordi bianchi.' },
         ]), (tappe) => ({ stops: tappe.map(t => ({ place_id: t.place_id, description: "Un'esperienza unica." })) })));
         const res = await home();
         expect(homeCalls.filter(c => c.kind === 'riscrittura')).toHaveLength(1);
-        expect(res.tours[0].stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre']);
-        expect(res._report.scarti[0].motivo).toContain('riscrittura');
+        expect(res.tours[0].stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre', 'pid-uno']);
+        const uno = res.tours[0].stops.find(s => s.place_id === 'pid-uno');
+        expect(uno._fraseSicura).toBe(true);
+        expect(uno.description).toMatch(/^Museo, tappa d/);
+        expect(res._report.scarti).toEqual([]);
+        expect(res._report.frasiSicure.map(x => x.title)).toEqual(['Torre Capitania']);
     });
 });

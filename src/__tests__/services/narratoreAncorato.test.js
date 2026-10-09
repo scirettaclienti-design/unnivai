@@ -126,11 +126,14 @@ describe('Gate NARRATORE ANCORATO DIFF 1 — il prompt del narratore (era del se
         expect(p).toContain('Nessun consiglio è meglio di un consiglio di un\'altra');
     });
 
-    it('gli esempi di tip coprono piu\' di una categoria, non solo il bar', () => {
+    // P3d-e — gli esempi di tip per categoria ("Percorrilo al contrario",
+    // "Siediti qualche minuto") erano consigli non verificabili su QUEL posto:
+    // con il narratore ancorato ai fatti un tip nasce dai fatti o non c'e'.
+    it('P3d-e: il tip nasce dai fatti o dai dati, altrimenti null (niente tip di repertorio)', () => {
         const p = prompt();
-        for (const cat of ['museo/galleria', 'chiesa', 'ristorante/bar', 'parco/natura', 'panorama']) {
-            expect(p).toContain(cat);
-        }
+        expect(p).toContain('SOLO se nasce dai fatti o dai');
+        expect(p).not.toContain("Percorrilo al contrario");
+        expect(p).not.toContain('Chiedi il caffè al bancone');
     });
 
     it('dichiara che gli esempi mostrano il registro, non il contenuto da copiare', () => {
@@ -254,9 +257,14 @@ describe('Gate NARRATORE ANCORATO F55 — non attribuire contenuti che non si sa
         expect(n).toBe(2);
     });
 
-    it('dichiara esplicitamente cosa il modello SA', () => {
+    // P3d-e — il prompt dichiarava "rating, numero di recensioni, indirizzo",
+    // che il narratore NON riceve: ora dice esattamente cosa riceve.
+    it('dichiara esplicitamente cosa il modello SA — e solo quello che riceve davvero', () => {
         const p = prompt();
-        expect(p).toContain('nome, "types", rating, numero di recensioni');
+        expect(p).toContain('Di ogni tappa ricevi: place_id, nome, categoria, "types", momento della giornata');
+        expect(p).toContain('"fatti": un elenco [{testo, fonte}]');
+        expect(p).toContain('NON ricevi rating, recensioni, indirizzi');
+        expect(p).not.toContain('nome, "types", rating, numero di recensioni');
         expect(p).toContain('NON si deduce cosa c\'e\' dentro');
     });
 
@@ -300,8 +308,11 @@ describe('Gate NARRATORE ANCORATO F56 — transition non afferma cosa accade ORA
         expect(prompt()).toContain('Le luci dei bar si accendono lentamente"  ← cosa accade ORA');
     });
 
-    it('resta la richiesta di descrivere cosa c\'e\'', () => {
-        expect(prompt()).toContain("Descrivi cosa c'è, non cosa sta succedendo");
+    // P3d-e — "descrivi cosa c'e'" lungo il cammino era un invito a inventare
+    // (muri, targhe, balconi): ora la transition usa solo dati veri o e' null.
+    it('P3d-e: transition solo con dati veri (prossima tappa, minuti), altrimenti null', () => {
+        expect(prompt()).toContain('SOLO con dati veri');
+        expect(prompt()).not.toContain("Descrivi cosa c'è, non cosa sta succedendo");
     });
 });
 

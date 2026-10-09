@@ -77,10 +77,11 @@ const genera = () => aiRecommendationService.generateItinerary(
 const allStops = (r) => r.days.flatMap(d => d.stops);
 
 
+// P3d-e — gli esempi GIUSTO di prima ("gli alberi grandi", "i vialetti")
+// insegnavano a inventare dettagli: ora vengono dai fatti e dai dati.
 const GIUSTO = [
-    "L'ombra vera è sotto gli alberi grandi, non lungo i vialetti.",
-    "Bastano pochi passi di lato per togliersi la folla dall'inquadratura.",
-    "Se ha piovuto da poco, i vialetti in terra battuta diventano fango.",
+    'Aperti nel 1734, sono considerati il primo museo pubblico al mondo.',
+    'Per il pranzo: trattoria, fascia €€, a 6 minuti dalla tappa prima.',
 ];
 const SBAGLIATO = [
     "L'aria fresca qui è un sollievo dopo la passeggiata.",
@@ -158,25 +159,27 @@ describe('P3d-b — narratore dell\'itinerario', () => {
     it('"assapora" (parola delle notifiche) → frase tolta anche dal narratore', async () => {
         vi.stubGlobal('fetch', routeFetch((t) => ({
             place_id: t.place_id,
-            description: 'Assapora il pane caldo al bancone. Le scale sono di pietra chiara.',
+            description: 'Assapora il pane caldo al bancone. La pietra della facciata è chiara.',
         })));
         const r = await genera();
-        for (const s of allStops(r)) expect(s.description, s.title).toBe('Le scale sono di pietra chiara.');
+        for (const s of allStops(r)) expect(s.description, s.title).toBe('La pietra della facciata è chiara.');
         expect(r._narrationReport.frasiTolte.some(x => (x.parole || []).includes('assapora'))).toBe(true);
     });
 
-    it('frase che apre con "Il profumo" → tolta; se era l\'unica, descrizione vuota (generazione e cache)', async () => {
+    // P3d-e — se era l'unica, al posto del vuoto la frase sicura del codice.
+    it('frase che apre con "Il profumo" → tolta; se era l\'unica, frase sicura (generazione e cache)', async () => {
         vi.stubGlobal('fetch', routeFetch((t) => ({
             place_id: t.place_id,
             description: t.place_id === LIBERAZIONE.place_id
                 ? 'Il profumo della pasta fresca riempie l\'aria.'
-                : 'Il profumo del sugo arriva in strada. Le scale sono di pietra chiara.',
+                : 'Il profumo del sugo arriva in strada. La pietra della facciata è chiara.',
         })));
         const r1 = await genera();
         const lib = allStops(r1).find(s => s.place_id === LIBERAZIONE.place_id);
-        expect(lib.description).toBeNull();
+        expect(lib._fraseSicura).toBe(true);
+        expect(lib.description).not.toMatch(/profumo/i);
         for (const s of allStops(r1).filter(s => s.place_id !== LIBERAZIONE.place_id)) {
-            expect(s.description, s.title).toBe('Le scale sono di pietra chiara.');
+            expect(s.description, s.title).toBe('La pietra della facciata è chiara.');
         }
         expect(r1._narrationReport.frasiTolte.filter(x => x.regole.includes('apertura-sensi')).length).toBeGreaterThan(0);
 
@@ -201,7 +204,7 @@ describe('P3d-b — narratore dell\'itinerario', () => {
     });
 
     it('il prompt del narratore contiene la regola "perché qui", gli esempi e l\'elenco unico', async () => {
-        vi.stubGlobal('fetch', routeFetch((t) => ({ place_id: t.place_id, description: 'Le scale sono di pietra chiara.' })));
+        vi.stubGlobal('fetch', routeFetch((t) => ({ place_id: t.place_id, description: 'La pietra della facciata è chiara.' })));
         await genera();
         const p = prompts.find(x => x.includes('SEI IL NARRATORE'));
         expect(p).toBeTruthy();
@@ -250,7 +253,8 @@ describe('P3d-b — "Per Te" della Home', () => {
     });
     afterEach(() => { vi.unstubAllGlobals(); });
 
-    it('descrizione che apre con "Il profumo" → frase tolta; se era l\'unica, la tappa esce', async () => {
+    // P3d-e — la tappa non esce piu': frase sicura del codice.
+    it('descrizione che apre con "Il profumo" → frase tolta; se era l\'unica, la tappa resta con la frase sicura', async () => {
         vi.stubGlobal('fetch', homeFetch(tour([
             { place_id: 'pid-uno', description: "Il profumo della pasta fresca riempie l'aria." },
             { place_id: 'pid-due', description: 'Assapora il sale. Le vasche hanno bordi bianchi.' },
@@ -258,29 +262,31 @@ describe('P3d-b — "Per Te" della Home', () => {
         ].slice(0, 2))));
         const res = await home();
         const stops = res.tours[0]?.stops || [];
-        expect(stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre']);
+        expect(stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre', 'pid-uno']);
+        expect(stops.find(s => s.place_id === 'pid-uno')._fraseSicura).toBe(true);
         expect(stops.find(s => s.place_id === 'pid-due').description).toBe('Le vasche hanno bordi bianchi.');
     });
 
     it('dalla CACHE: apertura dei sensi tolta, nessuna nuova chiamata', async () => {
         const fn = homeFetch(tour([
-            { place_id: 'pid-uno', description: 'Le panche sono di pietra.' },
+            { place_id: 'pid-uno', description: 'La pietra è chiara.' },
             { place_id: 'pid-due', description: 'Le vasche hanno bordi bianchi.' },
         ]));
         vi.stubGlobal('fetch', fn);
         await home();
         const key = Object.keys(window.localStorage).find(k => k.startsWith('hometours_v1_'));
         const entry = JSON.parse(window.localStorage.getItem(key));
-        entry.data.tours[0].stops.find(s => s.place_id === 'pid-uno').description = "L'aria qui è ferma. Le panche sono di pietra.";
+        entry.data.tours[0].stops.find(s => s.place_id === 'pid-uno').description = "L'aria qui è ferma. La pietra è chiara.";
         window.localStorage.setItem(key, JSON.stringify(entry));
         const res = await home();
-        expect(fn.mock.calls).toHaveLength(1);
-        expect(res.tours[0].stops.find(s => s.place_id === 'pid-uno').description).toBe('Le panche sono di pietra.');
+        // P3d-e — le richieste dei fatti (Wikipedia, Overpass) non sono chiamate al motore.
+        expect(fn.mock.calls.filter(([u]) => String(u).includes('openai-proxy'))).toHaveLength(1);
+        expect(res.tours[0].stops.find(s => s.place_id === 'pid-uno').description).toBe('La pietra è chiara.');
     });
 
     it('il prompt di "Per Te" contiene la regola "perché qui", gli esempi e l\'elenco unico', async () => {
         vi.stubGlobal('fetch', homeFetch(tour([
-            { place_id: 'pid-uno', description: 'Le panche sono di pietra.' },
+            { place_id: 'pid-uno', description: 'La pietra è chiara.' },
             { place_id: 'pid-due', description: 'Le vasche hanno bordi bianchi.' },
         ])));
         await home();

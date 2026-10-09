@@ -162,7 +162,9 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
     // nome e categoria, i campi di testo null (nessun testo inventato al loro
     // posto), e il report (_narrationReport + console.warn) lo dice. Su
     // generateHomeTours la regola #16 resta com'era (describe sotto).
-    it('il narratore non racconta nessuna tappa → il tour resta, tappe senza testo, il report le elenca', async () => {
+    // P3d-e — "mai una descrizione vuota": le tappe restano con la frase sicura
+    // del codice (tipo, momento, orario), il report continua a elencarle.
+    it('il narratore non racconta nessuna tappa → il tour resta, tappe con la frase sicura, il report le elenca', async () => {
         vi.stubGlobal('fetch', routeFetch({
             days: [{
                 day: 1,
@@ -184,7 +186,8 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
         for (const st of stops) {
             expect(st.title).toBeTruthy();
             expect(st.type).toBeTruthy();
-            expect(st.description).toBeNull();
+            expect(st._fraseSicura).toBe(true);
+            expect(st.description).toMatch(/: arrivo alle \d{2}:\d{2}\.$/);
         }
         expect(result._narrationReport.nonRaccontate.map(x => x.title)).toEqual(stops.map(st => st.title));
     });
@@ -276,7 +279,9 @@ describe('Gate NARRATORE/POI Fase 2b — generateHomeTours invariato dopo l\'est
         throw new Error(`fetch inatteso: ${url}`);
     });
 
-    it('description vuota → stop scartato, esattamente come prima (Gate II.2)', async () => {
+    // P3d-e — la tappa senza descrizione non esce piu': frase sicura del codice
+    // (mai un placeholder tipo "Luogo di interesse": solo tipo e momento).
+    it('description vuota → la tappa resta con la frase sicura del codice', async () => {
         vi.stubGlobal('fetch', homeToursFetch({
             tours: [{
                 themeType: 'cultura',
@@ -296,9 +301,12 @@ describe('Gate NARRATORE/POI Fase 2b — generateHomeTours invariato dopo l\'est
 
         expect(res._source).toBe('unified-home');
         expect(res.tours).toHaveLength(1);
-        expect(res.tours[0].stops).toHaveLength(3);
+        expect(res.tours[0].stops).toHaveLength(4);
         expect(res.tours[0].stops.map(st => st.title)).toContain('Torre Capitania');
-        expect(res.tours[0].stops.map(st => st.title)).not.toContain('Museo del Sale');
+        const sale = res.tours[0].stops.find(st => st.title === 'Museo del Sale');
+        expect(sale._fraseSicura).toBe(true);
+        expect(sale.description).not.toMatch(/Luogo di interesse/);
+        expect(sale.description.trim().length).toBeGreaterThan(0);
     });
 
     it('tour i cui stop restano tutti senza description → tour escluso, come prima', async () => {

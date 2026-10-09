@@ -389,6 +389,9 @@ export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma') {
         transition: raw.transition || null,
         insiderTip: raw.insiderTip || null,
         bestTime: raw.bestTime || null,
+        // P3d-e — le fonti dei fatti aperti (Wikipedia, Wikidata, OSM) usati
+        // dal racconto: la riga di attribuzione a schermo. null se nessuna.
+        fonti: Array.isArray(raw.fonti) && raw.fonti.length > 0 ? raw.fonti : null,
 
         // Media
         image,

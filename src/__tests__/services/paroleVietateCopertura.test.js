@@ -73,7 +73,7 @@ describe('Gate PAROLE VIETATE (P3d) — itinerario: transition e nome della tapp
     it('transition con "imperdibile" → tolta (generazione e cache)', async () => {
         vi.stubGlobal('fetch', routeFetch((t) => ({
             place_id: t.place_id,
-            description: 'Le scale sono di pietra chiara.',
+            description: 'La pietra della facciata è chiara.',
             transition: 'Sulla destra una fontana imperdibile.',
         })));
         const r1 = await genera();
@@ -92,7 +92,7 @@ describe('Gate PAROLE VIETATE (P3d) — itinerario: transition e nome della tapp
         const frase = 'Il Museo Storico della Liberazione ha sale fresche anche ad agosto.';
         vi.stubGlobal('fetch', routeFetch((t) => ({
             place_id: t.place_id,
-            description: t.place_id === LIBERAZIONE.place_id ? frase : 'Le scale sono di pietra chiara.',
+            description: t.place_id === LIBERAZIONE.place_id ? frase : 'La pietra della facciata è chiara.',
         })));
         const r = await genera();
         const s = allStops(r).find(x => x.place_id === LIBERAZIONE.place_id);
@@ -135,38 +135,42 @@ describe('Gate PAROLE VIETATE (P3d) — tour "Per Te" della Home', () => {
 
     it('"storico" in descrizione → la frase viene tolta, il resto resta', async () => {
         vi.stubGlobal('fetch', homeFetch(tour([
-            { place_id: 'pid-uno', description: 'Un portico storico sul mare. Le panche sono di pietra.', transition: 'Un tratto imperdibile.' },
+            { place_id: 'pid-uno', description: 'Un portico storico sul mare. La pietra è chiara.', transition: 'Un tratto imperdibile.' },
             { place_id: 'pid-due', description: 'Le vasche hanno bordi bianchi.' },
         ])));
         const res = await home();
         const uno = res.tours[0].stops.find(s => s.place_id === 'pid-uno');
-        expect(uno.description).toBe('Le panche sono di pietra.');
+        expect(uno.description).toBe('La pietra è chiara.');
         expect(uno.transition).toBeNull();
     });
 
     it('"storico" in descrizione letta dalla CACHE → frase tolta, nessuna chiamata', async () => {
         const fn = homeFetch(tour([
-            { place_id: 'pid-uno', description: 'Le panche sono di pietra.' },
+            { place_id: 'pid-uno', description: 'La pietra è chiara.' },
             { place_id: 'pid-due', description: 'Le vasche hanno bordi bianchi.' },
         ]));
         vi.stubGlobal('fetch', fn);
         await home();
         const key = Object.keys(window.localStorage).find(k => k.startsWith('hometours_v1_'));
         const entry = JSON.parse(window.localStorage.getItem(key));
-        entry.data.tours[0].stops.find(s => s.place_id === 'pid-uno').description = 'Un portico storico sul mare. Le panche sono di pietra.';
+        entry.data.tours[0].stops.find(s => s.place_id === 'pid-uno').description = 'Un portico storico sul mare. La pietra è chiara.';
         window.localStorage.setItem(key, JSON.stringify(entry));
 
         const res = await home();
         expect(fn.mock.calls.filter(([u]) => String(u).includes('openai-proxy'))).toHaveLength(1); // cache HIT
-        expect(res.tours[0].stops.find(s => s.place_id === 'pid-uno').description).toBe('Le panche sono di pietra.');
+        expect(res.tours[0].stops.find(s => s.place_id === 'pid-uno').description).toBe('La pietra è chiara.');
     });
 
-    it('descrizione fatta solo di frasi vietate → la tappa esce, come per la regola #16 della Home', async () => {
+    // P3d-e — la tappa non esce piu': mai una descrizione vuota, frase sicura del codice.
+    it('descrizione fatta solo di frasi vietate → la tappa resta con la frase sicura del codice', async () => {
         vi.stubGlobal('fetch', homeFetch(tour([
             { place_id: 'pid-uno', description: 'Un posto magico.' },
             { place_id: 'pid-due', description: 'Le vasche hanno bordi bianchi.' },
         ])));
         const res = await home();
-        expect(res.tours[0].stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre']);
+        expect(res.tours[0].stops.map(s => s.place_id).sort()).toEqual(['pid-due', 'pid-quattro', 'pid-tre', 'pid-uno']);
+        const uno = res.tours[0].stops.find(s => s.place_id === 'pid-uno');
+        expect(uno._fraseSicura).toBe(true);
+        expect(uno.description).not.toMatch(/magico/);
     });
 });

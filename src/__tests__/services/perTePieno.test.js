@@ -125,9 +125,13 @@ describe('P7a2 — un tour a 2 tappe si completa in codice', () => {
         expect(calls.map(c => c.kind)).toEqual(['tour', 'riscrittura']);
         expect(new Set(calls.map(c => c.body.dv?.ticket)).size).toBe(1);
         expect(calls[0].body.dv.kind).toBe('home_tours');
-        // Una riserva in piu' del necessario, in ordine di merito.
-        expect(calls[1].tappe.map(t => t.place_id)).toEqual(['f3', 'f4']);
-        expect(calls[1].tappe[0].tolto).toEqual([{ frase: null, motivo: 'mancava la descrizione' }]);
+        // P3d-e — nella stessa chiamata, prima, i due locali scelti (f1, f2):
+        // si riscrivono ancorati ai dati (fascia, motivo). Poi le riserve: una
+        // in piu' del necessario, in ordine di merito.
+        expect(calls[1].tappe.map(t => t.place_id)).toEqual(['f1', 'f2', 'f3', 'f4']);
+        expect(calls[1].tappe[0].locale).toBe(true);
+        expect(calls[1].tappe[0].tolto[0].motivo).toBe('riscrivila usando i fatti e i dati forniti');
+        expect(calls[1].tappe[2].tolto).toEqual([{ frase: null, motivo: 'mancava la descrizione' }]);
     });
 
     it('la riserva non e\' un luogo gia\' usato da un altro tour', async () => {

@@ -263,7 +263,9 @@ describe('Gate NARRATORE-DOPO — il narratore racconta le tappe finali', () => 
         expect(result._narrationReport.frasiTolte.some(f => f.place_id === mattina.place_id)).toBe(true);
     });
 
-    it('il narratore salta una tappa → resta con nome e categoria, senza testo inventato, e il report lo dice', async () => {
+    // P3d-e — "mai una descrizione vuota": la tappa saltata riceve la frase
+    // sicura del CODICE (tipo, momento, orario), non un testo inventato.
+    it('il narratore salta una tappa → resta, con la frase sicura del codice (non testo inventato), e il report lo dice', async () => {
         const saltata = byName('Galleria Doria Pamphilj').place_id;
         const { fn } = routeFetch({
             selector: sel(GIORNO_1),
@@ -276,7 +278,8 @@ describe('Gate NARRATORE-DOPO — il narratore racconta le tappe finali', () => 
         expect(s).toBeTruthy();
         expect(s.title).toBe('Galleria Doria Pamphilj');
         expect(s.type).toBeTruthy();
-        expect(s.description).toBeNull();
+        expect(s.description).toMatch(/^Galleria, tappa del pomeriggio: arrivo alle \d{2}:\d{2}\.$/);
+        expect(s._fraseSicura).toBe(true);
         expect(s.insiderTip ?? null).toBeNull();
         expect(result._narrationReport.nonRaccontate.map(x => x.place_id)).toEqual([saltata]);
     });
@@ -284,17 +287,20 @@ describe('Gate NARRATORE-DOPO — il narratore racconta le tappe finali', () => 
     // ─── Gate PAROLE VIETATE ────────────────────────────────────────────
     const TRADIZIONALI = 'Il profumo dei piatti tradizionali riempie la sala. Prova la carbonara.';
 
-    it('parole vietate: la frase con "tradizionali" viene tolta, resta solo "Prova la carbonara."', async () => {
+    // P3d-e — in generazione "Prova la carbonara." cadrebbe anche per il
+    // controllo anti-invenzione (piatto assente dai fatti): qui si prova solo
+    // il filtro delle parole, con una seconda frase senza oggetti.
+    it('parole vietate: la frase con "tradizionali" viene tolta, resta solo l\'altra', async () => {
         const cena = byName('Da Teo').place_id;
         const { fn } = routeFetch({
             selector: sel(GIORNO_1),
-            narrator: narratore({ text: (t) => (t.place_id === cena ? TRADIZIONALI : `Da ${t.nome} il selciato e' liscio.`) }),
+            narrator: narratore({ text: (t) => (t.place_id === cena ? 'Il profumo dei piatti tradizionali riempie la sala. Si arriva a fine passeggiata.' : `Da ${t.nome} il selciato e' liscio.`) }),
         });
         vi.stubGlobal('fetch', fn);
 
         const result = await genera(ROMANO, ARTE_CIBO_RILASSATO);
         const s = allStops(result).find(x => x.place_id === cena);
-        expect(s.description).toBe('Prova la carbonara.');
+        expect(s.description).toBe('Si arriva a fine passeggiata.');
         expect(result._narrationReport.frasiTolte.some(f => f.place_id === cena && f.regole.includes('parola-vietata'))).toBe(true);
     });
 
@@ -322,7 +328,8 @@ describe('Gate NARRATORE-DOPO — il narratore racconta le tappe finali', () => 
         expect(s.bestTime).toBeNull();
     });
 
-    it('parole vietate: descrizione fatta solo di frasi vietate → campo vuoto, nessun sostituto', async () => {
+    // P3d-e — mai vuota: al posto del testo tolto, la frase sicura del codice.
+    it('parole vietate: descrizione fatta solo di frasi vietate → frase sicura del codice, nessun testo del modello', async () => {
         const cena = byName('Da Teo').place_id;
         const { fn } = routeFetch({
             selector: sel(GIORNO_1),
@@ -333,7 +340,9 @@ describe('Gate NARRATORE-DOPO — il narratore racconta le tappe finali', () => 
         const result = await genera(ROMANO, ARTE_CIBO_RILASSATO);
         const s = allStops(result).find(x => x.place_id === cena);
         expect(s).toBeTruthy();
-        expect(s.description).toBeNull();
+        expect(s.description).toMatch(/^Per la cena: ristorante/);
+        expect(s.description).not.toMatch(/tradizional|magico/);
+        expect(s._fraseSicura).toBe(true);
         expect(result._narrationReport.nonRaccontate.map(x => x.place_id)).toContain(cena);
     });
 

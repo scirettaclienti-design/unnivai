@@ -192,7 +192,7 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
                     day: 1, title: 'Il vento del Sinis',
                     stops: [
                         { place_id: 'pid-maimoni', description: 'Sabbia di quarzo sotto i piedi' },
-                        { place_id: 'pid-arutas', description: 'I chicchi bianchi rotolano nell’acqua' },
+                        { place_id: 'pid-arutas', description: 'I chicchi bianchi sono quarzo' },
                         { place_id: 'pid-mari-ermi', description: 'Il maestrale piega i giunchi' },
                     ],
                 }],
@@ -272,7 +272,7 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
                     day: 1, title: 'Il vento del Sinis',
                     stops: [
                         { place_id: 'pid-maimoni', description: 'Sabbia di quarzo sotto i piedi' },
-                        { place_id: 'pid-arutas', description: 'I chicchi bianchi rotolano nell’acqua' },
+                        { place_id: 'pid-arutas', description: 'I chicchi bianchi sono quarzo' },
                         { place_id: 'pid-mari-ermi', description: 'Il maestrale piega i giunchi' },
                     ],
                 }],

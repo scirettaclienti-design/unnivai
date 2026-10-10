@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Corsia F. Prima di toccare un file, controlla 'File in uso' nel backlog.** (Regole delle due corsie: `docs/PARALLELO.md`.)
+**Corsia F. Prima di toccare un file, controlla docs/corsia-e-permessi.json: un file concesso a un branch estetica non si tocca finché il permesso c'è.** (Regole delle due corsie: `docs/PARALLELO.md`.)
 
 ## Commands
 

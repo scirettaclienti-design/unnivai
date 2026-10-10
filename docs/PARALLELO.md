@@ -6,7 +6,10 @@ Due agenti lavorano sullo stesso repository. Ognuno ha la sua corsia.
 
 - **Solo Claude Code scrive su `main`.** Nessun altro fa commit, merge o push su `main`.
 - Tocca tutto il codice: servizi, logica, hook, test, database, configurazioni.
-- Prima di toccare un file, controlla "File in uso" nel backlog.
+- **Prima di toccare un file, controlla `docs/corsia-e-permessi.json`: un file
+  concesso a un branch estetica non si tocca finché il permesso c'è.** Il
+  permesso è anche il lucchetto della corsia F: lo toglie Claude Code (su `main`)
+  quando il lavoro estetico è stato portato su `main` o abbandonato.
 - Le modifiche estetiche pronte su un branch `estetica/<nome>` le porta su `main`
   Claude Code, dopo averle lette, con un proprio commit (cherry-pick o copia).
 
@@ -71,6 +74,37 @@ documento e `CLAUDE.md`.
 
 Serve un componente che oggi non e' nell'elenco? Lo chiede a Claude Code, che
 lo controlla e, se e' puramente grafico, lo aggiunge qui e in `check-lane.mjs`.
+
+### Permessi per branch (`docs/corsia-e-permessi.json`)
+
+Il regista puo' concedere a UN branch estetica anche altri file, di solito dei
+`.jsx` da ritoccare nell'aspetto. Il file vive su `main` e lo scrive solo Claude
+Code; la guardia lo legge **da `origin/main`, mai dal branch**: un branch non
+puo' concedersi file da solo. Un branch non elencato ha solo l'elenco base.
+
+```json
+{
+  "estetica/check-olio": {
+    "files": ["src/pages/AiItinerary.jsx", "src/components/TourStopsByMoment.jsx"],
+    "dal": "2026-10-10",
+    "motivo": "gerarchia e punti focali della schermata Check"
+  }
+}
+```
+
+**Solo aspetto.** In ogni `.jsx` cambiato dal branch (concesso o dell'elenco base)
+la guardia legge le righe aggiunte e fallisce se contengono:
+- import da `services`, `lib`, `hooks`, `store`, `context`;
+- `fetch(`, `supabase`;
+- `useState`, `useEffect`, `useReducer`, `useContext` **nuovi** (piu' presenze
+  nelle righe aggiunte che in quelle tolte: ritoccare la classe di una riga che
+  gia' li conteneva passa).
+
+Sono ammessi: classi, markup, testi, animazioni (`framer-motion`) e gli import
+di icone a linea (`lucide-react`).
+
+**Lucchetto.** Finche' un file e' concesso a un branch, la corsia F non lo tocca.
+Quando il lavoro e' portato su `main` (o abbandonato), Claude Code toglie la voce.
 
 ## Anteprime Vercel
 

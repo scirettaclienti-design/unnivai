@@ -13,6 +13,8 @@ MIGRATION_3CALLS="$ROOT/supabase/migrations/20261006_ai_ticket_itinerary_3_calls
 MIGRATION_REFUND="$ROOT/supabase/migrations/20261008_ai_quota_refund.sql"
 # Gate P3d-c — biglietto 'itinerary' a 4 chiamate (+ riscrittura).
 MIGRATION_4CALLS="$ROOT/supabase/migrations/20261008_ai_ticket_itinerary_4_calls.sql"
+# TEST-ACC — l'account di prova senza tetto personale.
+MIGRATION_TESTACC="$ROOT/supabase/migrations/20261010_ai_quota_test_account.sql"
 NAME="dv-quota-sql-test-$$"
 
 cleanup() { docker rm -f "$NAME" >/dev/null 2>&1 || true; }
@@ -46,8 +48,12 @@ CREATE TABLE public.profiles (id uuid PRIMARY KEY REFERENCES auth.users(id), is_
 INSERT INTO auth.users VALUES
   ('11111111-1111-1111-1111-111111111111'),
   ('22222222-2222-2222-2222-222222222222'),
-  ('33333333-3333-3333-3333-333333333333');
+  ('33333333-3333-3333-3333-333333333333'),
+  ('cee972ab-10ed-48b8-a3e9-bfd53cf66e64'),
+  ('44444444-4444-4444-4444-444444444444');
 INSERT INTO public.profiles VALUES
+  ('cee972ab-10ed-48b8-a3e9-bfd53cf66e64', false),
+  ('44444444-4444-4444-4444-444444444444', false),
   ('11111111-1111-1111-1111-111111111111', false),
   ('22222222-2222-2222-2222-222222222222', false),
   ('33333333-3333-3333-3333-333333333333', true);
@@ -75,6 +81,8 @@ psql < "$MIGRATION_REFUND"
 psql < "$MIGRATION_REFUND"
 psql < "$MIGRATION_4CALLS"
 psql < "$MIGRATION_4CALLS"
+psql < "$MIGRATION_TESTACC"
+psql < "$MIGRATION_TESTACC"
 
 echo "→ asserzioni"
 psql <<'SQL'
@@ -283,6 +291,65 @@ SET ROLE anon;
 DO $$ BEGIN
   BEGIN PERFORM public.ai_quota_refund('guest', 'h', gen_random_uuid()); RAISE EXCEPTION 'FALLITO: anon execute refund';
   EXCEPTION WHEN insufficient_privilege THEN RAISE NOTICE 'ok  anon: ai_quota_refund negata'; END;
+END $$;
+RESET ROLE;
+SQL
+
+echo "→ asserzioni account di prova (TEST-ACC)"
+psql <<'SQL'
+CREATE FUNCTION pg_temp.ok(cond boolean, msg text) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN IF cond IS NOT TRUE THEN RAISE EXCEPTION 'FALLITO: %', msg; END IF; RAISE NOTICE 'ok  %', msg; END $$;
+SET ROLE service_role;
+DO $$ DECLARE r jsonb; i int; oggi date := (now() AT TIME ZONE 'Europe/Rome')::date; g int;
+  normale text := '44444444-4444-4444-4444-444444444444'; prova text := 'cee972ab-10ed-48b8-a3e9-bfd53cf66e64'; BEGIN
+  PERFORM pg_temp.ok((SELECT count(*) FROM ai_quota_test_account) = 1, 'una sola riga registrata');
+  -- utente normale: 10 passano, l'11a no
+  FOR i IN 1..10 LOOP
+    r := public.ai_quota_consume('user', normale, 'generation', gen_random_uuid(), 'itinerary', 10, 100000);
+    PERFORM pg_temp.ok((r->>'allowed')::boolean, format('normale: generazione %s passa', i));
+  END LOOP;
+  r := public.ai_quota_consume('user', normale, 'generation', gen_random_uuid(), 'itinerary', 10, 100000);
+  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'limit', 'normale: 11a generazione bloccata');
+  -- account di prova: 15 passano, contate, con etichetta 'test'
+  FOR i IN 1..15 LOOP
+    r := public.ai_quota_consume('user', prova, 'generation', gen_random_uuid(), 'itinerary', 10, 100000);
+    PERFORM pg_temp.ok((r->>'allowed')::boolean AND r->>'reason' = 'test', format('prova: generazione %s passa', i));
+  END LOOP;
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_daily WHERE user_id = prova::uuid AND day = oggi) = 15, 'prova: le generazioni sono contate (15)');
+  PERFORM pg_temp.ok((SELECT count(*) FROM ai_generation_ticket WHERE subject = 'user:' || prova AND label = 'test') = 15, 'prova: 15 biglietti con etichetta test');
+  PERFORM pg_temp.ok(NOT EXISTS (SELECT 1 FROM ai_generation_ticket WHERE subject = 'user:' || normale AND label IS NOT NULL), 'normale: nessuna etichetta');
+  -- contorno: anche li' niente tetto personale per la prova, si per il normale
+  FOR i IN 1..45 LOOP r := public.ai_quota_consume('user', prova, 'aux', NULL, NULL, 40, 100000); END LOOP;
+  PERFORM pg_temp.ok((r->>'allowed')::boolean, 'prova: 45a chiamata di contorno passa');
+  -- tetto globale: vale anche per la prova
+  g := (SELECT count FROM ai_quota_global WHERE day = oggi);
+  r := public.ai_quota_consume('user', prova, 'generation', gen_random_uuid(), 'itinerary', 10, g);
+  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'global', 'prova: il tetto globale la blocca');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_daily WHERE user_id = prova::uuid AND day = oggi) = 15, 'prova: generazione rifiutata dal globale non contata');
+  -- un ospite non e' mai la prova, nemmeno con lo stesso testo come soggetto
+  FOR i IN 1..5 LOOP PERFORM public.ai_quota_consume('guest', prova, 'generation', gen_random_uuid(), 'itinerary', 5, 100000); END LOOP;
+  r := public.ai_quota_consume('guest', prova, 'generation', gen_random_uuid(), 'itinerary', 5, 100000);
+  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean, 'ospite con lo stesso id come soggetto: tetto normale');
+  -- rimborso della prova: il personale torna indietro
+  r := public.ai_quota_refund('user', prova, (SELECT id FROM ai_generation_ticket WHERE subject = 'user:' || prova LIMIT 1));
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_daily WHERE user_id = prova::uuid AND day = oggi) = 14, 'prova: rimborso del personale');
+  -- una seconda riga e' impossibile
+  BEGIN INSERT INTO ai_quota_test_account (user_id) VALUES (normale::uuid); RAISE EXCEPTION 'FALLITO: seconda riga';
+  EXCEPTION WHEN unique_violation THEN RAISE NOTICE 'ok  seconda riga rifiutata'; END;
+END $$;
+RESET ROLE;
+SET ROLE authenticated;
+DO $$ BEGIN
+  BEGIN PERFORM 1 FROM public.ai_quota_test_account; RAISE EXCEPTION 'FALLITO: authenticated legge';
+  EXCEPTION WHEN insufficient_privilege THEN RAISE NOTICE 'ok  authenticated: lettura negata'; END;
+  BEGIN INSERT INTO public.ai_quota_test_account (user_id) VALUES ('11111111-1111-1111-1111-111111111111'); RAISE EXCEPTION 'FALLITO: authenticated scrive';
+  EXCEPTION WHEN insufficient_privilege THEN RAISE NOTICE 'ok  authenticated: scrittura negata'; END;
+END $$;
+RESET ROLE;
+SET ROLE anon;
+DO $$ BEGIN
+  BEGIN INSERT INTO public.ai_quota_test_account (user_id) VALUES ('11111111-1111-1111-1111-111111111111'); RAISE EXCEPTION 'FALLITO: anon scrive';
+  EXCEPTION WHEN insufficient_privilege THEN RAISE NOTICE 'ok  anon: scrittura negata'; END;
 END $$;
 RESET ROLE;
 SQL

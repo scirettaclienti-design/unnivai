@@ -26,6 +26,15 @@ npm run test:coverage     # coverage report (v8)
 **Setup:** `src/test/setup.js` stubs `navigator.geolocation` and silences `console.error/warn` from dataService migration warnings.
 **fetch mocking:** Use `vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ok, json}))` for Nominatim calls in userContextService tests. Always pair with `vi.unstubAllGlobals()` in `afterEach`. Use `vi.resetAllMocks()` (not `clearAllMocks`) in `beforeEach` so mock implementations don't bleed between tests.
 
+## Prove reali (generazioni vere)
+
+`scripts/prova-reale/prova.live.js` (`PROVA_RICHIESTE=roma,catania,perte npx vitest run -c scripts/prova-reale/vitest.prova.config.js`).
+Se `.env.local` ha `TEST_ACCOUNT_EMAIL` e `TEST_ACCOUNT_PASSWORD` entra con l'**account di prova**
+(registrato in `public.ai_quota_test_account`, scrivibile solo da service_role): nessun tetto
+personale, **tetto globale valido**, generazioni etichettate `label = 'test'` in
+`ai_generation_ticket`. Senza quelle variabili resta ospite. Le credenziali vivono solo in
+`.env.local` (ignorato da `*.local`): mai stamparle, mai committarle, mai nei report.
+
 ## Environment Variables
 
 Copy `.env.example` to `.env` and fill in:

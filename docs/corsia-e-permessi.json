@@ -1,1 +1,7 @@
-{}
+{
+  "estetica/test-permessi": {
+    "files": ["src/pages/Trending.jsx"],
+    "dal": "2026-10-10",
+    "motivo": "PAR-1: prova dal vivo della guardia, da togliere a prova finita"
+  }
+}

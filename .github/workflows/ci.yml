@@ -20,6 +20,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # PAR-0: la guardia confronta il branch con origin/main
+
+      # PAR-0 — corsia estetica: sui branch estetica/* fallisce se un file
+      # cambiato e' fuori dall'elenco di docs/PARALLELO.md. Sugli altri branch
+      # non fa nulla. Gira la versione di origin/main dello script, non quella
+      # del branch: un branch non puo' allargarsi la corsia da solo.
+      - name: Corsia estetica
+        run: |
+          git show origin/main:scripts/check-lane.mjs > "$RUNNER_TEMP/check-lane.mjs"
+          node "$RUNNER_TEMP/check-lane.mjs"
 
       # actions/setup-node with cache: 'npm' automatically caches ~/.npm
       # using a key derived from package-lock.json.  On cache hit, npm ci

@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Corsia F. Prima di toccare un file, controlla 'File in uso' nel backlog.** (Regole delle due corsie: `docs/PARALLELO.md`.)
+
 ## Commands
 
 ```bash

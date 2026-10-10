@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
     flattenSkeleton, bucketCandidates, repairMomentSelection, scheduleMomentPlan,
-    candidateFamily, requestedFamilies, mealSearchAnchor, MAX_WALK_MINUTES, MAX_WALK_METERS,
+    candidateFamily, requestedFamilies, mealSearchAnchor, MAX_WALK_MINUTES, MAX_WALK_METERS, VARIETY_MAX_WALK_MINUTES,
 } from '../../services/momentSelection';
 import { travelMinutes } from '../../lib/tourTiming';
 import { aiRecommendationService } from '../../services/aiRecommendationService';
@@ -295,5 +295,173 @@ describe('C1 — varieta\' a portata di piedi', () => {
         expect(plan.map(p => p.stops[0].candidate.place_id)).toEqual(['piazza', 'chiesa', 'tarpeo']);
         expect(plan.map(p => p.stops[0].trace.scelta)).toEqual(['modello', 'riparazione', 'riparazione']);
         expect(report.ripieghi).toEqual([]);
+    });
+});
+
+// ═══ C1b — la varieta' vince sulla distanza fino a 25 minuti ═══════════════
+describe('C1b — famiglia nuova entro 25 minuti', () => {
+    const R = { lat: 41.8986, lng: 12.4769 };
+    // 0.001° di latitudine ≈ 111 m ≈ 1.5 minuti a piedi.
+    const at = (id, name, types, dLat) => ({ place_id: id, name, types, rating: 4.6, user_ratings_total: 500, latitude: R.lat + dLat, longitude: R.lng });
+    const ms = flat([
+        moment('mattina', 'Mattina', '2026-10-11T09:30:00+02:00', '2026-10-11T12:30:00+02:00'),
+        moment('pomeriggio', 'Pomeriggio', '2026-10-11T14:30:00+02:00', '2026-10-11T18:00:00+02:00'),
+    ]);
+    const piazza1 = at('p1', 'Piazza Colonna', ['establishment'], 0);
+    const piazza2 = at('p2', 'Piazza di Pietra', ['establishment'], 0.003);
+
+    it('controllo: 23 minuti e 30 minuti a piedi', () => {
+        expect(VARIETY_MAX_WALK_MINUTES).toBe(25);
+        expect(travelMinutes(piazza1, at('x', 'x', [], 0.0155))).toBe(23);
+        expect(travelMinutes(piazza1, at('x', 'x', [], 0.0202))).toBe(30);
+    });
+
+    it('chiesa a 23 minuti contro piazza ripetuta a 4: vince la chiesa, dichiarata', () => {
+        const chiesa = at('ch', 'Chiesa di San Silvestro', ['church'], 0.0155);
+        const pool = [piazza1, piazza2, chiesa];
+        const { plan, report } = repairMomentSelection({
+            moments: ms, buckets: bucketCandidates(ms, pool), pool,
+            aiStops: [{ place_id: 'p1', moment: 'g1-mattina' }, { place_id: 'p2', moment: 'g1-pomeriggio' }],
+        });
+        const pom = plan[1].stops[0];
+        expect(pom.candidate.place_id).toBe('ch');
+        expect(pom.trace).toMatchObject({ scelta: 'riparazione', minuti: 23, famiglia: 'chiesa' });
+        expect(pom.trace.motivo).toMatch(/famiglia nuova a 23 min/);
+        expect(report.scartate.find(x => x.place_id === 'p2').motivo).toMatch(/famiglia gia' presente nel giorno \(piazza\)/);
+        expect(report.ripieghi).toEqual([]);
+    });
+
+    it('chiesa a 30 minuti: oltre la soglia vince di nuovo la distanza (piazza ripetuta, ripiego dichiarato)', () => {
+        const chiesa = at('ch', 'Chiesa di San Silvestro', ['church'], 0.0202);
+        const pool = [piazza1, piazza2, chiesa];
+        const { plan, report } = repairMomentSelection({ moments: ms, buckets: bucketCandidates(ms, pool), pool, aiStops: [{ place_id: 'p1', moment: 'g1-mattina' }] });
+        expect(plan[1].stops[0].candidate.place_id).toBe('p2');
+        expect(plan[1].stops[0].trace).toMatchObject({ scelta: 'ripiego', ripiego: 'famiglia' });
+        expect(report.lontani).toEqual([]);
+    });
+
+    it('il report dice da dove cercare quando un momento non ha niente entro il tetto', () => {
+        const lontano = at('far', 'Museo Lontano', ['museum'], 0.03);
+        const pool = [piazza1, lontano];
+        const { report } = repairMomentSelection({ moments: ms, buckets: bucketCandidates(ms, pool), pool, aiStops: [] });
+        expect(report.lontani).toEqual([{ momento: 'g1-pomeriggio', da: { latitude: R.lat, longitude: R.lng, name: 'Piazza Colonna' } }]);
+    });
+});
+
+// ═══ C1b — ricerca mirata dalla tappa prima, dopo la scelta del modello ═════
+describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di vicino', () => {
+    const C = { latitude: 41.8986, longitude: 12.4769, isSmallTown: false, radiusKm: 10 };
+    const place = (id, name, types, dLat) => ({
+        place_id: id, name, geometry: { location: { lat: C.latitude + dLat, lng: C.longitude } },
+        rating: 4.6, user_ratings_total: 400, business_status: 'OPERATIONAL', types: [...types, 'point_of_interest', 'establishment'],
+    });
+
+    // Una giornata intera; il modello sceglie una tappa per momento.
+    // `far` sposta pomeriggio, aperitivo e cena lontani fra loro.
+    const scenario = ({ far = false, mirata, places = {} }) => {
+        const P = {
+            A: place('A', 'Chiesa di Santa Prassede', ['church'], 0),
+            R1: place('R1', 'Trattoria Uno', ['restaurant', 'food'], 0.002),
+            B: place('B', 'Museo Nazionale Romano', ['museum'], far ? 0.03 : 0.004),
+            V: place('V', 'Belvedere Lontano', ['tourist_attraction'], 0.07),
+            R2: place('R2', 'Trattoria Due', ['restaurant', 'food'], far ? 0.085 : 0.072),
+            ...places,
+        };
+        const searches = [];
+        let ai = 0;
+        const fetchMock = vi.fn(async (url) => {
+            const u = String(url);
+            if (u.includes('openai-proxy')) {
+                const payload = ai++ === 0
+                    ? { queries: ['chiesa', 'belvedere', 'trattoria'], categoria: null, oggetto_umano: 'Roma', vincoli: { tempo: null, escludi: [], note: null } }
+                    : { stops: [['A', 'mattina'], ['R1', 'pranzo'], ['B', 'pomeriggio'], ['V', 'aperitivo'], ['R2', 'cena']].map(([id, m]) => ({ place_id: id, moment: `g1-${m}` })) };
+                return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify(payload) } }] }) };
+            }
+            if (u.includes('textsearch')) {
+                const sp = new URL(u, 'http://x').searchParams;
+                const q = sp.get('query').replace(/ Roma$/, '');
+                searches.push({ q, location: sp.get('location'), radius: sp.get('radius') });
+                let results;
+                if (sp.get('radius') === String(MAX_WALK_METERS)) results = mirata(q, sp.get('location'));
+                else results = { chiesa: [P.A, P.B].filter(x => !x.name.startsWith('Belvedere')), belvedere: [P.V, P.B].filter(x => x.name.startsWith('Belvedere')), trattoria: [P.R1, P.R2] }[q] || [];
+                return { ok: true, json: async () => (results.length ? { status: 'OK', results } : { status: 'ZERO_RESULTS', results: [] }) };
+            }
+            if (u.includes('details')) return { ok: true, json: async () => ({ status: 'OK', result: {} }) };
+            throw new Error(`fetch inatteso: ${u}`);
+        });
+        vi.stubGlobal('fetch', fetchMock);
+        return { P, searches };
+    };
+    const genera = () => aiRecommendationService.generateItinerary(
+        'Roma', { interests: ['Arte', 'Cibo'], pace: 'Rilassato', duration: '1 Giorno' }, 'Domani voglio vivere Roma da romano', {}, '', C,
+        { dnaWeights: {}, pathType: 'custom', skipUserQuota: true },
+    );
+    const byMoment = (res) => Object.fromEntries(res.days.flatMap(d => d.stops).map(s => [s.moment, s]));
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        try { window.localStorage.clear(); } catch { /* jsdom */ }
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2026-10-10T10:00:00+02:00'));
+    });
+    afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
+
+    it('aperitivo a 100 minuti dal museo → ricerca mirata dal museo → un bar vicino', async () => {
+        const { P, searches } = scenario({
+            mirata: (q, loc) => (q === 'bar cocktail pub locale musica vino'
+                ? [place('BAR', 'Bar del Fico', ['bar'], 0.005)] : []),
+        });
+        const res = await genera();
+        const st = byMoment(res);
+        expect(Object.keys(st)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
+        const mirate = searches.filter(s => s.radius === String(MAX_WALK_METERS));
+        expect(mirate[0]).toMatchObject({ q: 'bar cocktail pub locale musica vino', location: `${P.B.geometry.location.lat},${C.longitude}` });
+        expect(st.aperitivo.title).toBe('Bar del Fico');
+        expect(st.aperitivo._tracciato).toMatchObject({ scelta: 'ricerca mirata' });
+        expect(st.aperitivo._tracciato.minuti).toBeLessThanOrEqual(MAX_WALK_MINUTES);
+        expect(res._momentReport.ricercheDopo[0]).toMatchObject({ momento: 'g1-aperitivo', tema: 'nightlife', da: 'Museo Nazionale Romano', trovati: 1 });
+        expect(res._momentReport.scartate.find(x => x.place_id === 'V').motivo).toMatch(/oltre il tetto/);
+    });
+
+    it('ricerca mirata vuota → ripiego sul piu\' vicino, dichiarato', async () => {
+        const { searches } = scenario({ mirata: () => [] });
+        const res = await genera();
+        const st = byMoment(res);
+        expect(st.aperitivo.title).toBe('Belvedere Lontano');
+        expect(st.aperitivo._tracciato).toMatchObject({ scelta: 'ripiego', ripiego: 'distanza' });
+        expect(st.aperitivo._tracciato.motivo).toMatch(/nessun candidato entro 20 min \(anche dopo la ricerca mirata\): il piu' vicino/);
+        expect(searches.filter(s => s.radius === String(MAX_WALK_METERS))).toHaveLength(1);
+        // La cena accanto al belvedere e' vicina: nessuna seconda ricerca.
+        expect(st.cena._tracciato.scelta).toBe('modello');
+    });
+
+    it('tre momenti lontani: mai piu\' di 2 ricerche mirate, il terzo e\' un ripiego "esaurite"', async () => {
+        const { searches } = scenario({ far: true, mirata: () => [] });
+        const res = await genera();
+        const st = byMoment(res);
+        expect(searches.filter(s => s.radius === String(MAX_WALK_METERS))).toHaveLength(2);
+        expect(res._momentReport.ricercheDopo.map(x => x.momento)).toEqual(['g1-pomeriggio', 'g1-aperitivo']);
+        expect(st.cena._tracciato).toMatchObject({ scelta: 'ripiego', ripiego: 'distanza' });
+        expect(st.cena._tracciato.motivo).toMatch(/ricerche mirate esaurite/);
+        expect(Object.keys(st)).toHaveLength(5);
+    });
+
+    it('Roma: all\'aperitivo solo belvederi vicini e uno c\'e\' gia\' → ricerca mirata → un bar, nessuna famiglia ripetuta', async () => {
+        const { searches } = scenario({
+            places: {
+                B: place('B', 'Belvedere Tarpeo', ['tourist_attraction'], 0.004),
+                V: place('V', 'Belvedere Cederna', ['tourist_attraction'], 0.006),
+                R2: place('R2', 'Trattoria Due', ['restaurant', 'food'], 0.007),
+            },
+            mirata: (q) => (q === 'bar cocktail pub locale musica vino' ? [place('BAR', 'Bar del Fico', ['bar'], 0.005)] : []),
+        });
+        const res = await genera();
+        const st = byMoment(res);
+        expect(searches.filter(s => s.radius === String(MAX_WALK_METERS))).toHaveLength(1);
+        expect(res._momentReport.ricercheDopo[0]).toMatchObject({ momento: 'g1-aperitivo', tema: 'nightlife', trovati: 1 });
+        expect(st.aperitivo.title).toBe('Bar del Fico');
+        expect(st.aperitivo._tracciato.scelta).toBe('ricerca mirata');
+        const fams = Object.values(st).map(x => x._tracciato.famiglia).filter(Boolean);
+        expect(new Set(fams).size, fams.join(' | ')).toBe(fams.length);
     });
 });

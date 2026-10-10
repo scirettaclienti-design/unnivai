@@ -353,12 +353,12 @@ import { buildDaySkeleton } from '@/lib/daySkeleton';
 import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan, isMealPlace,
-    requestedFamilies, mealSearchAnchor, MAX_WALK_METERS,
+    requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme,
 } from './momentSelection';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
-import { selectScoredCandidatePool, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport, computeAffinityScore, dnaShareOf } from './candidateScoring';
+import { selectScoredCandidatePool, passesQualityThreshold, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport, computeAffinityScore, dnaShareOf } from './candidateScoring';
 import {
     resolveFoodPrefs, applyFoodConstraints, foodPrefBonus, foodPrefsFingerprint, hasFoodPrefs,
     searchFoodWithDiet, dietNoteLine, dietCriteria, hierarchyPromptBlock, priceLevelOf,
@@ -981,17 +981,22 @@ const TOUR_CATEGORY_TO_SKELETON = {
 // C1 — la ricerca del cibo parte dalla tappa prima del pasto (foodAnchor), con
 // il bias stretto al tetto di cammino; senza ancora, dal centro come prima.
 // Stesse chiamate: cambia solo dove si guarda. Il raggio resta sul centro.
+// C1b — `anchor` sposta TUTTI i temi su un punto (la ricerca mirata dopo la
+// scelta, per un momento che non ha niente entro il tetto dalla tappa prima).
 const THEME_FOOD_QUERY = 'trattoria ristorante pizzeria osteria';
 // P7b2 — il tipo di cucina, solo se Google lo dice (types come
 // "italian_restaurant", "vegetarian_restaurant"); altrimenti null, mai dedotto.
 const cuisineOf = (c) => (Array.isArray(c?.types) ? c.types : [])
     .find(t => /_restaurant$/.test(t) && t !== 'fast_food_restaurant')?.replace(/_restaurant$/, '') || null;
-const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null, foodAnchor = null }) => {
+const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null, foodAnchor = null, anchor = null }) => {
     const { placesDiscoveryService } = await import('./placesDiscoveryService');
     const dieta = foodPrefs?.dieta || [];
-    const at = (t) => (t === 'food' && foodAnchor
-        ? { lat: foodAnchor.latitude, lng: foodAnchor.longitude, bias: { radiusMeters: MAX_WALK_METERS } }
-        : { lat: cityCenter.latitude, lng: cityCenter.longitude, bias: {} });
+    const at = (t) => {
+        const a = anchor || (t === 'food' ? foodAnchor : null);
+        return a
+            ? { lat: a.latitude, lng: a.longitude, bias: { radiusMeters: MAX_WALK_METERS } }
+            : { lat: cityCenter.latitude, lng: cityCenter.longitude, bias: {} };
+    };
     const settled = await Promise.allSettled(themes.map(t => (t === 'food' && dieta.length > 0
         ? searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(city, at(t).lat, at(t).lng, null, {
             customQuery: fq, customKind: 'FOOD', ...at(t).bias,
@@ -1016,9 +1021,18 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
     extra = applyRadiusFilter(extra, cityCenter, city, { requireCenter: true });
     if (categoria) extra = extra.filter(c => candidateMatchesIntentCategoria(c, categoria) || isMealPlace(c));
     if (foodPrefs) extra = applyFoodConstraints(extra, foodPrefs, isMealPlace).candidates;
+    const bonus = foodPrefs ? (c) => foodPrefBonus(c, foodPrefs, isMealPlace) : null;
+    // C1b — la ricerca mirata dalla tappa prima torna pochi posti di un
+    // quartiere: misurate su di loro, il piu' recensito sarebbe sempre
+    // un'"icona" (con un solo risultato, sempre lui) e uscirebbe. Le icone si
+    // misurano sulla citta' (tutti i candidati della generazione), come per
+    // "Per Te" (rankByMerit, P7a2). Stessa soglia di qualita', zero icone.
+    if (anchor) {
+        const ok = extra.filter(c => passesQualityThreshold(c, city));
+        return rankByMerit(ok, { reference: [...known, ...ok], dnaWeights, maxIcons: 0, bonus }).slice(0, perTheme * themes.length);
+    }
     return selectScoredCandidatePool(extra, {
-        city, dnaWeights, limit: perTheme * themes.length, maxIcons: 0,
-        bonus: foodPrefs ? (c) => foodPrefBonus(c, foodPrefs, isMealPlace) : null,
+        city, dnaWeights, limit: perTheme * themes.length, maxIcons: 0, bonus,
     });
 };
 
@@ -2628,6 +2642,16 @@ export const aiRecommendationService = {
                 text: opts.pathType === 'custom' ? userPrompt : '',
             });
             const extraThemes = buckets ? shortMomentThemes(moments, buckets, candidates, undefined, { requestedFamilies: familiesAsked }) : [];
+            // P3e — con la categoria che vale per tutti i momenti, un
+            // ristorante trovato fuori da quella categoria serve SOLO a pranzo
+            // e cena: mai al mattino di un tour Rioni Storici. Vale per ogni
+            // ricerca mirata, prima e dopo la scelta (C1b).
+            let mealOnlyIds = null;
+            const addMealOnly = (found) => (anyCategory
+                ? new Set([...(mealOnlyIds || []), ...found
+                    .filter(c => isMealPlace(c) && !(categoriaTarget && candidateMatchesIntentCategoria(c, intent.categoria)))
+                    .map(c => c.place_id || c.googlePlaceId)])
+                : null);
             if (extraThemes.length > 0) {
                 const foodAnchor = extraThemes.includes('food')
                     ? mealSearchAnchor(moments, buckets, candidates, { requestedFamilies: familiesAsked })
@@ -2641,14 +2665,7 @@ export const aiRecommendationService = {
                     foodAnchor,
                 });
                 candidates = [...candidates, ...extra];
-                // P3e — con la categoria che vale per tutti i momenti, un
-                // ristorante trovato fuori da quella categoria serve SOLO a
-                // pranzo e cena: mai al mattino di un tour Rioni Storici.
-                const mealOnlyIds = anyCategory
-                    ? new Set(extra
-                        .filter(c => isMealPlace(c) && !(categoriaTarget && candidateMatchesIntentCategoria(c, intent.categoria)))
-                        .map(c => c.place_id || c.googlePlaceId))
-                    : null;
+                mealOnlyIds = addMealOnly(extra);
                 buckets = bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds });
             }
             if (moments.length > 0) {
@@ -2721,13 +2738,56 @@ export const aiRecommendationService = {
                     // inventato), poi mette gli orari dentro ogni momento.
                     let momentReport = null;
                     const finalDays = moments.length > 0
-                        ? (() => {
-                            const { plan, report } = repairMomentSelection({
+                        ? await (async () => {
+                            // C1b — un momento senza niente entro il tetto dalla
+                            // tappa prima (o senza una famiglia nuova vicina):
+                            // prima del ripiego, una ricerca Google
+                            // mirata DA quella tappa (bias 1.5 km, tema del
+                            // momento, stessi vincoli di dieta e budget), poi si
+                            // ripara di nuovo con gli stessi place_id del modello.
+                            // Tetto unico con le ricerche di prima della scelta:
+                            // MAX_EXTRA_SEARCHES per generazione, solo se servono.
+                            const searchedIds = new Set();
+                            const searchedMoments = new Set();
+                            const ricercheDopo = [];
+                            let budget = Math.max(0, MAX_EXTRA_SEARCHES - extraThemes.length);
+                            const repair = () => repairMomentSelection({
                                 moments, buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
-                                requestedFamilies: familiesAsked,
+                                requestedFamilies: familiesAsked, searchedIds, searchedMoments,
                             });
+                            let repaired = repair();
+                            while (budget > 0) {
+                                // Prima i momenti lontani, poi quelli costretti a
+                                // ripetere una famiglia: anche li' manca un posto
+                                // adatto vicino.
+                                const target = [...repaired.report.lontani, ...repaired.report.ripetuti]
+                                    .find(x => x.da && !searchedMoments.has(x.momento));
+                                if (!target) break;
+                                const m = moments.find(x => x.id === target.momento);
+                                const theme = momentTheme(m);
+                                searchedMoments.add(target.momento);
+                                if (!theme) continue;
+                                budget -= 1;
+                                const found = await searchMomentCandidates({
+                                    city, cityCenter, themes: [theme], known: candidates, perTheme: 5,
+                                    dnaWeights: opts.dnaWeights || {},
+                                    categoria: categoriaTarget ? intent.categoria : null,
+                                    foodPrefs: foodOn ? food : null,
+                                    anchor: target.da,
+                                });
+                                ricercheDopo.push({ momento: target.momento, tema: theme, da: target.da.name, trovati: found.length });
+                                console.info(`[C1b RICERCA MIRATA] ${city}: ${target.momento} da "${target.da.name}" (${theme}) → ${found.length} candidati`);
+                                if (found.length > 0) {
+                                    for (const c of found) searchedIds.add(c.place_id || c.googlePlaceId);
+                                    candidates = [...candidates, ...found];
+                                    mealOnlyIds = addMealOnly(found);
+                                    buckets = bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds });
+                                }
+                                repaired = repair();
+                            }
+                            const { plan, report } = repaired;
                             const sched = scheduleMomentPlan(plan, tourWindow.windows.map(w => w.start));
-                            momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes };
+                            momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo };
                             logMomentReport(city, momentReport);
                             return sched.days.map((dayStops, di) => {
                                 const canon = canonicalizeStopsFromCandidates(

@@ -13,7 +13,11 @@
  *      DNA); a parita' di merito, il piu' vicino alla tappa precedente.
  *      C1: prima del merito vengono il tetto di cammino dalla tappa prima
  *      (MAX_WALK_MINUTES, ripiego sul piu' vicino) e la varieta' (una tappa per
- *      famiglia al giorno, salvo richiesta) — per il modello come per il codice;
+ *      famiglia al giorno, salvo richiesta) — per il modello come per il codice.
+ *      C1b: una famiglia nuova entro VARIETY_MAX_WALK_MINUTES vince su una
+ *      ripetuta vicina; un momento senza niente entro il tetto finisce in
+ *      `report.lontani` (senza una famiglia nuova vicina: `report.ripetuti`),
+ *      e il chiamante cerca da quella tappa prima del ripiego;
  *   4. mette gli orari: ogni tappa inizia al piu' tardi fra l'inizio del suo
  *      momento e la fine della precedente piu' il cammino.
  *
@@ -105,13 +109,16 @@ export function candidateMomentCategories(candidate) {
 // momento sta sotto il tetto si prende il piu' vicino — un momento non resta
 // mai vuoto per colpa della distanza.
 export const MAX_WALK_MINUTES = 20;
-// Lo stesso tetto in metri: il bias della ricerca mirata dei pasti.
+// Lo stesso tetto in metri: il bias delle ricerche mirate (pasti e luoghi).
 export const MAX_WALK_METERS = Math.round((MAX_WALK_MINUTES / 60) * WALKING_KMH * 1000);
+// C1b — la varieta' vince sulla distanza fino a qui: una famiglia nuova a 25
+// minuti batte una famiglia ripetuta a 5. Oltre, torna a vincere la distanza.
+export const VARIETY_MAX_WALK_MINUTES = 25;
 
 // Le famiglie di tappa: al massimo una per famiglia per giorno, salvo richiesta.
 // Una sola famiglia per luogo, nell'ordine della lista (un belvedere in un
-// parco e' panorama, una piazza con un giardino e' piazza). Un posto dove mangiare non ha famiglia: i pasti hanno
-// gia' il loro momento.
+// parco e' panorama, una piazza con un giardino e' piazza). Un posto dove
+// mangiare non ha famiglia: i pasti hanno gia' il loro momento.
 const CHURCH_TYPES = ['church', 'place_of_worship', 'synagogue', 'mosque', 'hindu_temple'];
 const FAMILY_RULES = [
     ['panorama', (types, name) => PANORAMA_NAME.test(name)],
@@ -172,6 +179,9 @@ export const MOMENT_CATEGORY_TO_THEME = {
 
 /** Tetto alle ricerche mirate per generazione (vincolo: oggi + 2). */
 export const MAX_EXTRA_SEARCHES = 2;
+
+/** Il tema di ricerca di un momento: la sua prima categoria che ne ha uno. */
+export const momentTheme = (m) => (m?.categories || []).map(c => MOMENT_CATEGORY_TO_THEME[c]).find(Boolean) || null;
 
 const idOf = (c) => c?.place_id || c?.googlePlaceId || null;
 
@@ -304,14 +314,24 @@ const walkFrom = (a, b) => {
  * @param {object} [p.dnaWeights]
  * @param {Set<string>} [p.requestedFamilies] famiglie chieste (regola di varieta' spenta)
  * @param {number} [p.maxWalk]  tetto di cammino in minuti (MAX_WALK_MINUTES)
+ * @param {number} [p.varietyWalk] fin dove la varieta' vince (VARIETY_MAX_WALK_MINUTES)
+ * @param {Set<string>} [p.searchedIds] place_id trovati da una ricerca mirata
+ * @param {Set<string>} [p.searchedMoments] momenti per cui la ricerca mirata e'
+ *   gia' partita (null: nessuna ricerca in questo giro, motivo generico)
  * @returns {{ plan: Array<{ moment: object, stops: Array<{ candidate: object,
  *   narration: object|null, source: 'modello'|'riparata', trace: { scelta:
- *   'modello'|'riparazione'|'ripiego', minuti: number|null, famiglia: string|null,
- *   motivo?: string } }> }>,
- *   report: { scartate: Array, riempite: Array, momentiTolti: Array, ripieghi: Array } }}
+ *   'modello'|'riparazione'|'ricerca mirata'|'ripiego', minuti: number|null,
+ *   famiglia: string|null, ripiego?: 'distanza'|'famiglia', motivo?: string } }> }>,
+ *   report: { scartate: Array, riempite: Array, momentiTolti: Array, ripieghi: Array,
+ *   lontani: Array<{ momento: string, da: { latitude, longitude, name } }>,
+ *   ripetuti: Array<{ momento: string, da: { latitude, longitude, name } }> } }}
  */
-export function repairMomentSelection({ moments, buckets, aiStops, pool, dnaWeights = {}, requestedFamilies: asked = null, maxWalk = MAX_WALK_MINUTES }) {
-    const report = { scartate: [], riempite: [], momentiTolti: [], ripieghi: [] };
+export function repairMomentSelection({
+    moments, buckets, aiStops, pool, dnaWeights = {}, requestedFamilies: asked = null,
+    maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES,
+    searchedIds = null, searchedMoments = null,
+}) {
+    const report = { scartate: [], riempite: [], momentiTolti: [], ripieghi: [], lontani: [], ripetuti: [] };
     const poolIds = new Set((pool || []).map(idOf));
     const ai = (Array.isArray(aiStops) ? aiStops : []).filter(s => s && typeof s === 'object');
 
@@ -370,9 +390,12 @@ export function repairMomentSelection({ moments, buckets, aiStops, pool, dnaWeig
         const free = (except) => bucket.filter(c => !used.has(idOf(c)) && idOf(c) !== except);
 
         // Il "costo" di un candidato come prossima tappa, in ordine di peso:
-        //   over   oltre il tetto di cammino dalla tappa prima (e quanto: fra
-        //          candidati tutti oltre, vince il piu' vicino — il ripiego);
-        //   dup    la sua famiglia c'e' gia' oggi;
+        //   hard   oltre il tetto dalla tappa prima, e quanto: fra candidati
+        //          tutti oltre, vince il piu' vicino — il ripiego. Non conta
+        //          come "oltre" il passo pagato dalla varieta' (C1b): una
+        //          famiglia NUOVA entro i 25 minuti;
+        //   rank   entro il tetto (0), famiglia nuova fra 20 e 25 minuti (1),
+        //          famiglia ripetuta entro il tetto (2);
         //   starve prenderlo lascerebbe un momento dopo senza nessuna famiglia
         //          nuova (tre belvederi possibili all'aperitivo e nient'altro:
         //          il belvedere della mattina glielo ruberebbe);
@@ -380,8 +403,8 @@ export function repairMomentSelection({ moments, buckets, aiStops, pool, dnaWeig
         //          tetto da lui e di famiglia nuova (all'aperitivo solo
         //          belvederi vicini: il belvedere del pomeriggio obbliga a
         //          ripetere). Esatto: lui sara' la tappa prima.
-        // La distanza pesa piu' della varieta': meglio una seconda chiesa a 5
-        // minuti che una famiglia nuova a 40.
+        // Oltre i 25 minuti la distanza pesa piu' della varieta': meglio una
+        // seconda chiesa a 5 minuti che una famiglia nuova a 40.
         const okFam = (x, fams) => !counted(famOf(x)) || !fams.has(famOf(x));
         const famsWith = (c) => (counted(famOf(c)) ? new Set([...dayFamilies, famOf(c)]) : dayFamilies);
         const restOf = (lm, c) => (buckets.get(lm.id) || []).filter(x => !used.has(idOf(x)) && idOf(x) !== idOf(c));
@@ -391,12 +414,20 @@ export function repairMomentSelection({ moments, buckets, aiStops, pool, dnaWeig
         });
         const next = later[0] || null;
         const strands = (c) => !!next && chosen.length === m.stops - 1
-            && !restOf(next, c).some(x => walkFrom(c, x) <= maxWalk && okFam(x, famsWith(c)));
+            && !restOf(next, c).some(x => reachable(walkFrom(c, x), x, famsWith(c)));
+        // Raggiungibile come prossima tappa: entro il tetto con una famiglia
+        // non ripetuta, o entro i 25 minuti con una famiglia nuova.
+        const newFam = (x, fams) => counted(famOf(x)) && !fams.has(famOf(x));
+        const reachable = (t, x, fams) => (t <= maxWalk && okFam(x, fams)) || (t <= varietyWalk && newFam(x, fams));
         const costOf = (c) => {
             const from = last();
             const t = from ? walkFrom(from, c) : 0;
-            const over = from && t > maxWalk ? 1 : 0;
-            return { t, key: [over, over ? t : 0, okFam(c, dayFamilies) ? 0 : 1, starves(c) ? 1 : 0, strands(c) ? 1 : 0] };
+            const over = !!from && t > maxWalk;
+            const dup = !okFam(c, dayFamilies);
+            const stretch = over && t <= varietyWalk && newFam(c, dayFamilies);
+            const hard = over && !stretch;
+            const rank = stretch ? 1 : (dup ? 2 : 0);
+            return { t, over, dup, stretch, key: [hard ? 1 : 0, hard ? t : 0, rank, starves(c) ? 1 : 0, strands(c) ? 1 : 0] };
         };
         const cmpKey = (a, b) => {
             for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i];
@@ -408,25 +439,42 @@ export function repairMomentSelection({ moments, buckets, aiStops, pool, dnaWeig
             ranked.sort((a, b) => cmpKey(a.key, b.key) || (scoreOf(b.c) - scoreOf(a.c)) || (a.t - b.t));
             return ranked[0] || null;
         };
-        // Perche' una scelta del modello perde contro l'alternativa migliore.
-        const whyWorse = (k, c, t) => {
-            if (k[0]) return `oltre il tetto di cammino (${Number.isFinite(t) ? t : '?'} min > ${maxWalk})`;
-            if (k[2]) return `famiglia gia' presente nel giorno (${famOf(c)})`;
-            if (k[3]) return `toglie l'unica alternativa a un momento dopo (${famOf(c)})`;
+        // Perche' una scelta del modello perde contro l'alternativa migliore:
+        // la prima voce del costo in cui e' peggiore.
+        const whyWorse = (k, c, t, a) => {
+            const dist = `oltre il tetto di cammino (${Number.isFinite(t) ? t : '?'} min > ${maxWalk})`;
+            if (k[0] !== a[0] || k[1] !== a[1]) return dist;
+            if (k[2] !== a[2]) return k[2] === 2 ? `famiglia gia' presente nel giorno (${famOf(c)})` : dist;
+            if (k[3] !== a[3]) return `toglie l'unica alternativa a un momento dopo (${famOf(c)})`;
             return 'dopo di lui nessuna tappa nuova entro il tetto';
         };
+        // Un passo oltre il tetto e' un ripiego, tranne quando lo paga la
+        // varieta' (famiglia nuova entro i 25 minuti): quello e' una scelta.
         const take = (c, narration, source, cost) => {
-            const [over, , dup] = cost.key;
+            const { over, dup, stretch: byVariety } = cost;
+            const ripiego = (over && !byVariety) ? 'distanza' : (dup ? 'famiglia' : null);
             const from = last();
+            const mirata = searchedIds?.has(idOf(c)) && source !== 'modello';
             const trace = {
-                scelta: over || dup ? 'ripiego' : (source === 'modello' ? 'modello' : 'riparazione'),
+                scelta: ripiego ? 'ripiego' : (source === 'modello' ? 'modello' : (mirata ? 'ricerca mirata' : 'riparazione')),
                 minuti: from && Number.isFinite(cost.t) ? cost.t : null,
                 famiglia: famOf(c),
             };
-            if (over || dup) {
-                trace.motivo = over
-                    ? `nessun candidato entro ${maxWalk} min: il piu' vicino`
-                    : `nessuna famiglia nuova vicina: ${famOf(c)} ripetuta`;
+            if (byVariety) trace.motivo = `famiglia nuova a ${cost.t} min: la varieta' vale il passo oltre i ${maxWalk}`;
+            if (ripiego) {
+                trace.ripiego = ripiego;
+                // Dopo la ricerca mirata il motivo dice com'e' andata.
+                const dopo = searchedMoments == null ? ''
+                    : (searchedMoments.has(m.id) ? ' (anche dopo la ricerca mirata)' : ' (ricerche mirate esaurite)');
+                const da = from ? { latitude: from.latitude ?? from.lat, longitude: from.longitude ?? from.lng, name: from.name || from.title || null } : null;
+                if (ripiego === 'distanza') {
+                    trace.motivo = `nessun candidato entro ${maxWalk} min${dopo}: il piu' vicino`;
+                    report.lontani.push({ momento: m.id, da });
+                } else {
+                    trace.motivo = `nessuna famiglia nuova vicina${dopo}: ${famOf(c)} ripetuta`;
+                    report.ripetuti.push({ momento: m.id, da });
+                }
+                if (mirata) trace.motivo += ' (dalla ricerca mirata)';
                 report.ripieghi.push({ place_id: idOf(c), name: c.name || c.title || null, momento: m.id, motivo: trace.motivo });
             }
             chosen.push({ candidate: c, narration, source, trace });
@@ -438,7 +486,7 @@ export function repairMomentSelection({ moments, buckets, aiStops, pool, dnaWeig
         const modelWins = (c) => {
             const mine = costOf(c);
             const alt = best(idOf(c));
-            return { ok: !alt || cmpKey(mine.key, alt.key) <= 0, mine };
+            return { ok: !alt || cmpKey(mine.key, alt.key) <= 0, mine, alt };
         };
         const reject = (s, motivo) => report.scartate.push({ place_id: s.place_id, momento: m.id, motivo });
 
@@ -448,8 +496,8 @@ export function repairMomentSelection({ moments, buckets, aiStops, pool, dnaWeig
             if (!poolIds.has(s.place_id)) { reject(s, 'luogo non fra i candidati'); continue; }
             if (!c) { reject(s, 'fuori dal suo momento'); continue; }
             if (used.has(s.place_id)) { reject(s, 'gia\' usato'); continue; }
-            const { ok, mine } = modelWins(c);
-            if (!ok) { reject(s, whyWorse(mine.key, c, mine.t)); continue; }
+            const { ok, mine, alt } = modelWins(c);
+            if (!ok) { reject(s, whyWorse(mine.key, c, mine.t, alt.key)); continue; }
             // Gate NARRATORE-DOPO — il selettore non scrive testi: una tappa
             // vale per il suo luogo e il suo momento. Il racconto arriva dopo,
             // dal narratore, sulle tappe finali.

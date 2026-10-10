@@ -563,9 +563,14 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, 
   const radius = radiusMeters ?? widerRadiusKm(isSmall) * 1000;
 
   // Cache key differenziata: customQuery ha suo namespace (non collide con temi).
+  // C1 — con un bias esplicito (la ricerca dei pasti dalla tappa prima) la
+  // chiave porta punto e raggio: altrimenti tornerebbe la ricerca dal centro.
+  const where = radiusMeters != null
+    ? `_at_${Number(lat).toFixed(3)}_${Number(lng).toFixed(3)}_r${radius}`
+    : '';
   const cacheKey = customQuery
-    ? `gg1_${cityName.replace(/\s+/g, '_')}_q_${slugForCache(effectiveQuery)}_${isSmall ? 's' : 'l'}`
-    : `gg1_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}`;
+    ? `gg1_${cityName.replace(/\s+/g, '_')}_q_${slugForCache(effectiveQuery)}_${isSmall ? 's' : 'l'}${where}`
+    : `gg1_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}${where}`;
   const cached = loadFromCache(cacheKey);
   if (cached) return cached;
 

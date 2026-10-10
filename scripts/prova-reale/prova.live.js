@@ -54,10 +54,13 @@ afterAll(async () => {
     if (out.identita !== 'ospite') await supabase.auth.signOut();
 });
 
-// Una riga per tappa: chi l'ha scelta (modello / riparazione) e i minuti dalla prima.
+// Una riga per tappa: chi l'ha scelta (modello / riparazione / ripiego), i
+// minuti dalla prima e la famiglia (C1: dal tracciato interno della tappa).
 const row = (s, fatti, riempite) => ({
     title: s.title, types: (s.types || []).slice(0, 3), moment: s.moment || null, at: s.scheduledTime || null,
-    min: s.travelMinutesFromPrev ?? null, scelta: riempite ? (riempite.has(s.place_id) ? 'riparazione' : 'modello') : null,
+    min: s._tracciato ? s._tracciato.minuti : (s.travelMinutesFromPrev ?? null),
+    scelta: s._tracciato?.scelta ?? (riempite ? (riempite.has(s.place_id) ? 'riparazione' : 'modello') : null),
+    famiglia: s._tracciato?.famiglia ?? null, ...(s._tracciato?.motivo ? { motivo: s._tracciato.motivo } : {}),
     fatti: fatti || [], description: s.description, sicura: !!s._fraseSicura,
 });
 

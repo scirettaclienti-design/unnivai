@@ -353,6 +353,7 @@ import { buildDaySkeleton } from '@/lib/daySkeleton';
 import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan, isMealPlace,
+    requestedFamilies, mealSearchAnchor, MAX_WALK_METERS,
 } from './momentSelection';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
@@ -977,19 +978,25 @@ const TOUR_CATEGORY_TO_SKELETON = {
 // chiamante lo tiene fuori dagli altri momenti (mealOnlyIds).
 // P7b — la ricerca mirata del cibo (pranzo, cena) con la dieta porta il
 // criterio; dopo, gli stessi vincoli del pool principale (budget, dieta).
+// C1 — la ricerca del cibo parte dalla tappa prima del pasto (foodAnchor), con
+// il bias stretto al tetto di cammino; senza ancora, dal centro come prima.
+// Stesse chiamate: cambia solo dove si guarda. Il raggio resta sul centro.
 const THEME_FOOD_QUERY = 'trattoria ristorante pizzeria osteria';
 // P7b2 — il tipo di cucina, solo se Google lo dice (types come
 // "italian_restaurant", "vegetarian_restaurant"); altrimenti null, mai dedotto.
 const cuisineOf = (c) => (Array.isArray(c?.types) ? c.types : [])
     .find(t => /_restaurant$/.test(t) && t !== 'fast_food_restaurant')?.replace(/_restaurant$/, '') || null;
-const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null }) => {
+const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null, foodAnchor = null }) => {
     const { placesDiscoveryService } = await import('./placesDiscoveryService');
     const dieta = foodPrefs?.dieta || [];
+    const at = (t) => (t === 'food' && foodAnchor
+        ? { lat: foodAnchor.latitude, lng: foodAnchor.longitude, bias: { radiusMeters: MAX_WALK_METERS } }
+        : { lat: cityCenter.latitude, lng: cityCenter.longitude, bias: {} });
     const settled = await Promise.allSettled(themes.map(t => (t === 'food' && dieta.length > 0
-        ? searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(city, cityCenter.latitude, cityCenter.longitude, null, {
-            customQuery: fq, customKind: 'FOOD',
+        ? searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(city, at(t).lat, at(t).lng, null, {
+            customQuery: fq, customKind: 'FOOD', ...at(t).bias,
         }), THEME_FOOD_QUERY, dieta).then(r => r.results)
-        : placesDiscoveryService.discoverRealPOIs(city, cityCenter.latitude, cityCenter.longitude, t))
+        : placesDiscoveryService.discoverRealPOIs(city, at(t).lat, at(t).lng, t, at(t).bias))
         // P3d-g — il tema della ricerca mirata, come dato del "perche' qui".
         .then(list => (Array.isArray(list) ? list.map(p => (p && !p._tema ? { ...p, _tema: t } : p)) : list))));
     settled.forEach((r, i) => {
@@ -1021,6 +1028,7 @@ const logMomentReport = (city, r) => {
     for (const x of r.scartate) console.warn(`[P3 SCHELETRO] ${city}: scartata ${x.place_id} (${x.momento ?? '—'}) — ${x.motivo}`);
     for (const x of r.riempite) console.info(`[P3 SCHELETRO] ${city}: ${x.momento} riempito dal codice con "${x.name}" (merito)`);
     for (const x of r.tolte) console.warn(`[P3 SCHELETRO] ${city}: tolta ${x.place_id} (${x.momento}) — ${x.motivo}`);
+    for (const x of r.ripieghi || []) console.warn(`[C1 COMPOSIZIONE] ${city}: ripiego "${x.name}" (${x.momento}) — ${x.motivo}`);
 };
 
 // Predicato pubblico — Exported per test. true = candidato ammesso per
@@ -2612,13 +2620,25 @@ export const aiRecommendationService = {
             }
             // Gate NARRATORE-DOPO — si cerca per i momenti che il pool non riesce
             // a riempire, non solo per quelli vuoti (vedi shortMomentThemes).
-            const extraThemes = buckets ? shortMomentThemes(moments, buckets, candidates) : [];
+            // C1 — le famiglie che la categoria o il testo chiedono: per quelle
+            // la regola "una per famiglia al giorno" si spegne. Lo stesso
+            // testo e la stessa categoria dello scheletro.
+            const familiesAsked = requestedFamilies({
+                category: skeleton.explicitCategory,
+                text: opts.pathType === 'custom' ? userPrompt : '',
+            });
+            const extraThemes = buckets ? shortMomentThemes(moments, buckets, candidates, undefined, { requestedFamilies: familiesAsked }) : [];
             if (extraThemes.length > 0) {
+                const foodAnchor = extraThemes.includes('food')
+                    ? mealSearchAnchor(moments, buckets, candidates, { requestedFamilies: familiesAsked })
+                    : null;
+                if (foodAnchor) console.info(`[C1 COMPOSIZIONE] ${city}: ricerca dei pasti da "${foodAnchor.name}", non dal centro`);
                 const extra = await searchMomentCandidates({
                     city, cityCenter, themes: extraThemes, known: candidates, perTheme: 5 * nDays,
                     dnaWeights: opts.dnaWeights || {},
                     categoria: categoriaTarget ? intent.categoria : null,
                     foodPrefs: foodOn ? food : null,
+                    foodAnchor,
                 });
                 candidates = [...candidates, ...extra];
                 // P3e — con la categoria che vale per tutti i momenti, un
@@ -2704,6 +2724,7 @@ export const aiRecommendationService = {
                         ? (() => {
                             const { plan, report } = repairMomentSelection({
                                 moments, buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
+                                requestedFamilies: familiesAsked,
                             });
                             const sched = scheduleMomentPlan(plan, tourWindow.windows.map(w => w.start));
                             momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes };
@@ -2719,10 +2740,17 @@ export const aiRecommendationService = {
                                     momentLabel: dayStops[i].moment.label,
                                     waitMinutesBefore: dayStops[i].waitMinutesBefore,
                                     ...(dayStops[i].source === 'riparata' ? { repaired: true } : {}),
+                                    // C1 — tracciato interno, mai a schermo: chi
+                                    // l'ha scelta (modello / riparazione / ripiego).
+                                    _tracciato: dayStops[i].trace,
                                 }));
                                 // windowIndex: il giorno resta legato alla SUA
                                 // finestra anche se un giorno prima viene tolto.
-                                return { ...baseMeta(di), windowIndex: di, stops: computeStopTimings(canon).stops };
+                                // I minuti del tracciato sono quelli del giro
+                                // finale (una tappa tolta dagli orari li cambia).
+                                const timed = computeStopTimings(canon).stops.map(st => (st._tracciato
+                                    ? { ...st, _tracciato: { ...st._tracciato, minuti: st.travelMinutesFromPrev ?? null } } : st));
+                                return { ...baseMeta(di), windowIndex: di, stops: timed };
                             }).filter(d => d.stops.length > 0);
                         })()
                         : (() => {

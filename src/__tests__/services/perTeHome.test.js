@@ -128,7 +128,7 @@ describe('Per Te — risposta tagliata a meta\'', () => {
 });
 
 describe('Per Te — momento della giornata e chiave di cache', () => {
-    const hometourKeys = () => Object.keys(window.localStorage).filter(k => k.startsWith('hometours_v1_'));
+    const hometourKeys = () => Object.keys(window.localStorage).filter(k => k.startsWith('hometours_v2_'));
     const at = async (iso) => {
         vi.useFakeTimers({ toFake: ['Date'] });
         vi.setSystemTime(new Date(iso));
@@ -155,10 +155,10 @@ describe('Per Te — momento della giornata e chiave di cache', () => {
         vi.useFakeTimers({ toFake: ['Date'] });
         vi.setSystemTime(new Date('2026-10-08T12:40:00+02:00'));
         await home(POOLS);
-        // P3d-g — la prima generazione fa le sue 2 chiamate (tour + riscrittura
-        // ancorata); la seconda, dalla cache, nessuna.
+        // P3d-j — la prima generazione fa una chiamata (niente riscrittura);
+        // la seconda, dalla cache, nessuna.
         const dopoLaPrima = openaiCalls(fn).length;
-        expect(dopoLaPrima).toBeLessThanOrEqual(2);
+        expect(dopoLaPrima).toBe(1);
         vi.setSystemTime(new Date('2026-10-08T13:50:00+02:00'));
         await home(POOLS);
         expect(openaiCalls(fn)).toHaveLength(dopoLaPrima);
@@ -200,9 +200,8 @@ describe('Per Te — nessuno scarto silenzioso', () => {
         // P3d-e — f3 ("Un posto magico.") non e' piu' uno scarto: resta con la
         // frase sicura del codice, e il resoconto lo dice.
         expect(res._report.scarti).toHaveLength(2);
-        // P3d-g — senza fatti e senza riscrittura (qui il finto motore non la
-        // da'), le tappe prendono la frase sicura: f3 compresa.
-        expect(res._report.frasiSicure.map(x => x.tour)).toContain('food');
+        // P3d-j — ogni tappa servita ha la sua frase composta dal codice: f3 compresa.
+        expect(res._report.composizione.map(x => x.tour)).toContain('food');
         const righe = warn.mock.calls.map(c => String(c[0])).filter(l => l.includes('[Per Te]') && l.includes('scartata'));
         expect(righe).toHaveLength(2);
         expect(res._report.tappeRaccontate).toBe(12);

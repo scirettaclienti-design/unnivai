@@ -55,12 +55,22 @@ describe('filterTimeIncoherent — una frase incoerente con l\'arrivo viene tolt
         expect(out.removed).toHaveLength(0);
     });
 
-    it(`"tramonto" ammesso solo entro ${SUNSET_TOLERANCE_MINUTES} minuti dal tramonto vero`, () => {
+    // P3d-j — prima del tramonto fino a 60 minuti (il gancio approvato "sei qui
+    // N minuti prima"), dopo fino a 45.
+    it(`"tramonto" ammesso da 60 minuti prima a ${SUNSET_TOLERANCE_MINUTES} dopo il tramonto vero`, () => {
         expect(SUNSET_TOLERANCE_MINUTES).toBe(45);
+        const troppoPrima = filterTimeIncoherent('Il tramonto si vede dal parapetto.', {
+            arrival: new Date(sunset.getTime() - 65 * 60000), sunrise, sunset,
+        });
+        expect(troppoPrima.text).toBeNull();
         const prima = filterTimeIncoherent('Il tramonto si vede dal parapetto.', {
             arrival: new Date(sunset.getTime() - 50 * 60000), sunrise, sunset,
         });
-        expect(prima.text).toBeNull();
+        expect(prima.text).toBe('Il tramonto si vede dal parapetto.');
+        const troppoDopo = filterTimeIncoherent('Il tramonto si vede dal parapetto.', {
+            arrival: new Date(sunset.getTime() + 50 * 60000), sunrise, sunset,
+        });
+        expect(troppoDopo.text).toBeNull();
         const dopo = filterTimeIncoherent('Il tramonto si vede dal parapetto.', {
             arrival: new Date(sunset.getTime() + 40 * 60000), sunrise, sunset,
         });

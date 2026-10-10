@@ -6,9 +6,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 //      tema, misurata su tutti i candidati della generazione.
 //   2. Riempire prima di nascondere: un tour sotto le 3 tappe si completa in
 //      codice col miglior candidato rimasto nel suo pool, non usato da altri
-//      tour. La tappa aggiunta riceve la descrizione nella seconda chiamata
-//      (la riscrittura), dentro lo stesso biglietto 'home_tours'. Solo senza
-//      candidati validi il tour si nasconde.
+//      tour. P3d-j: la tappa aggiunta riceve la frase composta dal codice,
+//      senza chiamate in piu'. Solo senza candidati validi il tour si nasconde.
 //   3. Famosita' nel resoconto: mediana delle recensioni delle tappe servite e
 //      tappe sopra 5.000 (citta') / 1.000 (borghi).
 //
@@ -114,24 +113,18 @@ describe('P7a2 — un tour a 2 tappe si completa in codice', () => {
         // Il migliore per merito fra quelli liberi: f3 (120 recensioni), non Roscioli.
         const aggiunta = food.stops.find(s => s.place_id === 'f3');
         expect(aggiunta).toBeDefined();
-        expect(aggiunta.description).toBe("Da Trattoria di quartiere si vede il quartiere dall'alto.");
+        // P3d-j — composta dal codice come le altre (scelte di riserva), mai vuota.
+        expect(aggiunta.description).toMatch(/Trattoria di quartiere/);
+        expect(res._report.composizione.find(x => x.place_id === 'f3').riserva).toEqual(expect.arrayContaining(['usaFatto']));
         expect(res._report.aggiunte).toEqual([{ tour: 'food', title: 'Trattoria di quartiere', place_id: 'f3' }]);
         expect(res._report.scarti).toEqual([]);
     });
 
-    it('una sola chiamata in piu\' — la riscrittura — nello stesso biglietto "home_tours"', async () => {
+    it('P3d-j — nessuna chiamata in piu\': una sola, biglietto "home_tours"', async () => {
         vi.stubGlobal('fetch', homeFetch({ tours: [{ themeType: 'food', title: 'Food', stops: [stop('f1'), stop('f2')] }] }));
         await home({ food: FOOD });
-        expect(calls.map(c => c.kind)).toEqual(['tour', 'riscrittura']);
-        expect(new Set(calls.map(c => c.body.dv?.ticket)).size).toBe(1);
+        expect(calls.map(c => c.kind)).toEqual(['tour']);
         expect(calls[0].body.dv.kind).toBe('home_tours');
-        // P3d-e — nella stessa chiamata, prima, i due locali scelti (f1, f2):
-        // si riscrivono ancorati ai dati (fascia, motivo). Poi le riserve: una
-        // in piu' del necessario, in ordine di merito.
-        expect(calls[1].tappe.map(t => t.place_id)).toEqual(['f1', 'f2', 'f3', 'f4']);
-        expect(calls[1].tappe[0].locale).toBe(true);
-        expect(calls[1].tappe[0].tolto[0].motivo).toBe('riscrivila usando i fatti e i dati forniti');
-        expect(calls[1].tappe[2].tolto).toEqual([{ frase: null, motivo: 'mancava la descrizione' }]);
     });
 
     it('la riserva non e\' un luogo gia\' usato da un altro tour', async () => {
@@ -151,10 +144,7 @@ describe('P7a2 — un tour a 2 tappe si completa in codice', () => {
     it('il tour con abbastanza tappe non riceve riserve (e niente chiamata in piu\')', async () => {
         vi.stubGlobal('fetch', homeFetch({ tours: [{ themeType: 'cultura', title: 'Cultura', stops: [stop('c1'), stop('c2'), stop('c3')] }] }));
         const res = await home({ cultura: CULTURA });
-        // P3d-g — la riscrittura ancorata ai dati parte sempre (stesso biglietto,
-        // al massimo 2 chiamate): ma senza riserve dentro.
-        expect(calls.map(c => c.kind)).toEqual(['tour', 'riscrittura']);
-        expect(calls[1].tappe.map(t => t.place_id).sort()).toEqual(['c1', 'c2', 'c3']);
+        expect(calls.map(c => c.kind)).toEqual(['tour']);
         expect(res._report.aggiunte).toEqual([]);
     });
 });
@@ -164,21 +154,21 @@ describe('P7a2 — senza candidati validi il tour si nasconde', () => {
         vi.stubGlobal('fetch', homeFetch({ tours: [{ themeType: 'food', title: 'Food', stops: [stop('f1'), stop('f2')] }] }));
         const res = await home({ food: [poi('f1', 'Da Enzo', 1), poi('f2', 'Armando', 1.2)] });
         expect(res.tours).toEqual([]);
-        expect(calls.map(c => c.kind)).toEqual(['tour', 'riscrittura']); // P3d-g: la riscrittura ancorata, nessuna riserva
+        expect(calls.map(c => c.kind)).toEqual(['tour']); // P3d-j: nessuna riscrittura
         expect(res._report.scarti.map(s => s.motivo)).toEqual([
             'tour con meno di 3 tappe: nessun candidato valido rimasto nel pool',
             'tour con meno di 3 tappe: nessun candidato valido rimasto nel pool',
         ]);
     });
 
-    it('le riserve non ricevono una descrizione valida → tour nascosto', async () => {
-        vi.stubGlobal('fetch', homeFetch(
-            { tours: [{ themeType: 'food', title: 'Food', stops: [stop('f1'), stop('f2')] }] },
-            (tappe) => ({ stops: tappe.map(t => ({ place_id: t.place_id, description: 'Un posto magico.' })) }),
-        ));
+    // P3d-j — "le riserve non ricevono una descrizione valida" non puo' piu'
+    // succedere: la frase la compone il codice. Una riserva c'e' → il tour resta.
+    it('P3d-j — una riserva nel pool → il tour si completa con la sua frase composta', async () => {
+        vi.stubGlobal('fetch', homeFetch({ tours: [{ themeType: 'food', title: 'Food', stops: [stop('f1'), stop('f2')] }] }));
         const res = await home({ food: [poi('f1', 'Da Enzo', 1), poi('f2', 'Armando', 1.2), poi('f3', 'Felice', 1.4)] });
-        expect(res.tours).toEqual([]);
-        expect(res._report.aggiunte).toEqual([]);
+        expect(res.tours[0].stops).toHaveLength(3);
+        expect(res._report.aggiunte.map(x => x.place_id)).toEqual(['f3']);
+        expect(res.tours[0].stops.every(s => typeof s.description === 'string' && s.description.length > 0)).toBe(true);
     });
 });
 

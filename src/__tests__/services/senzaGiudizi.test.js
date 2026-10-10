@@ -12,8 +12,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
-    filterInventedObjects, UNSUPPORTED_JUDGMENTS, unsupportedJudgments, tipoTappa, safeDescription, localeTypeOfName, misattributedFact,
+    filterInventedObjects, UNSUPPORTED_JUDGMENTS, unsupportedJudgments, localeTypeOfName, misattributedFact,
 } from '../../lib/narrationLight';
+import { stopData, apertura } from '../../lib/stopPhrases';
 import { aiRecommendationService, placeReasons } from '../../services/aiRecommendationService';
 
 const LE_8 = [
@@ -40,20 +41,20 @@ describe('P3d-g — le 8 frasi ✗ di P3d-e vengono tolte', () => {
     it('Osteria Navona → "Trattoria": tolta per il tipo, e la frase sicura dice "osteria"', () => {
         const r = filterInventedObjects('Trattoria, fascia €€, a 6 minuti dalla tappa prima.', { nomi: ['Osteria Navona'] });
         expect(r.removed[0]).toMatchObject({ regola: 'tipo-locale', oggetti: ['trattoria'], tipoNome: 'osteria' });
-        // il nome vince sul tipo Google ("bar")
-        expect(tipoTappa({ title: 'Osteria Navona', types: ['bar', 'establishment', 'food'] })).toBe('osteria');
-        const sicura = safeDescription({ stop: { title: 'Osteria Navona', types: ['bar', 'food'] }, momento: 'cena', locale: true, priceLevel: 2, minutiDaPrima: 6 });
-        expect(sicura).toContain("un'osteria in fascia €€");
-        expect(sicura).not.toMatch(/trattoria|\bbar\b/);
+        // il nome vince sul tipo Google ("bar"); P3d-j: la frase composta dice "osteria"
+        expect(localeTypeOfName('Osteria Navona')).toBe('osteria');
+        const composta = apertura(stopData({ stop: { title: 'Osteria Navona', place_id: 'on', types: ['bar', 'food', 'restaurant'] }, momento: 'cena', locale: true, priceLevel: 2, minutiDaPrima: 6 }));
+        expect(composta).toMatch(/osteria in fascia €€\.$/);
+        expect(composta.replace('Osteria Navona', '')).not.toMatch(/trattoria|\bbar\b/);
         // e la stessa frase con il tipo giusto passa
         expect(filterInventedObjects('Osteria, fascia €€, a 6 minuti dalla tappa prima.', { nomi: ['Osteria Navona'] }).removed).toEqual([]);
     });
 
     it('il nome vince sul tipo Google anche per bar, enoteca, pizzeria, trattoria', () => {
-        expect(tipoTappa({ title: 'Bar del Fico', types: ['restaurant'] })).toBe('bar');
-        expect(tipoTappa({ title: 'Enoteca Il Goccetto', types: ['bar'] })).toBe('enoteca');
-        expect(tipoTappa({ title: 'Pizzeria da Remo', types: ['restaurant'] })).toBe('pizzeria');
-        expect(tipoTappa({ title: 'Trattoria Della Stampa', types: ['restaurant'] })).toBe('trattoria');
+        expect(localeTypeOfName('Bar del Fico')).toBe('bar');
+        expect(localeTypeOfName('Enoteca Il Goccetto')).toBe('enoteca');
+        expect(localeTypeOfName('Pizzeria da Remo')).toBe('pizzeria');
+        expect(localeTypeOfName('Trattoria Della Stampa')).toBe('trattoria');
         expect(localeTypeOfName('Barberini Palace')).toBeNull(); // "bar" solo come parola intera
     });
 });
@@ -160,111 +161,8 @@ const genera = () => aiRecommendationService.generateItinerary(
 );
 const allStops = (r) => r.days.flatMap(d => d.stops);
 
-describe('P3d-g — itinerario: dati per ogni tappa, giudizi tolti, mai vuota', () => {
-    beforeEach(() => {
-        vi.clearAllMocks(); calls = [];
-        try { window.localStorage.clear(); } catch { /* jsdom */ }
-        vi.useFakeTimers({ toFake: ['Date'] });
-        vi.setSystemTime(new Date('2026-10-05T20:57:00+02:00'));
-    });
-    afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
-
-    it('il narratore riceve per ogni tappa tipo, minuti, tramonto davanti e motivo (anche per i luoghi)', async () => {
-        vi.stubGlobal('fetch', routeFetch((t) => ({ place_id: t.place_id, description: 'Una tappa sul percorso.' })));
-        await genera();
-        const tappe = JSON.parse(calls.find(c => c.kind === 'narratore').user.split('TAPPE FINALI:\n')[1]).flatMap(g => g.tappe);
-        const belv = tappe.find(t => t.place_id === BELV.place_id);
-        expect(belv.tipo).toBe('belvedere');
-        expect(belv.motivo).toEqual(['l\'utente vuole: la Roma dei romani', 'risponde a: belvedere']);
-        expect(typeof belv.tramonto_ancora_davanti).toBe('boolean');
-        expect('minuti_a_piedi_da_prima' in belv).toBe(true);
-        const ost = tappe.find(t => t.place_id === OSTERIA.place_id);
-        expect(ost.tipo).toBe('osteria');
-        expect(ost.locale).toBe(true);
-        expect(Number.isFinite(ost.minuti_a_piedi_da_prima)).toBe(true);
-        expect(calls.map(c => c.kind)).toEqual(['traduttore', 'selettore', 'narratore']); // chiamate invariate
-    });
-
-    it('"uno dei migliori punti panoramici" senza fatti → tolta, UNA riscrittura con il motivo, poi frase sicura', async () => {
-        vi.stubGlobal('fetch', routeFetch(
-            (t) => ({ place_id: t.place_id, description: t.place_id === BELV.place_id ? 'Affacciata su Roma, è uno dei migliori punti panoramici della città.' : 'Una tappa sul percorso.' }),
-            (tappe) => ({ stops: tappe.map(t => ({ place_id: t.place_id, description: 'Un belvedere straordinario.' })) }),
-        ));
-        const r = await genera();
-        const rw = calls.filter(c => c.kind === 'riscrittura');
-        expect(rw).toHaveLength(1);
-        const item = JSON.parse(rw[0].user.split('TAPPE:\n')[1]).find(t => t.place_id === BELV.place_id);
-        expect(item.tolto[0].motivo).toMatch(/giudizio/);
-        expect(item.motivo).toContain('l\'utente vuole: la Roma dei romani');
-        const s = allStops(r).find(x => x.place_id === BELV.place_id);
-        expect(s._fraseSicura).toBe(true);
-        expect(s.description).toContain('Belvedere Tarpeo');
-        for (const st of allStops(r)) expect(String(st.description || '').trim().length, st.title).toBeGreaterThan(0);
-    });
-
-    it('Osteria Navona chiamata "trattoria" dal narratore → tolta, la riscrittura riceve tipo "osteria"', async () => {
-        vi.stubGlobal('fetch', routeFetch(
-            (t) => ({ place_id: t.place_id, description: t.place_id === OSTERIA.place_id ? 'Trattoria, fascia €€, a 6 minuti dalla tappa prima.' : 'Una tappa sul percorso.' }),
-            (tappe) => ({ stops: tappe.map(t => ({ place_id: t.place_id, description: `Pranzi in un'${t.tipo} in fascia €€.` })) }),
-        ));
-        const r = await genera();
-        const item = JSON.parse(calls.find(c => c.kind === 'riscrittura').user.split('TAPPE:\n')[1]).find(t => t.place_id === OSTERIA.place_id);
-        expect(item.tipo).toBe('osteria');
-        expect(item.tolto[0].motivo).toContain('il nome dice "osteria"');
-        expect(allStops(r).find(x => x.place_id === OSTERIA.place_id).description).toBe("Pranzi in un'osteria in fascia €€.");
-    });
-});
-
-// ─── "Per Te": dopo cena il tramonto non compare ─────────────────────────────
-describe('P3d-g — "Per Te": luce e ora sull\'ora di adesso', () => {
-    const CITY = 'Ippocampo';
-    const CENTER = { latitude: 41.6489, longitude: 15.9012 };
-    const POOL = {
-        romance: [
-            { place_id: 'pid-belv', name: 'Belvedere del Faro', latitude: CENTER.latitude, longitude: CENTER.longitude, rating: 4.6, types: ['tourist_attraction'], city: CITY },
-            { place_id: 'pid-due', name: 'Museo del Sale', latitude: CENTER.latitude + 0.001, longitude: CENTER.longitude, rating: 4.4, types: ['museum'], city: CITY },
-            { place_id: 'pid-tre', name: 'Chiesa Madre', latitude: CENTER.latitude + 0.002, longitude: CENTER.longitude, rating: 4.5, types: ['church'], city: CITY },
-        ],
-    };
-    let homeCalls;
-    const homeFetch = (tourPayload, rewrite) => vi.fn(async (url, init) => {
-        if (!String(url).includes('openai-proxy')) throw new Error(`fetch inatteso: ${url}`);
-        const body = JSON.parse(String(init?.body ?? '{}'));
-        const isRw = String(body.messages?.[0]?.content ?? '').includes('Riscrivi SOLO il campo description');
-        const tappe = isRw ? JSON.parse(String(body.messages[1].content).split('TAPPE:\n')[1]) : null;
-        homeCalls.push({ kind: isRw ? 'riscrittura' : 'tour', tappe });
-        return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify(isRw ? rewrite(tappe) : tourPayload) } }] }) };
-    });
-    beforeEach(() => {
-        vi.clearAllMocks(); homeCalls = [];
-        try { window.localStorage.clear(); } catch { /* jsdom */ }
-        vi.useFakeTimers({ toFake: ['Date'] });
-        vi.setSystemTime(new Date('2026-10-09T22:40:00+02:00')); // dopocena, il tramonto e' passato da ore
-    });
-    afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
-
-    it('dopocena: "al tramonto" del selettore e della riscrittura si toglie; la frase sicura non nomina il tramonto', async () => {
-        vi.stubGlobal('fetch', homeFetch(
-            { tours: [{ themeType: 'romance', title: 'Sera', stops: [
-                { place_id: 'pid-belv', description: 'Al tramonto il mare diventa arancione.' },
-                { place_id: 'pid-due', description: 'Una tappa del tuo tour.' },
-                { place_id: 'pid-tre', description: 'Una tappa del tuo tour.' },
-            ] }] },
-            (tappe) => ({ stops: tappe.map(t => ({ place_id: t.place_id, description: t.place_id === 'pid-belv' ? 'Vieni qui per il tramonto.' : `Un ${t.tipo} per il tuo tour in coppia.` })) }),
-        ));
-        const res = await aiRecommendationService.generateHomeTours({ city: CITY, cityCenter: CENTER, themedCandidates: POOL, opts: { skipUserQuota: true } });
-        expect(homeCalls.map(c => c.kind)).toEqual(['tour', 'riscrittura']); // 2 chiamate, invariate
-        const belv = res.tours[0].stops.find(s => s.place_id === 'pid-belv');
-        expect(belv.description).not.toMatch(/tramont/i);
-        expect(belv._fraseSicura).toBe(true);
-        expect(belv.description).toContain('Belvedere del Faro');
-        expect(belv.description).toMatch(/dopocena/);
-        const item = homeCalls[1].tappe.find(t => t.place_id === 'pid-belv');
-        expect(item.tramonto_ancora_davanti).toBe(false);
-        expect(item.motivo).toEqual(['pensato per una giornata in due']);
-        for (const st of res.tours[0].stops) expect(String(st.description || '').trim().length).toBeGreaterThan(0);
-    });
-});
+// P3d-j — i test di servizio del narratore libero (dati per tappa, riscrittura,
+// frase sicura) sono sostituiti da narratoreComposto.test.js.
 
 // ─── I 5 ✗ della prova reale P3d-g ("Per Te" Roma, 10/10/2026 00:04) ─────────
 describe('P3d-g — i ✗ della prova reale vengono tolti', () => {
@@ -296,40 +194,5 @@ describe('P3d-g — i ✗ della prova reale vengono tolti', () => {
         expect(filterInventedObjects('Sul Pincio, colle di Roma alto 61 metri: ci arrivi nel pomeriggio.', { fatti: PINCIO, nomi: ['Terrazza del Pincio'], fattiSu: 'Pincio' }).removed).toEqual([]);
         // stesso luogo (fatti dei Musei Capitolini per i Musei Capitolini): niente controllo
         expect(misattributedFact('Un museo civico di Roma.', { fatti: [{ testo: 'I Musei Capitolini sono un museo civico.' }], fattiSu: 'Musei Capitolini', nomi: ['Musei Capitolini'] })).toBeNull();
-    });
-});
-
-describe('P3d-g — "Per Te": il testo del selettore non resta mai', () => {
-    const CITY = 'Ippocampo';
-    const CENTER = { latitude: 41.6489, longitude: 15.9012 };
-    const POOL = { nature: [
-        { place_id: 'pid-ingr', name: 'Ingresso di Villa Saline', latitude: CENTER.latitude, longitude: CENTER.longitude, rating: 4.6, types: ['park'], city: CITY },
-        { place_id: 'pid-due', name: 'Parco del Sale', latitude: CENTER.latitude + 0.001, longitude: CENTER.longitude, rating: 4.4, types: ['park'], city: CITY },
-        { place_id: 'pid-tre', name: 'Giardino Madre', latitude: CENTER.latitude + 0.002, longitude: CENTER.longitude, rating: 4.5, types: ['park'], city: CITY },
-    ] };
-    afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
-
-    it('riscrittura ancorata scartata → frase sicura, anche se il testo del selettore passava i controlli', async () => {
-        try { window.localStorage.clear(); } catch { /* jsdom */ }
-        vi.useFakeTimers({ toFake: ['Date'] });
-        vi.setSystemTime(new Date('2026-10-09T16:00:00+02:00'));
-        vi.stubGlobal('fetch', vi.fn(async (url, init) => {
-            if (!String(url).includes('openai-proxy')) throw new Error(`fetch inatteso: ${url}`);
-            const body = JSON.parse(String(init?.body ?? '{}'));
-            const isRw = String(body.messages?.[0]?.content ?? '').includes('Riscrivi SOLO il campo description');
-            const payload = isRw
-                ? { stops: JSON.parse(String(body.messages[1].content).split('TAPPE:\n')[1]).map(t => ({ place_id: t.place_id, description: 'Un parco da scoprire.' })) }
-                : { tours: [{ themeType: 'nature', title: 'Verde', stops: [
-                    { place_id: 'pid-ingr', description: 'Un ingresso che porta al parco.' },
-                    { place_id: 'pid-due', description: 'Un parco sul percorso.' },
-                    { place_id: 'pid-tre', description: 'Un giardino sul percorso.' },
-                ] }] };
-            return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify(payload) } }] }) };
-        }));
-        const res = await aiRecommendationService.generateHomeTours({ city: CITY, cityCenter: CENTER, themedCandidates: POOL, opts: { skipUserQuota: true } });
-        for (const st of res.tours[0].stops) {
-            expect(st._fraseSicura, st.title).toBe(true); // "da scoprire" tolto, il selettore non resta
-            expect(st.description).not.toMatch(/scoprire|sul percorso|porta al parco/);
-        }
     });
 });

@@ -12,12 +12,18 @@
  * l'output del modello. L'output è non deterministico e NESSUN test può provare
  * che il narratore sia migliorato. Provano che il prompt non detta più il testo
  * che veniva copiato. La prova vera è un giro su device.
+ *
+ * P3d-j — il modello non scrive piu' testo per le tappe (sceglie fra opzioni
+ * chiuse, il codice compone): le regole di stile per description, insiderTip,
+ * bestTime e transition non hanno piu' un destinatario e sono uscite dai
+ * prompt. Resta qui cio' che vale ancora: titolo dalle tappe, nessun orario
+ * inventato, open_now fuori, ORA VERA, elenco unico.
  */
 import { describe, it, expect } from 'vitest';
 import { bannedWordsPromptLines } from '../../lib/narrationLight';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { buildSelectorSystemPrompt, buildNarratorSystemPrompt } from '../../services/aiRecommendationService';
+import { buildSelectorSystemPrompt, buildChooserSystemPrompt } from '../../services/aiRecommendationService';
 
 // Il letterale va cercato su TUTTO il file, non prompt per prompt: i prompt che
 // lo contengono sono il selettore e il titleHint del tema insider
@@ -68,96 +74,29 @@ const selectorPrompt = () => buildSelectorSystemPrompt({
     intent: null,
 });
 
-// Gate NARRATORE-DOPO — le regole di VOCE sono passate dal prompt del
-// selettore a quello del narratore, che scrive DOPO, sulle tappe finali. Le
-// asserzioni su voce, titolo, bestTime, insiderTip e transition qui sotto
-// leggono il narratore; quelle sul payload dei candidati (types, open_now)
-// restano sul selettore, che e' l'unico a ricevere la lista dei candidati.
-const prompt = () => buildNarratorSystemPrompt({
-    city: 'Venezia',
-    weather: { condition: 'Sereno', temperature: 18 },
-    prefs: {},
-    aiProfile: '',
-    userPrompt: '',
-    giorni: [{
-        giorno: 1, data: '2026-10-06', alba: '07:12', tramonto: '18:41',
-        tappe: [MUSEO, RISTORANTE].map((c, i) => ({
-            place_id: c.place_id, nome: c.name, categoria: i === 0 ? 'arte' : 'food',
-            types: c.types, momento: i === 0 ? 'Mattina' : 'Pranzo', arrivo: i === 0 ? '09:30' : '12:30',
-        })),
-    }],
-});
+// P3d-j — il prompt delle scelte (terza chiamata): niente testo per le tappe.
+const prompt = () => buildChooserSystemPrompt({ city: 'Venezia' });
 
-describe('Gate NARRATORE ANCORATO DIFF 1 — il prompt del narratore (era del selettore)', () => {
-    it('controllo dello strumento: il prompt contiene davvero i candidati e i loro types', () => {
-        // Prima di fidarsi di un `not.toContain`, provare che lo strumento
-        // vedrebbe una presenza nota. Se questo fallisse, gli zero sotto non
-        // proverebbero niente.
+describe('P3d-j — nessun prompt vivo chiede testo per le tappe', () => {
+    it('controllo dello strumento: il prompt delle scelte chiede usaFatto, gancio, interesse', () => {
+        const p = prompt();
+        expect(p).toContain('"usaFatto"');
+        expect(p).toContain('"gancio"');
+        expect(p).toContain('"interesse"');
+    });
+
+    it('nessun formato di uscita contiene description, insiderTip, bestTime o transition', () => {
+        for (const campo of ['"description"', '"insiderTip"', '"bestTime"', '"transition"']) {
+            expect(serviceCode(), campo).not.toContain(campo);
+        }
+    });
+
+    it('il selettore riceve davvero i candidati e i loro types', () => {
         const p = selectorPrompt();
-        expect(p).toContain('Collezione Peggy Guggenheim');
-        expect(p).toContain('Osteria al Squero');
+        expect(p).toContain('pid-museo');
+        expect(p).toContain('pid-osteria');
         expect(p).toContain('museum');
         expect(p).toContain('restaurant');
-        // e il narratore e' davvero il prompt delle regole di voce
-        expect(prompt()).toContain('SEI IL NARRATORE DI Venezia');
-    });
-
-    it('non detta piu\' il titolo che veniva copiato alla lettera', () => {
-        expect(prompt()).not.toContain('I vicoli segreti di');
-        expect(selectorPrompt()).not.toContain('I vicoli segreti di');
-    });
-
-    it('il titolo deve derivare dalle tappe scelte, non da un modello', () => {
-        const p = prompt();
-        expect(p).toContain('nasce dalle TAPPE CHE RACCONTI');
-        // deve restare vietata la forma piatta
-        expect(p).toContain('Tour di ');
-    });
-
-    it('impone la coerenza fra la voce e il types del POI', () => {
-        const p = prompt();
-        expect(p).toContain('COERENZA COL TIPO');
-        expect(p).toContain('rileggi il "types" di QUEL candidato');
-    });
-
-    it('ammette insiderTip null invece di un tip di un\'altra categoria', () => {
-        const p = prompt();
-        expect(p).toContain('"insiderTip": null');
-        expect(p).toContain('Nessun consiglio è meglio di un consiglio di un\'altra');
-    });
-
-    // P3d-e — gli esempi di tip per categoria ("Percorrilo al contrario",
-    // "Siediti qualche minuto") erano consigli non verificabili su QUEL posto:
-    // con il narratore ancorato ai fatti un tip nasce dai fatti o non c'e'.
-    it('P3d-e: il tip nasce dai fatti o dai dati, altrimenti null (niente tip di repertorio)', () => {
-        const p = prompt();
-        expect(p).toContain('SOLO se nasce dai fatti o dai');
-        expect(p).not.toContain("Percorrilo al contrario");
-        expect(p).not.toContain('Chiedi il caffè al bancone');
-    });
-
-    it('dichiara che gli esempi mostrano il registro, non il contenuto da copiare', () => {
-        const p = prompt();
-        expect(p).toContain('mostrano il REGISTRO');
-        expect(p).toContain('NON copiarli');
-    });
-
-    // P3d-i — della description restano solo 3 esempi giusti e 3 sbagliati, presi
-    // dalle prove reali P3d-g; gli altri ✗ (insiderTip, bestTime, transition) restano.
-    it('gli esempi ✗ restano: insegnano cosa evitare e non vengono imitati', () => {
-        const p = prompt();
-        expect(p).toContain('SBAGLIATO: "Piazza Umbrella, un luogo per la tua richiesta, un giro insider."');
-        expect(p).toContain('Consigliata visita mattutina');
-    });
-
-    it('DIFF 3 chiuso: l\'orario inventato non e\' piu\' un esempio ✓', () => {
-        // Era registrato come limite noto del DIFF 1 e ora e' INVERTITO, non
-        // cancellato: "Alle 17 la luce entra dalla vetrata sud" era l'esempio ✓
-        // che premiava un orario specifico senza alcun dato di orario nel prompt.
-        // Resta nel testo come ✗ — i controesempi non vengono imitati (lezione #27).
-        const p = prompt();
-        expect(p).toContain('← orario inventato');
-        expect(p).not.toMatch(/✓ "Alle 17 la luce entra/);
     });
 });
 
@@ -166,7 +105,7 @@ describe('Gate NARRATORE ANCORATO DIFF 1 — il titolo dettato, su TUTTI i promp
         // Se questo fallisse, lo zero qui sotto non proverebbe niente.
         const src = serviceCode();
         expect(src).toContain('buildSelectorSystemPrompt');
-        expect(src).toContain('buildNarratorSystemPrompt');
+        expect(src).toContain('buildChooserSystemPrompt');
         expect(src).toContain('buildUnifiedHomeToursPrompt');
         expect(src).toContain('titleHint');
     });
@@ -179,9 +118,8 @@ describe('Gate NARRATORE ANCORATO DIFF 1 — il titolo dettato, su TUTTI i promp
         const src = serviceCode();
         // titleHint del tema insider (prompt "Per Te")
         expect(src).toContain('DERIVATO dalle tappe che hai scelto');
-        // Regola del narratore. Gate NARRATORE-DOPO: stava nel selettore, che
-        // non scrive piu' titoli; il narratore li scrive dalle tappe che racconta.
-        expect(src).toContain('Il TITOLO di ogni giorno nasce dalle TAPPE CHE RACCONTI');
+        // P3d-j — il prompt delle scelte scrive solo il titolo, dalle tappe del giorno.
+        expect(prompt()).toContain('nasce dalle TAPPE del giorno');
     });
 });
 
@@ -214,10 +152,10 @@ describe('Gate NARRATORE ANCORATO DIFF 3 — nessun orario inventato, nessuno st
 
     it('tutti i prompt vietano di AFFERMARE stati di apertura', () => {
         const src = serviceCode();
-        // Due copie della regola: narratore (era nel selettore) + "Per Te". Gate SOLO-GOOGLE: la terza
-        // era il punto 9 del prompt legacy, uscito col motore AI-first.
+        // P3d-j — una copia: "Per Te" (per i titoli). Il narratore libero non
+        // c'e' piu', e il prompt delle scelte non fa scrivere frasi sulle tappe.
         const occorrenze = src.split('NON AFFERMARE MAI se un posto è aperto o chiuso').length - 1;
-        expect(occorrenze).toBe(2);
+        expect(occorrenze).toBe(1);
     });
 
     it('open_now non entra piu\' nel payload del selettore', () => {
@@ -234,91 +172,6 @@ describe('Gate NARRATORE ANCORATO DIFF 3 — nessun orario inventato, nessuno st
         expect(src).toContain("bits.push('chiuso ora');");
     });
 
-    it('bestTime ammette null quando non c\'e\' un motivo vero', () => {
-        const p = prompt();
-        expect(p).toContain('"bestTime": null');
-        expect(p).toContain('un motivo inventato è peggio di un campo assente');
-        expect(p).toContain('NON citare ore');
-    });
-});
-
-describe('Gate NARRATORE ANCORATO F55 — non attribuire contenuti che non si sanno esistere', () => {
-    it('controllo dello strumento: il prompt porta i types e non la categoria UI collassata', () => {
-        // Causa A esclusa in FASE A: al modello arrivano i types Google, non
-        // "CULTURA". Se questo cambiasse, la diagnosi andrebbe rifatta.
-        const p = selectorPrompt();
-        expect(p).toContain('museum');
-        expect(p).toContain('restaurant');
-        expect(p).not.toContain('CULTURA');
-    });
-
-    it('il divieto e\' presente in entrambi i prompt vivi', () => {
-        const src = serviceCode();
-        // Gate SOLO-GOOGLE: da 3 a 2 — il terzo prompt era quello del motore AI-first.
-        const n = src.split('NON ATTRIBUIRE A UN POSTO CONTENUTI').length - 1;
-        expect(n).toBe(2);
-    });
-
-    // P3d-e — il prompt dichiarava "rating, numero di recensioni, indirizzo",
-    // che il narratore NON riceve: ora dice esattamente cosa riceve.
-    it('dichiara esplicitamente cosa il modello SA — e solo quello che riceve davvero', () => {
-        const p = prompt();
-        expect(p).toContain('Di ogni tappa ricevi: place_id, nome, "tipo"');
-        expect(p).toContain('"fatti": un');
-        expect(p).toContain('elenco [{testo, fonte}]');
-        expect(p).toContain('NON ricevi rating, recensioni, indirizzi');
-        expect(p).not.toContain('nome, "types", rating, numero di recensioni');
-        expect(p).toContain('NON si deduce cosa c\'e\' dentro');
-    });
-
-    it('risolve la tensione specificita\'/verita\': fra generico e falso vince il generico', () => {
-        const p = prompt();
-        expect(p).toContain('COME SI RISOLVE LA TENSIONE');
-        expect(p).toContain('VINCE IL GENERICO');
-    });
-
-    it('nessun esempio ✓ asserisce piu\' un contenuto del singolo luogo', () => {
-        const p = prompt();
-        // erano i quattro che violavano il divieto che li precede
-        expect(p).not.toContain('La sala 3 ha una sola panca');
-        expect(p).not.toContain('Il bancone è di zinco');
-        expect(p).not.toContain('I platani sul lato ovest');
-        expect(p).not.toContain('i mosaici non sono abbagliati');
-    });
-
-    it('l\'esempio chiesa che citava gli orari e\' passato da ✓ a ✗ (contraddiceva il DIFF 3)', () => {
-        const p = prompt();
-        expect(p).toContain('← ORARI che non hai');
-        expect(p).not.toMatch(/✓ chiesa\s+— "Entra dalla porta laterale/);
-    });
-
-    it('le due frasi false viste su device sono ora contro-esempi espliciti', () => {
-        const p = prompt();
-        expect(p).toContain('artisti emergenti"  ← contenuto INVENTATO');
-        // P3d-i: "opere contemporanee esposte" era un esempio della description;
-        // ora lo copre il codice (oggetti concreti) e la regola "NON ATTRIBUIRE".
-        expect(p).toContain("NON ATTRIBUIRE A UN POSTO CONTENUTI CHE NON SAI ESISTANO LI'");
-    });
-});
-
-describe('Gate NARRATORE ANCORATO F56 — transition non afferma cosa accade ORA', () => {
-    it('il divieto temporale e\' su entrambi i prompt vivi', () => {
-        const src = serviceCode();
-        // Gate SOLO-GOOGLE: da 3 a 2 — il terzo prompt era quello del motore AI-first.
-        const n = src.split('NON dire cosa sta accadendo ORA').length - 1;
-        expect(n).toBe(2);
-    });
-
-    it('la frase vista su device e\' un contro-esempio', () => {
-        expect(prompt()).toContain('Le luci dei bar si accendono lentamente"  ← cosa accade ORA');
-    });
-
-    // P3d-e — "descrivi cosa c'e'" lungo il cammino era un invito a inventare
-    // (muri, targhe, balconi): ora la transition usa solo dati veri o e' null.
-    it('P3d-e: transition solo con dati veri (prossima tappa, minuti), altrimenti null', () => {
-        expect(prompt()).toContain('SOLO con dati veri');
-        expect(prompt()).not.toContain("Descrivi cosa c'è, non cosa sta succedendo");
-    });
 });
 
 // ─── Gate ORA VERA — la clausola "momento del giorno" ────────────────────────
@@ -384,11 +237,8 @@ describe('Gate ORA VERA — "momento del giorno" solo se l\'utente lo ha chiesto
 
 // Gate PAROLE VIETATE — l'elenco vive in narrationLight.js e il prompt lo
 // interpola. P3d-b: e' l'elenco unico di tutto il testo generato.
-describe('Gate PAROLE VIETATE — il prompt del narratore mostra l\'elenco unico', () => {
+describe('Gate PAROLE VIETATE — il prompt delle scelte mostra l\'elenco unico (per il titolo)', () => {
     it('le righe dell\'elenco sono quelle di bannedWordsPromptLines(), carattere per carattere', () => {
-        expect(prompt()).toContain(
-            'REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):\n'
-            + bannedWordsPromptLines() + '\n\nREGOLE STRUTTURA:',
-        );
+        expect(prompt()).toContain('Parole vietate nel titolo: ' + bannedWordsPromptLines());
     });
 });

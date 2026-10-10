@@ -183,16 +183,17 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
         expect(result._source).toBe('google-first');
         const stops = result.days[0].stops;
         expect(stops.length).toBeGreaterThan(0);
+        // P3d-j — il modello non da' scelte: il codice compone con la riserva.
         for (const st of stops) {
             expect(st.title).toBeTruthy();
             expect(st.type).toBeTruthy();
-            expect(st._fraseSicura).toBe(true);
-            expect(st.description).toMatch(/alle \d{1,2}(?::\d{2})?/); // P3d-i: l'orario come gancio
+            expect(st._comp).toBeTruthy();
+            expect(st.description.trim().length).toBeGreaterThan(0);
         }
-        expect(result._narrationReport.nonRaccontate.map(x => x.title)).toEqual(stops.map(st => st.title));
+        expect(result._narrationReport.composizione.every(x => x.riserva.includes('usaFatto'))).toBe(true);
     });
 
-    it('il console.warn delle tappe senza racconto riporta quante e quali (serve sul campo)', async () => {
+    it('P3d-j — il log dice quali tappe hanno avuto la riserva del codice (serve sul campo)', async () => {
         // setup.js:82 silenzia console.warn globalmente: il log non arriva su
         // stdout, quindi l'unico modo di provare che il segnale esiste è lo spy.
         // Intenso: la mattina fa 2 tappe, il narratore ne racconta una.
@@ -207,19 +208,17 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
             }],
         }));
 
+        const info = vi.spyOn(console, 'info');
         const result = await aiRecommendationService.generateItinerary(
             CITY, { interests: ['Arte'], pace: 'Intenso' }, 'cerco musei', {}, '', CENTER,
         );
         expect(result.days[0].stops).toHaveLength(2);
-
-        const righe = console.warn.mock.calls
-            .map(args => String(args[0]))
-            .filter(m => m.includes('[Gate NARRATORE-DOPO]') && m.includes('senza racconto'));
-
-        expect(righe).toHaveLength(1);
-        expect(righe[0]).toContain('1/2 tappe senza racconto');
-        expect(righe[0]).toContain('Museo del Sale'); // il nome della tappa non raccontata
-        expect(righe[0]).toContain(CITY);
+        // P3d-j — non ci sono piu' tappe "senza racconto": quelle senza scelte
+        // del modello hanno la riserva del codice, e il log lo dice.
+        const righe = info.mock.calls.map(args => String(args[0])).filter(m => m.includes('[P3d-j SCELTE]') && m.includes('riserva'));
+        expect(righe.length).toBeGreaterThan(0);
+        expect(righe.join('\n')).toContain(CITY);
+        info.mockRestore();
     });
 
     it('NON-REGRESSIONE: tutte le tappe descritte → tutte raccontate, nessuna nel report', async () => {
@@ -304,12 +303,14 @@ describe('Gate NARRATORE/POI Fase 2b — generateHomeTours invariato dopo l\'est
         expect(res.tours[0].stops).toHaveLength(4);
         expect(res.tours[0].stops.map(st => st.title)).toContain('Torre Capitania');
         const sale = res.tours[0].stops.find(st => st.title === 'Museo del Sale');
-        expect(sale._fraseSicura).toBe(true);
+        expect(sale._comp).toBeTruthy(); // P3d-j — composta dal codice
         expect(sale.description).not.toMatch(/Luogo di interesse/);
         expect(sale.description.trim().length).toBeGreaterThan(0);
     });
 
-    it('tour i cui stop restano tutti senza description → tour escluso, come prima', async () => {
+    // P3d-j — il modello non scrive piu' description: un tour con 2 tappe si
+    // completa con le riserve del suo pool e tutte hanno la frase composta.
+    it('il modello non scrive niente e da\' 2 tappe → tour completato dalle riserve, frasi composte', async () => {
         vi.stubGlobal('fetch', homeToursFetch({
             tours: [{
                 themeType: 'cultura',
@@ -325,7 +326,9 @@ describe('Gate NARRATORE/POI Fase 2b — generateHomeTours invariato dopo l\'est
             city: CITY, cityCenter: CENTER, themedCandidates: POOL,
         });
 
-        expect(res.tours).toEqual([]);
+        expect(res.tours).toHaveLength(1);
+        expect(res.tours[0].stops.length).toBeGreaterThanOrEqual(3);
+        expect(res.tours[0].stops.every(st => st.description && st._comp)).toBe(true);
     });
 
     it('NON-REGRESSIONE: tutte descritte → tour completo, nessuno scarto', async () => {

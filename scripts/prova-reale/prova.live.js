@@ -20,6 +20,8 @@ import { supabase } from '@/lib/supabase';
 import { aiRecommendationService, buildInsiderPool } from '@/services/aiRecommendationService';
 import { placesDiscoveryService } from '@/services/placesDiscoveryService';
 import { resolveCityCenter } from '@/services/cityCenterService';
+import { voiceIssues } from '@/lib/narrationLight';
+import { testoPulito } from '@/lib/stopPhrases';
 
 const OUT = process.env.PROVA_OUT || path.join(os.tmpdir(), 'prova-reale.json');
 const RICHIESTE = (process.env.PROVA_RICHIESTE || 'roma').split(',').map(s => s.trim()).filter(Boolean);
@@ -72,6 +74,26 @@ const row = (s, fatti, riempite) => ({
     fatti: fatti || [], description: s.description, sicura: !!s._fraseSicura,
 });
 
+// P3d-j — per la tabella tappa / fatti / descrizione / verita' / voce: le
+// scelte del modello e cosa ne ha fatto il codice, piu' due controlli
+// automatici (la revisione a mano resta nel resoconto).
+//   verita'  la rete non ha tolto niente e il testo e' pulito (niente null,
+//            segnaposto, vuoti); se usa un fatto, e' davvero uno dei fatti.
+//   voce     nessuna frase con un problema di voce (voiceIssues).
+const conComposizione = (r, comp, fattiPer) => {
+    const c = comp.get(r.place_id) || {};
+    const frasi = String(r.description || '').split(/(?<=[.!?])\s+/).filter(Boolean);
+    const fatti = fattiPer || [];
+    const fattoUsato = c.usaFatto ? frasi[0] : null;
+    return {
+        ...r,
+        sceltaModello: c.scelta || null, usaFatto: c.usaFatto ?? null, gancio: c.gancio ?? null, interesse: c.interesse ?? null,
+        riserva: c.riserva || [], rete: c.rete || [],
+        verita: (c.rete || []).length === 0 && testoPulito(r.description) && (!fattoUsato || fatti.some(f => String(f.testo || f).startsWith(fattoUsato))),
+        voce: frasi.every(f => voiceIssues(f).length === 0),
+    };
+};
+
 const ITINERARI = {
     roma: ['Roma', 'Domani voglio vivere Roma da romano'],
     catania: ['Catania', 'Domani voglio vivere Catania'],
@@ -95,7 +117,8 @@ for (const key of RICHIESTE) {
                     prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, aiProfile: '' });
                 const per = new Map((r._report?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
                 out.risultati.perte = { source: r._source, secs: (Date.now() - t0) / 1000, chiamate: calls - c0, momento: r._report?.momento,
-                    tours: (r.tours || []).map(t => ({ tema: t.themeType, stops: t.stops.map(s => row(s, per.get(s.place_id), null)) })) };
+                    composizione: true,
+                    tours: (r.tours || []).map(t => ({ tema: t.themeType, stops: t.stops.map(s => conComposizione({ place_id: s.place_id, ...row(s, per.get(s.place_id), null) }, new Map((r._report?.composizione || []).map(x => [x.place_id, x])), per.get(s.place_id))) })) };
             } else if (ITINERARI[key]) {
                 const [city, prompt] = ITINERARI[key];
                 const cc = await resolveCityCenter(city);
@@ -108,7 +131,8 @@ for (const key of RICHIESTE) {
                 const riempite = new Set((r._momentReport?.riempite || []).map(x => x.place_id));
                 out.risultati[key] = { source: r._source, secs: (Date.now() - t0) / 1000, chiamate: calls - c0, google: gDelta(),
                     frasiTolte: r._narrationReport?.frasiTolte, momentReport: r._momentReport,
-                    stops: (r.days || []).flatMap(d => d.stops.map(s => row(s, per.get(s.place_id), riempite))) };
+                    titoli: (r.days || []).map(d => d.title), meteo: (r.days || []).map(d => d.weather ?? null),
+                    stops: (r.days || []).flatMap(d => d.stops.map(s => conComposizione({ place_id: s.place_id, ...row(s, per.get(s.place_id), riempite) }, new Map((r._narrationReport?.composizione || []).map(x => [x.place_id, x])), per.get(s.place_id)))) };
             } else {
                 out.risultati[key] = { errore: 'richiesta sconosciuta' };
             }

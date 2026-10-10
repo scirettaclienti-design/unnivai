@@ -12,9 +12,7 @@
 // unica e senza verbo ("Belvedere, tappa dell'aperitivo: arrivo alle 18:00…").
 
 import { describe, it, expect } from 'vitest';
-import {
-    filterVoice, voiceIssues, safeDescription, SAFE_VARIANTS, filterInventedObjects, filterBannedWords, DESCRIPTION_RULE_PROMPT,
-} from '../../lib/narrationLight';
+import { filterVoice, voiceIssues, filterInventedObjects } from '../../lib/narrationLight';
 
 const GOFFE_P3DG = [
     // [tappa, frase, richiesta/oggetto della prova]
@@ -67,73 +65,5 @@ describe('P3d-i — le frasi goffe di P3d-g vengono tolte (voce)', () => {
     });
 });
 
-describe('P3d-i — le frasi sicure hanno una voce', () => {
-    const VERBO = /(?:^|[\s'])(?:è|arrivi|trovi|ti fermi|passi|cammini|attraversi|pranzi|ceni|prendi|fai)(?=[\s,.:]|$)/i;
-    const frasi = (s) => s.split(/(?<=[.!?])\s+/).filter(Boolean);
-    const TAPPE = [
-        { title: 'Belvedere Cederna', types: ['establishment'] }, { title: 'Basilica dei Santi XII Apostoli', types: ['church'] },
-        { title: 'Galleria Colonna', types: ['museum'] }, { title: 'Villa Sciarra', types: ['park'] },
-        { title: 'Piazza Umbrella', types: ['route'] }, { title: 'Ascensori Panoramici', types: ['establishment'] },
-        { title: 'Porta Garibaldi', types: ['tourist_attraction'] },
-    ];
-    const LOCALI = [{ title: 'Osteria Navona', types: ['bar', 'food'] }, { title: 'Trattoria Sorano', types: ['restaurant'] }, { title: 'Enoteca Il Goccetto', types: ['bar'] }];
-    const MOMENTI = ['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena', 'dopocena'];
-
-    it('5 varianti per i luoghi e 5 per i locali', () => {
-        expect(SAFE_VARIANTS).toEqual({ luogo: 5, locale: 5 });
-    });
-
-    it('stessa tappa = stessa frase; tappe diverse usano varianti diverse', () => {
-        const a = safeDescription({ stop: { place_id: 'pid-a', ...TAPPE[0] }, momento: 'aperitivo', orario: '18:00', tramonto: '18:37' });
-        const b = safeDescription({ stop: { place_id: 'pid-a', ...TAPPE[0] }, momento: 'aperitivo', orario: '18:00', tramonto: '18:37' });
-        expect(a).toBe(b);
-        const diverse = new Set(Array.from({ length: 30 }, (_, i) => safeDescription({ stop: { place_id: `pid-${i}`, title: 'Piazza Umbrella', types: [] }, momento: 'mattina', orario: '09:30' })
-            .replace('Piazza Umbrella', 'N')));
-        expect(diverse.size).toBe(5);
-    });
-
-    it('ogni variante, per ogni famiglia e momento: un verbo, ≤ 2 frasi, nessuna "tappa del", e passa verita\' e voce', () => {
-        let n = 0;
-        for (const [lista, locale] of [[TAPPE, false], [LOCALI, true]]) {
-            for (const t of lista) {
-                for (const momento of MOMENTI) {
-                    for (let i = 0; i < 12; i += 1) {
-                        for (const orario of ['09:30', '18:00', null]) {
-                            const d = safeDescription({
-                                stop: { place_id: `p${i}`, ...t }, momento, orario, tramonto: '18:37', locale,
-                                priceLevel: locale ? 2 : null, minutiDaPrima: i % 2 ? 7 : null,
-                            });
-                            n += 1;
-                            expect(d, d).toMatch(VERBO);
-                            expect(frasi(d).length, d).toBeLessThanOrEqual(2);
-                            expect(d, d).not.toMatch(/tappa (?:del|della|dell')/i);
-                            expect(filterVoice(d).removed, d).toEqual([]);
-                            expect(filterInventedObjects(d, { nomi: [t.title] }).removed, d).toEqual([]);
-                            expect(filterBannedWords(d, { exempt: [t.title] }).removed, d).toEqual([]);
-                        }
-                    }
-                }
-            }
-        }
-        expect(n).toBeGreaterThan(1000);
-    });
-
-    it('l\'orario e\' un gancio: "ci arrivi alle 18, 35 minuti prima del tramonto" (panorama), mai una coda', () => {
-        const d = safeDescription({ stop: { place_id: 'pid-x', title: 'Belvedere Cederna' }, momento: 'aperitivo', orario: '18:00', tramonto: '18:37' });
-        expect(d).toContain('alle 18, 35 minuti prima del tramonto');
-        expect(d).not.toMatch(/arrivo alle/);
-        // la vecchia frase sicura
-        expect(d).not.toBe("Belvedere, tappa dell'aperitivo: arrivo alle 18:00, il tramonto è alle 18:37.");
-    });
-});
-
-describe('P3d-i — il prompt: 3 esempi giusti e 3 sbagliati dalle prove P3d-g', () => {
-    it('la regola della description li contiene, e niente altri esempi', () => {
-        expect(DESCRIPTION_RULE_PROMPT.match(/GIUSTO:/g)).toHaveLength(3);
-        expect(DESCRIPTION_RULE_PROMPT.match(/SBAGLIATO:/g)).toHaveLength(3);
-        expect(DESCRIPTION_RULE_PROMPT).toContain('IL MOTIVO SI TRADUCE, NON SI CITA');
-        expect(DESCRIPTION_RULE_PROMPT).toContain("L'ORARIO È UN GANCIO DENTRO LA FRASE");
-        expect(DESCRIPTION_RULE_PROMPT).toContain('"la vista che cercavi", "per chi ama le chiese barocche"');
-        expect(DESCRIPTION_RULE_PROMPT).toContain('massimo 2 frasi, sempre con un verbo');
-    });
-});
+// P3d-j — le frasi sicure e gli esempi del prompt sono sostituiti dalle frasi
+// approvate (stopPhrases.test.js): restano qui i controlli di voce, la rete.

@@ -107,10 +107,9 @@ describe('G3 — "domani" sposta la partenza del tour, non solo le parole', () =
         expect(result.startTimeAnchored).toBe(true);
 
         // La fascia narrativa si legge da start (9:30 → mattina), non dalle 20:57.
-        // Gate NARRATORE-DOPO: la fascia arriva al NARRATORE, tappa per tappa,
-        // come momento della tabella e orario di arrivo calcolato dal codice.
-        expect(stato.narratorBody).toContain('\\"momento\\":\\"Mattina\\"');
-        expect(stato.narratorBody).toContain('\\"arrivo\\":\\"09:30\\"');
+        // P3d-j — la fascia arriva alla chiamata delle scelte, tappa per tappa,
+        // come chiave del momento; l'orario lo usa il codice nella frase.
+        expect(stato.narratorBody).toContain('\\"momento\\":\\"mattina\\"');
         expect(stato.narratorBody).not.toContain('20:57');
 
         // Cache HIT nello stesso istante: stessa finestra, stessa prima tappa.

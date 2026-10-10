@@ -172,7 +172,8 @@ export const BLACKLIST_TYPES = new Set([
 // racconto ora e' scritto sulle tappe finali con il loro orario, e la chiave
 // porta data, primo momento e interessi. I tour cached prima hanno testi
 // scritti dal selettore, senza orario: non vanno serviti.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf10_narratore_';
+// P3d-j — le voci di prima avevano testo libero e niente scelte (_comp): via.
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf11_composto_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -340,11 +341,11 @@ import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes } from 
 import { resolveTourWindow, romeParts } from '@/lib/tourWindow';
 // Gate NARRATORE-DOPO — alba/tramonto nel codice, controllo luce/ora, fascia dalla tabella.
 import { sunTimes } from '@/lib/sunTimes';
-import { filterTimeIncoherent } from '@/lib/narrationLight';
 // Gate PAROLE VIETATE — l'unico elenco: i prompt lo mostrano, il filtro lo applica.
-import { filterBannedWords, bannedWordsPromptLines, DESCRIPTION_RULE_PROMPT } from '@/lib/narrationLight';
+import { filterBannedWords, bannedWordsPromptLines } from '@/lib/narrationLight';
 // P3d-e — fatti aperti sulle tappe finali, controllo anti-invenzione, frase sicura.
-import { filterInventedObjects, filterVoice, safeDescription, CONCRETE_OBJECTS, tipoTappa, isPanoramaStop } from '@/lib/narrationLight';
+// P3d-j — il modello sceglie, il codice scrive: le frasi approvate e la rete.
+import { stopData, guardComposed, apertura, ganciValidi, interessiPerTappa, userInterests } from '@/lib/stopPhrases';
 import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock } from '@/lib/dayMoments';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
@@ -1122,7 +1123,7 @@ export const buildSelectorSystemPrompt = ({ city, timeContext, prefs, aiProfile,
     // scelta libera di prima.
     //
     // Gate NARRATORE-DOPO — il selettore restituisce SOLO place_id e momento.
-    // Il racconto lo scrive il narratore (buildNarratorSystemPrompt), DOPO che
+    // Le frasi le compone il codice (P3d-j, stopPhrases), DOPO che
     // il codice ha riparato, ordinato e messo l'orario alle tappe. E il
     // messaggio dichiara le tappe di OGNI giorno: con "2-3 Giorni" il modello
     // restituiva un giorno solo, perche' l'elenco piatto dei momenti non diceva
@@ -1203,11 +1204,6 @@ Ecco i ${N} luoghi REALI (usa i place_id da qui):
 ${JSON.stringify(candidatesLite, null, 2)}`;
 };
 
-// Oltre questo numero di tappe il narratore scrive solo description e
-// insiderTip: 24 tappe con quattro campi ciascuna sfiorano il tetto di 4000
-// token del proxy, e un JSON troncato non si legge (si perderebbe tutto).
-const LONG_TOUR_STOPS = 15;
-
 const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
 
 // ─── Gate NARRATORE-DOPO — il prompt del narratore ──────────────────────────
@@ -1228,137 +1224,6 @@ const MESI = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'lug
 // parla della luce dell'orario di arrivo. Il codice la controlla comunque
 // (src/lib/narrationLight.js): una frase incoerente viene tolta, mai riscritta.
 // Exported per test.
-export const buildNarratorSystemPrompt = ({ city, weather, prefs, aiProfile, userPrompt, giorni }) => {
-    const groupLabel = prefs?.group || 'chiunque';
-    const nTappe = (giorni || []).reduce((a, g) => a + (g.tappe?.length || 0), 0);
-    return `SEI IL NARRATORE DI ${city} — un local che ti mostra la sua città, non una guida turistica, non Wikipedia, non un elenco.
-
-Le tappe sono GIÀ decise: ${nTappe} tappe in ${(giorni || []).length} ${(giorni || []).length === 1 ? 'giorno' : 'giorni'}, nell'ordine in cui si camminano, ognuna con il suo orario di arrivo.
-NON aggiungere, togliere o spostare tappe: racconta TUTTE quelle che ricevi, una per una, con il loro place_id.${nTappe > LONG_TOUR_STOPS ? `
-Sono molte tappe: per ognuna scrivi description e insiderTip, e metti "bestTime": null e "transition": null.
-Una risposta troncata perde il racconto di TUTTE le tappe.` : ''}
-
-Contesto:
-• gruppo: ${groupLabel}
-• richiesta utente: "${(userPrompt || '').slice(0, 300)}"
-• meteo: ${weather?.condition || 'sereno'} ${weather?.temperature || 22}°${aiProfile ? `
-• profilo implicito: ${aiProfile}` : ''}
-
-Di ogni tappa ricevi: place_id, nome, "tipo" (in italiano: per i locali vince il nome,
-"Osteria X" è un'osteria), categoria, "types", momento della giornata, orario di arrivo
-(HH:MM), "tramonto_ancora_davanti" (true/false), "minuti_a_piedi_da_prima" (null per la
-prima tappa), "motivo" (perché il motore l'ha scelta per questo utente) e "fatti": un
-elenco [{testo, fonte}] da Wikipedia, Wikidata o OpenStreetMap (può essere vuoto).
-Le tappe dove si mangia o si beve hanno "locale": true e "price_level" (0-4, oppure null).
-Di ogni giorno ricevi: data, alba e tramonto di ${city}.
-NON ricevi rating, recensioni, indirizzi, orari di apertura né foto: non citarli.
-
-LUCE E ORA — racconta la luce e il momento dell'ORARIO DI ARRIVO di quella tappa:
-   • "tramonto" solo se l'arrivo è entro 45 minuti dal tramonto di quel giorno;
-   • alba, notte, stelle, luce del mattino, sole di mezzogiorno: solo se l'orario
-     di arrivo li rende veri;
-   • nel dubbio, non parlare di luce. Una frase incoerente con l'orario viene tolta.
-
-FATTI — la regola sopra tutte:
-   ⚠️ gli esempi qui sotto mostrano il REGISTRO, non il contenuto. NON copiarli
-   e NON trasporli su un posto di tipo diverso.
-
-   ⛔ NON ATTRIBUIRE A UN POSTO CONTENUTI CHE NON SAI ESISTANO LI'.
-   OGNI frase usa SOLO i fatti forniti, il nome della tappa o i suoi dati
-   (categoria, momento, orario, e per i locali price_level, minuti, motivo).
-   Dal nome e dai "types" NON si deduce cosa c'e' dentro: quali opere, quali
-   sale, quali piatti, quali arredi, quali alberi o fontane.
-
-   COME SI RISOLVE LA TENSIONE: ti chiedo di essere SPECIFICO e di NON INVENTARE.
-   La specificità sta nei FATTI: date, autori, primati, misure che ricevi.
-   Senza fatti, se la scelta è tra generico e inventato, VINCE IL GENERICO.
-
-   GIUDIZI: un giudizio (migliore, unico, cuore di, straordinario, incantevole,
-   incontaminato, imperdibile, "uno dei", "vista su…", meno frequentato, nascosto,
-   tranquillo…) passa SOLO se è scritto nei "fatti" di quella tappa. Se no, la frase
-   viene tolta dal codice.
-
-   SENZA FATTI ("fatti": []): sul luogo dici SOLO il nome e il "tipo". Il resto è
-   "perché qui, per te", fatto solo di dati: momento, arrivo, tramonto se ancora
-   davanti, minuti dalla tappa prima, e il "motivo" DETTO CON PAROLE TUE (mai citato).
-
-   LUOGHI CON FATTI: un fatto concreto preso dai "fatti" + cosa guardare o quando arrivi.
-   "fatti_su" dice DI CHE LUOGO parlano i fatti: se non è la tappa (i fatti del Pincio
-   per la Terrazza del Pincio), nominalo ("Sul Pincio, colle di Roma, …"): mai
-   "Un colle di Roma" detto della terrazza.
-   LOCALI: perché è qui per te, con i dati — mai piatti, arredi o atmosfera.
-   Chiamalo con il suo "tipo": un'osteria non diventa una trattoria.
-   Gli esempi della description (sotto) sono le sole frasi d'esempio: tre giuste e
-   tre sbagliate, tutte da prove vere.
-   Un oggetto concreto (${CONCRETE_OBJECTS.slice(0, 16).map(o => o.nome).join(', ')}…) che
-   non compare nei fatti o nel nome viene tolto dal codice, con la sua frase.
-
-${DESCRIPTION_RULE_PROMPT}
-
-   insiderTip (max 100 car): un consiglio pratico SOLO se nasce dai fatti o dai
-     dati della tappa. Altrimenti "insiderTip": null — il campo è opzionale e
-     l'interfaccia lo omette. Nessun consiglio è meglio di un consiglio di un'altra
-     categoria o di un consiglio inventato.
-     ✗ "Consigliata visita mattutina"  ← generico e inutile
-     ✗ "Entra dalla porta laterale, quella principale è chiusa lun/mar"  ← ORARI che non hai
-     ✗ "Non perderti la sezione dedicata agli artisti emergenti"  ← contenuto INVENTATO
-
-   bestTime (max 100 car): perché ORA — ma SOLO se il motivo è verificabile dai
-     dati che ti ho dato (orario di arrivo, alba e tramonto, meteo, data).
-     NON ricevi orari di apertura o chiusura: NON citare ore di apertura.
-     Se non hai un motivo vero, scrivi "bestTime": null:
-     un motivo inventato è peggio di un campo assente.
-     ✓ "Con il cielo coperto di oggi non si cammina controluce"  ← meteo, che hai
-     ✗ "Alle 17 la luce entra dalla vetrata sud e colpisce l'altare"  ← orario inventato
-
-   transition (max 80 car): il passaggio alla prossima tappa, SOLO con dati veri
-     (il nome della prossima tappa, i minuti a piedi). Non descrivere strade,
-     muri o vetrine che non conosci; se non hai niente di vero, "transition": null.
-     ⛔ NON dire cosa sta accadendo ORA lungo il percorso (gente, luci, bar che aprono).
-     ✗ "Le luci dei bar si accendono lentamente"  ← cosa accade ORA, che non sai
-
-REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
-${bannedWordsPromptLines()}
-
-REGOLE STRUTTURA:
-- NON AFFERMARE MAI se un posto è aperto o chiuso, e NON dedurlo dall'ora.
-  Non ricevi i suoi orari: qualunque frase sull'apertura sarebbe inventata.
-  Vietato scrivere "aperto adesso", "chiuso a quest'ora", "lo trovi ancora aperto",
-  e vietato citare orari di apertura o chiusura in QUALSIASI campo.
-  Puoi dire quando arrivi; mai se il posto è accessibile.
-- COERENZA COL TIPO: ogni frase che scrivi su una tappa deve essere compatibile
-  col suo "types". Prima di scrivere, rileggi il "types" di QUEL candidato.
-  Un consiglio gastronomico su un museo, o una nota su una sala espositiva in un
-  bar, è un errore che invalida la tappa.
-- Adatta il tono al gruppo: coppia→intimo, amici→vivace, famiglia→kid-friendly, solo→contemplativo.
-- Il TITOLO di ogni giorno nasce dalle TAPPE CHE RACCONTI e dalla richiesta
-  dell'utente, non da un modello. Deve poter valere solo per QUESTO giorno: se lo
-  si potesse incollare su un tour diverso di ${city}, è sbagliato. Forma evocativa
-  ("<aggettivo/immagine> <sostantivo> di ${city}"), mai "Tour di ${city}".
-  Se le tappe sono gastronomiche il titolo parla di cibo; se sono musei parla
-  d'arte. NON usare formule già sentite: inventane una da queste tappe.
-
-FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
-{
-  "days": [{
-    "day": 1,
-    "title": "Titolo evocativo unico",
-    "suggestedTransit": "walking|bus|metro",
-    "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
-    "stops": [{
-      "place_id": "lo stesso place_id che hai ricevuto",
-      "description": "la frase PERCHÉ QUI, solo con fatti e dati (max 160 car)",
-      "insiderTip": "consiglio dai fatti o dai dati (max 100 car) — oppure null",
-      "bestTime": "perché ORA (max 100 car) — oppure null se non hai un motivo vero",
-      "transition": "passaggio alla prossima tappa con dati veri (max 80 car) — oppure null"
-    }]
-  }]
-}
-
-⚠️ NON produrre: nome/latitude/longitude/rating/foto/indirizzo/orari.
-Li ho già io. Un giorno per ogni giorno ricevuto, una tappa per ogni tappa ricevuta.`;
-};
-
 // Gate II (16/07) — Hash FNV-1a 32-bit per cache key deterministica su
 // pool grandi (place_id set). Non crypto: dedup/cache client-side.
 const hashStr = (s) => {
@@ -1556,7 +1421,9 @@ const logHomeDiscard = (city, tour, title, motivo) => {
     console.warn(`[Per Te] ${city}: scartata "${title || '?'}" (tour ${tour}) — ${motivo}`);
 };
 
-const buildUnifiedHomeToursPrompt = ({ city, timeContext, weather, weatherIcon, prefs, aiProfile, themedCandidates }) => {
+const buildUnifiedHomeToursPrompt = ({ city, timeContext, weather, prefs, aiProfile, themedCandidates, interessi = [] }) => {
+    // P3d-j — gli interessi dell'utente, chiusi (chiavi di stopPhrases.INTERESSI).
+    const interessiLabel = interessi.length ? interessi.map(k => `"${k}"`).join(', ') : 'nessuno (allora null)';
     const groupLabel = prefs?.group || 'chiunque';
     const transitHint = prefs?.pace === 'intenso' ? 'con qualche mezzo' : 'a piedi';
     // Gate PER TE — via la frase "Tutte le tappe devono restare entro N km":
@@ -1605,53 +1472,17 @@ Il tuo lavoro: produci ${themeList.length} tour distinti (uno per TEMA), ognuno 
 Contesto:
 • orario: ${timeContext}
 • gruppo: ${groupLabel}
-• meteo: ${weather?.condition || 'sereno'} ${weather?.temperature || 22}°${aiProfile ? `\n• profilo utente: ${aiProfile}` : ''}
+${realWeather(weather) ? `• meteo: ${weather.condition} ${weather.temperature}°\n` : ''}${aiProfile ? `• profilo utente: ${aiProfile}` : ''}
 
 REGOLE:
-1. SCELTA — per ogni tour, scegli ${HOME_TOUR_STOPS.min}-${HOME_TOUR_STOPS.max} tra i SUOI candidati (quelli piu' adatti a orario/gruppo/meteo).
+1. SCELTA — per ogni tour, scegli ${HOME_TOUR_STOPS.min}-${HOME_TOUR_STOPS.max} tra i SUOI candidati (quelli piu' adatti a orario e gruppo).
 2. ORDINE — costruisci un percorso che ${transitHint} abbia senso NARRATIVO, non solo geometrico.
-3. VOCE — per ogni tappa racconta come un local sussurra un segreto:
-
-   ⛔ NON ATTRIBUIRE A UN POSTO CONTENUTI CHE NON SAI ESISTANO LI'.
-   Di ogni luogo sai SOLO questo: nome, "types", rating, numero di recensioni,
-   indirizzo. Nient'altro. Da li' NON si deduce cosa c'e' dentro: quali opere,
-   quali mostre, quali sale, quali piatti, quali servizi, quali eventi.
-   Vietato scrivere che un posto ospita, espone, propone o contiene qualcosa,
-   se non risulta dai dati che hai.
-
-   COME SI RISOLVE LA TENSIONE (leggi: e' la regola che decide):
-   ti chiedo di essere SPECIFICO e insieme di NON INVENTARE. Non e' una
-   contraddizione: la specificita' deve stare su cio' che e' deducibile dai dati
-   che hai, o su cio' che vale per QUEL TIPO di posto in generale — non su
-   contenuti asseriti di quel singolo luogo.
-   Se la scelta e' tra generico e falso, VINCE IL GENERICO.
-   "Dentro la temperatura scende di colpo" (vero di quasi ogni chiesa in pietra)
-   e' meglio di "la sala 3 ha una panca davanti al quadro piu' piccolo" (che non
-   puoi sapere).
-
-${DESCRIPTION_RULE_PROMPT}
-     ✗ "Chiesa barocca del XVIII secolo, patrimonio della citta'"  ← da enciclopedia
-
-   insiderTip (max 100 car): un consiglio pratico che solo chi ci vive sa.
-     ✓ "Chiedi il caffe' al bancone, seduto costa il doppio"
-     ✗ "Consigliata visita mattutina"
-
-   bestTime (max 100 car): perche' ORA — ma SOLO se il motivo è verificabile dai
-     dati che ti ho dato (momento della giornata, meteo, stagione). NON ricevi
-     orari di apertura o chiusura: NON citare ore.
-     Se non hai un motivo vero, scrivi "bestTime": null. Il campo è opzionale e
-     l'interfaccia lo omette: un motivo inventato è peggio di un campo assente.
-     ✓ "Con il cielo coperto di oggi non si cammina controluce"  ← meteo, che hai
-     ✗ "Alle 17 la luce entra dalla vetrata sud e colpisce l'altare"  ← orario inventato
-     ✗ "Momento migliore: pomeriggio"
-
-   transition (max 80 car): cosa vedi camminando alla prossima tappa.
-     ⛔ NON dire cosa sta accadendo ORA lungo il percorso, e non dedurlo dall'ora:
-     non sai se i bar stiano aprendo, se ci sia gente, se le luci siano accese.
-     Descrivi cosa c'è, non cosa sta succedendo.
-     ✓ "Il ponte e' stretto, si passa uno alla volta"
-     ✗ "Prosegui verso la prossima tappa a 5 min a piedi"
-     ✗ "Le luci dei bar si accendono lentamente"  ← cosa accade ORA, che non sai"
+3. SCELTE — NON scrivi testo per le tappe: le frasi le compone il codice, con dati veri.
+   Per ogni tappa scegli soltanto:
+   • usaFatto: true se per quel posto vorresti aprire con un fatto vero (Wikipedia), false se no;
+   • gancio: uno fra "legame", "distanza", "prima", "ultima", oppure null
+     ("prima" e "ultima" aprono e chiudono il giro; "legame" solo con un interesse);
+   • interesse: uno di questi interessi dell'utente, oppure null: ${interessiLabel}.
 
 REGOLE VOCE — parole VIETATE (le sostituisci con un dettaglio concreto):
 ${bannedWordsPromptLines()}
@@ -1665,7 +1496,7 @@ REGOLE STRUTTURA:
   (contesto: ${timeContext}); mai se il posto è accessibile.
 - Adatta il TIPO di posto al gruppo: coppia→intimo, amici→vivace, famiglia→kid-friendly, solo→contemplativo.
 - Un place_id puo' apparire in AL PIU' UN tour. Non ripetere lo stesso luogo in tour diversi.
-- Se un tour non ha 3 candidati adatti al contesto, meglio 2-3 tappe che tappe inventate. NON creare tappe con description generica per riempire.
+- Se un tour non ha 3 candidati adatti al contesto, meglio 2-3 tappe che tappe inventate.
 
 FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
 {
@@ -1677,10 +1508,9 @@ FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori:
       "suggestedTransit": "walking|bus|metro",
       "stops": [{
         "place_id": "ChIJ... — deve essere uno di quelli del tuo blocco tema",
-        "description": "voce insider sensoriale (max 120 car)",
-        "insiderTip": "consiglio da local (max 100 car)",
-        "bestTime": "perche' ORA (max 100 car) — oppure null se non hai un motivo vero",
-        "transition": "cosa vedi camminando (max 80 car)",
+        "usaFatto": true,
+        "gancio": "legame|distanza|prima|ultima" oppure null,
+        "interesse": "uno degli interessi elencati" oppure null,
         "type": "cultura|storia|food|shopping|relax|arte|natura"
       }]
     }
@@ -1881,6 +1711,9 @@ const scrubHomeTours = (result, city) => ({
     ...result,
     tours: (result?.tours || []).map(t => {
         const scrubbed = (t.stops || []).map(st => {
+            // P3d-j — una tappa composta dal codice ha gia' passato la rete
+            // (e il fatto, esente dalle parole vietate, qui verrebbe tolto).
+            if (st._comp) return st;
             const r = scrubBannedWords(st);
             logBannedRemovals(city, st.title, r.removed, 'home-cache');
             return r.stop;
@@ -1928,331 +1761,8 @@ const sunForDay = (day, i, tourWindow, cityCenter) => {
 
 const cleanText = (v) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 
-/**
- * Il controllo sul racconto di un tour gia' raccontato: parole vietate
- * (Gate PAROLE VIETATE) e luce/ora. Gira dopo la narrazione e di nuovo a ogni
- * lettura da cache (gli orari si ricalcolano da adesso; e una voce di cache
- * scritta prima di un controllo lo riceve comunque).
- * description/insiderTip/bestTime si giudicano all'arrivo; transition alla
- * partenza (arrivo + sosta), perche' racconta il cammino verso la prossima.
- */
-const guardNarrationLight = (days, starts, tourWindow, cityCenter) => {
-    const frasiTolte = [];
-    const timed = refreshTourScheduledTimes(days, starts);
-    const out = (days || []).map((day, di) => {
-        const sun = sunForDay(day, di, tourWindow, cityCenter);
-        return {
-            ...day,
-            stops: (day.stops || []).map((s, si) => {
-                const iso = timed[di]?.stops?.[si]?.scheduledTime;
-                const arrival = iso ? new Date(iso) : null;
-                const departure = arrival && Number.isFinite(s.stayMinutes)
-                    ? new Date(arrival.getTime() + s.stayMinutes * 60000) : arrival;
-                const next = { ...s };
-                // Gate PAROLE VIETATE — prima si tolgono le frasi con una parola
-                // vietata (description, insiderTip, bestTime). Prima di questo
-                // gate l'elenco stava solo nel prompt e nessuno lo controllava.
-                // P3d: con il nome della tappa esente e anche su transition.
-                const banned = scrubBannedWords(next);
-                Object.assign(next, banned.stop);
-                for (const x of banned.removed) {
-                    frasiTolte.push({ place_id: s.place_id, title: s.title, campo: x.campo, frase: x.frase, regole: [x.regola], parole: x.parole, arrivo: clockLabel(arrival) });
-                }
-                for (const campo of NARRATION_TEXT_FIELDS) {
-                    if (next[campo] == null) continue;
-                    const at = campo === 'transition' ? departure : arrival;
-                    const r = filterTimeIncoherent(next[campo], { arrival: at, sunrise: sun.sunrise, sunset: sun.sunset });
-                    next[campo] = r.text;
-                    for (const x of r.removed) {
-                        frasiTolte.push({ place_id: s.place_id, title: s.title, campo, frase: x.frase, regole: x.regole, arrivo: clockLabel(at) });
-                    }
-                }
-                return next;
-            }),
-        };
-    });
-    return { days: out, frasiTolte };
-};
-
-/**
- * La terza chiamata: racconta le tappe finali. Non lancia mai, tranne per la
- * quota (AiQuotaExceededError): un narratore caduto lascia le tappe senza testo
- * e lo dice nel report, ma non butta un percorso gia' scelto e verificato.
- */
-const narrateFinalDays = async ({ city, days, starts, tourWindow, cityCenter, weather, prefs, aiProfile, userPrompt, quotaTicket, facts = new Map(), locali = new Map(), luoghi = new Map() }) => {
-    const timed = refreshTourScheduledTimes(days, starts);
-    const giorni = timed.map((d, i) => {
-        const sun = sunForDay(d, i, tourWindow, cityCenter);
-        return {
-            giorno: i + 1,
-            data: sun.date,
-            alba: clockLabel(sun.sunrise),
-            tramonto: clockLabel(sun.sunset),
-            tappe: d.stops.map(s => {
-                const arrivo = clockLabel(s.scheduledTime);
-                const p = s.scheduledTime ? romeParts(new Date(s.scheduledTime)) : null;
-                // P3d-e — i fatti (solo testo e fonte) e, per i locali, i dati
-                // che il motore ha gia': fascia di prezzo, minuti dalla tappa
-                // prima, motivo della scelta.
-                // P3d-g — per OGNI tappa: il tipo (dal nome, se lo dice: "Osteria
-                // Navona" e' un'osteria), i minuti dalla tappa prima, se il
-                // tramonto e' ancora davanti e il motivo della scelta. Senza fatti,
-                // il "perche' qui, per te" si scrive solo con questi.
-                const loc = locali.get(s.place_id);
-                const arrivoMs = s.scheduledTime ? new Date(s.scheduledTime).getTime() : NaN;
-                return {
-                    place_id: s.place_id,
-                    nome: s.title,
-                    tipo: tipoTappa(s),
-                    categoria: s.type || 'place',
-                    types: (s.types || []).slice(0, 5),
-                    momento: s.momentLabel || (p ? momentAtClock(p.h, p.mi).label : null),
-                    arrivo,
-                    tramonto_ancora_davanti: Number.isFinite(arrivoMs) && sun.sunset ? arrivoMs <= sun.sunset.getTime() : null,
-                    minuti_a_piedi_da_prima: Number.isFinite(s.travelMinutesFromPrev) ? s.travelMinutesFromPrev : null,
-                    fatti: (facts.get(s.place_id)?.fatti || []).map(f => ({ testo: f.testo, fonte: f.fonte })),
-                    ...(factsAbout(facts.get(s.place_id)) ? { fatti_su: factsAbout(facts.get(s.place_id)) } : {}),
-                    motivo: loc ? loc.motivo : (luoghi.get(s.place_id)?.motivo || []),
-                    ...(loc ? { locale: true, price_level: loc.price_level } : {}),
-                };
-            }),
-        };
-    });
-    const nTappe = giorni.reduce((a, g) => a + g.tappe.length, 0);
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 35_000);
-    try {
-        const data = await callOpenAIProxy({
-            model: 'gpt-4o-mini',
-            messages: [
-                { role: 'system', content: buildNarratorSystemPrompt({ city, weather, prefs, aiProfile, userPrompt, giorni }) },
-                { role: 'user', content: `Racconta tutte le ${nTappe} tappe, nell'ordine dato, con il loro place_id.\nTAPPE FINALI:\n${JSON.stringify(giorni)}` },
-            ],
-            response_format: { type: 'json_object' },
-            temperature: 0.7,
-            max_tokens: 4000,
-        }, controller.signal, quotaTicket);
-        clearTimeout(timeoutId);
-        const raw = data?.choices?.[0]?.message?.content;
-        if (!raw) throw new Error('Empty AI response (narratore)');
-        const parsed = JSON.parse(raw);
-        const nDays = Array.isArray(parsed?.days) ? parsed.days : (Array.isArray(parsed?.stops) ? [{ stops: parsed.stops }] : []);
-        const byId = new Map();
-        for (const d of nDays) {
-            for (const st of (Array.isArray(d?.stops) ? d.stops : [])) {
-                if (st?.place_id && !byId.has(st.place_id)) byId.set(st.place_id, st);
-            }
-        }
-        return { byId, meta: nDays, giorni, error: null };
-    } catch (err) {
-        clearTimeout(timeoutId);
-        if (err instanceof AiQuotaExceededError) throw err;
-        const msg = err?.name === 'AbortError' ? 'timeout' : (err?.message || String(err));
-        console.warn(`[Gate NARRATORE-DOPO] ${city}: narratore caduto (${msg}) → tappe senza racconto`);
-        return { byId: new Map(), meta: [], giorni, error: msg };
-    }
-};
-
-// ─── P3d-c — riscrivere invece di cancellare ────────────────────────────────
-//
-// Dopo i filtri (parole vietate, aperture dei sensi, luce/ora) una descrizione
-// puo' restare vuota o perdere una frase. Prima la tappa restava muta (o, in
-// "Per Te", usciva). Ora le tappe da rifare vanno al modello in UNA sola
-// chiamata, con il motivo di ognuna ("hai usato 'magica'"), dentro lo stesso
-// biglietto della generazione. Il testo nuovo ripassa dagli STESSI filtri: se
-// non passa, il campo resta com'era (vuoto, se era vuoto). Mai un secondo giro.
-// Si riscrive solo `description`: e' il campo che decide se la tappa si vede.
-
-/** Il motivo, in parole del modello, di una frase tolta da un filtro. */
-const rewriteReason = (x) => {
-    const regole = x.regole || (x.regola ? [x.regola] : []);
-    if (regole.includes('parola-vietata')) return `hai usato ${(x.parole || []).map(p => `"${p}"`).join(', ')}`;
-    if (regole.includes('apertura-sensi')) return "apriva con un'impressione dei sensi";
-    if (regole.includes('invenzione')) return `nominava ${(x.oggetti || []).map(o => `"${o}"`).join(', ')}, che non risulta dai fatti né dal nome`;
-    if (regole.includes('giudizio')) return `dava un giudizio (${(x.oggetti || []).map(o => `"${o}"`).join(', ')}) che non è scritto nei fatti`;
-    if (regole.includes('voce')) return `la voce non va (${(x.oggetti || []).join(', ')}): di' il perché con parole tue, l'orario dentro la frase, con un verbo`;
-    if (regole.includes('attribuzione')) return `attribuiva alla tappa i fatti di "${x.fattiSu || '?'}" senza nominarlo`;
-    if (regole.includes('tipo-locale')) return `chiamava il locale ${(x.oggetti || []).map(o => `"${o}"`).join(', ')}, ma il nome dice "${x.tipoNome || '?'}"`;
-    if (regole.includes('ancoraggio')) return 'riscrivila usando i fatti e i dati forniti';
-    return `parlava di ${regole.map(r => `"${r}"`).join(', ')} ma l'arrivo è alle ${x.arrivo || '?'}`;
-};
-
-export const buildRewriteSystemPrompt = ({ city }) => `Sei la voce di Unnivai a ${city}: un local, non una guida turistica.
-Alcune descrizioni di tappa vanno riscritte: o sono state tolte dai nostri controlli,
-o vanno ancorate ai fatti. Per ognuna ti dico cosa è stato tolto e perché.
-Riscrivi SOLO il campo description, una per tappa.
-
-${DESCRIPTION_RULE_PROMPT}
-
-Di ogni tappa sai SOLO: nome, "tipo", "types", momento e orario di arrivo (se ci sono),
-tramonto ancora davanti o no, minuti a piedi dalla tappa prima, "motivo" (perché il
-motore l'ha scelta per l'utente) e "fatti" [{testo, fonte}] da Wikipedia, Wikidata o
-OpenStreetMap (può essere vuoto), con "fatti_su" se parlano di un altro luogo (nominalo).
-Le tappe con "locale": true hanno anche price_level.
-OGNI frase usa SOLO i fatti, il nome o questi dati. Luoghi con fatti: un fatto
-concreto più cosa guardare o quando. Luoghi SENZA fatti: del luogo solo nome e tipo,
-poi perché è qui per l'utente, con i dati. Locali: perché è qui per l'utente, con i
-dati, chiamandoli con il loro "tipo". Nessun giudizio che non sia nei fatti.
-NON attribuirgli contenuti che non sono nei fatti (opere, piatti, mostre, eventi,
-servizi, oggetti). NON parlare di luce o di ora (tramonto, alba, sera, notte,
-mattina) se l'orario di arrivo non lo rende vero. NON dire se il posto è aperto o chiuso.
-
-Parole e frasi VIETATE (la frase che ne contiene una viene tolta, e questa volta il
-campo diventa una frase di servizio scritta dal codice):
-${bannedWordsPromptLines()}
-
-Rispondi in JSON puro: { "stops": [ { "place_id": "...", "description": "..." } ] }
-Se per una tappa non hai una frase vera, scrivi "description": null.`;
-
-/**
- * UNA chiamata di riscrittura per le tappe che i filtri hanno svuotato o
- * accorciato.
- * @param {object} p
- * @param {string} p.city
- * @param {Array<{ key: string, place_id: string, nome: string, types: string[],
- *   momento?: string|null, arrivo?: string|null, tolte: Array, exempt: string[],
- *   arrival?: Date|null, sun?: { sunrise: Date|null, sunset: Date|null }|null }>} p.items
- * @param {object} [p.quotaTicket] il biglietto della generazione
- * @returns {Promise<{ byKey: Map<string, string>, report: object }>}
- *   byKey: solo le descrizioni riscritte che hanno passato i filtri
- */
-const rewriteDescriptions = async ({ city, items, quotaTicket, voce = {} }) => {
-    const report = { richieste: items.length, riscritte: 0, ancoraVuote: [], scartate: [], errore: null, token: null };
-    const byKey = new Map();
-    if (items.length === 0) return { byKey, report };
-    const tappe = items.map(it => ({
-        place_id: it.place_id,
-        nome: it.nome,
-        types: (it.types || []).slice(0, 5),
-        ...(it.momento ? { momento: it.momento } : {}),
-        ...(it.arrivo ? { arrivo: it.arrivo } : {}),
-        // P3d-e — i fatti e, per i locali, i dati della scelta.
-        fatti: (it.fatti || []).map(f => ({ testo: f.testo, fonte: f.fonte })),
-        ...(it.fattiSu ? { fatti_su: it.fattiSu } : {}),
-        // P3d-g — per ogni tappa i dati del "perche' qui, per te".
-        tipo: tipoTappa({ title: it.nome, types: it.types }),
-        minuti_a_piedi_da_prima: Number.isFinite(it.minuti) ? it.minuti : (Number.isFinite(it.locale?.minuti) ? it.locale.minuti : null),
-        ...(typeof it.tramontoDavanti === 'boolean' ? { tramonto_ancora_davanti: it.tramontoDavanti } : {}),
-        motivo: it.locale?.motivo || it.motivo || [],
-        ...(it.locale ? { locale: true, price_level: it.locale.price_level ?? null } : {}),
-        tolto: it.tolte.length > 0
-            ? it.tolte.map(x => ({ frase: x.frase, motivo: rewriteReason(x) }))
-            : (it.ancora
-                ? [{ frase: it.attuale || null, motivo: rewriteReason({ regole: ['ancoraggio'] }) }]
-                : [{ frase: null, motivo: 'mancava la descrizione' }]),
-    }));
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25_000);
-    try {
-        const data = await callOpenAIProxy({
-            model: 'gpt-4o-mini',
-            messages: [
-                { role: 'system', content: buildRewriteSystemPrompt({ city }) },
-                { role: 'user', content: `Riscrivi ${tappe.length} descrizioni, una per tappa, con il loro place_id.\nTAPPE:\n${JSON.stringify(tappe)}` },
-            ],
-            response_format: { type: 'json_object' },
-            temperature: 0.5,
-            max_tokens: Math.min(2500, 120 + 90 * tappe.length),
-        }, controller.signal, quotaTicket);
-        clearTimeout(timeoutId);
-        report.token = data?.usage?.total_tokens ?? null;
-        const parsed = JSON.parse(data?.choices?.[0]?.message?.content || '{}');
-        const out = new Map((Array.isArray(parsed?.stops) ? parsed.stops : [])
-            .filter(st => st && typeof st.place_id === 'string')
-            .map(st => [st.place_id, cleanText(st.description)]));
-        for (const it of items) {
-            const text = out.get(it.place_id) ?? null;
-            if (!text) { report.ancoraVuote.push(it.nome); continue; }
-            // Gli STESSI filtri della prima volta, piu' (P3d-e) il controllo
-            // anti-invenzione sui fatti e sul nome.
-            const parole = filterBannedWords(text, { exempt: it.exempt });
-            const ora = filterTimeIncoherent(parole.text, {
-                arrival: it.arrival || null, sunrise: it.sun?.sunrise || null, sunset: it.sun?.sunset || null,
-            });
-            const vero0 = filterInventedObjects(ora.text, { fatti: it.fatti || [], nomi: it.exempt, fattiSu: it.fattiSu || null });
-            const vv = filterVoice(vero0.text, voce);
-            const vero = { text: vv.text, removed: [...vero0.removed, ...vv.removed] };
-            for (const x of [...parole.removed, ...ora.removed, ...vero.removed]) {
-                report.scartate.push({ title: it.nome, frase: x.frase, motivo: rewriteReason(x) });
-            }
-            if (vero.text) { byKey.set(it.key, vero.text); report.riscritte += 1; } else report.ancoraVuote.push(it.nome);
-        }
-    } catch (err) {
-        clearTimeout(timeoutId);
-        // La riscrittura non fa mai cadere un tour gia' fatto: quota, motore giu',
-        // timeout → i campi restano come li hanno lasciati i filtri.
-        report.errore = err?.code || (err?.name === 'AbortError' ? 'timeout' : (err?.message || String(err)));
-        report.ancoraVuote = items.map(it => it.nome);
-    }
-    console.info(`[P3d-c RISCRITTURA] ${city}: ${report.riscritte}/${report.richieste} descrizioni riscritte` +
-        (report.errore ? ` (errore: ${report.errore})` : '') +
-        (report.scartate.length ? `, ${report.scartate.length} frasi riscritte di nuovo tolte` : ''));
-    for (const x of report.scartate) {
-        console.warn(`[P3d-c RISCRITTURA] ${city}: "${x.title}" — riscrittura tolta (${x.motivo}): "${x.frase}"`);
-    }
-    return { byKey, report };
-};
-
-/**
- * Le tappe dell'itinerario da riscrivere: descrizione vuota, o una frase tolta
- * dalla descrizione. Ogni tappa porta arrivo e alba/tramonto del suo giorno,
- * per ripassare dal filtro di luce/ora.
- */
-const itineraryRewriteItems = (days, frasiTolte, starts, tourWindow, cityCenter, facts = new Map(), locali = new Map(), luoghi = new Map()) => {
-    const timed = refreshTourScheduledTimes(days, starts);
-    const items = [];
-    (days || []).forEach((day, di) => {
-        const sun = sunForDay(day, di, tourWindow, cityCenter);
-        (day.stops || []).forEach((s, si) => {
-            const tolte = frasiTolte.filter(f => f.place_id === s.place_id && f.campo === 'description');
-            if (hasNonEmptyDescription(s) && tolte.length === 0) return;
-            const iso = timed[di]?.stops?.[si]?.scheduledTime;
-            items.push({
-                key: `${di}:${si}`, place_id: s.place_id, nome: s.title, types: s.types,
-                momento: s.momentLabel || null, arrivo: iso ? clockLabel(new Date(iso)) : null,
-                tolte, exempt: [s.title, s.name].filter(Boolean),
-                arrival: iso ? new Date(iso) : null, sun,
-                fatti: facts.get(s.place_id)?.fatti || [],
-                fattiSu: factsAbout(facts.get(s.place_id)),
-                minuti: s.travelMinutesFromPrev,
-                tramontoDavanti: iso && sun.sunset ? new Date(iso).getTime() <= sun.sunset.getTime() : undefined,
-                motivo: luoghi.get(s.place_id)?.motivo || [],
-                ...(locali.has(s.place_id) ? { locale: { ...locali.get(s.place_id), minuti: s.travelMinutesFromPrev } } : {}),
-            });
-        });
-    });
-    return items;
-};
-
-// ─── P3d-e — narratore ancorato ai fatti ────────────────────────────────────
-//
-// Dopo i filtri di voce e di luce, il controllo anti-invenzione: una frase
-// della descrizione che nomina un oggetto concreto (CONCRETE_OBJECTS) assente
-// dai fatti e dal nome si toglie, come le altre. La tappa va alla riscrittura
-// (una volta); se la riscrittura non passa, la frase sicura del codice.
-
 /** P3d-g — il titolo del luogo di cui parlano i fatti (Pincio per la Terrazza del Pincio). */
 const factsAbout = (entry) => (entry?.fonti || []).find(f => f?.fonte === 'wikipedia' || f?.fonte === 'wikidata')?.titolo || null;
-
-/** Il controllo anti-invenzione sulle descrizioni di un itinerario raccontato. */
-const guardInventions = (days, facts, voce = {}) => {
-    const frasiTolte = [];
-    const out = (days || []).map(day => ({
-        ...day,
-        stops: (day.stops || []).map(s => {
-            if (!s.description) return s;
-            const r0 = filterInventedObjects(s.description, { fatti: facts.get(s.place_id)?.fatti || [], nomi: [s.title, s.name].filter(Boolean), fattiSu: factsAbout(facts.get(s.place_id)) });
-            // P3d-i — poi la voce: motivo citato, elenco senza verbo, orario in coda.
-            const rv = filterVoice(r0.text, voce);
-            const r = { text: rv.text, removed: [...r0.removed, ...rv.removed] };
-            for (const x of r.removed) {
-                frasiTolte.push({ place_id: s.place_id, title: s.title, campo: 'description', frase: x.frase, regole: [x.regola], oggetti: x.oggetti, ...(x.tipoNome ? { tipoNome: x.tipoNome } : {}) });
-            }
-            return r.removed.length > 0 ? { ...s, description: r.text } : s;
-        }),
-    }));
-    return { days: out, frasiTolte };
-};
 
 /**
  * Perche' il motore ha scelto questo locale per l'utente: solo criteri che il
@@ -2302,15 +1812,6 @@ export const placeReasons = (c, { intent = null, dnaWeights = {}, tema = null } 
     }
     return motivo;
 };
-const placeInfoFor = (stops, byIdCandidate, ctx) => {
-    const out = new Map();
-    for (const s of stops) {
-        if (isLocaleStop(s)) continue;
-        out.set(s.place_id, { motivo: placeReasons(byIdCandidate.get(s.place_id), ctx) });
-    }
-    return out;
-};
-
 /** I dati dei locali fra le tappe finali, per il narratore e la frase sicura. */
 const localeInfoFor = (stops, byIdCandidate, ctx) => {
     const out = new Map();
@@ -2322,70 +1823,185 @@ const localeInfoFor = (stops, byIdCandidate, ctx) => {
     return out;
 };
 
-/**
- * Le fonti a schermo: solo sulle tappe raccontate con dei fatti (non sulla
- * frase sicura, che non ne usa).
- */
-const withFonti = (stop, facts) => {
-    const f = facts.get(stop.place_id);
-    const usaFatti = f && f.fatti.length > 0 && f.fonti.length > 0 && !stop._fraseSicura && hasNonEmptyDescription(stop);
-    return { ...stop, fonti: usaFatti ? f.fonti : null };
+// ─── P3d-j — Il modello sceglie, il codice scrive ───────────────────────────
+//
+// Il narratore non scrive piu' testo per le tappe. Per ognuna riceve le opzioni
+// VERE (il fatto, se c'e'; i ganci validi; gli interessi dell'utente che
+// valgono per quel posto) e sceglie: usaFatto, gancio, interesse. La frase la
+// compone il codice (src/lib/stopPhrases.js) con le frasi approvate; i
+// controlli esistenti restano come rete sul testo composto. Niente riscrittura:
+// una scelta fuori elenco ha la sua riserva in codice, non un secondo giro.
+// Le scelte restano sulla tappa (_comp): a ogni lettura dalla cache la frase si
+// ricompone con gli orari di adesso.
+
+/** Il meteo vero, o niente: mai un "Soleggiato, 22°" di riserva. */
+const realWeather = (weather) => {
+    const condition = typeof weather?.condition === 'string' ? weather.condition.trim() : '';
+    const temperature = Number(weather?.temperature);
+    if (!condition || weather?.temperature == null || !Number.isFinite(temperature)) return null;
+    const icon = condition === 'sunny' ? '☀️' : condition === 'rainy' ? '🌧️' : '⛅';
+    return { condition, temperature, icon };
 };
 
-/**
- * Mai una descrizione vuota (P3d-e): la tappa senza descrizione — o con la
- * frase sicura di una lettura precedente, che porta l'orario di allora — riceve
- * la frase sicura costruita sugli orari di adesso. Gira in generazione e a ogni
- * lettura dalla cache, DOPO il controllo luce/ora.
- */
-const applySafeDescriptions = (days, starts, tourWindow, cityCenter) => {
+/** Il contesto di composizione di ogni tappa, sugli orari di adesso. */
+const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map() }) => {
     const timed = refreshTourScheduledTimes(days, starts);
-    let n = 0;
-    const out = (days || []).map((day, di) => {
+    return (days || []).map((day, di) => {
         const sun = sunForDay(day, di, tourWindow, cityCenter);
+        const stops = day.stops || [];
         return {
-            ...day,
-            stops: (day.stops || []).map((s, si) => {
-                if (hasNonEmptyDescription(s) && !s._fraseSicura) return s;
+            sun,
+            stops: stops.map((s, si) => {
                 const iso = timed[di]?.stops?.[si]?.scheduledTime;
-                const p = iso ? romeParts(new Date(iso)) : null;
-                n += 1;
-                return {
-                    ...s,
-                    description: safeDescription({
-                        stop: s,
-                        momento: s.moment || s.momentLabel || (p ? momentAtClock(p.h, p.mi).key : null),
-                        orario: iso ? clockLabel(new Date(iso)) : null,
-                        tramonto: clockLabel(sun.sunset),
-                        locale: isLocaleStop(s),
-                        priceLevel: Number.isFinite(s.priceLevel) ? s.priceLevel : null,
-                        minutiDaPrima: s.travelMinutesFromPrev,
-                    }),
-                    _fraseSicura: true,
-                    fonti: null,
-                };
+                const arrival = iso ? new Date(iso) : null;
+                const p = arrival ? romeParts(arrival) : null;
+                const entry = facts.get(s.place_id);
+                const fatti = s._comp?.fatti ?? (entry?.fatti || []);
+                const fattiSu = s._comp?.fattiSu ?? factsAbout(entry);
+                const d = stopData({
+                    stop: s,
+                    momento: s.moment || (p ? momentAtClock(p.h, p.mi).key : null),
+                    orario: arrival ? clockLabel(arrival) : null,
+                    tramonto: clockLabel(sun.sunset),
+                    minutiDaPrima: s.travelMinutesFromPrev,
+                    locale: isLocaleStop(s),
+                    priceLevel: Number.isFinite(s.priceLevel) ? s.priceLevel : null,
+                    fatti,
+                    primo: si === 0,
+                    ultimo: si === stops.length - 1,
+                });
+                return { d, arrival, fatti, fattiSu, fonti: s._comp?.fonti ?? (entry?.fonti || []) };
             }),
         };
     });
-    return { days: out, frasiSicure: n };
 };
 
-// Il racconto sulle tappe, per place_id. Una tappa che il narratore non ha
-// raccontato resta con nome e categoria e i campi di testo null: nessun testo
-// inventato al suo posto.
-const applyNarration = (days, { byId, meta }, city) => days.map((day, di) => {
+/**
+ * Compone tutte le descrizioni. `scelte`: place_id → { usaFatto, gancio,
+ * interesse } dal modello (o, dalla cache, quelle salvate in _comp).
+ * @returns {{ days: Array, report: Array }}
+ */
+const composeDays = (days, { starts, tourWindow, cityCenter, facts, scelte = new Map(), interessi = [], voce = {} }) => {
+    const ctxs = composeContexts(days, { starts, tourWindow, cityCenter, facts });
+    const report = [];
+    const out = (days || []).map((day, di) => ({
+        ...day,
+        stops: (day.stops || []).map((s, si) => {
+            const c = ctxs[di].stops[si];
+            const ints = s._comp?.interessi ?? interessi;
+            const scelta = scelte.get(s.place_id) ?? s._comp?.scelta ?? {};
+            const r = guardComposed(c.d, scelta, {
+                interessi: ints, arrival: c.arrival, sunrise: ctxs[di].sun.sunrise, sunset: ctxs[di].sun.sunset,
+                fatti: c.fatti, fattiSu: c.fattiSu, voce,
+            });
+            report.push({
+                place_id: s.place_id, title: s.title, scelta, usaFatto: r.composta.usaFatto, gancio: r.composta.gancio,
+                interesse: r.composta.interesse, riserva: r.composta.riserva, rete: r.rete.map(x => x.frase), description: r.text,
+            });
+            return {
+                ...s,
+                description: r.text,
+                insiderTip: null, bestTime: null, transition: null,
+                // Le fonti solo se la frase usa il fatto.
+                fonti: r.composta.usaFatto && c.fonti.length > 0 ? c.fonti : null,
+                _comp: { scelta, fatti: c.fatti, fattiSu: c.fattiSu, fonti: c.fonti, interessi: ints },
+            };
+        }),
+    }));
+    return { days: out, report };
+};
+
+/** Il titolo del giorno, se il modello ne ha dato uno pulito; senno' quello del codice. */
+const dayTitle = (raw, fallback) => {
+    const t = cleanText(raw);
+    if (!t || t.length > 80) return fallback;
+    const r = filterBannedWords(t);
+    return r.removed.length === 0 ? t : fallback;
+};
+
+export const buildChooserSystemPrompt = ({ city }) => `Sei la voce di Unnivai a ${city}. Le tappe sono GIÀ decise e le frasi le scrive il codice.
+Tu SCEGLI soltanto, per ogni tappa, fra le opzioni che ricevi. Non scrivi testo per le tappe.
+
+Di ogni tappa ricevi: place_id, nome, momento, "apertura" (la frase che il codice userà se non usi il fatto),
+"fatto" (una frase vera da Wikipedia, oppure null), "ganci" (le seconde frasi possibili, già vere)
+e "interessi" (gli interessi dell'utente che valgono per QUEL posto, forse vuoto).
+
+Per ogni tappa scegli:
+• usaFatto: true se il fatto è concreto (date, autori, misure, origine del nome) e parla di quel posto; false se no, o se è null.
+• gancio: UNO di "ganci" (copia la parola), oppure null. Preferisci "tramonto" quando c'è; "legame" solo con un interesse;
+  "prima" e "ultima" aprono e chiudono la giornata. Non usare lo stesso gancio su tutte le tappe.
+• interesse: uno di "interessi" se il gancio è "legame", altrimenti null.
+
+Per ogni giorno scrivi anche il titolo: nasce dalle TAPPE del giorno, deve valere solo per quel giorno,
+forma "<aggettivo/immagine> <sostantivo> di ${city}", mai "Tour di ${city}", al massimo 60 caratteri.
+Parole vietate nel titolo: ${bannedWordsPromptLines()}
+
+Rispondi in JSON puro:
+{ "days": [ { "day": 1, "title": "...", "mapMood": "romantico|storia|avventura|natura|cibo|shopping|arte|sorpresa|sport",
+  "suggestedTransit": "walking|bus|metro",
+  "stops": [ { "place_id": "...", "usaFatto": true, "gancio": "tramonto", "interesse": null } ] } ] }`;
+
+/**
+ * La terza chiamata, a scelta chiusa. Non lancia mai, tranne per la quota: un
+ * modello caduto lascia al codice tutte le scelte (riserva), e lo dice.
+ */
+const chooseStopHooks = async ({ city, days, ctxs, interessi, quotaTicket }) => {
+    const giorni = (days || []).map((d, di) => ({
+        giorno: di + 1,
+        tappe: (d.stops || []).map((s, si) => {
+            const sd = ctxs[di].stops[si].d;
+            const ap = apertura(sd);
+            const ints = interessiPerTappa(sd, interessi);
+            return {
+                place_id: s.place_id, nome: sd.nome, momento: sd.momento, apertura: ap, fatto: sd.fatto,
+                ganci: [...ganciValidi(sd, { aperturaTesto: ap, interesse: ints[0] || null }).keys()],
+                interessi: ints,
+            };
+        }),
+    }));
+    const n = giorni.reduce((a, g) => a + g.tappe.length, 0);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25_000);
+    try {
+        const data = await callOpenAIProxy({
+            model: 'gpt-4o-mini',
+            messages: [
+                { role: 'system', content: buildChooserSystemPrompt({ city }) },
+                { role: 'user', content: `Scegli per tutte le ${n} tappe, con il loro place_id.\nTAPPE:\n${JSON.stringify(giorni)}` },
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.3,
+            max_tokens: 1200,
+        }, controller.signal, quotaTicket);
+        clearTimeout(timeoutId);
+        const parsed = JSON.parse(data?.choices?.[0]?.message?.content || '{}');
+        const meta = Array.isArray(parsed?.days) ? parsed.days : [];
+        const byId = new Map();
+        for (const d of meta) {
+            for (const st of (Array.isArray(d?.stops) ? d.stops : [])) {
+                if (st?.place_id && !byId.has(st.place_id)) {
+                    byId.set(st.place_id, { usaFatto: st.usaFatto, gancio: st.gancio, interesse: st.interesse ?? null });
+                }
+            }
+        }
+        return { byId, meta, giorni, error: null };
+    } catch (err) {
+        clearTimeout(timeoutId);
+        if (err instanceof AiQuotaExceededError) throw err;
+        const msg = err?.name === 'AbortError' ? 'timeout' : (err?.message || String(err));
+        console.warn(`[P3d-j SCELTE] ${city}: scelte del modello non arrivate (${msg}) → riserva del codice su tutte le tappe`);
+        return { byId: new Map(), meta: [], giorni, error: msg };
+    }
+};
+
+/** Titolo, mappa e trasporto del giorno dalle scelte del modello. */
+const applyDayMeta = (days, meta, city) => days.map((day, di) => {
     const m = meta[di] || {};
     return {
         ...day,
-        title: cleanText(m.title) || day.title || `Giorno ${di + 1} a ${city}`,
+        title: dayTitle(m.title, day.title || `Giorno ${di + 1} a ${city}`),
         suggestedTransit: VALID_TRANSIT.has(m.suggestedTransit) ? m.suggestedTransit : (day.suggestedTransit || 'walking'),
         mapMood: VALID_MOODS.has(m.mapMood) ? m.mapMood : (day.mapMood || 'default'),
-        stops: day.stops.map(s => {
-            const n = byId.get(s.place_id) || {};
-            const next = { ...s };
-            for (const campo of NARRATION_TEXT_FIELDS) next[campo] = cleanText(n[campo]);
-            return next;
-        }),
     };
 });
 
@@ -2450,9 +2066,8 @@ export const aiRecommendationService = {
             // Gate NARRATORE-DOPO — e il controllo luce/ora rigira su quegli
             // orari: stessa data e stessa fascia, ma i minuti possono essere altri.
             const starts = dayStartsFor(cached.days, tourWindow);
-            const { days: lit } = guardNarrationLight(cached.days, starts, tourWindow, cityCenter);
-            // P3d-e — mai una descrizione vuota, e la frase sicura sugli orari di adesso.
-            const { days } = applySafeDescriptions(lit, starts, tourWindow, cityCenter);
+            // P3d-j — la frase si ricompone con le scelte salvate e gli orari di adesso.
+            const { days } = composeDays(cached.days, { starts, tourWindow, cityCenter });
             return { ...cached, ...windowFields, days: refreshTourScheduledTimes(days, starts) };
         }
 
@@ -2463,9 +2078,6 @@ export const aiRecommendationService = {
             await assertQuotaAvailable();
         }
         const quotaTicket = newGenerationTicket('itinerary');
-
-        const weatherIcon = weather?.condition === 'sunny' ? '☀️'
-            : weather?.condition === 'rainy' ? '🌧️' : '⛅';
 
         // G3 — la fascia del timeContext si legge dalla PARTENZA del tour
         // (tourWindow.start, ora di Roma), non dall'ora della richiesta:
@@ -2728,7 +2340,8 @@ export const aiRecommendationService = {
                     const baseMeta = (di) => ({
                         day: di + 1,
                         title: `Giorno ${di + 1} a ${city}`,
-                        weather: { condition: weather?.condition || 'Soleggiato', temperature: weather?.temperature ?? 22, icon: weatherIcon },
+                        // P3d-j — il meteo vero, o nessun meteo (mai "Soleggiato, 22°").
+                        weather: realWeather(weather),
                         suggestedTransit: 'walking',
                         mapMood: 'default',
                     });
@@ -2841,7 +2454,6 @@ export const aiRecommendationService = {
                         const byIdCand = new Map(candidates.map(c => [c.place_id || c.googlePlaceId, c]));
                         const finalStops = finalDays.flatMap(d => d.stops);
                         const locali = localeInfoFor(finalStops, byIdCand, { food: foodOn ? food : null, dnaWeights: opts.dnaWeights || {} });
-                        const luoghi = placeInfoFor(finalStops, byIdCand, { intent, dnaWeights: opts.dnaWeights || {} });
                         const daysForNarration = finalDays.map(d => ({
                             ...d,
                             stops: d.stops.map(st => (locali.has(st.place_id) ? { ...st, priceLevel: locali.get(st.place_id).price_level } : st)),
@@ -2850,61 +2462,40 @@ export const aiRecommendationService = {
                             place_id: st.place_id, name: st.title, lat: Number(st.latitude), lng: Number(st.longitude), types: st.types,
                         })), { city });
                         const facts = factsRes.byId;
-                        const narration = await narrateFinalDays({
-                            city, days: daysForNarration, starts, tourWindow, cityCenter,
-                            weather, prefs, aiProfile, userPrompt, quotaTicket, facts, locali, luoghi,
+                        // P3d-j — il modello sceglie fra opzioni chiuse, il codice
+                        // compone con le frasi approvate. Una chiamata, niente
+                        // riscrittura: la riserva e' in codice.
+                        const interessi = userInterests({
+                            wizard: prefs?.interests || [],
+                            text: opts.pathType === 'custom' ? userPrompt : '',
+                            dnaWeights: opts.dnaWeights || null,
                         });
-                        const guardedLight = guardNarrationLight(
-                            applyNarration(daysForNarration, narration, city), starts, tourWindow, cityCenter,
-                        );
-                        // P3d-e — il controllo anti-invenzione, dopo voce e luce.
                         const voce = { richiesta: userPrompt, oggetto: intent?.oggetto_umano || '' };
-                        const invented = guardInventions(guardedLight.days, facts, voce);
-                        const guarded = { days: invented.days, frasiTolte: [...guardedLight.frasiTolte, ...invented.frasiTolte] };
-                        const { frasiTolte } = guarded;
-                        // P3d-c — le descrizioni svuotate o accorciate dai filtri si
-                        // riscrivono UNA volta, nello stesso biglietto. Con il
-                        // narratore caduto no: niente da riscrivere, e niente secondo giro.
-                        let riscrittura = null;
-                        let narratedDays = guarded.days;
-                        if (!narration.error) {
-                            const items = itineraryRewriteItems(narratedDays, frasiTolte, starts, tourWindow, cityCenter, facts, locali, luoghi);
-                            if (items.length > 0) {
-                                const rw = await rewriteDescriptions({ city, items, quotaTicket, voce });
-                                riscrittura = rw.report;
-                                narratedDays = narratedDays.map((day, di) => ({
-                                    ...day,
-                                    stops: day.stops.map((st, si) => (rw.byKey.has(`${di}:${si}`)
-                                        ? { ...st, description: rw.byKey.get(`${di}:${si}`) } : st)),
-                                }));
-                            }
-                        }
-                        // P3d-e — le tappe ancora senza descrizione (narratore caduto,
-                        // riscrittura che non passa) ricevono la frase sicura del
-                        // codice; le altre, se raccontate con dei fatti, le fonti.
-                        const nonRaccontate = narratedDays.flatMap(d => d.stops)
-                            .filter(st => !hasNonEmptyDescription(st)).map(st => ({ place_id: st.place_id, title: st.title }));
-                        const safe = applySafeDescriptions(narratedDays, starts, tourWindow, cityCenter);
-                        narratedDays = safe.days.map(d => ({ ...d, stops: d.stops.map(st => withFonti(st, facts)) }));
+                        const ctxs = composeContexts(daysForNarration, { starts, tourWindow, cityCenter, facts });
+                        const scelte = await chooseStopHooks({ city, days: daysForNarration, ctxs, interessi, quotaTicket });
+                        const composed = composeDays(applyDayMeta(daysForNarration, scelte.meta, city), {
+                            starts, tourWindow, cityCenter, facts, scelte: scelte.byId, interessi, voce,
+                        });
+                        const narratedDays = composed.days;
                         const allStops = narratedDays.flatMap(d => d.stops);
                         const narrationReport = {
-                            raccontate: allStops.filter(st => hasNonEmptyDescription(st) && !st._fraseSicura).length,
-                            nonRaccontate,
-                            frasiSicure: allStops.filter(st => st._fraseSicura).map(st => ({ place_id: st.place_id, title: st.title, description: st.description })),
-                            frasiTolte,
-                            errore: narration.error,
-                            riscrittura,
+                            raccontate: allStops.length,
+                            nonRaccontate: [],
+                            composizione: composed.report,
+                            interessi,
+                            sceltePerTappa: scelte.byId.size,
+                            riserve: composed.report.filter(x => x.riserva.length > 0).length,
+                            frasiTolte: composed.report.flatMap(x => x.rete.map(frase => ({ place_id: x.place_id, title: x.title, frase }))),
+                            errore: scelte.error,
                             fatti: {
                                 ...factsRes.report,
                                 perTappa: allStops.map(st => ({ place_id: st.place_id, title: st.title, fatti: facts.get(st.place_id)?.fatti || [] })),
                             },
                         };
                         logNarratorViolations(allStops, 'narratore');
-                        for (const f of frasiTolte) {
-                            console.warn(`[Gate NARRATORE-DOPO] ${city}: tolta frase (${[...f.regole, ...(f.parole || [])].join(',')}) da ${f.campo} di "${f.title}" @${f.arrivo} — "${f.frase}"`);
-                        }
-                        if (narrationReport.nonRaccontate.length > 0) {
-                            console.warn(`[Gate NARRATORE-DOPO] ${city}: ${narrationReport.nonRaccontate.length}/${allStops.length} tappe senza racconto — [${narrationReport.nonRaccontate.map(x => x.title).join(' | ')}]`);
+                        for (const x of composed.report) {
+                            if (x.riserva.length > 0) console.info(`[P3d-j SCELTE] ${city}: "${x.title}" — riserva del codice su ${x.riserva.join(', ')}`);
+                            for (const frase of x.rete) console.warn(`[P3d-j RETE] ${city}: "${x.title}" — la rete ha tolto "${frase}" → ricomposta`);
                         }
                         const singleStop = narratedDays[0].stops.length === 1;
                         const ovvieta = obviousnessReport(allStops, candidatiGenerazione);
@@ -2939,7 +2530,7 @@ export const aiRecommendationService = {
                         };
                         // Un narratore caduto non si mette in cache: la prossima
                         // richiesta deve poter avere il suo racconto.
-                        if (!narration.error) saveInsiderToCache(cacheKey, result);
+                        if (!scelte.error) saveInsiderToCache(cacheKey, result);
                         return { ...result, ...windowFields, days: refreshTourScheduledTimes(result.days, starts) };
                     }
                     // Gate B/I — Path A: 0 tappe canoniche → errore onesto (no fallback).
@@ -3153,7 +2744,8 @@ export const aiRecommendationService = {
         // nella chiave (senza fiducia la chiave resta quella di prima).
         const dnaKey = (dnaWeights._share > 0 ? `|dna:${weightsFingerprint(dnaWeights)}` : '')
             + (hasFoodPrefs(food) ? `|cibo:${foodPrefsFingerprint(food)}` : '');
-        const cacheKey = `hometours_v1_${city.replace(/\s+/g, '_')}_${centerFingerprint}_${romeDay}_${moment.key}_${hashStr(poolStr + dnaKey)}`;
+        // P3d-j — v2: le voci v1 avevano testo libero del modello.
+        const cacheKey = `hometours_v2_${city.replace(/\s+/g, '_')}_${centerFingerprint}_${romeDay}_${moment.key}_${hashStr(poolStr + dnaKey)}`;
         const cached = loadInsiderFromCache(cacheKey);
         // Gate PAROLE VIETATE (P3d) — anche la lettura dalla cache passa dal filtro.
         if (cached) return scrubHomeTours(cached, city);
@@ -3165,12 +2757,12 @@ export const aiRecommendationService = {
         }
         const quotaTicket = newGenerationTicket('home_tours');
 
-        const weatherIcon = weather?.condition === 'sunny' ? '☀️'
-            : weather?.condition === 'rainy' ? '🌧️' : '⛅';
-
+        // P3d-j — gli interessi dell'utente per il gancio "legame": in "Per Te"
+        // non c'e' testo ne' wizard, vale il DNA sopra la soglia di fiducia.
+        const interessiPerTe = userInterests({ dnaWeights });
         const prompt = buildUnifiedHomeToursPrompt({
-            city, timeContext, weather, weatherIcon,
-            prefs, aiProfile, themedCandidates: nonEmptyPools,
+            city, timeContext, weather,
+            prefs, aiProfile, themedCandidates: nonEmptyPools, interessi: interessiPerTe,
         });
 
         const MAX_TOKENS = 4000;
@@ -3183,7 +2775,7 @@ export const aiRecommendationService = {
                 model: 'gpt-4o-mini',
                 messages: [
                     { role: 'system', content: prompt },
-                    { role: 'user', content: `Costruisci i tour. Ricorda: place_id dal blocco tema corrispondente, voce insider concreta, MAI aggettivi vuoti, tappe con description sensoriale specifica.` },
+                    { role: 'user', content: `Costruisci i tour. Ricorda: place_id dal blocco tema corrispondente; per ogni tappa solo usaFatto, gancio e interesse, nessun testo.` },
                 ],
                 response_format: { type: 'json_object' },
                 temperature: 0.7,
@@ -3267,13 +2859,12 @@ export const aiRecommendationService = {
                     return true;
                 });
 
-                // Gate PAROLE VIETATE (P3d) — stesso filtro e stesso elenco
-                // dell'itinerario, PRIMA della regola II.2.
-                canonized = canonized.map(st => {
-                    const r = scrubBannedWords(st);
-                    logBannedRemovals(city, st.title, r.removed, 'home');
-                    return { ...r.stop, _tolte: r.removed.filter(x => x.campo === 'description') };
-                });
+                // P3d-j — della tappa si tengono solo le scelte chiuse del
+                // modello; il testo lo compone il codice dopo l'ordinamento.
+                const sceltaDi = new Map(aiStops.filter(st => st?.place_id).map(st => [st.place_id, {
+                    usaFatto: st.usaFatto, gancio: st.gancio, interesse: st.interesse ?? null,
+                }]));
+                canonized = canonized.map(st => ({ ...st, _scelta: sceltaDi.get(st.place_id) || {} }));
                 return { tour, themeType, canonized };
             });
 
@@ -3299,143 +2890,36 @@ export const aiRecommendationService = {
             const sunNow = sunTimes({ y: nowRome.y, m: nowRome.m, d: nowRome.d },
                 Number.isFinite(cityCenter?.latitude) ? cityCenter.latitude : ROMA_FALLBACK.latitude,
                 Number.isFinite(cityCenter?.longitude) ? cityCenter.longitude : ROMA_FALLBACK.longitude);
-            const tramontoDavantiOra = sunNow.sunset ? now.getTime() <= sunNow.sunset.getTime() : undefined;
-            const motivoPerTe = new Map();
-            prepared.forEach((pt) => {
-                if (!pt) return;
-                pt.canonized = pt.canonized.map(st => {
-                    const fatti = facts.get(st.place_id)?.fatti || [];
-                    if (!locali.has(st.place_id)) motivoPerTe.set(st.place_id, placeReasons(poolById.get(st.place_id), { dnaWeights, tema: pt.themeType }));
-                    const ora = filterTimeIncoherent(st.description, { arrival: now, sunrise: sunNow.sunrise, sunset: sunNow.sunset });
-                    const r0 = filterInventedObjects(ora.text, { fatti, nomi: [st.title, st.name].filter(Boolean), fattiSu: factsAbout(facts.get(st.place_id)) });
-                    const rv = filterVoice(r0.text);
-                    const r = { text: rv.text, removed: [...r0.removed, ...rv.removed] };
-                    for (const x of [...ora.removed, ...r.removed]) {
-                        console.warn(`[P3d-g FATTI] ${city} (home): tolta frase (${(x.oggetti || x.regole || []).join(',')}) da "${st.title}" — "${x.frase}"`);
-                    }
-                    const tolte = [...ora.removed.map(x => ({ ...x })), ...r.removed.map(x => ({ ...x, regole: [x.regola] }))];
-                    return {
-                        ...st,
-                        description: tolte.length > 0 ? r.text : st.description,
-                        _tolte: [...st._tolte, ...tolte],
-                        // P3d-g — ogni tappa si riscrive ancorata ai fatti o ai dati:
-                        // il selettore l'ha raccontata senza fatti e senza dati.
-                        _ancora: true,
-                        _senzaFatti: fatti.length === 0,
-                        ...(locali.has(st.place_id) ? { priceLevel: locali.get(st.place_id).price_level } : {}),
-                    };
-                });
-            });
+            const composizione = [];
 
-            // (1b) P7a2 — RIEMPIRE PRIMA DI NASCONDERE. Un tour che rischia di
-            // restare sotto le 3 tappe (contando solo quelle gia' sicure:
-            // descrizione presente e nessuna frase tolta) riceve in codice delle
-            // RISERVE: i migliori candidati Gate MERITO rimasti nel SUO pool
-            // (gia' entro il raggio, gia' ordinato per merito), che nessun altro
-            // tour usa. Una riserva in piu' del necessario, perche' la sua
-            // descrizione puo' non passare i filtri. Le riserve ricevono la
-            // descrizione nella stessa seconda chiamata della riscrittura, dentro
-            // il biglietto 'home_tours': nessuna chiamata in piu'. Si usano solo
-            // se, dopo la riscrittura, il tour e' ancora sotto le 3 tappe.
+            // (1b) P7a2 — RIEMPIRE PRIMA DI NASCONDERE. Un tour sotto le 3 tappe
+            // (scarti: place_id fuori pool, doppioni) riceve in codice delle
+            // RISERVE: i migliori candidati Gate MERITO rimasti nel SUO pool, che
+            // nessun altro tour usa. P3d-j: la descrizione di una riserva si
+            // compone come le altre (scelte di riserva del codice), senza
+            // chiamate in piu'.
             const usati = new Set();
             for (const pt of prepared) for (const st of pt?.canonized || []) if (st.place_id) usati.add(st.place_id);
+            const aggiunte = [];
             prepared.forEach((pt) => {
                 if (!pt) return;
-                const sicure = pt.canonized.filter(st => hasNonEmptyDescription(st) && st._tolte.length === 0).length;
-                const mancano = HOME_TOUR_STOPS.min - sicure;
-                pt.riserve = [];
-                if (mancano <= 0) return;
                 const pool = nonEmptyPools[pt.themeType] || [];
                 for (const c of pool) {
-                    if (pt.riserve.length >= mancano + 1) break;
+                    if (pt.canonized.length >= HOME_TOUR_STOPS.min) break;
                     const pid = homePid(c);
                     if (!pid || usati.has(pid)) continue;
                     const [st] = canonicalizeStopsFromCandidates([{ place_id: pid }], pool, { guard: false });
                     if (!st) continue;
                     usati.add(pid);
-                    pt.riserve.push({ ...st, _tolte: [] });
+                    pt.canonized.push({ ...st, _scelta: {} });
+                    aggiunte.push({ tour: pt.themeType, title: st.title, place_id: pid });
                 }
             });
 
-            // (2) P3d-c — la riscrittura. Una tappa senza descrizione o con una
-            // frase tolta dalla descrizione si riscrive; il resto non si tocca.
-            // P7a2: nella stessa chiamata, la descrizione delle riserve.
-            const rewriteItems = [];
-            prepared.forEach((pt, ti) => {
-                if (!pt) return;
-                pt.canonized.forEach((st, si) => {
-                    if (hasNonEmptyDescription(st) && st._tolte.length === 0 && !st._ancora) return;
-                    rewriteItems.push({
-                        key: `${ti}:${si}`, place_id: st.place_id, nome: st.title, types: st.types,
-                        momento: moment.label,
-                        tolte: st._tolte, exempt: [st.title, st.name].filter(Boolean),
-                        fatti: facts.get(st.place_id)?.fatti || [],
-                        fattiSu: factsAbout(facts.get(st.place_id)),
-                        motivo: motivoPerTe.get(st.place_id) || [],
-                        tramontoDavanti: tramontoDavantiOra,
-                        arrival: now, sun: sunNow,
-                        ...(locali.has(st.place_id) ? { locale: locali.get(st.place_id) } : {}),
-                        ancora: st._ancora, attuale: st.description || null,
-                    });
-                });
-                pt.riserve.forEach((st, ri) => {
-                    const loc = isLocaleStop(st) ? localeInfoFor([st], poolById, { food: hasFoodPrefs(food) ? food : null, dnaWeights }).get(st.place_id) : null;
-                    rewriteItems.push({
-                        key: `${ti}:r${ri}`, place_id: st.place_id, nome: st.title, types: st.types,
-                        momento: moment.label,
-                        tolte: [], exempt: [st.title, st.name].filter(Boolean),
-                        motivo: loc ? [] : placeReasons(poolById.get(st.place_id), { dnaWeights, tema: pt.themeType }),
-                        tramontoDavanti: tramontoDavantiOra, arrival: now, sun: sunNow,
-                        ...(loc ? { locale: loc } : {}),
-                    });
-                });
-            });
-            const rewrite = rewriteItems.length > 0
-                ? await rewriteDescriptions({ city, items: rewriteItems, quotaTicket })
-                : null;
-
-            const aggiunte = [];
-            const frasiSicure = [];
-            const sunOggi = sunTimes({ y: nowRome.y, m: nowRome.m, d: nowRome.d },
-                Number.isFinite(cityCenter?.latitude) ? cityCenter.latitude : ROMA_FALLBACK.latitude,
-                Number.isFinite(cityCenter?.longitude) ? cityCenter.longitude : ROMA_FALLBACK.longitude);
-            const tramontoOggi = clockLabel(sunOggi.sunset);
-            const finalTours = prepared.map((pt, ti) => {
+            const finalTours = prepared.map((pt) => {
                 if (!pt) return null;
                 const { tour, themeType } = pt;
-                // P3d-e — una tappa riscritta con dei fatti porta le sue fonti
-                // (_conFatti); una non riscritta resta com'era dopo i filtri.
-                // P3d-g — il testo del selettore non resta MAI: e' scritto senza
-                // fatti e senza dati (prova reale: "un ingresso maestoso… ricco di
-                // storia e bellezza" era sopravvissuto per una tappa con fatti).
-                // Se la riscrittura ancorata non e' arrivata o non passa, frase
-                // sicura del codice.
-                let canonized = pt.canonized.map((st, si) => {
-                    if (rewrite?.byKey.has(`${ti}:${si}`)) {
-                        return { ...st, description: rewrite.byKey.get(`${ti}:${si}`), _conFatti: (facts.get(st.place_id)?.fatti || []).length > 0 };
-                    }
-                    return { ...st, description: null };
-                });
-
-                // Gate II.2 — mai placeholder "Luogo di interesse".
-                // P3d-e: mai nemmeno una descrizione vuota. Una tappa che neanche
-                // la riscrittura ha salvato riceve, dopo l'ordinamento, la frase
-                // sicura del codice (tipo, momento, per i locali fascia e minuti):
-                // solo dati veri, non un riempitivo.
-                canonized = canonized.map(({ _tolte, _ancora, _senzaFatti, ...st }) => st);
-
-                // P7a2 — sotto le 3 tappe: si completa con le riserve che hanno
-                // ricevuto una descrizione (in ordine di merito).
-                if (canonized.length < HOME_TOUR_STOPS.min) {
-                    pt.riserve.forEach((st, ri) => {
-                        if (canonized.length >= HOME_TOUR_STOPS.min) return;
-                        const desc = rewrite?.byKey.get(`${ti}:r${ri}`);
-                        if (!desc) return;
-                        const { _tolte, ...clean } = st;
-                        canonized.push({ ...clean, description: desc });
-                        aggiunte.push({ tour: themeType, title: st.title, place_id: st.place_id });
-                    });
-                }
+                const canonized = pt.canonized.map(st => (locali.has(st.place_id) ? { ...st, priceLevel: locali.get(st.place_id).price_level } : st));
 
                 // Safety filtro raggio: il pool e' gia' entro il raggio
                 // (prepareHomePools), qui non dovrebbe togliere niente — se lo
@@ -3445,30 +2929,41 @@ export const aiRecommendationService = {
                     if (!withinRadius.includes(st)) scarta(themeType, st.title, 'oltre il raggio');
                 }
                 // DIFF 1a: le stime SUBITO dopo il sort, mai prima.
-                // P3d-e: la frase sicura dopo le stime (i minuti dalla tappa prima).
-                const ordered = computeStopTimings(sortByProximity(withinRadius)).stops.map(st => {
-                    const conFonti = st._conFatti && hasNonEmptyDescription(st);
-                    const { _conFatti, ...clean } = st;
-                    if (hasNonEmptyDescription(clean)) return { ...clean, fonti: conFonti ? facts.get(st.place_id)?.fonti || null : null };
-                    frasiSicure.push({ tour: themeType, title: st.title });
+                // P3d-j: la frase dopo le stime (minuti, prima e ultima tappa).
+                // "Per Te" e' adesso: niente orario d'arrivo, quindi niente
+                // ganci "orario" e "tramonto"; la luce si controlla su adesso.
+                const timedStops = computeStopTimings(sortByProximity(withinRadius)).stops;
+                const ordered = timedStops.map((st, i) => {
+                    const { _scelta, ...clean } = st;
+                    const entry = facts.get(st.place_id);
+                    const fatti = entry?.fatti || [];
+                    const fattiSu = factsAbout(entry);
+                    const d = stopData({
+                        stop: clean, momento: moment.key, minutiDaPrima: clean.travelMinutesFromPrev,
+                        locale: isLocaleStop(clean),
+                        priceLevel: Number.isFinite(clean.priceLevel) ? clean.priceLevel : priceLevelOf(poolById.get(clean.place_id)),
+                        fatti, primo: i === 0, ultimo: i === timedStops.length - 1,
+                    });
+                    const r = guardComposed(d, _scelta || {}, {
+                        interessi: interessiPerTe, arrival: now, sunrise: sunNow.sunrise, sunset: sunNow.sunset, fatti, fattiSu,
+                    });
+                    composizione.push({
+                        tour: themeType, place_id: st.place_id, title: st.title, scelta: _scelta || {}, usaFatto: r.composta.usaFatto,
+                        gancio: r.composta.gancio, interesse: r.composta.interesse, riserva: r.composta.riserva,
+                        rete: r.rete.map(x => x.frase), description: r.text,
+                    });
                     return {
                         ...clean,
-                        description: safeDescription({
-                            stop: clean, momento: moment.key, tramonto: tramontoOggi,
-                            locale: isLocaleStop(clean),
-                            priceLevel: Number.isFinite(clean.priceLevel) ? clean.priceLevel : priceLevelOf(poolById.get(clean.place_id)),
-                            minutiDaPrima: clean.travelMinutesFromPrev,
-                        }),
-                        _fraseSicura: true,
-                        fonti: null,
+                        description: r.text,
+                        insiderTip: null, bestTime: null, transition: null,
+                        fonti: r.composta.usaFatto && entry?.fonti?.length ? entry.fonti : null,
+                        _comp: { scelta: _scelta || {} },
                     };
                 });
                 if (ordered.length === 0) {
                     console.warn(`[Per Te] ${city}: tour "${themeType}" senza tappe dopo gli scarti → non servito`);
                 } else if (ordered.length < HOME_TOUR_STOPS.min) {
                     // P7a — un tour "Per Te" con meno di 3 tappe non e' un tour.
-                    // P7a2 — si arriva qui solo se il pool non aveva piu' riserve
-                    // valide (o la loro descrizione non ha passato i filtri).
                     for (const st of ordered) scarta(themeType, st.title, `tour con meno di ${HOME_TOUR_STOPS.min} tappe: nessun candidato valido rimasto nel pool`);
                 }
 
@@ -3478,7 +2973,7 @@ export const aiRecommendationService = {
                     && Array.isArray(byIdPool.get(st.place_id)?._dietaCercata) && byIdPool.get(st.place_id)._dietaCercata.length > 0);
                 return {
                     themeType,
-                    title: tour.title || `Tour di ${city}`,
+                    title: dayTitle(tour.title, `Tour di ${city}`),
                     mapMood: VALID_MOODS.has(tour.mapMood) ? tour.mapMood : 'default',
                     suggestedTransit: VALID_TRANSIT.has(tour.suggestedTransit) ? tour.suggestedTransit : 'walking',
                     stops: ordered,
@@ -3510,8 +3005,8 @@ export const aiRecommendationService = {
                 troncata: truncated,
                 momento: moment.key,
                 giorno: romeDay,
-                riscrittura: rewrite?.report ?? null,
-                frasiSicure,
+                composizione,
+                riserve: composizione.filter(x => x.riserva.length > 0).length,
                 fatti: {
                     ...factsRes.report,
                     perTappa: finalTours.flatMap(t => t.stops.map(st => ({ tour: t.themeType, place_id: st.place_id, title: st.title, fatti: facts.get(st.place_id)?.fatti || [] }))),
@@ -3608,11 +3103,8 @@ export const aiRecommendationService = {
                 days: [{
                     day: 1,
                     title: `Il tuo giro a ${city}`,
-                    weather: {
-                        condition: weather?.condition || 'Sereno',
-                        temperature: weather?.temperature ?? 22,
-                        icon: weather?.condition === 'rainy' ? '🌧️' : weather?.condition === 'sunny' ? '☀️' : '⛅',
-                    },
+                    // P3d-j — il meteo vero, o nessun meteo.
+                    weather: realWeather(weather),
                     suggestedTransit: 'walking',
                     mapMood: 'default',
                     stops: ordered,

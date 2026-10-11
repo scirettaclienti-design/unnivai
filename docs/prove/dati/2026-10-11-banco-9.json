@@ -1,0 +1,345 @@
+{
+ "avvio": "2026-10-11T15:07:01.861Z",
+ "identita": "account di prova",
+ "casi": [
+  {
+   "id": "a-troina",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Troina",
+   "posizione": "Troina",
+   "richiesta": "Domani, una giornata a Troina",
+   "secs": 15.164,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Troina",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Svelti angoli di Troina",
+     "stops": [
+      {
+       "place_id": "ChIJBcsc22XLFhMRlebZppwKek0",
+       "title": "Piazza Giacomo Matteotti",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 37.7813682,
+       "lng": 14.5967726,
+       "min": null,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 6,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "description": "Attraversi Piazza Giacomo Matteotti piano, senza fretta. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Attraversi Piazza Giacomo Matteotti piano, senza fretta.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 12,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJSdi3PqbLFhMRevZmDu4FnbQ",
+       "title": "Torre Capitania",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:05:00.000Z",
+       "lat": 37.7843305,
+       "lng": 14.5991951,
+       "min": 5,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "description": "Entri a Torre Capitania alle 10:05: il resto può aspettare. Sono 5 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Entri a Torre Capitania alle 10:05: il resto può aspettare.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 5 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 1,
+       "recensioni": 123,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJfQMai6bLFhMRfJTrhbm8R8Y",
+       "title": "A'PESCHERIA ristorante pesce con pescheria vendita a dettaglio",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 37.7850402,
+       "lng": 14.5973517,
+       "min": 2,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "description": "Pranzi da A'PESCHERIA ristorante pesce con pescheria vendita a dettaglio, ristorante in fascia €€€. Sono 2 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Pranzi da A'PESCHERIA ristorante pesce con pescheria vendita a dettaglio, ristorante in fascia €€€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 2 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 31,
+       "priceLevel": 3,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJa41x7nLLFhMRVz7l5o-xMrk",
+       "title": "Caffè del borgo",
+       "types": [
+        "cafe",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 37.7860524,
+       "lng": 14.5952332,
+       "min": 3,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "description": "Caffè del borgo è la prossima tappa del tuo giro. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Caffè del borgo è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 37,
+       "priceLevel": 1,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJvSFWIBDLFhMRILmIiEDfuw8",
+       "title": "Museo della fotografia Robert Capa",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:56:00.000Z",
+       "lat": 37.7850701,
+       "lng": 14.6005044,
+       "min": 6,
+       "scelta": "ripiego",
+       "ripiego": "famiglia",
+       "motivo": "nessuna famiglia nuova vicina (anche dopo la ricerca mirata): museo ripetuta (dalla ricerca mirata) — inevitabile: nei momenti delle tappe museo (7 candidati) nessuna alternativa libera che la tolga entro 25 min; la piu' vicina: \"Ponte di Failla\" (senza famiglia, pomeriggio) a 38 min",
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": {
+        "esito": "inevitabile",
+        "candidatiMomento": 7,
+        "alternative": [
+         {
+          "nome": "Caffè del borgo",
+          "famiglia": null,
+          "momento": "pomeriggio",
+          "minuti": 0,
+          "usata": true
+         }
+        ],
+        "piuVicina": {
+         "nome": "Ponte di Failla",
+         "famiglia": null,
+         "momento": "pomeriggio",
+         "minuti": 38,
+         "usata": false
+        }
+       },
+       "description": "Entri a Museo della fotografia Robert Capa alle 14:56: il resto può aspettare. Sono 6 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Entri a Museo della fotografia Robert Capa alle 14:56: il resto può aspettare.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 6 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 1,
+       "recensioni": 227,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJe1mWPa_LFhMReziUgGgDI4g",
+       "title": "Bar Pour Toi di Cantagallo Basilio",
+       "types": [
+        "bar",
+        "cafe",
+        "establishment",
+        "food",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 37.78690479999999,
+       "lng": 14.602297,
+       "min": 3,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "description": "L'aperitivo lo prendi da Bar Pour Toi di Cantagallo Basilio, bar in fascia €. Il sole tramonta alle 18:29: sei qui 29 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da Bar Pour Toi di Cantagallo Basilio, bar in fascia €.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:29: sei qui 29 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 571,
+       "priceLevel": 1,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJNyJ-HabLFhMRJRM3dyMW35s",
+       "title": "Black & White",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 37.7851776,
+       "lng": 14.6011198,
+       "min": 3,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Mordi & Fuggi\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "description": "Chiudi la giornata a tavola da Black & White. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Black & White.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 367,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 6015,
+    "tokenOut": 817
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 5
+   }
+  }
+ ],
+ "fine": "2026-10-11T15:07:17.841Z"
+}

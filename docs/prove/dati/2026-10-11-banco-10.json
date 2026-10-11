@@ -1,0 +1,5307 @@
+{
+ "avvio": "2026-10-11T15:18:56.914Z",
+ "identita": "account di prova",
+ "casi": [
+  {
+   "id": "a-roma",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Roma",
+   "posizione": "Roma",
+   "richiesta": "Domani, una giornata a Roma",
+   "secs": 17.793,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Roma",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Roma",
+     "stops": [
+      {
+       "place_id": "ChIJoZRZT01gLxMR0C1IBGiGv1c",
+       "title": "Galleria Colonna",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 41.8975648,
+       "lng": 12.4847388,
+       "min": null,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Galleria Colonna è la tappa da fare con calma. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Galleria Colonna è la tappa da fare con calma.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 3382,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJLRgNCwBhLxMRSwjd-sRYDpE",
+       "title": "Piazza del Quirinale",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:33:00.000Z",
+       "lat": 41.8992412,
+       "lng": 12.4864047,
+       "min": 3,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 0,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza del Quirinale è una piazza romana situata fra Via del Quirinale e Via XXIV Maggio, nei rioni I Monti e II Trevi, sulla sommità dell'omonimo colle. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza del Quirinale è una piazza romana situata fra Via del Quirinale e Via XXIV Maggio, nei rioni I Monti e II Trevi, sulla sommità dell'omonimo colle.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 59,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJAfCPkKxhLxMRT0oR-jxDMvE",
+       "title": "Antica Trattoria Al Gallinaccio",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 41.9022934,
+       "lng": 12.485695,
+       "min": 5,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 8.3,
+        "esito": "pool",
+        "candidatiMomento": 10,
+        "alternative": [
+         {
+          "nome": "Hostaria Romana",
+          "famiglia": null,
+          "deviazione": 7.4,
+          "merito": 0.25,
+          "tetto": true
+         },
+         {
+          "nome": "Trattoria Della Stampa",
+          "famiglia": null,
+          "deviazione": 9,
+          "merito": 0.25,
+          "tetto": true
+         },
+         {
+          "nome": "Trattoria Vecchia Roma",
+          "famiglia": null,
+          "deviazione": 22,
+          "merito": 0.18,
+          "tetto": true
+         },
+         {
+          "nome": "Matricianella",
+          "famiglia": null,
+          "deviazione": 23.9,
+          "merito": 0.25,
+          "tetto": false
+         },
+         {
+          "nome": "Osteria da Fortunata - Baullari",
+          "famiglia": null,
+          "deviazione": 32,
+          "merito": 0.24,
+          "tetto": false
+         }
+        ]
+       },
+       "description": "Pranzi da Antica Trattoria Al Gallinaccio, trattoria in fascia €€. Sono 5 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Pranzi da Antica Trattoria Al Gallinaccio, trattoria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 5 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 2508,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJeVMawkVhLxMRppew8k4tU3M",
+       "title": "Naïs cocktails & co.",
+       "types": [
+        "bar",
+        "book_store",
+        "establishment",
+        "night_club",
+        "point_of_interest",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 41.8958928,
+       "lng": 12.4928023,
+       "min": 12,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 9.1,
+        "esito": "composizione",
+        "candidatiMomento": 13,
+        "alternative": [
+         {
+          "nome": "Il Palazzo dei Conservatori",
+          "famiglia": "museo",
+          "deviazione": 0,
+          "merito": 0.4,
+          "tetto": true,
+          "bloccata": [
+           "una famiglia ripetuta"
+          ]
+         },
+         {
+          "nome": "Museo Centrale del Risorgimento",
+          "famiglia": "museo",
+          "deviazione": 0.1,
+          "merito": 0.41,
+          "tetto": true,
+          "bloccata": [
+           "una famiglia ripetuta"
+          ]
+         },
+         {
+          "nome": "Piazza d'Aracoeli",
+          "famiglia": "piazza",
+          "deviazione": 0.7,
+          "merito": 0.41,
+          "tetto": true,
+          "bloccata": [
+           "una famiglia ripetuta"
+          ]
+         },
+         {
+          "nome": "Museo Nazionale di Palazzo Venezia",
+          "famiglia": "museo",
+          "deviazione": 0.9,
+          "merito": 0.27,
+          "tetto": true,
+          "bloccata": [
+           "una famiglia ripetuta",
+           "una deviazione oltre 10 min"
+          ]
+         },
+         {
+          "nome": "Piazza Colonna",
+          "famiglia": "piazza",
+          "deviazione": 4.7,
+          "merito": 0.35,
+          "tetto": true,
+          "bloccata": [
+           "una famiglia ripetuta",
+           "una deviazione oltre 10 min"
+          ]
+         }
+        ]
+       },
+       "description": "Naïs cocktails & co. è la prossima tappa del tuo giro. Sono 12 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Naïs cocktails & co.",
+         "problemi": []
+        },
+        {
+         "testo": "è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 12 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 354,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJxy7Ts0BhLxMRBMzATVixF1M",
+       "title": "Belvedere Tarpeo",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:03:00.000Z",
+       "lat": 41.8916005,
+       "lng": 12.4824864,
+       "min": 13,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi a Belvedere Tarpeo: qui si guarda, non si corre. Sono 13 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi a Belvedere Tarpeo: qui si guarda, non si corre.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 13 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 103,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJe3sJQNthLxMRvy3EF26-RGQ",
+       "title": "Vino e vinili Roma",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 41.8969175,
+       "lng": 12.4703681,
+       "min": 16,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Studio 26\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "L'aperitivo lo prendi da Vino e vinili Roma. Il sole tramonta alle 18:34: sei qui 34 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da Vino e vinili Roma.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:34: sei qui 34 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 536,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJaSug_PNhLxMRx_uXLxBMsqY",
+       "title": "Antica Osteria di Roma",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 41.8978439,
+       "lng": 12.4685391,
+       "min": 2,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Antica Osteria di Roma, osteria in fascia €€. Sono 2 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Antica Osteria di Roma, osteria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 2 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 636,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7199,
+    "tokenOut": 797
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 5
+   }
+  },
+  {
+   "id": "a-milano",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Milano",
+   "posizione": "Milano",
+   "richiesta": "Domani, una giornata a Milano",
+   "secs": 16.31,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Milano",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Milano",
+     "stops": [
+      {
+       "place_id": "ChIJ1bctfQDHhkcRU0npKun_Da4",
+       "title": "Piazza della Scala",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 45.4669488,
+       "lng": 9.190004799999999,
+       "min": null,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": "incrocio rimasto: toglierlo costerebbe un tratto oltre il tetto o una famiglia ripetuta",
+       "daPartenza": {
+        "minuti": 4,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza della Scala è una piazza situata nel centro di Milano. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza della Scala è una piazza situata nel centro di Milano.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 74,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJgY6uRazGhkcRA2OPdh2IM1o",
+       "title": "Palazzo della Ragione",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:04:00.000Z",
+       "lat": 45.4647839,
+       "lng": 9.1878158,
+       "min": 4,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Il Palazzo della Ragione si trova in piazza dei Mercanti a Milano, dirimpetto alla Loggia degli Osii. Sono 4 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Il Palazzo della Ragione si trova in piazza dei Mercanti a Milano, dirimpetto alla Loggia degli Osii.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 4 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 688,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJpzYdFwDHhkcRx_2llNJtgEs",
+       "title": "Trattoria Don Mario",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 45.4620662,
+       "lng": 9.1853424,
+       "min": 5,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 6.1,
+        "esito": "composizione",
+        "candidatiMomento": 11,
+        "alternative": [
+         {
+          "nome": "La Colonna Trattoria milanese dal 1922",
+          "famiglia": null,
+          "deviazione": 2,
+          "merito": 0.3,
+          "tetto": true,
+          "bloccata": [
+           "il merito"
+          ]
+         },
+         {
+          "nome": "Trattoria Milanese - Dal 1933",
+          "famiglia": null,
+          "deviazione": 4.5,
+          "merito": 0.22,
+          "tetto": true,
+          "bloccata": [
+           "il merito"
+          ]
+         },
+         {
+          "nome": "La Sciura Trattoria",
+          "famiglia": null,
+          "deviazione": 11.1,
+          "merito": 0.49,
+          "tetto": true
+         },
+         {
+          "nome": "Antica Trattoria della Pesa",
+          "famiglia": null,
+          "deviazione": 32.2,
+          "merito": 0.26,
+          "tetto": false
+         },
+         {
+          "nome": "Trattoria la vecchia guardia",
+          "famiglia": null,
+          "deviazione": 32.7,
+          "merito": 0.28,
+          "tetto": false
+         }
+        ]
+       },
+       "description": "A 5 minuti a piedi ti siedi da Trattoria Don Mario, trattoria in fascia €€. Ci arrivi alle 12:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "A 5 minuti a piedi ti siedi da Trattoria Don Mario, trattoria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 12:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 116,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJNybFck7BhkcRGAFZj2NzUnE",
+       "title": "Museo della Pietà Rondanini",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 45.4697535,
+       "lng": 9.1787855,
+       "min": 13,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Museo della Pietà Rondanini è la tappa da fare con calma. Sono 13 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Museo della Pietà Rondanini è la tappa da fare con calma.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 13 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 639,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJkXXVlE3BhkcR5Tw9CPuNuT4",
+       "title": "Fontana di Piazza Castello",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:32:00.000Z",
+       "lat": 45.4692345,
+       "lng": 9.180943,
+       "min": 2,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": "incrocio rimasto: toglierlo costerebbe un tratto oltre il tetto o una famiglia ripetuta",
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Fontana di Piazza Castello il tempo che serve. Sono 2 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Fontana di Piazza Castello il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 2 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 1,
+       "recensioni": 2702,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJzx8YLmPHhkcRpead3oBWcqs",
+       "title": "Mio Lab",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 45.4653718,
+       "lng": 9.1891681,
+       "min": 10,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "L'aperitivo lo prendi da Mio Lab. Il sole tramonta alle 18:44: sei qui 44 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da Mio Lab.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:44: sei qui 44 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 153,
+       "priceLevel": 3,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJaX5kXKHHhkcRjMJdFa1an-w",
+       "title": "Remedy Wine & Spirits Milano",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 45.4719963,
+       "lng": 9.2058102,
+       "min": 20,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Remedy Wine & Spirits Milano. Sono 20 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Remedy Wine & Spirits Milano.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 20 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 88,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7107,
+    "tokenOut": 795
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 5
+   }
+  },
+  {
+   "id": "a-napoli",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Napoli",
+   "posizione": "Napoli",
+   "richiesta": "Domani, una giornata a Napoli",
+   "secs": 16.144,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Napoli",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Culturale viaggio di Napoli",
+     "stops": [
+      {
+       "place_id": "ChIJrc94fEEIOxMRzkZEQ7zq_e0",
+       "title": "Chiesa dei SS. Filippo e Giacomo - Complesso Museale dell'Arte della Seta",
+       "types": [
+        "church",
+        "establishment",
+        "museum",
+        "place_of_worship",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 40.8489562,
+       "lng": 14.2571364,
+       "min": null,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "chiesa",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti prendi cinque minuti dentro Chiesa dei SS. Filippo e Giacomo - Complesso Museale dell'Arte della Seta. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti prendi cinque minuti dentro Chiesa dei SS.",
+         "problemi": []
+        },
+        {
+         "testo": "Filippo e Giacomo - Complesso Museale dell'Arte della Seta.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 437,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJl8URvf4JOxMRwkVOpR7AcFM",
+       "title": "Piazza San Domenico Maggiore",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:33:00.000Z",
+       "lat": 40.8483876,
+       "lng": 14.2548955,
+       "min": 3,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 9,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza San Domenico è una delle piazze più importanti di Napoli. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza San Domenico è una delle piazze più importanti di Napoli.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 4,
+       "recensioni": 293,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJh6h12vYJOxMRayzOwupH6hw",
+       "title": "Trattoria e Pizzeria Dell'Olio",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 40.8479181,
+       "lng": 14.2496574,
+       "min": 6,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "A 6 minuti a piedi ti siedi da Trattoria e Pizzeria Dell'Olio, trattoria in fascia €€. Ci arrivi alle 12:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "A 6 minuti a piedi ti siedi da Trattoria e Pizzeria Dell'Olio, trattoria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 12:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 311,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJjWj_EU0JOxMRaUlyozmHrno",
+       "title": "Gallerie d'Italia | Napoli",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 40.8405698,
+       "lng": 14.2487184,
+       "min": 11,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Le Gallerie d'Italia di Napoli sono un museo di Napoli ubicato all'interno del palazzo del Banco di Napoli, in via Toledo. Sono 11 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Le Gallerie d'Italia di Napoli sono un museo di Napoli ubicato all'interno del palazzo del Banco di Napoli, in via Toledo.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 11 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 2197,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJefj3blQIOxMRIWxYdw6xyhQ",
+       "title": "Da Maria - Trattoria Napoletana",
+       "types": [
+        "establishment",
+        "food",
+        "grocery_or_supermarket",
+        "point_of_interest",
+        "restaurant",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:35:00.000Z",
+       "lat": 40.8381361,
+       "lng": 14.246291,
+       "min": 5,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Da Maria - Trattoria Napoletana è la prossima tappa del tuo giro. Sono 5 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Da Maria - Trattoria Napoletana è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 5 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 2442,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJqcC8Y0IJOxMRGH8gBhPdR8A",
+       "title": "punto panoramico sulla città",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 40.8444518,
+       "lng": 14.2400156,
+       "min": 12,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "punto panoramico sulla città è il punto in cui la giornata rallenta. Il sole tramonta alle 18:28: sei qui 28 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "punto panoramico sulla città è il punto in cui la giornata rallenta.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:28: sei qui 28 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 210,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJPTUPCS0JOxMR9jJbNOkTwuw",
+       "title": "Osteria napoletana co core",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 40.8457497,
+       "lng": 14.232847,
+       "min": 8,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Biancomangiare - Cucina tipica napoletana Trattoria Osteria Napoli\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La cena è da Osteria napoletana co core, osteria in fascia €€. Qui la giornata si chiude.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La cena è da Osteria napoletana co core, osteria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Qui la giornata si chiude.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 301,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7164,
+    "tokenOut": 800
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 5
+   }
+  },
+  {
+   "id": "a-firenze",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Firenze",
+   "posizione": "Firenze",
+   "richiesta": "Domani, una giornata a Firenze",
+   "secs": 15.543,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Firenze",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Culturale angolo di Firenze",
+     "stops": [
+      {
+       "place_id": "ChIJMdevdapWKhMR3tyZtXWeatU",
+       "title": "Piazza Strozzi",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 43.771294,
+       "lng": 11.2522376,
+       "min": null,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Piazza Ognissanti\"",
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza degli Strozzi, detta comunemente piazza Strozzi, è uno spazio urbano del centro storico di Firenze, collocato davanti a palazzo Strozzi. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza degli Strozzi, detta comunemente piazza Strozzi, è uno spazio urbano del centro storico di Firenze, collocato davanti a palazzo Strozzi.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 297,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJYTLQ-wBUKhMRmXBabFqCFBM",
+       "title": "Loggia dei Lanzi",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:05:00.000Z",
+       "lat": 43.7691899,
+       "lng": 11.2555334,
+       "min": 5,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Loggia dei Lanzi il tempo che serve. Ci arrivi alle 10:05.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Loggia dei Lanzi il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 10:05.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 1717,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJX98BmT9VKhMReqQaTWNjkvY",
+       "title": "Osteria dei Leoni Firenze",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 43.7687017,
+       "lng": 11.2570069,
+       "min": 2,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "A 2 minuti a piedi ti siedi da Osteria dei Leoni Firenze, osteria in fascia €€€. Ci arrivi alle 12:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "A 2 minuti a piedi ti siedi da Osteria dei Leoni Firenze, osteria in fascia €€€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 12:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 1391,
+       "priceLevel": 3,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJtVxvbABUKhMR5UxMAy4Y4Rs",
+       "title": "Cattedrale dell'Immagine",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 43.7687112,
+       "lng": 11.2540609,
+       "min": 3,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "chiesa",
+       "incrocio": "incrocio rimasto: toglierlo costerebbe una famiglia ripetuta o un tratto oltre il tetto",
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 5.8,
+        "esito": "pool",
+        "candidatiMomento": 12,
+        "alternative": [
+         {
+          "nome": "Chiesa e Museo di Orsanmichele",
+          "famiglia": "chiesa",
+          "deviazione": 7.1,
+          "merito": 0.24,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza dei Ciompi",
+          "famiglia": "piazza",
+          "deviazione": 8.1,
+          "merito": 0.48,
+          "tetto": true
+         },
+         {
+          "nome": "Museo di Palazzo Davanzati",
+          "famiglia": "museo",
+          "deviazione": 9.8,
+          "merito": 0.26,
+          "tetto": true
+         },
+         {
+          "nome": "Museo Ferragamo",
+          "famiglia": "museo",
+          "deviazione": 12.6,
+          "merito": 0.26,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza della Passera",
+          "famiglia": "piazza",
+          "deviazione": 12.7,
+          "merito": 0.43,
+          "tetto": true
+         }
+        ]
+       },
+       "description": "Cattedrale dell'Immagine è sulla tua strada: entri, guardi, riparti. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Cattedrale dell'Immagine è sulla tua strada: entri, guardi, riparti.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 2050,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJSXhCnvdTKhMRWxhaXKhovPs",
+       "title": "Porta San Niccolò",
+       "types": [
+        "establishment",
+        "landmark",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:43:00.000Z",
+       "lat": 43.7645484,
+       "lng": 11.2649262,
+       "min": 13,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Porta San Niccolò fa parte delle mura di Firenze e si trova in piazza Giuseppe Poggi, in Oltrarno. Sono 13 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Porta San Niccolò fa parte delle mura di Firenze e si trova in piazza Giuseppe Poggi, in Oltrarno.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 13 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 1085,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJBTaUKlxTKhMR__RmBZEt14k",
+       "title": "Belvedere Franco Zeffirelli",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 43.7632716,
+       "lng": 11.2638781,
+       "min": 2,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": "incrocio rimasto: toglierlo costerebbe una famiglia ripetuta o un tratto oltre il tetto",
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi a Belvedere Franco Zeffirelli: qui si guarda, non si corre. Il sole tramonta alle 18:37: sei qui 37 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi a Belvedere Franco Zeffirelli: qui si guarda, non si corre.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:37: sei qui 37 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 110,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJbZhyS_pVKhMRtbImO2NogMo",
+       "title": "Trattoria De' Benci",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 43.76859030000001,
+       "lng": 11.2602678,
+       "min": 9,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Trattoria De' Benci, trattoria in fascia €€. Ci arrivi alle 20.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Trattoria De' Benci, trattoria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 20.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 232,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7048,
+    "tokenOut": 793
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 4
+   }
+  },
+  {
+   "id": "a-palermo",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Palermo",
+   "posizione": "Palermo",
+   "richiesta": "Domani, una giornata a Palermo",
+   "secs": 16.083,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Palermo",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Palermo",
+     "stops": [
+      {
+       "place_id": "ChIJ7QutmfLlGRMR9yogB-r7xBM",
+       "title": "Palazzo Chiaromonte (Steri)",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 38.1176061,
+       "lng": 13.3699534,
+       "min": null,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Palazzo Alliata di Villafranca\"",
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Entri a Palazzo Chiaromonte (Steri) alle 9:30: il resto può aspettare. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Entri a Palazzo Chiaromonte (Steri) alle 9:30: il resto può aspettare.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 1204,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJBdptXPPlGRMRjD2xsM1dm1k",
+       "title": "Fontana del Garraffello",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:36:00.000Z",
+       "lat": 38.117938,
+       "lng": 13.3649765,
+       "min": 6,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La fontana del Garraffello è una fontana del 1591. Sono 6 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La fontana del Garraffello è una fontana del 1591.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 6 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 203,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJCx_0fv7lGRMR2-WEWjfb8ZI",
+       "title": "Honey Rum La drinkeria",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "night_club",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 38.1164146,
+       "lng": 13.3661486,
+       "min": 3,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "A 3 minuti a piedi ti siedi da Honey Rum La drinkeria. Ci arrivi alle 12:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "A 3 minuti a piedi ti siedi da Honey Rum La drinkeria.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 12:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 114,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJbVCnCFXlGRMRQj30KRrtgC4",
+       "title": "MINIMARKET CLUB – Speakeasy Cocktail Bar Palermo",
+       "types": [
+        "bar",
+        "convenience_store",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 38.1144753,
+       "lng": 13.3665534,
+       "min": 3,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Alle 14:30 sei a MINIMARKET CLUB – Speakeasy Cocktail Bar Palermo: è qui che ti porta la giornata. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Alle 14:30 sei a MINIMARKET CLUB – Speakeasy Cocktail Bar Palermo: è qui che ti porta la giornata.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 185,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJU-OLnGHvGRMRnYAvS4lf6GA",
+       "title": "Palazzo Asmundo - Museo",
+       "types": [
+        "establishment",
+        "food",
+        "museum",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:57:00.000Z",
+       "lat": 38.113291,
+       "lng": 13.356308,
+       "min": 12,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 9.7,
+        "esito": "composizione",
+        "candidatiMomento": 9,
+        "alternative": [
+         {
+          "nome": "Palazzo Alliata di Villafranca",
+          "famiglia": "museo",
+          "deviazione": 2.8,
+          "merito": 0.36,
+          "tetto": true,
+          "bloccata": [
+           "una famiglia ripetuta"
+          ]
+         },
+         {
+          "nome": "Museo delle maioliche \"Stanze al genio\"",
+          "famiglia": "museo",
+          "deviazione": 4.6,
+          "merito": 0.3,
+          "tetto": true,
+          "bloccata": [
+           "una famiglia ripetuta"
+          ]
+         },
+         {
+          "nome": "Museo Palazzo Branciforte",
+          "famiglia": "museo",
+          "deviazione": 6.6,
+          "merito": 0.27,
+          "tetto": true
+         },
+         {
+          "nome": "Palazzo Conte Federico - Museo",
+          "famiglia": "museo",
+          "deviazione": 8,
+          "merito": 0.24,
+          "tetto": true
+         },
+         {
+          "nome": "Museo Diocesano",
+          "famiglia": "museo",
+          "deviazione": 10.3,
+          "merito": 0.38,
+          "tetto": true
+         }
+        ]
+       },
+       "description": "Alle 15:57 sei a Palazzo Asmundo - Museo: è qui che ti porta la giornata. Sono 12 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Alle 15:57 sei a Palazzo Asmundo - Museo: è qui che ti porta la giornata.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 12 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 118,
+       "priceLevel": null,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJB0vGl2TlGRMRKQ4Na8QqWDQ",
+       "title": "First Call - Hospitality Experience | Cocktail bar",
+       "types": [
+        "bar",
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 38.1184116,
+       "lng": 13.3590091,
+       "min": 8,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "L'aperitivo lo prendi da First Call - Hospitality Experience | Cocktail bar, bar in fascia €€. Il sole tramonta alle 18:34: sei qui 34 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da First Call - Hospitality Experience | Cocktail bar, bar in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:34: sei qui 34 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 211,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJJxiu9fXlGRMRIdN4t_YJeLc",
+       "title": "Grano Granis",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 38.1213683,
+       "lng": 13.3597245,
+       "min": 4,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Osteria SALUTAMI A’ NONNA\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Grano Granis. Sono 4 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Grano Granis.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 4 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 1871,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7047,
+    "tokenOut": 791
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 5
+   }
+  },
+  {
+   "id": "a-catania",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Catania",
+   "posizione": "Catania",
+   "richiesta": "Domani, una giornata a Catania",
+   "secs": 14.774,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Catania",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [
+    {
+     "place_id": "ChIJX3qRACTjExMRqiFdQ3F5dSY",
+     "title": "Deliziosa Café & Cocktail Bar | Apericena e Colazione",
+     "frase": "Alle 14:30 sei a Deliziosa Café & Cocktail Bar | Apericena e Colazione: è qui che ti porta la giornata."
+    },
+    {
+     "place_id": "ChIJX3qRACTjExMRqiFdQ3F5dSY",
+     "title": "Deliziosa Café & Cocktail Bar | Apericena e Colazione",
+     "frase": "Alle 14:30 sei a Deliziosa Café & Cocktail Bar | Apericena e Colazione: è qui che ti porta la giornata."
+    }
+   ],
+   "tours": [
+    {
+     "tema": "Monumentale Catania",
+     "stops": [
+      {
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "title": "Fontana dell’Amenano",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 37.50204069999999,
+       "lng": 15.0870139,
+       "min": null,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 598,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJaUl7zSjjExMRoCTWa8ahogs",
+       "title": "Piazza Giuseppe Mazzini",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:03:00.000Z",
+       "lat": 37.50176,
+       "lng": 15.0849048,
+       "min": 3,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Piazza Vincenzo Bellini\"",
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 93,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+       "title": "Bar Popolare",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 37.5021939,
+       "lng": 15.0849114,
+       "min": 1,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Bar Popolare è la prossima tappa del tuo giro. Sono 1 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Bar Popolare è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 1 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 88,
+       "priceLevel": 1,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJX3qRACTjExMRqiFdQ3F5dSY",
+       "title": "Deliziosa Café & Cocktail Bar | Apericena e Colazione",
+       "types": [
+        "bar",
+        "cafe",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 37.5030956,
+       "lng": 15.0848398,
+       "min": 1,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Alle 14:30 sei a Deliziosa Café & Cocktail Bar | Apericena e Colazione: è qui che ti porta la giornata.",
+       "verita": false,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Alle 14:30 sei a Deliziosa Café & Cocktail Bar | Apericena e Colazione: è qui che ti porta la giornata.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 68,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+       "title": "Palazzo dei Chierici",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:53:00.000Z",
+       "lat": 37.5021169,
+       "lng": 15.0872165,
+       "min": 3,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Palazzo dei Chierici il tempo che serve. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Palazzo dei Chierici il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 89,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJmysZMQDjExMR71d5dtbg_Vs",
+       "title": "The Broken Barrel Bar",
+       "types": [
+        "bar",
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 37.5018071,
+       "lng": 15.0914014,
+       "min": 5,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "L'aperitivo lo prendi da The Broken Barrel Bar, bar in fascia €. Il sole tramonta alle 18:27: sei qui 27 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da The Broken Barrel Bar, bar in fascia €.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:27: sei qui 27 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 75,
+       "priceLevel": 1,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJuzxaAODjExMRccoJu6YRJ9c",
+       "title": "Sotto Palazzo | Cocktail e Sapori",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 37.5023773,
+       "lng": 15.0898786,
+       "min": 2,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Trattoria Da Nuccio\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La cena è da Sotto Palazzo | Cocktail e Sapori. Qui la giornata si chiude.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La cena è da Sotto Palazzo | Cocktail e Sapori.",
+         "problemi": []
+        },
+        {
+         "testo": "Qui la giornata si chiude.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 127,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7225,
+    "tokenOut": 792
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 4
+   }
+  },
+  {
+   "id": "a-siracusa-ortigia",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Siracusa-Ortigia",
+   "posizione": "Siracusa",
+   "richiesta": "Domani, una giornata in Ortigia, a Siracusa",
+   "secs": 13.878,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Siracusa",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Siracusa",
+     "stops": [
+      {
+       "place_id": "ChIJnfBatB7MExMRiuUMi7T4E9g",
+       "title": "Piazza Minerva",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 37.0598447,
+       "lng": 15.294055,
+       "min": null,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 8,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Passi da Piazza Minerva: guardati intorno prima di ripartire. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Passi da Piazza Minerva: guardati intorno prima di ripartire.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 38,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJfzsG8h7MExMRQ--gWmzLMXs",
+       "title": "Palazzo dell'Orologio",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:02:00.000Z",
+       "lat": 37.0612483,
+       "lng": 15.2935407,
+       "min": 2,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Palazzo dell'Orologio il tempo che serve. Ci arrivi alle 10:02.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Palazzo dell'Orologio il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 10:02.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 29,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJF74KV6LPExMRUJrFs8mEKwA",
+       "title": "Osteria Bazan",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 37.0665338,
+       "lng": 15.2861502,
+       "min": 12,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Pranzi da Osteria Bazan, osteria in fascia €€. Ci arrivi alle 12:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Pranzi da Osteria Bazan, osteria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 12:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 289,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJczJhm3_PExMRzVazjPtFTJw",
+       "title": "SUONO • Drinks & Records",
+       "types": [
+        "bar",
+        "clothing_store",
+        "establishment",
+        "point_of_interest",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 37.0660439,
+       "lng": 15.2867281,
+       "min": 1,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "SUONO • Drinks & Records è la prossima tappa del tuo giro. Ci arrivi alle 14:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "SUONO • Drinks & Records è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 14:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 47,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJkRkyRjTNExMRTy1iMUubZ7E",
+       "title": "Ipogeo di Piazza Duomo, Siracusa",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:03:00.000Z",
+       "lat": 37.0588871,
+       "lng": 15.2933121,
+       "min": 13,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Entri a Ipogeo di Piazza Duomo, Siracusa alle 15:03: il resto può aspettare. Sono 13 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Entri a Ipogeo di Piazza Duomo, Siracusa alle 15:03: il resto può aspettare.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 13 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 49,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJ2QFVKjPNExMReyB5vlr8YfI",
+       "title": "Terrazza vigliena cocktail bar",
+       "types": [
+        "bar",
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 37.0601869,
+       "lng": 15.2979851,
+       "min": 6,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "L'aperitivo lo prendi da Terrazza vigliena cocktail bar, bar in fascia €€. Il sole tramonta alle 18:27: sei qui 27 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da Terrazza vigliena cocktail bar, bar in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:27: sei qui 27 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 31,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJZYkvhKLNExMR5YKEdgHTFvA",
+       "title": "Taverna Russo",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 37.0614803,
+       "lng": 15.2976131,
+       "min": 2,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La cena è da Taverna Russo, taverna in fascia €€€. Qui la giornata si chiude.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La cena è da Taverna Russo, taverna in fascia €€€.",
+         "problemi": []
+        },
+        {
+         "testo": "Qui la giornata si chiude.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 304,
+       "priceLevel": 3,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 6738,
+    "tokenOut": 812
+   },
+   "google": {
+    "place/findplacefromtext": 2,
+    "place/textsearch": 4
+   }
+  },
+  {
+   "id": "a-polignano-a-mare",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Polignano a Mare",
+   "posizione": "Polignano a Mare",
+   "richiesta": "Domani, una giornata a Polignano a Mare",
+   "secs": 14.751,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Polignano a Mare",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Polignano a Mare",
+     "stops": [
+      {
+       "place_id": "ChIJG6cZ23bLRxMRr3_SX6ei8qY",
+       "title": "Ponte Romano a Polignano a Mare",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 40.995361,
+       "lng": 17.217722,
+       "min": null,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Alle 9:30 sei a Ponte Romano a Polignano a Mare: è qui che ti porta la giornata. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Alle 9:30 sei a Ponte Romano a Polignano a Mare: è qui che ti porta la giornata.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 75,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJU-K02j3LRxMRQ7VRuBfS9Vs",
+       "title": "Piazza Vittorio Emanuele II",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:02:00.000Z",
+       "lat": 40.9963122,
+       "lng": 17.2190697,
+       "min": 2,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 0,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Attraversi Piazza Vittorio Emanuele II piano, senza fretta. Sono 2 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Attraversi Piazza Vittorio Emanuele II piano, senza fretta.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 2 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 48,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJ26CGLBTLRxMR6hd7gjRtsdA",
+       "title": "Trattoria Rosso",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 40.9958595,
+       "lng": 17.2194205,
+       "min": 1,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Pranzi da Trattoria Rosso, trattoria in fascia €€€. Sono 1 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Pranzi da Trattoria Rosso, trattoria in fascia €€€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 1 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 169,
+       "priceLevel": 3,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJyff-q-zLRxMRrt87JHSYKLQ",
+       "title": "Chiesa Madre di Santa Maria Assunta",
+       "types": [
+        "church",
+        "establishment",
+        "place_of_worship",
+        "point_of_interest"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 40.996253,
+       "lng": 17.2193115,
+       "min": 1,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "chiesa",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti prendi cinque minuti dentro Chiesa Madre di Santa Maria Assunta. Sono 1 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti prendi cinque minuti dentro Chiesa Madre di Santa Maria Assunta.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 1 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 281,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJwdwRsuzLRxMRDrm__UpFnY8",
+       "title": "Palazzo dell'Orologio",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:50:00.000Z",
+       "lat": 40.9963747,
+       "lng": 17.2189929,
+       "min": 0,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Palazzo dell'Orologio il tempo che serve. Ci arrivi alle 14:50.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Palazzo dell'Orologio il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 14:50.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 163,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJCW0otmbLRxMRa23RVbvYQbU",
+       "title": "Punto panoramico",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 40.9972615,
+       "lng": 17.2191548,
+       "min": 1,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Punto panoramico è il punto in cui la giornata rallenta. Il sole tramonta alle 18:16: sei qui 16 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Punto panoramico è il punto in cui la giornata rallenta.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:16: sei qui 16 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 119,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJlTe5mNvLRxMRKD6hsKLdqkA",
+       "title": "Olio su pane",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 40.9953136,
+       "lng": 17.2205981,
+       "min": 3,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Prelibatorio - Polignano a Mare\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Olio su pane. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Olio su pane.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 1291,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 6750,
+    "tokenOut": 823
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 3
+   }
+  },
+  {
+   "id": "a-matera",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Matera",
+   "posizione": "Matera",
+   "richiesta": "Domani, una giornata a Matera",
+   "secs": 13.467,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Matera",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Matera",
+     "stops": [
+      {
+       "place_id": "ChIJW2U9Pd5-RxMRxCS9inBmhIY",
+       "title": "Fontana Ferdinandea",
+       "types": [
+        "establishment",
+        "landmark",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 40.66619379999999,
+       "lng": 16.6064425,
+       "min": null,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Fontana Ferdinandea il tempo che serve. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Fontana Ferdinandea il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 5,
+       "recensioni": 254,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJfya36t5-RxMRXInuwMsVMRA",
+       "title": "Piazza del Sedile",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:04:00.000Z",
+       "lat": 40.6655684,
+       "lng": 16.6098713,
+       "min": 4,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 1,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza del Sedile è una piazza del centro storico di Matera, appartenente al sistema dei Sassi. Sono 4 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza del Sedile è una piazza del centro storico di Matera, appartenente al sistema dei Sassi.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 4 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 30,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJ-co-FTV_RxMR-wP4UusCr4U",
+       "title": "Hostaria Sbagliata Matera",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 40.6660441,
+       "lng": 16.6088457,
+       "min": 1,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Pranzi da Hostaria Sbagliata Matera, osteria in fascia €€. Sono 1 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Pranzi da Hostaria Sbagliata Matera, osteria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 1 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 74,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJ95vhKwB_RxMR7j5_WLp7mjM",
+       "title": "Matera, Italia",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 40.66636010000001,
+       "lng": 16.6044454,
+       "min": 5,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 7,
+        "esito": "composizione",
+        "candidatiMomento": 8,
+        "alternative": [
+         {
+          "nome": "Piazza Vittorio Veneto",
+          "famiglia": "piazza",
+          "deviazione": 4.9,
+          "merito": 0.39,
+          "tetto": true,
+          "bloccata": [
+           "una famiglia ripetuta",
+           "un incrocio"
+          ]
+         },
+         {
+          "nome": "Piazza San Pietro Caveoso,Matera,Italie",
+          "famiglia": "piazza",
+          "deviazione": 5.2,
+          "merito": 0.49,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza Madonna de Idris",
+          "famiglia": "piazza",
+          "deviazione": 5.4,
+          "merito": 0.48,
+          "tetto": true
+         },
+         {
+          "nome": "Sasso Caveoso",
+          "famiglia": null,
+          "deviazione": 5.7,
+          "merito": 0.19,
+          "tetto": true
+         }
+        ]
+       },
+       "description": "Ti fermi davanti a Matera, Italia il tempo che serve. Sono 5 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Matera, Italia il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 5 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 171,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJsycIyd1-RxMRvWMm3vB08VA",
+       "title": "Da Nonna Rosa",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:06:00.000Z",
+       "lat": 40.66364979999999,
+       "lng": 16.6079999,
+       "min": 6,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Alle 15:06 sei a Da Nonna Rosa: è qui che ti porta la giornata. Sono 6 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Alle 15:06 sei a Da Nonna Rosa: è qui che ti porta la giornata.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 6 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 726,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJ2f3u2t5-RxMR3J-vTaq4KzE",
+       "title": "Belvedere Raffaele Giura Longo (Via Duomo)",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 40.666232,
+       "lng": 16.6105235,
+       "min": 5,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi a Belvedere Raffaele Giura Longo (Via Duomo): qui si guarda, non si corre. Il sole tramonta alle 18:19: sei qui 19 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi a Belvedere Raffaele Giura Longo (Via Duomo): qui si guarda, non si corre.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:19: sei qui 19 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 38,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJ-Ze5495-RxMR-d_xz1b8das",
+       "title": "Pietra Viva",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 40.6666931,
+       "lng": 16.6094955,
+       "min": 1,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Trattoria Popolare Matera\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Pietra Viva. Sono 1 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Pietra Viva.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 1 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 650,
+       "priceLevel": 3,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 6976,
+    "tokenOut": 812
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 3
+   }
+  },
+  {
+   "id": "a-scicli",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Scicli",
+   "posizione": "Scicli",
+   "richiesta": "Domani, una giornata a Scicli",
+   "secs": 14.752,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Scicli",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Scicli",
+     "stops": [
+      {
+       "place_id": "ChIJSwbPwYmVERMRBfJFTEvPhUM",
+       "title": "Piazza Busacca",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 36.794924,
+       "lng": 14.7069978,
+       "min": null,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 2,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Passi da Piazza Busacca: guardati intorno prima di ripartire. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Passi da Piazza Busacca: guardati intorno prima di ripartire.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 1,
+       "recensioni": 23,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJvQIxqzKUERMRR6ziX0jttLo",
+       "title": "Palazzo Bonelli-Patané",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:03:00.000Z",
+       "lat": 36.7933513,
+       "lng": 14.7057271,
+       "min": 3,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Entri a Palazzo Bonelli-Patané alle 10:03: il resto può aspettare. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Entri a Palazzo Bonelli-Patané alle 10:03: il resto può aspettare.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 1,
+       "recensioni": 183,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJ79gQqDKUERMR6sgfVMQJTJo",
+       "title": "Osteria Donna Luisa",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 36.7936455,
+       "lng": 14.7060534,
+       "min": 1,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "A 1 minuti a piedi ti siedi da Osteria Donna Luisa, osteria in fascia €€. Ci arrivi alle 12:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "A 1 minuti a piedi ti siedi da Osteria Donna Luisa, osteria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 12:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 443,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJvRr76jKUERMRVwBK1wpSk2g",
+       "title": "Chiesa Madre di Sant'Ignazio di Loyola",
+       "types": [
+        "church",
+        "establishment",
+        "place_of_worship",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 36.7925604,
+       "lng": 14.7069843,
+       "min": 2,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "chiesa",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti prendi cinque minuti dentro Chiesa Madre di Sant'Ignazio di Loyola. Sono 2 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti prendi cinque minuti dentro Chiesa Madre di Sant'Ignazio di Loyola.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 2 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 216,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJt_YtQUaVERMRwTXnXmB380I",
+       "title": "Trenino Barocco Scicli",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:50:00.000Z",
+       "lat": 36.7922904,
+       "lng": 14.7071541,
+       "min": 0,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Trenino Barocco Scicli il tempo che serve. Ci arrivi alle 14:50.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Trenino Barocco Scicli il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 14:50.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 135,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJobXL4QqVERMR7bPvAvy5ZHg",
+       "title": "Punto panoramico",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 36.7956371,
+       "lng": 14.710292,
+       "min": 6,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 9.6,
+        "esito": "pool",
+        "candidatiMomento": 1,
+        "alternative": []
+       },
+       "description": "Punto panoramico è il punto in cui la giornata rallenta. Il sole tramonta alle 18:29: sei qui 29 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Punto panoramico è il punto in cui la giornata rallenta.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:29: sei qui 29 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 38,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJu1jvnDKUERMR3nkaqTRtljI",
+       "title": "Ristorante Baqqalà",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 36.7932026,
+       "lng": 14.7076126,
+       "min": 5,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Ùmmara - vineria con cucina\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La cena è da Ristorante Baqqalà, ristorante in fascia €€€. Qui la giornata si chiude.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La cena è da Ristorante Baqqalà, ristorante in fascia €€€.",
+         "problemi": []
+        },
+        {
+         "testo": "Qui la giornata si chiude.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 789,
+       "priceLevel": 3,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 6766,
+    "tokenOut": 802
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 3
+   }
+  },
+  {
+   "id": "a-troina",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Troina",
+   "posizione": "Troina",
+   "richiesta": "Domani, una giornata a Troina",
+   "secs": 14.885,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Troina",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Troina",
+     "stops": [
+      {
+       "place_id": "ChIJSdi3PqbLFhMRevZmDu4FnbQ",
+       "title": "Torre Capitania",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 37.7843305,
+       "lng": 14.5991951,
+       "min": null,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Entri a Torre Capitania alle 9:30: il resto può aspettare. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Entri a Torre Capitania alle 9:30: il resto può aspettare.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 1,
+       "recensioni": 123,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJBcsc22XLFhMRlebZppwKek0",
+       "title": "Piazza Giacomo Matteotti",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:35:00.000Z",
+       "lat": 37.7813682,
+       "lng": 14.5967726,
+       "min": 5,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 6,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Attraversi Piazza Giacomo Matteotti piano, senza fretta. Sono 5 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Attraversi Piazza Giacomo Matteotti piano, senza fretta.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 5 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 12,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJx6JflgHLFhMRtyKeuw1cF00",
+       "title": "Mordi & Fuggi",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 37.7806886,
+       "lng": 14.5940925,
+       "min": 3,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"A'PESCHERIA ristorante pesce con pescheria vendita a dettaglio\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Pranzi da Mordi & Fuggi. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Pranzi da Mordi & Fuggi.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 20,
+       "priceLevel": 1,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJa41x7nLLFhMRVz7l5o-xMrk",
+       "title": "Caffè del borgo",
+       "types": [
+        "cafe",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 37.7860524,
+       "lng": 14.5952332,
+       "min": 8,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Caffè del borgo è la prossima tappa del tuo giro. Sono 8 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Caffè del borgo è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 8 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 37,
+       "priceLevel": 1,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJvSFWIBDLFhMRILmIiEDfuw8",
+       "title": "Museo della fotografia Robert Capa",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:56:00.000Z",
+       "lat": 37.7850701,
+       "lng": 14.6005044,
+       "min": 6,
+       "scelta": "ripiego",
+       "ripiego": "famiglia",
+       "motivo": "nessuna famiglia nuova vicina (anche dopo la ricerca mirata): museo ripetuta (dalla ricerca mirata) — inevitabile: nei momenti delle tappe museo (7 candidati) nessuna alternativa libera che la tolga entro 25 min; la piu' vicina: \"Ponte di Failla\" (senza famiglia, mattina) a 37 min",
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": {
+        "esito": "inevitabile",
+        "candidatiMomento": 7,
+        "alternative": [
+         {
+          "nome": "Caffè del borgo",
+          "famiglia": null,
+          "momento": "pomeriggio",
+          "minuti": 0,
+          "usata": true
+         }
+        ],
+        "piuVicina": {
+         "nome": "Ponte di Failla",
+         "famiglia": null,
+         "momento": "mattina",
+         "minuti": 37,
+         "usata": false
+        }
+       },
+       "deviazioneProva": null,
+       "description": "Entri a Museo della fotografia Robert Capa alle 14:56: il resto può aspettare. Sono 6 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Entri a Museo della fotografia Robert Capa alle 14:56: il resto può aspettare.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 6 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 1,
+       "recensioni": 227,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJe1mWPa_LFhMReziUgGgDI4g",
+       "title": "Bar Pour Toi di Cantagallo Basilio",
+       "types": [
+        "bar",
+        "cafe",
+        "establishment",
+        "food",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 37.78690479999999,
+       "lng": 14.602297,
+       "min": 3,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 5.6,
+        "esito": "pool",
+        "candidatiMomento": 2,
+        "alternative": []
+       },
+       "description": "L'aperitivo lo prendi da Bar Pour Toi di Cantagallo Basilio, bar in fascia €. Il sole tramonta alle 18:29: sei qui 29 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da Bar Pour Toi di Cantagallo Basilio, bar in fascia €.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:29: sei qui 29 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 571,
+       "priceLevel": 1,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJNyJ-HabLFhMRJRM3dyMW35s",
+       "title": "Black & White",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 37.7851776,
+       "lng": 14.6011198,
+       "min": 3,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Mordi & Fuggi\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Black & White. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Black & White.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 367,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 5978,
+    "tokenOut": 818
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 5
+   }
+  },
+  {
+   "id": "b-roma-A",
+   "gruppo": "b",
+   "tipo": "itinerario",
+   "luogo": "Roma",
+   "posizione": "Roma",
+   "richiesta": "Domani, una giornata a Roma",
+   "profilo": "A",
+   "vincoli": {
+    "dieta": [
+     "vegetariano"
+    ],
+    "budget": "€€€",
+    "maxPriceLevel": 4
+   },
+   "profiloNome": "arte e chiese, vegetariano, €€€",
+   "secs": 13.96,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Roma",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Roma",
+     "stops": [
+      {
+       "place_id": "ChIJ202UjExgLxMRWjUxMZO3xc0",
+       "title": "Piazza d'Aracoeli",
+       "types": [
+        "establishment",
+        "park",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 41.89461319999999,
+       "lng": 12.4814877,
+       "min": null,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza d'Aracoeli è una piazza di Roma, situata alle pendici del Campidoglio, nel rione Campitelli. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza d'Aracoeli è una piazza di Roma, situata alle pendici del Campidoglio, nel rione Campitelli.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 266,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJxy7Ts0BhLxMRBMzATVixF1M",
+       "title": "Belvedere Tarpeo",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:05:00.000Z",
+       "lat": 41.8916005,
+       "lng": 12.4824864,
+       "min": 5,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 14,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi a Belvedere Tarpeo: qui si guarda, non si corre. Sono 5 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi a Belvedere Tarpeo: qui si guarda, non si corre.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 5 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 103,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJAfXw145hLxMRzU9_pRjCXKc",
+       "title": "La vita è’ n’osteria",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 41.8895051,
+       "lng": 12.4719386,
+       "min": 12,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Pranzi da La vita è’ n’osteria, osteria in fascia €€. Sono 12 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Pranzi da La vita è’ n’osteria, osteria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 12 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 982,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": true
+      },
+      {
+       "place_id": "ChIJ-Z2cHUBgLxMRz8Wfw_RW_Qw",
+       "title": "Passeggiata del Gianicolo",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 41.89146969999999,
+       "lng": 12.4613942,
+       "min": 12,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 13.1,
+        "esito": "composizione",
+        "candidatiMomento": 16,
+        "alternative": [
+         {
+          "nome": "Piazza Farnese",
+          "famiglia": "piazza",
+          "deviazione": 0,
+          "merito": 0.47,
+          "tetto": true,
+          "bloccata": [
+           "una famiglia ripetuta"
+          ]
+         },
+         {
+          "nome": "Aromaticus Trastevere",
+          "famiglia": null,
+          "deviazione": 6.7,
+          "merito": 0.38,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza del Campidoglio",
+          "famiglia": "piazza",
+          "deviazione": 16.1,
+          "merito": 0.62,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza Venezia",
+          "famiglia": "piazza",
+          "deviazione": 16.3,
+          "merito": 0.58,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza Pia",
+          "famiglia": "piazza",
+          "deviazione": 17.7,
+          "merito": 0.43,
+          "tetto": false
+         }
+        ]
+       },
+       "description": "Passi da Passeggiata del Gianicolo: guardati intorno prima di ripartire. Sono 12 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Passi da Passeggiata del Gianicolo: guardati intorno prima di ripartire.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 12 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 1,
+       "recensioni": 26135,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJzdvEF0VgLxMR2dILZEfUv04",
+       "title": "Wisdomless Club",
+       "types": [
+        "art_gallery",
+        "bar",
+        "establishment",
+        "point_of_interest",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:14:00.000Z",
+       "lat": 41.8978596,
+       "lng": 12.4702673,
+       "min": 14,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Wisdomless Club è la prossima tappa del tuo giro. Sono 14 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Wisdomless Club è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 14 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 698,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJq-sT4D9hLxMR5u-FmRi9XKg",
+       "title": "Studio 26",
+       "types": [
+        "bar",
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 41.8994407,
+       "lng": 12.4702761,
+       "min": 2,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "L'aperitivo lo prendi da Studio 26. Il sole tramonta alle 18:34: sei qui 34 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da Studio 26.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:34: sei qui 34 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 289,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJ8VKKCGxhLxMR4rcLwOWZSuM",
+       "title": "Osteria Della Parola",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 41.907361,
+       "lng": 12.4692823,
+       "min": 12,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Osteria Della Parola, osteria in fascia €€€. Sono 12 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Osteria Della Parola, osteria in fascia €€€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 12 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 478,
+       "priceLevel": 3,
+       "pasto": true,
+       "dietaCercata": true
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7243,
+    "tokenOut": 829
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 5
+   }
+  },
+  {
+   "id": "b-roma-B",
+   "gruppo": "b",
+   "tipo": "itinerario",
+   "luogo": "Roma",
+   "posizione": "Roma",
+   "richiesta": "Domani, una giornata a Roma",
+   "profilo": "B",
+   "vincoli": {
+    "dieta": [],
+    "budget": "€",
+    "maxPriceLevel": 2
+   },
+   "profiloNome": "street food e panorami, nessun vincolo, €",
+   "secs": 15.323,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Roma",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Culturale viaggio di Roma",
+     "stops": [
+      {
+       "place_id": "ChIJo1kxTbNhLxMRipCyZNXikIg",
+       "title": "Museo Centrale del Risorgimento",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 41.894008,
+       "lng": 12.4838094,
+       "min": null,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Il Museo centrale del Risorgimento al Vittoriano di Roma è uno spazio espositivo realizzato nel 1935 e aperto al pubblico nel 1970. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Il Museo centrale del Risorgimento al Vittoriano di Roma è uno spazio espositivo realizzato nel 1935 e aperto al pubblico nel 1970.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 4,
+       "recensioni": 169,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJLRgNCwBhLxMRSwjd-sRYDpE",
+       "title": "Piazza del Quirinale",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:38:00.000Z",
+       "lat": 41.8992412,
+       "lng": 12.4864047,
+       "min": 8,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 7,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza del Quirinale è una piazza romana situata fra Via del Quirinale e Via XXIV Maggio, nei rioni I Monti e II Trevi, sulla sommità dell'omonimo colle. Sono 8 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza del Quirinale è una piazza romana situata fra Via del Quirinale e Via XXIV Maggio, nei rioni I Monti e II Trevi, sulla sommità dell'omonimo colle.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 8 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 59,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJW1eAeaxhLxMRItxbhOKruY4",
+       "title": "Hostaria Romana",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 41.90236,
+       "lng": 12.487334,
+       "min": 5,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Santa Cocktail Club - Roma\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 9.4,
+        "esito": "pool",
+        "candidatiMomento": 11,
+        "alternative": [
+         {
+          "nome": "Antica Trattoria Al Gallinaccio",
+          "famiglia": null,
+          "deviazione": 8.7,
+          "merito": 0.72,
+          "tetto": true
+         },
+         {
+          "nome": "Santa Cocktail Club - Roma",
+          "famiglia": null,
+          "deviazione": 10.7,
+          "merito": 0.81,
+          "tetto": true
+         },
+         {
+          "nome": "Osteria da Fortunata - Baullari",
+          "famiglia": null,
+          "deviazione": 18.5,
+          "merito": 0.68,
+          "tetto": true
+         },
+         {
+          "nome": "Osteria da Fortunata - Pellegrino",
+          "famiglia": null,
+          "deviazione": 18.5,
+          "merito": 0.58,
+          "tetto": true
+         },
+         {
+          "nome": "Da Tonino - Trattoria Bassetti",
+          "famiglia": null,
+          "deviazione": 25.1,
+          "merito": 0.69,
+          "tetto": true
+         }
+        ]
+       },
+       "description": "A 5 minuti a piedi ti siedi da Hostaria Romana, osteria in fascia €€. Ci arrivi alle 12:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "A 5 minuti a piedi ti siedi da Hostaria Romana, osteria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 12:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 4548,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJxy7Ts0BhLxMRBMzATVixF1M",
+       "title": "Belvedere Tarpeo",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 41.8916005,
+       "lng": 12.4824864,
+       "min": 17,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi a Belvedere Tarpeo: qui si guarda, non si corre. È qui perché cerchi i panorami.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi a Belvedere Tarpeo: qui si guarda, non si corre.",
+         "problemi": []
+        },
+        {
+         "testo": "È qui perché cerchi i panorami.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 103,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJo6a_XktgLxMRmpblS064lu8",
+       "title": "Il Palazzo dei Conservatori",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:02:00.000Z",
+       "lat": 41.8932176,
+       "lng": 12.4826273,
+       "min": 2,
+       "scelta": "ripiego",
+       "ripiego": "famiglia",
+       "motivo": "nessuna famiglia nuova vicina (anche dopo la ricerca mirata): museo ripetuta (dalla ricerca mirata) — inevitabile: nei momenti delle tappe museo (22 candidati) nessuna alternativa libera che la tolga entro 25 min",
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": {
+        "esito": "inevitabile",
+        "candidatiMomento": 22,
+        "alternative": [],
+        "piuVicina": null
+       },
+       "deviazioneProva": null,
+       "description": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Sono 2 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 2 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 395,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJ3SpIsBxhLxMRQGXnU0oVZ6s",
+       "title": "8 e 1/2 Cocktail & Wine bar",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 41.9022286,
+       "lng": 12.4865284,
+       "min": 14,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "L'aperitivo lo prendi da 8 e 1/2 Cocktail & Wine bar, bar in fascia €€. Il sole tramonta alle 18:34: sei qui 34 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da 8 e 1/2 Cocktail & Wine bar, bar in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:34: sei qui 34 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 57,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJFZTEuqxhLxMRrUbEKWaXNRU",
+       "title": "Trattoria Della Stampa",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 41.9022142,
+       "lng": 12.4847673,
+       "min": 2,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Trattoria Della Stampa, trattoria in fascia €€. Sono 2 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Trattoria Della Stampa, trattoria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 2 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 4860,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7358,
+    "tokenOut": 802
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 5
+   }
+  },
+  {
+   "id": "b-catania-A",
+   "gruppo": "b",
+   "tipo": "itinerario",
+   "luogo": "Catania",
+   "posizione": "Catania",
+   "richiesta": "Domani, una giornata a Catania",
+   "profilo": "A",
+   "vincoli": {
+    "dieta": [
+     "vegetariano"
+    ],
+    "budget": "€€€",
+    "maxPriceLevel": 4
+   },
+   "profiloNome": "arte e chiese, vegetariano, €€€",
+   "secs": 14.07,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Catania",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Catania",
+     "stops": [
+      {
+       "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+       "title": "Palazzo dei Chierici",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 37.5021169,
+       "lng": 15.0872165,
+       "min": null,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 2,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Palazzo dei Chierici il tempo che serve. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Palazzo dei Chierici il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 89,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "title": "Fontana dell’Amenano",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:00:00.000Z",
+       "lat": 37.50204069999999,
+       "lng": 15.0870139,
+       "min": 0,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia. È qui perché cerchi la storia.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia.",
+         "problemi": []
+        },
+        {
+         "testo": "È qui perché cerchi la storia.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 598,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJ_TiTGADjExMRPZBMCxxzdkk",
+       "title": "MAMARÓ BISTROT",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 37.5013871,
+       "lng": 15.0852402,
+       "min": 2,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "A 2 minuti a piedi ti siedi da MAMARÓ BISTROT, bistrot in fascia €€. Ci arrivi alle 12:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "A 2 minuti a piedi ti siedi da MAMARÓ BISTROT, bistrot in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 12:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 148,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": true
+      },
+      {
+       "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+       "title": "Piazza Umbrella",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 37.501423,
+       "lng": 15.0863025,
+       "min": 1,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Anfiteatro Romano di Catania\"",
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Attraversi Piazza Umbrella piano, senza fretta. Ci arrivi alle 14:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Attraversi Piazza Umbrella piano, senza fretta.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 14:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 176,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+       "title": "Porta Uzeda",
+       "types": [
+        "establishment",
+        "landmark",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:02:00.000Z",
+       "lat": 37.5017967,
+       "lng": 15.0876359,
+       "min": 2,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca. È qui perché cerchi la storia.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca.",
+         "problemi": []
+        },
+        {
+         "testo": "È qui perché cerchi la storia.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 586,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJsQEuaevjExMRBHVcW0r2l2c",
+       "title": "Drinkeria cocktail bar",
+       "types": [
+        "bar",
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 37.5040501,
+       "lng": 15.0886764,
+       "min": 4,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "L'aperitivo lo prendi da Drinkeria cocktail bar, bar in fascia €. Il sole tramonta alle 18:27: sei qui 27 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da Drinkeria cocktail bar, bar in fascia €.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:27: sei qui 27 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 264,
+       "priceLevel": 1,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJwYpRey7jExMRJxudW7ZTTBM",
+       "title": "Trattoria U Fucularu",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 37.5040376,
+       "lng": 15.0883065,
+       "min": 0,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La cena è da Trattoria U Fucularu, trattoria in fascia €€. Qui la giornata si chiude.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La cena è da Trattoria U Fucularu, trattoria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Qui la giornata si chiude.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 3037,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": true
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7262,
+    "tokenOut": 805
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 4
+   }
+  },
+  {
+   "id": "b-catania-B",
+   "gruppo": "b",
+   "tipo": "itinerario",
+   "luogo": "Catania",
+   "posizione": "Catania",
+   "richiesta": "Domani, una giornata a Catania",
+   "profilo": "B",
+   "vincoli": {
+    "dieta": [],
+    "budget": "€",
+    "maxPriceLevel": 2
+   },
+   "profiloNome": "street food e panorami, nessun vincolo, €",
+   "secs": 14.756,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Catania",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [
+    {
+     "place_id": "ChIJX3qRACTjExMRqiFdQ3F5dSY",
+     "title": "Deliziosa Café & Cocktail Bar | Apericena e Colazione",
+     "frase": "Alle 15:47 sei a Deliziosa Café & Cocktail Bar | Apericena e Colazione: è qui che ti porta la giornata."
+    },
+    {
+     "place_id": "ChIJX3qRACTjExMRqiFdQ3F5dSY",
+     "title": "Deliziosa Café & Cocktail Bar | Apericena e Colazione",
+     "frase": "Alle 15:47 sei a Deliziosa Café & Cocktail Bar | Apericena e Colazione: è qui che ti porta la giornata."
+    }
+   ],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Catania",
+     "stops": [
+      {
+       "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+       "title": "Palazzo dei Chierici",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 37.5021169,
+       "lng": 15.0872165,
+       "min": null,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Piazza Vincenzo Bellini\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Palazzo dei Chierici il tempo che serve. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Palazzo dei Chierici il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 89,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "title": "Fontana dell’Amenano",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:00:00.000Z",
+       "lat": 37.50204069999999,
+       "lng": 15.0870139,
+       "min": 0,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia. Ci arrivi alle 10.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 10.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 598,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+       "title": "Bar Popolare",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 37.5021939,
+       "lng": 15.0849114,
+       "min": 2,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Bar Popolare è la prossima tappa del tuo giro. Sono 2 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Bar Popolare è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 2 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 88,
+       "priceLevel": 1,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJccCrTnDjExMRkdmWSDH9XGo",
+       "title": "Thirsty Corner",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "liquor_store",
+        "point_of_interest",
+        "restaurant",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 37.5023003,
+       "lng": 15.0836708,
+       "min": 1,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Thirsty Corner è la prossima tappa del tuo giro. Sono 1 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Thirsty Corner è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 1 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 241,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJX3qRACTjExMRqiFdQ3F5dSY",
+       "title": "Deliziosa Café & Cocktail Bar | Apericena e Colazione",
+       "types": [
+        "bar",
+        "cafe",
+        "establishment",
+        "food",
+        "point_of_interest",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:47:00.000Z",
+       "lat": 37.5030956,
+       "lng": 15.0848398,
+       "min": 2,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Alle 15:47 sei a Deliziosa Café & Cocktail Bar | Apericena e Colazione: è qui che ti porta la giornata.",
+       "verita": false,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Alle 15:47 sei a Deliziosa Café & Cocktail Bar | Apericena e Colazione: è qui che ti porta la giornata.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 68,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJdQr9cPX7ExMRxA2GjNivuuU",
+       "title": "Belvedere Di Carminello",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 37.5695219,
+       "lng": 15.1268025,
+       "min": 110,
+       "scelta": "ripiego",
+       "ripiego": "distanza",
+       "motivo": "nessun candidato entro 20 min (anche dopo la ricerca mirata): il piu' vicino",
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 177.5,
+        "esito": "pool",
+        "candidatiMomento": 2,
+        "alternative": []
+       },
+       "description": "Belvedere Di Carminello è il punto in cui la giornata rallenta. Il sole tramonta alle 18:27: sei qui 27 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Belvedere Di Carminello è il punto in cui la giornata rallenta.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:27: sei qui 27 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 76,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJ2b8-Gtf8ExMRGtMuV_yD7vQ",
+       "title": "Trattoria Da Peppino di Tumia Giovanni",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:01:00.000Z",
+       "lat": 37.518933,
+       "lng": 15.083023,
+       "min": 91,
+       "scelta": "ripiego",
+       "ripiego": "distanza",
+       "motivo": "nessun candidato entro 20 min (anche dopo la ricerca mirata): il piu' vicino",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La cena è da Trattoria Da Peppino di Tumia Giovanni, trattoria in fascia €€. Qui la giornata si chiude.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La cena è da Trattoria Da Peppino di Tumia Giovanni, trattoria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Qui la giornata si chiude.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 2278,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7267,
+    "tokenOut": 796
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 5
+   }
+  }
+ ],
+ "fine": "2026-10-11T15:22:44.474Z"
+}

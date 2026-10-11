@@ -129,7 +129,7 @@ describe('C5c — una ripetizione dichiara se era evitabile, con le alternative 
         expect(capa.trace).toMatchObject({ ripiego: 'famiglia', varieta: { esito: 'inevitabile' } });
         expect(capa.trace.varieta.piuVicina).toMatchObject({ nome: 'Chiesa Lontana', famiglia: 'chiesa' });
         expect(capa.trace.varieta.piuVicina.minuti).toBeGreaterThan(25);
-        expect(capa.trace.motivo).toMatch(/inevitabile: nel pool del momento \(\d+ candidati\) nessuna famiglia nuova entro 25 min; la piu' vicina che la evita: "Chiesa Lontana" \(chiesa\) a \d+ min/);
+        expect(capa.trace.motivo).toMatch(/inevitabile: nei momenti delle tappe museo \(\d+ candidati\) nessuna alternativa libera che la tolga entro 25 min; la piu' vicina: "Chiesa Lontana" \(chiesa, (mattina|pomeriggio)\) a \d+ min/);
         expect(report.ripetuti.find(x => x.place_id === 'Museo Capa')).toMatchObject({ evitabile: false });
     });
 
@@ -143,5 +143,36 @@ describe('C5c — una ripetizione dichiara se era evitabile, con le alternative 
         const fams = seq(plan).map(s => s.trace.famiglia).filter(Boolean);
         expect(new Set(fams).size).toBe(fams.length);
         expect(seq(plan).some(s => s.trace.varieta)).toBe(false);
+    });
+});
+
+// ─── La prova guarda TUTTE le tappe della famiglia (caso Napoli) ────────────
+describe('C5c — la ripetizione si puo\' togliere anche cambiando la prima tappa della famiglia', () => {
+    // pomeriggio: un belvedere; aperitivo: solo belvederi. All'aperitivo non c'e'
+    // alternativa, al pomeriggio si': una chiesa a 22 minuti dal museo della mattina
+    // (famiglia nuova entro i 25 di C1b, ma oltre il tetto di 20 della rifinitura).
+    const g = giorno([['mattina'], ['pomeriggio'], ['aperitivo']]);
+    const museo = p('Museo', 40.8400, 14.2500, ['museum']);
+    const belvA = p('Belvedere Uno', 40.8420, 14.2500);
+    const belvB = p('Belvedere Due', 40.8430, 14.2510);
+    const chiesa = p('Chiesa Lontana', 40.8400, 14.2715, ['church']);
+
+    it('controllo: la chiesa e\' fra 20 e 25 minuti dal museo', () => {
+        expect(travelMinutes(museo, chiesa)).toBeGreaterThan(20);
+        expect(travelMinutes(museo, chiesa)).toBeLessThanOrEqual(25);
+    });
+
+    it('evitabile, con l\'alternativa del pomeriggio e la regola che ha fermato lo scambio', () => {
+        const pool = [museo, belvA, belvB, chiesa];
+        const { plan } = repairMomentSelection({
+            moments: g, buckets: bucketCandidates(g, pool), pool,
+            aiStops: [{ place_id: 'Museo', moment: 'g1-mattina' }, { place_id: 'Belvedere Uno', moment: 'g1-pomeriggio' }, { place_id: 'Belvedere Due', moment: 'g1-aperitivo' }],
+        });
+        const ripetuta = seq(plan).find(s => s.trace.varieta);
+        expect(ripetuta.trace.varieta.esito).toBe('evitabile');
+        expect(ripetuta.trace.varieta.alternative).toEqual([
+            expect.objectContaining({ nome: 'Chiesa Lontana', famiglia: 'chiesa', momento: 'pomeriggio', usata: false, bloccata: ['il tetto'] }),
+        ]);
+        expect(ripetuta.trace.motivo).toMatch(/evitabile: "Chiesa Lontana" \(pomeriggio, 2\d min, bloccata da il tetto\)/);
     });
 });

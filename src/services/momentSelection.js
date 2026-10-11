@@ -836,7 +836,7 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
         }
     }
     const ordered = orderPlanWalk(out, { maxWalk, startPoint });
-    syncRepeatTraces(ordered, asked, report, { buckets, maxWalk, varietyWalk });
+    syncRepeatTraces(ordered, asked, report, { buckets, maxWalk, varietyWalk, measure, used });
     explainCrossings(ordered, { buckets, used, measure }, report);
     return ordered;
 }
@@ -883,13 +883,11 @@ function explainCrossings(plan, { buckets, used, measure }, report) {
  * sostituzione "piazza al posto di piazza" lasciava la ripetizione senza
  * dicitura: il banco non la contava e C1b non la cercava.
  */
-function syncRepeatTraces(plan, asked, report, { buckets = null, maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES } = {}) {
+function syncRepeatTraces(plan, asked, report, { buckets = null, maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES, measure = null, used = null } = {}) {
     report.ripetuti = report.ripetuti || [];
-    const inPlan = new Set(plan.flatMap(p => p.stops.map(s => idOf(s.candidate))));
     for (const day of new Set(plan.map(p => p.moment.dayIndex))) {
         const seen = new Set();
         let prevStop = null;
-        const dayStops = plan.filter(x => x.moment.dayIndex === day).flatMap(x => x.stops);
         for (const p of plan.filter(x => x.moment.dayIndex === day)) {
             for (const s of p.stops) {
                 const f = candidateFamily(s.candidate);
@@ -903,37 +901,17 @@ function syncRepeatTraces(plan, asked, report, { buckets = null, maxWalk = MAX_W
                     if (!report.ripetuti.some(x => x.place_id === id)) report.ripetuti.push({ momento: p.moment.id, place_id: id, da: pointOf(prevStop) });
                 }
                 if (repeat && buckets) {
-                    // C5c — evitabile o inevitabile, con la prova: le alternative
-                    // del pool di QUEL momento che toglierebbero la ripetizione
-                    // dalla tappa prima — famiglia nuova entro varietyWalk (C1b),
-                    // o senza famiglia entro il tetto. Un posto dove si mangia
-                    // non conta fuori dai pasti (come nella rifinitura).
-                    const others = new Set(dayStops.filter(x => x !== s).map(x => candidateFamily(x.candidate)).filter(Boolean));
-                    const cands = (buckets.get(p.moment.id) || []).filter(c => idOf(c) !== id
-                        && !(!FOOD_ONLY_MOMENT_KEYS.has(p.moment.key) && isMealPlace(c)));
-                    const evita = cands.map(c => {
-                        const fam = candidateFamily(c);
-                        const minuti = prevStop ? walkFrom(prevStop, c) : 0;
-                        const nuova = !!fam && !others.has(fam);
-                        return { nome: c.name || c.title || idOf(c), famiglia: fam, minuti, usata: inPlan.has(idOf(c)), nuova, senza: !fam || !!asked?.has(fam) };
-                    }).filter(a => a.nuova || a.senza).sort((a, b) => a.minuti - b.minuti);
-                    const vicine = evita.filter(a => (a.nuova && a.minuti <= varietyWalk) || (a.senza && a.minuti <= maxWalk));
-                    const libere = vicine.filter(a => !a.usata);
-                    const piuVicina = evita[0] ? { nome: evita[0].nome, famiglia: evita[0].famiglia, minuti: evita[0].minuti } : null;
-                    const esito = libere.length ? 'evitabile' : 'inevitabile';
-                    s.trace = { ...s.trace, varieta: {
-                        esito,
-                        candidatiMomento: cands.length,
-                        alternative: vicine.slice(0, 5).map(({ nome, famiglia, minuti, usata }) => ({ nome, famiglia, minuti, usata })),
-                        piuVicina,
-                    } };
-                    if (esito === 'inevitabile' && !/inevitabile/.test(s.trace.motivo || '')) {
-                        s.trace.motivo = `${s.trace.motivo || `${f} ripetuta`} — inevitabile: nel pool del momento (${cands.length} candidati) `
-                            + `nessuna famiglia nuova entro ${varietyWalk} min${vicine.length ? ' libera (quelle vicine sono gia\' nel giro)' : ''}`
-                            + (piuVicina ? `; la piu' vicina che la evita: "${piuVicina.nome}" (${piuVicina.famiglia || 'senza famiglia'}) a ${piuVicina.minuti} min` : '');
+                    s.trace = { ...s.trace, varieta: repeatEvidence(s, f, plan.filter(x => x.moment.dayIndex === day), { buckets, asked, maxWalk, varietyWalk, measure, used }) };
+                    const v = s.trace.varieta;
+                    if (v.esito === 'inevitabile' && !/inevitabile/.test(s.trace.motivo || '')) {
+                        s.trace.motivo = `${s.trace.motivo || `${f} ripetuta`} — inevitabile: nei momenti delle tappe ${f} (${v.candidatiMomento} candidati) `
+                            + `nessuna alternativa libera che la tolga entro ${varietyWalk} min`
+                            + (v.piuVicina ? `; la piu' vicina: "${v.piuVicina.nome}" (${v.piuVicina.famiglia || 'senza famiglia'}, ${v.piuVicina.momento}) a ${v.piuVicina.minuti} min` : '');
+                    } else if (v.esito === 'evitabile' && !/evitabile/.test(s.trace.motivo || '')) {
+                        s.trace.motivo = `${s.trace.motivo || `${f} ripetuta`} — evitabile: ${v.alternative.filter(a => !a.usata).map(a => `"${a.nome}" (${a.momento}, ${a.minuti} min${a.bloccata?.length ? `, bloccata da ${a.bloccata.join(' e ')}` : ''})`).join('; ')}`;
                     }
                     const r = report.ripetuti.find(x => x.place_id === id);
-                    if (r) r.evitabile = esito === 'evitabile';
+                    if (r) r.evitabile = v.esito === 'evitabile';
                 }
                 if (!repeat && marked) {
                     const { ripiego: _r, ...rest } = s.trace;
@@ -946,6 +924,58 @@ function syncRepeatTraces(plan, asked, report, { buckets = null, maxWalk = MAX_W
             }
         }
     }
+}
+
+/**
+ * C5c — la prova di una ripetizione: per OGNI tappa della famiglia ripetuta
+ * nel giorno (anche la prima, che si puo' cambiare quanto la seconda), le
+ * alternative del pool del suo momento che toglierebbero la ripetizione —
+ * famiglia nuova per il giorno entro `varietyWalk` dalla tappa prima, o senza
+ * famiglia entro il tetto; per la prima tappa del giorno, dal centro del gruppo
+ * con il solo tetto (C5b). Un posto dove si mangia non conta fuori dai pasti.
+ * Evitabile = almeno un'alternativa libera (non gia' nel giro). Per ognuna, con
+ * `measure` della rifinitura, quale regola ha impedito lo scambio (un tratto
+ * oltre il tetto, un incrocio, un marchio); nessuna regola = un errore.
+ */
+function repeatEvidence(stop, fam, dayPlan, { buckets, asked, maxWalk, varietyWalk, measure, used }) {
+    const dayStops = dayPlan.flatMap(p => p.stops.map(s => ({ s, p })));
+    const inDay = new Set(dayStops.map(x => idOf(x.s.candidate)));
+    const alternative = [];
+    let candidati = 0;
+    for (const [k, { s: r, p }] of dayStops.entries()) {
+        if (candidateFamily(r.candidate) !== fam) continue;
+        const prev = k ? dayStops[k - 1].s.candidate : null;
+        const ref = prev || groupCenter(dayStops.filter(x => x.s !== r).map(x => x.s.candidate));
+        const others = new Set(dayStops.filter(x => x.s !== r).map(x => candidateFamily(x.s.candidate)).filter(f => f && !asked?.has(f)));
+        const cands = (buckets.get(p.moment.id) || []).filter(c => idOf(c) !== idOf(r.candidate)
+            && !(!FOOD_ONLY_MOMENT_KEYS.has(p.moment.key) && isMealPlace(c)));
+        candidati += cands.length;
+        for (const c of cands) {
+            const f = candidateFamily(c);
+            const senza = !f || !!asked?.has(f);
+            if (!senza && others.has(f)) continue;
+            const minuti = ref ? walkFrom(ref, c) : 0;
+            const entro = senza || !prev ? minuti <= maxWalk : minuti <= varietyWalk;
+            const alt = { nome: c.name || c.title || idOf(c), famiglia: f, momento: p.moment.key, minuti, entro, usata: inDay.has(idOf(c)) || !!used?.has(idOf(c)) };
+            if (entro && !alt.usata && measure) {
+                const base = measure(dayPlan);
+                const trial = measure(dayPlan.map(x => (x !== p ? x : { ...x, stops: x.stops.map(y => (y === r ? { ...y, candidate: c } : y)) })));
+                alt.bloccata = [['oltre', 'il tetto'], ['incroci', 'un incrocio'], ['catene', 'un marchio']]
+                    .filter(([key]) => trial[key] > base[key]).map(([, nome]) => nome);
+            }
+            alternative.push(alt);
+        }
+    }
+    alternative.sort((a, b) => a.minuti - b.minuti);
+    const vicine = alternative.filter(a => a.entro);
+    const libere = vicine.filter(a => !a.usata);
+    const strip = ({ entro: _e, ...a }) => a;
+    return {
+        esito: libere.length ? 'evitabile' : 'inevitabile',
+        candidatiMomento: candidati,
+        alternative: vicine.slice(0, 6).map(strip),
+        piuVicina: alternative.find(a => !a.usata) ? strip(alternative.find(a => !a.usata)) : null,
+    };
 }
 
 // ─── C5 — l'ordine dentro il momento ─────────────────────────────────────────

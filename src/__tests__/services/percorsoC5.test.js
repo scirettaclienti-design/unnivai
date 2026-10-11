@@ -5,7 +5,7 @@
 // approssimate al centinaio di metri.
 import { describe, it, expect } from 'vitest';
 import {
-    flattenSkeleton, bucketCandidates, repairMomentSelection, orderPlanWalk, fixedPoints, detourMinutes,
+    flattenSkeleton, bucketCandidates, repairMomentSelection, orderPlanWalk, fixedPoints, detourMinutes, polishRoute,
     MAX_WALK_MINUTES, OFF_ROUTE_MINUTES,
 } from '../../services/momentSelection';
 import { routeMetrics, countCrossings } from '../../lib/routeShape';
@@ -218,5 +218,62 @@ describe('C5 — la rifinitura non cambia una scelta del modello per solo merito
         });
         expect(nomi(plan)).toEqual(['a', 'b']);
         expect(report.ritocchi).toEqual([]);
+    });
+});
+
+describe('C5 — rifinitura: famiglie ripetute, pasti fuori posto, tracce', () => {
+    const g = giorno([['mattina'], ['pomeriggio'], ['aperitivo']]);
+    const belvA = p('ba', 'Belvedere Tarpeo', 41.900, 12.480, ['tourist_attraction']);
+    const belvB = p('bb', 'Belvedere Cederna', 41.902, 12.480, ['tourist_attraction']);
+    const bar = p('bar', 'Bar Pace', 41.903, 12.480, ['bar']);
+    const ripetuta = { scelta: 'ripiego', ripiego: 'famiglia', famiglia: 'panorama', minuti: 3 };
+    const piano = () => [
+        { moment: g[0], stops: [{ candidate: belvA, source: 'modello', trace: { scelta: 'modello', famiglia: 'panorama' } }] },
+        { moment: g[1], stops: [{ candidate: belvB, source: 'riparata', trace: { ...ripetuta } }] },
+        { moment: g[2], stops: [{ candidate: bar, source: 'riparata', trace: { scelta: 'riparazione' } }] },
+    ];
+    const report = () => ({ riempite: [], ripieghi: [{ place_id: 'bb' }], ripetuti: [{ momento: 'g1-pomeriggio' }] });
+
+    it('toglie la famiglia ripetuta con una chiesa vicina, e la traccia del ripiego sparisce', () => {
+        const chiesa = p('ch', 'Chiesa di San Marco', 41.9021, 12.4801, ['church']);
+        const pool = [belvA, belvB, bar, chiesa];
+        const r = report();
+        const out = polishRoute(piano(), { buckets: bucketCandidates(g, pool), pool }, r);
+        const fam = seqOf(out).map(c => (/belvedere/i.test(c.name) ? 'panorama' : c.name));
+        expect(fam.filter(f => f === 'panorama')).toHaveLength(1);
+        expect(nomi(out)).toContain('Chiesa di San Marco');
+        expect(r.ritocchi).toEqual([expect.objectContaining({ messa: 'ch' })]);
+        expect(out.flatMap(x => x.stops).some(st => st.trace?.ripiego)).toBe(false);
+        expect(r.ripieghi).toEqual([]);
+        expect(r.ripetuti).toEqual([]);
+    });
+
+    it('mai una trattoria nel pomeriggio per togliere una ripetizione (anche se Google la dice "store")', () => {
+        const trattoria = p('tr', 'Trattoria Bottega', 41.9021, 12.4801, ['restaurant', 'food', 'store']);
+        const pool = [belvA, belvB, bar, trattoria];
+        expect(bucketCandidates(g, pool).get('g1-pomeriggio').map(c => c.place_id)).toContain('tr');
+        const r = report();
+        const out = polishRoute(piano(), { buckets: bucketCandidates(g, pool), pool }, r);
+        expect(nomi(out)).toEqual(['Belvedere Tarpeo', 'Belvedere Cederna', 'Bar Pace']);
+        expect(r.ritocchi || []).toEqual([]);
+    });
+
+    it('un ripiego "famiglia" che dopo la rifinitura non si ripete piu\' perde la dicitura', () => {
+        const chiesa = p('ch', 'Chiesa di San Marco', 41.9021, 12.4801, ['church']);
+        const pool = [belvA, belvB, bar, chiesa];
+        const pl = piano();
+        // il ripiego e' sulla prima: il belvedere che resta
+        pl[0].stops[0] = { candidate: belvA, source: 'riparata', trace: { ...ripetuta } };
+        pl[1].stops[0] = { candidate: belvB, source: 'modello', trace: { scelta: 'modello', famiglia: 'panorama' } };
+        const r = { riempite: [], ripieghi: [{ place_id: 'ba' }], ripetuti: [{ momento: 'g1-mattina' }] };
+        // la chiesa dove serve meno strada: al pomeriggio, cosi' il ripiego
+        // della mattina resta ed e' lui a dover perdere la dicitura
+        const soloPomeriggio = new Map([...bucketCandidates(g, pool)].map(([k, v]) => [k, k === 'g1-mattina' ? [belvA] : v]));
+        const out = polishRoute(pl, { buckets: soloPomeriggio, pool }, r);
+        expect(nomi(out)).toEqual(['Belvedere Tarpeo', 'Chiesa di San Marco', 'Bar Pace']);
+        expect(out[0].stops[0].trace).toMatchObject({ scelta: 'riparazione', motivo: expect.stringMatching(/non piu' ripetuta/) });
+        expect(out[0].stops[0].trace.ripiego).toBeUndefined();
+        expect(r.ripieghi).toEqual([]);
+        expect(r.ripetuti).toEqual([]);
     });
 });

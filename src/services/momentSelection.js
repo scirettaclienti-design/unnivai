@@ -666,7 +666,7 @@ const POLISH_MIN_GAIN = 2;
  *     una scelta del modello.
  * Il numero di tappe e i momenti non cambiano; ogni sostituzione va nel report.
  */
-function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: asked = null, maxWalk = MAX_WALK_MINUTES, searchedIds = null }, report) {
+export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: asked = null, maxWalk = MAX_WALK_MINUTES, searchedIds = null }, report) {
     const scoreCache = new Map();
     const scoreOf = (c) => {
         const k = idOf(c);
@@ -702,6 +702,10 @@ function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: 
             entries.forEach((e, ei) => e.stops.forEach((s, si) => {
                 for (const c of buckets.get(e.moment.id) || []) {
                     if (used.has(idOf(c))) continue;
+                    // Fuori dai pasti un posto dove si mangia entra solo al
+                    // posto di un altro: un locale senza famiglia "toglierebbe"
+                    // una ripetizione mettendo una trattoria nel pomeriggio.
+                    if (!FOOD_ONLY_MOMENT_KEYS.has(e.moment.key) && isMealPlace(c) && !isMealPlace(s.candidate)) continue;
                     const stops = e.stops.map((x, k) => (k === si ? { ...x, candidate: c } : x));
                     const trial = entries.map((x, k) => (k === ei ? { ...x, stops } : x));
                     const t = measure(trial);
@@ -713,6 +717,12 @@ function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: 
             const old = e.stops[best.si];
             used.delete(idOf(old.candidate));
             used.add(idOf(best.c));
+            // La tappa tolta porta via anche il suo ripiego.
+            if (old.trace?.ripiego) {
+                report.ripieghi = report.ripieghi.filter(x => x.place_id !== idOf(old.candidate));
+                const lista = old.trace.ripiego === 'distanza' ? 'lontani' : 'ripetuti';
+                if (report[lista]) report[lista] = report[lista].filter(x => x.momento !== e.moment.id);
+            }
             const trace = { scelta: searchedIds?.has(idOf(best.c)) ? 'ricerca mirata' : 'riparazione', minuti: null,
                 famiglia: candidateFamily(best.c), motivo: `sulla strada: al posto di "${old.candidate.name || old.candidate.title || idOf(old.candidate)}"` };
             out[idx[best.ei]] = { ...e, stops: e.stops.map((x, k) => (k === best.si ? { candidate: best.c, narration: null, source: 'riparata', trace } : x)) };
@@ -720,7 +730,28 @@ function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: 
             report.riempite.push({ place_id: idOf(best.c), name: best.c.name || best.c.title || null, momento: e.moment.id });
         }
     }
+    clearStaleRepeats(out, asked, report);
     return orderPlanWalk(out, { maxWalk });
+}
+
+// Una famiglia "ripetuta" per ripiego che, dopo la rifinitura, nel giorno non
+// si ripete piu': la traccia e il report non devono piu' dirlo.
+function clearStaleRepeats(plan, asked, report) {
+    for (const day of new Set(plan.map(p => p.moment.dayIndex))) {
+        const stops = plan.filter(p => p.moment.dayIndex === day).flatMap(p => p.stops);
+        const count = new Map();
+        for (const s of stops) {
+            const f = candidateFamily(s.candidate);
+            if (f && !asked?.has(f)) count.set(f, (count.get(f) || 0) + 1);
+        }
+        for (const s of stops) {
+            if (s.trace?.ripiego !== 'famiglia' || (count.get(s.trace.famiglia) || 0) > 1) continue;
+            const { ripiego: _r, ...rest } = s.trace;
+            s.trace = { ...rest, scelta: s.source === 'modello' ? 'modello' : 'riparazione', motivo: 'famiglia non piu\' ripetuta dopo la rifinitura del giro' };
+            report.ripieghi = report.ripieghi.filter(x => x.place_id !== idOf(s.candidate));
+            report.ripetuti = report.ripetuti.filter(x => !plan.some(p => p.moment.id === x.momento && p.stops.includes(s)));
+        }
+    }
 }
 
 // ─── C5 — l'ordine dentro il momento ─────────────────────────────────────────

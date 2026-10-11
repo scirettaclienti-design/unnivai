@@ -240,6 +240,9 @@ export const MOMENT_CATEGORY_TO_THEME = {
     'punti panoramici': 'romance',
 };
 
+/** BANCO-POOL — quanti candidati per momento finiscono nel tracciato. */
+export const POOL_MAX = 15;
+
 /** Tetto alle ricerche mirate per generazione (vincolo: oggi + 2). */
 export const MAX_EXTRA_SEARCHES = 2;
 
@@ -418,7 +421,26 @@ export function repairMomentSelection(args) {
     }
     const plan = polishRoute(orderPlanWalk(res.plan, args), args, res.report);
     res.report.ricercheDaFare = searchQueue(plan, res.report, args);
+    if (res.report.pool) markPoolFinal(res.report.pool, plan);
     return { plan, report: res.report };
+}
+
+/**
+ * BANCO-POOL — dopo la rifinitura: per ogni candidato registrato, se e' nel
+ * giro finale (la rifinitura puo' aver sostituito lo scelto). Solo lettura.
+ */
+function markPoolFinal(pool, plan) {
+    for (const p of plan) {
+        const entry = pool[p.moment.id];
+        if (!entry) continue;
+        const finali = new Set(p.stops.map(s => idOf(s.candidate)));
+        for (const c of entry.candidati) c.nelGiro = finali.has(c.place_id);
+        for (const s of p.stops) {
+            if (entry.candidati.some(c => c.place_id === idOf(s.candidate))) continue;
+            entry.candidati.push({ place_id: idOf(s.candidate), nome: s.candidate.name || s.candidate.title || null,
+                famiglia: candidateFamily(s.candidate), scelto: false, nelGiro: true, motivo: 'messo dalla rifinitura' });
+        }
+    }
 }
 
 /**
@@ -491,9 +513,17 @@ export function nextStops(plan) {
 function repairPass({
     moments, buckets, aiStops, pool, dnaWeights = {}, requestedFamilies: asked = null,
     maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES,
-    searchedIds = null, searchedMoments = null, startPoint = null,
+    searchedIds = null, searchedMoments = null, startPoint = null, registraPool = true,
 }, targets, starts) {
     const report = { scartate: [], riempite: [], momentiTolti: [], ripieghi: [], lontani: [], ripetuti: [], ritocchi: [] };
+    // BANCO-POOL — le scelte del modello cosi' come sono arrivate, e (sotto) la
+    // classifica che il codice ha calcolato a ogni posto. Solo registrazione:
+    // niente di qui entra nelle decisioni.
+    if (registraPool) {
+        report.sceltaModello = (Array.isArray(aiStops) ? aiStops : []).filter(x => x && x.place_id)
+            .map(x => ({ place_id: x.place_id, momento: x.moment ?? null }));
+        report.pool = {};
+    }
     const poolIds = new Set((pool || []).map(idOf));
     const ai = (Array.isArray(aiStops) ? aiStops : []).filter(s => s && typeof s === 'object');
 
@@ -647,9 +677,53 @@ function repairPass({
             if (k[5] !== a[5]) return 'dopo di lui nessuna tappa nuova entro il tetto';
             return `fuori strada: ${Math.round(detourMinutes(devFrom(), c, targetOf()))} min di giro verso "${targetOf()?.name || targetOf()?.title || '?'}"`;
         };
+        // BANCO-POOL — la classifica del posto che si sta riempiendo, come il
+        // codice l'ha appena calcolata (ranked): per ogni candidato le minute,
+        // la deviazione, il merito e la prima regola in cui perde contro lo
+        // scelto. Al massimo POOL_MAX candidati per momento.
+        const POOL_REASONS = ['stesso marchio gia\' nel giorno', 'oltre il tetto di cammino', 'piu\' lontano oltre il tetto',
+            null, 'toglie l\'unica alternativa a un momento dopo', 'dopo di lui nessuna tappa nuova entro il tetto', 'fuori strada'];
+        const recordPool = (c) => {
+            if (!registraPool) return;
+            const all = ranked();
+            const mine = all.find(x => idOf(x.c) === idOf(c));
+            const entry = report.pool[m.id] || (report.pool[m.id] = { posti: 0, candidati: [] });
+            const posto = entry.posti++;
+            const whyNot = (x) => {
+                if (!mine) return null;
+                for (let i = 0; i < x.key.length; i++) {
+                    if (x.key[i] === mine.key[i]) continue;
+                    if (x.key[i] < mine.key[i]) return 'regole migliori dello scelto (scelta del modello a pari merito di regole)';
+                    if (i === 3) return x.key[3] === 2 ? `famiglia gia' presente nel giorno (${famOf(x.c)})` : 'famiglia nuova ma oltre i 20 min';
+                    return POOL_REASONS[i];
+                }
+                return worth(x) < worth(mine) ? 'merito e strada minori (a pari regole)' : 'pari: lo scelto viene prima (modello o ordine)';
+            };
+            for (const x of all) {
+                const id = idOf(x.c);
+                const prima = entry.candidati.find(e => e.place_id === id);
+                if (prima) { if (id === idOf(c)) Object.assign(prima, { scelto: true, posto, motivo: null }); continue; }
+                if (entry.candidati.length >= POOL_MAX && id !== idOf(c)) continue;
+                entry.candidati.push({
+                    place_id: id, nome: x.c.name || x.c.title || null, famiglia: famOf(x.c),
+                    merito: Math.round(scoreOf(x.c) * 100) / 100,
+                    minuti: Number.isFinite(x.t) ? x.t : null,
+                    deviazione: Math.round(x.dev * 10) / 10,
+                    scelto: id === idOf(c), posto,
+                    motivo: id === idOf(c) ? null : whyNot(x),
+                });
+            }
+            // lo scelto c'e' sempre: oltre il tetto di POOL_MAX esce l'ultimo non scelto
+            while (entry.candidati.length > POOL_MAX) {
+                const k = entry.candidati.map(e => e.scelto).lastIndexOf(false);
+                if (k < 0) break;
+                entry.candidati.splice(k, 1);
+            }
+        };
         // Un passo oltre il tetto e' un ripiego, tranne quando lo paga la
         // varieta' (famiglia nuova entro i 25 minuti): quello e' una scelta.
         const take = (c, narration, source, cost) => {
+            recordPool(c);
             const { over, dup, stretch: byVariety, chain } = cost;
             const first = fromRef();
             const ripiego = chain ? 'catena' : ((over && !byVariety) ? (first ? 'partenza' : 'distanza') : (dup ? 'famiglia' : null));

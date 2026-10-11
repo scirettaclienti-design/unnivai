@@ -205,6 +205,13 @@ for (const caso of casi) {
                 rec.destinazione = r.destination ? { city: r.destination.city, fromText: r.destination.fromText, note: r.destination.note || null } : null;
                 rec.giorno = r.tourWindow ? { date: r.tourWindow.date, start: r.tourWindow.start } : null;
                 rec.frasiTolte = r._narrationReport?.frasiTolte ?? null;
+                // BANCO-POOL — per ogni momento i candidati che il codice ha messo in
+                // classifica (al massimo 15: famiglia, merito, minuti, deviazione,
+                // scelto o perche' no) e le scelte del modello: le diagnosi dopo un
+                // giro si fanno da qui, senza rigenerare.
+                rec.pool = r._momentReport?.pool ?? null;
+                rec.sceltaModello = r._momentReport?.sceltaModello ?? null;
+                rec.ricerche = { prima: r._momentReport?.ricercheMirate ?? null, dopo: r._momentReport?.ricercheDopo ?? null };
                 const per = new Map((r._narrationReport?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
                 const comp = new Map((r._narrationReport?.composizione || []).map(x => [x.place_id, x]));
                 const riempite = new Set((r._momentReport?.riempite || []).map(x => x.place_id));

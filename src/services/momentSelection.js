@@ -37,7 +37,7 @@
 import { computeCandidateScore } from './candidateScoring';
 import { resolveStayMinutes, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
 import { FOOD_ONLY_MOMENT_KEYS } from '../lib/daySkeleton';
-import { brandKey, legKm, pathKm, countCrossings, repeatedBrands } from '../lib/routeShape';
+import { brandKey, legKm, pathKm, minimalPathKm, countCrossings, repeatedBrands } from '../lib/routeShape';
 
 // ─── Categorie dello scheletro, dai types Google ─────────────────────────────
 //
@@ -647,18 +647,23 @@ function repairPass({
 // ─── C5 — rifinitura sul giro intero ─────────────────────────────────────────
 
 const MAX_POLISH_ROUNDS = 12;
+// Il guadagno minimo di una sostituzione per sola strada: ~150 m a piedi.
+// STIMA DA TARARE.
+const POLISH_MIN_GAIN = 2;
 
 /**
  * La scelta momento per momento non vede il giro intero: due tappe ognuna
  * "sulla strada" possono ancora tagliarsi. Qui, giorno per giorno, si prova a
  * sostituire una tappa con un altro candidato DELLO STESSO MOMENTO e si tiene
  * il cambio migliore se:
- *   · non aggiunge tratti oltre il tetto, famiglie ripetute ne' catene (C1, C1b
- *     e la regola dei marchi restano dure);
- *   · toglie incroci, o a parita' di incroci accorcia il giro di almeno
- *     OFF_ROUTE_MINUTES e abbassa "cammino meno merito" (ogni minuto a piedi
- *     vale DETOUR_WEIGHT punti di merito, come nella scelta). Il merito da
- *     solo non cambia mai una tappa: la scelta resta del modello.
+ *   · non aggiunge tratti oltre il tetto, famiglie ripetute, catene ne'
+ *     incroci (C1, C1b e la regola dei marchi restano dure), e
+ *   · ne toglie almeno uno; oppure, a parita', accorcia di almeno
+ *     POLISH_MIN_GAIN minuti la somma "cammino + avanti-e-indietro" (cammino
+ *     reale + quanto supera il cammino minimo sulle stesse tappe) e abbassa
+ *     quella somma tassata meno il merito (ogni minuto vale DETOUR_WEIGHT
+ *     punti di merito, come nella scelta). Il merito da solo non cambia mai
+ *     una scelta del modello.
  * Il numero di tappe e i momenti non cambiano; ogni sostituzione va nel report.
  */
 function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: asked = null, maxWalk = MAX_WALK_MINUTES, searchedIds = null }, report) {
@@ -677,14 +682,16 @@ function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: 
             oltre: seq.slice(1).filter((c, i) => walkFrom(seq[i], c) > maxWalk).length,
             famiglie: fams.length - new Set(fams).size,
             catene: repeatedBrands(seq).length,
-            minuti: toMinutes(pathKm(seq)),
+            // cammino + avanti-e-indietro, in minuti: 2 x reale - minimo
+            strada: toMinutes(2 * pathKm(seq) - minimalPathKm(seq)),
             merito: seq.reduce((a, c) => a + scoreOf(c), 0),
         };
     };
-    const costo = (x) => DETOUR_WEIGHT * x.minuti - x.merito;
-    const better = (t, m) => t.oltre <= m.oltre && t.famiglie <= m.famiglie && t.catene <= m.catene
-        && (t.incroci < m.incroci
-            || (t.incroci === m.incroci && t.minuti <= m.minuti - OFF_ROUTE_MINUTES && costo(t) < costo(m) - 1e-9));
+    const REGOLE = ['oltre', 'famiglie', 'catene', 'incroci'];
+    const costo = (x) => DETOUR_WEIGHT * x.strada - x.merito;
+    const better = (t, m) => REGOLE.every(k => t[k] <= m[k])
+        && (REGOLE.some(k => t[k] < m[k])
+            || (t.strada <= m.strada - POLISH_MIN_GAIN && costo(t) < costo(m) - 1e-9));
     const out = [...plan];
     for (const day of new Set(plan.map(p => p.moment.dayIndex))) {
         const idx = out.map((p, i) => i).filter(i => out[i].moment.dayIndex === day);

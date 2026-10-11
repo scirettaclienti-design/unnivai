@@ -157,7 +157,9 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
         // sta sulla strada.
         expect(result._momentReport.scartate.map(x => [x.place_id, x.motivo.replace(/\d+ min/, 'N min')]))
             .toEqual([[expect.stringContaining('goccetto'), 'fuori strada: N min di giro verso "Da Teo"']]);
-        expect(result._momentReport.riempite.map(x => x.name)).toEqual(['Freni e Frizioni']);
+        // Ogni altro riempimento e' un ritocco di strada dichiarato (C5).
+        const ritocchi = new Set(result._momentReport.ritocchi.map(x => x.messa));
+        expect(result._momentReport.riempite.filter(x => !ritocchi.has(x.place_id)).map(x => x.name)).toEqual(['Freni e Frizioni']);
         // C5 — la forma del giro nel tracciato.
         expect(result._momentReport.percorso).toEqual([expect.objectContaining({ tappe: 5, incroci: 0, catene: 0 })]);
     });

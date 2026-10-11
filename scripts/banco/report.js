@@ -39,7 +39,10 @@ function indizi(voce, m, caso, comune, S) {
         case 'percorso': {
             const motivo = tappeDi(caso).map(s => s.incrocio).find(Boolean);
             const g = m.percorso.giornate.map((x, i) => `${m.percorso.giornate.length > 1 ? `giorno ${i + 1}: ` : ''}incroci ${x.incroci}, deviazioni > ${S.deviazioneMinuti} min ${x.deviazioniOltre}, max ${n1(x.deviazioneMax)} min${x.colpevole ? ` (${x.colpevole.titolo} @${x.colpevole.momento})` : ''}`).join('; ');
-            return `${g} — giro: ${percorsoTesto(caso)}${motivo ? ` — tracciato: «${motivo}»` : ''}`;
+            const prove = tappeDi(caso).filter(s => s.deviazioneProva).map(s => `${s.title} @${s.moment} ${n1(s.deviazioneProva.minuti)} min: ${s.deviazioneProva.esito}`
+                + (s.deviazioneProva.alternative[0] ? ` (la migliore alternativa: ${s.deviazioneProva.alternative[0].nome} ${n1(s.deviazioneProva.alternative[0].deviazione)} min`
+                    + `${s.deviazioneProva.alternative[0].bloccata?.length ? `, bloccata da ${s.deviazioneProva.alternative[0].bloccata.join(' e ')}` : ''})` : ' (nessuna alternativa libera)')).join('; ');
+            return `${g} — giro: ${percorsoTesto(caso)}${motivo ? ` — tracciato: «${motivo}»` : ''}${prove ? ` — cause: ${prove}` : ''}`;
         }
         case 'catene': return (m.percorso.giornate || []).length ? `stesso marchio: ${catene(caso)}` : '';
         case 'destinazione': return `uscito a ${m.destinazione.citta || '?'} invece di ${m.destinazione.attesa}${m.destinazione.tappeLontane.length ? `; tappe oltre ${S.destinazioneMaxKm} km: ${m.destinazione.tappeLontane.join(', ')}` : ''}`;

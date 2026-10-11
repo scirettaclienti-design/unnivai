@@ -20,7 +20,9 @@ const MUSEO = ['museum', 'tourist_attraction', 'point_of_interest', 'establishme
 const RISTO = ['restaurant', 'food', 'point_of_interest', 'establishment'];
 const BAR = ['bar', 'point_of_interest', 'establishment'];
 
-const LIBERAZIONE = place('Museo Storico della Liberazione', MUSEO, 0.002, 0.000);
+// C5d — sulla linea delle altre tappe: questo test guarda la frase, non la forma del giro
+// (a nord, fuori linea, la rifinitura lo sostituiva per togliere una deviazione).
+const LIBERAZIONE = place('Museo Storico della Liberazione', MUSEO, -0.001, 0.0015);
 const MUSEI = [LIBERAZIONE, place('Galleria Doria Pamphilj', MUSEO, -0.002, 0.004), place('Museo Barracco', MUSEO, -0.001, -0.002)];
 const TRATTORIE = [place('Armando al Pantheon', RISTO, 0.000, 0.003), place('Da Teo', RISTO, -0.011, 0.001)];
 const BARS = [place('Enoteca Il Goccetto', BAR, -0.003, -0.006)];

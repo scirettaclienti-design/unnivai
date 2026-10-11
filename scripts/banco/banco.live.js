@@ -145,6 +145,8 @@ const tappa = (s, fatti, comp, riempite, dieta) => {
         incrocio: s._tracciato?.incrocio || null, daPartenza: s._tracciato?.daPartenza || null,
         // C5c — una famiglia ripetuta: evitabile o inevitabile, con le alternative del pool.
         varieta: s._tracciato?.varieta || null,
+        // C5d — una deviazione oltre 5 min: pool o composizione, con le alternative del momento.
+        deviazioneProva: s._tracciato?.deviazioneProva || null,
         description: r.description, verita: r.verita, voce: r.voce, frasi, fatti: (fatti || []).length,
         recensioni: l.recensioni ?? null, priceLevel: l.priceLevel ?? null,
         pasto: isMealPlace({ types, name: r.title, title: r.title }),

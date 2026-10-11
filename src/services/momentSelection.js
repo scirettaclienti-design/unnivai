@@ -23,6 +23,8 @@
  *      lo stesso marchio due volte nel giorno; dentro un momento con piu'
  *      tappe, l'ordine che fa il cammino piu' corto (orderPlanWalk); in fondo
  *      una rifinitura sul giro intero (polishRoute);
+ *      C5d: la deviazione del motore e' quella della misura del banco
+ *      (voce 12): A→B→C con le tappe vere vicine, non verso il pasto dopo;
  *      C5b: la prima tappa del giorno si misura dal punto di partenza (o dal
  *      centro del gruppo) con le stesse regole delle altre; una famiglia
  *      ripetuta nel giro finale resta sempre dichiarata, cosi' la ricerca
@@ -41,7 +43,7 @@
 import { computeCandidateScore } from './candidateScoring';
 import { resolveStayMinutes, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
 import { FOOD_ONLY_MOMENT_KEYS } from '../lib/daySkeleton';
-import { brandKey, legKm, pathKm, minimalPathKm, countCrossings, crossingPairs, repeatedBrands } from '../lib/routeShape';
+import { brandKey, legKm, pathKm, minimalPathKm, countCrossings, crossingPairs, repeatedBrands, stopDetours } from '../lib/routeShape';
 
 // ─── Categorie dello scheletro, dai types Google ─────────────────────────────
 //
@@ -138,6 +140,10 @@ export const VARIETY_MAX_WALK_MINUTES = 25;
 // STIME DA TARARE, in un posto solo.
 export const OFF_ROUTE_MINUTES = 5;
 export const DETOUR_WEIGHT = 0.02;
+// C5d — le soglie della voce 12 del banco (banco.config.json: deviazioneMinuti,
+// deviazioneMaxMinuti): la rifinitura guarda le stesse. Un test le lega.
+export const ROUTE_DEVIATION_MINUTES = 5;
+export const ROUTE_DEVIATION_MAX_MINUTES = 10;
 // I punti fissi si leggono da un primo giro senza deviazione, poi si rifa' la
 // scelta; al massimo ROUTE_PASSES volte, o finche' il piano non cambia.
 const ROUTE_PASSES = 2;
@@ -405,7 +411,7 @@ export function repairMomentSelection(args) {
     let res = repairPass(args, null, null);
     for (let i = 0; i < ROUTE_PASSES; i++) {
         const ordered = orderPlanWalk(res.plan, args);
-        const next = repairPass(args, fixedPoints(ordered), dayStartRefs(ordered, args.startPoint));
+        const next = repairPass(args, nextStops(ordered), dayStartRefs(ordered, args.startPoint));
         const same = planKey(next.plan) === planKey(res.plan);
         res = next;
         if (same) break;
@@ -462,20 +468,23 @@ export function dayStartRefs(plan, startPoint = null) {
 const planKey = (plan) => plan.map(p => `${p.moment.id}:${p.stops.map(s => idOf(s.candidate)).join(',')}`).join('|');
 
 /**
- * C5 — il prossimo punto fisso di ogni momento del piano: per un pasto la
- * prima tappa dopo, per gli altri momenti il pasto dopo, nello stesso giorno.
- * Fine giornata senza pasto dopo: nessun punto fisso (conta solo il tetto).
- * @returns {Map<string, object|null>} id momento → candidato
+ * C5d — la tappa vera che segue ogni posto del piano: per il momento `m`, la
+ * tappa dopo ognuna delle sue tappe nell'ordine del giro (la seconda tappa
+ * dello stesso momento, o la prima del momento dopo), nello stesso giorno.
+ * E' la "C" della misura del banco (A→B→C): prima (C5) il motore guardava il
+ * pasto dopo, e la prima di due tappe al pomeriggio poteva fare uno zig-zag che
+ * il motore non vedeva (Roma, Palazzo Massimo: 4,9 min per il motore, 12,5 per
+ * la misura).
+ * @returns {Map<string, Array<object|null>>} id momento → tappa dopo, per posto
  */
-export function fixedPoints(plan) {
+export function nextStops(plan) {
     const out = new Map();
-    plan.forEach((p, i) => {
-        const later = plan.slice(i + 1).filter(x => x.moment.dayIndex === p.moment.dayIndex);
-        const at = FOOD_ONLY_MOMENT_KEYS.has(p.moment.key)
-            ? later[0]
-            : later.find(x => FOOD_ONLY_MOMENT_KEYS.has(x.moment.key));
-        out.set(p.moment.id, at?.stops[0]?.candidate || null);
-    });
+    for (const day of new Set(plan.map(p => p.moment.dayIndex))) {
+        const entries = plan.filter(p => p.moment.dayIndex === day);
+        const flat = entries.flatMap(p => p.stops.map(s => ({ p, c: s.candidate })));
+        for (const p of entries) out.set(p.moment.id, []);
+        flat.forEach(({ p }, i) => out.get(p.moment.id).push(flat[i + 1]?.c || null));
+    }
     return out;
 }
 
@@ -543,12 +552,13 @@ function repairPass({
     };
     moments.forEach((m, mi) => {
         if (m.dayIndex !== day) { day = m.dayIndex; prev = null; dayFamilies = new Set(); dayBrands = new Set(); }
-        const target = targets?.get(m.id) || null;
         const bucket = buckets.get(m.id) || [];
         const inBucket = new Map(bucket.map(c => [idOf(c), c]));
         const later = moments.slice(mi + 1).filter(x => x.dayIndex === m.dayIndex && x.stops > 0);
         const chosen = [];
         const last = () => (chosen.length ? chosen[chosen.length - 1].candidate : prev);
+        // C5d — la tappa dopo il posto che si sta riempiendo (dal giro di prima).
+        const targetOf = () => targets?.get(m.id)?.[chosen.length] ?? null;
         // C5b — la prima tappa del giorno non ha una tappa prima: si misura dal
         // punto di partenza o dal centro del gruppo, con lo stesso tetto delle
         // altre. Niente passo pagato dalla varieta': alla prima tappa ogni
@@ -605,7 +615,7 @@ function repairPass({
             const hard = over && !stretch;
             const rank = stretch ? 1 : (dup ? 2 : 0);
             const chain = !!brandOf(c) && dayBrands.has(brandOf(c));
-            const dev = detourMinutes(devFrom(), c, target);
+            const dev = detourMinutes(devFrom(), c, targetOf());
             return { c, t, over, dup, stretch, chain, hard, dev, pre: [chain ? 1 : 0, hard ? 1 : 0, hard ? t : 0, rank, starves(c) ? 1 : 0, strands(c) ? 1 : 0] };
         };
         const cmpKey = (a, b) => {
@@ -635,7 +645,7 @@ function repairPass({
             if (k[3] !== a[3]) return k[3] === 2 ? `famiglia gia' presente nel giorno (${famOf(c)})` : dist;
             if (k[4] !== a[4]) return `toglie l'unica alternativa a un momento dopo (${famOf(c)})`;
             if (k[5] !== a[5]) return 'dopo di lui nessuna tappa nuova entro il tetto';
-            return `fuori strada: ${Math.round(detourMinutes(devFrom(), c, target))} min di giro verso "${target?.name || target?.title || '?'}"`;
+            return `fuori strada: ${Math.round(detourMinutes(devFrom(), c, targetOf()))} min di giro verso "${targetOf()?.name || targetOf()?.title || '?'}"`;
         };
         // Un passo oltre il tetto e' un ripiego, tranne quando lo paga la
         // varieta' (famiglia nuova entro i 25 minuti): quello e' una scelta.
@@ -650,7 +660,7 @@ function repairPass({
                 minuti: from && Number.isFinite(cost.t) ? cost.t : null,
                 famiglia: famOf(c),
             };
-            if (target && devFrom()) trace.deviazione = Math.round(cost.dev);
+            if (targetOf() && devFrom()) trace.deviazione = Math.round(cost.dev);
             if (first) trace.daPartenza = { minuti: cost.t, da: refName };
             if (byVariety) trace.motivo = `famiglia nuova a ${cost.t} min: la varieta' vale il passo oltre i ${maxWalk}`;
             if (ripiego) {
@@ -784,15 +794,32 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
             // cammino + avanti-e-indietro, in minuti: 2 x reale - minimo
             strada: toMinutes(2 * pathKm(seq) - minimalPathKm(seq)),
             merito: seq.reduce((a, c) => a + scoreOf(c), 0),
+            // C5d — la voce 12 del banco, con la sua stessa funzione (stopDetours):
+            // tappe con deviazione oltre 5 min, oltre 10, e la somma.
+            ...(() => {
+                const dev = stopDetours(seq).map(d => d.minuti);
+                return {
+                    devGravi: dev.filter(x => x > ROUTE_DEVIATION_MAX_MINUTES).length,
+                    devOltre: dev.filter(x => x > ROUTE_DEVIATION_MINUTES).length,
+                    devSomma: dev.reduce((a, x) => a + x, 0),
+                };
+            })(),
         };
     };
+    // C5d — anche la voce 12 e' una regola: uno scambio non aggiunge deviazioni
+    // oltre 5 o 10 min. Le regole dure vengono prima (varieta' sopra la forma).
     const REGOLE = ['oltre', 'famiglie', 'catene', 'incroci'];
+    const DEVIAZIONI = ['devGravi', 'devOltre'];
     const costo = (x) => DETOUR_WEIGHT * x.strada - x.merito;
     // C5c — nessuna famiglia guadagna ripetizioni: cosi' una ripetizione non
     // si sposta mai da una famiglia all'altra, anche a totale invariato.
     const noFamilyGains = (t, m) => Object.entries(t.perFamiglia).every(([f, n]) => n <= (m.perFamiglia[f] ?? 0));
-    const better = (t, m) => REGOLE.every(k => t[k] <= m[k]) && noFamilyGains(t, m)
+    // C5d — togliere una deviazione non vale qualunque merito: lo stesso cambio
+    // della scelta, DETOUR_WEIGHT punti di merito per minuto di deviazione tolto.
+    const meritOk = (t, m) => t.merito >= m.merito - DETOUR_WEIGHT * Math.max(0, m.devSomma - t.devSomma) - 1e-9;
+    const better = (t, m) => [...REGOLE, ...DEVIAZIONI].every(k => t[k] <= m[k]) && noFamilyGains(t, m)
         && (REGOLE.some(k => t[k] < m[k])
+            || (DEVIAZIONI.some(k => t[k] < m[k]) && meritOk(t, m))
             || (t.strada <= m.strada - POLISH_MIN_GAIN && costo(t) < costo(m) - 1e-9));
     const out = [...plan];
     for (const day of new Set(plan.map(p => p.moment.dayIndex))) {
@@ -837,8 +864,62 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
     }
     const ordered = orderPlanWalk(out, { maxWalk, startPoint });
     syncRepeatTraces(ordered, asked, report, { buckets, maxWalk, varietyWalk, measure, used });
+    explainDetours(ordered, { buckets, used, measure, maxWalk, scoreOf }, report);
     explainCrossings(ordered, { buckets, used, measure }, report);
     return ordered;
+}
+
+/**
+ * C5d — una deviazione oltre ROUTE_DEVIATION_MINUTES che resta nel giro finale
+ * dice perche', con la prova: le alternative LIBERE del pool di quel momento,
+ * ciascuna con la sua deviazione fra le stesse tappe vicine (stopDetours, la
+ * misura del banco) e il suo merito. Esito:
+ *   pool          nessuna alternativa sotto la soglia;
+ *   composizione  almeno una sotto la soglia: `bloccata` dice quale regola della
+ *                 rifinitura l'ha fermata (tetto, famiglia ripetuta, marchio,
+ *                 incrocio, un'altra deviazione, merito, un locale fuori dai pasti).
+ */
+const DETOUR_RULES = [
+    ['oltre', 'il tetto'], ['famiglie', 'una famiglia ripetuta'], ['catene', 'un marchio'], ['incroci', 'un incrocio'],
+    ['devGravi', 'una deviazione oltre 10 min'], ['devOltre', 'un\'altra deviazione oltre 5 min'],
+];
+function explainDetours(plan, { buckets, used, measure, maxWalk, scoreOf }, report) {
+    for (const day of new Set(plan.map(p => p.moment.dayIndex))) {
+        const entries = plan.filter(p => p.moment.dayIndex === day);
+        const flat = entries.flatMap(p => p.stops.map(s => ({ p, s })));
+        const base = measure(entries);
+        for (const d of stopDetours(flat.map(x => x.s.candidate))) {
+            if (d.minuti <= ROUTE_DEVIATION_MINUTES) continue;
+            const { p, s } = flat[d.indice];
+            const A = flat[d.indice - 1].s.candidate, C = flat[d.indice + 1].s.candidate;
+            const alternative = (buckets.get(p.moment.id) || [])
+                .filter(c => !used.has(idOf(c)) && idOf(c) !== idOf(s.candidate))
+                .map(c => {
+                    const [dc] = stopDetours([A, c, C]);
+                    const alt = { nome: c.name || c.title || idOf(c), famiglia: candidateFamily(c), deviazione: dc ? Math.round(dc.minuti * 10) / 10 : null,
+                        merito: Math.round(scoreOf(c) * 100) / 100, tetto: walkFrom(A, c) <= maxWalk && walkFrom(c, C) <= maxWalk };
+                    if (alt.deviazione !== null && alt.deviazione <= ROUTE_DEVIATION_MINUTES) {
+                        const trial = measure(entries.map(x => (x !== p ? x : { ...x, stops: x.stops.map(y => (y === s ? { ...y, candidate: c } : y)) })));
+                        alt.bloccata = DETOUR_RULES.filter(([k]) => trial[k] > base[k]).map(([, nome]) => nome);
+                        if (Object.entries(trial.perFamiglia).some(([f, n]) => n > (base.perFamiglia[f] ?? 0)) && !alt.bloccata.includes('una famiglia ripetuta')) alt.bloccata.push('una famiglia ripetuta');
+                        if (!FOOD_ONLY_MOMENT_KEYS.has(p.moment.key) && isMealPlace(c) && !isMealPlace(s.candidate)) alt.bloccata.push('un locale dove si mangia fuori dai pasti');
+                        if (!alt.bloccata.length && trial.merito < base.merito - DETOUR_WEIGHT * Math.max(0, base.devSomma - trial.devSomma) - 1e-9) alt.bloccata.push('il merito');
+                    }
+                    return alt;
+                })
+                .filter(a => a.deviazione !== null)
+                .sort((a, b) => a.deviazione - b.deviazione);
+            const sotto = alternative.filter(a => a.deviazione <= ROUTE_DEVIATION_MINUTES);
+            const prova = {
+                minuti: Math.round(d.minuti * 10) / 10,
+                esito: sotto.length ? 'composizione' : 'pool',
+                candidatiMomento: (buckets.get(p.moment.id) || []).length,
+                alternative: alternative.slice(0, 5),
+            };
+            s.trace = { ...(s.trace || {}), deviazioneProva: prova };
+            report.deviazioni = [...(report.deviazioni || []), { momento: p.moment.id, place_id: idOf(s.candidate), ...prova }];
+        }
+    }
 }
 
 // C5b — un incrocio che resta deve dire perche'. Per ogni giorno con incroci si

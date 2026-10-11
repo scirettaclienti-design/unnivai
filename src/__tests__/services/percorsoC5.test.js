@@ -5,7 +5,7 @@
 // approssimate al centinaio di metri.
 import { describe, it, expect } from 'vitest';
 import {
-    flattenSkeleton, bucketCandidates, repairMomentSelection, orderPlanWalk, fixedPoints, detourMinutes, polishRoute,
+    flattenSkeleton, bucketCandidates, repairMomentSelection, orderPlanWalk, nextStops, detourMinutes, polishRoute,
     MAX_WALK_MINUTES, OFF_ROUTE_MINUTES,
 } from '../../services/momentSelection';
 import { routeMetrics, countCrossings } from '../../lib/routeShape';
@@ -157,14 +157,15 @@ describe('C5 — sulla strada verso il prossimo punto fisso', () => {
         expect(nomeDi(plan, 'pomeriggio')).toBe('quasi');
     });
 
-    it('punti fissi: per un momento il pasto dopo, per un pasto la tappa dopo, a fine giornata nessuno', () => {
-        const g2 = giorno([['mattina'], ['pranzo'], ['pomeriggio'], ['aperitivo']]);
-        const plan = g2.map((moment, i) => ({ moment, stops: [{ candidate: { place_id: `x${i}` } }] }));
-        const fp = fixedPoints(plan);
-        expect(fp.get('g1-mattina').place_id).toBe('x1');
-        expect(fp.get('g1-pranzo').place_id).toBe('x2');
-        expect(fp.get('g1-pomeriggio')).toBe(null);
-        expect(fp.get('g1-aperitivo')).toBe(null);
+    it('C5d — il riferimento di ogni posto e\' la tappa vera che segue (non il pasto dopo); a fine giornata nessuno', () => {
+        const g2 = giorno([['mattina', 2], ['pranzo'], ['pomeriggio'], ['aperitivo']]);
+        const ids = [['x0', 'x1'], ['x2'], ['x3'], ['x4']];
+        const plan = g2.map((moment, i) => ({ moment, stops: ids[i].map(id => ({ candidate: { place_id: id } })) }));
+        const ns = nextStops(plan);
+        expect(ns.get('g1-mattina').map(c => c.place_id)).toEqual(['x1', 'x2']);
+        expect(ns.get('g1-pranzo').map(c => c.place_id)).toEqual(['x3']);
+        expect(ns.get('g1-pomeriggio').map(c => c.place_id)).toEqual(['x4']);
+        expect(ns.get('g1-aperitivo')).toEqual([null]);
     });
 });
 

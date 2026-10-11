@@ -1,0 +1,36 @@
+{
+  "_nota": "BANCO-NAZ — soglie e prezzi del banco nazionale. Si cambiano qui, non nel codice.",
+  "soglie": {
+    "veritaPct": 100,
+    "vocePct": 90,
+    "entro20Pct": 95,
+    "minutiCammino": 20,
+    "ripetizioniMax": 0,
+    "violazioniMax": 0,
+    "inComuneABMaxPct": 30,
+    "sotto2000MinPct": 50,
+    "recensioniFamoso": 2000,
+    "recensioniFamosissimo": 5000,
+    "tappeGiornataMin": 4,
+    "secondiItinerarioMax": 35,
+    "secondiPerTeMax": 30,
+    "costoMaxUsd": 0.20,
+    "destinazioneMaxKm": 30
+  },
+  "cittaGrandi": ["Roma", "Milano", "Napoli", "Firenze", "Palermo", "Catania"],
+  "perTeOrario": { "da": 9, "a": 19, "fuso": "Europe/Rome" },
+  "prezziUsd": {
+    "_fonte": "listini pubblici al 10/2026, da ricontrollare: gpt-4o-mini per milione di token; Google Places (API legacy) per chiamata",
+    "openaiInputPerMilione": 0.15,
+    "openaiOutputPerMilione": 0.60,
+    "google": {
+      "place/textsearch": 0.032,
+      "place/details": 0.025,
+      "place/findplacefromtext": 0.017,
+      "place/photo": 0.007,
+      "altro": 0.032
+    },
+    "_foto": "le foto le carica il browser, non il banco: si stima una foto per tappa",
+    "fotoPerTappa": 1
+  }
+}

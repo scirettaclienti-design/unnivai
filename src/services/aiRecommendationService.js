@@ -346,9 +346,10 @@ import { sunTimes } from '@/lib/sunTimes';
 import { filterBannedWords, bannedWordsPromptLines, unsupportedJudgments } from '@/lib/narrationLight';
 // P3d-e — fatti aperti sulle tappe finali, controllo anti-invenzione, frase sicura.
 // P3d-j — il modello sceglie, il codice scrive: le frasi approvate e la rete.
-import { stopData, guardComposed, apertura, ganciValidi, interessiPerTappa, userInterests } from '@/lib/stopPhrases';
+import { stopData, guardComposed, apertura, ganciValidi, interessiPerTappa, userInterests, composeFreeTime } from '@/lib/stopPhrases';
 import { fetchFactsForStops, isLocaleStop } from './factsService';
-import { momentAtClock } from '@/lib/dayMoments';
+import { momentAtClock, MOMENTS } from '@/lib/dayMoments';
+import { FREE_TIME_MAX_MINUTES, freeTimeStop } from '@/lib/freeTime';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
 import { buildDaySkeleton } from '@/lib/daySkeleton';
@@ -1139,6 +1140,7 @@ const logMomentReport = (city, r) => {
     for (const m of r.momentiTolti) console.warn(`[P3 SCHELETRO] ${city}: momento ${m.momento} (${m.label}) TOLTO — ${m.motivo}`);
     for (const x of r.scartate) console.warn(`[P3 SCHELETRO] ${city}: scartata ${x.place_id} (${x.momento ?? '—'}) — ${x.motivo}`);
     for (const x of r.riempite) console.info(`[P3 SCHELETRO] ${city}: ${x.momento} riempito dal codice con "${x.name}" (merito)`);
+    for (const x of r.tempoLibero || []) console.info(`[C5e TEMPO LIBERO] ${city}: ${x.momento} — ${x.motivo}`);
     for (const x of r.tolte) console.warn(`[P3 SCHELETRO] ${city}: tolta ${x.place_id} (${x.momento}) — ${x.motivo}`);
     for (const x of r.ripieghi || []) console.warn(`[C1 COMPOSIZIONE] ${city}: ripiego "${x.name}" (${x.momento}) — ${x.motivo}`);
     for (const x of r.ritocchi || []) console.info(`[C5 PERCORSO] ${city}: ${x.momento} "${x.name}" al posto di ${x.tolta} (sulla strada)`);
@@ -1941,12 +1943,36 @@ const realWeather = (weather) => {
     return { condition, temperature, icon };
 };
 
+/**
+ * C5e (O) — le voci "tempo libero" del report della scelta, messe nel loro
+ * giorno (windowIndex) prima della prima tappa di un momento successivo.
+ */
+const MOMENT_ORDER = new Map(MOMENTS.map((m, i) => [m.key, i]));
+const insertFreeTime = (days, entries) => {
+    if (!Array.isArray(entries) || entries.length === 0) return days;
+    return (days || []).map((day, di) => {
+        const dayIndex = Number.isFinite(day.windowIndex) ? day.windowIndex : di;
+        let stops = [...(day.stops || [])];
+        for (const e of entries.filter(x => x.dayIndex === dayIndex)) {
+            const at = stops.findIndex(st => (MOMENT_ORDER.get(st.moment) ?? -1) > (MOMENT_ORDER.get(e.key) ?? 99));
+            const item = freeTimeStop({
+                moment: e.key, momentLabel: e.label, description: composeFreeTime({ momento: e.key }),
+                tracciato: { scelta: 'tempo libero', minuti: null, famiglia: null, motivo: e.motivo, piuVicino: e.piuVicino },
+            });
+            stops = at < 0 ? [...stops, item] : [...stops.slice(0, at), item, ...stops.slice(at)];
+        }
+        return { ...day, stops };
+    });
+};
+
 /** Il contesto di composizione di ogni tappa, sugli orari di adesso. */
 const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map() }) => {
     const timed = refreshTourScheduledTimes(days, starts);
     return (days || []).map((day, di) => {
         const sun = sunForDay(day, di, tourWindow, cityCenter);
         const stops = day.stops || [];
+        // C5e — il tempo libero non e' la prima ne' l'ultima tappa del giorno.
+        const vere = stops.filter(x => !x.tempoLibero);
         return {
             sun,
             stops: stops.map((s, si) => {
@@ -1965,8 +1991,8 @@ const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map
                     locale: isLocaleStop(s),
                     priceLevel: Number.isFinite(s.priceLevel) ? s.priceLevel : null,
                     fatti,
-                    primo: si === 0,
-                    ultimo: si === stops.length - 1,
+                    primo: s === vere[0],
+                    ultimo: s === vere[vere.length - 1],
                 });
                 return { d, arrival, fatti, fattiSu, fonti: s._comp?.fonti ?? (entry?.fonti || []) };
             }),
@@ -1985,6 +2011,8 @@ const composeDays = (days, { starts, tourWindow, cityCenter, facts, scelte = new
     const out = (days || []).map((day, di) => ({
         ...day,
         stops: (day.stops || []).map((s, si) => {
+            // C5e — il tempo libero ha gia' il suo testo, composto dal codice.
+            if (s.tempoLibero) return s;
             const c = ctxs[di].stops[si];
             const ints = s._comp?.interessi ?? interessi;
             const scelta = scelte.get(s.place_id) ?? s._comp?.scelta ?? {};
@@ -2528,12 +2556,14 @@ export const aiRecommendationService = {
                             const searchedMoments = new Set();
                             const ricercheDopo = [];
                             let budget = Math.max(0, MAX_EXTRA_SEARCHES - extraThemes.length);
-                            const repair = () => repairMomentSelection({
+                            const repair = (tempoLibero = false) => repairMomentSelection({
                                 moments, buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
                                 requestedFamilies: familiesAsked, searchedIds, searchedMoments,
                                 // C5b — il punto di partenza, se il chiamante lo conosce;
                                 // senza, la prima tappa si misura dal centro del gruppo.
                                 startPoint: opts.startPoint || null,
+                                // C5e (O) — il tempo libero si decide DOPO le ricerche mirate.
+                                tempoLiberoMinuti: tempoLibero ? FREE_TIME_MAX_MINUTES : null,
                             });
                             let repaired = repair();
                             while (budget > 0) {
@@ -2566,6 +2596,9 @@ export const aiRecommendationService = {
                                 }
                                 repaired = repair();
                             }
+                            // C5e (O) — ricerche finite: un momento non pasto senza
+                            // niente entro 40 min dalla tappa prima diventa tempo libero.
+                            repaired = repair(true);
                             const { plan, report } = repaired;
                             const sched = scheduleMomentPlan(plan, tourWindow.windows.map(w => w.start));
                             momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo };
@@ -2661,7 +2694,9 @@ export const aiRecommendationService = {
                         const composed = composeDays(applyDayMeta(daysForNarration, scelte.meta, city), {
                             starts, tourWindow, cityCenter, facts, scelte: scelte.byId, interessi, voce,
                         });
-                        const narratedDays = composed.days;
+                        // C5e (O) — il tempo libero entra nel giorno dopo il racconto,
+                        // al suo posto fra i momenti, con il testo del codice.
+                        const narratedDays = insertFreeTime(composed.days, momentReport?.tempoLibero);
                         const allStops = narratedDays.flatMap(d => d.stops);
                         const narrationReport = {
                             raccontate: allStops.length,

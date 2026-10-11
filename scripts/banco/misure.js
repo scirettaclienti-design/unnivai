@@ -113,7 +113,8 @@ export function misuraCaso(caso, config) {
     // giri di Per Te sono tour separati, non una camminata).
     // C5c — voce 12: incroci e deviazioni per tappa (stopDetours), in minuti.
     // `indiceLibero` (C5) resta come informazione, fuori dal verdetto.
-    const giornate = caso.tipo === 'itinerario' ? (caso.tours || []).map(t => misuraGiornata(t.stops || [], S)) : [];
+    // C5e — il tempo libero non e' un posto: il percorso si misura senza di lui.
+    const giornate = caso.tipo === 'itinerario' ? (caso.tours || []).map(t => misuraGiornata((t.stops || []).filter(s => !s.tempoLibero), S)) : [];
     const percorso = giornate.length ? {
         giornate,
         km: Math.round(giornate.reduce((a, g) => a + g.km, 0) * 100) / 100,
@@ -124,8 +125,13 @@ export function misuraCaso(caso, config) {
         catene: giornate.reduce((a, g) => a + g.catene, 0),
         ok: giornate.every(g => g.ok),
     } : null;
+    // C5e (O) — il tratto piu' lungo verso una tappa fuori dai pasti (soglia
+    // del tempo libero) e quante voci di tempo libero ha il giro.
+    const nonPasto = tappe.filter(s => !s.tempoLibero && !['pranzo', 'cena'].includes(s.moment)).map(s => s.min).filter(Number.isFinite);
     return {
         tappe: tappe.length,
+        tempoLibero: tappe.filter(s => s.tempoLibero).length,
+        maxMinutiNonPasto: nonPasto.length ? Math.max(...nonPasto) : null,
         percorso,
         perGiro: (caso.tours || []).map(t => t.stops.length),
         verita: pct(tappe.filter(s => s.verita).length, tappe.length),

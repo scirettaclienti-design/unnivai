@@ -146,33 +146,6 @@ describe('C5c — una ripetizione dichiara se era evitabile, con le alternative 
     });
 });
 
-// ─── La prova guarda TUTTE le tappe della famiglia (caso Napoli) ────────────
-describe('C5c — la ripetizione si puo\' togliere anche cambiando la prima tappa della famiglia', () => {
-    // pomeriggio: un belvedere; aperitivo: solo belvederi. All'aperitivo non c'e'
-    // alternativa, al pomeriggio si': una chiesa a 22 minuti dal museo della mattina
-    // (famiglia nuova entro i 25 di C1b, ma oltre il tetto di 20 della rifinitura).
-    const g = giorno([['mattina'], ['pomeriggio'], ['aperitivo']]);
-    const museo = p('Museo', 40.8400, 14.2500, ['museum']);
-    const belvA = p('Belvedere Uno', 40.8420, 14.2500);
-    const belvB = p('Belvedere Due', 40.8430, 14.2510);
-    const chiesa = p('Chiesa Lontana', 40.8400, 14.2715, ['church']);
-
-    it('controllo: la chiesa e\' fra 20 e 25 minuti dal museo', () => {
-        expect(travelMinutes(museo, chiesa)).toBeGreaterThan(20);
-        expect(travelMinutes(museo, chiesa)).toBeLessThanOrEqual(25);
-    });
-
-    it('evitabile, con l\'alternativa del pomeriggio e la regola che ha fermato lo scambio', () => {
-        const pool = [museo, belvA, belvB, chiesa];
-        const { plan } = repairMomentSelection({
-            moments: g, buckets: bucketCandidates(g, pool), pool,
-            aiStops: [{ place_id: 'Museo', moment: 'g1-mattina' }, { place_id: 'Belvedere Uno', moment: 'g1-pomeriggio' }, { place_id: 'Belvedere Due', moment: 'g1-aperitivo' }],
-        });
-        const ripetuta = seq(plan).find(s => s.trace.varieta);
-        expect(ripetuta.trace.varieta.esito).toBe('evitabile');
-        expect(ripetuta.trace.varieta.alternative).toEqual([
-            expect.objectContaining({ nome: 'Chiesa Lontana', famiglia: 'chiesa', momento: 'pomeriggio', usata: false, bloccata: ['il tetto'] }),
-        ]);
-        expect(ripetuta.trace.motivo).toMatch(/evitabile: "Chiesa Lontana" \(pomeriggio, 2\d min, bloccata da il tetto\)/);
-    });
-});
+// Il caso Napoli (ripetizione tolta cambiando la PRIMA tappa della famiglia,
+// con una chiesa fra 20 e 25 min) e' passato a tempoLiberoC5e.test.js: con C5e
+// la chiesa entra, prima era "bloccata dal tetto".

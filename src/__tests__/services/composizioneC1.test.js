@@ -454,16 +454,26 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         expect(res._momentReport.scartate.find(x => x.place_id === 'V').motivo).toMatch(/oltre il tetto/);
     });
 
-    it('ricerca mirata vuota → ripiego sul piu\' vicino, dichiarato', async () => {
+    it('ricerca mirata vuota e niente entro 40 min → tempo libero (C5e, O), dichiarato; la cena dalla tappa vera prima', async () => {
         const { searches } = scenario({ mirata: () => [] });
         const res = await genera();
         const st = byMoment(res);
-        expect(st.aperitivo.title).toBe('Belvedere Lontano');
-        expect(st.aperitivo._tracciato).toMatchObject({ scelta: 'ripiego', ripiego: 'distanza' });
-        expect(st.aperitivo._tracciato.motivo).toMatch(/nessun candidato entro 20 min \(anche dopo la ricerca mirata\): il piu' vicino/);
+        // C5e (O): l'aperitivo non e' piu' il belvedere a 100 min, ma il tempo libero.
+        expect(st.aperitivo).toMatchObject({ tempoLibero: true, title: 'Tempo libero', latitude: null, longitude: null,
+            description: "Tempo libero: per l'aperitivo non c'è niente che valga il cammino. Il resto lo scegli tu." });
+        expect(st.aperitivo._tracciato).toMatchObject({ scelta: 'tempo libero' });
+        expect(st.aperitivo._tracciato.motivo).toMatch(/^nessun posto entro 40 min dalla tappa prima \(anche dopo la ricerca mirata\): il piu' vicino, "Belvedere Lontano", e' a \d+ min$/);
         expect(searches.filter(s => s.radius === String(MAX_WALK_METERS))).toHaveLength(1);
-        // La cena accanto al belvedere e' vicina: nessuna seconda ricerca.
-        expect(st.cena._tracciato.scelta).toBe('modello');
+        expect(res._momentReport.tempoLibero).toEqual([expect.objectContaining({ momento: 'g1-aperitivo' })]);
+        // La cena e' sempre un pasto: c'e', scelta dalla tappa vera prima.
+        expect(st.cena).toBeTruthy();
+        expect(st.cena.tempoLibero).toBeUndefined();
+        // L'ordine del giorno resta quello dei momenti, e il tempo libero non ha orario proprio di cammino.
+        expect(res.days[0].stops.map(x => x.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
+        // Dalla cache: il tempo libero resta tale, con lo stesso testo (non si ricompone come una tappa).
+        const res2 = await genera();
+        expect(byMoment(res2).aperitivo).toMatchObject({ tempoLibero: true, description: st.aperitivo.description });
+        expect(res2.days[0].stops.map(x => x.title)).toEqual(res.days[0].stops.map(x => x.title));
     });
 
     it('tre momenti lontani: mai piu\' di 2 ricerche mirate, il terzo e\' un ripiego "esaurite"', async () => {

@@ -661,6 +661,18 @@ export default function AIItineraryPage() {
                                                 // porta il tilde della stima.
                                                 const stayLabel = formatEstimate(stop.stayMinutes);
 
+                                                // C5e (O) — il tempo libero: una riga dichiarata, senza
+                                                // icona di luogo, voto, sosta ne' dettagli. Resa minima:
+                                                // l'aspetto lo decide la corsia E.
+                                                if (stop.tempoLibero) {
+                                                    return (
+                                                        <div key={`tempo-libero-${index}`} data-stop-card data-free-time className="bg-obsidian-card rounded-2xl border border-obsidian-border p-4">
+                                                            <h4 className="font-bold text-obsidian-primary text-sm leading-tight mb-1">{stop.title}</h4>
+                                                            {stop.description && <p className="text-xs text-obsidian-secondary leading-relaxed">{stop.description}</p>}
+                                                        </div>
+                                                    );
+                                                }
+
                                                 return (
                                                     <div
                                                         key={stop.title ?? index}
@@ -756,7 +768,8 @@ export default function AIItineraryPage() {
                             <Link
                                 to="/map"
                                 state={{
-                                    route: generatedItinerary.find(d => d.day === currentDay)?.stops.map((s, i) => ({
+                                    // C5e — il tempo libero non e' un punto sulla mappa.
+                                    route: generatedItinerary.find(d => d.day === currentDay)?.stops.filter(s => !s.tempoLibero).map((s, i) => ({
                                         latitude: s.latitude,
                                         longitude: s.longitude,
                                         label: s.title,

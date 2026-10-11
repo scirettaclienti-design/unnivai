@@ -43,6 +43,7 @@
 import { computeCandidateScore } from './candidateScoring';
 import { resolveStayMinutes, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
 import { FOOD_ONLY_MOMENT_KEYS } from '../lib/daySkeleton';
+import { freeTimeDecision } from '../lib/freeTime';
 import { brandKey, legKm, pathKm, minimalPathKm, countCrossings, crossingPairs, repeatedBrands, stopDetours } from '../lib/routeShape';
 
 // ─── Categorie dello scheletro, dai types Google ─────────────────────────────
@@ -514,8 +515,9 @@ function repairPass({
     moments, buckets, aiStops, pool, dnaWeights = {}, requestedFamilies: asked = null,
     maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES,
     searchedIds = null, searchedMoments = null, startPoint = null, registraPool = true,
+    tempoLiberoMinuti = null,
 }, targets, starts) {
-    const report = { scartate: [], riempite: [], momentiTolti: [], ripieghi: [], lontani: [], ripetuti: [], ritocchi: [] };
+    const report = { scartate: [], riempite: [], momentiTolti: [], ripieghi: [], lontani: [], ripetuti: [], ritocchi: [], tempoLibero: [] };
     // BANCO-POOL — le scelte del modello cosi' come sono arrivate, e (sotto) la
     // classifica che il codice ha calcolato a ogni posto. Solo registrazione:
     // niente di qui entra nelle decisioni.
@@ -601,6 +603,10 @@ function repairPass({
         const origin = () => last() || ref;
         const devFrom = () => last() || startPoint || null;
         const free = (except) => bucket.filter(c => !used.has(idOf(c)) && idOf(c) !== except);
+        // C5e (O) — solo se attivo (dopo le ricerche mirate), solo fuori dai
+        // pasti, solo con una tappa vera prima nello stesso giorno.
+        const freeSlot = () => !!tempoLiberoMinuti && !FOOD_ONLY_MOMENT_KEYS.has(m.key) && !!last()
+            && freeTimeDecision({ prev: last(), candidates: free(null), pasto: false, maxMinutes: tempoLiberoMinuti }).libero;
 
         // Il "costo" di un candidato come prossima tappa, in ordine di peso:
         //   hard   oltre il tetto dalla tappa prima, e quanto: fra candidati
@@ -779,6 +785,7 @@ function repairPass({
             if (!poolIds.has(s.place_id)) { reject(s, 'luogo non fra i candidati'); continue; }
             if (!c) { reject(s, 'fuori dal suo momento'); continue; }
             if (used.has(s.place_id)) { reject(s, 'gia\' usato'); continue; }
+            if (freeSlot()) { reject(s, `nessun posto entro ${tempoLiberoMinuti} min dalla tappa prima: tempo libero`); continue; }
             const { ok, mine, alt } = modelWins(c);
             if (!ok) { reject(s, whyWorse(mine.key, c, mine.t, alt.key)); continue; }
             // Gate NARRATORE-DOPO — il selettore non scrive testi: una tappa
@@ -789,7 +796,7 @@ function repairPass({
         for (let i = 0; i < unassigned.length && chosen.length < m.stops; i++) {
             const s = unassigned[i];
             const c = inBucket.get(s.place_id);
-            if (!c || used.has(s.place_id)) continue;
+            if (!c || used.has(s.place_id) || freeSlot()) continue;
             const { ok, mine } = modelWins(c);
             if (!ok) continue;
             take(c, s, 'modello', mine);
@@ -798,7 +805,20 @@ function repairPass({
         }
 
         // Posti vuoti: tetto, varieta', poi merito; a parita', il piu' vicino.
+        // C5e (O) — un posto non pasto senza niente entro tempoLiberoMinuti dalla
+        // tappa prima diventa "tempo libero": niente tappa, il report lo dice e
+        // il momento dopo si sceglie dalla tappa vera prima.
         while (chosen.length < m.stops) {
+            if (freeSlot()) {
+                const { piuVicino } = freeTimeDecision({ prev: last(), candidates: free(null), pasto: false, maxMinutes: tempoLiberoMinuti });
+                report.tempoLibero.push({
+                    momento: m.id, key: m.key, label: m.label, dayIndex: m.dayIndex, posto: chosen.length,
+                    dopo: last()?.name || last()?.title || null, piuVicino,
+                    motivo: `nessun posto entro ${tempoLiberoMinuti} min dalla tappa prima${searchedMoments?.has(m.id) ? ' (anche dopo la ricerca mirata)' : ''}`
+                        + (piuVicino ? `: il piu' vicino, "${piuVicino.nome}", e' a ${piuVicino.minuti} min` : ': nessun candidato'),
+                });
+                break;
+            }
             const b = best(null);
             if (!b) break;
             take(b.c, narrationById.get(idOf(b.c)) || null, 'riparata', b);
@@ -806,7 +826,8 @@ function repairPass({
         }
 
         if (chosen.length === 0) {
-            report.momentiTolti.push({ momento: m.id, label: m.label, motivo: 'nessun candidato valido' });
+            // Un momento tutto "tempo libero" non e' tolto: e' dichiarato.
+            if (!report.tempoLibero.some(x => x.momento === m.id)) report.momentiTolti.push({ momento: m.id, label: m.label, motivo: 'nessun candidato valido' });
             return;
         }
         plan.push({ moment: m, stops: chosen });
@@ -858,10 +879,23 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
         // C5c — le ripetizioni per famiglia (quante tappe in piu' della prima).
         const perFamiglia = {};
         for (const f of fams) perFamiglia[f] = (perFamiglia[f] ?? -1) + 1;
+        // C5e — il passo pagato dalla varieta' (C1b): un tratto fra 20 e 25 min
+        // verso la PRIMA tappa di una famiglia del giorno non e' "oltre" quando
+        // lo scambio toglie una ripetizione (vedi better). Qui si contano solo.
+        const vista = new Set();
+        let passiVarieta = 0;
+        seq.forEach((c, i) => {
+            const f = candidateFamily(c);
+            const nuova = !!f && !asked?.has(f) && !vista.has(f);
+            if (f) vista.add(f);
+            const t = i ? walkFrom(seq[i - 1], c) : null;
+            if (nuova && t > maxWalk && t <= varietyWalk) passiVarieta++;
+        });
         return {
             incroci: countCrossings(seq),
             oltre: seq.slice(1).filter((c, i) => walkFrom(seq[i], c) > maxWalk).length
                 + (ref && seq.length > 1 && walkFrom(ref, seq[0]) > maxWalk ? 1 : 0),
+            passiVarieta,
             famiglie: fams.length - new Set(fams).size,
             perFamiglia,
             catene: repeatedBrands(seq).length,
@@ -891,7 +925,17 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
     // C5d — togliere una deviazione non vale qualunque merito: lo stesso cambio
     // della scelta, DETOUR_WEIGHT punti di merito per minuto di deviazione tolto.
     const meritOk = (t, m) => t.merito >= m.merito - DETOUR_WEIGHT * Math.max(0, m.devSomma - t.devSomma) - 1e-9;
-    const better = (t, m) => [...REGOLE, ...DEVIAZIONI].every(k => t[k] <= m[k]) && noFamilyGains(t, m)
+    // C5e — una ripetizione evitabile si toglie anche con una famiglia nuova a
+    // 20-25 min (C1b): solo se lo scambio la toglie davvero, il tratto in piu'
+    // pagato dalla varieta' non conta come "oltre il tetto". Per tutto il resto
+    // il tetto dei 20 resta.
+    const varietyPays = (t, m) => t.famiglie < m.famiglie && t.passiVarieta > m.passiVarieta
+        && t.oltre - (t.passiVarieta - m.passiVarieta) <= m.oltre;
+    const regoleOk = (t, m) => REGOLE.every(k => t[k] <= m[k] || (k === 'oltre' && varietyPays(t, m)));
+    // C5e — la varieta' vince sulla forma (C5d): uno scambio che toglie una
+    // ripetizione non e' fermato dalle deviazioni. Gli incroci restano duri.
+    const deviazioniOk = (t, m) => DEVIAZIONI.every(k => t[k] <= m[k]) || t.famiglie < m.famiglie;
+    const better = (t, m) => regoleOk(t, m) && deviazioniOk(t, m) && noFamilyGains(t, m)
         && (REGOLE.some(k => t[k] < m[k])
             || (DEVIAZIONI.some(k => t[k] < m[k]) && meritOk(t, m))
             || (t.strada <= m.strada - POLISH_MIN_GAIN && costo(t) < costo(m) - 1e-9));
@@ -929,8 +973,12 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
                 report.lontani = (report.lontani || []).filter(gone);
                 report.ripetuti = (report.ripetuti || []).filter(gone);
             }
+            const perVarieta = bestM.famiglie < measure(entries).famiglie && bestM.passiVarieta > measure(entries).passiVarieta;
             const trace = { scelta: searchedIds?.has(idOf(best.c)) ? 'ricerca mirata' : 'riparazione', minuti: null,
-                famiglia: candidateFamily(best.c), motivo: `sulla strada: al posto di "${old.candidate.name || old.candidate.title || idOf(old.candidate)}"` };
+                famiglia: candidateFamily(best.c),
+                motivo: perVarieta
+                    ? `famiglia nuova oltre i ${maxWalk} min (entro ${varietyWalk}): toglie la ripetizione, al posto di "${old.candidate.name || old.candidate.title || idOf(old.candidate)}"`
+                    : `sulla strada: al posto di "${old.candidate.name || old.candidate.title || idOf(old.candidate)}"` };
             out[idx[best.ei]] = { ...e, stops: e.stops.map((x, k) => (k === best.si ? { candidate: best.c, narration: null, source: 'riparata', trace } : x)) };
             report.ritocchi = [...(report.ritocchi || []), { momento: e.moment.id, tolta: idOf(old.candidate), messa: idOf(best.c), name: best.c.name || best.c.title || null }];
             report.riempite.push({ place_id: idOf(best.c), name: best.c.name || best.c.title || null, momento: e.moment.id });
@@ -1115,8 +1163,13 @@ function repeatEvidence(stop, fam, dayPlan, { buckets, asked, maxWalk, varietyWa
             if (entro && !alt.usata && measure) {
                 const base = measure(dayPlan);
                 const trial = measure(dayPlan.map(x => (x !== p ? x : { ...x, stops: x.stops.map(y => (y === r ? { ...y, candidate: c } : y)) })));
-                alt.bloccata = [['oltre', 'il tetto'], ['incroci', 'un incrocio'], ['catene', 'un marchio']]
-                    .filter(([key]) => trial[key] > base[key]).map(([, nome]) => nome);
+                // C5e — il passo della varieta' (20-25 min) non blocca se toglie la ripetizione.
+                const pagato = trial.famiglie < base.famiglie && trial.passiVarieta > base.passiVarieta
+                    && trial.oltre - (trial.passiVarieta - base.passiVarieta) <= base.oltre;
+                // e le deviazioni non bloccano chi toglie una ripetizione (la varieta' vince sulla forma).
+                const toglie = trial.famiglie < base.famiglie;
+                alt.bloccata = [['oltre', 'il tetto'], ['incroci', 'un incrocio'], ['catene', 'un marchio'], ['devGravi', 'una deviazione oltre 10 min'], ['devOltre', 'una deviazione oltre 5 min']]
+                    .filter(([key]) => trial[key] > base[key] && !(key === 'oltre' && pagato) && !(key.startsWith('dev') && toglie)).map(([, nome]) => nome);
             }
             alternative.push(alt);
         }

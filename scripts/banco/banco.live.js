@@ -139,6 +139,8 @@ const tappa = (s, fatti, comp, riempite, dieta) => {
     const parole = dieta.flatMap(d => [DIETE[d]?.criterio, ...(DIETE[d]?.parole || [])].filter(Boolean));
     return {
         place_id: s.place_id, title: r.title, types, moment: r.moment, at: r.at,
+        // C5e (O) — una voce "tempo libero" del giro, non un posto.
+        ...(s.tempoLibero ? { tempoLibero: true } : {}),
         lat: s.latitude ?? null, lng: s.longitude ?? null, min: r.min, scelta: r.scelta,
         ripiego: s._tracciato?.ripiego || null, motivo: r.motivo || null, famiglia: r.famiglia,
         // C5b — perche' un incrocio e' rimasto, e da dove si e' misurata la prima tappa.

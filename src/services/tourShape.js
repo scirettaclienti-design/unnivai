@@ -449,7 +449,11 @@ export function normalizeTour(raw = {}, opts = {}) {
                 ? raw.itinerary.map(it => ({ title: it.activity || it.title, description: it.description, time: it.time, transition: it.transition, insiderTip: it.insiderTip, bestTime: it.bestTime }))
                 : [];
 
-    const rawNormalized = sourceSteps.map((s, i) => normalizeTourStep(s, i, city, { aiGenerated: !!raw.isAiGenerated }));
+    // C5e (O) — il "tempo libero" e' una voce del giro, non un posto: niente
+    // pin, la navigazione la salta, il percorso si misura senza di lei. Esce
+    // dai passi e resta in `freeTime` per chi vuole mostrarlo.
+    const freeTime = sourceSteps.filter(s => s?.tempoLibero);
+    const rawNormalized = sourceSteps.filter(s => !s?.tempoLibero).map((s, i) => normalizeTourStep(s, i, city, { aiGenerated: !!raw.isAiGenerated }));
 
     // DVAI-055-b: filtro centralizzato prossimità.
     // Attivo se opts.cityCenter è passato AND opts.enforceRadius !== false.
@@ -507,5 +511,6 @@ export function normalizeTour(raw = {}, opts = {}) {
         guideAvatar: raw.guideAvatar || (raw.isAiGenerated ? '🤖' : '👋'),
         // City sempre presente
         city,
+        ...(freeTime.length ? { freeTime } : {}),
     };
 }

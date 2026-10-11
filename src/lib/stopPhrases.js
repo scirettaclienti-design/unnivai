@@ -60,6 +60,26 @@ export const FRASI_GANCIO = {
     orario: 'Ci arrivi alle {ora}.',
 };
 export const GANCI = Object.keys(FRASI_GANCIO);
+
+// C5e (O) — "tempo libero": la voce del giro quando, fuori dai pasti, non c'e'
+// niente di valido a portata di piedi. Due proposte, DA APPROVARE (Ivano): il
+// codice usa la prima. {momento} con l'articolo ("il pomeriggio", "l'aperitivo").
+export const FRASI_TEMPO_LIBERO = [
+    'Tempo libero: per {momento} non c\'è niente che valga il cammino. Il resto lo scegli tu.',
+    '{Momento} è {tuo}: nessuna tappa da raggiungere, giri la zona come vuoi.',
+];
+const MOMENTO_CON_ARTICOLO = { mattina: 'la mattina', pomeriggio: 'il pomeriggio', aperitivo: "l'aperitivo", dopocena: 'il dopocena' };
+const MOMENTO_FEMMINILE = new Set(['mattina']);
+/**
+ * Il testo del tempo libero, composto dal codice.
+ * @param {{ momento: string, variante?: number }} p chiave del momento (non un pasto)
+ */
+export function composeFreeTime({ momento, variante = 0 }) {
+    const m = MOMENTO_CON_ARTICOLO[norm(momento)] || 'questo momento';
+    const tpl = FRASI_TEMPO_LIBERO[variante] || FRASI_TEMPO_LIBERO[0];
+    const tuo = MOMENTO_FEMMINILE.has(norm(momento)) ? 'tua' : 'tuo';
+    return tpl.replace('{momento}', m).replace('{Momento}', m.charAt(0).toUpperCase() + m.slice(1)).replace('{tuo}', tuo);
+}
 // La scelta di riserva del codice: il primo gancio vero, in quest'ordine.
 export const RISERVA_GANCI = ['tramonto', 'prima', 'ultima', 'legame', 'distanza', 'orario'];
 // Il tramonto si aggancia solo se cade fra 0 e 60 minuti dopo l'arrivo.

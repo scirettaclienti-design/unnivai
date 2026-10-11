@@ -70,6 +70,26 @@ describe('banco — misure', () => {
         expect(c.totale).toBeCloseTo(0.064 + 0.007 + (1000 * 0.15 + 100 * 0.6) / 1e6);
     });
 
+    it('C5 percorso: incroci, indice e catene per giornata; solo per gli itinerari', () => {
+        const zig = [stop({ id: 'a', lat: 0, lng: 0 }), stop({ id: 'c', lat: 1, lng: 1 }), stop({ id: 'b', lat: 0, lng: 1 }), stop({ id: 'd', lat: 1, lng: 0 })];
+        const m = misuraCaso(caso(zig), config);
+        expect(m.percorso).toMatchObject({ incroci: 1, catene: 0 });
+        expect(semafori(m, caso(zig), config)).toMatchObject({ incroci: 'rosso', catene: 'verde' });
+        // su una via percorsa avanti e indietro: nessun incrocio, ma il doppio del cammino
+        const avanti = [0, 4, 1, 3, 2].map(i => stop({ id: `v${i}`, lat: 41.9 + i * 0.002, lng: 12.5 }));
+        const ma = misuraCaso(caso(avanti), config);
+        expect(ma.percorso.indice).toBeGreaterThan(config.soglie.indiceAvantiIndietroMax);
+        expect(semafori(ma, caso(avanti), config).indice).toBe('rosso');
+        const giro = [stop({ id: 'a', lat: 0, lng: 0 }), stop({ id: 'b', lat: 0, lng: 1 }), stop({ id: 'c', lat: 1, lng: 1 }), stop({ id: 'd', lat: 1, lng: 0 })];
+        expect(semafori(misuraCaso(caso(giro), config), caso(giro), config)).toMatchObject({ incroci: 'verde', indice: 'verde' });
+        const catena = [stop({ id: 'Origano Trevi', types: ['restaurant'] }), stop({ id: 'Origano Campo', types: ['restaurant'] })];
+        expect(misuraCaso(caso(catena), config).percorso.catene).toBe(1);
+        expect(misuraCaso(caso(zig, { tipo: 'perte' }), config).percorso).toBe(null);
+        const { markdown } = buildReport({ casi: [caso(zig)] }, config, {});
+        expect(markdown).toContain('### Percorso a piedi (C5)');
+        expect(markdown).toMatch(/Incroci del tracciato\*\*: giro: a → c → b → d/);
+    });
+
     it('caso saltato o in errore: nessuna misura, nel report come non misurato', () => {
         const saltato = { id: 'c-roma', gruppo: 'c', tipo: 'perte', luogo: 'Roma', saltato: 'fuori orario: alle 21:00' };
         expect(misuraCaso(saltato, config)).toBeNull();

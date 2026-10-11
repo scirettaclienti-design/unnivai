@@ -1,6 +1,8 @@
 // BANCO-NAZ — le misure del banco, funzioni pure: dal risultato grezzo di un
 // caso (scritto da banco.live.js) ai numeri e ai semafori del report.
 // Nessun import dei servizi: si prova da sola e gira anche fuori da Vitest.
+// C5 — la forma del percorso viene da src/lib/routeShape.js: puro, senza import.
+import { routeMetrics } from '../../src/lib/routeShape.js';
 
 const median = (xs) => {
     if (!xs.length) return null;
@@ -73,8 +75,19 @@ export function misuraCaso(caso, config) {
         destinazione = { citta: caso.destinazione?.city || null, attesa: caso.attesa.city,
             ok: caso.destinazione?.city === caso.attesa.city && lontane.length === 0, tappeLontane: lontane.map(s => s.title) };
     }
+    // C5 — la forma del percorso, giornata per giornata (solo itinerari: i
+    // giri di Per Te sono tour separati, non una camminata).
+    const giornate = caso.tipo === 'itinerario' ? (caso.tours || []).map(t => routeMetrics(t.stops || [])) : [];
+    const percorso = giornate.length ? {
+        giornate,
+        km: Math.round(giornate.reduce((a, g) => a + g.km, 0) * 100) / 100,
+        incroci: giornate.reduce((a, g) => a + g.incroci, 0),
+        indice: giornate.some(g => g.indice !== null) ? Math.max(...giornate.map(g => g.indice ?? 0)) : null,
+        catene: giornate.reduce((a, g) => a + g.catene, 0),
+    } : null;
     return {
         tappe: tappe.length,
+        percorso,
         perGiro: (caso.tours || []).map(t => t.stops.length),
         verita: pct(tappe.filter(s => s.verita).length, tappe.length),
         voce: pct(frasi.filter(f => !(f.problemi || []).length).length, frasi.length),
@@ -112,7 +125,8 @@ export function inComune(a, b) {
 
 // Semafori: 'verde' | 'rosso' | null (non si applica / dato mancante).
 const sem = (ok) => (ok === null || ok === undefined ? null : (ok ? 'verde' : 'rosso'));
-export const VOCI = ['verita', 'voce', 'distanze', 'ripetizioni', 'vincoli', 'inComune', 'famosita', 'giornata', 'tempo', 'costo', 'destinazione'];
+export const VOCI = ['verita', 'voce', 'distanze', 'ripetizioni', 'vincoli', 'inComune', 'famosita', 'giornata', 'tempo', 'costo', 'destinazione',
+    'incroci', 'indice', 'catene'];
 
 export function semafori(m, caso, config, comune = null) {
     const S = config.soglie;
@@ -129,5 +143,8 @@ export function semafori(m, caso, config, comune = null) {
         tempo: sem(m.secondi === null ? null : m.secondi <= m.tetto),
         costo: sem(m.costo.totale <= S.costoMaxUsd),
         destinazione: m.destinazione ? sem(m.destinazione.ok) : null,
+        incroci: m.percorso ? sem(m.percorso.incroci <= S.incrociMax) : null,
+        indice: m.percorso?.indice != null ? sem(m.percorso.indice <= S.indiceAvantiIndietroMax) : null,
+        catene: m.percorso ? sem(m.percorso.catene <= S.cateneMax) : null,
     };
 }

@@ -138,7 +138,7 @@ const tappa = (s, fatti, comp, riempite, dieta) => {
     const types = l.types || s.types || [];
     const parole = dieta.flatMap(d => [DIETE[d]?.criterio, ...(DIETE[d]?.parole || [])].filter(Boolean));
     return {
-        place_id: s.place_id, title: r.title, types: types.slice(0, 4), moment: r.moment, at: r.at,
+        place_id: s.place_id, title: r.title, types, moment: r.moment, at: r.at,
         lat: s.latitude ?? null, lng: s.longitude ?? null, min: r.min, scelta: r.scelta,
         ripiego: s._tracciato?.ripiego || null, motivo: r.motivo || null, famiglia: r.famiglia,
         description: r.description, verita: r.verita, voce: r.voce, frasi, fatti: (fatti || []).length,

@@ -15,7 +15,11 @@
     "secondiItinerarioMax": 35,
     "secondiPerTeMax": 30,
     "costoMaxUsd": 0.20,
-    "destinazioneMaxKm": 30
+    "destinazioneMaxKm": 30,
+    "_percorso": "C5 — forma della camminata di una giornata: incroci del tracciato, cammino reale / cammino minimo sulle stesse tappe, marchi ripetuti",
+    "incrociMax": 0,
+    "indiceAvantiIndietroMax": 1.3,
+    "cateneMax": 0
   },
   "cittaGrandi": ["Roma", "Milano", "Napoli", "Firenze", "Palermo", "Catania"],
   "perTeOrario": { "da": 9, "a": 19, "fuso": "Europe/Rome" },

@@ -2,6 +2,7 @@
 // tabella per luogo, semaforo per voce, voci rosse con gli indizi della causa,
 // frasi per il controllo a mano. Funzione pura: dati in, testo fuori.
 import { misuraCaso, semafori, inComune, tappeDi, VOCI } from './misure.js';
+import { repeatedBrands } from '../../src/lib/routeShape.js';
 
 const ICONA = { verde: '🟢', rosso: '🔴' };
 const ic = (s) => ICONA[s] || '⚪';
@@ -13,6 +14,7 @@ const NOMI = {
     verita: 'Verità (auto)', voce: 'Voce', distanze: 'Distanze', ripetizioni: 'Ripetizioni', vincoli: 'Vincoli',
     inComune: 'In comune A/B', famosita: 'Famosità', giornata: 'Giornata completa', tempo: 'Tempo', costo: 'Costo',
     destinazione: 'Destinazione dal testo',
+    incroci: 'Incroci del tracciato', indice: 'Avanti e indietro', catene: 'Catene ripetute',
 };
 
 // Gli indizi della causa, letti dai dati del caso: non una diagnosi, il primo
@@ -33,10 +35,17 @@ function indizi(voce, m, caso, comune, S) {
         case 'giornata': return `${m.tappe} tappe${caso.frasiTolte?.length ? `, frasi tolte ${caso.frasiTolte.length}` : ''}; ripieghi: ${m.motiviRipiego.join('; ') || 'nessuno'} — pool povero o momenti tolti dagli orari`;
         case 'tempo': return `${n1(m.secondi)} s con ${m.chiamateAI} chiamate AI e ${m.chiamateGoogle} Google`;
         case 'costo': return `token ${usd(m.costo.token)}, Google ${usd(m.costo.google)} (${m.chiamateGoogle} chiamate), foto stimate ${usd(m.costo.foto)}`;
+        case 'incroci': return `giro: ${percorsoTesto(caso)} — km ${n1(m.percorso.km)}, incroci ${m.percorso.incroci}, indice ${n1(m.percorso.indice)}`;
+        case 'indice': return `km ${n1(m.percorso.km)}, indice ${n1(m.percorso.indice)} (il giro è sopra, fra gli incroci, se si tagliano)`;
+        case 'catene': return (m.percorso.giornate || []).length ? `stesso marchio: ${catene(caso)}` : '';
         case 'destinazione': return `uscito a ${m.destinazione.citta || '?'} invece di ${m.destinazione.attesa}${m.destinazione.tappeLontane.length ? `; tappe oltre ${S.destinazioneMaxKm} km: ${m.destinazione.tappeLontane.join(', ')}` : ''}`;
         default: return '';
     }
 }
+
+// C5 — il giro in una riga: tappa (momento), nell'ordine in cui si cammina.
+const percorsoTesto = (caso) => (caso.tours || []).map(t => t.stops.map(s => `${s.title}${s.moment ? ` (${s.moment})` : ''}`).join(' → ')).join(' ‖ ');
+const catene = (caso) => (caso.tours || []).flatMap(t => repeatedBrands(t.stops)).map(c => `${c.tappe.join(' + ')} (${c.marchio})`).join('; ');
 
 export function buildReport(raw, config, meta = {}) {
     const S = config.soglie;
@@ -76,6 +85,8 @@ export function buildReport(raw, config, meta = {}) {
         famosita: `≥ ${S.sotto2000MinPct}% tappe ≤ ${S.recensioniFamoso} recensioni (città grandi)`,
         giornata: `≥ ${S.tappeGiornataMin} tappe`, tempo: `itinerario ≤ ${S.secondiItinerarioMax} s, Per Te ≤ ${S.secondiPerTeMax} s`,
         costo: `≤ ${usd(S.costoMaxUsd)}`, destinazione: `città giusta, tappe entro ${S.destinazioneMaxKm} km`,
+        incroci: `≤ ${S.incrociMax} per giornata (itinerari)`, indice: `cammino reale / cammino minimo ≤ ${n1(S.indiceAvantiIndietroMax)}`,
+        catene: `≤ ${S.cateneMax} marchi ripetuti nella giornata`,
     };
     for (const v of VOCI) {
         const verdi = righe.filter(r => r.sem?.[v] === 'verde').length;
@@ -108,6 +119,19 @@ export function buildReport(raw, config, meta = {}) {
             `${ic(sem.tempo)} ${n1(m.secondi)} s`, `${m.chiamateAI} · ${m.chiamateGoogle}`,
             `${ic(sem.costo)} ${usd(m.costo.totale)}`, '',
         ].join(' | ').trim());
+    }
+    L.push('');
+    L.push('');
+    L.push('### Percorso a piedi (C5)');
+    L.push('');
+    L.push('Per giornata: km totali fra le tappe in linea d\'aria, incroci del tracciato, indice di avanti-e-indietro '
+        + '(cammino reale / cammino minimo sulle stesse tappe, partenza e arrivo liberi), marchi ripetuti.');
+    L.push('');
+    L.push('| Caso | Luogo | Tappe | Km | Incroci | Indice | Catene |');
+    L.push('|---|---|---|---|---|---|---|');
+    for (const { c, m, sem } of righe) {
+        if (!m?.percorso) continue;
+        L.push(`| ${c.id} | ${c.luogo} | ${m.tappe} | ${n1(m.percorso.km)} | ${ic(sem.incroci)} ${m.percorso.incroci} | ${ic(sem.indice)} ${n1(m.percorso.indice)} | ${ic(sem.catene)} ${m.percorso.catene} |`);
     }
     L.push('');
     L.push('⚪ = la voce non si applica al caso (vincoli solo per i profili, A/B solo per (b), famosità solo nelle città grandi, giornata solo per gli itinerari).');

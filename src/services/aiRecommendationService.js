@@ -357,6 +357,7 @@ import {
     repairMomentSelection, scheduleMomentPlan, isMealPlace,
     requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme,
 } from './momentSelection';
+import { routeMetrics } from '../lib/routeShape';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
@@ -1140,6 +1141,7 @@ const logMomentReport = (city, r) => {
     for (const x of r.riempite) console.info(`[P3 SCHELETRO] ${city}: ${x.momento} riempito dal codice con "${x.name}" (merito)`);
     for (const x of r.tolte) console.warn(`[P3 SCHELETRO] ${city}: tolta ${x.place_id} (${x.momento}) — ${x.motivo}`);
     for (const x of r.ripieghi || []) console.warn(`[C1 COMPOSIZIONE] ${city}: ripiego "${x.name}" (${x.momento}) — ${x.motivo}`);
+    for (const x of r.ritocchi || []) console.info(`[C5 PERCORSO] ${city}: ${x.momento} "${x.name}" al posto di ${x.tolta} (sulla strada)`);
 };
 
 // Predicato pubblico — Exported per test. true = candidato ammesso per
@@ -2599,6 +2601,15 @@ export const aiRecommendationService = {
                             const ordered = computeStopTimings(enforceCategoryVariety(sortByProximity(withinRadius))).stops;
                             return [{ ...baseMeta(0), windowIndex: 0, stops: ordered }].filter(d => d.stops.length > 0);
                         })();
+
+                    // C5 — la forma del giro finale nel tracciato: km, incroci,
+                    // avanti-e-indietro e marchi ripetuti, giorno per giorno.
+                    if (momentReport) {
+                        momentReport.percorso = finalDays.map(d => routeMetrics(d.stops));
+                        for (const [i, r] of momentReport.percorso.entries()) {
+                            console.info(`[C5 PERCORSO] ${city} giorno ${i + 1}: ${r.tappe} tappe, ${r.km} km, incroci ${r.incroci}, indice ${r.indice ?? '—'}, catene ${r.catene}`);
+                        }
+                    }
 
                     // Gate I — soglia minima 1 tappa (era 3). Un posto vero è
                     // meglio di zero. Se 1 tappa, il flag _singleStop segnala

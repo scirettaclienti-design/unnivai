@@ -18,6 +18,11 @@
  *      ripetuta vicina; un momento senza niente entro il tetto finisce in
  *      `report.lontani` (senza una famiglia nuova vicina: `report.ripetuti`),
  *      e il chiamante cerca da quella tappa prima del ripiego;
+ *      C5: a parita' di tetto e varieta', vince chi sta sulla strada verso il
+ *      prossimo punto fisso (il pasto dopo; per un pasto, la tappa dopo); mai
+ *      lo stesso marchio due volte nel giorno; dentro un momento con piu'
+ *      tappe, l'ordine che fa il cammino piu' corto (orderPlanWalk); in fondo
+ *      una rifinitura sul giro intero (polishRoute);
  *   4. mette gli orari: ogni tappa inizia al piu' tardi fra l'inizio del suo
  *      momento e la fine della precedente piu' il cammino.
  *
@@ -32,6 +37,7 @@
 import { computeCandidateScore } from './candidateScoring';
 import { resolveStayMinutes, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
 import { FOOD_ONLY_MOMENT_KEYS } from '../lib/daySkeleton';
+import { brandKey, legKm, pathKm, countCrossings, repeatedBrands } from '../lib/routeShape';
 
 // ─── Categorie dello scheletro, dai types Google ─────────────────────────────
 //
@@ -114,6 +120,32 @@ export const MAX_WALK_METERS = Math.round((MAX_WALK_MINUTES / 60) * WALKING_KMH 
 // C1b — la varieta' vince sulla distanza fino a qui: una famiglia nuova a 25
 // minuti batte una famiglia ripetuta a 5. Oltre, torna a vincere la distanza.
 export const VARIETY_MAX_WALK_MINUTES = 25;
+
+// ─── C5 — percorso a filo ────────────────────────────────────────────────────
+//
+// La deviazione di un candidato `c` fra la tappa prima `a` e il prossimo punto
+// fisso `b` (il pasto dopo; per un pasto, la tappa dopo): i minuti in piu' di
+// a → c → b rispetto ad a → b. Zero = sta sulla strada.
+// Un candidato che fa OFF_ROUTE_MINUTES di giro in piu' della migliore
+// alternativa ammessa del momento e' "fuori strada" e cede, anche se l'ha
+// scelto il modello (dopo tetto e varieta': C1 e C1b restano come sono).
+// Sotto, la deviazione pesa insieme al merito: ogni minuto vale DETOUR_WEIGHT
+// punti di merito (il merito sta fra 0 e 1: dieci minuti di giro valgono 0,2).
+// STIME DA TARARE, in un posto solo.
+export const OFF_ROUTE_MINUTES = 5;
+export const DETOUR_WEIGHT = 0.02;
+// I punti fissi si leggono da un primo giro senza deviazione, poi si rifa' la
+// scelta; al massimo ROUTE_PASSES volte, o finche' il piano non cambia.
+const ROUTE_PASSES = 2;
+
+const toMinutes = (km) => (km / WALKING_KMH) * 60;
+/** C5 — minuti di deviazione per passare da `c` andando da `a` a `b`; 0 senza `a` o `b`. */
+export function detourMinutes(a, c, b) {
+    if (!a || !b) return 0;
+    const ac = legKm(a, c), cb = legKm(c, b), ab = legKm(a, b);
+    if (ac === null || cb === null || ab === null) return 0;
+    return Math.max(0, toMinutes(ac + cb - ab));
+}
 
 // Le famiglie di tappa: al massimo una per famiglia per giorno, salvo richiesta.
 // Una sola famiglia per luogo, nell'ordine della lista (un belvedere in un
@@ -275,6 +307,9 @@ export function shortMomentThemes(moments, buckets, pool, max = MAX_EXTRA_SEARCH
  * pasto rimasto corto nella stessa simulazione di shortMomentThemes (se il
  * pasto apre la giornata, la tappa dopo). null → il chiamante resta sul centro.
  * Non aggiunge chiamate: sposta soltanto il centro della ricerca del cibo.
+ * C5 — con una tappa prima E una dopo, il centro va sulla linea fra le due:
+ * a meta' strada, ma mai oltre 3/4 del tetto dalla tappa prima (un ristorante
+ * trovato li' deve restare a portata di piedi da dove si arriva).
  * @returns {{ latitude: number, longitude: number, name: string|null }|null}
  */
 export function mealSearchAnchor(moments, buckets, pool, { requestedFamilies: asked = null } = {}) {
@@ -286,11 +321,22 @@ export function mealSearchAnchor(moments, buckets, pool, { requestedFamilies: as
     const mealAt = moments.indexOf(meal);
     const before = sameDay.filter(p => moments.indexOf(p.moment) < mealAt);
     const after = sameDay.filter(p => moments.indexOf(p.moment) > mealAt);
-    const c = before.length ? before[before.length - 1].stops.at(-1).candidate : after[0]?.stops[0]?.candidate;
-    const lat = c?.latitude ?? c?.lat;
-    const lng = c?.longitude ?? c?.lng;
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-    return { latitude: lat, longitude: lng, name: c.name || c.title || null };
+    const prima = before.length ? before[before.length - 1].stops.at(-1).candidate : null;
+    const dopo = after[0]?.stops[0]?.candidate || null;
+    const point = (c) => {
+        const lat = c?.latitude ?? c?.lat;
+        const lng = c?.longitude ?? c?.lng;
+        return Number.isFinite(lat) && Number.isFinite(lng) ? { latitude: lat, longitude: lng, name: c.name || c.title || null } : null;
+    };
+    const a = point(prima), b = point(dopo);
+    if (!a || !b) return a || b;
+    const L = legKm(a, b);
+    const f = L > 0 ? Math.min(0.5, (0.75 * MAX_WALK_METERS) / 1000 / L) : 0;
+    return {
+        latitude: a.latitude + f * (b.latitude - a.latitude),
+        longitude: a.longitude + f * (b.longitude - a.longitude),
+        name: `fra ${a.name} e ${b.name}`,
+    };
 }
 
 // ─── 3. Controllo e riparazione della risposta del selettore ─────────────────
@@ -321,17 +367,52 @@ const walkFrom = (a, b) => {
  * @returns {{ plan: Array<{ moment: object, stops: Array<{ candidate: object,
  *   narration: object|null, source: 'modello'|'riparata', trace: { scelta:
  *   'modello'|'riparazione'|'ricerca mirata'|'ripiego', minuti: number|null,
- *   famiglia: string|null, ripiego?: 'distanza'|'famiglia', motivo?: string } }> }>,
+ *   famiglia: string|null, ripiego?: 'distanza'|'famiglia'|'catena', motivo?: string,
+ *   deviazione?: number } }> }>,
  *   report: { scartate: Array, riempite: Array, momentiTolti: Array, ripieghi: Array,
  *   lontani: Array<{ momento: string, da: { latitude, longitude, name } }>,
  *   ripetuti: Array<{ momento: string, da: { latitude, longitude, name } }> } }}
  */
-export function repairMomentSelection({
+export function repairMomentSelection(args) {
+    // C5 — primo giro senza punti fissi; poi i punti fissi di quel piano
+    // (ordinato) guidano la scelta, finche' il piano non cambia.
+    let res = repairPass(args, null);
+    for (let i = 0; i < ROUTE_PASSES; i++) {
+        const next = repairPass(args, fixedPoints(orderPlanWalk(res.plan, args)));
+        const same = planKey(next.plan) === planKey(res.plan);
+        res = next;
+        if (same) break;
+    }
+    const plan = polishRoute(orderPlanWalk(res.plan, args), args, res.report);
+    return { plan, report: res.report };
+}
+
+const planKey = (plan) => plan.map(p => `${p.moment.id}:${p.stops.map(s => idOf(s.candidate)).join(',')}`).join('|');
+
+/**
+ * C5 — il prossimo punto fisso di ogni momento del piano: per un pasto la
+ * prima tappa dopo, per gli altri momenti il pasto dopo, nello stesso giorno.
+ * Fine giornata senza pasto dopo: nessun punto fisso (conta solo il tetto).
+ * @returns {Map<string, object|null>} id momento → candidato
+ */
+export function fixedPoints(plan) {
+    const out = new Map();
+    plan.forEach((p, i) => {
+        const later = plan.slice(i + 1).filter(x => x.moment.dayIndex === p.moment.dayIndex);
+        const at = FOOD_ONLY_MOMENT_KEYS.has(p.moment.key)
+            ? later[0]
+            : later.find(x => FOOD_ONLY_MOMENT_KEYS.has(x.moment.key));
+        out.set(p.moment.id, at?.stops[0]?.candidate || null);
+    });
+    return out;
+}
+
+function repairPass({
     moments, buckets, aiStops, pool, dnaWeights = {}, requestedFamilies: asked = null,
     maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES,
     searchedIds = null, searchedMoments = null,
-}) {
-    const report = { scartate: [], riempite: [], momentiTolti: [], ripieghi: [], lontani: [], ripetuti: [] };
+}, targets) {
+    const report = { scartate: [], riempite: [], momentiTolti: [], ripieghi: [], lontani: [], ripetuti: [], ritocchi: [] };
     const poolIds = new Set((pool || []).map(idOf));
     const ai = (Array.isArray(aiStops) ? aiStops : []).filter(s => s && typeof s === 'object');
 
@@ -380,8 +461,17 @@ export function repairMomentSelection({
     let prev = null;
     let day = null;
     let dayFamilies = new Set();
+    // C5 — i marchi gia' nel giorno: mai due locali della stessa catena.
+    let dayBrands = new Set();
+    const brandCache = new Map();
+    const brandOf = (c) => {
+        const k = idOf(c);
+        if (!brandCache.has(k)) brandCache.set(k, brandKey(c));
+        return brandCache.get(k);
+    };
     moments.forEach((m, mi) => {
-        if (m.dayIndex !== day) { day = m.dayIndex; prev = null; dayFamilies = new Set(); }
+        if (m.dayIndex !== day) { day = m.dayIndex; prev = null; dayFamilies = new Set(); dayBrands = new Set(); }
+        const target = targets?.get(m.id) || null;
         const bucket = buckets.get(m.id) || [];
         const inBucket = new Map(bucket.map(c => [idOf(c), c]));
         const later = moments.slice(mi + 1).filter(x => x.dayIndex === m.dayIndex && x.stops > 0);
@@ -419,6 +509,10 @@ export function repairMomentSelection({
         // non ripetuta, o entro i 25 minuti con una famiglia nuova.
         const newFam = (x, fams) => counted(famOf(x)) && !fams.has(famOf(x));
         const reachable = (t, x, fams) => (t <= maxWalk && okFam(x, fams)) || (t <= varietyWalk && newFam(x, fams));
+        // C5 — davanti a tutto il marchio (mai due volte nel giorno: entra
+        // solo se non c'e' altro); in fondo, dopo tetto e varieta', "fuori
+        // strada": piu' di OFF_ROUTE_MINUTES di giro oltre la deviazione
+        // minima fra i candidati ammessi (stesso marchio no, oltre il tetto no).
         const costOf = (c) => {
             const from = last();
             const t = from ? walkFrom(from, c) : 0;
@@ -427,32 +521,42 @@ export function repairMomentSelection({
             const stretch = over && t <= varietyWalk && newFam(c, dayFamilies);
             const hard = over && !stretch;
             const rank = stretch ? 1 : (dup ? 2 : 0);
-            return { t, over, dup, stretch, key: [hard ? 1 : 0, hard ? t : 0, rank, starves(c) ? 1 : 0, strands(c) ? 1 : 0] };
+            const chain = !!brandOf(c) && dayBrands.has(brandOf(c));
+            const dev = detourMinutes(from, c, target);
+            return { c, t, over, dup, stretch, chain, hard, dev, pre: [chain ? 1 : 0, hard ? 1 : 0, hard ? t : 0, rank, starves(c) ? 1 : 0, strands(c) ? 1 : 0] };
         };
         const cmpKey = (a, b) => {
             for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i];
             return 0;
         };
-        // Il miglior candidato libero del momento (escluso `except`), col suo costo.
-        const best = (except) => {
-            const ranked = free(except).map(c => ({ c, ...costOf(c) }));
-            ranked.sort((a, b) => cmpKey(a.key, b.key) || (scoreOf(b.c) - scoreOf(a.c)) || (a.t - b.t));
-            return ranked[0] || null;
+        // Merito e strada insieme: il punteggio meno il peso della deviazione.
+        const worth = (x) => scoreOf(x.c) - DETOUR_WEIGHT * x.dev;
+        // Tutti i candidati liberi del momento col loro costo, dal migliore.
+        const ranked = () => {
+            const all = free(null).map(costOf);
+            const ok = all.filter(x => !x.chain && !x.hard);
+            const minDev = Math.min(...(ok.length ? ok : all).map(x => x.dev));
+            for (const x of all) x.key = [...x.pre, x.dev > minDev + OFF_ROUTE_MINUTES ? 1 : 0];
+            return all.sort((a, b) => cmpKey(a.key, b.key) || (worth(b) - worth(a)) || (a.t - b.t));
         };
+        // Il miglior candidato libero del momento (escluso `except`), col suo costo.
+        const best = (except) => ranked().find(x => idOf(x.c) !== except) || null;
         // Perche' una scelta del modello perde contro l'alternativa migliore:
         // la prima voce del costo in cui e' peggiore.
         const whyWorse = (k, c, t, a) => {
             const dist = `oltre il tetto di cammino (${Number.isFinite(t) ? t : '?'} min > ${maxWalk})`;
-            if (k[0] !== a[0] || k[1] !== a[1]) return dist;
-            if (k[2] !== a[2]) return k[2] === 2 ? `famiglia gia' presente nel giorno (${famOf(c)})` : dist;
-            if (k[3] !== a[3]) return `toglie l'unica alternativa a un momento dopo (${famOf(c)})`;
-            return 'dopo di lui nessuna tappa nuova entro il tetto';
+            if (k[0] !== a[0]) return `stesso marchio gia' nel giorno (${brandOf(c).split('|')[1]})`;
+            if (k[1] !== a[1] || k[2] !== a[2]) return dist;
+            if (k[3] !== a[3]) return k[3] === 2 ? `famiglia gia' presente nel giorno (${famOf(c)})` : dist;
+            if (k[4] !== a[4]) return `toglie l'unica alternativa a un momento dopo (${famOf(c)})`;
+            if (k[5] !== a[5]) return 'dopo di lui nessuna tappa nuova entro il tetto';
+            return `fuori strada: ${Math.round(detourMinutes(last(), c, target))} min di giro verso "${target?.name || target?.title || '?'}"`;
         };
         // Un passo oltre il tetto e' un ripiego, tranne quando lo paga la
         // varieta' (famiglia nuova entro i 25 minuti): quello e' una scelta.
         const take = (c, narration, source, cost) => {
-            const { over, dup, stretch: byVariety } = cost;
-            const ripiego = (over && !byVariety) ? 'distanza' : (dup ? 'famiglia' : null);
+            const { over, dup, stretch: byVariety, chain } = cost;
+            const ripiego = chain ? 'catena' : ((over && !byVariety) ? 'distanza' : (dup ? 'famiglia' : null));
             const from = last();
             const mirata = searchedIds?.has(idOf(c)) && source !== 'modello';
             const trace = {
@@ -460,6 +564,7 @@ export function repairMomentSelection({
                 minuti: from && Number.isFinite(cost.t) ? cost.t : null,
                 famiglia: famOf(c),
             };
+            if (target && from) trace.deviazione = Math.round(cost.dev);
             if (byVariety) trace.motivo = `famiglia nuova a ${cost.t} min: la varieta' vale il passo oltre i ${maxWalk}`;
             if (ripiego) {
                 trace.ripiego = ripiego;
@@ -467,7 +572,9 @@ export function repairMomentSelection({
                 const dopo = searchedMoments == null ? ''
                     : (searchedMoments.has(m.id) ? ' (anche dopo la ricerca mirata)' : ' (ricerche mirate esaurite)');
                 const da = from ? { latitude: from.latitude ?? from.lat, longitude: from.longitude ?? from.lng, name: from.name || from.title || null } : null;
-                if (ripiego === 'distanza') {
+                if (ripiego === 'catena') {
+                    trace.motivo = `solo locali di un marchio gia' nel giorno (${brandOf(c).split('|')[1]})`;
+                } else if (ripiego === 'distanza') {
                     trace.motivo = `nessun candidato entro ${maxWalk} min${dopo}: il piu' vicino`;
                     report.lontani.push({ momento: m.id, da });
                 } else {
@@ -480,12 +587,14 @@ export function repairMomentSelection({
             chosen.push({ candidate: c, narration, source, trace });
             used.add(idOf(c));
             if (counted(famOf(c))) dayFamilies.add(famOf(c));
+            if (brandOf(c)) dayBrands.add(brandOf(c));
         };
         // C1 — una scelta del modello vale se nessuna alternativa del momento
         // costa meno (vedi costOf): il tetto e la varieta' valgono anche per lui.
         const modelWins = (c) => {
-            const mine = costOf(c);
-            const alt = best(idOf(c));
+            const all = ranked();
+            const mine = all.find(x => idOf(x.c) === idOf(c));
+            const alt = all.find(x => idOf(x.c) !== idOf(c)) || null;
             return { ok: !alt || cmpKey(mine.key, alt.key) <= 0, mine, alt };
         };
         const reject = (s, motivo) => report.scartate.push({ place_id: s.place_id, momento: m.id, motivo });
@@ -533,6 +642,146 @@ export function repairMomentSelection({
         report.scartate.push({ place_id: s.place_id, momento: null, motivo: 'senza momento e senza posto libero' });
     }
     return { plan, report };
+}
+
+// ─── C5 — rifinitura sul giro intero ─────────────────────────────────────────
+
+const MAX_POLISH_ROUNDS = 12;
+
+/**
+ * La scelta momento per momento non vede il giro intero: due tappe ognuna
+ * "sulla strada" possono ancora tagliarsi. Qui, giorno per giorno, si prova a
+ * sostituire una tappa con un altro candidato DELLO STESSO MOMENTO e si tiene
+ * il cambio migliore se:
+ *   · non aggiunge tratti oltre il tetto, famiglie ripetute ne' catene (C1, C1b
+ *     e la regola dei marchi restano dure);
+ *   · toglie incroci, o a parita' di incroci accorcia il giro di almeno
+ *     OFF_ROUTE_MINUTES e abbassa "cammino meno merito" (ogni minuto a piedi
+ *     vale DETOUR_WEIGHT punti di merito, come nella scelta). Il merito da
+ *     solo non cambia mai una tappa: la scelta resta del modello.
+ * Il numero di tappe e i momenti non cambiano; ogni sostituzione va nel report.
+ */
+function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: asked = null, maxWalk = MAX_WALK_MINUTES, searchedIds = null }, report) {
+    const scoreCache = new Map();
+    const scoreOf = (c) => {
+        const k = idOf(c);
+        if (!scoreCache.has(k)) scoreCache.set(k, computeCandidateScore(c, pool || [], dnaWeights));
+        return scoreCache.get(k);
+    };
+    const used = new Set(plan.flatMap(p => p.stops.map(s => idOf(s.candidate))));
+    const measure = (entries) => {
+        const seq = orderPlanWalk(entries, { maxWalk }).flatMap(p => p.stops.map(s => s.candidate));
+        const fams = seq.map(candidateFamily).filter(f => f && !asked?.has(f));
+        return {
+            incroci: countCrossings(seq),
+            oltre: seq.slice(1).filter((c, i) => walkFrom(seq[i], c) > maxWalk).length,
+            famiglie: fams.length - new Set(fams).size,
+            catene: repeatedBrands(seq).length,
+            minuti: toMinutes(pathKm(seq)),
+            merito: seq.reduce((a, c) => a + scoreOf(c), 0),
+        };
+    };
+    const costo = (x) => DETOUR_WEIGHT * x.minuti - x.merito;
+    const better = (t, m) => t.oltre <= m.oltre && t.famiglie <= m.famiglie && t.catene <= m.catene
+        && (t.incroci < m.incroci
+            || (t.incroci === m.incroci && t.minuti <= m.minuti - OFF_ROUTE_MINUTES && costo(t) < costo(m) - 1e-9));
+    const out = [...plan];
+    for (const day of new Set(plan.map(p => p.moment.dayIndex))) {
+        const idx = out.map((p, i) => i).filter(i => out[i].moment.dayIndex === day);
+        for (let round = 0; round < MAX_POLISH_ROUNDS; round++) {
+            const entries = idx.map(i => out[i]);
+            let best = null;
+            let bestM = measure(entries);
+            entries.forEach((e, ei) => e.stops.forEach((s, si) => {
+                for (const c of buckets.get(e.moment.id) || []) {
+                    if (used.has(idOf(c))) continue;
+                    const stops = e.stops.map((x, k) => (k === si ? { ...x, candidate: c } : x));
+                    const trial = entries.map((x, k) => (k === ei ? { ...x, stops } : x));
+                    const t = measure(trial);
+                    if (better(t, bestM)) { best = { ei, si, c }; bestM = t; }
+                }
+            }));
+            if (!best) break;
+            const e = out[idx[best.ei]];
+            const old = e.stops[best.si];
+            used.delete(idOf(old.candidate));
+            used.add(idOf(best.c));
+            const trace = { scelta: searchedIds?.has(idOf(best.c)) ? 'ricerca mirata' : 'riparazione', minuti: null,
+                famiglia: candidateFamily(best.c), motivo: `sulla strada: al posto di "${old.candidate.name || old.candidate.title || idOf(old.candidate)}"` };
+            out[idx[best.ei]] = { ...e, stops: e.stops.map((x, k) => (k === best.si ? { candidate: best.c, narration: null, source: 'riparata', trace } : x)) };
+            report.ritocchi = [...(report.ritocchi || []), { momento: e.moment.id, tolta: idOf(old.candidate), messa: idOf(best.c), name: best.c.name || best.c.title || null }];
+            report.riempite.push({ place_id: idOf(best.c), name: best.c.name || best.c.title || null, momento: e.moment.id });
+        }
+    }
+    return orderPlanWalk(out, { maxWalk });
+}
+
+// ─── C5 — l'ordine dentro il momento ─────────────────────────────────────────
+
+/**
+ * Dentro ogni momento con piu' tappe, l'ordine che fa il cammino piu' corto
+ * fra l'ultima tappa del momento prima e la prima del momento dopo (vicino
+ * piu' vicino, poi scambi 2-opt). Una tappa non cambia mai momento. Un ordine
+ * nuovo vale solo se accorcia il cammino senza aggiungere tratti oltre il tetto;
+ * senza coordinate per tutte le tappe del momento, l'ordine resta.
+ * @param {Array} plan da repairMomentSelection
+ * @returns {Array} un piano nuovo (quello passato non cambia)
+ */
+export function orderPlanWalk(plan, { maxWalk = MAX_WALK_MINUTES } = {}) {
+    const out = plan.map(p => ({ ...p, stops: [...p.stops] }));
+    const sameDay = (i, j) => out[j] && out[j].moment.dayIndex === out[i].moment.dayIndex;
+    // Due giri: il primo puo' cambiare la prima tappa di un momento, che e'
+    // l'estremo del momento prima.
+    for (let pass = 0; pass < 2; pass++) {
+        out.forEach((p, i) => {
+            if (p.stops.length < 2) return;
+            const before = sameDay(i, i - 1) ? out[i - 1].stops.at(-1).candidate : null;
+            const after = sameDay(i, i + 1) ? out[i + 1].stops[0].candidate : null;
+            p.stops = shortestOrder(p.stops, before, after, maxWalk);
+        });
+    }
+    return out;
+}
+
+function shortestOrder(stops, before, after, maxWalk) {
+    const pts = stops.map(s => s.candidate);
+    // legKm(c, c) e' null solo senza coordinate.
+    if (pts.some(c => legKm(c, c) === null)) return stops;
+    // I tratti della sequenza, estremi compresi (un estremo senza coordinate non conta).
+    const legs = (seq) => {
+        const e = [before, ...seq, after].filter(c => c && legKm(c, c) !== null);
+        return e.slice(1).map((c, i) => [e[i], c]);
+    };
+    const km = (seq) => legs(seq).reduce((a, [x, y]) => a + legKm(x, y), 0);
+    const overs = (seq) => legs(seq).filter(([x, y]) => walkFrom(x, y) > maxWalk).length;
+    // Vicino piu' vicino: dalla tappa prima, o da ognuna se il momento apre il giorno.
+    const greedy = (start) => {
+        const left = pts.filter(c => c !== start);
+        const seq = start ? [start] : [];
+        let cur = start || before;
+        while (left.length) {
+            // senza tappa prima e senza partenza: il primo resta il primo
+            if (!cur) { cur = left.shift(); seq.push(cur); continue; }
+            left.sort((a, b) => legKm(cur, a) - legKm(cur, b));
+            cur = left.shift();
+            seq.push(cur);
+        }
+        return seq;
+    };
+    const starts = before ? [greedy(null)] : pts.map(greedy);
+    let best = starts.reduce((a, b) => (km(b) < km(a) ? b : a));
+    // 2-opt: rovescia un tratto finche' accorcia.
+    for (let improved = true; improved;) {
+        improved = false;
+        for (let i = 0; i < best.length - 1; i++) {
+            for (let j = i + 1; j < best.length; j++) {
+                const cand = [...best.slice(0, i), ...best.slice(i, j + 1).reverse(), ...best.slice(j + 1)];
+                if (km(cand) < km(best) - 1e-9) { best = cand; improved = true; }
+            }
+        }
+    }
+    if (!(km(best) < km(pts) - 1e-9) || overs(best) > overs(pts)) return stops;
+    return best.map(c => stops[pts.indexOf(c)]);
 }
 
 // ─── 4. Orari dentro il momento ──────────────────────────────────────────────

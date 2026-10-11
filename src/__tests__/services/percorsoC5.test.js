@@ -1,0 +1,222 @@
+// C5 — percorso a filo: una camminata, non una lista.
+// Il caso vero e' dal telefono di Ivano (Roma, 11/10): Quirinale → Belvedere
+// Tarpeo (sud) → Origano Trevi (nord) → Vittoriano (sud) → Piazza Farnese
+// (ovest) → bar (nord-est) → Origano Campo de' Fiori (ovest). Coordinate
+// approssimate al centinaio di metri.
+import { describe, it, expect } from 'vitest';
+import {
+    flattenSkeleton, bucketCandidates, repairMomentSelection, orderPlanWalk, fixedPoints, detourMinutes,
+    MAX_WALK_MINUTES, OFF_ROUTE_MINUTES,
+} from '../../services/momentSelection';
+import { routeMetrics, countCrossings } from '../../lib/routeShape';
+import { travelMinutes } from '../../lib/tourTiming';
+
+const CATS = {
+    mattina: ['cultura', 'monumenti', 'musei', 'passeggiata'], pranzo: ['cibo'],
+    pomeriggio: ['cultura', 'natura', 'shopping', 'passeggiata'], aperitivo: ['bar', 'punti panoramici'], cena: ['cibo'],
+};
+const ORE = { mattina: ['09:30', '12:30'], pranzo: ['12:30', '14:30'], pomeriggio: ['14:30', '18:00'], aperitivo: ['18:00', '20:00'], cena: ['20:00', '22:30'] };
+const giorno = (spec) => flattenSkeleton({ days: [{ moments: spec.map(([key, stops = 1]) => ({
+    key, label: key, stops, categories: CATS[key],
+    start: new Date(`2026-10-12T${ORE[key][0]}:00+02:00`), end: new Date(`2026-10-12T${ORE[key][1]}:00+02:00`),
+})) }] });
+const p = (id, name, lat, lng, types, rating = 4.5) => ({ place_id: id, name, latitude: lat, longitude: lng, types, rating, user_ratings_total: 1000 });
+const RIST = ['restaurant', 'food'];
+const seqOf = (plan) => plan.flatMap(x => x.stops.map(s => s.candidate));
+const nomi = (plan) => seqOf(plan).map(c => c.name);
+
+const IVANO = [
+    p('quir', 'Piazza del Quirinale', 41.8996, 12.4874, ['tourist_attraction']),
+    p('tarp', 'Belvedere Tarpeo', 41.8921, 12.4813, ['tourist_attraction']),
+    p('ortr', 'Origano Trevi', 41.9009, 12.4836, RIST),
+    p('vitt', 'Vittoriano', 41.8946, 12.4831, ['tourist_attraction', 'museum']),
+    p('farn', 'Piazza Farnese', 41.8949, 12.4716, ['tourist_attraction']),
+    p('bar', 'Bar Monti', 41.8968, 12.4900, ['bar', 'cafe']),
+    p('orcf', 'Origano Campo de\' Fiori', 41.8957, 12.4722, RIST),
+];
+// Le alternative del pool, un po' sotto per voto: nessuna vince per merito.
+const ALTRI = [
+    p('trevi', 'Fontana di Trevi', 41.9009, 12.4833, ['tourist_attraction'], 4.4),
+    p('igna', 'Chiesa di Sant\'Ignazio', 41.8990, 12.4797, ['church'], 4.4),
+    p('piet', 'Trattoria Pietro', 41.8975, 12.4770, RIST, 4.4),
+    p('nav', 'Piazza Navona', 41.8992, 12.4731, ['tourist_attraction'], 4.4),
+    p('fico', 'Bar del Fico', 41.8996, 12.4706, ['bar'], 4.4),
+    p('sole', 'Osteria del Sole', 41.8962, 12.4705, RIST, 4.4),
+];
+const ROMA = giorno([['mattina', 2], ['pranzo'], ['pomeriggio', 2], ['aperitivo'], ['cena']]);
+const SCELTA_DEL_MODELLO = [['quir', 'mattina'], ['tarp', 'mattina'], ['ortr', 'pranzo'], ['vitt', 'pomeriggio'], ['farn', 'pomeriggio'], ['bar', 'aperitivo'], ['orcf', 'cena']]
+    .map(([place_id, m]) => ({ place_id, moment: `g1-${m}` }));
+
+describe('C5 — il caso a zig-zag di Roma (11/10)', () => {
+    it('controllo dello strumento: il giro del telefono si taglia piu\' volte e ripete un marchio', () => {
+        const m = routeMetrics(IVANO);
+        expect(m.incroci).toBeGreaterThanOrEqual(3);
+        expect(m.indice).toBeGreaterThan(1.3);
+        expect(m.catene).toBe(1);
+    });
+
+    it('stessa scelta del modello, pool con alternative → nessun incrocio, nessuna catena, stesse tappe per momento', () => {
+        const pool = [...IVANO, ...ALTRI];
+        const { plan, report } = repairMomentSelection({ moments: ROMA, buckets: bucketCandidates(ROMA, pool), aiStops: SCELTA_DEL_MODELLO, pool });
+        const m = routeMetrics(seqOf(plan));
+        expect(m.incroci, nomi(plan).join(' → ')).toBe(0);
+        expect(m.catene).toBe(0);
+        expect(m.km).toBeLessThan(routeMetrics(IVANO).km);
+        expect(plan.map(x => [x.moment.key, x.stops.length])).toEqual([['mattina', 2], ['pranzo', 1], ['pomeriggio', 2], ['aperitivo', 1], ['cena', 1]]);
+        // Ogni cambio dice perche'.
+        const motivi = report.scartate.map(x => x.motivo).join(' | ');
+        expect(motivi).toMatch(/fuori strada: \d+ min di giro/);
+        expect(motivi).toMatch(/stesso marchio gia' nel giorno \(origano\)/);
+        // Nessun tratto oltre il tetto.
+        const seq = seqOf(plan);
+        for (let i = 1; i < seq.length; i++) expect(travelMinutes(seq[i - 1], seq[i])).toBeLessThanOrEqual(MAX_WALK_MINUTES);
+    });
+
+    it('dentro un momento a zig-zag: riordinato senza incroci, e nessuna tappa cambia momento', () => {
+        const plan = [
+            { moment: ROMA[0], stops: [{ candidate: IVANO[0] }, { candidate: IVANO[1] }] }, // Quirinale → Tarpeo
+            { moment: ROMA[1], stops: [{ candidate: IVANO[2] }] }, // pranzo Origano Trevi (nord)
+        ];
+        const out = orderPlanWalk(plan);
+        expect(out[0].stops.map(s => s.candidate.name)).toEqual(['Belvedere Tarpeo', 'Piazza del Quirinale']);
+        expect(out[1].stops.map(s => s.candidate.name)).toEqual(['Origano Trevi']);
+        expect(plan[0].stops[0].candidate.name).toBe('Piazza del Quirinale'); // il piano passato non cambia
+
+        // Pomeriggio di quattro tappe percorse a "X" fra due punti fissi.
+        const A = p('a', 'a', 41.900, 12.470, ['museum']), B = p('b', 'b', 41.900, 12.474, ['museum']);
+        const C = p('c', 'c', 41.902, 12.474, ['museum']), D = p('d', 'd', 41.902, 12.470, ['museum']);
+        const pom = giorno([['pranzo'], ['pomeriggio', 4], ['aperitivo']]);
+        const zig = [
+            { moment: pom[0], stops: [{ candidate: p('r', 'r', 41.899, 12.469, RIST) }] },
+            { moment: pom[1], stops: [A, C, B, D].map(candidate => ({ candidate })) },
+            { moment: pom[2], stops: [{ candidate: p('z', 'z', 41.903, 12.469, ['bar']) }] },
+        ];
+        expect(countCrossings(seqOf(zig))).toBeGreaterThan(0);
+        const fixed = orderPlanWalk(zig);
+        expect(countCrossings(seqOf(fixed))).toBe(0);
+        expect(fixed.map(x => x.stops.length)).toEqual([1, 4, 1]);
+        expect(new Set(fixed[1].stops.map(s => s.candidate.place_id))).toEqual(new Set(['a', 'b', 'c', 'd']));
+    });
+
+    it('un ordine piu\' corto che aggiunge un tratto oltre il tetto non vale', () => {
+        const lontano = p('far', 'far', 41.920, 12.470, ['museum']);
+        const vicino = p('near', 'near', 41.9005, 12.470, ['museum']);
+        const prima = p('prima', 'prima', 41.900, 12.470, RIST);
+        const dopo = p('dopo', 'dopo', 41.921, 12.470, ['bar']);
+        const g = giorno([['pranzo'], ['pomeriggio', 2], ['aperitivo']]);
+        const plan = [
+            { moment: g[0], stops: [{ candidate: prima }] },
+            { moment: g[1], stops: [{ candidate: vicino }, { candidate: lontano }] },
+            { moment: g[2], stops: [{ candidate: dopo }] },
+        ];
+        // l'ordine dato e' gia' il piu' corto: resta
+        expect(orderPlanWalk(plan)[1].stops.map(s => s.candidate.place_id)).toEqual(['near', 'far']);
+    });
+});
+
+describe('C5 — sulla strada verso il prossimo punto fisso', () => {
+    // Mattina al museo, cena fissa a 900 m a nord. Due piazze equivalenti per
+    // il pomeriggio, a 7 minuti dal museo: una verso la cena, una dalla parte opposta.
+    const museo = p('museo', 'museo', 41.900, 12.480, ['museum']);
+    const sullaStrada = p('su', 'su', 41.9045, 12.480, ['tourist_attraction']);
+    const fuoriStrada = p('giu', 'giu', 41.8955, 12.480, ['tourist_attraction']);
+    const cena = p('cena', 'cena', 41.908, 12.480, RIST);
+    const g = giorno([['mattina'], ['pomeriggio'], ['cena']]);
+    const pool = [museo, sullaStrada, fuoriStrada, cena];
+    const nomeDi = (plan, key) => plan.find(x => x.moment.key === key).stops[0].candidate.place_id;
+
+    it('controllo: stessa distanza dal museo, stesso voto; la deviazione verso la cena e\' 0 contro ~13 minuti', () => {
+        expect(travelMinutes(museo, sullaStrada)).toBe(travelMinutes(museo, fuoriStrada));
+        expect(detourMinutes(museo, sullaStrada, cena)).toBeLessThan(1);
+        expect(detourMinutes(museo, fuoriStrada, cena)).toBeGreaterThan(OFF_ROUTE_MINUTES);
+    });
+
+    it('riparazione: vince il candidato sulla strada, in qualunque ordine stia nel pool', () => {
+        for (const ordine of [pool, [museo, fuoriStrada, sullaStrada, cena].reverse()]) {
+            const { plan } = repairMomentSelection({ moments: g, buckets: bucketCandidates(g, ordine), aiStops: [{ place_id: 'museo', moment: 'g1-mattina' }], pool: ordine });
+            expect(nomeDi(plan, 'pomeriggio')).toBe('su');
+        }
+    });
+
+    it('scelta del modello fuori strada: scartata con il motivo, entra quella sulla strada', () => {
+        const { plan, report } = repairMomentSelection({
+            moments: g, buckets: bucketCandidates(g, pool), pool,
+            aiStops: [{ place_id: 'museo', moment: 'g1-mattina' }, { place_id: 'giu', moment: 'g1-pomeriggio' }, { place_id: 'cena', moment: 'g1-cena' }],
+        });
+        expect(nomeDi(plan, 'pomeriggio')).toBe('su');
+        expect(report.scartate).toEqual([expect.objectContaining({ place_id: 'giu', motivo: expect.stringMatching(/^fuori strada: 1\d min di giro verso "cena"$/) })]);
+        expect(plan.find(x => x.moment.key === 'pomeriggio').stops[0].trace.deviazione).toBe(0);
+    });
+
+    it('il merito resta: un candidato fuori strada di poco (sotto la soglia) con voto molto piu\' alto vince', () => {
+        const quasi = p('quasi', 'quasi', 41.9045, 12.4815, ['tourist_attraction'], 5);
+        const debole = { ...sullaStrada, rating: 3.6 };
+        const pl = [museo, debole, quasi, cena];
+        expect(detourMinutes(museo, quasi, cena)).toBeLessThan(OFF_ROUTE_MINUTES);
+        const { plan } = repairMomentSelection({ moments: g, buckets: bucketCandidates(g, pl), aiStops: [{ place_id: 'museo', moment: 'g1-mattina' }], pool: pl });
+        expect(nomeDi(plan, 'pomeriggio')).toBe('quasi');
+    });
+
+    it('punti fissi: per un momento il pasto dopo, per un pasto la tappa dopo, a fine giornata nessuno', () => {
+        const g2 = giorno([['mattina'], ['pranzo'], ['pomeriggio'], ['aperitivo']]);
+        const plan = g2.map((moment, i) => ({ moment, stops: [{ candidate: { place_id: `x${i}` } }] }));
+        const fp = fixedPoints(plan);
+        expect(fp.get('g1-mattina').place_id).toBe('x1');
+        expect(fp.get('g1-pranzo').place_id).toBe('x2');
+        expect(fp.get('g1-pomeriggio')).toBe(null);
+        expect(fp.get('g1-aperitivo')).toBe(null);
+    });
+});
+
+describe('C5 — mai lo stesso marchio due volte nel giorno', () => {
+    const g = giorno([['pranzo'], ['pomeriggio'], ['cena']]);
+    const ortr = IVANO[2], orcf = IVANO[6];
+    // Il museo a due passi da Origano Trevi: il pranzo del modello sta sulla strada.
+    const museo = p('museo', 'museo', 41.9000, 12.4830, ['museum']);
+    const altra = p('altra', 'altra', 41.8945, 12.4700, RIST, 4.0);
+
+    it('Origano a pranzo → a cena un altro locale, anche se Origano Campo de\' Fiori e\' piu\' vicino e ha voto piu\' alto', () => {
+        expect(travelMinutes(museo, orcf)).toBeLessThan(travelMinutes(museo, altra));
+        expect(travelMinutes(museo, altra)).toBeLessThanOrEqual(MAX_WALK_MINUTES);
+        const pool = [ortr, museo, orcf, altra];
+        const { plan, report } = repairMomentSelection({
+            moments: g, buckets: bucketCandidates(g, pool), pool,
+            aiStops: [{ place_id: 'ortr', moment: 'g1-pranzo' }, { place_id: 'museo', moment: 'g1-pomeriggio' }, { place_id: 'orcf', moment: 'g1-cena' }],
+        });
+        expect(nomi(plan)).toEqual(['Origano Trevi', 'museo', 'altra']);
+        expect(report.scartate).toEqual([expect.objectContaining({ place_id: 'orcf', motivo: "stesso marchio gia' nel giorno (origano)" })]);
+        expect(routeMetrics(seqOf(plan)).catene).toBe(0);
+    });
+
+    it('solo locali di quel marchio per la cena: la cena c\'e\' lo stesso, dichiarata come ripiego', () => {
+        const pool = [ortr, museo, orcf];
+        const { plan, report } = repairMomentSelection({ moments: g, buckets: bucketCandidates(g, pool), aiStops: [{ place_id: 'ortr', moment: 'g1-pranzo' }], pool });
+        const cena = plan.find(x => x.moment.key === 'cena').stops[0];
+        expect(cena.candidate.place_id).toBe('orcf');
+        expect(cena.trace).toMatchObject({ scelta: 'ripiego', ripiego: 'catena' });
+        expect(report.ripieghi.map(x => x.motivo)).toContain("solo locali di un marchio gia' nel giorno (origano)");
+    });
+
+    it('il giorno dopo il marchio torna possibile', () => {
+        const due = flattenSkeleton({ days: [{ moments: [g[0]] }, { moments: [g[0]] }] });
+        const pool = [ortr, orcf];
+        const { plan } = repairMomentSelection({ moments: due, buckets: bucketCandidates(due, pool), aiStops: [], pool });
+        expect(plan.map(x => x.stops[0].trace.ripiego ?? null)).toEqual([null, null]);
+    });
+});
+
+describe('C5 — la rifinitura non cambia una scelta del modello per solo merito', () => {
+    it('stesso giro, voto piu\' alto a due passi: resta la tappa del modello', () => {
+        const g = giorno([['mattina'], ['pomeriggio']]);
+        const a = p('a', 'a', 41.900, 12.480, ['museum'], 4.0);
+        const b = p('b', 'b', 41.902, 12.480, ['church'], 4.0);
+        const top = p('top', 'top', 41.9021, 12.4801, ['church'], 5.0);
+        const pool = [a, b, top];
+        const { plan, report } = repairMomentSelection({
+            moments: g, buckets: bucketCandidates(g, pool), pool,
+            aiStops: [{ place_id: 'a', moment: 'g1-mattina' }, { place_id: 'b', moment: 'g1-pomeriggio' }],
+        });
+        expect(nomi(plan)).toEqual(['a', 'b']);
+        expect(report.ritocchi).toEqual([]);
+    });
+});

@@ -151,8 +151,15 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
         expect(stato.selectorBody).toContain('g1-mattina');
         expect(stato.selectorBody).toContain('09:30');
         expect(stato.selectorBody).toContain('ESATTAMENTE 1 tappa');
-        // Nessuna riparazione: il modello ha rispettato lo scheletro.
-        expect(result._momentReport.riempite).toEqual([]);
+        // Il modello ha rispettato lo scheletro: nessuno scarto per momento,
+        // numero o luogo. L'unico cambio e' di strada (C5): l'Enoteca Il
+        // Goccetto fa 12 minuti di giro verso la cena da Teo, Freni e Frizioni
+        // sta sulla strada.
+        expect(result._momentReport.scartate.map(x => [x.place_id, x.motivo.replace(/\d+ min/, 'N min')]))
+            .toEqual([[expect.stringContaining('goccetto'), 'fuori strada: N min di giro verso "Da Teo"']]);
+        expect(result._momentReport.riempite.map(x => x.name)).toEqual(['Freni e Frizioni']);
+        // C5 — la forma del giro nel tracciato.
+        expect(result._momentReport.percorso).toEqual([expect.objectContaining({ tappe: 5, incroci: 0, catene: 0 })]);
     });
 
     it('il modello restituisce 3 ristoranti → il codice ripara e lo scheletro viene rispettato', async () => {
@@ -178,7 +185,9 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
         // Ogni tappa e' un luogo vero dei candidati: mai un luogo inventato.
         const ids = new Set(TUTTI.map(p => p.place_id));
         expect(stops.every(s => ids.has(s.place_id))).toBe(true);
-        expect(result._momentReport.scartate.map(x => x.motivo))
+        // I due ristoranti fuori momento; in piu' (C5) l'Osteria der Belli a
+        // pranzo, fuori strada rispetto ad Armando al Pantheon.
+        expect(result._momentReport.scartate.map(x => x.motivo).filter(m => !m.startsWith('fuori strada')))
             .toEqual(['fuori dal suo momento', 'fuori dal suo momento']);
     });
 

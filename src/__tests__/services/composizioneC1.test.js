@@ -90,7 +90,10 @@ describe('C1 sintomo (3) — Roma "da romano": varieta\' delle famiglie', () => 
             aiStops: [{ place_id: 'rm-b1', moment: 'g1-mattina' }, { place_id: 'rm-b2', moment: 'g1-pomeriggio' }, { place_id: 'rm-b3', moment: 'g1-aperitivo' }],
         });
         expect(belvederi(plan), nomi(plan).join(' | ')).toHaveLength(1);
-        expect(nomi(plan)).toContain('Belvedere Cederna');
+        // C5 — il belvedere dell'aperitivo resta uno solo; il Cederna del
+        // modello cede al Tarpeo, stessa famiglia, 5 minuti di cammino in meno.
+        expect(plan[2].stops[0].trace.famiglia).toBe('panorama');
+        expect(report.ritocchi).toEqual([expect.objectContaining({ momento: 'g1-aperitivo', tolta: 'rm-b3', messa: 'rm-b1' })]);
         expect(report.scartate.map(x => x.motivo).join(' | ')).toMatch(/unica alternativa a un momento dopo \(panorama\)/);
     });
 
@@ -174,14 +177,33 @@ describe('C1 — ancora della ricerca dei pasti', () => {
     const museo = { place_id: 'm', name: 'Museo Diocesano', types: ['museum'], rating: 4.5, user_ratings_total: 300, latitude: 37.51, longitude: 15.09 };
     const parco = { place_id: 'p', name: 'Villa Bellini', types: ['park'], rating: 4.5, user_ratings_total: 300, latitude: 37.52, longitude: 15.08 };
 
-    it('pranzo senza ristoranti: la ricerca parte dalla tappa della mattina', () => {
+    it('pranzo senza ristoranti: la ricerca parte dalla linea fra la tappa della mattina e quella del pomeriggio (C5)', () => {
         const ms = flat([
             moment('mattina', 'Mattina', '2026-10-11T09:30:00+02:00', '2026-10-11T12:30:00+02:00'),
             moment('pranzo', 'Pranzo', '2026-10-11T12:30:00+02:00', '2026-10-11T14:30:00+02:00'),
             moment('pomeriggio', 'Pomeriggio', '2026-10-11T14:30:00+02:00', '2026-10-11T18:00:00+02:00'),
         ]);
         const pool = [museo, parco];
-        expect(mealSearchAnchor(ms, bucketCandidates(ms, pool), pool)).toEqual({ latitude: 37.51, longitude: 15.09, name: 'Museo Diocesano' });
+        // 1,4 km fra le due: a meta' strada (sotto i 3/4 del tetto dalla tappa prima).
+        const a = mealSearchAnchor(ms, bucketCandidates(ms, pool), pool);
+        expect(a.latitude).toBeCloseTo(37.515, 6);
+        expect(a.longitude).toBeCloseTo(15.085, 6);
+        expect(a.name).toBe('fra Museo Diocesano e Villa Bellini');
+        // senza tappa dopo: la tappa prima, come in C1
+        const soloMattina = ms.slice(0, 2);
+        expect(mealSearchAnchor(soloMattina, bucketCandidates(soloMattina, pool), pool)).toEqual({ latitude: 37.51, longitude: 15.09, name: 'Museo Diocesano' });
+    });
+
+    it('tappa dopo lontana: il centro resta a 3/4 del tetto dalla tappa prima, sulla linea', () => {
+        const ms = flat([
+            moment('mattina', 'Mattina', '2026-10-11T09:30:00+02:00', '2026-10-11T12:30:00+02:00'),
+            moment('pranzo', 'Pranzo', '2026-10-11T12:30:00+02:00', '2026-10-11T14:30:00+02:00'),
+            moment('pomeriggio', 'Pomeriggio', '2026-10-11T14:30:00+02:00', '2026-10-11T18:00:00+02:00'),
+        ]);
+        const lontano = { ...parco, latitude: 37.51 + 0.06, longitude: 15.09 };
+        const a = mealSearchAnchor(ms, bucketCandidates(ms, [museo, lontano]), [museo, lontano]);
+        expect(travelMinutes(museo, a)).toBe(Math.round(0.75 * MAX_WALK_MINUTES));
+        expect(a.longitude).toBeCloseTo(15.09, 6);
     });
 
     it('il pasto apre la giornata: la tappa dopo; nessun pasto corto: null', () => {
@@ -223,7 +245,7 @@ describe('C1 — generateItinerary: ricerca dei pasti dalla tappa prima e tracci
     });
     afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
-    it('la textsearch del cibo parte dalla tappa prima del pranzo, con bias 1.5 km, una volta sola', async () => {
+    it('la textsearch del cibo parte fra la tappa prima e quella dopo il pranzo, con bias 1.5 km, una volta sola', async () => {
         vi.setSystemTime(new Date('2026-10-08T11:30:00+02:00'));
         const searches = [];
         let aiCalls = 0;
@@ -255,8 +277,11 @@ describe('C1 — generateItinerary: ricerca dei pasti dalla tappa prima e tracci
         const food = searches.filter(s => s.q === `${FOOD_QUERY} Roma`);
         expect(food).toHaveLength(1);
         expect(food[0].radius).toBe(String(MAX_WALK_METERS));
+        // C5 — il centro sta sulla linea fra la tappa prima del pranzo e quella dopo.
         const [lat, lng] = food[0].location.split(',').map(Number);
-        expect(RIONI.some(p => p.geometry.location.lat === lat && p.geometry.location.lng === lng), food[0].location).toBe(true);
+        const on = (a, b) => [0, 0.25, 0.5, 0.75, 1].some(f => Math.abs(a.lat + f * (b.lat - a.lat) - lat) < 1e-6 && Math.abs(a.lng + f * (b.lng - a.lng) - lng) < 1e-6);
+        const L = RIONI.map(p => p.geometry.location);
+        expect(L.some(a => L.some(b => on(a, b))), food[0].location).toBe(true);
         // Le altre ricerche restano sul centro, col bias di prima.
         for (const s of searches.filter(x => x.q !== `${FOOD_QUERY} Roma`)) expect(s.location).toBe(`${ROMA.latitude},${ROMA.longitude}`);
 

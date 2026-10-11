@@ -1,0 +1,938 @@
+{
+ "avvio": "2026-10-11T17:53:39.508Z",
+ "identita": "account di prova",
+ "casi": [
+  {
+   "id": "a-firenze",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Firenze",
+   "posizione": "Firenze",
+   "richiesta": "Domani, una giornata a Firenze",
+   "secs": 15.726,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Firenze",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "pool": {
+    "g1-mattina": {
+     "posti": 2,
+     "candidati": [
+      {
+       "place_id": "ChIJM-Dwhj9XKhMRAlFa7341v8E",
+       "nome": "Piazza Ognissanti",
+       "famiglia": "piazza",
+       "merito": 0.52,
+       "minuti": 15,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJiTi77uNVKhMRNXkiPXGr0Fk",
+       "nome": "Piazza dei Ciompi",
+       "famiglia": "piazza",
+       "merito": 0.48,
+       "minuti": 8,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJHQma05hRKhMR1UYAQIFp5Ss",
+       "nome": "Piazza della Passera",
+       "famiglia": "piazza",
+       "merito": 0.43,
+       "minuti": 9,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJMdevdapWKhMR3tyZtXWeatU",
+       "nome": "Piazza Strozzi",
+       "famiglia": "piazza",
+       "merito": 0.39,
+       "minuti": 8,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJSXhCnvdTKhMRWxhaXKhovPs",
+       "nome": "Porta San Niccolò",
+       "famiglia": null,
+       "merito": 0.29,
+       "minuti": 9,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJYTKHi6pWKhMRmTjB9uaNRqg",
+       "nome": "Piazza Santa Trìnita",
+       "famiglia": "piazza",
+       "merito": 0.28,
+       "minuti": 8,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJYTLQ-wBUKhMRmXBabFqCFBM",
+       "nome": "Loggia dei Lanzi",
+       "famiglia": null,
+       "merito": 0.26,
+       "minuti": 3,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJa-jOLABUKhMRuXva0xBJTRU",
+       "nome": "Museo di Palazzo Davanzati",
+       "famiglia": "museo",
+       "merito": 0.26,
+       "minuti": 7,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJh4GamKxWKhMR7RbQK8gJtRQ",
+       "nome": "Museo Ferragamo",
+       "famiglia": "museo",
+       "merito": 0.26,
+       "minuti": 8,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJZ58wpgFUKhMRio9UwvuaZF8",
+       "nome": "Chiesa e Museo di Orsanmichele",
+       "famiglia": "chiesa",
+       "merito": 0.24,
+       "minuti": 5,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJtVxvbABUKhMR5UxMAy4Y4Rs",
+       "nome": "Cattedrale dell'Immagine",
+       "famiglia": "chiesa",
+       "merito": 0.23,
+       "minuti": 5,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJry-LLBtUKhMRU7Gj_D_cHqk",
+       "nome": "Piazza della Santissima Annunziata",
+       "famiglia": "piazza",
+       "merito": 0.21,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pranzo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJX98BmT9VKhMReqQaTWNjkvY",
+       "nome": "Osteria dei Leoni Firenze",
+       "famiglia": null,
+       "merito": 0.28,
+       "minuti": 2,
+       "deviazione": 3.2,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJO9i9JC1VKhMR2_1RgYXLZxo",
+       "nome": "Osteria del Corso",
+       "famiglia": null,
+       "merito": 0.28,
+       "minuti": 4,
+       "deviazione": 6.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJPQ7pOAFUKhMR7mYMJBvxtEs",
+       "nome": "Trattoria del Pennello",
+       "famiglia": null,
+       "merito": 0.21,
+       "minuti": 3,
+       "deviazione": 6.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJbZhyS_pVKhMRtbImO2NogMo",
+       "nome": "Trattoria De' Benci",
+       "famiglia": null,
+       "merito": 0.43,
+       "minuti": 5,
+       "deviazione": 10.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJQXs4GF5VKhMRuOF4Un05irY",
+       "nome": "Trattoria Verdi Firenze",
+       "famiglia": null,
+       "merito": 0.27,
+       "minuti": 6,
+       "deviazione": 12,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJsXAnhhxVKhMRDJ36yhE7J7M",
+       "nome": "Trattoria dell'Agnolino",
+       "famiglia": null,
+       "merito": 0.32,
+       "minuti": 8,
+       "deviazione": 16.3,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJyYL8X8ZVKhMRCOcc-nL8xIw",
+       "nome": "Osteria Antica Casa Torre",
+       "famiglia": null,
+       "merito": 0.24,
+       "minuti": 7,
+       "deviazione": 13.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJG0dse8tVKhMRay6rrIvCUoM",
+       "nome": "Trattoria Vecchia Griglia",
+       "famiglia": null,
+       "merito": 0.2,
+       "minuti": 9,
+       "deviazione": 17.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pomeriggio": {
+     "posti": 2,
+     "candidati": [
+      {
+       "place_id": "ChIJSXhCnvdTKhMRWxhaXKhovPs",
+       "nome": "Porta San Niccolò",
+       "famiglia": null,
+       "merito": 0.29,
+       "minuti": 10,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJtVxvbABUKhMR5UxMAy4Y4Rs",
+       "nome": "Cattedrale dell'Immagine",
+       "famiglia": "chiesa",
+       "merito": 0.23,
+       "minuti": 3,
+       "deviazione": 5.8,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJZ58wpgFUKhMRio9UwvuaZF8",
+       "nome": "Chiesa e Museo di Orsanmichele",
+       "famiglia": "chiesa",
+       "merito": 0.24,
+       "minuti": 4,
+       "deviazione": 7.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJa-jOLABUKhMRuXva0xBJTRU",
+       "nome": "Museo di Palazzo Davanzati",
+       "famiglia": "museo",
+       "merito": 0.26,
+       "minuti": 5,
+       "deviazione": 9.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJh4GamKxWKhMR7RbQK8gJtRQ",
+       "nome": "Museo Ferragamo",
+       "famiglia": "museo",
+       "merito": 0.26,
+       "minuti": 6,
+       "deviazione": 12.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJiTi77uNVKhMRNXkiPXGr0Fk",
+       "nome": "Piazza dei Ciompi",
+       "famiglia": "piazza",
+       "merito": 0.48,
+       "minuti": 9,
+       "deviazione": 8.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJHQma05hRKhMR1UYAQIFp5Ss",
+       "nome": "Piazza della Passera",
+       "famiglia": "piazza",
+       "merito": 0.43,
+       "minuti": 7,
+       "deviazione": 12.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJMdevdapWKhMR3tyZtXWeatU",
+       "nome": "Piazza Strozzi",
+       "famiglia": "piazza",
+       "merito": 0.39,
+       "minuti": 6,
+       "deviazione": 12.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJYTKHi6pWKhMRmTjB9uaNRqg",
+       "nome": "Piazza Santa Trìnita",
+       "famiglia": "piazza",
+       "merito": 0.28,
+       "minuti": 7,
+       "deviazione": 12.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJry-LLBtUKhMRU7Gj_D_cHqk",
+       "nome": "Piazza della Santissima Annunziata",
+       "famiglia": "piazza",
+       "merito": 0.21,
+       "minuti": 12,
+       "deviazione": 20,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-aperitivo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJBTaUKlxTKhMR__RmBZEt14k",
+       "nome": "Belvedere Franco Zeffirelli",
+       "famiglia": "panorama",
+       "merito": 0.48,
+       "minuti": 13,
+       "deviazione": 15.4,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJdRtQYPdTKhMRyamoDMkV3_8",
+       "nome": "Punto Panoramico",
+       "famiglia": "panorama",
+       "merito": 0.23,
+       "minuti": 14,
+       "deviazione": 17.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJRxTZg0lRKhMRSAkyAR4ENEk",
+       "nome": "Panorama su Firenze",
+       "famiglia": "panorama",
+       "merito": 0.44,
+       "minuti": 24,
+       "deviazione": 47.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia nuova ma oltre i 20 min",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJsxjMwAdVKhMRmQEvOu90Dos",
+       "nome": "Belvedere Fiesole su Firenze",
+       "famiglia": "panorama",
+       "merito": 0.52,
+       "minuti": 67,
+       "deviazione": 123.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ1y7Imq5VKhMRVqCaR9qTfUc",
+       "nome": "San Francesco Panorama (Fiesole)",
+       "famiglia": "panorama",
+       "merito": 0.4,
+       "minuti": 69,
+       "deviazione": 127.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-cena": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJbZhyS_pVKhMRtbImO2NogMo",
+       "nome": "Trattoria De' Benci",
+       "famiglia": null,
+       "merito": 0.43,
+       "minuti": 9,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJsXAnhhxVKhMRDJ36yhE7J7M",
+       "nome": "Trattoria dell'Agnolino",
+       "famiglia": null,
+       "merito": 0.32,
+       "minuti": 11,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJO9i9JC1VKhMR2_1RgYXLZxo",
+       "nome": "Osteria del Corso",
+       "famiglia": null,
+       "merito": 0.28,
+       "minuti": 15,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJQXs4GF5VKhMRuOF4Un05irY",
+       "nome": "Trattoria Verdi Firenze",
+       "famiglia": null,
+       "merito": 0.27,
+       "minuti": 10,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJyYL8X8ZVKhMRCOcc-nL8xIw",
+       "nome": "Osteria Antica Casa Torre",
+       "famiglia": null,
+       "merito": 0.24,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJPQ7pOAFUKhMR7mYMJBvxtEs",
+       "nome": "Trattoria del Pennello",
+       "famiglia": null,
+       "merito": 0.21,
+       "minuti": 14,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJG0dse8tVKhMRay6rrIvCUoM",
+       "nome": "Trattoria Vecchia Griglia",
+       "famiglia": null,
+       "merito": 0.2,
+       "minuti": 21,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    }
+   },
+   "sceltaModello": [
+    {
+     "place_id": "ChIJM-Dwhj9XKhMRAlFa7341v8E",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJYTLQ-wBUKhMRmXBabFqCFBM",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJbZhyS_pVKhMRtbImO2NogMo",
+     "momento": "g1-pranzo"
+    },
+    {
+     "place_id": "ChIJHQma05hRKhMR1UYAQIFp5Ss",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJry-LLBtUKhMRU7Gj_D_cHqk",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJBTaUKlxTKhMR__RmBZEt14k",
+     "momento": "g1-aperitivo"
+    },
+    {
+     "place_id": "ChIJG0dse8tVKhMRay6rrIvCUoM",
+     "momento": "g1-cena"
+    }
+   ],
+   "ricerche": {
+    "prima": [],
+    "dopo": [
+     {
+      "momento": "g1-pomeriggio",
+      "tema": "cultura",
+      "da": "Piazza della Passera",
+      "trovati": 5
+     }
+    ]
+   },
+   "tours": [
+    {
+     "tema": "Culturale angolo di Firenze",
+     "stops": [
+      {
+       "place_id": "ChIJMdevdapWKhMR3tyZtXWeatU",
+       "title": "Piazza Strozzi",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 43.771294,
+       "lng": 11.2522376,
+       "min": null,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Piazza Ognissanti\"",
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza degli Strozzi, detta comunemente piazza Strozzi, è uno spazio urbano del centro storico di Firenze, collocato davanti a palazzo Strozzi. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza degli Strozzi, detta comunemente piazza Strozzi, è uno spazio urbano del centro storico di Firenze, collocato davanti a palazzo Strozzi.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 297,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJYTLQ-wBUKhMRmXBabFqCFBM",
+       "title": "Loggia dei Lanzi",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:05:00.000Z",
+       "lat": 43.7691899,
+       "lng": 11.2555334,
+       "min": 5,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Loggia dei Lanzi il tempo che serve. Sono 5 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Loggia dei Lanzi il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 5 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 1717,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJX98BmT9VKhMReqQaTWNjkvY",
+       "title": "Osteria dei Leoni Firenze",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 43.7687017,
+       "lng": 11.2570069,
+       "min": 2,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "A 2 minuti a piedi ti siedi da Osteria dei Leoni Firenze, osteria in fascia €€€. Ci arrivi alle 12:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "A 2 minuti a piedi ti siedi da Osteria dei Leoni Firenze, osteria in fascia €€€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 12:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 1391,
+       "priceLevel": 3,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJtVxvbABUKhMR5UxMAy4Y4Rs",
+       "title": "Cattedrale dell'Immagine",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 43.7687112,
+       "lng": 11.2540609,
+       "min": 3,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "chiesa",
+       "incrocio": "incrocio rimasto: toglierlo costerebbe una famiglia ripetuta o un tratto oltre il tetto",
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 5.8,
+        "esito": "pool",
+        "candidatiMomento": 12,
+        "alternative": [
+         {
+          "nome": "Chiesa e Museo di Orsanmichele",
+          "famiglia": "chiesa",
+          "deviazione": 7.1,
+          "merito": 0.24,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza dei Ciompi",
+          "famiglia": "piazza",
+          "deviazione": 8.1,
+          "merito": 0.48,
+          "tetto": true
+         },
+         {
+          "nome": "Museo di Palazzo Davanzati",
+          "famiglia": "museo",
+          "deviazione": 9.8,
+          "merito": 0.26,
+          "tetto": true
+         },
+         {
+          "nome": "Museo Ferragamo",
+          "famiglia": "museo",
+          "deviazione": 12.6,
+          "merito": 0.26,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza della Passera",
+          "famiglia": "piazza",
+          "deviazione": 12.7,
+          "merito": 0.43,
+          "tetto": true
+         }
+        ]
+       },
+       "description": "Cattedrale dell'Immagine è sulla tua strada: entri, guardi, riparti. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Cattedrale dell'Immagine è sulla tua strada: entri, guardi, riparti.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 2050,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJSXhCnvdTKhMRWxhaXKhovPs",
+       "title": "Porta San Niccolò",
+       "types": [
+        "establishment",
+        "landmark",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:43:00.000Z",
+       "lat": 43.7645484,
+       "lng": 11.2649262,
+       "min": 13,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Porta San Niccolò fa parte delle mura di Firenze e si trova in piazza Giuseppe Poggi, in Oltrarno. Sono 13 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Porta San Niccolò fa parte delle mura di Firenze e si trova in piazza Giuseppe Poggi, in Oltrarno.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 13 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 1085,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJBTaUKlxTKhMR__RmBZEt14k",
+       "title": "Belvedere Franco Zeffirelli",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 43.7632716,
+       "lng": 11.2638781,
+       "min": 2,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": "incrocio rimasto: toglierlo costerebbe una famiglia ripetuta o un tratto oltre il tetto",
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi a Belvedere Franco Zeffirelli: qui si guarda, non si corre. Il sole tramonta alle 18:37: sei qui 37 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi a Belvedere Franco Zeffirelli: qui si guarda, non si corre.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:37: sei qui 37 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 110,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJbZhyS_pVKhMRtbImO2NogMo",
+       "title": "Trattoria De' Benci",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 43.76859030000001,
+       "lng": 11.2602678,
+       "min": 9,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Trattoria De' Benci, trattoria in fascia €€. Sono 9 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Trattoria De' Benci, trattoria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 9 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 232,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7048,
+    "tokenOut": 784
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 4
+   }
+  }
+ ],
+ "fine": "2026-10-11T17:53:58.381Z"
+}

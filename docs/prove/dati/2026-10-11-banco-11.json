@@ -1,0 +1,3047 @@
+{
+ "avvio": "2026-10-11T17:52:36.286Z",
+ "identita": "account di prova",
+ "casi": [
+  {
+   "id": "a-napoli",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Napoli",
+   "posizione": "Napoli",
+   "richiesta": "Domani, una giornata a Napoli",
+   "secs": 19.805,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Napoli",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "pool": {
+    "g1-mattina": {
+     "posti": 2,
+     "candidati": [
+      {
+       "place_id": "ChIJl8URvf4JOxMRwkVOpR7AcFM",
+       "nome": "Piazza San Domenico Maggiore",
+       "famiglia": "piazza",
+       "merito": 0.37,
+       "minuti": 9,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJSXLH90AIOxMRjavMaONtUAo",
+       "nome": "Museo Civico Gaetano Filangieri",
+       "famiglia": "museo",
+       "merito": 0.35,
+       "minuti": 15,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJrc94fEEIOxMRzkZEQ7zq_e0",
+       "nome": "Chiesa dei SS. Filippo e Giacomo - Complesso Museale dell'Arte della Seta",
+       "famiglia": "chiesa",
+       "merito": 0.34,
+       "minuti": 11,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJoXFMw62VOxMRSPbxMAg0jbA",
+       "nome": "Chiesa dei Girolamini",
+       "famiglia": "chiesa",
+       "merito": 0.32,
+       "minuti": 15,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJZU-PcgAJOxMR3d_G8zUKnAg",
+       "nome": "Piazza del Gesù Nuovo",
+       "famiglia": "piazza",
+       "merito": 0.31,
+       "minuti": 5,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ5Yg95vsJOxMRK6G3IVkDycI",
+       "nome": "Piazza Dante",
+       "famiglia": "piazza",
+       "merito": 0.29,
+       "minuti": 6,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJB92GT2oIOxMR3NMnDa50gNA",
+       "nome": "Complesso Monumentale Donnaregina - Museo Diocesano Napoli",
+       "famiglia": "museo",
+       "merito": 0.23,
+       "minuti": 17,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJjWj_EU0JOxMRaUlyozmHrno",
+       "nome": "Gallerie d'Italia | Napoli",
+       "famiglia": "museo",
+       "merito": 0.2,
+       "minuti": 7,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJqcC8Y0IJOxMRGH8gBhPdR8A",
+       "nome": "punto panoramico sulla città",
+       "famiglia": "panorama",
+       "merito": 0.41,
+       "minuti": 10,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "toglie l'unica alternativa a un momento dopo",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJkW1XsxoJOxMRvuF7og_ji3I",
+       "nome": "Piazza Garibaldi",
+       "famiglia": "piazza",
+       "merito": 0.36,
+       "minuti": 26,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJE7BdswAMOxMR0gQpCXRpUA0",
+       "nome": "Punto panoramico di Marechiaro",
+       "famiglia": "panorama",
+       "merito": 0.25,
+       "minuti": 97,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pranzo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJh6h12vYJOxMRayzOwupH6hw",
+       "nome": "Trattoria e Pizzeria Dell'Olio",
+       "famiglia": null,
+       "merito": 0.35,
+       "minuti": 9,
+       "deviazione": 3.9,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJhfBqp9MJOxMRG8EF1Y-yvPU",
+       "nome": "Antica Trattoria del Nilo - Spaccanapoli",
+       "famiglia": null,
+       "merito": 0.19,
+       "minuti": 1,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJaf77_1oIOxMR6TRXC8vBJvc",
+       "nome": "Biancomangiare - Cucina tipica napoletana Trattoria Osteria Napoli",
+       "famiglia": null,
+       "merito": 0.21,
+       "minuti": 11,
+       "deviazione": 2.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJOVmkU0IIOxMRznLtQfsjgrQ",
+       "nome": "Trattoria da Carmela - Cucina tipica napoletana",
+       "famiglia": null,
+       "merito": 0.19,
+       "minuti": 3,
+       "deviazione": 3.2,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJu-noOUgJOxMRXMVU_pavG3g",
+       "nome": "Antica Trattoria Da Carmine",
+       "famiglia": null,
+       "merito": 0.2,
+       "minuti": 3,
+       "deviazione": 4.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ6T3NYG0JOxMREQTHHUvMIpk",
+       "nome": "Trattoria canta napoli",
+       "famiglia": null,
+       "merito": 0.25,
+       "minuti": 9,
+       "deviazione": 5.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJefj3blQIOxMRIWxYdw6xyhQ",
+       "nome": "Da Maria - Trattoria Napoletana",
+       "famiglia": null,
+       "merito": 0.18,
+       "minuti": 20,
+       "deviazione": 9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJHzey5O4JOxMRDAwuRLMpBQ8",
+       "nome": "Osteria Boni",
+       "famiglia": null,
+       "merito": 0.3,
+       "minuti": 11,
+       "deviazione": 20.3,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJi5jKdisJOxMRmmjkGJFUqY8",
+       "nome": "Trattoria e Pizzeria del Popolo",
+       "famiglia": null,
+       "merito": 0.34,
+       "minuti": 21,
+       "deviazione": 10.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJzbsninQJOxMR8ayi4Bp1UhY",
+       "nome": "Osteria Napulion",
+       "famiglia": null,
+       "merito": 0.29,
+       "minuti": 23,
+       "deviazione": 14.2,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJPTUPCS0JOxMR9jJbNOkTwuw",
+       "nome": "Osteria napoletana co core",
+       "famiglia": null,
+       "merito": 0.37,
+       "minuti": 28,
+       "deviazione": 31.4,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ9SMDlNUJOxMRNt2rOn06mko",
+       "nome": "Isso Osteria",
+       "famiglia": null,
+       "merito": 0.36,
+       "minuti": 29,
+       "deviazione": 27.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pomeriggio": {
+     "posti": 2,
+     "candidati": [
+      {
+       "place_id": "ChIJjWj_EU0JOxMRaUlyozmHrno",
+       "nome": "Gallerie d'Italia | Napoli",
+       "famiglia": "museo",
+       "merito": 0.2,
+       "minuti": 11,
+       "deviazione": 0.5,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJefj3blQIOxMRIWxYdw6xyhQ",
+       "nome": "Da Maria - Trattoria Napoletana",
+       "famiglia": null,
+       "merito": 0.18,
+       "minuti": 15,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJSXLH90AIOxMRjavMaONtUAo",
+       "nome": "Museo Civico Gaetano Filangieri",
+       "famiglia": "museo",
+       "merito": 0.35,
+       "minuti": 13,
+       "deviazione": 20.5,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJB92GT2oIOxMR3NMnDa50gNA",
+       "nome": "Complesso Monumentale Donnaregina - Museo Diocesano Napoli",
+       "famiglia": "museo",
+       "merito": 0.23,
+       "minuti": 14,
+       "deviazione": 25.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJqcC8Y0IJOxMRGH8gBhPdR8A",
+       "nome": "punto panoramico sulla città",
+       "famiglia": "panorama",
+       "merito": 0.41,
+       "minuti": 12,
+       "deviazione": 8.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "toglie l'unica alternativa a un momento dopo",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJZU-PcgAJOxMR3d_G8zUKnAg",
+       "nome": "Piazza del Gesù Nuovo",
+       "famiglia": "piazza",
+       "merito": 0.31,
+       "minuti": 3,
+       "deviazione": 2.3,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ5Yg95vsJOxMRK6G3IVkDycI",
+       "nome": "Piazza Dante",
+       "famiglia": "piazza",
+       "merito": 0.29,
+       "minuti": 2,
+       "deviazione": 3.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJoXFMw62VOxMRSPbxMAg0jbA",
+       "nome": "Chiesa dei Girolamini",
+       "famiglia": "chiesa",
+       "merito": 0.32,
+       "minuti": 11,
+       "deviazione": 21,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (chiesa)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJkW1XsxoJOxMRvuF7og_ji3I",
+       "nome": "Piazza Garibaldi",
+       "famiglia": "piazza",
+       "merito": 0.36,
+       "minuti": 23,
+       "deviazione": 42.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJE7BdswAMOxMR0gQpCXRpUA0",
+       "nome": "Punto panoramico di Marechiaro",
+       "famiglia": "panorama",
+       "merito": 0.25,
+       "minuti": 101,
+       "deviazione": 173.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-aperitivo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJqcC8Y0IJOxMRGH8gBhPdR8A",
+       "nome": "punto panoramico sulla città",
+       "famiglia": "panorama",
+       "merito": 0.41,
+       "minuti": 12,
+       "deviazione": 9.8,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJ2UpuTQAJOxMRK_pgtZaDZLI",
+       "nome": "Belvedere di Pizzofalcone - Monte di Dio - Monte Echia",
+       "famiglia": "panorama",
+       "merito": 0.4,
+       "minuti": 11,
+       "deviazione": 21.3,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJnSryAb0JOxMRgqBUvc2aW1o",
+       "nome": "Belvedere Villa Floridiana",
+       "famiglia": "panorama",
+       "merito": 0.53,
+       "minuti": 18,
+       "deviazione": 29.4,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJFY5XTeMIOxMROiQONPELmCU",
+       "nome": "Palazzo Belvedere",
+       "famiglia": "panorama",
+       "merito": 0.32,
+       "minuti": 22,
+       "deviazione": 35.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia nuova ma oltre i 20 min",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJPZHnBmoJOxMR_ktpZckCRjA",
+       "nome": "Belvedere Aniello Falcone",
+       "famiglia": "panorama",
+       "merito": 0.5,
+       "minuti": 29,
+       "deviazione": 50.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJqabk1X8JOxMRjetJ15ryjqg",
+       "nome": "Terrazza Panoramica",
+       "famiglia": "panorama",
+       "merito": 0.21,
+       "minuti": 54,
+       "deviazione": 105,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJY5q4UEgPOxMRLUP12HnQ5XM",
+       "nome": "Belvedere Occidentale di Posillipo",
+       "famiglia": "panorama",
+       "merito": 0.35,
+       "minuti": 81,
+       "deviazione": 159.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJE7BdswAMOxMR0gQpCXRpUA0",
+       "nome": "Punto panoramico di Marechiaro",
+       "famiglia": "panorama",
+       "merito": 0.25,
+       "minuti": 87,
+       "deviazione": 173.2,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJG2UtdBwMOxMRqPKe2KPHRMg",
+       "nome": "Belvedere del Parco Virgiliano",
+       "famiglia": "panorama",
+       "merito": 0.45,
+       "minuti": 97,
+       "deviazione": 192,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-cena": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJPTUPCS0JOxMR9jJbNOkTwuw",
+       "nome": "Osteria napoletana co core",
+       "famiglia": null,
+       "merito": 0.37,
+       "minuti": 8,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJ9SMDlNUJOxMRNt2rOn06mko",
+       "nome": "Isso Osteria",
+       "famiglia": null,
+       "merito": 0.36,
+       "minuti": 16,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJi5jKdisJOxMRmmjkGJFUqY8",
+       "nome": "Trattoria e Pizzeria del Popolo",
+       "famiglia": null,
+       "merito": 0.34,
+       "minuti": 13,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJzbsninQJOxMR8ayi4Bp1UhY",
+       "nome": "Osteria Napulion",
+       "famiglia": null,
+       "merito": 0.29,
+       "minuti": 10,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ6T3NYG0JOxMREQTHHUvMIpk",
+       "nome": "Trattoria canta napoli",
+       "famiglia": null,
+       "merito": 0.25,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJaf77_1oIOxMR6TRXC8vBJvc",
+       "nome": "Biancomangiare - Cucina tipica napoletana Trattoria Osteria Napoli",
+       "famiglia": null,
+       "merito": 0.21,
+       "minuti": 10,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJhfBqp9MJOxMRG8EF1Y-yvPU",
+       "nome": "Antica Trattoria del Nilo - Spaccanapoli",
+       "famiglia": null,
+       "merito": 0.19,
+       "minuti": 19,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJOVmkU0IIOxMRznLtQfsjgrQ",
+       "nome": "Trattoria da Carmela - Cucina tipica napoletana",
+       "famiglia": null,
+       "merito": 0.19,
+       "minuti": 18,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJu-noOUgJOxMRXMVU_pavG3g",
+       "nome": "Antica Trattoria Da Carmine",
+       "famiglia": null,
+       "merito": 0.2,
+       "minuti": 21,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJHzey5O4JOxMRDAwuRLMpBQ8",
+       "nome": "Osteria Boni",
+       "famiglia": null,
+       "merito": 0.3,
+       "minuti": 26,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    }
+   },
+   "sceltaModello": [
+    {
+     "place_id": "ChIJqcC8Y0IJOxMRGH8gBhPdR8A",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJl8URvf4JOxMRwkVOpR7AcFM",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJHzey5O4JOxMRDAwuRLMpBQ8",
+     "momento": "g1-pranzo"
+    },
+    {
+     "place_id": "ChIJE7BdswAMOxMR0gQpCXRpUA0",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJZU-PcgAJOxMR3d_G8zUKnAg",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJnSryAb0JOxMRgqBUvc2aW1o",
+     "momento": "g1-aperitivo"
+    },
+    {
+     "place_id": "ChIJaf77_1oIOxMR6TRXC8vBJvc",
+     "momento": "g1-cena"
+    }
+   ],
+   "ricerche": {
+    "prima": [],
+    "dopo": [
+     {
+      "momento": "g1-cena",
+      "tema": "food",
+      "da": "Belvedere di Pizzofalcone - Monte di Dio - Monte Echia",
+      "trovati": 5
+     },
+     {
+      "momento": "g1-pomeriggio",
+      "tema": "cultura",
+      "da": "Da Maria - Trattoria Napoletana",
+      "trovati": 5
+     }
+    ]
+   },
+   "tours": [
+    {
+     "tema": "Culturale percorso di Napoli",
+     "stops": [
+      {
+       "place_id": "ChIJrc94fEEIOxMRzkZEQ7zq_e0",
+       "title": "Chiesa dei SS. Filippo e Giacomo - Complesso Museale dell'Arte della Seta",
+       "types": [
+        "church",
+        "establishment",
+        "museum",
+        "place_of_worship",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 40.8489562,
+       "lng": 14.2571364,
+       "min": null,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "chiesa",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti prendi cinque minuti dentro Chiesa dei SS. Filippo e Giacomo - Complesso Museale dell'Arte della Seta. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti prendi cinque minuti dentro Chiesa dei SS.",
+         "problemi": []
+        },
+        {
+         "testo": "Filippo e Giacomo - Complesso Museale dell'Arte della Seta.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 437,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJl8URvf4JOxMRwkVOpR7AcFM",
+       "title": "Piazza San Domenico Maggiore",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:33:00.000Z",
+       "lat": 40.8483876,
+       "lng": 14.2548955,
+       "min": 3,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 9,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza San Domenico è una delle piazze più importanti di Napoli. Sono 3 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza San Domenico è una delle piazze più importanti di Napoli.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 3 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 4,
+       "recensioni": 293,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJh6h12vYJOxMRayzOwupH6hw",
+       "title": "Trattoria e Pizzeria Dell'Olio",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 40.8479181,
+       "lng": 14.2496574,
+       "min": 6,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "A 6 minuti a piedi ti siedi da Trattoria e Pizzeria Dell'Olio, trattoria in fascia €€. Ci arrivi alle 12:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "A 6 minuti a piedi ti siedi da Trattoria e Pizzeria Dell'Olio, trattoria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 12:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 311,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJjWj_EU0JOxMRaUlyozmHrno",
+       "title": "Gallerie d'Italia | Napoli",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 40.8405698,
+       "lng": 14.2487184,
+       "min": 11,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Le Gallerie d'Italia di Napoli sono un museo di Napoli ubicato all'interno del palazzo del Banco di Napoli, in via Toledo. Sono 11 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Le Gallerie d'Italia di Napoli sono un museo di Napoli ubicato all'interno del palazzo del Banco di Napoli, in via Toledo.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 11 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 2197,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJefj3blQIOxMRIWxYdw6xyhQ",
+       "title": "Da Maria - Trattoria Napoletana",
+       "types": [
+        "establishment",
+        "food",
+        "grocery_or_supermarket",
+        "point_of_interest",
+        "restaurant",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:35:00.000Z",
+       "lat": 40.8381361,
+       "lng": 14.246291,
+       "min": 5,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Da Maria - Trattoria Napoletana è la prossima tappa del tuo giro. Sono 5 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Da Maria - Trattoria Napoletana è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 5 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 2442,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJqcC8Y0IJOxMRGH8gBhPdR8A",
+       "title": "punto panoramico sulla città",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 40.8444518,
+       "lng": 14.2400156,
+       "min": 12,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "punto panoramico sulla città è il punto in cui la giornata rallenta. Il sole tramonta alle 18:28: sei qui 28 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "punto panoramico sulla città è il punto in cui la giornata rallenta.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:28: sei qui 28 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 210,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJPTUPCS0JOxMR9jJbNOkTwuw",
+       "title": "Osteria napoletana co core",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 40.8457497,
+       "lng": 14.232847,
+       "min": 8,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Biancomangiare - Cucina tipica napoletana Trattoria Osteria Napoli\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La cena è da Osteria napoletana co core, osteria in fascia €€. Qui la giornata si chiude.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La cena è da Osteria napoletana co core, osteria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Qui la giornata si chiude.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 301,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7164,
+    "tokenOut": 800
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 5
+   }
+  },
+  {
+   "id": "a-firenze",
+   "gruppo": "a",
+   "tipo": "itinerario",
+   "luogo": "Firenze",
+   "posizione": "Firenze",
+   "richiesta": "Domani, una giornata a Firenze",
+   "secs": 19.541,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Firenze",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "pool": {
+    "g1-mattina": {
+     "posti": 2,
+     "candidati": [
+      {
+       "place_id": "ChIJM-Dwhj9XKhMRAlFa7341v8E",
+       "nome": "Piazza Ognissanti",
+       "famiglia": "piazza",
+       "merito": 0.52,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJiTi77uNVKhMRNXkiPXGr0Fk",
+       "nome": "Piazza dei Ciompi",
+       "famiglia": "piazza",
+       "merito": 0.48,
+       "minuti": 10,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJHQma05hRKhMR1UYAQIFp5Ss",
+       "nome": "Piazza della Passera",
+       "famiglia": "piazza",
+       "merito": 0.44,
+       "minuti": 6,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJMdevdapWKhMR3tyZtXWeatU",
+       "nome": "Piazza Strozzi",
+       "famiglia": "piazza",
+       "merito": 0.41,
+       "minuti": 5,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJYTKHi6pWKhMRmTjB9uaNRqg",
+       "nome": "Piazza Santa Trìnita",
+       "famiglia": "piazza",
+       "merito": 0.32,
+       "minuti": 5,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJYTLQ-wBUKhMRmXBabFqCFBM",
+       "nome": "Loggia dei Lanzi",
+       "famiglia": null,
+       "merito": 0.31,
+       "minuti": 1,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJa-jOLABUKhMRuXva0xBJTRU",
+       "nome": "Museo di Palazzo Davanzati",
+       "famiglia": "museo",
+       "merito": 0.31,
+       "minuti": 4,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJZ58wpgFUKhMRio9UwvuaZF8",
+       "nome": "Chiesa e Museo di Orsanmichele",
+       "famiglia": "chiesa",
+       "merito": 0.28,
+       "minuti": 3,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJtVxvbABUKhMR5UxMAy4Y4Rs",
+       "nome": "Cattedrale dell'Immagine",
+       "famiglia": "chiesa",
+       "merito": 0.28,
+       "minuti": 2,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJry-LLBtUKhMRU7Gj_D_cHqk",
+       "nome": "Piazza della Santissima Annunziata",
+       "famiglia": "piazza",
+       "merito": 0.27,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJeSvB0gZUKhMR7CVehDqbPCE",
+       "nome": "Museo Nazionale del Bargello",
+       "famiglia": "museo",
+       "merito": 0.2,
+       "minuti": 3,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ9S_ivwNUKhMRUYCd7gsp86A",
+       "nome": "Museo dell'Opera del Duomo di Firenze",
+       "famiglia": "museo",
+       "merito": 0.18,
+       "minuti": 7,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pranzo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJX98BmT9VKhMReqQaTWNjkvY",
+       "nome": "Osteria dei Leoni Firenze",
+       "famiglia": null,
+       "merito": 0.32,
+       "minuti": 2,
+       "deviazione": 3.5,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJO9i9JC1VKhMR2_1RgYXLZxo",
+       "nome": "Osteria del Corso",
+       "famiglia": null,
+       "merito": 0.32,
+       "minuti": 4,
+       "deviazione": 4.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJPQ7pOAFUKhMR7mYMJBvxtEs",
+       "nome": "Trattoria del Pennello",
+       "famiglia": null,
+       "merito": 0.26,
+       "minuti": 3,
+       "deviazione": 4.5,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJbZhyS_pVKhMRtbImO2NogMo",
+       "nome": "Trattoria De' Benci",
+       "famiglia": null,
+       "merito": 0.45,
+       "minuti": 5,
+       "deviazione": 10.2,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJQXs4GF5VKhMRuOF4Un05irY",
+       "nome": "Trattoria Verdi Firenze",
+       "famiglia": null,
+       "merito": 0.32,
+       "minuti": 6,
+       "deviazione": 11.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJsXAnhhxVKhMRDJ36yhE7J7M",
+       "nome": "Trattoria dell'Agnolino",
+       "famiglia": null,
+       "merito": 0.36,
+       "minuti": 8,
+       "deviazione": 15.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJyYL8X8ZVKhMRCOcc-nL8xIw",
+       "nome": "Osteria Antica Casa Torre",
+       "famiglia": null,
+       "merito": 0.29,
+       "minuti": 7,
+       "deviazione": 12.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJG0dse8tVKhMRay6rrIvCUoM",
+       "nome": "Trattoria Vecchia Griglia",
+       "famiglia": null,
+       "merito": 0.26,
+       "minuti": 9,
+       "deviazione": 13.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pomeriggio": {
+     "posti": 2,
+     "candidati": [
+      {
+       "place_id": "ChIJtVxvbABUKhMR5UxMAy4Y4Rs",
+       "nome": "Cattedrale dell'Immagine",
+       "famiglia": "chiesa",
+       "merito": 0.28,
+       "minuti": 3,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJa-jOLABUKhMRuXva0xBJTRU",
+       "nome": "Museo di Palazzo Davanzati",
+       "famiglia": "museo",
+       "merito": 0.31,
+       "minuti": 5,
+       "deviazione": 4.2,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJZ58wpgFUKhMRio9UwvuaZF8",
+       "nome": "Chiesa e Museo di Orsanmichele",
+       "famiglia": "chiesa",
+       "merito": 0.28,
+       "minuti": 4,
+       "deviazione": 3.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJeSvB0gZUKhMR7CVehDqbPCE",
+       "nome": "Museo Nazionale del Bargello",
+       "famiglia": "museo",
+       "merito": 0.2,
+       "minuti": 3,
+       "deviazione": 4.5,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ9S_ivwNUKhMRUYCd7gsp86A",
+       "nome": "Museo dell'Opera del Duomo di Firenze",
+       "famiglia": "museo",
+       "merito": 0.18,
+       "minuti": 7,
+       "deviazione": 11.5,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJHQma05hRKhMR1UYAQIFp5Ss",
+       "nome": "Piazza della Passera",
+       "famiglia": "piazza",
+       "merito": 0.44,
+       "minuti": 7,
+       "deviazione": 8.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJMdevdapWKhMR3tyZtXWeatU",
+       "nome": "Piazza Strozzi",
+       "famiglia": "piazza",
+       "merito": 0.41,
+       "minuti": 6,
+       "deviazione": 7.5,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJYTKHi6pWKhMRmTjB9uaNRqg",
+       "nome": "Piazza Santa Trìnita",
+       "famiglia": "piazza",
+       "merito": 0.32,
+       "minuti": 7,
+       "deviazione": 7.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJiTi77uNVKhMRNXkiPXGr0Fk",
+       "nome": "Piazza dei Ciompi",
+       "famiglia": "piazza",
+       "merito": 0.48,
+       "minuti": 9,
+       "deviazione": 18.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJry-LLBtUKhMRU7Gj_D_cHqk",
+       "nome": "Piazza della Santissima Annunziata",
+       "famiglia": "piazza",
+       "merito": 0.27,
+       "minuti": 12,
+       "deviazione": 22.5,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-aperitivo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJBTaUKlxTKhMR__RmBZEt14k",
+       "nome": "Belvedere Franco Zeffirelli",
+       "famiglia": "panorama",
+       "merito": 0.49,
+       "minuti": 16,
+       "deviazione": 16.1,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJdRtQYPdTKhMRyamoDMkV3_8",
+       "nome": "Punto Panoramico",
+       "famiglia": "panorama",
+       "merito": 0.29,
+       "minuti": 17,
+       "deviazione": 17.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJRxTZg0lRKhMRSAkyAR4ENEk",
+       "nome": "Panorama su Firenze",
+       "famiglia": "panorama",
+       "merito": 0.45,
+       "minuti": 23,
+       "deviazione": 45.5,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia nuova ma oltre i 20 min",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJsxjMwAdVKhMRmQEvOu90Dos",
+       "nome": "Belvedere Fiesole su Firenze",
+       "famiglia": "panorama",
+       "merito": 0.52,
+       "minuti": 66,
+       "deviazione": 120.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ1y7Imq5VKhMRVqCaR9qTfUc",
+       "nome": "San Francesco Panorama (Fiesole)",
+       "famiglia": "panorama",
+       "merito": 0.42,
+       "minuti": 68,
+       "deviazione": 125.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-cena": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJbZhyS_pVKhMRtbImO2NogMo",
+       "nome": "Trattoria De' Benci",
+       "famiglia": null,
+       "merito": 0.45,
+       "minuti": 9,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJsXAnhhxVKhMRDJ36yhE7J7M",
+       "nome": "Trattoria dell'Agnolino",
+       "famiglia": null,
+       "merito": 0.36,
+       "minuti": 11,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJO9i9JC1VKhMR2_1RgYXLZxo",
+       "nome": "Osteria del Corso",
+       "famiglia": null,
+       "merito": 0.32,
+       "minuti": 15,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJQXs4GF5VKhMRuOF4Un05irY",
+       "nome": "Trattoria Verdi Firenze",
+       "famiglia": null,
+       "merito": 0.32,
+       "minuti": 10,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJyYL8X8ZVKhMRCOcc-nL8xIw",
+       "nome": "Osteria Antica Casa Torre",
+       "famiglia": null,
+       "merito": 0.29,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJPQ7pOAFUKhMR7mYMJBvxtEs",
+       "nome": "Trattoria del Pennello",
+       "famiglia": null,
+       "merito": 0.26,
+       "minuti": 14,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJG0dse8tVKhMRay6rrIvCUoM",
+       "nome": "Trattoria Vecchia Griglia",
+       "famiglia": null,
+       "merito": 0.26,
+       "minuti": 21,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    }
+   },
+   "sceltaModello": [
+    {
+     "place_id": "ChIJM-Dwhj9XKhMRAlFa7341v8E",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJYTLQ-wBUKhMRmXBabFqCFBM",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJbZhyS_pVKhMRtbImO2NogMo",
+     "momento": "g1-pranzo"
+    },
+    {
+     "place_id": "ChIJYTKHi6pWKhMRmTjB9uaNRqg",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJHQma05hRKhMR1UYAQIFp5Ss",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJ1y7Imq5VKhMRVqCaR9qTfUc",
+     "momento": "g1-aperitivo"
+    },
+    {
+     "place_id": "ChIJG0dse8tVKhMRay6rrIvCUoM",
+     "momento": "g1-cena"
+    }
+   ],
+   "ricerche": {
+    "prima": [],
+    "dopo": [
+     {
+      "momento": "g1-pomeriggio",
+      "tema": "cultura",
+      "da": "Osteria dei Leoni Firenze",
+      "trovati": 5
+     }
+    ]
+   },
+   "tours": [
+    {
+     "tema": "Giorno 1 a Firenze",
+     "stops": [
+      {
+       "place_id": "ChIJHQma05hRKhMR1UYAQIFp5Ss",
+       "title": "Piazza della Passera",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 43.7671079,
+       "lng": 11.2505307,
+       "min": null,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Piazza Ognissanti\"",
+       "famiglia": "piazza",
+       "incrocio": "incrocio rimasto: toglierlo costerebbe una famiglia ripetuta",
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza della Passera è una piccola piazzetta dell'Oltrarno a Firenze, posto all'intersezione tra via dello Sprone, via Toscanella, via dei Sapiti e via dei Vellutini. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza della Passera è una piccola piazzetta dell'Oltrarno a Firenze, posto all'intersezione tra via dello Sprone, via Toscanella, via dei Sapiti e via dei Vellutini.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 1,
+       "recensioni": 136,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJYTLQ-wBUKhMRmXBabFqCFBM",
+       "title": "Loggia dei Lanzi",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:06:00.000Z",
+       "lat": 43.7691899,
+       "lng": 11.2555334,
+       "min": 6,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Loggia dei Lanzi il tempo che serve. Ci arrivi alle 10:06.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Loggia dei Lanzi il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 10:06.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 1717,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJX98BmT9VKhMReqQaTWNjkvY",
+       "title": "Osteria dei Leoni Firenze",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 43.7687017,
+       "lng": 11.2570069,
+       "min": 2,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "A 2 minuti a piedi ti siedi da Osteria dei Leoni Firenze, osteria in fascia €€€. Ci arrivi alle 12:30.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "A 2 minuti a piedi ti siedi da Osteria dei Leoni Firenze, osteria in fascia €€€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 12:30.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 1391,
+       "priceLevel": 3,
+       "pasto": true,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJa-jOLABUKhMRuXva0xBJTRU",
+       "title": "Museo di Palazzo Davanzati",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 43.7701302,
+       "lng": 11.2528563,
+       "min": 5,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Palazzo Davanzati è un edificio storico del centro di Firenze, situato in via Porta Rossa 9 e affacciato sull'omonima piazza Davanzati. Sono 5 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Palazzo Davanzati è un edificio storico del centro di Firenze, situato in via Porta Rossa 9 e affacciato sull'omonima piazza Davanzati.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 5 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 1530,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJtVxvbABUKhMR5UxMAy4Y4Rs",
+       "title": "Cattedrale dell'Immagine",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:32:00.000Z",
+       "lat": 43.7687112,
+       "lng": 11.2540609,
+       "min": 2,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "chiesa",
+       "incrocio": "incrocio rimasto: toglierlo costerebbe una famiglia ripetuta",
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Cattedrale dell'Immagine è sulla tua strada: entri, guardi, riparti. Ci arrivi alle 15:32.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Cattedrale dell'Immagine è sulla tua strada: entri, guardi, riparti.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 15:32.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 2050,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJBTaUKlxTKhMR__RmBZEt14k",
+       "title": "Belvedere Franco Zeffirelli",
+       "types": [
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 43.7632716,
+       "lng": 11.2638781,
+       "min": 13,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 15.4,
+        "esito": "pool",
+        "candidatiMomento": 5,
+        "alternative": [
+         {
+          "nome": "Punto Panoramico",
+          "famiglia": "panorama",
+          "deviazione": 17.1,
+          "merito": 0.29,
+          "tetto": true
+         },
+         {
+          "nome": "Panorama su Firenze",
+          "famiglia": "panorama",
+          "deviazione": 47.8,
+          "merito": 0.45,
+          "tetto": false
+         },
+         {
+          "nome": "Belvedere Fiesole su Firenze",
+          "famiglia": "panorama",
+          "deviazione": 123.1,
+          "merito": 0.52,
+          "tetto": false
+         },
+         {
+          "nome": "San Francesco Panorama (Fiesole)",
+          "famiglia": "panorama",
+          "deviazione": 127.7,
+          "merito": 0.42,
+          "tetto": false
+         }
+        ]
+       },
+       "description": "Ti fermi a Belvedere Franco Zeffirelli: qui si guarda, non si corre. Il sole tramonta alle 18:37: sei qui 37 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi a Belvedere Franco Zeffirelli: qui si guarda, non si corre.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:37: sei qui 37 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 110,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJbZhyS_pVKhMRtbImO2NogMo",
+       "title": "Trattoria De' Benci",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 43.76859030000001,
+       "lng": 11.2602678,
+       "min": 9,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Trattoria De' Benci, trattoria in fascia €€. Ci arrivi alle 20.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Trattoria De' Benci, trattoria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 20.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 232,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7062,
+    "tokenOut": 797
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 4
+   }
+  },
+  {
+   "id": "b-roma-A",
+   "gruppo": "b",
+   "tipo": "itinerario",
+   "luogo": "Roma",
+   "posizione": "Roma",
+   "richiesta": "Domani, una giornata a Roma",
+   "profilo": "A",
+   "vincoli": {
+    "dieta": [
+     "vegetariano"
+    ],
+    "budget": "€€€",
+    "maxPriceLevel": 4
+   },
+   "profiloNome": "arte e chiese, vegetariano, €€€",
+   "secs": 20.921,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Roma",
+    "fromText": false,
+    "note": null
+   },
+   "giorno": {
+    "date": "2026-10-12",
+    "start": "2026-10-12T07:30:00.000Z"
+   },
+   "frasiTolte": [],
+   "pool": {
+    "g1-mattina": {
+     "posti": 2,
+     "candidati": [
+      {
+       "place_id": "ChIJxy7Ts0BhLxMRBMzATVixF1M",
+       "nome": "Belvedere Tarpeo",
+       "famiglia": "panorama",
+       "merito": 0.86,
+       "minuti": 14,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJzdvEF0VgLxMR2dILZEfUv04",
+       "nome": "Wisdomless Club",
+       "famiglia": "museo",
+       "merito": 0.8,
+       "minuti": 5,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ202UjExgLxMRWjUxMZO3xc0",
+       "nome": "Piazza d'Aracoeli",
+       "famiglia": "piazza",
+       "merito": 0.8,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJrbg1x1thLxMRNN10TZgYjWY",
+       "nome": "Terrazza Belvedere Aventino",
+       "famiglia": "panorama",
+       "merito": 0.78,
+       "minuti": 17,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJN7VhtFNgLxMRiEhoVRyT4Us",
+       "nome": "Piazza Colonna",
+       "famiglia": "piazza",
+       "merito": 0.75,
+       "minuti": 14,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJOclom0xgLxMRURy9OLL7Hg4",
+       "nome": "Piazza del Campidoglio",
+       "famiglia": "piazza",
+       "merito": 0.62,
+       "minuti": 14,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ-Z2cHUBgLxMRz8Wfw_RW_Qw",
+       "nome": "Passeggiata del Gianicolo",
+       "famiglia": null,
+       "merito": 0.61,
+       "minuti": 11,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJr3gt3ExgLxMRYaivihEa9K0",
+       "nome": "Piazza Venezia",
+       "famiglia": "piazza",
+       "merito": 0.58,
+       "minuti": 14,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJLRgNCwBhLxMRSwjd-sRYDpE",
+       "nome": "Piazza del Quirinale",
+       "famiglia": "piazza",
+       "merito": 0.51,
+       "minuti": 19,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJpz2fMqphLxMRmwG3MCgfTUA",
+       "nome": "Piazza Farnese",
+       "famiglia": "piazza",
+       "merito": 0.47,
+       "minuti": 1,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJt8uvFKlhLxMR6Iznp2b1pTA",
+       "nome": "Piazza Pia",
+       "famiglia": "piazza",
+       "merito": 0.43,
+       "minuti": 13,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJOfR_6athLxMRe5WMm35eHgc",
+       "nome": "Piazza Barberini",
+       "famiglia": "piazza",
+       "merito": 0.6,
+       "minuti": 24,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJhxbo5fhgLxMRUEPO_f-f7kM",
+       "nome": "Piazza del Popolo",
+       "famiglia": "piazza",
+       "merito": 0.55,
+       "minuti": 25,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJhRtt27xhLxMRgrBEpXN58U8",
+       "nome": "Piazza Vittorio Emanuele II di Savoia",
+       "famiglia": "piazza",
+       "merito": 0.62,
+       "minuti": 38,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pranzo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJAfXw145hLxMRzU9_pRjCXKc",
+       "nome": "La vita è’ n’osteria",
+       "famiglia": null,
+       "merito": 0.38,
+       "minuti": 13,
+       "deviazione": 2.3,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJGyKVXk9gLxMRlkrDksHRlSk",
+       "nome": "Mercato Hostaria Roma",
+       "famiglia": null,
+       "merito": 0.33,
+       "minuti": 10,
+       "deviazione": 0.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJVyO4xaZhLxMRUXeEmMnsN60",
+       "nome": "Aromaticus Trastevere",
+       "famiglia": null,
+       "merito": 0.38,
+       "minuti": 16,
+       "deviazione": 5.5,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJuQYjIk1hLxMRDb1uxG90GgY",
+       "nome": "Ristorante Pizzeria Mercede",
+       "famiglia": null,
+       "merito": 0.38,
+       "minuti": 13,
+       "deviazione": 18.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ8VKKCGxhLxMR4rcLwOWZSuM",
+       "nome": "Osteria Della Parola",
+       "famiglia": null,
+       "merito": 0.42,
+       "minuti": 23,
+       "deviazione": 25.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJQ9m-UCVhLxMR6WbUu7lWeD0",
+       "nome": "Ristorante Quinoa Roma",
+       "famiglia": null,
+       "merito": 0.48,
+       "minuti": 35,
+       "deviazione": 49.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJZdVanuxhLxMRV5zqEtorZsc",
+       "nome": "VEG-Joy",
+       "famiglia": null,
+       "merito": 0.42,
+       "minuti": 38,
+       "deviazione": 73.3,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJmYDTTZZhLxMRejCl2tMaFI8",
+       "nome": "Bonario",
+       "famiglia": null,
+       "merito": 0.44,
+       "minuti": 40,
+       "deviazione": 79.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ_TMeLHbvJRMR9jXAIm5-eLk",
+       "nome": "La Puntarella Pazza",
+       "famiglia": null,
+       "merito": 0.44,
+       "minuti": 51,
+       "deviazione": 67.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pomeriggio": {
+     "posti": 2,
+     "candidati": [
+      {
+       "place_id": "ChIJzdvEF0VgLxMR2dILZEfUv04",
+       "nome": "Wisdomless Club",
+       "famiglia": "museo",
+       "merito": 0.8,
+       "minuti": 13,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJ-Z2cHUBgLxMRz8Wfw_RW_Qw",
+       "nome": "Passeggiata del Gianicolo",
+       "famiglia": null,
+       "merito": 0.61,
+       "minuti": 12,
+       "deviazione": 13.1,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJVyO4xaZhLxMRUXeEmMnsN60",
+       "nome": "Aromaticus Trastevere",
+       "famiglia": null,
+       "merito": 0.38,
+       "minuti": 3,
+       "deviazione": 6.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJpz2fMqphLxMRmwG3MCgfTUA",
+       "nome": "Piazza Farnese",
+       "famiglia": "piazza",
+       "merito": 0.47,
+       "minuti": 8,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJN7VhtFNgLxMRiEhoVRyT4Us",
+       "nome": "Piazza Colonna",
+       "famiglia": "piazza",
+       "merito": 0.75,
+       "minuti": 19,
+       "deviazione": 17.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJrbg1x1thLxMRNN10TZgYjWY",
+       "nome": "Terrazza Belvedere Aventino",
+       "famiglia": "panorama",
+       "merito": 0.78,
+       "minuti": 11,
+       "deviazione": 19.5,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (panorama)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJOclom0xgLxMRURy9OLL7Hg4",
+       "nome": "Piazza del Campidoglio",
+       "famiglia": "piazza",
+       "merito": 0.62,
+       "minuti": 13,
+       "deviazione": 16.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJr3gt3ExgLxMRYaivihEa9K0",
+       "nome": "Piazza Venezia",
+       "famiglia": "piazza",
+       "merito": 0.58,
+       "minuti": 15,
+       "deviazione": 16.3,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJt8uvFKlhLxMR6Iznp2b1pTA",
+       "nome": "Piazza Pia",
+       "famiglia": "piazza",
+       "merito": 0.43,
+       "minuti": 21,
+       "deviazione": 17.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJLRgNCwBhLxMRSwjd-sRYDpE",
+       "nome": "Piazza del Quirinale",
+       "famiglia": "piazza",
+       "merito": 0.51,
+       "minuti": 22,
+       "deviazione": 26.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJOfR_6athLxMRe5WMm35eHgc",
+       "nome": "Piazza Barberini",
+       "famiglia": "piazza",
+       "merito": 0.6,
+       "minuti": 28,
+       "deviazione": 37.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJhxbo5fhgLxMRUEPO_f-f7kM",
+       "nome": "Piazza del Popolo",
+       "famiglia": "piazza",
+       "merito": 0.55,
+       "minuti": 32,
+       "deviazione": 39.5,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJhRtt27xhLxMRgrBEpXN58U8",
+       "nome": "Piazza Vittorio Emanuele II di Savoia",
+       "famiglia": "piazza",
+       "merito": 0.62,
+       "minuti": 37,
+       "deviazione": 62,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJmYDTTZZhLxMRejCl2tMaFI8",
+       "nome": "Bonario",
+       "famiglia": null,
+       "merito": 0.44,
+       "minuti": 52,
+       "deviazione": 91.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-aperitivo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJq-sT4D9hLxMR5u-FmRi9XKg",
+       "nome": "Studio 26",
+       "famiglia": null,
+       "merito": 0.45,
+       "minuti": 15,
+       "deviazione": 2,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJk0ZgdUJgLxMRUVv6OAQzlIQ",
+       "nome": "Belvedere del Salviati · Terrazza Panoramica Passeggiata del Gianicolo",
+       "famiglia": "panorama",
+       "merito": 0.46,
+       "minuti": 0,
+       "deviazione": 0.2,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (panorama)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJJSP7WLphLxMRfNQnak7CiFk",
+       "nome": "NODO",
+       "famiglia": null,
+       "merito": 0.44,
+       "minuti": 21,
+       "deviazione": 8.2,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJrbg1x1thLxMRNN10TZgYjWY",
+       "nome": "Terrazza Belvedere Aventino",
+       "famiglia": "panorama",
+       "merito": 0.78,
+       "minuti": 22,
+       "deviazione": 31.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJN-XWwuphLxMRnBt8xQMDyAk",
+       "nome": "Lonely Avenue - Premium Spirits Cocktail Bar in Rome",
+       "famiglia": null,
+       "merito": 0.49,
+       "minuti": 26,
+       "deviazione": 44.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ_cpthehhLxMRkaw2_qld_pM",
+       "nome": "Terrazza Belvedere del Palatino",
+       "famiglia": "panorama",
+       "merito": 0.46,
+       "minuti": 27,
+       "deviazione": 32.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJG1D9OwBhLxMRP8IMOVzX8Yg",
+       "nome": "Belvedere Cederna",
+       "famiglia": "panorama",
+       "merito": 0.53,
+       "minuti": 31,
+       "deviazione": 38.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ3SpIsBxhLxMRQGXnU0oVZ6s",
+       "nome": "8 e 1/2 Cocktail & Wine bar",
+       "famiglia": null,
+       "merito": 0.5,
+       "minuti": 32,
+       "deviazione": 27.4,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-cena": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJ8VKKCGxhLxMR4rcLwOWZSuM",
+       "nome": "Osteria Della Parola",
+       "famiglia": null,
+       "merito": 0.42,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJVyO4xaZhLxMRUXeEmMnsN60",
+       "nome": "Aromaticus Trastevere",
+       "famiglia": null,
+       "merito": 0.38,
+       "minuti": 18,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJuQYjIk1hLxMRDb1uxG90GgY",
+       "nome": "Ristorante Pizzeria Mercede",
+       "famiglia": null,
+       "merito": 0.38,
+       "minuti": 14,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJGyKVXk9gLxMRlkrDksHRlSk",
+       "nome": "Mercato Hostaria Roma",
+       "famiglia": null,
+       "merito": 0.33,
+       "minuti": 7,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJQ9m-UCVhLxMR6WbUu7lWeD0",
+       "nome": "Ristorante Quinoa Roma",
+       "famiglia": null,
+       "merito": 0.48,
+       "minuti": 25,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJmYDTTZZhLxMRejCl2tMaFI8",
+       "nome": "Bonario",
+       "famiglia": null,
+       "merito": 0.44,
+       "minuti": 52,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJZdVanuxhLxMRV5zqEtorZsc",
+       "nome": "VEG-Joy",
+       "famiglia": null,
+       "merito": 0.42,
+       "minuti": 52,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ_TMeLHbvJRMR9jXAIm5-eLk",
+       "nome": "La Puntarella Pazza",
+       "famiglia": null,
+       "merito": 0.44,
+       "minuti": 53,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    }
+   },
+   "sceltaModello": [
+    {
+     "place_id": "ChIJxy7Ts0BhLxMRBMzATVixF1M",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJ202UjExgLxMRWjUxMZO3xc0",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJQ9m-UCVhLxMR6WbUu7lWeD0",
+     "momento": "g1-pranzo"
+    },
+    {
+     "place_id": "ChIJrbg1x1thLxMRNN10TZgYjWY",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJN7VhtFNgLxMRiEhoVRyT4Us",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJG1D9OwBhLxMRP8IMOVzX8Yg",
+     "momento": "g1-aperitivo"
+    },
+    {
+     "place_id": "ChIJmYDTTZZhLxMRejCl2tMaFI8",
+     "momento": "g1-cena"
+    }
+   ],
+   "ricerche": {
+    "prima": [],
+    "dopo": [
+     {
+      "momento": "g1-pranzo",
+      "tema": "food",
+      "da": "Belvedere Tarpeo",
+      "trovati": 5
+     },
+     {
+      "momento": "g1-aperitivo",
+      "tema": "nightlife",
+      "da": "Passeggiata del Gianicolo",
+      "trovati": 5
+     }
+    ]
+   },
+   "tours": [
+    {
+     "tema": "Panorami e sapori di Roma",
+     "stops": [
+      {
+       "place_id": "ChIJ202UjExgLxMRWjUxMZO3xc0",
+       "title": "Piazza d'Aracoeli",
+       "types": [
+        "establishment",
+        "park",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T07:30:00.000Z",
+       "lat": 41.89461319999999,
+       "lng": 12.4814877,
+       "min": null,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Piazza d'Aracoeli è una piazza di Roma, situata alle pendici del Campidoglio, nel rione Campitelli. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Piazza d'Aracoeli è una piazza di Roma, situata alle pendici del Campidoglio, nel rione Campitelli.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 266,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJxy7Ts0BhLxMRBMzATVixF1M",
+       "title": "Belvedere Tarpeo",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-12T08:05:00.000Z",
+       "lat": 41.8916005,
+       "lng": 12.4824864,
+       "min": 5,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "panorama",
+       "incrocio": null,
+       "daPartenza": {
+        "minuti": 14,
+        "da": "centro del gruppo"
+       },
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi a Belvedere Tarpeo: qui si guarda, non si corre. Sono 5 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi a Belvedere Tarpeo: qui si guarda, non si corre.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 5 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 103,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJAfXw145hLxMRzU9_pRjCXKc",
+       "title": "La vita è’ n’osteria",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-12T10:30:00.000Z",
+       "lat": 41.8895051,
+       "lng": 12.4719386,
+       "min": 12,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Pranzi da La vita è’ n’osteria, osteria in fascia €€. Sono 12 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Pranzi da La vita è’ n’osteria, osteria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 12 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 982,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": true
+      },
+      {
+       "place_id": "ChIJ-Z2cHUBgLxMRz8Wfw_RW_Qw",
+       "title": "Passeggiata del Gianicolo",
+       "types": [
+        "establishment",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T12:30:00.000Z",
+       "lat": 41.89146969999999,
+       "lng": 12.4613942,
+       "min": 12,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 13.1,
+        "esito": "composizione",
+        "candidatiMomento": 16,
+        "alternative": [
+         {
+          "nome": "Piazza Farnese",
+          "famiglia": "piazza",
+          "deviazione": 0,
+          "merito": 0.47,
+          "tetto": true,
+          "bloccata": [
+           "una famiglia ripetuta"
+          ]
+         },
+         {
+          "nome": "Aromaticus Trastevere",
+          "famiglia": null,
+          "deviazione": 6.7,
+          "merito": 0.38,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza del Campidoglio",
+          "famiglia": "piazza",
+          "deviazione": 16.1,
+          "merito": 0.62,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza Venezia",
+          "famiglia": "piazza",
+          "deviazione": 16.3,
+          "merito": 0.58,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza Pia",
+          "famiglia": "piazza",
+          "deviazione": 17.7,
+          "merito": 0.43,
+          "tetto": false
+         }
+        ]
+       },
+       "description": "Passi da Passeggiata del Gianicolo: guardati intorno prima di ripartire. Sono 12 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Passi da Passeggiata del Gianicolo: guardati intorno prima di ripartire.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 12 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 1,
+       "recensioni": 26135,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJzdvEF0VgLxMR2dILZEfUv04",
+       "title": "Wisdomless Club",
+       "types": [
+        "art_gallery",
+        "bar",
+        "establishment",
+        "point_of_interest",
+        "store"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-12T13:14:00.000Z",
+       "lat": 41.8978596,
+       "lng": 12.4702673,
+       "min": 14,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Wisdomless Club è la prossima tappa del tuo giro. Sono 14 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Wisdomless Club è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 14 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 698,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJq-sT4D9hLxMR5u-FmRi9XKg",
+       "title": "Studio 26",
+       "types": [
+        "bar",
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-12T16:00:00.000Z",
+       "lat": 41.8994407,
+       "lng": 12.4702761,
+       "min": 2,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "L'aperitivo lo prendi da Studio 26. Il sole tramonta alle 18:34: sei qui 34 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da Studio 26.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:34: sei qui 34 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 289,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": false
+      },
+      {
+       "place_id": "ChIJ8VKKCGxhLxMR4rcLwOWZSuM",
+       "title": "Osteria Della Parola",
+       "types": [
+        "establishment",
+        "food",
+        "point_of_interest",
+        "restaurant"
+       ],
+       "moment": "cena",
+       "at": "2026-10-12T18:00:00.000Z",
+       "lat": 41.907361,
+       "lng": 12.4692823,
+       "min": 12,
+       "scelta": "ricerca mirata",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Osteria Della Parola, osteria in fascia €€€. Sono 12 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Osteria Della Parola, osteria in fascia €€€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 12 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 478,
+       "priceLevel": 3,
+       "pasto": true,
+       "dietaCercata": true
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7243,
+    "tokenOut": 813
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch": 5
+   }
+  }
+ ],
+ "fine": "2026-10-11T17:53:37.691Z"
+}

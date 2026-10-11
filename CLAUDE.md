@@ -34,6 +34,17 @@ Se `.env.local` ha `TEST_ACCOUNT_EMAIL` e `TEST_ACCOUNT_PASSWORD` entra con l'**
 personale, **tetto globale valido**, generazioni etichettate `label = 'test'` in
 `ai_generation_ticket`. Senza quelle variabili resta ospite. Le credenziali vivono solo in
 `.env.local` (ignorato da `*.local`): mai stamparle, mai committarle, mai nei report.
+`PROVA_RICHIESTE=login` controlla solo l'accesso, senza chiamate AI.
+
+**Porta e titolo verificati prima di inserire credenziali.** Sulla 5173 gira spesso un'altra
+app locale (aispace): `npm run dev` con strictPort fallisce e la pagina che risponde non e'
+DoveVai. Il 10-11/10 le credenziali dell'account di prova sono finite nel login di aispace
+(password poi ruotata). Prima di ogni prova nel browser:
+1. scegli una porta libera (`lsof -iTCP:<porta> -sTCP:LISTEN` vuoto) e avvia
+   `npx vite --port <porta> --strictPort`;
+2. controlla che chi ascolta su quella porta sia il vite di questo repo (`lsof -p <pid> | grep cwd`);
+3. apri la pagina e verifica che il titolo contenga "DoveVai";
+4. solo allora inserisci le credenziali. Se un punto fallisce, fermati: niente credenziali.
 
 ## Environment Variables
 

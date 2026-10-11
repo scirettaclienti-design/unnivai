@@ -11,6 +11,7 @@
 //   catania → "Domani voglio vivere Catania"
 //   catania2 → "Un pomeriggio a Catania tra barocco e mare"
 //   perte   → "Per Te" Roma (Home, adesso)
+//   login   → solo l'accesso dell'account di prova, nessuna chiamata AI
 // Risultato: JSON in PROVA_OUT (default: <tmp>/prova-reale.json).
 import { it, vi, beforeAll, afterAll } from 'vitest';
 import { writeFileSync } from 'node:fs';
@@ -101,6 +102,12 @@ const ITINERARI = {
 };
 
 for (const key of RICHIESTE) {
+    if (key === 'login') {
+        it('login', () => {
+            if (out.identita !== 'account di prova') throw new Error('mancano le credenziali dell\'account di prova in .env.local');
+        });
+        continue;
+    }
     it(key, async () => {
         // C1b — ogni richiesta parte a cache vuota (ricerche Places e centri
         // citta'), cosi' le chiamate Google sono quelle di UNA generazione. La

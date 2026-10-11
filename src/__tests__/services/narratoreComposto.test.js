@@ -109,7 +109,7 @@ describe('P3d-j — itinerario composto', () => {
         expect(stato.scelte[0].tappe.find(t => t.place_id === museo.place_id).interessi).toContain('arte');
         expect(museo.description).toMatch(/È qui perché cerchi l'arte\.$/);
         for (const s of stops(r).filter(x => /Trattoria|Osteria/.test(x.title))) expect(s.description).not.toMatch(/l'arte/);
-        expect(r._narrationReport.interessi).toEqual(expect.arrayContaining(['arte', 'cibo']));
+        expect(r._narrationReport.interessi).toEqual(['arte']); // P3d-j (chiusura): niente "il cibo"
     });
 
     it('il titolo con una parola vietata non passa: resta quello del codice', async () => {

@@ -401,7 +401,9 @@ export default function TourDetailsPage() {
             try {
                 const stored = localStorage.getItem(id);
                 if (stored) {
-                    incoming = JSON.parse(stored);
+                    // P3d-j (chiusura) — un tour AI salvato prima: i testi del
+                    // modello si spengono nel normalizer (isAiGenerated).
+                    incoming = { ...JSON.parse(stored), isAiGenerated: true };
                     console.log("♻️ Recovered AI Tour from LocalStorage:", incoming);
                 }
             } catch (e) {
@@ -1102,11 +1104,10 @@ export default function TourDetailsPage() {
                                                 const stepCategory = step.category && step.category !== 'place' ? step.category : null;
                                                 const stepMinutes = formatEstimate(step.stayMinutes);
                                                 const stepPrice = Number.isFinite(step.price) && step.price > 0 ? step.price : null;
-                                                const stepInsider = step.insiderTip || null;
                                                 const stepDesc = step.description || null;
                                                 const stepRating = Number.isFinite(step.googleRating) && step.googleRating > 0 ? step.googleRating : null;
-                                                const stepBestTime = step.bestTime || null;
-                                                const stepTransition = step.transition || null;
+                                                // P3d-j (chiusura) — consiglio insider, "momento migliore" e
+                                                // passaggio erano testi scritti dal modello: non si mostrano piu'.
 
                                                 return (
                                                     <div
@@ -1169,17 +1170,8 @@ export default function TourDetailsPage() {
                                                             {/* P3d-e — attribuzione dei fatti aperti usati dal racconto */}
                                                             {stepDesc && <FactSources fonti={step.fonti} />}
 
-                                                            {/* Momento editoriale insider tip */}
-                                                            {stepInsider && (
-                                                                <blockquote className="border-l-2 border-brand-orange pl-2.5 py-0.5 mt-2 bg-obsidian-raised/40 rounded-r-lg">
-                                                                    <p className="font-serif italic text-xs leading-snug text-obsidian-primary/90">
-                                                                        {stepInsider}
-                                                                    </p>
-                                                                </blockquote>
-                                                            )}
-
-                                                            {/* Rating e orario consigliato */}
-                                                            {(stepRating || stepBestTime) && (
+                                                            {/* Rating */}
+                                                            {stepRating && (
                                                                 <div className="flex items-center gap-3 mt-2 text-[11px] text-obsidian-secondary flex-wrap">
                                                                     {stepRating && (
                                                                         <span className="inline-flex items-center gap-1">
@@ -1187,21 +1179,9 @@ export default function TourDetailsPage() {
                                                                             <strong className="text-obsidian-primary font-bold">{stepRating}</strong> Google
                                                                         </span>
                                                                     )}
-                                                                    {stepBestTime && (
-                                                                        <span className="text-obsidian-secondary">
-                                                                            Meglio: <span className="text-obsidian-primary font-medium">{stepBestTime}</span>
-                                                                        </span>
-                                                                    )}
                                                                 </div>
                                                             )}
 
-                                                            {/* Transizione */}
-                                                            {stepTransition && index !== totalSteps - 1 && (
-                                                                <div className="flex items-start gap-1.5 mt-2 text-[11px] text-obsidian-secondary/80 font-medium">
-                                                                    <ArrowRight size={12} className="shrink-0 mt-0.5 text-obsidian-secondary" />
-                                                                    <span>{stepTransition}</span>
-                                                                </div>
-                                                            )}
                                                         </div>
 
                                                         {/* Thumbnail immagine se presente */}

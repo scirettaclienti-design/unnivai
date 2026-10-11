@@ -30,7 +30,7 @@ vi.mock('framer-motion', async () => {
 const at = (hhmm) => new Date(`2026-10-08T${hhmm}:00+02:00`).toISOString();
 
 const stop = (title, hhmm, extra = {}) => ({
-    title, type: 'cultura', description: `Dentro ${title} il rumore della strada si spegne.`,
+    title, type: 'cultura', description: `Dentro ${title} il rumore della strada si spegne.`, _comp: { scelta: {} }, // P3d-j: frase composta dal codice
     latitude: 41.9, longitude: 12.48, stayMinutes: 30, travelMinutesFromPrev: 10,
     scheduledTime: hhmm ? at(hhmm) : null,
     ...extra,

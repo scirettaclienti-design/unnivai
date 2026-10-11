@@ -94,14 +94,14 @@ describe('P3d-j — matrice: famiglia × momento × gancio, tutte passano verita
             const nVar = c.locale ? FRASI_LOCALE[c.fam].length : FRASI_LUOGO[c.fam].length;
             const ids = conIdPerVariante(c.stop, base, nVar);
             expect(ids.length, 'tutte le varianti raggiunte').toBe(nVar);
-            const interessi = ['panorami', 'chiese', 'piazze', 'arte', 'storia', 'verde', 'cibo', 'aperitivo', 'sera'];
+            const interessi = ['panorami', 'chiese', 'piazze', 'arte', 'storia', 'verde', 'aperitivo', 'sera'];
             for (const id of ids) {
                 for (const [primo, ultimo] of [[false, false], [true, false], [false, true]]) {
                     const d = stopData({ ...base, stop: { ...c.stop, place_id: id }, primo, ultimo });
                     expect(famigliaFrase(c.stop)).toBe(c.locale ? famigliaFrase(c.stop) : c.fam);
                     const interessiVeri = interessiPerTappa(d, interessi);
                     for (const gancio of [...GANCI, null]) {
-                        const scelta = { usaFatto: false, gancio, interesse: gancio === 'legame' ? (interessiVeri[0] || 'cibo') : null };
+                        const scelta = { usaFatto: false, gancio, interesse: gancio === 'legame' ? (interessiVeri[0] || 'arte') : null };
                         const r = passaLaRete(d, scelta, arrivo, [], interessi);
                         expect(r.rete, `${r.text}`).toEqual([]);
                         expect(testoPulito(r.text), r.text).toBe(true);
@@ -204,7 +204,9 @@ describe('P3d-j — interessi dell\'utente: elenco chiuso con forma breve', () =
         for (const i of INTERESSI) expect(i.forma, i.key).toMatch(/^(il|lo|la|i|gli|le|l')\s?\S/);
     });
     it('dal wizard, dal testo e dal DNA sopra la soglia di fiducia', () => {
-        expect(userInterests({ wizard: ['Arte', 'Cibo'] })).toEqual(expect.arrayContaining(['arte', 'cibo']));
+        expect(userInterests({ wizard: ['Arte', 'Cibo'] })).toEqual(['arte']);
+        // P3d-j (chiusura) — "il cibo" tolto: nessun legame sui pasti.
+        expect(INTERESSI.map(i => i.key)).not.toContain('cibo');
         expect(userInterests({ text: 'i belvederi di Roma e le chiese barocche' })).toEqual(expect.arrayContaining(['panorami', 'chiese']));
         expect(userInterests({ wizard: ['Piazze Eterne', 'Ville Nobiliari'] })).toEqual(expect.arrayContaining(['piazze', 'verde']));
         expect(userInterests({ dnaWeights: { natura: 0.8, food: 0.3, _share: 0.2 } })).toEqual(['verde']);
@@ -258,5 +260,22 @@ describe('P3d-j — i casi ✗ di P3d-e, P3d-g e P3d-i diventano descrizioni ver
     it('alle 00:04 un\'osteria non e\' "a disposizione": nel dopocena la frase dice solo dove vai', () => {
         const d = stopData({ stop: { title: 'Osteria da Fortunata - Baullari', place_id: 'f', types: ['restaurant'] }, momento: 'dopocena', locale: true });
         expect(apertura(d)).toBe('Osteria da Fortunata - Baullari è la prossima tappa del tuo giro.');
+    });
+});
+
+// ─── P3d-j (chiusura) — il legame viene SOLO dagli interessi dell'utente ─────
+describe('P3d-j (chiusura) — legame mai dal tema del tour', () => {
+    it('interesse scelto "Cibo": su un museo o una chiesa nessun "È qui perché cerchi l\'arte/la storia"', () => {
+        const interessi = userInterests({ wizard: ['Cibo'] });
+        expect(interessi).toEqual([]);
+        for (const [title, types] of [['Musei Capitolini', ['museum']], ['Chiesa del Gesù', ['church']]]) {
+            const d = stopData({ stop: { title, place_id: title, types }, momento: 'pomeriggio', orario: '16:00', minutiDaPrima: 9 });
+            for (const scelta of [{ gancio: 'legame', interesse: 'arte' }, { gancio: 'legame', interesse: 'storia' }, { gancio: 'legame', interesse: 'cibo' }]) {
+                const r = composeStop(d, scelta, interessi);
+                expect(r.text, r.text).not.toMatch(/È qui perché cerchi/);
+                expect(r.gancio).not.toBe('legame');
+            }
+            expect(ganciValidi(d, { aperturaTesto: apertura(d), interesse: interessiPerTappa(d, interessi)[0] || null }).has('legame')).toBe(false);
+        }
     });
 });

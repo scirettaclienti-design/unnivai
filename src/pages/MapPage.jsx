@@ -710,8 +710,7 @@ const MapPage = () => {
                     // Fase 1 gate Navigazione: propaga il contenuto insider di Gate II
                     // (null onesto se il narratore non l'ha prodotto — regola locked #16).
                     // NON mostrato ancora da nessuna parte: il surfacing e' la Fase 3.
-                    insiderTip: s.insiderTip ?? null,
-                    bestTime: s.bestTime ?? null,
+                    // P3d-j (chiusura) — insiderTip/bestTime non si propagano: testi del modello.
                     city: s.city || tourData.city || city || '',
                     index: i,
                 }));
@@ -1009,7 +1008,7 @@ const MapPage = () => {
         console.log('[DVAI-Nav] handleStartNavigationReal: click Avvia');
         // FASE 1 DEBUG — RIMUOVERE in Fase 3. Verifica su device che insiderTip/bestTime
         // di Gate II arrivino sull'oggetto tappa (null onesto se assenti, mai placeholder).
-        console.log('[Fase1-debug] tappe insider:', (activeRoute || []).map(s => ({ name: s.name, insiderTip: s.insiderTip, bestTime: s.bestTime })));
+        console.log('[Fase1-debug] tappe insider:', (activeRoute || []).map(s => ({ name: s.name })));
         // Fase 2b: nuova sessione nav → azzera geofence, latch completamento,
         // istruzioni vocali già dette, distanza live.
         geofenceFiredRef.current = new Set();

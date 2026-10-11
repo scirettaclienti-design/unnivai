@@ -314,7 +314,12 @@ export function normalizeStepCategory(raw) {
  * @param {string} cityFallback - città da usare se raw.city è assente
  * @returns {object} step in shape canonica
  */
-export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma') {
+export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma', { aiGenerated = false } = {}) {
+    // P3d-j (chiusura) — su un tour AI la descrizione resta solo se l'ha
+    // composta il codice (`_comp` dal motore, `composta` dopo una prima
+    // normalizzazione); consigli, "momento migliore" e passaggi mai.
+    const composta = !!(raw._comp || raw.composta);
+    const aiText = !!aiGenerated;
     // Coordinate: accetta sia `latitude/longitude` che `lat/lng`.
     const latRaw = raw.latitude ?? raw.lat;
     const lngRaw = raw.longitude ?? raw.lng;
@@ -349,7 +354,7 @@ export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma') {
 
         // Tassonomia
         title: raw.title || raw.name || raw.label || `Tappa ${index + 1}`,
-        description: raw.description || '',
+        description: (aiText && !composta) ? '' : (raw.description || ''),
         category: normalizeStepCategory(raw.category || raw.type),
 
         // Coordinate: forniamo SEMPRE entrambi i nomi per compat con lettori esistenti
@@ -385,10 +390,15 @@ export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma') {
         // `types` Google interi: la tabella di sosta ne ha bisogno a valle.
         types: Array.isArray(raw.types) ? raw.types : [],
 
-        // Narrativa "insider" — null se assenti (non undefined né mancanti)
-        transition: raw.transition || null,
-        insiderTip: raw.insiderTip || null,
-        bestTime: raw.bestTime || null,
+        // P3d-j (chiusura) — testi scritti dal modello sulle tappe: mai a
+        // schermo. Il motore non li produce piu'; un tour AI letto da una
+        // cache vecchia li porta ancora, e qui si spengono (vedi normalizeTour).
+        transition: aiText ? null : (raw.transition || null),
+        insiderTip: aiText ? null : (raw.insiderTip || null),
+        bestTime: aiText ? null : (raw.bestTime || null),
+        // Descrizione composta dal codice (stopPhrases): il marcatore resta
+        // anche dopo una seconda normalizzazione.
+        composta: composta || undefined,
         // P3d-e — le fonti dei fatti aperti (Wikipedia, Wikidata, OSM) usati
         // dal racconto: la riga di attribuzione a schermo. null se nessuna.
         fonti: Array.isArray(raw.fonti) && raw.fonti.length > 0 ? raw.fonti : null,
@@ -439,7 +449,7 @@ export function normalizeTour(raw = {}, opts = {}) {
                 ? raw.itinerary.map(it => ({ title: it.activity || it.title, description: it.description, time: it.time, transition: it.transition, insiderTip: it.insiderTip, bestTime: it.bestTime }))
                 : [];
 
-    const rawNormalized = sourceSteps.map((s, i) => normalizeTourStep(s, i, city));
+    const rawNormalized = sourceSteps.map((s, i) => normalizeTourStep(s, i, city, { aiGenerated: !!raw.isAiGenerated }));
 
     // DVAI-055-b: filtro centralizzato prossimità.
     // Attivo se opts.cityCenter è passato AND opts.enforceRadius !== false.

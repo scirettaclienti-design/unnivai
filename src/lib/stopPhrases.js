@@ -77,7 +77,8 @@ export const INTERESSI = [
     { key: 'arte', forma: "l'arte", dice: /\b(arte|art|muse[oi]|pinacotec\w*|rinasciment\w*)\b/, dna: 'arte', vale: (s) => s.famiglia === 'museo' },
     { key: 'storia', forma: 'la storia', dice: /\b(storia|storic\w*|cultura|imperial\w*)\b/, dna: 'cultura', vale: (s) => ['chiesa', 'museo', 'porta', 'arco', 'monumento'].includes(s.famiglia) },
     { key: 'verde', forma: 'il verde', dice: /\b(natura|nature|parc[oh]i?|ville|villa|giardin\w*|verde|outdoor)\b/, dna: 'natura', vale: (s) => s.famiglia === 'verde' },
-    { key: 'cibo', forma: 'il cibo', dice: /\b(cibo|food|gastronom\w*|ristorant\w*|trattori\w*|mangiar\w*)\b/, dna: 'food', vale: (s) => s.locale && s.pasto },
+    // P3d-j (chiusura) — "il cibo" tolto su decisione di Ivano: il legame dei
+    // pasti non si dice. Cibo resta un interesse per la scelta dei luoghi.
     { key: 'aperitivo', forma: "l'aperitivo", dice: /\baperitiv\w*/, vale: (s) => s.locale && s.momento === 'aperitivo' && s.bar },
     { key: 'sera', forma: 'la vita di sera', dice: /\b(vita notturna|nightlife|discotec\w*|movida)\b/, dna: 'nightlife', vale: (s) => s.locale && s.bar && ['aperitivo', 'cena', 'dopocena'].includes(s.momento) },
     { key: 'shopping', forma: 'lo shopping', dice: /\b(shopping|negoz\w*|botteg\w*|boutique)\b/, dna: 'shopping', vale: (s) => s.shopping },

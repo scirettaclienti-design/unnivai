@@ -325,7 +325,9 @@ const DashboardUser = () => {
                         isAiGenerated: true,
                         isInsiderNarrative: isInsider,
                         highlights: tour.stops.slice(0, 3).map(s => s.title),
-                        included: ['Tour-storia con narrativa', 'Suggerimenti insider per ogni tappa', 'Quando andare per il momento giusto'],
+                        // P3d-j (chiusura) — via "Suggerimenti insider" e "Quando andare":
+                        // non esistono piu'. Restano cose che il tour ha davvero.
+                        included: ['Luoghi reali, verificati su Google', 'Minuti a piedi fra le tappe'],
                         notIncluded: ['Guida fisica', 'Biglietti musei'],
                         guideBio: `Itinerario narrato dall'AI su luoghi reali di ${currentCity}.`,
                         center: { latitude: cityCenter.latitude, longitude: cityCenter.longitude },

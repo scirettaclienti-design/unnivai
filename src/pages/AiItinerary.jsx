@@ -835,12 +835,7 @@ export default function AIItineraryPage() {
                                     )}
                                     {selectedStop.description && <FactSources fonti={selectedStop.fonti} />}
 
-                                    {selectedStop.insiderTip && (
-                                        <div className="bg-obsidian-raised/60 border border-obsidian-border rounded-xl p-3">
-                                            <h4 className="font-bold text-obsidian-primary text-xs mb-1">Consiglio insider</h4>
-                                            <p className="text-xs text-obsidian-secondary leading-relaxed">{selectedStop.insiderTip}</p>
-                                        </div>
-                                    )}
+                                    {/* P3d-j (chiusura) — niente "Consiglio insider": era testo del modello. */}
 
                                     <div className="grid grid-cols-2 gap-3">
                                         {/* Gate TAPPE PER MOMENTO — l'orario e' quello calcolato (scheduledTime),

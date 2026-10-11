@@ -120,7 +120,7 @@ describe('P3d-j — itinerario composto', () => {
     });
 
     it('(7) il titolo non nomina meteo o momento (prova reale: "Soleggiato percorso di Roma")', async () => {
-        for (const title of ['Soleggiato percorso di Roma', 'Vivace Mattina di Roma', 'Roma al tramonto']) {
+        for (const title of ['Soleggiato percorso di Roma', 'Vivace Mattina di Roma', 'Roma al tramonto', 'Elegante piazza di Roma']) {
             try { window.localStorage.clear(); } catch { /* jsdom */ }
             const { fn } = routeFetch((t) => ({ place_id: t.place_id, usaFatto: false, gancio: null, interesse: null }), { title });
             vi.stubGlobal('fetch', fn);

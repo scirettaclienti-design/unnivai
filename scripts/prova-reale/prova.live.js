@@ -114,7 +114,9 @@ for (const key of RICHIESTE) {
                 const themed = await placesDiscoveryService.discoverAllThemes('Roma', cc.latitude, cc.longitude);
                 const insider = buildInsiderPool(themed, cc, 'Roma');
                 const r = await aiRecommendationService.generateHomeTours({ city: 'Roma', cityCenter: cc, themedCandidates: { insider, ...themed },
-                    prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, aiProfile: '' });
+                    prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, aiProfile: '',
+                    // come per gli itinerari: solo il preflight, il tetto vero e' sul server
+                    opts: { skipUserQuota: out.identita !== 'ospite' } });
                 const per = new Map((r._report?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
                 out.risultati.perte = { source: r._source, secs: (Date.now() - t0) / 1000, chiamate: calls - c0, momento: r._report?.momento,
                     composizione: true,

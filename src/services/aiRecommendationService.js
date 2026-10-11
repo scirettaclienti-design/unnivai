@@ -342,7 +342,7 @@ import { resolveTourWindow, romeParts } from '@/lib/tourWindow';
 // Gate NARRATORE-DOPO — alba/tramonto nel codice, controllo luce/ora, fascia dalla tabella.
 import { sunTimes } from '@/lib/sunTimes';
 // Gate PAROLE VIETATE — l'unico elenco: i prompt lo mostrano, il filtro lo applica.
-import { filterBannedWords, bannedWordsPromptLines } from '@/lib/narrationLight';
+import { filterBannedWords, bannedWordsPromptLines, unsupportedJudgments } from '@/lib/narrationLight';
 // P3d-e — fatti aperti sulle tappe finali, controllo anti-invenzione, frase sicura.
 // P3d-j — il modello sceglie, il codice scrive: le frasi approvate e la rete.
 import { stopData, guardComposed, apertura, ganciValidi, interessiPerTappa, userInterests } from '@/lib/stopPhrases';
@@ -1920,6 +1920,9 @@ const TITOLO_VIETATO = /\b(sol[ei]\w*|soleggiat\w*|assolat\w*|sereno|seren[ia]|p
 const dayTitle = (raw, fallback) => {
     const t = cleanText(raw);
     if (!t || t.length > 80 || TITOLO_VIETATO.test(t)) return fallback;
+    // Controllo schermate: "Elegante piazza di Roma". Un giudizio nel titolo
+    // non e' sostenuto da nessun fatto, come nelle descrizioni.
+    if (unsupportedJudgments(t, '', []).length > 0) return fallback;
     const r = filterBannedWords(t);
     return r.removed.length === 0 ? t : fallback;
 };

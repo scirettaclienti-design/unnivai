@@ -191,7 +191,7 @@ describe('P3d-j — scelte fuori elenco → riserva del codice', () => {
             expect(apertura(altro)).toBe('Hortus Urbis è la prossima tappa del tuo giro.');
         }
         const senzaTipo = stopData({ stop: { title: 'Da Enzo al 29', place_id: 'e', types: ['restaurant'] }, momento: 'cena', locale: true, priceLevel: 2 });
-        expect(apertura(senzaTipo)).toMatch(/^(La cena è da Da Enzo al 29\.|Chiudi la giornata a tavola da Da Enzo al 29\.)$/);
+        expect(apertura(senzaTipo)).toMatch(/^(La cena è da Enzo al 29\.|Chiudi la giornata a tavola da Enzo al 29\.)$/);
         const senzaFascia = stopData({ stop: { title: 'Osteria Navona', place_id: 'o', types: ['restaurant'] }, momento: 'cena', locale: true });
         expect(apertura(senzaFascia)).toMatch(/, osteria\.$/);
         expect(oraParlata('18:00')).toBe('18');
@@ -277,5 +277,38 @@ describe('P3d-j (chiusura) — legame mai dal tema del tour', () => {
             }
             expect(ganciValidi(d, { aperturaTesto: apertura(d), interesse: interessiPerTappa(d, interessi)[0] || null }).has('legame')).toBe(false);
         }
+    });
+});
+
+// ─── P3d-j (chiusura) — i ✗ della prova reale dell'11/10 ─────────────────────
+describe('P3d-j (chiusura) — i ✗ della prova reale', () => {
+    it('"Osteria Pizzeria Come Va?" (type Google anche bar) non e\' un bar da colazione', () => {
+        const d = stopData({ stop: { title: 'Osteria Pizzeria Come Va?', place_id: 'cv', types: ['restaurant', 'bar', 'food'] }, momento: 'mattina', locale: true, priceLevel: 2 });
+        expect(apertura(d)).not.toMatch(/caffè/);
+        const bar = stopData({ stop: { title: 'Bar del Fico', place_id: 'bf', types: ['bar', 'cafe'] }, momento: 'mattina', locale: true });
+        expect(apertura(bar)).toBe('Si parte da Bar del Fico: un caffè e si comincia.');
+    });
+
+    it('"prima della prossima tappa" mai sull\'ultima tappa', () => {
+        for (let i = 0; i < 20; i++) {
+            const d = stopData({ stop: { title: 'Parco delle Valli', place_id: `pv${i}`, types: ['park'] }, momento: 'pomeriggio', ultimo: true });
+            expect(apertura(d)).toBe('Ti prendi una pausa a Parco delle Valli.');
+        }
+    });
+
+    it('"da Da Tonino" → "da Tonino"', () => {
+        const d = stopData({ stop: { title: 'Da Tonino - Trattoria Bassetti', place_id: 'dt', types: ['restaurant'] }, momento: 'cena', locale: true, priceLevel: 2 });
+        expect(apertura(d)).toMatch(/^(La cena è da Tonino - Trattoria Bassetti|Chiudi la giornata a tavola da Tonino - Trattoria Bassetti), trattoria in fascia €€\.$/);
+    });
+
+    it('una passeggiata si attraversa, non ci si ferma "davanti a" lei', () => {
+        const d = stopData({ stop: { title: 'Passeggiata del Gianicolo', place_id: 'pg', types: ['tourist_attraction'] }, momento: 'pomeriggio' });
+        expect(apertura(d)).toMatch(/^(Attraversi Passeggiata del Gianicolo piano, senza fretta\.|Passi da Passeggiata del Gianicolo: guardati intorno prima di ripartire\.)$/);
+    });
+
+    it('"Per Te" non e\' una giornata: niente "Qui la giornata si chiude"', () => {
+        const d = stopData({ stop: { title: 'Parco delle Valli', place_id: 'pv', types: ['park'] }, ultimo: true, giornata: false });
+        expect(ganciValidi(d, { aperturaTesto: apertura(d) }).has('ultima')).toBe(false);
+        expect(composeStop(d, { gancio: 'ultima' }).text).not.toMatch(/giornata si chiude/);
     });
 });

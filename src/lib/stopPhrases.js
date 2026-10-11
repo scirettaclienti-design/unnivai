@@ -120,9 +120,12 @@ const MONUMENT_TYPES = ['tourist_attraction', 'historical_landmark', 'monument',
 
 /** La famiglia della frase: quella del tracciato C1, poi porta/arco, monumento, altro. */
 export function famigliaFrase(stop) {
+    const n = norm(nomeDi(stop));
+    // Prova reale P3d-j: "Ti fermi davanti a Passeggiata del Gianicolo".
+    // Una passeggiata, una via, un lungofiume si attraversano: frasi della piazza.
+    if (/^(passeggiata|lungotevere|lungomare|lungarno|via|viale|vicolo|scalinata)\b/.test(n)) return 'piazza';
     const c1 = stop?._tracciato?.famiglia ?? candidateFamily(stop);
     if (c1) return c1;
-    const n = norm(nomeDi(stop));
     if (/^porta\b/.test(n)) return 'porta';
     if (/^arco\b/.test(n)) return 'arco';
     const types = Array.isArray(stop?.types) ? stop.types : [];
@@ -159,7 +162,11 @@ export function fattoDi(fatti = []) {
  * @param {Array} p.fatti [{ testo, fonte }]
  * @param {boolean} p.primo / p.ultimo  posizione nella giornata (nel tour)
  */
-export function stopData({ stop, momento = null, orario = null, tramonto = null, minutiDaPrima = null, locale = false, priceLevel = null, fatti = [], primo = false, ultimo = false }) {
+// Il tipo detto dal nome che esclude il bar: "Osteria Pizzeria Come Va?" ha
+// anche il type Google `bar`, ma non e' un bar da colazione.
+const TIPI_DA_TAVOLA = ['trattoria', 'osteria', 'pizzeria', 'ristorante', 'taverna', 'bistrot'];
+
+export function stopData({ stop, momento = null, orario = null, tramonto = null, minutiDaPrima = null, locale = false, priceLevel = null, fatti = [], primo = false, ultimo = false, giornata = true }) {
     const nome = nomeDi(stop) || 'questa tappa';
     const types = Array.isArray(stop?.types) ? stop.types : [];
     const n = norm(nome);
@@ -177,7 +184,8 @@ export function stopData({ stop, momento = null, orario = null, tramonto = null,
         delta: delta !== null && delta >= 0 && delta <= TRAMONTO_MAX_MINUTI ? delta : null,
         locale: !!locale,
         pasto: !!locale && isMealPlace(stop) && !types.includes('cafe') && tipoNome !== 'bar',
-        bar: !!locale && (types.includes('bar') || types.includes('cafe') || LOCALE_TIPI_BAR.test(n) || ['bar', 'enoteca'].includes(tipoNome)),
+        bar: !!locale && !TIPI_DA_TAVOLA.includes(tipoNome)
+            && (types.includes('bar') || types.includes('cafe') || LOCALE_TIPI_BAR.test(n) || ['bar', 'enoteca'].includes(tipoNome)),
         gelateria: tipoNome === 'gelateria' || types.includes('ice_cream_shop'),
         tipo: tipoNome,
         fascia: fasciaDi(priceLevel),
@@ -186,11 +194,16 @@ export function stopData({ stop, momento = null, orario = null, tramonto = null,
         fatto: locale ? null : fattoDi(fatti),
         primo: !!primo,
         ultimo: !!ultimo,
+        // "Per Te" e' un giro suggerito adesso, non una giornata: niente
+        // "Qui la giornata si chiude" (giornata: false).
+        giornata: giornata !== false,
     };
 }
 
 // ─── Composizione ───────────────────────────────────────────────────────────
-const riempi = (tpl, v) => tpl.replace(/\{(\w+)\}/g, (_, k) => v[k]);
+// "da Da Tonino" → "da Tonino": i locali romani si chiamano cosi' ("Da Enzo
+// al 29"), e la preposizione della frase li assorbe.
+const riempi = (tpl, v) => tpl.replace(/\{(\w+)\}/g, (_, k) => v[k]).replace(/\b(da|Da) [Dd]a (?=\S)/g, '$1 ');
 const servono = (tpl) => [...tpl.matchAll(/\{(\w+)\}/g)].map(m => m[1]);
 const haTutto = (tpl, v) => servono(tpl).every(k => v[k] != null && String(v[k]).trim() !== '');
 
@@ -225,6 +238,8 @@ function aperture(d) {
 export function apertura(d) {
     const v = { ...d };
     for (const tpl of aperture(d)) {
+        // "prima della prossima tappa" non si dice sull'ultima.
+        if (d.ultimo && /prossima tappa/.test(tpl) && /prima della/.test(tpl)) continue;
         const t = accorcia(tpl, v);
         if (haTutto(t, v)) return riempi(t, v);
     }
@@ -246,7 +261,7 @@ export function ganciValidi(d, { aperturaTesto = '', interesse = null } = {}) {
     // detto → niente "orario". Stesso senso gia' detto → niente "prima"/"ultima".
     if (d.min && !/\bminuti a piedi\b/.test(ap)) out.set('distanza', riempi(FRASI_GANCIO.distanza, v));
     if (d.primo && !/\bsi parte\b/.test(ap)) out.set('prima', FRASI_GANCIO.prima);
-    if (d.ultimo && !/\bchiudi la giornata\b/.test(ap)) out.set('ultima', FRASI_GANCIO.ultima);
+    if (d.ultimo && d.giornata && !/\bchiudi la giornata\b/.test(ap)) out.set('ultima', FRASI_GANCIO.ultima);
     if (d.ora && !ap.includes(`alle ${norm(d.ora)}`)) out.set('orario', riempi(FRASI_GANCIO.orario, v));
     return out;
 }

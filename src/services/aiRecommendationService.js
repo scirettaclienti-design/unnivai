@@ -2942,7 +2942,7 @@ export const aiRecommendationService = {
                         stop: clean, momento: moment.key, minutiDaPrima: clean.travelMinutesFromPrev,
                         locale: isLocaleStop(clean),
                         priceLevel: Number.isFinite(clean.priceLevel) ? clean.priceLevel : priceLevelOf(poolById.get(clean.place_id)),
-                        fatti, primo: i === 0, ultimo: i === timedStops.length - 1,
+                        fatti, primo: i === 0, ultimo: i === timedStops.length - 1, giornata: false,
                     });
                     const r = guardComposed(d, _scelta || {}, {
                         interessi: interessiPerTe, arrival: now, sunrise: sunNow.sunrise, sunset: sunNow.sunset, fatti, fattiSu,

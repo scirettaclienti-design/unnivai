@@ -175,7 +175,9 @@ describe('Gate NARRATORE-DOPO — le scelte sulle tappe finali, il testo dal cod
         giorni[0].tappe.forEach((t, i) => {
             expect(t.nome).toBe(stops[i].title);
             expect(t.momento).toBe(stops[i].moment);
-            expect(t.apertura).toContain(stops[i].title);
+            // "Da Teo" dentro "…da Teo": la preposizione assorbe il "Da" del nome.
+            const nomeInFrase = (n) => n.replace(/^Da /, '');
+            expect(t.apertura).toContain(nomeInFrase(stops[i].title));
             expect(Array.isArray(t.ganci)).toBe(true);
             expect(t.ganci.every(g => ['tramonto', 'legame', 'distanza', 'prima', 'ultima', 'orario'].includes(g))).toBe(true);
         });
@@ -190,7 +192,7 @@ describe('Gate NARRATORE-DOPO — le scelte sulle tappe finali, il testo dal cod
         expect(sys).not.toMatch(/"description"|"insiderTip"|"bestTime"|"transition"/);
         // La frase e' del codice: con il gancio scelto ("distanza") e i minuti veri.
         for (const s of stops.slice(1)) {
-            expect(s.description).toContain(s.title);
+            expect(s.description).toContain(s.title.replace(/^Da /, ''));
             if (Number.isFinite(s.travelMinutesFromPrev) && s.travelMinutesFromPrev > 0) {
                 expect(s.description).toMatch(new RegExp(`${s.travelMinutesFromPrev} minuti a piedi`));
             }

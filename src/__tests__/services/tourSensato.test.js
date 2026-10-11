@@ -309,8 +309,10 @@ describe('Gate NARRATORE ANCORATO DIFF 3 — open_now NON arriva più nel prompt
             'Manfredonia', { interests: ['Cibo'] }, 'cerco osterie', {}, '', CENTRO,
         );
 
-        // bodies[0] = traduttore d'intento, bodies[1] = selettore
-        expect(bodies.length).toBe(2);
+        // bodies[0] = traduttore d'intento, bodies[1] = selettore; il selettore
+        // finto non sceglie niente, quindi bodies[2] e' il secondo tentativo
+        // sulle query di base (T1b, mai un tour vuoto).
+        expect(bodies.length).toBe(3);
         const prompt = bodies[1].messages[0].content;
         // La lista serializzata è in coda al prompt, dopo un'etichetta fissa.
         // Ancorarsi a quella: il primo '[' del prompt appartiene al testo.

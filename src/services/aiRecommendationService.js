@@ -339,7 +339,7 @@ import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } fr
 import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes } from '@/lib/tourTiming';
 // Gate FINESTRA TEMPORALE (G3) — quando parte il tour lo decide il codice, non il modello.
 import { resolveTourWindow, romeParts } from '@/lib/tourWindow';
-import { DESTINATION_UNSURE_NOTE, destinationNote, isStreetMention, sameCity } from '@/lib/textDestination';
+import { DESTINATION_UNSURE_NOTE, destinationNote, extractCityCandidate, isStreetMention, sameCity } from '@/lib/textDestination';
 // Gate NARRATORE-DOPO — alba/tramonto nel codice, controllo luce/ora, fascia dalla tabella.
 import { sunTimes } from '@/lib/sunTimes';
 // Gate PAROLE VIETATE — l'unico elenco: i prompt lo mostrano, il filtro lo applica.
@@ -610,7 +610,8 @@ ZERO PROSA. ZERO SPIEGAZIONI FUORI JSON.`;
  * @param {string} userPrompt   frase in italiano dell'utente
  * @param {string} cityName     città target (contesto per il modello)
  * @param {object} [quota]      biglietto di generazione (newGenerationTicket)
- * @returns {Promise<object>}   { queries[], categoria, oggetto_umano, citta, vincoli }
+ * @returns {Promise<object>}   { queries[], categoria, oggetto_umano, citta, vincoli };
+ *                               T1b: `queries` puo' essere vuoto (_source 'ai-vuota')
  * @throws                       se OpenAI proxy fallisce o JSON non parsabile
  */
 export async function translateIntentToQueries(userPrompt, cityName, quota) {
@@ -647,9 +648,6 @@ export async function translateIntentToQueries(userPrompt, cityName, quota) {
     const escludi = Array.isArray(vincoliRaw.escludi) ? vincoliRaw.escludi.filter(e => typeof e === 'string' && e.trim()).slice(0, 10) : [];
     const note = typeof vincoliRaw.note === 'string' && vincoliRaw.note.trim() ? vincoliRaw.note.trim().slice(0, 150) : null;
 
-    if (queries.length === 0) {
-        throw new Error('translateIntentToQueries: 0 queries (traduzione vuota)');
-    }
     const result = {
         queries,
         categoria,
@@ -657,6 +655,10 @@ export async function translateIntentToQueries(userPrompt, cityName, quota) {
         citta,
         vincoli: { tempo, escludi, note },
     };
+    // T1b — zero query non e' piu' un errore: la frase porta ancora la citta'
+    // e il motore cerca con le query di base (fetchRealPOICandidates). Una
+    // traduzione vuota non si mette in cache: la prossima volta si riprova.
+    if (queries.length === 0) return { ...result, _source: 'ai-vuota' };
     saveIntentToCache(key, result);
     return { ...result, _source: 'ai' };
 }
@@ -664,42 +666,67 @@ export async function translateIntentToQueries(userPrompt, cityName, quota) {
 /**
  * T1 — dove si fa il tour: la citta' scritta nel testo vince sulla posizione.
  *
- *   1. il traduttore legge la frase (con la posizione come contesto) e
- *      restituisce anche `citta`, o null;
+ *   1. T1b — il candidato si legge dal testo con regole fisse
+ *      (extractCityCandidate: "a Roma", "Roma in una giornata", "Roma" da solo),
+ *      senza dipendere dal traduttore; la `citta` del traduttore e' il secondo
+ *      segnale, per quello che le regole non vedono (testo minuscolo, "il
+ *      Colosseo" → Roma);
  *   2. "via Roma" / "piazza Roma" non sono Roma (isStreetMention);
  *   3. se la citta' e' diversa dalla posizione, UNA ricerca sul proxy dei
- *      luoghi la conferma (confirmCityFromText); se non e' sicura si resta
- *      sulla posizione e lo si dice.
+ *      luoghi la conferma (confirmCityFromText). Una seconda solo se il
+ *      candidato del testo non e' una citta' e il traduttore ne propone
+ *      un'altra; se nessuna e' sicura si resta sulla posizione e lo si dice.
  *
- * Il traduttore fallito per motivi suoi non blocca niente: si resta sulla
- * posizione e il motore riprova come prima. Quota esaurita e motore giu'
- * arrivano alla UI.
+ * Il traduttore fallito per motivi suoi non blocca niente: le regole leggono
+ * la citta' lo stesso, e il motore cerca con le query di base
+ * (TRANSLATOR_FAILED). Quota esaurita e motore giu' arrivano alla UI.
  *
  * @returns {Promise<{ city: string, cityCenter: object|null, fromText: boolean, note: string|null, intent: object|null }>}
  */
 export async function resolveTextDestination(userPrompt, positionCity, quota) {
-    const stay = (note = null, intent = null) => ({ city: positionCity, cityCenter: null, fromText: false, note, intent });
-    let intent;
+    let intent = null;
     try {
         intent = await translateIntentToQueries(userPrompt, positionCity, quota);
     } catch (err) {
         if (mustReachUi(err)) throw err;
-        console.warn(`[T1 citta'] traduttore fallito, resto sulla posizione: ${err.message}`);
-        return stay();
+        console.warn(`[T1 citta'] traduttore fallito, la citta' si legge solo dal testo: ${err.message}`);
+        intent = TRANSLATOR_FAILED;
     }
-    const named = intent.citta;
-    if (!named || sameCity(named, positionCity) || isStreetMention(userPrompt, named)) return stay(null, intent);
+    const stay = (note = null) => ({ city: positionCity, cityCenter: null, fromText: false, note, intent });
+    const fromRule = extractCityCandidate(userPrompt);
+    const fromModel = intent?.citta && !isStreetMention(userPrompt, intent.citta) ? intent.citta : null;
+    const named = [fromRule, fromModel].filter((c, i, all) => c && all.findIndex(x => sameCity(x, c)) === i);
+    if (named.length === 0) return stay();
 
     const { confirmCityFromText } = await import('./cityCenterService');
-    const found = await confirmCityFromText(named);
-    if (!found.sure) {
-        console.warn(`[T1 citta'] "${named}" non confermata (${found.reason}): resto su ${positionCity}`);
-        return stay(DESTINATION_UNSURE_NOTE, intent);
+    for (const name of named) {
+        // Il testo nomina la posizione: si resta, senza cercare.
+        if (sameCity(name, positionCity)) return stay();
+        const found = await confirmCityFromText(name);
+        if (!found.sure) {
+            console.warn(`[T1 citta'] "${name}" (${name === fromRule ? 'regola' : 'traduttore'}) non confermata (${found.reason})`);
+            continue;
+        }
+        if (sameCity(found.city, positionCity)) return stay();
+        console.info(`[T1 citta'] dal testo: ${found.city} (${name === fromRule ? 'regola' : 'traduttore'}; posizione ${positionCity})`);
+        return { city: found.city, cityCenter: found.center, fromText: true, note: destinationNote(found.city), intent };
     }
-    if (sameCity(found.city, positionCity)) return stay(null, intent);
-    console.info(`[T1 citta'] dal testo: ${found.city} (posizione ${positionCity})`);
-    return { city: found.city, cityCenter: found.center, fromText: true, note: destinationNote(found.city), intent };
+    console.warn(`[T1 citta'] nessuna citta' confermata: resto su ${positionCity}`);
+    return stay(DESTINATION_UNSURE_NOTE);
 }
+
+// T1b — il traduttore e' caduto (rete, JSON) ma la generazione va avanti: la
+// citta' la leggono le regole, i luoghi le query di base. Non ritraduce.
+const TRANSLATOR_FAILED = Object.freeze({
+    queries: [], categoria: 'misto', oggetto_umano: 'quello che hai chiesto', citta: null,
+    vincoli: { tempo: null, escludi: [], note: null }, _source: 'error-translator',
+});
+
+// T1b — tappe totali di un risultato, e i `_source` che le pagine gia'
+// trasformano nel messaggio onesto (AiItinerary, QuickPath, SurpriseTour).
+const countStops = (r) => (Array.isArray(r?.days) ? r.days.reduce((n, d) => n + (Array.isArray(d?.stops) ? d.stops.length : 0), 0) : 0);
+const EMPTY_SOURCES = new Set(['no-results', 'no-results-error', 'no-results-safety', 'search-error']);
+const baseQueriesNote = (oggetto, city) => `Non ho trovato ${oggetto || 'quello che hai chiesto'}: ti propongo un giro di ${city}`;
 
 // Fetch candidati reali per i temi derivati (Path B) o per le query prodotte
 // dal traduttore d'intento (Path A, Gate B). Mescola/deduplica/ordina per QS.
@@ -734,7 +761,11 @@ const settleSearches = async (promises, label) => {
     return lists;
 };
 
-const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = '', quota = undefined, foodPrefs = null, presetIntent = null) => {
+// T1b — `baseQueries`: si cerca con le query di base della citta' (i temi di
+// un tour senza testo, derivePrimaryThemes) anche se c'e' una frase. Succede
+// quando il traduttore restituisce zero query, quando e' caduto prima
+// (TRANSLATOR_FAILED) e nel secondo tentativo di una generazione rimasta vuota.
+const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = '', quota = undefined, foodPrefs = null, presetIntent = null, baseQueries = false) => {
     // P7b — con una dieta, OGNI ricerca del cibo fatta qui porta il criterio:
     // le query del traduttore di tipo cibo (deriveKindFromQuery) e il tema
     // food del Percorso B. I risultati portano `_dietaCercata`.
@@ -753,7 +784,8 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
         // Path A — Gate B: free-text guida la ricerca.
         try {
             // T1 — gia' tradotto da resolveTextDestination: niente seconda chiamata.
-            intent = presetIntent || await translateIntentToQueries(userPrompt, cityName, quota);
+            // T1b — col secondo tentativo sulle query di base non si ritraduce.
+            intent = presetIntent || (baseQueries ? TRANSLATOR_FAILED : await translateIntentToQueries(userPrompt, cityName, quota));
             console.info(`[Gate B] intent tradotto: queries=${JSON.stringify(intent.queries)} categoria=${intent.categoria} oggetto="${intent.oggetto_umano}" source=${intent._source}`);
         } catch (translatorErr) {
             // Quota esaurita o motore giu' non sono "non trovo": arrivano alla UI.
@@ -772,6 +804,15 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
                 },
             };
         }
+    }
+    const useBase = isFreeText && (baseQueries || !intent.queries?.length);
+    if (useBase) {
+        // La categoria della frase non filtra un pool che la frase non ha cercato.
+        console.info(`[T1b query di base] ${cityName}: ${baseQueries ? 'secondo tentativo' : 'traduttore senza query'} → temi di un tour senza testo`);
+        intent = { ...intent, categoria: 'misto', _queryDiBase: true };
+    }
+
+    if (isFreeText && !useBase) {
         const queriesToRun = intent.queries.slice(0, 3);
         // Gate I — customKind derivato da intent.categoria: la soglia qualità
         // deve rispettare il tipo di luogo (parchi hanno meno recensioni di
@@ -2087,19 +2128,54 @@ export const aiRecommendationService = {
     // { city, fromText, note } — la pagina mostra la nota in testa al tour e
     // usa quella citta' per mappa, messaggi e rigenerazione.
     async generateItinerary(city, prefs = {}, userPrompt = '', weather = {}, aiProfile = '', cityCenter = null, opts = {}) {
-        if (opts.pathType !== 'custom' || !String(userPrompt || '').trim()) {
-            return this._generateItinerary(city, prefs, userPrompt, weather, aiProfile, cityCenter, opts);
-        }
-        // Un biglietto solo: il traduttore chiamato qui e il selettore dopo
-        // sono la stessa generazione.
+        // Un biglietto solo: il traduttore chiamato qui, il selettore dopo e il
+        // secondo tentativo (T1b) sono la stessa generazione.
         const quotaTicket = opts.quotaTicket || newGenerationTicket('itinerary');
+        if (opts.pathType !== 'custom' || !String(userPrompt || '').trim()) {
+            const args = [city, prefs, userPrompt, weather, aiProfile, cityCenter, { ...opts, quotaTicket }];
+            return this._neverEmpty(await this._generateItinerary(...args), args);
+        }
         const dest = await resolveTextDestination(userPrompt, city, quotaTicket);
-        const result = await this._generateItinerary(
+        const args = [
             dest.city, prefs, userPrompt, weather, aiProfile, dest.fromText ? dest.cityCenter : cityCenter,
             { ...opts, quotaTicket, presetIntent: dest.intent },
-        );
-        const destination = { city: dest.city, fromText: dest.fromText, note: dest.note, cityCenter: dest.fromText ? dest.cityCenter : cityCenter };
+        ];
+        const result = await this._neverEmpty(await this._generateItinerary(...args), args);
+        // T1b — un tour sulle query di base al posto di quello chiesto lo dice.
+        const baseNote = result?._queryDiBaseDopoVuoto ? baseQueriesNote(result._oggettoChiesto, dest.city) : null;
+        const note = [dest.note, baseNote].filter(Boolean).join(' · ') || null;
+        const destination = { city: dest.city, fromText: dest.fromText, note, cityCenter: dest.fromText ? dest.cityCenter : cityCenter };
         return result && typeof result === 'object' && !Array.isArray(result) ? { ...result, destination } : result;
+    },
+
+    // T1b — mai un tour vuoto a schermo. Se una generazione arriva a 0 tappe
+    // (traduttore caduto, query senza risultati, tutto filtrato) si riprova UNA
+    // volta con le query di base della citta', sullo stesso biglietto e senza
+    // ritradurre. Se resta vuota, torna il risultato vuoto di prima con un
+    // `_source` che ogni pagina gia' trasforma nel messaggio onesto
+    // ("A <citta'> non troviamo …"): nessuna pagina mostra un tour senza tappe.
+    async _neverEmpty(result, args) {
+        if (!result || typeof result !== 'object' || Array.isArray(result) || countStops(result) > 0) return result;
+        const [city, , , , , , opts] = args;
+        console.warn(`[T1b mai vuoto] ${city}: 0 tappe (${result._source || '?'}) → secondo tentativo con le query di base`);
+        let retry = null;
+        try {
+            // Stessa generazione: il preflight della quota non si ripete (il
+            // contatore e' gia' salito col primo tentativo), il tetto vero resta
+            // sul server col biglietto.
+            retry = await this._generateItinerary(...args.slice(0, 6), {
+                ...opts, baseQueries: true, skipUserQuota: true,
+                presetIntent: opts.presetIntent || TRANSLATOR_FAILED,
+            });
+        } catch (err) {
+            console.warn(`[T1b mai vuoto] ${city}: secondo tentativo fallito (${err?.code || err?.message}) → messaggio onesto`);
+        }
+        if (retry && countStops(retry) > 0) {
+            const chiesto = (result._query || []).length > 0;
+            return { ...retry, ...(chiesto ? { _queryDiBaseDopoVuoto: true, _oggettoChiesto: result._oggetto_umano || null } : {}) };
+        }
+        console.warn(`[T1b mai vuoto] ${city}: vuoto anche con le query di base → messaggio onesto`);
+        return EMPTY_SOURCES.has(result._source) ? result : { ...result, days: [{ stops: [] }], _source: 'no-results' };
     },
 
     async _generateItinerary(city, prefs = {}, userPrompt = '', weather = {}, aiProfile = '', cityCenter = null, opts = {}) {
@@ -2134,7 +2210,9 @@ export const aiRecommendationService = {
         const food = resolveFoodPrefs({ userPrompt, wizardBudget: prefs?.budget, onboarding: opts.onboardingPrefs });
         const foodOn = hasFoodPrefs(food);
         const cacheKey = insiderCacheKey(city, prefs, userPrompt, aiProfile, opts.dnaWeights, food)
-            + '_' + centerFingerprint + '_' + tourWindow.date + '_' + firstMoment.key;
+            + '_' + centerFingerprint + '_' + tourWindow.date + '_' + firstMoment.key
+            // T1b — il secondo tentativo sulle query di base ha la sua voce.
+            + (opts.baseQueries ? '_base' : '');
         const windowFields = {
             startTimeAnchored: tourWindow.anchored,
             shiftedToNextDay: tourWindow.shiftedToNextDay,
@@ -2181,7 +2259,7 @@ export const aiRecommendationService = {
         // candidati, errore onesto con oggetto_umano.
         const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
         try {
-            const { candidates: rawCandidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null);
+            const { candidates: rawCandidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null, !!opts.baseQueries);
 
             // Gate RAGGIO-CATEGORIA — la categoria richiesta, quando e' una delle
             // 7 filtrabili in modo stretto. undefined ⇒ nessun vincolo di

@@ -4,7 +4,7 @@
 // - translateIntentToQueries("sorprendimi") → 3 query, zero errore (regola input vago)
 // - cache HIT sulla stessa frase+città (source: 'cache')
 // - JSON invalido dal modello → throw pulito
-// - queries[] vuoto dal modello → throw
+// - queries[] vuoto dal modello → nessun errore (T1b: query di base a valle)
 // - vincoli sanitizzati (tempo enum, note ≤150 char)
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -101,15 +101,20 @@ describe('Gate B — translateIntentToQueries', () => {
         expect(fetchMock).toHaveBeenCalledTimes(2); // città diversa → key diversa
     });
 
-    it('AI restituisce JSON con queries[] vuoto → throw (traduzione vuota)', async () => {
-        vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse({
+    it('T1b — AI restituisce queries[] vuoto → nessun errore, la citta\' resta, niente cache', async () => {
+        const fetchMock = vi.fn().mockResolvedValue(okResponse({
             queries: [],
             categoria: 'misto',
             oggetto_umano: '',
+            citta: 'Roma',
             vincoli: { tempo: null, escludi: [], note: null },
-        })));
-        await expect(translateIntentToQueries('qualcosa', 'Roma'))
-            .rejects.toThrow(/0 queries/);
+        }));
+        vi.stubGlobal('fetch', fetchMock);
+        const r = await translateIntentToQueries('una giornata a Roma', 'Troina');
+        expect(r).toMatchObject({ queries: [], citta: 'Roma', _source: 'ai-vuota' });
+        // una traduzione vuota non si salva: la volta dopo si riprova
+        await translateIntentToQueries('una giornata a Roma', 'Troina');
+        expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 
     it('userPrompt vuoto → throw (guard input)', async () => {

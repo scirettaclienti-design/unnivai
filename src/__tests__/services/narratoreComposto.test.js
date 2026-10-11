@@ -119,6 +119,16 @@ describe('P3d-j — itinerario composto', () => {
         expect(r.days[0].title).toBe('Giorno 1 a Roma');
     });
 
+    it('(7) il titolo non nomina meteo o momento (prova reale: "Soleggiato percorso di Roma")', async () => {
+        for (const title of ['Soleggiato percorso di Roma', 'Vivace Mattina di Roma', 'Roma al tramonto']) {
+            try { window.localStorage.clear(); } catch { /* jsdom */ }
+            const { fn } = routeFetch((t) => ({ place_id: t.place_id, usaFatto: false, gancio: null, interesse: null }), { title });
+            vi.stubGlobal('fetch', fn);
+            const r = await genera();
+            expect(r.days[0].title, title).toBe('Giorno 1 a Roma');
+        }
+    });
+
     it('chiamate: traduttore, selettore, scelte — nessuna riscrittura', async () => {
         const { fn, stato } = routeFetch((t) => ({ place_id: t.place_id, usaFatto: false, gancio: 'prima', interesse: null }));
         vi.stubGlobal('fetch', fn);

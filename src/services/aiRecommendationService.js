@@ -1434,9 +1434,9 @@ const buildUnifiedHomeToursPrompt = ({ city, timeContext, weather, prefs, aiProf
     // non mescolare cibo in un tour cultura).
     const themeMeta = {
         insider: { titleHint: `Titolo evocativo unico, DERIVATO dalle tappe che hai scelto: deve poter valere solo per QUESTE tappe, non per un altro tour di ${city}. Forma "<aggettivo/immagine> <sostantivo> di ${city}", mai "Tour di ${city}". NON riusare formule gia' sentite: inventane una da queste tappe.`, focus: 'perla nascosta, mix di categorie che raccontano l\'anima della citta\', prima tappa NON e\' il monumento piu\' famoso' },
-        food:    { titleHint: `Titolo tipo "Assapora ${city}" o "Street food di ${city}"`, focus: 'ristoranti, trattorie, mercati, gelaterie, caffe\' — SOLO tappe food' },
+        food:    { titleHint: `Titolo tipo "A tavola a ${city}" o "Street food di ${city}"`, focus: 'ristoranti, trattorie, mercati, gelaterie, caffe\' — SOLO tappe food' },
         cultura: { titleHint: `Titolo tipo "Tesori di ${city}" o "Storia di ${city}"`, focus: 'chiese, musei, palazzi, monumenti, piazze storiche — SOLO tappe cultura/storia/arte' },
-        romance: { titleHint: `Titolo tipo "Vista mare a ${city}" o "${city} al tramonto"`, focus: 'lungomari, panorami, belvederi, giardini romantici, scalinate scenografiche' },
+        romance: { titleHint: `Titolo tipo "Vista mare a ${city}" o "${city} dall'alto"`, focus: 'lungomari, panorami, belvederi, giardini romantici, scalinate scenografiche' },
         nature:  { titleHint: `Titolo tipo "Verde e Relax a ${city}" o "${city} outdoor"`, focus: 'parchi, ville, aree verdi, percorsi naturalistici' },
     };
 
@@ -1911,10 +1911,15 @@ const composeDays = (days, { starts, tourWindow, cityCenter, facts, scelte = new
     return { days: out, report };
 };
 
+// P3d-j (chiusura) — prova reale: "Soleggiato percorso di Roma" senza nessun
+// meteo, "Vivace Mattina di Catania" per un giorno intero. Il titolo non dice
+// ne' il meteo ne' un momento della giornata: non li conosce, o non valgono
+// per tutto il giorno (o per il tour "Per Te").
+const TITOLO_VIETATO = /\b(sol[ei]\w*|soleggiat\w*|assolat\w*|sereno|seren[ia]|pioggi\w*|piovos\w*|nuvol\w*|nebbi\w*|vent\w*|calda?|caldo|fredd\w*|mattin\w*|pomerigg\w*|ser[ae]\w*|nott\w*|notturn\w*|tramont\w*|alba|albe|aurora|crepuscol\w*)\b/i;
 /** Il titolo del giorno, se il modello ne ha dato uno pulito; senno' quello del codice. */
 const dayTitle = (raw, fallback) => {
     const t = cleanText(raw);
-    if (!t || t.length > 80) return fallback;
+    if (!t || t.length > 80 || TITOLO_VIETATO.test(t)) return fallback;
     const r = filterBannedWords(t);
     return r.removed.length === 0 ? t : fallback;
 };
@@ -1934,6 +1939,7 @@ Per ogni tappa scegli:
 
 Per ogni giorno scrivi anche il titolo: nasce dalle TAPPE del giorno, deve valere solo per quel giorno,
 forma "<aggettivo/immagine> <sostantivo> di ${city}", mai "Tour di ${city}", al massimo 60 caratteri.
+Nel titolo MAI il meteo (sole, pioggia…) né un momento della giornata (mattina, sera, tramonto…).
 Parole vietate nel titolo: ${bannedWordsPromptLines()}
 
 Rispondi in JSON puro:

@@ -2,7 +2,7 @@
 // caso (scritto da banco.live.js) ai numeri e ai semafori del report.
 // Nessun import dei servizi: si prova da sola e gira anche fuori da Vitest.
 // C5 — la forma del percorso viene da src/lib/routeShape.js: puro, senza import.
-import { routeMetrics } from '../../src/lib/routeShape.js';
+import { routeMetrics, stopDetours } from '../../src/lib/routeShape.js';
 
 const median = (xs) => {
     if (!xs.length) return null;
@@ -52,6 +52,29 @@ export function violazioniVincoli(caso) {
     return out;
 }
 
+const r1 = (x) => Math.round(x * 10) / 10;
+
+/**
+ * C5c — la voce 12 su una giornata: incroci, tappe con deviazione oltre
+ * S.deviazioneMinuti, deviazione massima (con la tappa e il momento), verdetto.
+ * Verde: 0 incroci, al massimo S.deviazioniOltreMax deviazioni oltre soglia,
+ * nessuna oltre S.deviazioneMaxMinuti. Nessuna esenzione per i giri corti.
+ */
+export function misuraGiornata(stops, S) {
+    const m = routeMetrics(stops);
+    const dev = stopDetours(stops);
+    const oltre = dev.filter(d => d.minuti > S.deviazioneMinuti);
+    const max = dev.reduce((a, d) => (!a || d.minuti > a.minuti ? d : a), null);
+    return {
+        km: m.km, incroci: m.incroci, indiceLibero: m.indiceLibero, catene: m.catene,
+        deviazioni: dev.map(d => ({ ...d, minuti: r1(d.minuti) })),
+        deviazioniOltre: oltre.length,
+        deviazioneMax: max ? r1(max.minuti) : null,
+        colpevole: max && max.minuti > S.deviazioneMinuti ? { titolo: max.titolo, momento: max.momento, minuti: r1(max.minuti) } : null,
+        ok: m.incroci <= S.incrociMax && oltre.length <= S.deviazioniOltreMax && (!max || max.minuti <= S.deviazioneMaxMinuti),
+    };
+}
+
 /** Le misure di un caso. `null` dove la voce non si applica o manca il dato. */
 export function misuraCaso(caso, config) {
     const S = config.soglie;
@@ -84,19 +107,18 @@ export function misuraCaso(caso, config) {
     }
     // C5 — la forma del percorso, giornata per giornata (solo itinerari: i
     // giri di Per Te sono tour separati, non una camminata).
-    // C5b — `indice` contro il cammino minimo con l'ordine dei momenti, null su
-    // un giro corto (sotto S.indiceKmMin km); `indiceLibero` e' quello di C5.
-    const giornate = caso.tipo === 'itinerario'
-        ? (caso.tours || []).map(t => routeMetrics(t.stops || [], { corto: S.indiceKmMin ?? 0 })) : [];
-    const maxOf = (k) => (giornate.some(g => g[k] !== null) ? Math.max(...giornate.map(g => g[k] ?? 0)) : null);
+    // C5c — voce 12: incroci e deviazioni per tappa (stopDetours), in minuti.
+    // `indiceLibero` (C5) resta come informazione, fuori dal verdetto.
+    const giornate = caso.tipo === 'itinerario' ? (caso.tours || []).map(t => misuraGiornata(t.stops || [], S)) : [];
     const percorso = giornate.length ? {
         giornate,
         km: Math.round(giornate.reduce((a, g) => a + g.km, 0) * 100) / 100,
         incroci: giornate.reduce((a, g) => a + g.incroci, 0),
-        indice: maxOf('indice'),
-        indiceLibero: maxOf('indiceLibero'),
-        giroCorto: giornate.every(g => g.giroCorto),
+        deviazioniOltre: giornate.reduce((a, g) => a + g.deviazioniOltre, 0),
+        deviazioneMax: Math.max(...giornate.map(g => g.deviazioneMax ?? 0)),
+        indiceLibero: giornate.some(g => g.indiceLibero !== null) ? Math.max(...giornate.map(g => g.indiceLibero ?? 0)) : null,
         catene: giornate.reduce((a, g) => a + g.catene, 0),
+        ok: giornate.every(g => g.ok),
     } : null;
     return {
         tappe: tappe.length,
@@ -139,8 +161,10 @@ export function inComune(a, b) {
 
 // Semafori: 'verde' | 'rosso' | null (non si applica / dato mancante).
 const sem = (ok) => (ok === null || ok === undefined ? null : (ok ? 'verde' : 'rosso'));
+// C5c — la voce 12 e' `percorso` (incroci + deviazioni): sostituisce "incroci"
+// e "indice" di C5/C5b.
 export const VOCI = ['verita', 'voce', 'distanze', 'ripetizioni', 'vincoli', 'inComune', 'famosita', 'giornata', 'tempo', 'costo', 'destinazione',
-    'incroci', 'indice', 'catene'];
+    'percorso', 'catene'];
 
 export function semafori(m, caso, config, comune = null) {
     const S = config.soglie;
@@ -157,8 +181,7 @@ export function semafori(m, caso, config, comune = null) {
         tempo: sem(m.secondi === null ? null : m.secondi <= m.tetto),
         costo: sem(m.costo.totale <= S.costoMaxUsd),
         destinazione: m.destinazione ? sem(m.destinazione.ok) : null,
-        incroci: m.percorso ? sem(m.percorso.incroci <= S.incrociMax) : null,
-        indice: m.percorso?.indice != null ? sem(m.percorso.indice <= S.indiceAvantiIndietroMax) : null,
+        percorso: m.percorso ? sem(m.percorso.ok) : null,
         catene: m.percorso ? sem(m.percorso.catene <= S.cateneMax) : null,
     };
 }

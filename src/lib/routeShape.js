@@ -179,6 +179,39 @@ export function backtrackIndex(stops, { ancorato = false } = {}) {
 /** C5b — sotto questi km un giro e' "corto": l'indice non si giudica, contano gli incroci. */
 export const SHORT_ROUTE_KM = 2;
 
+// ─── C5c — deviazione per tappa: lo zig-zag che si vede sulla mappa ─────────
+//
+// Per ogni tappa intermedia B fra A (prima) e C (dopo), anche a cavallo fra
+// due momenti: deviazione = (A→B + B→C) − A→C, in minuti a piedi. Zero = B sta
+// sulla linea; un'andata-e-ritorno verso B costa due volte la distanza dalla
+// linea. In minuti, non in proporzione: 100 m di zig-zag restano 100 m, su un
+// giro di 1 km come su uno di 5. La prima e l'ultima tappa non hanno una
+// deviazione (manca A o C). Velocita' a piedi: la stessa di tourTiming
+// (WALKING_KMH = 4,5; un test le lega).
+export const DETOUR_WALK_KMH = 4.5;
+
+/**
+ * Le deviazioni delle tappe intermedie, nell'ordine del giro.
+ * @returns {Array<{ indice: number, minuti: number, titolo: string|null, momento: string|null }>}
+ *   `indice` e' la posizione nella sequenza passata; tappe senza coordinate (o
+ *   con un vicino senza coordinate) restano fuori.
+ */
+export function stopDetours(stops) {
+    const out = [];
+    const s = stops || [];
+    for (let i = 1; i + 1 < s.length; i++) {
+        const ab = legKm(s[i - 1], s[i]), bc = legKm(s[i], s[i + 1]), ac = legKm(s[i - 1], s[i + 1]);
+        if (ab === null || bc === null || ac === null) continue;
+        out.push({
+            indice: i,
+            minuti: Math.max(0, ((ab + bc - ac) / DETOUR_WALK_KMH) * 60),
+            titolo: s[i].name || s[i].title || null,
+            momento: s[i].moment ?? null,
+        });
+    }
+    return out;
+}
+
 // ─── Marchi (catene) ─────────────────────────────────────────────────────────
 //
 // Due locali della stessa catena nello stesso giorno ("Origano Trevi" +

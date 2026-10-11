@@ -70,42 +70,66 @@ describe('banco — misure', () => {
         expect(c.totale).toBeCloseTo(0.064 + 0.007 + (1000 * 0.15 + 100 * 0.6) / 1e6);
     });
 
-    it('C5 percorso: incroci, indice e catene per giornata; solo per gli itinerari', () => {
-        const zig = [stop({ id: 'a', lat: 0, lng: 0 }), stop({ id: 'c', lat: 1, lng: 1 }), stop({ id: 'b', lat: 0, lng: 1 }), stop({ id: 'd', lat: 1, lng: 0 })];
-        const m = misuraCaso(caso(zig), config);
-        expect(m.percorso).toMatchObject({ incroci: 1, catene: 0 });
-        expect(semafori(m, caso(zig), config)).toMatchObject({ incroci: 'rosso', catene: 'verde' });
-        // su una via percorsa avanti e indietro: nessun incrocio, ma il doppio del cammino
-        // (C5b) tutte nello stesso momento: dentro il momento l'ordine si poteva scegliere
-        const avanti = [0, 4, 1, 3, 2].map(i => stop({ id: `v${i}`, lat: 41.9 + i * 0.01, lng: 12.5, moment: 'pomeriggio' }));
-        const ma = misuraCaso(caso(avanti), config);
-        expect(ma.percorso.indice).toBeGreaterThan(config.soglie.indiceAvantiIndietroMax);
-        expect(semafori(ma, caso(avanti), config).indice).toBe('rosso');
-        const giro = [stop({ id: 'a', lat: 0, lng: 0 }), stop({ id: 'b', lat: 0, lng: 1 }), stop({ id: 'c', lat: 1, lng: 1 }), stop({ id: 'd', lat: 1, lng: 0 })];
-        expect(semafori(misuraCaso(caso(giro), config), caso(giro), config)).toMatchObject({ incroci: 'verde', indice: 'verde' });
-        const catena = [stop({ id: 'Origano Trevi', types: ['restaurant'] }), stop({ id: 'Origano Campo', types: ['restaurant'] })];
-        expect(misuraCaso(caso(catena), config).percorso.catene).toBe(1);
-        expect(misuraCaso(caso(zig, { tipo: 'perte' }), config).percorso).toBe(null);
-        const { markdown } = buildReport({ casi: [caso(zig)] }, config, {});
-        expect(markdown).toContain('### Percorso a piedi (C5)');
-        expect(markdown).toMatch(/Incroci del tracciato\*\*: giro: a → c → b → d/);
+    // ─── C5c — voce 12: incroci e deviazioni per tappa ──────────────────────
+    // Il giro di Roma del banco prima di C5 (banco-3, a-roma), coordinate del grezzo.
+    const ROMA_PRE_C5 = [
+        ['Piazza del Quirinale', 41.8992412, 12.4864047, 'mattina'],
+        ['Palazzo Massimo alle Colonne', 41.8967291, 12.4735541, 'mattina'],
+        ['Antica Osteria di Roma', 41.8978439, 12.4685391, 'pranzo'],
+        ['Museo Centrale del Risorgimento', 41.894008, 12.4838094, 'pomeriggio'],
+        ['Basilica dei Santi XII Apostoli', 41.8982697, 12.4829881, 'pomeriggio'],
+        ['Belvedere Cederna', 41.8920952, 12.489715, 'aperitivo'],
+        ['Antica Trattoria Al Gallinaccio', 41.9022934, 12.485695, 'cena'],
+    ].map(([id, lat, lng, moment]) => stop({ id, lat, lng, moment }));
+
+    it('C5c voce 12: il giro a zig-zag di Roma prima di C5 e\' rosso, e la tappa colpevole e\' nominata', () => {
+        const m = misuraCaso(caso(ROMA_PRE_C5), config);
+        expect(m.percorso.deviazioniOltre).toBeGreaterThan(config.soglie.deviazioniOltreMax);
+        expect(m.percorso.deviazioneMax).toBeGreaterThan(config.soglie.deviazioneMaxMinuti);
+        expect(m.percorso.giornate[0].colpevole).toMatchObject({ titolo: 'Belvedere Cederna', momento: 'aperitivo' });
+        expect(semafori(m, caso(ROMA_PRE_C5), config).percorso).toBe('rosso');
     });
 
-    it('C5b: indice vecchio e nuovo affiancati; sotto i 2 km "giro corto, indice non applicato"', () => {
-        // pranzo a sud e cena a nord: l'andata e ritorno la impongono i momenti
-        const g = [stop({ id: 'm', lat: 41.900, lng: 12.48, moment: 'mattina' }), stop({ id: 'pr', lat: 41.880, lng: 12.48, moment: 'pranzo' }),
-            stop({ id: 'po', lat: 41.890, lng: 12.48, moment: 'pomeriggio' }), stop({ id: 'ce', lat: 41.910, lng: 12.48, moment: 'cena' })];
+    it('C5c voce 12: un giro lineare e\' verde, anche se lungo', () => {
+        const linea = ['mattina', 'mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena'].map((moment, i) => stop({ id: `l${i}`, lat: 41.9 + i * 0.006, lng: 12.48, moment }));
+        const m = misuraCaso(caso(linea), config);
+        expect(m.percorso).toMatchObject({ incroci: 0, deviazioniOltre: 0, deviazioneMax: 0, ok: true });
+        expect(semafori(m, caso(linea), config).percorso).toBe('verde');
+    });
+
+    it('C5c voce 12: la deviazione si conta anche a cavallo fra due momenti (pranzo fuori linea fra mattina e pomeriggio)', () => {
+        const g = [stop({ id: 'm', lat: 41.900, lng: 12.48, moment: 'mattina' }), stop({ id: 'pr', lat: 41.900, lng: 12.4905, moment: 'pranzo' }),
+            stop({ id: 'po', lat: 41.902, lng: 12.48, moment: 'pomeriggio' })];
         const m = misuraCaso(caso(g), config);
-        expect(m.percorso.indiceLibero).toBeGreaterThan(1.3);
-        expect(m.percorso.indice).toBeCloseTo(1, 2);
-        expect(semafori(m, caso(g), config).indice).toBe('verde');
-        const corto = g.map(x => ({ ...x, lat: 41.9 + (x.lat - 41.9) / 20 }));
+        const [d] = m.percorso.giornate[0].deviazioni;
+        expect(d).toMatchObject({ titolo: 'pr', momento: 'pranzo' });
+        expect(d.minuti).toBeGreaterThan(config.soglie.deviazioneMaxMinuti);
+        expect(m.percorso.ok).toBe(false);
+    });
+
+    it('C5c voce 12: nessuna esenzione per i giri corti, ma i passi da 100 m non contano', () => {
+        // giro di ~0,7 km con zig-zag da 100 m: verde
+        const corto = [0, 1, 2, 3, 4].map(i => stop({ id: `c${i}`, lat: 37.502 + i * 0.0015, lng: 15.087 + (i % 2) * 0.0008, moment: 'pomeriggio' }));
         const mc = misuraCaso(caso(corto), config);
-        expect(mc.percorso).toMatchObject({ giroCorto: true, indice: null });
-        expect(semafori(mc, caso(corto), config).indice).toBe(null);
-        const { markdown } = buildReport({ casi: [caso(corto)] }, config, {});
-        expect(markdown).toContain('giro corto, indice non applicato');
-        expect(markdown).toMatch(/\| Indice vecchio \| Indice nuovo \| Ripetizioni \| Catene doppie \|/);
+        expect(mc.percorso.km).toBeLessThan(2);
+        expect(mc.percorso.ok).toBe(true);
+        // stesso giro corto con un'andata e ritorno di 600 m: rosso
+        const fuori = [...corto.slice(0, 2), stop({ id: 'fuori', lat: 37.5035, lng: 15.094, moment: 'pomeriggio' }), ...corto.slice(2)];
+        const mf = misuraCaso(caso(fuori), config);
+        expect(mf.percorso.km).toBeLessThan(2);
+        expect(mf.percorso.deviazioneMax).toBeGreaterThan(config.soglie.deviazioneMaxMinuti);
+        expect(semafori(mf, caso(fuori), config).percorso).toBe('rosso');
+    });
+
+    it('C5c voce 12: un incrocio basta per il rosso; il report ha la tabella con la tappa colpevole', () => {
+        const zig = [stop({ id: 'a', lat: 0, lng: 0 }), stop({ id: 'c', lat: 0.01, lng: 0.01 }), stop({ id: 'b', lat: 0, lng: 0.01 }), stop({ id: 'd', lat: 0.01, lng: 0 })];
+        expect(misuraCaso(caso(zig), config).percorso.incroci).toBe(1);
+        expect(semafori(misuraCaso(caso(zig), config), caso(zig), config).percorso).toBe('rosso');
+        expect(misuraCaso(caso(zig, { tipo: 'perte' }), config).percorso).toBe(null);
+        const { markdown } = buildReport({ casi: [caso(ROMA_PRE_C5)] }, config, {});
+        expect(markdown).toMatch(/\| Incroci \| Deviazioni > 5 min \| Deviazione max \| Indice vecchio \|/);
+        expect(markdown).toContain('(Belvedere Cederna @aperitivo)');
+        expect(markdown).toMatch(/\*\*a-roma|x — Percorso/);
     });
 
     it('C5b ripetizioni: si contano le famiglie del giro finale, anche senza la dicitura "ripiego"', () => {

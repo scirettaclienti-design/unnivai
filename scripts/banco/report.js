@@ -14,7 +14,7 @@ const NOMI = {
     verita: 'Verità (auto)', voce: 'Voce', distanze: 'Distanze', ripetizioni: 'Ripetizioni', vincoli: 'Vincoli',
     inComune: 'In comune A/B', famosita: 'Famosità', giornata: 'Giornata completa', tempo: 'Tempo', costo: 'Costo',
     destinazione: 'Destinazione dal testo',
-    incroci: 'Incroci del tracciato', indice: 'Avanti e indietro', catene: 'Catene ripetute',
+    percorso: 'Percorso (incroci e deviazioni)', catene: 'Catene ripetute',
 };
 
 // Gli indizi della causa, letti dai dati del caso: non una diagnosi, il primo
@@ -35,11 +35,11 @@ function indizi(voce, m, caso, comune, S) {
         case 'giornata': return `${m.tappe} tappe${caso.frasiTolte?.length ? `, frasi tolte ${caso.frasiTolte.length}` : ''}; ripieghi: ${m.motiviRipiego.join('; ') || 'nessuno'} — pool povero o momenti tolti dagli orari`;
         case 'tempo': return `${n1(m.secondi)} s con ${m.chiamateAI} chiamate AI e ${m.chiamateGoogle} Google`;
         case 'costo': return `token ${usd(m.costo.token)}, Google ${usd(m.costo.google)} (${m.chiamateGoogle} chiamate), foto stimate ${usd(m.costo.foto)}`;
-        case 'incroci': {
+        case 'percorso': {
             const motivo = tappeDi(caso).map(s => s.incrocio).find(Boolean);
-            return `giro: ${percorsoTesto(caso)} — km ${n1(m.percorso.km)}, incroci ${m.percorso.incroci}${motivo ? ` — tracciato: «${motivo}»` : ''}`;
+            const g = m.percorso.giornate.map((x, i) => `${m.percorso.giornate.length > 1 ? `giorno ${i + 1}: ` : ''}incroci ${x.incroci}, deviazioni > ${S.deviazioneMinuti} min ${x.deviazioniOltre}, max ${n1(x.deviazioneMax)} min${x.colpevole ? ` (${x.colpevole.titolo} @${x.colpevole.momento})` : ''}`).join('; ');
+            return `${g} — giro: ${percorsoTesto(caso)}${motivo ? ` — tracciato: «${motivo}»` : ''}`;
         }
-        case 'indice': return `km ${n1(m.percorso.km)}, indice con le ancore ${n1(m.percorso.indice)}, libero ${n1(m.percorso.indiceLibero)} — giro: ${percorsoTesto(caso)}`;
         case 'catene': return (m.percorso.giornate || []).length ? `stesso marchio: ${catene(caso)}` : '';
         case 'destinazione': return `uscito a ${m.destinazione.citta || '?'} invece di ${m.destinazione.attesa}${m.destinazione.tappeLontane.length ? `; tappe oltre ${S.destinazioneMaxKm} km: ${m.destinazione.tappeLontane.join(', ')}` : ''}`;
         default: return '';
@@ -89,8 +89,7 @@ export function buildReport(raw, config, meta = {}) {
         famosita: `≥ ${S.sotto2000MinPct}% tappe ≤ ${S.recensioniFamoso} recensioni (città grandi)`,
         giornata: `≥ ${S.tappeGiornataMin} tappe`, tempo: `itinerario ≤ ${S.secondiItinerarioMax} s, Per Te ≤ ${S.secondiPerTeMax} s`,
         costo: `≤ ${usd(S.costoMaxUsd)}`, destinazione: `città giusta, tappe entro ${S.destinazioneMaxKm} km`,
-        incroci: `≤ ${S.incrociMax} per giornata (itinerari)`,
-        indice: `cammino reale / cammino minimo con l'ordine dei momenti ≤ ${n1(S.indiceAvantiIndietroMax)}; sotto ${n1(S.indiceKmMin)} km non si giudica`,
+        percorso: `per giornata: ${S.incrociMax} incroci, al massimo ${S.deviazioniOltreMax} deviazione > ${S.deviazioneMinuti} min, nessuna > ${S.deviazioneMaxMinuti} min`,
         catene: `≤ ${S.cateneMax} marchi ripetuti nella giornata`,
     };
     for (const v of VOCI) {
@@ -129,17 +128,18 @@ export function buildReport(raw, config, meta = {}) {
     L.push('');
     L.push('### Percorso a piedi (C5)');
     L.push('');
-    L.push('Per giornata: km totali fra le tappe in linea d\'aria, incroci del tracciato, indice di avanti-e-indietro '
-        + '(cammino reale / cammino minimo sulle stesse tappe). Indice nuovo (C5b, quello del semaforo): il minimo rispetta '
-        + `l'ordine dei momenti e i pasti restano fissi; sotto ${n1(S.indiceKmMin)} km non si giudica. Indice vecchio (C5): `
-        + 'minimo libero, partenza e arrivo liberi, nessun orario — solo per confronto. Ripetizioni: famiglie ripetute nel giro finale.');
+    L.push(`Voce 12, per giornata: incroci del tracciato e deviazione di ogni tappa intermedia B fra la tappa prima A e quella dopo C, `
+        + `(A→B + B→C) − A→C in minuti a piedi, anche a cavallo fra due momenti. Verde: ${S.incrociMax} incroci, al massimo `
+        + `${S.deviazioniOltreMax} deviazione > ${S.deviazioneMinuti} min, nessuna > ${S.deviazioneMaxMinuti} min; nessuna esenzione per i giri corti. `
+        + 'Indice vecchio (cammino reale / minimo libero, C5): solo informazione.');
     L.push('');
-    L.push('| Caso | Luogo | Tappe | Km | Incroci | Indice vecchio | Indice nuovo | Ripetizioni | Catene doppie |');
-    L.push('|---|---|---|---|---|---|---|---|---|');
+    L.push(`| Caso | Luogo | Tappe | Km | Incroci | Deviazioni > ${S.deviazioneMinuti} min | Deviazione max | Indice vecchio | Ripetizioni | Catene doppie | Verdetto |`);
+    L.push('|---|---|---|---|---|---|---|---|---|---|---|');
     for (const { c, m, sem } of righe) {
         if (!m?.percorso) continue;
-        const nuovo = m.percorso.giroCorto ? '⚪ giro corto, indice non applicato' : `${ic(sem.indice)} ${n1(m.percorso.indice)}`;
-        L.push(`| ${c.id} | ${c.luogo} | ${m.tappe} | ${n1(m.percorso.km)} | ${ic(sem.incroci)} ${m.percorso.incroci} | ${n1(m.percorso.indiceLibero)} | ${nuovo} | ${ic(sem.ripetizioni)} ${m.ripetizioni} | ${ic(sem.catene)} ${m.percorso.catene} |`);
+        const p = m.percorso;
+        const col = p.giornate.map(g => g.colpevole).find(Boolean);
+        L.push(`| ${c.id} | ${c.luogo} | ${m.tappe} | ${n1(p.km)} | ${p.incroci} | ${p.deviazioniOltre} | ${n1(p.deviazioneMax)} min${col ? ` (${cella(col.titolo)} @${col.momento})` : ''} | ${n1(p.indiceLibero)} | ${ic(sem.ripetizioni)} ${m.ripetizioni} | ${ic(sem.catene)} ${p.catene} | ${ic(sem.percorso)} |`);
     }
     L.push('');
     L.push('⚪ = la voce non si applica al caso (vincoli solo per i profili, A/B solo per (b), famosità solo nelle città grandi, giornata solo per gli itinerari).');

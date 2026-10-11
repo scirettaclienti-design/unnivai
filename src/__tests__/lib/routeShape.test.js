@@ -2,8 +2,9 @@
 import { describe, it, expect } from 'vitest';
 import {
     legKm, pathKm, countCrossings, minimalPathKm, backtrackIndex, brandKey, repeatedBrands, routeMetrics, isCommercialPlace,
-    anchoredMinimalPathKm, SHORT_ROUTE_KM,
+    anchoredMinimalPathKm, SHORT_ROUTE_KM, stopDetours, DETOUR_WALK_KMH,
 } from '../../lib/routeShape';
+import { WALKING_KMH } from '../../lib/tourTiming';
 
 const p = (name, lat, lng, types = ['tourist_attraction']) => ({ place_id: name, name, latitude: lat, longitude: lng, types });
 const RIST = ['restaurant', 'food', 'point_of_interest'];
@@ -112,5 +113,28 @@ describe('C5b — misura con le ancore dei momenti', () => {
         expect(m).toMatchObject({ giroCorto: true, indice: null, incroci: 1 });
         expect(m.indiceLibero).toBeGreaterThan(1);
         expect(routeMetrics(giorno).giroCorto).toBe(false);
+    });
+});
+
+// ─── C5c — deviazione per tappa ─────────────────────────────────────────────
+describe('C5c — deviazione per tappa', () => {
+    it('la velocita\' a piedi e\' quella di tourTiming', () => {
+        expect(DETOUR_WALK_KMH).toBe(WALKING_KMH);
+    });
+
+    it('(A→B + B→C) − A→C in minuti, per ogni tappa intermedia; prima e ultima escluse', () => {
+        const linea = [0, 1, 2, 3].map(i => p(`l${i}`, 41.9 + i * 0.005, 12.48));
+        expect(stopDetours(linea).map(d => d.indice)).toEqual([1, 2]);
+        for (const d of stopDetours(linea)) expect(d.minuti).toBeCloseTo(0, 6);
+        // B a ~500 m dalla linea A–C: andata e ritorno
+        const A = p('A', 41.900, 12.48), B = { ...p('B', 41.900, 12.486), moment: 'pranzo' }, C = p('C', 41.901, 12.48);
+        const [d] = stopDetours([A, B, C]);
+        expect(d).toMatchObject({ indice: 1, titolo: 'B', momento: 'pranzo' });
+        expect(d.minuti).toBeCloseTo(((legKm(A, B) + legKm(B, C) - legKm(A, C)) / 4.5) * 60, 9);
+        expect(d.minuti).toBeGreaterThan(10);
+    });
+
+    it('una tappa senza coordinate (o con un vicino senza) resta fuori', () => {
+        expect(stopDetours([p('A', 41.9, 12.48), { name: 'X' }, p('C', 41.91, 12.48)])).toEqual([]);
     });
 });

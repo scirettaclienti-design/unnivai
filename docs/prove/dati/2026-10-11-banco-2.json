@@ -1,0 +1,201 @@
+{
+ "avvio": "2026-10-11T12:18:26.554Z",
+ "identita": "account di prova",
+ "casi": [
+  {
+   "id": "d-troina-roma",
+   "gruppo": "d",
+   "tipo": "itinerario",
+   "luogo": "Roma",
+   "posizione": "Troina",
+   "richiesta": "una giornata a Roma",
+   "attesa": {
+    "city": "Roma",
+    "center": {
+     "lat": 41.8967068,
+     "lng": 12.4822025
+    }
+   },
+   "secs": 12.829,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Roma",
+    "fromText": true,
+    "note": "Tour a Roma (dal tuo testo)"
+   },
+   "giorno": {
+    "date": "2026-10-11",
+    "start": "2026-10-11T12:18:31.948Z"
+   },
+   "frasiTolte": [],
+   "tours": [
+    {
+     "tema": "Giorno 1 a Roma",
+     "stops": [
+      {
+       "place_id": "ChIJo6a_XktgLxMRmpblS064lu8",
+       "title": "Il Palazzo dei Conservatori",
+       "types": [
+        "establishment",
+        "museum",
+        "point_of_interest",
+        "tourist_attraction"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-11T12:30:31.948Z",
+       "lat": 41.8932176,
+       "lng": 12.4826273,
+       "min": null,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "description": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 395,
+       "priceLevel": null,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJeVMawkVhLxMRppew8k4tU3M",
+       "title": "Naïs cocktails & co.",
+       "types": [
+        "bar",
+        "book_store",
+        "establishment",
+        "night_club"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-11T13:42:31.948Z",
+       "lat": 41.8958928,
+       "lng": 12.4928023,
+       "min": 12,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "description": "Naïs cocktails & co. è la prossima tappa del tuo giro. Sono 12 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Naïs cocktails & co.",
+         "problemi": []
+        },
+        {
+         "testo": "è la prossima tappa del tuo giro.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 12 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 354,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJLdYStk1hLxMRYhS8b5ortSU",
+       "title": "Il Bar della Musa",
+       "types": [
+        "bar",
+        "establishment",
+        "point_of_interest"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-11T16:00:31.948Z",
+       "lat": 41.9028649,
+       "lng": 12.4835793,
+       "min": 15,
+       "scelta": "riparazione",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "description": "L'aperitivo lo prendi da Il Bar della Musa, bar in fascia €€. Il sole tramonta alle 18:36: sei qui 36 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da Il Bar della Musa, bar in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:36: sei qui 36 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 428,
+       "priceLevel": 2,
+       "pasto": false,
+       "dietaCercata": null
+      },
+      {
+       "place_id": "ChIJRT9vuaRhLxMRHhY_v5TsUlo",
+       "title": "Osteria Navona",
+       "types": [
+        "bar",
+        "establishment",
+        "food",
+        "point_of_interest"
+       ],
+       "moment": "cena",
+       "at": "2026-10-11T18:00:31.948Z",
+       "lat": 41.8992551,
+       "lng": 12.472345,
+       "min": 14,
+       "scelta": "modello",
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "description": "Chiudi la giornata a tavola da Osteria Navona, osteria in fascia €€. Sono 14 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Osteria Navona, osteria in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 14 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 1638,
+       "priceLevel": 2,
+       "pasto": true,
+       "dietaCercata": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 7228,
+    "tokenOut": 496
+   },
+   "google": {
+    "place/findplacefromtext": 2,
+    "place/textsearch": 3
+   }
+  }
+ ],
+ "fine": "2026-10-11T12:18:40.258Z"
+}

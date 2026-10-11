@@ -20,6 +20,7 @@
 
 import { buildPlacesProxyUrl, isPlacesProxyEnabled } from './aiRecommendationService';
 import { isSmallTown } from './tourShape';
+import { sameCity } from '../lib/textDestination';
 
 // ─── Cache ─────────────────────────────────────────────────────────────────────
 // I centri città sono stabili: 30 giorni è largamente conservativo.
@@ -234,6 +235,67 @@ export async function resolveCityCenter(cityName) {
 
     saveToCache(name, result);
     return result;
+}
+
+/**
+ * T1 — conferma una citta' letta nel testo dell'utente, con UNA sola ricerca
+ * (findplacefromtext). Non lancia mai: se la risposta non e' sicura il
+ * chiamante resta sulla posizione e lo dice.
+ *
+ * Sicura = il primo candidato e' un comune/provincia (type accettato) e si
+ * chiama come la citta' chiesta. "Roma" che torna "Roma" e' sicura; un nome
+ * che torna un'altra cosa, o niente, no.
+ * Una citta' gia' in cache (centro risolto prima con quel nome) non costa
+ * nessuna ricerca. Il centro trovato entra in cache: resolveCityCenter dopo e'
+ * gratis.
+ *
+ * @returns {Promise<{ sure: true, city: string, center: object } | { sure: false, reason: string }>}
+ */
+export async function confirmCityFromText(cityName) {
+    const name = String(cityName || '').trim();
+    if (!name) return { sure: false, reason: 'empty' };
+
+    const cached = loadFromCache(name);
+    if (cached && Number.isFinite(cached.latitude) && Number.isFinite(cached.longitude)) {
+        return { sure: true, city: name, center: { ...cached, source: 'cache' } };
+    }
+    if (!isPlacesProxyEnabled()) return { sure: false, reason: 'proxy' };
+
+    const proxyUrl = buildPlacesProxyUrl({
+        path: 'place/findplacefromtext',
+        input: `${name}, Italia`,
+        inputtype: 'textquery',
+        fields: 'name,geometry,types',
+    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    let data;
+    try {
+        const res = await fetch(proxyUrl, { signal: controller.signal });
+        if (!res.ok) return { sure: false, reason: 'proxy' };
+        data = await res.json();
+    } catch {
+        return { sure: false, reason: 'proxy' };
+    } finally {
+        clearTimeout(timeoutId);
+    }
+
+    const c = data?.status === 'OK' && Array.isArray(data.candidates) ? data.candidates[0] : null;
+    const lat = c?.geometry?.location?.lat;
+    const lng = c?.geometry?.location?.lng;
+    if (!c || !hasAcceptedType(c.types) || !sameCity(c.name, name) || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return { sure: false, reason: 'not_sure' };
+    }
+    const small = isSmallTown(name);
+    const center = {
+        latitude: lat,
+        longitude: lng,
+        isSmallTown: small,
+        radiusKm: small ? RADIUS_SMALL_KM : RADIUS_LARGE_KM,
+        source: 'places_find',
+    };
+    saveToCache(name, center);
+    return { sure: true, city: c.name, center };
 }
 
 // Utility esportata per i test: forza un valore in cache senza chiamare il proxy.

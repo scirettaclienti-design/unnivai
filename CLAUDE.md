@@ -173,7 +173,15 @@ Business injection into itineraries: `dataService.getBusinessesByCityAndTags()` 
 
 ### City Data Flow
 
-The `city` value is resolved through a priority chain managed by `userContextService`:
+**T1 — in "Crea il tuo percorso" la città scritta nel testo vince sulla posizione.**
+`generateItinerary(..., { pathType: 'custom' })` chiama prima `resolveTextDestination`: il
+traduttore restituisce anche `citta` (o null); "via Roma"/"piazza Roma" non contano
+(`src/lib/textDestination.js`); UNA `findplacefromtext` la conferma (`confirmCityFromText`).
+Confermata → si genera lì, `result.destination.note` = "Tour a Roma (dal tuo testo)".
+Non sicura → resta la posizione con "Non ho riconosciuto la città: uso la tua posizione".
+Il giorno ("domani", "sabato") lo legge `src/lib/tourWindow.js`. Per Te/Veloce/Sorprendimi: invariati.
+
+The `city` value is resolved through a priority chain managed by `userContextService` (la *posizione*):
 1. **Manual** (user selects in TopBar → `CityContext.setCity()`)
 2. **GPS** (`useEnhancedGeolocation` → Nominatim reverse geocode)
 3. **Supabase profile** (`profiles.current_city_override` for authenticated users — *non* `current_city`, che non esiste)

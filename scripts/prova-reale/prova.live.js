@@ -11,6 +11,7 @@
 //   catania → "Domani voglio vivere Catania"
 //   catania2 → "Un pomeriggio a Catania tra barocco e mare"
 //   perte   → "Per Te" Roma (Home, adesso)
+//   troinaRoma → posizione Troina, "Domani Roma in una giornata da Romano" (T1)
 //   login   → solo l'accesso dell'account di prova, nessuna chiamata AI
 // Risultato: JSON in PROVA_OUT (default: <tmp>/prova-reale.json).
 import { it, vi, beforeAll, afterAll } from 'vitest';
@@ -99,6 +100,8 @@ const ITINERARI = {
     roma: ['Roma', 'Domani voglio vivere Roma da romano'],
     catania: ['Catania', 'Domani voglio vivere Catania'],
     catania2: ['Catania', 'Un pomeriggio a Catania tra barocco e mare'],
+    // T1 — posizione simulata Troina, citta' e giorno scritti nel testo (caso reale di Ivano).
+    troinaRoma: ['Troina', 'Domani Roma in una giornata da Romano'],
 };
 
 for (const key of RICHIESTE) {
@@ -139,6 +142,9 @@ for (const key of RICHIESTE) {
                 const per = new Map((r._narrationReport?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
                 const riempite = new Set((r._momentReport?.riempite || []).map(x => x.place_id));
                 out.risultati[key] = { source: r._source, secs: (Date.now() - t0) / 1000, chiamate: calls - c0, google: gDelta(),
+                    posizione: city,
+                    destinazione: r.destination ? { city: r.destination.city, fromText: r.destination.fromText, note: r.destination.note } : null,
+                    giorno: r.tourWindow ? { date: r.tourWindow.date, start: r.tourWindow.start, reason: r.tourWindow.reason } : null,
                     frasiTolte: r._narrationReport?.frasiTolte, momentReport: r._momentReport,
                     titoli: (r.days || []).map(d => d.title), meteo: (r.days || []).map(d => d.weather ?? null),
                     stops: (r.days || []).flatMap(d => d.stops.map(s => conComposizione({ place_id: s.place_id, ...row(s, per.get(s.place_id), riempite) }, new Map((r._narrationReport?.composizione || []).map(x => [x.place_id, x])), per.get(s.place_id)))) };

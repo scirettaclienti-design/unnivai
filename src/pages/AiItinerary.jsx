@@ -108,6 +108,13 @@ export default function AIItineraryPage() {
         return () => { cancelled = true; };
     }, [activeCity]);
 
+    // T1 — la citta' del tour generato: quella scritta nel testo se il motore
+    // l'ha confermata, altrimenti la posizione. Mappa, messaggi e "Rigenera
+    // giorno" usano questa, non la posizione. `note` e' la riga in testa al tour.
+    const [tourDestination, setTourDestination] = useState(null);
+    const tourCity = tourDestination?.city || activeCity;
+    const tourCenter = tourDestination?.fromText ? tourDestination.cityCenter : resolvedCityCenter;
+
     // Cleanup: aborta chiamata AI se utente lascia la pagina
     useEffect(() => () => { abortRef.current?.abort(); }, []);
 
@@ -118,6 +125,7 @@ export default function AIItineraryPage() {
 
         setIsGenerating(true);
         setGeneratedItinerary(null);
+        setTourDestination(null);
 
         const prefsObject = userPreferences.reduce((acc, pref) => {
             acc[pref.id] = pref.selected;
@@ -207,6 +215,8 @@ export default function AIItineraryPage() {
                 // wizard (prefsObject.budget) vince: la gerarchia la applica il motore.
                 { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'custom', onboardingPrefs },
             );
+            // T1 — la citta' scritta nel testo puo' aver preso il posto della posizione.
+            const resultCity = result?.destination?.city || activeCity;
 
             // Gate INTERESSI-VERI — la ricerca non si e' potuta fare (rete, HTTP,
             // eccezione). Non e' "non trovo": Google non ha risposto. Testo
@@ -232,8 +242,8 @@ export default function AIItineraryPage() {
                 console.warn(`[AiItinerary] no-results (source=${result._source}, path=${result?._pathB ? 'B' : 'A'}, oggetto="${oggetto}")`);
                 toast({
                     title: result?._pathB
-                        ? `A ${activeCity} non trovo luoghi verificati per questi interessi.`
-                        : `A ${activeCity} non troviamo ${oggetto}.`,
+                        ? `A ${resultCity} non trovo luoghi verificati per questi interessi.`
+                        : `A ${resultCity} non troviamo ${oggetto}.`,
                     description: result?._pathB
                         ? 'Prova ad aggiungerne uno.'
                         : 'Cambia richiesta e riprovo.',
@@ -255,10 +265,11 @@ export default function AIItineraryPage() {
             // sotto mostra il messaggio onesto ("L'AI sta avendo un momento
             // difficile"). Nessun fallback silente qui.
             setGeneratedItinerary(itineraryDays);
+            setTourDestination(result?.destination || null);
             setCurrentStep(2);
 
             // DVAI-045: traccia le preferenze usate per l'apprendimento futuro
-            trackGeneratedTour({ ...prefsObject, city: activeCity, date: new Date().toISOString() });
+            trackGeneratedTour({ ...prefsObject, city: resultCity, date: new Date().toISOString() });
 
         } catch (error) {
             console.error("AI Generation Error", error);
@@ -296,7 +307,7 @@ export default function AIItineraryPage() {
         setIsGenerating(true);
         // P7a — "Rigenera giorno" e' un rifiuto del giorno: −0,1 alle
         // categorie vere delle sue tappe.
-        trackDnaEvent?.('regenerate_day', generatedItinerary.find(d => d.day === dayNumber)?.stops || [], { city: activeCity });
+        trackDnaEvent?.('regenerate_day', generatedItinerary.find(d => d.day === dayNumber)?.stops || [], { city: tourCity });
 
         const prefsObject = userPreferences.reduce((acc, pref) => {
             acc[pref.id] = pref.selected;
@@ -310,13 +321,13 @@ export default function AIItineraryPage() {
             // saltato con warn — comportamento voluto per non rompere il tour esistente.
             let cityCenter;
             try {
-                cityCenter = await resolveCityCenter(activeCity);
+                cityCenter = await resolveCityCenter(tourCity);
             } catch (ccErr) {
                 console.warn('[AI] regenerateDay: resolveCityCenter failed, skip:', ccErr?.reason || ccErr?.message);
                 return;
             }
             const result = await aiRecommendationService.generateItinerary(
-                activeCity,
+                tourCity,
                 { ...prefsObject, duration: 'Mezza Giornata' },
                 `Rigenera solo il giorno ${dayNumber} con varianti diverse rispetto al precedente.`,
                 { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
@@ -339,7 +350,7 @@ export default function AIItineraryPage() {
                 console.warn(`[AI] regenerateDay: 0 tappe → giorno ${dayNumber} invariato (source=${result?._source || 'unknown'})`);
                 toast({
                     title: `Il giorno ${dayNumber} resta com'era.`,
-                    description: `A ${activeCity} la rigenerazione non ha prodotto tappe nuove.`,
+                    description: `A ${tourCity} la rigenerazione non ha prodotto tappe nuove.`,
                     type: 'info',
                     duration: 5000,
                 });
@@ -558,6 +569,12 @@ export default function AIItineraryPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                     >
+                        {/* T1 — dove si fa il tour, quando non e' la posizione (o quando
+                            la citta' del testo non si e' potuta riconoscere). */}
+                        {tourDestination?.note && (
+                            <p data-destination-note className="text-obsidian-secondary text-xs mb-3">{tourDestination.note}</p>
+                        )}
+
                         {/* Day Navigator */}
                         <div className="flex space-x-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
                             {generatedItinerary.map((day) => (
@@ -697,7 +714,7 @@ export default function AIItineraryPage() {
 
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => { setSelectedStop(stop); trackDnaEvent?.('stop_detail', [stop], { city: activeCity }); }}
+                                                                        onClick={() => { setSelectedStop(stop); trackDnaEvent?.('stop_detail', [stop], { city: tourCity }); }}
                                                                         className="text-obsidian-secondary hover:text-obsidian-primary text-xs font-bold transition-colors cursor-pointer"
                                                                     >
                                                                         Dettagli →
@@ -766,7 +783,7 @@ export default function AIItineraryPage() {
                                         title: generatedItinerary.find(d => d.day === currentDay)?.title || "Itinerario AI",
                                         type: 'ai-generated',
                                         isAiGenerated: true,
-                                        city: activeCity || 'Roma',
+                                        city: tourCity,
                                         tags: [
                                             "AI",
                                             // Gate C2 — vedi src/lib/promptTags.js.
@@ -776,14 +793,14 @@ export default function AIItineraryPage() {
                                         // stops grezzi dall'AI: il normalizer fa tutto il resto.
                                         stops: generatedItinerary.find(d => d.day === currentDay)?.stops || [],
                                     }, {
-                                        cityFallback: activeCity || 'Roma',
+                                        cityFallback: tourCity,
                                         // Gate 2 FASE 3 — cityCenter dalla città target (mai GPS utente).
                                         // resolvedCityCenter è null se resolveCityCenter non ha ancora
                                         // risposto o è fallita: il normalizer applica il filtro solo se
                                         // il centro è presente. Il tour è stato generato con il centro
                                         // giusto nel flusso async, quindi il doppio filtro qui è
                                         // idempotente quando presente.
-                                        cityCenter: resolvedCityCenter,
+                                        cityCenter: tourCenter,
                                     })
                                 }}
                                 className="flex-1"

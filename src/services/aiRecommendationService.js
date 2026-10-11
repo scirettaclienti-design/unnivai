@@ -339,6 +339,7 @@ import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } fr
 import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes } from '@/lib/tourTiming';
 // Gate FINESTRA TEMPORALE (G3) — quando parte il tour lo decide il codice, non il modello.
 import { resolveTourWindow, romeParts } from '@/lib/tourWindow';
+import { DESTINATION_UNSURE_NOTE, destinationNote, isStreetMention, sameCity } from '@/lib/textDestination';
 // Gate NARRATORE-DOPO — alba/tramonto nel codice, controllo luce/ora, fascia dalla tabella.
 import { sunTimes } from '@/lib/sunTimes';
 // Gate PAROLE VIETATE — l'unico elenco: i prompt lo mostrano, il filtro lo applica.
@@ -464,7 +465,9 @@ export function derivePrimaryThemes(prefs) {
 
 // Gate I: bump v1 → v2 (nuovo prompt con termini reali Google Maps → queries
 // diverse per gli stessi prompt utente).
-const INTENT_CACHE_PREFIX = 'unnivai_intent_v2_';
+// T1: v2 → v3 (il traduttore restituisce anche `citta`: una voce v2 non ce
+// l'ha e farebbe restare il tour sulla posizione).
+const INTENT_CACHE_PREFIX = 'unnivai_intent_v3_';
 const INTENT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
 const intentCacheKey = (userPrompt, cityName) => {
@@ -508,6 +511,7 @@ FORMATO OUTPUT — JSON puro, zero markdown, zero testo fuori dal JSON:
   "queries": ["...", "...", "..."],
   "categoria": "...",
   "oggetto_umano": "...",
+  "citta": null | "...",
   "vincoli": {
     "tempo": null | "mattina" | "pomeriggio" | "sera" | "notte",
     "escludi": ["...", ...],
@@ -555,6 +559,13 @@ REGOLE SU oggetto_umano (1-3 parole):
     queries: ["trattoria tipica"]                       → oggetto_umano: "trattorie"
 - Serve al messaggio d'errore: "A {city} non troviamo {oggetto_umano}."
 
+REGOLE SU citta:
+- La riga "Città:" del messaggio è la POSIZIONE dell'utente, non per forza la meta.
+- Se la frase nomina una città o un paese italiano dove fare il giro ("Domani Roma", "una giornata a Catania"), scrivi il suo nome com'è in italiano ("Roma", "Catania").
+- Se la frase nomina un luogo famoso di un'altra città ("il Colosseo"), scrivi quella città.
+- Un nome di città dentro il nome di una strada o piazza NON è una città: "via Roma", "piazza Roma", "corso Catania" → null.
+- Se la frase non nomina nessuna città o luogo → null. NON ripetere la città della riga "Città:" se la frase non la nomina.
+
 REGOLE SU vincoli.tempo:
 - Estrai il momento del giorno se ESPLICITO nel testo.
   "di mattina" → "mattina". "verso sera" → "sera". "in nottata" → "notte".
@@ -599,7 +610,7 @@ ZERO PROSA. ZERO SPIEGAZIONI FUORI JSON.`;
  * @param {string} userPrompt   frase in italiano dell'utente
  * @param {string} cityName     città target (contesto per il modello)
  * @param {object} [quota]      biglietto di generazione (newGenerationTicket)
- * @returns {Promise<object>}   { queries[], categoria, oggetto_umano, vincoli }
+ * @returns {Promise<object>}   { queries[], categoria, oggetto_umano, citta, vincoli }
  * @throws                       se OpenAI proxy fallisce o JSON non parsabile
  */
 export async function translateIntentToQueries(userPrompt, cityName, quota) {
@@ -629,6 +640,8 @@ export async function translateIntentToQueries(userPrompt, cityName, quota) {
     const queries = Array.isArray(parsed.queries) ? parsed.queries.filter(q => typeof q === 'string' && q.trim()).slice(0, 3) : [];
     const categoria = typeof parsed.categoria === 'string' && parsed.categoria.trim() ? parsed.categoria.trim() : 'misto';
     const oggetto_umano = typeof parsed.oggetto_umano === 'string' && parsed.oggetto_umano.trim() ? parsed.oggetto_umano.trim() : categoria;
+    // T1 — la citta' nominata nella frase, o null.
+    const citta = typeof parsed.citta === 'string' && parsed.citta.trim() && parsed.citta.trim().length <= 60 ? parsed.citta.trim() : null;
     const vincoliRaw = parsed.vincoli || {};
     const tempo = ['mattina', 'pomeriggio', 'sera', 'notte'].includes(vincoliRaw.tempo) ? vincoliRaw.tempo : null;
     const escludi = Array.isArray(vincoliRaw.escludi) ? vincoliRaw.escludi.filter(e => typeof e === 'string' && e.trim()).slice(0, 10) : [];
@@ -641,10 +654,51 @@ export async function translateIntentToQueries(userPrompt, cityName, quota) {
         queries,
         categoria,
         oggetto_umano,
+        citta,
         vincoli: { tempo, escludi, note },
     };
     saveIntentToCache(key, result);
     return { ...result, _source: 'ai' };
+}
+
+/**
+ * T1 — dove si fa il tour: la citta' scritta nel testo vince sulla posizione.
+ *
+ *   1. il traduttore legge la frase (con la posizione come contesto) e
+ *      restituisce anche `citta`, o null;
+ *   2. "via Roma" / "piazza Roma" non sono Roma (isStreetMention);
+ *   3. se la citta' e' diversa dalla posizione, UNA ricerca sul proxy dei
+ *      luoghi la conferma (confirmCityFromText); se non e' sicura si resta
+ *      sulla posizione e lo si dice.
+ *
+ * Il traduttore fallito per motivi suoi non blocca niente: si resta sulla
+ * posizione e il motore riprova come prima. Quota esaurita e motore giu'
+ * arrivano alla UI.
+ *
+ * @returns {Promise<{ city: string, cityCenter: object|null, fromText: boolean, note: string|null, intent: object|null }>}
+ */
+export async function resolveTextDestination(userPrompt, positionCity, quota) {
+    const stay = (note = null, intent = null) => ({ city: positionCity, cityCenter: null, fromText: false, note, intent });
+    let intent;
+    try {
+        intent = await translateIntentToQueries(userPrompt, positionCity, quota);
+    } catch (err) {
+        if (mustReachUi(err)) throw err;
+        console.warn(`[T1 citta'] traduttore fallito, resto sulla posizione: ${err.message}`);
+        return stay();
+    }
+    const named = intent.citta;
+    if (!named || sameCity(named, positionCity) || isStreetMention(userPrompt, named)) return stay(null, intent);
+
+    const { confirmCityFromText } = await import('./cityCenterService');
+    const found = await confirmCityFromText(named);
+    if (!found.sure) {
+        console.warn(`[T1 citta'] "${named}" non confermata (${found.reason}): resto su ${positionCity}`);
+        return stay(DESTINATION_UNSURE_NOTE, intent);
+    }
+    if (sameCity(found.city, positionCity)) return stay(null, intent);
+    console.info(`[T1 citta'] dal testo: ${found.city} (posizione ${positionCity})`);
+    return { city: found.city, cityCenter: found.center, fromText: true, note: destinationNote(found.city), intent };
 }
 
 // Fetch candidati reali per i temi derivati (Path B) o per le query prodotte
@@ -680,7 +734,7 @@ const settleSearches = async (promises, label) => {
     return lists;
 };
 
-const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = '', quota = undefined, foodPrefs = null) => {
+const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = '', quota = undefined, foodPrefs = null, presetIntent = null) => {
     // P7b — con una dieta, OGNI ricerca del cibo fatta qui porta il criterio:
     // le query del traduttore di tipo cibo (deriveKindFromQuery) e il tema
     // food del Percorso B. I risultati portano `_dietaCercata`.
@@ -698,7 +752,8 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
     if (isFreeText) {
         // Path A — Gate B: free-text guida la ricerca.
         try {
-            intent = await translateIntentToQueries(userPrompt, cityName, quota);
+            // T1 — gia' tradotto da resolveTextDestination: niente seconda chiamata.
+            intent = presetIntent || await translateIntentToQueries(userPrompt, cityName, quota);
             console.info(`[Gate B] intent tradotto: queries=${JSON.stringify(intent.queries)} categoria=${intent.categoria} oggetto="${intent.oggetto_umano}" source=${intent._source}`);
         } catch (translatorErr) {
             // Quota esaurita o motore giu' non sono "non trovo": arrivano alla UI.
@@ -2027,7 +2082,27 @@ export const aiRecommendationService = {
     // DVAI-060 F2 — Google-first: se cityCenter presente, chiama discoverRealPOIs
     // per ottenere candidati reali. L'AI diventa selettore-narratore. Se meno di 3
     // candidati o cityCenter assente, fallback al vecchio flusso AI-first.
+    // T1 — in "Crea il tuo percorso" la citta' scritta nel testo vince sulla
+    // posizione (resolveTextDestination). Il risultato porta `destination`:
+    // { city, fromText, note } — la pagina mostra la nota in testa al tour e
+    // usa quella citta' per mappa, messaggi e rigenerazione.
     async generateItinerary(city, prefs = {}, userPrompt = '', weather = {}, aiProfile = '', cityCenter = null, opts = {}) {
+        if (opts.pathType !== 'custom' || !String(userPrompt || '').trim()) {
+            return this._generateItinerary(city, prefs, userPrompt, weather, aiProfile, cityCenter, opts);
+        }
+        // Un biglietto solo: il traduttore chiamato qui e il selettore dopo
+        // sono la stessa generazione.
+        const quotaTicket = opts.quotaTicket || newGenerationTicket('itinerary');
+        const dest = await resolveTextDestination(userPrompt, city, quotaTicket);
+        const result = await this._generateItinerary(
+            dest.city, prefs, userPrompt, weather, aiProfile, dest.fromText ? dest.cityCenter : cityCenter,
+            { ...opts, quotaTicket, presetIntent: dest.intent },
+        );
+        const destination = { city: dest.city, fromText: dest.fromText, note: dest.note, cityCenter: dest.fromText ? dest.cityCenter : cityCenter };
+        return result && typeof result === 'object' && !Array.isArray(result) ? { ...result, destination } : result;
+    },
+
+    async _generateItinerary(city, prefs = {}, userPrompt = '', weather = {}, aiProfile = '', cityCenter = null, opts = {}) {
         // DVAI-055 — la cache key include cityCenter perché il filtro raggio cambia
         // il risultato salvato. Firmato con lat/lng arrotondati a 3 decimali (~110 m).
         const centerFingerprint = cityCenter && Number.isFinite(cityCenter.latitude)
@@ -2086,7 +2161,7 @@ export const aiRecommendationService = {
         if (!opts.skipUserQuota) {
             await assertQuotaAvailable();
         }
-        const quotaTicket = newGenerationTicket('itinerary');
+        const quotaTicket = opts.quotaTicket || newGenerationTicket('itinerary');
 
         // G3 — la fascia del timeContext si legge dalla PARTENZA del tour
         // (tourWindow.start, ora di Roma), non dall'ora della richiesta:
@@ -2106,7 +2181,7 @@ export const aiRecommendationService = {
         // candidati, errore onesto con oggetto_umano.
         const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
         try {
-            const { candidates: rawCandidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket, food);
+            const { candidates: rawCandidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null);
 
             // Gate RAGGIO-CATEGORIA — la categoria richiesta, quando e' una delle
             // 7 filtrabili in modo stretto. undefined ⇒ nessun vincolo di

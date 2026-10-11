@@ -369,7 +369,7 @@ describe('C1b — famiglia nuova entro 25 minuti', () => {
         const lontano = at('far', 'Museo Lontano', ['museum'], 0.03);
         const pool = [piazza1, lontano];
         const { report } = repairMomentSelection({ moments: ms, buckets: bucketCandidates(ms, pool), pool, aiStops: [] });
-        expect(report.lontani).toEqual([{ momento: 'g1-pomeriggio', da: { latitude: R.lat, longitude: R.lng, name: 'Piazza Colonna' } }]);
+        expect(report.lontani).toEqual([{ momento: 'g1-pomeriggio', place_id: 'far', da: { latitude: R.lat, longitude: R.lng, name: 'Piazza Colonna' } }]);
     });
 });
 
@@ -440,11 +440,17 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         const st = byMoment(res);
         expect(Object.keys(st)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
         const mirate = searches.filter(s => s.radius === String(MAX_WALK_METERS));
-        expect(mirate[0]).toMatchObject({ q: 'bar cocktail pub locale musica vino', location: `${P.B.geometry.location.lat},${C.longitude}` });
+        // La ricerca parte dalla tappa che, in quel momento, precede
+        // l'aperitivo. C5b: la prima tappa si misura dal centro del gruppo (qui
+        // fra due grappoli a 7 km), e prima del bar trovato la chiesa e il museo
+        // erano scambiati: la tappa prima dell'aperitivo era la chiesa.
+        const da = [P.A, P.B].find(x => x.name === res._momentReport.ricercheDopo[0].da);
+        expect(da).toBeTruthy();
+        expect(mirate[0]).toMatchObject({ q: 'bar cocktail pub locale musica vino', location: `${da.geometry.location.lat},${C.longitude}` });
         expect(st.aperitivo.title).toBe('Bar del Fico');
         expect(st.aperitivo._tracciato).toMatchObject({ scelta: 'ricerca mirata' });
         expect(st.aperitivo._tracciato.minuti).toBeLessThanOrEqual(MAX_WALK_MINUTES);
-        expect(res._momentReport.ricercheDopo[0]).toMatchObject({ momento: 'g1-aperitivo', tema: 'nightlife', da: 'Museo Nazionale Romano', trovati: 1 });
+        expect(res._momentReport.ricercheDopo[0]).toMatchObject({ momento: 'g1-aperitivo', tema: 'nightlife', trovati: 1 });
         expect(res._momentReport.scartate.find(x => x.place_id === 'V').motivo).toMatch(/oltre il tetto/);
     });
 
@@ -465,7 +471,10 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         const res = await genera();
         const st = byMoment(res);
         expect(searches.filter(s => s.radius === String(MAX_WALK_METERS))).toHaveLength(2);
-        expect(res._momentReport.ricercheDopo.map(x => x.momento)).toEqual(['g1-pomeriggio', 'g1-aperitivo']);
+        // Le prime due tappe lontane cercano; C5b sposta il museo (a 3 km) alla
+        // mattina (prima tappa misurata dal centro del gruppo), quindi la prima
+        // lontana e' il pranzo.
+        expect(res._momentReport.ricercheDopo.map(x => x.momento)).toEqual(['g1-pranzo', 'g1-aperitivo']);
         expect(st.cena._tracciato).toMatchObject({ scelta: 'ripiego', ripiego: 'distanza' });
         expect(st.cena._tracciato.motivo).toMatch(/ricerche mirate esaurite/);
         expect(Object.keys(st)).toHaveLength(5);

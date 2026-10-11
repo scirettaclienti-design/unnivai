@@ -51,7 +51,7 @@ describe('C5 — il caso a zig-zag di Roma (11/10)', () => {
     it('controllo dello strumento: il giro del telefono si taglia piu\' volte e ripete un marchio', () => {
         const m = routeMetrics(IVANO);
         expect(m.incroci).toBeGreaterThanOrEqual(3);
-        expect(m.indice).toBeGreaterThan(1.3);
+        expect(m.indiceLibero).toBeGreaterThan(1.3);
         expect(m.catene).toBe(1);
     });
 
@@ -232,7 +232,7 @@ describe('C5 — rifinitura: famiglie ripetute, pasti fuori posto, tracce', () =
         { moment: g[1], stops: [{ candidate: belvB, source: 'riparata', trace: { ...ripetuta } }] },
         { moment: g[2], stops: [{ candidate: bar, source: 'riparata', trace: { scelta: 'riparazione' } }] },
     ];
-    const report = () => ({ riempite: [], ripieghi: [{ place_id: 'bb' }], ripetuti: [{ momento: 'g1-pomeriggio' }] });
+    const report = () => ({ riempite: [], ripieghi: [{ place_id: 'bb' }], ripetuti: [{ momento: 'g1-pomeriggio', place_id: 'bb' }] });
 
     it('toglie la famiglia ripetuta con una chiesa vicina, e la traccia del ripiego sparisce', () => {
         const chiesa = p('ch', 'Chiesa di San Marco', 41.9021, 12.4801, ['church']);
@@ -265,7 +265,7 @@ describe('C5 — rifinitura: famiglie ripetute, pasti fuori posto, tracce', () =
         // il ripiego e' sulla prima: il belvedere che resta
         pl[0].stops[0] = { candidate: belvA, source: 'riparata', trace: { ...ripetuta } };
         pl[1].stops[0] = { candidate: belvB, source: 'modello', trace: { scelta: 'modello', famiglia: 'panorama' } };
-        const r = { riempite: [], ripieghi: [{ place_id: 'ba' }], ripetuti: [{ momento: 'g1-mattina' }] };
+        const r = { riempite: [], ripieghi: [{ place_id: 'ba' }], ripetuti: [{ momento: 'g1-mattina', place_id: 'ba' }] };
         // la chiesa dove serve meno strada: al pomeriggio, cosi' il ripiego
         // della mattina resta ed e' lui a dover perdere la dicitura
         const soloPomeriggio = new Map([...bucketCandidates(g, pool)].map(([k, v]) => [k, k === 'g1-mattina' ? [belvA] : v]));

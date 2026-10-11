@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
     legKm, pathKm, countCrossings, minimalPathKm, backtrackIndex, brandKey, repeatedBrands, routeMetrics, isCommercialPlace,
+    anchoredMinimalPathKm, SHORT_ROUTE_KM,
 } from '../../lib/routeShape';
 
 const p = (name, lat, lng, types = ['tourist_attraction']) => ({ place_id: name, name, latitude: lat, longitude: lng, types });
@@ -59,11 +60,57 @@ describe('C5 — misure del percorso', () => {
         expect(repeatedBrands([ROMA_ZIGZAG[2], ROMA_ZIGZAG[2]])).toEqual([]);
     });
 
-    it('routeMetrics: le quattro misure insieme', () => {
+    it('routeMetrics: le misure insieme; i due indici affiancati', () => {
         const m = routeMetrics(ROMA_ZIGZAG);
-        expect(m).toMatchObject({ tappe: 7, catene: 1 });
+        expect(m).toMatchObject({ tappe: 7, catene: 1, giroCorto: false });
         expect(m.incroci).toBeGreaterThan(0);
-        expect(m.indice).toBeGreaterThan(1.3);
+        expect(m.indiceLibero).toBeGreaterThan(1.3);
         expect(m.km).toBeGreaterThan(4);
+    });
+});
+
+// ─── C5b — il cammino minimo rispetta l'ordine dei momenti ──────────────────
+describe('C5b — misura con le ancore dei momenti', () => {
+    const t = (name, lat, lng, moment) => ({ ...p(name, lat, lng), moment });
+    // Una via nord-sud: pranzo a sud, cena a nord, pomeriggio in mezzo.
+    // L'ordine dei momenti obbliga ad andare a sud e tornare: il minimo libero
+    // lo evita, quello con le ancore no.
+    const giorno = [
+        t('m1', 41.900, 12.48, 'mattina'), t('pr', 41.890, 12.48, 'pranzo'),
+        t('po', 41.895, 12.48, 'pomeriggio'), t('ce', 41.905, 12.48, 'cena'),
+    ];
+
+    it('lo stesso giro: libero > 1,3, con le ancore = 1 (nessun ordine migliore dentro i momenti)', () => {
+        expect(backtrackIndex(giorno)).toBeGreaterThan(1.3);
+        expect(backtrackIndex(giorno, { ancorato: true })).toBeCloseTo(1, 6);
+        expect(anchoredMinimalPathKm(giorno)).toBeCloseTo(pathKm(giorno), 6);
+    });
+
+    it('un momento percorso a zig-zag resta sopra 1: dentro il momento l\'ordine si poteva scegliere', () => {
+        const zig = [
+            t('a', 41.900, 12.48, 'mattina'), t('c', 41.904, 12.48, 'mattina'), t('b', 41.902, 12.48, 'mattina'),
+            t('pr', 41.906, 12.48, 'pranzo'),
+        ];
+        // a → b → c → pranzo e' il minimo con le ancore: 0,6 km circa contro 0,9
+        expect(anchoredMinimalPathKm(zig)).toBeCloseTo(pathKm([zig[0], zig[2], zig[1], zig[3]]), 6);
+        expect(backtrackIndex(zig, { ancorato: true })).toBeGreaterThan(1.3);
+    });
+
+    it('i pasti sono ancore: un pasto non si sposta mai, anche se accorcerebbe', () => {
+        const g = [t('m', 41.900, 12.48, 'mattina'), t('pr', 41.910, 12.48, 'pranzo'), t('po', 41.901, 12.48, 'pomeriggio')];
+        expect(anchoredMinimalPathKm(g)).toBeCloseTo(pathKm(g), 6);
+        expect(minimalPathKm(g)).toBeLessThan(pathKm(g));
+    });
+
+    it('giro sotto i 2 km: indice non applicato (null), gli incroci si contano lo stesso', () => {
+        expect(SHORT_ROUTE_KM).toBe(2);
+        const corto = [
+            t('a', 41.900, 12.480, 'mattina'), t('c', 41.902, 12.482, 'mattina'), t('b', 41.900, 12.482, 'mattina'), t('d', 41.902, 12.480, 'mattina'),
+        ];
+        const m = routeMetrics(corto);
+        expect(m.km).toBeLessThan(2);
+        expect(m).toMatchObject({ giroCorto: true, indice: null, incroci: 1 });
+        expect(m.indiceLibero).toBeGreaterThan(1);
+        expect(routeMetrics(giorno).giroCorto).toBe(false);
     });
 });

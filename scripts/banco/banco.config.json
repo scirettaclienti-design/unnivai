@@ -19,6 +19,8 @@
     "_percorso": "C5 — forma della camminata di una giornata: incroci del tracciato, cammino reale / cammino minimo sulle stesse tappe, marchi ripetuti",
     "incrociMax": 0,
     "indiceAvantiIndietroMax": 1.3,
+    "_indice": "C5b — l'indice si misura contro il cammino minimo che rispetta l'ordine dei momenti (pasti fissi); sotto indiceKmMin km il giro e' corto e l'indice non si giudica",
+    "indiceKmMin": 2,
     "cateneMax": 0
   },
   "cittaGrandi": ["Roma", "Milano", "Napoli", "Firenze", "Palermo", "Catania"],

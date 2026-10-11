@@ -2531,6 +2531,9 @@ export const aiRecommendationService = {
                             const repair = () => repairMomentSelection({
                                 moments, buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
                                 requestedFamilies: familiesAsked, searchedIds, searchedMoments,
+                                // C5b — il punto di partenza, se il chiamante lo conosce;
+                                // senza, la prima tappa si misura dal centro del gruppo.
+                                startPoint: opts.startPoint || null,
                             });
                             let repaired = repair();
                             while (budget > 0) {
@@ -2605,9 +2608,17 @@ export const aiRecommendationService = {
                     // C5 — la forma del giro finale nel tracciato: km, incroci,
                     // avanti-e-indietro e marchi ripetuti, giorno per giorno.
                     if (momentReport) {
-                        momentReport.percorso = finalDays.map(d => routeMetrics(d.stops));
+                        // C5b — l'indice con l'ordine dei momenti (null su un giro
+                        // corto), quello libero accanto, e il motivo di un incrocio rimasto.
+                        momentReport.percorso = finalDays.map((d, i) => {
+                            const r = routeMetrics(d.stops);
+                            const rimasto = (momentReport.incrociRimasti || []).find(x => x.giorno === i + 1);
+                            return r.incroci && rimasto ? { ...r, motivoIncroci: rimasto.motivo } : r;
+                        });
                         for (const [i, r] of momentReport.percorso.entries()) {
-                            console.info(`[C5 PERCORSO] ${city} giorno ${i + 1}: ${r.tappe} tappe, ${r.km} km, incroci ${r.incroci}, indice ${r.indice ?? '—'}, catene ${r.catene}`);
+                            console.info(`[C5 PERCORSO] ${city} giorno ${i + 1}: ${r.tappe} tappe, ${r.km} km, incroci ${r.incroci}`
+                                + `, indice ${r.giroCorto ? 'non applicato (giro corto)' : (r.indice ?? '—')} (libero ${r.indiceLibero ?? '—'}), catene ${r.catene}`
+                                + (r.motivoIncroci ? ` — ${r.motivoIncroci}` : ''));
                         }
                     }
 

@@ -62,7 +62,14 @@ export function misuraCaso(caso, config) {
     const rec = tappe.map(s => s.recensioni).filter(Number.isFinite);
     const ids = tappe.map(s => s.place_id).filter(Boolean);
     const duplicati = ids.length - new Set(ids).size;
-    const famigliaRipetuta = tappe.filter(s => s.ripiego === 'famiglia').length;
+    // C5b — le famiglie ripetute si contano sul giro finale, giornata per
+    // giornata, non dalla dicitura "ripiego" nella traccia: una sostituzione
+    // che mette una piazza al posto di un'altra piazza la dicitura la perdeva.
+    const famigliaRipetuta = (caso.tours || []).reduce((a, t) => {
+        const f = (t.stops || []).map(s => s.famiglia).filter(Boolean);
+        return a + f.length - new Set(f).size;
+    }, 0);
+    const famigliaDaTracce = tappe.filter(s => s.ripiego === 'famiglia').length;
     const famiglie = new Set(tappe.map(s => s.famiglia).filter(Boolean));
     const isPerTe = caso.tipo === 'perte';
     const grande = (config.cittaGrandi || []).includes(caso.luogo);
@@ -77,12 +84,18 @@ export function misuraCaso(caso, config) {
     }
     // C5 — la forma del percorso, giornata per giornata (solo itinerari: i
     // giri di Per Te sono tour separati, non una camminata).
-    const giornate = caso.tipo === 'itinerario' ? (caso.tours || []).map(t => routeMetrics(t.stops || [])) : [];
+    // C5b — `indice` contro il cammino minimo con l'ordine dei momenti, null su
+    // un giro corto (sotto S.indiceKmMin km); `indiceLibero` e' quello di C5.
+    const giornate = caso.tipo === 'itinerario'
+        ? (caso.tours || []).map(t => routeMetrics(t.stops || [], { corto: S.indiceKmMin ?? 0 })) : [];
+    const maxOf = (k) => (giornate.some(g => g[k] !== null) ? Math.max(...giornate.map(g => g[k] ?? 0)) : null);
     const percorso = giornate.length ? {
         giornate,
         km: Math.round(giornate.reduce((a, g) => a + g.km, 0) * 100) / 100,
         incroci: giornate.reduce((a, g) => a + g.incroci, 0),
-        indice: giornate.some(g => g.indice !== null) ? Math.max(...giornate.map(g => g.indice ?? 0)) : null,
+        indice: maxOf('indice'),
+        indiceLibero: maxOf('indiceLibero'),
+        giroCorto: giornate.every(g => g.giroCorto),
         catene: giornate.reduce((a, g) => a + g.catene, 0),
     } : null;
     return {
@@ -97,6 +110,7 @@ export function misuraCaso(caso, config) {
         ripieghi: tappe.filter(s => s.scelta === 'ripiego').length,
         motiviRipiego: tappe.filter(s => s.scelta === 'ripiego').map(s => `${s.title}: ${s.motivo || s.ripiego}`),
         ripetizioni: duplicati + famigliaRipetuta,
+        ripetizioniDaTracce: duplicati + famigliaDaTracce,
         famiglie: famiglie.size,
         violazioni: violazioniVincoli(caso),
         medianaRecensioni: median(rec),

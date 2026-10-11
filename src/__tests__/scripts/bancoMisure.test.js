@@ -76,7 +76,8 @@ describe('banco — misure', () => {
         expect(m.percorso).toMatchObject({ incroci: 1, catene: 0 });
         expect(semafori(m, caso(zig), config)).toMatchObject({ incroci: 'rosso', catene: 'verde' });
         // su una via percorsa avanti e indietro: nessun incrocio, ma il doppio del cammino
-        const avanti = [0, 4, 1, 3, 2].map(i => stop({ id: `v${i}`, lat: 41.9 + i * 0.002, lng: 12.5 }));
+        // (C5b) tutte nello stesso momento: dentro il momento l'ordine si poteva scegliere
+        const avanti = [0, 4, 1, 3, 2].map(i => stop({ id: `v${i}`, lat: 41.9 + i * 0.01, lng: 12.5, moment: 'pomeriggio' }));
         const ma = misuraCaso(caso(avanti), config);
         expect(ma.percorso.indice).toBeGreaterThan(config.soglie.indiceAvantiIndietroMax);
         expect(semafori(ma, caso(avanti), config).indice).toBe('rosso');
@@ -88,6 +89,30 @@ describe('banco — misure', () => {
         const { markdown } = buildReport({ casi: [caso(zig)] }, config, {});
         expect(markdown).toContain('### Percorso a piedi (C5)');
         expect(markdown).toMatch(/Incroci del tracciato\*\*: giro: a → c → b → d/);
+    });
+
+    it('C5b: indice vecchio e nuovo affiancati; sotto i 2 km "giro corto, indice non applicato"', () => {
+        // pranzo a sud e cena a nord: l'andata e ritorno la impongono i momenti
+        const g = [stop({ id: 'm', lat: 41.900, lng: 12.48, moment: 'mattina' }), stop({ id: 'pr', lat: 41.880, lng: 12.48, moment: 'pranzo' }),
+            stop({ id: 'po', lat: 41.890, lng: 12.48, moment: 'pomeriggio' }), stop({ id: 'ce', lat: 41.910, lng: 12.48, moment: 'cena' })];
+        const m = misuraCaso(caso(g), config);
+        expect(m.percorso.indiceLibero).toBeGreaterThan(1.3);
+        expect(m.percorso.indice).toBeCloseTo(1, 2);
+        expect(semafori(m, caso(g), config).indice).toBe('verde');
+        const corto = g.map(x => ({ ...x, lat: 41.9 + (x.lat - 41.9) / 20 }));
+        const mc = misuraCaso(caso(corto), config);
+        expect(mc.percorso).toMatchObject({ giroCorto: true, indice: null });
+        expect(semafori(mc, caso(corto), config).indice).toBe(null);
+        const { markdown } = buildReport({ casi: [caso(corto)] }, config, {});
+        expect(markdown).toContain('giro corto, indice non applicato');
+        expect(markdown).toMatch(/\| Indice vecchio \| Indice nuovo \| Ripetizioni \| Catene doppie \|/);
+    });
+
+    it('C5b ripetizioni: si contano le famiglie del giro finale, anche senza la dicitura "ripiego"', () => {
+        const g = [stop({ id: 'p1', famiglia: 'piazza' }), stop({ id: 'p2', famiglia: 'piazza' }), stop({ id: 'p3', famiglia: 'piazza', ripiego: 'famiglia', scelta: 'ripiego' })];
+        const m = misuraCaso(caso(g), config);
+        expect(m.ripetizioni).toBe(2);
+        expect(m.ripetizioniDaTracce).toBe(1);
     });
 
     it('caso saltato o in errore: nessuna misura, nel report come non misurato', () => {

@@ -141,6 +141,8 @@ const tappa = (s, fatti, comp, riempite, dieta) => {
         place_id: s.place_id, title: r.title, types, moment: r.moment, at: r.at,
         lat: s.latitude ?? null, lng: s.longitude ?? null, min: r.min, scelta: r.scelta,
         ripiego: s._tracciato?.ripiego || null, motivo: r.motivo || null, famiglia: r.famiglia,
+        // C5b — perche' un incrocio e' rimasto, e da dove si e' misurata la prima tappa.
+        incrocio: s._tracciato?.incrocio || null, daPartenza: s._tracciato?.daPartenza || null,
         description: r.description, verita: r.verita, voce: r.voce, frasi, fatti: (fatti || []).length,
         recensioni: l.recensioni ?? null, priceLevel: l.priceLevel ?? null,
         pasto: isMealPlace({ types, name: r.title, title: r.title }),

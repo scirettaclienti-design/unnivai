@@ -3,7 +3,8 @@
  *
  * Misure su una sequenza di tappe con coordinate, nell'ordine in cui si
  * camminano: km totali, incroci del tracciato, indice di avanti-e-indietro
- * (cammino reale / cammino minimo sulle stesse tappe) e marchi ripetuti
+ * (cammino reale / cammino minimo sulle stesse tappe: libero in C5, con
+ * l'ordine dei momenti in C5b) e marchi ripetuti
  * (due locali della stessa catena nello stesso giorno).
  *
  * Puro e senza import: lo usano il motore (momentSelection, tracciato) e il
@@ -44,19 +45,24 @@ const orient = (p, q, r) => {
  * (una tappa ripassata) non contano come incrocio.
  */
 export function countCrossings(stops) {
+    return crossingPairs(stops).length;
+}
+
+/** C5b — le coppie di tratti che si tagliano: [i, j] = tratto i→i+1 e tratto j→j+1 (indici sulle tappe con coordinate). */
+export function crossingPairs(stops) {
     const pts = (stops || []).filter(hasCoords);
-    if (pts.length < 4) return 0;
+    if (pts.length < 4) return [];
     const k = Math.cos((latOf(pts[0]) * Math.PI) / 180);
     const P = pts.map(p => ({ x: lngOf(p) * k, y: latOf(p) }));
-    let n = 0;
+    const out = [];
     for (let i = 0; i + 1 < P.length; i++) {
         for (let j = i + 2; j + 1 < P.length; j++) {
             const [a, b, c, d] = [P[i], P[i + 1], P[j], P[j + 1]];
             const o1 = orient(a, b, c), o2 = orient(a, b, d), o3 = orient(c, d, a), o4 = orient(c, d, b);
-            if (o1 && o2 && o3 && o4 && o1 !== o2 && o3 !== o4) n++;
+            if (o1 && o2 && o3 && o4 && o1 !== o2 && o3 !== o4) out.push([i, j]);
         }
     }
-    return n;
+    return out;
 }
 
 // ─── Cammino minimo ──────────────────────────────────────────────────────────
@@ -117,16 +123,61 @@ const twoOpt = (order, D) => {
 };
 
 /**
+ * C5b — il cammino minimo che rispetta l'ordine dei momenti. Le tappe
+ * consecutive con lo stesso `moment` formano un gruppo; i gruppi restano nel
+ * loro ordine (un pasto e' un gruppo da una tappa: un'ancora fissa) e si
+ * cerca solo l'ordine migliore DENTRO ogni gruppo. Esatto: per gruppo si
+ * provano tutti gli ordini (al massimo 4 tappe per momento = 24), con un
+ * cammino dinamico sull'ultima tappa del gruppo prima. Senza `moment` ogni
+ * tappa e' un gruppo a se': il minimo e' il cammino stesso.
+ */
+export function anchoredMinimalPathKm(stops) {
+    const pts = (stops || []).filter(hasCoords);
+    if (pts.length < 2) return 0;
+    const groups = [];
+    for (const p of pts) {
+        const g = groups.at(-1);
+        if (g && p.moment != null && g[0].moment === p.moment) g.push(p);
+        else groups.push([p]);
+    }
+    // best: Map tappa finale → km minimi per arrivarci con tutti i gruppi fin qui.
+    let best = new Map([[null, 0]]);
+    for (const g of groups) {
+        const next = new Map();
+        for (const order of permutations(g)) {
+            const inner = pathKm(order);
+            const end = order.at(-1);
+            for (const [from, km] of best) {
+                const tot = km + (from ? legKm(from, order[0]) : 0) + inner;
+                if (!next.has(end) || tot < next.get(end)) next.set(end, tot);
+            }
+        }
+        best = next;
+    }
+    return Math.min(...best.values());
+}
+
+function permutations(xs) {
+    if (xs.length <= 1) return [xs];
+    return xs.flatMap((x, i) => permutations([...xs.slice(0, i), ...xs.slice(i + 1)]).map(rest => [x, ...rest]));
+}
+
+/**
  * Indice di avanti-e-indietro: cammino reale / cammino minimo sulle stesse
  * tappe. 1 = gia' il giro piu' corto; null con meno di 3 tappe con coordinate
  * (con due tappe c'e' un solo cammino).
+ * `{ ancorato: true }` (C5b) misura contro il minimo che rispetta l'ordine dei
+ * momenti (anchoredMinimalPathKm); senza, contro il minimo libero (C5).
  */
-export function backtrackIndex(stops) {
+export function backtrackIndex(stops, { ancorato = false } = {}) {
     const pts = (stops || []).filter(hasCoords);
     if (pts.length < 3) return null;
-    const min = minimalPathKm(pts);
+    const min = ancorato ? anchoredMinimalPathKm(pts) : minimalPathKm(pts);
     return min > 0 ? pathKm(pts) / min : null;
 }
+
+/** C5b — sotto questi km un giro e' "corto": l'indice non si giudica, contano gli incroci. */
+export const SHORT_ROUTE_KM = 2;
 
 // ─── Marchi (catene) ─────────────────────────────────────────────────────────
 //
@@ -177,14 +228,25 @@ export function repeatedBrands(stops) {
     return out;
 }
 
-/** Le quattro misure di una giornata, arrotondate per il report. */
-export function routeMetrics(stops) {
-    const idx = backtrackIndex(stops);
+const r2 = (x) => (x === null ? null : Math.round(x * 100) / 100);
+
+/**
+ * Le misure di una giornata, arrotondate per il report.
+ *   indice        C5b: contro il cammino minimo con l'ordine dei momenti; null
+ *                 su un giro corto (sotto `corto` km: "giro corto, indice non
+ *                 applicato") o con meno di 3 tappe;
+ *   indiceLibero  C5: contro il cammino minimo libero, sempre (per confronto).
+ */
+export function routeMetrics(stops, { corto = SHORT_ROUTE_KM } = {}) {
+    const km = pathKm(stops);
+    const giroCorto = km < corto;
     return {
         tappe: (stops || []).length,
-        km: Math.round(pathKm(stops) * 100) / 100,
+        km: r2(km),
         incroci: countCrossings(stops),
-        indice: idx === null ? null : Math.round(idx * 100) / 100,
+        indice: giroCorto ? null : r2(backtrackIndex(stops, { ancorato: true })),
+        indiceLibero: r2(backtrackIndex(stops)),
+        giroCorto,
         catene: repeatedBrands(stops).length,
     };
 }

@@ -92,6 +92,10 @@ export function misuraCaso(caso, config) {
         const f = (t.stops || []).map(s => s.famiglia).filter(Boolean);
         return a + f.length - new Set(f).size;
     }, 0);
+    // C5c — una ripetizione che il motore ha dichiarato "inevitabile" (nessuna
+    // alternativa del pool entro 25 min) si conta a parte: non e' un errore
+    // della scelta, e' il pool. Il semaforo giudica le altre.
+    const inevitabili = tappe.filter(s => s.varieta?.esito === 'inevitabile').length;
     const famigliaDaTracce = tappe.filter(s => s.ripiego === 'famiglia').length;
     const famiglie = new Set(tappe.map(s => s.famiglia).filter(Boolean));
     const isPerTe = caso.tipo === 'perte';
@@ -131,7 +135,9 @@ export function misuraCaso(caso, config) {
         entro20: pct(tratti.filter(m => m <= S.minutiCammino).length, tratti.length),
         ripieghi: tappe.filter(s => s.scelta === 'ripiego').length,
         motiviRipiego: tappe.filter(s => s.scelta === 'ripiego').map(s => `${s.title}: ${s.motivo || s.ripiego}`),
-        ripetizioni: duplicati + famigliaRipetuta,
+        ripetizioni: duplicati + famigliaRipetuta - inevitabili,
+        ripetizioniInevitabili: inevitabili,
+        ripetizioniTotali: duplicati + famigliaRipetuta,
         ripetizioniDaTracce: duplicati + famigliaDaTracce,
         famiglie: famiglie.size,
         violazioni: violazioniVincoli(caso),

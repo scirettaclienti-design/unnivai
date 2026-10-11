@@ -139,6 +139,18 @@ describe('banco — misure', () => {
         expect(m.ripetizioniDaTracce).toBe(1);
     });
 
+    it('C5c ripetizioni: le inevitabili (nessuna alternativa del pool entro 25 min) si contano a parte', () => {
+        const g = [stop({ id: 'm1', famiglia: 'museo' }),
+            stop({ id: 'm2', famiglia: 'museo', ripiego: 'famiglia', varieta: { esito: 'inevitabile', alternative: [], piuVicina: null } }),
+            stop({ id: 'p1', famiglia: 'piazza' }), stop({ id: 'p2', famiglia: 'piazza', ripiego: 'famiglia', varieta: { esito: 'evitabile', alternative: [{ nome: 'Chiesa', famiglia: 'chiesa', minuti: 8, usata: false }], piuVicina: null } })];
+        const m = misuraCaso(caso(g), config);
+        expect(m).toMatchObject({ ripetizioni: 1, ripetizioniInevitabili: 1, ripetizioniTotali: 2 });
+        const { markdown } = buildReport({ casi: [caso(g)] }, config, {});
+        expect(markdown).toContain('1 (+1 inevitabili)');
+        expect(markdown).toContain('m2 inevitabile (nessuna entro 25 min)');
+        expect(markdown).toContain('p2 evitabile (Chiesa chiesa 8 min)');
+    });
+
     it('caso saltato o in errore: nessuna misura, nel report come non misurato', () => {
         const saltato = { id: 'c-roma', gruppo: 'c', tipo: 'perte', luogo: 'Roma', saltato: 'fuori orario: alle 21:00' };
         expect(misuraCaso(saltato, config)).toBeNull();

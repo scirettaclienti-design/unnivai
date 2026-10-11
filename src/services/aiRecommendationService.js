@@ -2537,10 +2537,11 @@ export const aiRecommendationService = {
                             });
                             let repaired = repair();
                             while (budget > 0) {
-                                // Prima i momenti lontani, poi quelli costretti a
-                                // ripetere una famiglia: anche li' manca un posto
-                                // adatto vicino.
-                                const target = [...repaired.report.lontani, ...repaired.report.ripetuti]
+                                // C5c — per gravita' (searchQueue): prima una tappa
+                                // oltre il tetto dalla tappa prima, poi una famiglia
+                                // ripetuta, poi un momento "lontano" che nel giro
+                                // finale sta ormai entro il tetto.
+                                const target = repaired.report.ricercheDaFare
                                     .find(x => x.da && !searchedMoments.has(x.momento));
                                 if (!target) break;
                                 const m = moments.find(x => x.id === target.momento);

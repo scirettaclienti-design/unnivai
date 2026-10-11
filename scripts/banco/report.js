@@ -28,7 +28,8 @@ function indizi(voce, m, caso, comune, S) {
             const lunghi = tappe.filter(s => Number.isFinite(s.min) && s.min > S.minutiCammino).map(s => `${s.title} ${s.min} min (${s.scelta || '?'}${s.motivo ? `: ${s.motivo}` : ''})`);
             return `tratti oltre ${S.minutiCammino} min: ${lunghi.join('; ')}${caso.tipo === 'perte' ? ' — Per Te non passa dalla selezione per momenti (nessun tetto di cammino)' : ''}`;
         }
-        case 'ripetizioni': return `famiglie del giro: ${famiglieTesto(caso)}${m.motiviRipiego.length ? ` — ripieghi: ${m.motiviRipiego.join('; ')}` : ''}`;
+        case 'ripetizioni': return `famiglie del giro: ${famiglieTesto(caso)}${m.motiviRipiego.length ? ` — ripieghi: ${m.motiviRipiego.join('; ')}` : ''}`
+            + `${varietaTesto(caso) ? ` — alternative del pool: ${varietaTesto(caso)}` : ''}`;
         case 'vincoli': return m.violazioni.join('; ');
         case 'inComune': return `in comune: ${comune.titoli.join(', ')} — i due profili cambiano solo il punteggio e i vincoli del cibo; i luoghi non-cibo escono dallo stesso pool`;
         case 'famosita': return `sopra ${S.recensioniFamoso}: ${tappe.filter(s => s.recensioni > S.recensioniFamoso).map(s => `${s.title} (${s.recensioni})`).join(', ')}`;
@@ -48,6 +49,10 @@ function indizi(voce, m, caso, comune, S) {
 
 // C5 — il giro in una riga: tappa (momento), nell'ordine in cui si cammina.
 const percorsoTesto = (caso) => (caso.tours || []).map(t => t.stops.map(s => `${s.title}${s.moment ? ` (${s.moment})` : ''}`).join(' → ')).join(' ‖ ');
+// C5c — per ogni ripetizione, l'esito e le alternative del pool entro 25 min.
+const varietaTesto = (caso) => tappeDi(caso).filter(s => s.varieta).map(s => `${s.title} ${s.varieta.esito}`
+    + ` (${s.varieta.alternative.length ? s.varieta.alternative.map(a => `${a.nome} ${a.famiglia || 'senza famiglia'} ${a.minuti} min${a.usata ? ', gia\' nel giro' : ''}`).join(', ') : 'nessuna entro 25 min'}`
+    + `${s.varieta.piuVicina ? `; la piu' vicina: ${s.varieta.piuVicina.nome} a ${s.varieta.piuVicina.minuti} min` : ''})`).join('; ');
 const famiglieTesto = (caso) => (caso.tours || []).map(t => t.stops.filter(s => s.famiglia).map(s => `${s.title} (${s.famiglia})`).join(', ')).join(' ‖ ');
 const catene = (caso) => (caso.tours || []).flatMap(t => repeatedBrands(t.stops)).map(c => `${c.tappe.join(' + ')} (${c.marchio})`).join('; ');
 
@@ -84,7 +89,7 @@ export function buildReport(raw, config, meta = {}) {
     L.push('|---|---|---|---|---|');
     const soglia = {
         verita: `${S.veritaPct}% tappe (controllo automatico; quello a mano è sotto)`, voce: `≥ ${S.vocePct}% frasi`,
-        distanze: `≥ ${S.entro20Pct}% tratti entro ${S.minutiCammino} min`, ripetizioni: `≤ ${S.ripetizioniMax} (famiglie ripetute nel giro finale + tappe doppie)`,
+        distanze: `≥ ${S.entro20Pct}% tratti entro ${S.minutiCammino} min`, ripetizioni: `≤ ${S.ripetizioniMax} evitabili (famiglie ripetute nel giro finale + tappe doppie; le inevitabili, senza alternative nel pool entro 25 min, a parte)`,
         vincoli: `≤ ${S.violazioniMax} violazioni`, inComune: `≤ ${S.inComuneABMaxPct}%`,
         famosita: `≥ ${S.sotto2000MinPct}% tappe ≤ ${S.recensioniFamoso} recensioni (città grandi)`,
         giornata: `≥ ${S.tappeGiornataMin} tappe`, tempo: `itinerario ≤ ${S.secondiItinerarioMax} s, Per Te ≤ ${S.secondiPerTeMax} s`,
@@ -139,7 +144,7 @@ export function buildReport(raw, config, meta = {}) {
         if (!m?.percorso) continue;
         const p = m.percorso;
         const col = p.giornate.map(g => g.colpevole).find(Boolean);
-        L.push(`| ${c.id} | ${c.luogo} | ${m.tappe} | ${n1(p.km)} | ${p.incroci} | ${p.deviazioniOltre} | ${n1(p.deviazioneMax)} min${col ? ` (${cella(col.titolo)} @${col.momento})` : ''} | ${n1(p.indiceLibero)} | ${ic(sem.ripetizioni)} ${m.ripetizioni} | ${ic(sem.catene)} ${p.catene} | ${ic(sem.percorso)} |`);
+        L.push(`| ${c.id} | ${c.luogo} | ${m.tappe} | ${n1(p.km)} | ${p.incroci} | ${p.deviazioniOltre} | ${n1(p.deviazioneMax)} min${col ? ` (${cella(col.titolo)} @${col.momento})` : ''} | ${n1(p.indiceLibero)} | ${ic(sem.ripetizioni)} ${m.ripetizioni}${m.ripetizioniInevitabili ? ` (+${m.ripetizioniInevitabili} inevitabili)` : ''} | ${ic(sem.catene)} ${p.catene} | ${ic(sem.percorso)} |`);
     }
     L.push('');
     L.push('⚪ = la voce non si applica al caso (vincoli solo per i profili, A/B solo per (b), famosità solo nelle città grandi, giornata solo per gli itinerari).');

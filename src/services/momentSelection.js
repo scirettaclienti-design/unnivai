@@ -411,7 +411,38 @@ export function repairMomentSelection(args) {
         if (same) break;
     }
     const plan = polishRoute(orderPlanWalk(res.plan, args), args, res.report);
+    res.report.ricercheDaFare = searchQueue(plan, res.report, args);
     return { plan, report: res.report };
+}
+
+/**
+ * C5c — le ricerche mirate C1b in ordine di gravita', sul giro finale:
+ *   1. una tappa oltre il tetto di cammino (MAX_WALK_MINUTES) dalla tappa prima;
+ *   2. una famiglia ripetuta;
+ *   3. un momento segnato "lontano" la cui tappa, nel giro finale, sta ormai
+ *      entro il tetto (l'ordine o la rifinitura l'hanno avvicinata).
+ * A parita' di gravita', l'ordine della giornata. Il tetto delle ricerche
+ * (MAX_EXTRA_SEARCHES) e le soglie 20/25 restano quelli di C1b: cambia solo
+ * chi passa per primo.
+ * @returns {Array<{ momento: string, place_id: string, da: object|null, gravita: 1|2|3 }>}
+ */
+export function searchQueue(plan, report, { maxWalk = MAX_WALK_MINUTES } = {}) {
+    const order = new Map();
+    const legOf = new Map();
+    plan.forEach((p, pi) => p.stops.forEach((s, si) => {
+        order.set(idOf(s.candidate), pi * 100 + si);
+    }));
+    for (const day of new Set(plan.map(p => p.moment.dayIndex))) {
+        const stops = plan.filter(p => p.moment.dayIndex === day).flatMap(p => p.stops.map(s => s.candidate));
+        stops.forEach((c, i) => legOf.set(idOf(c), i ? walkFrom(stops[i - 1], c) : null));
+    }
+    const out = [];
+    for (const x of report.lontani || []) {
+        if (!order.has(x.place_id)) continue;
+        out.push({ ...x, gravita: (legOf.get(x.place_id) ?? Infinity) > maxWalk ? 1 : 3 });
+    }
+    for (const x of report.ripetuti || []) if (order.has(x.place_id)) out.push({ ...x, gravita: 2 });
+    return out.sort((a, b) => (a.gravita - b.gravita) || (order.get(a.place_id) - order.get(b.place_id)));
 }
 
 /**
@@ -715,8 +746,10 @@ const POLISH_MIN_GAIN = 2;
  * "sulla strada" possono ancora tagliarsi. Qui, giorno per giorno, si prova a
  * sostituire una tappa con un altro candidato DELLO STESSO MOMENTO e si tiene
  * il cambio migliore se:
- *   · non aggiunge tratti oltre il tetto, famiglie ripetute, catene ne'
- *     incroci (C1, C1b e la regola dei marchi restano dure), e
+ *   · non aggiunge tratti oltre il tetto, catene ne' incroci, e non aggiunge
+ *     ripetizioni a NESSUNA famiglia (C5c: non basta che il totale resti
+ *     uguale — una piazza ripetuta tolta e un belvedere ripetuto messo
+ *     sposterebbero la ripetizione; C1, C1b e i marchi restano duri), e
  *   · ne toglie almeno uno; oppure, a parita', accorcia di almeno
  *     POLISH_MIN_GAIN minuti la somma "cammino + avanti-e-indietro" (cammino
  *     reale + quanto supera il cammino minimo sulle stesse tappe) e abbassa
@@ -725,7 +758,7 @@ const POLISH_MIN_GAIN = 2;
  *     una scelta del modello.
  * Il numero di tappe e i momenti non cambiano; ogni sostituzione va nel report.
  */
-export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: asked = null, maxWalk = MAX_WALK_MINUTES, searchedIds = null, startPoint = null }, report) {
+export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: asked = null, maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES, searchedIds = null, startPoint = null }, report) {
     const scoreCache = new Map();
     const scoreOf = (c) => {
         const k = idOf(c);
@@ -738,11 +771,15 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
         const fams = seq.map(candidateFamily).filter(f => f && !asked?.has(f));
         // C5b — anche la prima tappa ha il suo tetto, dal riferimento.
         const ref = startPoint || groupCenter(seq.slice(1));
+        // C5c — le ripetizioni per famiglia (quante tappe in piu' della prima).
+        const perFamiglia = {};
+        for (const f of fams) perFamiglia[f] = (perFamiglia[f] ?? -1) + 1;
         return {
             incroci: countCrossings(seq),
             oltre: seq.slice(1).filter((c, i) => walkFrom(seq[i], c) > maxWalk).length
                 + (ref && seq.length > 1 && walkFrom(ref, seq[0]) > maxWalk ? 1 : 0),
             famiglie: fams.length - new Set(fams).size,
+            perFamiglia,
             catene: repeatedBrands(seq).length,
             // cammino + avanti-e-indietro, in minuti: 2 x reale - minimo
             strada: toMinutes(2 * pathKm(seq) - minimalPathKm(seq)),
@@ -751,7 +788,10 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
     };
     const REGOLE = ['oltre', 'famiglie', 'catene', 'incroci'];
     const costo = (x) => DETOUR_WEIGHT * x.strada - x.merito;
-    const better = (t, m) => REGOLE.every(k => t[k] <= m[k])
+    // C5c — nessuna famiglia guadagna ripetizioni: cosi' una ripetizione non
+    // si sposta mai da una famiglia all'altra, anche a totale invariato.
+    const noFamilyGains = (t, m) => Object.entries(t.perFamiglia).every(([f, n]) => n <= (m.perFamiglia[f] ?? 0));
+    const better = (t, m) => REGOLE.every(k => t[k] <= m[k]) && noFamilyGains(t, m)
         && (REGOLE.some(k => t[k] < m[k])
             || (t.strada <= m.strada - POLISH_MIN_GAIN && costo(t) < costo(m) - 1e-9));
     const out = [...plan];
@@ -796,7 +836,7 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
         }
     }
     const ordered = orderPlanWalk(out, { maxWalk, startPoint });
-    syncRepeatTraces(ordered, asked, report);
+    syncRepeatTraces(ordered, asked, report, { buckets, maxWalk, varietyWalk });
     explainCrossings(ordered, { buckets, used, measure }, report);
     return ordered;
 }
@@ -843,11 +883,13 @@ function explainCrossings(plan, { buckets, used, measure }, report) {
  * sostituzione "piazza al posto di piazza" lasciava la ripetizione senza
  * dicitura: il banco non la contava e C1b non la cercava.
  */
-function syncRepeatTraces(plan, asked, report) {
+function syncRepeatTraces(plan, asked, report, { buckets = null, maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES } = {}) {
     report.ripetuti = report.ripetuti || [];
+    const inPlan = new Set(plan.flatMap(p => p.stops.map(s => idOf(s.candidate))));
     for (const day of new Set(plan.map(p => p.moment.dayIndex))) {
         const seen = new Set();
         let prevStop = null;
+        const dayStops = plan.filter(x => x.moment.dayIndex === day).flatMap(x => x.stops);
         for (const p of plan.filter(x => x.moment.dayIndex === day)) {
             for (const s of p.stops) {
                 const f = candidateFamily(s.candidate);
@@ -859,7 +901,41 @@ function syncRepeatTraces(plan, asked, report) {
                         motivo: `nessuna famiglia nuova sulla strada: ${f} ripetuta` };
                     report.ripieghi.push({ place_id: id, name: s.candidate.name || s.candidate.title || null, momento: p.moment.id, motivo: s.trace.motivo });
                     if (!report.ripetuti.some(x => x.place_id === id)) report.ripetuti.push({ momento: p.moment.id, place_id: id, da: pointOf(prevStop) });
-                } else if (!repeat && marked) {
+                }
+                if (repeat && buckets) {
+                    // C5c — evitabile o inevitabile, con la prova: le alternative
+                    // del pool di QUEL momento che toglierebbero la ripetizione
+                    // dalla tappa prima — famiglia nuova entro varietyWalk (C1b),
+                    // o senza famiglia entro il tetto. Un posto dove si mangia
+                    // non conta fuori dai pasti (come nella rifinitura).
+                    const others = new Set(dayStops.filter(x => x !== s).map(x => candidateFamily(x.candidate)).filter(Boolean));
+                    const cands = (buckets.get(p.moment.id) || []).filter(c => idOf(c) !== id
+                        && !(!FOOD_ONLY_MOMENT_KEYS.has(p.moment.key) && isMealPlace(c)));
+                    const evita = cands.map(c => {
+                        const fam = candidateFamily(c);
+                        const minuti = prevStop ? walkFrom(prevStop, c) : 0;
+                        const nuova = !!fam && !others.has(fam);
+                        return { nome: c.name || c.title || idOf(c), famiglia: fam, minuti, usata: inPlan.has(idOf(c)), nuova, senza: !fam || !!asked?.has(fam) };
+                    }).filter(a => a.nuova || a.senza).sort((a, b) => a.minuti - b.minuti);
+                    const vicine = evita.filter(a => (a.nuova && a.minuti <= varietyWalk) || (a.senza && a.minuti <= maxWalk));
+                    const libere = vicine.filter(a => !a.usata);
+                    const piuVicina = evita[0] ? { nome: evita[0].nome, famiglia: evita[0].famiglia, minuti: evita[0].minuti } : null;
+                    const esito = libere.length ? 'evitabile' : 'inevitabile';
+                    s.trace = { ...s.trace, varieta: {
+                        esito,
+                        candidatiMomento: cands.length,
+                        alternative: vicine.slice(0, 5).map(({ nome, famiglia, minuti, usata }) => ({ nome, famiglia, minuti, usata })),
+                        piuVicina,
+                    } };
+                    if (esito === 'inevitabile' && !/inevitabile/.test(s.trace.motivo || '')) {
+                        s.trace.motivo = `${s.trace.motivo || `${f} ripetuta`} — inevitabile: nel pool del momento (${cands.length} candidati) `
+                            + `nessuna famiglia nuova entro ${varietyWalk} min${vicine.length ? ' libera (quelle vicine sono gia\' nel giro)' : ''}`
+                            + (piuVicina ? `; la piu' vicina che la evita: "${piuVicina.nome}" (${piuVicina.famiglia || 'senza famiglia'}) a ${piuVicina.minuti} min` : '');
+                    }
+                    const r = report.ripetuti.find(x => x.place_id === id);
+                    if (r) r.evitabile = esito === 'evitabile';
+                }
+                if (!repeat && marked) {
                     const { ripiego: _r, ...rest } = s.trace;
                     s.trace = { ...rest, scelta: s.source === 'modello' ? 'modello' : 'riparazione', motivo: 'famiglia non piu\' ripetuta dopo la rifinitura del giro' };
                     report.ripieghi = report.ripieghi.filter(x => x.place_id !== id);

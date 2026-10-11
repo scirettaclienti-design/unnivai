@@ -143,6 +143,8 @@ const tappa = (s, fatti, comp, riempite, dieta) => {
         ripiego: s._tracciato?.ripiego || null, motivo: r.motivo || null, famiglia: r.famiglia,
         // C5b — perche' un incrocio e' rimasto, e da dove si e' misurata la prima tappa.
         incrocio: s._tracciato?.incrocio || null, daPartenza: s._tracciato?.daPartenza || null,
+        // C5c — una famiglia ripetuta: evitabile o inevitabile, con le alternative del pool.
+        varieta: s._tracciato?.varieta || null,
         description: r.description, verita: r.verita, voce: r.voce, frasi, fatti: (fatti || []).length,
         recensioni: l.recensioni ?? null, priceLevel: l.priceLevel ?? null,
         pasto: isMealPlace({ types, name: r.title, title: r.title }),

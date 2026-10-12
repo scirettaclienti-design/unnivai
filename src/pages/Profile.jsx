@@ -12,6 +12,7 @@ import { useAILearning } from "../hooks/useAILearning";
 import { normalizeCategory } from "../services/preferenceEngine";
 import { supabase } from "../lib/supabase";
 import FoodPrefsEditor from "../components/FoodPrefsEditor";
+import InterestsEditor from "../components/InterestsEditor";
 
 // Fase 2 Gate DNA: soglia minima di interazioni di gusto CATEGORIZZATE sotto la
 // quale NON si mostrano percentuali. Motivo: con pochi eventi una categoria
@@ -46,7 +47,7 @@ export default function ProfilePage() {
     const { userId, firstName, city } = useUserContext();
     const { user } = useAuth();
     const { toast } = useToast();
-    const { preferenceGraph, onboardingPrefs, saveFoodPrefs } = useAILearning();
+    const { preferenceGraph, onboardingPrefs, saveFoodPrefs, interestIds, saveInterests } = useAILearning();
     const [editName, setEditName] = useState(firstName || "Viaggiatore");
     const [selectedTour, setSelectedTour] = useState(null);
     const [showShareModal, setShowShareModal] = useState(false);
@@ -293,6 +294,9 @@ export default function ProfilePage() {
                         </motion.div>
                     );
                 })()}
+
+                {/* ONB-1 — gli interessi dell'onboarding: si cambiano solo da qui */}
+                <InterestsEditor value={interestIds} onSave={saveInterests} toast={toast} />
 
                 {/* P7b — dieta, budget e stile del primo accesso, modificabili qui */}
                 <FoodPrefsEditor value={onboardingPrefs} onSave={saveFoodPrefs} toast={toast} />

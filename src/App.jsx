@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CityProvider } from './context/CityContext';
+import { useOnboardingStatus } from './hooks/useOnboardingStatus';
 import RoleGuard from './components/RoleGuard';
 import ErrorBoundary from './components/ErrorBoundary';
 import ToastProvider from './components/ToastProvider';
@@ -88,13 +89,18 @@ const GlobalLoading = () => (
 // 🛡️ ROOT DISPATCHER: Instant Redirect Logic
 const RootDispatcher = () => {
   const { user, loading, role, isPasswordRecovery } = useAuth();
+  // ONB-1: "onboarding fatto" lo decide il DB (account), non il localStorage.
+  // Hook chiamato prima di ogni early-return (Rules of Hooks).
+  const onboarding = useOnboardingStatus(user?.id);
 
   if (loading) return <GlobalLoading />;
   if (isPasswordRecovery) return <Navigate to="/update-password" replace />;
 
   if (user) {
-    const onboardingDone = localStorage.getItem('dvai_onboarding_done');
-    if (!onboardingDone) {
+    if (onboarding === 'checking') return <GlobalLoading />;
+    // 'todo' = utente davvero nuovo. 'unknown' (DB non raggiungibile, nessuna copia)
+    // NON porta al wizard: rifarlo sovrascriverebbe i gusti gia' dichiarati.
+    if (onboarding === 'todo') {
       return <Navigate to="/onboarding" replace />;
     }
     // Gate J1: in V1 tutti i ruoli finiscono su /dashboard-user.

@@ -168,7 +168,7 @@ describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
         clickByText('Riprova');
 
         await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/dashboard-user', { replace: true }));
-        expect(localStorage.getItem(DONE_KEY)).toBe('1');
+        expect(localStorage.getItem(DONE_KEY)).toBe('11111111-2222-3333-4444-555555555555');
         expect(JSON.parse(localStorage.getItem(SEED_KEY)).interessi.sort()).toEqual(['arte', 'cultura']);
         expect(screen.queryByRole('alert')).toBeNull();
     });
@@ -215,7 +215,7 @@ describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
         runWizardToEnd();
 
         await waitFor(() => expect(navigateMock).toHaveBeenCalledWith('/dashboard-user', { replace: true }));
-        expect(localStorage.getItem(DONE_KEY)).toBe('1');
+        expect(localStorage.getItem(DONE_KEY)).toBe('11111111-2222-3333-4444-555555555555');
         expect(JSON.parse(localStorage.getItem(SEED_KEY)).interessi.sort()).toEqual(['arte', 'cultura']);
         expect(screen.queryByRole('alert')).toBeNull();
     });

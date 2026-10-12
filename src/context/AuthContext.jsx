@@ -92,8 +92,12 @@ export const AuthProvider = ({ children }) => {
             // precedente), il difetto stava a monte: non c'era nessun altro
             // posto dove il seme vivesse.
             'unnivai_onboarding_seed_v1',
+            // ONB-1: 'dvai_onboarding_done' NON e' piu' qui. "Onboarding fatto" e' un
+            // dato dell'account (user_preferences.onboarding_seed); il flag nel browser
+            // e' legato all'id utente (lib/onboardingStatus.js), quindi non puo' far
+            // saltare l'onboarding a un altro account e non e' un leak. Cancellarlo
+            // al logout non proteggeva nessuno e costringeva a un giro in piu' al rientro.
             'dvai_gps_data',
-            'dvai_onboarding_done',
             'user_tour_history',
             'unnivai_mode',
             'unnivai_favorites',

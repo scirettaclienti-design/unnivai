@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { dataService } from '../services/dataService';
 import { computeWeights, weightsToAIProfile, tourAffinityScore, normalizeCategory, applyDnaEvent, computeDnaShare, dnaEventCount, tourCoreCategories } from '../services/preferenceEngine';
 import { parseSeed, seedFoodPrefs, buildSeed } from '../lib/foodPrefs';
+import { computeSeed, interestIdsFromSeed } from '../lib/interests';
 
 // Fase 2 Gate DNA: bump chiave localStorage (v1→v2). Il "brain" v1 conteneva
 // chiavi cat: sporche (nomi-sezione, "guide"): ignorandolo, i client ripartono
@@ -381,6 +382,26 @@ export function useAILearning() {
         return { success: true };
     }, [userId, onboardingSeed]);
 
+    // ─── ONB-1 — modifica degli interessi dal Profilo ────────────────────────
+    // UNICO punto dove gli interessi cambiano dopo l'onboarding. Riscrive SOLO
+    // onboarding_seed (upsertOnboardingSeed non tocca preference_data ne'
+    // interactions): il DNA comportamentale non si azzera e non si ricrea, cambia
+    // solo il seme che computeWeights somma ai click. Dieta, budget e stile del
+    // seme restano. Il server e' la fonte di verita': se la scrittura fallisce lo
+    // stato e la cache locale NON cambiano, e l'errore va al chiamante.
+    const saveInterests = useCallback(async (ids = []) => {
+        const interessi = computeSeed(ids);
+        if (interessi.length === 0) return { success: false, error: 'Scegli almeno un interesse.' };
+        const seed = buildSeed({ interessi, ...onboardingPrefs });
+        if (userId) {
+            const r = await dataService.upsertOnboardingSeed(userId, seed);
+            if (!r?.success) return { success: false, error: r?.error || 'Errore sconosciuto' };
+        }
+        try { localStorage.setItem(ONBOARDING_SEED_KEY, JSON.stringify(seed)); } catch { /* cache */ }
+        setOnboardingSeed(interessi);
+        return { success: true };
+    }, [userId, onboardingPrefs]);
+
     // Gate E-2: unlockPremium + hasHitPaywall rimossi. Il paywall gate è morto:
     // modello di lancio locked = nessun paywall in V1. Il PaywallModal component
     // resta nel repo per V2/V3 ma non è più raggiungibile da nessun codepath.
@@ -409,6 +430,9 @@ export function useAILearning() {
         // P7b — { dieta: [], budget: '€'|null, stile: 'trattoria'|null } dal primo accesso.
         onboardingPrefs,
         saveFoodPrefs,
+        // ONB-1 — interessi scelti (id dell'editor) e salvataggio dal Profilo.
+        interestIds: interestIdsFromSeed(onboardingSeed),
+        saveInterests,
         trackGeneratedTour,
         trackTourView,
         trackCategoryClick,

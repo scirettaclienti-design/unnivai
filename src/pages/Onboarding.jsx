@@ -2,19 +2,12 @@
  * DVAI-011 / Blocco Estetica — Onboarding Wizard (Direzione A: Inchiostro & Ossidiana)
  * Full-screen immersivo, contrasto netto bianco/nero, zero radio button, bottoni in caso normale.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowRight,
     ArrowLeft,
-    UtensilsCrossed,
-    Landmark,
-    Trees,
-    Moon,
-    Footprints,
-    Coffee,
-    ShoppingBag,
     AlertTriangle,
     RefreshCw,
     Ban,
@@ -30,16 +23,9 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { dataService } from '@/services/dataService';
 import { buildSeed } from '@/lib/foodPrefs';
-
-const INTERESTS = [
-    { id: 'food',      icon: UtensilsCrossed, label: 'Mangiare e bere',      seeds: ['food'] },
-    { id: 'cultura',   icon: Landmark,        label: 'Storia e arte',        seeds: ['cultura', 'arte'] },
-    { id: 'natura',    icon: Trees,           label: 'Natura e panorami',    seeds: ['natura'] },
-    { id: 'nightlife', icon: Moon,            label: 'Vita notturna',        seeds: ['nightlife'] },
-    { id: 'avventura', icon: Footprints,      label: 'Camminare e scoprire', seeds: ['avventura'] },
-    { id: 'relax',     icon: Coffee,          label: 'Ritmo lento',          seeds: ['relax'] },
-    { id: 'shopping',  icon: ShoppingBag,     label: 'Shopping e mercati',   seeds: ['shopping'] },
-];
+import { INTERESTS, computeSeed } from '@/lib/interests';
+import { markOnboardingDone } from '@/lib/onboardingStatus';
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
 
 // P7b — vincoli (dieta, budget) e gusti (stile) a tavola. Tutto saltabile:
 // nessuna scelta = nessun vincolo. Il seme si salva separando le due cose
@@ -65,11 +51,6 @@ const STILE_OPTIONS = [
 const LAST_STEP = 4;
 
 const ONBOARDING_SEED_KEY = 'unnivai_onboarding_seed_v1';
-
-const computeSeed = (selectedIds) => {
-    const flat = selectedIds.flatMap(id => INTERESTS.find(i => i.id === id)?.seeds || []);
-    return [...new Set(flat)];
-};
 
 const slideVariants = {
     enter: (dir) => ({ x: dir > 0 ? 30 : -30, opacity: 0 }),
@@ -108,6 +89,14 @@ export default function Onboarding() {
 
     const navigate = useNavigate();
     const { user } = useAuth();
+
+    // ONB-1: l'onboarding si vede UNA volta per account. Chi l'ha gia' fatto (lo
+    // dice il DB, anche da un altro browser) e arriva qui per URL diretto torna a
+    // '/'. Gli interessi si cambiano solo dal Profilo.
+    const onboardingStatus = useOnboardingStatus(user?.id);
+    useEffect(() => {
+        if (onboardingStatus === 'done' && !isSaving) navigate('/', { replace: true });
+    }, [onboardingStatus, isSaving, navigate]);
 
     const goNext = () => {
         setDirection(1);
@@ -174,7 +163,7 @@ export default function Onboarding() {
         }
 
         writeLocalSeedCache(seed);
-        localStorage.setItem('dvai_onboarding_done', '1');
+        markOnboardingDone(user.id);
         setIsSaving(false);
         navigate('/dashboard-user', { replace: true });
     };

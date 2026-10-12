@@ -749,6 +749,30 @@ class DataService {
         }
     }
 
+    /**
+     * ONB-1 — legge SOLO onboarding_seed, distinguendo "il server dice vuoto" da
+     * "non sono riuscito a chiederlo". getUserPreferences() torna null in entrambi
+     * i casi: per decidere se mostrare l'onboarding non basta, perche' un errore di
+     * rete non deve far ripassare dal wizard chi l'ha gia' fatto.
+     *
+     * @returns {Promise<{ok: true, seed: any|null} | {ok: false, error: string}>}
+     *   seed null = riga assente o seme mai scritto ("mai fatto").
+     */
+    async getOnboardingState(userId) {
+        if (!userId) return { ok: false, error: 'No user ID' };
+        try {
+            const { data, error } = await supabase
+                .from('user_preferences')
+                .select('onboarding_seed')
+                .eq('user_id', userId)
+                .maybeSingle();
+            if (error) return { ok: false, error: error.message };
+            return { ok: true, seed: data?.onboarding_seed ?? null };
+        } catch (err) {
+            return { ok: false, error: err.message };
+        }
+    }
+
     async upsertUserPreferences(userId, preferenceData, interactions, totalInteractions) {
         if (!userId) return { success: false, error: 'No user ID' };
         try {

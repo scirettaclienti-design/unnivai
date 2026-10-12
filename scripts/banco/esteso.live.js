@@ -1,0 +1,280 @@
+// BANCO-ESTESO — genera i ≈30 tour della matrice (scripts/banco/casi-esteso.js) con
+// l'account di prova e scrive il grezzo in JSON; controlli e report li fanno
+// scripts/banco/esteso.mjs (controlli.js + report-esteso.js).
+//
+// Non si lancia da solo: `npm run banco:esteso`
+// (oppure BANCO_OUT=… npx vitest run -c scripts/banco/vitest.banco.config.js scripts/banco/esteso.live.js).
+// BANCO_CASI=veloce-catania-relax-2125,… limita i casi; vuoto = tutti.
+//
+// Ogni caso replica la chiamata reale della sua pagina (vedi casi-esteso.js) con
+// l'ora SIMULATA (opts.simulatedNow, ignorata in produzione). Il motore non e'
+// toccato. Il pool di ogni momento si salva nel grezzo (come BANCO-POOL).
+import { it, vi, beforeAll, afterAll } from 'vitest';
+import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { supabase } from '@/lib/supabase';
+import { aiRecommendationService, buildInsiderPool, buildPlacesProxyUrl } from '@/services/aiRecommendationService';
+import { placesDiscoveryService } from '@/services/placesDiscoveryService';
+import { resolveCityCenter } from '@/services/cityCenterService';
+import { isMealPlace } from '@/services/momentSelection';
+import { resolveFoodPrefs, DIETE } from '@/lib/foodPrefs';
+import { voiceIssues } from '@/lib/narrationLight';
+import { buildPromptFromSelections } from '@/pages/QuickPath';
+import { row, conComposizione } from '../prova-reale/righe.js';
+import config from './banco.config.json';
+import { CASI_ESTESI, istanteSimulato } from './casi-esteso.js';
+
+const OUT = process.env.BANCO_OUT;
+if (!OUT) throw new Error('BANCO_OUT mancante: lancia il banco esteso con `npm run banco:esteso`');
+const E = config.esteso;
+
+// Le scelte del wizard di Veloce sono scritte in casi-esteso.js: se QuickPath.jsx cambia titolo, ci si ferma.
+const quickSrc = readFileSync(path.join(process.cwd(), 'src/pages/QuickPath.jsx'), 'utf8');
+for (const t of new Set(CASI_ESTESI.filter(c => c.scelta).flatMap(c => [c.scelta.mainTitle, c.scelta.subTitle]))) {
+    if (!quickSrc.includes(`title: '${t}'`)) throw new Error(`QuickPath.jsx non ha piu' la scelta «${t}»: aggiorna casi-esteso.js`);
+}
+
+const SCELTI = (process.env.BANCO_CASI || '').split(',').map(s => s.trim()).filter(Boolean);
+const casi = SCELTI.length ? CASI_ESTESI.filter(c => SCELTI.includes(c.id)) : CASI_ESTESI;
+const out = { avvio: new Date().toISOString(), identita: null, giornoSimulato: E.giornoSimulato, casi: [], costo: null };
+const save = () => { mkdirSync(path.dirname(OUT), { recursive: true }); writeFileSync(OUT, JSON.stringify(out, null, 1)); };
+
+// ─── Il fetch che conta e annota (come banco.live.js) ────────────────────────
+const realFetch = globalThis.fetch;
+const cont = { ai: 0, tokenIn: 0, tokenOut: 0, google: {} };
+const luoghi = new Map();
+const annota = (p, query) => {
+    const id = p?.place_id;
+    if (!id) return;
+    const l = luoghi.get(id) || { queries: new Set() };
+    if (Number.isFinite(p.user_ratings_total)) l.recensioni = p.user_ratings_total;
+    if (Number.isFinite(p.price_level)) l.priceLevel = p.price_level;
+    if (Array.isArray(p.types)) l.types = p.types;
+    if (query) l.queries.add(query.toLowerCase());
+    luoghi.set(id, l);
+};
+globalThis.fetch = vi.fn(async (url, init) => {
+    const res = await realFetch(url, init);
+    const u = String(url);
+    if (u.includes('places-proxy')) {
+        let params = null;
+        try { params = new URL(u, 'http://x').searchParams; } catch { /* url strano */ }
+        const k = params?.get('path') || 'altro';
+        cont.google[k] = (cont.google[k] || 0) + 1;
+        if (k !== 'place/photo' && k !== 'place/details') {
+            try {
+                const j = await res.clone().json();
+                for (const p of j?.results || []) annota(p, params?.get('query'));
+                for (const p of j?.candidates || []) annota(p, params?.get('input'));
+            } catch { /* non JSON */ }
+        }
+    }
+    if (u.includes('openai-proxy')) {
+        cont.ai++;
+        try {
+            const j = await res.clone().json();
+            cont.tokenIn += j?.usage?.prompt_tokens || 0;
+            cont.tokenOut += j?.usage?.completion_tokens || 0;
+        } catch { /* stream o errore */ }
+    }
+    return res;
+});
+
+// Costo corrente (token + Google contati; le foto le carica il browser, non lo script).
+const P = config.prezziUsd;
+const costoOra = () => (cont.tokenIn * P.openaiInputPerMilione + cont.tokenOut * P.openaiOutputPerMilione) / 1e6
+    + Object.entries(cont.google).reduce((a, [k, n]) => a + n * (P.google[k] ?? P.google.altro), 0);
+
+beforeAll(async () => {
+    const email = process.env.TEST_ACCOUNT_EMAIL;
+    const password = process.env.TEST_ACCOUNT_PASSWORD;
+    if (!email || !password) throw new Error("mancano le credenziali dell'account di prova in .env.local");
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data?.session) throw new Error(`login dell'account di prova fallito: ${error?.status || ''} ${error?.code || 'nessuna sessione'}`);
+    out.identita = 'account di prova';
+    console.log(`[banco-esteso] account di prova | ${casi.length} casi | giorno simulato ${E.giornoSimulato} | risultato: ${OUT}`);
+    save();
+});
+afterAll(async () => {
+    out.fine = new Date().toISOString();
+    out.costo = { totale: costoOra(), ai: { chiamate: cont.ai, tokenIn: cont.tokenIn, tokenOut: cont.tokenOut }, google: cont.google, tettoUsd: E.tettoUsd };
+    save();
+    await supabase.auth.signOut();
+});
+
+const GRUPPO_ID = { Solo: 'solo', 'In coppia': 'coppia', 'Con gli amici': 'amici', 'In famiglia': 'famiglia' };
+
+// Una tappa: la riga della prova reale + quello che servono ai controlli.
+const tappa = (s, fatti, comp, riempite, dieta, atStimato) => {
+    const r = conComposizione({ place_id: s.place_id, ...row(s, fatti, riempite) }, comp, fatti);
+    const l = luoghi.get(s.place_id) || { queries: new Set() };
+    const frasi = String(r.description || '').split(/(?<=[.!?])\s+/).filter(Boolean).map(f => ({ testo: f, problemi: voiceIssues(f) }));
+    const types = l.types || s.types || [];
+    const parole = dieta.flatMap(d => [DIETE[d]?.criterio, ...(DIETE[d]?.parole || [])].filter(Boolean));
+    const qs = [...l.queries];
+    const conDieta = (q) => parole.some(w => q.includes(w));
+    return {
+        place_id: s.place_id, title: r.title, types, moment: r.moment, at: r.at || atStimato || null, atStimato: !r.at && !!atStimato,
+        ...(s.tempoLibero ? { tempoLibero: true } : {}),
+        lat: s.latitude ?? null, lng: s.longitude ?? null, min: r.min, scelta: r.scelta, stay: s.stayMinutes ?? null,
+        ripiego: s._tracciato?.ripiego || null, motivo: r.motivo || null, famiglia: r.famiglia,
+        incrocio: s._tracciato?.incrocio || null, daPartenza: s._tracciato?.daPartenza || null,
+        varieta: s._tracciato?.varieta || null, deviazioneProva: s._tracciato?.deviazioneProva || null,
+        description: r.description, verita: r.verita, voce: r.voce, frasi, fatti: (fatti || []).length,
+        recensioni: l.recensioni ?? null, priceLevel: l.priceLevel ?? null,
+        pasto: isMealPlace({ types, name: r.title, title: r.title }),
+        dietaCercata: parole.length ? qs.some(conDieta) : null,
+        dietaSolo: parole.length ? (qs.length > 0 && qs.every(conDieta)) : null,
+    };
+};
+
+const meteoApp = { condition: 'sunny', temperature: 20 }; // il valore di ripiego che le pagine passano (weatherCondition || 'sunny', temperatureC || 20)
+
+async function genera(caso) {
+    const now = istanteSimulato(caso, E);
+    const cc = await resolveCityCenter(caso.luogo);
+    const base = { skipUserQuota: true, simulatedNow: now }; // skipUserQuota: solo il preflight del client (vedi memoria test-acc-preflight)
+    const onboarding = caso.onboarding || null;
+    const food = resolveFoodPrefs({ userPrompt: caso.richiesta || '', wizardBudget: caso.prefs?.budget, onboarding });
+    const rec = { vincoli: food.dieta?.length || food.budget ? { dieta: food.dieta, budget: food.budget, maxPriceLevel: food.maxPriceLevel } : null };
+    let r;
+    if (caso.modo === 'crea') {
+        const prefs = { budget: '', duration: '', interests: [], group: '', pace: '', ...caso.prefs };
+        rec.chiamata = { pagina: 'AiItinerary.jsx', pathType: 'custom', prefs, testo: caso.richiesta };
+        r = await aiRecommendationService.generateItinerary(caso.luogo, prefs, caso.richiesta, meteoApp, '', cc,
+            { dnaWeights: {}, pathType: 'custom', onboardingPrefs: onboarding, ...base });
+    } else if (caso.modo === 'veloce') {
+        const s = caso.scelta;
+        const durata = { Veloce: 'veloce', Medio: 'medio', Lungo: 'lungo' }[caso.durata];
+        const prompt = buildPromptFromSelections({ main: s.main, sub: s.sub, duration: durata, group: GRUPPO_ID[caso.gruppo], city: caso.luogo });
+        const prefs = { duration: caso.durata, group: caso.gruppo, interests: [s.mainTitle, s.subTitle] }; // niente ritmo: come QuickPath.jsx
+        rec.chiamata = { pagina: 'QuickPath.jsx', pathType: 'quick', prefs, testo: prompt };
+        r = await aiRecommendationService.generateItinerary(caso.luogo, prefs, prompt, meteoApp, '', cc,
+            { dnaWeights: {}, pathType: 'quick', onboardingPrefs: onboarding, ...base });
+    } else if (caso.modo === 'sorprendimi') {
+        const prefs = { interests: caso.tema ? [caso.tema] : ['Arte', 'Cibo', 'Scoperte Urbane'], duration: 'Mezza Giornata' };
+        const prompt = `Sei l'intelligenza di Unnivai. Genera un'esperienza a sorpresa esaltante a ${caso.luogo}.
+            Categoria di oggi: ${caso.tema ? caso.tema : 'Mix delle sue più profonde passioni storiche'}.
+            L'esperienza DEVE essere fuori dai soliti schemi turistici commerciali e sembrare magia pura, calzando i suoi gusti inconsci.
+            NON inventare coordinate.`;
+        rec.chiamata = { pagina: 'SurpriseTour.jsx', pathType: null, prefs, testo: prompt.replace(/\s+/g, ' ') };
+        r = await aiRecommendationService.generateItinerary(caso.luogo, prefs, prompt, {}, '', { latitude: cc.latitude, longitude: cc.longitude },
+            { dnaWeights: {}, onboardingPrefs: onboarding, ...base });
+    }
+    return { r, rec, cc, now, food };
+}
+
+for (const caso of casi) {
+    it(caso.id, async () => {
+        const rec = { id: caso.id, modo: caso.modo, tipo: caso.modo === 'perte' ? 'perte' : 'itinerario', luogo: caso.luogo, ora: caso.ora,
+            oggi: E.giornoSimulato, richiesta: caso.richiesta || (caso.modo === 'veloce' ? null : caso.tema || null), onboarding: caso.onboarding || null };
+        out.casi.push(rec);
+        if (costoOra() >= E.tettoGenerazioniUsd) { rec.saltato = `tetto di spesa delle generazioni raggiunto ($${costoOra().toFixed(2)})`; save(); return; }
+        // Ogni caso parte a cache vuota: le chiamate Google sono quelle di UNA generazione. La sessione (sb-*) resta.
+        for (const k of Object.keys(window.localStorage)) if (!k.startsWith('sb-')) window.localStorage.removeItem(k);
+        const c0 = { ...cont, google: { ...cont.google } };
+        const delta = () => ({
+            ai: { chiamate: cont.ai - c0.ai, tokenIn: cont.tokenIn - c0.tokenIn, tokenOut: cont.tokenOut - c0.tokenOut },
+            google: Object.fromEntries(Object.entries(cont.google).map(([k, v]) => [k, v - (c0.google[k] || 0)]).filter(([, v]) => v > 0)),
+        });
+        const t0 = Date.now();
+        try {
+            if (caso.modo === 'perte') {
+                const now = istanteSimulato(caso, E);
+                const food = resolveFoodPrefs({ onboarding: caso.onboarding });
+                if (food.dieta?.length || food.budget) rec.vincoli = { dieta: food.dieta, budget: food.budget, maxPriceLevel: food.maxPriceLevel };
+                rec.chiamata = { pagina: 'DashboardUser.jsx', pathType: null, prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, testo: null };
+                const cc = await resolveCityCenter(caso.luogo);
+                const themed = await placesDiscoveryService.discoverAllThemes(caso.luogo, cc.latitude, cc.longitude, { foodPrefs: food });
+                const insider = buildInsiderPool(themed, cc, caso.luogo, undefined, { _share: 0 });
+                const r = await aiRecommendationService.generateHomeTours({ city: caso.luogo, cityCenter: cc, themedCandidates: { insider, ...themed },
+                    prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, aiProfile: '',
+                    opts: { dnaWeights: { _share: 0 }, onboardingPrefs: caso.onboarding || null, skipUserQuota: true, simulatedNow: now } });
+                rec.secs = (Date.now() - t0) / 1000;
+                rec.source = r._source;
+                rec.momento = r._report?.momento ?? null;
+                rec.tourDate = E.giornoSimulato;
+                rec.pool = Object.fromEntries(Object.entries({ insider, ...themed }).map(([k, arr]) => [k,
+                    (Array.isArray(arr) ? arr : []).slice(0, 25).map(p => ({ place_id: p.place_id || p.googlePlaceId, nome: p.name || p.title, types: (p.types || []).slice(0, 4), rating: p.rating ?? null, recensioni: p.user_ratings_total ?? null }))]));
+                const per = new Map((r._report?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
+                const comp = new Map((r._report?.composizione || []).map(x => [x.place_id, x]));
+                rec.tours = (r.tours || []).map(t => {
+                    // "Per Te" non ha orari: l'arrivo si stima da ora simulata + cammino + soste.
+                    let t_ = new Date(now).getTime();
+                    return { tema: t.themeType, titolo: t.title || null, stops: t.stops.map(s => {
+                        t_ += (s.travelMinutesFromPrev || 0) * 60000;
+                        const stimato = new Date(t_).toISOString();
+                        t_ += (s.stayMinutes || 0) * 60000;
+                        return tappa(s, per.get(s.place_id), comp, null, food.dieta || [], stimato);
+                    }) };
+                });
+                rec.schermo = { giorni: (rec.tours || []).map(t => ({ titolo: t.titolo, meteo: null })), note: [] };
+                rec.ripiegoDichiarato = false;
+            } else {
+                const { r, rec: extra, food } = await genera(caso);
+                Object.assign(rec, extra);
+                rec.richiesta = rec.chiamata?.testo ?? rec.richiesta;
+                rec.secs = (Date.now() - t0) / 1000;
+                rec.source = r._source;
+                rec.destinazione = r.destination ? { city: r.destination.city, fromText: r.destination.fromText, note: r.destination.note || null } : null;
+                rec.tourDate = r.tourWindow?.date ?? null;
+                rec.giorno = r.tourWindow ? { date: r.tourWindow.date, start: r.tourWindow.start, reason: r.tourWindow.reason } : null;
+                rec.frasiTolte = r._narrationReport?.frasiTolte ?? null;
+                rec.pool = r._momentReport?.pool ?? null;
+                rec.sceltaModello = r._momentReport?.sceltaModello ?? null;
+                rec.ricerche = { prima: r._momentReport?.ricercheMirate ?? null, dopo: r._momentReport?.ricercheDopo ?? null };
+                rec.ripiegoDichiarato = !!(r._singleStop || r._queryDiBaseDopoVuoto);
+                rec.schermo = { giorni: (r.days || []).map(d => ({ titolo: d.title || null, meteo: d.weather ?? null })),
+                    note: [r.destination?.note, ...(r.days || []).map(d => d.dietNote)].filter(Boolean) };
+                const per = new Map((r._narrationReport?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
+                const comp = new Map((r._narrationReport?.composizione || []).map(x => [x.place_id, x]));
+                const riempite = new Set((r._momentReport?.riempite || []).map(x => x.place_id));
+                rec.tours = (r.days || []).map(d => ({ tema: d.title || null, stops: d.stops.map(s => tappa(s, per.get(s.place_id), comp, riempite, food.dieta || [], null)) }));
+            }
+        } catch (e) {
+            rec.secs = (Date.now() - t0) / 1000;
+            rec.errore = e?.code || e?.message || String(e);
+        } finally {
+            Object.assign(rec, delta());
+            save();
+        }
+    });
+}
+
+// ─── Gli orari di apertura dei posti scelti (place/details, opening_hours) ───
+// Il pool porta solo `open_now` (textsearch), non i periodi: gli orari si prendono
+// QUI, dopo la generazione, una volta per place_id, nell'ordine in cui un orario
+// sbagliato fa piu' male (dove si mangia e si beve, poi musei e negozi, poi il resto),
+// finche' il tetto di spesa lo consente. Quelli non richiesti restano "sconosciuti".
+const PRIORITA = (s) => {
+    const t = s.types || [];
+    if (s.pasto || t.some(x => ['restaurant', 'food', 'cafe', 'bar', 'bakery', 'meal_takeaway', 'night_club', 'ice_cream_shop'].includes(x))) return 0;
+    if (t.some(x => ['museum', 'art_gallery', 'store', 'clothing_store', 'book_store', 'shopping_mall'].includes(x))) return 1;
+    return 2;
+};
+it('orari', async () => {
+    const tutte = out.casi.flatMap(c => (c.tours || []).flatMap(t => t.stops || [])).filter(s => !s.tempoLibero && s.place_id);
+    const ordine = new Map();
+    for (const s of tutte) if (!ordine.has(s.place_id) || PRIORITA(s) < ordine.get(s.place_id).p) ordine.set(s.place_id, { p: PRIORITA(s) });
+    const ids = [...ordine.entries()].sort((a, b) => a[1].p - b[1].p).map(([id]) => id);
+    const orari = {};
+    const prezzo = P.google['place/details'];
+    let i = 0;
+    while (i < ids.length) {
+        const lotto = ids.slice(i, i + 5);
+        if (costoOra() + lotto.length * prezzo > E.tettoUsd) break;
+        await Promise.all(lotto.map(async (id) => {
+            try {
+                const res = await fetch(buildPlacesProxyUrl({ path: 'place/details', place_id: id, fields: 'opening_hours' }));
+                const j = res.ok ? await res.json() : null;
+                const oh = j?.result?.opening_hours;
+                orari[id] = { chiamato: true, periods: Array.isArray(oh?.periods) && oh.periods.length ? oh.periods : null };
+            } catch { orari[id] = { chiamato: true, periods: null, errore: true }; }
+        }));
+        i += lotto.length;
+    }
+    for (const id of ids.slice(i)) orari[id] = { chiamato: false, periods: null };
+    for (const c of out.casi) c.orari = Object.fromEntries((c.tours || []).flatMap(t => t.stops || []).filter(s => s.place_id && orari[s.place_id]).map(s => [s.place_id, orari[s.place_id]]));
+    out.orariRiepilogo = { postiDistinti: ids.length, chiamati: i, nonRichiesti: ids.length - i, senzaOrari: Object.values(orari).filter(o => o.chiamato && !o.periods).length };
+    save();
+});

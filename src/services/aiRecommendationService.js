@@ -359,6 +359,7 @@ import {
     requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme,
 } from './momentSelection';
 import { routeMetrics } from '../lib/routeShape';
+import { requestNow } from '../lib/simulatedNow';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
@@ -2222,7 +2223,7 @@ export const aiRecommendationService = {
         // sono due martedì diversi, anche se il cacheKey è lo stesso.
         // opts.pathType: 'custom' (Crea il tuo Percorso) legge il testo;
         // assente o 'quick' = da adesso, il comportamento di prima.
-        const requestTime = new Date();
+        const requestTime = requestNow(opts);
         const tourWindow = resolveTourWindow({
             text: userPrompt, requestTime, pathType: opts.pathType, duration: prefs?.duration,
         });
@@ -2943,7 +2944,7 @@ export const aiRecommendationService = {
         // tabella dei momenti (dayMoments.js). Prima qui c'erano cinque soglie
         // scritte a mano (6/11/14/18/22) sull'ora del TELEFONO: una seconda
         // tabella, divergente da quella che usa il resto dell'app.
-        const now = new Date();
+        const now = requestNow(opts);
         const nowRome = romeParts(now);
         const moment = momentAtClock(nowRome.h, nowRome.mi);
         const romeDay = `${nowRome.y}-${String(nowRome.m).padStart(2, '0')}-${String(nowRome.d).padStart(2, '0')}`;

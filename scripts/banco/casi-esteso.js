@@ -1,0 +1,70 @@
+// BANCO-ESTESO — la matrice dei casi: modalità × ora × richiesta × vincoli × luogo.
+// Dati puri. Ogni caso replica la chiamata reale della sua pagina:
+//   crea         AiItinerary.jsx   pathType 'custom', prefs del wizard (budget, durata, interessi, gruppo, ritmo)
+//   veloce       QuickPath.jsx     pathType 'quick', testo da buildPromptFromSelections, NESSUN ritmo (come l'app)
+//   sorprendimi  SurpriseTour.jsx  nessun pathType, 'Mezza Giornata', cityCenter = {latitude, longitude}
+//   perte        DashboardUser.jsx discoverAllThemes + buildInsiderPool + generateHomeTours
+// `ora` = ora di Roma simulata (giorno: config.esteso.giornoSimulato).
+
+const VEG = { dieta: ['vegetariano'], budget: null, stile: null };
+
+// Veloce: i titoli delle scelte come li mostra il wizard (QuickPath.jsx, CITY_CONFIG).
+const V = {
+    relax: { main: 'relax', sub: 'spa', mainTitle: 'Relax', subTitle: 'Benessere' },
+    cultura: { main: 'storia', sub: 'musei', mainTitle: 'Storia', subTitle: 'Cultura e Musei' },
+    rione: { main: 'citta', sub: 'rione', mainTitle: 'Città', subTitle: 'Rioni Storici' },
+    pizza: { main: 'cibo', sub: 'pizza', mainTitle: 'Gusto', subTitle: 'Vera Pizza' },
+    parco: { main: 'natura', sub: 'parco', mainTitle: 'Natura', subTitle: 'Parchi e Verde' },
+    duomo: { main: 'citta', sub: 'duomo', mainTitle: 'Città', subTitle: 'Zona Duomo' },
+};
+
+const crea = (id, luogo, ora, richiesta, prefs, onboarding = null) => ({ id, modo: 'crea', luogo, ora, richiesta, prefs: { budget: '', group: '', pace: '', ...prefs }, onboarding });
+const veloce = (id, luogo, ora, scelta, durata, gruppo = 'Solo') => ({ id, modo: 'veloce', luogo, ora, scelta: V[scelta], durata, gruppo });
+const sorprendimi = (id, luogo, ora, tema = null) => ({ id, modo: 'sorprendimi', luogo, ora, tema });
+const perte = (id, luogo, ora, onboarding = null) => ({ id, modo: 'perte', luogo, ora, onboarding });
+
+export const CASI_ESTESI = [
+    // ── Crea il tuo percorso (11) ──
+    crea('crea-catania-catanese-veg', 'Catania', '09:30', 'Vorrei vivere un giorno da catanese, nei ristoranti tipici', { duration: '1 Giorno', interests: ['Cibo'], pace: 'Attivo' }, VEG),
+    crea('crea-catania-catanese', 'Catania', '09:30', 'Vorrei vivere un giorno da catanese, nei ristoranti tipici', { duration: '1 Giorno', interests: ['Cibo'], pace: 'Attivo' }),
+    crea('crea-napoli-aperitivo-cena', 'Napoli', '19:30', 'aperitivo e cena', { duration: 'Mezza Giornata', pace: 'Attivo' }),
+    crea('crea-roma-neutra', 'Roma', '09:30', 'Una giornata a Roma', { duration: '1 Giorno', pace: 'Attivo' }),
+    crea('crea-lecce', 'Lecce', '09:30', 'Una giornata a Lecce', { duration: '1 Giorno', pace: 'Rilassato' }),
+    crea('crea-troina', 'Troina', '09:30', 'Una giornata a Troina', { duration: '1 Giorno', pace: 'Attivo' }),
+    crea('crea-bologna-pomeriggio', 'Bologna', '15:00', 'Un pomeriggio a Bologna tra portici e osterie', { duration: 'Mezza Giornata', pace: 'Rilassato' }),
+    crea('crea-milano-sera', 'Milano', '20:30', 'Una cena e due passi a Milano', { duration: 'Mezza Giornata', pace: 'Intenso' }),
+    crea('crea-firenze-arte', 'Firenze', '09:30', "Una giornata d'arte a Firenze", { duration: '1 Giorno', interests: ['Arte', 'Storia'], pace: 'Rilassato' }),
+    crea('crea-palermo-mercato-veg', 'Palermo', '12:00', 'Pranzo e giro al mercato a Palermo', { duration: 'Mezza Giornata', interests: ['Cibo'], pace: 'Attivo' }, VEG),
+    crea('crea-siracusa', 'Siracusa', '09:30', "Una giornata a Siracusa, a Ortigia", { duration: '1 Giorno', pace: 'Attivo' }),
+
+    // ── Percorso Veloce (9) — nessun ritmo, come QuickPath.jsx ──
+    veloce('veloce-catania-relax-2125', 'Catania', '21:25', 'relax', 'Veloce'),
+    veloce('veloce-catania-relax-2145', 'Catania', '21:45', 'relax', 'Veloce'),
+    veloce('veloce-catania-relax-2330', 'Catania', '23:30', 'relax', 'Veloce'),
+    veloce('veloce-firenze-cultura', 'Firenze', '10:30', 'cultura', 'Medio'),
+    veloce('veloce-palermo-relax', 'Palermo', '14:30', 'relax', 'Veloce'),
+    veloce('veloce-roma-rione', 'Roma', '17:00', 'rione', 'Medio', 'In coppia'),
+    veloce('veloce-napoli-pizza', 'Napoli', '19:00', 'pizza', 'Veloce', 'Con gli amici'),
+    veloce('veloce-siracusa-parco', 'Siracusa', '08:15', 'parco', 'Medio'),
+    veloce('veloce-milano-duomo', 'Milano', '12:45', 'duomo', 'Lungo', 'In famiglia'),
+
+    // ── Sorprendimi (5) ──
+    sorprendimi('sorprendimi-roma-mattina', 'Roma', '10:30'),
+    sorprendimi('sorprendimi-catania-pomeriggio', 'Catania', '15:30'),
+    sorprendimi('sorprendimi-milano-sera', 'Milano', '20:30'),
+    sorprendimi('sorprendimi-firenze-cultura', 'Firenze', '11:00', 'Cultura'),
+    sorprendimi('sorprendimi-napoli-tardi', 'Napoli', '22:30'),
+
+    // ── Per Te (5) ──
+    perte('perte-roma-1000', 'Roma', '10:00'),
+    perte('perte-roma-1600', 'Roma', '16:00'),
+    perte('perte-catania-1300', 'Catania', '13:00'),
+    perte('perte-napoli-2000', 'Napoli', '20:00'),
+    perte('perte-firenze-1100-veg', 'Firenze', '11:00', VEG),
+];
+
+export const MODI = ['crea', 'veloce', 'sorprendimi', 'perte'];
+export const NOMI_MODO = { crea: 'Crea il tuo percorso', veloce: 'Percorso Veloce', sorprendimi: 'Sorprendimi', perte: 'Per Te' };
+
+/** L'istante simulato di un caso: giorno del config + ora di Roma. */
+export const istanteSimulato = (caso, esteso) => `${esteso.giornoSimulato}T${caso.ora}:00${esteso.fusoOffset}`;

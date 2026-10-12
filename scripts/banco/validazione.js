@@ -1,0 +1,142 @@
+// BANCO-ESTESO — la validazione dei controlli, prima di usarli.
+// Ogni controllo deve dare ROSSO su un esempio cattivo noto e VERDE su uno buono.
+// Gli esempi cattivi sono i casi del telefono del 12/10 (D-CATANIA) dove esistono;
+// per le classi 1, 9 e 10 l'esempio cattivo è costruito (marcato "costruito").
+// Se un controllo non vede il suo caso cattivo è sbagliato: si corregge prima del giro.
+import { CONTROLLI, c9 } from './controlli.js';
+
+const G = '2026-10-14'; // mercoledì
+const at = (hhmm) => `${G}T${hhmm}:00+02:00`;
+const st = (title, o = {}) => ({ place_id: `id-${title}`, title, types: ['tourist_attraction'], moment: 'pomeriggio', at: null, stay: 30, pasto: false,
+    description: 'Passi da qui senza fretta.', tempoLibero: false, ripiego: null, scelta: 'modello', dietaCercata: null, dietaSolo: false, ...o });
+const caso = (stops, o = {}) => ({ id: 'x', modo: 'crea', tipo: 'itinerario', luogo: 'Catania', ora: '09:30', oggi: G, tourDate: G, richiesta: 'Una giornata a Catania',
+    vincoli: null, schermo: { giorni: [], note: [] }, ripiegoDichiarato: false, orari: {}, tours: [{ stops }], ...o });
+const orari = (id, periods) => ({ [id]: { periods, chiamato: true } });
+// mer 18:00–00:00 (come la Casbah del Moro: mai aperta di mattina)
+const SOLO_SERA = [3, 4, 5, 6].map(d => ({ open: { day: d, time: '1800' }, close: { day: d === 6 ? 0 : d + 1, time: '0000' } }));
+const GIORNO = [0, 1, 2, 3, 4, 5, 6].map(d => ({ open: { day: d, time: '0600' }, close: { day: d, time: '2000' } }));
+
+const quattro = [
+    st('Castello Ursino', { types: ['museum'], moment: 'mattina', at: at('09:30'), stay: 60 }),
+    st('Trattoria del Duomo', { types: ['restaurant', 'food'], moment: 'pranzo', at: at('12:30'), stay: 75, pasto: true }),
+    st('Villa Bellini', { types: ['park'], moment: 'pomeriggio', at: at('15:00'), stay: 30 }),
+    st('Osteria Antica', { types: ['restaurant', 'food'], moment: 'cena', at: at('20:00'), stay: 75, pasto: true }),
+];
+
+/** [classe, cattivo, buono] — ognuno { nome, origine, caso, atteso (testo) }. */
+export const ESEMPI = {
+    c1: {
+        cattivo: { nome: 'pranzo doppio: trattoria 12:30 e un\'altra alle 14:30; pizzeria alle 16:10', origine: 'telefono 12/10 (la trattoria alle 14:30 dopo il pranzo) + costruito (16:10)',
+            caso: caso([
+                st('Trattoria Sorano', { types: ['restaurant'], moment: 'pranzo', at: at('12:30'), stay: 75, pasto: true }),
+                st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pomeriggio', at: at('14:30'), stay: 75, pasto: true }),
+                st('Pizzeria Etna', { types: ['restaurant'], moment: 'pomeriggio', at: at('16:10'), stay: 75, pasto: true }),
+            ]) },
+        buono: { nome: 'pranzo 13:00 e cena 20:30', caso: caso([
+            st('Trattoria Sorano', { types: ['restaurant'], moment: 'pranzo', at: at('13:00'), stay: 75, pasto: true }),
+            st('Osteria Antica', { types: ['restaurant'], moment: 'cena', at: at('20:30'), stay: 75, pasto: true }),
+        ]) },
+    },
+    c2: {
+        cattivo: { nome: 'trattoria alle 14:30 (pomeriggio) con richiesta "ristoranti tipici" e un ristorante alle 9:30', origine: 'telefono 12/10',
+            caso: caso([
+                st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pomeriggio', at: at('14:30'), stay: 75, pasto: true }),
+                st('Trattoria Sorano', { types: ['restaurant'], moment: 'mattina', at: at('09:30'), stay: 75, pasto: true }),
+            ], { richiesta: 'Vorrei vivere un giorno da catanese, nei ristoranti tipici' }) },
+        buono: { nome: 'ristorante a pranzo; la merenda richiesta nel pomeriggio', caso: caso([
+            st('Trattoria Sorano', { types: ['restaurant'], moment: 'pranzo', at: at('13:00'), stay: 75, pasto: true }),
+            st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pomeriggio', at: at('15:00'), stay: 75, pasto: true }),
+        ], { richiesta: 'Una merenda in trattoria a Catania' }) },
+    },
+    c3: {
+        cattivo: { nome: 'colazione alla Casbah del Moro alle 9:30 (bar/ristorante, apre alle 18:00)', origine: 'telefono 12/10 (D-CATANIA B6)',
+            caso: caso([st('Casbah del Moro', { place_id: 'casbah', types: ['bar', 'restaurant', 'food'], moment: 'mattina', at: at('09:30'), stay: 75, pasto: true })],
+                { orari: orari('casbah', SOLO_SERA) }) },
+        buono: { nome: 'colazione in un bar-pasticceria aperto', caso: caso([st('Bar Pasticceria Centrale', { place_id: 'bar', types: ['cafe', 'bakery', 'food'], moment: 'mattina', at: at('09:30'), stay: 20 })],
+            { orari: orari('bar', GIORNO) }) },
+    },
+    c4: {
+        cattivo: { nome: 'Veloce con 1 tappa (una gastronomia alle 21:25), nessun ripiego', origine: 'telefono 12/10 (D-CATANIA A)',
+            caso: caso([st('Gastronomia Etnea', { types: ['meal_takeaway', 'food'], moment: 'cena', at: at('21:25'), stay: 30, pasto: true })], { modo: 'veloce', ora: '21:25' }) },
+        buono: { nome: 'giro serale aperitivo + cena (2 tappe); e 4 tappe di giorno', caso: caso([
+            st('Wine Bar Etna', { types: ['bar'], moment: 'aperitivo', at: at('19:00'), stay: 20 }),
+            st('Osteria Antica', { types: ['restaurant'], moment: 'cena', at: at('20:00'), stay: 75, pasto: true }),
+        ], { modo: 'veloce', ora: '19:00' }) },
+    },
+    c5: {
+        cattivo: { nome: 'Casbah del Moro alle 9:30, chiusa (mer 18:00–00:00)', origine: 'telefono 12/10 (D-CATANIA B6)',
+            caso: caso([st('Casbah del Moro', { place_id: 'casbah', types: ['bar', 'restaurant'], moment: 'mattina', at: at('09:30'), pasto: true })], { orari: orari('casbah', SOLO_SERA) }) },
+        buono: { nome: 'bar aperto alle 9:30 (e un posto senza orari: "sconosciuto", non violazione)', caso: caso([
+            st('Bar Centrale', { place_id: 'bar', types: ['cafe'], moment: 'mattina', at: at('09:30'), stay: 20 }),
+            st('Villa Bellini', { place_id: 'villa', types: ['park'], moment: 'pomeriggio', at: at('15:00') }),
+        ], { orari: { ...orari('bar', GIORNO), villa: { periods: null, chiamato: true } } }), verificaSconosciuto: 1 },
+    },
+    c6: {
+        cattivo: { nome: 'caffè da 1h 15min (75 min, come un ristorante)', origine: 'telefono 12/10 (D-CATANIA B5)',
+            caso: caso([st('Caffè Savia', { types: ['cafe', 'restaurant'], moment: 'mattina', at: at('09:30'), stay: 75 }),
+                st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pranzo', at: at('12:30'), stay: 75, pasto: true })]) },
+        buono: { nome: 'caffè 20 min, ristorante 75, chiesa 20', caso: caso([st('Caffè Savia', { types: ['cafe'], moment: 'mattina', at: at('09:30'), stay: 20 }),
+            st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pranzo', at: at('12:30'), stay: 75, pasto: true }),
+            st('Chiesa di San Nicolò', { types: ['church'], moment: 'pomeriggio', at: at('15:00'), stay: 20 })]) },
+    },
+    c7: {
+        cattivo: { nome: '"Sono 1 minuti a piedi dalla tappa prima." e la stessa frase 3 volte', origine: 'telefono 12/10',
+            caso: caso([
+                st('Villa Bellini', { description: 'Sono 1 minuti a piedi dalla tappa prima.' }),
+                st('Piazza Duomo', { description: 'Qui la giornata prende ritmo, senza fretta.' }),
+                st('Via Etnea', { description: 'Qui la giornata prende ritmo, senza fretta.' }),
+                st('Castello Ursino', { description: 'Qui la giornata prende ritmo, senza fretta.' }),
+            ]) },
+        buono: { nome: 'frasi diverse, "1 minuto" e "5 minuti" corretti', caso: caso([
+            st('Villa Bellini', { description: 'Sono 1 minuto a piedi dalla tappa prima.' }),
+            st('Piazza Duomo', { description: 'Sono 5 minuti a piedi dalla tappa prima.' }),
+            st('Via Etnea', { description: 'Alle 15 sei a Via Etnea: è qui che ti porta la giornata.' }),
+        ]) },
+    },
+    c8: {
+        cattivo: { nome: '"sunny, 20°C" alle 21:23 su un tour di domani', origine: 'telefono 12/10',
+            caso: caso([st('Villa Bellini')], { tourDate: '2026-10-15', schermo: { giorni: [{ titolo: 'Giorno 1 a Catania', meteo: { condition: 'sunny', temperature: 20 } }], note: [] } }) },
+        buono: { nome: 'meteo in italiano sul tour di oggi; nessun meteo su un tour di domani', caso: caso([st('Villa Bellini')],
+            { schermo: { giorni: [{ titolo: 'Giorno 1 a Catania', meteo: { condition: 'soleggiato', temperature: 20 } }], note: [] } }) },
+        buono2: { nome: 'tour di domani senza meteo', caso: caso([st('Villa Bellini')], { tourDate: '2026-10-15', schermo: { giorni: [{ titolo: 'Giorno 1 a Catania', meteo: null }], note: [] } }) },
+    },
+    c10: {
+        cattivo: { nome: 'vegetariano: un pasto non cercato come vegetariano; un museo trovato solo da ricerche vegetariane', origine: 'costruito',
+            caso: caso([
+                st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pranzo', at: at('12:30'), pasto: true, dietaCercata: false }),
+                st('Museo Civico', { types: ['museum'], dietaCercata: true, dietaSolo: true }),
+            ], { vincoli: { dieta: ['vegetariano'] } }) },
+        buono: { nome: 'vegetariano: pasti cercati col criterio; museo trovato da ricerche normali', caso: caso([
+            st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pranzo', at: at('12:30'), pasto: true, dietaCercata: true }),
+            st('Museo Civico', { types: ['museum'], dietaCercata: false, dietaSolo: false }),
+        ], { vincoli: { dieta: ['vegetariano'] } }) },
+    },
+};
+
+const passi = (n, ko = []) => Array.from({ length: n }, (_, i) => ({ nome: `passo ${i + 1}`, ok: !ko.includes(i + 1) }));
+export const ESEMPIO_C9 = {
+    cattivo: { nome: 'dopo il logout il flag "onboarding fatto" è cancellato e al login su browser vuoto lo stato è "todo" (il comportamento prima di ONB-1)',
+        origine: 'costruito sul comportamento descritto in docs/prove/2026-10-12-onb1.md §1', onb1: { passi: passi(12, [5, 8]) } },
+    buono: { nome: 'tutti i 12 passi OK', onb1: { passi: passi(12) } },
+    incompleto: { nome: 'la prova si ferma a 7 passi', onb1: { passi: passi(7) } },
+};
+
+/** @returns {Array<{ classe, cattivo, buono, ok, dettagli }>} */
+export function validaControlli(cfg) {
+    const righe = Object.entries(ESEMPI).map(([k, e]) => {
+        const f = CONTROLLI[k];
+        const rosso = f(e.cattivo.caso, cfg).violazioni;
+        const verde = f(e.buono.caso, cfg).violazioni;
+        const verde2 = e.buono2 ? f(e.buono2.caso, cfg).violazioni : [];
+        const sc = e.buono.verificaSconosciuto != null ? f(e.buono.caso, cfg).sconosciuti === e.buono.verificaSconosciuto : true;
+        return { classe: k, cattivo: e.cattivo.nome, origine: e.cattivo.origine, buono: e.buono.nome,
+            cattivoRosso: rosso.length > 0, buonoVerde: verde.length === 0 && verde2.length === 0 && sc,
+            visto: rosso.map(v => v.testo), falsiAllarmi: [...verde, ...verde2].map(v => v.testo) };
+    });
+    const r = c9(ESEMPIO_C9.cattivo.onb1, cfg).violazioni;
+    const v = c9(ESEMPIO_C9.buono.onb1, cfg).violazioni;
+    const inc = c9(ESEMPIO_C9.incompleto.onb1, cfg).violazioni;
+    righe.push({ classe: 'c9', cattivo: ESEMPIO_C9.cattivo.nome, origine: ESEMPIO_C9.cattivo.origine, buono: ESEMPIO_C9.buono.nome,
+        cattivoRosso: r.length > 0 && inc.length > 0, buonoVerde: v.length === 0, visto: [...r, ...inc].map(x => x.testo), falsiAllarmi: v.map(x => x.testo) });
+    return righe.sort((a, b) => Number(a.classe.slice(1)) - Number(b.classe.slice(1)));
+}

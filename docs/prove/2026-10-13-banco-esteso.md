@@ -1,6 +1,6 @@
 # Banco esteso — matrice dei casi reali e controlli automatici (2026-10-13)
 
-Motore: `2ded924`. Identità: account di prova (generazioni etichettate `test`). Avvio 2026-10-12T16:12:28.829Z, fine 2026-10-12T16:19:02.292Z. Casi: 30 (30 girati). Generato da `npm run banco:esteso`; soglie, fasce, pesi e tetti in `scripts/banco/banco.config.json` (sezione `esteso`).
+Motore: `f9998d4`. Identità: account di prova (generazioni etichettate `test`). Avvio 2026-10-12T16:12:28.829Z, fine 2026-10-12T16:19:02.292Z. Casi: 30 (30 girati). Generato da `npm run banco:esteso`; soglie, fasce, pesi e tetti in `scripts/banco/banco.config.json` (sezione `esteso`).
 
 Ora simulata: ogni caso gira come se la richiesta fosse fatta il **2026-10-14 (mercoledì)** all'ora indicata, ora di Roma (`opts.simulatedNow`, ignorato in produzione).
 
@@ -264,6 +264,7 @@ Le sole modifiche in `src/` sono `src/lib/simulatedNow.js` (nuovo) e **due righe
 
 ## Deploy
 
-Push su `main` e gate `ALL_GREEN`: vedi la riga finale dell'esito nel messaggio di chiusura del task (verificata dopo il push, non scritta prima).
+- Push su `main`: commit `f9998d4`. Gate CI **ALL_GREEN**: «Lint & Test» e «E2E Smoke» entrambi `success`. Il primo push (`531ddff`) era rosso: `simulatedNow.test.js` dipendeva da `VITE_SUPABASE_URL` presente solo in locale (in CI manca `.env`) e il test «produzione» passava a vuoto; riprodotto in locale con ambiente vuoto, corretto in `f9998d4`.
+- Vercel: i deployment non sono visibili dal team collegato a questa sessione (`list_deployments` vuoto, anche per lo sha). **Deploy da verificare da Ivano.**
 
 

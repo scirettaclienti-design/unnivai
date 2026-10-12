@@ -33,4 +33,5 @@ Le sole modifiche in `src/` sono `src/lib/simulatedNow.js` (nuovo) e **due righe
 
 ## Deploy
 
-Push su `main` e gate `ALL_GREEN`: vedi la riga finale dell'esito nel messaggio di chiusura del task (verificata dopo il push, non scritta prima).
+- Push su `main`: commit `f9998d4`. Gate CI **ALL_GREEN**: «Lint & Test» e «E2E Smoke» entrambi `success`. Il primo push (`531ddff`) era rosso: `simulatedNow.test.js` dipendeva da `VITE_SUPABASE_URL` presente solo in locale (in CI manca `.env`) e il test «produzione» passava a vuoto; riprodotto in locale con ambiente vuoto, corretto in `f9998d4`.
+- Vercel: i deployment non sono visibili dal team collegato a questa sessione (`list_deployments` vuoto, anche per lo sha). **Deploy da verificare da Ivano.**

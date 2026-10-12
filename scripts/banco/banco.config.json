@@ -45,10 +45,12 @@
       "place/details": 0.025,
       "place/findplacefromtext": 0.017,
       "place/photo": 0.007,
-      "altro": 0.032
+      "altro": 0.032,
+      "place/textsearch#new": 0.035
     },
     "_foto": "le foto le carica il browser, non il banco: si stima una foto per tappa",
-    "fotoPerTappa": 1
+    "fotoPerTappa": 1,
+    "_ricercaNuova": "MIG-PLACES: Text Search (New) con campi Enterprise (regularOpeningHours, rating, userRatingCount, priceLevel) = $35/1000; legacy = $32/1000. Listino letto il 13/10/2026, da ricontrollare in Cloud Console"
   },
   "esteso": {
     "_nota": "BANCO-ESTESO — soglie, fasce, pesi e tetti del banco esteso (scripts/banco/esteso.*). Si cambiano qui, non nel codice.",
@@ -91,6 +93,7 @@
       "c8": 3,
       "c9": 5,
       "c10": 5
-    }
+    },
+    "baselineLegacy": "docs/prove/dati/2026-10-13-banco-esteso.json"
   }
 }

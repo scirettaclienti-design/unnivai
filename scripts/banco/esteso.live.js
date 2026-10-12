@@ -36,35 +36,53 @@ for (const t of new Set(CASI_ESTESI.filter(c => c.scelta).flatMap(c => [c.scelta
 
 const SCELTI = (process.env.BANCO_CASI || '').split(',').map(s => s.trim()).filter(Boolean);
 const casi = SCELTI.length ? CASI_ESTESI.filter(c => SCELTI.includes(c.id)) : CASI_ESTESI;
-const out = { avvio: new Date().toISOString(), identita: null, giornoSimulato: E.giornoSimulato, casi: [], costo: null };
+const out = { avvio: new Date().toISOString(), identita: null, motore: process.env.BANCO_PLACES === 'new' ? 'new' : 'legacy', giornoSimulato: E.giornoSimulato, casi: [], costo: null };
 const save = () => { mkdirSync(path.dirname(OUT), { recursive: true }); writeFileSync(OUT, JSON.stringify(out, null, 1)); };
 
 // ─── Il fetch che conta e annota (come banco.live.js) ────────────────────────
 const realFetch = globalThis.fetch;
 const cont = { ai: 0, tokenIn: 0, tokenOut: 0, google: {} };
 const luoghi = new Map();
+// MIG-PLACES — i posti visti nelle ricerche del caso in corso (per contare candidati e orari noti).
+let vistiCaso = new Set();
 const annota = (p, query) => {
     const id = p?.place_id;
     if (!id) return;
     const l = luoghi.get(id) || { queries: new Set() };
+    // Con la ricerca nuova il proxy porta gli orari (opening_hours.periods), il tipo principale e il fuso.
+    if (Array.isArray(p.opening_hours?.periods)) l.periods = p.opening_hours.periods;
+    if (p.primary_type) l.primaryType = p.primary_type;
+    if (Number.isFinite(p.utc_offset_minutes)) l.utcOffsetMinutes = p.utc_offset_minutes;
     if (Number.isFinite(p.user_ratings_total)) l.recensioni = p.user_ratings_total;
     if (Number.isFinite(p.price_level)) l.priceLevel = p.price_level;
     if (Array.isArray(p.types)) l.types = p.types;
     if (query) l.queries.add(query.toLowerCase());
     luoghi.set(id, l);
 };
+// MIG-PLACES — BANCO_PLACES=new: le ricerche dei posti chiedono la API nuova. Lo fa SOLO il banco:
+// `engine=new` + il token dell'account di prova (il proxy lo onora solo per lui); l'app non manda ne' l'uno ne' l'altro.
+const MOTORE = process.env.BANCO_PLACES === 'new' ? 'new' : 'legacy';
 globalThis.fetch = vi.fn(async (url, init) => {
-    const res = await realFetch(url, init);
-    const u = String(url);
+    let u = String(url);
+    let nuova = false;
+    if (MOTORE === 'new' && u.includes('places-proxy') && /[?&]path=place(%2F|\/)textsearch/.test(u)) {
+        const { data } = await supabase.auth.getSession();
+        u = `${u}&engine=new`;
+        init = { ...(init || {}), headers: { ...(init?.headers || {}), Authorization: `Bearer ${data?.session?.access_token}` } };
+        nuova = true;
+    }
+    const res = await realFetch(u, init);
     if (u.includes('places-proxy')) {
         let params = null;
         try { params = new URL(u, 'http://x').searchParams; } catch { /* url strano */ }
         const k = params?.get('path') || 'altro';
-        cont.google[k] = (cont.google[k] || 0) + 1;
+        // la ricerca nuova costa un'altra fascia (Enterprise): chiave propria nel listino
+        const kc = nuova ? `${k}#new` : k;
+        cont.google[kc] = (cont.google[kc] || 0) + 1;
         if (k !== 'place/photo' && k !== 'place/details') {
             try {
                 const j = await res.clone().json();
-                for (const p of j?.results || []) annota(p, params?.get('query'));
+                for (const p of j?.results || []) { annota(p, params?.get('query')); if (p?.place_id) vistiCaso.add(p.place_id); }
                 for (const p of j?.candidates || []) annota(p, params?.get('input'));
             } catch { /* non JSON */ }
         }
@@ -123,6 +141,7 @@ const tappa = (s, fatti, comp, riempite, dieta, atStimato) => {
         description: r.description, verita: r.verita, voce: r.voce, frasi, fatti: (fatti || []).length,
         recensioni: l.recensioni ?? null, priceLevel: l.priceLevel ?? null,
         pasto: isMealPlace({ types, name: r.title, title: r.title }),
+        ...(l.primaryType ? { primaryType: l.primaryType } : {}),
         dietaCercata: parole.length ? qs.some(conDieta) : null,
         dietaSolo: parole.length ? (qs.length > 0 && qs.every(conDieta)) : null,
     };
@@ -172,6 +191,7 @@ for (const caso of casi) {
         if (costoOra() >= E.tettoGenerazioniUsd) { rec.saltato = `tetto di spesa delle generazioni raggiunto ($${costoOra().toFixed(2)})`; save(); return; }
         // Ogni caso parte a cache vuota: le chiamate Google sono quelle di UNA generazione. La sessione (sb-*) resta.
         for (const k of Object.keys(window.localStorage)) if (!k.startsWith('sb-')) window.localStorage.removeItem(k);
+        vistiCaso = new Set();
         const c0 = { ...cont, google: { ...cont.google } };
         const delta = () => ({
             ai: { chiamate: cont.ai - c0.ai, tokenIn: cont.tokenIn - c0.tokenIn, tokenOut: cont.tokenOut - c0.tokenOut },
@@ -236,6 +256,9 @@ for (const caso of casi) {
             rec.errore = e?.code || e?.message || String(e);
         } finally {
             Object.assign(rec, delta());
+            // MIG-PLACES — candidati visti dalle ricerche del caso, e quanti con orari settimanali
+            rec.candidatiVisti = vistiCaso.size;
+            rec.candidatiConOrari = [...vistiCaso].filter(id => luoghi.get(id)?.periods).length;
             save();
         }
     });
@@ -253,6 +276,20 @@ const PRIORITA = (s) => {
     return 2;
 };
 it('orari', async () => {
+    if (MOTORE === 'new') {
+        // MIG-PLACES — gli orari sono gia' arrivati con la ricerca: nessuna chiamata in piu'.
+        // Per ogni caso, gli orari dei posti scelti (periods null = Google non li ha) e, in `luoghiOrari`,
+        // quelli di TUTTI i posti visti: servono al confronto sulla copertura del pool.
+        for (const c of out.casi) {
+            c.orari = Object.fromEntries((c.tours || []).flatMap(t => t.stops || []).filter(s => s.place_id)
+                .map(s => [s.place_id, { chiamato: true, periods: luoghi.get(s.place_id)?.periods ?? null }]));
+        }
+        out.luoghiOrari = Object.fromEntries([...luoghi.entries()].map(([id, l]) => [id, { periods: l.periods ?? null, primaryType: l.primaryType ?? null, utcOffsetMinutes: l.utcOffsetMinutes ?? null }]));
+        const tutti = Object.values(out.luoghiOrari);
+        out.orariRiepilogo = { postiDistinti: tutti.length, chiamati: 0, nonRichiesti: 0, senzaOrari: tutti.filter(o => !o.periods).length, daRicerca: true };
+        save();
+        return;
+    }
     const tutte = out.casi.flatMap(c => (c.tours || []).flatMap(t => t.stops || [])).filter(s => !s.tempoLibero && s.place_id);
     const ordine = new Map();
     for (const s of tutte) if (!ordine.has(s.place_id) || PRIORITA(s) < ordine.get(s.place_id).p) ordine.set(s.place_id, { p: PRIORITA(s) });

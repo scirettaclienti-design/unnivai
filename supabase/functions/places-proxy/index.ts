@@ -40,11 +40,19 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import {
+  chooseEngine, newCacheKey, buildNewSearchBody, normalizeNewResponse, isNewPhotoRef, newMediaUrl,
+  NEW_SEARCH_URL, NEW_FIELD_MASK,
+} from './placesNew.ts';
 
 const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY');
 const GOOGLE_BASE = 'https://maps.googleapis.com/maps/api';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+// MIG-PLACES — interruttore della ricerca dei posti: 'new' (Places API (New), con
+// orari e tipo principale) o 'legacy'. Assente o altro = 'legacy': in produzione
+// resta cosi' finche' non si decide. Cambia con `supabase secrets set PLACES_SEARCH=...`.
+const PLACES_SEARCH = Deno.env.get('PLACES_SEARCH');
 
 // Gate DD — Cache version. Bump quando cambia la logica upstream (es.
 // nuovo filtro business_status, nuove soglie qualita', dedup diversa).
@@ -159,6 +167,58 @@ function isCachableResponse(data: unknown): boolean {
   return status === 'OK';
 }
 
+/**
+ * MIG-PLACES — la textsearch sull'API nuova. Stessa cache condivisa (24h) con una
+ * chiave PROPRIA (versione "new" + impronta della maschera): non si mescola con le
+ * risposte legacy. La risposta torna nella forma legacy + opening_hours.periods,
+ * primary_type, utc_offset_minutes (vedi placesNew.ts).
+ */
+async function handleNewTextSearch(params: URLSearchParams): Promise<Response> {
+  const json = { ...CORS_HEADERS, 'Content-Type': 'application/json' };
+  const cacheKey = newCacheKey(CACHE_VERSION, 'place/textsearch', params);
+  const cached = await cacheLookup(cacheKey);
+  if (cached !== null) {
+    return new Response(JSON.stringify(cached), { status: 200, headers: { ...json, 'X-Cache': 'HIT', 'X-Engine': 'new' } });
+  }
+  try {
+    const upstream = await fetch(NEW_SEARCH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY as string, 'X-Goog-FieldMask': NEW_FIELD_MASK },
+      body: JSON.stringify(buildNewSearchBody(params)),
+    });
+    const raw = await upstream.json();
+    if (!upstream.ok) {
+      // L'errore di Google passa com'e' (status HTTP non 2xx): il client lo tratta come una ricerca fallita.
+      return new Response(JSON.stringify({ status: 'ERROR', engine: 'new', error: raw?.error ?? raw }), { status: upstream.status, headers: { ...json, 'X-Engine': 'new' } });
+    }
+    const data = normalizeNewResponse(raw);
+    if (isCachableResponse(data)) cacheWrite(cacheKey, data).catch(() => { /* gia' loggato in cacheWrite */ });
+    return new Response(JSON.stringify(data), { status: 200, headers: { ...json, 'X-Cache': 'MISS', 'X-Engine': 'new' } });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: 'Upstream Google Places (New) request failed', detail: String(err) }), { status: 502, headers: json });
+  }
+}
+
+/**
+ * MIG-PLACES — la richiesta e' dell'account di prova? Solo lui puo' scegliere il
+ * motore con `engine=new|legacy` (il banco). Stessa regola di openai-proxy: il JWT
+ * lo verifica Supabase, l'id deve essere nella tabella ai_quota_test_account
+ * (scrivibile solo da service_role). Qualunque errore → false.
+ */
+async function isTestAccountRequest(req: Request): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const token = (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+    if (!token) return false;
+    const { data: u, error } = await supabase.auth.getUser(token);
+    if (error || !u?.user?.id) return false;
+    const { data } = await supabase.from('ai_quota_test_account').select('user_id').eq('user_id', u.user.id).maybeSingle();
+    return !!data;
+  } catch (_e) {
+    return false;
+  }
+}
+
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS });
@@ -187,13 +247,28 @@ serve(async (req: Request) => {
     });
   }
 
+  // MIG-PLACES — `engine` non e' un parametro di Google ne' della cache legacy: si
+  // toglie subito, cosi' le richieste senza `engine` restano identiche a prima.
+  const requestedEngine = url.searchParams.get('engine');
+  const params = new URLSearchParams(url.searchParams);
+  params.delete('engine');
+
+  if (path === 'place/textsearch') {
+    const engine = chooseEngine({
+      envMode: PLACES_SEARCH,
+      requested: requestedEngine,
+      isTestAccount: requestedEngine ? await isTestAccountRequest(req) : false,
+    });
+    if (engine === 'new') return await handleNewTextSearch(params);
+  }
+
   const isPhoto = path === 'place/photo';
   const isCachable = CACHABLE_PATHS.has(path);
 
   // Gate DD — Cache lookup (solo per path cachable, escluso photo).
   let cacheKey: string | null = null;
   if (isCachable) {
-    cacheKey = computeCacheKey(path, url.searchParams);
+    cacheKey = computeCacheKey(path, params);
     const cached = await cacheLookup(cacheKey);
     if (cached !== null) {
       return new Response(JSON.stringify(cached), {
@@ -209,7 +284,7 @@ serve(async (req: Request) => {
 
   // Ricostruisci la querystring da inoltrare a Google.
   const upstreamParams = new URLSearchParams();
-  for (const [key, value] of url.searchParams.entries()) {
+  for (const [key, value] of params.entries()) {
     if (key === 'path') continue;
     upstreamParams.set(key, value);
   }
@@ -221,7 +296,11 @@ serve(async (req: Request) => {
     if (isPhoto) {
       // /place/photo ritorna un 302 verso un CDN temporaneo. Non cachabile
       // (URL firmato con token temporaneo Google).
-      const upstream = await fetch(upstreamUrl, { method: 'GET', redirect: 'manual' });
+      // MIG-PLACES — un riferimento "places/…/photos/…" viene dalla ricerca nuova:
+      // si serve dal servizio foto nuovo (stesso 302), non da quello legacy.
+      const photoRef = params.get('photo_reference');
+      const photoUrl = isNewPhotoRef(photoRef) ? newMediaUrl(photoRef as string, params.get('maxwidth'), GOOGLE_MAPS_API_KEY) : upstreamUrl;
+      const upstream = await fetch(photoUrl, { method: 'GET', redirect: 'manual' });
 
       if (upstream.status === 302 || upstream.status === 303) {
         const location = upstream.headers.get('location');

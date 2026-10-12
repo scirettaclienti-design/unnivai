@@ -81,3 +81,28 @@ describe('banco esteso — il report', () => {
         expect(markdown).toContain('crea-y');
     });
 });
+
+describe('MIG-PLACES — il confronto legacy / new', () => {
+    const stop = (id, o = {}) => ({ place_id: id, title: id, min: 5, scelta: 'modello', famiglia: id, verita: true, frasi: [{ testo: 'Si comincia da qui.', problemi: [] }],
+        recensioni: 100, pasto: false, lat: 41.9, lng: 12.5, description: 'Si comincia da qui.', moment: 'mattina', at: '2026-10-14T09:30:00+02:00', stay: 30, types: ['museum'], ...o });
+    const caso = (id, orari = {}) => ({ id, modo: 'crea', tipo: 'itinerario', luogo: 'Roma', ora: '09:30', oggi: '2026-10-14', secs: 20, ai: { chiamate: 3, tokenIn: 1000, tokenOut: 100 },
+        google: { 'place/textsearch': 4 }, richiesta: 'x', schermo: { giorni: [], note: [] }, orari,
+        pool: { 'g1-mattina': { candidati: ['a', 'b', 'c', 'd'].map(p => ({ place_id: p, scelto: p === 'a', nelGiro: p === 'a' })) } },
+        tours: [{ stops: [stop('a'), stop('b'), stop('e'), stop('f')] }] });
+    const PER = [{ open: { day: 3, time: '0900' }, close: { day: 3, time: '1900' } }];
+    it('copertura: legacy conosce solo i posti scelti, new quelli del pool; costo con la ricerca Enterprise', async () => {
+        const { confrontoPlaces, copertura } = await import('../../../scripts/banco/confronto-places.js');
+        const legacy = { casi: [caso('crea-x', { a: { chiamato: true, periods: PER } })], costo: { totale: 1, google: { 'place/details': 4 } } };
+        const nuovo = { motore: 'new', casi: [{ ...caso('crea-x'), google: { 'place/textsearch#new': 4 }, candidatiVisti: 20, candidatiConOrari: 16 }],
+            luoghiOrari: { a: { periods: PER }, b: { periods: PER }, c: { periods: null }, d: { periods: PER } }, costo: { totale: 0.5 } };
+        const cl = copertura(legacy), cn = copertura(nuovo);
+        expect([cl.poolNoti, cl.pool, cl.altNoti, cl.alt]).toEqual([1, 4, 0, 2]);
+        expect([cn.poolNoti, cn.pool, cn.altNoti, cn.alt]).toEqual([3, 4, 1, 2]);
+        const { markdown, peggiorate } = confrontoPlaces(legacy, nuovo, config, { legacyNome: 'l.json', nuovoNome: 'n.json' });
+        expect(peggiorate).toBe(0);
+        expect(markdown).toContain('16 su 20');
+        // 4 ricerche × $0,035 (Enterprise) contro 4 × $0,032 (legacy) + i token
+        expect(markdown).toContain('crea-x');
+        expect(config.prezziUsd.google['place/textsearch#new']).toBe(0.035);
+    });
+});

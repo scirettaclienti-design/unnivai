@@ -1,0 +1,194 @@
+{
+ "places": [
+  {
+   "id": "ChIJU84fUCzjExMR4rI0uZuCtQQ",
+   "types": [
+    "italian_restaurant",
+    "seafood_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food",
+    "point_of_interest",
+    "establishment"
+   ],
+   "formattedAddress": "Via Paternò, 11, 95131 Catania CT, Italia",
+   "location": {
+    "latitude": 37.5067804,
+    "longitude": 15.087323800000002
+   },
+   "rating": 4.2,
+   "regularOpeningHours": {
+    "openNow": true,
+    "periods": [
+     {
+      "open": {
+       "day": 0,
+       "hour": 12,
+       "minute": 30
+      },
+      "close": {
+       "day": 1,
+       "hour": 0,
+       "minute": 0
+      }
+     },
+     {
+      "open": {
+       "day": 1,
+       "hour": 12,
+       "minute": 30
+      },
+      "close": {
+       "day": 2,
+       "hour": 0,
+       "minute": 0
+      }
+     },
+     {
+      "open": {
+       "day": 2,
+       "hour": 12,
+       "minute": 30
+      },
+      "close": {
+       "day": 3,
+       "hour": 0,
+       "minute": 0
+      }
+     },
+     {
+      "open": {
+       "day": 3,
+       "hour": 12,
+       "minute": 30
+      },
+      "close": {
+       "day": 4,
+       "hour": 0,
+       "minute": 0
+      }
+     },
+     {
+      "open": {
+       "day": 4,
+       "hour": 12,
+       "minute": 30
+      },
+      "close": {
+       "day": 5,
+       "hour": 0,
+       "minute": 0
+      }
+     },
+     {
+      "open": {
+       "day": 5,
+       "hour": 12,
+       "minute": 30
+      },
+      "close": {
+       "day": 6,
+       "hour": 0,
+       "minute": 0
+      }
+     },
+     {
+      "open": {
+       "day": 6,
+       "hour": 12,
+       "minute": 30
+      },
+      "close": {
+       "day": 0,
+       "hour": 0,
+       "minute": 0
+      }
+     }
+    ],
+    "weekdayDescriptions": [
+     "lunedì: 12:30–00:00",
+     "martedì: 12:30–00:00",
+     "mercoledì: 12:30–00:00",
+     "giovedì: 12:30–00:00",
+     "venerdì: 12:30–00:00",
+     "sabato: 12:30–00:00",
+     "domenica: 12:30–00:00"
+    ],
+    "nextCloseTime": "2026-10-12T22:00:00Z"
+   },
+   "utcOffsetMinutes": 120,
+   "businessStatus": "OPERATIONAL",
+   "priceLevel": "PRICE_LEVEL_MODERATE",
+   "userRatingCount": 12026,
+   "displayName": {
+    "text": "Trattoria del Cavaliere",
+    "languageCode": "it"
+   },
+   "primaryType": "italian_restaurant",
+   "photos": [
+    {
+     "name": "places/ChIJU84fUCzjExMR4rI0uZuCtQQ/photos/PHOTO_TOKEN",
+     "widthPx": 4096,
+     "heightPx": 3072
+    }
+   ]
+  },
+  {
+   "id": "ChIJ_always_open",
+   "types": [
+    "park",
+    "point_of_interest",
+    "establishment"
+   ],
+   "primaryType": "park",
+   "displayName": {
+    "text": "Villa Bellini",
+    "languageCode": "it"
+   },
+   "formattedAddress": "Via Etnea, Catania",
+   "location": {
+    "latitude": 37.5,
+    "longitude": 15.08
+   },
+   "rating": 4.6,
+   "userRatingCount": 9000,
+   "businessStatus": "OPERATIONAL",
+   "utcOffsetMinutes": 120,
+   "regularOpeningHours": {
+    "openNow": true,
+    "periods": [
+     {
+      "open": {
+       "day": 0,
+       "hour": 0,
+       "minute": 0
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "ChIJ_no_hours",
+   "types": [
+    "church",
+    "place_of_worship",
+    "point_of_interest",
+    "establishment"
+   ],
+   "primaryType": "church",
+   "displayName": {
+    "text": "Chiesa di San Nicolo",
+    "languageCode": "it"
+   },
+   "formattedAddress": "Piazza Dante, Catania",
+   "location": {
+    "latitude": 37.49,
+    "longitude": 15.07
+   },
+   "rating": 4.5,
+   "userRatingCount": 300,
+   "businessStatus": "OPERATIONAL",
+   "utcOffsetMinutes": 120
+  }
+ ]
+}

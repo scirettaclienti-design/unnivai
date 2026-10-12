@@ -490,6 +490,12 @@ const buildPOIFromCandidate = (place, cityName) => {
     googlePhoto: photoUrl,
     image: photoUrl,
     address: place.formatted_address || null,
+    // MIG-PLACES — solo se la ricerca nuova li ha portati (con la legacy non ci
+    // sono e l'oggetto resta identico a prima). Gli orari arrivano ma il motore
+    // non li usa ancora.
+    ...(Array.isArray(place.opening_hours?.periods) ? { openingPeriods: place.opening_hours.periods } : {}),
+    ...(place.primary_type ? { primaryType: place.primary_type } : {}),
+    ...(Number.isFinite(place.utc_offset_minutes) ? { utcOffsetMinutes: place.utc_offset_minutes } : {}),
   };
 };
 

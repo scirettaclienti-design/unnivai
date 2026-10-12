@@ -48,6 +48,9 @@ const genera = async (opts = {}) => {
 };
 
 beforeEach(() => {
+    // Indipendente dall'ambiente: in CI non c'e' .env.
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co');
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon-test');
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(CLOCK));
 });
@@ -88,10 +91,11 @@ describe('generateItinerary — il motore con e senza ora simulata', () => {
         const senza = await genera();
         vi.stubEnv('PROD', true);
         const prod = await genera({ simulatedNow: ALTRA });
+        expect(JSON.parse(senza).days[0].stops.length).toBeGreaterThan(0);
         expect(prod).toBe(senza);
     });
 
-    it('nelle prove il parametro conta: alle 21:25 la finestra del tour e\' un\'altra', async () => {
+    it('nelle prove il parametro conta: alle 10:00 la finestra del tour e\' un\'altra', async () => {
         const pomeriggio = JSON.parse(await genera());
         const sera = JSON.parse(await genera({ simulatedNow: ALTRA }));
         expect(sera.tourWindow.start).not.toBe(pomeriggio.tourWindow.start);

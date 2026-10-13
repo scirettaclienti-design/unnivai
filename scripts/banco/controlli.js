@@ -157,6 +157,8 @@ export function c1(caso, cfg) {
         for (const s of dolci.slice(0, 1)) {
             const m = quando(s)?.minuti;
             if (m == null || m >= p1) continue;
+            // C8d — la COLAZIONE chiesta per nome e' un pasto: la pasticceria che e' la prima tappa del mattino ne e' la colazione
+            if (/\b(colazione|brunch|cornett\w*|cappuccin\w*|brioche)\b/.test(testo) && s === inOrdine[0] && m < 11 * 60) continue;
             const prima = inOrdine.slice(0, inOrdine.indexOf(s));
             const dopoPasto = m < p0 ? prima.some(x => tipoSosta(x) === 'caffe' && !eDolce(x)) : prima.some(eRistorante);
             if (!dopoPasto) out.push(viol(s, `${nome(s)} alle ${hhmmDi(m)}: un dolce prima del pasto${prima.length === 0 ? ' (è la prima tappa)' : ''}`, 'c1', cfg));

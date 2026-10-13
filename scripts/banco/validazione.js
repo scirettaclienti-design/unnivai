@@ -45,6 +45,10 @@ export const ESEMPI = {
             st('Gelateria Pellegrino', { types: ['ice_cream_shop', 'food'], primaryType: 'ice_cream_shop', moment: null, at: at('14:25'), stay: 20 }),
             st('Caffetteria Roma', { types: ['cafe', 'food'], primaryType: 'cafe', moment: null, at: at('14:50'), stay: 20 }),
         ], { modo: 'perte', tipo: 'tour' }) },
+        buono4: { nome: 'C8d — «con colazione» alle 8:00: la pasticceria e\' la colazione (prima tappa), poi una visita', caso: caso([
+            st('Pasticceria Giuffrida', { types: ['bakery', 'food'], primaryType: 'bakery', moment: 'mattina', at: at('08:00'), stay: 20 }),
+            st('Porta Uzeda', { types: ['tourist_attraction'], moment: 'mattina', at: at('08:24'), stay: 30 }),
+        ], { richiesta: 'Una giornata a Catania con colazione' }) },
         buono3: { nome: 'C8c — merenda delle 16:00: una pasticceria per prima (il pranzo e\' passato)', caso: caso([
             st('Pasticceria Savia', { types: ['bakery', 'food'], primaryType: 'bakery', moment: null, at: at('16:00'), stay: 20 }),
             st('Caffetteria Roma', { types: ['cafe', 'food'], primaryType: 'cafe', moment: null, at: at('16:30'), stay: 20 }),

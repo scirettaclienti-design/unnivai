@@ -250,6 +250,14 @@ se il pool non ne ha, ricerca mirata `colazione` (`FOOD_QUERY_COLAZIONE`, dentro
 anche un bar che è gelateria), sempre dopo un pasto (a pranzo dopo un ristorante, di mattina dopo un caffè/forno), mai come prima tappa prima delle 14:45. La ricerca dolci a pranzo di C8b è tolta.
 Banco: c1 conta i dolci, c13 la sera senza cena, la voce «Giornata» vale solo per finestre da 6 ore (una sera è completa con drink + cena o cena + passeggiata), `BANCO_RUN=pasti` (`report-pasti.js`).
 
+### I vuoti giusti: mattina presto e pomeriggio lento (C8d)
+
+**Dopo la colazione chiesta** (`repairPass`, `dopoColazione`): fino al pranzo nessun altro locale (caffè, bar, pasticceria, gelato); restano visite aperte per tutta la sosta (ORARI), nessuna ricerca in più.
+**Ritmo Rilassato** (`fillGaps`, `GAP_RILASSATO_MINUTES = 90`, `mealRules.isLightStop`): fino a 90 minuti di vuoto resta CONTINUITÀ (tempo libero dichiarato, nessuna tappa in più);
+oltre, UNA sola tappa leggera per momento (luogo all'aperto, verde, chiesa, o un caffè — tipo caffè o `cafe`/`coffee_shop` fra i tipi —, mai un dolce né un bar da drink), aperta per tutta la sosta
+e dentro le soglie C5c (`moment.extraLeggero`). Il tetto delle 8 tappe al giorno blocca ancora ogni riempimento (`momentsToExpand`): una giornata intera con colazione ha 9 tappe contate, quindi il suo tempo libero
+della mattina non si riempie (proposte nel report C8d). Banco: `BANCO_RUN=vuoti`.
+
 ### City Data Flow
 
 **T1 — in "Crea il tuo percorso" la città scritta nel testo vince sulla posizione.**

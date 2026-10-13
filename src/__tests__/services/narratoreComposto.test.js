@@ -135,6 +135,22 @@ describe('P3d-j — itinerario composto', () => {
         }
     });
 
+    it('TESTI — un giro che comincia dopo le 21:30 non ha «aperitivo» nel titolo (la sezione si chiama «Dopocena»)', async () => {
+        const gira = async (ora, title) => {
+            try { window.localStorage.clear(); } catch { /* jsdom */ }
+            vi.setSystemTime(new Date(`2026-10-05T${ora}:00+02:00`));
+            const { fn } = routeFetch((t) => ({ place_id: t.place_id, usaFatto: false, gancio: null, interesse: null }), { title });
+            vi.stubGlobal('fetch', fn);
+            return aiRecommendationService.generateItinerary('Roma', { interests: ['Cibo'], pace: 'Rilassato', duration: 'Veloce' }, 'Percorso rapido', {}, '', ROMA, { pathType: 'quick', skipUserQuota: true });
+        };
+        const tardi = await gira('21:45', 'Vivace aperitivo di Roma');
+        expect(tardi.days?.length, JSON.stringify(tardi._source)).toBeGreaterThan(0);
+        expect(tardi.days[0].title).toBe('Il tuo giro a Roma');
+        const presto = await gira('18:30', 'Vivace aperitivo di Roma');
+        expect(presto.days?.length, JSON.stringify(presto._source)).toBeGreaterThan(0);
+        expect(presto.days[0].title).toBe('Vivace aperitivo di Roma');
+    });
+
     it('chiamate: traduttore, selettore, scelte — nessuna riscrittura', async () => {
         const { fn, stato } = routeFetch((t) => ({ place_id: t.place_id, usaFatto: false, gancio: 'prima', interesse: null }));
         vi.stubGlobal('fetch', fn);

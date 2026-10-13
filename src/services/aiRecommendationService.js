@@ -359,7 +359,7 @@ import { filterBannedWords, bannedWordsPromptLines, unsupportedJudgments } from 
 // P3d-e — fatti aperti sulle tappe finali, controllo anti-invenzione, frase sicura.
 // P3d-j — il modello sceglie, il codice scrive: le frasi approvate e la rete.
 import { stopData, guardComposed, apertura, ganciValidi, interessiPerTappa, userInterests, composeFreeTime, registraFrasi } from '@/lib/stopPhrases';
-import { senzaEscape, weatherLabel, weatherIconOf } from '@/lib/italianLabels';
+import { senzaEscape, weatherLabel, weatherIconOf, isDopocenaClock } from '@/lib/italianLabels';
 import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock, MOMENTS, MOMENT_BY_KEY } from '@/lib/dayMoments';
 import { FREE_TIME_MAX_MINUTES, freeTimeStop } from '@/lib/freeTime';
@@ -2077,6 +2077,15 @@ const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map
     });
 };
 
+/** Il giro del giorno comincia dalle 21:30 in poi (o prima dell'alba)? Lo dice l'arrivo alla sua prima tappa vera. */
+const giroDopocena = (ctx, day) => {
+    const i = (day?.stops || []).findIndex(st => !st.tempoLibero);
+    const arrival = i >= 0 ? ctx?.stops?.[i]?.arrival : null;
+    if (!arrival) return false;
+    const p = romeParts(arrival);
+    return isDopocenaClock(p.h * 60 + p.mi);
+};
+
 /**
  * Compone tutte le descrizioni. `scelte`: place_id → { usaFatto, gancio,
  * interesse } dal modello (o, dalla cache, quelle salvate in _comp).
@@ -2087,8 +2096,10 @@ const composeDays = (days, { starts, tourWindow, cityCenter, facts, scelte = new
     const report = [];
     // TESTI — nello stesso tour nessuna frase uguale due volte (nome e numeri mascherati, come il controllo c7).
     const usate = new Set();
-    const out = (days || []).map((day, di) => ({
+    const out = (days || []).map(({ titoloCodice, ...day }, di) => ({
         ...day,
+        // TESTI — un giro che comincia dalle 21:30 non e' un aperitivo (la sezione si chiama «Dopocena»): il titolo non lo dice.
+        ...(giroDopocena(ctxs[di], day) && /\baperitiv\w*/i.test(day.title || '') && titoloCodice ? { title: titoloCodice } : {}),
         stops: (day.stops || []).map((s, si) => {
             // C5e — il tempo libero ha gia' il suo testo, composto dal codice.
             if (s.tempoLibero) return s;
@@ -2123,11 +2134,13 @@ const composeDays = (days, { starts, tourWindow, cityCenter, facts, scelte = new
 // per tutto il giorno (o per il tour "Per Te").
 const TITOLO_VIETATO = /\b(sol[ei]\w*|soleggiat\w*|assolat\w*|sereno|seren[ia]|pioggi\w*|piovos\w*|nuvol\w*|nebbi\w*|vent\w*|calda?|caldo|fredd\w*|mattin\w*|pomerigg\w*|ser[ae]\w*|nott\w*|notturn\w*|tramont\w*|alba|albe|aurora|crepuscol\w*)\b/i;
 /** Il titolo del giorno, se il modello ne ha dato uno pulito; senno' quello del codice. */
-const dayTitle = (raw, fallback, { unGiorno = false } = {}) => {
+const dayTitle = (raw, fallback, { unGiorno = false, dopocena = false } = {}) => {
     const t = cleanText(senzaEscape(typeof raw === 'string' ? raw : ''));
     if (!t || t.length > 80 || TITOLO_VIETATO.test(t)) return fallback;
     // Un tour di un giorno non ha il numero del giorno ("Giorno 1 a Troina" per un giro di 1h22).
     if (unGiorno && /\bgiorno\s*\d/i.test(t)) return fallback;
+    // Un giro che comincia dopo le 21:30 non e' un aperitivo (la sezione si chiama «Dopocena»): il titolo non lo dice.
+    if (dopocena && /\baperitiv\w*/i.test(t)) return fallback;
     // Controllo schermate: "Elegante piazza di Roma". Un giudizio nel titolo
     // non e' sostenuto da nessun fatto, come nelle descrizioni.
     if (unsupportedJudgments(t, '', []).length > 0) return fallback;
@@ -2218,6 +2231,8 @@ const applyDayMeta = (days, meta, city) => days.map((day, di) => {
     return {
         ...day,
         title: dayTitle(m.title, day.title || giornoTitle(di, city, days.length), { unGiorno: days.length <= 1 }),
+        // il titolo del codice: composeDays lo rimette se il giro comincia dopo le 21:30 e il titolo dice «aperitivo»
+        titoloCodice: day.title || giornoTitle(di, city, days.length),
         suggestedTransit: VALID_TRANSIT.has(m.suggestedTransit) ? m.suggestedTransit : (day.suggestedTransit || 'walking'),
         mapMood: VALID_MOODS.has(m.mapMood) ? m.mapMood : (day.mapMood || 'default'),
     };

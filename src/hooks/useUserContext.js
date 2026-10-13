@@ -38,7 +38,8 @@ export function useUserContext() {
     // TESTI — il saluto scrive il nome con l'iniziale maiuscola («Ciao, Ivano!», non «ivano»).
     const realFirstName = capitalizeName(user?.user_metadata?.full_name?.split(' ')[0]
         || user?.user_metadata?.first_name
-        || user?.email?.split('@')[0]
+        // il nome dalla mail: solo la prima parola prima di punti, piu', trattini e cifre ("ivano.rossi85@…" → "Ivano")
+        || user?.email?.split('@')[0]?.split(/[._+\-\d]/)[0]
         || userContext?.firstName
         || 'Ospite');
 

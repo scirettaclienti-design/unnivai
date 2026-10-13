@@ -14,12 +14,12 @@ import { placeKind } from './placeKind';
 export const TYPE_LABELS = {
     // pasti
     restaurant: 'ristorante', italian_restaurant: 'ristorante', pizza_restaurant: 'pizzeria',
-    seafood_restaurant: 'ristorante di pesce', steak_house: 'ristorante', bistro: 'bistrot',
+    seafood_restaurant: 'ristorante di pesce', steak_house: 'ristorante', bistro: 'bistrot', diner: 'tavola calda', vegetarian_restaurant: 'ristorante vegetariano',
     mediterranean_restaurant: 'ristorante', sushi_restaurant: 'ristorante', fine_dining_restaurant: 'ristorante',
     meal_takeaway: 'cibo da asporto', sandwich_shop: 'paninoteca', deli: 'gastronomia',
     // da bere
     bar: 'bar', cocktail_bar: 'bar', lounge_bar: 'bar', sports_bar: 'bar', bar_and_grill: 'bar',
-    wine_bar: 'enoteca', pub: 'birreria', irish_pub: 'birreria', brewpub: 'birreria', brewery: 'birrificio',
+    wine_bar: 'enoteca', pub: 'pub', irish_pub: 'pub', gastropub: 'pub', brewpub: 'birreria', brewery: 'birrificio',
     cafe: 'caffè', coffee_shop: 'caffè', cafeteria: 'caffè', coffee_stand: 'caffè', coffee_roastery: 'torrefazione',
     tea_house: 'sala da tè', night_club: 'locale notturno',
     // dolci e forno
@@ -29,19 +29,19 @@ export const TYPE_LABELS = {
     // cultura
     church: 'chiesa', place_of_worship: 'luogo di culto', mosque: 'moschea', synagogue: 'sinagoga', hindu_temple: 'tempio',
     museum: 'museo', art_museum: 'museo', history_museum: 'museo', art_gallery: 'galleria d’arte',
-    monument: 'monumento', tourist_attraction: 'monumento', historical_landmark: 'monumento', cultural_landmark: 'monumento',
+    monument: 'monumento', tourist_attraction: 'monumento', historical_landmark: 'monumento', cultural_landmark: 'monumento', landmark: 'monumento',
     historical_place: 'luogo storico', castle: 'castello', city_hall: 'palazzo comunale',
     library: 'biblioteca', university: 'università', cemetery: 'cimitero',
     performing_arts_theater: 'teatro', opera_house: 'teatro dell’opera', concert_hall: 'sala concerti',
-    sculpture: 'scultura', statue: 'statua', bridge: 'ponte', observation_deck: 'punto panoramico',
+    sculpture: 'scultura', statue: 'statua', bridge: 'ponte', fountain: 'fontana', observation_deck: 'punto panoramico', scenic_spot: 'punto panoramico',
     // aperto
     park: 'parco', city_park: 'parco', national_park: 'parco', state_park: 'parco', garden: 'giardino',
     botanical_garden: 'orto botanico', plaza: 'piazza', town_square: 'piazza', natural_feature: 'area naturale',
-    beach: 'spiaggia', zoo: 'zoo', aquarium: 'acquario', amusement_park: 'parco divertimenti',
+    beach: 'spiaggia', hiking_area: 'sentiero', zoo: 'zoo', aquarium: 'acquario', amusement_park: 'parco divertimenti',
     // negozi e servizi
     store: 'negozio', clothing_store: 'negozio di abbigliamento', shoe_store: 'negozio di scarpe', book_store: 'libreria',
     jewelry_store: 'gioielleria', shopping_mall: 'centro commerciale', market: 'mercato', supermarket: 'supermercato',
-    spa: 'centro benessere', wellness_center: 'centro benessere', lodging: 'albergo', hotel: 'albergo',
+    spa: 'centro benessere', wellness_center: 'centro benessere', massage_spa: 'centro benessere', massage: 'centro massaggi', lodging: 'albergo', hotel: 'albergo',
 };
 
 // Senza tipo principale (cache vecchie, ricerca vecchia): il tipo di posto che decide `placeKind`.

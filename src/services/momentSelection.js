@@ -44,6 +44,7 @@ import { computeCandidateScore } from './candidateScoring';
 import { stayOf, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
 import { placeKind, KINDS, COMMERCIAL_KINDS, LOCALE_CATEGORIES } from '../lib/placeKind';
 import { FOOD_ONLY_MOMENT_KEYS, EXPANDABLE_KEYS, MAX_STOPS_PER_DAY } from '../lib/daySkeleton';
+import { momentAdmits, isLocale } from '../lib/mealRules';
 import { scheduleGaps, retimeWaits, totalGapMinutes, realStopCount } from '../lib/continuity';
 import { freeTimeDecision } from '../lib/freeTime';
 import { brandKey, legKm, pathKm, minimalPathKm, countCrossings, crossingPairs, repeatedBrands, stopDetours } from '../lib/routeShape';
@@ -105,6 +106,8 @@ const TYPE_CATEGORIES = {
     department_store: ['shopping'],
     route: ['passeggiata'],
     neighborhood: ['passeggiata'],
+    // C7 — un mercato storico e' un'esperienza (si passeggia, si compra), non un negozio e non un pasto.
+    market: ['passeggiata', 'shopping'],
 };
 
 const PANORAMA_NAME = /\b(belvedere|terrazz[ae]|panoram\w*|affaccio)\b/i;
@@ -272,7 +275,10 @@ export const POOL_MAX = 15;
 export const MAX_EXTRA_SEARCHES = 2;
 
 /** Il tema di ricerca di un momento: la sua prima categoria che ne ha uno. */
-export const momentTheme = (m) => (m?.categories || []).map(c => MOMENT_CATEGORY_TO_THEME[c]).find(Boolean) || null;
+// C7 — un momento con un `tema` suo (mattina e pomeriggio di un tema cibo: le esperienze) cerca con quello.
+export const momentTheme = (m) => (m?.tema && THEME_OF_MOMENT_TEMA[m.tema])
+    || (m?.categories || []).map(c => MOMENT_CATEGORY_TO_THEME[c]).find(Boolean) || null;
+export const THEME_OF_MOMENT_TEMA = { esperienze: 'esperienze' };
 
 const idOf = (c) => c?.place_id || c?.googlePlaceId || null;
 
@@ -311,9 +317,15 @@ export function bucketCandidates(moments, candidates, { anyCategory = false, mea
     const cats = new Map(pool.map(c => [idOf(c), candidateMomentCategories(c)]));
     const buckets = new Map();
     for (const m of moments) {
-        buckets.set(m.id, anyCategory && !FOOD_ONLY_MOMENT_KEYS.has(m.key)
+        const base = anyCategory && !FOOD_ONLY_MOMENT_KEYS.has(m.key)
             ? pool.filter(c => !mealOnlyIds?.has(idOf(c)))
-            : pool.filter(c => (m.categories || []).some(k => cats.get(idOf(c)).has(k))));
+            : pool.filter(c => (m.categories || []).some(k => cats.get(idOf(c)).has(k))
+                // C7 — un momento dove il testo chiede ESPLICITAMENTE un locale ("il pomeriggio in
+                // pasticceria") accoglie ogni locale, anche quelli senza categoria dello scheletro (dolci).
+                || (m.esplicito && isLocale(c)));
+        // C7 — UN PASTO PER FASCIA: un ristorante sta solo a pranzo e cena; la mattina un locale e'
+        // una colazione; l'aperitivo e' un bar. Vale anche con la categoria che vale per tutti i momenti.
+        buckets.set(m.id, base.filter(c => momentAdmits(c, m)));
     }
     return buckets;
 }
@@ -330,7 +342,7 @@ export function missingMomentThemes(moments, buckets, max = MAX_EXTRA_SEARCHES) 
     const themes = [];
     for (const m of moments) {
         if ((buckets.get(m.id) || []).length > 0) continue;
-        const theme = (m.categories || []).map(c => MOMENT_CATEGORY_TO_THEME[c]).find(Boolean);
+        const theme = momentTheme(m);
         if (theme && !themes.includes(theme)) themes.push(theme);
         if (themes.length >= max) break;
     }
@@ -354,7 +366,7 @@ export function shortMomentThemes(moments, buckets, pool, max = MAX_EXTRA_SEARCH
     const meals = moments.filter(m => FOOD_ONLY_MOMENT_KEYS.has(m.key));
     for (const m of [...meals, ...moments.filter(m => !FOOD_ONLY_MOMENT_KEYS.has(m.key))]) {
         if ((filled.get(m.id) || 0) >= m.stops) continue;
-        const theme = (m.categories || []).map(c => MOMENT_CATEGORY_TO_THEME[c]).find(Boolean);
+        const theme = momentTheme(m);
         if (theme && !themes.includes(theme)) themes.push(theme);
         if (themes.length >= max) break;
     }

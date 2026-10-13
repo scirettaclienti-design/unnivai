@@ -181,7 +181,9 @@ export const BLACKLIST_TYPES = new Set([
 // dal tipo principale; i giri cached prima hanno soste e nomi di prima.
 // CONTINUITA' — prefix bumped da 'unnivai_insiderf14_festivi_': i giri cached prima hanno buchi
 // non dichiarati e il tempo libero senza fascia.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf15_continuita_';
+// C7 — prefix bumped da 'unnivai_insiderf15_continuita_': i giri cached prima hanno ristoranti a mattina,
+// pomeriggio e aperitivo nelle richieste a tema cibo, e zone come tappe.
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf16_composizione_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -359,6 +361,9 @@ import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock, MOMENTS } from '@/lib/dayMoments';
 import { FREE_TIME_MAX_MINUTES, freeTimeStop } from '@/lib/freeTime';
 import { bandFreeTime } from '@/lib/continuity';
+import { detectFoodTheme, isForeignCuisine, localCuisineReason, tipicoBonus } from '@/lib/foodTheme';
+import { zoneReason } from '@/lib/zone';
+import { isSitDownMeal } from '@/lib/mealRules';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
 import { buildDaySkeleton, normalizePace } from '@/lib/daySkeleton';
@@ -1101,7 +1106,7 @@ const THEME_FOOD_QUERY = 'trattoria ristorante pizzeria osteria';
 // "italian_restaurant", "vegetarian_restaurant"); altrimenti null, mai dedotto.
 const cuisineOf = (c) => (Array.isArray(c?.types) ? c.types : [])
     .find(t => /_restaurant$/.test(t) && t !== 'fast_food_restaurant')?.replace(/_restaurant$/, '') || null;
-const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null, foodAnchor = null, anchor = null }) => {
+const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null, foodAnchor = null, anchor = null, tipico = false }) => {
     const { placesDiscoveryService } = await import('./placesDiscoveryService');
     const dieta = foodPrefs?.dieta || [];
     const at = (t) => {
@@ -1134,7 +1139,14 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
     extra = applyRadiusFilter(extra, cityCenter, city, { requireCenter: true });
     if (categoria) extra = extra.filter(c => candidateMatchesIntentCategoria(c, categoria) || isMealPlace(c));
     if (foodPrefs) extra = applyFoodConstraints(extra, foodPrefs, isMealPlace).candidates;
-    const bonus = foodPrefs ? (c) => foodPrefBonus(c, foodPrefs, isMealPlace) : null;
+    // C7 — le ESPERIENZE di mattina e pomeriggio (tema cibo) non sono ristoranti: un posto dove ci si
+    // siede a mangiare trovato da quella ricerca non serve a nessun momento (pranzo e cena hanno il loro pool).
+    extra = extra.filter(c => !(c._tema === 'esperienze' && isSitDownMeal(c)));
+    // C7 — tipico: nei pasti niente cucine estere, e la spinta ai posti locali.
+    if (tipico) extra = extra.filter(c => !(isMealPlace(c) && isForeignCuisine(c)));
+    const bonus = (foodPrefs || tipico)
+        ? (c) => (foodPrefs ? foodPrefBonus(c, foodPrefs, isMealPlace) : 0) + (tipico && isMealPlace(c) ? tipicoBonus(c, { dieta: foodPrefs?.dieta || [] }) : 0)
+        : null;
     // C1b — la ricerca mirata dalla tappa prima torna pochi posti di un
     // quartiere: misurate su di loro, il piu' recensito sarebbe sempre
     // un'"icona" (con un solo risultato, sempre lui) e uscirebbe. Le icone si
@@ -2317,7 +2329,17 @@ export const aiRecommendationService = {
         // candidati, errore onesto con oggetto_umano.
         const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
         try {
-            const { candidates: rawCandidates, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null, !!opts.baseQueries);
+            const { candidates: rawCandidatesTutti, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null, !!opts.baseQueries);
+
+            // C7 — NIENTE ZONE: un'area generica ("Centro Storico Catania") non e' mai una tappa. La
+            // ricerca le scarta gia' (placesDiscoveryService); qui la seconda rete, sul pool intero.
+            const zoneTolte = [];
+            const rawCandidates = rawCandidatesTutti.filter(c => {
+                const z = zoneReason({ ...c, primaryType: c.primaryType ?? c.primary_type }, city);
+                if (z) zoneTolte.push({ nome: c.name || c.title || '?', motivo: z });
+                return !z;
+            });
+            if (zoneTolte.length > 0) console.warn(`[C7 ZONE] ${city}: ${zoneTolte.length} zone tolte dal pool — ${zoneTolte.map(x => `${x.nome} (${x.motivo})`).join(' | ')}`);
 
             // Gate RAGGIO-CATEGORIA — la categoria richiesta, quando e' una delle
             // 7 filtrabili in modo stretto. undefined ⇒ nessun vincolo di
@@ -2326,6 +2348,15 @@ export const aiRecommendationService = {
             const categoriaTarget = (isFreeTextIntent && intent)
                 ? CATEGORIA_TO_TOUR_CATEGORY[String(intent.categoria || '').toLowerCase()]
                 : undefined;
+            // C7 — IL TEMA CIBO VALE SOLO NEI PASTI. Una richiesta a tema cibo (testo o categoria
+            // `cibo` del traduttore) non e' una categoria per tutti i momenti: pranzo, aperitivo e
+            // cena sono tipici, mattina e pomeriggio sono esperienze nello spirito del tema. Il
+            // filtro stretto di categoria (solo ristoranti ovunque) non scatta per il cibo.
+            const tema = (isFreeTextIntent && intent)
+                ? detectFoodTheme({ text: opts.pathType === 'custom' ? userPrompt : '', categoria: intent.categoria, tipicoText: userPrompt })
+                : { tema: false, tipico: false, streetFood: false, momenti: new Set(), fonte: null };
+            const catStretta = tema.tema ? undefined : categoriaTarget;
+            if (tema.tema) console.info(`[C7 TEMA] ${city}: tema cibo (${tema.fonte})${tema.tipico ? ', tipico' : ''}${tema.momenti.size ? `, richiesti espliciti: ${[...tema.momenti].join(', ')}` : ''} → vale solo per i pasti`);
 
             // Gate TOUR-DISTANZA — il raggio PRIMA della chiamata AI.
             //
@@ -2348,7 +2379,7 @@ export const aiRecommendationService = {
             // contati come tali il widen non scattava mai.
             let candidates = applyRadiusFilter(rawCandidates, cityCenter, city, {
                 requireCenter: true,
-                countForWiden: categoriaTarget
+                countForWiden: catStretta
                     ? (c) => candidateMatchesIntentCategoria(c, intent.categoria)
                     : undefined,
             });
@@ -2374,7 +2405,7 @@ export const aiRecommendationService = {
             // barriera). Se il pool in-categoria e' vuoto anche dopo il widen,
             // candidates diventa [] e il ramo `else` esistente sotto (Path A →
             // no-results) se ne occupa, senza duplicare quella logica qui.
-            if (categoriaTarget) {
+            if (catStretta) {
                 const beforeCategoria = candidates.length;
                 candidates = candidates.filter(c => candidateMatchesIntentCategoria(c, intent.categoria));
                 if (candidates.length < beforeCategoria) {
@@ -2422,7 +2453,21 @@ export const aiRecommendationService = {
             // un pool da 20 finiva i ristoranti prima del pranzo del giorno 3.
             const nDays = Math.max(1, tourWindow.windows.length);
             // P7b — lo stile a tavola e' una spinta (bonus), non un filtro.
-            const foodBonus = foodOn ? (c) => foodPrefBonus(c, food, isMealPlace) : null;
+            // C7 — TIPICO: nei pasti si preferiscono i posti di cucina locale (tipo principale e nome) e si
+            // escludono le cucine estere; la spinta si somma al merito, l'esclusione e' dichiarata nel tracciato.
+            const tipicoEsclusi = [];
+            if (tema.tipico) {
+                const tenuti = candidates.filter(c => {
+                    const estero = isMealPlace(c) && isForeignCuisine(c);
+                    if (estero) tipicoEsclusi.push(c.name || c.title || '?');
+                    return !estero;
+                });
+                if (tipicoEsclusi.length > 0) console.info(`[C7 TIPICO] ${city}: ${tipicoEsclusi.length} cucine estere escluse — ${tipicoEsclusi.join(' | ')}`);
+                candidates = tenuti;
+            }
+            const foodBonus = (foodOn || tema.tipico)
+                ? (c) => (foodOn ? foodPrefBonus(c, food, isMealPlace) : 0) + (tema.tipico && isMealPlace(c) ? tipicoBonus(c, { dieta: foodOn ? food.dieta : [] }) : 0)
+                : null;
             candidates = selectScoredCandidatePool(candidates, { city, dnaWeights: opts.dnaWeights || {}, limit: 20 * nDays, bonus: foodBonus });
             if (beforeMerito > 0) {
                 console.info(
@@ -2449,10 +2494,13 @@ export const aiRecommendationService = {
                 interests: extractInterestTokens(prefs),
                 group: prefs?.group,
                 text: opts.pathType === 'custom' ? userPrompt : '',
-                category: categoriaTarget ? (TOUR_CATEGORY_TO_SKELETON[categoriaTarget] || categoriaTarget) : null,
+                category: catStretta ? (TOUR_CATEGORY_TO_SKELETON[catStretta] || catStretta) : null,
+                foodTheme: tema.tema,
             });
             const moments = candidates.length >= 1 ? flattenSkeleton(skeleton) : [];
-            let anyCategory = !!categoriaTarget;
+            // C7 — con lo street food un forno puo' essere un pasto (panelle, focaccia): pranzo e cena lo ammettono.
+            if (tema.streetFood) for (const m of moments) m.streetFood = true;
+            let anyCategory = !!catStretta;
             let buckets = moments.length > 0 ? bucketCandidates(moments, candidates, { anyCategory }) : null;
             // Percorso A: se NESSUN luogo trovato per la frase sta in NESSUN
             // momento, la frase chiede qualcosa che la tabella dei momenti non
@@ -2487,7 +2535,7 @@ export const aiRecommendationService = {
             let mealOnlyIds = null;
             const addMealOnly = (found) => (anyCategory
                 ? new Set([...(mealOnlyIds || []), ...found
-                    .filter(c => isMealPlace(c) && !(categoriaTarget && candidateMatchesIntentCategoria(c, intent.categoria)))
+                    .filter(c => isMealPlace(c) && !(catStretta && candidateMatchesIntentCategoria(c, intent.categoria)))
                     .map(c => c.place_id || c.googlePlaceId)])
                 : null);
             if (extraThemes.length > 0) {
@@ -2498,9 +2546,9 @@ export const aiRecommendationService = {
                 const extra = await searchMomentCandidates({
                     city, cityCenter, themes: extraThemes, known: candidates, perTheme: 5 * nDays,
                     dnaWeights: opts.dnaWeights || {},
-                    categoria: categoriaTarget ? intent.categoria : null,
+                    categoria: catStretta ? intent.categoria : null,
                     foodPrefs: foodOn ? food : null,
-                    foodAnchor,
+                    foodAnchor, tipico: tema.tipico,
                 });
                 candidates = [...candidates, ...extra];
                 mealOnlyIds = addMealOnly(extra);
@@ -2536,7 +2584,9 @@ export const aiRecommendationService = {
                 const selectorPrompt = buildSelectorSystemPrompt({
                     city, timeContext,
                     prefs, aiProfile, cityCenter, candidates: selectorCandidates, userPrompt,
-                    intent, // Gate B — clausole dure (categoria/escludi/tempo/note) nel prompt
+                    // C7 — col tema cibo la categoria `cibo` non e' una clausola dura per tutti i momenti: al selettore
+                    // arriva `misto` (i momenti dicono gia' cosa serve: esperienze la mattina e il pomeriggio).
+                    intent: tema.tema ? { ...intent, categoria: 'misto' } : intent, // Gate B — clausole dure (categoria/escludi/tempo/note) nel prompt
                     moments: moments.length > 0 ? moments : null,
                     buckets: hoursBuckets || buckets,
                     foodPrefs: foodOn ? food : null,
@@ -2630,9 +2680,9 @@ export const aiRecommendationService = {
                                 const found = await searchMomentCandidates({
                                     city, cityCenter, themes: [theme], known: candidates, perTheme: 5,
                                     dnaWeights: opts.dnaWeights || {},
-                                    categoria: categoriaTarget ? intent.categoria : null,
+                                    categoria: catStretta ? intent.categoria : null,
                                     foodPrefs: foodOn ? food : null,
-                                    anchor: target.da,
+                                    anchor: target.da, tipico: tema.tipico,
                                 });
                                 ricercheDopo.push({ momento: target.momento, tema: theme, da: target.da.name, trovati: found.length });
                                 console.info(`[C1b RICERCA MIRATA] ${city}: ${target.momento} da "${target.da.name}" (${theme}) → ${found.length} candidati`);
@@ -2704,8 +2754,24 @@ export const aiRecommendationService = {
                                 tappeSenzaFiltro,
                             };
                             const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })) };
-                            momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita };
+                            momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
                             logMomentReport(city, momentReport);
+                            // C7 — nel tracciato (interno, mai a schermo): cosa ha voluto il tema. Il pasto del tema, l'esperienza
+                            // nello spirito del tema, il momento chiesto ESPLICITAMENTE dal testo, e per "tipico" se il posto e' locale.
+                            const temaTrace = (d) => {
+                                const c = d.candidate;
+                                const out = {};
+                                if (d.moment?.esplicito) out.esplicito = 'richiesto dal testo per questo momento';
+                                if (tema.tema) {
+                                    if (isMealPlace(c)) out.tema = 'pasto del tema cibo';
+                                    else if (d.moment?.tema) out.tema = 'esperienza nello spirito del tema cibo';
+                                }
+                                if (tema.tipico && isMealPlace(c)) {
+                                    const perche = localCuisineReason(c);
+                                    out.tipico = { richiesto: true, locale: !!perche, ...(perche ? { perche } : { nota: 'cucina locale non verificabile dal tipo o dal nome' }) };
+                                }
+                                return out;
+                            };
                             return sched.days.map((dayStops, di) => {
                                 const canon = canonicalizeStopsFromCandidates(
                                     dayStops.map(s => ({ place_id: s.candidate.place_id || s.candidate.googlePlaceId })),
@@ -2721,7 +2787,7 @@ export const aiRecommendationService = {
                                     // l'ha scelta (modello / riparazione / ripiego).
                                     // ORARI — e se l'orario del posto e' noto (aperto per
                                     // tutta la sosta) o sconosciuto.
-                                    _tracciato: { ...dayStops[i].trace, orario: orariTracciato.get(stop.place_id) || 'sconosciuto', ...(orariFonte.get(stop.place_id) ? { orarioFonte: orariFonte.get(stop.place_id) } : {}), ...(stop.nameOriginal ? { nomeOriginale: stop.nameOriginal } : {}) },
+                                    _tracciato: { ...dayStops[i].trace, ...temaTrace(dayStops[i]), orario: orariTracciato.get(stop.place_id) || 'sconosciuto', ...(orariFonte.get(stop.place_id) ? { orarioFonte: orariFonte.get(stop.place_id) } : {}), ...(stop.nameOriginal ? { nomeOriginale: stop.nameOriginal } : {}) },
                                     _orario: orariTracciato.get(stop.place_id) || 'sconosciuto',
                                 }));
                                 // windowIndex: il giorno resta legato alla SUA

@@ -49,8 +49,12 @@ const routeFetch = ({ perQuery, selectorPayload, intent }) => {
 beforeEach(() => {
     vi.clearAllMocks();
     try { window.localStorage.clear(); } catch { /* jsdom */ }
+    // C7 — un ristorante sta solo a pranzo e cena: i test sul pool dei ristoranti girano all'ora del pranzo
+    // (prima dipendevano dall'ora vera in cui si lanciava la suite).
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-14T12:30:00+02:00'));
 });
-afterEach(() => { vi.unstubAllGlobals(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 const INTENT_CIBO = {
     queries: ['ristoranti'],

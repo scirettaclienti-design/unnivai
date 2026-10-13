@@ -197,12 +197,12 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
             .toEqual(['fuori dal suo momento', 'fuori dal suo momento']);
     });
 
-    it('"ristoranti stasera" → solo cibo', async () => {
+    it('"ristoranti stasera" → C7: il tema cibo vale per la cena; l\'aperitivo e\' un bar, non un ristorante', async () => {
         vi.setSystemTime(new Date('2026-10-05T17:00:00+02:00'));
         const { fn } = routeFetch({
             intent: { ...INTENT_ROMANO, queries: ['trattoria', 'enoteca'], oggetto_umano: 'ristoranti' },
             perQuery: { trattoria: TRATTORIE, enoteca: BARS },
-            // Il modello prova a mettere un bar all'aperitivo: non e' cibo.
+            // Il modello mette un bar all'aperitivo (giusto) e un ristorante a cena.
             selector: selectorOf([
                 stop('Bar del Fico', 'g1-aperitivo'),
                 stop('Da Teo', 'g1-cena'),
@@ -212,11 +212,33 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
 
         const result = await genera('ristoranti stasera', { interests: ['Cibo'] });
 
-        const stops = result.days[0].stops;
-        expect(stops.length).toBeGreaterThan(0);
-        expect(stops.every(isFood)).toBe(true);
+        const stops = reali(result.days[0].stops);
         expect(stops.map(s => s.moment)).toEqual(['aperitivo', 'cena']);
+        expect(isFood(stops[0])).toBe(false);          // l'aperitivo: un bar
+        expect(stops[0].title).toBe('Bar del Fico');
+        expect(isFood(stops[1])).toBe(true);           // la cena: un ristorante
         expectInsideMoments(stops, LUNEDI);
+    });
+
+    it('C7 — "ristoranti stasera" col modello che mette un RISTORANTE all\'aperitivo: il codice lo scarta, all\'aperitivo va un bar', async () => {
+        vi.setSystemTime(new Date('2026-10-05T17:00:00+02:00'));
+        const { fn } = routeFetch({
+            intent: { ...INTENT_ROMANO, queries: ['trattoria', 'enoteca'], oggetto_umano: 'ristoranti' },
+            perQuery: { trattoria: TRATTORIE, enoteca: BARS },
+            selector: selectorOf([
+                stop('Trattoria Da Enzo', 'g1-aperitivo'),
+                stop('Da Teo', 'g1-cena'),
+            ]),
+        });
+        vi.stubGlobal('fetch', fn);
+
+        const result = await genera('ristoranti stasera', { interests: ['Cibo'] });
+
+        const stops = reali(result.days[0].stops);
+        const aperitivo = stops.find(s => s.moment === 'aperitivo');
+        expect(aperitivo).toBeTruthy();
+        expect(isFood(aperitivo)).toBe(false);
+        expect(stops.filter(isFood).every(s => s.moment === 'cena')).toBe(true);
     });
 
     it('Intenso → mai 2 pranzi ne\' 2 cene', async () => {
@@ -259,7 +281,8 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
         const PRIMA = 3;
         expect(stato.textsearch.length).toBeLessThanOrEqual(PRIMA + 2);
         expect(stato.textsearch.length).toBe(5);
-        expect(result._momentReport.ricercheMirate).toEqual(['cultura', 'nightlife']);
+        // C7 — "da romano" e' un tema di vita locale: mattina e pomeriggio cercano esperienze, non cultura generica.
+        expect(result._momentReport.ricercheMirate).toEqual(['esperienze', 'nightlife']);
         // Le ricerche mirate qui non trovano niente: i momenti vuoti sono tolti
         // e il report lo dice — nessun luogo inventato per riempirli.
         expect(reali(result.days[0].stops).map(s => s.moment)).toEqual(['pranzo', 'cena']);

@@ -19,6 +19,7 @@ import { reportOrari } from './report-orari.js';
 import { reportC6a } from './report-c6a.js';
 import { reportFestivi } from './report-festivi.js';
 import { reportContinuita } from './report-continuita.js';
+import { reportComposizione } from './report-composizione.js';
 
 const root = process.cwd();
 const config = JSON.parse(readFileSync(path.join(root, 'scripts/banco/banco.config.json'), 'utf8'));
@@ -35,6 +36,8 @@ const C6A = process.env.BANCO_RUN === 'c6a';
 const FESTIVI = process.env.BANCO_RUN === 'festivi';
 // CONTINUITA' — BANCO_RUN=continuita: buchi riempiti o dichiarati; il report confronta con il giro C6a (stessi casi, stesso giorno).
 const CONTINUITA = process.env.BANCO_RUN === 'continuita';
+// C7 — BANCO_RUN=composizione: il tema cibo solo nei pasti, un pasto per fascia, niente zone; il report confronta con il giro CONTINUITA'.
+const COMPOSIZIONE = process.env.BANCO_RUN === 'composizione';
 const argReport = process.argv.indexOf('--report');
 let jsonPath, nome;
 if (argReport > -1) {
@@ -42,7 +45,7 @@ if (argReport > -1) {
     nome = path.basename(jsonPath, '.json');
 } else {
     // MIG-PLACES — BANCO_PLACES=new: stessi casi con la ricerca nuova (solo l'account di prova), file `-new`.
-    const suffisso = CONTINUITA ? '-continuita' : FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
+    const suffisso = COMPOSIZIONE ? '-composizione' : CONTINUITA ? '-continuita' : FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
     nome = `${oggi}-banco-esteso${suffisso}`;
     for (let i = 2; existsSync(path.join(root, 'docs/prove/dati', `${nome}.json`)); i++) nome = `${oggi}-banco-esteso${suffisso}-${i}`;
     jsonPath = path.join(root, 'docs/prove/dati', `${nome}.json`);
@@ -63,6 +66,18 @@ if (argReport > -1) {
 }
 
 const raw = JSON.parse(readFileSync(jsonPath, 'utf8'));
+if (raw.motore === 'new' && /-composizione/.test(nome)) {
+    // C7 — il giro con la composizione della giornata, contro il giro CONTINUITA' degli stessi casi.
+    const basePath = path.join(root, config.esteso.baselineContinuita);
+    const base = JSON.parse(readFileSync(basePath, 'utf8'));
+    const nomeDoc = `${nome.slice(0, 10)}-c7-composizione`;
+    const nPath = path.join(root, 'docs/prove/dati', `${nomeDoc}-note.md`);
+    const { markdown: md, sintesi } = reportComposizione(base, raw, config, { baseNome: path.basename(basePath), nuovoNome: path.basename(jsonPath), commit });
+    writeFileSync(path.join(root, 'docs/prove', `${nomeDoc}.md`), md + (existsSync(nPath) ? '\n' + readFileSync(nPath, 'utf8') : '') + '\n');
+    const cl = (k) => `${sintesi.classi[k].dopo} (prima ${sintesi.classi[k].prima}${sintesi.classi[k].nuoviCasi ? `, casi nuovi ${sintesi.classi[k].nuoviCasi}` : ''})`;
+    console.log(`[banco-esteso] report c7: docs/prove/${nomeDoc}.md | grezzo: ${path.relative(root, jsonPath)} | c1 ${cl('c1')} | c2 ${cl('c2')} | c3 ${cl('c3')} | c12 ${cl('c12')} | c5 ${cl('c5')} | c11 ${cl('c11')} | spesa ${sintesi.spesa}`);
+    process.exit(0);
+}
 if (raw.motore === 'new' && /-continuita/.test(nome)) {
     // CONTINUITA' — il giro con i buchi riempiti o dichiarati, contro il giro C6a degli stessi casi.
     const basePath = path.join(root, config.esteso.baselineC6a);

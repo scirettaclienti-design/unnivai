@@ -107,7 +107,7 @@ describe('una tappa in piu\' non e\' mai un altro pasto', () => {
         rating: 4.6, user_ratings_total: 400, business_status: 'OPERATIONAL', types: ['restaurant', 'food', 'point_of_interest', 'establishment'],
         opening_hours: { open_now: true, periods: tutti('0000', '2359') },
     });
-    it('"nei ristoranti tipici": ogni momento ha solo ristoranti → il buco non si riempie con un altro ristorante, si dichiara', async () => {
+    it('"nei ristoranti tipici": il pool e\' tutto ristoranti → il buco non si riempie con un altro ristorante', async () => {
         const rist = Array.from({ length: 9 }, (_, i) => ristorante(`r${i}`, i));
         window.localStorage.clear();
         vi.useFakeTimers({ toFake: ['Date'] });
@@ -124,10 +124,11 @@ describe('una tappa in piu\' non e\' mai un altro pasto', () => {
         }));
         const r = await aiRecommendationService.generateItinerary('Cabras', { interests: ['Cibo'] }, 'nei ristoranti tipici', {}, '', CABRAS, { pathType: 'custom' });
         expect(r._source).toBe('google-first');
-        const pom = vere(r).filter(s => s.moment === 'pomeriggio');
-        expect(pom.length).toBeLessThanOrEqual(2);                       // quanti ne voleva lo scheletro, non uno di piu'
+        // C7 — il tema cibo vale solo nei pasti: il pomeriggio e l'aperitivo non hanno ristoranti, e il
+        // riempimento dei buchi non ne aggiunge mai (qui il pool e' tutto ristoranti: restano solo i pasti)
+        expect(vere(r).every(s => ['pranzo', 'cena'].includes(s.moment))).toBe(true);
+        expect(vere(r).filter(s => s.moment === 'pomeriggio')).toEqual([]);
         expect(r._momentReport.continuita.aggiunte).toEqual([]);
-        expect(libere(r).length).toBeGreaterThan(0);                     // il buco e' dichiarato
         expect(remainingGaps(righe(r))).toEqual([]);
     });
 });

@@ -73,16 +73,64 @@ describe('buildDaySkeleton — la tabella', () => {
         }
     });
 
-    it('"ristoranti stasera" → tutti i momenti cibo, orari invariati', () => {
+    it('"ristoranti stasera" → il cibo e\' un TEMA: cena cibo, aperitivo un bar (C7), orari invariati', () => {
         const w = custom('ristoranti stasera', LUN_1500);
         const sk = buildDaySkeleton({ window: w, pace: 'Attivo', text: 'ristoranti stasera' });
         expect(sk.explicitCategory).toBe('cibo');
+        expect(sk.foodTheme).toBe(true);
         expect(keys(sk)).toEqual(['aperitivo', 'cena']);
-        expect(sk.days[0].moments.every(m => m.categories.length === 1 && m.categories[0] === 'cibo')).toBe(true);
+        const [aperitivo, cena] = sk.days[0].moments;
+        expect(cena.categories).toEqual(['cibo']);
+        // C7 — l'aperitivo non e' un ristorante: bar e punti panoramici, come senza il tema
+        expect(aperitivo.categories).toEqual(['bar', 'punti panoramici']);
         // Gli orari sono quelli dello scheletro senza categoria esplicita.
         const senza = buildDaySkeleton({ window: w, pace: 'Attivo', text: 'stasera' });
         expect(sk.days[0].moments.map(m => [m.start.getTime(), m.end.getTime()]))
             .toEqual(senza.days[0].moments.map(m => [m.start.getTime(), m.end.getTime()]));
+    });
+
+    it('C7 — "un giorno da catanese, nei ristoranti tipici": mattina e pomeriggio sono esperienze, mai cibo; pranzo e cena cibo', () => {
+        const w = custom('domani un giorno da catanese, nei ristoranti tipici', LUN_2057);
+        const sk = buildDaySkeleton({ window: w, pace: 'Attivo', text: 'domani un giorno da catanese, nei ristoranti tipici', interests: ['Cibo'] });
+        const per = Object.fromEntries(sk.days[0].moments.map(m => [m.key, m]));
+        expect(sk.foodTheme).toBe(true);
+        expect(per.pranzo.categories).toEqual(['cibo']);
+        expect(per.cena.categories).toEqual(['cibo']);
+        for (const k of ['mattina', 'pomeriggio']) {
+            expect(per[k].categories, k).not.toContain('cibo');
+            expect(per[k].tema, k).toBe('esperienze');
+            expect(per[k].esplicito, k).toBeUndefined();
+        }
+        // niente locali di merito la mattina: una colazione c'e' solo se il testo la chiede (esplicito)
+        expect(per.mattina.categories).not.toContain('bar');
+        expect(per.aperitivo.categories).toEqual(['bar', 'punti panoramici']);
+    });
+
+    it('C7 — la categoria cibo del traduttore (foodTheme dal chiamante) fa lo stesso senza la parola nel testo', () => {
+        const sk = buildDaySkeleton({ window: custom('domani', LUN_2057), pace: 'Attivo', foodTheme: true });
+        const per = Object.fromEntries(sk.days[0].moments.map(m => [m.key, m]));
+        expect(per.mattina.categories).not.toContain('cibo');
+        expect(per.pomeriggio.categories).not.toContain('cibo');
+        expect(per.mattina.tema).toBe('esperienze');
+    });
+
+    it('C7 — una richiesta ESPLICITA per quel momento ("il pomeriggio in pasticceria") si rispetta', () => {
+        const t = 'domani il pomeriggio in pasticceria';
+        const sk = buildDaySkeleton({ window: custom(t, LUN_2057), pace: 'Attivo', text: t });
+        const per = Object.fromEntries(sk.days[0].moments.map(m => [m.key, m]));
+        expect(per.pomeriggio.esplicito).toBe(true);
+        expect(per.pomeriggio.categories).toEqual(expect.arrayContaining(['cibo', 'bar']));
+        // la finestra e' solo il pomeriggio: gli altri momenti non ci sono
+        expect(Object.keys(per)).toEqual(['pomeriggio']);
+    });
+
+    it('C7 — le altre categorie esplicite (musei, bar…) valgono per tutti i momenti come prima', () => {
+        const sk = buildDaySkeleton({ window: custom('domani musei', LUN_2057), pace: 'Attivo', text: 'domani musei' });
+        const per = Object.fromEntries(sk.days[0].moments.map(m => [m.key, m]));
+        expect(per.mattina.categories).toEqual(['musei']);
+        expect(per.pomeriggio.categories).toEqual(['musei']);
+        expect(per.pranzo.categories).toEqual(['cibo']);
+        expect(sk.foodTheme).toBe(false);
     });
 
     it('Famiglia → mai dopocena, nemmeno con Vita Notturna e Intenso', () => {

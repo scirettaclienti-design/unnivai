@@ -143,7 +143,8 @@ const tappa = (s, fatti, comp, riempite, dieta, atStimato) => {
         varieta: s._tracciato?.varieta || null, deviazioneProva: s._tracciato?.deviazioneProva || null,
         description: r.description, verita: r.verita, voce: r.voce, frasi, fatti: (fatti || []).length,
         recensioni: l.recensioni ?? null, priceLevel: l.priceLevel ?? null,
-        pasto: isMealPlace({ types, name: r.title, title: r.title }),
+        // C7 — il tipo principale decide cosa e' un pasto (un cocktail bar marcato anche `restaurant` e' un bar)
+        pasto: isMealPlace({ types, primaryType: l.primaryType, name: r.title, title: r.title }),
         ...(l.primaryType ? { primaryType: l.primaryType } : {}),
         // C6a — il nome originale di Google, se il nome mostrato e' stato ripulito dalle code commerciali
         ...(s._tracciato?.nomeOriginale ? { nomeOriginale: s._tracciato.nomeOriginale } : {}),
@@ -151,6 +152,10 @@ const tappa = (s, fatti, comp, riempite, dieta, atStimato) => {
         ...(s._orario || s._tracciato?.orario ? { orario: s._orario ?? s._tracciato.orario } : {}),
         // ORARI-FESTIVI — da quale orario viene il verdetto del motore ('orario del giorno' | 'orario della settimana')
         ...(s._orarioFonte || s._tracciato?.orarioFonte ? { orarioFonte: s._orarioFonte ?? s._tracciato.orarioFonte } : {}),
+        // C7 — cosa ha voluto il tema (pasto del tema / esperienza), "tipico" (locale o no, e perche'), il momento chiesto dal testo
+        ...(s._tracciato?.tema ? { tema: s._tracciato.tema } : {}),
+        ...(s._tracciato?.tipico ? { tipico: s._tracciato.tipico } : {}),
+        ...(s._tracciato?.esplicito ? { esplicito: s._tracciato.esplicito } : {}),
         dietaCercata: parole.length ? qs.some(conDieta) : null,
         dietaSolo: parole.length ? (qs.length > 0 && qs.every(conDieta)) : null,
     };
@@ -263,6 +268,8 @@ for (const caso of casi) {
                 rec.orariMotore = r._orari ?? null;
                 // CONTINUITA' — le tappe aggiunte ai buchi e i buchi dichiarati, dal rapporto del motore
                 rec.continuita = r._momentReport?.continuita ?? null;
+                // C7 — il tema cibo, il tipico, le cucine estere escluse, le zone tolte, le ricerche mirate fatte
+                rec.tema = r._momentReport?.tema ?? null;
                 rec.schermo = { giorni: (r.days || []).map(d => ({ titolo: d.title || null, meteo: d.weather ?? null })),
                     note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote)].filter(Boolean) };
                 const per = new Map((r._narrationReport?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));

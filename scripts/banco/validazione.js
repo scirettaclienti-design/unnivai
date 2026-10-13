@@ -36,6 +36,22 @@ export const ESEMPI = {
             st('Trattoria Sorano', { types: ['restaurant'], moment: 'pranzo', at: at('13:00'), stay: 75, pasto: true }),
             st('Osteria Antica', { types: ['restaurant'], moment: 'cena', at: at('20:30'), stay: 75, pasto: true }),
         ]) },
+        // C7 — SOGLIA CORRETTA 1: il tipo principale decide cosa e' un pasto. Bar Popolare (cocktail_bar, con `restaurant` tra i types)
+        // all'aperitivo delle 18:00 era contato come "pasto fuori fascia": e' un bar. Origine: giro CONTINUITA', sorprendimi-catania-pomeriggio.
+        buono2: { nome: 'cocktail bar marcato anche restaurant all\'aperitivo 18:00 (Bar Popolare): un bar, non un pasto', caso: caso([
+            st('Bar Popolare', { types: ['cocktail_bar', 'bar', 'restaurant', 'food'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('18:00'), stay: 20, pasto: true }),
+            st('Trattoria Sorano', { types: ['restaurant'], primaryType: 'italian_restaurant', moment: 'cena', at: at('20:00'), stay: 75, pasto: true }),
+        ]) },
+        // C7 — SOGLIA CORRETTA 2: un ristorante in un momento che il testo chiede esplicitamente non e' un errore
+        // ("Un pomeriggio a Bologna tra portici e osterie", osteria alle 15:00). Origine: giro CONTINUITA', crea-bologna-pomeriggio.
+        buono3: { nome: 'osteria alle 15:00 con la richiesta "un pomeriggio tra portici e osterie"', caso: caso([
+            st('Osteria Angolo degli Orefici', { types: ['bistro', 'italian_restaurant'], primaryType: 'bistro', moment: 'pomeriggio', at: at('15:00'), stay: 75, pasto: true }),
+        ], { richiesta: 'Un pomeriggio a Bologna tra portici e osterie' }) },
+        // C7 — SOGLIA CORRETTA 3: Per Te e' un tour tematico a orari stimati, senza momenti: c1 non si applica.
+        buono4: { nome: 'Per Te gastronomico: osterie alle 10:00, 11:41 e 13:13 (orari stimati)', caso: caso([
+            st('Osteria Pizzeria Come Va?', { types: ['italian_restaurant'], primaryType: 'italian_restaurant', moment: null, at: at('10:00'), stay: 75, pasto: true }),
+            st('Osteria Sonnino', { types: ['restaurant'], primaryType: 'restaurant', moment: null, at: at('11:41'), stay: 75, pasto: true }),
+        ], { tipo: 'perte', modo: 'perte' }) },
     },
     c2: {
         cattivo: { nome: 'trattoria alle 14:30 (pomeriggio) con richiesta "ristoranti tipici" e un ristorante alle 9:30', origine: 'telefono 12/10',
@@ -43,10 +59,20 @@ export const ESEMPI = {
                 st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pomeriggio', at: at('14:30'), stay: 75, pasto: true }),
                 st('Trattoria Sorano', { types: ['restaurant'], moment: 'mattina', at: at('09:30'), stay: 75, pasto: true }),
             ], { richiesta: 'Vorrei vivere un giorno da catanese, nei ristoranti tipici' }) },
+        cattivo2: { nome: 'C7 — un ristorante all\'aperitivo (18:00) e uno al dopocena (22:45)', origine: 'giro CONTINUITA\' (crea-bologna-pomeriggio: Trattoria del Tempo Buono all\'aperitivo; crea-milano-sera: The Roof Milano al dopocena)',
+            caso: caso([
+                st('Trattoria del Tempo Buono', { types: ['italian_restaurant'], primaryType: 'italian_restaurant', moment: 'aperitivo', at: at('18:00'), stay: 75, pasto: true }),
+                st('The Roof Milano', { types: ['restaurant', 'lounge_bar', 'night_club'], primaryType: 'restaurant', moment: 'dopocena', at: at('22:45'), stay: 75, pasto: true }),
+            ], { richiesta: 'Una giornata a Bologna' }) },
         buono: { nome: 'ristorante a pranzo; la merenda richiesta nel pomeriggio', caso: caso([
             st('Trattoria Sorano', { types: ['restaurant'], moment: 'pranzo', at: at('13:00'), stay: 75, pasto: true }),
             st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pomeriggio', at: at('15:00'), stay: 75, pasto: true }),
         ], { richiesta: 'Una merenda in trattoria a Catania' }) },
+        buono2: { nome: 'C7 — aperitivo in un cocktail bar (anche `restaurant` fra i types) e pranzo/cena in ristorante', caso: caso([
+            st('Trattoria Sorano', { types: ['restaurant'], primaryType: 'italian_restaurant', moment: 'pranzo', at: at('13:00'), stay: 75, pasto: true }),
+            st('Bar Popolare', { types: ['cocktail_bar', 'bar', 'restaurant'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('18:00'), stay: 20, pasto: true }),
+            st('Osteria Antica', { types: ['restaurant'], primaryType: 'restaurant', moment: 'cena', at: at('20:00'), stay: 75, pasto: true }),
+        ], { richiesta: 'Un giorno da catanese, nei ristoranti tipici' }) },
     },
     c3: {
         cattivo: { nome: 'colazione alla Casbah del Moro alle 9:30 (bar/ristorante, apre alle 18:00)', origine: 'telefono 12/10 (D-CATANIA B6)',
@@ -103,6 +129,19 @@ export const ESEMPI = {
         buono: { nome: 'meteo in italiano sul tour di oggi; nessun meteo su un tour di domani', caso: caso([st('Villa Bellini')],
             { schermo: { giorni: [{ titolo: 'Giorno 1 a Catania', meteo: { condition: 'soleggiato', temperature: 20 } }], note: [] } }) },
         buono2: { nome: 'tour di domani senza meteo', caso: caso([st('Villa Bellini')], { tourDate: '2026-10-15', schermo: { giorni: [{ titolo: 'Giorno 1 a Catania', meteo: null }], note: [] } }) },
+    },
+    // C7 — c12. L'esempio cattivo e' il caso reale: Veloce Catania del 13/10 con la tappa "Centro Storico Catania".
+    c12: {
+        cattivo: { nome: 'tappa "Centro Storico Catania" (tourist_attraction) e un quartiere (neighborhood)', origine: 'telefono di Ivano 13/10 (Veloce Catania)',
+            caso: caso([
+                st('Centro Storico Catania', { types: ['tourist_attraction', 'point_of_interest', 'establishment'], primaryType: 'tourist_attraction' }),
+                st('Quartiere San Berillo', { types: ['neighborhood', 'political'], primaryType: 'neighborhood' }),
+            ]) },
+        buono: { nome: 'posti veri: una via monumento, un mercato, una piazza, un museo del centro storico', caso: caso([
+            st('Via dei Crociferi', { types: ['route', 'tourist_attraction'], primaryType: 'tourist_attraction' }),
+            st('Pescheria di Catania', { types: ['market', 'point_of_interest'], primaryType: 'market' }),
+            st('Museo del Centro Storico', { types: ['museum'], primaryType: 'museum' }),
+        ]) },
     },
     c10: {
         cattivo: { nome: 'vegetariano: un pasto non cercato come vegetariano; un museo trovato solo da ricerche vegetariane', origine: 'costruito',
@@ -165,9 +204,9 @@ export function validaControlli(cfg) {
         const rosso = f(e.cattivo.caso, cfg).violazioni;
         const rosso2 = e.cattivo2 ? f(e.cattivo2.caso, cfg).violazioni : null;
         const verde = f(e.buono.caso, cfg).violazioni;
-        const verde2 = e.buono2 ? f(e.buono2.caso, cfg).violazioni : [];
+        const verde2 = [...(e.buono2 ? f(e.buono2.caso, cfg).violazioni : []), ...(e.buono3 ? f(e.buono3.caso, cfg).violazioni : []), ...(e.buono4 ? f(e.buono4.caso, cfg).violazioni : [])];
         const sc = e.buono.verificaSconosciuto != null ? f(e.buono.caso, cfg).sconosciuti === e.buono.verificaSconosciuto : true;
-        return { classe: k, cattivo: e.cattivo.nome + (e.cattivo2 ? ` · ${e.cattivo2.nome}` : ''), origine: e.cattivo.origine + (e.cattivo2 ? ` · ${e.cattivo2.origine}` : ''), buono: e.buono.nome,
+        return { classe: k, cattivo: e.cattivo.nome + (e.cattivo2 ? ` · ${e.cattivo2.nome}` : ''), origine: e.cattivo.origine + (e.cattivo2 ? ` · ${e.cattivo2.origine}` : ''), buono: [e.buono.nome, e.buono2?.nome, e.buono3?.nome, e.buono4?.nome].filter(Boolean).join(' · '),
             cattivoRosso: rosso.length > 0 && (!rosso2 || rosso2.length > 0), buonoVerde: verde.length === 0 && verde2.length === 0 && sc,
             visto: [...rosso, ...(rosso2 || [])].map(v => v.testo), falsiAllarmi: [...verde, ...verde2].map(v => v.testo) };
     });

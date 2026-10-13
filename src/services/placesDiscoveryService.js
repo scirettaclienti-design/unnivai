@@ -16,6 +16,7 @@ import { isSmallTown, widerRadiusKm } from './tourShape';
 import { searchFoodWithDiet } from '../lib/foodPrefs';
 import { placeKind } from '../lib/placeKind';
 import { cleanPlaceName } from '../lib/placeName';
+import { zoneReason } from '../lib/zone';
 
 // DVAI-055-b: prefix bumped da 'unnivai_poiv2_' per invalidare i POI tematici
 // cached prima del filtro raggio centralizzato nel normalizer. I tour tematici
@@ -120,6 +121,10 @@ const THEME_TEXTSEARCH = {
   nature:    { query: 'parco villa comunale giardino botanico',                             kind: 'NATURA' },
   shopping:  { query: 'artigianato boutique mercato negozi tipici',                         kind: 'CULTURA' },
   nightlife: { query: 'bar cocktail pub locale musica vino',                                kind: 'FOOD' },
+  // C7 — mattina e pomeriggio di un TEMA CIBO ("un giorno da catanese"): esperienze nello spirito
+  // del tema, mai ristoranti — il mercato storico, i palazzi (barocchi), la via storica. Misurata su
+  // Catania, Palermo, Roma e Napoli: 7-12 risultati su 12 sono mercati, palazzi, chiese e piazze utili. Una sola ricerca per i due momenti (il tetto e' di 2 ricerche mirate).
+  esperienze: { query: 'mercato storico palazzo barocco via storica', kind: 'CULTURA' },
 };
 
 // Gate INTERESSI-VERI — la ricerca di riserva DEVE essere una chiave di
@@ -584,8 +589,9 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, 
   // hanno gli orari settimanali, e per 24 ore nessuno deve riceverli.
   // C6a — gg2_ → gg3_: i pool cached prima hanno i nomi con le code commerciali
   // (" | Apericena e Colazione") e nessun nome originale.
-  // ORARI-FESTIVI — gg3_ → gg4_: i pool cached prima non hanno gli orari del giorno
+  // ORARI-FESTIVI — gg3_ → gg5_: i pool cached prima non hanno gli orari del giorno
   // (chiusure per festivi e ferie), e per 24 ore nessuno deve riceverli.
+  // C7 — gg4_ → gg5_: i pool cached prima hanno zone ("Centro Storico Catania") come candidati.
   // Cache key differenziata: customQuery ha suo namespace (non collide con temi).
   // C1 — con un bias esplicito (la ricerca dei pasti dalla tappa prima) la
   // chiave porta punto e raggio: altrimenti tornerebbe la ricerca dal centro.
@@ -593,8 +599,8 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, 
     ? `_at_${Number(lat).toFixed(3)}_${Number(lng).toFixed(3)}_r${radius}`
     : '';
   const cacheKey = customQuery
-    ? `gg4_${cityName.replace(/\s+/g, '_')}_q_${slugForCache(effectiveQuery)}_${isSmall ? 's' : 'l'}${where}`
-    : `gg4_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}${where}`;
+    ? `gg5_${cityName.replace(/\s+/g, '_')}_q_${slugForCache(effectiveQuery)}_${isSmall ? 's' : 'l'}${where}`
+    : `gg5_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}${where}`;
   const cached = loadFromCache(cacheKey);
   if (cached) return cached;
 
@@ -646,7 +652,13 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, 
     const cleaned = applyGeoSanity(
       data.results
         .filter(passesHardExclusions)
-        .filter(c => !isCityItself(c, cityName)),
+        .filter(c => !isCityItself(c, cityName))
+        // C7 — NIENTE ZONE: un'area generica ("Centro Storico Catania") non e' una tappa.
+        .filter(c => {
+          const z = zoneReason({ ...c, primaryType: c.primary_type ?? c.primaryType }, cityName);
+          if (z) console.warn(`[C7 ZONE] scartato "${c.name || '?'}" → zona, non tappa (${z})`);
+          return !z;
+        }),
       lat, lng, cityName,
     );
     // 2. Soglia qualità differenziata per tema, con scale-down se pochi.

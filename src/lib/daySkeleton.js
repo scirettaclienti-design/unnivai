@@ -40,6 +40,7 @@
  */
 
 import { MOMENTS, MOMENT_BY_KEY } from './dayMoments';
+import { explicitFoodMoments, asksSitDownMeal } from './foodTheme';
 import { romeDate, romeParts } from './tourWindow';
 
 export const MIN_OVERLAP_MINUTES = 60;
@@ -142,12 +143,12 @@ const capStops = (moments) => {
  *   il filtro di categoria del Gate RAGGIO-CATEGORIA). Vale come una categoria
  *   nominata nel testo; se il testo ne nomina una, vince il testo. In
  *   entrambi i casi pranzo e cena restano cibo.
- * @returns {{ explicitCategory: string|null, days: Array<{ date: string,
+ * @returns {{ explicitCategory: string|null, foodTheme: boolean, days: Array<{ date: string,
  *   totalStops: number, moments: Array<{ key: string, label: string,
  *   start: Date, end: Date, minutes: number, categories: string[],
  *   preferred: string[], stops: number, careful: boolean }> }> }}
  */
-export function buildDaySkeleton({ window: tw, pace, interests = [], group = '', text = '', category = null } = {}) {
+export function buildDaySkeleton({ window: tw, pace, interests = [], group = '', text = '', category = null, foodTheme: foodThemeIn = false } = {}) {
     const windows = Array.isArray(tw?.windows) && tw.windows.length > 0
         ? tw.windows
         : (tw?.start && tw?.end ? [{ date: tw.date, start: tw.start, end: tw.end }] : []);
@@ -158,6 +159,17 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
     const allowDopocena = !isFamily && (interestSet.has('vita notturna') || paceKey === 'intenso');
     const careful = interestSet.has('cibo');
     const explicitCategory = parseExplicitCategory(text) ?? (category || null);
+    // C7 — IL TEMA CIBO VALE SOLO NEI PASTI. "ristoranti" nel testo (o la categoria cibo del
+    // traduttore) e' un tema: pranzo e cena sono gia' cibo, l'aperitivo e' un bar, la mattina
+    // e il pomeriggio sono ESPERIENZE (`tema: 'esperienze'`, mai ristoranti). Prima rendeva
+    // "cibo" ogni momento: 7 ristoranti su 7. Un'altra categoria esplicita (musei, bar,
+    // natura…) vale per tutti i momenti come prima.
+    const foodTheme = !!foodThemeIn || explicitCategory === 'cibo';
+    const momentCategory = explicitCategory === 'cibo' ? null : explicitCategory;
+    // Una richiesta ESPLICITA di un locale in un momento ("la colazione", "il pomeriggio in
+    // pasticceria") si rispetta e si dichiara (`esplicito`).
+    const esplicitiMoments = explicitFoodMoments(text);
+    const esplicitoPasti = esplicitiMoments.size > 0 && asksSitDownMeal(text);
 
     const days = windows.map((w) => {
         const day = civilDay(w.start);
@@ -175,9 +187,13 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
             const minutes = Math.round((end - start) / 60000);
             if (minutes < MIN_OVERLAP_MINUTES) continue;
 
-            const { categories, preferred } = explicitCategory && !FOOD_ONLY_MOMENT_KEYS.has(m.key)
-                ? { categories: [explicitCategory], preferred: [explicitCategory] }
+            const { categories: baseCategories, preferred } = momentCategory && !FOOD_ONLY_MOMENT_KEYS.has(m.key)
+                ? { categories: [momentCategory], preferred: [momentCategory] }
                 : prioritize(m.categories, preferredFor(m.key, interestSet));
+            const esplicito = esplicitiMoments.has(m.key);
+            let categories = baseCategories;
+            if (esplicito) categories = [...new Set([...baseCategories, 'cibo', 'bar'])];
+            const tema = foodTheme && !esplicito && (m.key === 'mattina' || m.key === 'pomeriggio') ? 'esperienze' : undefined;
 
             moments.push({
                 key: m.key,
@@ -189,11 +205,13 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
                 preferred,
                 stops: stopsFor(m.key, paceKey, minutes),
                 careful: careful && MEAL_KEYS.has(m.key),
+                ...(esplicito ? { esplicito: true, ...(esplicitoPasti ? { esplicitoPasti: true } : {}) } : {}),
+                ...(tema ? { tema } : {}),
             });
         }
         const totalStops = capStops(moments);
         return { date: w.date, moments, totalStops };
     });
 
-    return { explicitCategory, days };
+    return { explicitCategory, foodTheme, days };
 }

@@ -54,11 +54,14 @@ describe('bucketCandidates + missingMomentThemes', () => {
         expect(b.get('g1-aperitivo')).toEqual([]);
     });
 
-    it('anyCategory (richiesta esplicita gia\' filtrata dal codice) → ogni candidato vale per ogni momento, tranne pranzo e cena', () => {
+    it('anyCategory (richiesta esplicita gia\' filtrata dal codice) → ogni candidato vale per ogni momento, tranne pranzo e cena; C7: mai un ristorante fuori da pranzo e cena', () => {
         const b = bucketCandidates(moments, pool, { anyCategory: true });
         for (const [id, l] of b) {
             if (id.endsWith('-pranzo') || id.endsWith('-cena')) expect(l.map(c => c.name), id).toEqual(['Trattoria A']);
-            else expect(l, id).toHaveLength(2);
+            else {
+                expect(l.map(c => c.name), id).not.toContain('Trattoria A');
+                expect(l.length, id).toBeGreaterThan(0);
+            }
         }
     });
 

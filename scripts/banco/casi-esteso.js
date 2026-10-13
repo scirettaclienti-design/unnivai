@@ -41,6 +41,11 @@ export const CASI_ESTESI = [
     // `giorno`: il suo giorno simulato (martedi' 13/10), diverso da quello del giro.
     { ...crea('crea-catania-1348', 'Catania', '13:48', '', { duration: '1 Giorno', interests: ['Storia', 'Cibo'], pace: 'Attivo' }), giorno: '2026-10-13' },
 
+    // C7 — i tre casi del tema: street food, "da romano", un tema d'arte (la composizione della giornata).
+    crea('crea-palermo-streetfood', 'Palermo', '09:30', 'Palermo street food', { duration: '1 Giorno', interests: ['Cibo'], pace: 'Attivo' }),
+    crea('crea-roma-da-romano', 'Roma', '09:30', 'Una giornata da romano a Roma', { duration: '1 Giorno', interests: ['Cibo'], pace: 'Attivo' }),
+    crea('crea-napoli-arte', 'Napoli', '09:30', "Una giornata d'arte a Napoli", { duration: '1 Giorno', interests: ['Arte', 'Storia'], pace: 'Attivo' }),
+
     // ── Percorso Veloce (9) — nessun ritmo, come QuickPath.jsx ──
     veloce('veloce-catania-relax-2125', 'Catania', '21:25', 'relax', 'Veloce'),
     veloce('veloce-catania-relax-2145', 'Catania', '21:45', 'relax', 'Veloce'),

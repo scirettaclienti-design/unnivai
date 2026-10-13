@@ -1,4 +1,4 @@
-// BANCO-ESTESO — i controlli automatici delle 11 classi di errore.
+// BANCO-ESTESO — i controlli automatici delle 12 classi di errore.
 //
 // Funzioni pure: dal risultato grezzo di un caso (scritto da esteso.live.js) a
 // un elenco di violazioni. Ogni classe ha la sua DEFINIZIONE scritta qui sotto
@@ -24,12 +24,14 @@ export const CLASSI = [
     ['c9', 'Onboarding o interessi persi dopo logout'],
     ['c10', 'Vincolo vegetariano violato o esteso ai non pasti'],
     ['c11', 'Buco non dichiarato oltre 45 minuti, o tappa senza orario'],
+    ['c12', 'Zona generica come tappa'],
 ];
 
 export const DEFINIZIONI = {
-    c1: 'Una tappa-pasto (ristorante, trattoria, pizzeria…: `pasto`, non bar/caffè) con orario di arrivo fuori dalle fasce del pasto (pranzo e cena, da banco.config.json) '
-        + 'oppure due pasti seduti a meno di `pastiDistanzaMinOre` ore uno dall\'altro nello stesso giro (il "secondo pranzo").',
-    c2: 'Una tappa-pasto nel momento mattina o pomeriggio, salvo che il testo della richiesta chieda quel momento: colazione/brunch per la mattina, '
+    c1: 'Una tappa-pasto (un ristorante: il TIPO PRINCIPALE di Google, non bar/caffè/forno: un cocktail bar marcato anche `restaurant` è un bar) con orario di arrivo fuori dalle fasce del pasto (pranzo e cena, da banco.config.json) '
+        + 'oppure due pasti seduti a meno di `pastiDistanzaMinOre` ore uno dall\'altro nello stesso giro (il "secondo pranzo"). '
+        + 'Non si applica a Per Te (tour tematico a orari stimati, senza momenti). Un ristorante in un momento che il testo chiede esplicitamente ("un pomeriggio tra portici e osterie") non conta.',
+    c2: 'Un ristorante (tipo principale) nel momento mattina, pomeriggio, aperitivo o dopocena, salvo che il testo della richiesta chieda quel momento (mattina e pomeriggio): colazione/brunch per la mattina, '
         + 'merenda per il pomeriggio, o il nome del momento insieme a una parola di cibo. "ristoranti", "trattorie" ecc. da soli NON chiedono un momento.',
     c3: 'Una tappa-locale (dove si mangia o beve) nel momento mattina che non è un posto da colazione (un ristorante/trattoria/pizzeria senza tipo cafe/bakery né nome da bar/caffè/pasticceria; '
         + 'o un wine bar/cocktail bar/enoteca) oppure che, secondo gli orari, è chiuso all\'ora di arrivo.',
@@ -47,6 +49,8 @@ export const DEFINIZIONI = {
         + '(il vincolo esteso a ciò che non è cibo).',
     c11: 'CONTINUITA\' — in un giro (itinerario, non Per Te) fra due voci consecutive (tappe e righe di tempo libero) il tempo che non e\' coperto da sosta, cammino o da una riga di tempo libero '
         + 'supera `buchiMinuti` (45); oppure una tappa vera non ha l\'orario di arrivo. Il cammino e\' haversine a `camminoKmh`, ricalcolato qui. L\'attesa prima della prima tappa del giorno non conta.',
+    c12: 'C7 — una tappa che è una ZONA: tipo principale o tipo da zona (locality, sublocality, neighborhood, political, route…) oppure un nome che è solo quello di un\'area ("Centro Storico Catania", "Zona Centro"). '
+        + 'Una zona può orientare la ricerca, non essere una tappa.',
 };
 
 // ─── strumenti ──────────────────────────────────────────────────────────────
@@ -101,20 +105,35 @@ export function tipoSosta(s) {
     return 'altro';
 }
 
+// C7 — il "pasto" dei controlli 1 e 2 e' un posto dove ci si siede: il tipo principale e' un ristorante.
+// Un cocktail bar marcato anche `restaurant`, un forno, un caffe' non lo sono (la colazione e l'aperitivo non sono pasti).
+export const eRistorante = (s) => tipoSosta(s) === 'pasto';
+
 const viol = (s, testo, classe, cfg) => ({ tappa: s ? nome(s) : null, momento: s?.moment ?? null, testo, gravita: cfg.esteso.gravita[classe] ?? 1 });
 const esito = (id, applicabile, violazioni = [], extra = {}) => ({ id, applicabile, violazioni, ...extra });
 
 // ─── 1 — pasti fuori fascia ─────────────────────────────────────────────────
+// Le parole con cui il testo chiede un locale in un MOMENTO (usate da c1 e c2).
+const RICHIESTA_MOMENTO = {
+    mattina: (t) => /\b(colazione|brunch|cornett\w*|cappuccin\w*)\b/.test(t)
+        || (/\b(mattin\w*)\b/.test(t) && /\b(ristorant\w*|trattori\w*|osteri\w*|pizzeri\w*|mangiar\w*|cibo|pranz\w*)\b/.test(t)),
+    pomeriggio: (t) => /\b(merenda)\b/.test(t)
+        || (/\b(pomerigg\w*)\b/.test(t) && /\b(ristorant\w*|trattori\w*|osteri\w*|pizzeri\w*|mangiar\w*|cibo|pranz\w*|osterie)\b/.test(t)),
+};
 export function c1(caso, cfg) {
+    if (caso.tipo === 'perte') return esito('c1', false);
     const E = cfg.esteso;
     const [p0, p1] = E.fasce.pranzo.map(minDi);
     const [c0, c1_] = E.fasce.cena.map(minDi);
+    const testo = norm(caso.richiesta);
+    // un ristorante in un momento che il testo chiede esplicitamente si rispetta
+    const chiesto = (s) => !!RICHIESTA_MOMENTO[s.moment]?.(testo);
     const out = [];
     for (const t of caso.tours || []) {
-        const pasti = tappeDi(t).filter(s => s.pasto && s.at);
+        const pasti = tappeDi(t).filter(s => eRistorante(s) && s.at);
         for (const s of pasti) {
             const m = quando(s)?.minuti;
-            if (m == null) continue;
+            if (m == null || chiesto(s)) continue;
             if (!((m >= p0 && m <= p1) || (m >= c0 && m <= c1_))) {
                 out.push(viol(s, `${nome(s)} alle ${hhmmDi(m)}: un pasto fuori dalle fasce (pranzo ${E.fasce.pranzo.join('–')}, cena ${E.fasce.cena.join('–')})`, 'c1', cfg));
             }
@@ -122,7 +141,7 @@ export function c1(caso, cfg) {
         const ord = [...pasti].sort((a, b) => new Date(a.at) - new Date(b.at));
         for (let i = 1; i < ord.length; i++) {
             const dt = (new Date(ord[i].at) - new Date(ord[i - 1].at)) / 60000;
-            if (dt < E.pastiDistanzaMinOre * 60) {
+            if (dt < E.pastiDistanzaMinOre * 60 && !chiesto(ord[i]) && !chiesto(ord[i - 1])) {
                 out.push(viol(ord[i], `${nome(ord[i])} alle ${oraTesto(ord[i])}: secondo pasto seduto a ${Math.round(dt)} min da ${nome(ord[i - 1])} (alle ${oraTesto(ord[i - 1])})`, 'c1', cfg));
             }
         }
@@ -131,20 +150,16 @@ export function c1(caso, cfg) {
 }
 
 // ─── 2 — ristoranti a mattina/pomeriggio senza richiesta ────────────────────
-const RICHIESTA_MOMENTO = {
-    mattina: (t) => /\b(colazione|brunch|cornett\w*|cappuccin\w*)\b/.test(t)
-        || (/\b(mattin\w*)\b/.test(t) && /\b(ristorant\w*|trattori\w*|osteri\w*|pizzeri\w*|mangiar\w*|cibo|pranz\w*)\b/.test(t)),
-    pomeriggio: (t) => /\b(merenda)\b/.test(t)
-        || (/\b(pomerigg\w*)\b/.test(t) && /\b(ristorant\w*|trattori\w*|osteri\w*|pizzeri\w*|mangiar\w*|cibo|pranz\w*|osterie)\b/.test(t)),
-};
 export function c2(caso, cfg) {
     const testo = norm(caso.richiesta);
+    const MOMENTI = ['mattina', 'pomeriggio', 'aperitivo', 'dopocena'];
     const out = [];
     for (const t of caso.tours || []) {
         for (const s of tappeDi(t)) {
-            if (!s.pasto || !RICHIESTA_MOMENTO[s.moment]) continue;
-            if (RICHIESTA_MOMENTO[s.moment](testo)) continue;
-            out.push(viol(s, `${nome(s)} (${s.moment}, alle ${oraTesto(s)}): un posto dove mangiare in un momento che la richiesta non chiede`, 'c2', cfg));
+            if (!eRistorante(s) || !MOMENTI.includes(s.moment)) continue;
+            // mattina e pomeriggio si possono chiedere ("la colazione", "il pomeriggio nelle osterie"); aperitivo e dopocena no: li' un ristorante non e' mai quello che si chiede
+            if (RICHIESTA_MOMENTO[s.moment]?.(testo)) continue;
+            out.push(viol(s, `${nome(s)} (${s.moment}, alle ${oraTesto(s)}): un ristorante in un momento che non è un pasto e che la richiesta non chiede`, 'c2', cfg));
         }
     }
     return esito('c2', true, out);
@@ -374,7 +389,37 @@ export function c11(caso, cfg) {
     return esito('c11', true, out, { buchi, senzaOrario, righeTempoLibero: dichiarati, minutiBuco });
 }
 
-export const CONTROLLI = { c1, c2, c3, c4, c5, c6, c7, c8, c10, c11 };
+// ─── 12 — zone come tappe (C7) ──────────────────────────────────────────────
+const ZONA_PRINCIPALE = new Set(['locality', 'sublocality', 'sublocality_level_1', 'sublocality_level_2', 'sublocality_level_3', 'sublocality_level_4',
+    'administrative_area_level_1', 'administrative_area_level_2', 'administrative_area_level_3', 'administrative_area_level_4', 'administrative_area_level_5',
+    'political', 'neighborhood', 'route', 'postal_code', 'country', 'continent', 'archipelago', 'geocode']);
+const ZONA_TIPI = new Set([...ZONA_PRINCIPALE].filter(t => t !== 'route' && t !== 'geocode'));
+const NOMI_AREA = new Set(['centro storico', 'centro', 'centro citta', 'centro urbano', 'centro antico', 'citta vecchia', 'citta antica', 'quartiere', 'zona', 'rione',
+    'zona centro', 'zona centrale', 'quartiere storico', 'old town', 'historic center', 'historic centre', 'downtown', 'city center', 'city centre']);
+export function motivoZona(s, citta) {
+    const pt = s.primaryType || null;
+    if (pt && ZONA_PRINCIPALE.has(pt)) return `tipo principale ${pt}`;
+    const t = tipi(s).find(x => ZONA_TIPI.has(x));
+    if (t) return `tipo da zona ${t}`;
+    // il nome e' solo quello di un'area, tolta la citta'
+    const c = norm(citta);
+    let resto = norm(nome(s));
+    if (c) resto = resto.split(c).join(' ');
+    resto = resto.replace(/[^a-z0-9' ]+/g, ' ').split(' ').filter(w => w && !['di', 'del', 'della', 'dello', 'de', 'il', 'lo', 'la', 'a', 'in', 'e', "l'"].includes(w)).join(' ');
+    return NOMI_AREA.has(resto) ? `nome da area («${nome(s)}»)` : null;
+}
+export function c12(caso, cfg) {
+    const out = [];
+    for (const t of caso.tours || []) {
+        for (const s of tappeDi(t)) {
+            const m = motivoZona(s, caso.luogo);
+            if (m) out.push(viol(s, `${nome(s)}: una zona, non una tappa (${m})`, 'c12', cfg));
+        }
+    }
+    return esito('c12', true, out);
+}
+
+export const CONTROLLI = { c1, c2, c3, c4, c5, c6, c7, c8, c10, c11, c12 };
 
 /** Tutti i controlli per-caso. c9 e' del giro (vedi c9) e non sta qui. */
 export function eseguiControlli(caso, cfg) {

@@ -282,8 +282,11 @@ describe('Gate NARRATORE ANCORATO DIFF 3 — open_now NON arriva più nel prompt
     beforeEach(() => {
         vi.clearAllMocks();
         try { window.localStorage.clear(); } catch { /* jsdom */ }
+        // C7 — le osterie stanno a pranzo e cena: il test gira all'ora del pranzo (non dipende dall'ora vera).
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2026-10-14T12:30:00+02:00'));
     });
-    afterEach(() => { vi.unstubAllGlobals(); });
+    afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
     it('nessun candidato porta open_now nel payload, nemmeno quello con il dato', async () => {
         const bodies = [];

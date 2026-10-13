@@ -244,6 +244,12 @@ export default function SurpriseTourPage() {
             // days.length === 1. Si arrivava a navigare su un tour a zero tappe.
             const outcome = getSurpriseOutcome(result);
             if (outcome === 'error') throw new Error("AI Generation Failed");
+            if (outcome === 'empty' && result?._source === 'closed-now') {
+                // ORARI — a quest'ora quasi tutto chiuso: il messaggio dichiarato.
+                console.info('[DVAI-061] shuffleExperience: closed-now → messaggio dichiarato');
+                setGenerationError({ title: result._messaggio, description: '' });
+                return;
+            }
             if (outcome === 'empty') {
                 const oggetto = result?._oggetto_umano || null;
                 console.warn(`[DVAI-061] shuffleExperience: motore 0 tappe → nessuna navigazione (oggetto="${oggetto || 'n/a'}", source=${result?._source || 'unknown'})`);

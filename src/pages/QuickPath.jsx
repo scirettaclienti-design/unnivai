@@ -634,6 +634,13 @@ export default function QuickPathPage() {
             // dal traduttore d'intento. Passa in errore con quella parola per
             // messaggio onesto ("A ${city} non troviamo spiagge.").
             const rawStops = result?.days?.[0]?.stops || [];
+            // ORARI — a quest'ora quasi tutto chiuso: il messaggio dichiarato, non "non basta per un tour".
+            if (result?._source === 'closed-now') {
+                clearTimeout(safetyTimeoutId);
+                setGenerationError({ reason: 'nothing', messaggio: result._messaggio });
+                setGenerationStatus('error-nothing');
+                return;
+            }
             if (!Array.isArray(rawStops) || rawStops.length === 0) {
                 const oggetto = result?._oggetto_umano || null;
                 console.warn(`[QuickPath] motore 0 tappe → error-nothing (oggetto="${oggetto || 'n/a'}", source=${result?._source || 'unknown'})`);
@@ -1050,15 +1057,20 @@ export default function QuickPathPage() {
                             {generationStatus === 'error-nothing' && (
                                 <div className="bg-obsidian-card border border-obsidian-border rounded-[28px] p-8 text-center max-w-md mx-auto shadow-2xl">
                                     <h3 className="text-2xl font-bold text-obsidian-primary mb-3">
-                                        {generationError?.oggetto_umano
-                                            ? `A ${activeCity} non troviamo ${generationError.oggetto_umano}.`
-                                            : 'Non basta per un tour.'}
+                                        {generationError?.messaggio
+                                            ? generationError.messaggio
+                                            : generationError?.oggetto_umano
+                                                ? `A ${activeCity} non troviamo ${generationError.oggetto_umano}.`
+                                                : 'Non basta per un tour.'}
                                     </h3>
-                                    <p className="text-obsidian-secondary text-sm leading-relaxed mb-8 font-medium">
-                                        {generationError?.oggetto_umano
-                                            ? 'Cambia richiesta e riprovo.'
-                                            : `A ${activeCity} non ci sono abbastanza posti veri per quello che hai chiesto. Cambia una scelta e riprovo.`}
-                                    </p>
+                                    {!generationError?.messaggio && (
+                                        <p className="text-obsidian-secondary text-sm leading-relaxed mb-8 font-medium">
+                                            {generationError?.oggetto_umano
+                                                ? 'Cambia richiesta e riprovo.'
+                                                : `A ${activeCity} non ci sono abbastanza posti veri per quello che hai chiesto. Cambia una scelta e riprovo.`}
+                                        </p>
+                                    )}
+                                    {generationError?.messaggio && <div className="mb-8" />}
                                     <button
                                         onClick={() => { setGenerationStatus('idle'); resetSelection(); }}
                                         className="px-6 py-3.5 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-xl font-bold transition-colors w-full sm:w-auto shadow-md shadow-brand-orange/20 cursor-pointer"

@@ -357,7 +357,11 @@ import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan, isMealPlace,
     requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme,
+    applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule,
 } from './momentSelection';
+// ORARI — una tappa vale solo se il posto e' aperto per tutta la sosta (lib/openingHours).
+import { MESSAGGIO_CHIUSO, TESTO_NESSUN_LOCALE_APERTO } from '../lib/openingHours';
+import { keepOpenStops } from '../lib/openStops';
 import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
@@ -1709,6 +1713,11 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates, { guard = t
             image: c.googlePhoto || c.image || null,
             place_id: c.place_id || c.googlePlaceId,
             city: c.city || null,
+            // ORARI — solo se la ricerca nuova li ha portati (con la vecchia l'oggetto
+            // resta com'era): servono a controllare la tappa quando ci si arriva.
+            ...(Array.isArray(c.openingPeriods) ? { openingPeriods: c.openingPeriods } : {}),
+            ...(Number.isFinite(c.utcOffsetMinutes) ? { utcOffsetMinutes: c.utcOffsetMinutes } : {}),
+            ...(c.primaryType ? { primaryType: c.primaryType } : {}),
         };
     }).filter(Boolean);
 
@@ -1957,7 +1966,8 @@ const insertFreeTime = (days, entries) => {
         for (const e of entries.filter(x => x.dayIndex === dayIndex)) {
             const at = stops.findIndex(st => (MOMENT_ORDER.get(st.moment) ?? -1) > (MOMENT_ORDER.get(e.key) ?? 99));
             const item = freeTimeStop({
-                moment: e.key, momentLabel: e.label, description: composeFreeTime({ momento: e.key }),
+                // ORARI — un pasto senza nessun locale aperto ha la sua riga dichiarata; il resto e' tempo libero (regola O).
+                moment: e.key, momentLabel: e.label, description: e.chiuso && e.pasto ? TESTO_NESSUN_LOCALE_APERTO : composeFreeTime({ momento: e.key }),
                 tracciato: { scelta: 'tempo libero', minuti: null, famiglia: null, motivo: e.motivo, piuVicino: e.piuVicino },
             });
             stops = at < 0 ? [...stops, item] : [...stops.slice(0, at), item, ...stops.slice(at)];
@@ -2187,6 +2197,8 @@ export const aiRecommendationService = {
     // ("A <citta'> non troviamo …"): nessuna pagina mostra un tour senza tappe.
     async _neverEmpty(result, args) {
         if (!result || typeof result !== 'object' || Array.isArray(result) || countStops(result) > 0) return result;
+        // ORARI — "quasi tutto chiuso" non e' un giro andato a vuoto: con le query di base si troverebbero gli stessi posti chiusi.
+        if (result._source === 'closed-now') return result;
         const [city, , , , , , opts] = args;
         console.warn(`[T1b mai vuoto] ${city}: 0 tappe (${result._source || '?'}) → secondo tentativo con le query di base`);
         let retry = null;
@@ -2437,6 +2449,12 @@ export const aiRecommendationService = {
                 anyCategory = true;
                 buckets = bucketCandidates(moments, candidates, { anyCategory });
             }
+            // ORARI — i bucket senza i posti chiusi quando ci si arriva: tutte le regole
+            // che seguono (varieta', percorso, tetto di cammino, tempo libero) scelgono
+            // solo fra posti aperti. `veto` si riempie col controllo sugli orari veri.
+            // Senza orari (ricerca vecchia) non toglie niente.
+            const veto = new Map();
+            const openBuckets = () => (buckets ? applyOpeningToBuckets(moments, buckets, { veto }) : null);
             // Gate NARRATORE-DOPO — si cerca per i momenti che il pool non riesce
             // a riempire, non solo per quelli vuoti (vedi shortMomentThemes).
             // C1 — le famiglie che la categoria o il testo chiedono: per quelle
@@ -2446,7 +2464,7 @@ export const aiRecommendationService = {
                 category: skeleton.explicitCategory,
                 text: opts.pathType === 'custom' ? userPrompt : '',
             });
-            const extraThemes = buckets ? shortMomentThemes(moments, buckets, candidates, undefined, { requestedFamilies: familiesAsked }) : [];
+            const extraThemes = buckets ? shortMomentThemes(moments, openBuckets().buckets, candidates, undefined, { requestedFamilies: familiesAsked }) : [];
             // P3e — con la categoria che vale per tutti i momenti, un
             // ristorante trovato fuori da quella categoria serve SOLO a pranzo
             // e cena: mai al mattino di un tour Rioni Storici. Vale per ogni
@@ -2459,7 +2477,7 @@ export const aiRecommendationService = {
                 : null);
             if (extraThemes.length > 0) {
                 const foodAnchor = extraThemes.includes('food')
-                    ? mealSearchAnchor(moments, buckets, candidates, { requestedFamilies: familiesAsked })
+                    ? mealSearchAnchor(moments, openBuckets().buckets, candidates, { requestedFamilies: familiesAsked })
                     : null;
                 if (foodAnchor) console.info(`[C1 COMPOSIZIONE] ${city}: ricerca dei pasti da "${foodAnchor.name}", non dal centro`);
                 const extra = await searchMomentCandidates({
@@ -2473,17 +2491,28 @@ export const aiRecommendationService = {
                 mealOnlyIds = addMealOnly(extra);
                 buckets = bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds });
             }
+            // ORARI — i bucket che il selettore e la scelta vedono: solo posti non chiusi.
+            const hours0 = openBuckets();
+            const hoursBuckets = hours0 ? hours0.buckets : null;
             if (moments.length > 0) {
                 console.info(
                     `[P3 SCHELETRO] ${city}: ${moments.length} momenti — ` +
-                    moments.map(m => `${m.id}×${m.stops}(${(buckets.get(m.id) || []).length} cand.)`).join(', ') +
+                    moments.map(m => `${m.id}×${m.stops}(${(hoursBuckets.get(m.id) || []).length} cand.)`).join(', ') +
                     (extraThemes.length ? ` | ricerche mirate: ${extraThemes.join(', ')}` : ' | nessuna ricerca mirata')
                 );
+                if (hours0.report.chiusi.length > 0) {
+                    console.info(`[ORARI] ${city}: ${hours0.report.chiusi.length} posti chiusi quando ci si arriva, tolti dai momenti — ${hours0.report.chiusi.slice(0, 6).map(x => `${x.nome} @${x.momento} (${x.perche})`).join(' | ')}`);
+                }
             }
             // Al selettore vanno solo i candidati di almeno un momento.
-            const selectorCandidates = buckets
-                ? [...new Map([...buckets.values()].flat().map(c => [c.place_id || c.googlePlaceId, c])).values()]
+            const selectorCandidates = hoursBuckets
+                ? [...new Map([...hoursBuckets.values()].flat().map(c => [c.place_id || c.googlePlaceId, c])).values()]
                 : candidates;
+            // ORARI — a quest'ora i posti chiusi tolgono tutto: non e' "non trovo", e' "meglio domattina".
+            if (hoursBuckets && selectorCandidates.length === 0 && hours0.report.chiusi.length > 0) {
+                console.info(`[ORARI] ${city}: tutti i candidati sono chiusi a quest'ora → messaggio dichiarato`);
+                return { days: [{ stops: [] }], _source: 'closed-now', _messaggio: MESSAGGIO_CHIUSO, _orari: { chiusi: hours0.report.chiusi.slice(0, 40) } };
+            }
 
             // Gate I — soglia minima 1 candidato (era 3). Un posto vero è meglio
             // di zero. Un tour di 1 tappa con Villa Bellini > messaggio bugiardo
@@ -2494,7 +2523,7 @@ export const aiRecommendationService = {
                     prefs, aiProfile, cityCenter, candidates: selectorCandidates, userPrompt,
                     intent, // Gate B — clausole dure (categoria/escludi/tempo/note) nel prompt
                     moments: moments.length > 0 ? moments : null,
-                    buckets,
+                    buckets: hoursBuckets || buckets,
                     foodPrefs: foodOn ? food : null,
                 });
                 const controller = new AbortController();
@@ -2543,6 +2572,8 @@ export const aiRecommendationService = {
                     // ripara (momento sbagliato, numero sbagliato, luogo
                     // inventato), poi mette gli orari dentro ogni momento.
                     let momentReport = null;
+                    let orariTracciato = new Map();   // ORARI — place_id → 'noto' | 'sconosciuto'
+                    let orariInfo = null;
                     const finalDays = moments.length > 0
                         ? await (async () => {
                             // C1b — un momento senza niente entro il tetto dalla
@@ -2558,7 +2589,7 @@ export const aiRecommendationService = {
                             const ricercheDopo = [];
                             let budget = Math.max(0, MAX_EXTRA_SEARCHES - extraThemes.length);
                             const repair = (tempoLibero = false) => repairMomentSelection({
-                                moments, buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
+                                moments, buckets: openBuckets().buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
                                 requestedFamilies: familiesAsked, searchedIds, searchedMoments,
                                 // C5b — il punto di partenza, se il chiamante lo conosce;
                                 // senza, la prima tappa si misura dal centro del gruppo.
@@ -2599,10 +2630,36 @@ export const aiRecommendationService = {
                             }
                             // C5e (O) — ricerche finite: un momento non pasto senza
                             // niente entro 40 min dalla tappa prima diventa tempo libero.
-                            repaired = repair(true);
-                            const { plan, report } = repaired;
-                            const sched = scheduleMomentPlan(plan, tourWindow.windows.map(w => w.start));
-                            momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo };
+                            // ORARI — e si controllano gli orari VERI del giro (arrivo → arrivo
+                            // + sosta): un posto che risulta chiuso si vieta per quel momento
+                            // e si sceglie di nuovo con le stesse regole, finche' e' tutto aperto.
+                            const settled = settleOpeningHours({
+                                repair: () => repair(true),
+                                schedule: (plan) => scheduleMomentPlan(plan, tourWindow.windows.map(w => w.start)),
+                                veto,
+                            });
+                            repaired = settled.repaired;
+                            let sched = settled.sched;
+                            const { report } = repaired;
+                            // L'ultima rete: una tappa ancora chiusa non esce mai.
+                            if (settled.residui.length > 0) {
+                                console.warn(`[ORARI] ${city}: ${settled.residui.length} tappe ancora chiuse dopo i giri → tolte (${settled.residui.map(x => x.nome).join(', ')})`);
+                                sched = dropFromSchedule(sched, settled.residui);
+                            }
+                            const hoursReport = openBuckets().report;
+                            // Un filtro non lascia mai un buco: un momento rimasto senza posti
+                            // aperti ha la sua riga dichiarata (tempo libero, o "nessun locale
+                            // aperto" per un pasto).
+                            const chiusiPerMomento = new Set([...hoursReport.chiusi.map(x => x.momento), ...veto.keys()]);
+                            const righeChiuse = closedMomentRows({ moments, sched, tempoLibero: report.tempoLibero, chiusiPerMomento });
+                            report.tempoLibero = [...(report.tempoLibero || []), ...righeChiuse];
+                            orariTracciato = scheduleHoursLabels(sched);
+                            orariInfo = {
+                                chiusi: hoursReport.chiusi.slice(0, 60), vietati: [...veto.entries()].map(([momento, ids]) => ({ momento, place_id: [...ids] })),
+                                giri: settled.giri.length, ignoti: hoursReport.ignoti, scartatiIgnoti: hoursReport.scartatiIgnoti,
+                                righeDichiarate: righeChiuse.map(x => ({ momento: x.momento, pasto: x.pasto })), residui: settled.residui.length,
+                            };
+                            momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo };
                             logMomentReport(city, momentReport);
                             return sched.days.map((dayStops, di) => {
                                 const canon = canonicalizeStopsFromCandidates(
@@ -2617,7 +2674,10 @@ export const aiRecommendationService = {
                                     ...(dayStops[i].source === 'riparata' ? { repaired: true } : {}),
                                     // C1 — tracciato interno, mai a schermo: chi
                                     // l'ha scelta (modello / riparazione / ripiego).
-                                    _tracciato: dayStops[i].trace,
+                                    // ORARI — e se l'orario del posto e' noto (aperto per
+                                    // tutta la sosta) o sconosciuto.
+                                    _tracciato: { ...dayStops[i].trace, orario: orariTracciato.get(stop.place_id) || 'sconosciuto' },
+                                    _orario: orariTracciato.get(stop.place_id) || 'sconosciuto',
                                 }));
                                 // windowIndex: il giorno resta legato alla SUA
                                 // finestra anche se un giorno prima viene tolto.
@@ -2637,7 +2697,19 @@ export const aiRecommendationService = {
                             // Ordina per prossimità, poi la varietà (Gate MERITO);
                             // DIFF 1a: le stime SUBITO dopo il sort/varietà, mai prima.
                             const ordered = computeStopTimings(enforceCategoryVariety(sortByProximity(withinRadius))).stops;
-                            return [{ ...baseMeta(0), windowIndex: 0, stops: ordered }].filter(d => d.stops.length > 0);
+                            // ORARI — niente pool per momento: la stessa regola sulla lista. Le tappe
+                            // si mettono in orario dalla partenza; una chiusa quando ci si arriva si
+                            // toglie e si sostituisce col candidato piu' vicino aperto. Mai una chiusa.
+                            const aperti = keepOpenStops({
+                                stops: ordered, pool: candidates, start: tourWindow.start,
+                                retime: (list) => computeStopTimings(enforceCategoryVariety(sortByProximity(list))).stops,
+                                toStop: (c) => canonicalizeStopsFromCandidates([{ place_id: c.place_id || c.googlePlaceId }], candidates, { guard: false })[0] || null,
+                            });
+                            orariInfo = { chiusi: aperti.chiuse, aggiunte: aperti.aggiunte, ignoti: aperti.ignote, giri: aperti.passi, vietati: [] };
+                            if (aperti.chiuse.length > 0) {
+                                console.info(`[ORARI] ${city}: ${aperti.chiuse.length} tappe chiuse quando ci si arriva, tolte (${aperti.chiuse.map(x => x.nome).join(', ')}), ${aperti.aggiunte.length} sostituite`);
+                            }
+                            return [{ ...baseMeta(0), windowIndex: 0, stops: aperti.stops }].filter(d => d.stops.length > 0);
                         })();
 
                     // C5 — la forma del giro finale nel tracciato: km, incroci,
@@ -2655,6 +2727,18 @@ export const aiRecommendationService = {
                                 + `, indice ${r.giroCorto ? 'non applicato (giro corto)' : (r.indice ?? '—')} (libero ${r.indiceLibero ?? '—'}), catene ${r.catene}`
                                 + (r.motivoIncroci ? ` — ${r.motivoIncroci}` : ''));
                         }
+                    }
+
+                    // ORARI — se i posti chiusi hanno tolto cosi' tanto che restano meno di
+                    // 2 tappe aperte, niente giro: un messaggio dichiarato (testo
+                    // provvisorio, decisione M). Senza chiusure (o senza orari) non scatta.
+                    const orariAgito = !!orariInfo && ((orariInfo.chiusi || []).length > 0 || (orariInfo.vietati || []).length > 0);
+                    if (orariAgito && finalDays.reduce((n, d) => n + d.stops.length, 0) < 2) {
+                        console.info(`[ORARI] ${city}: meno di 2 tappe aperte a quest'ora → messaggio dichiarato`);
+                        return {
+                            days: [{ stops: [] }], _source: 'closed-now', _messaggio: MESSAGGIO_CHIUSO,
+                            _orari: orariInfo, ...(momentReport ? { _momentReport: momentReport } : {}),
+                        };
                     }
 
                     // Gate I — soglia minima 1 tappa (era 3). Un posto vero è
@@ -2745,6 +2829,7 @@ export const aiRecommendationService = {
                             days: narratedDays, _source: 'google-first', _singleStop: singleStop,
                             ...(foodOn ? { _vincoliCibo: vincoliCibo } : {}),
                             ...(momentReport ? { _momentReport: momentReport } : {}),
+                            ...(orariInfo ? { _orari: orariInfo } : {}),
                             _narrationReport: narrationReport,
                             _ovvieta: ovvieta,
                             _famosita: famosita,
@@ -3137,6 +3222,7 @@ export const aiRecommendationService = {
                 }
             });
 
+            const orariPerTe = []; // ORARI — per tour: tappe chiuse tolte, sostituzioni, orari ignoti
             const finalTours = prepared.map((pt) => {
                 if (!pt) return null;
                 const { tour, themeType } = pt;
@@ -3153,7 +3239,23 @@ export const aiRecommendationService = {
                 // P3d-j: la frase dopo le stime (minuti, prima e ultima tappa).
                 // "Per Te" e' adesso: niente orario d'arrivo, quindi niente
                 // ganci "orario" e "tramonto"; la luce si controlla su adesso.
-                const timedStops = computeStopTimings(sortByProximity(withinRadius)).stops;
+                // ORARI — "Per Te" e' adesso: le tappe si mettono in orario da ora; una
+                // chiusa quando ci si arriva (arrivo → arrivo + sosta) si toglie e si
+                // sostituisce col candidato del suo tema piu' vicino che sia aperto.
+                // Se non ne restano abbastanza il tour non e' servito (regola esistente).
+                const poolTema = nonEmptyPools[themeType] || [];
+                const aperti = keepOpenStops({
+                    stops: computeStopTimings(sortByProximity(withinRadius)).stops, pool: poolTema, start: now, exclude: usati,
+                    retime: (list) => computeStopTimings(sortByProximity(list)).stops,
+                    toStop: (c) => {
+                        const [nuovo] = canonicalizeStopsFromCandidates([{ place_id: homePid(c) }], poolTema, { guard: false });
+                        return nuovo ? { ...nuovo, _scelta: {} } : null;
+                    },
+                });
+                for (const a of aperti.aggiunte) usati.add(a.place_id);
+                orariPerTe.push({ tour: themeType, chiuse: aperti.chiuse, aggiunte: aperti.aggiunte, ignote: aperti.ignote });
+                for (const x of aperti.chiuse) scarta(themeType, x.nome, `chiuso quando ci si arriva (${x.perche || 'orari'})`);
+                const timedStops = aperti.stops;
                 const ordered = timedStops.map((st, i) => {
                     const { _scelta, ...clean } = st;
                     const entry = facts.get(st.place_id);
@@ -3249,8 +3351,18 @@ export const aiRecommendationService = {
                     },
                 } : {}),
                 ovvieta, // solo per confronto (P7a)
+                orari: {
+                    chiuse: orariPerTe.flatMap(t => t.chiuse.map(x => ({ tour: t.tour, ...x }))),
+                    aggiunte: orariPerTe.flatMap(t => t.aggiunte.map(x => ({ tour: t.tour, ...x }))),
+                    ignote: orariPerTe.reduce((n, t) => n + t.ignote, 0),
+                },
             };
             console.info(`[Per Te] ${city}: ${report.tourServiti}/${report.tourProposti} tour, ${report.tappeServite}/${report.tappeRaccontate} tappe servite (${aggiunte.length} aggiunte in codice), ${scarti.length} scarti, ${tokenRisposta ?? '?'}/${MAX_TOKENS} token${truncated ? ', risposta tagliata' : ''}, famosita' mediana ${famosita.mediana ?? '-'} / ${famosita.sopraSoglia} sopra ${famosita.soglia}, ovvieta' ${ovvieta.nelTop10}/${ovvieta.tappe}`);
+            // ORARI — se i posti chiusi hanno tolto tutti i tour: il messaggio dichiarato, non un'home vuota.
+            if (finalTours.length === 0 && report.orari.chiuse.length > 0) {
+                console.info(`[ORARI] Per Te ${city}: nessun tour con posti aperti a quest'ora → messaggio dichiarato`);
+                return { tours: [], _source: 'closed-now', _messaggio: MESSAGGIO_CHIUSO, _report: report };
+            }
             const result = { tours: finalTours, _source: 'unified-home', _report: report };
             saveInsiderToCache(cacheKey, { tours: finalTours, _source: 'unified-home' });
             return result;

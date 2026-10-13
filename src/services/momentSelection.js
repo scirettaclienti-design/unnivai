@@ -45,6 +45,7 @@ import { resolveStayMinutes, travelMinutes, WALKING_KMH } from '../lib/tourTimin
 import { FOOD_ONLY_MOMENT_KEYS } from '../lib/daySkeleton';
 import { freeTimeDecision } from '../lib/freeTime';
 import { brandKey, legKm, pathKm, minimalPathKm, countCrossings, crossingPairs, repeatedBrands, stopDetours } from '../lib/routeShape';
+import { openStatus, OPEN, CLOSED, UNKNOWN, NIGHT_FROM_MINUTES, romeMinutes } from '../lib/openingHours';
 
 // ─── Categorie dello scheletro, dai types Google ─────────────────────────────
 //
@@ -1309,3 +1310,150 @@ export function scheduleMomentPlan(plan, dayStarts) {
     }
     return { days: Array.from(days, d => d || []), tolte };
 }
+
+// ─── 5. ORARI — una tappa vale solo se il posto e' aperto per tutta la sosta ─
+//
+// Gli orari settimanali arrivano sul candidato (`openingPeriods`, ricerca nuova).
+// Un posto chiuso non entra nel bucket del suo momento: tutte le regole che ci
+// sono (varieta', percorso, tetto di cammino, tempo libero) scelgono allora solo
+// fra posti aperti, per il modello come per il codice. Un orario sconosciuto
+// (ricerca vecchia, posto senza orari) e' ammesso: non si toglie niente.
+//
+// L'orario di arrivo di un posto dipende dal giro (fine della tappa prima +
+// cammino), che non c'e' ancora quando si dividono i candidati: il primo filtro
+// usa l'inizio del momento, il controllo vero (settleOpeningHours) usa gli
+// orari del piano e vieta, momento per momento, i posti che risultano chiusi.
+
+const isLocaleCandidate = (c) => {
+    const cats = candidateMomentCategories(c);
+    return cats.has('cibo') || cats.has('bar');
+};
+const nameOf = (c) => c?.name || c?.title || null;
+
+/**
+ * I bucket senza i posti chiusi.
+ * @param {Array} moments da flattenSkeleton (con start: Date)
+ * @param {Map} buckets da bucketCandidates
+ * @param {object} [o]
+ * @param {Map<string, Set<string>>} [o.veto] momento → place_id gia' risultati chiusi nel giro
+ * @returns {{ buckets: Map, report: { chiusi: Array, ignoti: number, scartatiIgnoti: Array } }}
+ *   `chiusi`: i posti tolti (momento, place_id, nome, perche). `scartatiIgnoti`: i posti
+ *   a orario sconosciuto che perdono contro un'alternativa aperta con orario noto
+ *   (a colazione, per i locali; dopo le 21, per tutti).
+ */
+export function applyOpeningToBuckets(moments, buckets, { veto = null } = {}) {
+    const out = new Map();
+    const report = { chiusi: [], ignoti: 0, scartatiIgnoti: [] };
+    for (const m of moments) {
+        const list = buckets.get(m.id) || [];
+        const arrival = m.start instanceof Date ? m.start : null;
+        if (!arrival) { out.set(m.id, list); continue; }
+        const kept = [];
+        for (const c of list) {
+            const id = idOf(c);
+            if (veto?.get(m.id)?.has(id)) {
+                report.chiusi.push({ momento: m.id, place_id: id, nome: nameOf(c), perche: 'chiuso quando ci si arriva (orario del giro)' });
+                continue;
+            }
+            const st = openStatus(c, arrival, resolveStayMinutes(c?.types));
+            if (st.stato === CLOSED) {
+                report.chiusi.push({ momento: m.id, place_id: id, nome: nameOf(c), perche: st.motivo });
+                continue;
+            }
+            kept.push({ c, stato: st.stato });
+        }
+        // Orario sconosciuto: ammesso, ma a colazione (i locali del mattino) e dopo
+        // le 21 perde contro un'alternativa aperta con orario noto.
+        const noti = kept.filter(x => x.stato === OPEN);
+        let finale = kept;
+        if (noti.length > 0) {
+            if (romeMinutes(arrival) >= NIGHT_FROM_MINUTES) finale = noti;
+            else if (m.key === 'mattina' && noti.some(x => isLocaleCandidate(x.c))) finale = kept.filter(x => !(x.stato === UNKNOWN && isLocaleCandidate(x.c)));
+        }
+        for (const x of kept) if (!finale.includes(x)) report.scartatiIgnoti.push({ momento: m.id, place_id: idOf(x.c), nome: nameOf(x.c) });
+        report.ignoti += finale.filter(x => x.stato === UNKNOWN).length;
+        out.set(m.id, finale.map(x => x.c));
+    }
+    return { buckets: out, report };
+}
+
+/** Le tappe di un piano gia' messo in orario che risultano chiuse quando ci si arriva (arrivo → arrivo + sosta). */
+export function closedInSchedule(sched) {
+    const out = [];
+    for (const day of sched?.days || []) {
+        for (const s of day) {
+            const st = openStatus(s.candidate, s.start, resolveStayMinutes(s.candidate?.types));
+            if (st.stato === CLOSED) out.push({ momento: s.moment.id, place_id: idOf(s.candidate), nome: nameOf(s.candidate), perche: st.motivo, arrivo: s.start });
+        }
+    }
+    return out;
+}
+
+/** Lo stato d'orario ('noto' | 'sconosciuto') di ogni tappa messa in orario, per place_id: va nel tracciato. */
+export function scheduleHoursLabels(sched) {
+    const out = new Map();
+    for (const day of sched?.days || []) {
+        for (const s of day) {
+            const st = openStatus(s.candidate, s.start, resolveStayMinutes(s.candidate?.types));
+            out.set(idOf(s.candidate), st.stato === UNKNOWN ? 'sconosciuto' : 'noto');
+        }
+    }
+    return out;
+}
+
+/**
+ * Sceglie, mette in orario e CONTROLLA gli orari veri; ogni posto chiuso quando
+ * ci si arriva e' vietato per quel momento e si sceglie di nuovo, finche' il giro
+ * e' tutto aperto (al massimo maxPasses volte).
+ * @param {object} p
+ * @param {() => object} p.repair   repairMomentSelection sui bucket SENZA i vietati (legge `veto`)
+ * @param {(plan: Array) => object} p.schedule  scheduleMomentPlan
+ * @param {Map<string, Set<string>>} p.veto  condiviso con chi costruisce i bucket
+ * @returns {{ repaired, sched, giri: Array, residui: Array }} `residui`: posti ancora chiusi alla fine
+ *   (non dovrebbero esserci: il chiamante li toglie, un posto chiuso non esce mai)
+ */
+export function settleOpeningHours({ repair, schedule, veto, maxPasses = 4 }) {
+    let repaired = repair();
+    let sched = schedule(repaired.plan);
+    const giri = [];
+    for (let i = 0; i < maxPasses; i++) {
+        const chiusi = closedInSchedule(sched);
+        if (chiusi.length === 0) break;
+        for (const x of chiusi) {
+            if (!veto.has(x.momento)) veto.set(x.momento, new Set());
+            veto.get(x.momento).add(x.place_id);
+        }
+        giri.push(chiusi);
+        repaired = repair();
+        sched = schedule(repaired.plan);
+    }
+    return { repaired, sched, giri, residui: closedInSchedule(sched) };
+}
+
+/** Toglie dal piano messo in orario le tappe indicate (per place_id e momento): l'ultima rete, mai una tappa chiusa. */
+export function dropFromSchedule(sched, drop) {
+    const keys = new Set(drop.map(x => `${x.momento}|${x.place_id}`));
+    return { ...sched, days: sched.days.map(day => day.filter(s => !keys.has(`${s.moment.id}|${idOf(s.candidate)}`))) };
+}
+
+/**
+ * Un filtro non lascia mai un buco: per ogni momento che doveva avere tappe, e
+ * non ne ha, e che ha perso dei posti per gli orari, una riga dichiarata.
+ * Non pasto → tempo libero (regola O). Pranzo/cena → "nessun locale aperto qui
+ * vicino a quest'ora" (pasto: true). Stesso formato di report.tempoLibero.
+ */
+export function closedMomentRows({ moments, sched, tempoLibero = [], chiusiPerMomento }) {
+    const have = new Set((sched?.days || []).flat().map(s => s.moment.id));
+    const already = new Set((tempoLibero || []).map(x => x.momento));
+    const rows = [];
+    for (const m of moments) {
+        if (!(m.stops > 0) || have.has(m.id) || already.has(m.id) || !chiusiPerMomento?.has(m.id)) continue;
+        rows.push({
+            momento: m.id, key: m.key, label: m.label, dayIndex: m.dayIndex, posto: 0, dopo: null, piuVicino: null,
+            chiuso: true, pasto: FOOD_ONLY_MOMENT_KEYS.has(m.key),
+            motivo: 'tutti i posti del momento sono chiusi quando ci si arriva',
+        });
+    }
+    return rows;
+}
+

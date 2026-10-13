@@ -10,7 +10,7 @@
 //   ripiegoDichiarato, orari: { [place_id]: { periods|null, chiamato } },
 //   tours: [{ stops: [{ title, types, moment, at, stay, pasto, description,
 //   place_id, tempoLibero, ripiego, scelta, dietaCercata, dietaSolo }] }] }
-import { giornoEMinuti, apertoAlle, orariDelGiorno } from './orari.js';
+import { giornoEMinuti, apertoAlle, apertoPerTutta, orariDelGiorno } from './orari.js';
 
 export const CLASSI = [
     ['c1', 'Pasti fuori fascia'],
@@ -134,15 +134,17 @@ export function colazioneNonDaColazione(s) {
     const tavola = s.pasto || NOME_TAVOLA.test(n);
     return serale || (tavola && !okCol);
 }
-export function chiusoAllaTappa(caso, s) {
-    // true | false | null (sconosciuto) — e perche' e' sconosciuto
+export function chiusoAllaTappa(caso, s, { sosta = false } = {}) {
+    // true | false | null (sconosciuto) — e perche' e' sconosciuto.
+    // Con `sosta` (c5, regola ORARI) il posto deve essere aperto per TUTTA la sosta,
+    // non solo all'arrivo: `dove` dice se chiude all'arrivo o dopo.
     const q = quando(s);
     const o = caso.orari?.[s.place_id];
     if (!q) return { chiuso: null, perche: 'senza-orario-tappa' };
     if (!o || !o.chiamato) return { chiuso: null, perche: 'orari-non-richiesti' };
-    const ap = apertoAlle(o.periods, q.giorno, q.minuti);
-    if (ap === null) return { chiuso: null, perche: 'senza-orari' };
-    return { chiuso: ap === false, perche: null, orari: orariDelGiorno(o.periods, q.giorno) };
+    const r = apertoPerTutta(o.periods, q.giorno, q.minuti, sosta && Number.isFinite(s.stay) ? s.stay : 0);
+    if (r.aperto === null) return { chiuso: null, perche: 'senza-orari' };
+    return { chiuso: r.aperto === false, perche: null, dove: r.perche || null, orari: orariDelGiorno(o.periods, q.giorno) };
 }
 export function c3(caso, cfg) {
     const out = [];
@@ -180,14 +182,18 @@ export function c4(caso, cfg) {
 export function c5(caso, cfg) {
     const out = [];
     const sconosciuti = { totale: 0, 'orari-non-richiesti': 0, 'senza-orari': 0, 'senza-orario-tappa': 0 };
+    let oltre = 0, allArrivo = 0, orarioSegnato = 0;
     for (const t of caso.tours || []) {
         for (const s of tappeDi(t)) {
-            const c = chiusoAllaTappa(caso, s);
-            if (c.chiuso) out.push(viol(s, `${nome(s)} alle ${oraTesto(s)}: chiuso (${c.orari})`, 'c5', cfg));
-            else if (c.chiuso === null) { sconosciuti.totale++; sconosciuti[c.perche]++; }
+            const c = chiusoAllaTappa(caso, s, { sosta: true });
+            if (c.chiuso) {
+                if (c.dove === 'oltre-chiusura') { oltre++; out.push(viol(s, `${nome(s)} alle ${oraTesto(s)}: la sosta (${s.stay} min) finisce oltre la chiusura (${c.orari})`, 'c5', cfg)); }
+                else { allArrivo++; out.push(viol(s, `${nome(s)} alle ${oraTesto(s)}: chiuso (${c.orari})`, 'c5', cfg)); }
+            } else if (c.chiuso === null) { sconosciuti.totale++; sconosciuti[c.perche]++; }
+            if (s.orario === 'sconosciuto') orarioSegnato++;
         }
     }
-    return esito('c5', true, out, { sconosciuti: sconosciuti.totale, sconosciutiPerCausa: sconosciuti });
+    return esito('c5', true, out, { sconosciuti: sconosciuti.totale, sconosciutiPerCausa: sconosciuti, chiuseAllArrivo: allArrivo, oltreChiusura: oltre, orarioSconosciutoSegnato: orarioSegnato });
 }
 
 // ─── 6 — durate uguali per tipi diversi ─────────────────────────────────────

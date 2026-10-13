@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { dataService, createGuideRequest } from "@/services/dataService";
 import { useAILearning } from '../hooks/useAILearning';
 import { resolveFoodPrefs, foodPrefsFingerprint } from '@/lib/foodPrefs';
+import { MESSAGGIO_CHIUSO } from '@/lib/openingHours';
 import { placesDiscoveryService, PlacesSearchError, PLACES_SEARCH_ERROR_MESSAGE } from '@/services/placesDiscoveryService';
 
 // Gate INTERESSI-VERI — tre esiti diversi, tre testi diversi:
@@ -158,6 +159,8 @@ const DashboardUser = () => {
     // P7a — "Per Te" solo quando il DNA ha fiducia (>= 5 eventi, o un seme).
     const hasPreferences = dnaShare > 0;
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
+    // ORARI — a quest'ora i posti chiusi hanno tolto tutti i tour: lo stato vuoto dice "meglio domattina".
+    const [chiusoOra, setChiusoOra] = useState(false);
 
     useEffect(() => {
         const goOffline = () => setIsOffline(true);
@@ -274,6 +277,7 @@ const DashboardUser = () => {
                 if (homeToursResult?._source === 'error') {
                     throw new Error(`generateHomeTours: ${homeToursResult._error || 'errore'}`);
                 }
+                setChiusoOra(homeToursResult?._source === 'closed-now');
 
                 // Mapping output → shape UI. Ogni tour del narratore diventa una
                 // card, insider in cima (badge dedicato). Regola II.2 applicata a
@@ -718,13 +722,13 @@ const DashboardUser = () => {
                                 <div className="w-12 h-12 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center mx-auto mb-3 text-obsidian-secondary">
                                     <Compass className="w-6 h-6 stroke-[1.5]" />
                                 </div>
-                                <p className="text-obsidian-primary text-sm mb-1 font-semibold">{city ? `Nessuna guida ha ancora pubblicato un tour a ${city}.` : 'Nessuna guida ha ancora pubblicato un tour qui.'}</p>
+                                <p className="text-obsidian-primary text-sm mb-1 font-semibold">{chiusoOra ? MESSAGGIO_CHIUSO : (city ? `Nessuna guida ha ancora pubblicato un tour a ${city}.` : 'Nessuna guida ha ancora pubblicato un tour qui.')}</p>
                                 {/* Gate SOLO-GOOGLE (27/09) — la riga precedente diceva
                                     "Il motore AI ne costruisce uno adesso": non era vero
                                     proprio qui, dove si arriva DOPO che il motore ha girato
                                     e non ha prodotto niente. Questo ramo è solo lo stato
                                     vuoto: il caricamento ha i suoi skeleton, più sopra. */}
-                                <p className="text-obsidian-secondary text-xs mb-4">Qui intorno non trovo ancora luoghi verificati da proporti.</p>
+                                {!chiusoOra && <p className="text-obsidian-secondary text-xs mb-4">Qui intorno non trovo ancora luoghi verificati da proporti.</p>}
                                 <Link
                                     to="/ai-itinerary"
                                     className="px-5 py-2.5 bg-brand-orange text-obsidian-bg rounded-2xl text-xs font-bold hover:bg-brand-orange-hover transition-colors shadow-md shadow-brand-orange/20"

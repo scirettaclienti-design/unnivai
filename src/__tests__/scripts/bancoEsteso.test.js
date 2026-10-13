@@ -106,3 +106,22 @@ describe('MIG-PLACES — il confronto legacy / new', () => {
         expect(config.prezziUsd.google['place/textsearch#new']).toBe(0.035);
     });
 });
+
+describe('ORARI — il report del giro con la regola', () => {
+    it('c5 prima/dopo e le righe dichiarate si leggono dai due grezzi', async () => {
+        const { reportOrari } = await import('../../../scripts/banco/report-orari.js');
+        const PERIODI_SERA = [3].map(d => ({ open: { day: d, time: '1800' }, close: { day: d, time: '2300' } }));
+        const S = (id, o = {}) => ({ place_id: id, title: id, types: ['museum'], moment: 'mattina', at: '2026-10-14T09:30:00+02:00', stay: 60, min: 5, scelta: 'modello', verita: true,
+            frasi: [{ testo: 'Si comincia da qui.', problemi: [] }], recensioni: 100, pasto: false, lat: 41.9, lng: 12.5, description: 'Si comincia da qui.', ...o });
+        const caso = (stops, o = {}) => ({ id: 'crea-x', modo: 'crea', tipo: 'itinerario', luogo: 'Roma', ora: '09:30', oggi: '2026-10-14', secs: 10,
+            ai: { chiamate: 3, tokenIn: 1000, tokenOut: 100 }, google: { 'place/textsearch#new': 3 }, richiesta: 'x', schermo: { giorni: [], note: [] }, tours: [{ stops }], ...o });
+        const base = { motore: 'new', casi: [caso([S('a'), S('b')], { orari: { a: { chiamato: true, periods: PERIODI_SERA }, b: { chiamato: true, periods: null } } })], costo: { totale: 0.5 } };
+        const nuovo = { motore: 'new', casi: [caso([S('c', { orario: 'noto' }), S('d', { orario: 'sconosciuto' }), { tempoLibero: true, title: 'Tempo libero', moment: 'pomeriggio', description: 'x' }],
+            { orari: { c: { chiamato: true, periods: [3].map(d => ({ open: { day: d, time: '0800' }, close: { day: d, time: '1800' } })) }, d: { chiamato: true, periods: null } },
+                orariMotore: { chiusi: [{ momento: 'g1-mattina', place_id: 'a' }], vietati: [], giri: 1, ignoti: 1, righeDichiarate: [{ momento: 'g1-pomeriggio', pasto: false }] } })], costo: { totale: 0.6 } };
+        const { markdown, sintesi } = reportOrari(base, nuovo, config, { baseNome: 'b.json', nuovoNome: 'n.json' });
+        expect(sintesi.c5).toMatchObject({ prima: 1, dopo: 0, casiPrima: 1, casiDopo: 0 });
+        expect(markdown).toContain('**Prima 1 violazioni in 1 casi → dopo 0 violazioni in 0 casi.**');
+        expect(markdown).toContain('sconosciuto');
+    });
+});

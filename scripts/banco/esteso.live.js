@@ -142,6 +142,8 @@ const tappa = (s, fatti, comp, riempite, dieta, atStimato) => {
         recensioni: l.recensioni ?? null, priceLevel: l.priceLevel ?? null,
         pasto: isMealPlace({ types, name: r.title, title: r.title }),
         ...(l.primaryType ? { primaryType: l.primaryType } : {}),
+        // ORARI — il motore segna se l'orario del posto e' noto (aperto per tutta la sosta) o sconosciuto
+        ...(s._orario || s._tracciato?.orario ? { orario: s._orario ?? s._tracciato.orario } : {}),
         dietaCercata: parole.length ? qs.some(conDieta) : null,
         dietaSolo: parole.length ? (qs.length > 0 && qs.every(conDieta)) : null,
     };
@@ -189,7 +191,7 @@ for (const caso of casi) {
             oggi: E.giornoSimulato, richiesta: caso.richiesta || (caso.modo === 'veloce' ? null : caso.tema || null), onboarding: caso.onboarding || null };
         out.casi.push(rec);
         // Con la ricerca nuova non c'e' la fase dei dettagli per gli orari: le generazioni possono usare tutto il tetto.
-        const tettoGen = MOTORE === 'new' ? E.tettoUsd : E.tettoGenerazioniUsd;
+        const tettoGen = MOTORE === 'new' ? (Number(process.env.BANCO_TETTO) || E.tettoUsd) : E.tettoGenerazioniUsd;
         if (costoOra() >= tettoGen) { rec.saltato = `tetto di spesa delle generazioni raggiunto ($${costoOra().toFixed(2)})`; save(); return; }
         // Ogni caso parte a cache vuota: le chiamate Google sono quelle di UNA generazione. La sessione (sb-*) resta.
         for (const k of Object.keys(window.localStorage)) if (!k.startsWith('sb-')) window.localStorage.removeItem(k);
@@ -230,8 +232,11 @@ for (const caso of casi) {
                         return tappa(s, per.get(s.place_id), comp, null, food.dieta || [], stimato);
                     }) };
                 });
-                rec.schermo = { giorni: (rec.tours || []).map(t => ({ titolo: t.titolo, meteo: null })), note: [] };
-                rec.ripiegoDichiarato = false;
+                rec.schermo = { giorni: (rec.tours || []).map(t => ({ titolo: t.titolo, meteo: null })), note: r._source === 'closed-now' ? [r._messaggio] : [] };
+                // ORARI — il messaggio "meglio domattina" al posto dei tour e' un ripiego dichiarato
+                rec.ripiegoDichiarato = r._source === 'closed-now';
+                if (r._source === 'closed-now') rec.chiusoOra = r._messaggio;
+                rec.orariMotore = r._report?.orari ?? null;
             } else {
                 const { r, rec: extra, food } = await genera(caso);
                 Object.assign(rec, extra);
@@ -245,9 +250,12 @@ for (const caso of casi) {
                 rec.pool = r._momentReport?.pool ?? null;
                 rec.sceltaModello = r._momentReport?.sceltaModello ?? null;
                 rec.ricerche = { prima: r._momentReport?.ricercheMirate ?? null, dopo: r._momentReport?.ricercheDopo ?? null };
-                rec.ripiegoDichiarato = !!(r._singleStop || r._queryDiBaseDopoVuoto);
+                // ORARI — il messaggio "meglio domattina" al posto del giro e' un ripiego dichiarato
+                rec.ripiegoDichiarato = !!(r._singleStop || r._queryDiBaseDopoVuoto || r._source === 'closed-now');
+                if (r._source === 'closed-now') rec.chiusoOra = r._messaggio;
+                rec.orariMotore = r._orari ?? null;
                 rec.schermo = { giorni: (r.days || []).map(d => ({ titolo: d.title || null, meteo: d.weather ?? null })),
-                    note: [r.destination?.note, ...(r.days || []).map(d => d.dietNote)].filter(Boolean) };
+                    note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote)].filter(Boolean) };
                 const per = new Map((r._narrationReport?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
                 const comp = new Map((r._narrationReport?.composizione || []).map(x => [x.place_id, x]));
                 const riempite = new Set((r._momentReport?.riempite || []).map(x => x.place_id));

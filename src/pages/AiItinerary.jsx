@@ -229,6 +229,15 @@ export default function AIItineraryPage() {
                 return;
             }
 
+            // ORARI — a quest'ora quasi tutto chiuso: il messaggio dichiarato al posto del giro.
+            if (result?._source === 'closed-now') {
+                console.info('[AiItinerary] closed-now: meno di 2 tappe aperte a quest\'ora');
+                toast({ title: result._messaggio, type: 'info', duration: 7000 });
+                setGeneratedItinerary(null);
+                setCurrentStep(0);
+                return;
+            }
+
             // Gate B — Path A no-results: il motore ha risolto oggetto_umano dal
             // traduttore d'intento. Toast onesto con "A ${city} non troviamo ${oggetto}".
             if (result?._source === 'no-results' || result?._source === 'no-results-error' || result?._source === 'no-results-safety') {

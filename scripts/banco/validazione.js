@@ -64,12 +64,15 @@ export const ESEMPI = {
         ], { modo: 'veloce', ora: '19:00' }) },
     },
     c5: {
-        cattivo: { nome: 'Casbah del Moro alle 9:30, chiusa (mer 18:00–00:00)', origine: 'telefono 12/10 (D-CATANIA B6)',
-            caso: caso([st('Casbah del Moro', { place_id: 'casbah', types: ['bar', 'restaurant'], moment: 'mattina', at: at('09:30'), pasto: true })], { orari: orari('casbah', SOLO_SERA) }) },
-        buono: { nome: 'bar aperto alle 9:30 (e un posto senza orari: "sconosciuto", non violazione)', caso: caso([
+        cattivo: { nome: 'Casbah del Moro alle 9:30, chiusa (mer 18:00–00:00); un museo da 60 min alle 9:30 che chiude alle 10:15', origine: 'telefono 12/10 (D-CATANIA B6) + ORARI (sosta oltre la chiusura)',
+            caso: caso([st('Casbah del Moro', { place_id: 'casbah', types: ['bar', 'restaurant'], moment: 'mattina', at: at('09:30'), pasto: true }),
+                st('Museo Chiude Presto', { place_id: 'museo', types: ['museum'], moment: 'mattina', at: at('09:30'), stay: 60 })],
+            { orari: { ...orari('casbah', SOLO_SERA), ...orari('museo', [3].map(d => ({ open: { day: d, time: '0900' }, close: { day: d, time: '1015' } }))) } }) },
+        buono: { nome: 'bar aperto alle 9:30; museo che finisce esattamente alla chiusura (10:30); un posto senza orari: "sconosciuto", non violazione', caso: caso([
             st('Bar Centrale', { place_id: 'bar', types: ['cafe'], moment: 'mattina', at: at('09:30'), stay: 20 }),
+            st('Museo Finisce Alla Chiusura', { place_id: 'museo2', types: ['museum'], moment: 'mattina', at: at('09:30'), stay: 60 }),
             st('Villa Bellini', { place_id: 'villa', types: ['park'], moment: 'pomeriggio', at: at('15:00') }),
-        ], { orari: { ...orari('bar', GIORNO), villa: { periods: null, chiamato: true } } }), verificaSconosciuto: 1 },
+        ], { orari: { ...orari('bar', GIORNO), ...orari('museo2', [3].map(d => ({ open: { day: d, time: '0900' }, close: { day: d, time: '1030' } }))), villa: { periods: null, chiamato: true } } }), verificaSconosciuto: 1 },
     },
     c6: {
         cattivo: { nome: 'caffè da 1h 15min (75 min, come un ristorante)', origine: 'telefono 12/10 (D-CATANIA B5)',

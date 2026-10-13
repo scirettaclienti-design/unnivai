@@ -47,3 +47,23 @@ export function orariDelGiorno(periods, giorno) {
     const del = periods.filter(p => p?.open?.day === giorno && p?.close);
     return del.length ? `${nomi[giorno]} ${del.map(p => `${fmt(p.open.time)}–${fmt(p.close.time)}`).join(', ')}` : `${nomi[giorno]} chiuso`;
 }
+
+/**
+ * Aperto per TUTTA la sosta (arrivo → arrivo + durata)? Campiona ogni 5 minuti
+ * (e l'ultimo istante) con apertoAlle: un controllo indipendente da quello del
+ * motore (src/lib/openingHours.js), che unisce gli intervalli.
+ * @returns {true|false|null} null = orario sconosciuto; `perche`: 'arrivo' | 'oltre-chiusura'
+ */
+export function apertoPerTutta(periods, giorno, minuti, durata = 0) {
+    const a = apertoAlle(periods, giorno, minuti);
+    if (a === null) return { aperto: null };
+    if (a === false) return { aperto: false, perche: 'arrivo' };
+    for (let m = minuti + 5; m < minuti + durata; m += 5) {
+        if (apertoAlle(periods, (giorno + Math.floor(m / 1440)) % 7, m % 1440) === false) return { aperto: false, perche: 'oltre-chiusura' };
+    }
+    if (durata > 0) {
+        const f = minuti + durata - 1;     // l'ultimo minuto della sosta
+        if (apertoAlle(periods, (giorno + Math.floor(f / 1440)) % 7, f % 1440) === false) return { aperto: false, perche: 'oltre-chiusura' };
+    }
+    return { aperto: true };
+}

@@ -1119,7 +1119,8 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
         ? searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(city, at(t).lat, at(t).lng, null, {
             customQuery: fq, customKind: 'FOOD', ...at(t).bias,
         }), THEME_FOOD_QUERY, dieta).then(r => r.results)
-        : placesDiscoveryService.discoverRealPOIs(city, at(t).lat, at(t).lng, t, at(t).bias))
+        // C7 — le esperienze servono a DUE momenti (mattina e pomeriggio): tutta la pagina di Google (20), non i primi 12.
+        : placesDiscoveryService.discoverRealPOIs(city, at(t).lat, at(t).lng, t, { ...at(t).bias, ...(t === 'esperienze' ? { maxResults: 20 } : {}) }))
         // P3d-g — il tema della ricerca mirata, come dato del "perche' qui".
         .then(list => (Array.isArray(list) ? list.map(p => (p && !p._tema ? { ...p, _tema: t } : p)) : list))));
     settled.forEach((r, i) => {
@@ -2544,7 +2545,7 @@ export const aiRecommendationService = {
                     : null;
                 if (foodAnchor) console.info(`[C1 COMPOSIZIONE] ${city}: ricerca dei pasti da "${foodAnchor.name}", non dal centro`);
                 const extra = await searchMomentCandidates({
-                    city, cityCenter, themes: extraThemes, known: candidates, perTheme: 5 * nDays,
+                    city, cityCenter, themes: extraThemes, known: candidates, perTheme: (extraThemes.includes('esperienze') ? 8 : 5) * nDays,
                     dnaWeights: opts.dnaWeights || {},
                     categoria: catStretta ? intent.categoria : null,
                     foodPrefs: foodOn ? food : null,

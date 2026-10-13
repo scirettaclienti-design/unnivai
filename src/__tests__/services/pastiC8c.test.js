@@ -114,6 +114,21 @@ describe('C8c — la sera si cena (Veloce / Per Te di sera)', () => {
     });
 });
 
+describe('C8c — la sera si cena anche in Crea e Sorprendimi (la cena dovuta)', () => {
+    it('Crea alle 18:00 senza nessun ristorante nel pool: la cena ha la riga approvata, non sparisce in silenzio', async () => {
+        const r = await genera([bar('b1', 0.4), belvedere('p1', 0.9), belvedere('p2', 1.1)], '18:00');
+        expect(vere(r).map(tipo)).not.toContain('ristorante');
+        const cena = righe(r).filter(s => s.tempoLibero && s.moment === 'cena');
+        expect(cena).toHaveLength(1);
+        expect(cena[0].description).toBe(TESTO_NESSUN_LOCALE_APERTO);
+    });
+    it('Crea alle 18:00 con un ristorante: la cena c\'e\' e nessuna riga', async () => {
+        const r = await genera([bar('b1', 0.4), belvedere('p1', 0.9), ristorante('r1', 1.0)], '18:00');
+        expect(vere(r).map(tipo)).toContain('ristorante');
+        expect(righe(r).filter(s => s.tempoLibero)).toHaveLength(0);
+    });
+});
+
 describe('C8c — la colazione chiesta', () => {
     it('asksBreakfast: colazione, brunch, cornetto sì; «la mattina in pasticceria» no', () => {
         expect(asksBreakfast('Una giornata a Catania con colazione')).toBe(true);

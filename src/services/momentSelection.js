@@ -975,7 +975,15 @@ function repairPass({
                 report.facoltativiSenzaPosto.push({ momento: m.id, label: m.label, motivo: 'nessun candidato valido (all\'aperto, entro il tetto di cammino e sulla strada)' });
                 if (prev) report.facoltativiVuoti.push({ momento: m.id, da: pointOf(prev) });
             }
-            else if (!report.tempoLibero.some(x => x.momento === m.id)) report.momentiTolti.push({ momento: m.id, label: m.label, motivo: 'nessun candidato valido' });
+            else if (!report.tempoLibero.some(x => x.momento === m.id)) {
+                // C8c — LA SERA SI CENA: una cena dovuta (Crea, Sorprendimi) senza nessun ristorante non si salta in silenzio: ha la sua riga.
+                if (m.key === 'cena') {
+                    report.tempoLibero.push({
+                        momento: m.id, key: m.key, label: m.label, dayIndex: m.dayIndex, posto: 0, dopo: null, piuVicino: null,
+                        chiuso: true, pasto: true, motivo: 'la sera si cena: nessun ristorante per la cena',
+                    });
+                } else report.momentiTolti.push({ momento: m.id, label: m.label, motivo: 'nessun candidato valido' });
+            }
             return;
         }
         plan.push({ moment: m, stops: chosen });

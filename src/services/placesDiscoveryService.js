@@ -763,19 +763,9 @@ export const foodQueryForClock = (ora) => {
   if (m >= 14 * 60 + 45 && m < 18 * 60) return FOOD_QUERY_MERENDA;
   return null;
 };
-// C8b — A PRANZO (12:00–14:45) un tour cibo ha UN pasto seduto: gli altri posti sono dolci, caffe', gelati. La ricerca dei ristoranti
-// da sola darebbe un tour di soli pasti, che la regola «un pasto per tour» svuota; si aggiunge UNA ricerca di pasticcerie e gelaterie,
-// accodata (la dieta riguarda i pasti, non i dolci).
-const isLunchClock = (ora) => ora instanceof Date && !Number.isNaN(ora.getTime()) && romeMinutes(ora) >= 12 * 60 && romeMinutes(ora) < 14 * 60 + 45;
+// C8c — la ricerca di dolci e gelati accodata a pranzo (C8b) e' tolta: con «un dolce per tour» non rende un tour di tre tappe
+// (venti risultati su venti sono dolci, e ne entra uno), quindi non serve alla regola.
 const searchHomeTheme = async (cityName, lat, lng, theme, foodPrefs, ora = null) => {
-  if (theme === 'food' && isLunchClock(ora)) {
-    const [pasti, dolci] = await Promise.all([
-      searchHomeTheme(cityName, lat, lng, theme, foodPrefs, null),
-      discoverRealPOIs(cityName, lat, lng, null, { customQuery: FOOD_QUERY_MERENDA, customKind: THEME_TEXTSEARCH.food.kind }).catch(() => []),
-    ]);
-    const visti = new Set(pasti.map(p => p.place_id || p.googlePlaceId));
-    return [...pasti, ...(Array.isArray(dolci) ? dolci : []).filter(p => !visti.has(p.place_id || p.googlePlaceId))];
-  }
   const dieta = foodPrefs?.dieta || [];
   const orario = theme === 'food' ? foodQueryForClock(ora) : null;
   if (orario) {

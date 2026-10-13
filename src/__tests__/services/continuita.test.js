@@ -46,7 +46,8 @@ const genera = async (results, ora, prefs = { interests: ['Natura'] }, scelte = 
 };
 const righe = (r) => r.days[0].stops;
 const vere = (r) => righe(r).filter(s => !s.tempoLibero);
-const libere = (r) => righe(r).filter(s => s.tempoLibero);
+// C8c — la cena senza nessun ristorante nel pool ha la sua riga approvata (non e' un buco): qui si guardano i buchi
+const libere = (r) => righe(r).filter(s => s.tempoLibero && s.moment !== 'cena');
 const ora = (s) => { const p = romeParts(new Date(s.scheduledTime)); return `${String(p.h).padStart(2, '0')}:${String(p.mi).padStart(2, '0')}`; };
 
 beforeEach(() => { vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co'); vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon-test'); });

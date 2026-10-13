@@ -236,6 +236,20 @@ di giorno restano i 4 temi con le stesse regole di Crea (`mealRules.perTeMealPro
 un solo pasto seduto per tour sotto le 3 ore, la mattina un locale e' una colazione (posto da colazione aperto per tutta la sosta), la ricerca del cibo segue l'ora
 (`foodQueryForClock`: colazione prima delle 11, merenda dalle 14:45 alle 18). Banco: c1 vale anche per Per Te, c4 usa il minimo della finestra (`minimiTappe`, `finestraMinuti` nel grezzo).
 
+### Pasti giusti: la sera si cena, la colazione chiesta c'è, un dolce solo e dopo (C8c)
+
+**La sera si cena** (`momentSelection.repairPass`, momento facoltativo `cena` di Veloce e Per Te serale): la cena ha la precedenza sulla passeggiata. Se dal punto della
+passeggiata nessun ristorante è a portata (tetto di cammino), si toglie la passeggiata e si sceglie la cena dalla tappa prima (drink → cena, entro `FREE_TIME_MAX_MINUTES`);
+poi, se c'è, una passeggiata vicina al ristorante (entro il tetto dal drink e dal ristorante, deviazione C5c). Se nessun ristorante è a portata, al posto della cena c'è
+la riga approvata «Nessun locale aperto qui vicino a quest'ora.» (`report.tempoLibero`, `chiuso`+`pasto`), anche per la cena tardi di C8b (`cenaTardiMancante`) e per la
+cena dovuta di Crea/Sorprendimi senza ristoranti nel pool. Una sera che parte dopo le 23:00 non ha cena né riga.
+**Colazione chiesta** (`foodTheme.asksBreakfast`: colazione, brunch, cornetto, cappuccino, brioche; non «la mattina in pasticceria»): se il tour parte prima delle 11:00 la mattina
+parte all'ora chiesta (`buildDaySkeleton`, `colazione: true`, una tappa in più) e la PRIMA tappa è un posto da colazione aperto per tutta la sosta (`repairPass`, `isBreakfastPlace`);
+se il pool non ne ha, ricerca mirata `colazione` (`FOOD_QUERY_COLAZIONE`, dentro il tetto di 2); se nessuno è aperto, riga approvata in testa. Senza la richiesta, la regola C7 non cambia.
+**Un dolce per tour** (`mealRules.dolceProblem`, via `perTeMealProblem` → `keepOpenStops({ invalidAt })`, solo Per Te di giorno): al massimo un dolce/gelato/pasticceria (tipo, tipi Google o nome:
+anche un bar che è gelateria), sempre dopo un pasto (a pranzo dopo un ristorante, di mattina dopo un caffè/forno), mai come prima tappa prima delle 14:45. La ricerca dolci a pranzo di C8b è tolta.
+Banco: c1 conta i dolci, c13 la sera senza cena, la voce «Giornata» vale solo per finestre da 6 ore (una sera è completa con drink + cena o cena + passeggiata), `BANCO_RUN=pasti` (`report-pasti.js`).
+
 ### City Data Flow
 
 **T1 — in "Crea il tuo percorso" la città scritta nel testo vince sulla posizione.**

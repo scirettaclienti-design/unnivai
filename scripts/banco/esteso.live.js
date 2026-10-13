@@ -188,7 +188,9 @@ for (const caso of casi) {
         const rec = { id: caso.id, modo: caso.modo, tipo: caso.modo === 'perte' ? 'perte' : 'itinerario', luogo: caso.luogo, ora: caso.ora,
             oggi: E.giornoSimulato, richiesta: caso.richiesta || (caso.modo === 'veloce' ? null : caso.tema || null), onboarding: caso.onboarding || null };
         out.casi.push(rec);
-        if (costoOra() >= E.tettoGenerazioniUsd) { rec.saltato = `tetto di spesa delle generazioni raggiunto ($${costoOra().toFixed(2)})`; save(); return; }
+        // Con la ricerca nuova non c'e' la fase dei dettagli per gli orari: le generazioni possono usare tutto il tetto.
+        const tettoGen = MOTORE === 'new' ? E.tettoUsd : E.tettoGenerazioniUsd;
+        if (costoOra() >= tettoGen) { rec.saltato = `tetto di spesa delle generazioni raggiunto ($${costoOra().toFixed(2)})`; save(); return; }
         // Ogni caso parte a cache vuota: le chiamate Google sono quelle di UNA generazione. La sessione (sb-*) resta.
         for (const k of Object.keys(window.localStorage)) if (!k.startsWith('sb-')) window.localStorage.removeItem(k);
         vistiCaso = new Set();

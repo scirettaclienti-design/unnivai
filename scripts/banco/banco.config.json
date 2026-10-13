@@ -175,6 +175,19 @@
       "docs/prove/dati/2026-10-14-banco-esteso-minimi-c.json",
       "docs/prove/dati/2026-10-14-banco-esteso-minimi-b.json",
       "docs/prove/dati/2026-10-14-banco-esteso-minimi-a.json"
+    ],
+    "tettoCasi": [
+      "crea-catania-colazione-0800",
+      "crea-bologna-pomeriggio",
+      "crea-catania-0930",
+      "veloce-catania-relax-2125"
+    ],
+    "_tettoTettoUsd": "C8e: tetto 1 $ per tutto il task, sommato su tutti i giri; a 0,9 $ ci si ferma e si chiede",
+    "baselineTetto": [
+      "docs/prove/dati/2026-10-15-banco-esteso-tetto-prima.json",
+      "docs/prove/dati/2026-10-15-banco-esteso-vuoti.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-pasti.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-minimi-a.json"
     ]
   }
 }

@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { aiRecommendationService } from '../../services/aiRecommendationService';
 import { minStopsForWindow, isEveningComplete, remainingGaps } from '../../lib/continuity';
 import { mealFitsClock, perTeMealProblem, isBreakfastPlace } from '../../lib/mealRules';
-import { foodQueryForClock, FOOD_QUERY_COLAZIONE, FOOD_QUERY_MERENDA } from '../../services/placesDiscoveryService';
+import { foodQueryForClock, FOOD_QUERY_COLAZIONE, FOOD_QUERY_MERENDA, placesDiscoveryService } from '../../services/placesDiscoveryService';
 import { buildDaySkeleton, addEveningWalk, isSeraStart } from '../../lib/daySkeleton';
 import { resolveTourWindow, romeParts } from '../../lib/tourWindow';
 import { MESSAGGIO_SERA } from '../../lib/openingHours';
@@ -285,5 +285,31 @@ describe('C8b — Per Te: il motore (tour tematici di giorno, giro della sera di
         expect(res.tours).toEqual([]);
         expect(res._source).toBe('closed-now');
         expect(res._messaggio).toBe(MESSAGGIO_SERA);
+    });
+});
+
+describe('C8b — Per Te: la ricerca del tema cibo segue l\'ora (una ricerca in piu\' solo a pranzo)', () => {
+    const ROMA = { latitude: 41.9028, longitude: 12.4964 };
+    const cerca = async (hhmm) => {
+        const query = [];
+        vi.stubGlobal('fetch', vi.fn(async (url) => {
+            const u = new URL(String(url), 'http://x');
+            if (u.searchParams.get('query')) query.push(u.searchParams.get('query'));
+            return { ok: true, json: async () => ({ status: 'ZERO_RESULTS', results: [] }) };
+        }));
+        window.localStorage.clear();
+        await placesDiscoveryService.discoverAllThemes('Roma', ROMA.latitude, ROMA.longitude, { ora: new Date(`2026-10-14T${hhmm}:00+02:00`) }).catch(() => null);
+        return query;
+    };
+    it('a pranzo: i ristoranti e UNA ricerca di dolci e gelati; a colazione e a merenda una sola query di cibo', async () => {
+        const pranzo = await cerca('13:00');
+        expect(pranzo.filter(q => q === FOOD_QUERY_MERENDA + ' Roma' || q.startsWith(FOOD_QUERY_MERENDA))).toHaveLength(1);
+        expect(pranzo.some(q => q.startsWith('trattoria ristorante pizzeria osteria'))).toBe(true);
+        const mattina = await cerca('08:30');
+        expect(mattina.some(q => q.startsWith(FOOD_QUERY_COLAZIONE))).toBe(true);
+        expect(mattina.some(q => q.startsWith('trattoria ristorante pizzeria osteria'))).toBe(false);
+        const merenda = await cerca('16:00');
+        expect(merenda.filter(q => q.startsWith(FOOD_QUERY_MERENDA))).toHaveLength(1);
+        expect(merenda.some(q => q.startsWith('trattoria ristorante pizzeria osteria'))).toBe(false);
     });
 });

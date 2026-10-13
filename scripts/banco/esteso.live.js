@@ -246,6 +246,7 @@ for (const caso of casi) {
                     rec.tipo = 'itinerario';
                     rec.finestraMinuti = r._report?.momentReport?.finestraMinuti ?? null;
                     rec.continuita = r._report?.momentReport?.continuita ?? null;
+                    const mr = r._report?.momentReport; rec.motori = mr ? { tolti: mr.momentiTolti ?? null, facoltativiSenzaPosto: mr.facoltativiSenzaPosto ?? null, ricercheMirate: mr.ricercheMirate ?? null } : null;
                 }
                 rec.tours = (r.tours || []).map(t => {
                     // "Per Te" di giorno non ha orari: l'arrivo si stima da ora simulata + cammino + soste.
@@ -277,6 +278,7 @@ for (const caso of casi) {
                 rec.frasiTolte = r._narrationReport?.frasiTolte ?? null;
                 rec.pool = r._momentReport?.pool ?? null;
                 rec.finestraMinuti = r._momentReport?.finestraMinuti ?? null;
+                rec.motori = r._momentReport ? { tolti: r._momentReport.momentiTolti ?? null, facoltativiSenzaPosto: r._momentReport.facoltativiSenzaPosto ?? null, ricercheMirate: r._momentReport.ricercheMirate ?? null } : null;
                 rec.sceltaModello = r._momentReport?.sceltaModello ?? null;
                 rec.ricerche = { prima: r._momentReport?.ricercheMirate ?? null, dopo: r._momentReport?.ricercheDopo ?? null };
                 // ORARI — il messaggio "meglio domattina" al posto del giro e' un ripiego dichiarato

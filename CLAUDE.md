@@ -255,8 +255,13 @@ Banco: c1 conta i dolci, c13 la sera senza cena, la voce «Giornata» vale solo 
 **Dopo la colazione chiesta** (`repairPass`, `dopoColazione`): fino al pranzo nessun altro locale (caffè, bar, pasticceria, gelato); restano visite aperte per tutta la sosta (ORARI), nessuna ricerca in più.
 **Ritmo Rilassato** (`fillGaps`, `GAP_RILASSATO_MINUTES = 90`, `mealRules.isLightStop`): fino a 90 minuti di vuoto resta CONTINUITÀ (tempo libero dichiarato, nessuna tappa in più);
 oltre, UNA sola tappa leggera per momento (luogo all'aperto, verde, chiesa, o un caffè — tipo caffè o `cafe`/`coffee_shop` fra i tipi —, mai un dolce né un bar da drink), aperta per tutta la sosta
-e dentro le soglie C5c (`moment.extraLeggero`). Il tetto delle 8 tappe al giorno blocca ancora ogni riempimento (`momentsToExpand`): una giornata intera con colazione ha 9 tappe contate, quindi il suo tempo libero
-della mattina non si riempie (proposte nel report C8d). Banco: `BANCO_RUN=vuoti`.
+e dentro le soglie C5c (`moment.extraLeggero`). Banco: `BANCO_RUN=vuoti`.
+
+### Il tetto conta le visite, la tappa leggera segue il tipo principale (C8e)
+
+**Il tetto conta solo le visite** (`daySkeleton.visitStops`/`visitCount`, `MAX_VISITS_PER_DAY = 8`, `MAX_VISITS_RILASSATO = 6`, scritto nei momenti come `tettoVisite`): una visita è una tappa di mattina o pomeriggio, tolta la colazione chiesta;
+pasti, drink, dopocena e passeggiata non contano. Lo applicano `capStops` (scheletro) e `momentsToExpand`/`momentsForMinimum` (riempimento). **Tappa leggera** (`isLightStop`): luogo all'aperto, verde, chiesa, o un caffè *per tipo principale* (C6a):
+un posto con tipo principale ristorante (Corner AB) non entra. Una per momento. Il riempimento si ferma comunque quando i tentativi non danno una tappa valida (varietà, percorso, orari). Banco: `BANCO_RUN=tetto`, caso `crea-catania-0930`.
 
 ### City Data Flow
 

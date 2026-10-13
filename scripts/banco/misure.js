@@ -3,6 +3,7 @@
 // Nessun import dei servizi: si prova da sola e gira anche fuori da Vitest.
 // C5 — la forma del percorso viene da src/lib/routeShape.js: puro, senza import.
 import { routeMetrics, stopDetours } from '../../src/lib/routeShape.js';
+import { giroSerale, seraCompleta } from './controlli.js';
 
 const median = (xs) => {
     if (!xs.length) return null;
@@ -178,6 +179,23 @@ const sem = (ok) => (ok === null || ok === undefined ? null : (ok ? 'verde' : 'r
 export const VOCI = ['verita', 'voce', 'distanze', 'ripetizioni', 'vincoli', 'inComune', 'famosita', 'giornata', 'tempo', 'costo', 'destinazione',
     'percorso', 'catene'];
 
+/**
+ * C8c — la voce «Giornata completa». Vale per le finestre di 6 ore o piu' (come i minimi di C8b): almeno `tappeGiornataMin` tappe.
+ * Una finestra piu' corta non e' una giornata: il suo minimo lo giudica c4. Una SERA (il giro parte dalle 18:00, prima delle 23:00)
+ * e' completa con drink + cena oppure cena + passeggiata (o, se la cena non c'e', la riga «nessun locale aperto» e due tappe).
+ * Senza `finestraMinuti` nel grezzo (giri vecchi) vale la regola di prima.
+ */
+export function giornataSemaforo(m, caso, S) {
+    if (caso.tipo !== 'itinerario') return null;
+    const fin = Array.isArray(caso.finestraMinuti) ? caso.finestraMinuti.filter(Number.isFinite) : [];
+    if (fin.length === 0 || Math.max(...fin) >= 360) return sem(m.tappe >= S.tappeGiornataMin);
+    const tours = caso.tours || [];
+    const righe = tours.flatMap(t => t.stops || []);
+    const vere = righe.filter(s => !s.tempoLibero);
+    if (!giroSerale(caso, vere)) return null;
+    return sem(seraCompleta(righe, vere));
+}
+
 export function semafori(m, caso, config, comune = null) {
     const S = config.soglie;
     if (!m) return null;
@@ -189,7 +207,7 @@ export function semafori(m, caso, config, comune = null) {
         vincoli: caso.vincoli ? sem(m.violazioni.length <= S.violazioniMax) : null,
         inComune: comune ? sem(comune.pct !== null && comune.pct <= S.inComuneABMaxPct) : null,
         famosita: m.grande && m.sotto2000 !== null ? sem(m.sotto2000 >= S.sotto2000MinPct) : null,
-        giornata: caso.tipo === 'itinerario' ? sem(m.tappe >= S.tappeGiornataMin) : null,
+        giornata: giornataSemaforo(m, caso, S),
         tempo: sem(m.secondi === null ? null : m.secondi <= m.tetto),
         costo: sem(m.costo.totale <= S.costoMaxUsd),
         destinazione: m.destinazione ? sem(m.destinazione.ok) : null,

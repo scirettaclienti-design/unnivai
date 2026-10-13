@@ -30,7 +30,8 @@ export const CLASSI = [
 
 export const DEFINIZIONI = {
     c1: 'Una tappa-pasto (un ristorante: il TIPO PRINCIPALE di Google, non bar/caffè/forno: un cocktail bar marcato anche `restaurant` è un bar) con orario di arrivo fuori dalle fasce del pasto (pranzo e cena, da banco.config.json) '
-        + 'oppure due pasti seduti a meno di `pastiDistanzaMinOre` ore uno dall\'altro nello stesso giro (il "secondo pranzo"). '
+        + 'oppure due pasti seduti a meno di `pastiDistanzaMinOre` ore uno dall\'altro nello stesso giro (il "secondo pranzo"); '
+        + 'C8c — oppure un secondo dolce/gelato/pasticceria nello stesso tour, o un dolce prima del pasto (a pranzo prima del ristorante, di mattina prima di una colazione, come prima tappa prima delle 14:45). '
         + 'C8b — vale anche per Per Te (gli orari di arrivo sono stimati da ora, cammino e soste). Un ristorante in un momento che il testo chiede esplicitamente ("un pomeriggio tra portici e osterie") non conta.',
     c2: 'Un ristorante (tipo principale) nel momento mattina, pomeriggio, aperitivo o dopocena, salvo che il testo della richiesta chieda quel momento (mattina e pomeriggio): colazione/brunch per la mattina, '
         + 'merenda per il pomeriggio, o il nome del momento insieme a una parola di cibo. "ristoranti", "trattorie" ecc. da soli NON chiedono un momento.',
@@ -53,7 +54,8 @@ export const DEFINIZIONI = {
         + 'supera `buchiMinuti` (45); oppure una tappa vera non ha l\'orario di arrivo. Il cammino e\' haversine a `camminoKmh`, ricalcolato qui. L\'attesa prima della prima tappa del giorno non conta.',
     c13: 'C8a — in un giro con un drink (aperitivo, o il drink serale del Percorso Veloce): (a) il drink dura meno di `sostaAperitivoMinuti` (45) — all\'aperitivo un bar è una sosta vera; '
         + '(b) un SECONDO bar fra il drink e la cena (o dopo il drink, se la cena non c\'è); (c) fra la fine del drink e la cena restano più di `passeggiataSogliaMinuti` (30) minuti senza una passeggiata e senza una riga di tempo libero che li dichiara; '
-        + '(d) un Percorso Veloce che parte dalle 18:00 in poi (o prima dell\'alba) con UNA tappa sola: mai 1 tappa (il messaggio "quasi tutto chiuso", senza tappe, è un altro caso: vale solo se nel pool non c\'è niente di aperto).',
+        + '(d) un Percorso Veloce che parte dalle 18:00 in poi (o prima dell\'alba) con UNA tappa sola: mai 1 tappa (il messaggio "quasi tutto chiuso", senza tappe, è un altro caso: vale solo se nel pool non c\'è niente di aperto); '
+        + '(e) C8c — un giro che parte la sera (dalle 18:00, prima delle 23:00) senza la cena e senza la riga «Nessun locale aperto qui vicino a quest\'ora.» al suo posto.',
     c12: 'C7 — una tappa che è una ZONA: tipo principale o tipo da zona (locality, sublocality, neighborhood, political, route…) oppure un nome che è solo quello di un\'area ("Centro Storico Catania", "Zona Centro"). '
         + 'Una zona può orientare la ricerca, non essere una tappa.',
 };
@@ -125,6 +127,10 @@ const RICHIESTA_MOMENTO = {
     pomeriggio: (t) => /\b(merenda)\b/.test(t)
         || (/\b(pomerigg\w*)\b/.test(t) && /\b(ristorant\w*|trattori\w*|osteri\w*|pizzeri\w*|mangiar\w*|cibo|pranz\w*|osterie)\b/.test(t)),
 };
+// C8c — un dolce, un gelato, una pasticceria (indipendente dal motore: tipo o nome)
+const NOME_DOLCE = /\b(pasticceri[ae]|gelateri[ae]|gelato|cioccolateri[ae])\b/;
+const PT_DOLCE = /^(ice_cream_shop|gelato_shop|dessert_shop|dessert_restaurant|confectionery|candy_store|chocolate_shop|donut_shop|pastry_shop|cake_shop)$/;
+export const eDolce = (s) => PT_DOLCE.test(s.primaryType || '') || (!s.pasto && !eRistorante(s) && (NOME_DOLCE.test(norm(nome(s))) || tipi(s).includes('ice_cream_shop')));
 export function c1(caso, cfg) {
     const E = cfg.esteso;
     const [p0, p1] = E.fasce.pranzo.map(minDi);
@@ -141,6 +147,18 @@ export function c1(caso, cfg) {
             if (!((m >= p0 && m <= p1) || (m >= c0 && m <= c1_))) {
                 out.push(viol(s, `${nome(s)} alle ${hhmmDi(m)}: un pasto fuori dalle fasce (pranzo ${E.fasce.pranzo.join('–')}, cena ${E.fasce.cena.join('–')})`, 'c1', cfg));
             }
+        }
+        // C8c — UN DOLCE PER TOUR, E DOPO UN PASTO: al massimo un dolce/gelato/pasticceria; mai prima del pasto (a pranzo dopo un ristorante,
+        // di mattina dopo una colazione) e mai come prima tappa prima di pranzo. Dalla merenda (14:45) in poi un dolce solo va bene anche per primo.
+        const inOrdine = tappeDi(t).filter(s => s.at).sort((a, b) => new Date(a.at) - new Date(b.at));
+        const dolci = inOrdine.filter(eDolce);
+        for (const s of dolci.slice(1)) out.push(viol(s, `${nome(s)} alle ${oraTesto(s)}: un secondo dolce nello stesso tour (dopo ${nome(dolci[0])})`, 'c1', cfg));
+        for (const s of dolci.slice(0, 1)) {
+            const m = quando(s)?.minuti;
+            if (m == null || m >= p1) continue;
+            const prima = inOrdine.slice(0, inOrdine.indexOf(s));
+            const dopoPasto = m < p0 ? prima.some(x => tipoSosta(x) === 'caffe' && !eDolce(x)) : prima.some(eRistorante);
+            if (!dopoPasto) out.push(viol(s, `${nome(s)} alle ${hhmmDi(m)}: un dolce prima del pasto${prima.length === 0 ? ' (è la prima tappa)' : ''}`, 'c1', cfg));
         }
         const ord = [...pasti].sort((a, b) => new Date(a.at) - new Date(b.at));
         for (let i = 1; i < ord.length; i++) {
@@ -440,6 +458,26 @@ export function c12(caso, cfg) {
 
 // ─── 13 — la sera: drink corto, secondo bar, buco senza passeggiata (C8a) ────
 const eBar = (s) => tipoSosta(s) === 'caffe';
+const RIGA_NESSUN_LOCALE = /nessun locale aperto/i;
+/** C8c — un giro "serale": la prima tappa e' un aperitivo, una cena o un dopocena e il giro parte prima delle 23:00 (dopo, la cena non e' piu' possibile). */
+export function giroSerale(caso, vere) {
+    const [hh] = String(caso.ora || '').split(':').map(Number);
+    const primo = vere[0];
+    return !!primo && ['aperitivo', 'cena', 'dopocena'].includes(primo.moment) && Number.isFinite(hh) && hh >= 18 && hh < 23;
+}
+/** C8c — una sera con la cena (un ristorante di sera) o con la riga approvata al suo posto. */
+export function sera_senza_cena_ok(caso, righe, vere) {
+    if (!giroSerale(caso, vere)) return true;
+    return vere.some(s => s.moment === 'cena' && s.pasto) || righe.some(s => s.tempoLibero && RIGA_NESSUN_LOCALE.test(s.description || ''));
+}
+/** C8c — una sera COMPLETA: drink + cena, oppure cena + passeggiata (o, se la cena non c'e', la riga approvata e almeno due tappe). */
+export function seraCompleta(righe, vere) {
+    const drink = vere.some(s => !s.passeggiata && ['aperitivo', 'dopocena'].includes(s.moment) && tipoSosta(s) === 'caffe');
+    const cena = vere.some(s => s.moment === 'cena' && s.pasto);
+    const passeggiata = vere.some(s => s.passeggiata);
+    if ((drink && cena) || (cena && passeggiata)) return true;
+    return vere.length >= 2 && righe.some(s => s.tempoLibero && RIGA_NESSUN_LOCALE.test(s.description || ''));
+}
 export function c13(caso, cfg) {
     if (caso.tipo !== 'itinerario') return esito('c13', false);
     const E = cfg.esteso;
@@ -448,6 +486,11 @@ export function c13(caso, cfg) {
     for (const t of caso.tours || []) {
         const righe = t.stops || [];
         const vere = tappeDi(t);
+        // (e) C8c — LA SERA SI CENA: un giro che parte la sera (aperitivo, cena, dopocena) prima delle 23:00 ha la cena, o la riga approvata
+        // «Nessun locale aperto qui vicino a quest'ora.» al suo posto. Mai una sera senza cena in silenzio.
+        if (!sera_senza_cena_ok(caso, righe, vere)) {
+            out.push(viol(vere[0] || null, `Giro serale delle ${caso.ora}: nessuna cena (${vere.map(nome).join(', ') || 'nessuna tappa'}) e nessuna riga «nessun locale aperto» al suo posto`, 'c13', cfg));
+        }
         // il drink: la prima tappa-bar dell'aperitivo; nel Percorso Veloce serale anche il drink notturno (dopocena) in testa al giro
         const i = vere.findIndex((s, k) => !s.passeggiata && eBar(s) && (s.moment === 'aperitivo' || (caso.modo === 'veloce' && s.moment === 'dopocena' && k === 0)));
         if (i < 0) continue;

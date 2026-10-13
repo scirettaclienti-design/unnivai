@@ -119,9 +119,32 @@ export function mealFitsClock(candidate, minutes) {
  * C8b — il motivo per cui un posto non va bene, in "Per Te", a quell'ora e con quelle tappe: fuori fascia, o un SECONDO pasto
  * seduto a meno di 3 ore dal primo (il "secondo pranzo" di c1). null = va bene.
  */
+/**
+ * C8c — UN DOLCE PER TOUR, E DOPO UN PASTO. Un dolce, un gelato, una pasticceria (tipo dolce, o un forno/dolce che si chiama
+ * pasticceria/gelateria) sta al massimo una volta per tour e mai prima del pasto: a pranzo dopo un ristorante, di mattina dopo una
+ * colazione (un caffe', un forno), dalla merenda (14:45) in poi quando il pranzo e' passato. Mai come prima tappa prima di pranzo.
+ */
+const NOME_DOLCE = /\b(pasticceri[ae]|gelateri[ae]|gelato|cioccolateri[ae])\b/i;
+export const isDolce = (c) => {
+    const k = kindOf(c);
+    if (k === 'dolce') return true;
+    return k === 'forno' && NOME_DOLCE.test(String(c?.name || c?.title || ''));
+};
+export function dolceProblem(candidate, minutes, altre = []) {
+    if (!isDolce(candidate)) return null;
+    if (altre.some(o => isDolce(o.c))) return 'secondo dolce nello stesso tour';
+    if (!Number.isFinite(minutes) || minutes >= FASCIA_PRANZO_MIN[1]) return null;
+    const dopoPasto = minutes < FASCIA_PRANZO_MIN[0]
+        ? altre.some(o => isBreakfastPlace(o.c) && !isDolce(o.c))
+        : altre.some(o => kindOf(o.c) === 'pasto');
+    return dopoPasto ? null : 'dolce prima del pasto';
+}
+
 export const SECONDO_PASTO_MIN_ORE = 3;
 export function perTeMealProblem(candidate, minutes, arrivo, altre = []) {
     if (!mealFitsClock(candidate, minutes)) return 'pasto fuori fascia';
+    const dolce = dolceProblem(candidate, minutes, altre);
+    if (dolce) return dolce;
     if (kindOf(candidate) === 'pasto') {
         const t = arrivo instanceof Date ? arrivo.getTime() : NaN;
         const vicino = altre.some(o => kindOf(o.c) === 'pasto' && Math.abs(o.arrivo.getTime() - t) < SECONDO_PASTO_MIN_ORE * 3600000);

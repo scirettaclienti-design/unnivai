@@ -50,7 +50,7 @@
  */
 
 import { MOMENTS, MOMENT_BY_KEY, momentAtClock } from './dayMoments';
-import { explicitFoodMoments, asksSitDownMeal } from './foodTheme';
+import { explicitFoodMoments, asksSitDownMeal, asksBreakfast } from './foodTheme';
 import { romeDate, romeParts } from './tourWindow';
 import { APERITIVO_STAY_MINUTES, APERITIVO_STAY_RELAX_MINUTES } from './tourTiming';
 
@@ -84,6 +84,8 @@ const WALK_MARGIN_BEFORE_NEXT_MINUTES = 20;
 const VELOCE_WALK_WINDOW_MINUTES = 150;
 const VELOCE_DINNER_ARRIVAL_MINUTES = 85;
 /** C8b — la cena tardi: chi parte fra le 21:00 e le 22:00. Dopo la cena e la passeggiata passano ~115 minuti. */
+/** C8c — la colazione chiesta vale se il tour parte prima delle 11:00. */
+const COLAZIONE_ENTRO_MINUTES = 11 * 60;
 const CENA_TARDI_DA = 21 * 60;
 const CENA_TARDI_A = 22 * 60;
 const CENA_PRIMA_DOPO_MINUTES = 115;
@@ -210,6 +212,9 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
     // C8a — "aperitivo e cena": l'aperitivo chiesto per nome entra anche se la finestra lo
     // sfiora appena (>= 15 minuti, non 60), perche' l'utente l'ha voluto.
     const aperitivoChiesto = ASKED_APERITIVO.test(norm(text));
+    // C8c — la COLAZIONE chiesta per nome (e il tour parte prima delle 11:00): la prima tappa e' un posto da colazione aperto per
+    // tutta la sosta e il tour parte all'ora chiesta, non alle 9:30. Senza la richiesta, la regola C7 non cambia.
+    const colazioneChiesta = asksBreakfast(text);
     // C8a — la sosta del drink: 45 minuti, 60 con ritmo Rilassato.
     const sostaAperitivo = paceKey === 'rilassato' ? APERITIVO_STAY_RELAX_MINUTES : APERITIVO_STAY_MINUTES;
 
@@ -299,12 +304,15 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
         } else {
             for (const m of MOMENTS) {
                 if (m.key === 'dopocena' && !allowDopocena) continue;
-                const start = Math.max(wStart, romeDate(day, m.start).getTime());
+                const colazione = m.key === 'mattina' && colazioneChiesta && startMinutes >= ALBA_MINUTES && startMinutes < COLAZIONE_ENTRO_MINUTES;
+                const start = colazione ? wStart : Math.max(wStart, romeDate(day, m.start).getTime());
                 const end = Math.min(wEnd, romeDate(day, m.end).getTime());
                 const minutes = Math.round((end - start) / 60000);
                 const soglia = m.key === 'aperitivo' && aperitivoChiesto ? 15 : MIN_OVERLAP_MINUTES;
                 if (minutes < soglia) continue;
                 const mom = build(m, start, end, m.key === 'aperitivo' ? { sostaAperitivo, bevuta: true } : {});
+                // la colazione e' una tappa in piu' nella mattina (non toglie posto alle visite)
+                if (colazione) Object.assign(mom, { colazione: true, stops: mom.stops + 1 });
                 // C8a — un tour che parte di sera e' drink + passeggiata + cena: il drink e' un locale da bere, non un
                 // belvedere (la vista e' della passeggiata, e un belvedere all'aperitivo bloccava la ricerca dei bar).
                 // Le giornate che cominciano al mattino tengono la tabella com'e'. Una categoria chiesta per tutti i

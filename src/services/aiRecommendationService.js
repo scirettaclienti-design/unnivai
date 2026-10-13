@@ -185,7 +185,7 @@ export const BLACKLIST_TYPES = new Set([
 // pomeriggio e aperitivo nelle richieste a tema cibo, e zone come tappe.
 // C8a — prefix bumped da 'unnivai_insiderf16_composizione_': i giri cached prima hanno l'aperitivo da 20 minuti,
 // nessuna passeggiata fra drink e cena, e la sera tarda del Veloce senza scheletro.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf18_minimi_';
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf19_pasti_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -1109,7 +1109,7 @@ const THEME_FOOD_QUERY = 'trattoria ristorante pizzeria osteria';
 const cuisineOf = (c) => (Array.isArray(c?.types) ? c.types : [])
     .find(t => /_restaurant$/.test(t) && t !== 'fast_food_restaurant')?.replace(/_restaurant$/, '') || null;
 const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null, foodAnchor = null, anchor = null, tipico = false }) => {
-    const { placesDiscoveryService } = await import('./placesDiscoveryService');
+    const { placesDiscoveryService, FOOD_QUERY_COLAZIONE } = await import('./placesDiscoveryService');
     const dieta = foodPrefs?.dieta || [];
     const at = (t) => {
         const a = anchor || (t === 'food' ? foodAnchor : null);
@@ -1117,7 +1117,10 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
             ? { lat: a.latitude, lng: a.longitude, bias: { radiusMeters: MAX_WALK_METERS } }
             : { lat: cityCenter.latitude, lng: cityCenter.longitude, bias: {} };
     };
-    const settled = await Promise.allSettled(themes.map(t => (t === 'food' && dieta.length > 0
+    const settled = await Promise.allSettled(themes.map(t => (t === 'colazione'
+        // C8c — la colazione chiesta: caffetterie, pasticcerie, forni (la query di Per Te prima delle 11:00)
+        ? placesDiscoveryService.discoverRealPOIs(city, at(t).lat, at(t).lng, null, { customQuery: FOOD_QUERY_COLAZIONE, customKind: 'FOOD', ...at(t).bias })
+        : t === 'food' && dieta.length > 0
         ? searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(city, at(t).lat, at(t).lng, null, {
             customQuery: fq, customKind: 'FOOD', ...at(t).bias,
         }), THEME_FOOD_QUERY, dieta).then(r => r.results)
@@ -2010,7 +2013,7 @@ const insertFreeTime = (days, entries) => {
         for (const e of entries.filter(x => x.dayIndex === dayIndex)) {
             // CONTINUITA' — un buco e' ancorato alla tappa che lo segue; le altre righe vanno prima del momento dopo.
             const anchor = e.prima ? stops.findIndex(st => st.place_id === e.prima) : -1;
-            const at = anchor >= 0 ? anchor : stops.findIndex(st => (MOMENT_ORDER.get(st.moment) ?? -1) > (MOMENT_ORDER.get(e.key) ?? 99));
+            const at = e.colazione ? 0 : anchor >= 0 ? anchor : stops.findIndex(st => (MOMENT_ORDER.get(st.moment) ?? -1) > (MOMENT_ORDER.get(e.key) ?? 99));
             const item = freeTimeStop({
                 // ORARI — un pasto senza nessun locale aperto ha la sua riga dichiarata; il resto e' tempo libero (regola O).
                 moment: e.key, momentLabel: e.label, description: e.chiuso && e.pasto ? TESTO_NESSUN_LOCALE_APERTO : composeFreeTime({ momento: e.key }),
@@ -2547,6 +2550,8 @@ export const aiRecommendationService = {
             // del cibo: i ristoranti gia' trovati restano nel pool.
             let cenaPrima = veloce;
             let foodGiaCercato = false;
+            // C8c — la cena tardi che non c'e' (nessun ristorante aperto per tutta la sosta) non resta in silenzio: ha la sua riga.
+            let cenaTardiMancante = false;
             for (;;) {
                 skeleton = addEveningWalk(buildDaySkeleton({
                     window: tourWindow,
@@ -2604,6 +2609,7 @@ export const aiRecommendationService = {
                         if ((openBuckets().buckets.get(cm.id) || []).length === 0) {
                             console.info(`[C8b CENA TARDI] ${city}: nessun ristorante aperto per tutta la sosta all'arrivo → drink + passeggiata`);
                             cenaPrima = false;
+                            cenaTardiMancante = true;
                             continue;
                         }
                     }
@@ -2817,7 +2823,12 @@ export const aiRecommendationService = {
                             const righeBuchi = gapRows({ moments, sched, tempoLibero: [...(report.tempoLibero || []), ...righeChiuse] });
                             // C8b — sotto il minimo e senza altra riga dichiarata: la dichiara (mai un tour corto in silenzio).
                             const righeMinimo = belowMinimumRows({ moments, sched, tempoLibero: [...(report.tempoLibero || []), ...righeChiuse, ...righeBuchi], minPerDay });
-                            report.tempoLibero = [...(report.tempoLibero || []), ...righeChiuse, ...righeBuchi, ...righeMinimo];
+                            // C8c — la sera si cena: se la cena tardi non c'e', la riga approvata («Nessun locale aperto qui vicino a quest'ora.»)
+                            const righeCenaTardi = cenaTardiMancante && !(report.tempoLibero || []).some(x => x.key === 'cena')
+                                ? [{ momento: 'g1-cena', key: 'cena', label: 'Cena', dayIndex: 0, posto: 0, dopo: null, piuVicino: null, chiuso: true, pasto: true,
+                                    motivo: 'la sera si cena: nessun ristorante aperto per tutta la sosta' }]
+                                : [];
+                            report.tempoLibero = [...(report.tempoLibero || []), ...righeChiuse, ...righeBuchi, ...righeMinimo, ...righeCenaTardi];
                             orariTracciato = scheduleHoursLabels(sched);
                             orariFonte = scheduleHoursSources(sched);
                             orariInfo = {

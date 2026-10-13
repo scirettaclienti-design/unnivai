@@ -1,6 +1,6 @@
 // BANCO-ESTESO — i controlli si provano senza rete: rosso sul cattivo noto, verde sul buono.
 import { describe, it, expect } from 'vitest';
-import { validaControlli } from '../../../scripts/banco/validazione.js';
+import { validaControlli, validaGiornata } from '../../../scripts/banco/validazione.js';
 import { CLASSI, DEFINIZIONI, eseguiControlli, c1, c4, c11, minimoPerFinestra } from '../../../scripts/banco/controlli.js';
 import { apertoAlle, giornoEMinuti } from '../../../scripts/banco/orari.js';
 import { CASI_ESTESI, MODI } from '../../../scripts/banco/casi-esteso.js';
@@ -17,6 +17,14 @@ describe('banco esteso — validazione degli 11 controlli', () => {
             const r = righe.find(x => x.classe === k);
             expect(r.cattivoRosso, `non vede: ${r.cattivo}`).toBe(true);
             expect(r.buonoVerde, `falsi allarmi: ${r.falsiAllarmi.join(' | ')}`).toBe(true);
+        });
+    }
+});
+
+describe('banco esteso — C8c: la voce «Giornata» (solo da 6 ore; una sera e\' completa con cena)', () => {
+    for (const e of validaGiornata(config)) {
+        it(`${e.esempio}: ${e.nome} → ${e.atteso ?? 'non si applica'}`, () => {
+            expect(e.visto).toBe(e.atteso);
         });
     }
 });

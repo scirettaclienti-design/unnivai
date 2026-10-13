@@ -35,12 +35,17 @@ const NON_DEMONIMI = new Set(['italiano', 'italiana', 'americano', 'americana', 
 
 // La richiesta di un locale in un MOMENTO preciso (le stesse parole del controllo c2 del banco).
 const CIBO_NEL_MOMENTO = /\b(ristorant\w*|trattori\w*|osteri\w*|pizzeri\w*|mangiar\w*|cibo|pranz\w*|pasticcer\w*|gelater\w*|caffe\w*|caffett\w*|bar|aperitiv\w*|dolc\w*|brioche|cornett\w*|granita|colazione)\b/;
+// C8c — la COLAZIONE chiesta per nome: la prima tappa e' un posto da colazione (non basta "la mattina in pasticceria")
+const COLAZIONE_CHIESTA = /\b(colazione|brunch|cornett\w*|cappuccin\w*|brioche)\b/;
 const RICHIESTA_MOMENTO = {
-    mattina: (t) => /\b(colazione|brunch|cornett\w*|cappuccin\w*|brioche)\b/.test(t)
+    mattina: (t) => COLAZIONE_CHIESTA.test(t)
         || (/\b(mattin\w*)\b/.test(t) && CIBO_NEL_MOMENTO.test(t)),
     pomeriggio: (t) => /\b(merenda)\b/.test(t)
         || (/\b(pomerigg\w*)\b/.test(t) && CIBO_NEL_MOMENTO.test(t)),
 };
+
+/** C8c — il testo chiede la colazione (colazione, brunch, cornetto, cappuccino, brioche)? */
+export const asksBreakfast = (text) => COLAZIONE_CHIESTA.test(norm(text));
 
 /** Il testo chiede un posto dove ci si SIEDE a mangiare (ristorante, trattoria, osteria, pizzeria, pranzo)? */
 export const asksSitDownMeal = (text) => /\b(ristorant\w*|trattori\w*|osteri\w*|pizzeri\w*|pranz\w*|mangiar\w*|cenar\w*)\b/.test(norm(text));

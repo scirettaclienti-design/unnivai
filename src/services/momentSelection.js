@@ -44,9 +44,9 @@ import { computeCandidateScore } from './candidateScoring';
 import { stayInMoment, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
 import { placeKind, KINDS, COMMERCIAL_KINDS, LOCALE_CATEGORIES } from '../lib/placeKind';
 import { FOOD_ONLY_MOMENT_KEYS, EXPANDABLE_KEYS, MAX_STOPS_PER_DAY } from '../lib/daySkeleton';
-import { momentAdmits, isLocale, isOutdoorWalk } from '../lib/mealRules';
+import { momentAdmits, isLocale, isOutdoorWalk, isBreakfastPlace } from '../lib/mealRules';
 import { scheduleGaps, retimeWaits, totalGapMinutes, realStopCount, isEveningComplete } from '../lib/continuity';
-import { freeTimeDecision } from '../lib/freeTime';
+import { freeTimeDecision, FREE_TIME_MAX_MINUTES } from '../lib/freeTime';
 import { brandKey, legKm, pathKm, minimalPathKm, countCrossings, crossingPairs, repeatedBrands, stopDetours } from '../lib/routeShape';
 import { openStatus, OPEN, CLOSED, UNKNOWN, NIGHT_FROM_MINUTES, romeMinutes } from '../lib/openingHours';
 
@@ -329,7 +329,8 @@ export function bucketCandidates(moments, candidates, { anyCategory = false, mea
                 || (m.key === 'passeggiata' && isOutdoorWalk(c)));
         // C7 — UN PASTO PER FASCIA: un ristorante sta solo a pranzo e cena; la mattina un locale e'
         // una colazione; l'aperitivo e' un bar. Vale anche con la categoria che vale per tutti i momenti.
-        buckets.set(m.id, base.filter(c => momentAdmits(c, m)));
+        // C8c — i posti trovati dalla ricerca della colazione servono solo alla colazione (non al pranzo).
+        buckets.set(m.id, base.filter(c => momentAdmits(c, m) && !(c._tema === 'colazione' && !m.colazione)));
     }
     return buckets;
 }
@@ -367,6 +368,8 @@ export function shortMomentThemes(moments, buckets, pool, max = MAX_EXTRA_SEARCH
     const { plan } = repairMomentSelection({ moments, buckets, aiStops: [], pool, requestedFamilies: asked });
     const filled = new Map(plan.map(p => [p.moment.id, p.stops.length]));
     const themes = [];
+    // C8c — la COLAZIONE chiesta senza nessun posto da colazione aperto nel pool: si cerca per prima (e' la prima tappa del giorno).
+    if (moments.some(m => m.colazione && !(buckets.get(m.id) || []).some(isBreakfastPlace))) themes.push('colazione');
     // C8a — i momenti FACOLTATIVI (la passeggiata, la cena del Veloce serale) cercano dopo quelli veri.
     const required = moments.filter(m => !m.opzionale);
     const meals = required.filter(m => FOOD_ONLY_MOMENT_KEYS.has(m.key));
@@ -655,7 +658,11 @@ function repairPass({
         const fromRef = () => !last() && !!ref;
         const origin = () => last() || ref;
         const devFrom = () => last() || startPoint || null;
-        const free = (except) => bucket.filter(c => !used.has(idOf(c)) && idOf(c) !== except);
+        // C8c — COLAZIONE CHIESTA: la prima tappa del momento e' un posto da colazione (aperto: il bucket ha solo posti aperti).
+        // Se non ce n'e' nessuno la riga e' dichiarata (vedi il ciclo dei posti vuoti) e le visite seguono.
+        let colazioneSalta = false;
+        const colazioneInCorso = () => !!m.colazione && chosen.length === 0 && !colazioneSalta;
+        const free = (except) => bucket.filter(c => !used.has(idOf(c)) && idOf(c) !== except && (!colazioneInCorso() || isBreakfastPlace(c)));
         // C5e (O) — solo se attivo (dopo le ricerche mirate), solo fuori dai
         // pasti, solo con una tappa vera prima nello stesso giorno.
         const freeSlot = () => !!tempoLiberoMinuti && !FOOD_ONLY_MOMENT_KEYS.has(m.key) && !m.opzionale && !!last()
@@ -845,6 +852,7 @@ function repairPass({
             if (!poolIds.has(s.place_id)) { reject(s, 'luogo non fra i candidati'); continue; }
             if (!c) { reject(s, 'fuori dal suo momento'); continue; }
             if (used.has(s.place_id)) { reject(s, 'gia\' usato'); continue; }
+            if (colazioneInCorso() && !isBreakfastPlace(c)) { reject(s, 'colazione chiesta: la prima tappa e\' un posto da colazione'); continue; }
             if (freeSlot()) { reject(s, `nessun posto entro ${tempoLiberoMinuti} min dalla tappa prima: tempo libero`); continue; }
             const { ok, mine, alt } = modelWins(c);
             if (!ok) { reject(s, whyWorse(mine.key, c, mine.t, alt.key)); continue; }
@@ -858,6 +866,7 @@ function repairPass({
             const s = unassigned[i];
             const c = inBucket.get(s.place_id);
             if (!c || used.has(s.place_id) || freeSlot()) continue;
+            if (colazioneInCorso() && !isBreakfastPlace(c)) continue;
             const { ok, mine } = modelWins(c);
             if (!ok) continue;
             if (m.opzionale && !fitsOptional(mine)) continue;
@@ -871,6 +880,15 @@ function repairPass({
         // tappa prima diventa "tempo libero": niente tappa, il report lo dice e
         // il momento dopo si sceglie dalla tappa vera prima.
         while (chosen.length < m.stops) {
+            // C8c — la colazione chiesta senza nessun posto da colazione aperto: riga dichiarata, poi le visite.
+            if (colazioneInCorso() && free(null).length === 0) {
+                report.tempoLibero.push({
+                    momento: m.id, key: m.key, label: 'Colazione', dayIndex: m.dayIndex, posto: 0, dopo: null, piuVicino: null,
+                    chiuso: true, pasto: true, colazione: true, motivo: 'colazione chiesta: nessun posto da colazione aperto per tutta la sosta',
+                });
+                colazioneSalta = true;
+                continue;
+            }
             if (freeSlot()) {
                 const { piuVicino } = freeTimeDecision({ prev: last(), candidates: free(null), pasto: false, maxMinutes: tempoLiberoMinuti });
                 report.tempoLibero.push({
@@ -888,6 +906,65 @@ function repairPass({
             if (m.opzionale && !fitsOptional(b)) break;
             take(b.c, narrationById.get(idOf(b.c)) || null, 'riparata', b);
             report.riempite.push({ place_id: idOf(b.c), name: b.c.name || b.c.title || null, momento: m.id });
+        }
+
+        // C8c — LA SERA SI CENA. La cena facoltativa (Veloce, Per Te) ha la precedenza sulla passeggiata: se dal punto della
+        // passeggiata nessun ristorante e' raggiungibile, si cambia la passeggiata (una vicino al ristorante) o si toglie.
+        if (chosen.length === 0 && m.opzionale && m.key === 'cena') {
+            const walk = plan.length && plan[plan.length - 1].moment.key === 'passeggiata' && plan[plan.length - 1].moment.dayIndex === m.dayIndex
+                ? plan[plan.length - 1] : null;
+            const dayEntries = () => plan.filter(e => e.moment.dayIndex === m.dayIndex);
+            const rebuildDay = () => {
+                dayFamilies = new Set();
+                dayBrands = new Set();
+                for (const e of dayEntries()) for (const st of e.stops) {
+                    if (counted(famOf(st.candidate))) dayFamilies.add(famOf(st.candidate));
+                    if (brandOf(st.candidate)) dayBrands.add(brandOf(st.candidate));
+                }
+            };
+            const lastOfEntry = (e) => (e ? e.stops[e.stops.length - 1].candidate : null);
+            const drinkEntry = plan.length - (walk ? 2 : 1) >= 0 ? plan[plan.length - (walk ? 2 : 1)] : null;
+            const drink = drinkEntry && drinkEntry.moment.dayIndex === m.dayIndex ? lastOfEntry(drinkEntry) : null;
+            if (walk) {
+                plan.pop();
+                for (const st of walk.stops) used.delete(idOf(st.candidate));
+                rebuildDay();
+                prev = drink;
+            }
+            const b = best(null);
+            const sceltaOk = b && !b.chain && Number.isFinite(b.t) && b.t <= FREE_TIME_MAX_MINUTES;
+            if (sceltaOk) {
+                take(b.c, narrationById.get(idOf(b.c)) || null, 'riparata', b);
+                report.riempite.push({ place_id: idOf(b.c), name: b.c.name || b.c.title || null, momento: m.id });
+                if (walk) {
+                    const R = b.c;
+                    const nuova = (buckets.get(walk.moment.id) || [])
+                        .filter(w => !used.has(idOf(w)) && okFam(w, dayFamilies) && !(brandOf(w) && dayBrands.has(brandOf(w))))
+                        .map(w => ({ w, t1: drink ? walkFrom(drink, w) : 0, t2: walkFrom(w, R), dev: drink ? detourMinutes(drink, w, R) : 0 }))
+                        .filter(x => x.t1 <= maxWalk && x.t2 <= maxWalk && !(x.dev > ROUTE_DEVIATION_MAX_MINUTES))
+                        .sort((x, y) => ((scoreOf(y.w) - DETOUR_WEIGHT * y.dev) - (scoreOf(x.w) - DETOUR_WEIGHT * x.dev)) || (x.t1 - y.t1))[0];
+                    if (nuova) {
+                        plan.push({ moment: walk.moment, stops: [{ candidate: nuova.w, narration: narrationById.get(idOf(nuova.w)) || null, source: 'riparata',
+                            trace: { scelta: 'riparazione', minuti: nuova.t1, motivo: 'passeggiata scelta vicino alla cena' } }] });
+                        used.add(idOf(nuova.w));
+                        if (counted(famOf(nuova.w))) dayFamilies.add(famOf(nuova.w));
+                        if (brandOf(nuova.w)) dayBrands.add(brandOf(nuova.w));
+                        report.riempite.push({ place_id: idOf(nuova.w), name: nuova.w.name || nuova.w.title || null, momento: walk.moment.id });
+                    }
+                }
+            } else if (walk) {
+                // nessun ristorante a portata nemmeno dal drink: resta il giro com'era, e la cena e' dichiarata (sotto)
+                plan.push(walk);
+                for (const st of walk.stops) used.add(idOf(st.candidate));
+                rebuildDay();
+                prev = lastOfEntry(walk);
+            }
+            if (!sceltaOk) {
+                report.tempoLibero.push({
+                    momento: m.id, key: m.key, label: m.label, dayIndex: m.dayIndex, posto: 0, dopo: null, piuVicino: null,
+                    chiuso: true, pasto: true, motivo: 'la sera si cena: nessun ristorante aperto a portata di piedi per tutta la sosta',
+                });
+            }
         }
 
         if (chosen.length === 0) {

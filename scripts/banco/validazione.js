@@ -4,6 +4,7 @@
 // per le classi 1, 9 e 10 l'esempio cattivo è costruito (marcato "costruito").
 // Se un controllo non vede il suo caso cattivo è sbagliato: si corregge prima del giro.
 import { CONTROLLI, c9 } from './controlli.js';
+import { giornataSemaforo } from './misure.js';
 
 const G = '2026-10-14'; // mercoledì
 const at = (hhmm) => `${G}T${hhmm}:00+02:00`;
@@ -32,6 +33,22 @@ export const ESEMPI = {
                 st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pomeriggio', at: at('14:30'), stay: 75, pasto: true }),
                 st('Pizzeria Etna', { types: ['restaurant'], moment: 'pomeriggio', at: at('16:10'), stay: 75, pasto: true }),
             ]) },
+        // C8c — un dolce per tour, e dopo un pasto: il tour cibo di Per Te Catania 13:00 (gelato → trattoria → gelato)
+        cattivo2: { nome: 'C8c — gelato alle 13:00 (prima tappa), trattoria alle 13:26, un altro gelato alle 14:55', origine: 'misura del 14/10 (perte-catania-1300, tour cibo)',
+            caso: caso([
+                st('Gelateria e Pasticceria Blu Notte', { types: ['ice_cream_shop', 'food'], primaryType: 'ice_cream_shop', moment: null, at: at('13:00'), stay: 20 }),
+                st('Trattoria Giglio Rosso', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: null, at: at('13:26'), stay: 75, pasto: true }),
+                st('Gelateria Pellegrino', { types: ['ice_cream_shop', 'food'], primaryType: 'ice_cream_shop', moment: null, at: at('14:55'), stay: 20 }),
+            ], { modo: 'perte', tipo: 'tour' }) },
+        buono2: { nome: 'C8c — trattoria alle 13:00, un gelato alle 14:25, un caffè alle 14:50', caso: caso([
+            st('Trattoria Giglio Rosso', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: null, at: at('13:00'), stay: 75, pasto: true }),
+            st('Gelateria Pellegrino', { types: ['ice_cream_shop', 'food'], primaryType: 'ice_cream_shop', moment: null, at: at('14:25'), stay: 20 }),
+            st('Caffetteria Roma', { types: ['cafe', 'food'], primaryType: 'cafe', moment: null, at: at('14:50'), stay: 20 }),
+        ], { modo: 'perte', tipo: 'tour' }) },
+        buono3: { nome: 'C8c — merenda delle 16:00: una pasticceria per prima (il pranzo e\' passato)', caso: caso([
+            st('Pasticceria Savia', { types: ['bakery', 'food'], primaryType: 'bakery', moment: null, at: at('16:00'), stay: 20 }),
+            st('Caffetteria Roma', { types: ['cafe', 'food'], primaryType: 'cafe', moment: null, at: at('16:30'), stay: 20 }),
+        ], { modo: 'perte', tipo: 'tour' }) },
         buono: { nome: 'pranzo 13:00 e cena 20:30', caso: caso([
             st('Trattoria Sorano', { types: ['restaurant'], moment: 'pranzo', at: at('13:00'), stay: 75, pasto: true }),
             st('Osteria Antica', { types: ['restaurant'], moment: 'cena', at: at('20:30'), stay: 75, pasto: true }),
@@ -240,6 +257,21 @@ export const ESEMPI = {
             st('Piazza Università', { types: ['tourist_attraction'], moment: 'aperitivo', at: at('18:52'), stay: 30, passeggiata: true }),
             st('Ristorante EtnaSicilia', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: 'cena', at: at('20:00'), stay: 75, pasto: true }),
         ]) },
+        // C8c — la sera si cena: drink + passeggiata alle 20:00 senza la cena e senza la riga (Per Te Napoli 20:00)
+        cattivo4: { nome: 'C8c — Veloce 20:00: drink e passeggiata, nessuna cena e nessuna riga al suo posto', origine: 'misura del 14/10 (perte-napoli-2000)',
+            caso: caso([
+                st('MMB Music Melody Bar', { types: ['cocktail_bar', 'bar'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('20:00'), stay: 60 }),
+                st('Belvedere di Pizzofalcone', { types: ['tourist_attraction'], moment: 'aperitivo', at: at('21:25'), stay: 30, passeggiata: true }),
+            ], { modo: 'veloce', ora: '20:00', finestraMinuti: [120] }) },
+        buono4: { nome: 'C8c — Veloce 20:00: drink + cena (la passeggiata e\' stata tolta)', caso: caso([
+            st('Botanical Bar', { types: ['cocktail_bar', 'bar'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('20:00'), stay: 60 }),
+            st('Osteria Paladino', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: 'cena', at: at('21:25'), stay: 75, pasto: true }),
+        ], { modo: 'veloce', ora: '20:00', finestraMinuti: [120] }) },
+        buono5: { nome: 'C8c — Veloce 20:00 senza nessun ristorante aperto: drink + passeggiata + la riga «Nessun locale aperto qui vicino a quest\'ora.»', caso: caso([
+            st('Botanical Bar', { types: ['cocktail_bar', 'bar'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('20:00'), stay: 60 }),
+            st('Belvedere di Pizzofalcone', { types: ['tourist_attraction'], moment: 'aperitivo', at: at('21:25'), stay: 30, passeggiata: true }),
+            st('Tempo libero', { place_id: null, types: [], moment: 'cena', at: at('21:55'), stay: 0, tempoLibero: true, description: 'Nessun locale aperto qui vicino a quest\u2019ora.' }),
+        ], { modo: 'veloce', ora: '20:00', finestraMinuti: [120] }) },
         cattivo3: { nome: 'Veloce 23:30 con una tappa sola: il solo drink (Retrò - Cocktail Bar), senza passeggiata', origine: 'giro sera, versione intermedia del codice (veloce-catania-relax-2330)',
             caso: caso([
                 st('Retrò - Cocktail Bar', { types: ['cocktail_bar'], primaryType: 'cocktail_bar', moment: 'dopocena', at: at('23:30'), stay: 60 }),
@@ -265,19 +297,42 @@ export const ESEMPIO_C9 = {
     incompleto: { nome: 'la prova si ferma a 7 passi', onb1: { passi: passi(7) } },
 };
 
+// C8c — la voce «Giornata completa»: vale solo per finestre da 6 ore o piu'; una sera e' completa con drink + cena o cena + passeggiata.
+const misuraTappe = (c) => ({ tappe: (c.tours || []).flatMap(t => t.stops || []).filter(x => !x.tempoLibero).length });
+export const ESEMPI_GIORNATA = {
+    cattivo: { nome: 'sera di 2 ore: drink + passeggiata, nessuna cena (Per Te Napoli 20:00)', origine: 'misura del 14/10 (perte-napoli-2000)', atteso: 'rosso',
+        caso: ESEMPI.c13.cattivo4.caso },
+    cattivo2: { nome: 'giornata di 8 ore con 3 tappe', origine: 'costruito', atteso: 'rosso',
+        caso: caso(quattro.slice(0, 3), { finestraMinuti: [480] }) },
+    buono: { nome: 'sera di 2 ore: drink + cena', atteso: 'verde', caso: ESEMPI.c13.buono4.caso },
+    buono2: { nome: 'sera di 2 ore: cena + passeggiata (la cena tardi)', atteso: 'verde', caso: caso([
+        st('Ristorante EtnaSicilia', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: 'cena', at: at('21:25'), stay: 75, pasto: true }),
+        st('Fontana dell\u2019Amenano', { types: ['tourist_attraction'], moment: 'cena', at: at('22:43'), stay: 30, passeggiata: true }),
+    ], { modo: 'veloce', ora: '21:25', finestraMinuti: [120] }) },
+    buono3: { nome: 'pomeriggio di 4 ore con 3 tappe: non e\' una giornata, la voce non si applica (il minimo e\' di c4)', atteso: null,
+        caso: caso(quattro.slice(0, 3).map(x => ({ ...x, moment: 'pomeriggio' })), { finestraMinuti: [240], ora: '14:30' }) },
+    buono4: { nome: 'giornata di 8 ore con 4 tappe', atteso: 'verde', caso: caso(quattro, { finestraMinuti: [480] }) },
+};
+export function validaGiornata(cfg) {
+    return Object.entries(ESEMPI_GIORNATA).map(([k, e]) => {
+        const visto = giornataSemaforo(misuraTappe(e.caso), e.caso, cfg.soglie);
+        return { esempio: k, nome: e.nome, atteso: e.atteso, visto, ok: visto === e.atteso };
+    });
+}
+
 /** @returns {Array<{ classe, cattivo, buono, ok, dettagli }>} */
 export function validaControlli(cfg) {
     const righe = Object.entries(ESEMPI).map(([k, e]) => {
         const f = CONTROLLI[k];
-        const rosso = f(e.cattivo.caso, cfg).violazioni;
-        const rosso2 = e.cattivo2 ? f(e.cattivo2.caso, cfg).violazioni : null;
-        const rosso3 = e.cattivo3 ? f(e.cattivo3.caso, cfg).violazioni : null;
-        const verde = f(e.buono.caso, cfg).violazioni;
-        const verde2 = [...(e.buono2 ? f(e.buono2.caso, cfg).violazioni : []), ...(e.buono3 ? f(e.buono3.caso, cfg).violazioni : []), ...(e.buono4 ? f(e.buono4.caso, cfg).violazioni : [])];
+        // tutti gli esempi cattivi (cattivo, cattivo2, …) devono dare rosso; tutti i buoni (buono, buono2, …) verde
+        const cattivi = Object.keys(e).filter(x => /^cattivo\d*$/.test(x)).map(x => e[x]);
+        const buoni = Object.keys(e).filter(x => /^buono\d*$/.test(x)).map(x => e[x]);
+        const rossi = cattivi.map(c => f(c.caso, cfg).violazioni);
+        const verdi = buoni.map(b => f(b.caso, cfg).violazioni);
         const sc = e.buono.verificaSconosciuto != null ? f(e.buono.caso, cfg).sconosciuti === e.buono.verificaSconosciuto : true;
-        return { classe: k, cattivo: [e.cattivo.nome, e.cattivo2?.nome, e.cattivo3?.nome].filter(Boolean).join(' · '), origine: [e.cattivo.origine, e.cattivo2?.origine, e.cattivo3?.origine].filter(Boolean).join(' · '), buono: [e.buono.nome, e.buono2?.nome, e.buono3?.nome, e.buono4?.nome].filter(Boolean).join(' · '),
-            cattivoRosso: rosso.length > 0 && (!rosso2 || rosso2.length > 0) && (!rosso3 || rosso3.length > 0), buonoVerde: verde.length === 0 && verde2.length === 0 && sc,
-            visto: [...rosso, ...(rosso2 || []), ...(rosso3 || [])].map(v => v.testo), falsiAllarmi: [...verde, ...verde2].map(v => v.testo) };
+        return { classe: k, cattivo: cattivi.map(c => c.nome).join(' · '), origine: cattivi.map(c => c.origine).filter(Boolean).join(' · '), buono: buoni.map(b => b.nome).join(' · '),
+            cattivoRosso: rossi.every(r => r.length > 0), buonoVerde: verdi.every(v => v.length === 0) && sc,
+            visto: rossi.flat().map(v => v.testo), falsiAllarmi: verdi.flat().map(v => v.testo) };
     });
     const r = c9(ESEMPIO_C9.cattivo.onb1, cfg).violazioni;
     const v = c9(ESEMPIO_C9.buono.onb1, cfg).violazioni;

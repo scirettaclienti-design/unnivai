@@ -143,6 +143,22 @@
       "docs/prove/dati/2026-10-13-banco-esteso-orari-rigiro.json",
       "docs/prove/dati/2026-10-13-banco-esteso-orari.json",
       "docs/prove/dati/2026-10-13-banco-esteso-new.json"
+    ],
+    "pastiCasi": [
+      "perte-napoli-2000",
+      "crea-catania-colazione-0800",
+      "perte-catania-1300",
+      "crea-bologna-pomeriggio",
+      "perte-catania-1900",
+      "veloce-catania-relax-2125"
+    ],
+    "tettoPastiUsd": 1.5,
+    "_tettoPastiUsd": "C8c: tetto 1,5 $ per tutto il task, sommato su tutti i giri (BANCO_TETTO vale per un giro); a 1,35 $ ci si ferma e si chiede",
+    "baselinePasti": [
+      "docs/prove/dati/2026-10-14-banco-esteso-minimi-d.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-minimi-c.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-minimi-b.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-minimi-a.json"
     ]
   }
 }

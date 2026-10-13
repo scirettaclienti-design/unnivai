@@ -279,10 +279,14 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
         const result = await genera('Domani voglio vivere Roma da romano', ARTE_CIBO_RILASSATO);
 
         const PRIMA = 3;
-        expect(stato.textsearch.length).toBeLessThanOrEqual(PRIMA + 2);
-        expect(stato.textsearch.length).toBe(5);
+        // C8a — oltre alle 2 ricerche dei momenti veri, una per la passeggiata fra aperitivo e cena
+        // (momento facoltativo senza luoghi all'aperto nel pool): il tetto e' 3 in tutto.
+        expect(stato.textsearch.length).toBeLessThanOrEqual(PRIMA + 3);
+        expect(stato.textsearch.length).toBe(6);
         // C7 — "da romano" e' un tema di vita locale: mattina e pomeriggio cercano esperienze, non cultura generica.
         expect(result._momentReport.ricercheMirate).toEqual(['esperienze', 'nightlife']);
+        // C8a — la passeggiata fra aperitivo e cena cerca DOPO la scelta, dalla tappa prima (ricerca mirata C1b)
+        expect((result._momentReport.ricercheDopo || []).map(x => x.tema)).toEqual(['romance']);
         // Le ricerche mirate qui non trovano niente: i momenti vuoti sono tolti
         // e il report lo dice — nessun luogo inventato per riempirli.
         expect(reali(result.days[0].stops).map(s => s.moment)).toEqual(['pranzo', 'cena']);

@@ -19,7 +19,7 @@ import { resolveCityCenter } from '@/services/cityCenterService';
 import { isMealPlace } from '@/services/momentSelection';
 import { resolveFoodPrefs, DIETE } from '@/lib/foodPrefs';
 import { voiceIssues } from '@/lib/narrationLight';
-import { buildPromptFromSelections } from '@/pages/QuickPath';
+import { buildPromptFromSelections, buildQuickPrefs } from '@/pages/QuickPath';
 import { row, conComposizione } from '../prova-reale/righe.js';
 import config from './banco.config.json';
 import { CASI_ESTESI, istanteSimulato } from './casi-esteso.js';
@@ -137,6 +137,8 @@ const tappa = (s, fatti, comp, riempite, dieta, atStimato) => {
     return {
         place_id: s.place_id, title: r.title, types, moment: r.moment, at: r.at || atStimato || null, atStimato: !r.at && !!atStimato,
         ...(s.tempoLibero ? { tempoLibero: true } : {}),
+        // C8a — la passeggiata fra il drink e la cena
+        ...(s.passeggiata ? { passeggiata: true } : {}),
         lat: s.latitude ?? null, lng: s.longitude ?? null, min: r.min, scelta: r.scelta, stay: s.stayMinutes ?? null,
         ripiego: s._tracciato?.ripiego || null, motivo: r.motivo || null, famiglia: r.famiglia,
         incrocio: s._tracciato?.incrocio || null, daPartenza: s._tracciato?.daPartenza || null,
@@ -180,7 +182,8 @@ async function genera(caso) {
         const s = caso.scelta;
         const durata = { Veloce: 'veloce', Medio: 'medio', Lungo: 'lungo' }[caso.durata];
         const prompt = buildPromptFromSelections({ main: s.main, sub: s.sub, duration: durata, group: GRUPPO_ID[caso.gruppo], city: caso.luogo });
-        const prefs = { duration: caso.durata, group: caso.gruppo, interests: [s.mainTitle, s.subTitle] }; // niente ritmo: come QuickPath.jsx
+        // C8a — ritmo e umore come la pagina: QuickPath passa al motore le preferenze di buildQuickPrefs (stessa funzione della pagina)
+        const prefs = buildQuickPrefs({ main: s.main, mainTitle: s.mainTitle, subTitle: s.subTitle, durationTitle: caso.durata, groupTitle: caso.gruppo });
         rec.chiamata = { pagina: 'QuickPath.jsx', pathType: 'quick', prefs, testo: prompt };
         r = await aiRecommendationService.generateItinerary(caso.luogo, prefs, prompt, meteoApp, '', cc,
             { dnaWeights: {}, pathType: 'quick', onboardingPrefs: onboarding, ...base });

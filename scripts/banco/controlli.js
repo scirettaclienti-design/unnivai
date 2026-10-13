@@ -25,6 +25,7 @@ export const CLASSI = [
     ['c10', 'Vincolo vegetariano violato o esteso ai non pasti'],
     ['c11', 'Buco non dichiarato oltre 45 minuti, o tappa senza orario'],
     ['c12', 'Zona generica come tappa'],
+    ['c13', 'Sera: drink corto, secondo bar o buco senza passeggiata'],
 ];
 
 export const DEFINIZIONI = {
@@ -36,7 +37,7 @@ export const DEFINIZIONI = {
     c3: 'Una tappa-locale (dove si mangia o beve) nel momento mattina che non è un posto da colazione (un ristorante/trattoria/pizzeria senza tipo cafe/bakery né nome da bar/caffè/pasticceria; '
         + 'o un wine bar/cocktail bar/enoteca) oppure che, secondo gli orari, è chiuso all\'ora di arrivo.',
     c4: 'Un giro (itinerario) con meno di `tappeMin` tappe vere e nessun ripiego dichiarato (tempo libero, tappa di ripiego, "un solo posto", query di base). '
-        + 'Di sera, un drink (aperitivo/dopocena) più la cena valgono come giro completo. Per Te non si applica (giri da 3 tappe per progetto).',
+        + 'Di sera, un drink (aperitivo/dopocena) più la cena — o più la passeggiata, quando la cena non è più possibile — valgono come giro completo. Per Te non si applica (giri da 3 tappe per progetto).',
     c5: 'Una tappa il cui posto, secondo gli opening_hours.periods di Google, è chiuso all\'ora di arrivo. Orario assente → "sconosciuto", contato a parte (non è una violazione).',
     c6: 'Una tappa la cui sosta è uguale alla sosta tipica di un tipo molto diverso dal suo (almeno `sostaScala` volte più lunga o più corta): '
         + 'es. un caffè che dura quanto un ristorante (75 min), un ristorante che dura quanto una chiesa (20 min).',
@@ -49,6 +50,9 @@ export const DEFINIZIONI = {
         + '(il vincolo esteso a ciò che non è cibo).',
     c11: 'CONTINUITA\' — in un giro (itinerario, non Per Te) fra due voci consecutive (tappe e righe di tempo libero) il tempo che non e\' coperto da sosta, cammino o da una riga di tempo libero '
         + 'supera `buchiMinuti` (45); oppure una tappa vera non ha l\'orario di arrivo. Il cammino e\' haversine a `camminoKmh`, ricalcolato qui. L\'attesa prima della prima tappa del giorno non conta.',
+    c13: 'C8a — in un giro con un drink (aperitivo, o il drink serale del Percorso Veloce): (a) il drink dura meno di `sostaAperitivoMinuti` (45) — all\'aperitivo un bar è una sosta vera; '
+        + '(b) un SECONDO bar fra il drink e la cena (o dopo il drink, se la cena non c\'è); (c) fra la fine del drink e la cena restano più di `passeggiataSogliaMinuti` (30) minuti senza una passeggiata e senza una riga di tempo libero che li dichiara; '
+        + '(d) un Percorso Veloce che parte dalle 18:00 in poi (o prima dell\'alba) con UNA tappa sola: mai 1 tappa (il messaggio "quasi tutto chiuso", senza tappe, è un altro caso: vale solo se nel pool non c\'è niente di aperto).',
     c12: 'C7 — una tappa che è una ZONA: tipo principale o tipo da zona (locality, sublocality, neighborhood, political, route…) oppure un nome che è solo quello di un\'area ("Centro Storico Catania", "Zona Centro"). '
         + 'Una zona può orientare la ricerca, non essere una tappa.',
 };
@@ -219,7 +223,9 @@ export function c4(caso, cfg) {
         if (stops.length >= cfg.esteso.tappeMin || dichiarato) continue;
         const drink = stops.some(s => ['aperitivo', 'dopocena'].includes(s.moment));
         const cena = stops.some(s => s.moment === 'cena');
-        if (drink && cena) continue;
+        // C8a — se la cena non e' piu' possibile (nessun locale aperto per tutta la sosta) il giro serale e' drink + passeggiata
+        const passeggiata = stops.some(s => s.passeggiata);
+        if (drink && (cena || passeggiata)) continue;
         out.push(viol(null, `${stops.length} ${stops.length === 1 ? 'tappa' : 'tappe'} (${stops.map(nome).join(', ') || 'nessuna'}) e nessun ripiego dichiarato`, 'c4', cfg));
     }
     return esito('c4', true, out);
@@ -419,7 +425,57 @@ export function c12(caso, cfg) {
     return esito('c12', true, out);
 }
 
-export const CONTROLLI = { c1, c2, c3, c4, c5, c6, c7, c8, c10, c11, c12 };
+// ─── 13 — la sera: drink corto, secondo bar, buco senza passeggiata (C8a) ────
+const eBar = (s) => tipoSosta(s) === 'caffe';
+export function c13(caso, cfg) {
+    if (caso.tipo !== 'itinerario') return esito('c13', false);
+    const E = cfg.esteso;
+    const out = [];
+    let sere = 0;
+    for (const t of caso.tours || []) {
+        const righe = t.stops || [];
+        const vere = tappeDi(t);
+        // il drink: la prima tappa-bar dell'aperitivo; nel Percorso Veloce serale anche il drink notturno (dopocena) in testa al giro
+        const i = vere.findIndex((s, k) => !s.passeggiata && eBar(s) && (s.moment === 'aperitivo' || (caso.modo === 'veloce' && s.moment === 'dopocena' && k === 0)));
+        if (i < 0) continue;
+        sere++;
+        const drink = vere[i];
+        const cena = vere.slice(i + 1).find(s => s.moment === 'cena' && s.pasto);
+        // (a) il drink dura almeno sostaAperitivoMinuti
+        if (Number.isFinite(drink.stay) && drink.stay < E.sostaAperitivoMinuti) {
+            out.push(viol(drink, `${nome(drink)}: il drink dura ${drink.stay} min, meno di ${E.sostaAperitivoMinuti} (all'aperitivo un bar è una sosta vera)`, 'c13', cfg));
+        }
+        // (b) un secondo bar dopo il drink e prima della cena
+        const fine = cena ? vere.indexOf(cena) : vere.length;
+        for (const s of vere.slice(i + 1, fine)) {
+            if (eBar(s) && !s.passeggiata) out.push(viol(s, `${nome(s)}: un secondo bar fra il drink (${nome(drink)}) e la cena`, 'c13', cfg));
+        }
+        // (c) il buco fra la fine del drink e la cena: una passeggiata, o una riga di tempo libero che lo dichiara
+        if (cena && drink.at && cena.at) {
+            const buco = (new Date(cena.at).getTime() - (new Date(drink.at).getTime() + (Number.isFinite(drink.stay) ? drink.stay : 0) * 60000)) / 60000;
+            const dopoDrink = righe.indexOf(drink);
+            const primaCena = righe.indexOf(cena);
+            const fra = righe.slice(dopoDrink + 1, primaCena);
+            const conPasseggiata = fra.some(s => s.passeggiata);
+            const dichiarato = fra.some(s => s.tempoLibero);
+            if (buco > E.passeggiataSogliaMinuti && !conPasseggiata && !dichiarato) {
+                out.push(viol(cena, `${Math.round(buco)} min fra la fine del drink (${nome(drink)}) e la cena senza una passeggiata né una riga di tempo libero`, 'c13', cfg));
+            }
+        }
+    }
+    // (d) il Percorso Veloce serale non e' mai una tappa sola (un giro senza tappe e' il messaggio dichiarato, non questo)
+    if (caso.modo === 'veloce') {
+        const [hh] = String(caso.ora || '').split(':').map(Number);
+        const serale = Number.isFinite(hh) && (hh >= 18 || hh < 5);
+        const vere = (caso.tours || []).flatMap(t => tappeDi(t));
+        if (serale && vere.length === 1) {
+            out.push(viol(vere[0], `Percorso Veloce delle ${caso.ora}: una tappa sola (${nome(vere[0])}); il giro serale e' drink + passeggiata (+ cena se aperta)`, 'c13', cfg));
+        }
+    }
+    return esito('c13', true, out, { sere });
+}
+
+export const CONTROLLI = { c1, c2, c3, c4, c5, c6, c7, c8, c10, c11, c12, c13 };
 
 /** Tutti i controlli per-caso. c9 e' del giro (vedi c9) e non sta qui. */
 export function eseguiControlli(caso, cfg) {

@@ -197,10 +197,14 @@ describe('C7 — "un giorno da catanese, nei ristoranti tipici"', () => {
         const { fn, stato } = routeFetch({ perQuery: PER_QUERY, selector: MODELLO_SBAGLIATO });
         vi.stubGlobal('fetch', fn);
         const r = await genera();
-        // le 2 query del traduttore + al massimo 2 ricerche mirate
-        expect(stato.textsearch.length).toBeLessThanOrEqual(4);
+        // le 2 query del traduttore + al massimo 2 ricerche mirate per i momenti veri
+        // C8a — + una per la passeggiata fra aperitivo e cena (momento facoltativo: il tetto e' 3 in tutto, e la
+        // passeggiata e' l'unica che puo' prendere il posto in piu')
+        expect(stato.textsearch.length).toBeLessThanOrEqual(5);
         expect(r._momentReport.ricercheMirate).toContain('esperienze');
-        expect(r._momentReport.ricercheMirate.length + (r._momentReport.ricercheDopo || []).length).toBeLessThanOrEqual(2);
+        const veri = (r._momentReport.ricercheDopo || []).filter(x => x.tema !== 'romance');
+        expect(r._momentReport.ricercheMirate.length + veri.length).toBeLessThanOrEqual(2);
+        expect(r._momentReport.ricercheMirate.length + (r._momentReport.ricercheDopo || []).length).toBeLessThanOrEqual(3);
     });
 
     it('il modello non vede piu\' "categoria cibo" come clausola per tutte le tappe', async () => {

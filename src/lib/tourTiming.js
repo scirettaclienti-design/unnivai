@@ -96,6 +96,28 @@ export function resolveStayMinutes(types, primaryType = null) {
 export const stayOf = (place) => resolveStayMinutes(place?.types, place?.primaryType);
 
 /**
+ * C8a — LA SOSTA DIPENDE ANCHE DAL MOMENTO. Un bar di giorno e' un caffe' al volo (20 min);
+ * all'aperitivo e' una sosta vera: 45 minuti, 60 con ritmo Rilassato. Vale per i locali da
+ * bere (tipo `bar` e `caffe`); ogni altra durata C6a resta quella del tipo.
+ */
+export const APERITIVO_STAY_MINUTES = 45;
+export const APERITIVO_STAY_RELAX_MINUTES = 60;
+const APERITIVO_KINDS = new Set(['bar', 'caffe']);
+
+/**
+ * La sosta di un posto dentro un momento.
+ * @param {object} place candidato o tappa (types + tipo principale)
+ * @param {{ key?: string, sostaAperitivo?: number }|null} [moment] il momento del drink (porta `sostaAperitivo`), o la tappa con `sostaAperitivo`
+ * @returns {number} minuti
+ */
+export function stayInMoment(place, moment = null) {
+    const base = stayOf(place);
+    if (!(moment?.sostaAperitivo > 0)) return base;
+    const { kind } = placeKind({ types: place?.types, primaryType: place?.primaryType ?? place?.primary_type });
+    return APERITIVO_KINDS.has(kind) ? moment.sostaAperitivo : base;
+}
+
+/**
  * Distanza in km fra due punti (Haversine).
  * Duplicato locale e non import da `tourShape.js` di proposito: questo modulo
  * deve restare puro e senza dipendenze, come `narratorGuards.js`. La formula e'
@@ -153,7 +175,8 @@ export function computeStopTimings(stops) {
         return { stops: [], totalMinutes: 0 };
     }
     const out = stops.map((s, i) => {
-        const stayMinutes = stayOf(s);
+        // C8a — una tappa d'aperitivo porta la sosta del suo momento (45, o 60 con ritmo Rilassato).
+        const stayMinutes = stayInMoment(s, { key: s.moment, sostaAperitivo: s.sostaAperitivo });
         const travelMinutesFromPrev = i === 0 ? null : travelMinutes(stops[i - 1], s);
         return { ...s, stayMinutes, travelMinutesFromPrev };
     });

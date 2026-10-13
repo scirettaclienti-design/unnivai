@@ -88,6 +88,11 @@ export const ESEMPI = {
             st('Wine Bar Etna', { types: ['bar'], moment: 'aperitivo', at: at('19:00'), stay: 20 }),
             st('Osteria Antica', { types: ['restaurant'], moment: 'cena', at: at('20:00'), stay: 75, pasto: true }),
         ], { modo: 'veloce', ora: '19:00' }) },
+        // C8a — la cena non e' piu' possibile (nessun locale aperto per tutta la sosta): il giro serale e' drink + passeggiata.
+        buono2: { nome: 'Veloce 23:30: drink + passeggiata (la cena non e\' piu\' possibile)', caso: caso([
+            st('Retrò - Cocktail Bar', { types: ['cocktail_bar', 'bar'], primaryType: 'cocktail_bar', moment: 'dopocena', at: at('23:30'), stay: 45 }),
+            st('Piazza Università', { types: ['tourist_attraction'], moment: 'dopocena', at: '2026-10-15T00:20:00+02:00', stay: 30, passeggiata: true }),
+        ], { modo: 'veloce', ora: '23:30' }) },
     },
     c5: {
         cattivo: { nome: 'Casbah del Moro alle 9:30, chiusa (mer 18:00–00:00); un museo da 60 min alle 9:30 che chiude alle 10:15', origine: 'telefono 12/10 (D-CATANIA B6) + ORARI (sosta oltre la chiusura)',
@@ -187,6 +192,42 @@ export const ESEMPI = {
             st('Deliziosa Café & Cocktail Bar', { types: ['cocktail_bar'], moment: 'aperitivo', at: at('18:00'), stay: 20, lat: 37.50310, lng: 15.08484 }),
         ]) },
     },
+    // C8a — c13. L'esempio cattivo e' il caso di Ivano (13/10 ore 13:48, Catania): all'aperitivo delle 18:00 il bar dura 20 minuti
+    // (Deliziosa Café & Cocktail Bar), poi 97 minuti di tempo libero fino alla cena. Il secondo cattivo e' costruito: un secondo bar prima della cena.
+    c13: {
+        cattivo: { nome: 'aperitivo delle 18:00 di soli 20 minuti (Deliziosa Café & Cocktail Bar), poi 97 minuti di tempo libero fino alla cena',
+            origine: 'telefono di Ivano 13/10 ore 13:48, rigirato (docs/prove/dati/2026-10-13-banco-esteso-continuita-prima.json)',
+            caso: caso([
+                st('Deliziosa Café & Cocktail Bar', { types: ['cocktail_bar'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('18:00'), stay: 20 }),
+                st('Tempo libero', { place_id: null, types: [], moment: 'aperitivo', at: at('18:20'), stay: 97, tempoLibero: true }),
+                st('Ristorante EtnaSicilia', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: 'cena', at: at('20:00'), stay: 75, pasto: true }),
+            ]) },
+        cattivo2: { nome: 'un secondo bar prima della cena, e un buco di 70 minuti senza passeggiata né riga', origine: 'costruito',
+            caso: caso([
+                st('Bar Uno', { types: ['cocktail_bar'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('18:00'), stay: 45 }),
+                st('Wine Bar Due', { types: ['wine_bar', 'bar'], primaryType: 'wine_bar', moment: 'aperitivo', at: at('18:50'), stay: 45 }),
+                st('Trattoria del Lago', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: 'cena', at: at('21:00'), stay: 75, pasto: true }),
+            ]) },
+        buono: { nome: 'drink di 45 minuti, una passeggiata di 30, la cena alle 20:00', caso: caso([
+            st('Retrò - Cocktail Bar', { types: ['cocktail_bar'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('18:00'), stay: 45 }),
+            st('Piazza Università', { types: ['tourist_attraction'], moment: 'aperitivo', at: at('18:52'), stay: 30, passeggiata: true }),
+            st('Ristorante EtnaSicilia', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: 'cena', at: at('20:00'), stay: 75, pasto: true }),
+        ]) },
+        cattivo3: { nome: 'Veloce 23:30 con una tappa sola: il solo drink (Retrò - Cocktail Bar), senza passeggiata', origine: 'giro sera, versione intermedia del codice (veloce-catania-relax-2330)',
+            caso: caso([
+                st('Retrò - Cocktail Bar', { types: ['cocktail_bar'], primaryType: 'cocktail_bar', moment: 'dopocena', at: at('23:30'), stay: 60 }),
+            ], { modo: 'veloce', ora: '23:30' }) },
+        buono3: { nome: 'Veloce 23:30: drink + passeggiata; un Veloce di giorno con una tappa sola non e\' un caso serale', caso: caso([
+            st('Retrò - Cocktail Bar', { types: ['cocktail_bar'], primaryType: 'cocktail_bar', moment: 'dopocena', at: at('23:30'), stay: 60 }),
+            st('Fontana dell\u2019Amenano', { types: ['tourist_attraction'], moment: 'dopocena', at: '2026-10-15T00:32:00+02:00', stay: 30, passeggiata: true }),
+        ], { modo: 'veloce', ora: '23:30' }) },
+        buono2: { nome: 'senza luoghi all\'aperto nel pool il buco e\' una riga di tempo libero che lo dichiara; un bar di giorno da 20 minuti non conta', caso: caso([
+            st('Caffè Savia', { types: ['cafe'], primaryType: 'cafe', moment: 'pomeriggio', at: at('16:00'), stay: 20 }),
+            st('Retrò - Cocktail Bar', { types: ['cocktail_bar'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('18:00'), stay: 45 }),
+            st('Tempo libero', { place_id: null, types: [], moment: 'aperitivo', at: at('18:45'), stay: 75, tempoLibero: true }),
+            st('Ristorante EtnaSicilia', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: 'cena', at: at('20:00'), stay: 75, pasto: true }),
+        ]) },
+    },
 };
 
 const passi = (n, ko = []) => Array.from({ length: n }, (_, i) => ({ nome: `passo ${i + 1}`, ok: !ko.includes(i + 1) }));
@@ -203,12 +244,13 @@ export function validaControlli(cfg) {
         const f = CONTROLLI[k];
         const rosso = f(e.cattivo.caso, cfg).violazioni;
         const rosso2 = e.cattivo2 ? f(e.cattivo2.caso, cfg).violazioni : null;
+        const rosso3 = e.cattivo3 ? f(e.cattivo3.caso, cfg).violazioni : null;
         const verde = f(e.buono.caso, cfg).violazioni;
         const verde2 = [...(e.buono2 ? f(e.buono2.caso, cfg).violazioni : []), ...(e.buono3 ? f(e.buono3.caso, cfg).violazioni : []), ...(e.buono4 ? f(e.buono4.caso, cfg).violazioni : [])];
         const sc = e.buono.verificaSconosciuto != null ? f(e.buono.caso, cfg).sconosciuti === e.buono.verificaSconosciuto : true;
-        return { classe: k, cattivo: e.cattivo.nome + (e.cattivo2 ? ` · ${e.cattivo2.nome}` : ''), origine: e.cattivo.origine + (e.cattivo2 ? ` · ${e.cattivo2.origine}` : ''), buono: [e.buono.nome, e.buono2?.nome, e.buono3?.nome, e.buono4?.nome].filter(Boolean).join(' · '),
-            cattivoRosso: rosso.length > 0 && (!rosso2 || rosso2.length > 0), buonoVerde: verde.length === 0 && verde2.length === 0 && sc,
-            visto: [...rosso, ...(rosso2 || [])].map(v => v.testo), falsiAllarmi: [...verde, ...verde2].map(v => v.testo) };
+        return { classe: k, cattivo: [e.cattivo.nome, e.cattivo2?.nome, e.cattivo3?.nome].filter(Boolean).join(' · '), origine: [e.cattivo.origine, e.cattivo2?.origine, e.cattivo3?.origine].filter(Boolean).join(' · '), buono: [e.buono.nome, e.buono2?.nome, e.buono3?.nome, e.buono4?.nome].filter(Boolean).join(' · '),
+            cattivoRosso: rosso.length > 0 && (!rosso2 || rosso2.length > 0) && (!rosso3 || rosso3.length > 0), buonoVerde: verde.length === 0 && verde2.length === 0 && sc,
+            visto: [...rosso, ...(rosso2 || []), ...(rosso3 || [])].map(v => v.testo), falsiAllarmi: [...verde, ...verde2].map(v => v.testo) };
     });
     const r = c9(ESEMPIO_C9.cattivo.onb1, cfg).violazioni;
     const v = c9(ESEMPIO_C9.buono.onb1, cfg).violazioni;

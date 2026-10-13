@@ -236,7 +236,8 @@ describe('Gate NARRATORE-DOPO — le scelte sulle tappe finali, il testo dal cod
         vi.stubGlobal('fetch', fn);
         const result = await genera(ROMANO, { ...ARTE_CIBO_RILASSATO, duration: '2-3 Giorni' });
         const selSys = stato.selectorBodies[0].messages[0].content;
-        for (const g of [1, 2, 3]) expect(selSys).toMatch(new RegExp(`Giorno ${g}[^\\n]*\\b5 tappe`));
+        // C8a — 5 momenti + la passeggiata fra aperitivo e cena (facoltativa, ma e' un momento dello scheletro)
+        for (const g of [1, 2, 3]) expect(selSys).toMatch(new RegExp(`Giorno ${g}[^\\n]*\\b6 tappe`));
         expect(result.days).toHaveLength(3);
         for (const d of result.days) {
             const reali = d.stops.filter(s => !s.tempoLibero);

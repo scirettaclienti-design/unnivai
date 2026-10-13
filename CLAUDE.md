@@ -206,6 +206,22 @@ momento («il pomeriggio in pasticceria») → `moment.esplicito`, e con ristora
 (`tipicoBonus`), dichiarato in `_tracciato.tipico`. Banco: c1 (il tipo principale decide cosa è un pasto, momento chiesto,
 Per Te escluso), c2 anche ad aperitivo e dopocena, c12 (zone).
 
+### La sera (C8a): drink da 45 minuti, passeggiata, Veloce serale
+
+L'aperitivo è una sosta vera: **45 minuti, 60 con ritmo Rilassato** (`tourTiming.stayInMoment`; la sosta la porta il momento,
+`sostaAperitivo`; il bar di giorno resta 20, le altre durate C6a non cambiano). Fra il drink e la cena, se restano **più di 30
+minuti**, c'è una **passeggiata**: un momento facoltativo (`daySkeleton.addEveningWalk`, key `passeggiata`, a schermo sotto il
+drink: `moment` = `aperitivo`, `passeggiata: true`), un solo luogo all'aperto (punti panoramici / passeggiata / natura, o fontana,
+porta, ponte… per `mealRules.isOutdoorWalk`), **mai un secondo bar, mai un ristorante**, dentro il tetto di cammino e la deviazione C5c;
+se il pool non ne ha una vicina si cerca **dalla tappa prima** (ricerca mirata C1b, budget suo: 3 ricerche in tutto, 2 per i momenti
+veri). Niente passeggiata → il vuoto lo dichiara la CONTINUITÀ.
+**Percorso Veloce dalle 18:00** (`veloce` in `buildDaySkeleton`, `pathType === 'quick'`): drink + passeggiata + **cena facoltativa**
+(solo se un locale è aperto per tutta la sosta, arrivo entro le 23:00; altrimenti drink + passeggiata, mai 1 tappa). **Mai uno scheletro
+vuoto**: una finestra senza momenti riceve il momento sera/notte (`daRiserva`). **"Quasi tutto chiuso" solo con zero tappe aperte.**
+QuickPath passa ritmo e umore come Crea (`buildQuickPrefs`: Relax → Rilassato; Natura/Storia/Arte/Gusto/Fashion → l'interesse
+omonimo). In un tour che parte di sera il drink è un bar (non un belvedere). Banco: `c4` estesa, `c13` (sera), `BANCO_RUN=sera`
+(`report-sera.js`), `BANCO_DATA=AAAA-MM-GG` per il nome dei file.
+
 ### City Data Flow
 
 **T1 — in "Crea il tuo percorso" la città scritta nel testo vince sulla posizione.**

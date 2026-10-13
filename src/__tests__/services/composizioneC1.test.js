@@ -417,6 +417,8 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         vi.stubGlobal('fetch', fetchMock);
         return { P, searches };
     };
+    // C8a — la ricerca mirata della passeggiata fra aperitivo e cena (query "lungomare lungofiume…") e' una ricerca in piu', fuori da questi conteggi
+    const PASSEGGIATA = /^lungomare lungofiume/;
     const genera = () => aiRecommendationService.generateItinerary(
         'Roma', { interests: ['Arte', 'Cibo'], pace: 'Rilassato', duration: '1 Giorno' }, 'Domani voglio vivere Roma da romano', {}, '', C,
         { dnaWeights: {}, pathType: 'custom', skipUserQuota: true },
@@ -441,7 +443,7 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         const res = await genera();
         const st = byMoment(res);
         expect(Object.keys(st)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
-        const mirate = searches.filter(s => s.radius === String(MAX_WALK_METERS));
+        const mirate = searches.filter(s => s.radius === String(MAX_WALK_METERS) && !PASSEGGIATA.test(s.q));
         // La ricerca parte dalla tappa che, in quel momento, precede
         // l'aperitivo. C5b: la prima tappa si misura dal centro del gruppo (qui
         // fra due grappoli a 7 km), e prima del bar trovato la chiesa e il museo
@@ -465,7 +467,7 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
             description: "Tempo libero: per l'aperitivo non c'è niente che valga il cammino. Il resto lo scegli tu." });
         expect(st.aperitivo._tracciato).toMatchObject({ scelta: 'tempo libero' });
         expect(st.aperitivo._tracciato.motivo).toMatch(/^nessun posto entro 40 min dalla tappa prima \(anche dopo la ricerca mirata\): il piu' vicino, "Belvedere Lontano", e' a \d+ min$/);
-        expect(searches.filter(s => s.radius === String(MAX_WALK_METERS))).toHaveLength(1);
+        expect(searches.filter(s => s.radius === String(MAX_WALK_METERS) && !PASSEGGIATA.test(s.q))).toHaveLength(1);
         expect(res._momentReport.tempoLibero.filter(x => !x.buco)).toEqual([expect.objectContaining({ momento: 'g1-aperitivo' })]);
         // CONTINUITA' — la mattina finisce presto e il pranzo comincia alle 12:30: un buco, dichiarato con la sua fascia.
         const buchi = res.days[0].stops.filter(x => x._tracciato?.buco);
@@ -487,11 +489,12 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         const { searches } = scenario({ far: true, mirata: () => [] });
         const res = await genera();
         const st = byMoment(res);
-        expect(searches.filter(s => s.radius === String(MAX_WALK_METERS))).toHaveLength(2);
+        expect(searches.filter(s => s.radius === String(MAX_WALK_METERS) && !PASSEGGIATA.test(s.q))).toHaveLength(2);
         // Le prime due tappe lontane cercano; C5b sposta il museo (a 3 km) alla
         // mattina (prima tappa misurata dal centro del gruppo), quindi la prima
         // lontana e' il pranzo.
-        expect(res._momentReport.ricercheDopo.map(x => x.momento)).toEqual(['g1-pranzo', 'g1-aperitivo']);
+        // C8a — la ricerca della passeggiata (budget suo, +1) non e' una delle due dei momenti veri
+        expect(res._momentReport.ricercheDopo.map(x => x.momento).filter(m => m !== 'g1-passeggiata')).toEqual(['g1-pranzo', 'g1-aperitivo']);
         expect(st.cena._tracciato).toMatchObject({ scelta: 'ripiego', ripiego: 'distanza' });
         expect(st.cena._tracciato.motivo).toMatch(/ricerche mirate esaurite/);
         expect(Object.keys(st)).toHaveLength(5);
@@ -508,7 +511,7 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         });
         const res = await genera();
         const st = byMoment(res);
-        expect(searches.filter(s => s.radius === String(MAX_WALK_METERS))).toHaveLength(1);
+        expect(searches.filter(s => s.radius === String(MAX_WALK_METERS) && !PASSEGGIATA.test(s.q))).toHaveLength(1);
         expect(res._momentReport.ricercheDopo[0]).toMatchObject({ momento: 'g1-aperitivo', tema: 'nightlife', trovati: 1 });
         expect(st.aperitivo.title).toBe('Bar del Fico');
         expect(st.aperitivo._tracciato.scelta).toBe('ricerca mirata');

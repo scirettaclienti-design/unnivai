@@ -20,10 +20,12 @@ import { reportC6a } from './report-c6a.js';
 import { reportFestivi } from './report-festivi.js';
 import { reportContinuita } from './report-continuita.js';
 import { reportComposizione } from './report-composizione.js';
+import { reportSera } from './report-sera.js';
 
 const root = process.cwd();
 const config = JSON.parse(readFileSync(path.join(root, 'scripts/banco/banco.config.json'), 'utf8'));
-const oggi = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Rome' }).format(new Date());
+// BANCO_DATA=AAAA-MM-GG: il nome dei file del giro (default: oggi a Roma). Serve a dare al report il nome del task.
+const oggi = process.env.BANCO_DATA || new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Rome' }).format(new Date());
 const git = (cmd) => { try { return execSync(`git ${cmd}`, { cwd: root }).toString().trim(); } catch { return null; } };
 const commit = `${git('rev-parse --short HEAD') || '?'}${git('status --porcelain -- src') ? ' (con modifiche locali in src/)' : ''}`;
 
@@ -38,6 +40,10 @@ const FESTIVI = process.env.BANCO_RUN === 'festivi';
 const CONTINUITA = process.env.BANCO_RUN === 'continuita';
 // C7 — BANCO_RUN=composizione: il tema cibo solo nei pasti, un pasto per fascia, niente zone; il report confronta con il giro CONTINUITA'.
 const COMPOSIZIONE = process.env.BANCO_RUN === 'composizione';
+// C8a — BANCO_RUN=sera: la sera e il Veloce (aperitivo da 45 minuti, passeggiata, Veloce da 18:00, scheletro mai vuoto); il report confronta con i giri di prima degli stessi casi.
+// BANCO_RUN=sera-prima: gli stessi casi sul codice di PRIMA (ce135b5), per i casi che non erano in nessun giro.
+const SERA = process.env.BANCO_RUN === 'sera';
+const SERA_PRIMA = process.env.BANCO_RUN === 'sera-prima';
 const argReport = process.argv.indexOf('--report');
 let jsonPath, nome;
 if (argReport > -1) {
@@ -45,7 +51,7 @@ if (argReport > -1) {
     nome = path.basename(jsonPath, '.json');
 } else {
     // MIG-PLACES — BANCO_PLACES=new: stessi casi con la ricerca nuova (solo l'account di prova), file `-new`.
-    const suffisso = COMPOSIZIONE ? '-composizione' : CONTINUITA ? '-continuita' : FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
+    const suffisso = SERA ? '-sera' : SERA_PRIMA ? '-sera-prima' : COMPOSIZIONE ? '-composizione' : CONTINUITA ? '-continuita' : FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
     nome = `${oggi}-banco-esteso${suffisso}`;
     for (let i = 2; existsSync(path.join(root, 'docs/prove/dati', `${nome}.json`)); i++) nome = `${oggi}-banco-esteso${suffisso}-${i}`;
     jsonPath = path.join(root, 'docs/prove/dati', `${nome}.json`);
@@ -66,6 +72,28 @@ if (argReport > -1) {
 }
 
 const raw = JSON.parse(readFileSync(jsonPath, 'utf8'));
+if (raw.motore === 'new' && /-sera-prima/.test(nome)) {
+    // C8a — il grezzo del codice di prima: nessun report, serve da "prima" del giro sera.
+    console.log(`[banco-esteso] grezzo del codice di prima: ${path.relative(root, jsonPath)} | spesa ${raw.costo?.totale?.toFixed?.(3) ?? '?'}`);
+    process.exit(0);
+}
+if (raw.motore === 'new' && /-sera/.test(nome)) {
+    // C8a — il giro della sera, contro i giri di prima degli stessi casi (il piu' recente che contiene il caso).
+    const fonti = (config.esteso.baselineSera || []).map(f => path.join(root, f)).filter(f => existsSync(f));
+    const viste = new Set();
+    const casiBase = [];
+    for (const f of fonti) for (const c of JSON.parse(readFileSync(f, 'utf8')).casi || []) if (!viste.has(c.id)) { viste.add(c.id); casiBase.push(c); }
+    const base = { casi: casiBase };
+    const nomeDoc = `${nome.slice(0, 10)}-c8a-sera`;
+    const nPath = path.join(root, 'docs/prove/dati', `${nomeDoc}-note.md`);
+    const dPath = path.join(root, 'docs/prove/dati', `${nomeDoc}-diagnosi.md`);
+    const { markdown: md, sintesi } = reportSera(base, raw, config, { baseNome: fonti.map(f => path.basename(f)).join(', '), nuovoNome: path.basename(jsonPath), commit,
+        diagnosi: existsSync(dPath) ? readFileSync(dPath, 'utf8') : null });
+    writeFileSync(path.join(root, 'docs/prove', `${nomeDoc}.md`), md + (existsSync(nPath) ? '\n' + readFileSync(nPath, 'utf8') : '') + '\n');
+    const cl = (k) => `${sintesi.classi[k].dopo} (prima ${sintesi.classi[k].prima})`;
+    console.log(`[banco-esteso] report sera: docs/prove/${nomeDoc}.md | grezzo: ${path.relative(root, jsonPath)} | c1 ${cl('c1')} | c4 ${cl('c4')} | c5 ${cl('c5')} | c11 ${cl('c11')} | c13 ${cl('c13')} | spesa ${sintesi.spesa}`);
+    process.exit(0);
+}
 if (raw.motore === 'new' && /-composizione/.test(nome)) {
     // C7 — il giro con la composizione della giornata, contro il giro CONTINUITA' degli stessi casi.
     const basePath = path.join(root, config.esteso.baselineContinuita);

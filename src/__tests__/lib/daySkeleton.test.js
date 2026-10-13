@@ -81,8 +81,10 @@ describe('buildDaySkeleton — la tabella', () => {
         expect(keys(sk)).toEqual(['aperitivo', 'cena']);
         const [aperitivo, cena] = sk.days[0].moments;
         expect(cena.categories).toEqual(['cibo']);
-        // C7 — l'aperitivo non e' un ristorante: bar e punti panoramici, come senza il tema
-        expect(aperitivo.categories).toEqual(['bar', 'punti panoramici']);
+        // C7 — l'aperitivo non e' un ristorante: come senza il tema. C8a — in un tour che parte di sera il drink e' un bar
+        // (la vista e' della passeggiata); la giornata che comincia al mattino tiene bar e punti panoramici.
+        expect(aperitivo.categories).toEqual(['bar']);
+        expect(buildDaySkeleton({ window: w, pace: 'Attivo', text: 'stasera' }).days[0].moments[0].categories).toEqual(['bar']);
         // Gli orari sono quelli dello scheletro senza categoria esplicita.
         const senza = buildDaySkeleton({ window: w, pace: 'Attivo', text: 'stasera' });
         expect(sk.days[0].moments.map(m => [m.start.getTime(), m.end.getTime()]))
@@ -259,11 +261,30 @@ describe('buildDaySkeleton — interessi e categorie', () => {
 
 describe('buildDaySkeleton — finestra e giorni', () => {
     it('un momento che si sovrappone per meno di 60 minuti non entra', () => {
-        // Veloce alle 22:00 per 2 ore: cena 22:00–22:30 = 30' → fuori.
-        expect(keys(buildDaySkeleton({ window: quick(LUN_2200, 'Veloce') }))).toEqual([]);
+        // Veloce alle 18:30 per 2 ore (18:30–20:30): l'aperitivo ne ha 90, la cena 30' → fuori.
+        const LUN_1830 = new Date('2026-10-05T18:30:00+02:00');
+        expect(keys(buildDaySkeleton({ window: quick(LUN_1830, 'Veloce') }))).toEqual(['aperitivo']);
         // Con Vita Notturna il dopocena 22:30–00:00 (90') entra.
         expect(keys(buildDaySkeleton({ window: quick(LUN_2200, 'Veloce'), interests: ['Vita Notturna'] })))
             .toEqual(['dopocena']);
+    });
+
+    it('C8a — mai uno scheletro vuoto: una finestra senza momenti riceve il momento sera/notte', () => {
+        // Veloce alle 22:00 per 2 ore (22:00–00:00): la cena ne ha 30', il dopocena non e' ammesso → prima restava vuoto.
+        const sk = buildDaySkeleton({ window: quick(LUN_2200, 'Veloce') });
+        expect(keys(sk)).toEqual(['dopocena']);
+        const m = sk.days[0].moments[0];
+        expect(m.daRiserva).toBe(true);
+        expect(m.start.toISOString()).toBe(iso('2026-10-05T22:00:00+02:00'));
+        expect(m.end.toISOString()).toBe(iso('2026-10-06T00:00:00+02:00'));
+        expect(m.categories).toEqual(['vita notturna']);
+        expect(sk.days[0].totalStops).toBe(1);
+        // 21:45–23:45 (il caso Catania): la cena ha 45', il dopocena 75' → il momento e' la notte, non uno scheletro vuoto
+        const LUN_2145 = new Date('2026-10-05T21:45:00+02:00');
+        expect(keys(buildDaySkeleton({ window: quick(LUN_2145, 'Veloce') }))).toEqual(['dopocena']);
+        // prima dell'alba (05:00–07:00, nessun momento): il momento che contiene l'ora
+        const LUN_0500 = new Date('2026-10-05T05:00:00+02:00');
+        expect(buildDaySkeleton({ window: quick(LUN_0500, 'Veloce') }).days[0].moments).toHaveLength(1);
     });
 
     it('Mezza Giornata non si prolunga nel dopocena', () => {

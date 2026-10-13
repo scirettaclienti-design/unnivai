@@ -226,6 +226,33 @@ const GROUP_LABEL = {
 const EXCLUSION_CLAUSE = 'Solo tappe di questa categoria: non aggiungere ristoranti, bar o caffè se non li ho chiesti esplicitamente.';
 const FOOD_MAIN_KEYS = new Set(['cibo']);
 
+// C8a — RITMO E UMORE COME IN "CREA IL TUO PERCORSO". Crea manda al motore `pace` (Rilassato/Attivo/Intenso)
+// e gli interessi come chip (Arte, Cibo, Storia, Natura, Shopping, Vita Notturna). Il Percorso Veloce non
+// li mandava: l'umore "Relax" restava un titolo senza effetto e il ritmo era sempre Attivo. Ora l'umore scelto
+// diventa il ritmo (Relax → Rilassato: il drink dura 60 minuti, 1 tappa per momento) e, dove ha un
+// corrispondente, l'interesse della stessa parola di Crea.
+const MOOD_PACE = { relax: 'Rilassato' };
+const MOOD_INTEREST = {
+    natura: 'Natura', parchi: 'Natura', mare: 'Natura', montagna: 'Natura', vulcano: 'Natura',
+    storia: 'Storia', arte: 'Arte', cibo: 'Cibo', moda: 'Shopping',
+};
+
+/**
+ * Le preferenze che QuickPath passa al motore, nella stessa forma di Crea.
+ * @param {{ main?: string, mainTitle?: string, subTitle?: string, durationTitle?: string, groupTitle?: string }} p
+ * @returns {{ duration: string, group: string, interests: string[], pace: string }}
+ */
+export function buildQuickPrefs({ main, mainTitle, subTitle, durationTitle, groupTitle } = {}) {
+    const mainKey = String(main || '').toLowerCase().trim();
+    const chip = MOOD_INTEREST[mainKey];
+    return {
+        duration: durationTitle || '',
+        group: groupTitle || '',
+        interests: [...new Set([mainTitle, subTitle, chip].filter(Boolean))],
+        pace: MOOD_PACE[mainKey] || 'Attivo',
+    };
+}
+
 // P3 — `duration` non entra piu' nel testo (vedi STOP_COUNT sopra): la
 // durata arriva al motore da prefs.duration e apre la finestra.
 export function buildPromptFromSelections({ main, sub, group, city }) {
@@ -603,11 +630,14 @@ export default function QuickPathPage() {
             //    (duration/group testuali + interests come coppia main+sub).
             // Gate H: selectedOption è STRING → risolviamo title via mainOptions.find.
             const mainTitle = mainOptions.find(o => o.id === selectedOption)?.title;
-            const prefsObject = {
-                duration: selectedDuration?.title || '',
-                group:    group?.title || '',
-                interests: [mainTitle, selectedSubOption?.title].filter(Boolean),
-            };
+            // C8a — ritmo e umore come Crea (vedi buildQuickPrefs).
+            const prefsObject = buildQuickPrefs({
+                main: selectedOption,
+                mainTitle,
+                subTitle: selectedSubOption?.title,
+                durationTitle: selectedDuration?.title,
+                groupTitle: group?.title,
+            });
 
             // 4. aiProfile dal graph learning (come fa AiItinerary).
             const aiProfile = getAIContext?.() || '';

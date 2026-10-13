@@ -49,6 +49,28 @@ export const isAperitivoPlace = (c) => {
 /** Un locale (dove si mangia o si beve), a prescindere da quale. */
 export const isLocale = (c) => LOCALE.has(kindOf(c));
 
+/** C8a — un posto per la passeggiata fra il drink e la cena: all'aperto, mai un locale, un museo, una chiesa, un negozio. */
+const NON_PASSEGGIATA = new Set(['museo', 'chiesa', 'negozio', 'servizi']);
+export const isWalkPlace = (c) => {
+    const k = kindOf(c);
+    return !LOCALE.has(k) && !NON_PASSEGGIATA.has(k);
+};
+
+/**
+ * C8a — un luogo all'aperto da camminarci attorno, oltre alle categorie dello scheletro (punti panoramici, passeggiata,
+ * natura): una fontana, una porta storica, un ponte, una scalinata, una piazza che Google tipizza come monumento. Si
+ * riconosce dal tipo (piazza, belvedere, sentiero, porto) o dal nome. Vale solo per la passeggiata: negli altri momenti
+ * un monumento resta cultura.
+ */
+const TIPI_ALL_APERTO = new Set(['town_square', 'plaza', 'pedestrian_zone', 'scenic_spot', 'observation_deck', 'hiking_area', 'marina', 'beach', 'park', 'garden', 'natural_feature']);
+const NOME_ALL_APERTO = /^(fontana|porta|ponte|scalinata|scalea|arco|largo|piazza|piazzale|molo|villa|giardin[oi]|parco|lungomare|lungarno|lungotevere|belvedere|terrazz[ae])\b/i;
+export const isOutdoorWalk = (c) => {
+    if (!isWalkPlace(c)) return false;
+    const name = String(c?.name || c?.title || '').trim();
+    const types = [c?.primaryType ?? c?.primary_type, ...(Array.isArray(c?.types) ? c.types : [])].filter(Boolean);
+    return NOME_ALL_APERTO.test(name) || types.some(t => TIPI_ALL_APERTO.has(t));
+};
+
 /**
  * Il posto puo' stare in quel momento?
  * @param {object} candidate
@@ -57,7 +79,10 @@ export const isLocale = (c) => LOCALE.has(kindOf(c));
  */
 export function momentAdmits(candidate, moment) {
     // una richiesta esplicita di ristoranti per quel momento ("il pomeriggio nelle osterie") si rispetta
-    if (!moment || moment.esplicitoPasti) return true;
+    if (!moment) return true;
+    // C8a — la passeggiata fra il drink e la cena: mai un secondo bar, mai un ristorante, mai un locale
+    if (moment.key === 'passeggiata') return isWalkPlace(candidate);
+    if (moment.esplicitoPasti) return true;
     const key = moment.key;
     const k = kindOf(candidate);
     // pranzo e cena: un posto dove si mangia; un forno (colazione) no, salvo lo street food

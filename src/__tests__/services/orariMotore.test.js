@@ -57,35 +57,53 @@ describe('flusso a momenti (pomeriggio)', () => {
         for (const s of stops) expect(s._tracciato?.orario).toBe('noto');
     });
     it('a quell\'ora tutto chiuso → messaggio dichiarato, non "non troviamo" e non un giro', async () => {
-        const r = await genera([place('a', 0, tutti('1800', '2300')), place('b', 1, tutti('1800', '2300')), place('c', 2, tutti('1900', '2300'))], '15:00');
+        // C8a — il messaggio vale solo se NIENTE e' aperto: qui i tre posti aprono alle 06:00 e chiudono alle 07:00
+        const r = await genera([place('a', 0, tutti('0600', '0700')), place('b', 1, tutti('0600', '0700')), place('c', 2, tutti('0600', '0700'))], '15:00');
         expect(r._source).toBe('closed-now');
         expect(r._messaggio).toBe(MESSAGGIO_ORA);
         expect(nomi(r)).toEqual([]);
     });
+    it('C8a — con un solo posto aperto il giro esiste: niente messaggio (prima bastava avere meno di 2 tappe aperte)', async () => {
+        const r = await genera([place('a', 0, tutti('1800', '2300')), place('b', 1, tutti('0600', '0700')), place('c', 2, tutti('0600', '0700'))], '15:00');
+        expect(r._source).toBe('google-first');
+        expect(nomi(r)).toEqual(['a']);
+    });
 });
 
-describe('flusso senza scheletro (sera tarda, Veloce)', () => {
-    it('le tappe chiuse alle 23:40 si tolgono, le aperte restano; mai una chiusa', async () => {
-        const risultati = [place('chiuso1', 0, tutti('0900', '1900')), place('notte1', 1, SEMPRE), place('chiuso2', 2, tutti('0900', '2000')), place('notte2', 3, SEMPRE)];
-        const r = await genera(risultati, '23:40', 'quick');
-        expect(nomi(r).sort()).toEqual(['notte1', 'notte2']);
+// C8a — la sera tarda del Percorso Veloce non parte piu' senza scheletro: e' drink + passeggiata (+ cena se un
+// locale e' aperto per tutta la sosta). "Quasi tutto chiuso" solo se nel pool non c'e' niente di aperto.
+describe('Percorso Veloce, sera tarda (23:40): drink + passeggiata', () => {
+    const bar = (id, i, periods) => ({
+        place_id: id, name: `Bar ${id}`, primary_type: 'cocktail_bar', geometry: { location: { lat: aKm(0.5 + i * 0.4), lng: CABRAS.longitude } },
+        rating: 4.6, user_ratings_total: 300, business_status: 'OPERATIONAL', types: ['cocktail_bar', 'bar', 'food', 'point_of_interest', 'establishment'],
+        ...(periods ? { opening_hours: { open_now: true, periods } } : {}),
     });
-    it('2 tappe aperte su 4: il giro e\' piu\' corto e lo dichiara con la riga di tempo libero (c4)', async () => {
-        const risultati = [place('chiuso1', 0, tutti('0900', '1900')), place('notte1', 1, SEMPRE), place('chiuso2', 2, tutti('0900', '2000')), place('notte2', 3, SEMPRE), place('chiuso3', 4, tutti('0900', '1800'))];
+    it('le tappe chiuse alle 23:40 si tolgono, le aperte restano; mai una chiusa', async () => {
+        const risultati = [bar('bar-chiuso', 0, tutti('0900', '1900')), bar('bar-aperto', 1, SEMPRE), place('verde-chiuso', 2, tutti('0900', '2000')), place('verde-aperto', 3, SEMPRE)];
         const r = await genera(risultati, '23:40', 'quick');
-        const righe = r.days[0].stops.filter(s => s.tempoLibero);
-        expect(nomi(r).sort()).toEqual(['notte1', 'notte2']);
-        expect(righe).toHaveLength(1);
-        expect(righe[0].description).toMatch(/Tempo libero/);
-        expect(r.days[0].stops.at(-1).tempoLibero).toBe(true);        // in coda al giro
-        expect(r._orari.riga.chiuso).toBe(true);
+        expect(nomi(r).sort()).toEqual(['bar-aperto', 'verde-aperto']);
+    });
+    it('il drink e\' un locale aperto e la passeggiata un luogo all\'aperto: il giro ha 2 tappe, in quest\'ordine', async () => {
+        const r = await genera([bar('b1', 0, SEMPRE), bar('b2', 1, SEMPRE), place('p1', 2, SEMPRE), place('p2', 3, SEMPRE)], '23:40', 'quick');
+        const vere = r.days[0].stops.filter(s => !s.tempoLibero);
+        expect(vere.map(s => s.place_id)).toEqual([expect.stringMatching(/^b/), expect.stringMatching(/^p/)]);
+        expect(vere[1].passeggiata).toBe(true);
+        // mai un secondo bar, mai un ristorante
+        expect(vere.filter(s => /^b/.test(s.place_id))).toHaveLength(1);
+    });
+    it('un locale aperto ma nessuna passeggiata aperta: il giro e\' il drink (un solo posto, dichiarato), non il messaggio di chiuso', async () => {
+        const r = await genera([bar('b1', 0, SEMPRE), bar('b2', 3, SEMPRE), place('chiuso1', 1, tutti('0900', '1900')), place('chiuso2', 2, tutti('0900', '2000'))], '23:40', 'quick');
+        expect(r._source).toBe('google-first');
+        expect(nomi(r)).toHaveLength(1);
+        expect(nomi(r)[0]).toMatch(/^b/);
+        expect(r._singleStop).toBe(true);
     });
     it('nessuna chiusura: nessuna riga in piu\'', async () => {
-        const r = await genera([place('n1', 0, SEMPRE), place('n2', 1, SEMPRE), place('n3', 2, SEMPRE)], '23:40', 'quick');
+        const r = await genera([bar('n1', 0, SEMPRE), place('n2', 1, SEMPRE), place('n3', 2, SEMPRE)], '23:40', 'quick');
         expect(r.days[0].stops.filter(s => s.tempoLibero)).toHaveLength(0);
     });
-    it('meno di 2 tappe aperte → messaggio dichiarato', async () => {
-        const r = await genera([place('chiuso1', 0, tutti('0900', '1900')), place('chiuso2', 1, tutti('0900', '2000')), place('notte1', 2, SEMPRE)], '23:40', 'quick');
+    it('niente di aperto per tutta la sosta → messaggio dichiarato', async () => {
+        const r = await genera([bar('chiuso1', 0, tutti('0900', '1900')), place('chiuso2', 1, tutti('0900', '2000')), place('chiuso3', 2, tutti('0900', '1800'))], '23:40', 'quick');
         expect(r._source).toBe('closed-now');
         expect(r._messaggio).toBe(MESSAGGIO_SERA);
     });

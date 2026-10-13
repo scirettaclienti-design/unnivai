@@ -1,7 +1,7 @@
 // BANCO-ESTESO — la matrice dei casi: modalità × ora × richiesta × vincoli × luogo.
 // Dati puri. Ogni caso replica la chiamata reale della sua pagina:
 //   crea         AiItinerary.jsx   pathType 'custom', prefs del wizard (budget, durata, interessi, gruppo, ritmo)
-//   veloce       QuickPath.jsx     pathType 'quick', testo da buildPromptFromSelections, NESSUN ritmo (come l'app)
+//   veloce       QuickPath.jsx     pathType 'quick', testo da buildPromptFromSelections, prefs da buildQuickPrefs (ritmo e umore come Crea)
 //   sorprendimi  SurpriseTour.jsx  nessun pathType, 'Mezza Giornata', cityCenter = {latitude, longitude}
 //   perte        DashboardUser.jsx discoverAllThemes + buildInsiderPool + generateHomeTours
 // `ora` = ora di Roma simulata (giorno: config.esteso.giornoSimulato).
@@ -46,7 +46,10 @@ export const CASI_ESTESI = [
     crea('crea-roma-da-romano', 'Roma', '09:30', 'Una giornata da romano a Roma', { duration: '1 Giorno', interests: ['Cibo'], pace: 'Attivo' }),
     crea('crea-napoli-arte', 'Napoli', '09:30', "Una giornata d'arte a Napoli", { duration: '1 Giorno', interests: ['Arte', 'Storia'], pace: 'Attivo' }),
 
-    // ── Percorso Veloce (9) — nessun ritmo, come QuickPath.jsx ──
+    // C8a — la sera: Crea neutra alle 18:00 a Catania (drink, passeggiata, cena senza buchi).
+    crea('crea-catania-1800', 'Catania', '18:00', 'Una giornata a Catania', { duration: '1 Giorno', pace: 'Attivo' }),
+
+    // ── Percorso Veloce (9) — ritmo e umore come QuickPath.jsx (buildQuickPrefs) ──
     veloce('veloce-catania-relax-2125', 'Catania', '21:25', 'relax', 'Veloce'),
     veloce('veloce-catania-relax-2145', 'Catania', '21:45', 'relax', 'Veloce'),
     veloce('veloce-catania-relax-2330', 'Catania', '23:30', 'relax', 'Veloce'),
@@ -70,6 +73,8 @@ export const CASI_ESTESI = [
     perte('perte-catania-1300', 'Catania', '13:00'),
     perte('perte-napoli-2000', 'Napoli', '20:00'),
     perte('perte-firenze-1100-veg', 'Firenze', '11:00', VEG),
+    // C8a — la sera di Per Te: non cambia (tour tematici senza momenti), si misura.
+    perte('perte-catania-1900', 'Catania', '19:00'),
 ];
 
 export const MODI = ['crea', 'veloce', 'sorprendimi', 'perte'];

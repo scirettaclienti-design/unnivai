@@ -13,7 +13,8 @@ describe('chiavi di cache del browser dopo il passaggio alla ricerca nuova', () 
     });
     it('itinerari e tour Per Te in cache: nuova versione del prefisso', () => {
         const s = src('src/services/aiRecommendationService.js');
-        expect(s).toContain("const INSIDER_CACHE_PREFIX = 'unnivai_insiderf16_composizione_';");
+        expect(s).toContain("const INSIDER_CACHE_PREFIX = 'unnivai_insiderf17_sera_';");
+        expect(s).not.toContain("'unnivai_insiderf16_composizione_';");
         expect(s).not.toContain("'unnivai_insiderf15_continuita_';");
         expect(s).not.toContain("'unnivai_insiderf13_tipi_';");
         expect(s).not.toContain("'unnivai_insiderf12_orari_';");

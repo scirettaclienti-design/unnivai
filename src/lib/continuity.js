@@ -21,7 +21,7 @@
  * Modulo puro, senza rete.
  */
 
-import { stayOf, travelMinutes } from './tourTiming';
+import { stayInMoment, travelMinutes } from './tourTiming';
 import { MOMENT_BY_KEY } from './dayMoments';
 
 /** Oltre questa attesa fra due tappe serve una tappa o una riga dichiarata. */
@@ -43,7 +43,7 @@ export function scheduleGaps(sched, max = GAP_MAX_MINUTES) {
         for (let i = 1; i < day.length; i++) {
             const prev = day[i - 1];
             const next = day[i];
-            const freeFrom = prev.start.getTime() + (stayOf(prev.candidate) + (travelMinutes(prev.candidate, next.candidate) ?? 0)) * 60000;
+            const freeFrom = prev.start.getTime() + (stayInMoment(prev.candidate, prev.moment) + (travelMinutes(prev.candidate, next.candidate) ?? 0)) * 60000;
             const minutes = Math.ceil((next.start.getTime() - freeFrom) / 60000);
             if (minutes > max) out.push({ dayIndex, index: i, minutes, from: new Date(freeFrom), to: next.start, prev, next });
         }
@@ -58,7 +58,7 @@ export function retimeWaits(sched) {
         days: (sched?.days || []).map(day => day.map((s, i) => {
             if (i === 0) return s;
             const prev = day[i - 1];
-            const earliest = prev.start.getTime() + (stayOf(prev.candidate) + (travelMinutes(prev.candidate, s.candidate) ?? 0)) * 60000;
+            const earliest = prev.start.getTime() + (stayInMoment(prev.candidate, prev.moment) + (travelMinutes(prev.candidate, s.candidate) ?? 0)) * 60000;
             return { ...s, waitMinutesBefore: Math.max(0, Math.ceil((s.start.getTime() - earliest) / 60000)) };
         })),
     };

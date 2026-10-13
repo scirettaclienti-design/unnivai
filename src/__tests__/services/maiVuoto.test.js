@@ -136,14 +136,16 @@ describe('T1b — zero query: le query di base della citta\'', () => {
         net({ traduttore: traduzione({ queries: [] }) });
         const r = await genera('un giro come piace a me');
         expect(tappe(r).length).toBeGreaterThan(0);
-        const conTesto = [...new Set(rete.textsearch)].sort();
+        // C8a — la ricerca mirata della passeggiata (lungomare, belvedere…) non e' una query di base
+        const baseQ = (qs) => [...new Set(qs)].filter(q => !/lungomare lungofiume/.test(q)).sort();
+        const conTesto = baseQ(rete.textsearch);
 
         window.localStorage.clear();
         // senza testo non c'e' traduttore: la prima chiamata al modello e' il selettore
         net({ traduttore: SELETTORE });
         const senzaTesto = await genera('', {});
         expect(tappe(senzaTesto).length).toBeGreaterThan(0);
-        expect(conTesto).toEqual([...new Set(rete.textsearch)].sort());
+        expect(conTesto).toEqual(baseQ(rete.textsearch));
         // un solo giro: il secondo tentativo non serve
         expect(r._queryDiBaseDopoVuoto).toBeUndefined();
     });

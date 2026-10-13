@@ -125,7 +125,8 @@ export function reportMinimi(baseCasi, nuovo, config, meta = {}) {
             if (famiglieDi(n) < famiglieDi(b)) p.push(`famiglie ${famiglieDi(b)}→${famiglieDi(n)}`);
             if (b.percorso && n.percorso) {
                 if (b.percorso.ok && !n.percorso.ok) p.push('percorso 🟢→🔴');
-                if (n.percorso.km > b.percorso.km * 1.2 && n.percorso.km - b.percorso.km > 0.5) p.push(`km ${b.percorso.km}→${n.percorso.km}`);
+                // più km con più tappe non è un peggioramento (è il minimo che aggiunge una tappa): si segnala solo a parità o con meno tappe
+                if (nv <= bv && n.percorso.km > b.percorso.km * 1.2 && n.percorso.km - b.percorso.km > 0.5) p.push(`km ${b.percorso.km}→${n.percorso.km}`);
             }
             if (cn > cb * 1.25 && cn - cb > 0.03) p.push(`costo ${usd(cb)}→${usd(cn)}`);
             if (n.ripetizioni > b.ripetizioni) p.push(`ripetizioni ${b.ripetizioni}→${n.ripetizioni}`);

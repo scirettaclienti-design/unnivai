@@ -1,0 +1,10 @@
+## Come è costruito Per Te oggi (dopo C8b)
+
+**Prima delle 18:00 e dopo l'alba** — la Home chiama `discoverAllThemes` (4 ricerche di testo: cibo, cultura, romantico, natura) più il pool "insider"; UNA chiamata al modello sceglie 3–5 tappe per tema; il codice mette in orario "da adesso" (cammino + soste), ripete le regole degli orari (`keepOpenStops`) e completa a 3 tappe i tour corti. Non ci sono momenti né scheletro. Da C8b:
+
+- **la ricerca del cibo segue l'ora** (`foodQueryForClock`): prima delle 11:00 colazioni (caffè, pasticcerie, forni), dal 14:45 alle 18:00 merende (pasticcerie, gelaterie), a pranzo (12:00–14:45) i ristoranti **più UNA ricerca di dolci e gelati** accodata (l'unica ricerca in più, solo in quella fascia);
+- **stesse regole di Crea sui pasti** (`mealRules.perTeMealProblem`, passata a `keepOpenStops` come `invalidAt`): un ristorante solo a pranzo (12:00–14:45) e a cena (19:30–23:00) all'ora d'arrivo; la mattina un locale è una colazione (caffè, forno, dolce, bar semplice — mai un cocktail bar o un'osteria) e deve essere aperto per tutta la sosta; un solo pasto seduto per tour sotto le 3 ore ("secondo pranzo" = errore). Un posto che non va si toglie e si sostituisce col più vicino che va; senza sostituti il tour si accorcia e, sotto le 3 tappe, non si mostra (regola P7a, invariata).
+
+**Dalle 18:00 all'alba** — non ci sono più tour tematici: Per Te è il giro della sera, un solo tour dal motore dei momenti (`_homeSera` → `generateItinerary` in modalità Veloce, ritmo rilassato): prima delle 21:00 drink + passeggiata + cena (cena solo se aperta per tutta la sosta), fra le 21:00 e le 22:00 cena + passeggiata, dopo le 22:00 drink + passeggiata. Niente ricerche per temi (la Home salta `discoverAllThemes`). Se tutto è chiuso: il messaggio dichiarato di sempre.
+
+**Dove prima sbagliava** (misurato col controllo c1 esteso a Per Te sui giri precedenti, 10 violazioni in 5 casi): osterie alle 10:00 e alle 11:41 (perte-roma-1000), tre trattorie di fila alle 13:00/15:42/17:15 (perte-catania-1300), tre tour da tre trattorie alle 19:00 (perte-catania-1900).

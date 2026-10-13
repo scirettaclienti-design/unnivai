@@ -1,0 +1,12 @@
+c1.cattivo5: nuovo=ROSSO (1)  vecchio=ROSSO (1)  — TESTI — un gelato vero PRIMA del pasto: gelateria alle 11:00 (prima tappa), trattoria alle 12:30
+c1.cattivo6: nuovo=ROSSO (1)  vecchio=ROSSO (1)  — TESTI — un secondo dolce VERO all'aperitivo: pasticceria alla colazione, poi una gelateria (primaryType ice_cream_shop) alle 19:00
+c1.buono6: nuovo=verde (0)  vecchio=ROSSO (1)  — TESTI — Bar Sgroi (primaryType bar, cake_shop tra i types) all'aperitivo, dopo la colazione in pasticceria: non è un secondo dolce
+c1.cattivo2: nuovo=ROSSO (2)  vecchio=ROSSO (2)  — C8c — gelato alle 13:00 (prima tappa), trattoria alle 13:26, un altro gelato alle 14:55
+c8.cattivo: nuovo=ROSSO (2)  vecchio=ROSSO (2)  — "sunny, 20°C" alle 21:23 su un tour di domani
+c8.cattivo2: nuovo=ROSSO (1)  vecchio=verde (0)  — TESTI — la sezione «Aperitivo» alle 21:45 (Veloce Catania 21:25)
+c8.cattivo3: nuovo=ROSSO (1)  vecchio=verde (0)  — TESTI — «trattoria in fascia €€» a schermo
+c8.cattivo4: nuovo=ROSSO (1)  vecchio=verde (0)  — TESTI — «Giorno 1 a Troina» per un giro di 1h22
+c8.buono: nuovo=verde (0)  vecchio=verde (0)  — meteo in italiano sul tour di oggi; nessun meteo su un tour di domani
+c8.buono3: nuovo=verde (0)  vecchio=verde (0)  — TESTI — «Aperitivo» alle 21:25 (prima delle 21:30) e «Dopocena» alle 21:45
+c8.buono4: nuovo=verde (0)  vecchio=verde (0)  — TESTI — «trattoria con prezzi medi»
+c8.buono5: nuovo=verde (0)  vecchio=verde (0)  — TESTI — due giorni: «Giorno 1 a Roma» e «Giorno 2 a Roma» restano

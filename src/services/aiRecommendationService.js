@@ -3476,6 +3476,8 @@ export const aiRecommendationService = {
             });
 
             const orariPerTe = []; // ORARI — per tour: tappe chiuse tolte, sostituzioni, orari ignoti
+            // TESTI — i tour di "Per Te" stanno insieme sulla home: nessuna frase uguale due volte fra uno e l'altro (come il controllo c7 del banco)
+            const usate = new Set();
             const finalTours = prepared.map((pt) => {
                 if (!pt) return null;
                 const { tour, themeType } = pt;
@@ -3511,7 +3513,6 @@ export const aiRecommendationService = {
                 orariPerTe.push({ tour: themeType, chiuse: aperti.chiuse, aggiunte: aperti.aggiunte, ignote: aperti.ignote });
                 for (const x of aperti.chiuse) scarta(themeType, x.nome, `chiuso quando ci si arriva (${x.perche || 'orari'})`);
                 const timedStops = aperti.stops;
-                const usate = new Set(); // TESTI — nessuna frase uguale due volte nello stesso tour
                 const ordered = timedStops.map((st, i) => {
                     const { _scelta, ...clean } = st;
                     const entry = facts.get(st.place_id);

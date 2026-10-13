@@ -194,4 +194,18 @@ describe('P3d-j — "Per Te" composto', () => {
         }
         expect(res._report.composizione.every(x => x.riserva.includes('gancio'))).toBe(true); // "tramonto" non vale senza orario
     });
+
+    it('TESTI — i tour di Per Te stanno insieme sulla home: nessuna frase uguale due volte fra uno e l\'altro', async () => {
+        vi.setSystemTime(new Date('2026-10-10T10:04:00+02:00'));
+        const pool = { romance: POOL.romance, insider: [p('i1', 'Piazza Navona', ['tourist_attraction'], 0.004), p('i2', 'Piazza Farnese', ['tourist_attraction'], 0.005), p('i3', 'Campo de\' Fiori', ['tourist_attraction'], 0.006)] };
+        fetchMock.mockImplementationOnce(async (url, init) => {
+            prompts.push(JSON.parse(String(init?.body ?? '{}')).messages?.[0]?.content || '');
+            const tour = (themeType, cs) => ({ themeType, title: themeType, stops: cs.map(c => ({ place_id: c.place_id, usaFatto: false, gancio: 'prima', interesse: null })) });
+            return { ok: true, json: async () => ({ choices: [{ message: { content: JSON.stringify({ tours: [tour('romance', pool.romance), tour('insider', pool.insider)] }) } }] }) };
+        });
+        const res = await aiRecommendationService.generateHomeTours({ city: CITY, cityCenter: CENTER, themedCandidates: pool, opts: { skipUserQuota: true } });
+        expect(res.tours.length).toBe(2);
+        const frasi = res.tours.flatMap(t => t.stops.flatMap(s => s.description.split(/(?<=[.!?])\s+/).map(f => f.replace(s.title, '<nome>').replace(/\d+/g, '<n>'))));
+        expect(new Set(frasi).size, frasi.join(' | ')).toBe(frasi.length);
+    });
 });

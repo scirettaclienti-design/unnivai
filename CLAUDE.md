@@ -177,6 +177,21 @@ Validation is **non-blocking** via `validateData(schema, data, label)` (defined 
 
 Business injection into itineraries: `dataService.getBusinessesByCityAndTags()` scores `businesses_profile` rows using tag affinity mapping and injects up to 3 sponsors per tour. Missing coordinates are resolved via Nominatim and cached back to Supabase.
 
+### Continuità della giornata (nessun buco, ogni tappa con il suo orario)
+
+Un'attesa di oltre 45 minuti fra due tappe (`GAP_MAX_MINUTES`, `src/lib/continuity.js`) è un errore:
+i momenti cominciano a ore fisse (pranzo 12:30) e con soste corte restavano ore vuote senza riga.
+Nel flusso a momenti (`momentSelection.fillGaps`, dopo `settleOpeningHours`) il buco si chiude così:
+1. si alza di uno le tappe del momento che lo contiene (solo mattina, pomeriggio, dopocena; mai i pasti,
+   mai oltre 8 al giorno, mai con ritmo Rilassato) e si ripete la scelta con le regole di sempre
+   (varietà, percorso, orari); il tentativo vale solo se dà una tappa vera in più, meno minuti di buco e
+   nessun ripiego/tempo libero/tappa tolta in più;
+2. se non c'è, il buco diventa una riga di tempo libero (`gapRows`, testo approvato) ancorata alla tappa
+   che segue; `bandFreeTime` le dà la sua fascia (`stayMinutes` = l'attesa che stava sulla tappa dopo).
+`computeCumulativeOffsets` non si rompe più su un tempo libero in testa al giorno. A schermo
+(`AiItinerary`, `TourStopsByMoment`) il tempo libero mostra "HH:MM–HH:MM" (`freeTimeRangeLabel`).
+Il banco ha la classe c11 (`scripts/banco/controlli.js`, soglia `esteso.buchiMinuti`).
+
 ### City Data Flow
 
 **T1 — in "Crea il tuo percorso" la città scritta nel testo vince sulla posizione.**

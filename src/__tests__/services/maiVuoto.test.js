@@ -61,7 +61,8 @@ const net = ({ traduttore = traduzione(), vuoto = false } = {}) => {
         throw new Error(`rete non prevista: ${u}`);
     }));
 };
-const tappe = (r) => (r.days || []).flatMap(d => d.stops || []);
+// CONTINUITA' — le righe di tempo libero non sono luoghi (niente coordinate): qui si guardano le tappe vere.
+const tappe = (r) => (r.days || []).flatMap(d => d.stops || []).filter(s => !s.tempoLibero);
 const genera = (prompt, opts = { pathType: 'custom', skipUserQuota: true }) =>
     aiRecommendationService.generateItinerary('Troina', { interests: ['Cultura', 'Cibo'] }, prompt, {}, '', TROINA, opts);
 

@@ -35,6 +35,42 @@ export function stopClockLabel(stop) {
     return `${pad(p.h)}:${pad(p.mi)}`;
 }
 
+/**
+ * CONTINUITA' — la fascia di una riga di tempo libero: "14:00–16:30". Il tempo
+ * libero occupa il suo tempo (`stayMinutes`), che comincia al suo `scheduledTime`.
+ * Senza l'uno o l'altro (riga in coda al giro) non c'e' niente di onesto da dire: null.
+ */
+export function freeTimeRangeLabel(stop) {
+    const d = validDate(stop?.scheduledTime);
+    const min = stop?.stayMinutes;
+    if (!d || !Number.isFinite(min) || min <= 0) return null;
+    const p = romeParts(new Date(d.getTime() + min * 60000));
+    return `${stopClockLabel(stop)}–${pad(p.h)}:${pad(p.mi)}`;
+}
+
+/**
+ * CONTINUITA' — le tappe vere con le righe di tempo libero rimesse al loro posto.
+ * normalizeTour toglie il tempo libero dai passi (non e' un luogo: niente pin, niente
+ * navigazione) e lo tiene a parte in `freeTime`; le schermate a elenco lo rimettono
+ * qui, per ORARIO: una riga di tempo libero comincia dove finisce la tappa prima, cioe'
+ * dopo l'orario di arrivo di quella e prima di quello della tappa dopo. Una riga senza
+ * orario va in coda.
+ * @returns {Array} una lista nuova; le tappe restano nell'ordine dato
+ */
+export function withFreeTime(stops, freeTime) {
+    const out = Array.isArray(stops) ? [...stops] : [];
+    for (const f of Array.isArray(freeTime) ? freeTime : []) {
+        const t = validDate(f?.scheduledTime)?.getTime();
+        let at = out.length;
+        if (Number.isFinite(t)) {
+            const i = out.findIndex(x => { const xt = validDate(x?.scheduledTime)?.getTime(); return Number.isFinite(xt) && xt > t; });
+            if (i >= 0) at = i;
+        }
+        out.splice(at, 0, f);
+    }
+    return out;
+}
+
 /** Il momento della tappa (oggetto di dayMoments), o null. */
 export function stopMoment(stop) {
     if (stop?.moment && MOMENT_BY_KEY[stop.moment]) return MOMENT_BY_KEY[stop.moment];

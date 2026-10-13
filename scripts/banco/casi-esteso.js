@@ -36,6 +36,10 @@ export const CASI_ESTESI = [
     crea('crea-firenze-arte', 'Firenze', '09:30', "Una giornata d'arte a Firenze", { duration: '1 Giorno', interests: ['Arte', 'Storia'], pace: 'Rilassato' }),
     crea('crea-palermo-mercato-veg', 'Palermo', '12:00', 'Pranzo e giro al mercato a Palermo', { duration: 'Mezza Giornata', interests: ['Cibo'], pace: 'Attivo' }, VEG),
     crea('crea-siracusa', 'Siracusa', '09:30', "Una giornata a Siracusa, a Ortigia", { duration: '1 Giorno', pace: 'Attivo' }),
+    // CONTINUITA' — la prova di Ivano (martedi' 13/10 ore 13:48): Crea SENZA testo, solo le scelte del wizard.
+    // Le scelte esatte non sono note: interessi Storia e Cibo, 1 Giorno, ritmo Attivo (assunzione dichiarata nel report).
+    // `giorno`: il suo giorno simulato (martedi' 13/10), diverso da quello del giro.
+    { ...crea('crea-catania-1348', 'Catania', '13:48', '', { duration: '1 Giorno', interests: ['Storia', 'Cibo'], pace: 'Attivo' }), giorno: '2026-10-13' },
 
     // ── Percorso Veloce (9) — nessun ritmo, come QuickPath.jsx ──
     veloce('veloce-catania-relax-2125', 'Catania', '21:25', 'relax', 'Veloce'),
@@ -67,4 +71,4 @@ export const MODI = ['crea', 'veloce', 'sorprendimi', 'perte'];
 export const NOMI_MODO = { crea: 'Crea il tuo percorso', veloce: 'Percorso Veloce', sorprendimi: 'Sorprendimi', perte: 'Per Te' };
 
 /** L'istante simulato di un caso: giorno del config + ora di Roma. */
-export const istanteSimulato = (caso, esteso) => `${esteso.giornoSimulato}T${caso.ora}:00${esteso.fusoOffset}`;
+export const istanteSimulato = (caso, esteso) => `${caso.giorno ?? esteso.giornoSimulato}T${caso.ora}:00${esteso.fusoOffset}`;

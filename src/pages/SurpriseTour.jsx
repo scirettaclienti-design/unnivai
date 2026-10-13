@@ -269,14 +269,17 @@ export default function SurpriseTourPage() {
 
             // Generate Route Path (Linear approximation for now, or use mapService if available)
             // Just connecting dots for visual feedback
-            const routeCoords = surpriseTour.stops.map(s => `${s.longitude} ${s.latitude}`).join(', ');
+            // CONTINUITA' — il tempo libero non e' un luogo (niente coordinate): tracciato, copertina e
+            // waypoint si fanno sulle tappe vere; la riga resta in `stops` e `normalizeTour` la tiene in `freeTime`.
+            const stopsVere = surpriseTour.stops.filter(s => !s.tempoLibero);
+            const routeCoords = stopsVere.map(s => `${s.longitude} ${s.latitude}`).join(', ');
             const routeWKT = `LINESTRING(${routeCoords})`;
 
             // DVAI-051 + F26 DIFF 5: cover reale dal primo POI (Google Places), oppure
             // nessuna copertina. Il "fallback tematico citta'" e' stato rimosso.
             // Mantiene gli stessi campi narrativi del tour insider per renderizzare
             // "💡 Insider", "Quando:", "→ transizione" nella scheda.
-            const stop0 = surpriseTour.stops[0] || {};
+            const stop0 = stopsVere[0] || {};
             const cover = stop0.googlePhoto || null;
 
             // DVAI-053: normalizer unificato — stessa shape di Per Te e AiItinerary.
@@ -302,7 +305,7 @@ export default function SurpriseTourPage() {
                 isAiGenerated: true,
                 tags: ['Sorpresa', selectedFilter || 'Mix'],
                 routePath: routeWKT,
-                waypoints: surpriseTour.stops.map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]),
+                waypoints: stopsVere.map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]),
                 // Passo gli stops grezzi: il normalizer estrae title/description/transition/...
                 // e mappa googlePhoto → image, lat/lng/latitude/longitude entrambi.
                 stops: surpriseTour.stops,
@@ -522,7 +525,7 @@ export default function SurpriseTourPage() {
                             {/* Statistiche */}
                             <div className="flex items-center justify-around px-2">
                                 <div className="text-center">
-                                    <p className="text-3xl font-black text-obsidian-primary">{mappedTour.stops?.length || 0}</p>
+                                    <p className="text-3xl font-black text-obsidian-primary">{(mappedTour.stops || []).filter(s => !s.tempoLibero).length}</p>
                                     <p className="text-xs text-obsidian-secondary font-bold uppercase tracking-widest mt-0.5">Tappe</p>
                                 </div>
                                 {durationLabel && (

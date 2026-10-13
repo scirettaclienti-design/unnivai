@@ -64,7 +64,8 @@ const genera = () => aiRecommendationService.generateItinerary(
     'Roma', { interests: ['Arte', 'Cibo'], pace: 'Rilassato', duration: '1 Giorno' },
     'Domani voglio vivere Roma da romano', {}, '', ROMA, { pathType: 'custom', skipUserQuota: true },
 );
-const allStops = (r) => r.days.flatMap(d => d.stops);
+// CONTINUITA' — le righe di tempo libero non sono tappe composte: qui si guardano le tappe vere.
+const allStops = (r) => r.days.flatMap(d => d.stops).filter(s => !s.tempoLibero);
 const pulita = (s) => filterBannedWords(s.description, { exempt: [s.title] }).removed.length === 0;
 
 describe('Gate PAROLE VIETATE (P3d) — itinerario', () => {

@@ -129,7 +129,7 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                             <h4 className="text-[10px] font-bold text-obsidian-secondary uppercase tracking-widest mb-2 px-1">Itinerario Generato</h4>
                             <TopFadeScroll className="space-y-3 max-h-[260px] overflow-y-auto pr-2 pt-2.5 pb-1 scrollbar-thin scrollbar-thumb-obsidian-border">
                                 {/* Gate TAPPE PER MOMENTO — per momento, con l'orario reale; niente testo di riempimento. */}
-                                <TourStopsByMoment stops={tourData.steps} />
+                                <TourStopsByMoment stops={tourData.steps} freeTime={tourData.freeTime} />
                             </TopFadeScroll>
                         </div>
                     )}

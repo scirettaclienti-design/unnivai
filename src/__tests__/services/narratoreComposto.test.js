@@ -57,7 +57,8 @@ const routeFetch = (choose, { title = 'Musei e osterie di Roma' } = {}) => {
 const genera = (weather = {}, prefs = { interests: ['Arte', 'Cibo'], pace: 'Rilassato', duration: '1 Giorno' }) => aiRecommendationService.generateItinerary(
     'Roma', prefs, 'Domani voglio vivere Roma da romano', weather, '', ROMA, { pathType: 'custom', skipUserQuota: true },
 );
-const stops = (r) => r.days.flatMap(d => d.stops);
+// CONTINUITA' — le righe di tempo libero non sono tappe composte.
+const stops = (r) => r.days.flatMap(d => d.stops).filter(s => !s.tempoLibero);
 
 // Nessun valore "null"/"undefined"/vuoto in un testo che la UI mostra.
 const VISIBILI = ['title', 'description', 'momentLabel'];
@@ -65,7 +66,8 @@ const visibiliPuliti = (r) => {
     for (const d of r.days) {
         expect(testoPulito(d.title), d.title).toBe(true);
         for (const s of d.stops) for (const k of VISIBILI) if (s[k] != null) expect(testoPulito(String(s[k])), `${k}: ${s[k]}`).toBe(true);
-        for (const s of d.stops) for (const k of ['insiderTip', 'bestTime', 'transition']) expect(s[k]).toBeNull();
+        // CONTINUITA' — il tempo libero non e' una tappa composta: non ha questi campi.
+        for (const s of d.stops.filter(x => !x.tempoLibero)) for (const k of ['insiderTip', 'bestTime', 'transition']) expect(s[k]).toBeNull();
     }
 };
 

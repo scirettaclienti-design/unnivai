@@ -179,7 +179,9 @@ export const BLACKLIST_TYPES = new Set([
 // conoscono gli orari del giorno (festivi, ferie).
 // C6a — prefix bumped da 'unnivai_insiderf12_orari_': famiglie, durate e nomi puliti
 // dal tipo principale; i giri cached prima hanno soste e nomi di prima.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf14_festivi_';
+// CONTINUITA' — prefix bumped da 'unnivai_insiderf14_festivi_': i giri cached prima hanno buchi
+// non dichiarati e il tempo libero senza fascia.
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf15_continuita_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -356,14 +358,15 @@ import { stopData, guardComposed, apertura, ganciValidi, interessiPerTappa, user
 import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock, MOMENTS } from '@/lib/dayMoments';
 import { FREE_TIME_MAX_MINUTES, freeTimeStop } from '@/lib/freeTime';
+import { bandFreeTime } from '@/lib/continuity';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
-import { buildDaySkeleton } from '@/lib/daySkeleton';
+import { buildDaySkeleton, normalizePace } from '@/lib/daySkeleton';
 import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan, isMealPlace, scheduleHoursSources,
     requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme,
-    applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule,
+    applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule, fillGaps, gapRows,
 } from './momentSelection';
 // ORARI — una tappa vale solo se il posto e' aperto per tutta la sosta (lib/openingHours).
 import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO } from '../lib/openingHours';
@@ -1973,15 +1976,18 @@ const insertFreeTime = (days, entries) => {
         const dayIndex = Number.isFinite(day.windowIndex) ? day.windowIndex : di;
         let stops = [...(day.stops || [])];
         for (const e of entries.filter(x => x.dayIndex === dayIndex)) {
-            const at = stops.findIndex(st => (MOMENT_ORDER.get(st.moment) ?? -1) > (MOMENT_ORDER.get(e.key) ?? 99));
+            // CONTINUITA' — un buco e' ancorato alla tappa che lo segue; le altre righe vanno prima del momento dopo.
+            const anchor = e.prima ? stops.findIndex(st => st.place_id === e.prima) : -1;
+            const at = anchor >= 0 ? anchor : stops.findIndex(st => (MOMENT_ORDER.get(st.moment) ?? -1) > (MOMENT_ORDER.get(e.key) ?? 99));
             const item = freeTimeStop({
                 // ORARI — un pasto senza nessun locale aperto ha la sua riga dichiarata; il resto e' tempo libero (regola O).
                 moment: e.key, momentLabel: e.label, description: e.chiuso && e.pasto ? TESTO_NESSUN_LOCALE_APERTO : composeFreeTime({ momento: e.key }),
-                tracciato: { scelta: 'tempo libero', minuti: null, famiglia: null, motivo: e.motivo, piuVicino: e.piuVicino },
+                tracciato: { scelta: 'tempo libero', minuti: null, famiglia: null, motivo: e.motivo, piuVicino: e.piuVicino, ...(e.buco ? { buco: e.buco } : {}) },
             });
             stops = at < 0 ? [...stops, item] : [...stops.slice(0, at), item, ...stops.slice(at)];
         }
-        return { ...day, stops };
+        // CONTINUITA' — il tempo libero occupa il suo tempo (la fascia e' l'attesa che prima stava sulla tappa dopo).
+        return { ...day, stops: bandFreeTime(stops) };
     });
 };
 
@@ -2650,12 +2656,24 @@ export const aiRecommendationService = {
                             });
                             repaired = settled.repaired;
                             let sched = settled.sched;
-                            const { report } = repaired;
                             // L'ultima rete: una tappa ancora chiusa non esce mai.
                             if (settled.residui.length > 0) {
                                 console.warn(`[ORARI] ${city}: ${settled.residui.length} tappe ancora chiuse dopo i giri → tolte (${settled.residui.map(x => x.nome).join(', ')})`);
                                 sched = dropFromSchedule(sched, settled.residui);
                             }
+                            // CONTINUITA' — un'attesa oltre 45 minuti fra due tappe e' un buco:
+                            // prima si prova ad aggiungere una tappa aperta dal pool del momento
+                            // (stesse regole di sempre), poi il buco resta e sara' una riga dichiarata.
+                            const filled = fillGaps({
+                                moments, repaired, sched, veto,
+                                espandi: normalizePace(prefs?.pace) !== 'rilassato',
+                                repair: () => repair(true),
+                                schedule: (plan) => scheduleMomentPlan(plan, tourWindow.windows.map(w => w.start)),
+                            });
+                            repaired = filled.repaired;
+                            sched = filled.sched;
+                            const { report } = repaired;
+                            for (const a of filled.aggiunte) console.info(`[CONTINUITA'] ${city}: tappa in piu' in ${a.momento} (buchi ${a.minutiPrima} → ${a.minutiDopo} min)`);
                             const hoursReport = openBuckets().report;
                             // Un filtro non lascia mai un buco: un momento rimasto senza posti
                             // aperti ha la sua riga dichiarata (tempo libero, o "nessun locale
@@ -2674,7 +2692,9 @@ export const aiRecommendationService = {
                             }
                             const chiusiPerMomento = new Set([...hoursReport.chiusi.map(x => x.momento), ...veto.keys()]);
                             const righeChiuse = closedMomentRows({ moments, sched, tempoLibero: report.tempoLibero, chiusiPerMomento });
-                            report.tempoLibero = [...(report.tempoLibero || []), ...righeChiuse];
+                            // CONTINUITA' — i buchi rimasti hanno la loro riga di tempo libero, ancorata alla tappa che segue.
+                            const righeBuchi = gapRows({ moments, sched, tempoLibero: [...(report.tempoLibero || []), ...righeChiuse] });
+                            report.tempoLibero = [...(report.tempoLibero || []), ...righeChiuse, ...righeBuchi];
                             orariTracciato = scheduleHoursLabels(sched);
                             orariFonte = scheduleHoursSources(sched);
                             orariInfo = {
@@ -2683,7 +2703,8 @@ export const aiRecommendationService = {
                                 righeDichiarate: righeChiuse.map(x => ({ momento: x.momento, pasto: x.pasto })), residui: settled.residui.length,
                                 tappeSenzaFiltro,
                             };
-                            momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo };
+                            const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })) };
+                            momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita };
                             logMomentReport(city, momentReport);
                             return sched.days.map((dayStops, di) => {
                                 const canon = canonicalizeStopsFromCandidates(

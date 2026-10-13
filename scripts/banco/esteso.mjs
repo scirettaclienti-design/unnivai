@@ -18,6 +18,7 @@ import { confrontoPlaces } from './confronto-places.js';
 import { reportOrari } from './report-orari.js';
 import { reportC6a } from './report-c6a.js';
 import { reportFestivi } from './report-festivi.js';
+import { reportContinuita } from './report-continuita.js';
 
 const root = process.cwd();
 const config = JSON.parse(readFileSync(path.join(root, 'scripts/banco/banco.config.json'), 'utf8'));
@@ -32,6 +33,8 @@ const ORARI = process.env.BANCO_RUN === 'orari';
 const C6A = process.env.BANCO_RUN === 'c6a';
 // ORARI-FESTIVI — BANCO_RUN=festivi: gli orari del giorno (festivi, ferie); il report confronta con il giro C6a.
 const FESTIVI = process.env.BANCO_RUN === 'festivi';
+// CONTINUITA' — BANCO_RUN=continuita: buchi riempiti o dichiarati; il report confronta con il giro C6a (stessi casi, stesso giorno).
+const CONTINUITA = process.env.BANCO_RUN === 'continuita';
 const argReport = process.argv.indexOf('--report');
 let jsonPath, nome;
 if (argReport > -1) {
@@ -39,7 +42,7 @@ if (argReport > -1) {
     nome = path.basename(jsonPath, '.json');
 } else {
     // MIG-PLACES — BANCO_PLACES=new: stessi casi con la ricerca nuova (solo l'account di prova), file `-new`.
-    const suffisso = FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
+    const suffisso = CONTINUITA ? '-continuita' : FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
     nome = `${oggi}-banco-esteso${suffisso}`;
     for (let i = 2; existsSync(path.join(root, 'docs/prove/dati', `${nome}.json`)); i++) nome = `${oggi}-banco-esteso${suffisso}-${i}`;
     jsonPath = path.join(root, 'docs/prove/dati', `${nome}.json`);
@@ -60,6 +63,19 @@ if (argReport > -1) {
 }
 
 const raw = JSON.parse(readFileSync(jsonPath, 'utf8'));
+if (raw.motore === 'new' && /-continuita/.test(nome)) {
+    // CONTINUITA' — il giro con i buchi riempiti o dichiarati, contro il giro C6a degli stessi casi.
+    const basePath = path.join(root, config.esteso.baselineC6a);
+    const base = JSON.parse(readFileSync(basePath, 'utf8'));
+    const primaPath = path.join(root, 'docs/prove/dati/2026-10-13-banco-esteso-continuita-prima.json');
+    const prima = existsSync(primaPath) ? JSON.parse(readFileSync(primaPath, 'utf8')) : null;
+    const nomeDoc = `${nome.slice(0, 10)}-continuita`;
+    const nPath = path.join(root, 'docs/prove/dati', `${nomeDoc}-note.md`);
+    const { markdown: md, sintesi } = reportContinuita(base, raw, config, { baseNome: path.basename(basePath), nuovoNome: path.basename(jsonPath), commit, prima, primaNome: path.basename(primaPath) });
+    writeFileSync(path.join(root, 'docs/prove', `${nomeDoc}.md`), md + (existsSync(nPath) ? '\n' + readFileSync(nPath, 'utf8') : '') + '\n');
+    console.log(`[banco-esteso] report continuita: docs/prove/${nomeDoc}.md | grezzo: ${path.relative(root, jsonPath)} | c11: ${sintesi.c11.dopo} (prima ${sintesi.c11.prima}) | Catania: ${sintesi.c11.extraDopo} | c5: ${sintesi.c5.dopo} | spesa ${sintesi.spesa}`);
+    process.exit(0);
+}
 if (raw.motore === 'new' && /-festivi/.test(nome)) {
     // ORARI-FESTIVI — il giro con gli orari del giorno, contro il giro C6a degli stessi casi.
     const basePath = path.join(root, config.esteso.baselineC6a);

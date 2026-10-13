@@ -142,3 +142,34 @@ describe('DIFF 1b — cablaggio della timeline (render), orario reale', () => {
         expect(rows[0].offset).toBe('09:30');
     });
 });
+
+// CONTINUITA' — il tempo libero occupa il suo tempo: a schermo mostra la sua fascia,
+// e la tappa dopo ha il suo orario (non resta vuota).
+describe('CONTINUITA\' — il tempo libero mostra la sua fascia, le tappe dopo il loro orario', () => {
+    const LIBERO = {
+        tempoLibero: true, title: 'Tempo libero', moment: 'mattina', momentLabel: 'Mattina',
+        description: 'Tempo libero: per la mattina non c\'è niente che valga il cammino. Il resto lo scegli tu.',
+        stayMinutes: 160, travelMinutesFromPrev: 0, scheduledTime: at('09:50'), latitude: null, longitude: null,
+    };
+    const GIORNO = {
+        day: 1, title: 'Giorno 1 a Roma', stops: [
+            { title: 'Tappa Alfa', type: 'cultura', description: 'a', moment: 'mattina', stayMinutes: 20, travelMinutesFromPrev: null, scheduledTime: at('09:30'), latitude: 41.1, longitude: 12.1 },
+            LIBERO,
+            { title: 'Tappa Bravo', type: 'food', description: 'b', moment: 'pranzo', stayMinutes: 75, travelMinutesFromPrev: 5, scheduledTime: at('12:35'), latitude: 41.2, longitude: 12.2 },
+        ],
+    };
+    it('la riga di tempo libero porta la fascia 09:50–12:30 e le tappe il loro orario', async () => {
+        generateItinerary.mockResolvedValue({ days: [GIORNO] });
+        const { container } = await mountTimeline();
+        const card = container.querySelector('[data-free-time]');
+        expect(card).toBeTruthy();
+        expect(card.querySelector('[data-free-time-range]').textContent).toBe('09:50–12:30');
+        expect(readRows(container).map(r => [r.titolo, r.offset])).toEqual([['Tappa Alfa', '09:30'], ['Tappa Bravo', '12:35']]);
+    });
+    it('un tempo libero in coda, senza orario, non inventa nessuna fascia', async () => {
+        generateItinerary.mockResolvedValue({ days: [{ ...GIORNO, stops: [GIORNO.stops[0], { ...LIBERO, scheduledTime: null, stayMinutes: 0 }] }] });
+        const { container } = await mountTimeline();
+        expect(container.querySelector('[data-free-time]')).toBeTruthy();
+        expect(container.querySelector('[data-free-time-range]')).toBeNull();
+    });
+});

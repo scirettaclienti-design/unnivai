@@ -142,7 +142,8 @@ const hhmm = (iso) => {
     const p = romeParts(new Date(iso));
     return `${String(p.h).padStart(2, '0')}:${String(p.mi).padStart(2, '0')}`;
 };
-const allStops = (r) => r.days.flatMap(d => d.stops);
+// CONTINUITA' — le righe di tempo libero non vanno al narratore: qui si guardano le tappe vere.
+const allStops = (r) => r.days.flatMap(d => d.stops).filter(s => !s.tempoLibero);
 
 describe('Gate NARRATORE-DOPO — le scelte sulle tappe finali, il testo dal codice', () => {
     beforeEach(() => {
@@ -238,8 +239,9 @@ describe('Gate NARRATORE-DOPO — le scelte sulle tappe finali, il testo dal cod
         for (const g of [1, 2, 3]) expect(selSys).toMatch(new RegExp(`Giorno ${g}[^\\n]*\\b5 tappe`));
         expect(result.days).toHaveLength(3);
         for (const d of result.days) {
-            expect(d.stops.map(s => s.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
-            for (const s of d.stops) expect(s.description, `${s.title} (${s.moment})`).toBeTruthy();
+            const reali = d.stops.filter(s => !s.tempoLibero);
+            expect(reali.map(s => s.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
+            for (const s of reali) expect(s.description, `${s.title} (${s.moment})`).toBeTruthy();
         }
         const ids = allStops(result).map(s => s.place_id);
         expect(new Set(ids).size).toBe(ids.length);

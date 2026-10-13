@@ -1,4 +1,4 @@
-// BANCO-ESTESO — i controlli automatici delle 10 classi di errore.
+// BANCO-ESTESO — i controlli automatici delle 11 classi di errore.
 //
 // Funzioni pure: dal risultato grezzo di un caso (scritto da esteso.live.js) a
 // un elenco di violazioni. Ogni classe ha la sua DEFINIZIONE scritta qui sotto
@@ -23,6 +23,7 @@ export const CLASSI = [
     ['c8', 'Inglese a schermo e meteo di adesso su un tour futuro'],
     ['c9', 'Onboarding o interessi persi dopo logout'],
     ['c10', 'Vincolo vegetariano violato o esteso ai non pasti'],
+    ['c11', 'Buco non dichiarato oltre 45 minuti, o tappa senza orario'],
 ];
 
 export const DEFINIZIONI = {
@@ -44,6 +45,8 @@ export const DEFINIZIONI = {
     c9: 'Lo script ONB-1 (login → logout → login su browser vuoto → modifica interessi → logout/login): ogni passo deve essere OK, e i passi devono essere tutti.',
     c10: 'Con una dieta vegetariana: (a) un pasto che non viene da una ricerca col criterio della dieta; (b) un NON pasto (museo, chiesa, parco…) trovato solo da ricerche col criterio della dieta '
         + '(il vincolo esteso a ciò che non è cibo).',
+    c11: 'CONTINUITA\' — in un giro (itinerario, non Per Te) fra due voci consecutive (tappe e righe di tempo libero) il tempo che non e\' coperto da sosta, cammino o da una riga di tempo libero '
+        + 'supera `buchiMinuti` (45); oppure una tappa vera non ha l\'orario di arrivo. Il cammino e\' haversine a `camminoKmh`, ricalcolato qui. L\'attesa prima della prima tappa del giorno non conta.',
 };
 
 // ─── strumenti ──────────────────────────────────────────────────────────────
@@ -332,7 +335,46 @@ export function c10(caso, cfg) {
     return esito('c10', true, out);
 }
 
-export const CONTROLLI = { c1, c2, c3, c4, c5, c6, c7, c8, c10 };
+// ─── 11 — buchi non dichiarati e tappe senza orario (CONTINUITA') ────────────
+const kmTra = (a, b) => {
+    const R = 6371; const r = (x) => (x * Math.PI) / 180;
+    const x = Math.sin(r(b.lat - a.lat) / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(r(b.lng - a.lng) / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(x));
+};
+const haCoord = (s) => Number.isFinite(s?.lat) && Number.isFinite(s?.lng);
+export function c11(caso, cfg) {
+    if (caso.tipo === 'perte') return esito('c11', false);   // Per Te non ha orari veri: l'arrivo e' stimato
+    const E = cfg.esteso;
+    const out = [];
+    let buchi = 0; let senzaOrario = 0; let dichiarati = 0; let minutiBuco = 0;
+    for (const t of caso.tours || []) {
+        let fineAttesa = null;       // fine dell'ultima voce con orario (ms)
+        let ultimaVera = null;       // l'ultima tappa vera (per il cammino)
+        for (const s of t.stops || []) {
+            const inizio = s.at ? new Date(s.at).getTime() : NaN;
+            if (!Number.isFinite(inizio)) {
+                if (!s.tempoLibero) { senzaOrario++; out.push(viol(s, `${nome(s)}: tappa senza orario di arrivo`, 'c11', cfg)); }
+                fineAttesa = null;   // la catena si e' rotta: niente confronto su dati che non ci sono
+                if (!s.tempoLibero) ultimaVera = s;
+                continue;
+            }
+            if (s.tempoLibero) dichiarati++;
+            if (fineAttesa != null) {
+                const cammino = (!s.tempoLibero && ultimaVera && haCoord(ultimaVera) && haCoord(s)) ? (kmTra(ultimaVera, s) / E.camminoKmh) * 60 : 0;
+                const buco = (inizio - fineAttesa) / 60000 - cammino;
+                if (buco > E.buchiMinuti) {
+                    buchi++; minutiBuco += Math.round(buco);
+                    out.push(viol(s, `${Math.round(buco)} min senza tappa né riga prima di ${nome(s)} (alle ${oraTesto(s)}), dopo la voce che finiva alle ${hhmmDi(giornoEMinuti(new Date(fineAttesa).toISOString()).minuti)}`, 'c11', cfg));
+                }
+            }
+            fineAttesa = inizio + (Number.isFinite(s.stay) ? s.stay : 0) * 60000;
+            if (!s.tempoLibero) ultimaVera = s;
+        }
+    }
+    return esito('c11', true, out, { buchi, senzaOrario, righeTempoLibero: dichiarati, minutiBuco });
+}
+
+export const CONTROLLI = { c1, c2, c3, c4, c5, c6, c7, c8, c10, c11 };
 
 /** Tutti i controlli per-caso. c9 e' del giro (vedi c9) e non sta qui. */
 export function eseguiControlli(caso, cfg) {

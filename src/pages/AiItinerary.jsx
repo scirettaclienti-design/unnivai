@@ -14,7 +14,7 @@ import { FactSources } from "@/components/FactSources";
 import { formatEstimate } from "@/lib/tourTiming";
 // Gate TAPPE PER MOMENTO — tappe raggruppate per momento (dayMoments.js) con
 // l'orario reale di arrivo (scheduledTime). Lo scarto "+1h31" non si mostra piu'.
-import { groupStopsByDayAndMoment, stopClockLabel } from "@/lib/stopMoments";
+import { groupStopsByDayAndMoment, stopClockLabel, freeTimeRangeLabel } from "@/lib/stopMoments";
 // Gate C2 — i tag dal prompt libero vivono in un motore solo, con test propri.
 // La vecchia riga inline cancellava ogni lettera accentata: vedi promptTags.js.
 import { extractPromptTags } from "@/lib/promptTags";
@@ -674,9 +674,12 @@ export default function AIItineraryPage() {
                                                 // icona di luogo, voto, sosta ne' dettagli. Resa minima:
                                                 // l'aspetto lo decide la corsia E.
                                                 if (stop.tempoLibero) {
+                                                    // CONTINUITA' — il tempo libero occupa il suo tempo: mostra la sua fascia.
+                                                    const fascia = freeTimeRangeLabel(stop);
                                                     return (
                                                         <div key={`tempo-libero-${index}`} data-stop-card data-free-time className="bg-obsidian-card rounded-2xl border border-obsidian-border p-4">
                                                             <h4 className="font-bold text-obsidian-primary text-sm leading-tight mb-1">{stop.title}</h4>
+                                                            {fascia && <p data-free-time-range className="text-obsidian-primary font-bold text-xs mb-1 tabular-nums">{fascia}</p>}
                                                             {stop.description && <p className="text-xs text-obsidian-secondary leading-relaxed">{stop.description}</p>}
                                                         </div>
                                                     );

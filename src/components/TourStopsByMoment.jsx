@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { groupStopsByDayAndMoment } from '@/lib/stopMoments';
+import { groupStopsByDayAndMoment, withFreeTime, freeTimeRangeLabel } from '@/lib/stopMoments';
 import { FactSources } from '@/components/FactSources';
 
 // P3e — la dissolvenza in cima alla lista scorrevole (trasparente nei primi
@@ -31,9 +31,12 @@ export function TopFadeScroll({ className, children }) {
 // Nessun testo di riempimento: senza descrizione il blocco non si monta (prima
 // c'era una frase generica, o la categoria, al posto della descrizione).
 // Senza scheduledTime nessun orario: vedi src/lib/stopMoments.js.
-export function TourStopsByMoment({ stops }) {
-    const days = groupStopsByDayAndMoment(stops);
-    const total = Array.isArray(stops) ? stops.length : 0;
+export function TourStopsByMoment({ stops, freeTime = null }) {
+    // CONTINUITA' — il tempo libero (tenuto a parte da normalizeTour) torna al suo posto, con la sua fascia.
+    const lista = withFreeTime(stops, freeTime);
+    const days = groupStopsByDayAndMoment(lista);
+    const numero = (index) => lista.slice(0, index).filter(s => !s.tempoLibero).length;
+    const ultimaVera = lista.map(s => !s.tempoLibero).lastIndexOf(true);
     const multiDay = days.length > 1;
 
     return (
@@ -52,17 +55,25 @@ export function TourStopsByMoment({ stops }) {
                                     {group.moment.label}
                                 </h6>
                             )}
-                            {group.items.map(({ stop, index, timeLabel }) => (
+                            {group.items.map(({ stop, index, timeLabel }) => (stop.tempoLibero ? (
+                                <div key={index} data-stop-card data-free-time className="bg-obsidian-card p-3 rounded-xl border border-obsidian-border shadow-sm">
+                                    <p className="text-sm font-bold text-obsidian-primary leading-tight">{stop.title}</p>
+                                    {freeTimeRangeLabel(stop) && (
+                                        <p data-free-time-range className="text-xs font-bold text-obsidian-primary tabular-nums mt-0.5">{freeTimeRangeLabel(stop)}</p>
+                                    )}
+                                    {stop.description && <p className="text-xs text-obsidian-secondary mt-1 leading-relaxed font-medium">{stop.description}</p>}
+                                </div>
+                            ) : (
                                 <div key={index} data-stop-card className="flex items-start gap-3 bg-obsidian-card p-3 rounded-xl border border-obsidian-border shadow-sm relative overflow-hidden group">
-                                    {index !== total - 1 && (
+                                    {index < ultimaVera && (
                                         <div className="absolute left-[1.35rem] top-8 bottom-[-12px] w-0.5 bg-obsidian-border z-0" />
                                     )}
                                     <div className="w-6 h-6 rounded-full bg-brand-orange text-obsidian-bg flex items-center justify-center text-[11px] font-bold shrink-0 relative z-10 shadow-sm mt-0.5">
-                                        {index + 1}
+                                        {numero(index) + 1}
                                     </div>
                                     <div className="flex-1 min-w-0 relative z-10">
                                         <div className="flex items-start justify-between gap-2">
-                                            <p className="text-sm font-bold text-obsidian-primary leading-tight">{stop.name || stop.title || `Tappa ${index + 1}`}</p>
+                                            <p className="text-sm font-bold text-obsidian-primary leading-tight">{stop.name || stop.title || `Tappa ${numero(index) + 1}`}</p>
                                             {timeLabel && (
                                                 <span className="text-xs font-bold text-obsidian-primary tabular-nums shrink-0">{timeLabel}</span>
                                             )}
@@ -74,7 +85,7 @@ export function TourStopsByMoment({ stops }) {
                                         {stop.description && <FactSources fonti={stop.fonti} />}
                                     </div>
                                 </div>
-                            ))}
+                            )))}
                         </div>
                     ))}
                 </div>

@@ -106,6 +106,8 @@ const expectInsideMoments = (stops, day) => {
     }
 };
 const isFood = (s) => (s.types || []).includes('restaurant');
+// CONTINUITA' — le righe di tempo libero (buchi dichiarati) non sono tappe: la scelta si guarda sulle tappe vere.
+const reali = (stops) => stops.filter(s => !s.tempoLibero);
 
 describe('P3 — la scelta segue lo scheletro della giornata', () => {
     beforeEach(() => {
@@ -141,7 +143,9 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
 
         expect(result._source).toBe('google-first');
         const stops = result.days[0].stops;
-        expect(stops.map(s => s.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
+        expect(reali(stops).map(s => s.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
+        // Ritmo Rilassato: nessuna tappa in piu', i buchi oltre 45 minuti sono righe dichiarate con la loro fascia.
+        expect(stops.filter(s => s.tempoLibero).every(s => s.stayMinutes > 45)).toBe(true);
         expect(stops.filter(isFood).length).toBeLessThanOrEqual(2);
         expectInsideMoments(stops, MARTEDI);
         // Ordine cronologico.
@@ -180,13 +184,13 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
 
         expect(result._source).toBe('google-first');
         const stops = result.days[0].stops;
-        expect(stops.map(s => s.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
+        expect(reali(stops).map(s => s.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
         expect(stops.filter(isFood).length).toBe(2);
         expect(stops.filter(isFood).map(s => s.moment)).toEqual(['pranzo', 'cena']);
         expectInsideMoments(stops, MARTEDI);
         // Ogni tappa e' un luogo vero dei candidati: mai un luogo inventato.
         const ids = new Set(TUTTI.map(p => p.place_id));
-        expect(stops.every(s => ids.has(s.place_id))).toBe(true);
+        expect(reali(stops).every(s => ids.has(s.place_id))).toBe(true);
         // I due ristoranti fuori momento; in piu' (C5) l'Osteria der Belli a
         // pranzo, fuori strada rispetto ad Armando al Pantheon.
         expect(result._momentReport.scartate.map(x => x.motivo).filter(m => !m.startsWith('fuori strada')))
@@ -231,7 +235,7 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
         const result = await genera('Domani voglio vivere Roma da romano',
             { interests: ['Arte', 'Cibo'], pace: 'Intenso', duration: '1 Giorno' });
 
-        const stops = result.days[0].stops;
+        const stops = reali(result.days[0].stops);
         expect(stops.filter(s => s.moment === 'pranzo')).toHaveLength(1);
         expect(stops.filter(s => s.moment === 'cena')).toHaveLength(1);
         expect(stops.filter(isFood)).toHaveLength(2);
@@ -258,7 +262,9 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
         expect(result._momentReport.ricercheMirate).toEqual(['cultura', 'nightlife']);
         // Le ricerche mirate qui non trovano niente: i momenti vuoti sono tolti
         // e il report lo dice — nessun luogo inventato per riempirli.
-        expect(result.days[0].stops.map(s => s.moment)).toEqual(['pranzo', 'cena']);
+        expect(reali(result.days[0].stops).map(s => s.moment)).toEqual(['pranzo', 'cena']);
+        // Fra pranzo e cena restano ore vuote: una riga di tempo libero, con la sua fascia.
+        expect(result.days[0].stops.filter(s => s.tempoLibero)).toHaveLength(1);
         expect(result._momentReport.momentiTolti.map(m => m.momento))
             .toEqual(['g1-mattina', 'g1-pomeriggio', 'g1-aperitivo']);
     });

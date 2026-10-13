@@ -1,0 +1,8468 @@
+{
+ "avvio": "2026-10-13T11:56:35.424Z",
+ "identita": "account di prova",
+ "motore": "new",
+ "giornoSimulato": "2026-10-13",
+ "casi": [
+  {
+   "id": "crea-catania-1348",
+   "modo": "crea",
+   "tipo": "itinerario",
+   "luogo": "Catania",
+   "ora": "13:48",
+   "oggi": "2026-10-13",
+   "richiesta": "",
+   "onboarding": null,
+   "vincoli": null,
+   "chiamata": {
+    "pagina": "AiItinerary.jsx",
+    "pathType": "custom",
+    "prefs": {
+     "budget": "",
+     "duration": "1 Giorno",
+     "interests": [
+      "Storia",
+      "Cibo"
+     ],
+     "group": "",
+     "pace": "Attivo"
+    },
+    "testo": ""
+   },
+   "secs": 14.245,
+   "source": "google-first",
+   "destinazione": null,
+   "tourDate": "2026-10-13",
+   "giorno": {
+    "date": "2026-10-13",
+    "start": "2026-10-13T11:48:00.000Z",
+    "reason": "now"
+   },
+   "frasiTolte": [],
+   "pool": {
+    "g1-pomeriggio": {
+     "posti": 2,
+     "candidati": [
+      {
+       "place_id": "ChIJz7tzTSnjExMRCVwbvTajR0M",
+       "nome": "Chiesa di San Francesco Borgia",
+       "famiglia": "chiesa",
+       "primaryType": "church",
+       "types": [
+        "church",
+        "place_of_worship",
+        "association_or_organization",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.48,
+       "minuti": 1,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJV63v_C7jExMRhTLFcc2p9Z8",
+       "nome": "Palazzo degli Elefanti",
+       "famiglia": null,
+       "primaryType": "government_office",
+       "types": [
+        "tourist_attraction",
+        "government_office",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.38,
+       "minuti": 3,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJC1X6KSnjExMRrHoP1Nvb6gg",
+       "nome": "Museo Vincenzo Bellini",
+       "famiglia": "museo",
+       "primaryType": "museum",
+       "types": [
+        "museum",
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.37,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJxzdog0_jExMRLGbmVBC6_WE",
+       "nome": "Palazzo della Cultura Catania",
+       "famiglia": "museo",
+       "primaryType": "museum",
+       "types": [
+        "museum",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.36,
+       "minuti": 7,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ3TLmAi_jExMRkP_79B8grl8",
+       "nome": "Museo Diocesano di Catania",
+       "famiglia": "museo",
+       "primaryType": "art_museum",
+       "types": [
+        "art_museum",
+        "museum",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.35,
+       "minuti": 4,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJhQ88HSnjExMR1PeoZXr__FM",
+       "nome": "Odeon Romano",
+       "famiglia": null,
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.33,
+       "minuti": 2,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJI_0k4DHjExMRXN512sPvgIs",
+       "nome": "Palazzo Platamone",
+       "famiglia": null,
+       "primaryType": "landmark",
+       "types": [
+        "landmark",
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.22,
+       "minuti": 7,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJb7xgVi7jExMRzmkNXcVXKe0",
+       "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+       "famiglia": "chiesa",
+       "primaryType": "place_of_worship",
+       "types": [
+        "historical_landmark",
+        "tourist_attraction",
+        "museum",
+        "book_store",
+        "historical_place",
+        "university",
+        "educational_institution",
+        "store",
+        "place_of_worship",
+        "association_or_organization",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.21,
+       "minuti": 5,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ73Uryrn9ExMR_JpW1hfu7Y0",
+       "nome": "Museo degli Antichi Strumenti di Scrittura",
+       "famiglia": "museo",
+       "primaryType": "museum",
+       "types": [
+        "museum",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.39,
+       "minuti": 23,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-aperitivo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJX3qRACTjExMRqiFdQ3F5dSY",
+       "nome": "Deliziosa Café & Cocktail Bar",
+       "famiglia": null,
+       "nomeOriginale": "Deliziosa Café & Cocktail Bar | Apericena e Colazione",
+       "primaryType": "cocktail_bar",
+       "types": [
+        "cocktail_bar",
+        "coffee_shop",
+        "cafe",
+        "bar",
+        "food_store",
+        "store",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.51,
+       "minuti": 1,
+       "deviazione": 0.6,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+       "nome": "Bar Popolare",
+       "famiglia": null,
+       "primaryType": "cocktail_bar",
+       "types": [
+        "cocktail_bar",
+        "bar",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.51,
+       "minuti": 1,
+       "deviazione": 2,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ4aS0WaDjExMRZm-pSHW8PAg",
+       "nome": "Magma 2.0 Drink & Food",
+       "famiglia": null,
+       "primaryType": "pub",
+       "types": [
+        "pub",
+        "deli",
+        "bar",
+        "food_store",
+        "store",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.49,
+       "minuti": 7,
+       "deviazione": 10.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJuzxaAODjExMRccoJu6YRJ9c",
+       "nome": "Sotto Palazzo",
+       "famiglia": null,
+       "nomeOriginale": "Sotto Palazzo | Cocktail e Sapori",
+       "primaryType": "cocktail_bar",
+       "types": [
+        "cocktail_bar",
+        "italian_restaurant",
+        "bar",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.48,
+       "minuti": 6,
+       "deviazione": 11.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-cena": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJwVZNoH3jExMRH_s5PodSdz0",
+       "nome": "Trattoria del Lago",
+       "famiglia": null,
+       "primaryType": "seafood_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "diner",
+        "pizza_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.36,
+       "minuti": 10,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJN6AiIgDjExMRJraSAxXePwk",
+       "nome": "Ristorante EtnaSicilia",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.29,
+       "minuti": 3,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJUfUI0TPjExMRTz5CcT1KR0c",
+       "nome": "Osteria&PizzeriaDaiPazzi",
+       "famiglia": null,
+       "primaryType": "pizza_restaurant",
+       "types": [
+        "pizza_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.28,
+       "minuti": 6,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ62d5tA39ExMR8uJelh7LMiE",
+       "nome": "Du Mori Osteria tipica",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "brunch_restaurant",
+        "family_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.27,
+       "minuti": 19,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJRQknxC3jExMRyRWDa7bzwNA",
+       "nome": "Trattoria Casalinga da Nino Mannino",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.23,
+       "minuti": 6,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJvYTRwijjExMRvj0zmgrt6q4",
+       "nome": "Trattoria Giglio Rosso",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "family_restaurant",
+        "steak_house",
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.19,
+       "minuti": 2,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ--UkpyjjExMRZojalPMXCYE",
+       "nome": "Ristorante da Antonio",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.18,
+       "minuti": 4,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ2b8-Gtf8ExMRGtMuV_yD7vQ",
+       "nome": "Trattoria Da Peppino di Tumia Giovanni",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.2,
+       "minuti": 24,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    }
+   },
+   "sceltaModello": [
+    {
+     "place_id": "ChIJb7xgVi7jExMRzmkNXcVXKe0",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJ3TLmAi_jExMRkP_79B8grl8",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJX3qRACTjExMRqiFdQ3F5dSY",
+     "momento": "g1-aperitivo"
+    },
+    {
+     "place_id": "ChIJR6y9bFf8ExMR6V2eGqOEDg8",
+     "momento": "g1-cena"
+    }
+   ],
+   "ricerche": {
+    "prima": [
+     "nightlife"
+    ],
+    "dopo": []
+   },
+   "ripiegoDichiarato": false,
+   "orariMotore": {
+    "chiusi": [
+     {
+      "momento": "g1-pomeriggio",
+      "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+      "nome": "Palazzo dei Chierici",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-pomeriggio",
+      "place_id": "ChIJx6UP1zHjExMRo1oOCidARpo",
+      "nome": "Palazzo Biscari",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-aperitivo",
+      "place_id": "ChIJI5cU_IL9ExMRViGp8JGvWLc",
+      "nome": "Boston Cocktail Bar",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-cena",
+      "place_id": "ChIJwbllur79ExMRsiUFCi4M3Aw",
+      "nome": "Osteria del mar",
+      "perche": "chiuso all'arrivo"
+     }
+    ],
+    "vietati": [],
+    "giri": 0,
+    "ignoti": 2,
+    "scartatiIgnoti": [],
+    "righeDichiarate": [],
+    "residui": 0,
+    "tappeSenzaFiltro": 4
+   },
+   "schermo": {
+    "giorni": [
+     {
+      "titolo": "Giorno 1 a Catania",
+      "meteo": {
+       "condition": "sunny",
+       "temperature": 20,
+       "icon": "☀️"
+      }
+     }
+    ],
+    "note": []
+   },
+   "tours": [
+    {
+     "tema": "Giorno 1 a Catania",
+     "stops": [
+      {
+       "place_id": "ChIJV63v_C7jExMRhTLFcc2p9Z8",
+       "title": "Palazzo degli Elefanti",
+       "types": [
+        "tourist_attraction",
+        "government_office",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-13T12:30:00.000Z",
+       "atStimato": false,
+       "lat": 37.5028541,
+       "lng": 15.0871515,
+       "min": null,
+       "scelta": "riparazione",
+       "stay": 30,
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Monastero dei Benedettini di San Nicolò l'Arena\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Palazzo degli Elefanti il tempo che serve. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Palazzo degli Elefanti il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 275,
+       "priceLevel": null,
+       "pasto": false,
+       "primaryType": "government_office",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJC1X6KSnjExMRrHoP1Nvb6gg",
+       "title": "Museo Vincenzo Bellini",
+       "types": [
+        "museum",
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-13T13:03:00.000Z",
+       "atStimato": false,
+       "lat": 37.502758799999995,
+       "lng": 15.0844431,
+       "min": 3,
+       "scelta": "riparazione",
+       "stay": 60,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "museo",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Museo Vincenzo Bellini è la tappa da fare con calma. È qui perché cerchi la storia.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Museo Vincenzo Bellini è la tappa da fare con calma.",
+         "problemi": []
+        },
+        {
+         "testo": "È qui perché cerchi la storia.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 232,
+       "priceLevel": null,
+       "pasto": false,
+       "primaryType": "museum",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJX3qRACTjExMRqiFdQ3F5dSY",
+       "title": "Deliziosa Café & Cocktail Bar",
+       "types": [
+        "cocktail_bar",
+        "coffee_shop",
+        "cafe",
+        "bar",
+        "food_store",
+        "store",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-13T16:00:00.000Z",
+       "atStimato": false,
+       "lat": 37.5030956,
+       "lng": 15.084839799999997,
+       "min": 1,
+       "scelta": "modello",
+       "stay": 20,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "L'aperitivo lo prendi da Deliziosa Café & Cocktail Bar, bar in fascia €€. Il sole tramonta alle 18:26: sei qui 26 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da Deliziosa Café & Cocktail Bar, bar in fascia €€.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:26: sei qui 26 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 69,
+       "priceLevel": 2,
+       "pasto": false,
+       "primaryType": "cocktail_bar",
+       "nomeOriginale": "Deliziosa Café & Cocktail Bar | Apericena e Colazione",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJwVZNoH3jExMRH_s5PodSdz0",
+       "title": "Trattoria del Lago",
+       "types": [
+        "seafood_restaurant",
+        "diner",
+        "pizza_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "cena",
+       "at": "2026-10-13T18:00:00.000Z",
+       "atStimato": false,
+       "lat": 37.5079128,
+       "lng": 15.079270999999999,
+       "min": 10,
+       "scelta": "riparazione",
+       "stay": 75,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Trattoria del Lago, trattoria in fascia €€€. Sono 10 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Trattoria del Lago, trattoria in fascia €€€.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 10 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 361,
+       "priceLevel": 3,
+       "pasto": true,
+       "primaryType": "seafood_restaurant",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "dietaCercata": null,
+       "dietaSolo": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 2,
+    "tokenIn": 4683,
+    "tokenOut": 440
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch#new": 3
+   },
+   "candidatiVisti": 60,
+   "candidatiConOrari": 57,
+   "orari": {
+    "ChIJV63v_C7jExMRhTLFcc2p9Z8": {
+     "chiamato": true,
+     "periods": [
+      {
+       "open": {
+        "day": 0,
+        "time": "0900"
+       },
+       "close": {
+        "day": 0,
+        "time": "2200"
+       }
+      },
+      {
+       "open": {
+        "day": 1,
+        "time": "0900"
+       },
+       "close": {
+        "day": 1,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 2,
+        "time": "0900"
+       },
+       "close": {
+        "day": 2,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 3,
+        "time": "0900"
+       },
+       "close": {
+        "day": 3,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 4,
+        "time": "0900"
+       },
+       "close": {
+        "day": 4,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 5,
+        "time": "0900"
+       },
+       "close": {
+        "day": 5,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 6,
+        "time": "0900"
+       },
+       "close": {
+        "day": 6,
+        "time": "2300"
+       }
+      }
+     ],
+     "current": {
+      "to": "2026-10-19",
+      "from": "2026-10-13",
+      "periods": [
+       {
+        "date": "2026-10-18",
+        "open": "0900",
+        "close": "2200"
+       },
+       {
+        "date": "2026-10-19",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-13",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-14",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-15",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-16",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-17",
+        "open": "0900",
+        "close": "2300"
+       }
+      ]
+     }
+    },
+    "ChIJC1X6KSnjExMRrHoP1Nvb6gg": {
+     "chiamato": true,
+     "periods": [
+      {
+       "open": {
+        "day": 0,
+        "time": "0900"
+       },
+       "close": {
+        "day": 0,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 1,
+        "time": "0900"
+       },
+       "close": {
+        "day": 1,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 2,
+        "time": "0900"
+       },
+       "close": {
+        "day": 2,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 3,
+        "time": "0900"
+       },
+       "close": {
+        "day": 3,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 4,
+        "time": "0900"
+       },
+       "close": {
+        "day": 4,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 5,
+        "time": "0900"
+       },
+       "close": {
+        "day": 5,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 6,
+        "time": "0900"
+       },
+       "close": {
+        "day": 6,
+        "time": "1900"
+       }
+      }
+     ],
+     "current": {
+      "to": "2026-10-19",
+      "from": "2026-10-13",
+      "periods": [
+       {
+        "date": "2026-10-18",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-19",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-13",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-14",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-15",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-16",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-17",
+        "open": "0900",
+        "close": "1900"
+       }
+      ]
+     }
+    },
+    "ChIJX3qRACTjExMRqiFdQ3F5dSY": {
+     "chiamato": true,
+     "periods": [
+      {
+       "open": {
+        "day": 0,
+        "time": "1000"
+       },
+       "close": {
+        "day": 0,
+        "time": "2000"
+       }
+      },
+      {
+       "open": {
+        "day": 2,
+        "time": "1000"
+       },
+       "close": {
+        "day": 2,
+        "time": "2000"
+       }
+      },
+      {
+       "open": {
+        "day": 3,
+        "time": "1000"
+       },
+       "close": {
+        "day": 3,
+        "time": "2000"
+       }
+      },
+      {
+       "open": {
+        "day": 4,
+        "time": "1000"
+       },
+       "close": {
+        "day": 4,
+        "time": "2000"
+       }
+      },
+      {
+       "open": {
+        "day": 5,
+        "time": "1000"
+       },
+       "close": {
+        "day": 5,
+        "time": "2000"
+       }
+      },
+      {
+       "open": {
+        "day": 6,
+        "time": "1000"
+       },
+       "close": {
+        "day": 6,
+        "time": "2000"
+       }
+      }
+     ],
+     "current": {
+      "from": "2026-10-13",
+      "to": "2026-10-19",
+      "periods": [
+       {
+        "date": "2026-10-18",
+        "open": "1000",
+        "close": "2000"
+       },
+       {
+        "date": "2026-10-13",
+        "open": "1000",
+        "close": "2000"
+       },
+       {
+        "date": "2026-10-14",
+        "open": "1000",
+        "close": "2000"
+       },
+       {
+        "date": "2026-10-15",
+        "open": "1000",
+        "close": "2000"
+       },
+       {
+        "date": "2026-10-16",
+        "open": "1000",
+        "close": "2000"
+       },
+       {
+        "date": "2026-10-17",
+        "open": "1000",
+        "close": "2000"
+       }
+      ]
+     }
+    },
+    "ChIJwVZNoH3jExMRH_s5PodSdz0": {
+     "chiamato": true,
+     "periods": [
+      {
+       "open": {
+        "day": 0,
+        "time": "1030"
+       },
+       "close": {
+        "day": 0,
+        "time": "1700"
+       }
+      },
+      {
+       "open": {
+        "day": 0,
+        "time": "1800"
+       },
+       "close": {
+        "day": 1,
+        "time": "0000"
+       }
+      },
+      {
+       "open": {
+        "day": 2,
+        "time": "1700"
+       },
+       "close": {
+        "day": 3,
+        "time": "0000"
+       }
+      },
+      {
+       "open": {
+        "day": 3,
+        "time": "1700"
+       },
+       "close": {
+        "day": 4,
+        "time": "0000"
+       }
+      },
+      {
+       "open": {
+        "day": 4,
+        "time": "1700"
+       },
+       "close": {
+        "day": 5,
+        "time": "0000"
+       }
+      },
+      {
+       "open": {
+        "day": 5,
+        "time": "1700"
+       },
+       "close": {
+        "day": 6,
+        "time": "0000"
+       }
+      },
+      {
+       "open": {
+        "day": 6,
+        "time": "1100"
+       },
+       "close": {
+        "day": 0,
+        "time": "0000"
+       }
+      }
+     ],
+     "current": {
+      "to": "2026-10-19",
+      "from": "2026-10-13",
+      "periods": [
+       {
+        "date": "2026-10-18",
+        "open": "1030",
+        "close": "1700"
+       },
+       {
+        "date": "2026-10-18",
+        "open": "1800",
+        "close": "0000",
+        "close_date": "2026-10-19"
+       },
+       {
+        "date": "2026-10-13",
+        "open": "1700",
+        "close": "0000",
+        "close_date": "2026-10-14"
+       },
+       {
+        "date": "2026-10-14",
+        "open": "1700",
+        "close": "0000",
+        "close_date": "2026-10-15"
+       },
+       {
+        "date": "2026-10-15",
+        "open": "1700",
+        "close": "0000",
+        "close_date": "2026-10-16"
+       },
+       {
+        "date": "2026-10-16",
+        "open": "1700",
+        "close": "0000",
+        "close_date": "2026-10-17"
+       },
+       {
+        "date": "2026-10-17",
+        "open": "1100",
+        "close": "0000",
+        "close_date": "2026-10-18"
+       }
+      ]
+     }
+    }
+   }
+  }
+ ],
+ "costo": {
+  "totale": 0.12296645,
+  "ai": {
+   "chiamate": 2,
+   "tokenIn": 4683,
+   "tokenOut": 440
+  },
+  "google": {
+   "place/findplacefromtext": 1,
+   "place/textsearch#new": 3
+  },
+  "tettoUsd": 7
+ },
+ "luoghiOrari": {
+  "ChIJU84fUCzjExMR4rI0uZuCtQQ": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1230"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1230"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1230"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1230"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1230"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1230"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1230"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1230",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJUfUI0TPjExMRTz5CcT1KR0c": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1830"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1830"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1830"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1830"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1830"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1830"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1830"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "pizza_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1830",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJ62d5tA39ExMR8uJelh7LMiE": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJpfQeGC_jExMRotO9al1-QTs": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1230"
+     },
+     "close": {
+      "day": 0,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1930"
+     },
+     "close": {
+      "day": 0,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1230"
+     },
+     "close": {
+      "day": 1,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1930"
+     },
+     "close": {
+      "day": 1,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1230"
+     },
+     "close": {
+      "day": 2,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1930"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1230"
+     },
+     "close": {
+      "day": 3,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1930"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1230"
+     },
+     "close": {
+      "day": 4,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1930"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1230"
+     },
+     "close": {
+      "day": 5,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1930"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1230"
+     },
+     "close": {
+      "day": 6,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1930"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "seafood_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1930",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJ2b8-Gtf8ExMRGtMuV_yD7vQ": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1145"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1145"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1145"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1145"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1145"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1145"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1145"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1145",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJo0WsJxnjExMRMo-GLQiQBG0": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1300"
+     },
+     "close": {
+      "day": 0,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1830"
+     },
+     "close": {
+      "day": 0,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1300"
+     },
+     "close": {
+      "day": 2,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1830"
+     },
+     "close": {
+      "day": 2,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1300"
+     },
+     "close": {
+      "day": 3,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1830"
+     },
+     "close": {
+      "day": 3,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1300"
+     },
+     "close": {
+      "day": 4,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1830"
+     },
+     "close": {
+      "day": 4,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1300"
+     },
+     "close": {
+      "day": 5,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1830"
+     },
+     "close": {
+      "day": 5,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1300"
+     },
+     "close": {
+      "day": 6,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1830"
+     },
+     "close": {
+      "day": 6,
+      "time": "2330"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1830",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1830",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1830",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1830",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1830",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1830",
+      "close": "2330"
+     }
+    ]
+   }
+  },
+  "ChIJvYTRwijjExMRvj0zmgrt6q4": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJIWxHwi7jExMRnvLgYxOgmuU": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "seafood_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJwVZNoH3jExMRH_s5PodSdz0": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1030"
+     },
+     "close": {
+      "day": 0,
+      "time": "1700"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1800"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1700"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1700"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1700"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1700"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1100"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "seafood_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1030",
+      "close": "1700"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1800",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1700",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1700",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1700",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1700",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1100",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJN6AiIgDjExMRJraSAxXePwk": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1100"
+     },
+     "close": {
+      "day": 1,
+      "time": "0130"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1100"
+     },
+     "close": {
+      "day": 2,
+      "time": "0130"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1100"
+     },
+     "close": {
+      "day": 3,
+      "time": "0130"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1100"
+     },
+     "close": {
+      "day": 4,
+      "time": "0130"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1100"
+     },
+     "close": {
+      "day": 5,
+      "time": "0130"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1100"
+     },
+     "close": {
+      "day": 6,
+      "time": "0130"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1100"
+     },
+     "close": {
+      "day": 0,
+      "time": "0130"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1100",
+      "close": "0130",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1100",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "0130"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1100",
+      "close": "0130",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1100",
+      "close": "0130",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1100",
+      "close": "0130",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1100",
+      "close": "0130",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1100",
+      "close": "0130",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJRQ7Urir9ExMRd4RXs2xuxs4": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1900"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1900"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1900",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJ--UkpyjjExMRZojalPMXCYE": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1900"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJRQknxC3jExMRyRWDa7bzwNA": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1800"
+     },
+     "close": {
+      "day": 1,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1800"
+     },
+     "close": {
+      "day": 2,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1800"
+     },
+     "close": {
+      "day": 3,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1800"
+     },
+     "close": {
+      "day": 4,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1800"
+     },
+     "close": {
+      "day": 5,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1800"
+     },
+     "close": {
+      "day": 6,
+      "time": "2330"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1800",
+      "close": "2330"
+     }
+    ]
+   }
+  },
+  "ChIJwbllur79ExMRsiUFCi4M3Aw": {
+   "periods": [
+    {
+     "open": {
+      "day": 4,
+      "time": "1230"
+     },
+     "close": {
+      "day": 4,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1930"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1230"
+     },
+     "close": {
+      "day": 5,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1930"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1230"
+     },
+     "close": {
+      "day": 6,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1930"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "seafood_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-15",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1930",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJ56vyQC_jExMRnLVeVoc6osM": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1030"
+     },
+     "close": {
+      "day": 1,
+      "time": "0330"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1030"
+     },
+     "close": {
+      "day": 2,
+      "time": "0330"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1030"
+     },
+     "close": {
+      "day": 3,
+      "time": "0330"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1030"
+     },
+     "close": {
+      "day": 4,
+      "time": "0330"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1030"
+     },
+     "close": {
+      "day": 5,
+      "time": "0330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1030"
+     },
+     "close": {
+      "day": 6,
+      "time": "0330"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1030"
+     },
+     "close": {
+      "day": 0,
+      "time": "0330"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1030",
+      "close": "0330",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1030",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "0330"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1030",
+      "close": "0330",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1030",
+      "close": "0330",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1030",
+      "close": "0330",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1030",
+      "close": "0330",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1030",
+      "close": "0330",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJq3DCq4HjExMRyvmYVFTImqY": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1000"
+     },
+     "close": {
+      "day": 0,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1000"
+     },
+     "close": {
+      "day": 1,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1000"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1000"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1000"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1000"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1000"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1000",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJ26CDCHDjExMRpPxY-LrbbVg": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "1700"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1900"
+     },
+     "close": {
+      "day": 1,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 2,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "2330"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "1700"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1900",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "2330"
+     }
+    ]
+   }
+  },
+  "ChIJMUd6UynjExMRuCV-wh1ktK0": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "1900"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "1900",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJb018Ipv9ExMRS1tjQaIdbOs": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1830"
+     },
+     "close": {
+      "day": 0,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1830"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1830"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1830"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1830"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1830"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1830",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1830",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1830",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1830",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1830",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1830",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJnzkVMNfjExMR7TW6C8g1GTk": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJ3TLmAi_jExMRkP_79B8grl8": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0900"
+     },
+     "close": {
+      "day": 1,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0900"
+     },
+     "close": {
+      "day": 3,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0900"
+     },
+     "close": {
+      "day": 4,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0900"
+     },
+     "close": {
+      "day": 5,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0900"
+     },
+     "close": {
+      "day": 6,
+      "time": "2100"
+     }
+    }
+   ],
+   "primaryType": "art_museum",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0900",
+      "close": "2100"
+     }
+    ]
+   }
+  },
+  "ChIJiS624y7jExMREIKeZ58jDjg": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "0800"
+     },
+     "close": {
+      "day": 1,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0800"
+     },
+     "close": {
+      "day": 2,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0800"
+     },
+     "close": {
+      "day": 3,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0800"
+     },
+     "close": {
+      "day": 4,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1530"
+     },
+     "close": {
+      "day": 4,
+      "time": "1700"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0800"
+     },
+     "close": {
+      "day": 5,
+      "time": "1300"
+     }
+    }
+   ],
+   "primaryType": "tourist_attraction",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "0800",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0800",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0800",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0800",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1530",
+      "close": "1700"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0800",
+      "close": "1300"
+     }
+    ]
+   }
+  },
+  "ChIJl7byAgDjExMRHhK4RGiCOrQ": {
+   "periods": null,
+   "primaryType": "art_museum",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJI_0k4DHjExMRXN512sPvgIs": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "1330"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0900"
+     },
+     "close": {
+      "day": 1,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0900"
+     },
+     "close": {
+      "day": 3,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0900"
+     },
+     "close": {
+      "day": 4,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0900"
+     },
+     "close": {
+      "day": 5,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0900"
+     },
+     "close": {
+      "day": 6,
+      "time": "1900"
+     }
+    }
+   ],
+   "primaryType": "landmark",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "1330"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0900",
+      "close": "1900"
+     }
+    ]
+   }
+  },
+  "ChIJxzdog0_jExMRLGbmVBC6_WE": {
+   "periods": null,
+   "primaryType": "museum",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJP0UjWi7jExMRJytI986aC6g": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0700"
+     },
+     "close": {
+      "day": 0,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0700"
+     },
+     "close": {
+      "day": 1,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0700"
+     },
+     "close": {
+      "day": 2,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0700"
+     },
+     "close": {
+      "day": 3,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0700"
+     },
+     "close": {
+      "day": 4,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0700"
+     },
+     "close": {
+      "day": 5,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0700"
+     },
+     "close": {
+      "day": 6,
+      "time": "2100"
+     }
+    }
+   ],
+   "primaryType": "church",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0700",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0700",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0700",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0700",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0700",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0700",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0700",
+      "close": "2100"
+     }
+    ]
+   }
+  },
+  "ChIJb7xgVi7jExMRzmkNXcVXKe0": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0930"
+     },
+     "close": {
+      "day": 0,
+      "time": "1700"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0930"
+     },
+     "close": {
+      "day": 1,
+      "time": "1700"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0930"
+     },
+     "close": {
+      "day": 2,
+      "time": "1700"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0930"
+     },
+     "close": {
+      "day": 3,
+      "time": "1700"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0930"
+     },
+     "close": {
+      "day": 4,
+      "time": "1700"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0930"
+     },
+     "close": {
+      "day": 5,
+      "time": "1700"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0930"
+     },
+     "close": {
+      "day": 6,
+      "time": "1700"
+     }
+    }
+   ],
+   "primaryType": "place_of_worship",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0930",
+      "close": "1700"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0930",
+      "close": "1700"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0930",
+      "close": "1700"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0930",
+      "close": "1700"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0930",
+      "close": "1700"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0930",
+      "close": "1700"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0930",
+      "close": "1700"
+     }
+    ]
+   }
+  },
+  "ChIJV63v_C7jExMRhTLFcc2p9Z8": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0900"
+     },
+     "close": {
+      "day": 1,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0900"
+     },
+     "close": {
+      "day": 3,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0900"
+     },
+     "close": {
+      "day": 4,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0900"
+     },
+     "close": {
+      "day": 5,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0900"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "government_office",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0900",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJ73Uryrn9ExMR_JpW1hfu7Y0": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0930"
+     },
+     "close": {
+      "day": 0,
+      "time": "1830"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0930"
+     },
+     "close": {
+      "day": 1,
+      "time": "1830"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0930"
+     },
+     "close": {
+      "day": 2,
+      "time": "1830"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0930"
+     },
+     "close": {
+      "day": 3,
+      "time": "1830"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0930"
+     },
+     "close": {
+      "day": 4,
+      "time": "1830"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0930"
+     },
+     "close": {
+      "day": 5,
+      "time": "1830"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0930"
+     },
+     "close": {
+      "day": 6,
+      "time": "1830"
+     }
+    }
+   ],
+   "primaryType": "museum",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0930",
+      "close": "1830"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0930",
+      "close": "1830"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0930",
+      "close": "1830"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0930",
+      "close": "1830"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0930",
+      "close": "1830"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0930",
+      "close": "1830"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0930",
+      "close": "1830"
+     }
+    ]
+   }
+  },
+  "ChIJC1X6KSnjExMRrHoP1Nvb6gg": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0900"
+     },
+     "close": {
+      "day": 1,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0900"
+     },
+     "close": {
+      "day": 3,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0900"
+     },
+     "close": {
+      "day": 4,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0900"
+     },
+     "close": {
+      "day": 5,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0900"
+     },
+     "close": {
+      "day": 6,
+      "time": "1900"
+     }
+    }
+   ],
+   "primaryType": "museum",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0900",
+      "close": "1900"
+     }
+    ]
+   }
+  },
+  "ChIJx6UP1zHjExMRo1oOCidARpo": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "1000"
+     },
+     "close": {
+      "day": 1,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1600"
+     },
+     "close": {
+      "day": 1,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1000"
+     },
+     "close": {
+      "day": 2,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1600"
+     },
+     "close": {
+      "day": 2,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1000"
+     },
+     "close": {
+      "day": 3,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1600"
+     },
+     "close": {
+      "day": 3,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1000"
+     },
+     "close": {
+      "day": 4,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1600"
+     },
+     "close": {
+      "day": 4,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1000"
+     },
+     "close": {
+      "day": 5,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1600"
+     },
+     "close": {
+      "day": 5,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1000"
+     },
+     "close": {
+      "day": 6,
+      "time": "1300"
+     }
+    }
+   ],
+   "primaryType": "museum",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "1000",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1600",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1000",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1000",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1600",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1000",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1000",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1000",
+      "close": "1300"
+     }
+    ],
+    "special_days": [
+     "2026-10-13",
+     "2026-10-15",
+     "2026-10-16"
+    ]
+   }
+  },
+  "ChIJhQ88HSnjExMR1PeoZXr__FM": {
+   "periods": null,
+   "primaryType": null,
+   "utcOffsetMinutes": 120
+  },
+  "ChIJKe4h_i7jExMRLGtNNEVTJis": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0900"
+     },
+     "close": {
+      "day": 1,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0900"
+     },
+     "close": {
+      "day": 3,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0900"
+     },
+     "close": {
+      "day": 4,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0900"
+     },
+     "close": {
+      "day": 5,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0900"
+     },
+     "close": {
+      "day": 6,
+      "time": "2100"
+     }
+    }
+   ],
+   "primaryType": "tourist_attraction",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0900",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0900",
+      "close": "2100"
+     }
+    ]
+   }
+  },
+  "ChIJz7tzTSnjExMRCVwbvTajR0M": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "1330"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1430"
+     },
+     "close": {
+      "day": 0,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "1330"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1430"
+     },
+     "close": {
+      "day": 2,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0900"
+     },
+     "close": {
+      "day": 3,
+      "time": "1330"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1430"
+     },
+     "close": {
+      "day": 3,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0900"
+     },
+     "close": {
+      "day": 4,
+      "time": "1330"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1430"
+     },
+     "close": {
+      "day": 4,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0900"
+     },
+     "close": {
+      "day": 5,
+      "time": "1330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1430"
+     },
+     "close": {
+      "day": 5,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0901"
+     },
+     "close": {
+      "day": 6,
+      "time": "1330"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1430"
+     },
+     "close": {
+      "day": 6,
+      "time": "1900"
+     }
+    }
+   ],
+   "primaryType": "church",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "1330"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1430",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "1330"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1430",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0900",
+      "close": "1330"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1430",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0900",
+      "close": "1330"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1430",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0900",
+      "close": "1330"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1430",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0901",
+      "close": "1330"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1430",
+      "close": "1900"
+     }
+    ]
+   }
+  },
+  "ChIJSaqNeCzjExMR6dcdA61sYzg": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0900"
+     },
+     "close": {
+      "day": 1,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0900"
+     },
+     "close": {
+      "day": 3,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0900"
+     },
+     "close": {
+      "day": 4,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0900"
+     },
+     "close": {
+      "day": 5,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0900"
+     },
+     "close": {
+      "day": 6,
+      "time": "1900"
+     }
+    }
+   ],
+   "primaryType": "historical_landmark",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0900",
+      "close": "1900"
+     }
+    ]
+   }
+  },
+  "ChIJK5VIFSnjExMRn1Q3odtud6g": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1430"
+     },
+     "close": {
+      "day": 0,
+      "time": "1830"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1430"
+     },
+     "close": {
+      "day": 2,
+      "time": "1830"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0900"
+     },
+     "close": {
+      "day": 3,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1430"
+     },
+     "close": {
+      "day": 3,
+      "time": "1830"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0900"
+     },
+     "close": {
+      "day": 4,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1430"
+     },
+     "close": {
+      "day": 4,
+      "time": "1830"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0900"
+     },
+     "close": {
+      "day": 5,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1430"
+     },
+     "close": {
+      "day": 5,
+      "time": "1830"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0900"
+     },
+     "close": {
+      "day": 6,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1430"
+     },
+     "close": {
+      "day": 6,
+      "time": "1830"
+     }
+    }
+   ],
+   "primaryType": "museum",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1430",
+      "close": "1830"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1430",
+      "close": "1830"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0900",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1430",
+      "close": "1830"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0900",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1430",
+      "close": "1830"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0900",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1430",
+      "close": "1830"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0900",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1430",
+      "close": "1830"
+     }
+    ]
+   }
+  },
+  "ChIJQQenMynjExMRTim9y_I0JEY": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "tourist_attraction",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  },
+  "ChIJ246EAS_jExMR__mpdyI1ULw": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "landmark",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  },
+  "ChIJRdKnHy7jExMR42DW15Kwg2k": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1000"
+     },
+     "close": {
+      "day": 0,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1000"
+     },
+     "close": {
+      "day": 2,
+      "time": "1330"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1630"
+     },
+     "close": {
+      "day": 2,
+      "time": "2030"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1000"
+     },
+     "close": {
+      "day": 3,
+      "time": "1330"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1630"
+     },
+     "close": {
+      "day": 3,
+      "time": "2030"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1000"
+     },
+     "close": {
+      "day": 4,
+      "time": "1330"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1630"
+     },
+     "close": {
+      "day": 4,
+      "time": "2030"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1000"
+     },
+     "close": {
+      "day": 5,
+      "time": "1330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1630"
+     },
+     "close": {
+      "day": 5,
+      "time": "2030"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1000"
+     },
+     "close": {
+      "day": 6,
+      "time": "2000"
+     }
+    }
+   ],
+   "primaryType": "banquet_hall",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1000",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1000",
+      "close": "1330"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1630",
+      "close": "2030"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1000",
+      "close": "1330"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1630",
+      "close": "2030"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1000",
+      "close": "1330"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1630",
+      "close": "2030"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1000",
+      "close": "1330"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1630",
+      "close": "2030"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1000",
+      "close": "2000"
+     }
+    ]
+   }
+  },
+  "ChIJb86NoNbiExMRDZqKKo7SVlE": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "0900"
+     },
+     "close": {
+      "day": 1,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0900"
+     },
+     "close": {
+      "day": 3,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0900"
+     },
+     "close": {
+      "day": 4,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0900"
+     },
+     "close": {
+      "day": 5,
+      "time": "1230"
+     }
+    }
+   ],
+   "primaryType": "association_or_organization",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "0900",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0900",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0900",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0900",
+      "close": "1230"
+     }
+    ]
+   }
+  },
+  "ChIJdVTSyEjjExMRmIZJkeodCY4": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1800"
+     },
+     "close": {
+      "day": 1,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1800"
+     },
+     "close": {
+      "day": 2,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1800"
+     },
+     "close": {
+      "day": 3,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1800"
+     },
+     "close": {
+      "day": 4,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1800"
+     },
+     "close": {
+      "day": 5,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1800"
+     },
+     "close": {
+      "day": 6,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1800"
+     },
+     "close": {
+      "day": 0,
+      "time": "0200"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1800",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "0200"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJlcUuTCzjExMRZuENI8AHxps": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1800"
+     },
+     "close": {
+      "day": 1,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1800"
+     },
+     "close": {
+      "day": 2,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1800"
+     },
+     "close": {
+      "day": 3,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1800"
+     },
+     "close": {
+      "day": 4,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1800"
+     },
+     "close": {
+      "day": 5,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1800"
+     },
+     "close": {
+      "day": 6,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1800"
+     },
+     "close": {
+      "day": 0,
+      "time": "0200"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1800",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "0200"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJ9bTT5mbjExMRkZuYM-b5aio": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1100"
+     },
+     "close": {
+      "day": 1,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1100"
+     },
+     "close": {
+      "day": 2,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1100"
+     },
+     "close": {
+      "day": 3,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1100"
+     },
+     "close": {
+      "day": 4,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1100"
+     },
+     "close": {
+      "day": 5,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1100"
+     },
+     "close": {
+      "day": 6,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1100"
+     },
+     "close": {
+      "day": 0,
+      "time": "0200"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1100",
+      "close": "0100",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1100",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "0100"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1100",
+      "close": "0100",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1100",
+      "close": "0100",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1100",
+      "close": "0100",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1100",
+      "close": "0200",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1100",
+      "close": "0200",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJ4aS0WaDjExMRZm-pSHW8PAg": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1230"
+     },
+     "close": {
+      "day": 3,
+      "time": "0030"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1230"
+     },
+     "close": {
+      "day": 4,
+      "time": "0030"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1230"
+     },
+     "close": {
+      "day": 5,
+      "time": "0030"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1230"
+     },
+     "close": {
+      "day": 6,
+      "time": "0030"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1230"
+     },
+     "close": {
+      "day": 0,
+      "time": "0030"
+     }
+    }
+   ],
+   "primaryType": "pub",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1230",
+      "close": "0030",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1230",
+      "close": "0030",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1230",
+      "close": "0030",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1230",
+      "close": "0030",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1230",
+      "close": "0030",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJq5mQzuXjExMRr-HUMu58vYc": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1800"
+     },
+     "close": {
+      "day": 1,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1800"
+     },
+     "close": {
+      "day": 2,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1800"
+     },
+     "close": {
+      "day": 3,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1800"
+     },
+     "close": {
+      "day": 4,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1800"
+     },
+     "close": {
+      "day": 5,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1800"
+     },
+     "close": {
+      "day": 6,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1800"
+     },
+     "close": {
+      "day": 0,
+      "time": "0200"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1800",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "0200"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJsQEuaevjExMRBHVcW0r2l2c": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1800"
+     },
+     "close": {
+      "day": 1,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1800"
+     },
+     "close": {
+      "day": 2,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1800"
+     },
+     "close": {
+      "day": 3,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1800"
+     },
+     "close": {
+      "day": 4,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1800"
+     },
+     "close": {
+      "day": 5,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1800"
+     },
+     "close": {
+      "day": 6,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1800"
+     },
+     "close": {
+      "day": 0,
+      "time": "0200"
+     }
+    }
+   ],
+   "primaryType": "pub",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1800",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "0200"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJuzxaAODjExMRccoJu6YRJ9c": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1800"
+     },
+     "close": {
+      "day": 1,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1800"
+     },
+     "close": {
+      "day": 3,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1800"
+     },
+     "close": {
+      "day": 4,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1800"
+     },
+     "close": {
+      "day": 5,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1800"
+     },
+     "close": {
+      "day": 6,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1800"
+     },
+     "close": {
+      "day": 0,
+      "time": "0200"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1800",
+      "close": "0200",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJu-0M4jHjExMRPloW29_Y1qs": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1800"
+     },
+     "close": {
+      "day": 1,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1800"
+     },
+     "close": {
+      "day": 3,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1800"
+     },
+     "close": {
+      "day": 4,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1800"
+     },
+     "close": {
+      "day": 5,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1800"
+     },
+     "close": {
+      "day": 6,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1800"
+     },
+     "close": {
+      "day": 0,
+      "time": "0300"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1800",
+      "close": "0300",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1800",
+      "close": "0300",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1800",
+      "close": "0300",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1800",
+      "close": "0300",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1800",
+      "close": "0300",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1800",
+      "close": "0300",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJJ0sw9_j9ExMRQvb87LmwGSc": {
+   "periods": [
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "1700"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "0300"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "1700"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "0300",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "0300",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "0300",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "0300",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJX3qRACTjExMRqiFdQ3F5dSY": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1000"
+     },
+     "close": {
+      "day": 0,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1000"
+     },
+     "close": {
+      "day": 2,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1000"
+     },
+     "close": {
+      "day": 3,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1000"
+     },
+     "close": {
+      "day": 4,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1000"
+     },
+     "close": {
+      "day": 5,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1000"
+     },
+     "close": {
+      "day": 6,
+      "time": "2000"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1000",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1000",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1000",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1000",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1000",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1000",
+      "close": "2000"
+     }
+    ]
+   }
+  },
+  "ChIJI5cU_IL9ExMRViGp8JGvWLc": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "1900"
+     },
+     "close": {
+      "day": 2,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "0200"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "1900",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "0200"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "0200",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "0200",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "0200",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "0200",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "0200",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJd_9ta9z9ExMRR0GUVs08hn8": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1230"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1230"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1230"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1230"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1230"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1230"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJ1ywZvd7jExMRLRsZIWll3xg": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "1900"
+     },
+     "close": {
+      "day": 2,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "0100"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "1900",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "0100"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "0100",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "0100",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "0100",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "0100",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "0100",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJma5_US_jExMR_EbNfhJfux4": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1130"
+     },
+     "close": {
+      "day": 1,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1130"
+     },
+     "close": {
+      "day": 2,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1130"
+     },
+     "close": {
+      "day": 3,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1130"
+     },
+     "close": {
+      "day": 4,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1130"
+     },
+     "close": {
+      "day": 5,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1130"
+     },
+     "close": {
+      "day": 6,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1130"
+     },
+     "close": {
+      "day": 0,
+      "time": "0200"
+     }
+    }
+   ],
+   "primaryType": "pub",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1130",
+      "close": "0200",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1130",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "0200"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1130",
+      "close": "0200",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1130",
+      "close": "0200",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1130",
+      "close": "0200",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1130",
+      "close": "0200",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1130",
+      "close": "0200",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJb9bknzfjExMRBz_pcd6tfDQ": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1000"
+     },
+     "close": {
+      "day": 0,
+      "time": "2355"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1000"
+     },
+     "close": {
+      "day": 1,
+      "time": "2355"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1000"
+     },
+     "close": {
+      "day": 2,
+      "time": "2355"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1000"
+     },
+     "close": {
+      "day": 4,
+      "time": "2355"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1000"
+     },
+     "close": {
+      "day": 5,
+      "time": "2355"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1000"
+     },
+     "close": {
+      "day": 6,
+      "time": "2355"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1000",
+      "close": "2355"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1000",
+      "close": "2355"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1000",
+      "close": "2355"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1000",
+      "close": "2355"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1000",
+      "close": "2355"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1000",
+      "close": "2355"
+     }
+    ]
+   }
+  },
+  "ChIJccCrTnDjExMRkdmWSDH9XGo": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1830"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1830"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1830"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1830"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1830"
+     },
+     "close": {
+      "day": 6,
+      "time": "0130"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1830"
+     },
+     "close": {
+      "day": 0,
+      "time": "0130"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1830",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1830",
+      "close": "0130",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1830",
+      "close": "0130",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJj3jPeSzjExMRc1-pJ_FJR2s": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1830"
+     },
+     "close": {
+      "day": 1,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1830"
+     },
+     "close": {
+      "day": 2,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1830"
+     },
+     "close": {
+      "day": 3,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1830"
+     },
+     "close": {
+      "day": 4,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1830"
+     },
+     "close": {
+      "day": 5,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1830"
+     },
+     "close": {
+      "day": 6,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1830"
+     },
+     "close": {
+      "day": 0,
+      "time": "0200"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1830",
+      "close": "0200",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1830",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "0200"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1830",
+      "close": "0200",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1830",
+      "close": "0200",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1830",
+      "close": "0200",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1830",
+      "close": "0200",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1830",
+      "close": "0200",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJMbSQj878ExMRSQSXQ-nxOKM": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "0130"
+     },
+     "close": {
+      "day": 1,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0200"
+     },
+     "close": {
+      "day": 4,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0930"
+     },
+     "close": {
+      "day": 0,
+      "time": "0200"
+     }
+    }
+   ],
+   "primaryType": "cocktail_bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "0130",
+      "close": "0200"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0200",
+      "close": "0200",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0930",
+      "close": "0200",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJmysZMQDjExMR71d5dtbg_Vs": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1900"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "0200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "0200"
+     }
+    }
+   ],
+   "primaryType": "pub",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "0200",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "0200",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJp71WSODjExMR77zG_Nqs3fY": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "1100"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1100"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1100"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1100"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1100"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1100"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "pub",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "from": "2026-10-13",
+    "to": "2026-10-19",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "1100",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1100",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1100",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1100",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1100",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1100",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  }
+ },
+ "orariRiepilogo": {
+  "postiDistinti": 60,
+  "chiamati": 0,
+  "nonRichiesti": 0,
+  "senzaOrari": 3,
+  "daRicerca": true
+ },
+ "fine": "2026-10-13T11:56:51.868Z"
+}

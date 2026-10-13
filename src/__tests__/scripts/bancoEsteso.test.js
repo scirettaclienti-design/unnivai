@@ -1,12 +1,12 @@
 // BANCO-ESTESO — i controlli si provano senza rete: rosso sul cattivo noto, verde sul buono.
 import { describe, it, expect } from 'vitest';
 import { validaControlli } from '../../../scripts/banco/validazione.js';
-import { CLASSI, DEFINIZIONI, eseguiControlli } from '../../../scripts/banco/controlli.js';
+import { CLASSI, DEFINIZIONI, eseguiControlli, c11 } from '../../../scripts/banco/controlli.js';
 import { apertoAlle, giornoEMinuti } from '../../../scripts/banco/orari.js';
 import { CASI_ESTESI, MODI } from '../../../scripts/banco/casi-esteso.js';
 import config from '../../../scripts/banco/banco.config.json';
 
-describe('banco esteso — validazione dei 10 controlli', () => {
+describe('banco esteso — validazione degli 11 controlli', () => {
     const righe = validaControlli(config);
     it('ogni classe ha una definizione scritta e una riga di validazione', () => {
         expect(righe.map(r => r.classe)).toEqual(CLASSI.map(([k]) => k));
@@ -164,5 +164,50 @@ describe('banco esteso — c5 con gli orari del giorno (ORARI-FESTIVI)', () => {
         const r = c5(c);
         expect(r.violazioni).toHaveLength(0);
         expect(r.daOrarioDellaSettimana).toBe(1);
+    });
+});
+
+describe('banco esteso — c11, buchi non dichiarati e tappe senza orario (CONTINUITA\')', () => {
+    const G = '2026-10-14';
+    const at = (hhmm) => `${G}T${hhmm}:00+02:00`;
+    // due posti vicinissimi (cammino ~0) salvo diversa indicazione
+    const st = (title, hhmm, stay, o = {}) => ({ title, place_id: `id-${title}`, at: hhmm ? at(hhmm) : null, stay, lat: 37.5, lng: 15.08, ...o });
+    const caso = (stops, o = {}) => ({ id: 'x', tipo: 'itinerario', tours: [{ stops }], ...o });
+    const libero = (hhmm, stay) => ({ title: 'Tempo libero', place_id: null, tempoLibero: true, at: at(hhmm), stay, lat: null, lng: null });
+
+    it('il caso di Ivano (Catania, martedi\' 13:48, Crea senza testo) e\' nella matrice', () => {
+        const c = CASI_ESTESI.find(x => x.id === 'crea-catania-1348');
+        expect(c).toMatchObject({ modo: 'crea', luogo: 'Catania', ora: '13:48', richiesta: '' });
+    });
+    it('Per Te non si applica: l\'arrivo e\' stimato, non c\'e\' un orario vero', () => {
+        expect(c11({ tipo: 'perte', tours: [{ stops: [st('a', '10:00', 30), st('b', '15:00', 30)] }] }, config).applicabile).toBe(false);
+    });
+    it('2 ore vuote fra due tappe: una violazione che dice quanto; con la riga di tempo libero e la sua fascia: verde', () => {
+        const rosso = c11(caso([st('a', '15:03', 20), st('b', '18:00', 20)]), config);
+        expect(rosso.violazioni).toHaveLength(1);
+        expect(rosso.violazioni[0].testo).toMatch(/^157 min senza tappa né riga prima di b/);
+        const verde = c11(caso([st('a', '15:03', 20), libero('15:23', 157), st('b', '18:00', 20)]), config);
+        expect(verde.violazioni).toEqual([]);
+        expect(verde.righeTempoLibero).toBe(1);
+    });
+    it('un tempo libero senza fascia (sosta 0) non copre niente', () => {
+        expect(c11(caso([st('a', '15:03', 20), libero('15:23', 0), st('b', '18:00', 20)]), config).violazioni.length).toBeGreaterThan(0);
+    });
+    it('45 minuti non sono un buco, 46 si; il cammino fra le due tappe si toglie', () => {
+        expect(c11(caso([st('a', '10:00', 30), st('b', '11:15', 20)]), config).violazioni).toEqual([]);
+        expect(c11(caso([st('a', '10:00', 30), st('b', '11:16', 20)]), config).violazioni).toHaveLength(1);
+        // 0.0225 gradi di latitudine ~2.5 km ~33 min a 4.5 km/h: dalle 10:30, 90 min di vuoto - 33 di cammino = 57 > 45; 60 - 33 = 27 ok
+        const lontana = (hhmm) => st('b', hhmm, 20, { lat: 37.5225 });
+        expect(c11(caso([st('a', '10:00', 30), lontana('12:00')]), config).violazioni).toHaveLength(1);
+        expect(c11(caso([st('a', '10:00', 30), lontana('11:30')]), config).violazioni).toEqual([]);
+    });
+    it('l\'attesa prima della prima tappa del giorno non e\' un buco', () => {
+        expect(c11(caso([st('a', '12:30', 75)]), config).violazioni).toEqual([]);
+    });
+    it('una tappa vera senza orario e\' una violazione; il tempo libero senza orario no', () => {
+        const r = c11(caso([libero('09:30', 0), st('a', null, 60), st('b', null, 60)]), config);
+        expect(r.senzaOrario).toBe(2);
+        expect(r.violazioni).toHaveLength(2);
+        expect(c11(caso([st('a', '10:00', 30), { ...libero('10:30', 0), at: null }]), config).violazioni).toEqual([]);
     });
 });

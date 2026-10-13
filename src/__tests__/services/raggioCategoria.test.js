@@ -223,8 +223,13 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
 
         // (4) Il risultato: solo spiagge, zero food, e nessuna sotto "Pranzo".
         expect(result._source).toBe('google-first');
-        const stops = result.days[0].stops;
-        expect(stops.map(s => s.moment)).toEqual(['mattina', 'pomeriggio']);
+        // CONTINUITA' — le 3 spiagge sono tutto il pool: la mattina ne prende due (era una), fra mattina e pomeriggio
+        // resta un buco, dichiarato con la sua fascia.
+        const tutte = result.days[0].stops;
+        expect(tutte.filter(s => s.tempoLibero)).toHaveLength(1);
+        expect(tutte.find(s => s.tempoLibero).stayMinutes).toBeGreaterThan(45);
+        const stops = tutte.filter(s => !s.tempoLibero);
+        expect(stops.map(s => s.moment)).toEqual(['mattina', 'mattina', 'pomeriggio']);
         expect(stops.every(s => SPIAGGE.some(p => p.name === s.title))).toBe(true);
         expect(stops.every(s => s.type !== 'restaurant')).toBe(true);
         expect(stops.some(s => (s.types || []).some(t => ['restaurant', 'food', 'bar', 'cafe'].includes(t)))).toBe(false);
@@ -308,8 +313,13 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
 
         // (4) Il risultato finale: solo spiagge, zero food, pranzo saltato (P3e).
         expect(result._source).toBe('google-first');
-        const stops = result.days[0].stops;
-        expect(stops.map(s => s.moment)).toEqual(['mattina', 'pomeriggio']);
+        // CONTINUITA' — le 3 spiagge sono tutto il pool: la mattina ne prende due (era una), fra mattina e pomeriggio
+        // resta un buco, dichiarato con la sua fascia.
+        const tutte = result.days[0].stops;
+        expect(tutte.filter(s => s.tempoLibero)).toHaveLength(1);
+        expect(tutte.find(s => s.tempoLibero).stayMinutes).toBeGreaterThan(45);
+        const stops = tutte.filter(s => !s.tempoLibero);
+        expect(stops.map(s => s.moment)).toEqual(['mattina', 'mattina', 'pomeriggio']);
         expect(stops.every(s => SPIAGGE.some(p => p.name === s.title))).toBe(true);
     });
 

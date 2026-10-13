@@ -195,7 +195,7 @@ async function genera(caso) {
 for (const caso of casi) {
     it(caso.id, async () => {
         const rec = { id: caso.id, modo: caso.modo, tipo: caso.modo === 'perte' ? 'perte' : 'itinerario', luogo: caso.luogo, ora: caso.ora,
-            oggi: E.giornoSimulato, richiesta: caso.richiesta || (caso.modo === 'veloce' ? null : caso.tema || null), onboarding: caso.onboarding || null };
+            oggi: caso.giorno ?? E.giornoSimulato, richiesta: caso.richiesta || (caso.modo === 'veloce' ? null : caso.tema || null), onboarding: caso.onboarding || null };
         out.casi.push(rec);
         // Con la ricerca nuova non c'e' la fase dei dettagli per gli orari: le generazioni possono usare tutto il tetto.
         const tettoGen = MOTORE === 'new' ? (Number(process.env.BANCO_TETTO) || E.tettoUsd) : E.tettoGenerazioniUsd;
@@ -261,6 +261,8 @@ for (const caso of casi) {
                 rec.ripiegoDichiarato = !!(r._singleStop || r._queryDiBaseDopoVuoto || r._source === 'closed-now');
                 if (r._source === 'closed-now') rec.chiusoOra = r._messaggio;
                 rec.orariMotore = r._orari ?? null;
+                // CONTINUITA' — le tappe aggiunte ai buchi e i buchi dichiarati, dal rapporto del motore
+                rec.continuita = r._momentReport?.continuita ?? null;
                 rec.schermo = { giorni: (r.days || []).map(d => ({ titolo: d.title || null, meteo: d.weather ?? null })),
                     note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote)].filter(Boolean) };
                 const per = new Map((r._narrationReport?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));

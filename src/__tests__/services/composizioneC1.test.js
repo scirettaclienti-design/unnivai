@@ -421,7 +421,9 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         'Roma', { interests: ['Arte', 'Cibo'], pace: 'Rilassato', duration: '1 Giorno' }, 'Domani voglio vivere Roma da romano', {}, '', C,
         { dnaWeights: {}, pathType: 'custom', skipUserQuota: true },
     );
-    const byMoment = (res) => Object.fromEntries(res.days.flatMap(d => d.stops).map(s => [s.moment, s]));
+    // CONTINUITA' — i buchi dichiarati (`_tracciato.buco`) sono righe in piu': la mappa dei momenti guarda le tappe e il tempo libero di scelta (O).
+    const senzaBuchi = (stops) => stops.filter(s => !s._tracciato?.buco);
+    const byMoment = (res) => Object.fromEntries(senzaBuchi(res.days.flatMap(d => d.stops)).map(s => [s.moment, s]));
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -464,12 +466,17 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         expect(st.aperitivo._tracciato).toMatchObject({ scelta: 'tempo libero' });
         expect(st.aperitivo._tracciato.motivo).toMatch(/^nessun posto entro 40 min dalla tappa prima \(anche dopo la ricerca mirata\): il piu' vicino, "Belvedere Lontano", e' a \d+ min$/);
         expect(searches.filter(s => s.radius === String(MAX_WALK_METERS))).toHaveLength(1);
-        expect(res._momentReport.tempoLibero).toEqual([expect.objectContaining({ momento: 'g1-aperitivo' })]);
+        expect(res._momentReport.tempoLibero.filter(x => !x.buco)).toEqual([expect.objectContaining({ momento: 'g1-aperitivo' })]);
+        // CONTINUITA' — la mattina finisce presto e il pranzo comincia alle 12:30: un buco, dichiarato con la sua fascia.
+        const buchi = res.days[0].stops.filter(x => x._tracciato?.buco);
+        expect(buchi).toHaveLength(1);
+        expect(buchi[0]).toMatchObject({ tempoLibero: true, moment: 'mattina' });
+        expect(buchi[0].stayMinutes).toBe(buchi[0]._tracciato.buco);
         // La cena e' sempre un pasto: c'e', scelta dalla tappa vera prima.
         expect(st.cena).toBeTruthy();
         expect(st.cena.tempoLibero).toBeUndefined();
         // L'ordine del giorno resta quello dei momenti, e il tempo libero non ha orario proprio di cammino.
-        expect(res.days[0].stops.map(x => x.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
+        expect(senzaBuchi(res.days[0].stops).map(x => x.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
         // Dalla cache: il tempo libero resta tale, con lo stesso testo (non si ricompone come una tappa).
         const res2 = await genera();
         expect(byMoment(res2).aperitivo).toMatchObject({ tempoLibero: true, description: st.aperitivo.description });

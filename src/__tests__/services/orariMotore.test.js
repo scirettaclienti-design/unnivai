@@ -128,7 +128,7 @@ describe('senza orari (ricerca vecchia)', () => {
         const r = await genera([place('a', 0, null), place('b', 1, null), place('c', 2, null)], '15:00');
         expect(r._source).toBe('google-first');
         expect(nomi(r).length).toBeGreaterThan(0);
-        for (const s of r.days[0].stops) expect(s._tracciato?.orario).toBe('sconosciuto');
+        for (const s of r.days[0].stops.filter(x => !x.tempoLibero)) expect(s._tracciato?.orario).toBe('sconosciuto');
         expect(r._orari.chiusi).toEqual([]);
     });
     it('a tarda sera, senza orari, il giro resta com\'e\' (niente messaggio)', async () => {

@@ -92,7 +92,8 @@
       "c7": 2,
       "c8": 3,
       "c9": 5,
-      "c10": 5
+      "c10": 5,
+      "c11": 4
     },
     "baselineLegacy": "docs/prove/dati/2026-10-13-banco-esteso.json",
     "baselineNew": "docs/prove/dati/2026-10-13-banco-esteso-new.json",
@@ -100,6 +101,11 @@
     "tettoOrariUsd": 6.0,
     "tettoC6aUsd": 5.0,
     "baselineC6a": "docs/prove/dati/2026-10-13-banco-esteso-c6a.json",
-    "tettoFestiviUsd": 2.0
+    "tettoFestiviUsd": 2.0,
+    "_buchi": "CONTINUITA' — c11: fra due voci consecutive di un giro (tappe e righe di tempo libero) il tempo non coperto da sosta e cammino non supera buchiMinuti. Il cammino e' haversine a camminoKmh (come nel prodotto, ricalcolato qui: il banco non importa il motore).",
+    "buchiMinuti": 45,
+    "camminoKmh": 4.5,
+    "tettoContinuitaUsd": 5.0,
+    "baselineFestivi": "docs/prove/dati/2026-10-13-banco-esteso-festivi.json"
   }
 }

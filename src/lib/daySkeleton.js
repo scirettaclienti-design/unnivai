@@ -47,7 +47,7 @@ export const MAX_STOPS_PER_DAY = 8;
 const LONG_MOMENT_MINUTES = 180;
 // P3 — i soli momenti in cui il ritmo puo' mettere piu' di una tappa.
 // Pranzo e cena sono un pasto ciascuno; l'aperitivo e' uno.
-const EXPANDABLE_KEYS = new Set(['mattina', 'pomeriggio', 'dopocena']);
+export const EXPANDABLE_KEYS = new Set(['mattina', 'pomeriggio', 'dopocena']);
 
 const CULTURE_CATEGORIES = ['cultura', 'monumenti', 'musei'];
 const MEAL_KEYS = new Set(['pranzo', 'aperitivo', 'cena']);

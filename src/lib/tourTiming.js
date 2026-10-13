@@ -261,7 +261,12 @@ export function computeCumulativeOffsets(stops) {
         if (i === 0) { acc = wait(stops[0]); out.push(acc); continue; }
         if (broken) { out.push(null); continue; }
         const prevStay = stops[i - 1]?.stayMinutes;
-        const travel = stops[i]?.travelMinutesFromPrev;
+        let travel = stops[i]?.travelMinutesFromPrev;
+        // CONTINUITA' — la prima tappa VERA dopo un tempo libero in testa al giorno
+        // non ha una tappa prima da cui camminare: come la prima del giorno, il suo
+        // travel e' null per scelta e non assorbe. Prima assorbiva, e le tappe dopo
+        // un tempo libero iniziale restavano senza orario.
+        if (!Number.isFinite(travel) && !stops[i]?.tempoLibero && stops.slice(0, i).every(x => x?.tempoLibero)) travel = 0;
         // `?? 0` qui sarebbe il difetto: direbbe "sosta zero" / "spostamento
         // zero" dove il dato manca, e propagherebbe l'affermazione a valle.
         if (!Number.isFinite(prevStay) || !Number.isFinite(travel)) {

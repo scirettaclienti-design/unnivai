@@ -115,6 +115,39 @@ export const ESEMPI = {
             st('Museo Civico', { types: ['museum'], dietaCercata: false, dietaSolo: false }),
         ], { vincoli: { dieta: ['vegetariano'] } }) },
     },
+    // CONTINUITA' — c11. L'esempio cattivo e' la prova di Ivano (martedi' 13/10 ore 13:48, Catania, Crea senza testo),
+    // rigirata col motore di prima: pomeriggio con 2 tappe (30 + 60 min), poi niente fino all'aperitivo delle 18:00.
+    // Il grezzo e' in docs/prove/dati/2026-10-13-banco-esteso-continuita-prima.json (orari e coordinate di li').
+    c11: {
+        cattivo: { nome: 'Catania 13:48: Elefanti 14:30 (30 min), Museo Bellini 15:03 (60 min), poi niente fino all\'aperitivo delle 18:00 (circa 2 ore senza una riga)',
+            origine: 'telefono di Ivano 13/10 ore 13:48, rigirato (docs/prove/dati/2026-10-13-banco-esteso-continuita-prima.json)',
+            caso: caso([
+                st('Palazzo degli Elefanti', { moment: 'pomeriggio', at: at('14:30'), stay: 30, lat: 37.50285, lng: 15.08715 }),
+                st('Museo Vincenzo Bellini', { types: ['museum'], moment: 'pomeriggio', at: at('15:03'), stay: 60, lat: 37.50276, lng: 15.08444 }),
+                st('Deliziosa Café & Cocktail Bar', { types: ['cocktail_bar'], moment: 'aperitivo', at: at('18:00'), stay: 20, lat: 37.50310, lng: 15.08484 }),
+                st('Trattoria del Lago', { types: ['restaurant', 'food'], moment: 'cena', at: at('20:00'), stay: 75, pasto: true, lat: 37.50791, lng: 15.07927 }),
+            ]) },
+        cattivo2: { nome: 'tempo libero in testa al giorno e le 4 tappe dopo senza orario (crea-firenze-arte)', origine: 'grezzo 2026-10-13-banco-esteso-festivi.json, crea-firenze-arte',
+            caso: caso([
+                st('Tempo libero', { place_id: null, types: [], moment: 'mattina', at: at('09:30'), stay: 0, tempoLibero: true }),
+                st('Osteria dei Leoni', { types: ['restaurant', 'food'], moment: 'pranzo', at: null, stay: 75, pasto: true }),
+                st('Galleria Poggiali', { types: ['art_gallery'], moment: 'pomeriggio', at: null, stay: 60 }),
+            ]) },
+        buono: { nome: 'lo stesso pomeriggio pieno: 6 tappe una dopo l\'altra, nessun buco oltre 45 minuti', caso: caso([
+            st('Palazzo degli Elefanti', { moment: 'pomeriggio', at: at('14:30'), stay: 30, lat: 37.50285, lng: 15.08715 }),
+            st('Museo Vincenzo Bellini', { types: ['museum'], moment: 'pomeriggio', at: at('15:03'), stay: 60, lat: 37.50276, lng: 15.08444 }),
+            st('Chiesa di San Francesco Borgia', { types: ['church'], moment: 'pomeriggio', at: at('16:10'), stay: 20, lat: 37.50300, lng: 15.08460 }),
+            st('Palazzo Platamone', { moment: 'pomeriggio', at: at('16:35'), stay: 30, lat: 37.50330, lng: 15.08520 }),
+            st('Odeon Romano', { moment: 'pomeriggio', at: at('17:08'), stay: 30, lat: 37.50340, lng: 15.08560 }),
+            st('Deliziosa Café & Cocktail Bar', { types: ['cocktail_bar'], moment: 'aperitivo', at: at('18:00'), stay: 20, lat: 37.50310, lng: 15.08484 }),
+        ]) },
+        buono2: { nome: 'il buco e\' una riga di tempo libero con la sua fascia (16:03–18:00); la tappa dopo ha il suo orario', caso: caso([
+            st('Palazzo degli Elefanti', { moment: 'pomeriggio', at: at('14:30'), stay: 30, lat: 37.50285, lng: 15.08715 }),
+            st('Museo Vincenzo Bellini', { types: ['museum'], moment: 'pomeriggio', at: at('15:03'), stay: 60, lat: 37.50276, lng: 15.08444 }),
+            st('Tempo libero', { place_id: null, types: [], moment: 'pomeriggio', at: at('16:03'), stay: 117, tempoLibero: true }),
+            st('Deliziosa Café & Cocktail Bar', { types: ['cocktail_bar'], moment: 'aperitivo', at: at('18:00'), stay: 20, lat: 37.50310, lng: 15.08484 }),
+        ]) },
+    },
 };
 
 const passi = (n, ko = []) => Array.from({ length: n }, (_, i) => ({ nome: `passo ${i + 1}`, ok: !ko.includes(i + 1) }));
@@ -130,12 +163,13 @@ export function validaControlli(cfg) {
     const righe = Object.entries(ESEMPI).map(([k, e]) => {
         const f = CONTROLLI[k];
         const rosso = f(e.cattivo.caso, cfg).violazioni;
+        const rosso2 = e.cattivo2 ? f(e.cattivo2.caso, cfg).violazioni : null;
         const verde = f(e.buono.caso, cfg).violazioni;
         const verde2 = e.buono2 ? f(e.buono2.caso, cfg).violazioni : [];
         const sc = e.buono.verificaSconosciuto != null ? f(e.buono.caso, cfg).sconosciuti === e.buono.verificaSconosciuto : true;
-        return { classe: k, cattivo: e.cattivo.nome, origine: e.cattivo.origine, buono: e.buono.nome,
-            cattivoRosso: rosso.length > 0, buonoVerde: verde.length === 0 && verde2.length === 0 && sc,
-            visto: rosso.map(v => v.testo), falsiAllarmi: [...verde, ...verde2].map(v => v.testo) };
+        return { classe: k, cattivo: e.cattivo.nome + (e.cattivo2 ? ` · ${e.cattivo2.nome}` : ''), origine: e.cattivo.origine + (e.cattivo2 ? ` · ${e.cattivo2.origine}` : ''), buono: e.buono.nome,
+            cattivoRosso: rosso.length > 0 && (!rosso2 || rosso2.length > 0), buonoVerde: verde.length === 0 && verde2.length === 0 && sc,
+            visto: [...rosso, ...(rosso2 || [])].map(v => v.testo), falsiAllarmi: [...verde, ...verde2].map(v => v.testo) };
     });
     const r = c9(ESEMPIO_C9.cattivo.onb1, cfg).violazioni;
     const v = c9(ESEMPIO_C9.buono.onb1, cfg).violazioni;

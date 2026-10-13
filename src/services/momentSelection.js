@@ -43,7 +43,8 @@
 import { computeCandidateScore } from './candidateScoring';
 import { stayOf, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
 import { placeKind, KINDS, COMMERCIAL_KINDS, LOCALE_CATEGORIES } from '../lib/placeKind';
-import { FOOD_ONLY_MOMENT_KEYS } from '../lib/daySkeleton';
+import { FOOD_ONLY_MOMENT_KEYS, EXPANDABLE_KEYS, MAX_STOPS_PER_DAY } from '../lib/daySkeleton';
+import { scheduleGaps, retimeWaits, totalGapMinutes, realStopCount } from '../lib/continuity';
 import { freeTimeDecision } from '../lib/freeTime';
 import { brandKey, legKm, pathKm, minimalPathKm, countCrossings, crossingPairs, repeatedBrands, stopDetours } from '../lib/routeShape';
 import { openStatus, OPEN, CLOSED, UNKNOWN, NIGHT_FROM_MINUTES, romeMinutes } from '../lib/openingHours';
@@ -1466,6 +1467,125 @@ export function settleOpeningHours({ repair, schedule, veto, maxPasses = 4 }) {
         sched = schedule(repaired.plan);
     }
     return { repaired, sched, giri, residui: closedInSchedule(sched) };
+}
+
+// ─── 6. CONTINUITA' — nessun buco non dichiarato oltre 45 minuti ────────────
+//
+// Una tappa in piu' non e' mai un altro pasto: "nessuno pranza due volte". Con una richiesta
+// tutta di ristoranti ("nei ristoranti tipici") ogni momento ha solo ristoranti: li' il buco
+// non si riempie e si dichiara.
+//
+// Un momento comincia alla sua ora (il pranzo alle 12:30) anche se la tappa
+// prima e' finita da un pezzo: l'attesa e' un buco. Prima di dichiararlo si
+// prova a riempirlo con UNA tappa in piu' nel momento che lo contiene, con
+// tutte le regole di sempre (la stessa repair: varieta', percorso, tetto di
+// cammino, orari). Solo mattina, pomeriggio e dopocena (come il ritmo). Il tentativo vale solo se il giro ha una tappa vera in piu',
+// meno minuti di buco, e NON peggiora niente: nessun ripiego, nessun tempo
+// libero, nessuna tappa tolta in piu'. Altrimenti si torna indietro.
+
+const mealCount = (sched) => (sched?.days || []).reduce((n, d) => n + d.filter(s => isMealPlace(s.candidate)).length, 0);
+const cloneVeto = (veto) => new Map([...veto.entries()].map(([k, v]) => [k, new Set(v)]));
+const restoreVeto = (veto, saved) => {
+    veto.clear();
+    for (const [k, v] of saved) veto.set(k, v);
+};
+const overlapMin = (aS, aE, bS, bE) => Math.max(0, (Math.min(aE, bE) - Math.max(aS, bS)) / 60000);
+
+/** I momenti in cui si puo' mettere una tappa in piu' per chiudere un buco, dal piu' sovrapposto. */
+export function momentsToExpand(gap, moments) {
+    const dayTotal = moments.filter(m => m.dayIndex === gap.dayIndex).reduce((n, m) => n + m.stops, 0);
+    if (dayTotal >= MAX_STOPS_PER_DAY) return [];
+    return moments
+        .filter(m => m.dayIndex === gap.dayIndex && EXPANDABLE_KEYS.has(m.key) && m.start instanceof Date)
+        .map(m => ({ m, o: overlapMin(m.start.getTime(), m.end.getTime(), gap.from.getTime(), gap.to.getTime()) }))
+        .filter(x => x.o >= 15)
+        .sort((a, b) => b.o - a.o)
+        .map(x => x.m);
+}
+
+/** Il momento in cui comincia il buco (dove sta la riga di tempo libero), o null. */
+export function momentAt(moments, dayIndex, when) {
+    const t = when.getTime();
+    return moments.find(m => m.dayIndex === dayIndex && m.start instanceof Date && m.start.getTime() <= t && t < m.end.getTime()) || null;
+}
+
+/**
+ * Riempie i buchi oltre GAP_MAX_MINUTES con tappe vere, una alla volta.
+ * @param {object} p
+ * @param {Array} p.moments        da flattenSkeleton (si alza `stops` di uno dove una tappa in piu' entra)
+ * @param {object} p.repaired      l'uscita di repair() del piano di partenza
+ * @param {object} p.sched         il piano messo in orario (scheduleMomentPlan, senza tappe chiuse)
+ * @param {() => object} p.repair  repairMomentSelection sui bucket senza i vietati
+ * @param {(plan: Array) => object} p.schedule scheduleMomentPlan
+ * @param {Map<string, Set<string>>} p.veto condiviso con chi costruisce i bucket
+ * @param {boolean} [p.espandi] false con ritmo Rilassato: niente tappe in piu', i buchi restano da dichiarare
+ * @returns {{ repaired, sched, aggiunte: Array<{ momento, dayIndex, minutiPrima, minutiDopo }>, tentativi: number }}
+ */
+export function fillGaps({ moments, repaired, sched, repair, schedule, veto, espandi = true, maxPasses = 8 }) {
+    let cur = { repaired, sched: retimeWaits(sched) };
+    const aggiunte = [];
+    let tentativi = 0;
+    // Ritmo Rilassato (1 tappa per momento, scelta dell'utente): non si aggiungono tappe, il buco si dichiara.
+    for (let pass = 0; espandi && pass < maxPasses; pass++) {
+        const gaps = scheduleGaps(cur.sched).sort((a, b) => b.minutes - a.minutes);
+        if (gaps.length === 0) break;
+        let accepted = false;
+        for (const gap of gaps) {
+            for (const m of momentsToExpand(gap, moments)) {
+                tentativi += 1;
+                const saved = { stops: m.stops, veto: cloneVeto(veto) };
+                m.stops += 1;
+                const trial = settleOpeningHours({ repair, schedule, veto });
+                const trialSched = retimeWaits(trial.sched);
+                const rep = trial.repaired.report;
+                const was = cur.repaired.report;
+                const better = trial.residui.length === 0
+                    && mealCount(trialSched) <= mealCount(cur.sched)
+                    && realStopCount(trialSched) > realStopCount(cur.sched)
+                    && totalGapMinutes(trialSched) < totalGapMinutes(cur.sched)
+                    && (rep.ripieghi?.length ?? 0) <= (was.ripieghi?.length ?? 0)
+                    && (rep.tempoLibero?.length ?? 0) <= (was.tempoLibero?.length ?? 0)
+                    && trialSched.tolte.length <= cur.sched.tolte.length;
+                if (better) {
+                    aggiunte.push({ momento: m.id, dayIndex: m.dayIndex, minutiPrima: totalGapMinutes(cur.sched), minutiDopo: totalGapMinutes(trialSched) });
+                    cur = { repaired: trial.repaired, sched: trialSched };
+                    accepted = true;
+                    break;
+                }
+                m.stops = saved.stops;
+                restoreVeto(veto, saved.veto);
+            }
+            if (accepted) break;
+        }
+        if (!accepted) break;
+    }
+    return { repaired: cur.repaired, sched: cur.sched, aggiunte, tentativi };
+}
+
+/**
+ * CONTINUITA' — i buchi rimasti dopo il tentativo di riempirli, come righe di
+ * tempo libero (stesso formato di report.tempoLibero), ancorate alla tappa che
+ * segue (`prima`). Un buco gia' coperto da una riga esistente (regola O, momento
+ * chiuso) che cade dentro di lui non ne riceve una seconda.
+ * @returns {Array} righe con `buco` = minuti
+ */
+export function gapRows({ moments, sched, tempoLibero = [] }) {
+    const rows = [];
+    for (const g of scheduleGaps(sched)) {
+        const gia = (tempoLibero || []).some(e => e.dayIndex === g.dayIndex
+            && moments.some(m => m.id === e.momento && overlapMin(m.start.getTime(), m.end.getTime(), g.from.getTime(), g.to.getTime()) > 0));
+        if (gia) continue;
+        let m = momentAt(moments, g.dayIndex, g.from) || g.prev.moment;
+        // Un pasto saltato (nessun locale) non rientra dal buco: senza tappe nel suo momento, la riga sta con la tappa prima.
+        if (FOOD_ONLY_MOMENT_KEYS.has(m.key) && !(sched.days[g.dayIndex] || []).some(x => x.moment.id === m.id)) m = g.prev.moment;
+        rows.push({
+            momento: m.id, key: m.key, label: m.label, dayIndex: g.dayIndex, posto: 0,
+            dopo: nameOf(g.prev.candidate), prima: idOf(g.next.candidate), piuVicino: null,
+            chiuso: false, pasto: false, buco: g.minutes,
+            motivo: `${g.minutes} min fra "${nameOf(g.prev.candidate)}" e "${nameOf(g.next.candidate)}": nessuna tappa in piu' da aggiungere (varieta', percorso e orari)`,
+        });
+    }
+    return rows;
 }
 
 /** Toglie dal piano messo in orario le tappe indicate (per place_id e momento): l'ultima rete, mai una tappa chiusa. */

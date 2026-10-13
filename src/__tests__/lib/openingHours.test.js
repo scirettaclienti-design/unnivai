@@ -1,6 +1,6 @@
 // ORARI — aperto per tutta la sosta, nel giorno vero, nel fuso del posto.
 import { describe, it, expect } from 'vitest';
-import { openStatus, localClock, periodsOf, OPEN, CLOSED, UNKNOWN, MESSAGGIO_CHIUSO } from '../../lib/openingHours';
+import { openStatus, localClock, periodsOf, OPEN, CLOSED, UNKNOWN, messaggioChiuso, MESSAGGIO_PRESTO, MESSAGGIO_SERA, MESSAGGIO_ORA, TESTO_NESSUN_LOCALE_APERTO } from '../../lib/openingHours';
 
 // mercoledi' 14/10/2026 (CEST, +02:00)
 const at = (hhmm, day = '2026-10-14') => new Date(`${day}T${hhmm}:00+02:00`);
@@ -75,6 +75,25 @@ describe('fuso del posto', () => {
     });
 });
 
-it('il messaggio notturno provvisorio e\' quello dichiarato', () => {
-    expect(MESSAGGIO_CHIUSO).toBe("Meglio domattina: a quest'ora qui è quasi tutto chiuso.");
+describe('i messaggi approvati per "quasi tutto chiuso"', () => {
+    const alle = (hhmm) => new Date(`2026-10-14T${hhmm}:00+02:00`);
+    it('prima delle 12: è presto', () => {
+        for (const h of ['00:30', '06:00', '08:15', '11:59']) expect(messaggioChiuso(alle(h)), h).toBe('È presto: qui quasi tutto apre più tardi.');
+        expect(MESSAGGIO_PRESTO).toBe('È presto: qui quasi tutto apre più tardi.');
+    });
+    it('dalle 18 in poi: il giro giusto parte domattina', () => {
+        for (const h of ['18:00', '21:45', '23:30']) expect(messaggioChiuso(alle(h)), h).toBe('A quest’ora qui è quasi tutto chiuso. Il giro giusto parte domattina.');
+        expect(MESSAGGIO_SERA).toBe('A quest’ora qui è quasi tutto chiuso. Il giro giusto parte domattina.');
+    });
+    it('nelle altre ore (12–17:59)', () => {
+        for (const h of ['12:00', '15:00', '17:59']) expect(messaggioChiuso(alle(h)), h).toBe('A quest’ora qui è quasi tutto chiuso.');
+        expect(MESSAGGIO_ORA).toBe('A quest’ora qui è quasi tutto chiuso.');
+    });
+    it('si legge l\'ora di Roma (non quella del telefono) e senza data vale il testo neutro', () => {
+        expect(messaggioChiuso(new Date('2026-10-14T16:30:00Z'))).toBe(MESSAGGIO_SERA);     // 18:30 a Roma
+        expect(messaggioChiuso(null)).toBe(MESSAGGIO_ORA);
+    });
+    it('la riga dei pasti senza nessun locale aperto', () => {
+        expect(TESTO_NESSUN_LOCALE_APERTO).toBe('Nessun locale aperto qui vicino a quest’ora.');
+    });
 });

@@ -3,7 +3,7 @@
 // a quell'ora quasi tutto chiuso → messaggio dichiarato; mai una tappa chiusa.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { aiRecommendationService } from '../../services/aiRecommendationService';
-import { MESSAGGIO_CHIUSO } from '../../lib/openingHours';
+import { MESSAGGIO_ORA, MESSAGGIO_SERA } from '../../lib/openingHours';
 
 const CABRAS = { latitude: 39.9297, longitude: 8.5297, isSmallTown: true, radiusKm: 5 };
 const aKm = (km) => CABRAS.latitude + (km / 111);
@@ -59,7 +59,7 @@ describe('flusso a momenti (pomeriggio)', () => {
     it('a quell\'ora tutto chiuso → messaggio dichiarato, non "non troviamo" e non un giro', async () => {
         const r = await genera([place('a', 0, tutti('1800', '2300')), place('b', 1, tutti('1800', '2300')), place('c', 2, tutti('1900', '2300'))], '15:00');
         expect(r._source).toBe('closed-now');
-        expect(r._messaggio).toBe(MESSAGGIO_CHIUSO);
+        expect(r._messaggio).toBe(MESSAGGIO_ORA);
         expect(nomi(r)).toEqual([]);
     });
 });
@@ -87,7 +87,7 @@ describe('flusso senza scheletro (sera tarda, Veloce)', () => {
     it('meno di 2 tappe aperte → messaggio dichiarato', async () => {
         const r = await genera([place('chiuso1', 0, tutti('0900', '1900')), place('chiuso2', 1, tutti('0900', '2000')), place('notte1', 2, SEMPRE)], '23:40', 'quick');
         expect(r._source).toBe('closed-now');
-        expect(r._messaggio).toBe(MESSAGGIO_CHIUSO);
+        expect(r._messaggio).toBe(MESSAGGIO_SERA);
     });
 });
 
@@ -119,7 +119,7 @@ describe('il messaggio notturno solo se le chiusure hanno tolto tappe', () => {
     it('lo stesso giro ma nessun locale aperto: il messaggio dichiarato', async () => {
         const r = await generaCibo([ristorante('chiusa1', 0, tutti('1900', '1930')), ristorante('chiusa2', 1, tutti('1000', '1500'))], '20:15');
         expect(r._source).toBe('closed-now');
-        expect(r._messaggio).toBe(MESSAGGIO_CHIUSO);
+        expect(r._messaggio).toBe(MESSAGGIO_SERA);
     });
 });
 

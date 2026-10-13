@@ -13,7 +13,6 @@ import { useQuery } from "@tanstack/react-query";
 import { dataService, createGuideRequest } from "@/services/dataService";
 import { useAILearning } from '../hooks/useAILearning';
 import { resolveFoodPrefs, foodPrefsFingerprint } from '@/lib/foodPrefs';
-import { MESSAGGIO_CHIUSO } from '@/lib/openingHours';
 import { placesDiscoveryService, PlacesSearchError, PLACES_SEARCH_ERROR_MESSAGE } from '@/services/placesDiscoveryService';
 
 // Gate INTERESSI-VERI — tre esiti diversi, tre testi diversi:
@@ -160,7 +159,7 @@ const DashboardUser = () => {
     const hasPreferences = dnaShare > 0;
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
     // ORARI — a quest'ora i posti chiusi hanno tolto tutti i tour: lo stato vuoto dice "meglio domattina".
-    const [chiusoOra, setChiusoOra] = useState(false);
+    const [chiusoOra, setChiusoOra] = useState(null);   // il messaggio (per fascia oraria) o null
 
     useEffect(() => {
         const goOffline = () => setIsOffline(true);
@@ -277,7 +276,7 @@ const DashboardUser = () => {
                 if (homeToursResult?._source === 'error') {
                     throw new Error(`generateHomeTours: ${homeToursResult._error || 'errore'}`);
                 }
-                setChiusoOra(homeToursResult?._source === 'closed-now');
+                setChiusoOra(homeToursResult?._source === 'closed-now' ? homeToursResult._messaggio : null);
 
                 // Mapping output → shape UI. Ogni tour del narratore diventa una
                 // card, insider in cima (badge dedicato). Regola II.2 applicata a
@@ -722,7 +721,7 @@ const DashboardUser = () => {
                                 <div className="w-12 h-12 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-center justify-center mx-auto mb-3 text-obsidian-secondary">
                                     <Compass className="w-6 h-6 stroke-[1.5]" />
                                 </div>
-                                <p className="text-obsidian-primary text-sm mb-1 font-semibold">{chiusoOra ? MESSAGGIO_CHIUSO : (city ? `Nessuna guida ha ancora pubblicato un tour a ${city}.` : 'Nessuna guida ha ancora pubblicato un tour qui.')}</p>
+                                <p className="text-obsidian-primary text-sm mb-1 font-semibold">{chiusoOra ? chiusoOra : (city ? `Nessuna guida ha ancora pubblicato un tour a ${city}.` : 'Nessuna guida ha ancora pubblicato un tour qui.')}</p>
                                 {/* Gate SOLO-GOOGLE (27/09) — la riga precedente diceva
                                     "Il motore AI ne costruisce uno adesso": non era vero
                                     proprio qui, dove si arriva DOPO che il motore ha girato

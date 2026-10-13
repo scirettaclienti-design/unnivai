@@ -62,7 +62,7 @@ vi.mock('@/services/aiRecommendationService', () => ({
 }));
 
 import QuickPath from '../../pages/QuickPath';
-import { MESSAGGIO_CHIUSO } from '../../lib/openingHours';
+import { MESSAGGIO_SERA as MESSAGGIO_CHIUSO } from '../../lib/openingHours';
 
 beforeEach(() => { generateItinerary.mockReset(); });
 

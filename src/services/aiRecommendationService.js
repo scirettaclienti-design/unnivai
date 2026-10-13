@@ -173,7 +173,9 @@ export const BLACKLIST_TYPES = new Set([
 // porta data, primo momento e interessi. I tour cached prima hanno testi
 // scritti dal selettore, senza orario: non vanno serviti.
 // P3d-j — le voci di prima avevano testo libero e niente scelte (_comp): via.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf11_composto_';
+// ORARI — prefix bumped da 'unnivai_insiderf11_composto_': i giri e i tour Per Te cached prima
+// del passaggio alla ricerca nuova non hanno la regola degli orari (posti chiusi compresi).
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf12_orari_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -360,7 +362,7 @@ import {
     applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule,
 } from './momentSelection';
 // ORARI — una tappa vale solo se il posto e' aperto per tutta la sosta (lib/openingHours).
-import { MESSAGGIO_CHIUSO, TESTO_NESSUN_LOCALE_APERTO } from '../lib/openingHours';
+import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO } from '../lib/openingHours';
 import { keepOpenStops } from '../lib/openStops';
 import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
@@ -2511,7 +2513,7 @@ export const aiRecommendationService = {
             // ORARI — a quest'ora i posti chiusi tolgono tutto: non e' "non trovo", e' "meglio domattina".
             if (hoursBuckets && selectorCandidates.length === 0 && hours0.report.chiusi.length > 0) {
                 console.info(`[ORARI] ${city}: tutti i candidati sono chiusi a quest'ora → messaggio dichiarato`);
-                return { days: [{ stops: [] }], _source: 'closed-now', _messaggio: MESSAGGIO_CHIUSO, _orari: { chiusi: hours0.report.chiusi.slice(0, 40) } };
+                return { days: [{ stops: [] }], _source: 'closed-now', _messaggio: messaggioChiuso(tourWindow.start), _orari: { chiusi: hours0.report.chiusi.slice(0, 40) } };
             }
 
             // Gate I — soglia minima 1 candidato (era 3). Un posto vero è meglio
@@ -2755,7 +2757,7 @@ export const aiRecommendationService = {
                     if (orariAgito && tappeAperte < 2 && tappeAperte < (orariInfo.tappeSenzaFiltro ?? Infinity)) {
                         console.info(`[ORARI] ${city}: meno di 2 tappe aperte a quest'ora → messaggio dichiarato`);
                         return {
-                            days: [{ stops: [] }], _source: 'closed-now', _messaggio: MESSAGGIO_CHIUSO,
+                            days: [{ stops: [] }], _source: 'closed-now', _messaggio: messaggioChiuso(tourWindow.start),
                             _orari: orariInfo, ...(momentReport ? { _momentReport: momentReport } : {}),
                         };
                     }
@@ -3380,7 +3382,7 @@ export const aiRecommendationService = {
             // ORARI — se i posti chiusi hanno tolto tutti i tour: il messaggio dichiarato, non un'home vuota.
             if (finalTours.length === 0 && report.orari.chiuse.length > 0) {
                 console.info(`[ORARI] Per Te ${city}: nessun tour con posti aperti a quest'ora → messaggio dichiarato`);
-                return { tours: [], _source: 'closed-now', _messaggio: MESSAGGIO_CHIUSO, _report: report };
+                return { tours: [], _source: 'closed-now', _messaggio: messaggioChiuso(now), _report: report };
             }
             const result = { tours: finalTours, _source: 'unified-home', _report: report };
             saveInsiderToCache(cacheKey, { tours: finalTours, _source: 'unified-home' });

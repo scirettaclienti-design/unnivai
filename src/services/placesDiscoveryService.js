@@ -568,6 +568,8 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, 
   // R_wider, il test che lega i due diventa rosso e si aggiornano insieme.
   const radius = radiusMeters ?? widerRadiusKm(isSmall) * 1000;
 
+  // ORARI — gg1_ → gg2_ col passaggio alla ricerca nuova: i pool cached prima non
+  // hanno gli orari settimanali, e per 24 ore nessuno deve riceverli.
   // Cache key differenziata: customQuery ha suo namespace (non collide con temi).
   // C1 — con un bias esplicito (la ricerca dei pasti dalla tappa prima) la
   // chiave porta punto e raggio: altrimenti tornerebbe la ricerca dal centro.
@@ -575,8 +577,8 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, 
     ? `_at_${Number(lat).toFixed(3)}_${Number(lng).toFixed(3)}_r${radius}`
     : '';
   const cacheKey = customQuery
-    ? `gg1_${cityName.replace(/\s+/g, '_')}_q_${slugForCache(effectiveQuery)}_${isSmall ? 's' : 'l'}${where}`
-    : `gg1_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}${where}`;
+    ? `gg2_${cityName.replace(/\s+/g, '_')}_q_${slugForCache(effectiveQuery)}_${isSmall ? 's' : 'l'}${where}`
+    : `gg2_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}${where}`;
   const cached = loadFromCache(cacheKey);
   if (cached) return cached;
 

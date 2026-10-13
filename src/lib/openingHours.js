@@ -25,10 +25,22 @@ export const UNKNOWN = 'sconosciuto';
 /** Dopo quest'ora (minuti dalla mezzanotte, ora di Roma) un orario sconosciuto non si sceglie se c'e' un'alternativa aperta nota. */
 export const NIGHT_FROM_MINUTES = 21 * 60;
 
-/** Testo PROVVISORIO (decisione M, da far approvare a Ivano): meno di 2 tappe aperte. */
-export const MESSAGGIO_CHIUSO = "Meglio domattina: a quest'ora qui è quasi tutto chiuso.";
-/** Testo PROVVISORIO (decisione M, da far approvare a Ivano): un pasto senza nessun locale aperto. */
-export const TESTO_NESSUN_LOCALE_APERTO = "Nessun locale aperto qui vicino a quest'ora.";
+/**
+ * Testi APPROVATI (decisione M) per "quasi tutto chiuso", secondo l'ora di Roma
+ * di partenza del giro: prima delle 12, dalle 18 in poi, le altre ore.
+ */
+export const MESSAGGIO_PRESTO = 'È presto: qui quasi tutto apre più tardi.';
+export const MESSAGGIO_SERA = 'A quest’ora qui è quasi tutto chiuso. Il giro giusto parte domattina.';
+export const MESSAGGIO_ORA = 'A quest’ora qui è quasi tutto chiuso.';
+export function messaggioChiuso(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return MESSAGGIO_ORA;
+    const h = romeParts(date).h;
+    if (h < 12) return MESSAGGIO_PRESTO;
+    if (h >= 18) return MESSAGGIO_SERA;
+    return MESSAGGIO_ORA;
+}
+/** Testo APPROVATO (decisione M): un pranzo o una cena senza nessun locale aperto. */
+export const TESTO_NESSUN_LOCALE_APERTO = 'Nessun locale aperto qui vicino a quest’ora.';
 
 const WEEK = 7 * 1440;
 const hhmm = (t) => {

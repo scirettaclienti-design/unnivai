@@ -146,14 +146,13 @@ export function dolceProblem(candidate, minutes, altre = []) {
 
 /**
  * C8d — UNA TAPPA LEGGERA (il vuoto lungo con ritmo Rilassato): un luogo all'aperto, il verde, una chiesa, o un caffe' fuori dai pasti
- * (mai un dolce: regola C8c, mai un bar da drink). Un caffe' e' un posto con tipo caffe', o con `cafe`/`coffee_shop` fra i tipi di Google.
+ * (mai un dolce: regola C8c, mai un bar da drink). Un caffe' e' un posto il cui tipo principale (C6a) e' caffe'.
  */
 export const isLightStop = (c) => {
     const k = kindOf(c);
     if (isOutdoorWalk(c) || k === 'verde' || k === 'chiesa') return true;
-    if (isDolce(c)) return false;
-    const types = Array.isArray(c?.types) ? c.types : [];
-    return k === 'caffe' || types.includes('cafe') || types.includes('coffee_shop');
+    // C8e — un caffe' e' tale per il TIPO PRINCIPALE (come C6a): un posto con tipo principale ristorante non lo e', anche se ha `cafe` fra i tipi
+    return k === 'caffe' && !isDolce(c);
 };
 
 export const SECONDO_PASTO_MIN_ORE = 3;

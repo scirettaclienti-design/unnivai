@@ -56,6 +56,22 @@ import { APERITIVO_STAY_MINUTES, APERITIVO_STAY_RELAX_MINUTES } from './tourTimi
 
 export const MIN_OVERLAP_MINUTES = 60;
 export const MAX_STOPS_PER_DAY = 8;
+
+/**
+ * C8e — IL TETTO CONTA SOLO LE VISITE. Pasti (colazione, pranzo, cena), drink/aperitivo e passeggiata non contano: sono le tappe
+ * dovute della giornata. Una giornata: al massimo 8 visite (mattina + pomeriggio); con ritmo Rilassato 6.
+ */
+export const MAX_VISITS_PER_DAY = 8;
+export const MAX_VISITS_RILASSATO = 6;
+const VISIT_KEYS = new Set(['mattina', 'pomeriggio']);
+/** Le visite di un momento: le sue tappe, tolta la colazione chiesta; 0 per pasti, drink e passeggiata. */
+export const visitStops = (m) => (VISIT_KEYS.has(m?.key) ? Math.max(0, m.stops - (m.colazione ? 1 : 0)) : 0);
+export const visitCount = (moments) => (moments || []).reduce((n, m) => n + visitStops(m), 0);
+/** Il tetto di visite scritto nei momenti dallo scheletro (default: quello di una giornata). */
+export const visitCapOf = (moments) => {
+    const caps = (moments || []).map(m => m.tettoVisite).filter(Number.isFinite);
+    return caps.length ? Math.min(...caps) : MAX_VISITS_PER_DAY;
+};
 const LONG_MOMENT_MINUTES = 180;
 // P3 — i soli momenti in cui il ritmo puo' mettere piu' di una tappa.
 // Pranzo e cena sono un pasto ciascuno; l'aperitivo e' uno.
@@ -157,16 +173,17 @@ const civilDay = (date) => {
 // Se un giorno ha piu' di MAX_STOPS_PER_DAY tappe, si toglie una tappa alla
 // volta dai momenti che ne hanno di piu', partendo dall'ultimo: la sera
 // cede prima del mattino. Nessun momento scende sotto 1.
-const capStops = (moments) => {
-    let total = moments.reduce((a, m) => a + m.stops, 0);
-    while (total > MAX_STOPS_PER_DAY) {
-        const max = Math.max(...moments.map(m => m.stops));
-        if (max <= 1) break;
-        const idx = moments.map(m => m.stops).lastIndexOf(max);
+const capStops = (moments, cap = MAX_VISITS_PER_DAY) => {
+    let visits = visitCount(moments);
+    while (visits > cap) {
+        const cand = moments.filter(m => visitStops(m) > 1);
+        if (cand.length === 0) break;
+        const max = Math.max(...cand.map(visitStops));
+        const idx = moments.map(m => (visitStops(m) === max ? 1 : 0)).lastIndexOf(1);
         moments[idx].stops -= 1;
-        total -= 1;
+        visits -= 1;
     }
-    return total;
+    return moments.reduce((a, m) => a + m.stops, 0);
 };
 
 /**
@@ -336,7 +353,9 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
             moments.push(build(m, wStart, wEnd, { daRiserva: true }));
         }
 
-        const totalStops = capStops(moments);
+        const tettoVisite = paceKey === 'rilassato' ? MAX_VISITS_RILASSATO : MAX_VISITS_PER_DAY;
+        const totalStops = capStops(moments, tettoVisite);
+        for (const m of moments) m.tettoVisite = tettoVisite;
         return { date: w.date, moments, totalStops };
     });
 

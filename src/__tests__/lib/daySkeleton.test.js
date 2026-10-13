@@ -174,11 +174,12 @@ describe('buildDaySkeleton — ritmo e tetto', () => {
         expect(stops(sk)).toEqual([2, 1, 1]);
     });
 
-    it('Intenso con dopocena → 2+1+2+1+1+2 = 9, tagliato a 8 dalla sera', () => {
+    // C8e — il tetto conta solo le VISITE (mattina + pomeriggio): pasti, drink e dopocena non contano, quindi niente piu' tagli alla sera
+    it('Intenso con dopocena → 2+1+2+1+1+2 = 9 tappe, di cui 4 visite: nessun taglio', () => {
         const sk = buildDaySkeleton({ window: giorno, pace: 'Intenso' });
         expect(keys(sk)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena', 'dopocena']);
-        expect(sk.days[0].totalStops).toBe(MAX_STOPS_PER_DAY);
-        expect(stops(sk)).toEqual([2, 1, 2, 1, 1, 1]);
+        expect(stops(sk)).toEqual([2, 1, 2, 1, 1, 2]);
+        expect(sk.days[0].totalStops).toBe(9);
     });
 
     // P3 — prima correzione: nessuno pranza (o cena) due volte.

@@ -65,9 +65,9 @@ describe('un pomeriggio con ore vuote viene riempito', () => {
         expect(r._momentReport.continuita.aggiunte.length).toBeGreaterThan(0);
         expect(r._momentReport.continuita.dichiarati).toEqual([]);
     });
-    it('al massimo 8 tappe al giorno anche quando il buco c\'e\' ancora (il resto e\' tempo libero)', async () => {
+    it('al massimo 8 VISITE al giorno (C8e: pasti, drink e passeggiata non contano) anche quando il buco c\'e\' ancora (il resto e\' tempo libero)', async () => {
         const r = await genera(APERTE(14), '09:30', { interests: ['Natura'], duration: '1 Giorno' });
-        expect(vere(r).length).toBeLessThanOrEqual(8);
+        expect(vere(r).filter(s => s.moment === 'mattina' || s.moment === 'pomeriggio').length).toBeLessThanOrEqual(8);
         expect(remainingGaps(righe(r))).toEqual([]);
     });
 });

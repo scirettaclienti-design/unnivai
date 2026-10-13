@@ -43,7 +43,7 @@
 import { computeCandidateScore } from './candidateScoring';
 import { stayInMoment, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
 import { placeKind, KINDS, COMMERCIAL_KINDS, LOCALE_CATEGORIES } from '../lib/placeKind';
-import { FOOD_ONLY_MOMENT_KEYS, EXPANDABLE_KEYS, MAX_STOPS_PER_DAY } from '../lib/daySkeleton';
+import { FOOD_ONLY_MOMENT_KEYS, EXPANDABLE_KEYS, visitCount, visitCapOf } from '../lib/daySkeleton';
 import { momentAdmits, isLocale, isOutdoorWalk, isBreakfastPlace, isLightStop } from '../lib/mealRules';
 import { scheduleGaps, retimeWaits, totalGapMinutes, realStopCount, isEveningComplete, GAP_RILASSATO_MINUTES } from '../lib/continuity';
 import { freeTimeDecision, FREE_TIME_MAX_MINUTES } from '../lib/freeTime';
@@ -1636,8 +1636,9 @@ const overlapMin = (aS, aE, bS, bE) => Math.max(0, (Math.min(aE, bE) - Math.max(
 
 /** I momenti in cui si puo' mettere una tappa in piu' per chiudere un buco, dal piu' sovrapposto. */
 export function momentsToExpand(gap, moments) {
-    const dayTotal = moments.filter(m => m.dayIndex === gap.dayIndex).reduce((n, m) => n + m.stops, 0);
-    if (dayTotal >= MAX_STOPS_PER_DAY) return [];
+    // C8e — il tetto conta solo le visite (pasti, drink e passeggiata no); 8 a giornata, 6 con ritmo Rilassato
+    const dayMoments = moments.filter(m => m.dayIndex === gap.dayIndex);
+    if (visitCount(dayMoments) >= visitCapOf(dayMoments)) return [];
     return moments
         // C8a/C8b — il momento del drink non prende una tappa in piu': sarebbe un secondo bar
         .filter(m => m.dayIndex === gap.dayIndex && EXPANDABLE_KEYS.has(m.key) && !m.bevuta && m.start instanceof Date)
@@ -1724,8 +1725,8 @@ const dayNeedsMore = (sched, di, min) => dayCount(sched, di) < min && !isEvening
 
 /** I momenti di un giorno in cui si puo' aggiungere una tappa per arrivare al minimo, dal piu' lungo. */
 export function momentsForMinimum(dayIndex, moments) {
-    const dayTotal = moments.filter(m => m.dayIndex === dayIndex).reduce((n, m) => n + m.stops, 0);
-    if (dayTotal >= MAX_STOPS_PER_DAY) return [];
+    const dayMoments = moments.filter(m => m.dayIndex === dayIndex);
+    if (visitCount(dayMoments) >= visitCapOf(dayMoments)) return [];
     return moments
         // il momento del drink non prende una tappa in piu': sarebbe un secondo bar (C8a)
         .filter(m => m.dayIndex === dayIndex && EXPANDABLE_KEYS.has(m.key) && !m.bevuta && m.start instanceof Date)

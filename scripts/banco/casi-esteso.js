@@ -50,6 +50,8 @@ export const CASI_ESTESI = [
     crea('crea-catania-1800', 'Catania', '18:00', 'Una giornata a Catania', { duration: '1 Giorno', pace: 'Attivo' }),
 
     // C8b — la colazione: Crea e Per Te alla mattina presto (il tour comincia con una colazione in un posto da colazione, aperto).
+    // C8e — il controllo della giornata senza colazione: una giornata neutra a Catania non si gonfia col nuovo tetto
+    crea('crea-catania-0930', 'Catania', '09:30', 'Una giornata a Catania', { duration: '1 Giorno', pace: 'Attivo' }),
     crea('crea-catania-colazione-0800', 'Catania', '08:00', 'Una giornata a Catania con colazione', { duration: '1 Giorno', pace: 'Attivo' }),
 
     // ── Percorso Veloce (9) — ritmo e umore come QuickPath.jsx (buildQuickPrefs) ──

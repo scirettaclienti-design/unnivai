@@ -175,9 +175,11 @@ export const BLACKLIST_TYPES = new Set([
 // P3d-j — le voci di prima avevano testo libero e niente scelte (_comp): via.
 // ORARI — prefix bumped da 'unnivai_insiderf11_composto_': i giri e i tour Per Te cached prima
 // del passaggio alla ricerca nuova non hanno la regola degli orari (posti chiusi compresi).
+// ORARI-FESTIVI — prefix bumped da 'unnivai_insiderf13_tipi_': i giri cached prima non
+// conoscono gli orari del giorno (festivi, ferie).
 // C6a — prefix bumped da 'unnivai_insiderf12_orari_': famiglie, durate e nomi puliti
 // dal tipo principale; i giri cached prima hanno soste e nomi di prima.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf13_tipi_';
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf14_festivi_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -359,7 +361,7 @@ import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
 import { buildDaySkeleton } from '@/lib/daySkeleton';
 import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
-    repairMomentSelection, scheduleMomentPlan, isMealPlace,
+    repairMomentSelection, scheduleMomentPlan, isMealPlace, scheduleHoursSources,
     requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme,
     applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule,
 } from './momentSelection';
@@ -1721,6 +1723,7 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates, { guard = t
             // resta com'era): servono a controllare la tappa quando ci si arriva.
             ...(Array.isArray(c.openingPeriods) ? { openingPeriods: c.openingPeriods } : {}),
             ...(Number.isFinite(c.utcOffsetMinutes) ? { utcOffsetMinutes: c.utcOffsetMinutes } : {}),
+            ...(c.currentHours ? { currentHours: c.currentHours } : {}),
             ...(c.primaryType ? { primaryType: c.primaryType } : {}),
             // C6a — il nome mostrato e' gia' pulito; l'originale resta per il tracciato.
             ...(c.nameOriginal ? { nameOriginal: c.nameOriginal } : {}),
@@ -2579,6 +2582,7 @@ export const aiRecommendationService = {
                     // inventato), poi mette gli orari dentro ogni momento.
                     let momentReport = null;
                     let orariTracciato = new Map();   // ORARI — place_id → 'noto' | 'sconosciuto'
+                    let orariFonte = new Map();       // ORARI-FESTIVI — place_id → 'orario del giorno' | 'orario della settimana'
                     let orariInfo = null;
                     const finalDays = moments.length > 0
                         ? await (async () => {
@@ -2672,6 +2676,7 @@ export const aiRecommendationService = {
                             const righeChiuse = closedMomentRows({ moments, sched, tempoLibero: report.tempoLibero, chiusiPerMomento });
                             report.tempoLibero = [...(report.tempoLibero || []), ...righeChiuse];
                             orariTracciato = scheduleHoursLabels(sched);
+                            orariFonte = scheduleHoursSources(sched);
                             orariInfo = {
                                 chiusi: hoursReport.chiusi.slice(0, 60), vietati: [...veto.entries()].map(([momento, ids]) => ({ momento, place_id: [...ids] })),
                                 giri: settled.giri.length, ignoti: hoursReport.ignoti, scartatiIgnoti: hoursReport.scartatiIgnoti,
@@ -2695,7 +2700,7 @@ export const aiRecommendationService = {
                                     // l'ha scelta (modello / riparazione / ripiego).
                                     // ORARI — e se l'orario del posto e' noto (aperto per
                                     // tutta la sosta) o sconosciuto.
-                                    _tracciato: { ...dayStops[i].trace, orario: orariTracciato.get(stop.place_id) || 'sconosciuto', ...(stop.nameOriginal ? { nomeOriginale: stop.nameOriginal } : {}) },
+                                    _tracciato: { ...dayStops[i].trace, orario: orariTracciato.get(stop.place_id) || 'sconosciuto', ...(orariFonte.get(stop.place_id) ? { orarioFonte: orariFonte.get(stop.place_id) } : {}), ...(stop.nameOriginal ? { nomeOriginale: stop.nameOriginal } : {}) },
                                     _orario: orariTracciato.get(stop.place_id) || 'sconosciuto',
                                 }));
                                 // windowIndex: il giorno resta legato alla SUA

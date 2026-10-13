@@ -504,6 +504,8 @@ const buildPOIFromCandidate = (place, cityName) => {
     // sono e l'oggetto resta identico a prima). Gli orari arrivano ma il motore
     // non li usa ancora.
     ...(Array.isArray(place.opening_hours?.periods) ? { openingPeriods: place.opening_hours.periods } : {}),
+    // ORARI-FESTIVI — gli orari dei prossimi 7 giorni (festivi e ferie compresi), per data: vincono sulla settimana.
+    ...(place.current_opening_hours && Array.isArray(place.current_opening_hours.periods) ? { currentHours: place.current_opening_hours } : {}),
     ...(place.primary_type ? { primaryType: place.primary_type } : {}),
     ...(Number.isFinite(place.utc_offset_minutes) ? { utcOffsetMinutes: place.utc_offset_minutes } : {}),
   };
@@ -582,6 +584,8 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, 
   // hanno gli orari settimanali, e per 24 ore nessuno deve riceverli.
   // C6a — gg2_ → gg3_: i pool cached prima hanno i nomi con le code commerciali
   // (" | Apericena e Colazione") e nessun nome originale.
+  // ORARI-FESTIVI — gg3_ → gg4_: i pool cached prima non hanno gli orari del giorno
+  // (chiusure per festivi e ferie), e per 24 ore nessuno deve riceverli.
   // Cache key differenziata: customQuery ha suo namespace (non collide con temi).
   // C1 — con un bias esplicito (la ricerca dei pasti dalla tappa prima) la
   // chiave porta punto e raggio: altrimenti tornerebbe la ricerca dal centro.
@@ -589,8 +593,8 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, 
     ? `_at_${Number(lat).toFixed(3)}_${Number(lng).toFixed(3)}_r${radius}`
     : '';
   const cacheKey = customQuery
-    ? `gg3_${cityName.replace(/\s+/g, '_')}_q_${slugForCache(effectiveQuery)}_${isSmall ? 's' : 'l'}${where}`
-    : `gg3_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}${where}`;
+    ? `gg4_${cityName.replace(/\s+/g, '_')}_q_${slugForCache(effectiveQuery)}_${isSmall ? 's' : 'l'}${where}`
+    : `gg4_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}${where}`;
   const cached = loadFromCache(cacheKey);
   if (cached) return cached;
 

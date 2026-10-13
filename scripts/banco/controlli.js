@@ -10,7 +10,7 @@
 //   ripiegoDichiarato, orari: { [place_id]: { periods|null, chiamato } },
 //   tours: [{ stops: [{ title, types, moment, at, stay, pasto, description,
 //   place_id, tempoLibero, ripiego, scelta, dietaCercata, dietaSolo }] }] }
-import { giornoEMinuti, apertoAlle, apertoPerTutta, orariDelGiorno } from './orari.js';
+import { giornoEMinuti, apertoAlle, apertoPerTutta, orariDelGiorno, dataRoma, coperta, apertoPerTuttaGiorno, orariDelGiornoData } from './orari.js';
 
 export const CLASSI = [
     ['c1', 'Pasti fuori fascia'],
@@ -156,7 +156,7 @@ export function colazioneNonDaColazione(s) {
     const tavola = s.pasto || NOME_TAVOLA.test(n);
     return serale || (tavola && !okCol);
 }
-export function chiusoAllaTappa(caso, s, { sosta = false } = {}) {
+export function chiusoAllaTappa(caso, s, { sosta = false, soloSettimana = false } = {}) {
     // true | false | null (sconosciuto) — e perche' e' sconosciuto.
     // Con `sosta` (c5, regola ORARI) il posto deve essere aperto per TUTTA la sosta,
     // non solo all'arrivo: `dove` dice se chiude all'arrivo o dopo.
@@ -164,9 +164,16 @@ export function chiusoAllaTappa(caso, s, { sosta = false } = {}) {
     const o = caso.orari?.[s.place_id];
     if (!q) return { chiuso: null, perche: 'senza-orario-tappa' };
     if (!o || !o.chiamato) return { chiuso: null, perche: 'orari-non-richiesti' };
+    // ORARI-FESTIVI — per una data coperta dagli orari del giorno vincono loro (festivi, ferie); oltre vale la settimana.
+    if (!soloSettimana && o.current) {
+        const data = dataRoma(s.at);
+        const g = apertoPerTuttaGiorno(o.current, data, q.minuti, sosta && Number.isFinite(s.stay) ? s.stay : 0);
+        if (g.aperto !== null) return { chiuso: g.aperto === false, perche: null, dove: g.perche || null, orari: orariDelGiornoData(o.current, data), fonte: 'giorno' };
+    }
+    if (!o.periods) return { chiuso: null, perche: 'senza-orari' };
     const r = apertoPerTutta(o.periods, q.giorno, q.minuti, sosta && Number.isFinite(s.stay) ? s.stay : 0);
     if (r.aperto === null) return { chiuso: null, perche: 'senza-orari' };
-    return { chiuso: r.aperto === false, perche: null, dove: r.perche || null, orari: orariDelGiorno(o.periods, q.giorno) };
+    return { chiuso: r.aperto === false, perche: null, dove: r.perche || null, orari: orariDelGiorno(o.periods, q.giorno), fonte: 'settimana' };
 }
 export function c3(caso, cfg) {
     const out = [];
@@ -204,10 +211,13 @@ export function c4(caso, cfg) {
 export function c5(caso, cfg) {
     const out = [];
     const sconosciuti = { totale: 0, 'orari-non-richiesti': 0, 'senza-orari': 0, 'senza-orario-tappa': 0 };
-    let oltre = 0, allArrivo = 0, orarioSegnato = 0;
+    let oltre = 0, allArrivo = 0, orarioSegnato = 0, daGiorno = 0, daSettimana = 0, soloGiornoChiude = 0;
     for (const t of caso.tours || []) {
         for (const s of tappeDi(t)) {
             const c = chiusoAllaTappa(caso, s, { sosta: true });
+            if (c.fonte === 'giorno') daGiorno++; else if (c.fonte === 'settimana') daSettimana++;
+            // quante tappe la sola settimana avrebbe accettato e il giorno speciale no (o viceversa)
+            if (c.fonte === 'giorno' && chiusoAllaTappa(caso, s, { sosta: true, soloSettimana: true }).chiuso !== c.chiuso) soloGiornoChiude++;
             if (c.chiuso) {
                 if (c.dove === 'oltre-chiusura') { oltre++; out.push(viol(s, `${nome(s)} alle ${oraTesto(s)}: la sosta (${s.stay} min) finisce oltre la chiusura (${c.orari})`, 'c5', cfg)); }
                 else { allArrivo++; out.push(viol(s, `${nome(s)} alle ${oraTesto(s)}: chiuso (${c.orari})`, 'c5', cfg)); }
@@ -215,7 +225,7 @@ export function c5(caso, cfg) {
             if (s.orario === 'sconosciuto') orarioSegnato++;
         }
     }
-    return esito('c5', true, out, { sconosciuti: sconosciuti.totale, sconosciutiPerCausa: sconosciuti, chiuseAllArrivo: allArrivo, oltreChiusura: oltre, orarioSconosciutoSegnato: orarioSegnato });
+    return esito('c5', true, out, { sconosciuti: sconosciuti.totale, sconosciutiPerCausa: sconosciuti, chiuseAllArrivo: allArrivo, oltreChiusura: oltre, orarioSconosciutoSegnato: orarioSegnato, daOrarioDelGiorno: daGiorno, daOrarioDellaSettimana: daSettimana, verdettoDiversoDallaSettimana: soloGiornoChiude });
 }
 
 // ─── 6 — durate uguali per tipi diversi ─────────────────────────────────────

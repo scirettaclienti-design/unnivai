@@ -92,6 +92,10 @@ export function keepOpenStops({ stops, pool, start, retime, toStop, exclude = nu
     }
     const ignote = finale.filter(s => statusOfStop(s).stato === UNKNOWN).length;
     // Lo stato d'orario di ogni tappa va nel tracciato (`_orario`); l'orario assoluto lo rimette chi chiama.
-    const out = finale.map(({ scheduledTime, ...s }) => ({ ...s, _orario: orarioLabel(statusOfStop({ ...s, scheduledTime }).stato) }));
+    const out = finale.map(({ scheduledTime, ...s }) => {
+        const st = statusOfStop({ ...s, scheduledTime });
+        // ORARI-FESTIVI — e da quale orario viene: del giorno (festivi, ferie) o della settimana.
+        return { ...s, _orario: orarioLabel(st.stato), ...(st.fonte ? { _orarioFonte: st.fonte } : {}) };
+    });
     return { stops: out, chiuse, aggiunte, ignote, passi };
 }

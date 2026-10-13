@@ -30,7 +30,7 @@ describe('interruttore PLACES_SEARCH', () => {
 describe('maschera dei campi e fasce', () => {
     it('contiene i campi che il motore usa + orari, tipo principale, fuso', () => {
         for (const f of ['places.id', 'places.displayName', 'places.formattedAddress', 'places.location', 'places.types', 'places.businessStatus',
-            'places.photos', 'places.rating', 'places.userRatingCount', 'places.priceLevel', 'places.regularOpeningHours', 'places.primaryType', 'places.utcOffsetMinutes']) {
+            'places.photos', 'places.rating', 'places.userRatingCount', 'places.priceLevel', 'places.regularOpeningHours', 'places.currentOpeningHours', 'places.primaryType', 'places.utcOffsetMinutes']) {
             expect(NEW_FIELD_MASK.split(','), f).toContain(f);
         }
     });
@@ -39,7 +39,9 @@ describe('maschera dei campi e fasce', () => {
         const tetto = ordine.indexOf(NEW_FIELDS.find(f => f.field === 'places.regularOpeningHours').sku);
         for (const f of NEW_FIELDS) expect(ordine.indexOf(f.sku), f.field).toBeGreaterThanOrEqual(0);
         for (const f of NEW_FIELDS) expect(ordine.indexOf(f.sku), f.field).toBeLessThanOrEqual(tetto);
-        expect(NEW_FIELD_MASK).not.toMatch(/serves|reviews|currentOpeningHours/);
+        expect(NEW_FIELD_MASK).not.toMatch(/serves|reviews/);
+        // ORARI-FESTIVI: currentOpeningHours e' nella stessa fascia (Enterprise) di regularOpeningHours
+        expect(NEW_FIELDS.find(f => f.field === 'places.currentOpeningHours').sku).toBe('Enterprise');
     });
 });
 
@@ -94,7 +96,7 @@ describe('cache', () => {
     it('la chiave nuova ha versione e impronta, e non e\' mai quella legacy', () => {
         const k = newCacheKey('v1', 'place/textsearch', p);
         expect(k).toContain(NEW_CACHE_VERSION);
-        expect(k.startsWith('v1:new1-')).toBe(true);
+        expect(k.startsWith('v1:new2-')).toBe(true);
         expect(k).not.toContain('engine');
         // la chiave legacy (computeCacheKey di index.ts) e' `v1:<path>:<qs ordinata>`
         expect(k).not.toBe('v1:place/textsearch:language=it&location=1,2&query=q&radius=3');

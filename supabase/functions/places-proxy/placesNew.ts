@@ -34,6 +34,8 @@ export function chooseEngine(
 
 // ─── Campi richiesti e fasce di prezzo (SKU, Text Search New) ───────────────
 // Il tetto e' la fascia di regularOpeningHours (Enterprise): nessun campo sopra.
+// ORARI-FESTIVI — anche currentOpeningHours e' Text Search Enterprise (doc Google letta il
+// 13/10/2026: stesso elenco di rating, priceLevel, regularOpeningHours): il prezzo non cambia.
 export const NEW_FIELDS: Array<{ field: string; sku: 'Essentials IDs Only' | 'Pro' | 'Enterprise' }> = [
   { field: 'places.id', sku: 'Essentials IDs Only' },
   { field: 'places.displayName', sku: 'Pro' },
@@ -48,6 +50,7 @@ export const NEW_FIELDS: Array<{ field: string; sku: 'Essentials IDs Only' | 'Pr
   { field: 'places.userRatingCount', sku: 'Enterprise' },
   { field: 'places.priceLevel', sku: 'Enterprise' },
   { field: 'places.regularOpeningHours', sku: 'Enterprise' },
+  { field: 'places.currentOpeningHours', sku: 'Enterprise' },
 ];
 export const NEW_FIELD_MASK = NEW_FIELDS.map((f) => f.field).join(',');
 
@@ -55,7 +58,8 @@ export const NEW_FIELD_MASK = NEW_FIELDS.map((f) => f.field).join(',');
 // Versione propria della ricerca nuova + impronta della maschera: una risposta
 // nuova non si mescola mai con una legacy (le chiavi legacy non hanno "new"),
 // e cambiare la maschera invalida le voci vecchie. Stessa durata (24h) in index.ts.
-export const NEW_CACHE_VERSION = 'new1';
+// ORARI-FESTIVI: new1 -> new2 (la maschera ha un campo in piu': le risposte vecchie non hanno gli orari del giorno).
+export const NEW_CACHE_VERSION = 'new2';
 const fingerprint = (s: string) => {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
@@ -122,8 +126,50 @@ export function normalizePeriods(periods: Array<{ open?: NewPeriodPoint; close?:
   return out.length ? out : null;
 }
 
+// ─── Orari del giorno (currentOpeningHours) ─────────────────────────────────
+// Google li da' per i prossimi 7 giorni (oggi + 6, dalla mezzanotte della data
+// della richiesta nel fuso del posto) e ci mette gia' le eccezioni (festivi, ferie):
+// un giorno CHIUSO e' un giorno senza periodi. Ogni periodo porta la sua data.
+type NewDate = { year?: number; month?: number; day?: number };
+const ymd = (d: NewDate | undefined) =>
+  d && Number.isFinite(d.year) && Number.isFinite(d.month) && Number.isFinite(d.day)
+    ? `${d.year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`
+    : null;
+const addDays = (iso: string, n: number) => {
+  const t = new Date(`${iso}T00:00:00Z`);
+  t.setUTCDate(t.getUTCDate() + n);
+  return t.toISOString().slice(0, 10);
+};
+/** La data di oggi nel fuso del posto (utcOffsetMinutes), come "YYYY-MM-DD". */
+export function localDateOf(nowMs: number, utcOffsetMinutes: number | undefined): string {
+  const off = Number.isFinite(utcOffsetMinutes) ? (utcOffsetMinutes as number) : 0;
+  return new Date(nowMs + off * 60000).toISOString().slice(0, 10);
+}
+/**
+ * currentOpeningHours → { from, to, periods: [{ date, open: 'HHmm', close: 'HHmm'|null, close_date }], special_days: ['YYYY-MM-DD'] }.
+ * `from`/`to` = i 7 giorni coperti (oggi nel fuso del posto + 6): un giorno della finestra senza
+ * periodi e' chiuso tutto il giorno. Senza periodi (o senza date) = nessun dato: null, vale la settimana.
+ */
+export function normalizeCurrentHours(c: any, nowMs: number, utcOffsetMinutes?: number) {
+  const raw = Array.isArray(c?.periods) ? c.periods : [];
+  const periods = raw
+    .map((p: any) => ({ date: ymd(p?.open?.date), open: hhmm(p?.open), close: p?.close ? hhmm(p.close) : null, close_date: ymd(p?.close?.date) }))
+    .filter((p: any) => p.date);
+  if (periods.length === 0) return null;
+  let from = localDateOf(nowMs, utcOffsetMinutes);
+  const minDate = periods.reduce((m: string, p: any) => (p.date < m ? p.date : m), periods[0].date);
+  if (minDate < from) from = minDate; // la data del posto non puo' stare dopo un suo periodo
+  const special = (Array.isArray(c?.specialDays) ? c.specialDays : []).map((d: any) => ymd(d?.date)).filter(Boolean);
+  return {
+    from,
+    to: addDays(from, 6),
+    periods: periods.map((p: any) => ({ date: p.date, open: p.open, close: p.close, ...(p.close_date && p.close_date !== p.date ? { close_date: p.close_date } : {}) })),
+    ...(special.length ? { special_days: special } : {}),
+  };
+}
+
 /** Un posto della risposta nuova → un risultato nella forma della textsearch legacy (+ i tre campi nuovi). */
-export function normalizeNewPlace(p: any) {
+export function normalizeNewPlace(p: any, nowMs: number = Date.now()) {
   const periods = normalizePeriods(p?.regularOpeningHours?.periods);
   const photoName = p?.photos?.[0]?.name;
   const price = PRICE_LEVEL[p?.priceLevel];
@@ -145,16 +191,18 @@ export function normalizeNewPlace(p: any) {
   if (periods || typeof openNow === 'boolean') {
     out.opening_hours = { ...(typeof openNow === 'boolean' ? { open_now: openNow } : {}), ...(periods ? { periods } : {}) };
   }
+  const current = normalizeCurrentHours(p?.currentOpeningHours, nowMs, p?.utcOffsetMinutes);
+  if (current) out.current_opening_hours = current;
   if (p?.primaryType) out.primary_type = p.primaryType;
   if (Number.isFinite(p?.utcOffsetMinutes)) out.utc_offset_minutes = p.utcOffsetMinutes;
   return out;
 }
 
 /** Risposta intera: `{}` (nessun posto) = ZERO_RESULTS, come la legacy. */
-export function normalizeNewResponse(data: any) {
+export function normalizeNewResponse(data: any, nowMs: number = Date.now()) {
   const places = Array.isArray(data?.places) ? data.places : [];
   if (places.length === 0) return { status: 'ZERO_RESULTS', results: [] };
-  return { status: 'OK', results: places.filter((p: any) => p?.id).map(normalizeNewPlace) };
+  return { status: 'OK', results: places.filter((p: any) => p?.id).map((p: any) => normalizeNewPlace(p, nowMs)) };
 }
 
 // ─── Foto ───────────────────────────────────────────────────────────────────

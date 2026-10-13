@@ -17,6 +17,7 @@ import { buildReportEsteso } from './report-esteso.js';
 import { confrontoPlaces } from './confronto-places.js';
 import { reportOrari } from './report-orari.js';
 import { reportC6a } from './report-c6a.js';
+import { reportFestivi } from './report-festivi.js';
 
 const root = process.cwd();
 const config = JSON.parse(readFileSync(path.join(root, 'scripts/banco/banco.config.json'), 'utf8'));
@@ -29,6 +30,8 @@ const NUOVA = process.env.BANCO_PLACES === 'new';
 const ORARI = process.env.BANCO_RUN === 'orari';
 // C6a — BANCO_RUN=c6a: lo stesso giro con famiglie, durate e nomi dal tipo principale; il report confronta con il giro ORARI.
 const C6A = process.env.BANCO_RUN === 'c6a';
+// ORARI-FESTIVI — BANCO_RUN=festivi: gli orari del giorno (festivi, ferie); il report confronta con il giro C6a.
+const FESTIVI = process.env.BANCO_RUN === 'festivi';
 const argReport = process.argv.indexOf('--report');
 let jsonPath, nome;
 if (argReport > -1) {
@@ -36,7 +39,7 @@ if (argReport > -1) {
     nome = path.basename(jsonPath, '.json');
 } else {
     // MIG-PLACES — BANCO_PLACES=new: stessi casi con la ricerca nuova (solo l'account di prova), file `-new`.
-    const suffisso = C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
+    const suffisso = FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
     nome = `${oggi}-banco-esteso${suffisso}`;
     for (let i = 2; existsSync(path.join(root, 'docs/prove/dati', `${nome}.json`)); i++) nome = `${oggi}-banco-esteso${suffisso}-${i}`;
     jsonPath = path.join(root, 'docs/prove/dati', `${nome}.json`);
@@ -57,6 +60,17 @@ if (argReport > -1) {
 }
 
 const raw = JSON.parse(readFileSync(jsonPath, 'utf8'));
+if (raw.motore === 'new' && /-festivi/.test(nome)) {
+    // ORARI-FESTIVI — il giro con gli orari del giorno, contro il giro C6a degli stessi casi.
+    const basePath = path.join(root, config.esteso.baselineC6a);
+    const base = JSON.parse(readFileSync(basePath, 'utf8'));
+    const nomeDoc = `${nome.slice(0, 10)}-orari-festivi`;
+    const nPath = path.join(root, 'docs/prove/dati', `${nomeDoc}-note.md`);
+    const { markdown: md, sintesi } = reportFestivi(base, raw, config, { baseNome: path.basename(basePath), nuovoNome: path.basename(jsonPath), commit });
+    writeFileSync(path.join(root, 'docs/prove', `${nomeDoc}.md`), md + (existsSync(nPath) ? '\n' + readFileSync(nPath, 'utf8') : '') + '\n');
+    console.log(`[banco-esteso] report orari-festivi: docs/prove/${nomeDoc}.md | grezzo: ${path.relative(root, jsonPath)} | c5: ${sintesi.c5.dopo} (solo settimana ${sintesi.c5SoloSettimana}) | tappe dal giorno ${sintesi.tappeDaGiorno} | posti con orari diversi ${sintesi.postiDiversi} | spesa ${sintesi.spesa}`);
+    process.exit(0);
+}
 if (raw.motore === 'new' && /-c6a/.test(nome)) {
     // C6a — il giro con il tipo principale, contro il giro ORARI.
     const basePath = path.join(root, config.esteso.baselineOrari);

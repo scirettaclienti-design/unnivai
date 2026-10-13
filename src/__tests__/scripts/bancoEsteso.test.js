@@ -125,3 +125,44 @@ describe('ORARI — il report del giro con la regola', () => {
         expect(markdown).toContain('sconosciuto');
     });
 });
+
+describe('banco esteso — c5 con gli orari del giorno (ORARI-FESTIVI)', () => {
+    // sabato 17/10/2026 12:00 a Roma; il posto e' aperto ogni giorno 10-20 secondo la settimana
+    const SETT = [0, 1, 2, 3, 4, 5, 6].map(d => ({ open: { day: d, time: '1000' }, close: { day: d, time: '2000' } }));
+    const finestra = (sabato) => ({
+        from: '2026-10-13', to: '2026-10-19',
+        periods: [13, 14, 15, 16, 17, 18, 19].flatMap(d => {
+            const date = `2026-10-${d}`;
+            if (d !== 17) return [{ date, open: '1000', close: '2000' }];
+            return sabato.map(([open, close]) => ({ date, open, close }));
+        }),
+    });
+    const caso = (orari, stay = 60) => ({
+        id: 'x', modo: 'crea', tipo: 'itinerario', luogo: 'Roma', ora: '12:00', oggi: '2026-10-17', tourDate: '2026-10-17', richiesta: '',
+        schermo: { giorni: [], note: [] }, ripiegoDichiarato: false,
+        orari: { p1: { chiamato: true, periods: SETT, ...orari } },
+        tours: [{ stops: [{ place_id: 'p1', title: 'Museo', types: ['museum'], moment: 'mattina', at: '2026-10-17T12:00:00+02:00', stay }] }],
+    });
+    const c5 = (c) => eseguiControlli(c, config).c5;
+    it('chiuso per un giorno speciale (la settimana lo darebbe aperto): violazione, e la sola settimana non la vedrebbe', () => {
+        const r = c5(caso({ current: finestra([]) }));
+        expect(r.violazioni).toHaveLength(1);
+        expect(r.violazioni[0].testo).toMatch(/17\/10 chiuso \(orario del giorno\)/);
+        expect(r.daOrarioDelGiorno).toBe(1);
+        expect(r.verdettoDiversoDallaSettimana).toBe(1);
+        expect(c5(caso({})).violazioni).toHaveLength(0);            // senza orari del giorno: come ORARI
+    });
+    it('orario ridotto: la sosta ci sta -> verde; non ci sta -> violazione oltre la chiusura', () => {
+        expect(c5(caso({ current: finestra([['1000', '1300']]) }, 60)).violazioni).toHaveLength(0);
+        const r = c5(caso({ current: finestra([['1000', '1230']]) }, 60));
+        expect(r.violazioni).toHaveLength(1);
+        expect(r.oltreChiusura).toBe(1);
+    });
+    it('data fuori dalla finestra: vale la settimana', () => {
+        const c = caso({ current: finestra([]) });
+        c.tours[0].stops[0].at = '2026-10-24T12:00:00+02:00';
+        const r = c5(c);
+        expect(r.violazioni).toHaveLength(0);
+        expect(r.daOrarioDellaSettimana).toBe(1);
+    });
+});

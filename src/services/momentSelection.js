@@ -1427,6 +1427,18 @@ export function scheduleHoursLabels(sched) {
     return out;
 }
 
+/** ORARI-FESTIVI — da quale orario viene lo stato di ogni tappa ('orario del giorno' | 'orario della settimana'), per place_id: va nel tracciato. */
+export function scheduleHoursSources(sched) {
+    const out = new Map();
+    for (const day of sched?.days || []) {
+        for (const s of day) {
+            const st = openStatus(s.candidate, s.start, stayOf(s.candidate));
+            if (st.fonte) out.set(idOf(s.candidate), st.fonte);
+        }
+    }
+    return out;
+}
+
 /**
  * Sceglie, mette in orario e CONTROLLA gli orari veri; ogni posto chiuso quando
  * ci si arriva e' vietato per quel momento e si sceglie di nuovo, finche' il giro

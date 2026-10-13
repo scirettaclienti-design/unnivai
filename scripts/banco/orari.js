@@ -67,3 +67,55 @@ export function apertoPerTutta(periods, giorno, minuti, durata = 0) {
     }
     return { aperto: true };
 }
+
+// ─── ORARI-FESTIVI — gli orari del giorno (currentOpeningHours, 7 giorni con date) ───────────
+// current: { from, to, periods: [{ date: 'YYYY-MM-DD', open: 'HHmm', close: 'HHmm'|null, close_date? }] }
+// Un giorno della finestra senza periodi e' chiuso tutto il giorno. Codice del banco, indipendente
+// dal motore (src/lib/openingHours.js): campiona ogni 5 minuti su istanti assoluti.
+
+/** La data di Roma "YYYY-MM-DD" di un istante. */
+export function dataRoma(iso) {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return new Intl.DateTimeFormat('sv-SE', { timeZone: FUSO }).format(d);
+}
+
+const MIN = 60000;
+const istante = (data, hhmmOMinuti) => Date.parse(`${data}T00:00:00Z`) / MIN + (typeof hhmmOMinuti === 'number' ? hhmmOMinuti : hhmm(hhmmOMinuti));
+
+/** La finestra copre quella data (e ci sono periodi)? */
+export const coperta = (current, data) => !!current && Array.isArray(current.periods) && current.periods.length > 0 && !!data
+    && typeof current.from === 'string' && typeof current.to === 'string' && data >= current.from && data <= current.to;
+
+function apertoIstante(current, t) {
+    for (const p of current.periods) {
+        const a = istante(p.date, p.open);
+        let c = p.close == null ? istante(p.date, 1440) : istante(p.close_date || p.date, p.close);
+        if (c <= a) c += 1440;
+        if (t >= a && t < c) return true;
+    }
+    return false;
+}
+
+/**
+ * Aperto per tutta la sosta secondo gli orari del giorno?
+ * @returns {{ aperto: true|false|null, perche?: 'arrivo'|'oltre-chiusura' }} null = data o sosta fuori dalla finestra (vale la settimana)
+ */
+export function apertoPerTuttaGiorno(current, data, minuti, durata = 0) {
+    if (!coperta(current, data)) return { aperto: null };
+    const t0 = istante(data, minuti);
+    const fineFinestra = istante(current.to, 1440);
+    if (t0 + durata > fineFinestra) return { aperto: null };
+    if (!apertoIstante(current, t0)) return { aperto: false, perche: 'arrivo' };
+    for (let m = 5; m < durata; m += 5) if (!apertoIstante(current, t0 + m)) return { aperto: false, perche: 'oltre-chiusura' };
+    if (durata > 0 && !apertoIstante(current, t0 + durata - 1)) return { aperto: false, perche: 'oltre-chiusura' };
+    return { aperto: true };
+}
+
+/** "17/10 chiuso" o "17/10 10:00–13:00" per i messaggi. */
+export function orariDelGiornoData(current, data) {
+    const f = (t) => { const m = hhmm(t); return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`; };
+    const del = (current?.periods || []).filter(p => p.date === data);
+    const gg = data ? `${data.slice(8, 10)}/${data.slice(5, 7)}` : '?';
+    return del.length ? `${gg} ${del.map(p => `${f(p.open)}–${p.close == null ? '24:00' : f(p.close)}`).join(', ')} (orario del giorno)` : `${gg} chiuso (orario del giorno)`;
+}

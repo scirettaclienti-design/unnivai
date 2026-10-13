@@ -26,7 +26,8 @@ import { CASI_ESTESI, istanteSimulato } from './casi-esteso.js';
 
 const OUT = process.env.BANCO_OUT;
 if (!OUT) throw new Error('BANCO_OUT mancante: lancia il banco esteso con `npm run banco:esteso`');
-const E = config.esteso;
+// ORARI-FESTIVI — BANCO_GIORNO=AAAA-MM-GG sposta il giorno simulato (deve stare nei 7 giorni che Google copre).
+const E = { ...config.esteso, ...(process.env.BANCO_GIORNO ? { giornoSimulato: process.env.BANCO_GIORNO } : {}) };
 
 // Le scelte del wizard di Veloce sono scritte in casi-esteso.js: se QuickPath.jsx cambia titolo, ci si ferma.
 const quickSrc = readFileSync(path.join(process.cwd(), 'src/pages/QuickPath.jsx'), 'utf8');
@@ -51,6 +52,8 @@ const annota = (p, query) => {
     const l = luoghi.get(id) || { queries: new Set() };
     // Con la ricerca nuova il proxy porta gli orari (opening_hours.periods), il tipo principale e il fuso.
     if (Array.isArray(p.opening_hours?.periods)) l.periods = p.opening_hours.periods;
+    // ORARI-FESTIVI — gli orari dei prossimi 7 giorni, per data
+    if (p.current_opening_hours && Array.isArray(p.current_opening_hours.periods)) l.current = p.current_opening_hours;
     if (p.primary_type) l.primaryType = p.primary_type;
     if (Number.isFinite(p.utc_offset_minutes)) l.utcOffsetMinutes = p.utc_offset_minutes;
     if (Number.isFinite(p.user_ratings_total)) l.recensioni = p.user_ratings_total;
@@ -146,6 +149,8 @@ const tappa = (s, fatti, comp, riempite, dieta, atStimato) => {
         ...(s._tracciato?.nomeOriginale ? { nomeOriginale: s._tracciato.nomeOriginale } : {}),
         // ORARI — il motore segna se l'orario del posto e' noto (aperto per tutta la sosta) o sconosciuto
         ...(s._orario || s._tracciato?.orario ? { orario: s._orario ?? s._tracciato.orario } : {}),
+        // ORARI-FESTIVI — da quale orario viene il verdetto del motore ('orario del giorno' | 'orario della settimana')
+        ...(s._orarioFonte || s._tracciato?.orarioFonte ? { orarioFonte: s._orarioFonte ?? s._tracciato.orarioFonte } : {}),
         dietaCercata: parole.length ? qs.some(conDieta) : null,
         dietaSolo: parole.length ? (qs.length > 0 && qs.every(conDieta)) : null,
     };
@@ -294,9 +299,9 @@ it('orari', async () => {
         // quelli di TUTTI i posti visti: servono al confronto sulla copertura del pool.
         for (const c of out.casi) {
             c.orari = Object.fromEntries((c.tours || []).flatMap(t => t.stops || []).filter(s => s.place_id)
-                .map(s => [s.place_id, { chiamato: true, periods: luoghi.get(s.place_id)?.periods ?? null }]));
+                .map(s => [s.place_id, { chiamato: true, periods: luoghi.get(s.place_id)?.periods ?? null, ...(luoghi.get(s.place_id)?.current ? { current: luoghi.get(s.place_id).current } : {}) }]));
         }
-        out.luoghiOrari = Object.fromEntries([...luoghi.entries()].map(([id, l]) => [id, { periods: l.periods ?? null, primaryType: l.primaryType ?? null, utcOffsetMinutes: l.utcOffsetMinutes ?? null }]));
+        out.luoghiOrari = Object.fromEntries([...luoghi.entries()].map(([id, l]) => [id, { periods: l.periods ?? null, primaryType: l.primaryType ?? null, utcOffsetMinutes: l.utcOffsetMinutes ?? null, ...(l.current ? { current: l.current } : {}) }]));
         const tutti = Object.values(out.luoghiOrari);
         out.orariRiepilogo = { postiDistinti: tutti.length, chiamati: 0, nonRichiesti: 0, senzaOrari: tutti.filter(o => !o.periods).length, daRicerca: true };
         save();

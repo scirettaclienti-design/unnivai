@@ -95,7 +95,7 @@ describe('places-proxy con la ricerca nuova', () => {
     it('cache con chiave propria: non incrocia quella legacy (stessa richiesta, due motori, due voci)', async () => {
         const r = await run(NEW, { env: {}, mod: NEWMOD }, [[URLS.textsearch, {}], [`${URLS.textsearch}&engine=new`, conTest], [`${URLS.textsearch}&engine=new`, conTest]]);
         expect(r.cache).toHaveLength(2);
-        expect(r.cache.map(([k]) => k).filter(k => k.includes(':new1-'))).toHaveLength(1);
+        expect(r.cache.map(([k]) => k).filter(k => k.includes(':new2-'))).toHaveLength(1);
         expect(r.out[2].headers['x-cache']).toBe('HIT');
         expect(r.calls).toHaveLength(2); // legacy + nuova; la terza e' una HIT
         expect(JSON.parse(r.out[0].body).results[0].opening_hours).toEqual({ open_now: true });

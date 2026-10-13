@@ -2650,6 +2650,18 @@ export const aiRecommendationService = {
                             // Un filtro non lascia mai un buco: un momento rimasto senza posti
                             // aperti ha la sua riga dichiarata (tempo libero, o "nessun locale
                             // aperto" per un pasto).
+                            // E quante tappe avrebbe avuto il giro SENZA il filtro: il messaggio notturno
+                            // vale solo se le chiusure hanno portato le tappe sotto quelle (un giro che per
+                            // costruzione ha una tappa sola, e ce l'ha aperta, resta com'e').
+                            let tappeSenzaFiltro = null;
+                            if (hoursReport.chiusi.length > 0 || veto.size > 0) {
+                                const senza = repairMomentSelection({
+                                    moments, buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
+                                    requestedFamilies: familiesAsked, searchedIds, searchedMoments,
+                                    startPoint: opts.startPoint || null, tempoLiberoMinuti: FREE_TIME_MAX_MINUTES, registraPool: false,
+                                });
+                                tappeSenzaFiltro = scheduleMomentPlan(senza.plan, tourWindow.windows.map(w => w.start)).days.flat().length;
+                            }
                             const chiusiPerMomento = new Set([...hoursReport.chiusi.map(x => x.momento), ...veto.keys()]);
                             const righeChiuse = closedMomentRows({ moments, sched, tempoLibero: report.tempoLibero, chiusiPerMomento });
                             report.tempoLibero = [...(report.tempoLibero || []), ...righeChiuse];
@@ -2658,6 +2670,7 @@ export const aiRecommendationService = {
                                 chiusi: hoursReport.chiusi.slice(0, 60), vietati: [...veto.entries()].map(([momento, ids]) => ({ momento, place_id: [...ids] })),
                                 giri: settled.giri.length, ignoti: hoursReport.ignoti, scartatiIgnoti: hoursReport.scartatiIgnoti,
                                 righeDichiarate: righeChiuse.map(x => ({ momento: x.momento, pasto: x.pasto })), residui: settled.residui.length,
+                                tappeSenzaFiltro,
                             };
                             momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo };
                             logMomentReport(city, momentReport);
@@ -2705,7 +2718,7 @@ export const aiRecommendationService = {
                                 retime: (list) => computeStopTimings(enforceCategoryVariety(sortByProximity(list))).stops,
                                 toStop: (c) => canonicalizeStopsFromCandidates([{ place_id: c.place_id || c.googlePlaceId }], candidates, { guard: false })[0] || null,
                             });
-                            orariInfo = { chiusi: aperti.chiuse, aggiunte: aperti.aggiunte, ignoti: aperti.ignote, giri: aperti.passi, vietati: [] };
+                            orariInfo = { chiusi: aperti.chiuse, aggiunte: aperti.aggiunte, ignoti: aperti.ignote, giri: aperti.passi, vietati: [], tappeSenzaFiltro: ordered.length };
                             // Un filtro non lascia mai un buco: se le chiusure hanno accorciato il giro e
                             // non c'era altro di aperto, la riga di tempo libero (regola O) lo dichiara.
                             if (aperti.stops.length < ordered.length) {
@@ -2738,7 +2751,8 @@ export const aiRecommendationService = {
                     // 2 tappe aperte, niente giro: un messaggio dichiarato (testo
                     // provvisorio, decisione M). Senza chiusure (o senza orari) non scatta.
                     const orariAgito = !!orariInfo && ((orariInfo.chiusi || []).length > 0 || (orariInfo.vietati || []).length > 0);
-                    if (orariAgito && finalDays.reduce((n, d) => n + d.stops.length, 0) < 2) {
+                    const tappeAperte = finalDays.reduce((n, d) => n + d.stops.length, 0);
+                    if (orariAgito && tappeAperte < 2 && tappeAperte < (orariInfo.tappeSenzaFiltro ?? Infinity)) {
                         console.info(`[ORARI] ${city}: meno di 2 tappe aperte a quest'ora → messaggio dichiarato`);
                         return {
                             days: [{ stops: [] }], _source: 'closed-now', _messaggio: MESSAGGIO_CHIUSO,

@@ -91,6 +91,38 @@ describe('flusso senza scheletro (sera tarda, Veloce)', () => {
     });
 });
 
+describe('il messaggio notturno solo se le chiusure hanno tolto tappe', () => {
+    const INTENT_CIBO = { queries: ['trattoria'], categoria: 'cibo', oggetto_umano: 'trattorie', vincoli: { tempo: null, escludi: [], note: null } };
+    const ristorante = (id, i, periods) => ({
+        place_id: id, name: `Trattoria ${id}`, geometry: { location: { lat: aKm(0.5 + i * 0.3), lng: CABRAS.longitude } },
+        rating: 4.6, user_ratings_total: 400, business_status: 'OPERATIONAL', types: ['restaurant', 'food', 'point_of_interest', 'establishment'],
+        ...(periods ? { opening_hours: { open_now: true, periods } } : {}),
+    });
+    const generaCibo = async (results, ora) => {
+        window.localStorage.clear();
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date(`2026-10-14T${ora}:00+02:00`));
+        let n = 0;
+        vi.stubGlobal('fetch', vi.fn(async (url) => {
+            const u = String(url);
+            if (u.includes('openai-proxy')) return ai(n++ === 0 ? INTENT_CIBO : { days: [{ day: 1, stops: results.map(p => ({ place_id: p.place_id, moment: 'g1-cena' })) }] });
+            if (u.includes('textsearch')) return { ok: true, json: async () => ({ status: 'OK', results: decodeURIComponent(u).includes('Cabras') ? results : [] }) };
+            return { ok: true, json: async () => ({ status: 'OK', result: {} }) };
+        }));
+        return aiRecommendationService.generateItinerary('Cabras', {}, 'una cena a Cabras', {}, '', CABRAS, { pathType: 'custom' });
+    };
+    it('il giro ha una sola tappa per costruzione (la cena) e c\'e\' un posto aperto: resta il giro, niente messaggio', async () => {
+        const r = await generaCibo([ristorante('chiusa', 0, tutti('1900', '1930')), ristorante('aperta', 1, tutti('1800', '2359'))], '20:15');
+        expect(r._source).toBe('google-first');
+        expect(nomi(r)).toEqual(['aperta']);
+    });
+    it('lo stesso giro ma nessun locale aperto: il messaggio dichiarato', async () => {
+        const r = await generaCibo([ristorante('chiusa1', 0, tutti('1900', '1930')), ristorante('chiusa2', 1, tutti('1000', '1500'))], '20:15');
+        expect(r._source).toBe('closed-now');
+        expect(r._messaggio).toBe(MESSAGGIO_CHIUSO);
+    });
+});
+
 describe('senza orari (ricerca vecchia)', () => {
     it('orario sconosciuto: nessun errore, nessun posto tolto, tappe segnate "sconosciuto"', async () => {
         const r = await genera([place('a', 0, null), place('b', 1, null), place('c', 2, null)], '15:00');

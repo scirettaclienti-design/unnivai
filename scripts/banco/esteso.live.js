@@ -20,6 +20,7 @@ import { isMealPlace } from '@/services/momentSelection';
 import { resolveFoodPrefs, DIETE } from '@/lib/foodPrefs';
 import { voiceIssues } from '@/lib/narrationLight';
 import { buildPromptFromSelections, buildQuickPrefs } from '@/pages/QuickPath';
+import { isSeraStart } from '@/lib/daySkeleton';
 import { row, conComposizione } from '../prova-reale/righe.js';
 import config from './banco.config.json';
 import { CASI_ESTESI, istanteSimulato } from './casi-esteso.js';
@@ -224,8 +225,10 @@ for (const caso of casi) {
                 if (food.dieta?.length || food.budget) rec.vincoli = { dieta: food.dieta, budget: food.budget, maxPriceLevel: food.maxPriceLevel };
                 rec.chiamata = { pagina: 'DashboardUser.jsx', pathType: null, prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, testo: null };
                 const cc = await resolveCityCenter(caso.luogo);
-                const themed = await placesDiscoveryService.discoverAllThemes(caso.luogo, cc.latitude, cc.longitude, { foodPrefs: food });
-                const insider = buildInsiderPool(themed, cc, caso.luogo, undefined, { _share: 0 });
+                // C8b — dalle 18:00 Per Te e' il giro della sera (nessuna ricerca per temi); prima la ricerca del cibo segue l'ora (colazione, merenda)
+                const sera = isSeraStart(new Date(now));
+                const themed = sera ? {} : await placesDiscoveryService.discoverAllThemes(caso.luogo, cc.latitude, cc.longitude, { foodPrefs: food, ora: new Date(now) });
+                const insider = sera ? [] : buildInsiderPool(themed, cc, caso.luogo, undefined, { _share: 0 });
                 const r = await aiRecommendationService.generateHomeTours({ city: caso.luogo, cityCenter: cc, themedCandidates: { insider, ...themed },
                     prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, aiProfile: '',
                     opts: { dnaWeights: { _share: 0 }, onboardingPrefs: caso.onboarding || null, skipUserQuota: true, simulatedNow: now } });
@@ -237,14 +240,24 @@ for (const caso of casi) {
                     (Array.isArray(arr) ? arr : []).slice(0, 25).map(p => ({ place_id: p.place_id || p.googlePlaceId, nome: p.name || p.title, types: (p.types || []).slice(0, 4), rating: p.rating ?? null, recensioni: p.user_ratings_total ?? null }))]));
                 const per = new Map((r._report?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
                 const comp = new Map((r._report?.composizione || []).map(x => [x.place_id, x]));
+                rec.serale = sera;
+                if (sera) {
+                    // C8b — di sera il giro e' quello del motore dei momenti: gli orari sono veri, valgono i controlli degli itinerari
+                    rec.tipo = 'itinerario';
+                    rec.finestraMinuti = r._report?.momentReport?.finestraMinuti ?? null;
+                    rec.continuita = r._report?.momentReport?.continuita ?? null;
+                }
                 rec.tours = (r.tours || []).map(t => {
-                    // "Per Te" non ha orari: l'arrivo si stima da ora simulata + cammino + soste.
+                    // "Per Te" di giorno non ha orari: l'arrivo si stima da ora simulata + cammino + soste.
                     let t_ = new Date(now).getTime();
                     return { tema: t.themeType, titolo: t.title || null, stops: t.stops.map(s => {
                         t_ += (s.travelMinutesFromPrev || 0) * 60000;
                         const stimato = new Date(t_).toISOString();
                         t_ += (s.stayMinutes || 0) * 60000;
-                        return tappa(s, per.get(s.place_id), comp, null, food.dieta || [], stimato);
+                        const x = tappa(s, per.get(s.place_id), comp, null, food.dieta || [], stimato);
+                        // C8b — i controlli dei pasti valgono anche per Per Te: il momento si ricava dall'ora d'arrivo (la mattina e' prima di mezzogiorno)
+                        if (!x.moment) { const hh = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', hour12: false }).format(new Date(x.at))); if (hh < 12) x.moment = 'mattina'; }
+                        return x;
                     }) };
                 });
                 rec.schermo = { giorni: (rec.tours || []).map(t => ({ titolo: t.titolo, meteo: null })), note: r._source === 'closed-now' ? [r._messaggio] : [] };
@@ -263,6 +276,7 @@ for (const caso of casi) {
                 rec.giorno = r.tourWindow ? { date: r.tourWindow.date, start: r.tourWindow.start, reason: r.tourWindow.reason } : null;
                 rec.frasiTolte = r._narrationReport?.frasiTolte ?? null;
                 rec.pool = r._momentReport?.pool ?? null;
+                rec.finestraMinuti = r._momentReport?.finestraMinuti ?? null;
                 rec.sceltaModello = r._momentReport?.sceltaModello ?? null;
                 rec.ricerche = { prima: r._momentReport?.ricercheMirate ?? null, dopo: r._momentReport?.ricercheDopo ?? null };
                 // ORARI — il messaggio "meglio domattina" al posto del giro e' un ripiego dichiarato

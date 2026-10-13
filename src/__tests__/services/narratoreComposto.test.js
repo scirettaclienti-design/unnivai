@@ -159,8 +159,9 @@ describe('P3d-j — "Per Te" composto', () => {
     });
     afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
-    it('a mezzanotte: una chiamata, nessun tramonto, nessun testo del modello, nessun meteo inventato nel prompt', async () => {
-        vi.setSystemTime(new Date('2026-10-10T00:04:00+02:00'));
+    it('alle 5 del mattino: una chiamata, nessun tramonto, nessun testo del modello, nessun meteo inventato nel prompt', async () => {
+        // C8b — a mezzanotte "Per Te" e' il giro della sera (motore dei momenti): qui si prova il tour tematico, subito dopo l'alba
+        vi.setSystemTime(new Date('2026-10-10T05:04:00+02:00'));
         const res = await aiRecommendationService.generateHomeTours({ city: CITY, cityCenter: CENTER, themedCandidates: POOL, opts: { skipUserQuota: true } });
         expect(prompts).toHaveLength(1);
         expect(prompts[0]).not.toMatch(/meteo: sereno|22°/);

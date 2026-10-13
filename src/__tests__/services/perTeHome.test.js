@@ -63,6 +63,10 @@ afterEach(() => {
     vi.useRealTimers();
 });
 
+// C8b — di sera "Per Te" e' il giro della sera: i test dei tour tematici girano a pranzo, qualunque ora sia.
+beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-14T13:00:00+02:00')); });
+afterEach(() => { vi.useRealTimers(); });
+
 describe('Per Te — distanza decisa in codice, prima del prompt', () => {
     it('un candidato a 50 km non compare mai nel prompt', async () => {
         const fn = proxyFetch(JSON.stringify({ tours: [tourJson('cultura', ['c1', 'c2', 'c3'])] }));
@@ -137,9 +141,9 @@ describe('Per Te — momento della giornata e chiave di cache', () => {
         vi.useRealTimers();
     };
 
-    it('stesso giorno, 12:00 e 19:00 (Roma) → due chiavi diverse', async () => {
+    it('stesso giorno, 12:00 e 16:00 (Roma) → due chiavi diverse', async () => {
         await at('2026-10-08T12:00:00+02:00');
-        await at('2026-10-08T19:00:00+02:00');
+        await at('2026-10-08T16:00:00+02:00');
         expect(hometourKeys()).toHaveLength(2);
     });
 
@@ -164,13 +168,13 @@ describe('Per Te — momento della giornata e chiave di cache', () => {
         expect(openaiCalls(fn)).toHaveLength(dopoLaPrima);
     });
 
-    it('alle 19:00 di Roma il prompt dice Aperitivo, letto dalla tabella dei momenti', async () => {
+    it('alle 17:00 di Roma il prompt dice Pomeriggio, letto dalla tabella dei momenti (dalle 18:00 Per Te e\' il giro della sera: C8b)', async () => {
         const fn = proxyFetch(JSON.stringify({ tours: [tourJson('cultura', ['c1', 'c2', 'c3'])] }));
         vi.stubGlobal('fetch', fn);
         vi.useFakeTimers({ toFake: ['Date'] });
-        vi.setSystemTime(new Date('2026-10-08T19:00:00+02:00'));
+        vi.setSystemTime(new Date('2026-10-08T17:00:00+02:00'));
         await home(POOLS);
-        expect(sentPrompt(fn)).toContain('• orario: Aperitivo (18:00–20:00)');
+        expect(sentPrompt(fn)).toContain('• orario: Pomeriggio (14:30–18:00)');
     });
 
     it('nessuna soglia oraria scritta a mano nel motore della Home', () => {

@@ -381,8 +381,11 @@ describe('Gate RAGGIO-CATEGORIA — generateItinerary, scenario Cabras', () => {
         // ristoranti stanno solo a pranzo: 1 tappa. Mattina e pomeriggio non
         // hanno candidati (le ricerche mirate qui non trovano niente) e sono
         // tolti, e il report lo dice.
-        expect(result.days[0].stops).toHaveLength(1);
-        expect(result.days[0].stops[0].moment).toBe('pranzo');
+        // C8b — una sola tappa vera e' sotto il minimo: il giro lo dichiara con righe di tempo libero (non sono tappe)
+        const vere = result.days[0].stops.filter(s => !s.tempoLibero);
+        expect(vere).toHaveLength(1);
+        expect(vere[0].moment).toBe('pranzo');
+        expect(result.days[0].stops.some(s => s.tempoLibero)).toBe(true);
         expect(result._momentReport.momentiTolti.map(m => m.momento)).toEqual(['g1-mattina', 'g1-pomeriggio']);
     });
 });

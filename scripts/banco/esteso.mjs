@@ -21,6 +21,7 @@ import { reportFestivi } from './report-festivi.js';
 import { reportContinuita } from './report-continuita.js';
 import { reportComposizione } from './report-composizione.js';
 import { reportSera } from './report-sera.js';
+import { reportMinimi, unisciGrezzi } from './report-minimi.js';
 
 const root = process.cwd();
 const config = JSON.parse(readFileSync(path.join(root, 'scripts/banco/banco.config.json'), 'utf8'));
@@ -44,6 +45,9 @@ const COMPOSIZIONE = process.env.BANCO_RUN === 'composizione';
 // BANCO_RUN=sera-prima: gli stessi casi sul codice di PRIMA (ce135b5), per i casi che non erano in nessun giro.
 const SERA = process.env.BANCO_RUN === 'sera';
 const SERA_PRIMA = process.env.BANCO_RUN === 'sera-prima';
+// C8b — BANCO_RUN=minimi: minimi di tappe, cena tardi, Per Te nelle sue ore. Piu' file nello stesso task (il tetto e' del task):
+// `--report a.json,b.json,c.json` li unisce; ogni giro nuovo scrive `-minimi`, `-minimi-2`, ...
+const MINIMI = process.env.BANCO_RUN === 'minimi';
 const argReport = process.argv.indexOf('--report');
 let jsonPath, nome;
 if (argReport > -1) {
@@ -51,7 +55,7 @@ if (argReport > -1) {
     nome = path.basename(jsonPath, '.json');
 } else {
     // MIG-PLACES — BANCO_PLACES=new: stessi casi con la ricerca nuova (solo l'account di prova), file `-new`.
-    const suffisso = SERA ? '-sera' : SERA_PRIMA ? '-sera-prima' : COMPOSIZIONE ? '-composizione' : CONTINUITA ? '-continuita' : FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
+    const suffisso = MINIMI ? '-minimi' : SERA ? '-sera' : SERA_PRIMA ? '-sera-prima' : COMPOSIZIONE ? '-composizione' : CONTINUITA ? '-continuita' : FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
     nome = `${oggi}-banco-esteso${suffisso}`;
     for (let i = 2; existsSync(path.join(root, 'docs/prove/dati', `${nome}.json`)); i++) nome = `${oggi}-banco-esteso${suffisso}-${i}`;
     jsonPath = path.join(root, 'docs/prove/dati', `${nome}.json`);
@@ -71,7 +75,30 @@ if (argReport > -1) {
     }
 }
 
+if (argReport > -1 && /-minimi/.test(process.argv[argReport + 1])) {
+    // C8b — il report unisce piu' grezzi dello stesso task
+    const files = process.argv[argReport + 1].split(',').map(f => path.resolve(f.trim()));
+    const raws = files.map(f => ({ ...JSON.parse(readFileSync(f, 'utf8')), _nome: path.basename(f) }));
+    const casiBase = [];
+    const viste = new Set();
+    for (const f of (config.esteso.baselineMinimi || []).map(f => path.join(root, f)).filter(f => existsSync(f))) {
+        for (const c of JSON.parse(readFileSync(f, 'utf8')).casi || []) if (!viste.has(c.id)) { viste.add(c.id); casiBase.push({ ...c, _file: path.basename(f) }); }
+    }
+    const nomeDoc = `${oggi}-c8b-minimi`;
+    const nPath = path.join(root, 'docs/prove/dati', `${nomeDoc}-note.md`);
+    const dPath = path.join(root, 'docs/prove/dati', `${nomeDoc}-diagnosi.md`);
+    const { markdown: md, sintesi } = reportMinimi(casiBase, unisciGrezzi(raws), config, { commit, diagnosi: existsSync(dPath) ? readFileSync(dPath, 'utf8') : null });
+    writeFileSync(path.join(root, 'docs/prove', `${nomeDoc}.md`), md + (existsSync(nPath) ? '\n' + readFileSync(nPath, 'utf8') : '') + '\n');
+    const cl = (k) => `${sintesi.classi[k].dopo} (prima ${sintesi.classi[k].prima})`;
+    console.log(`[banco-esteso] report minimi: docs/prove/${nomeDoc}.md | ${sintesi.misurati}/${sintesi.casi} casi | c1 ${cl('c1')} | c2 ${cl('c2')} | c3 ${cl('c3')} | c4 ${cl('c4')} | c5 ${cl('c5')} | c11 ${cl('c11')} | c12 ${cl('c12')} | c13 ${cl('c13')} | peggioramenti ${sintesi.peggioramenti.length} | spesa task ${sintesi.spesa}`);
+    process.exit(0);
+}
 const raw = JSON.parse(readFileSync(jsonPath, 'utf8'));
+if (raw.motore === 'new' && /-minimi/.test(nome)) {
+    // C8b — un giro singolo di prova (il report vero unisce tutti i giri con --report a,b,c)
+    console.log(`[banco-esteso] grezzo del giro: ${path.relative(root, jsonPath)} | spesa ${raw.costo?.totale?.toFixed?.(3) ?? '?'} (il report: npm run banco -- --report a.json,b.json con BANCO_RUN=minimi)`);
+    process.exit(0);
+}
 if (raw.motore === 'new' && /-sera-prima/.test(nome)) {
     // C8a — il grezzo del codice di prima: nessun report, serve da "prima" del giro sera.
     console.log(`[banco-esteso] grezzo del codice di prima: ${path.relative(root, jsonPath)} | spesa ${raw.costo?.totale?.toFixed?.(3) ?? '?'}`);

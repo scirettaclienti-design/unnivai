@@ -27,6 +27,30 @@ import { MOMENT_BY_KEY } from './dayMoments';
 /** Oltre questa attesa fra due tappe serve una tappa o una riga dichiarata. */
 export const GAP_MAX_MINUTES = 45;
 
+/**
+ * C8b — I MINIMI DI TAPPE (decisione di Ivano), per la durata della finestra del giorno:
+ *   6 ore o piu' → almeno 4 tappe; da 3 a 6 ore → almeno 3; meno di 3 ore → almeno 2; mai 1.
+ * Le righe di tempo libero non sono tappe. Di sera un drink piu' la cena (o piu' la passeggiata) e' un giro completo.
+ * Se il pool non arriva al minimo il giro lo dichiara (una riga di tempo libero): mai un tour corto in silenzio.
+ */
+export const MIN_STOPS_LUNGO_ORE = 6;
+export const MIN_STOPS_MEDIO_ORE = 3;
+export function minStopsForWindow(minutes) {
+    if (!Number.isFinite(minutes)) return 2;
+    if (minutes >= MIN_STOPS_LUNGO_ORE * 60) return 4;
+    if (minutes >= MIN_STOPS_MEDIO_ORE * 60) return 3;
+    return 2;
+}
+/** Un giro serale completo: un drink e (la cena o la passeggiata), oppure la cena e la passeggiata. */
+export function isEveningComplete(entries) {
+    const list = Array.isArray(entries) ? entries : [];
+    const has = (f) => list.some(f);
+    const drink = has(e => e?.moment?.bevuta);
+    const cena = has(e => e?.moment?.key === 'cena');
+    const walk = has(e => e?.moment?.key === 'passeggiata');
+    return (drink && (cena || walk)) || (cena && walk);
+}
+
 const idOf = (c) => c?.place_id || c?.googlePlaceId || null;
 
 /**

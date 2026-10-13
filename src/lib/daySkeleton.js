@@ -69,6 +69,13 @@ export const FOOD_ONLY_MOMENT_KEYS = new Set(['pranzo', 'cena']);
 /** C8a — il Percorso Veloce e' "serale" da quest'ora (minuti dalla mezzanotte di Roma) fino all'alba. */
 export const SERA_FROM_MINUTES = 18 * 60;
 export const ALBA_MINUTES = 5 * 60;
+/** C8b — l'istante e' "di sera" (dalle 18:00 fino all'alba, ora di Roma): il percorso serale e' drink + passeggiata + cena. */
+export const isSeraStart = (date) => {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return false;
+    const p = romeParts(date);
+    const m = p.h * 60 + p.mi;
+    return m >= SERA_FROM_MINUTES || m < ALBA_MINUTES;
+};
 /** C8a — la passeggiata tra aperitivo e cena: serve se restano piu' di 30 minuti; dura al massimo 30. */
 export const WALK_MIN_REMAINING_MINUTES = 30;
 export const WALK_CATEGORIES = ['punti panoramici', 'passeggiata', 'natura'];
@@ -76,6 +83,10 @@ export const WALK_CATEGORIES = ['punti panoramici', 'passeggiata', 'natura'];
 const WALK_MARGIN_BEFORE_NEXT_MINUTES = 20;
 const VELOCE_WALK_WINDOW_MINUTES = 150;
 const VELOCE_DINNER_ARRIVAL_MINUTES = 85;
+/** C8b — la cena tardi: chi parte fra le 21:00 e le 22:00. Dopo la cena e la passeggiata passano ~115 minuti. */
+const CENA_TARDI_DA = 21 * 60;
+const CENA_TARDI_A = 22 * 60;
+const CENA_PRIMA_DOPO_MINUTES = 115;
 /** L'ultima ora in cui si arriva a una cena facoltativa (la fascia della cena del banco: 19:30–23:00). */
 const CENA_ULTIMO_ARRIVO = { h: 23, m: 0 };
 const ASKED_APERITIVO = /\b(aperitiv\w*|apericena)\b/;
@@ -135,6 +146,7 @@ const preferredFor = (key, interests) => {
     return out;
 };
 
+const romeMinutesOf = (date) => { const p = romeParts(date); return p.h * 60 + p.mi; };
 const civilDay = (date) => {
     const p = romeParts(date);
     return { y: p.y, m: p.m, d: p.d };
@@ -173,7 +185,7 @@ const capStops = (moments) => {
  *   start: Date, end: Date, minutes: number, categories: string[],
  *   preferred: string[], stops: number, careful: boolean }> }> }}
  */
-export function buildDaySkeleton({ window: tw, pace, interests = [], group = '', text = '', category = null, foodTheme: foodThemeIn = false, veloce = false } = {}) {
+export function buildDaySkeleton({ window: tw, pace, interests = [], group = '', text = '', category = null, foodTheme: foodThemeIn = false, veloce = false, cenaPrima: cenaPrimaIn = false } = {}) {
     const windows = Array.isArray(tw?.windows) && tw.windows.length > 0
         ? tw.windows
         : (tw?.start && tw?.end ? [{ date: tw.date, start: tw.start, end: tw.end }] : []);
@@ -237,9 +249,24 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
         const startClock = romeParts(w.start);
         const startMinutes = startClock.h * 60 + startClock.mi;
         const serale = veloce && (startMinutes >= SERA_FROM_MINUTES || startMinutes < ALBA_MINUTES);
+        // C8b — CENA TARDI: chi parte fra le 21:00 e le 22:00 cena PRIMA (poi la passeggiata, e un drink solo se resta tempo nella
+        // finestra). Il chiamante lo chiede (`cenaPrima`) e, se nessun ristorante e' aperto per tutta la sosta, ripiega sul giro di C8a.
+        const cenaPrima = serale && cenaPrimaIn && startMinutes >= CENA_TARDI_DA && startMinutes < CENA_TARDI_A;
 
         const moments = [];
-        if (serale) {
+        if (cenaPrima) {
+            const cena = MOMENT_BY_KEY.cena;
+            const notte = MOMENT_BY_KEY.dopocena;
+            moments.push(build(cena, wStart, romeDate(day, CENA_ULTIMO_ARRIVO).getTime(), { opzionale: true, soloAperti: true, cenaPrima: true }));
+            // cena (75) + cammino + passeggiata (30) + cammino: il drink parte dopo, se nella finestra ne resta il tempo (45 + cammino)
+            const drinkAt = wStart + CENA_PRIMA_DOPO_MINUTES * 60000;
+            if (wEnd - drinkAt >= 60 * 60000) {
+                const drink = build(notte, drinkAt, wEnd, { sostaAperitivo, bevuta: true, soloCategorie: true, opzionale: true });
+                drink.categories = ['bar', 'vita notturna'];
+                drink.preferred = [];
+                moments.push(drink);
+            }
+        } else if (serale) {
             // C8a — PERCORSO VELOCE DALLE 18:00: drink, passeggiata (aggiunta da addEveningWalk) e cena.
             // La cena e' FACOLTATIVA: vale solo se un locale e' aperto per tutta la sosta (75 minuti)
             // quando ci si arriva; altrimenti il giro e' drink + passeggiata, mai una tappa sola.
@@ -326,6 +353,23 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
  */
 export function addEveningWalk(skeleton, { veloce = false } = {}) {
     const days = (skeleton?.days || []).map((day) => {
+        // C8b — la CENA TARDI: la passeggiata viene DOPO la cena (Veloce con `cenaPrima`, o una sera che comincia fra le 21:00 e le 22:00
+        // con la cena come primo momento e nessun drink prima).
+        const ci = (day.moments || []).findIndex(m => m.cenaPrima || (!veloce && m.key === 'cena' && !m.opzionale && m === day.moments[0]
+            && !day.moments.some(x => x.bevuta) && romeMinutesOf(m.start) >= CENA_TARDI_DA && romeMinutesOf(m.start) < CENA_TARDI_A));
+        if (ci >= 0) {
+            const cena = day.moments[ci];
+            const startMs = cena.start.getTime();
+            let endMs = startMs + VELOCE_WALK_WINDOW_MINUTES * 60000;
+            if (!cena.cenaPrima) endMs = Math.min(endMs, romeDate(civilDay(cena.start), { h: 23, m: 30 }).getTime());
+            if (endMs <= startMs) return day;
+            const walk = {
+                key: 'passeggiata', label: 'Passeggiata', start: new Date(startMs), end: new Date(endMs), minutes: Math.round((endMs - startMs) / 60000),
+                categories: [...WALK_CATEGORIES], preferred: [], stops: 1, careful: false, opzionale: true, soloCategorie: true, viewKey: 'cena',
+            };
+            const moments = [...day.moments.slice(0, ci + 1), walk, ...day.moments.slice(ci + 1)];
+            return { ...day, moments, totalStops: day.totalStops + 1 };
+        }
         const i = (day.moments || []).findIndex(m => m.bevuta);
         if (i < 0) return day;
         const drink = day.moments[i];

@@ -16,7 +16,7 @@ export const CLASSI = [
     ['c1', 'Pasti fuori fascia'],
     ['c2', 'Ristoranti a mattina/pomeriggio senza richiesta'],
     ['c3', 'Colazione in un posto non da colazione o chiuso'],
-    ['c4', 'Meno di 4 tappe senza ripiego dichiarato'],
+    ['c4', 'Sotto il minimo di tappe per la durata, senza ripiego dichiarato'],
     ['c5', 'Posto chiuso all\'ora della tappa'],
     ['c6', 'Durate uguali per tipi diversi'],
     ['c7', 'Grammatica e ripetizioni nelle frasi'],
@@ -31,13 +31,14 @@ export const CLASSI = [
 export const DEFINIZIONI = {
     c1: 'Una tappa-pasto (un ristorante: il TIPO PRINCIPALE di Google, non bar/caffè/forno: un cocktail bar marcato anche `restaurant` è un bar) con orario di arrivo fuori dalle fasce del pasto (pranzo e cena, da banco.config.json) '
         + 'oppure due pasti seduti a meno di `pastiDistanzaMinOre` ore uno dall\'altro nello stesso giro (il "secondo pranzo"). '
-        + 'Non si applica a Per Te (tour tematico a orari stimati, senza momenti). Un ristorante in un momento che il testo chiede esplicitamente ("un pomeriggio tra portici e osterie") non conta.',
+        + 'C8b — vale anche per Per Te (gli orari di arrivo sono stimati da ora, cammino e soste). Un ristorante in un momento che il testo chiede esplicitamente ("un pomeriggio tra portici e osterie") non conta.',
     c2: 'Un ristorante (tipo principale) nel momento mattina, pomeriggio, aperitivo o dopocena, salvo che il testo della richiesta chieda quel momento (mattina e pomeriggio): colazione/brunch per la mattina, '
         + 'merenda per il pomeriggio, o il nome del momento insieme a una parola di cibo. "ristoranti", "trattorie" ecc. da soli NON chiedono un momento.',
     c3: 'Una tappa-locale (dove si mangia o beve) nel momento mattina che non è un posto da colazione (un ristorante/trattoria/pizzeria senza tipo cafe/bakery né nome da bar/caffè/pasticceria; '
         + 'o un wine bar/cocktail bar/enoteca) oppure che, secondo gli orari, è chiuso all\'ora di arrivo.',
-    c4: 'Un giro (itinerario) con meno di `tappeMin` tappe vere e nessun ripiego dichiarato (tempo libero, tappa di ripiego, "un solo posto", query di base). '
-        + 'Di sera, un drink (aperitivo/dopocena) più la cena — o più la passeggiata, quando la cena non è più possibile — valgono come giro completo. Per Te non si applica (giri da 3 tappe per progetto).',
+    c4: 'C8b — un giro (itinerario) con meno tappe vere del MINIMO della sua durata e nessun ripiego dichiarato (tempo libero, tappa di ripiego, "un solo posto", query di base): '
+        + 'finestra di 6 ore o più → 4, da 3 a 6 ore → 3, meno di 3 ore → 2, mai 1 (`minimiTappe`). Le righe di tempo libero non sono tappe. '
+        + 'Una sera completa — drink + cena, drink + passeggiata, cena + passeggiata — vale come giro completo. Di giorno Per Te non si applica (giri da 3 tappe per progetto); di sera è un itinerario.',
     c5: 'Una tappa il cui posto, secondo gli opening_hours.periods di Google, è chiuso all\'ora di arrivo. Orario assente → "sconosciuto", contato a parte (non è una violazione).',
     c6: 'Una tappa la cui sosta è uguale alla sosta tipica di un tipo molto diverso dal suo (almeno `sostaScala` volte più lunga o più corta): '
         + 'es. un caffè che dura quanto un ristorante (75 min), un ristorante che dura quanto una chiesa (20 min).',
@@ -125,7 +126,6 @@ const RICHIESTA_MOMENTO = {
         || (/\b(pomerigg\w*)\b/.test(t) && /\b(ristorant\w*|trattori\w*|osteri\w*|pizzeri\w*|mangiar\w*|cibo|pranz\w*|osterie)\b/.test(t)),
 };
 export function c1(caso, cfg) {
-    if (caso.tipo === 'perte') return esito('c1', false);
     const E = cfg.esteso;
     const [p0, p1] = E.fasce.pranzo.map(minDi);
     const [c0, c1_] = E.fasce.cena.map(minDi);
@@ -213,22 +213,35 @@ export function c3(caso, cfg) {
 }
 
 // ─── 4 — meno di 4 tappe senza ripiego dichiarato ───────────────────────────
+/** C8b — il minimo di tappe per la durata della finestra (minuti): 6 ore o piu' → 4, da 3 a 6 ore → 3, meno → 2. Mai 1. */
+export function minimoPerFinestra(minuti, cfg) {
+    const M = cfg.esteso.minimiTappe;
+    if (!Number.isFinite(minuti)) return M.corto;
+    if (minuti >= M.lungoOre * 60) return M.lungo;
+    if (minuti >= M.medioOre * 60) return M.medio;
+    return M.corto;
+}
 export function c4(caso, cfg) {
     if (caso.tipo !== 'itinerario') return esito('c4', false);
     const out = [];
     const tutte = (caso.tours || []).flatMap(t => t.stops || []);
     const dichiarato = !!caso.ripiegoDichiarato || tutte.some(s => s.tempoLibero || s.ripiego || s.scelta === 'ripiego');
-    for (const t of caso.tours || []) {
+    const minimi = [];
+    (caso.tours || []).forEach((t, i) => {
         const stops = tappeDi(t);
-        if (stops.length >= cfg.esteso.tappeMin || dichiarato) continue;
+        // senza la finestra nel grezzo (giri vecchi) vale il minimo fisso di prima
+        const minimo = Number.isFinite(caso.finestraMinuti?.[i]) ? minimoPerFinestra(caso.finestraMinuti[i], cfg) : cfg.esteso.tappeMin;
+        minimi.push(minimo);
+        if (stops.length >= minimo || dichiarato) return;
         const drink = stops.some(s => ['aperitivo', 'dopocena'].includes(s.moment));
         const cena = stops.some(s => s.moment === 'cena');
         // C8a — se la cena non e' piu' possibile (nessun locale aperto per tutta la sosta) il giro serale e' drink + passeggiata
+        // C8b — o cena + passeggiata (la cena tardi): in tutti i casi una sera completa
         const passeggiata = stops.some(s => s.passeggiata);
-        if (drink && (cena || passeggiata)) continue;
-        out.push(viol(null, `${stops.length} ${stops.length === 1 ? 'tappa' : 'tappe'} (${stops.map(nome).join(', ') || 'nessuna'}) e nessun ripiego dichiarato`, 'c4', cfg));
-    }
-    return esito('c4', true, out);
+        if (stops.length >= 2 && ((drink && (cena || passeggiata)) || (cena && passeggiata))) return;
+        out.push(viol(null, `${stops.length} ${stops.length === 1 ? 'tappa' : 'tappe'} su un minimo di ${minimo} (${stops.map(nome).join(', ') || 'nessuna'}) e nessun ripiego dichiarato`, 'c4', cfg));
+    });
+    return esito('c4', true, out, { minimi });
 }
 
 // ─── 5 — posto chiuso all'ora della tappa ───────────────────────────────────

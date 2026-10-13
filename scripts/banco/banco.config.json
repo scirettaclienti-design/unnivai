@@ -121,6 +121,28 @@
       "docs/prove/dati/2026-10-13-banco-esteso-composizione.json",
       "docs/prove/dati/2026-10-13-banco-esteso-continuita.json"
     ],
-    "_tettoSera": "C8a: tetto 2 $ (fermo a 1,8), poi +0,6 $ autorizzati per il rigiro: 2,4 $ in tutto, codice di prima compreso"
+    "_tettoSera": "C8a: tetto 2 $ (fermo a 1,8), poi +0,6 $ autorizzati per il rigiro: 2,4 $ in tutto, codice di prima compreso",
+    "minimiTappe": {
+      "lungoOre": 6,
+      "medioOre": 3,
+      "lungo": 4,
+      "medio": 3,
+      "corto": 2
+    },
+    "_minimiTappe": "C8b — minimo di tappe vere per la durata della finestra: 6 ore o piu' → 4, da 3 a 6 ore → 3, meno di 3 ore → 2, mai 1; tappeMin (4) resta per i grezzi senza finestra",
+    "tettoMinimiUsd": 3.0,
+    "_tettoMinimiUsd": "C8b: tetto 3 $ per tutto il task, sommato su tutti i giri (BANCO_TETTO vale per un giro); a 2,7 $ ci si ferma e si chiede",
+    "baselineMinimi": [
+      "docs/prove/dati/2026-10-14-banco-esteso-sera-3.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-sera-2.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-sera.json",
+      "docs/prove/dati/2026-10-13-banco-esteso-composizione.json",
+      "docs/prove/dati/2026-10-13-banco-esteso-continuita.json",
+      "docs/prove/dati/2026-10-13-banco-esteso-festivi.json",
+      "docs/prove/dati/2026-10-13-banco-esteso-c6a.json",
+      "docs/prove/dati/2026-10-13-banco-esteso-orari-rigiro.json",
+      "docs/prove/dati/2026-10-13-banco-esteso-orari.json",
+      "docs/prove/dati/2026-10-13-banco-esteso-new.json"
+    ]
   }
 }

@@ -68,6 +68,10 @@ const genera = () => aiRecommendationService.generateItinerary(
 const allStops = (r) => r.days.flatMap(d => d.stops).filter(s => !s.tempoLibero);
 const pulita = (s) => filterBannedWords(s.description, { exempt: [s.title] }).removed.length === 0;
 
+// C8b — di sera "Per Te" e' il giro della sera: i test dei tour tematici girano a pranzo, qualunque ora sia.
+beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-14T13:00:00+02:00')); });
+afterEach(() => { vi.useRealTimers(); });
+
 describe('Gate PAROLE VIETATE (P3d) — itinerario', () => {
     beforeEach(() => {
         vi.clearAllMocks();

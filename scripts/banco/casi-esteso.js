@@ -49,6 +49,9 @@ export const CASI_ESTESI = [
     // C8a — la sera: Crea neutra alle 18:00 a Catania (drink, passeggiata, cena senza buchi).
     crea('crea-catania-1800', 'Catania', '18:00', 'Una giornata a Catania', { duration: '1 Giorno', pace: 'Attivo' }),
 
+    // C8b — la colazione: Crea e Per Te alla mattina presto (il tour comincia con una colazione in un posto da colazione, aperto).
+    crea('crea-catania-colazione-0800', 'Catania', '08:00', 'Una giornata a Catania con colazione', { duration: '1 Giorno', pace: 'Attivo' }),
+
     // ── Percorso Veloce (9) — ritmo e umore come QuickPath.jsx (buildQuickPrefs) ──
     veloce('veloce-catania-relax-2125', 'Catania', '21:25', 'relax', 'Veloce'),
     veloce('veloce-catania-relax-2145', 'Catania', '21:45', 'relax', 'Veloce'),
@@ -75,6 +78,8 @@ export const CASI_ESTESI = [
     perte('perte-firenze-1100-veg', 'Firenze', '11:00', VEG),
     // C8a — la sera di Per Te: non cambia (tour tematici senza momenti), si misura.
     perte('perte-catania-1900', 'Catania', '19:00'),
+    // C8b — Per Te nelle sue ore: la colazione al mattino presto.
+    perte('perte-catania-0830', 'Catania', '08:30'),
 ];
 
 export const MODI = ['crea', 'veloce', 'sorprendimi', 'perte'];

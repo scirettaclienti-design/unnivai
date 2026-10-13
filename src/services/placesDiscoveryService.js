@@ -17,6 +17,7 @@ import { searchFoodWithDiet } from '../lib/foodPrefs';
 import { placeKind } from '../lib/placeKind';
 import { cleanPlaceName } from '../lib/placeName';
 import { zoneReason } from '../lib/zone';
+import { romeMinutes } from '../lib/openingHours';
 
 // DVAI-055-b: prefix bumped da 'unnivai_poiv2_' per invalidare i POI tematici
 // cached prima del filtro raggio centralizzato nel normalizer. I tour tematici
@@ -749,8 +750,29 @@ const dedupePOIsAcrossThemes = (allPOIs) => {
 // P7b — `foodPrefs.dieta`: il tema food cerca con il criterio dentro la query
 // ("trattoria ristorante pizzeria osteria vegetariano") e i suoi risultati
 // portano `_dietaCercata`. Gli altri temi non cambiano.
-const searchHomeTheme = async (cityName, lat, lng, theme, foodPrefs) => {
+// C8b — IL TEMA CIBO DI "PER TE" SEGUE LE FASCE DEI PASTI. Di mattina (prima delle 11:00) i posti da cercare sono colazioni
+// (caffe', pasticcerie, forni), nel pomeriggio (14:45–18:00) merende; trattorie e ristoranti solo a pranzo e a cena (la
+// sera "Per Te" non cerca i temi: e' drink + passeggiata + cena, vedi generateHomeTours). E' la stessa ricerca, con un'altra
+// query: nessuna chiamata in piu'. Senza l'ora (null) la query resta quella di sempre.
+export const FOOD_QUERY_COLAZIONE = 'colazione caffetteria pasticceria cornetteria forno';
+export const FOOD_QUERY_MERENDA = 'pasticceria gelateria caffetteria';
+export const foodQueryForClock = (ora) => {
+  if (!(ora instanceof Date) || Number.isNaN(ora.getTime())) return null;
+  const m = romeMinutes(ora);
+  if (m < 11 * 60) return FOOD_QUERY_COLAZIONE;
+  if (m >= 14 * 60 + 45 && m < 18 * 60) return FOOD_QUERY_MERENDA;
+  return null;
+};
+const searchHomeTheme = async (cityName, lat, lng, theme, foodPrefs, ora = null) => {
   const dieta = foodPrefs?.dieta || [];
+  const orario = theme === 'food' ? foodQueryForClock(ora) : null;
+  if (orario) {
+    const { results } = await searchFoodWithDiet((q) => discoverRealPOIs(cityName, lat, lng, null, {
+      customQuery: q,
+      customKind: THEME_TEXTSEARCH.food.kind,
+    }), orario, dieta);
+    return results;
+  }
   if (theme !== 'food' || dieta.length === 0) return discoverRealPOIs(cityName, lat, lng, theme);
   // P7b2 — la dieta come opzione accodata alla query del tema; se trova poco,
   // la ricerca si allarga tenendo la dieta (lib/foodPrefs searchFoodWithDiet).
@@ -761,7 +783,7 @@ const searchHomeTheme = async (cityName, lat, lng, theme, foodPrefs) => {
   return results;
 };
 
-const discoverAllThemes = async (cityName, lat, lng, { foodPrefs = null } = {}) => {
+const discoverAllThemes = async (cityName, lat, lng, { foodPrefs = null, ora = null } = {}) => {
   // Gate P.1: 4 temi (walking morto). 3 se `romance` non produce POI distinti
   // dopo la dedup → si spegne downstream.
   const results = {};
@@ -772,7 +794,7 @@ const discoverAllThemes = async (cityName, lat, lng, { foodPrefs = null } = {}) 
   // un tema ha trovato luoghi, la Home li usa. Se NESSUN tema ha luoghi e almeno
   // una ricerca e' fallita, non si puo' dire "non c'e' niente" → errore.
   const settled = await Promise.allSettled(
-    HOME_THEMES.map(theme => searchHomeTheme(cityName, lat, lng, theme, foodPrefs)),
+    HOME_THEMES.map(theme => searchHomeTheme(cityName, lat, lng, theme, foodPrefs, ora)),
   );
   const failed = [];
   settled.forEach((s, i) => {

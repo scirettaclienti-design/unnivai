@@ -45,7 +45,7 @@ import { stayInMoment, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
 import { placeKind, KINDS, COMMERCIAL_KINDS, LOCALE_CATEGORIES } from '../lib/placeKind';
 import { FOOD_ONLY_MOMENT_KEYS, EXPANDABLE_KEYS, MAX_STOPS_PER_DAY } from '../lib/daySkeleton';
 import { momentAdmits, isLocale, isOutdoorWalk } from '../lib/mealRules';
-import { scheduleGaps, retimeWaits, totalGapMinutes, realStopCount } from '../lib/continuity';
+import { scheduleGaps, retimeWaits, totalGapMinutes, realStopCount, isEveningComplete } from '../lib/continuity';
 import { freeTimeDecision } from '../lib/freeTime';
 import { brandKey, legKm, pathKm, minimalPathKm, countCrossings, crossingPairs, repeatedBrands, stopDetours } from '../lib/routeShape';
 import { openStatus, OPEN, CLOSED, UNKNOWN, NIGHT_FROM_MINUTES, romeMinutes } from '../lib/openingHours';
@@ -1546,7 +1546,8 @@ export function momentsToExpand(gap, moments) {
     const dayTotal = moments.filter(m => m.dayIndex === gap.dayIndex).reduce((n, m) => n + m.stops, 0);
     if (dayTotal >= MAX_STOPS_PER_DAY) return [];
     return moments
-        .filter(m => m.dayIndex === gap.dayIndex && EXPANDABLE_KEYS.has(m.key) && m.start instanceof Date)
+        // C8a/C8b — il momento del drink non prende una tappa in piu': sarebbe un secondo bar
+        .filter(m => m.dayIndex === gap.dayIndex && EXPANDABLE_KEYS.has(m.key) && !m.bevuta && m.start instanceof Date)
         .map(m => ({ m, o: overlapMin(m.start.getTime(), m.end.getTime(), gap.from.getTime(), gap.to.getTime()) }))
         .filter(x => x.o >= 15)
         .sort((a, b) => b.o - a.o)
@@ -1610,6 +1611,105 @@ export function fillGaps({ moments, repaired, sched, repair, schedule, veto, esp
         if (!accepted) break;
     }
     return { repaired: cur.repaired, sched: cur.sched, aggiunte, tentativi };
+}
+
+// ─── 7. C8b — i MINIMI di tappe ─────────────────────────────────────────────
+//
+// Un giorno con meno tappe vere del minimo per la sua finestra (continuity.minStopsForWindow) prende una tappa in
+// piu' nel momento che lo permette (mattina, pomeriggio, dopocena: come il riempimento dei buchi), anche con ritmo
+// Rilassato — il minimo e' un pavimento di prodotto, deciso da Ivano, che vale sulla scelta del ritmo. Il tentativo vale
+// solo se da' una tappa vera in piu' al giorno e non peggiora niente (nessun pasto in piu', nessun ripiego,
+// tempo libero o tappa tolta in piu'). Se non si arriva, il giorno lo dichiara (belowMinimumRows).
+
+const dayCount = (sched, di) => (sched?.days?.[di] || []).length;
+const dayNeedsMore = (sched, di, min) => dayCount(sched, di) < min && !isEveningComplete(sched?.days?.[di]);
+
+/** I momenti di un giorno in cui si puo' aggiungere una tappa per arrivare al minimo, dal piu' lungo. */
+export function momentsForMinimum(dayIndex, moments) {
+    const dayTotal = moments.filter(m => m.dayIndex === dayIndex).reduce((n, m) => n + m.stops, 0);
+    if (dayTotal >= MAX_STOPS_PER_DAY) return [];
+    return moments
+        // il momento del drink non prende una tappa in piu': sarebbe un secondo bar (C8a)
+        .filter(m => m.dayIndex === dayIndex && EXPANDABLE_KEYS.has(m.key) && !m.bevuta && m.start instanceof Date)
+        .sort((a, b) => b.minutes - a.minutes);
+}
+
+/**
+ * Porta ogni giorno al suo minimo di tappe, se il pool lo permette.
+ * @param {object} p
+ * @param {Map<number, number>} p.minPerDay indice del giorno → minimo di tappe
+ * @returns {{ repaired, sched, aggiunte: Array<{ momento, dayIndex, prima, dopo }>, tentativi: number }}
+ */
+export function fillMinimum({ moments, repaired, sched, repair, schedule, veto, minPerDay, maxPasses = 8 }) {
+    let cur = { repaired, sched: retimeWaits(sched) };
+    const aggiunte = [];
+    let tentativi = 0;
+    for (let pass = 0; pass < maxPasses; pass++) {
+        const days = [...(minPerDay?.keys?.() || [])].filter(di => dayNeedsMore(cur.sched, di, minPerDay.get(di)));
+        if (days.length === 0) break;
+        let accepted = false;
+        for (const di of days) {
+            for (const m of momentsForMinimum(di, moments)) {
+                tentativi += 1;
+                const saved = { stops: m.stops, veto: cloneVeto(veto) };
+                m.stops += 1;
+                const trial = settleOpeningHours({ repair, schedule, veto });
+                const trialSched = retimeWaits(trial.sched);
+                const rep = trial.repaired.report;
+                const was = cur.repaired.report;
+                const better = trial.residui.length === 0
+                    && mealCount(trialSched) <= mealCount(cur.sched)
+                    && dayCount(trialSched, di) > dayCount(cur.sched, di)
+                    && (rep.ripieghi?.length ?? 0) <= (was.ripieghi?.length ?? 0)
+                    && (rep.tempoLibero?.length ?? 0) <= (was.tempoLibero?.length ?? 0)
+                    && trialSched.tolte.length <= cur.sched.tolte.length;
+                if (better) {
+                    aggiunte.push({ momento: m.id, dayIndex: di, prima: dayCount(cur.sched, di), dopo: dayCount(trialSched, di) });
+                    cur = { repaired: trial.repaired, sched: trialSched };
+                    accepted = true;
+                    break;
+                }
+                m.stops = saved.stops;
+                restoreVeto(veto, saved.veto);
+            }
+            if (accepted) break;
+        }
+        if (!accepted) break;
+    }
+    return { repaired: cur.repaired, sched: cur.sched, aggiunte, tentativi };
+}
+
+/**
+ * Il ripiego DICHIARATO di un giorno sotto il minimo (e non gia' dichiarato da altre righe): una riga di tempo libero
+ * (testo approvato) per ogni momento vero rimasto senza tappe — un pasto: «Nessun locale aperto qui vicino a quest'ora» —
+ * e, se tutti i momenti hanno una tappa ma il giro e' comunque corto, una riga in coda al giro. Stesso formato di
+ * report.tempoLibero. Mai un tour corto in silenzio.
+ */
+export function belowMinimumRows({ moments, sched, tempoLibero = [], minPerDay }) {
+    const rows = [];
+    for (const di of minPerDay?.keys?.() || []) {
+        const min = minPerDay.get(di);
+        if (!dayNeedsMore(sched, di, min)) continue;
+        if ((tempoLibero || []).some(e => e.dayIndex === di)) continue;
+        const have = new Set((sched?.days?.[di] || []).map(s => s.moment.id));
+        const mancanti = moments.filter(m => m.dayIndex === di && !m.opzionale && m.stops > 0 && !have.has(m.id));
+        const motivo = `${dayCount(sched, di)} tappe su ${min} (il minimo per questa durata): nessun'altra tappa valida da aggiungere`;
+        for (const m of mancanti) {
+            rows.push({
+                momento: m.id, key: m.key, label: m.label, dayIndex: di, posto: 0, dopo: null, piuVicino: null,
+                chiuso: true, pasto: FOOD_ONLY_MOMENT_KEYS.has(m.key), minimo: true, motivo,
+            });
+        }
+        if (mancanti.length === 0) {
+            const last = [...moments.filter(m => m.dayIndex === di && !m.opzionale)].pop();
+            if (!last) continue;
+            rows.push({
+                momento: last.id, key: last.key, label: last.label, dayIndex: di, posto: 0, dopo: null, prima: null, piuVicino: null,
+                chiuso: true, pasto: false, minimo: true, motivo,
+            });
+        }
+    }
+    return rows;
 }
 
 /**

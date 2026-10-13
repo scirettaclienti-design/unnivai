@@ -222,6 +222,20 @@ QuickPath passa ritmo e umore come Crea (`buildQuickPrefs`: Relax → Rilassato;
 omonimo). In un tour che parte di sera il drink è un bar (non un belvedere). Banco: `c4` estesa, `c13` (sera), `BANCO_RUN=sera`
 (`report-sera.js`), `BANCO_DATA=AAAA-MM-GG` per il nome dei file.
 
+### Minimi di tappe, cena tardi, Per Te nelle sue ore (C8b)
+
+**Minimi** (`minStopsForWindow`, `src/lib/continuity.js`): finestra di 6 ore o piu' → almeno 4 tappe, da 3 a 6 ore → 3, meno di 3 → 2, mai 1;
+le righe di tempo libero non sono tappe. `fillMinimum` (`momentSelection`, dopo `fillGaps`) alza di una le tappe dei momenti non-pasto e non-drink
+(anche con ritmo Rilassato: il minimo e' un pavimento); se il pool non arriva, `belowMinimumRows` dichiara con una riga di tempo libero
+(frasi approvate, mai un testo nuovo). Una sera completa (drink + cena, drink + passeggiata, cena + passeggiata) e' un giro completo (`isEveningComplete`).
+**Cena tardi**: Veloce che parte fra le 21:00 e le 22:00 → prima la cena (facoltativa, solo aperti), poi la passeggiata, un drink solo se resta tempo
+(`buildDaySkeleton({ cenaPrima })`); se nessun ristorante e' aperto per tutta la sosta il servizio ripiega sul giro C8a (drink + passeggiata) senza rifare la ricerca del cibo.
+Prima delle 21:00 resta drink + passeggiata + cena, dopo le 22:00 drink + passeggiata.
+**Per Te** (`generateHomeTours`): dalle 18:00 all'alba e' il giro della sera (`_homeSera` → `generateItinerary` Veloce, un solo tour, niente ricerche per temi);
+di giorno restano i 4 temi con le stesse regole di Crea (`mealRules.perTeMealProblem`, via `keepOpenStops({ invalidAt })`): ristorante solo a pranzo e cena,
+un solo pasto seduto per tour sotto le 3 ore, la mattina un locale e' una colazione (posto da colazione aperto per tutta la sosta), la ricerca del cibo segue l'ora
+(`foodQueryForClock`: colazione prima delle 11, merenda dalle 14:45 alle 18). Banco: c1 vale anche per Per Te, c4 usa il minimo della finestra (`minimiTappe`, `finestraMinuti` nel grezzo).
+
 ### City Data Flow
 
 **T1 — in "Crea il tuo percorso" la città scritta nel testo vince sulla posizione.**

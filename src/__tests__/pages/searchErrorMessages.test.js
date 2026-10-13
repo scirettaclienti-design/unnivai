@@ -117,6 +117,10 @@ const generaConArte = async () => {
     return toast.mock.calls[0][0];
 };
 
+// C8b — di sera "Per Te" e' il giro della sera: i test dei tour tematici girano a pranzo, qualunque ora sia.
+beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-14T13:00:00+02:00')); });
+afterEach(() => { vi.useRealTimers(); });
+
 describe('Percorso B (AiItinerary)', () => {
     it('ricerca fallita → testo di connessione, esatto e senza aggiunte', async () => {
         generateItinerary.mockResolvedValue({ days: [{ stops: [] }], _source: 'search-error', _pathB: true });

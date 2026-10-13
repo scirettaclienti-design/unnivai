@@ -161,7 +161,9 @@ describe('Gate TOUR-DISTANZA — generateItinerary scarta prima di chiamare l’
         );
 
         expect(result._source).toBe('google-first');
-        expect(result.days[0].stops.map(s => s.title)).toEqual(['Lido']);
+        // C8b — un'unica tappa vera e' sotto il minimo: il giro lo dichiara (riga di tempo libero, non una tappa)
+        expect(result.days[0].stops.filter(s => !s.tempoLibero).map(s => s.title)).toEqual(['Lido']);
+        expect(result.days[0].stops.some(s => s.tempoLibero)).toBe(true);
         // Il selettore È stato chiamato: il filtro non blocca i tour buoni.
         // Gate NARRATORE-DOPO: traduttore + selettore + narratore.
         expect(stato.aiCalls).toBe(3);

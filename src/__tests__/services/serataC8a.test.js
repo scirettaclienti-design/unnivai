@@ -168,21 +168,37 @@ describe('C8a — Percorso Veloce (relax) a Catania di sera: mai una tappa sola,
         expect(v[0].stayMinutes).toBe(45);
         expect(ora(v[2])).toBe('20:00');
     });
-    it('21:25 con un ristorante aperto per tutta la sosta (fino a mezzanotte e mezza): la cena c\'e\' ancora', async () => {
+    it('C8b — 21:25 con un ristorante aperto per tutta la sosta (fino all\'una): PRIMA la cena, poi la passeggiata', async () => {
         const tardi = tutti('1000', '2359');
         tardi.forEach(p => { p.close = { day: (p.open.day + 1) % 7, time: '0100' }; });
         const r = await veloce([bar('b1', 3), bar('b2', 4), piazza('p1', 5), belvedere('p2', 6), ristorante('r1', 7, tardi), ristorante('r2', 8, tardi)], '21:25', { duration: 'Veloce', interests: ['Relax'], pace: 'Attivo' });
         const v = vere(r);
-        expect(v.map(tipo)).toEqual(['bar', 'aperto', 'ristorante']);
-        // l'arrivo a cena e' dopo drink e passeggiata, e il ristorante e' aperto fino all'una
-        expect(ora(v[2]) >= '22:30').toBe(true);
+        expect(v.map(tipo)).toEqual(['ristorante', 'aperto']);
+        expect(ora(v[0])).toBe('21:25');
+        expect(v[1].passeggiata).toBe(true);
+        expect(v[0].moment).toBe('cena');
+        expect(v[1].moment).toBe('cena');   // a schermo la passeggiata sta sotto la cena
+        // nessun drink: nella finestra di 2 ore non ne resta il tempo
+        expect(v.some(s => tipo(s) === 'bar')).toBe(false);
+        expect(remainingGaps(righe(r))).toEqual([]);
     });
-    it('21:25 con ristoranti che chiudono alle 23:00: la cena non e\' piu\' possibile → drink + passeggiata (2 tappe)', async () => {
-        const presto = tutti('1000', '2300');
+    it('C8b — 21:25 con ristoranti che chiudono alle 22:00 (la sosta di 75 minuti non ci sta): la cena non c\'e\' → drink + passeggiata, senza nuove ricerche del cibo', async () => {
+        const presto = tutti('1000', '2200');
         const r = await veloce([bar('b1', 3), bar('b2', 4), piazza('p1', 5), belvedere('p2', 6), ristorante('r1', 7, presto), ristorante('r2', 8, presto)], '21:25', { duration: 'Veloce', interests: ['Relax'], pace: 'Attivo' });
         const v = vere(r);
         expect(v.map(tipo)).toEqual(['bar', 'aperto']);
         expect(v[1].passeggiata).toBe(true);
+        // il secondo tentativo (drink + passeggiata) non rifa' la ricerca del cibo: cerca i bar, non i ristoranti
+        expect(r._momentReport.ricercheMirate).not.toContain('food');
+    });
+    it('C8b — alle 20:45 resta il giro di C8a: drink + passeggiata + cena; alle 22:15 drink + passeggiata', async () => {
+        const tardi = tutti('1000', '2359');
+        tardi.forEach(p => { p.close = { day: (p.open.day + 1) % 7, time: '0100' }; });
+        const pool = [bar('b1', 3), bar('b2', 4), piazza('p1', 5), belvedere('p2', 6), ristorante('r1', 7, tardi), ristorante('r2', 8, tardi)];
+        const prima = await veloce(pool, '20:45', { duration: 'Veloce', interests: ['Relax'], pace: 'Attivo' });
+        expect(vere(prima).map(tipo)).toEqual(['bar', 'aperto', 'ristorante']);
+        const dopo = await veloce(pool, '22:15', { duration: 'Veloce', interests: ['Relax'], pace: 'Attivo' });
+        expect(vere(dopo).map(tipo)).toEqual(['bar', 'aperto']);
     });
     it('21:45 senza nessun ristorante aperto: la cena si cerca (nel tetto di 3 ricerche) ma non c\'e\' → drink + passeggiata', async () => {
         const r = await veloce([bar('b1', 3), bar('b2', 4), piazza('p1', 5), belvedere('p2', 6)], '21:45');

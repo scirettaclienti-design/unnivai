@@ -1,7 +1,7 @@
 // BANCO-ESTESO — i controlli si provano senza rete: rosso sul cattivo noto, verde sul buono.
 import { describe, it, expect } from 'vitest';
 import { validaControlli } from '../../../scripts/banco/validazione.js';
-import { CLASSI, DEFINIZIONI, eseguiControlli, c11 } from '../../../scripts/banco/controlli.js';
+import { CLASSI, DEFINIZIONI, eseguiControlli, c1, c4, c11, minimoPerFinestra } from '../../../scripts/banco/controlli.js';
 import { apertoAlle, giornoEMinuti } from '../../../scripts/banco/orari.js';
 import { CASI_ESTESI, MODI } from '../../../scripts/banco/casi-esteso.js';
 import config from '../../../scripts/banco/banco.config.json';
@@ -209,5 +209,26 @@ describe('banco esteso — c11, buchi non dichiarati e tappe senza orario (CONTI
         expect(r.senzaOrario).toBe(2);
         expect(r.violazioni).toHaveLength(2);
         expect(c11(caso([st('a', '10:00', 30), { ...libero('10:30', 0), at: null }]), config).violazioni).toEqual([]);
+    });
+});
+
+describe('banco esteso — C8b: minimi per durata e Per Te dentro c1', () => {
+    it('il minimo dalla finestra: 6 ore o piu\' → 4, da 3 a 6 ore → 3, meno di 3 ore → 2 (mai 1)', () => {
+        expect([60, 120, 179, 180, 240, 359, 360, 780].map(m => minimoPerFinestra(m, config))).toEqual([2, 2, 2, 3, 3, 3, 4, 4]);
+        expect(minimoPerFinestra(null, config)).toBe(2);
+    });
+    const st = (title, o = {}) => ({ title, place_id: title, types: [], stay: 30, ...o });
+    it('c4: la riga di tempo libero dichiara, ma non conta come tappa; senza finestra vale il vecchio minimo fisso', () => {
+        const base = { tipo: 'itinerario', ripiegoDichiarato: false, tours: [{ stops: [st('a', { at: '2026-10-14T14:30:00+02:00' }), st('b', { at: '2026-10-14T15:30:00+02:00' })] }] };
+        expect(c4({ ...base, finestraMinuti: [240] }, config).violazioni).toHaveLength(1);
+        const dichiarato = { ...base, finestraMinuti: [240], tours: [{ stops: [...base.tours[0].stops, st('Tempo libero', { tempoLibero: true })] }] };
+        expect(c4(dichiarato, config).violazioni).toHaveLength(0);
+        expect(c4({ ...base }, config).violazioni).toHaveLength(1);   // senza finestra: minimo fisso 4
+        expect(c4({ ...base, finestraMinuti: [120] }, config).violazioni).toHaveLength(0);
+    });
+    it('c1 guarda anche Per Te: un\'osteria alle 10:00 e\' rossa', () => {
+        const r = c1({ tipo: 'perte', richiesta: null, tours: [{ stops: [st('Osteria X', { primaryType: 'italian_restaurant', types: ['restaurant'], pasto: true, at: '2026-10-14T10:00:00+02:00' })] }] }, config);
+        expect(r.applicabile).toBe(true);
+        expect(r.violazioni).toHaveLength(1);
     });
 });

@@ -23,6 +23,10 @@ import {
 // (era `hasRealDescription` fino al DIFF 2 del Gate NARRATORE ANCORATO: rinomina,
 //  nessun cambio di comportamento — le asserzioni qui sotto sono invariate.)─────────────────────────────
 
+// C8b — di sera "Per Te" e' il giro della sera: i test dei tour tematici girano a pranzo, qualunque ora sia.
+beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-14T13:00:00+02:00')); });
+afterEach(() => { vi.useRealTimers(); });
+
 describe('Gate NARRATORE/POI Fase 2b — hasNonEmptyDescription', () => {
     it('description valorizzata → true', () => {
         expect(hasNonEmptyDescription({ description: 'Il pavimento è consumato da 300 anni di passi' })).toBe(true);
@@ -150,8 +154,11 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
 
         expect(result._source).toBe('google-first');
         expect(result.days).toHaveLength(1);
-        expect(result.days[0].stops).toHaveLength(1);
-        expect(result.days[0].stops[0].title).toBe('Torre Capitania');
+        // C8b — una tappa vera sola e' sotto il minimo (2): il giro lo dichiara con una riga di tempo libero, che non e' una tappa
+        const vere = result.days[0].stops.filter(s => !s.tempoLibero);
+        expect(vere).toHaveLength(1);
+        expect(vere[0].title).toBe('Torre Capitania');
+        expect(result.days[0].stops.some(s => s.tempoLibero)).toBe(true);
         // Gate I: una tappa sola accende il flag per il banner onesto in UI.
         expect(result._singleStop).toBe(true);
     });
@@ -181,7 +188,7 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
         );
 
         expect(result._source).toBe('google-first');
-        const stops = result.days[0].stops;
+        const stops = result.days[0].stops.filter(s => !s.tempoLibero);
         expect(stops.length).toBeGreaterThan(0);
         // P3d-j — il modello non da' scelte: il codice compone con la riserva.
         for (const st of stops) {

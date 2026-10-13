@@ -135,6 +135,7 @@ describe('Gate ORA VERA — dal wizard al selettore, zero fascia oraria', () => 
 
         // (3) Il tour esiste comunque: la rimozione non ha rotto la generazione.
         expect(result._source).toBe('google-first');
-        expect(result.days[0].stops.map(st => st.moment)).toEqual(['mattina', 'mattina']);
+        // C8b — 4 ore (Medio): il minimo e' 3 tappe, e il pool le ha (tre posti benessere): la mattina prende la terza
+        expect(result.days[0].stops.filter(st => !st.tempoLibero).map(st => st.moment)).toEqual(['mattina', 'mattina', 'mattina']);
     });
 });

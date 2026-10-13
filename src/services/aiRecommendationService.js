@@ -185,7 +185,7 @@ export const BLACKLIST_TYPES = new Set([
 // pomeriggio e aperitivo nelle richieste a tema cibo, e zone come tappe.
 // C8a — prefix bumped da 'unnivai_insiderf16_composizione_': i giri cached prima hanno l'aperitivo da 20 minuti,
 // nessuna passeggiata fra drink e cena, e la sera tarda del Veloce senza scheletro.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf17_sera_';
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf18_minimi_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -362,21 +362,21 @@ import { stopData, guardComposed, apertura, ganciValidi, interessiPerTappa, user
 import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock, MOMENTS, MOMENT_BY_KEY } from '@/lib/dayMoments';
 import { FREE_TIME_MAX_MINUTES, freeTimeStop } from '@/lib/freeTime';
-import { bandFreeTime } from '@/lib/continuity';
+import { bandFreeTime, minStopsForWindow } from '@/lib/continuity';
 import { detectFoodTheme, isForeignCuisine, localCuisineReason, tipicoBonus } from '@/lib/foodTheme';
 import { zoneReason } from '@/lib/zone';
-import { isSitDownMeal } from '@/lib/mealRules';
+import { isSitDownMeal, perTeMealProblem } from '@/lib/mealRules';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
-import { buildDaySkeleton, addEveningWalk, normalizePace } from '@/lib/daySkeleton';
+import { buildDaySkeleton, addEveningWalk, normalizePace, isSeraStart, parseExplicitCategory } from '@/lib/daySkeleton';
 import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan, isMealPlace, scheduleHoursSources,
     requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme,
-    applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule, fillGaps, gapRows,
+    applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule, fillGaps, gapRows, fillMinimum, belowMinimumRows,
 } from './momentSelection';
 // ORARI — una tappa vale solo se il posto e' aperto per tutta la sosta (lib/openingHours).
-import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO } from '../lib/openingHours';
+import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO, romeMinutes } from '../lib/openingHours';
 import { keepOpenStops } from '../lib/openStops';
 import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
@@ -2511,36 +2511,18 @@ export const aiRecommendationService = {
             // C8a — il Percorso Veloce (QuickPath) da 18:00 e' drink + passeggiata + cena; la sosta dell'aperitivo
             // e la passeggiata fra drink e cena valgono per ogni percorso con aperitivo e cena.
             const veloce = opts.pathType === 'quick';
-            const skeleton = addEveningWalk(buildDaySkeleton({
-                window: tourWindow,
-                pace: prefs?.pace,
-                interests: extractInterestTokens(prefs),
-                group: prefs?.group,
-                text: opts.pathType === 'custom' ? userPrompt : '',
-                category: catStretta ? (TOUR_CATEGORY_TO_SKELETON[catStretta] || catStretta) : null,
-                foodTheme: tema.tema,
-                veloce,
-            }), { veloce });
-            const moments = candidates.length >= 1 ? flattenSkeleton(skeleton) : [];
-            // C7 — con lo street food un forno puo' essere un pasto (panelle, focaccia): pranzo e cena lo ammettono.
-            if (tema.streetFood) for (const m of moments) m.streetFood = true;
-            let anyCategory = !!catStretta;
-            let buckets = moments.length > 0 ? bucketCandidates(moments, candidates, { anyCategory }) : null;
-            // Percorso A: se NESSUN luogo trovato per la frase sta in NESSUN
-            // momento, la frase chiede qualcosa che la tabella dei momenti non
-            // nomina (terme, spa…). E' una richiesta esplicita: vale per tutti
-            // i momenti, come una categoria nominata, e gli orari restano.
-            // Cercare altro (musei, trattorie) tradirebbe la richiesta.
-            if (buckets && isFreeTextIntent && !anyCategory && [...buckets.values()].every(b => b.length === 0)) {
-                console.info(`[P3 SCHELETRO] ${city}: nessun candidato sta in un momento → la richiesta vale per tutti i momenti`);
-                anyCategory = true;
-                buckets = bucketCandidates(moments, candidates, { anyCategory });
-            }
             // ORARI — i bucket senza i posti chiusi quando ci si arriva: tutte le regole
             // che seguono (varieta', percorso, tetto di cammino, tempo libero) scelgono
             // solo fra posti aperti. `veto` si riempie col controllo sugli orari veri.
             // Senza orari (ricerca vecchia) non toglie niente.
             const veto = new Map();
+            let skeleton = null;
+            let moments = [];
+            let anyCategory = !!catStretta;
+            let buckets = null;
+            let mealOnlyIds = null;
+            let extraThemes = [];
+            let seraleVeloce = false;
             const openBuckets = () => (buckets ? applyOpeningToBuckets(moments, buckets, { veto }) : null);
             // Gate NARRATORE-DOPO — si cerca per i momenti che il pool non riesce
             // a riempire, non solo per quelli vuoti (vedi shortMomentThemes).
@@ -2548,37 +2530,85 @@ export const aiRecommendationService = {
             // la regola "una per famiglia al giorno" si spegne. Lo stesso
             // testo e la stessa categoria dello scheletro.
             const familiesAsked = requestedFamilies({
-                category: skeleton.explicitCategory,
+                category: parseExplicitCategory(opts.pathType === 'custom' ? userPrompt : '') ?? (catStretta ? (TOUR_CATEGORY_TO_SKELETON[catStretta] || catStretta) : null),
                 text: opts.pathType === 'custom' ? userPrompt : '',
             });
-            const seraleVeloce = veloce && moments.some(m => m.bevuta && m.soloCategorie);
-            const extraThemes = buckets ? shortMomentThemes(moments, openBuckets().buckets, candidates, undefined, { requestedFamilies: familiesAsked }) : [];
             // P3e — con la categoria che vale per tutti i momenti, un
             // ristorante trovato fuori da quella categoria serve SOLO a pranzo
             // e cena: mai al mattino di un tour Rioni Storici. Vale per ogni
             // ricerca mirata, prima e dopo la scelta (C1b).
-            let mealOnlyIds = null;
             const addMealOnly = (found) => (anyCategory
                 ? new Set([...(mealOnlyIds || []), ...found
                     .filter(c => isMealPlace(c) && !(catStretta && candidateMatchesIntentCategoria(c, intent.categoria)))
                     .map(c => c.place_id || c.googlePlaceId)])
                 : null);
-            if (extraThemes.length > 0) {
-                const foodAnchor = extraThemes.includes('food')
-                    ? mealSearchAnchor(moments, openBuckets().buckets, candidates, { requestedFamilies: familiesAsked })
-                    : null;
-                if (foodAnchor) console.info(`[C1 COMPOSIZIONE] ${city}: ricerca dei pasti da "${foodAnchor.name}", non dal centro`);
-                const extra = await searchMomentCandidates({
-                    city, cityCenter, themes: extraThemes, known: candidates, perTheme: (extraThemes.includes('esperienze') ? 8 : 5) * nDays,
-                    dnaWeights: opts.dnaWeights || {},
-                    // C8a — la sera del Veloce ha drink, passeggiata e cena qualunque sia l'umore: la categoria dell'intento non li restringe.
-                    categoria: catStretta && !seraleVeloce ? intent.categoria : null,
-                    foodPrefs: foodOn ? food : null,
-                    foodAnchor, tipico: tema.tipico,
-                });
-                candidates = [...candidates, ...extra];
-                mealOnlyIds = addMealOnly(extra);
-                buckets = bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds });
+            // C8b — CENA TARDI: il Veloce che parte fra le 21:00 e le 22:00 prova prima la cena (poi la passeggiata). Se per quell'ora
+            // nessun ristorante e' aperto per tutta la sosta, si ripiega sul giro di C8a (drink + passeggiata) senza rifare la ricerca
+            // del cibo: i ristoranti gia' trovati restano nel pool.
+            let cenaPrima = veloce;
+            let foodGiaCercato = false;
+            for (;;) {
+                skeleton = addEveningWalk(buildDaySkeleton({
+                    window: tourWindow,
+                    pace: prefs?.pace,
+                    interests: extractInterestTokens(prefs),
+                    group: prefs?.group,
+                    text: opts.pathType === 'custom' ? userPrompt : '',
+                    category: catStretta ? (TOUR_CATEGORY_TO_SKELETON[catStretta] || catStretta) : null,
+                    foodTheme: tema.tema,
+                    veloce,
+                    cenaPrima,
+                }), { veloce });
+                moments = candidates.length >= 1 ? flattenSkeleton(skeleton) : [];
+                // la cena facoltativa non si cerca due volte
+                if (foodGiaCercato) moments = moments.filter(m => !(m.key === 'cena' && m.opzionale));
+                // C7 — con lo street food un forno puo' essere un pasto (panelle, focaccia): pranzo e cena lo ammettono.
+                if (tema.streetFood) for (const m of moments) m.streetFood = true;
+                anyCategory = !!catStretta;
+                buckets = moments.length > 0 ? bucketCandidates(moments, candidates, { anyCategory }) : null;
+                // Percorso A: se NESSUN luogo trovato per la frase sta in NESSUN
+                // momento, la frase chiede qualcosa che la tabella dei momenti non
+                // nomina (terme, spa…). E' una richiesta esplicita: vale per tutti
+                // i momenti, come una categoria nominata, e gli orari restano.
+                // Cercare altro (musei, trattorie) tradirebbe la richiesta.
+                if (buckets && isFreeTextIntent && !anyCategory && [...buckets.values()].every(b => b.length === 0)) {
+                    console.info(`[P3 SCHELETRO] ${city}: nessun candidato sta in un momento → la richiesta vale per tutti i momenti`);
+                    anyCategory = true;
+                    buckets = bucketCandidates(moments, candidates, { anyCategory });
+                }
+                veto.clear();
+                mealOnlyIds = null;
+                seraleVeloce = veloce && moments.some(m => (m.bevuta && m.soloCategorie) || m.cenaPrima || m.key === 'passeggiata');
+                extraThemes = buckets ? shortMomentThemes(moments, openBuckets().buckets, candidates, undefined, { requestedFamilies: familiesAsked }) : [];
+                if (extraThemes.length > 0) {
+                    const foodAnchor = extraThemes.includes('food')
+                        ? mealSearchAnchor(moments, openBuckets().buckets, candidates, { requestedFamilies: familiesAsked })
+                        : null;
+                    if (foodAnchor) console.info(`[C1 COMPOSIZIONE] ${city}: ricerca dei pasti da "${foodAnchor.name}", non dal centro`);
+                    const extra = await searchMomentCandidates({
+                        city, cityCenter, themes: extraThemes, known: candidates, perTheme: (extraThemes.includes('esperienze') ? 8 : 5) * nDays,
+                        dnaWeights: opts.dnaWeights || {},
+                        // C8a — la sera del Veloce ha drink, passeggiata e cena qualunque sia l'umore: la categoria dell'intento non la restringe.
+                        categoria: catStretta && !seraleVeloce ? intent.categoria : null,
+                        foodPrefs: foodOn ? food : null,
+                        foodAnchor, tipico: tema.tipico,
+                    });
+                    candidates = [...candidates, ...extra];
+                    mealOnlyIds = addMealOnly(extra);
+                    buckets = bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds });
+                    if (extraThemes.includes('food')) foodGiaCercato = true;
+                }
+                if (cenaPrima) {
+                    const cm = moments.find(m => m.cenaPrima);
+                    if (cm) {
+                        if ((openBuckets().buckets.get(cm.id) || []).length === 0) {
+                            console.info(`[C8b CENA TARDI] ${city}: nessun ristorante aperto per tutta la sosta all'arrivo → drink + passeggiata`);
+                            cenaPrima = false;
+                            continue;
+                        }
+                    }
+                }
+                break;
             }
             // ORARI — i bucket che il selettore e la scelta vedono: solo posti non chiusi.
             const hours0 = openBuckets();
@@ -2752,7 +2782,18 @@ export const aiRecommendationService = {
                             });
                             repaired = filled.repaired;
                             sched = filled.sched;
+                            // C8b — i MINIMI di tappe per la durata della finestra del giorno (6 ore o piu' → 4, da 3 a 6 → 3, meno → 2):
+                            // una tappa in piu' dove il pool lo permette (anche con ritmo Rilassato); il resto lo dichiara belowMinimumRows.
+                            const minPerDay = new Map(tourWindow.windows.map((w, di) => [di, minStopsForWindow((w.end.getTime() - w.start.getTime()) / 60000)]));
+                            const minimo = fillMinimum({
+                                moments, repaired, sched, veto, minPerDay,
+                                repair: () => repair(true),
+                                schedule: (plan) => scheduleMomentPlan(plan, tourWindow.windows.map(w => w.start)),
+                            });
+                            repaired = minimo.repaired;
+                            sched = minimo.sched;
                             const { report } = repaired;
+                            for (const a of minimo.aggiunte) console.info(`[C8b MINIMO] ${city}: tappa in piu' in ${a.momento} (giorno ${a.dayIndex + 1}: ${a.prima} → ${a.dopo} tappe, minimo ${minPerDay.get(a.dayIndex)})`);
                             for (const a of filled.aggiunte) console.info(`[CONTINUITA'] ${city}: tappa in piu' in ${a.momento} (buchi ${a.minutiPrima} → ${a.minutiDopo} min)`);
                             const hoursReport = openBuckets().report;
                             // Un filtro non lascia mai un buco: un momento rimasto senza posti
@@ -2774,7 +2815,9 @@ export const aiRecommendationService = {
                             const righeChiuse = closedMomentRows({ moments, sched, tempoLibero: report.tempoLibero, chiusiPerMomento });
                             // CONTINUITA' — i buchi rimasti hanno la loro riga di tempo libero, ancorata alla tappa che segue.
                             const righeBuchi = gapRows({ moments, sched, tempoLibero: [...(report.tempoLibero || []), ...righeChiuse] });
-                            report.tempoLibero = [...(report.tempoLibero || []), ...righeChiuse, ...righeBuchi];
+                            // C8b — sotto il minimo e senza altra riga dichiarata: la dichiara (mai un tour corto in silenzio).
+                            const righeMinimo = belowMinimumRows({ moments, sched, tempoLibero: [...(report.tempoLibero || []), ...righeChiuse, ...righeBuchi], minPerDay });
+                            report.tempoLibero = [...(report.tempoLibero || []), ...righeChiuse, ...righeBuchi, ...righeMinimo];
                             orariTracciato = scheduleHoursLabels(sched);
                             orariFonte = scheduleHoursSources(sched);
                             orariInfo = {
@@ -2783,8 +2826,9 @@ export const aiRecommendationService = {
                                 righeDichiarate: righeChiuse.map(x => ({ momento: x.momento, pasto: x.pasto })), residui: settled.residui.length,
                                 tappeSenzaFiltro,
                             };
-                            const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })) };
-                            momentReport = { ...report, tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
+                            const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })),
+                                minimo: { richiesto: Object.fromEntries(minPerDay), aggiunte: minimo.aggiunte, tentativi: minimo.tentativi, dichiarati: righeMinimo.map(x => ({ momento: x.momento, giorno: x.dayIndex + 1 })) } };
+                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
                             logMomentReport(city, momentReport);
                             // C7 — nel tracciato (interno, mai a schermo): cosa ha voluto il tema. Il pasto del tema, l'esperienza
                             // nello spirito del tema, il momento chiesto ESPLICITAMENTE dal testo, e per "tipico" se il posto e' locale.
@@ -2955,7 +2999,8 @@ export const aiRecommendationService = {
                             if (x.riserva.length > 0) console.info(`[P3d-j SCELTE] ${city}: "${x.title}" — riserva del codice su ${x.riserva.join(', ')}`);
                             for (const frase of x.rete) console.warn(`[P3d-j RETE] ${city}: "${x.title}" — la rete ha tolto "${frase}" → ricomposta`);
                         }
-                        const singleStop = narratedDays[0].stops.length === 1;
+                        // C8b — le righe di tempo libero dichiarate non sono tappe: "un solo posto" si dice delle tappe vere
+                        const singleStop = narratedDays[0].stops.filter(s => !s.tempoLibero).length === 1;
                         const ovvieta = obviousnessReport(allStops, candidatiGenerazione);
                         const famosita = famositaReport(allStops, city, candidatiGenerazione);
                         console.info(`[P7a2 famosita'] ${city}: mediana ${famosita.mediana ?? '-'} recensioni, ${famosita.sopraSoglia}/${famosita.tappe} tappe sopra ${famosita.soglia}`);
@@ -3166,6 +3211,13 @@ export const aiRecommendationService = {
     // @param {object} params.opts { skipUserQuota? }
     // @returns {Promise<{ tours: Array, _source: string }>}
     async generateHomeTours({ city, cityCenter, themedCandidates, prefs = {}, aiProfile = '', weather = {}, opts = {} } = {}) {
+        // C8b — DI SERA "PER TE" E' IL GIRO DELLA SERA. Dalle 18:00 fino all'alba i cinque tour tematici (trattorie a
+        // quell'ora, musei chiusi) non hanno senso: la sera ha una forma sola — drink + passeggiata + cena, con la cena
+        // tardi se parti fra le 21:00 e le 22:00 — ed e' quella del motore dei momenti (come il Percorso Veloce). Per Te la
+        // chiede a lui e la serve come UN tour; i temi non si cercano nemmeno (vedi DashboardUser: nessuna ricerca in piu').
+        if (isSeraStart(requestNow(opts))) {
+            return this._homeSera({ city, cityCenter, prefs, aiProfile, weather, opts });
+        }
         // Gate PER TE — distanza e doppioni si decidono QUI, prima del prompt
         // (prepareHomePools). Un pool rimasto vuoto non entra nel prompt.
         // P7a2 — i pool dei temi si ordinano per merito dentro prepareHomePools;
@@ -3398,6 +3450,8 @@ export const aiRecommendationService = {
                 // Se non ne restano abbastanza il tour non e' servito (regola esistente).
                 const poolTema = nonEmptyPools[themeType] || [];
                 const aperti = keepOpenStops({
+                    // C8b — le stesse fasce dei pasti di Crea: un ristorante solo a pranzo e a cena, la mattina una colazione.
+                    invalidAt: (c, arrivo, altre) => perTeMealProblem(c, romeMinutes(arrivo), arrivo, altre),
                     stops: computeStopTimings(sortByProximity(withinRadius)).stops, pool: poolTema, start: now, exclude: usati,
                     retime: (list) => computeStopTimings(sortByProximity(list)).stops,
                     toStop: (c) => {
@@ -3528,6 +3582,37 @@ export const aiRecommendationService = {
             // mai contenuto.
             return { tours: [], _source: 'error', _error: err.message };
         }
+    },
+
+    /**
+     * C8b — "Per Te" di sera: un tour solo, fatto dal motore dei momenti (drink + passeggiata + cena).
+     * @returns {Promise<{ tours: Array, _source: string, _messaggio?: string, _report: object }>}
+     */
+    async _homeSera({ city, cityCenter, prefs = {}, aiProfile = '', weather = {}, opts = {} }) {
+        const now = requestNow(opts);
+        const nowRome = romeParts(now);
+        const prefsSera = { duration: 'Veloce', group: prefs?.group || 'solo', pace: prefs?.pace || 'rilassato', interests: [] };
+        const r = await this.generateItinerary(city, prefsSera, '', weather, aiProfile, cityCenter, { ...opts, pathType: 'quick' });
+        const report = {
+            serale: true,
+            momento: momentAtClock(nowRome.h, nowRome.mi).key,
+            giorno: `${nowRome.y}-${String(nowRome.m).padStart(2, '0')}-${String(nowRome.d).padStart(2, '0')}`,
+            fatti: r._narrationReport?.fatti, composizione: r._narrationReport?.composizione || [],
+            orari: { chiuse: [], aggiunte: [], ignote: 0 },
+            momentReport: r._momentReport || null,
+        };
+        if (r._source === 'closed-now') return { tours: [], _source: 'closed-now', _messaggio: r._messaggio, _report: report };
+        const day = (r.days || []).find(d => (d.stops || []).some(st => !st.tempoLibero));
+        if (!day) return { tours: [], _source: r._source || 'no-results', _report: report };
+        const tour = {
+            themeType: 'insider',
+            title: dayTitle(day.title, `Tour di ${city}`),
+            mapMood: VALID_MOODS.has(day.mapMood) ? day.mapMood : 'default',
+            suggestedTransit: VALID_TRANSIT.has(day.suggestedTransit) ? day.suggestedTransit : 'walking',
+            stops: day.stops,
+            ...(day.dietNote ? { dietNote: day.dietNote } : {}),
+        };
+        return { tours: [tour], _source: 'unified-home', _report: report, ...(r.tourWindow ? { tourWindow: r.tourWindow } : {}) };
     },
 
     // La guard "almeno un POI" è stata rimossa: la coerenza non si verifica,

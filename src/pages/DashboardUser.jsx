@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2, Award, Crosshair, WifiOff, MessageSquare, Tag } from 'lucide-react';
 import { aiRecommendationService, buildInsiderPool } from '@/services/aiRecommendationService';
+import { isSeraStart } from '@/lib/daySkeleton';
 import { AI_ENGINE_MESSAGE, isAiEngineError } from '@/lib/aiEngineError';
 import { useUserContext } from '../hooks/useUserContext';
 import GpsActivationBanner from '../components/GpsActivationBanner';
@@ -232,12 +233,17 @@ const DashboardUser = () => {
 
                 // Pool candidati per tema (Places-first, cache condivisa Gate DD).
                 let themedPools = {};
+                // C8b — di sera (dalle 18:00 all'alba) "Per Te" e' il giro della sera del motore dei momenti (drink +
+                // passeggiata + cena): i temi non si cercano, nessuna ricerca in piu'. Di giorno il tema cibo segue le fasce.
+                const sera = isSeraStart(new Date());
                 try {
                     // P7b — con una dieta il tema food cerca col criterio dentro.
-                    themedPools = await placesDiscoveryService.discoverAllThemes(
-                        currentCity, cityCenter.latitude, cityCenter.longitude,
-                        { foodPrefs: resolveFoodPrefs({ onboarding: onboardingPrefs }) },
-                    );
+                    if (!sera) {
+                        themedPools = await placesDiscoveryService.discoverAllThemes(
+                            currentCity, cityCenter.latitude, cityCenter.longitude,
+                            { foodPrefs: resolveFoodPrefs({ onboarding: onboardingPrefs }), ora: new Date() },
+                        );
+                    }
                 } catch (e) {
                     // Gate INTERESSI-VERI — nessun tema ha luoghi E almeno una ricerca
                     // e' fallita: non si puo' dire "non trovo". Errore visibile.

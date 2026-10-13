@@ -37,6 +37,10 @@ afterEach(() => {
 });
 
 // ─── 1–2. Un clic non e' una preferenza al 100% ─────────────────────────────
+// C8b — di sera "Per Te" e' il giro della sera: i test dei tour tematici girano a pranzo, qualunque ora sia.
+beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-14T13:00:00+02:00')); });
+afterEach(() => { vi.useRealTimers(); });
+
 describe('P7a — un clic su un ristorante non porta "food" a 1,0', () => {
     it('"Dettagli" di un ristorante → food 0,05, non 1,0', () => {
         const { result } = renderHook(() => useAILearning());

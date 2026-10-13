@@ -97,9 +97,12 @@ describe('Percorso Veloce, sera tarda (23:40): drink + passeggiata', () => {
         expect(nomi(r)).toHaveLength(1);
         expect(nomi(r)[0]).toMatch(/^b/);
         expect(r._singleStop).toBe(true);
+        // C8b — e' sotto il minimo (2): non in silenzio, una riga di tempo libero lo dichiara
+        expect(r.days[0].stops.filter(s => s.tempoLibero)).toHaveLength(1);
     });
     it('nessuna chiusura: nessuna riga in piu\'', async () => {
-        const r = await genera([bar('n1', 0, SEMPRE), place('n2', 1, SEMPRE), place('n3', 2, SEMPRE)], '23:40', 'quick');
+        // (due bar: un solo risultato della ricerca dei bar sarebbe scartato come "icona")
+        const r = await genera([bar('n1', 0, SEMPRE), bar('n4', 3, SEMPRE), place('n2', 1, SEMPRE), place('n3', 2, SEMPRE)], '23:40', 'quick');
         expect(r.days[0].stops.filter(s => s.tempoLibero)).toHaveLength(0);
     });
     it('niente di aperto per tutta la sosta → messaggio dichiarato', async () => {
@@ -153,6 +156,6 @@ describe('senza orari (ricerca vecchia)', () => {
         const r = await genera([place('a', 0, null), place('b', 1, null), place('c', 2, null)], '23:40', 'quick');
         expect(r._source).toBe('google-first');
         expect(nomi(r).length).toBeGreaterThan(0);
-        for (const s of r.days[0].stops) expect(s._orario).toBe('sconosciuto');
+        for (const s of r.days[0].stops.filter(x => !x.tempoLibero)) expect(s._orario).toBe('sconosciuto');
     });
 });

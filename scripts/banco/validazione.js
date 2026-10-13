@@ -47,10 +47,16 @@ export const ESEMPI = {
         buono3: { nome: 'osteria alle 15:00 con la richiesta "un pomeriggio tra portici e osterie"', caso: caso([
             st('Osteria Angolo degli Orefici', { types: ['bistro', 'italian_restaurant'], primaryType: 'bistro', moment: 'pomeriggio', at: at('15:00'), stay: 75, pasto: true }),
         ], { richiesta: 'Un pomeriggio a Bologna tra portici e osterie' }) },
-        // C7 — SOGLIA CORRETTA 3: Per Te e' un tour tematico a orari stimati, senza momenti: c1 non si applica.
-        buono4: { nome: 'Per Te gastronomico: osterie alle 10:00, 11:41 e 13:13 (orari stimati)', caso: caso([
-            st('Osteria Pizzeria Come Va?', { types: ['italian_restaurant'], primaryType: 'italian_restaurant', moment: null, at: at('10:00'), stay: 75, pasto: true }),
-            st('Osteria Sonnino', { types: ['restaurant'], primaryType: 'restaurant', moment: null, at: at('11:41'), stay: 75, pasto: true }),
+        // C8b — Per Te rientra in c1 (gli orari d'arrivo sono stimati): era una soglia corretta in C7, ora e' una regola.
+        cattivo3: { nome: 'C8b — Per Te gastronomico: osterie alle 10:00, 11:41 e 13:13 (orari stimati)', origine: 'giro CONTINUITA\' / C7 (perte-roma-1000: Osteria Pizzeria Come Va?, Osteria Sonnino)',
+            caso: caso([
+                st('Osteria Pizzeria Come Va?', { types: ['italian_restaurant'], primaryType: 'italian_restaurant', moment: null, at: at('10:00'), stay: 75, pasto: true }),
+                st('Osteria Sonnino', { types: ['restaurant'], primaryType: 'restaurant', moment: null, at: at('11:41'), stay: 75, pasto: true }),
+            ], { tipo: 'perte', modo: 'perte' }) },
+        buono4: { nome: 'C8b — Per Te di mattina: colazioni in caffe\' e forni; un\'osteria solo a pranzo (13:00)', caso: caso([
+            st('Caffè Centrale', { types: ['cafe'], primaryType: 'cafe', moment: 'mattina', at: at('08:30'), stay: 20 }),
+            st('Forno Antico', { types: ['bakery'], primaryType: 'bakery', moment: 'mattina', at: at('09:00'), stay: 20 }),
+            st('Osteria Sonnino', { types: ['restaurant'], primaryType: 'restaurant', moment: null, at: at('13:00'), stay: 75, pasto: true }),
         ], { tipo: 'perte', modo: 'perte' }) },
     },
     c2: {
@@ -88,6 +94,27 @@ export const ESEMPI = {
             st('Wine Bar Etna', { types: ['bar'], moment: 'aperitivo', at: at('19:00'), stay: 20 }),
             st('Osteria Antica', { types: ['restaurant'], moment: 'cena', at: at('20:00'), stay: 75, pasto: true }),
         ], { modo: 'veloce', ora: '19:00' }) },
+        // C8b — il minimo dipende dalla durata: 4 ore → 3 tappe; un giro da 2 tappe senza ripiego e' rosso
+        cattivo2: { nome: 'C8b — Mezza Giornata di 4 ore (14:30–18:30) con 2 tappe e nessun ripiego', origine: 'misura del 14/10 (la regola "mai meno di 3 tappe in 3–6 ore")',
+            caso: caso([
+                st('Villa Bellini', { types: ['park'], moment: 'pomeriggio', at: at('14:30'), stay: 30 }),
+                st('Castello Ursino', { types: ['museum'], moment: 'pomeriggio', at: at('15:30'), stay: 60 }),
+            ], { finestraMinuti: [240] }) },
+        cattivo3: { nome: 'C8b — Veloce lungo di 6 ore con 3 tappe e nessun ripiego (il minimo e\' 4)', origine: 'costruito',
+            caso: caso([
+                st('Villa Bellini', { types: ['park'], moment: 'mattina', at: at('09:30'), stay: 30 }),
+                st('Castello Ursino', { types: ['museum'], moment: 'mattina', at: at('10:30'), stay: 60 }),
+                st('Piazza Duomo', { types: ['tourist_attraction'], moment: 'pomeriggio', at: at('13:00'), stay: 30 }),
+            ], { modo: 'veloce', finestraMinuti: [360] }) },
+        buono3: { nome: 'C8b — 4 ore con 3 tappe', caso: caso([
+            st('Villa Bellini', { types: ['park'], moment: 'pomeriggio', at: at('14:30'), stay: 30 }),
+            st('Castello Ursino', { types: ['museum'], moment: 'pomeriggio', at: at('15:30'), stay: 60 }),
+            st('Piazza Duomo', { types: ['tourist_attraction'], moment: 'pomeriggio', at: at('17:00'), stay: 30 }),
+        ], { finestraMinuti: [240] }) },
+        buono4: { nome: 'C8b — Veloce 21:25: prima la cena, poi la passeggiata (2 tappe in 2 ore)', caso: caso([
+            st('Ristorante EtnaSicilia', { types: ['restaurant'], primaryType: 'italian_restaurant', moment: 'cena', at: at('21:25'), stay: 75, pasto: true }),
+            st('Fontana dell\u2019Amenano', { types: ['tourist_attraction'], moment: 'cena', at: at('22:43'), stay: 30, passeggiata: true }),
+        ], { modo: 'veloce', ora: '21:25', finestraMinuti: [120] }) },
         // C8a — la cena non e' piu' possibile (nessun locale aperto per tutta la sosta): il giro serale e' drink + passeggiata.
         buono2: { nome: 'Veloce 23:30: drink + passeggiata (la cena non e\' piu\' possibile)', caso: caso([
             st('Retrò - Cocktail Bar', { types: ['cocktail_bar', 'bar'], primaryType: 'cocktail_bar', moment: 'dopocena', at: at('23:30'), stay: 45 }),

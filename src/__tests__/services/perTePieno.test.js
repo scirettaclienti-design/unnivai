@@ -45,8 +45,11 @@ beforeEach(() => {
     vi.clearAllMocks();
     calls = [];
     try { window.localStorage.clear(); } catch { /* jsdom */ }
+    // C8b — i ristoranti hanno la loro fascia (pranzo, cena) e di sera Per Te e' il giro della sera: l'orologio e' fisso, a pranzo.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-14T13:00:00+02:00'));
 });
-afterEach(() => { vi.unstubAllGlobals(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 // ─── 1. Pool dei temi ordinati per merito ───────────────────────────────────
 describe('P7a2 — il pool di un tema arriva al modello ordinato per unicita\'', () => {
@@ -93,11 +96,12 @@ describe('P7a2 — il pool di un tema arriva al modello ordinato per unicita\'',
 
 // ─── 2. Riempire prima di nascondere ────────────────────────────────────────
 describe('P7a2 — un tour a 2 tappe si completa in codice', () => {
+    // C8b — un tour ha al massimo UN pasto seduto (a meno di 3 ore dall'altro e' un "secondo pranzo"): gli altri sono forni e gelaterie
     const FOOD = [
         poi('f1', 'Da Enzo', 1, { types: ['restaurant'], user_ratings_total: 4000 }),
-        poi('f2', 'Armando', 1.2, { types: ['restaurant'], user_ratings_total: 3500 }),
-        poi('f3', 'Trattoria di quartiere', 1.4, { types: ['restaurant'], user_ratings_total: 120 }),
-        poi('f4', 'Roscioli', 1.6, { types: ['restaurant'], user_ratings_total: 9000 }),
+        poi('f2', 'Armando', 1.2, { types: ['bakery', 'food'], user_ratings_total: 3500 }),
+        poi('f3', 'Trattoria di quartiere', 1.4, { types: ['bakery', 'food'], user_ratings_total: 120 }),
+        poi('f4', 'Roscioli', 1.6, { types: ['bakery', 'food'], user_ratings_total: 9000 }),
     ];
     const CULTURA = [poi('c1', 'San Clemente', 1, { user_ratings_total: 2000 }), poi('c2', 'Santa Prassede', 1.1, { user_ratings_total: 1800 }), poi('c3', 'Palazzo Massimo', 1.2, { user_ratings_total: 6400 })];
 

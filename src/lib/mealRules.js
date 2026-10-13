@@ -92,3 +92,40 @@ export function momentAdmits(candidate, moment) {
     // pomeriggio, dopocena: un posto dove ci si siede o si mangia da asporto non entra
     return k !== 'pasto' && k !== 'spuntino';
 }
+
+/**
+ * C8b — LE STESSE REGOLE DI FASCIA DI CREA, PER "PER TE". Per Te non ha momenti: ogni tappa ha un orario di arrivo
+ * (da adesso + soste + cammino) e li' valgono le fasce del banco (c1, c2, c3):
+ *   · un ristorante (tipo principale) solo a pranzo (12:00–14:45) e a cena (19:30–23:00);
+ *   · prima di mezzogiorno un locale e' una colazione (caffe', forno, dolce, bar semplice), non un pranzo ne' un cocktail bar;
+ *   · un pasto veloce da asporto (spuntino) segue le fasce dei pasti.
+ * @param {object} candidate un candidato o una tappa (tipo principale + types)
+ * @param {number} minutes minuti dalla mezzanotte di Roma dell'arrivo
+ * @returns {boolean}
+ */
+export const FASCIA_PRANZO_MIN = [12 * 60, 14 * 60 + 45];
+export const FASCIA_CENA_MIN = [19 * 60 + 30, 23 * 60];
+export function mealFitsClock(candidate, minutes) {
+    if (!Number.isFinite(minutes)) return true;
+    const k = kindOf(candidate);
+    const inFascia = (f) => minutes >= f[0] && minutes <= f[1];
+    const aTavola = inFascia(FASCIA_PRANZO_MIN) || inFascia(FASCIA_CENA_MIN);
+    if (k === 'pasto' || k === 'spuntino') return aTavola;
+    if (minutes < FASCIA_PRANZO_MIN[0] && LOCALE.has(k)) return isBreakfastPlace(candidate);
+    return true;
+}
+
+/**
+ * C8b — il motivo per cui un posto non va bene, in "Per Te", a quell'ora e con quelle tappe: fuori fascia, o un SECONDO pasto
+ * seduto a meno di 3 ore dal primo (il "secondo pranzo" di c1). null = va bene.
+ */
+export const SECONDO_PASTO_MIN_ORE = 3;
+export function perTeMealProblem(candidate, minutes, arrivo, altre = []) {
+    if (!mealFitsClock(candidate, minutes)) return 'pasto fuori fascia';
+    if (kindOf(candidate) === 'pasto') {
+        const t = arrivo instanceof Date ? arrivo.getTime() : NaN;
+        const vicino = altre.some(o => kindOf(o.c) === 'pasto' && Math.abs(o.arrivo.getTime() - t) < SECONDO_PASTO_MIN_ORE * 3600000);
+        if (vicino) return 'secondo pasto seduto a meno di 3 ore dal primo';
+    }
+    return null;
+}

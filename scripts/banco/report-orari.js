@@ -97,7 +97,7 @@ export function reportOrari(base, nuovo, config, meta = {}) {
     const messaggi = ids.filter(id => N.get(id)?.c?.chiusoOra);
     L.push('## c4 — meno di 4 tappe senza ripiego dichiarato');
     L.push('');
-    L.push(`Casi con c4 rosso: prima **${c4B}**, dopo **${c4N}**. Casi in cui il giro è diventato il messaggio dichiarato («Meglio domattina…»): **${messaggi.length}** (${messaggi.join(', ') || 'nessuno'}) — contano come ripiego dichiarato, non come tappe mancanti. `
+    L.push(`Casi con c4 rosso: prima **${c4B}**, dopo **${c4N}**. Casi in cui il giro è diventato il messaggio dichiarato (il messaggio dichiarato): **${messaggi.length}** (${messaggi.join(', ') || 'nessuno'}) — contano come ripiego dichiarato, non come tappe mancanti. `
         + `Righe di tempo libero / «nessun locale aperto» inserite: ${ids.reduce((a, id) => a + (N.get(id)?.c ? righeDichiarate(N.get(id).c).length : 0), 0)} (prima ${ids.reduce((a, id) => a + (B.get(id)?.c ? righeDichiarate(B.get(id).c).length : 0), 0)}).`);
     L.push('');
 

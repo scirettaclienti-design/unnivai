@@ -44,7 +44,7 @@ export function reportPasti(baseCasi, nuovo, config, meta = {}) {
 
     L.push('# C8c — pasti giusti: la sera si cena, la colazione chiesta c\'è, un dolce solo e dopo');
     L.push('');
-    L.push(`Codice: \`${meta.commit || '?'}\`, \`engine=new\` (solo l'account di prova), giorno simulato **${nuovo.giornoSimulato}** (mercoledì), ora simulata per caso. `
+    L.push(`Codice al momento del report: \`${meta.commit || '?'}\` (i giri dal vivo sono di commit precedenti: vedi «Spesa» e «Cosa ho dato per vero»), \`engine=new\` (solo l'account di prova), giorno simulato **${nuovo.giornoSimulato}** (mercoledì), ora simulata per caso. `
         + `${ids.length} casi girati: i 5 della diagnosi più Veloce Catania relax 21:25 come controllo della cena tardi. `
         + `Il "prima" di ogni caso è il giro di C8b (${(meta.baseFile || []).join(', ') || 'grezzi C8b'}). `
         + 'Le classi sono misurate sui due giri con gli **stessi controlli** (quelli di adesso: c1 conta anche i dolci, c13 anche la sera senza cena), indipendenti dal motore. '

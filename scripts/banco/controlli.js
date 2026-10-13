@@ -129,8 +129,9 @@ const RICHIESTA_MOMENTO = {
 };
 // C8c — un dolce, un gelato, una pasticceria (indipendente dal motore: tipo o nome)
 const NOME_DOLCE = /\b(pasticceri[ae]|gelateri[ae]|gelato|cioccolateri[ae])\b/;
+const TIPI_DOLCE = /^(ice_cream_shop|gelato_shop|pastry_shop|dessert_shop|cake_shop|confectionery|chocolate_shop|candy_store|donut_shop)$/;
 const PT_DOLCE = /^(ice_cream_shop|gelato_shop|dessert_shop|dessert_restaurant|confectionery|candy_store|chocolate_shop|donut_shop|pastry_shop|cake_shop)$/;
-export const eDolce = (s) => PT_DOLCE.test(s.primaryType || '') || (!s.pasto && !eRistorante(s) && (NOME_DOLCE.test(norm(nome(s))) || tipi(s).includes('ice_cream_shop')));
+export const eDolce = (s) => PT_DOLCE.test(s.primaryType || '') || (!s.pasto && !eRistorante(s) && (NOME_DOLCE.test(norm(nome(s))) || tipi(s).some(t => TIPI_DOLCE.test(t))));
 export function c1(caso, cfg) {
     const E = cfg.esteso;
     const [p0, p1] = E.fasce.pranzo.map(minDi);

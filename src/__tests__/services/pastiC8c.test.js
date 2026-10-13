@@ -178,6 +178,13 @@ describe('C8c — un dolce per tour, e dopo un pasto', () => {
     const trattoria = { place_id: 'tr', name: 'Trattoria Mare', types: ['italian_restaurant', 'restaurant', 'food'], primaryType: 'italian_restaurant' };
     const min = (h, m = 0) => h * 60 + m;
 
+    it('isDolce: un bar che e\' anche gelateria/pasticceria (tipi o nome) e\' un dolce', () => {
+        const barGelateria = { place_id: 'bg', name: 'Caffè Blanca', types: ['bar', 'ice_cream_shop', 'cake_shop', 'dessert_shop'], primaryType: 'bar' };
+        const barPasticceria = { place_id: 'bp', name: 'Pasticceria Quaranta', types: ['bar', 'pastry_shop', 'bakery'], primaryType: 'bar' };
+        expect(isDolce(barGelateria)).toBe(true);
+        expect(isDolce(barPasticceria)).toBe(true);
+        expect(dolceProblem(barGelateria, 14 * 60 + 44, [{ c: { place_id: 'x', name: 'Altro', types: ['museum'] }, arrivo: new Date() }])).toBe('dolce prima del pasto');
+    });
     it('isDolce: gelateria e pasticceria sì, forno e caffè no', () => {
         expect(isDolce(gelateria)).toBe(true);
         expect(isDolce(pasticceria)).toBe(true);

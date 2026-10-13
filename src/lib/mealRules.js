@@ -125,10 +125,14 @@ export function mealFitsClock(candidate, minutes) {
  * colazione (un caffe', un forno), dalla merenda (14:45) in poi quando il pranzo e' passato. Mai come prima tappa prima di pranzo.
  */
 const NOME_DOLCE = /\b(pasticceri[ae]|gelateri[ae]|gelato|cioccolateri[ae])\b/i;
+const TIPI_DOLCE = new Set(['ice_cream_shop', 'gelato_shop', 'pastry_shop', 'dessert_shop', 'cake_shop', 'confectionery', 'chocolate_shop', 'candy_store', 'donut_shop']);
 export const isDolce = (c) => {
     const k = kindOf(c);
     if (k === 'dolce') return true;
-    return k === 'forno' && NOME_DOLCE.test(String(c?.name || c?.title || ''));
+    // un bar, un caffe' o un forno che e' anche gelateria/pasticceria (nome o tipi di Google) e' un dolce; un ristorante no
+    if (k !== 'forno' && k !== 'caffe' && k !== 'bar') return false;
+    const types = Array.isArray(c?.types) ? c.types : [];
+    return NOME_DOLCE.test(String(c?.name || c?.title || '')) || types.some(t => TIPI_DOLCE.has(t));
 };
 export function dolceProblem(candidate, minutes, altre = []) {
     if (!isDolce(candidate)) return null;

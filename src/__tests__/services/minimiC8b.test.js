@@ -102,7 +102,7 @@ describe('C8b — un tour sotto il minimo prende una tappa in piu\' o lo dichiar
         const r = await genera([spiaggia('s0', 0), spiaggia('s1', 1)], '14:30', { prefs: PREFS_RIL });
         expect(vere(r)).toHaveLength(2);
         expect(libere(r).length).toBeGreaterThan(0);
-        expect(libere(r)[0].description).toMatch(/Tempo libero/);
+        expect(libere(r)[0].description).toBe('Niente in agenda: cammina dove ti porta la strada.');
         expect(r._momentReport.continuita.minimo.dichiarati.length).toBeGreaterThan(0);
     });
     it('6 ore o piu\' (Percorso Veloce Lungo): almeno 4 tappe', async () => {

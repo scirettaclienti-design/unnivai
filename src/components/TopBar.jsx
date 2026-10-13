@@ -9,6 +9,7 @@ import { useUserContext } from "@/hooks/useUserContext";
 import { useAuth } from "../context/AuthContext";
 import { useCity } from "../context/CityContext";
 import { Edit2 } from "lucide-react";
+import { capitalizeName } from "@/lib/italianLabels";
 
 // Gate AA.2: flag "onboarding citta' gia' proposto in questa sessione".
 // Prefisso dvai_ come le altre chiavi correnti (dvai_onboarding_done,
@@ -130,7 +131,7 @@ export default function TopBar() {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    Ciao, {isLoading ? '...' : firstName}!
+                                    Ciao, {isLoading ? '...' : capitalizeName(firstName)}!
                                 </motion.h1>
                             </Link>
                             <div className="text-xs font-medium text-obsidian-secondary flex items-center space-x-2">

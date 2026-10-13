@@ -108,7 +108,7 @@ describe('C8d — ritmo Rilassato: oltre 90 minuti di vuoto UNA tappa leggera, f
         expect(m.vere).toHaveLength(2);
         expect(m.vere.every(s => isLightStop({ ...s, name: s.title }))).toBe(true);
         expect(m.libere).toHaveLength(1);
-        expect(m.libere[0].description).toMatch(/^Tempo libero:/);
+        expect(m.libere[0].description).toBe('Niente in agenda: cammina dove ti porta la strada.');
     });
     it('vuoto della mattina di 86 minuti (partenza 10:30): nessuna tappa in piu\', tempo libero dichiarato', async () => {
         const r = await genera(POOL, '10:30', { prefs: PREFS, testo: 'Una giornata a Cabras' });

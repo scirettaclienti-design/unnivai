@@ -9,6 +9,7 @@ import TopBar from "../components/TopBar";
 import TourCover from "../components/TourCover";
 import { isPlacesPhoto } from "@/lib/categoryPalette";
 import { formatEstimate } from "@/lib/tourTiming";
+import { typeLabelOf, categoryLabelOf } from "@/lib/italianLabels";
 // Gate MOMENTO NEL DETTAGLIO — stesso raggruppamento di AiItinerary,
 // QuickPathSummary e SurpriseTour: momento dalla tappa (o dal suo orario),
 // orario = scheduledTime gia' calcolato dal motore. Niente orari calcolati qui.
@@ -1101,7 +1102,8 @@ export default function TourDetailsPage() {
                                             const renderStep = (step, index, timeLabel) => {
                                                 const stepTitle = step.title || step.name || step.activity || `Tappa ${index + 1}`;
                                                 const stepImage = step.image || null;
-                                                const stepCategory = step.category && step.category !== 'place' ? step.category : null;
+                                                // TESTI — l'etichetta e' il tipo principale in italiano; senza, la categoria a parole italiane; mai la parola inglese.
+                                                const stepCategory = typeLabelOf(step) || categoryLabelOf(step.category);
                                                 const stepMinutes = formatEstimate(step.stayMinutes);
                                                 const stepPrice = Number.isFinite(step.price) && step.price > 0 ? step.price : null;
                                                 const stepDesc = step.description || null;

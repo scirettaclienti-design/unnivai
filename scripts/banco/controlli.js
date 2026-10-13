@@ -31,7 +31,7 @@ export const CLASSI = [
 export const DEFINIZIONI = {
     c1: 'Una tappa-pasto (un ristorante: il TIPO PRINCIPALE di Google, non bar/caffè/forno: un cocktail bar marcato anche `restaurant` è un bar) con orario di arrivo fuori dalle fasce del pasto (pranzo e cena, da banco.config.json) '
         + 'oppure due pasti seduti a meno di `pastiDistanzaMinOre` ore uno dall\'altro nello stesso giro (il "secondo pranzo"); '
-        + 'C8c — oppure un secondo dolce/gelato/pasticceria nello stesso tour, o un dolce prima del pasto (a pranzo prima del ristorante, di mattina prima di una colazione, come prima tappa prima delle 14:45). '
+        + 'C8c — oppure un secondo dolce/gelato/pasticceria nello stesso tour (un bar scelto per l\'aperitivo o il drink non è un dolce: TESTI), o un dolce prima del pasto (a pranzo prima del ristorante, di mattina prima di una colazione, come prima tappa prima delle 14:45). '
         + 'C8b — vale anche per Per Te (gli orari di arrivo sono stimati da ora, cammino e soste). Un ristorante in un momento che il testo chiede esplicitamente ("un pomeriggio tra portici e osterie") non conta.',
     c2: 'Un ristorante (tipo principale) nel momento mattina, pomeriggio, aperitivo o dopocena, salvo che il testo della richiesta chieda quel momento (mattina e pomeriggio): colazione/brunch per la mattina, '
         + 'merenda per il pomeriggio, o il nome del momento insieme a una parola di cibo. "ristoranti", "trattorie" ecc. da soli NON chiedono un momento.',
@@ -46,6 +46,7 @@ export const DEFINIZIONI = {
     c7: 'Nelle frasi a schermo: numero e unità che non concordano ("1 minuti", "2 minuto", "alle 1"), parola funzionale doppia ("di di"), segnaposto o vuoti (null, {x}), '
         + 'oppure la stessa frase (nome e numeri mascherati) almeno `frasiUgualiMin` volte nella stessa giornata.',
     c8: 'Inglese a schermo: la condizione meteo che non è una voce italiana (sunny, rainy, cloudy…), o due parole funzionali inglesi nelle frasi/nei titoli. '
+        + 'TESTI — oppure una sezione che si chiama «Aperitivo» dopo le 21:30 (dalle 21:30 è «Dopocena»), «fascia €» (i prezzi si dicono «prezzi bassi / medi / alti»), il numero del giorno («Giorno 1 a …») in un tour di un solo giorno. '
         + 'Meteo di adesso su un tour futuro: il tour ha la data di un altro giorno ma mostra il meteo (quello della richiesta).',
     c9: 'Lo script ONB-1 (login → logout → login su browser vuoto → modifica interessi → logout/login): ogni passo deve essere OK, e i passi devono essere tutti.',
     c10: 'Con una dieta vegetariana: (a) un pasto che non viene da una ricerca col criterio della dieta; (b) un NON pasto (museo, chiesa, parco…) trovato solo da ricerche col criterio della dieta '
@@ -131,6 +132,10 @@ const RICHIESTA_MOMENTO = {
 const NOME_DOLCE = /\b(pasticceri[ae]|gelateri[ae]|gelato|cioccolateri[ae])\b/;
 const TIPI_DOLCE = /^(ice_cream_shop|gelato_shop|pastry_shop|dessert_shop|cake_shop|confectionery|chocolate_shop|candy_store|donut_shop)$/;
 const PT_DOLCE = /^(ice_cream_shop|gelato_shop|dessert_shop|dessert_restaurant|confectionery|candy_store|chocolate_shop|donut_shop|pastry_shop|cake_shop)$/;
+// TESTI — un bar scelto per l'aperitivo o il drink non e' un dolce, anche se e' pure una pasticceria o ha `cake_shop` tra i types
+// (Bar Sgroi, C8e): il dolce e' quello che si sceglie come dolce.
+const PT_BAR = /^(bar|cocktail_bar|lounge_bar|sports_bar|bar_and_grill|wine_bar|pub|irish_pub|brewpub|brewery)$/;
+export const barDelDrink = (s) => ['aperitivo', 'dopocena'].includes(s.moment) && PT_BAR.test(s.primaryType || '');
 export const eDolce = (s) => PT_DOLCE.test(s.primaryType || '') || (!s.pasto && !eRistorante(s) && (NOME_DOLCE.test(norm(nome(s))) || tipi(s).some(t => TIPI_DOLCE.test(t))));
 export function c1(caso, cfg) {
     const E = cfg.esteso;
@@ -152,7 +157,7 @@ export function c1(caso, cfg) {
         // C8c — UN DOLCE PER TOUR, E DOPO UN PASTO: al massimo un dolce/gelato/pasticceria; mai prima del pasto (a pranzo dopo un ristorante,
         // di mattina dopo una colazione) e mai come prima tappa prima di pranzo. Dalla merenda (14:45) in poi un dolce solo va bene anche per primo.
         const inOrdine = tappeDi(t).filter(s => s.at).sort((a, b) => new Date(a.at) - new Date(b.at));
-        const dolci = inOrdine.filter(eDolce);
+        const dolci = inOrdine.filter(x => eDolce(x) && !barDelDrink(x));
         for (const s of dolci.slice(1)) out.push(viol(s, `${nome(s)} alle ${oraTesto(s)}: un secondo dolce nello stesso tour (dopo ${nome(dolci[0])})`, 'c1', cfg));
         for (const s of dolci.slice(0, 1)) {
             const m = quando(s)?.minuti;
@@ -350,11 +355,23 @@ export function c8(caso, cfg) {
         }
         const eng = (String(d.titolo || '').match(INGLESE) || []);
         if (eng.length >= 2) out.push(viol(null, `titolo del giorno «${d.titolo}» con parole inglesi (${eng.join(', ')})`, 'c8', cfg));
+        // TESTI — un tour di un giorno (o di poche ore) non ha il numero del giorno
+        if (g.length === 1 && /^\s*giorno\s*\d/i.test(String(d.titolo || ''))) out.push(viol(null, `titolo «${d.titolo}» con il numero del giorno in un tour di un giorno solo`, 'c8', cfg));
+    }
+    // TESTI — la sezione «Aperitivo» dopo le 21:30: dalle 21:30 (e fino all'alba) si chiama «Dopocena». `sezioni` = i nomi che la schermata mostra davvero.
+    for (const z of caso.schermo?.sezioni || []) {
+        const m = /^(\d{1,2}):(\d{2})$/.exec(z.ora || '');
+        const minuti = m ? Number(m[1]) * 60 + Number(m[2]) : null;
+        if (minuti != null && (minuti >= 21 * 60 + 30 || minuti < 6 * 60) && /^aperitivo$/i.test(String(z.etichetta || '').trim())) {
+            out.push(viol(null, `sezione «${z.etichetta}» alle ${z.ora}: dalle 21:30 la sezione si chiama «Dopocena»`, 'c8', cfg));
+        }
     }
     for (const t of caso.tours || []) {
         for (const s of tappeDi(t)) {
             const eng = (String(s.description || '').match(INGLESE) || []);
             if (eng.length >= 2) out.push(viol(s, `«${s.description}» — parole inglesi (${[...new Set(eng.map(x => x.toLowerCase()))].join(', ')})`, 'c8', cfg));
+            // TESTI — i prezzi si dicono a parole
+            if (/\bfascia\s*€/i.test(String(s.description || ''))) out.push(viol(s, `«${s.description}» — «fascia €» a schermo (si dice «prezzi bassi / medi / alti»)`, 'c8', cfg));
         }
     }
     for (const n of caso.schermo?.note || []) {

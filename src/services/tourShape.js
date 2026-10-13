@@ -389,6 +389,8 @@ export function normalizeTourStep(raw = {}, index = 0, cityFallback = 'Roma', { 
         waitMinutesBefore: raw.waitMinutesBefore,
         // `types` Google interi: la tabella di sosta ne ha bisogno a valle.
         types: Array.isArray(raw.types) ? raw.types : [],
+        // TESTI — il tipo principale di Google: l'etichetta di tipo a schermo nasce da qui.
+        primaryType: typeof (raw.primaryType ?? raw.primary_type) === 'string' ? (raw.primaryType ?? raw.primary_type) : null,
 
         // P3d-j (chiusura) — testi scritti dal modello sulle tappe: mai a
         // schermo. Il motore non li produce piu'; un tour AI letto da una

@@ -23,6 +23,7 @@ import { reportComposizione } from './report-composizione.js';
 import { reportSera } from './report-sera.js';
 import { reportPasti, unisciGrezzi as unisciPasti } from './report-pasti.js';
 import { reportMinimi, unisciGrezzi } from './report-minimi.js';
+import { reportTesti } from './report-testi.js';
 
 const root = process.cwd();
 const config = JSON.parse(readFileSync(path.join(root, 'scripts/banco/banco.config.json'), 'utf8'));
@@ -56,6 +57,8 @@ const PASTI = process.env.BANCO_RUN === 'pasti';
 const VUOTI = process.env.BANCO_RUN === 'vuoti';
 // C8e — BANCO_RUN=tetto: il tetto conta solo le visite; stesso report, il "prima" e' il giro di C8d (o C8c).
 const TETTO = process.env.BANCO_RUN === 'tetto';
+// TESTI — BANCO_RUN=testi: i testi a schermo (italiano, concordati, mai ripetuti); 6 casi, c7 e c8 a 0.
+const TESTI = process.env.BANCO_RUN === 'testi';
 const argReport = process.argv.indexOf('--report');
 let jsonPath, nome;
 if (argReport > -1) {
@@ -63,7 +66,7 @@ if (argReport > -1) {
     nome = path.basename(jsonPath, '.json');
 } else {
     // MIG-PLACES — BANCO_PLACES=new: stessi casi con la ricerca nuova (solo l'account di prova), file `-new`.
-    const suffisso = TETTO ? '-tetto' : VUOTI ? '-vuoti' : PASTI ? '-pasti' : MINIMI ? '-minimi' : SERA ? '-sera' : SERA_PRIMA ? '-sera-prima' : COMPOSIZIONE ? '-composizione' : CONTINUITA ? '-continuita' : FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
+    const suffisso = TESTI ? '-testi' : TETTO ? '-tetto' : VUOTI ? '-vuoti' : PASTI ? '-pasti' : MINIMI ? '-minimi' : SERA ? '-sera' : SERA_PRIMA ? '-sera-prima' : COMPOSIZIONE ? '-composizione' : CONTINUITA ? '-continuita' : FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
     nome = `${oggi}-banco-esteso${suffisso}`;
     for (let i = 2; existsSync(path.join(root, 'docs/prove/dati', `${nome}.json`)); i++) nome = `${oggi}-banco-esteso${suffisso}-${i}`;
     jsonPath = path.join(root, 'docs/prove/dati', `${nome}.json`);
@@ -83,6 +86,17 @@ if (argReport > -1) {
     }
 }
 
+if (argReport > -1 && /-testi/.test(process.argv[argReport + 1])) {
+    // TESTI — il report unisce i giri dello stesso task (il tetto e' del task: si somma a mano)
+    const files = process.argv[argReport + 1].split(',').map(f => path.resolve(f.trim()));
+    const raws = files.map(f => ({ ...JSON.parse(readFileSync(f, 'utf8')), _nome: path.basename(f) }));
+    const nomeDoc = `${oggi}-testi`;
+    const nPath = path.join(root, 'docs/prove/dati', `${nomeDoc}-note.md`);
+    const { markdown: md, sintesi } = reportTesti(unisciPasti(raws), config, { commit, files: files.map(f => path.basename(f)) });
+    writeFileSync(path.join(root, 'docs/prove', `${nomeDoc}.md`), md + (existsSync(nPath) ? '\n' + readFileSync(nPath, 'utf8') : '') + '\n');
+    console.log(`[banco-esteso] report testi: docs/prove/${nomeDoc}.md | ${sintesi.misurati}/${sintesi.casi} casi | c7 ${sintesi.c7} | c8 ${sintesi.c8} | c1 ${sintesi.c1} | spesa ${sintesi.spesa}`);
+    process.exit(0);
+}
 if (argReport > -1 && /-(pasti|vuoti|tetto)/.test(process.argv[argReport + 1])) {
     const tetto = /-tetto/.test(process.argv[argReport + 1]);
     const vuoti = /-vuoti/.test(process.argv[argReport + 1]) || tetto;
@@ -124,7 +138,7 @@ if (argReport > -1 && /-minimi/.test(process.argv[argReport + 1])) {
     process.exit(0);
 }
 const raw = JSON.parse(readFileSync(jsonPath, 'utf8'));
-if (raw.motore === 'new' && /-(pasti|vuoti|tetto)/.test(nome)) {
+if (raw.motore === 'new' && /-(pasti|vuoti|tetto|testi)/.test(nome)) {
     // C8c — un giro singolo di prova (il report vero unisce tutti i giri con --report a,b)
     console.log(`[banco-esteso] grezzo del giro: ${path.relative(root, jsonPath)} | spesa ${raw.costo?.totale?.toFixed?.(3) ?? '?'} (il report: BANCO_RUN=pasti npm run banco:esteso -- --report a.json,b.json)`);
     process.exit(0);

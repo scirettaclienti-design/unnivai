@@ -18,6 +18,7 @@
 
 import { MOMENT_BY_KEY, momentAtClock } from './dayMoments';
 import { romeParts, TOUR_TIME_ZONE } from './tourWindow';
+import { isDopocenaClock } from './italianLabels';
 
 const validDate = (v) => {
     if (!v) return null;
@@ -71,9 +72,21 @@ export function withFreeTime(stops, freeTime) {
     return out;
 }
 
+/**
+ * TESTI — dalle 21:30 il momento del drink non si chiama piu' «Aperitivo» ma «Dopocena»: stessa chiave
+ * (`aperitivo`), altro nome. Vale per l'orario di arrivo della tappa; senza orario resta com'e'.
+ */
+const withClockLabel = (moment, stop) => {
+    if (moment?.key !== 'aperitivo') return moment;
+    const d = validDate(stop?.scheduledTime);
+    if (!d) return moment;
+    const p = romeParts(d);
+    return isDopocenaClock(p.h * 60 + p.mi) ? { ...moment, label: MOMENT_BY_KEY.dopocena.label } : moment;
+};
+
 /** Il momento della tappa (oggetto di dayMoments), o null. */
 export function stopMoment(stop) {
-    if (stop?.moment && MOMENT_BY_KEY[stop.moment]) return MOMENT_BY_KEY[stop.moment];
+    if (stop?.moment && MOMENT_BY_KEY[stop.moment]) return withClockLabel(MOMENT_BY_KEY[stop.moment], stop);
     const d = validDate(stop?.scheduledTime);
     if (!d) return null;
     const p = romeParts(d);
@@ -118,7 +131,8 @@ export function groupStopsByDayAndMoment(stops) {
         }
         const lastGroup = day.groups[day.groups.length - 1];
         const item = { stop, index, timeLabel: stopClockLabel(stop) };
-        if (lastGroup && (lastGroup.moment?.key ?? null) === (moment?.key ?? null)) lastGroup.items.push(item);
+        // Si raggruppa per NOME della sezione: «Dopocena» (drink dopo le 21:30) e il dopocena vero sono la stessa sezione.
+        if (lastGroup && (lastGroup.moment?.label ?? null) === (moment?.label ?? null)) lastGroup.items.push(item);
         else day.groups.push({ moment, items: [item] });
     });
     return days;

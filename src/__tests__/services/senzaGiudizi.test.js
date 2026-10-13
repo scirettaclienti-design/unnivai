@@ -44,7 +44,7 @@ describe('P3d-g — le 8 frasi ✗ di P3d-e vengono tolte', () => {
         // il nome vince sul tipo Google ("bar"); P3d-j: la frase composta dice "osteria"
         expect(localeTypeOfName('Osteria Navona')).toBe('osteria');
         const composta = apertura(stopData({ stop: { title: 'Osteria Navona', place_id: 'on', types: ['bar', 'food', 'restaurant'] }, momento: 'cena', locale: true, priceLevel: 2, minutiDaPrima: 6 }));
-        expect(composta).toMatch(/osteria in fascia €€\.$/);
+        expect(composta).toMatch(/osteria con prezzi medi\.$/);
         expect(composta.replace('Osteria Navona', '')).not.toMatch(/trattoria|\bbar\b/);
         // e la stessa frase con il tipo giusto passa
         expect(filterInventedObjects('Osteria, fascia €€, a 6 minuti dalla tappa prima.', { nomi: ['Osteria Navona'] }).removed).toEqual([]);

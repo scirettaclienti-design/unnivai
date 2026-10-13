@@ -24,6 +24,9 @@
 
 import { candidateFamily, isMealPlace } from '../services/momentSelection';
 import { placeKind } from './placeKind';
+import { stayOf } from './tourTiming';
+import { MOMENT_BY_KEY } from './dayMoments';
+import { minutiTesto, minutiInParole, isDopocenaClock, ALBA_MINUTI } from './italianLabels';
 import {
     filterBannedWords, filterTimeIncoherent, filterInventedObjects, filterVoice, localeTypeOfName,
 } from './narrationLight';
@@ -35,7 +38,8 @@ const seme = (s) => { let h = 2166136261; for (const ch of String(s || '')) { h 
 // {nome} {ora} {min} {tipo} {fascia} {tramonto} {delta} {interesse}
 export const FRASI_LUOGO = {
     panorama: ['Ti fermi a {nome}: qui si guarda, non si corre.', '{nome} è il punto in cui la giornata rallenta.'],
-    chiesa: ['{nome} è sulla tua strada: entri, guardi, riparti.', 'Ti prendi cinque minuti dentro {nome}.'],
+    // {durata}: la sosta vera della tappa, in lettere (stessa durata della scheda).
+    chiesa: ['{nome} è sulla tua strada: entri, guardi, riparti.', 'Ti prendi {durata} dentro {nome}.'],
     museo: ['Entri a {nome} alle {ora}: il resto può aspettare.', '{nome} è la tappa da fare con calma.'],
     piazza: ['Attraversi {nome} piano, senza fretta.', 'Passi da {nome}: guardati intorno prima di ripartire.'],
     verde: ['{nome}: rallenti qui, prima della prossima tappa.', 'Ti prendi una pausa a {nome}.'],
@@ -47,39 +51,36 @@ export const FRASI_LUOGO = {
 };
 export const FRASI_LOCALE = {
     colazione: ['Si parte da {nome}: un caffè e si comincia.'],
-    pranzo: ['Pranzi da {nome}, {tipo} in fascia {fascia}.', 'A {min} minuti a piedi ti siedi da {nome}, {tipo} in fascia {fascia}.'],
-    aperitivo: ["L'aperitivo lo prendi da {nome}, {tipo} in fascia {fascia}."],
-    cena: ['La cena è da {nome}, {tipo} in fascia {fascia}.', 'Chiudi la giornata a tavola da {nome}, {tipo} in fascia {fascia}.'],
+    pranzo: ['Pranzi da {nome}, {tipo} con {fascia}.', 'A {minuti} a piedi ti siedi da {nome}, {tipo} con {fascia}.'],
+    aperitivo: ["L'aperitivo lo prendi da {nome}, {tipo} con {fascia}."],
+    // Dalle 21:30 la sezione si chiama «Dopocena»: il drink non e' piu' un aperitivo.
+    drinkTardi: ['Il drink lo prendi da {nome}, {tipo} con {fascia}.'],
+    cena: ['La cena è da {nome}, {tipo} con {fascia}.', 'Chiudi la giornata a tavola da {nome}, {tipo} con {fascia}.'],
     dopocena: ['Dopo cena, due passi fino a {nome}.'],
 };
 export const FRASI_GANCIO = {
-    tramonto: 'Il sole tramonta alle {tramonto}: sei qui {delta} minuti prima.',
+    tramonto: 'Il sole tramonta alle {tramonto}: sei qui {deltaTesto} prima.',
     legame: 'È qui perché cerchi {interesse}.',
-    distanza: 'Sono {min} minuti a piedi dalla tappa prima.',
+    distanza: 'Sono {minuti} a piedi dalla tappa prima.',
+    distanza1: 'È a un minuto a piedi dalla tappa prima.',
     prima: 'Si comincia da qui.',
     ultima: 'Qui la giornata si chiude.',
     orario: 'Ci arrivi alle {ora}.',
 };
-export const GANCI = Object.keys(FRASI_GANCIO);
+export const GANCI = Object.keys(FRASI_GANCIO).filter(g => g !== 'distanza1');
 
-// C5e (O) — "tempo libero": la voce del giro quando, fuori dai pasti, non c'e'
-// niente di valido a portata di piedi. Due proposte, DA APPROVARE (Ivano): il
-// codice usa la prima. {momento} con l'articolo ("il pomeriggio", "l'aperitivo").
-export const FRASI_TEMPO_LIBERO = [
-    'Tempo libero: per {momento} non c\'è niente che valga il cammino. Il resto lo scegli tu.',
-    '{Momento} è {tuo}: nessuna tappa da raggiungere, giri la zona come vuoi.',
-];
-const MOMENTO_CON_ARTICOLO = { mattina: 'la mattina', pomeriggio: 'il pomeriggio', aperitivo: "l'aperitivo", dopocena: 'il dopocena' };
-const MOMENTO_FEMMINILE = new Set(['mattina']);
+// TESTI (decisione di Ivano) — il tempo libero dice sempre la stessa cosa, vera per ogni vuoto: a schermo
+// «Tempo libero», la fascia «HH:MM–HH:MM» (freeTimeRangeLabel) e questa frase. Le frasi per momento
+// («per la mattina non c'è niente che valga il cammino») dicevano il falso quando il vuoto lo crea il motore.
+export const TESTO_TEMPO_LIBERO = 'Niente in agenda: cammina dove ti porta la strada.';
+export const FRASI_TEMPO_LIBERO = [TESTO_TEMPO_LIBERO];
 /**
- * Il testo del tempo libero, composto dal codice.
- * @param {{ momento: string, variante?: number }} p chiave del momento (non un pasto)
+ * Il testo del tempo libero, composto dal codice: lo stesso per ogni momento.
+ * @param {{ momento?: string, variante?: number }} [p] ignorati: il testo non dipende dal momento
  */
-export function composeFreeTime({ momento, variante = 0 }) {
-    const m = MOMENTO_CON_ARTICOLO[norm(momento)] || 'questo momento';
-    const tpl = FRASI_TEMPO_LIBERO[variante] || FRASI_TEMPO_LIBERO[0];
-    const tuo = MOMENTO_FEMMINILE.has(norm(momento)) ? 'tua' : 'tuo';
-    return tpl.replace('{momento}', m).replace('{Momento}', m.charAt(0).toUpperCase() + m.slice(1)).replace('{tuo}', tuo);
+// eslint-disable-next-line no-unused-vars
+export function composeFreeTime(p = {}) {
+    return TESTO_TEMPO_LIBERO;
 }
 // La scelta di riserva del codice: il primo gancio vero, in quest'ordine.
 export const RISERVA_GANCI = ['tramonto', 'prima', 'ultima', 'legame', 'distanza', 'orario'];
@@ -100,7 +101,7 @@ export const INTERESSI = [
     { key: 'verde', forma: 'il verde', dice: /\b(natura|nature|parc[oh]i?|ville|villa|giardin\w*|verde|outdoor)\b/, dna: 'natura', vale: (s) => s.famiglia === 'verde' },
     // P3d-j (chiusura) — "il cibo" tolto su decisione di Ivano: il legame dei
     // pasti non si dice. Cibo resta un interesse per la scelta dei luoghi.
-    { key: 'aperitivo', forma: "l'aperitivo", dice: /\baperitiv\w*/, vale: (s) => s.locale && s.momento === 'aperitivo' && s.bar },
+    { key: 'aperitivo', forma: "l'aperitivo", dice: /\baperitiv\w*/, vale: (s) => s.locale && s.momento === 'aperitivo' && s.bar && !s.tardi },
     { key: 'sera', forma: 'la vita di sera', dice: /\b(vita notturna|nightlife|discotec\w*|movida)\b/, dna: 'nightlife', vale: (s) => s.locale && s.bar && ['aperitivo', 'cena', 'dopocena'].includes(s.momento) },
     { key: 'shopping', forma: 'lo shopping', dice: /\b(shopping|negoz\w*|botteg\w*|boutique)\b/, dna: 'shopping', vale: (s) => s.shopping },
 ];
@@ -126,7 +127,9 @@ export function userInterests({ wizard = [], text = '', dnaWeights = null } = {}
 }
 
 // ─── La tappa vista dal compositore ─────────────────────────────────────────
-const fasciaDi = (pl) => (Number.isFinite(pl) && pl >= 1 && pl <= 4 ? '€'.repeat(pl) : null);
+// TESTI (decisione di Ivano) — i livelli di prezzo di Google si dicono a parole: «prezzi bassi / medi / alti».
+export const PREZZI = { 1: 'prezzi bassi', 2: 'prezzi medi', 3: 'prezzi alti', 4: 'prezzi alti' };
+const fasciaDi = (pl) => (Number.isFinite(pl) && pl >= 1 && pl <= 4 ? PREZZI[pl] : null);
 const nomeDi = (stop) => String(stop?.title || stop?.name || '').trim();
 /** "18:00" → "18", "9:05" resta "9:05". */
 export const oraParlata = (hhmm) => {
@@ -134,6 +137,7 @@ export const oraParlata = (hhmm) => {
     if (!m) return null;
     return m[2] === '00' ? String(Number(m[1])) : `${Number(m[1])}:${m[2]}`;
 };
+const toMinuti = ({ h, m }) => h * 60 + m;
 const toMin = (hhmm) => { const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
 
 const MONUMENT_TYPES = ['tourist_attraction', 'historical_landmark', 'monument', 'castle', 'city_hall'];
@@ -197,14 +201,26 @@ export function stopData({ stop, momento = null, orario = null, tramonto = null,
     const arrivo = toMin(orario);
     const sole = toMin(tramonto);
     const delta = arrivo !== null && sole !== null ? sole - arrivo : null;
+    // La sosta vera della tappa (la stessa della scheda): le durate scritte nel testo sono questa.
+    const sosta = Number.isFinite(stop?.stayMinutes) && stop.stayMinutes > 0 ? Math.round(stop.stayMinutes) : stayOf(stop);
+    const minDaPrima = Number.isFinite(minutiDaPrima) && minutiDaPrima > 0 ? Math.round(minutiDaPrima) : null;
     return {
         id: stop?.place_id || stop?.googlePlaceId || nome,
         nome,
         momento: momento ? norm(momento) : null,
         ora: oraParlata(orario),
-        min: Number.isFinite(minutiDaPrima) && minutiDaPrima > 0 ? Math.round(minutiDaPrima) : null,
+        min: minDaPrima,
+        minuti: minDaPrima ? minutiTesto(minDaPrima) : null,
+        sosta,
+        durata: minutiInParole(sosta),
         tramonto: oraParlata(tramonto),
-        delta: delta !== null && delta >= 0 && delta <= TRAMONTO_MAX_MINUTI ? delta : null,
+        // «sei qui 0 minuti prima» non e' un anticipo: il gancio vale da 1 minuto.
+        delta: delta !== null && delta >= 1 && delta <= TRAMONTO_MAX_MINUTI ? delta : null,
+        deltaTesto: delta !== null && delta >= 1 && delta <= TRAMONTO_MAX_MINUTI ? minutiTesto(delta) : null,
+        // Dalle 21:30 la sezione si chiama «Dopocena», non «Aperitivo» (stopMoments).
+        tardi: arrivo !== null && isDopocenaClock(arrivo),
+        // «Qui la giornata si chiude» vale solo per un giro che finisce di sera (dalle 18:00).
+        sera: arrivo !== null && (arrivo >= toMinuti(MOMENT_BY_KEY.aperitivo.start) || arrivo < ALBA_MINUTI),
         locale: !!locale,
         // C6a — pasto e bar seguono il tipo del posto (tipo principale di Google):
         // un bar marcato anche `restaurant` e' un bar, un ristorante con un
@@ -234,13 +250,26 @@ const servono = (tpl) => [...tpl.matchAll(/\{(\w+)\}/g)].map(m => m[1]);
 const haTutto = (tpl, v) => servono(tpl).every(k => v[k] != null && String(v[k]).trim() !== '');
 
 // Il locale senza tipo nel nome o senza fascia: la frase perde la coda
-// ", {tipo} in fascia {fascia}" (o solo " in fascia {fascia}"), mai un buco.
+// ", {tipo} con {fascia}" (o solo " con {fascia}"), mai un buco.
 const accorcia = (tpl, v) => {
     if (!tpl.includes('{tipo}')) return tpl;
     if (v.tipo && v.fascia) return tpl;
-    if (v.tipo) return tpl.replace(' in fascia {fascia}', '');
-    return tpl.replace(', {tipo} in fascia {fascia}', '');
+    if (v.tipo) return tpl.replace(' con {fascia}', '');
+    return tpl.replace(', {tipo} con {fascia}', '');
 };
+
+/** La frase senza nome e senza numeri: due frasi uguali a meno di questo sono la stessa frase (come il controllo c7 del banco). */
+export const maschera = (frase, nome) => {
+    const n = norm(nome || '');
+    const t = norm(frase);
+    return (n ? t.split(n).join('<nome>') : t).replace(/\d+/g, '<n>');
+};
+const frasiDi = (testo) => String(testo || '').split(/(?<=[.!?])\s+/).map(f => f.trim()).filter(Boolean);
+/** Le frasi di un testo, mascherate, nel set delle frasi gia' usate nel tour. */
+export function registraFrasi(usate, testo, nome) {
+    if (!(usate instanceof Set)) return;
+    for (const f of frasiDi(testo)) usate.add(maschera(f, nome));
+}
 
 /** Le frasi d'apertura possibili per la tappa, nell'ordine fisso della tappa. */
 function aperture(d) {
@@ -249,7 +278,7 @@ function aperture(d) {
         const m = d.momento;
         if (m === 'mattina' && d.bar) lista = FRASI_LOCALE.colazione;
         else if (m === 'pranzo' && d.pasto) lista = FRASI_LOCALE.pranzo;
-        else if (m === 'aperitivo' && d.bar) lista = FRASI_LOCALE.aperitivo;
+        else if (m === 'aperitivo' && d.bar) lista = d.tardi ? FRASI_LOCALE.drinkTardi : FRASI_LOCALE.aperitivo;
         else if (m === 'cena' && d.pasto) lista = FRASI_LOCALE.cena;
         else if (m === 'dopocena' && (d.bar || d.gelateria)) lista = FRASI_LOCALE.dopocena;
         else lista = FRASI_LUOGO.altro;
@@ -260,17 +289,50 @@ function aperture(d) {
     return [...lista.slice(start), ...lista.slice(0, start)];
 }
 
-/** L'apertura della tappa: la variante fissa, o l'altra se mancano i dati. */
-export function apertura(d) {
+// TESTI — nello stesso tour nessuna frase uguale due volte: quando le frasi di una famiglia sono finite se ne usa una gia' approvata
+// per un luogo simile (mai una frase nuova). Solo frasi senza genere ne' verbi di un'altra famiglia ("entri", "la guardi").
+const SORELLE = {
+    monumento: ['piazza'], piazza: ['monumento'], porta: ['monumento', 'piazza'], arco: ['monumento', 'piazza'],
+    chiesa: ['monumento'], altro: ['piazza', 'monumento'],
+};
+
+// Una frase che dice il falso su QUESTA tappa non si usa: «Si parte da…» solo se e' la prima,
+// «Chiudi la giornata…» solo se e' l'ultima di un giro che finisce di sera.
+const frasePossibile = (tpl, d) => {
+    if (/\bsi parte\b/i.test(tpl) && !d.primo) return false;
+    if (/\bchiudi la giornata\b/i.test(tpl) && !(d.ultimo && d.giornata && d.sera)) return false;
+    // «prima della prossima tappa» non si dice sull'ultima.
+    if (d.ultimo && /prossima tappa/.test(tpl) && /prima della/.test(tpl)) return false;
+    return true;
+};
+
+/**
+ * L'apertura della tappa: la variante fissa, o l'altra se mancano i dati. Con `evita` (le frasi gia'
+ * usate nel tour, mascherate) sceglie fra le frasi approvate una non ancora usata: prima quelle della
+ * famiglia, poi le generiche; se sono tutte usate tiene la prima valida.
+ */
+export function apertura(d, { evita = null } = {}) {
     const v = { ...d };
-    for (const tpl of aperture(d)) {
-        // "prima della prossima tappa" non si dice sull'ultima.
-        if (d.ultimo && /prossima tappa/.test(tpl) && /prima della/.test(tpl)) continue;
+    // Dopo le frasi della famiglia: quelle delle famiglie sorelle (stesse frasi approvate, valide anche per luoghi simili), poi le generiche.
+    const propri = aperture(d);
+    const sorelle = d.locale ? [] : (SORELLE[d.famiglia] || []).flatMap(f => FRASI_LUOGO[f]);
+    const candidate = [...new Set([...propri, ...sorelle, ...FRASI_LUOGO.altro])];
+    const valide = [];
+    for (const tpl of candidate) {
+        if (!frasePossibile(tpl, d)) continue;
         const t = accorcia(tpl, v);
-        if (haTutto(t, v)) return riempi(t, v);
+        if (haTutto(t, v)) valide.push(riempi(t, v));
     }
-    // Ultima rete: la variante senza dati della famiglia "altro".
-    return riempi('{nome} è la prossima tappa del tuo giro.', v);
+    if (valide.length === 0) {
+        // Ultima rete: la variante senza dati della famiglia "altro".
+        return riempi('{nome} è la prossima tappa del tuo giro.', v);
+    }
+    // Le frasi della famiglia prima delle generiche: la prima valida, o la prima non ancora usata.
+    if (evita instanceof Set) {
+        const nuova = valide.find(f => !evita.has(maschera(f, d.nome)));
+        if (nuova) return nuova;
+    }
+    return valide[0];
 }
 
 /**
@@ -285,9 +347,10 @@ export function ganciValidi(d, { aperturaTesto = '', interesse = null } = {}) {
     if (v.interesse) out.set('legame', riempi(FRASI_GANCIO.legame, v));
     // (4) niente doppioni: minuti gia' detti → niente "distanza"; orario gia'
     // detto → niente "orario". Stesso senso gia' detto → niente "prima"/"ultima".
-    if (d.min && !/\bminuti a piedi\b/.test(ap)) out.set('distanza', riempi(FRASI_GANCIO.distanza, v));
+    if (d.min && !/\bminut[oi] a piedi\b/.test(ap)) out.set('distanza', riempi(d.min === 1 ? FRASI_GANCIO.distanza1 : FRASI_GANCIO.distanza, v));
     if (d.primo && !/\bsi parte\b/.test(ap)) out.set('prima', FRASI_GANCIO.prima);
-    if (d.ultimo && d.giornata && !/\bchiudi la giornata\b/.test(ap)) out.set('ultima', FRASI_GANCIO.ultima);
+    // TESTI — «Qui la giornata si chiude» solo sull'ultima tappa di un giro che finisce di sera.
+    if (d.ultimo && d.giornata && d.sera && !/\bchiudi la giornata\b/.test(ap)) out.set('ultima', FRASI_GANCIO.ultima);
     if (d.ora && !ap.includes(`alle ${norm(d.ora)}`)) out.set('orario', riempi(FRASI_GANCIO.orario, v));
     return out;
 }
@@ -308,12 +371,12 @@ export const interessiPerTappa = (d, interessi = []) => interessi.filter(k => in
  * @param {string[]} [interessi] gli interessi dell'utente (chiavi)
  * @returns {{ text: string, usaFatto: boolean, gancio: string|null, interesse: string|null, riserva: string[] }}
  */
-export function composeStop(d, scelta = {}, interessi = []) {
+export function composeStop(d, scelta = {}, interessi = [], { evita = null } = {}) {
     const riserva = [];
     let usaFatto = typeof scelta?.usaFatto === 'boolean' ? scelta.usaFatto : null;
     if (usaFatto === null) { riserva.push('usaFatto'); usaFatto = !!d.fatto; }
     if (usaFatto && !d.fatto) { riserva.push('usaFatto'); usaFatto = false; }
-    const prima = usaFatto ? d.fatto : apertura(d);
+    const prima = usaFatto ? d.fatto : apertura(d, { evita });
 
     let interesse = typeof scelta?.interesse === 'string' ? scelta.interesse : null;
     if (interesse !== null && !interesseValido(interesse, d, interessi)) { riserva.push('interesse'); interesse = null; }
@@ -321,9 +384,13 @@ export function composeStop(d, scelta = {}, interessi = []) {
     const interesseRiserva = interesse || interessiPerTappa(d, interessi)[0] || null;
 
     const validi = ganciValidi(d, { aperturaTesto: prima, interesse: interesseRiserva });
+    // TESTI — nello stesso tour nessuna frase uguale due volte: un gancio gia' detto non e' piu' una scelta.
+    const veri = new Set(validi.keys());
+    if (evita instanceof Set) for (const [g, frase] of [...validi]) if (evita.has(maschera(frase, d.nome))) validi.delete(g);
     let gancio = GANCI.includes(scelta?.gancio) ? scelta.gancio : null;
     if (!gancio || !validi.has(gancio)) {
-        if (scelta?.gancio !== undefined) riserva.push('gancio');
+        // Un gancio vero ma gia' detto nel tour non e' un errore del modello: la riserva non lo conta.
+        if (scelta?.gancio !== undefined && !veri.has(scelta.gancio)) riserva.push('gancio');
         gancio = RISERVA_GANCI.find(g => validi.has(g)) || null;
     }
     if (gancio === 'legame') interesse = interesse || interesseRiserva;
@@ -343,7 +410,7 @@ export function composeStop(d, scelta = {}, interessi = []) {
  * @returns {{ text: string, composta: object, rete: Array }}
  */
 export function guardComposed(d, scelta, ctx = {}) {
-    const { interessi = [], arrival = null, sunrise = null, sunset = null, fatti = [], fattiSu = null, voce = {} } = ctx;
+    const { interessi = [], arrival = null, sunrise = null, sunset = null, fatti = [], fattiSu = null, voce = {}, evita = null } = ctx;
     const check = (c) => {
         const exempt = [c.usaFatto ? d.fatto : null, d.nome].filter(Boolean); // il fatto per primo: contiene il nome
         const parole = filterBannedWords(c.text, { exempt });
@@ -352,14 +419,14 @@ export function guardComposed(d, scelta, ctx = {}) {
         const voci = filterVoice(vero.text, voce);
         return [...parole.removed, ...ora.removed, ...vero.removed, ...voci.removed];
     };
-    let c = composeStop(d, scelta, interessi);
+    let c = composeStop(d, scelta, interessi, { evita });
     let rete = check(c);
     if (rete.length === 0) return { text: c.text, composta: c, rete };
     const prima = rete;
-    c = composeStop(d, { usaFatto: false }, interessi);
+    c = composeStop(d, { usaFatto: false }, interessi, { evita });
     rete = check(c);
     if (rete.length === 0) return { text: c.text, composta: { ...c, riserva: [...c.riserva, 'rete'] }, rete: prima };
-    const sola = apertura(d);
+    const sola = apertura(d, { evita });
     return { text: sola, composta: { usaFatto: false, gancio: null, interesse: null, riserva: ['rete', 'rete-2'] }, rete: [...prima, ...rete] };
 }
 

@@ -78,7 +78,7 @@ describe('un buco che non si riempie viene dichiarato, con la sua fascia', () =>
         const tl = libere(r);
         expect(tl.length).toBeGreaterThan(0);
         for (const t of tl) {
-            expect(t.description).toMatch(/^Tempo libero:/);
+            expect(t.description).toBe('Niente in agenda: cammina dove ti porta la strada.');
             expect(t.stayMinutes).toBeGreaterThan(GAP_MAX_MINUTES);   // la fascia: quanto dura
             expect(t.scheduledTime).toBeTruthy();                      // e da che ora
         }

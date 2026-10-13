@@ -54,8 +54,8 @@ const routeFetch = (choose, { title = 'Musei e osterie di Roma' } = {}) => {
     });
     return { fn, stato };
 };
-const genera = (weather = {}, prefs = { interests: ['Arte', 'Cibo'], pace: 'Rilassato', duration: '1 Giorno' }) => aiRecommendationService.generateItinerary(
-    'Roma', prefs, 'Domani voglio vivere Roma da romano', weather, '', ROMA, { pathType: 'custom', skipUserQuota: true },
+const genera = (weather = {}, prefs = { interests: ['Arte', 'Cibo'], pace: 'Rilassato', duration: '1 Giorno' }, testo = 'Domani voglio vivere Roma da romano') => aiRecommendationService.generateItinerary(
+    'Roma', prefs, testo, weather, '', ROMA, { pathType: 'custom', skipUserQuota: true },
 );
 // CONTINUITA' — le righe di tempo libero non sono tappe composte.
 const stops = (r) => r.days.flatMap(d => d.stops).filter(s => !s.tempoLibero);
@@ -87,10 +87,14 @@ describe('P3d-j — itinerario composto', () => {
         expect(senza.days[0].weather).toBeNull();
         visibiliPuliti(senza);
         try { window.localStorage.clear(); } catch { /* jsdom */ }
-        const con = await genera({ condition: 'sunny', temperature: 19 });
-        expect(con.days[0].weather).toEqual({ condition: 'sunny', temperature: 19, icon: '☀️' });
+        // TESTI — il meteo di adesso vale solo per un tour di oggi, ed e' in italiano.
+        const oggi = await genera({ condition: 'sunny', temperature: 19 }, undefined, 'Oggi voglio vivere Roma da romano');
+        expect(oggi.days[0].weather).toEqual({ condition: 'sereno', temperature: 19, icon: '☀️' });
         try { window.localStorage.clear(); } catch { /* jsdom */ }
-        const meta = await genera({ condition: 'sunny' }); // temperatura mancante → niente meteo
+        const domani = await genera({ condition: 'sunny', temperature: 19 }); // «Domani»: il meteo di adesso non e' quello di domani
+        expect(domani.days[0].weather).toBeNull();
+        try { window.localStorage.clear(); } catch { /* jsdom */ }
+        const meta = await genera({ condition: 'sunny' }, undefined, 'Oggi voglio vivere Roma da romano'); // temperatura mancante → niente meteo
         expect(meta.days[0].weather).toBeNull();
     });
 
@@ -118,7 +122,7 @@ describe('P3d-j — itinerario composto', () => {
         const { fn } = routeFetch((t) => ({ place_id: t.place_id, usaFatto: false, gancio: null, interesse: null }), { title: 'La Roma magica dei romani' });
         vi.stubGlobal('fetch', fn);
         const r = await genera();
-        expect(r.days[0].title).toBe('Giorno 1 a Roma');
+        expect(r.days[0].title).toBe('Il tuo giro a Roma'); // un tour di un giorno non ha il numero del giorno
     });
 
     it('(7) il titolo non nomina meteo o momento (prova reale: "Soleggiato percorso di Roma")', async () => {
@@ -127,7 +131,7 @@ describe('P3d-j — itinerario composto', () => {
             const { fn } = routeFetch((t) => ({ place_id: t.place_id, usaFatto: false, gancio: null, interesse: null }), { title });
             vi.stubGlobal('fetch', fn);
             const r = await genera();
-            expect(r.days[0].title, title).toBe('Giorno 1 a Roma');
+            expect(r.days[0].title, title).toBe('Il tuo giro a Roma');
         }
     });
 

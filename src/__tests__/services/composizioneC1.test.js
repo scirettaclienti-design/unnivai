@@ -464,7 +464,7 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
         const st = byMoment(res);
         // C5e (O): l'aperitivo non e' piu' il belvedere a 100 min, ma il tempo libero.
         expect(st.aperitivo).toMatchObject({ tempoLibero: true, title: 'Tempo libero', latitude: null, longitude: null,
-            description: "Tempo libero: per l'aperitivo non c'è niente che valga il cammino. Il resto lo scegli tu." });
+            description: 'Niente in agenda: cammina dove ti porta la strada.' });
         expect(st.aperitivo._tracciato).toMatchObject({ scelta: 'tempo libero' });
         expect(st.aperitivo._tracciato.motivo).toMatch(/^nessun posto entro 40 min dalla tappa prima \(anche dopo la ricerca mirata\): il piu' vicino, "Belvedere Lontano", e' a \d+ min$/);
         expect(searches.filter(s => s.radius === String(MAX_WALK_METERS) && !PASSEGGIATA.test(s.q))).toHaveLength(1);

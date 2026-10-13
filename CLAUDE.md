@@ -263,6 +263,23 @@ e dentro le soglie C5c (`moment.extraLeggero`). Banco: `BANCO_RUN=vuoti`.
 pasti, drink, dopocena e passeggiata non contano. Lo applicano `capStops` (scheletro) e `momentsToExpand`/`momentsForMinimum` (riempimento). **Tappa leggera** (`isLightStop`): luogo all'aperto, verde, chiesa, o un caffè *per tipo principale* (C6a):
 un posto con tipo principale ristorante (Corner AB) non entra. Una per momento. Il riempimento si ferma comunque quando i tentativi non danno una tappa valida (varietà, percorso, orari). Banco: `BANCO_RUN=tetto`, caso `crea-catania-0930`.
 
+### I testi a schermo: italiani, concordati, onesti, mai ripetuti (TESTI)
+
+**Tempo libero**: sempre «Tempo libero», la fascia «HH:MM–HH:MM» e «Niente in agenda: cammina dove ti porta la strada.» (`stopPhrases.composeFreeTime`; la riga «Nessun locale aperto qui vicino a quest'ora.» di un pasto senza locali aperti resta).
+**Etichette di tipo** (`src/lib/italianLabels.js`, `typeLabelOf`): dal tipo principale di Google, sempre in italiano (restaurant → ristorante, bar/cocktail_bar → bar, cafe → caffè, church → chiesa, monument/tourist_attraction → monumento…); un tipo senza traduzione non ha etichetta, mai la parola inglese. Il tipo interno `type` della tappa (tutti i locali sono `restaurant`) non si mostra più.
+**Meteo**: in italiano (`weatherLabel`: sereno, nuvoloso, pioggia…); solo per un tour di oggi (`weatherForDay`), mai il meteo di adesso su un altro giorno.
+**Frasi vere** (`stopPhrases`): «Qui la giornata si chiude» e «Chiudi la giornata a tavola» solo sull'ultima tappa di un giro che arriva alla sera (dalle 18:00); «Si parte da…» solo sulla prima; ogni durata scritta è la sosta vera (`{durata}`, «venti minuti»); numero e parola concordati («un minuto», «È a un minuto a piedi»); i nomi senza barre rovesciate (`senzaEscape`).
+**Dopocena**: dalle 21:30 all'alba il momento del drink (`aperitivo`) si intitola «Dopocena» (`stopMoments.stopMoment`, le sezioni si raggruppano per nome), la frase è «Il drink lo prendi da…». **Prezzi**: «con prezzi bassi / medi / alti», mai «fascia €».
+**Titolo**: «Giorno N a X» solo nei tour di più giorni (un giorno: «Il tuo giro a X»; il navigatore dei giorni solo con più giorni). **Saluto**: il nome ha l'iniziale maiuscola (`capitalizeName`).
+**Nessuna frase uguale due volte nello stesso tour** (`composeDays`, `registraFrasi`, `maschera`, come il controllo c7 del banco): la scelta cade fra le frasi approvate esistenti — quelle della famiglia, poi quelle delle famiglie sorelle (`SORELLE`), poi le generiche —,
+un gancio già detto non si ripete. Finite le frasi approvate la ripetizione resta (si propone nel report, mai una frase nuova). Banco: c8 segna anche «Aperitivo» dopo le 21:30, «fascia €», il numero del giorno in un tour di un giorno; c1 non conta come dolce un bar scelto per l'aperitivo o il drink; `BANCO_RUN=testi`.
+
+### Regole di lavoro (decise da Ivano)
+
+- **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).
+- **I controlli del banco non si cambiano senza una proposta approvata**: se un controllo sembra sbagliato, si propone nel report e si lascia com'è.
+- **Niente funzioni nuove non chieste**: se qualcosa sembra servire, si propone nel report.
+
 ### City Data Flow
 
 **T1 — in "Crea il tuo percorso" la città scritta nel testo vince sulla posizione.**

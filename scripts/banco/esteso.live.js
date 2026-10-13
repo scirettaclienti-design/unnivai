@@ -21,6 +21,8 @@ import { resolveFoodPrefs, DIETE } from '@/lib/foodPrefs';
 import { voiceIssues } from '@/lib/narrationLight';
 import { buildPromptFromSelections, buildQuickPrefs } from '@/pages/QuickPath';
 import { isSeraStart } from '@/lib/daySkeleton';
+import { groupStopsByDayAndMoment } from '@/lib/stopMoments';
+import { typeLabelOf } from '@/lib/italianLabels';
 import { row, conComposizione } from '../prova-reale/righe.js';
 import config from './banco.config.json';
 import { CASI_ESTESI, istanteSimulato } from './casi-esteso.js';
@@ -149,6 +151,9 @@ const tappa = (s, fatti, comp, riempite, dieta, atStimato) => {
         // C7 — il tipo principale decide cosa e' un pasto (un cocktail bar marcato anche `restaurant` e' un bar)
         pasto: isMealPlace({ types, primaryType: l.primaryType, name: r.title, title: r.title }),
         ...(l.primaryType ? { primaryType: l.primaryType } : {}),
+        // TESTI — il tipo interno della tappa e l'etichetta che la schermata mostra (dal tipo principale; null = nessuna etichetta)
+        ...(s.type ? { tipoInterno: s.type } : {}),
+        etichetta: s.tempoLibero ? null : typeLabelOf({ ...s, primaryType: s.primaryType ?? l.primaryType }),
         // C6a — il nome originale di Google, se il nome mostrato e' stato ripulito dalle code commerciali
         ...(s._tracciato?.nomeOriginale ? { nomeOriginale: s._tracciato.nomeOriginale } : {}),
         // ORARI — il motore segna se l'orario del posto e' noto (aperto per tutta la sosta) o sconosciuto
@@ -289,7 +294,10 @@ for (const caso of casi) {
                 rec.continuita = r._momentReport?.continuita ?? null;
                 // C7 — il tema cibo, il tipico, le cucine estere escluse, le zone tolte, le ricerche mirate fatte
                 rec.tema = r._momentReport?.tema ?? null;
-                rec.schermo = { giorni: (r.days || []).map(d => ({ titolo: d.title || null, meteo: d.weather ?? null })),
+                // TESTI — le sezioni come la schermata le intitola (groupStopsByDayAndMoment, la stessa funzione di AiItinerary e TourStopsByMoment) con l'ora della sua prima tappa
+                const sezioni = (r.days || []).flatMap(d => groupStopsByDayAndMoment(d.stops || []).flatMap(g => g.groups))
+                    .filter(g => g.moment).map(g => ({ etichetta: g.moment.label, ora: g.items[0]?.timeLabel ?? null }));
+                rec.schermo = { giorni: (r.days || []).map(d => ({ titolo: d.title || null, meteo: d.weather ?? null })), sezioni,
                     note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote)].filter(Boolean) };
                 const per = new Map((r._narrationReport?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
                 const comp = new Map((r._narrationReport?.composizione || []).map(x => [x.place_id, x]));

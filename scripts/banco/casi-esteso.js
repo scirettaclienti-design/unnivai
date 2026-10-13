@@ -52,11 +52,15 @@ export const CASI_ESTESI = [
     // C8b — la colazione: Crea e Per Te alla mattina presto (il tour comincia con una colazione in un posto da colazione, aperto).
     // C8e — il controllo della giornata senza colazione: una giornata neutra a Catania non si gonfia col nuovo tetto
     crea('crea-catania-0930', 'Catania', '09:30', 'Una giornata a Catania', { duration: '1 Giorno', pace: 'Attivo' }),
+    // TESTI — la giornata di domani a Catania (il meteo di adesso non e' quello di domani; di giorno, con il tempo libero dei vuoti)
+    crea('crea-catania-domani', 'Catania', '09:30', 'Domani una giornata a Catania', { duration: '1 Giorno', pace: 'Attivo' }),
     crea('crea-catania-colazione-0800', 'Catania', '08:00', 'Una giornata a Catania con colazione', { duration: '1 Giorno', pace: 'Attivo' }),
 
     // ── Percorso Veloce (9) — ritmo e umore come QuickPath.jsx (buildQuickPrefs) ──
     veloce('veloce-catania-relax-2125', 'Catania', '21:25', 'relax', 'Veloce'),
     veloce('veloce-catania-relax-2145', 'Catania', '21:45', 'relax', 'Veloce'),
+    // TESTI — il Veloce serale dopo le 21:30: il drink e' un «Dopocena», non un «Aperitivo»
+    veloce('veloce-catania-relax-2220', 'Catania', '22:20', 'relax', 'Veloce'),
     veloce('veloce-catania-relax-2330', 'Catania', '23:30', 'relax', 'Veloce'),
     veloce('veloce-firenze-cultura', 'Firenze', '10:30', 'cultura', 'Medio'),
     veloce('veloce-palermo-relax', 'Palermo', '14:30', 'relax', 'Veloce'),

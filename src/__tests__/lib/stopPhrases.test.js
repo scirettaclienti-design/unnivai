@@ -50,11 +50,11 @@ const LOCALI = {
 const FATTI_AVENTINO = [{ testo: "L'Aventino è uno dei sette colli su cui venne fondata Roma, il più a sud.", fonte: 'wikipedia' }];
 
 // Tutte le varianti: la tappa cambia place_id finche' le ha viste tutte.
-const conIdPerVariante = (stop, dati, n) => {
+const conIdPerVariante = (stop, dati, n, extra = {}) => {
     const ids = [];
     const visti = new Set();
     for (let i = 0; i < 400 && visti.size < n; i++) {
-        const d = stopData({ ...dati, stop: { ...stop, place_id: `pid-${i}` } });
+        const d = stopData({ ...dati, ...extra, stop: { ...stop, place_id: `pid-${i}` } });
         const a = apertura(d);
         if (!visti.has(a.replace(stop.title, '#'))) { visti.add(a.replace(stop.title, '#')); ids.push(`pid-${i}`); }
     }
@@ -69,11 +69,11 @@ const frasiDi = (t) => t.split(/(?<=[.!?])\s+/).filter(Boolean);
 describe('P3d-j — le frasi sono esattamente quelle approvate', () => {
     it('elenco e conteggio', () => {
         expect(GANCI).toEqual(['tramonto', 'legame', 'distanza', 'prima', 'ultima', 'orario']);
-        expect(FRASI_GANCIO.tramonto).toBe('Il sole tramonta alle {tramonto}: sei qui {delta} minuti prima.');
+        expect(FRASI_GANCIO.tramonto).toBe('Il sole tramonta alle {tramonto}: sei qui {deltaTesto} prima.');
         expect(FRASI_LUOGO.panorama).toEqual(['Ti fermi a {nome}: qui si guarda, non si corre.', '{nome} è il punto in cui la giornata rallenta.']);
-        expect(FRASI_LOCALE.pranzo[1]).toBe('A {min} minuti a piedi ti siedi da {nome}, {tipo} in fascia {fascia}.');
+        expect(FRASI_LOCALE.pranzo[1]).toBe('A {minuti} a piedi ti siedi da {nome}, {tipo} con {fascia}.');
         expect(Object.values(FRASI_LUOGO).flat()).toHaveLength(15);
-        expect(Object.values(FRASI_LOCALE).flat()).toHaveLength(7);
+        expect(Object.values(FRASI_LOCALE).flat()).toHaveLength(8); // + «Il drink lo prendi da…» (dalle 21:30)
     });
 });
 
@@ -92,7 +92,8 @@ describe('P3d-j — matrice: famiglia × momento × gancio, tutte passano verita
                 locale: c.locale, priceLevel: 2,
             };
             const nVar = c.locale ? FRASI_LOCALE[c.fam].length : FRASI_LUOGO[c.fam].length;
-            const ids = conIdPerVariante(c.stop, base, nVar);
+            // «Si parte da…» solo sulla prima tappa, «Chiudi la giornata…» solo sull'ultima di un giro serale.
+            const ids = conIdPerVariante(c.stop, base, nVar, { primo: c.fam === 'colazione', ultimo: c.fam === 'cena' });
             expect(ids.length, 'tutte le varianti raggiunte').toBe(nVar);
             const interessi = ['panorami', 'chiese', 'piazze', 'arte', 'storia', 'verde', 'aperitivo', 'sera'];
             for (const id of ids) {
@@ -174,7 +175,7 @@ describe('P3d-j — scelte fuori elenco → riserva del codice', () => {
         const pranzo = { stop: { title: 'Trattoria Uno', types: ['restaurant'] }, momento: 'pranzo', minutiDaPrima: 9, locale: true, priceLevel: 2 };
         const idp = conIdPerVariante(pranzo.stop, pranzo, 2).find(x => apertura(stopData({ ...pranzo, stop: { ...pranzo.stop, place_id: x } })).startsWith('A 9 minuti'));
         const dp = stopData({ ...pranzo, stop: { ...pranzo.stop, place_id: idp } });
-        expect(apertura(dp)).toBe('A 9 minuti a piedi ti siedi da Trattoria Uno, trattoria in fascia €€.');
+        expect(apertura(dp)).toBe('A 9 minuti a piedi ti siedi da Trattoria Uno, trattoria con prezzi medi.');
         expect(composeStop(dp, { gancio: 'distanza' }).gancio).not.toBe('distanza');
     });
 
@@ -285,7 +286,7 @@ describe('P3d-j (chiusura) — i ✗ della prova reale', () => {
     it('"Osteria Pizzeria Come Va?" (type Google anche bar) non e\' un bar da colazione', () => {
         const d = stopData({ stop: { title: 'Osteria Pizzeria Come Va?', place_id: 'cv', types: ['restaurant', 'bar', 'food'] }, momento: 'mattina', locale: true, priceLevel: 2 });
         expect(apertura(d)).not.toMatch(/caffè/);
-        const bar = stopData({ stop: { title: 'Bar del Fico', place_id: 'bf', types: ['bar', 'cafe'] }, momento: 'mattina', locale: true });
+        const bar = stopData({ stop: { title: 'Bar del Fico', place_id: 'bf', types: ['bar', 'cafe'] }, momento: 'mattina', locale: true, primo: true });
         expect(apertura(bar)).toBe('Si parte da Bar del Fico: un caffè e si comincia.');
     });
 
@@ -298,7 +299,7 @@ describe('P3d-j (chiusura) — i ✗ della prova reale', () => {
 
     it('"da Da Tonino" → "da Tonino"', () => {
         const d = stopData({ stop: { title: 'Da Tonino - Trattoria Bassetti', place_id: 'dt', types: ['restaurant'] }, momento: 'cena', locale: true, priceLevel: 2 });
-        expect(apertura(d)).toMatch(/^(La cena è da Tonino - Trattoria Bassetti|Chiudi la giornata a tavola da Tonino - Trattoria Bassetti), trattoria in fascia €€\.$/);
+        expect(apertura(d)).toBe('La cena è da Tonino - Trattoria Bassetti, trattoria con prezzi medi.');
     });
 
     it('una passeggiata si attraversa, non ci si ferma "davanti a" lei', () => {

@@ -3,6 +3,7 @@ import { userContextService } from "../services/userContextService";
 import { useEnhancedGeolocation } from "./useEnhancedGeolocation";
 import { useAuth } from "../context/AuthContext";
 import { useCity } from "../context/CityContext";
+import { capitalizeName } from "../lib/italianLabels";
 
 // Gate O.2: niente valori-ponte. La citta' e la temperatura si mostrano
 // quando esistono davvero — mai un default hardcoded ("Roma", 24°C) con
@@ -34,11 +35,12 @@ export function useUserContext() {
     // firstName: profilo auth se disponibile, altrimenti fallback stato "Ospite".
     // 'Ospite' e' una label di stato utente, non un dato mascherato da fatto.
     // NON dipende dalla citta': l'auth risolve subito, il nome arriva subito.
-    const realFirstName = user?.user_metadata?.full_name?.split(' ')[0]
+    // TESTI — il saluto scrive il nome con l'iniziale maiuscola («Ciao, Ivano!», non «ivano»).
+    const realFirstName = capitalizeName(user?.user_metadata?.full_name?.split(' ')[0]
         || user?.user_metadata?.first_name
         || user?.email?.split('@')[0]
         || userContext?.firstName
-        || 'Ospite';
+        || 'Ospite');
 
     return {
         ...(userContext || {}),

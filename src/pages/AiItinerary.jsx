@@ -12,6 +12,8 @@ import { normalizeTour } from "../services/tourShape";
 import { FactSources } from "@/components/FactSources";
 // Gate RAGGIO DIFF 1b — la sosta stimata ("~30 min") si formatta in tourTiming.js.
 import { formatEstimate } from "@/lib/tourTiming";
+// TESTI — etichetta di tipo dal tipo principale, in italiano; meteo in italiano; numeri concordati.
+import { typeLabelOf, weatherLabel, tappeProgrammate } from "@/lib/italianLabels";
 // Gate TAPPE PER MOMENTO — tappe raggruppate per momento (dayMoments.js) con
 // l'orario reale di arrivo (scheduledTime). Lo scarto "+1h31" non si mostra piu'.
 import { groupStopsByDayAndMoment, stopClockLabel, freeTimeRangeLabel } from "@/lib/stopMoments";
@@ -584,7 +586,8 @@ export default function AIItineraryPage() {
                             <p data-destination-note className="text-obsidian-secondary text-xs mb-3">{tourDestination.note}</p>
                         )}
 
-                        {/* Day Navigator */}
+                        {/* Day Navigator — il numero del giorno solo in un tour di piu' giorni */}
+                        {generatedItinerary.length > 1 && (
                         <div className="flex space-x-2 mb-6 overflow-x-auto pb-2 scrollbar-none">
                             {generatedItinerary.map((day) => (
                                 <button
@@ -601,6 +604,7 @@ export default function AIItineraryPage() {
                                 </button>
                             ))}
                         </div>
+                        )}
 
                         {/* Current Day Details */}
                         <AnimatePresence mode="wait">
@@ -619,7 +623,7 @@ export default function AIItineraryPage() {
                                                 <div>
                                                     <h2 className="text-xl font-bold text-obsidian-primary">{day.title}</h2>
                                                     <p className="text-obsidian-secondary text-xs mt-0.5">
-                                                        {day.stops.length} tappe programmate
+                                                        {tappeProgrammate(day.stops.filter(st => !st.tempoLibero).length)}
                                                     </p>
                                                     {/* P7b — riga onesta: "cercati come", mai "e' vegetariano". */}
                                                     {day.dietNote && (
@@ -638,9 +642,11 @@ export default function AIItineraryPage() {
 
                                             {day.weather && (
                                                 <div className="flex items-center space-x-3 bg-obsidian-raised border border-obsidian-border p-3 rounded-xl mt-3">
-                                                    <span className="text-2xl">{day.weather.icon}</span>
+                                                    {day.weather.icon && <span className="text-2xl">{day.weather.icon}</span>}
                                                     <div>
-                                                        <p className="font-medium text-obsidian-primary text-xs">{day.weather.condition}</p>
+                                                        {weatherLabel(day.weather.condition) && (
+                                                            <p data-weather-condition className="font-medium text-obsidian-primary text-xs capitalize">{weatherLabel(day.weather.condition)}</p>
+                                                        )}
                                                         <p className="text-[11px] text-obsidian-secondary">{day.weather.temperature}°C</p>
                                                     </div>
                                                 </div>
@@ -723,10 +729,12 @@ export default function AIItineraryPage() {
 
                                                                 <div className="flex items-center justify-between">
                                                                     <div className="flex items-center gap-2">
-                                                                        {/* Categoria */}
-                                                                        <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-obsidian-raised border border-obsidian-border text-obsidian-secondary">
-                                                                            {stop.type}
-                                                                        </span>
+                                                                        {/* Etichetta di tipo: dal tipo principale, in italiano; senza traduzione niente */}
+                                                                        {typeLabelOf(stop) && (
+                                                                            <span data-type-label className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-obsidian-raised border border-obsidian-border text-obsidian-secondary">
+                                                                                {typeLabelOf(stop)}
+                                                                            </span>
+                                                                        )}
                                                                         {/* Sosta stimata */}
                                                                         {stayLabel && (
                                                                             <span className="text-xs text-obsidian-secondary flex items-center gap-1">

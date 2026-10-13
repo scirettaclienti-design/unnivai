@@ -137,12 +137,12 @@ describe('C5e (2) — la funzione riusabile, la voce del giro e le frasi', () =>
         expect(realStops([{ title: 'A' }, tl])).toEqual([{ title: 'A' }]);
     });
 
-    it('le due frasi proposte: composte dal codice, accordate, senza parole vietate ne\' problemi di voce', () => {
-        expect(FRASI_TEMPO_LIBERO).toHaveLength(2);
-        expect(composeFreeTime({ momento: 'aperitivo' })).toBe("Tempo libero: per l'aperitivo non c'è niente che valga il cammino. Il resto lo scegli tu.");
-        expect(composeFreeTime({ momento: 'mattina', variante: 1 })).toBe('La mattina è tua: nessuna tappa da raggiungere, giri la zona come vuoi.');
-        expect(composeFreeTime({ momento: 'pomeriggio', variante: 1 })).toBe('Il pomeriggio è tuo: nessuna tappa da raggiungere, giri la zona come vuoi.');
-        for (const v of [0, 1]) for (const m of ['mattina', 'pomeriggio', 'aperitivo', 'dopocena']) {
+    it("TESTI — la frase del tempo libero è una sola, la stessa per ogni momento, senza parole vietate né problemi di voce", () => {
+        expect(FRASI_TEMPO_LIBERO).toHaveLength(1);
+        for (const m of ['mattina', 'pomeriggio', 'aperitivo', 'dopocena', undefined]) {
+            expect(composeFreeTime({ momento: m })).toBe('Niente in agenda: cammina dove ti porta la strada.');
+        }
+        for (const v of [0]) for (const m of ['mattina', 'pomeriggio', 'aperitivo', 'dopocena']) {
             const t = composeFreeTime({ momento: m, variante: v });
             expect(filterBannedWords(t).removed).toEqual([]);
             for (const f of t.split(/(?<=[.!?])\s+/)) expect(voiceIssues(f), f).toEqual([]);

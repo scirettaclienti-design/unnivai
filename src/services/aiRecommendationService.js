@@ -185,7 +185,7 @@ export const BLACKLIST_TYPES = new Set([
 // pomeriggio e aperitivo nelle richieste a tema cibo, e zone come tappe.
 // C8a — prefix bumped da 'unnivai_insiderf16_composizione_': i giri cached prima hanno l'aperitivo da 20 minuti,
 // nessuna passeggiata fra drink e cena, e la sera tarda del Veloce senza scheletro.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf21_tetto_';
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf21_testi_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -358,7 +358,8 @@ import { sunTimes } from '@/lib/sunTimes';
 import { filterBannedWords, bannedWordsPromptLines, unsupportedJudgments } from '@/lib/narrationLight';
 // P3d-e — fatti aperti sulle tappe finali, controllo anti-invenzione, frase sicura.
 // P3d-j — il modello sceglie, il codice scrive: le frasi approvate e la rete.
-import { stopData, guardComposed, apertura, ganciValidi, interessiPerTappa, userInterests, composeFreeTime } from '@/lib/stopPhrases';
+import { stopData, guardComposed, apertura, ganciValidi, interessiPerTappa, userInterests, composeFreeTime, registraFrasi } from '@/lib/stopPhrases';
+import { senzaEscape, weatherLabel, weatherIconOf } from '@/lib/italianLabels';
 import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock, MOMENTS, MOMENT_BY_KEY } from '@/lib/dayMoments';
 import { FREE_TIME_MAX_MINUTES, freeTimeStop } from '@/lib/freeTime';
@@ -1720,7 +1721,7 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates, { guard = t
         }
         return {
             time: s.time || null,
-            title: c.name,
+            title: senzaEscape(c.name),
             description: s.description || null,
             insiderTip: s.insiderTip || null,
             bestTime: s.bestTime || null,
@@ -1991,13 +1992,28 @@ const localeInfoFor = (stops, byIdCandidate, ctx) => {
 // Le scelte restano sulla tappa (_comp): a ogni lettura dalla cache la frase si
 // ricompone con gli orari di adesso.
 
-/** Il meteo vero, o niente: mai un "Soleggiato, 22°" di riserva. */
+/**
+ * Il meteo vero, o niente: mai un "Soleggiato, 22°" di riserva. TESTI — la condizione si dice in italiano
+ * ("sereno", "nuvoloso", "pioggia"); una condizione senza traduzione non si scrive, resta la temperatura.
+ */
 const realWeather = (weather) => {
     const condition = typeof weather?.condition === 'string' ? weather.condition.trim() : '';
     const temperature = Number(weather?.temperature);
     if (!condition || weather?.temperature == null || !Number.isFinite(temperature)) return null;
-    const icon = condition === 'sunny' ? '☀️' : condition === 'rainy' ? '🌧️' : '⛅';
-    return { condition, temperature, icon };
+    return { condition: weatherLabel(condition), temperature, icon: weatherIconOf(condition) };
+};
+
+/**
+ * TESTI (decisione di Ivano) — il meteo di adesso vale solo per un tour di oggi: su un giorno futuro
+ * non si scrive il meteo (non e' quello di quel giorno).
+ * @param {object} weather il meteo di adesso
+ * @param {{ date?: string }|undefined} window la finestra del giorno del tour (data ISO di Roma)
+ * @param {Date} requestTime l'istante della richiesta
+ */
+const weatherForDay = (weather, window, requestTime) => {
+    const p = romeParts(requestTime);
+    const oggi = `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`;
+    return window?.date === oggi ? realWeather(weather) : null;
 };
 
 /**
@@ -2069,6 +2085,8 @@ const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map
 const composeDays = (days, { starts, tourWindow, cityCenter, facts, scelte = new Map(), interessi = [], voce = {} }) => {
     const ctxs = composeContexts(days, { starts, tourWindow, cityCenter, facts });
     const report = [];
+    // TESTI — nello stesso tour nessuna frase uguale due volte (nome e numeri mascherati, come il controllo c7).
+    const usate = new Set();
     const out = (days || []).map((day, di) => ({
         ...day,
         stops: (day.stops || []).map((s, si) => {
@@ -2079,8 +2097,9 @@ const composeDays = (days, { starts, tourWindow, cityCenter, facts, scelte = new
             const scelta = scelte.get(s.place_id) ?? s._comp?.scelta ?? {};
             const r = guardComposed(c.d, scelta, {
                 interessi: ints, arrival: c.arrival, sunrise: ctxs[di].sun.sunrise, sunset: ctxs[di].sun.sunset,
-                fatti: c.fatti, fattiSu: c.fattiSu, voce,
+                fatti: c.fatti, fattiSu: c.fattiSu, voce, evita: usate,
             });
+            registraFrasi(usate, r.text, c.d.nome);
             report.push({
                 place_id: s.place_id, title: s.title, scelta, usaFatto: r.composta.usaFatto, gancio: r.composta.gancio,
                 interesse: r.composta.interesse, riserva: r.composta.riserva, rete: r.rete.map(x => x.frase), description: r.text,
@@ -2104,9 +2123,11 @@ const composeDays = (days, { starts, tourWindow, cityCenter, facts, scelte = new
 // per tutto il giorno (o per il tour "Per Te").
 const TITOLO_VIETATO = /\b(sol[ei]\w*|soleggiat\w*|assolat\w*|sereno|seren[ia]|pioggi\w*|piovos\w*|nuvol\w*|nebbi\w*|vent\w*|calda?|caldo|fredd\w*|mattin\w*|pomerigg\w*|ser[ae]\w*|nott\w*|notturn\w*|tramont\w*|alba|albe|aurora|crepuscol\w*)\b/i;
 /** Il titolo del giorno, se il modello ne ha dato uno pulito; senno' quello del codice. */
-const dayTitle = (raw, fallback) => {
-    const t = cleanText(raw);
+const dayTitle = (raw, fallback, { unGiorno = false } = {}) => {
+    const t = cleanText(senzaEscape(typeof raw === 'string' ? raw : ''));
     if (!t || t.length > 80 || TITOLO_VIETATO.test(t)) return fallback;
+    // Un tour di un giorno non ha il numero del giorno ("Giorno 1 a Troina" per un giro di 1h22).
+    if (unGiorno && /\bgiorno\s*\d/i.test(t)) return fallback;
     // Controllo schermate: "Elegante piazza di Roma". Un giudizio nel titolo
     // non e' sostenuto da nessun fatto, come nelle descrizioni.
     if (unsupportedJudgments(t, '', []).length > 0) return fallback;
@@ -2191,11 +2212,12 @@ const chooseStopHooks = async ({ city, days, ctxs, interessi, quotaTicket }) => 
 };
 
 /** Titolo, mappa e trasporto del giorno dalle scelte del modello. */
+const giornoTitle = (di, city, nGiorni) => (nGiorni > 1 ? `Giorno ${di + 1} a ${city}` : `Il tuo giro a ${city}`);
 const applyDayMeta = (days, meta, city) => days.map((day, di) => {
     const m = meta[di] || {};
     return {
         ...day,
-        title: dayTitle(m.title, day.title || `Giorno ${di + 1} a ${city}`),
+        title: dayTitle(m.title, day.title || giornoTitle(di, city, days.length), { unGiorno: days.length <= 1 }),
         suggestedTransit: VALID_TRANSIT.has(m.suggestedTransit) ? m.suggestedTransit : (day.suggestedTransit || 'walking'),
         mapMood: VALID_MOODS.has(m.mapMood) ? m.mapMood : (day.mapMood || 'default'),
     };
@@ -2688,9 +2710,9 @@ export const aiRecommendationService = {
 
                     const baseMeta = (di) => ({
                         day: di + 1,
-                        title: `Giorno ${di + 1} a ${city}`,
-                        // P3d-j — il meteo vero, o nessun meteo (mai "Soleggiato, 22°").
-                        weather: realWeather(weather),
+                        title: giornoTitle(di, city, tourWindow.windows.length),
+                        // P3d-j — il meteo vero, o nessun meteo (mai "Soleggiato, 22°"); TESTI — solo per un tour di oggi.
+                        weather: weatherForDay(weather, tourWindow.windows[di], requestTime),
                         suggestedTransit: 'walking',
                         mapMood: 'default',
                     });
@@ -3474,6 +3496,7 @@ export const aiRecommendationService = {
                 orariPerTe.push({ tour: themeType, chiuse: aperti.chiuse, aggiunte: aperti.aggiunte, ignote: aperti.ignote });
                 for (const x of aperti.chiuse) scarta(themeType, x.nome, `chiuso quando ci si arriva (${x.perche || 'orari'})`);
                 const timedStops = aperti.stops;
+                const usate = new Set(); // TESTI — nessuna frase uguale due volte nello stesso tour
                 const ordered = timedStops.map((st, i) => {
                     const { _scelta, ...clean } = st;
                     const entry = facts.get(st.place_id);
@@ -3486,8 +3509,9 @@ export const aiRecommendationService = {
                         fatti, primo: i === 0, ultimo: i === timedStops.length - 1, giornata: false,
                     });
                     const r = guardComposed(d, _scelta || {}, {
-                        interessi: interessiPerTe, arrival: now, sunrise: sunNow.sunrise, sunset: sunNow.sunset, fatti, fattiSu,
+                        interessi: interessiPerTe, arrival: now, sunrise: sunNow.sunrise, sunset: sunNow.sunset, fatti, fattiSu, evita: usate,
                     });
+                    registraFrasi(usate, r.text, d.nome);
                     composizione.push({
                         tour: themeType, place_id: st.place_id, title: st.title, scelta: _scelta || {}, usaFatto: r.composta.usaFatto,
                         gancio: r.composta.gancio, interesse: r.composta.interesse, riserva: r.composta.riserva,

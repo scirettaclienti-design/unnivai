@@ -40,16 +40,34 @@ export const ESEMPI = {
                 st('Trattoria Giglio Rosso', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: null, at: at('13:26'), stay: 75, pasto: true }),
                 st('Gelateria Pellegrino', { types: ['ice_cream_shop', 'food'], primaryType: 'ice_cream_shop', moment: null, at: at('14:55'), stay: 20 }),
             ], { modo: 'perte', tipo: 'tour' }) },
-        buono2: { nome: 'C8c — trattoria alle 13:00, un gelato alle 14:25, un caffè alle 14:50', caso: caso([
+        buono7: { nome: 'C8c — trattoria alle 13:00, un gelato alle 14:25, un caffè alle 14:50', caso: caso([
             st('Trattoria Giglio Rosso', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: null, at: at('13:00'), stay: 75, pasto: true }),
             st('Gelateria Pellegrino', { types: ['ice_cream_shop', 'food'], primaryType: 'ice_cream_shop', moment: null, at: at('14:25'), stay: 20 }),
             st('Caffetteria Roma', { types: ['cafe', 'food'], primaryType: 'cafe', moment: null, at: at('14:50'), stay: 20 }),
         ], { modo: 'perte', tipo: 'tour' }) },
-        buono4: { nome: 'C8d — «con colazione» alle 8:00: la pasticceria e\' la colazione (prima tappa), poi una visita', caso: caso([
+        buono8: { nome: 'C8d — «con colazione» alle 8:00: la pasticceria e\' la colazione (prima tappa), poi una visita', caso: caso([
             st('Pasticceria Giuffrida', { types: ['bakery', 'food'], primaryType: 'bakery', moment: 'mattina', at: at('08:00'), stay: 20 }),
             st('Porta Uzeda', { types: ['tourist_attraction'], moment: 'mattina', at: at('08:24'), stay: 30 }),
         ], { richiesta: 'Una giornata a Catania con colazione' }) },
-        buono3: { nome: 'C8c — merenda delle 16:00: una pasticceria per prima (il pranzo e\' passato)', caso: caso([
+        // TESTI — c1 non conta come dolce un bar scelto per l'aperitivo o il drink (Bar Sgroi, C8e); un dolce vero resta un dolce
+        cattivo5: { nome: 'TESTI — un gelato vero PRIMA del pasto: gelateria alle 11:00 (prima tappa), trattoria alle 12:30', origine: 'costruito (stessa forma di cattivo2, in Crea)',
+            caso: caso([
+                st('Gelateria Pellegrino', { types: ['ice_cream_shop', 'food'], primaryType: 'ice_cream_shop', moment: 'mattina', at: at('11:00'), stay: 20 }),
+                st('Trattoria Sorano', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: 'pranzo', at: at('12:30'), stay: 75, pasto: true }),
+            ], { richiesta: 'Una giornata a Catania', ora: '11:00' }) },
+        cattivo6: { nome: 'TESTI — un secondo dolce VERO all\'aperitivo: pasticceria alla colazione, poi una gelateria (primaryType ice_cream_shop) alle 19:00', origine: 'costruito',
+            caso: caso([
+                st('Pasticceria Giuffrida', { types: ['bakery', 'food'], primaryType: 'bakery', moment: 'mattina', at: at('08:00'), stay: 20 }),
+                st('Trattoria Sorano', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: 'pranzo', at: at('12:30'), stay: 75, pasto: true }),
+                st('Gelateria Pellegrino', { types: ['ice_cream_shop', 'food'], primaryType: 'ice_cream_shop', moment: 'aperitivo', at: at('19:00'), stay: 45 }),
+            ], { richiesta: 'Una giornata a Catania con colazione', ora: '08:00' }) },
+        buono6: { nome: 'TESTI — Bar Sgroi (primaryType bar, cake_shop tra i types) all\'aperitivo, dopo la colazione in pasticceria: non è un secondo dolce', origine: 'C8e (crea-catania-colazione-0800)',
+            caso: caso([
+                st('Pasticceria Giuffrida', { types: ['bakery', 'food'], primaryType: 'bakery', moment: 'mattina', at: at('08:00'), stay: 20 }),
+                st('Trattoria Sorano', { types: ['restaurant', 'food'], primaryType: 'italian_restaurant', moment: 'pranzo', at: at('12:30'), stay: 75, pasto: true }),
+                st('Bar Sgroi', { types: ['bar', 'cake_shop', 'bakery', 'food_store', 'food', 'establishment'], primaryType: 'bar', moment: 'aperitivo', at: at('19:00'), stay: 45 }),
+            ], { richiesta: 'Una giornata a Catania con colazione', ora: '08:00' }) },
+        buono9: { nome: 'C8c — merenda delle 16:00: una pasticceria per prima (il pranzo e\' passato)', caso: caso([
             st('Pasticceria Savia', { types: ['bakery', 'food'], primaryType: 'bakery', moment: null, at: at('16:00'), stay: 20 }),
             st('Caffetteria Roma', { types: ['cafe', 'food'], primaryType: 'cafe', moment: null, at: at('16:30'), stay: 20 }),
         ], { modo: 'perte', tipo: 'tour' }) },
@@ -178,10 +196,25 @@ export const ESEMPI = {
     },
     c8: {
         cattivo: { nome: '"sunny, 20°C" alle 21:23 su un tour di domani', origine: 'telefono 12/10',
-            caso: caso([st('Villa Bellini')], { tourDate: '2026-10-15', schermo: { giorni: [{ titolo: 'Giorno 1 a Catania', meteo: { condition: 'sunny', temperature: 20 } }], note: [] } }) },
+            caso: caso([st('Villa Bellini')], { tourDate: '2026-10-15', schermo: { giorni: [{ titolo: 'Il tuo giro a Catania', meteo: { condition: 'sunny', temperature: 20 } }], note: [] } }) },
         buono: { nome: 'meteo in italiano sul tour di oggi; nessun meteo su un tour di domani', caso: caso([st('Villa Bellini')],
-            { schermo: { giorni: [{ titolo: 'Giorno 1 a Catania', meteo: { condition: 'soleggiato', temperature: 20 } }], note: [] } }) },
-        buono2: { nome: 'tour di domani senza meteo', caso: caso([st('Villa Bellini')], { tourDate: '2026-10-15', schermo: { giorni: [{ titolo: 'Giorno 1 a Catania', meteo: null }], note: [] } }) },
+            { schermo: { giorni: [{ titolo: 'Il tuo giro a Catania', meteo: { condition: 'sereno', temperature: 20 } }], note: [] } }) },
+        buono2: { nome: 'tour di domani senza meteo', caso: caso([st('Villa Bellini')], { tourDate: '2026-10-15', schermo: { giorni: [{ titolo: 'Il tuo giro a Catania', meteo: null }], note: [] } }) },
+        // TESTI — «Aperitivo» dopo le 21:30
+        cattivo2: { nome: 'TESTI — la sezione «Aperitivo» alle 21:45 (Veloce Catania 21:25)', origine: 'giro sera del 14/10 (veloce-catania-relax-2125): il drink delle 21:45 sotto «Aperitivo»',
+            caso: caso([st('Retrò - Cocktail Bar', { types: ['cocktail_bar'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('21:45'), stay: 45 })],
+                { modo: 'veloce', ora: '21:25', schermo: { giorni: [{ titolo: 'Il tuo giro a Catania', meteo: null }], sezioni: [{ etichetta: 'Aperitivo', ora: '21:45' }], note: [] } }) },
+        buono3: { nome: 'TESTI — «Aperitivo» alle 21:25 (prima delle 21:30) e «Dopocena» alle 21:45', caso: caso([st('Retrò - Cocktail Bar', { types: ['cocktail_bar'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('21:25'), stay: 45 })],
+            { modo: 'veloce', ora: '21:25', schermo: { giorni: [{ titolo: 'Il tuo giro a Catania', meteo: null }], sezioni: [{ etichetta: 'Aperitivo', ora: '21:25' }, { etichetta: 'Dopocena', ora: '21:45' }], note: [] } }) },
+        // TESTI — «fascia €»
+        cattivo3: { nome: 'TESTI — «trattoria in fascia €€» a schermo', origine: 'tutti i giri del banco prima di TESTI (221 frasi nei grezzi precedenti)',
+            caso: caso([st('Trattoria Sorano', { types: ['restaurant'], primaryType: 'italian_restaurant', moment: 'pranzo', at: at('12:30'), stay: 75, pasto: true, description: 'Pranzi da Trattoria Sorano, trattoria in fascia €€.' })]) },
+        buono4: { nome: 'TESTI — «trattoria con prezzi medi»', caso: caso([st('Trattoria Sorano', { types: ['restaurant'], primaryType: 'italian_restaurant', moment: 'pranzo', at: at('12:30'), stay: 75, pasto: true, description: 'Pranzi da Trattoria Sorano, trattoria con prezzi medi.' })]) },
+        // TESTI — il numero del giorno in un tour di un giorno
+        cattivo4: { nome: 'TESTI — «Giorno 1 a Troina» per un giro di 1h22', origine: 'telefono di Ivano (Troina)',
+            caso: caso([st('Villa Bellini')], { schermo: { giorni: [{ titolo: 'Giorno 1 a Troina', meteo: null }], note: [] } }) },
+        buono5: { nome: 'TESTI — due giorni: «Giorno 1 a Roma» e «Giorno 2 a Roma» restano', caso: caso([st('Villa Bellini')],
+            { schermo: { giorni: [{ titolo: 'Giorno 1 a Roma', meteo: null }, { titolo: 'Giorno 2 a Roma', meteo: null }], note: [] } }) },
     },
     // C7 — c12. L'esempio cattivo e' il caso reale: Veloce Catania del 13/10 con la tappa "Centro Storico Catania".
     c12: {

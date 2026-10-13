@@ -192,14 +192,20 @@ describe('Gate NARRATORE-DOPO — le scelte sulle tappe finali, il testo dal cod
         const sys = stato.narratorBodies[0].messages[0].content;
         expect(sys).not.toMatch(/"description"|"insiderTip"|"bestTime"|"transition"/);
         // La frase e' del codice: con il gancio scelto ("distanza") e i minuti veri.
+        // TESTI — nello stesso tour nessuna frase uguale due volte: la distanza si dice sulla prima tappa che ne ha una,
+        // le altre scelgono un altro gancio vero (o nessuno).
+        const conMinuti = stops.slice(1).filter(s => Number.isFinite(s.travelMinutesFromPrev) && s.travelMinutesFromPrev > 0);
         for (const s of stops.slice(1)) {
             expect(s.description).toContain(s.title.replace(/^Da /, ''));
-            if (Number.isFinite(s.travelMinutesFromPrev) && s.travelMinutesFromPrev > 0) {
-                expect(s.description).toMatch(new RegExp(`${s.travelMinutesFromPrev} minuti a piedi`));
-            }
             expect(s.insiderTip).toBeNull();
             expect(s.transition).toBeNull();
         }
+        if (conMinuti.length > 0) {
+            const n = conMinuti[0].travelMinutesFromPrev;
+            expect(conMinuti[0].description).toMatch(n === 1 ? /È a un minuto a piedi/ : new RegExp(`${n} minuti a piedi`));
+        }
+        const tutte = stops.flatMap(s => s.description.split(/(?<=[.!?])\s+/).map(f => f.replace(s.title.replace(/^Da /, ''), '<nome>').replace(/\d+/g, '<n>')));
+        expect(new Set(tutte).size).toBe(tutte.length);
     });
 
     it('al massimo 3 chiamate al proxy per generazione, stesso biglietto, nessuna riscrittura', async () => {

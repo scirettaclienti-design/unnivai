@@ -2706,6 +2706,11 @@ export const aiRecommendationService = {
                                 toStop: (c) => canonicalizeStopsFromCandidates([{ place_id: c.place_id || c.googlePlaceId }], candidates, { guard: false })[0] || null,
                             });
                             orariInfo = { chiusi: aperti.chiuse, aggiunte: aperti.aggiunte, ignoti: aperti.ignote, giri: aperti.passi, vietati: [] };
+                            // Un filtro non lascia mai un buco: se le chiusure hanno accorciato il giro e
+                            // non c'era altro di aperto, la riga di tempo libero (regola O) lo dichiara.
+                            if (aperti.stops.length < ordered.length) {
+                                orariInfo.riga = { key: null, label: null, dayIndex: 0, motivo: "gli altri posti sono chiusi a quest'ora", piuVicino: null, chiuso: true, pasto: false };
+                            }
                             if (aperti.chiuse.length > 0) {
                                 console.info(`[ORARI] ${city}: ${aperti.chiuse.length} tappe chiuse quando ci si arriva, tolte (${aperti.chiuse.map(x => x.nome).join(', ')}), ${aperti.aggiunte.length} sostituite`);
                             }
@@ -2781,7 +2786,7 @@ export const aiRecommendationService = {
                         });
                         // C5e (O) — il tempo libero entra nel giorno dopo il racconto,
                         // al suo posto fra i momenti, con il testo del codice.
-                        const narratedDays = insertFreeTime(composed.days, momentReport?.tempoLibero);
+                        const narratedDays = insertFreeTime(composed.days, [...(momentReport?.tempoLibero || []), ...(orariInfo?.riga ? [orariInfo.riga] : [])]);
                         const allStops = narratedDays.flatMap(d => d.stops);
                         const narrationReport = {
                             raccontate: allStops.length,

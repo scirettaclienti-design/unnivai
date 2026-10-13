@@ -70,6 +70,20 @@ describe('flusso senza scheletro (sera tarda, Veloce)', () => {
         const r = await genera(risultati, '23:40', 'quick');
         expect(nomi(r).sort()).toEqual(['notte1', 'notte2']);
     });
+    it('2 tappe aperte su 4: il giro e\' piu\' corto e lo dichiara con la riga di tempo libero (c4)', async () => {
+        const risultati = [place('chiuso1', 0, tutti('0900', '1900')), place('notte1', 1, SEMPRE), place('chiuso2', 2, tutti('0900', '2000')), place('notte2', 3, SEMPRE), place('chiuso3', 4, tutti('0900', '1800'))];
+        const r = await genera(risultati, '23:40', 'quick');
+        const righe = r.days[0].stops.filter(s => s.tempoLibero);
+        expect(nomi(r).sort()).toEqual(['notte1', 'notte2']);
+        expect(righe).toHaveLength(1);
+        expect(righe[0].description).toMatch(/Tempo libero/);
+        expect(r.days[0].stops.at(-1).tempoLibero).toBe(true);        // in coda al giro
+        expect(r._orari.riga.chiuso).toBe(true);
+    });
+    it('nessuna chiusura: nessuna riga in piu\'', async () => {
+        const r = await genera([place('n1', 0, SEMPRE), place('n2', 1, SEMPRE), place('n3', 2, SEMPRE)], '23:40', 'quick');
+        expect(r.days[0].stops.filter(s => s.tempoLibero)).toHaveLength(0);
+    });
     it('meno di 2 tappe aperte → messaggio dichiarato', async () => {
         const r = await genera([place('chiuso1', 0, tutti('0900', '1900')), place('chiuso2', 1, tutti('0900', '2000')), place('notte1', 2, SEMPRE)], '23:40', 'quick');
         expect(r._source).toBe('closed-now');

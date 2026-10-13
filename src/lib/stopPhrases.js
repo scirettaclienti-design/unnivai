@@ -23,6 +23,7 @@
  */
 
 import { candidateFamily, isMealPlace } from '../services/momentSelection';
+import { placeKind } from './placeKind';
 import {
     filterBannedWords, filterTimeIncoherent, filterInventedObjects, filterVoice, localeTypeOfName,
 } from './narrationLight';
@@ -135,7 +136,6 @@ export const oraParlata = (hhmm) => {
 };
 const toMin = (hhmm) => { const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
 
-const SHOP_TYPES = ['store', 'clothing_store', 'shoe_store', 'jewelry_store', 'book_store', 'shopping_mall', 'department_store'];
 const MONUMENT_TYPES = ['tourist_attraction', 'historical_landmark', 'monument', 'castle', 'city_hall'];
 
 /** La famiglia della frase: quella del tracciato C1, poi porta/arco, monumento, altro. */
@@ -190,7 +190,10 @@ export function stopData({ stop, momento = null, orario = null, tramonto = null,
     const nome = nomeDi(stop) || 'questa tappa';
     const types = Array.isArray(stop?.types) ? stop.types : [];
     const n = norm(nome);
-    const tipoNome = localeTypeOfName(nome);
+    // C6a — il nome mostrato e' pulito dalle code commerciali ("… | Trattoria
+    // Romana"): il tipo detto dal nome si legge anche dall'originale.
+    const tipoNome = localeTypeOfName(nome) || localeTypeOfName(stop?.nameOriginal || '');
+    const { kind } = placeKind(stop);
     const arrivo = toMin(orario);
     const sole = toMin(tramonto);
     const delta = arrivo !== null && sole !== null ? sole - arrivo : null;
@@ -203,14 +206,17 @@ export function stopData({ stop, momento = null, orario = null, tramonto = null,
         tramonto: oraParlata(tramonto),
         delta: delta !== null && delta >= 0 && delta <= TRAMONTO_MAX_MINUTI ? delta : null,
         locale: !!locale,
-        pasto: !!locale && isMealPlace(stop) && !types.includes('cafe') && tipoNome !== 'bar',
+        // C6a — pasto e bar seguono il tipo del posto (tipo principale di Google):
+        // un bar marcato anche `restaurant` e' un bar, un ristorante con un
+        // `cafe` tra i types e' un ristorante.
+        pasto: !!locale && isMealPlace(stop) && tipoNome !== 'bar',
         bar: !!locale && !TIPI_DA_TAVOLA.includes(tipoNome)
-            && (types.includes('bar') || types.includes('cafe') || LOCALE_TIPI_BAR.test(n) || ['bar', 'enoteca'].includes(tipoNome)),
+            && (kind === 'bar' || kind === 'caffe' || LOCALE_TIPI_BAR.test(n) || ['bar', 'enoteca'].includes(tipoNome)),
         gelateria: tipoNome === 'gelateria' || types.includes('ice_cream_shop'),
         tipo: tipoNome,
         fascia: fasciaDi(priceLevel),
         famiglia: locale ? null : famigliaFrase(stop),
-        shopping: types.some(t => SHOP_TYPES.includes(t)),
+        shopping: kind === 'negozio',
         fatto: locale ? null : fattoDi(fatti),
         primo: !!primo,
         ultimo: !!ultimo,

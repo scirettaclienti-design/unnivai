@@ -66,7 +66,8 @@ describe('BANCO-POOL — cosa c\'e\' nel pool', () => {
         const tutti = Object.values(report.pool).flatMap(e => e.candidati).filter(c => c.motivo !== 'messo dalla rifinitura');
         expect(tutti.length).toBeGreaterThan(10);
         for (const c of tutti) {
-            expect(Object.keys(c).sort()).toEqual(['deviazione', 'famiglia', 'merito', 'minuti', 'motivo', 'nelGiro', 'nome', 'place_id', 'posto', 'scelto'].sort());
+            // C6a — in piu': i types (e, se ci sono, tipo principale e nome originale), che decidono famiglia e sosta.
+            expect(Object.keys(c).sort()).toEqual(['deviazione', 'famiglia', 'merito', 'minuti', 'motivo', 'nelGiro', 'nome', 'place_id', 'posto', 'scelto', 'types'].sort());
             expect(typeof c.merito).toBe('number');
             if (c.scelto) expect(c.motivo).toBe(null);
             else expect(typeof c.motivo).toBe('string');

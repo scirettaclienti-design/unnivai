@@ -175,7 +175,9 @@ export const BLACKLIST_TYPES = new Set([
 // P3d-j — le voci di prima avevano testo libero e niente scelte (_comp): via.
 // ORARI — prefix bumped da 'unnivai_insiderf11_composto_': i giri e i tour Per Te cached prima
 // del passaggio alla ricerca nuova non hanno la regola degli orari (posti chiusi compresi).
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf12_orari_';
+// C6a — prefix bumped da 'unnivai_insiderf12_orari_': famiglie, durate e nomi puliti
+// dal tipo principale; i giri cached prima hanno soste e nomi di prima.
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf13_tipi_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {
@@ -1720,6 +1722,8 @@ export const canonicalizeStopsFromCandidates = (aiStops, candidates, { guard = t
             ...(Array.isArray(c.openingPeriods) ? { openingPeriods: c.openingPeriods } : {}),
             ...(Number.isFinite(c.utcOffsetMinutes) ? { utcOffsetMinutes: c.utcOffsetMinutes } : {}),
             ...(c.primaryType ? { primaryType: c.primaryType } : {}),
+            // C6a — il nome mostrato e' gia' pulito; l'originale resta per il tracciato.
+            ...(c.nameOriginal ? { nameOriginal: c.nameOriginal } : {}),
         };
     }).filter(Boolean);
 
@@ -2691,7 +2695,7 @@ export const aiRecommendationService = {
                                     // l'ha scelta (modello / riparazione / ripiego).
                                     // ORARI — e se l'orario del posto e' noto (aperto per
                                     // tutta la sosta) o sconosciuto.
-                                    _tracciato: { ...dayStops[i].trace, orario: orariTracciato.get(stop.place_id) || 'sconosciuto' },
+                                    _tracciato: { ...dayStops[i].trace, orario: orariTracciato.get(stop.place_id) || 'sconosciuto', ...(stop.nameOriginal ? { nomeOriginale: stop.nameOriginal } : {}) },
                                     _orario: orariTracciato.get(stop.place_id) || 'sconosciuto',
                                 }));
                                 // windowIndex: il giorno resta legato alla SUA

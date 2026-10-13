@@ -1,0 +1,25 @@
+{
+ "_nota": "C6a — nomi con una barra | restituiti dalle ricerche del giro ORARI (cache places_cache del proxy, sola lettura, 13/10/2026), con la citta' della ricerca.",
+ "nomi": [
+  ["Er Marchese all’Anima | Trattoria Romana", "Roma"],
+  ["FAF | Female Arts in Florence", "Firenze"],
+  ["Deliziosa Ristorante | Cucina Tipica Siciliana & Pizzoleria", "Catania"],
+  ["Hotel Bastiò Suites | Suite Lusso Catania", "Catania"],
+  ["Il Sogno di ogni donna | Centro estetico Catania", "Catania"],
+  ["Catania Social Club | Ristorante Pizzeria Cocktail Bar", "Catania"],
+  ["Jovi Center| trattam.corpo| tratt. viso | massaggi corpo | tratt. viso antiage | tratt. dimagrimento | estetica | Palermo", "Palermo"],
+  ["Osteria Fiaschetto | Ristorante a Milano", "Milano"],
+  ["Gallerie d'Italia | Napoli", "Napoli"],
+  ["Razmataz | Wine Bar Catania", "Catania"],
+  ["Fondazione Biscozzi | Rimbaud ETS - Museo d'arte contemporanea", "Lecce"],
+  ["Ginny | Cocktail Bar | Wine Bar | Ristorante", "Roma"],
+  ["Don Peppinu | Ragusa CC Ibleo", "Ragusa"],
+  ["LEONARDO INTERACTIVE MUSEUM® - OFFICIAL MUSEUM | 6 LANGUAGES", "Firenze"],
+  ["MUST | Museo Storico della Città di Lecce", "Lecce"],
+  ["The Dome | Rooftop & Restaurant", "Milano"],
+  ["Sotto Palazzo | Cocktail e Sapori", "Catania"],
+  ["Deliziosa Café & Cocktail Bar | Apericena e Colazione", "Catania"],
+  ["Pizzeria Donna Sofia Ai Tribunali | Napoli", "Napoli"],
+  ["Michela Fareri Hair Spa | Parrucchiera Catania", "Catania"]
+ ]
+}

@@ -41,7 +41,8 @@
  */
 
 import { computeCandidateScore } from './candidateScoring';
-import { resolveStayMinutes, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
+import { stayOf, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
+import { placeKind, KINDS, COMMERCIAL_KINDS, LOCALE_CATEGORIES } from '../lib/placeKind';
 import { FOOD_ONLY_MOMENT_KEYS } from '../lib/daySkeleton';
 import { freeTimeDecision } from '../lib/freeTime';
 import { brandKey, legKm, pathKm, minimalPathKm, countCrossings, crossingPairs, repeatedBrands, stopDetours } from '../lib/routeShape';
@@ -53,10 +54,16 @@ import { openStatus, OPEN, CLOSED, UNKNOWN, NIGHT_FROM_MINUTES, romeMinutes } fr
 // passeggiata, cibo, natura, shopping, bar, punti panoramici, vita notturna).
 // Un luogo puo' stare in piu' categorie: una chiesa e' cultura e monumento.
 //
+// C6a — COSA DECIDE: il tipo principale di Google (src/lib/placeKind.js). Un
+// ristorante, un bar, un caffe', un negozio hanno solo le
+// categorie del proprio tipo: un cocktail bar con `art_gallery` tra i types e'
+// un bar (non un museo), un bar marcato anche `restaurant` e' un bar; un museo
+// con caffetteria resta museo (nessuna categoria da locale). Senza tipo principale (cache vecchie) decide
+// l'ordine di priorita' dei types scritto in placeKind.js. Per i posti che non
+// sono ne' locali ne' musei ne' chiese (monumenti, parchi, belvedere) valgono
+// i types come prima.
+//
 // Scelte dichiarate:
-//   · un posto con `restaurant` e' CIBO e non bar, anche se Google gli mette
-//     anche `bar`: all'aperitivo non si porta qualcuno a cena. Il tetto "al
-//     massimo pranzo e cena di cibo" dipende da questa riga.
 //   · `cafe` e' bar: in Italia il caffe' e' un bar.
 //   · "punti panoramici" e "passeggiata" non hanno un type Google: si leggono
 //     dal nome (Belvedere, Terrazza…; Piazza, Via, Ponte…). E' un indizio
@@ -105,10 +112,22 @@ const WALK_NAME = /^(piazza|piazzale|via|vicolo|largo|lungotevere|lungomare|lung
 /** Le categorie dello scheletro a cui un candidato appartiene. */
 export function candidateMomentCategories(candidate) {
     const types = Array.isArray(candidate?.types) ? candidate.types : [];
-    const out = new Set();
-    for (const t of types) for (const c of TYPE_CATEGORIES[t] || []) out.add(c);
-    // Un ristorante con anche `bar` resta cibo e basta (vedi sopra).
-    if (types.includes('restaurant')) { out.delete('bar'); out.delete('vita notturna'); }
+    const { kind } = placeKind(candidate);
+    let out;
+    if (kind && COMMERCIAL_KINDS.has(kind)) {
+        // Un locale o un negozio ha solo le categorie del suo tipo: niente
+        // `art_gallery` su un bar, niente `bar` su un ristorante.
+        out = new Set(KINDS[kind].categorie);
+    } else {
+        out = new Set();
+        for (const t of types) for (const c of TYPE_CATEGORIES[t] || []) out.add(c);
+        if (kind) {
+            // Museo, chiesa, parco: le categorie dei types come prima, ma un
+            // `bar` o uno `store` di contorno non li fa diventare locale o negozio.
+            for (const c of KINDS[kind].categorie) out.add(c);
+            for (const c of LOCALE_CATEGORIES) out.delete(c);
+        }
+    }
     const name = String(candidate?.name || candidate?.title || '').trim();
     if (PANORAMA_NAME.test(name)) out.add('punti panoramici');
     if (WALK_NAME.test(name)) out.add('passeggiata');
@@ -184,22 +203,25 @@ export function detourMinutes(a, c, b) {
 // Una sola famiglia per luogo, nell'ordine della lista (un belvedere in un
 // parco e' panorama, una piazza con un giardino e' piazza). Un posto dove
 // mangiare non ha famiglia: i pasti hanno gia' il loro momento.
-const CHURCH_TYPES = ['church', 'place_of_worship', 'synagogue', 'mosque', 'hindu_temple'];
+// C6a — la famiglia segue il tipo del posto (tipo principale, poi types in
+// ordine di priorita'): un bar con una galleria tra i types non e' un museo,
+// un ristorante non ha famiglia. Per un locale che non e' un pasto restano le
+// regole del NOME (un bar che si chiama "Terrazza" e' un panorama, come prima).
 const FAMILY_RULES = [
-    ['panorama', (types, name) => PANORAMA_NAME.test(name)],
+    ['panorama', (kind, name) => PANORAMA_NAME.test(name)],
     // Il nome prima dei types: Google mette `park` a Piazza d'Aracoeli.
-    ['piazza', (types, name) => /^(piazza|piazzale|largo)\b/i.test(name)],
-    ['chiesa', (types, name) => types.some(t => CHURCH_TYPES.includes(t)) || /^(chiesa|basilica|duomo|cattedrale|santuario|abbazia)\b/i.test(name)],
-    ['museo', (types, name) => types.includes('museum') || types.includes('art_gallery') || /^(museo|pinacoteca)\b/i.test(name)],
-    ['verde', (types, name) => types.includes('park') || types.includes('natural_feature') || /^(parco|giardin[oi]|orto botanico|villa comunale)\b/i.test(name)],
+    ['piazza', (kind, name) => /^(piazza|piazzale|largo)\b/i.test(name)],
+    ['chiesa', (kind, name) => kind === 'chiesa' || /^(chiesa|basilica|duomo|cattedrale|santuario|abbazia)\b/i.test(name)],
+    ['museo', (kind, name) => kind === 'museo' || /^(museo|pinacoteca)\b/i.test(name)],
+    ['verde', (kind, name) => kind === 'verde' || /^(parco|giardin[oi]|orto botanico|villa comunale)\b/i.test(name)],
 ];
 
 /** La famiglia di un candidato (panorama, chiesa, museo, verde, piazza) o null. */
 export function candidateFamily(candidate) {
     if (isMealPlace(candidate)) return null;
-    const types = Array.isArray(candidate?.types) ? candidate.types : [];
+    const { kind } = placeKind(candidate);
     const name = String(candidate?.name || candidate?.title || '').trim();
-    return FAMILY_RULES.find(([, test]) => test(types, name))?.[0] || null;
+    return FAMILY_RULES.find(([, test]) => test(kind, name))?.[0] || null;
 }
 
 // Una famiglia chiesta esplicitamente spegne la regola di varieta' per quella
@@ -713,6 +735,10 @@ function repairPass({
                 if (entry.candidati.length >= POOL_MAX && id !== idOf(c)) continue;
                 entry.candidati.push({
                     place_id: id, nome: x.c.name || x.c.title || null, famiglia: famOf(x.c),
+                    // C6a — il nome originale (se e' stato ripulito) e il tipo che ha deciso famiglia e sosta.
+                    ...(x.c.nameOriginal ? { nomeOriginale: x.c.nameOriginal } : {}),
+                    ...(x.c.primaryType ? { primaryType: x.c.primaryType } : {}),
+                    types: Array.isArray(x.c.types) ? x.c.types : [],
                     merito: Math.round(scoreOf(x.c) * 100) / 100,
                     minuti: Number.isFinite(x.t) ? x.t : null,
                     deviazione: Math.round(x.dev * 10) / 10,
@@ -1295,7 +1321,7 @@ export function scheduleMomentPlan(plan, dayStarts) {
                 tolte.push({ place_id: idOf(s.candidate), momento: m.id, motivo: 'non entra nel suo momento' });
                 continue;
             }
-            const stay = resolveStayMinutes(s.candidate?.types);
+            const stay = stayOf(s.candidate);
             days[m.dayIndex].push({
                 ...s,
                 moment: m,
@@ -1355,7 +1381,7 @@ export function applyOpeningToBuckets(moments, buckets, { veto = null } = {}) {
                 report.chiusi.push({ momento: m.id, place_id: id, nome: nameOf(c), perche: 'chiuso quando ci si arriva (orario del giro)' });
                 continue;
             }
-            const st = openStatus(c, arrival, resolveStayMinutes(c?.types));
+            const st = openStatus(c, arrival, stayOf(c));
             if (st.stato === CLOSED) {
                 report.chiusi.push({ momento: m.id, place_id: id, nome: nameOf(c), perche: st.motivo });
                 continue;
@@ -1382,7 +1408,7 @@ export function closedInSchedule(sched) {
     const out = [];
     for (const day of sched?.days || []) {
         for (const s of day) {
-            const st = openStatus(s.candidate, s.start, resolveStayMinutes(s.candidate?.types));
+            const st = openStatus(s.candidate, s.start, stayOf(s.candidate));
             if (st.stato === CLOSED) out.push({ momento: s.moment.id, place_id: idOf(s.candidate), nome: nameOf(s.candidate), perche: st.motivo, arrivo: s.start });
         }
     }
@@ -1394,7 +1420,7 @@ export function scheduleHoursLabels(sched) {
     const out = new Map();
     for (const day of sched?.days || []) {
         for (const s of day) {
-            const st = openStatus(s.candidate, s.start, resolveStayMinutes(s.candidate?.types));
+            const st = openStatus(s.candidate, s.start, stayOf(s.candidate));
             out.set(idOf(s.candidate), st.stato === UNKNOWN ? 'sconosciuto' : 'noto');
         }
     }

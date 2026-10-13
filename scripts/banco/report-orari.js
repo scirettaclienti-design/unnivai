@@ -1,15 +1,11 @@
 // ORARI — il giro con la regola degli orari, contro il giro `new` di prima della regola
 // (stessa ricerca, stessi 30 casi, stessa ora simulata). Funzione pura: due grezzi in, markdown e numeri fuori.
-import { misuraCaso, semafori, VOCI } from './misure.js';
+import { misuraCaso } from './misure.js';
+import { n1, usd, sezioneVoci, sezioneCosto } from './sezioni.js';
 import { eseguiControlli } from './controlli.js';
 import { NOMI_MODO, MODI } from './casi-esteso.js';
-import { VARIANZA_CASI } from './confronto-places.js';
 
-const n1 = (x) => (x === null || x === undefined || Number.isNaN(x) ? '—' : String(Math.round(x * 10) / 10).replace('.', ','));
-const usd = (x) => (x === null || x === undefined ? '—' : `$${x.toFixed(3).replace('.', ',')}`);
 const cella = (t) => String(t ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
-const NOMI_VOCE = { verita: 'Verità', voce: 'Voce', distanze: 'Distanze', ripetizioni: 'Ripetizioni', vincoli: 'Vincoli', inComune: 'In comune A/B',
-    famosita: 'Famosità', giornata: 'Giornata', tempo: 'Tempo', costo: 'Costo', destinazione: 'Destinazione', percorso: 'Percorso (C5c)', catene: 'Catene' };
 
 const analizza = (raw, config) => new Map((raw.casi || []).map(c => [c.id, {
     c, m: misuraCaso(c, config), ctrl: eseguiControlli({ ...c, orari: c.orari || {} }, config),
@@ -101,43 +97,8 @@ export function reportOrari(base, nuovo, config, meta = {}) {
         + `Righe di tempo libero / «nessun locale aperto» inserite: ${ids.reduce((a, id) => a + (N.get(id)?.c ? righeDichiarate(N.get(id).c).length : 0), 0)} (prima ${ids.reduce((a, id) => a + (B.get(id)?.c ? righeDichiarate(B.get(id).c).length : 0), 0)}).`);
     L.push('');
 
-    // ── voci ──
-    L.push('## Le 12 voci dell\'asticella: casi rossi, prima contro dopo');
-    L.push('');
-    L.push(`Un campione per caso: la varianza dichiarata è ±${VARIANZA_CASI} casi per voce (scelta mia, non misurata). Una voce "peggiora oltre la varianza" se ha più di ${VARIANZA_CASI} casi rossi in più.`);
-    L.push('');
-    L.push('| Voce | Rossi prima | Rossi dopo | Δ | Esito |');
-    L.push('|---|---|---|---|---|');
-    const tieni = ids.filter(id => B.get(id)?.m && N.get(id)?.m);
-    const rosse = (X, v) => tieni.filter(id => semafori(X.get(id).m, X.get(id).c, config, null)?.[v] === 'rosso');
-    let peggiorate = 0;
-    for (const v of VOCI) {
-        const a = rosse(B, v), b = rosse(N, v), d = b.length - a.length;
-        if (d > VARIANZA_CASI) peggiorate++;
-        L.push(`| ${NOMI_VOCE[v]} | ${a.length} | ${b.length} | ${d > 0 ? '+' : ''}${d} | ${d > VARIANZA_CASI ? '🔴 PEGGIORATA' : d > 0 ? '🟡 entro la varianza' : '🟢 invariata o migliore'}${d !== 0 ? ` (nuovi rossi: ${b.filter(x => !a.includes(x)).join(', ') || '—'}; tornati verdi: ${a.filter(x => !b.includes(x)).join(', ') || '—'})` : ''} |`);
-    }
-    sintesi.vociPeggiorate = peggiorate;
-    L.push('');
-    L.push('Percorso (misura C5c) per caso, dove cambia: ' + (ids.filter(id => B.get(id)?.m?.percorso && N.get(id)?.m?.percorso && B.get(id).m.percorso.ok !== N.get(id).m.percorso.ok)
-        .map(id => `${id} ${B.get(id).m.percorso.ok ? '🟢' : '🔴'}→${N.get(id).m.percorso.ok ? '🟢' : '🔴'}`).join(', ') || 'nessun cambio di verdetto') + '.');
-    L.push('');
-
-    // ── costo ──
-    const costo = (X) => tieni.map(id => X.get(id).m.costo.token + X.get(id).m.costo.google);
-    const media = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
-    const ricerche = (X) => media(tieni.map(id => (X.get(id).c.google?.['place/textsearch#new'] || 0) + (X.get(id).c.google?.['place/textsearch'] || 0)));
-    L.push('## Costo per generazione misurato');
-    L.push('');
-    L.push('| | Prima della regola | Con la regola | Δ |');
-    L.push('|---|---|---|---|');
-    const cb = media(costo(B)), cn = media(costo(N));
-    L.push(`| Costo medio per generazione (token + Google contati, senza foto) | ${usd(cb)} | ${usd(cn)} | ${cb && cn ? `${cn - cb >= 0 ? '+' : ''}${usd(cn - cb)} (${n1(((cn - cb) / cb) * 100)}%)` : '—'} |`);
-    L.push(`| Ricerche di testo per generazione | ${n1(ricerche(B))} | ${n1(ricerche(N))} | |`);
-    L.push(`| Chiamate AI per generazione | ${n1(media(tieni.map(id => B.get(id).c.ai?.chiamate || 0)))} | ${n1(media(tieni.map(id => N.get(id).c.ai?.chiamate || 0)))} | |`);
-    L.push(`| Tempo medio per generazione (s) | ${n1(media(tieni.map(id => B.get(id).m.secondi)))} | ${n1(media(tieni.map(id => N.get(id).m.secondi)))} | |`);
-    L.push('');
-    L.push(`Spesa del giro: **${usd(nuovo.costo?.totale)}** (tetto ${usd(config.esteso.tettoOrariUsd)}).`);
-    L.push('');
+    sintesi.vociPeggiorate = sezioneVoci(B, N, ids, config, L);
+    sezioneCosto(B, N, ids, nuovo, config, L, { etichettaPrima: 'Prima della regola', etichettaDopo: 'Con la regola' });
 
     const ko = [...N.values()].filter(x => x.c.errore || x.c.saltato);
     if (ko.length) {

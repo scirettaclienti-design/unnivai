@@ -1,0 +1,1223 @@
+{
+ "_nota": "C6a — types e tipo principale dei posti dei pool ORARI che il grezzo non portava (letti dalla cache places_cache del proxy, sola lettura, 13/10/2026). point_of_interest ed establishment tolti.",
+ "luoghi": {
+  "ChIJ-4CsD7vNExMRgzubRCASEXA": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "historical_place",
+    "tourist_attraction"
+   ]
+  },
+  "ChIJ-9t45uDvGRMR07H-nGDLx7k": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ-aLt8LfNExMReTS4o2hKT7g": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ000d_7YJOxMRccU9OwNI_XM": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "bar",
+    "food"
+   ]
+  },
+  "ChIJ04EBVQFUKhMRAsQwnRrbMdM": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ0y5OmB_MExMRdzD9hYlAiCE": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "seafood_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ0ZuZcDNVKhMRHR6ynUDc_dA": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "food"
+   ]
+  },
+  "ChIJ202UjExgLxMRWjUxMZO3xc0": {
+   "primaryType": "park",
+   "types": [
+    "park",
+    "tourist_attraction"
+   ]
+  },
+  "ChIJ2aeVh6HLFhMRH97wsXn2fVA": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "sushi_restaurant",
+    "japanese_restaurant",
+    "food"
+   ]
+  },
+  "ChIJ2b8-Gtf8ExMRGtMuV_yD7vQ": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "seafood_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ2eHRxerBhkcRk1DMwqxhM00": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "family_restaurant",
+    "mediterranean_restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ2Uhv-O1VKhMRbUAAnB4vmCY": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "food"
+   ]
+  },
+  "ChIJ2YDhHwDjExMRyHIkaDTWh8o": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ3SpIsBxhLxMRQGXnU0oVZ6s": {
+   "primaryType": "cocktail_bar",
+   "types": [
+    "cocktail_bar",
+    "wine_bar",
+    "bar",
+    "food"
+   ]
+  },
+  "ChIJ40Ov49PjExMRsD8RA-Fe-uI": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ4R8eAOMuRBMRuYwkTA-PAro": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ5dopA2zPExMRHpVupALDyLQ": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ5Thu70EIOxMRr5t-mAnq5uw": {
+   "primaryType": "pizza_restaurant",
+   "types": [
+    "pizza_restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ5V2tvOAuRBMR9cmAeMJ4lnA": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "mediterranean_restaurant",
+    "seafood_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ619Pu17vGRMRQHNSjljKyak": {
+   "primaryType": "wellness_center",
+   "types": [
+    "wellness_center",
+    "massage",
+    "health",
+    "service"
+   ]
+  },
+  "ChIJ65jvsgDChkcREXLzv5umc_U": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ6T3NYG0JOxMREQTHHUvMIpk": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "seafood_restaurant",
+    "food"
+   ]
+  },
+  "ChIJ6WQX3rwJOxMRuymSXZOphC8": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ6WROiFMJOxMRsl9cQlmTeLQ": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ757jjUVgLxMRGZmU-AgDv6U": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "tourist_attraction",
+    "historical_place"
+   ]
+  },
+  "ChIJ81VsJ8thLxMR2tsO-mu0jHY": {
+   "primaryType": "observation_deck",
+   "types": [
+    "observation_deck"
+   ]
+  },
+  "ChIJ8b8HBUEIOxMR2jr08qzyjkw": {
+   "primaryType": "pizza_restaurant",
+   "types": [
+    "pizza_restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJ9-rqB3AvRBMRIHQl__lcx_s": {
+   "primaryType": "restaurant",
+   "types": [
+    "bistro",
+    "wine_bar",
+    "cocktail_bar",
+    "bar",
+    "restaurant",
+    "food",
+    "service"
+   ]
+  },
+  "ChIJA4Ty0AJUKhMRN14HOd2lpe0": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "steak_house",
+    "italian_restaurant",
+    "meal_takeaway",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJAbE4IivjExMR2JMraB2ClNc": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "diner",
+    "catering_service",
+    "pizza_restaurant",
+    "food_delivery",
+    "food",
+    "service"
+   ]
+  },
+  "ChIJAx6DlePjExMR1uaYwj11_Eg": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "historical_place"
+   ]
+  },
+  "ChIJAXs0WPblGRMR6e61GG-VL0U": {
+   "primaryType": "spa",
+   "types": [
+    "spa"
+   ]
+  },
+  "ChIJazDesVnvGRMRbEWERmJrYR0": {
+   "primaryType": "spa",
+   "types": [
+    "wellness_center",
+    "massage_spa",
+    "beauty_salon",
+    "massage",
+    "health",
+    "spa",
+    "service"
+   ]
+  },
+  "ChIJbdMubzjFhkcRp8G8SUBC_aU": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJbfrRslZgLxMRKR3a8hnvJD8": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJbUWfxYPBhkcRnqktZ-56K0E": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJbX-PDmbOExMRoDmtoPaphOA": {
+   "primaryType": "park",
+   "types": [
+    "park"
+   ]
+  },
+  "ChIJCblNfxrNExMR7iN50zJzES8": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "fast_food_restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJcx0O_B7MExMRPX95J195nb0": {
+   "primaryType": "diner",
+   "types": [
+    "diner",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJd8ROFKvGhkcRUf875a9G9lM": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJde5QqqDGhkcRAm1QewgN7I4": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJdQr9cPX7ExMRxA2GjNivuuU": {
+   "primaryType": "observation_deck",
+   "types": [
+    "observation_deck"
+   ]
+  },
+  "ChIJDXD-DLphLxMRZ2fdzk_Xppg": {
+   "primaryType": "community_center",
+   "types": [
+    "community_center",
+    "event_venue",
+    "service"
+   ]
+  },
+  "ChIJE7iLdbFhLxMRsweAyEa4cv0": {
+   "primaryType": "tourist_attraction",
+   "types": [
+    "tourist_attraction"
+   ]
+  },
+  "ChIJE9qWB-FRKhMRikbjbTJYTp8": {
+   "primaryType": "art_gallery",
+   "types": [
+    "art_gallery"
+   ]
+  },
+  "ChIJedbik-EuRBMRTLIBwYcvPrs": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "food"
+   ]
+  },
+  "ChIJF5d3iMPBhkcRCIKDoVyr7tU": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJF8-3l1MIOxMRMRtQHIkTUIo": {
+   "primaryType": "pizza_restaurant",
+   "types": [
+    "pizza_restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJfc8DqVVgLxMRxPIIp3z8CBg": {
+   "primaryType": "plaza",
+   "types": [
+    "plaza",
+    "tourist_attraction"
+   ]
+  },
+  "ChIJfQccg93HhkcRcZiBgEnZqu8": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "food"
+   ]
+  },
+  "ChIJfRrpDwBhLxMRYP5QakN0xEY": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "tourist_attraction",
+    "historical_place"
+   ]
+  },
+  "ChIJfZmBLxnMExMR2ZGscMI5liA": {
+   "primaryType": "historical_place",
+   "types": [
+    "historical_place",
+    "tourist_attraction"
+   ]
+  },
+  "ChIJG1D9OwBhLxMRP8IMOVzX8Yg": {
+   "primaryType": "scenic_spot",
+   "types": [
+    "scenic_spot"
+   ]
+  },
+  "ChIJgQ0W7IUvRBMRtJoby7xk8Ts": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJgw0gMe3vGRMRuo-EtBpEghQ": {
+   "primaryType": "massage",
+   "types": [
+    "wellness_center",
+    "massage_spa",
+    "massage",
+    "spa",
+    "health",
+    "service"
+   ]
+  },
+  "ChIJH-7X2URgLxMRrZdQayFBbfw": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJh69tJgDvGRMRajTku7mOrqM": {
+   "primaryType": "cultural_landmark",
+   "types": [
+    "cultural_landmark",
+    "historical_landmark",
+    "historical_place"
+   ]
+  },
+  "ChIJhd5vFqbLFhMRNNt246-xrqc": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "italian_restaurant",
+    "pizza_restaurant",
+    "seafood_restaurant",
+    "european_restaurant",
+    "food"
+   ]
+  },
+  "ChIJHf-V2GYIOxMRJm8tvSe6fR4": {
+   "primaryType": "pizza_restaurant",
+   "types": [
+    "pizza_restaurant",
+    "meal_takeaway",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJHUqt0vNhLxMRj5GYhl24LpQ": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJIU8V8BAJOxMRkoAB3L4_AEQ": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "vegan_restaurant",
+    "vegetarian_restaurant",
+    "farm",
+    "european_restaurant",
+    "restaurant",
+    "food",
+    "service"
+   ]
+  },
+  "ChIJIYkRQeHHhkcRCtvCnR136Qg": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "italian_restaurant",
+    "bar",
+    "european_restaurant",
+    "food"
+   ]
+  },
+  "ChIJJ74qvZ9hLxMRSV3mnLL8Mek": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "pizza_restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJJSP62z4IOxMRl8mw-OD2I-Q": {
+   "primaryType": "pizza_restaurant",
+   "types": [
+    "pizza_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJJSP7WLphLxMRfNQnak7CiFk": {
+   "primaryType": "cocktail_bar",
+   "types": [
+    "cocktail_bar",
+    "bar"
+   ]
+  },
+  "ChIJk3mRRhs7RBMRgnGGOjQOkfw": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "mediterranean_restaurant",
+    "seafood_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJkXkjE4DGhkcRR2FiEMwPiz0": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJl54VVAJUKhMR8CH77zUGvqs": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJla0enKpWKhMR8keQsqT2IcU": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "historical_place"
+   ]
+  },
+  "ChIJLwS8dRrjExMRhq1VsrqkFGo": {
+   "primaryType": "tourist_attraction",
+   "types": [
+    "tourist_attraction"
+   ]
+  },
+  "ChIJLZa9AC7jExMRQpSE-ITO9ZM": {
+   "primaryType": "plaza",
+   "types": [
+    "plaza"
+   ]
+  },
+  "ChIJlZyCZUZgLxMRUwp59gRcFBE": {
+   "primaryType": "fountain",
+   "types": [
+    "fountain",
+    "tourist_attraction"
+   ]
+  },
+  "ChIJM-Dwhj9XKhMRAlFa7341v8E": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "historical_place"
+   ]
+  },
+  "ChIJM0PZh5_lGRMRDq8tAi6GwH4": {
+   "primaryType": "bistro",
+   "types": [
+    "bistro",
+    "vegan_restaurant",
+    "vegetarian_restaurant",
+    "breakfast_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJM1BlBDTBhkcRh-rYgUDugBk": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "bar",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJMdevdapWKhMR3tyZtXWeatU": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "historical_place"
+   ]
+  },
+  "ChIJMSoJE57OExMR56WfG22uFps": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "historical_place"
+   ]
+  },
+  "ChIJMU79iY7lGRMRuAoPOKA3iYc": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "seafood_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJmVig_T8IOxMRft8eFfuBUKQ": {
+   "primaryType": "pizza_restaurant",
+   "types": [
+    "pizza_restaurant",
+    "meal_takeaway",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJN-XWwuphLxMRnBt8xQMDyAk": {
+   "primaryType": "cocktail_bar",
+   "types": [
+    "cocktail_bar",
+    "bar"
+   ]
+  },
+  "ChIJN0RepCvjExMRKS3o4fWFRBs": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "italian_restaurant",
+    "seafood_restaurant",
+    "european_restaurant",
+    "food"
+   ]
+  },
+  "ChIJn7FgioLlGRMRsUqCTrF6GZw": {
+   "primaryType": "wellness_center",
+   "types": [
+    "wellness_center",
+    "makeup_artist",
+    "tanning_studio",
+    "beauty_salon",
+    "hair_care",
+    "massage",
+    "spa",
+    "medical_clinic",
+    "health",
+    "service"
+   ]
+  },
+  "ChIJN7VhtFNgLxMRiEhoVRyT4Us": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "tourist_attraction",
+    "historical_place"
+   ]
+  },
+  "ChIJnRIx9VjvGRMR7k1MiulDiZk": {
+   "primaryType": "service",
+   "types": [
+    "beauty_salon",
+    "wellness_center",
+    "hair_care",
+    "massage_spa",
+    "massage",
+    "spa",
+    "medical_clinic",
+    "health",
+    "service"
+   ]
+  },
+  "ChIJNSdLXAAvRBMRrs9Wg7wKHR4": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJNxOoH4XOExMRhHybAmkE3UQ": {
+   "primaryType": "park",
+   "types": [
+    "park"
+   ]
+  },
+  "ChIJny8ZNEnHhkcRHHwhbty9aic": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "food"
+   ]
+  },
+  "ChIJO9i9JC1VKhMR2_1RgYXLZxo": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "mediterranean_restaurant",
+    "food"
+   ]
+  },
+  "ChIJORIAMzMvRBMRqisVZ_b-n08": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "italian_restaurant",
+    "seafood_restaurant",
+    "european_restaurant",
+    "food"
+   ]
+  },
+  "ChIJoYLMhOUuRBMRliLMKGVwbVM": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "food"
+   ]
+  },
+  "ChIJP33kSoDvGRMR10PfC9vcyS4": {
+   "primaryType": "spa",
+   "types": [
+    "nail_salon",
+    "beauty_salon",
+    "beautician",
+    "wellness_center",
+    "hair_care",
+    "massage_spa",
+    "massage",
+    "spa",
+    "medical_clinic",
+    "health",
+    "service"
+   ]
+  },
+  "ChIJpTNFTUlgLxMRRsPyX-_4X8c": {
+   "primaryType": "fountain",
+   "types": [
+    "fountain",
+    "tourist_attraction"
+   ]
+  },
+  "ChIJpz2fMqphLxMRmwG3MCgfTUA": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "historical_place"
+   ]
+  },
+  "ChIJq-lSTYrNExMRjO_Kh5bqklc": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJqTkon5vlGRMRha1DiynYK3k": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "cocktail_bar",
+    "italian_restaurant",
+    "bar",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJqyLw5lD9ExMRHuRjdFDymDc": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "bistro",
+    "banquet_hall",
+    "wine_bar",
+    "steak_house",
+    "food_court",
+    "catering_service",
+    "italian_restaurant",
+    "pizza_restaurant",
+    "bar",
+    "food_delivery",
+    "event_venue",
+    "european_restaurant",
+    "restaurant",
+    "food",
+    "service"
+   ]
+  },
+  "ChIJr49gu6oJOxMRu4vh7XOnchw": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJrbg1x1thLxMRNN10TZgYjWY": {
+   "primaryType": "tourist_attraction",
+   "types": [
+    "tourist_attraction"
+   ]
+  },
+  "ChIJrfgbjWJRKhMRpnR7ZCxwOAo": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJrTOpWjEvRBMRjKuNZcF6T1c": {
+   "primaryType": "museum",
+   "types": [
+    "museum"
+   ]
+  },
+  "ChIJRWxQJiPEhkcRlN4R2BJLUfk": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "wine_bar",
+    "mediterranean_restaurant",
+    "bar",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJry-LLBtUKhMRU7Gj_D_cHqk": {
+   "primaryType": "historical_place",
+   "types": [
+    "historical_place",
+    "tourist_attraction"
+   ]
+  },
+  "ChIJsTV9CgAJOxMRNUV_PTmPD_8": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJt-bs8jAJOxMRFue2qvjH7EA": {
+   "primaryType": "pizza_restaurant",
+   "types": [
+    "pizza_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJt8uvFKlhLxMR6Iznp2b1pTA": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "historical_place"
+   ]
+  },
+  "ChIJtxbuT0rBhkcRYw-qxbZcSdA": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJtZn2qFxgLxMRrYHUcXhdBPQ": {
+   "primaryType": "historical_place",
+   "types": [
+    "historical_place"
+   ]
+  },
+  "ChIJu-noOUgJOxMRXMVU_pavG3g": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJuwxToonjExMRgKG1l_-hVLM": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJv_49QLXoGRMRCkf5ji4Rw4A": {
+   "primaryType": "spa",
+   "types": [
+    "beauty_salon",
+    "massage_spa",
+    "massage",
+    "spa",
+    "service"
+   ]
+  },
+  "ChIJV_9Jh17HhkcRFgLMoPziF7A": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJV24mr2XvGRMRtMzxgOfQ35s": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJv8xrM2vvGRMRm-yB0D3c1to": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJvdBS4lnPExMRhAUhEY1X1to": {
+   "primaryType": "garden",
+   "types": [
+    "garden",
+    "association_or_organization"
+   ]
+  },
+  "ChIJVeAFaPTNExMRXKMTsbrrsnM": {
+   "primaryType": "seafood_restaurant",
+   "types": [
+    "seafood_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJvSH4_eMuRBMRlKLcmisPG-M": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "historical_place"
+   ]
+  },
+  "ChIJVV3OaYQvRBMRw8YRkIwD8FA": {
+   "primaryType": "restaurant",
+   "types": [
+    "wine_bar",
+    "cocktail_bar",
+    "bar",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJW-QbTS3jExMR3JIoOMF7xjU": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "mediterranean_restaurant",
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJW1eAeaxhLxMRItxbhOKruY4": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "wine_bar",
+    "italian_restaurant",
+    "bar",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJwQg4HhYJOxMRRwJMlC6yaKA": {
+   "primaryType": "bistro",
+   "types": [
+    "bistro",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJWUhGfeEuRBMRn9aXriD_clA": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJww7TwC3jExMR7alXAJ53EGM": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "seafood_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJwXkXUZ_LFhMRhyMxQd2ShGQ": {
+   "primaryType": "food_store",
+   "types": [
+    "grocery_store",
+    "food_store",
+    "store",
+    "food"
+   ]
+  },
+  "ChIJWYUEIwDlGRMR5buUm0tW6Vo": {
+   "primaryType": "spa",
+   "types": [
+    "spa"
+   ]
+  },
+  "ChIJx_n07-nLFhMRoNr1mFOQ2Ys": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJX98BmT9VKhMReqQaTWNjkvY": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJXV3e8UEIOxMRI4tUlkWg8Y4": {
+   "primaryType": "pizza_restaurant",
+   "types": [
+    "pizza_restaurant",
+    "pizza_delivery",
+    "meal_delivery",
+    "food_delivery",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJy5jwz-4uRBMRp534FPeoO2U": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "seafood_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJy7VTdeQuRBMRbvjebxB6yVk": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJyc6FhwXHhkcRwJ1lW74VK2s": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJyfRBnZvNExMRZLVgEemNq_k": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJyS2xUt4vRBMR856rHHPqQZU": {
+   "primaryType": "cocktail_bar",
+   "types": [
+    "cocktail_bar",
+    "bistro",
+    "bar",
+    "tapas_restaurant",
+    "spanish_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJYTKHi6pWKhMRmTjB9uaNRqg": {
+   "primaryType": "historical_landmark",
+   "types": [
+    "historical_landmark",
+    "historical_place",
+    "tourist_attraction"
+   ]
+  },
+  "ChIJYWAFVUEIOxMRuRA2mQnNrKE": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJYXWRB1PBhkcRaga2tgMmpiQ": {
+   "primaryType": "italian_restaurant",
+   "types": [
+    "italian_restaurant",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJZ-ND4TFgLxMRw4eGS3Noo9w": {
+   "primaryType": "fountain",
+   "types": [
+    "fountain",
+    "tourist_attraction"
+   ]
+  },
+  "ChIJz44kNCzjExMRC7MoKqJCoFo": {
+   "primaryType": "restaurant",
+   "types": [
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJzcr6nhAIOxMRh4NwjAnCo2o": {
+   "primaryType": "pizza_restaurant",
+   "types": [
+    "pizza_restaurant",
+    "restaurant",
+    "food"
+   ]
+  },
+  "ChIJZT4GdtcJOxMRmtC8_iPGMx8": {
+   "primaryType": "bistro",
+   "types": [
+    "bistro",
+    "italian_restaurant",
+    "cocktail_bar",
+    "bar",
+    "european_restaurant",
+    "restaurant",
+    "food"
+   ]
+  }
+ }
+}

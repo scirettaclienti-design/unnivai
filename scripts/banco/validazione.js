@@ -78,9 +78,10 @@ export const ESEMPI = {
         cattivo: { nome: 'caffè da 1h 15min (75 min, come un ristorante)', origine: 'telefono 12/10 (D-CATANIA B5)',
             caso: caso([st('Caffè Savia', { types: ['cafe', 'restaurant'], moment: 'mattina', at: at('09:30'), stay: 75 }),
                 st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pranzo', at: at('12:30'), stay: 75, pasto: true })]) },
-        buono: { nome: 'caffè 20 min, ristorante 75, chiesa 20', caso: caso([st('Caffè Savia', { types: ['cafe'], moment: 'mattina', at: at('09:30'), stay: 20 }),
+        buono: { nome: 'caffè 20 min, ristorante 75, chiesa 20; un cocktail bar marcato anche restaurant dura 20 (tipo principale)', caso: caso([st('Caffè Savia', { types: ['cafe'], moment: 'mattina', at: at('09:30'), stay: 20 }),
             st('Trattoria del Duomo', { types: ['restaurant'], moment: 'pranzo', at: at('12:30'), stay: 75, pasto: true }),
-            st('Chiesa di San Nicolò', { types: ['church'], moment: 'pomeriggio', at: at('15:00'), stay: 20 })]) },
+            st('Chiesa di San Nicolò', { types: ['church'], moment: 'pomeriggio', at: at('15:00'), stay: 20 }),
+            st('Folia Bar & Lab', { types: ['cocktail_bar', 'restaurant', 'bar'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: at('18:30'), stay: 20 })]) },
     },
     c7: {
         cattivo: { nome: '"Sono 1 minuti a piedi dalla tappa prima." e la stessa frase 3 volte', origine: 'telefono 12/10',

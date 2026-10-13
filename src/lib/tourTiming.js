@@ -22,6 +22,8 @@
  * abbiamo, ed e' esattamente il difetto che questo modulo esiste per chiudere.
  */
 
+import { placeKind, KINDS } from './placeKind';
+
 // ─── Velocita' di camminata ───────────────────────────────────────────────────
 // 4.5 km/h. Numero SCELTO, non misurato, e dichiarato tale: sta sotto i 5 km/h
 // del profilo pedonale OSRM per tenere conto di semafori, attraversamenti e
@@ -35,58 +37,58 @@ export const DEFAULT_STAY_MINUTES = 30;
 /**
  * ─── TABELLA DI SOSTA ────────────────────────────────────────────────────────
  *
- * Deriva dai `types` GOOGLE, non da `type` (la categoria UI collassata da
- * `mapGoogleTypeToOurType`). I types arrivano interi da entrambi i path —
- * textsearch (`placesDiscoveryService`, `types: place.types || []`) e
- * place/details (`fetchPlaceDetailsForTour`, idem) — mentre `type` e' gia' una
- * riduzione a sei valori che perde l'informazione che serve qui: `church` e
- * `museum` collassano entrambi su 'cultura' ma durano 20 e 60.
+ * C6a — la sosta si decide dal TIPO DEL POSTO (src/lib/placeKind.js): il tipo
+ * principale di Google, o — se manca — i `types` in ordine di priorita'. Prima
+ * si scorreva una lista di types e `restaurant` (75) stava prima di bar/cafe
+ * (20): un caffe' marcato anche `restaurant` durava 1h 15min.
  *
- * ─── PRECEDENZA, ED E' LA PARTE CHE CONTA ────────────────────────────────────
- * Un POI ha quasi sempre PIU' types: Google appiccica `point_of_interest` e
- * `establishment` quasi ovunque, e spesso `tourist_attraction` sopra a un type
- * specifico (una chiesa famosa e' `church` + `place_of_worship` +
- * `tourist_attraction` + `point_of_interest`).
+ *   tipo del posto   minuti   esempi di tipo principale
+ *   museo               60     museum, art_museum, art_gallery
+ *   pasto               75     restaurant, italian_restaurant, pizza_restaurant, bistro
+ *   spuntino            30     fast_food_restaurant, meal_takeaway, sandwich_shop
+ *   chiesa              20     church, place_of_worship, mosque, synagogue
+ *   bar                 20     bar, cocktail_bar, wine_bar, pub
+ *   caffe               20     cafe, coffee_shop, tea_house
+ *   forno               20     bakery
+ *   dolce               20     ice_cream_shop, dessert_shop, confectionery
+ *   verde               30     park, garden, botanical_garden, natural_feature
+ *   notte               30     night_club
+ *   negozio             30     store, clothing_store, shopping_mall
+ *   servizi             30     spa, wellness_center, beauty_salon
+ *   altri (generici)    30     tourist_attraction, historical_landmark, point_of_interest
  *
- * REGOLA: si scorre QUESTA lista in ordine e vince la PRIMA voce che matcha uno
- * dei types del POI. Non l'ordine dell'array di Google, che non e' garantito.
+ * Sono STIME DEL PRODOTTO (vedi sopra), non durate vere. I valori sono quelli di
+ * prima, riassegnati al tipo giusto: cambia chi li prende, non quanto durano.
  *
- * L'ordine e' per SPECIFICITA' DELL'ESPERIENZA DOMINANTE, non per durata:
- * i types generici stanno in fondo perche' dicono "e' un posto", non "e' questo
- * posto". Quindi una chiesa turistica dura 20 (chiesa), non 30 (attrazione):
- * il motivo per cui ci entri e' che e' una chiesa.
+ * `STAY_RULES` resta la tabella per i types che il tipo del posto non copre
+ * (zoo, acquario, orto botanico, e i generici in fondo: se un POI arriva qui, di
+ * specifico non sapevamo niente).
  */
 export const STAY_RULES = [
-    // Musei e gallerie: la visita e' il motivo del viaggio.
-    { minutes: 60, types: ['museum', 'art_gallery'] },
-    // Ristoranti: un pasto seduto. Prima di bar/cafe, che sono una sosta breve:
-    // un posto con entrambi i types e' un locale dove ci si siede.
-    { minutes: 75, types: ['restaurant'] },
-    // Luoghi di culto: si entra, si guarda, si esce. Vale anche quando sono
-    // anche tourist_attraction — ed e' il caso che motiva l'ordine.
-    { minutes: 20, types: ['church', 'place_of_worship', 'synagogue', 'mosque', 'hindu_temple'] },
-    // Caffe' e bar: una consumazione.
-    { minutes: 20, types: ['cafe', 'bar', 'bakery'] },
-    // Verde e natura: una passeggiata dentro.
-    { minutes: 30, types: ['park', 'natural_feature', 'zoo', 'aquarium', 'botanical_garden'] },
-    // Generici: Google li mette quasi ovunque. Ultimi di proposito — se un POI
-    // arriva qui, di specifico non sapevamo niente.
+    { minutes: 30, types: ['zoo', 'aquarium', 'botanical_garden'] },
     { minutes: 30, types: ['tourist_attraction', 'point_of_interest'] },
 ];
 
 /**
- * Sosta stimata per un POI, dai suoi types Google.
- * @param {string[]} types
+ * Sosta stimata per un POI.
+ * @param {string[]} types i types Google
+ * @param {string|null} [primaryType] il tipo principale di Google, se c'e'
  * @returns {number} minuti (mai null: la sosta ha sempre un default onesto)
  */
-export function resolveStayMinutes(types) {
-    if (!Array.isArray(types) || types.length === 0) return DEFAULT_STAY_MINUTES;
-    const set = new Set(types);
+export function resolveStayMinutes(types, primaryType = null) {
+    const list = Array.isArray(types) ? types : [];
+    const { kind } = placeKind({ types: list, primaryType });
+    if (kind) return KINDS[kind].minuti;
+    if (list.length === 0) return DEFAULT_STAY_MINUTES;
+    const set = new Set(list);
     for (const rule of STAY_RULES) {
         if (rule.types.some(t => set.has(t))) return rule.minutes;
     }
     return DEFAULT_STAY_MINUTES;
 }
+
+/** La sosta di un candidato o di una tappa (types + tipo principale). */
+export const stayOf = (place) => resolveStayMinutes(place?.types, place?.primaryType);
 
 /**
  * Distanza in km fra due punti (Haversine).
@@ -146,7 +148,7 @@ export function computeStopTimings(stops) {
         return { stops: [], totalMinutes: 0 };
     }
     const out = stops.map((s, i) => {
-        const stayMinutes = resolveStayMinutes(s?.types);
+        const stayMinutes = stayOf(s);
         const travelMinutesFromPrev = i === 0 ? null : travelMinutes(stops[i - 1], s);
         return { ...s, stayMinutes, travelMinutesFromPrev };
     });

@@ -14,14 +14,14 @@
  * ordine (`retime`) e come costruire una tappa da un candidato (`toStop`).
  */
 
-import { computeScheduledTimes, resolveStayMinutes, travelMinutes } from './tourTiming';
+import { computeScheduledTimes, stayOf, travelMinutes } from './tourTiming';
 import { openStatus, OPEN, CLOSED, UNKNOWN, NIGHT_FROM_MINUTES, romeMinutes, orarioLabel } from './openingHours';
 
 const idOf = (c) => c?.place_id || c?.googlePlaceId || null;
 const nameOf = (c) => c?.name || c?.title || null;
 
 /** Lo stato d'orario di una tappa gia' in orario (scheduledTime ISO, stayMinutes). */
-const statusOfStop = (s) => openStatus(s, s.scheduledTime ? new Date(s.scheduledTime) : null, Number.isFinite(s.stayMinutes) ? s.stayMinutes : resolveStayMinutes(s.types));
+const statusOfStop = (s) => openStatus(s, s.scheduledTime ? new Date(s.scheduledTime) : null, Number.isFinite(s.stayMinutes) ? s.stayMinutes : stayOf(s));
 
 /**
  * @param {object} p
@@ -65,7 +65,7 @@ export function keepOpenStops({ stops, pool, start, retime, toStop, exclude = nu
                 if (!id || usati.has(id) || vietati.has(id) || exclude?.has(id)) continue;
                 const walk = last ? (travelMinutes(last, c) ?? 0) : 0;
                 const arrivo = new Date(fine.getTime() + walk * 60000);
-                const st = openStatus(c, arrivo, resolveStayMinutes(c.types));
+                const st = openStatus(c, arrivo, stayOf(c));
                 if (st.stato === CLOSED) continue;
                 eleggibili.push({ c, st: st.stato, walk, arrivo });
             }

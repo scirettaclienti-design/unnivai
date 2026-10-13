@@ -63,8 +63,28 @@ const TIPI_LOCALE = ['restaurant', 'food', 'cafe', 'bar', 'bakery', 'meal_takeaw
 const tipi = (s) => s.types || [];
 const isLocale = (s) => !!s.pasto || tipi(s).some(t => TIPI_LOCALE.includes(t));
 
+// C6a — il tipo principale di Google decide il tipo per la sosta (codice del banco, indipendente dal motore).
+const PT_CAFFE = /^(bar|pub|irish_pub|cocktail_bar|wine_bar|lounge_bar|sports_bar|cafe|coffee_shop|cafeteria|tea_house|bakery|ice_cream_shop|dessert_shop|confectionery|candy_store|chocolate_shop|donut_shop|juice_shop)$/;
+const PT_PASTO = /(^|_)restaurant$|^(bistro|diner|steak_house|food_court)$/;
+const PT_VELOCE = /^(fast_food_restaurant|meal_takeaway|meal_delivery|sandwich_shop|deli)$/;
+const PT_MUSEO = /(^|_)museum$|^art_gallery$/;
+const PT_CHIESA = /^(church|place_of_worship|synagogue|mosque|hindu_temple)$/;
+const PT_VERDE = /^(park|city_park|national_park|state_park|garden|botanical_garden|natural_feature|zoo|aquarium)$/;
+function tipoDaPrincipale(pt) {
+    if (!pt) return null;
+    if (PT_VELOCE.test(pt)) return 'altro';
+    if (PT_CAFFE.test(pt)) return 'caffe';
+    if (PT_PASTO.test(pt)) return 'pasto';
+    if (PT_MUSEO.test(pt)) return 'museo';
+    if (PT_CHIESA.test(pt)) return 'chiesa';
+    if (PT_VERDE.test(pt)) return 'verde';
+    return null;
+}
+
 /** Il tipo per la sosta: pasto, caffe, museo, chiesa, verde, altro. */
 export function tipoSosta(s) {
+    const dalPrincipale = tipoDaPrincipale(s.primaryType);
+    if (dalPrincipale) return dalPrincipale;
     const n = norm(nome(s));
     const t = tipi(s);
     if (NOME_TAVOLA.test(n)) return 'pasto';
@@ -200,15 +220,17 @@ export function c5(caso, cfg) {
 export function c6(caso, cfg) {
     const { sostaTipica: T, sostaScala: K } = cfg.esteso;
     const out = [];
+    const esercitate = {}; // C6a — quante tappe di ogni tipo sono state davvero controllate
     for (const t of caso.tours || []) {
         for (const s of tappeDi(t)) {
             if (!Number.isFinite(s.stay)) continue;
             const k = tipoSosta(s);
+            esercitate[k] = (esercitate[k] || 0) + 1;
             const altri = Object.entries(T).filter(([k2, m2]) => k2 !== k && (m2 / T[k] >= K || T[k] / m2 >= K) && m2 === s.stay).map(([k2]) => k2);
             if (altri.length) out.push(viol(s, `${nome(s)} (${k}): sosta di ${s.stay} min, la durata tipica di ${altri.join('/')} (per ${k}: ${T[k]} min)`, 'c6', cfg));
         }
     }
-    return esito('c6', true, out);
+    return esito('c6', true, out, { esercitate });
 }
 
 // ─── 7 — grammatica e ripetizioni ───────────────────────────────────────────

@@ -14,6 +14,8 @@
 import { buildPlacesProxyUrl, isPlacesProxyEnabled, BLACKLIST_TYPES } from './aiRecommendationService';
 import { isSmallTown, widerRadiusKm } from './tourShape';
 import { searchFoodWithDiet } from '../lib/foodPrefs';
+import { placeKind } from '../lib/placeKind';
+import { cleanPlaceName } from '../lib/placeName';
 
 // DVAI-055-b: prefix bumped da 'unnivai_poiv2_' per invalidare i POI tematici
 // cached prima del filtro raggio centralizzato nel normalizer. I tour tematici
@@ -147,14 +149,18 @@ export class PlacesSearchError extends Error {
 }
 
 // Google `types` → tipo interno DoveVAI usato dai motori (rendering marker/cover).
-const mapGoogleTypeToOurType = (types = []) => {
+// C6a — lo decide il tipo del posto (tipo principale di Google, poi i types in
+// ordine di priorita', src/lib/placeKind.js): un cocktail bar con `art_gallery`
+// tra i types e' un locale, non un museo.
+const mapGoogleTypeToOurType = (types = [], primaryType = null) => {
+  const { kind } = placeKind({ types, primaryType });
+  if (kind === 'museo') return 'museum';
+  if (kind === 'chiesa') return 'church';
+  if (kind === 'verde') return 'park';
+  if (['pasto', 'spuntino', 'bar', 'caffe', 'forno', 'dolce', 'notte'].includes(kind)) return 'restaurant';
   const set = new Set(types);
-  if (set.has('museum') || set.has('art_gallery')) return 'museum';
-  if (set.has('church') || set.has('place_of_worship') ||
-      set.has('mosque') || set.has('synagogue') || set.has('hindu_temple')) return 'church';
-  if (set.has('park') || set.has('natural_feature') || set.has('campground')) return 'park';
-  if (set.has('restaurant') || set.has('cafe') || set.has('bar') ||
-      set.has('bakery') || set.has('meal_takeaway') || set.has('food')) return 'restaurant';
+  if (set.has('natural_feature') || set.has('campground')) return 'park';
+  if (set.has('food')) return 'restaurant';
   if (set.has('tourist_attraction')) return 'monument';
   return 'place';
 };
@@ -456,6 +462,9 @@ const qualityScore = (c) =>
 
 // ─── Costruzione POI dallo shape textsearch ────────────────────────────────────
 const buildPOIFromCandidate = (place, cityName) => {
+  // C6a — il nome mostrato e' il nome del posto, senza le code commerciali
+  // (" | Apericena e Colazione"); l'originale resta sul candidato.
+  const nome = cleanPlaceName(place.name, { city: cityName });
   const lat = place.geometry?.location?.lat;
   const lng = place.geometry?.location?.lng;
   const photoRef = place.photos?.[0]?.photo_reference;
@@ -464,12 +473,13 @@ const buildPOIFromCandidate = (place, cityName) => {
     : null;
   return {
     id: `google-${place.place_id}`,
-    name: place.name,
-    title: place.name,
+    name: nome.name,
+    title: nome.name,
+    ...(nome.tagliato ? { nameOriginal: nome.original } : {}),
     description: '',                       // sarà scritta dall'AI in Fase 2
     lat, lng,
     latitude: lat, longitude: lng,
-    type: mapGoogleTypeToOurType(place.types),
+    type: mapGoogleTypeToOurType(place.types, place.primary_type),
     rating: place.rating || 0,
     user_ratings_total: place.user_ratings_total || 0,
     business_status: place.business_status || 'OPERATIONAL',
@@ -570,6 +580,8 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, 
 
   // ORARI — gg1_ → gg2_ col passaggio alla ricerca nuova: i pool cached prima non
   // hanno gli orari settimanali, e per 24 ore nessuno deve riceverli.
+  // C6a — gg2_ → gg3_: i pool cached prima hanno i nomi con le code commerciali
+  // (" | Apericena e Colazione") e nessun nome originale.
   // Cache key differenziata: customQuery ha suo namespace (non collide con temi).
   // C1 — con un bias esplicito (la ricerca dei pasti dalla tappa prima) la
   // chiave porta punto e raggio: altrimenti tornerebbe la ricerca dal centro.
@@ -577,8 +589,8 @@ const discoverRealPOIs = async (cityName, lat, lng, themeType = FALLBACK_THEME, 
     ? `_at_${Number(lat).toFixed(3)}_${Number(lng).toFixed(3)}_r${radius}`
     : '';
   const cacheKey = customQuery
-    ? `gg2_${cityName.replace(/\s+/g, '_')}_q_${slugForCache(effectiveQuery)}_${isSmall ? 's' : 'l'}${where}`
-    : `gg2_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}${where}`;
+    ? `gg3_${cityName.replace(/\s+/g, '_')}_q_${slugForCache(effectiveQuery)}_${isSmall ? 's' : 'l'}${where}`
+    : `gg3_${cityName.replace(/\s+/g, '_')}_${themeType}_${isSmall ? 's' : 'l'}${where}`;
   const cached = loadFromCache(cacheKey);
   if (cached) return cached;
 
@@ -899,10 +911,12 @@ export const fetchPlaceDetailsForTour = async (placeId, cityName, candidateHints
     // Arrivano da candidateHints (candidato del textsearch) o cadono a 0
     // (accettabile: rating a 0 su una notifica precomputed non blocca nulla,
     // il tour usa i POI verificati dalla notifica-vera che ha gia' rating).
+    const nome = cleanPlaceName(r.name, { city: cityName });
     const result = {
       id: `google-${placeId}`,
-      name: r.name,
-      title: r.name,
+      name: nome.name,
+      title: nome.name,
+      ...(nome.tagliato ? { nameOriginal: nome.original } : {}),
       description: '', // Blocco 2.7 farà il narratore (fatti, non poesia).
       lat, lng,
       latitude: lat, longitude: lng,

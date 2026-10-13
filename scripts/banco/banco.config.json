@@ -96,6 +96,8 @@
     },
     "baselineLegacy": "docs/prove/dati/2026-10-13-banco-esteso.json",
     "baselineNew": "docs/prove/dati/2026-10-13-banco-esteso-new.json",
-    "tettoOrariUsd": 6.0
+    "baselineOrari": "docs/prove/dati/2026-10-13-banco-esteso-orari.json",
+    "tettoOrariUsd": 6.0,
+    "tettoC6aUsd": 5.0
   }
 }

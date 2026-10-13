@@ -252,7 +252,8 @@ describe('C5 — rifinitura: famiglie ripetute, pasti fuori posto, tracce', () =
     it('mai una trattoria nel pomeriggio per togliere una ripetizione (anche se Google la dice "store")', () => {
         const trattoria = p('tr', 'Trattoria Bottega', 41.9021, 12.4801, ['restaurant', 'food', 'store']);
         const pool = [belvA, belvB, bar, trattoria];
-        expect(bucketCandidates(g, pool).get('g1-pomeriggio').map(c => c.place_id)).toContain('tr');
+        // C6a — un ristorante con uno `store` di contorno e' un ristorante: non entra nemmeno nel bucket del pomeriggio.
+        expect(bucketCandidates(g, pool).get('g1-pomeriggio').map(c => c.place_id)).not.toContain('tr');
         const r = report();
         const out = polishRoute(piano(), { buckets: bucketCandidates(g, pool), pool }, r);
         expect(nomi(out)).toEqual(['Belvedere Tarpeo', 'Belvedere Cederna', 'Bar Pace']);

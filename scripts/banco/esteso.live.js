@@ -142,6 +142,8 @@ const tappa = (s, fatti, comp, riempite, dieta, atStimato) => {
         recensioni: l.recensioni ?? null, priceLevel: l.priceLevel ?? null,
         pasto: isMealPlace({ types, name: r.title, title: r.title }),
         ...(l.primaryType ? { primaryType: l.primaryType } : {}),
+        // C6a — il nome originale di Google, se il nome mostrato e' stato ripulito dalle code commerciali
+        ...(s._tracciato?.nomeOriginale ? { nomeOriginale: s._tracciato.nomeOriginale } : {}),
         // ORARI — il motore segna se l'orario del posto e' noto (aperto per tutta la sosta) o sconosciuto
         ...(s._orario || s._tracciato?.orario ? { orario: s._orario ?? s._tracciato.orario } : {}),
         dietaCercata: parole.length ? qs.some(conDieta) : null,

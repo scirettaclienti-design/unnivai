@@ -185,7 +185,7 @@ export const BLACKLIST_TYPES = new Set([
 // pomeriggio e aperitivo nelle richieste a tema cibo, e zone come tappe.
 // C8a — prefix bumped da 'unnivai_insiderf16_composizione_': i giri cached prima hanno l'aperitivo da 20 minuti,
 // nessuna passeggiata fra drink e cena, e la sera tarda del Veloce senza scheletro.
-const INSIDER_CACHE_PREFIX = 'unnivai_insiderf19_pasti_';
+const INSIDER_CACHE_PREFIX = 'unnivai_insiderf20_vuoti_';
 const INSIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 const djb2 = (s) => {

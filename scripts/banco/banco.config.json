@@ -159,6 +159,22 @@
       "docs/prove/dati/2026-10-14-banco-esteso-minimi-c.json",
       "docs/prove/dati/2026-10-14-banco-esteso-minimi-b.json",
       "docs/prove/dati/2026-10-14-banco-esteso-minimi-a.json"
+    ],
+    "vuotiCasi": [
+      "crea-catania-colazione-0800",
+      "crea-bologna-pomeriggio",
+      "perte-catania-1300",
+      "perte-napoli-2000"
+    ],
+    "tettoVuotiUsd": 1.0,
+    "_tettoVuotiUsd": "C8d: tetto 1 $ per tutto il task, sommato su tutti i giri (BANCO_TETTO vale per un giro); a 0,9 $ ci si ferma e si chiede",
+    "baselineVuoti": [
+      "docs/prove/dati/2026-10-14-banco-esteso-pasti-2.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-pasti.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-minimi-d.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-minimi-c.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-minimi-b.json",
+      "docs/prove/dati/2026-10-14-banco-esteso-minimi-a.json"
     ]
   }
 }

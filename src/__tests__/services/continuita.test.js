@@ -85,10 +85,10 @@ describe('un buco che non si riempie viene dichiarato, con la sua fascia', () =>
         expect(remainingGaps(righe(r))).toEqual([]);
         expect(r._momentReport.continuita.dichiarati.length).toBe(tl.length);
     });
-    it('ritmo Rilassato: nessuna tappa in piu\' (e\' la scelta dell\'utente), i buchi sono dichiarati', async () => {
+    it('ritmo Rilassato: niente tappe in piu\' come regola (scelta dell\'utente), al piu\' UNA tappa leggera oltre 90 minuti di vuoto (C8d); i buchi restano dichiarati', async () => {
         const r = await genera(APERTE(9), '14:00', { interests: ['Natura'], pace: 'Rilassato' });
-        expect(r._momentReport.continuita.aggiunte).toEqual([]);
-        expect(vere(r).filter(s => s.moment === 'pomeriggio')).toHaveLength(1);
+        expect(r._momentReport.continuita.aggiunte.length).toBeLessThanOrEqual(1);
+        expect(vere(r).filter(s => s.moment === 'pomeriggio').length).toBeLessThanOrEqual(2);
         expect(libere(r).length).toBeGreaterThan(0);
         expect(remainingGaps(righe(r))).toEqual([]);
     });

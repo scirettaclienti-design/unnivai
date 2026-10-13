@@ -42,11 +42,11 @@ export function reportPasti(baseCasi, nuovo, config, meta = {}) {
     for (const k of CLASSI_PASTI) sintesi.classi[k] = { prima: tot(B, confrontabili, k), dopo: tot(N, misurati, k), casiDopo: misurati.filter(id => ctrl(N, id, k)?.violazioni.length).length };
     const L = [];
 
-    L.push('# C8c — pasti giusti: la sera si cena, la colazione chiesta c\'è, un dolce solo e dopo');
+    L.push(meta.vuoti ? '# C8d — i vuoti giusti: mattina presto e pomeriggio lento' : '# C8c — pasti giusti: la sera si cena, la colazione chiesta c\'è, un dolce solo e dopo');
     L.push('');
     L.push(`Codice al momento del report: \`${meta.commit || '?'}\` (i giri dal vivo sono di commit precedenti: vedi «Spesa» e «Cosa ho dato per vero»), \`engine=new\` (solo l'account di prova), giorno simulato **${nuovo.giornoSimulato}** (mercoledì), ora simulata per caso. `
-        + `${ids.length} casi girati: i 5 della diagnosi più Veloce Catania relax 21:25 come controllo della cena tardi. `
-        + `Il "prima" di ogni caso è il giro di C8b (${(meta.baseFile || []).join(', ') || 'grezzi C8b'}). `
+        + `${ids.length} casi girati${meta.vuoti ? ' sul codice finale' : ': i 5 della diagnosi più Veloce Catania relax 21:25 come controllo della cena tardi'}. `
+        + `Il "prima" di ogni caso è il giro di ${meta.vuoti ? 'C8c (o C8b)' : 'C8b'} (${(meta.baseFile || []).join(', ') || 'grezzi C8b'}). `
         + 'Le classi sono misurate sui due giri con gli **stessi controlli** (quelli di adesso: c1 conta anche i dolci, c13 anche la sera senza cena), indipendenti dal motore. '
         + 'Un campione per caso: il pool di Google cambia da una chiamata all\'altra.');
     L.push('');

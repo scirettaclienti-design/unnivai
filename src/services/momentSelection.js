@@ -44,8 +44,8 @@ import { computeCandidateScore } from './candidateScoring';
 import { stayInMoment, travelMinutes, WALKING_KMH } from '../lib/tourTiming';
 import { placeKind, KINDS, COMMERCIAL_KINDS, LOCALE_CATEGORIES } from '../lib/placeKind';
 import { FOOD_ONLY_MOMENT_KEYS, EXPANDABLE_KEYS, MAX_STOPS_PER_DAY } from '../lib/daySkeleton';
-import { momentAdmits, isLocale, isOutdoorWalk, isBreakfastPlace } from '../lib/mealRules';
-import { scheduleGaps, retimeWaits, totalGapMinutes, realStopCount, isEveningComplete } from '../lib/continuity';
+import { momentAdmits, isLocale, isOutdoorWalk, isBreakfastPlace, isLightStop } from '../lib/mealRules';
+import { scheduleGaps, retimeWaits, totalGapMinutes, realStopCount, isEveningComplete, GAP_RILASSATO_MINUTES } from '../lib/continuity';
 import { freeTimeDecision, FREE_TIME_MAX_MINUTES } from '../lib/freeTime';
 import { brandKey, legKm, pathKm, minimalPathKm, countCrossings, crossingPairs, repeatedBrands, stopDetours } from '../lib/routeShape';
 import { openStatus, OPEN, CLOSED, UNKNOWN, NIGHT_FROM_MINUTES, romeMinutes } from '../lib/openingHours';
@@ -662,7 +662,12 @@ function repairPass({
         // Se non ce n'e' nessuno la riga e' dichiarata (vedi il ciclo dei posti vuoti) e le visite seguono.
         let colazioneSalta = false;
         const colazioneInCorso = () => !!m.colazione && chosen.length === 0 && !colazioneSalta;
-        const free = (except) => bucket.filter(c => !used.has(idOf(c)) && idOf(c) !== except && (!colazioneInCorso() || isBreakfastPlace(c)));
+        // C8d — DOPO LA COLAZIONE niente altro cibo fino al pranzo (pasticceria, bar, gelato): le tappe seguenti sono visite.
+        const dopoColazione = () => !!m.colazione && !colazioneInCorso();
+        // C8d — RILASSATO: l'ultima tappa di un momento allargato per un vuoto lungo e' una tappa LEGGERA (all'aperto, verde, chiesa, caffe').
+        const leggeraInCorso = () => !!m.extraLeggero && chosen.length === m.stops - 1;
+        const free = (except) => bucket.filter(c => !used.has(idOf(c)) && idOf(c) !== except
+            && (!colazioneInCorso() || isBreakfastPlace(c)) && (!dopoColazione() || !isLocale(c)) && (!leggeraInCorso() || isLightStop(c)));
         // C5e (O) — solo se attivo (dopo le ricerche mirate), solo fuori dai
         // pasti, solo con una tappa vera prima nello stesso giorno.
         const freeSlot = () => !!tempoLiberoMinuti && !FOOD_ONLY_MOMENT_KEYS.has(m.key) && !m.opzionale && !!last()
@@ -853,10 +858,12 @@ function repairPass({
             if (!c) { reject(s, 'fuori dal suo momento'); continue; }
             if (used.has(s.place_id)) { reject(s, 'gia\' usato'); continue; }
             if (colazioneInCorso() && !isBreakfastPlace(c)) { reject(s, 'colazione chiesta: la prima tappa e\' un posto da colazione'); continue; }
+            if (dopoColazione() && isLocale(c)) { reject(s, 'dopo la colazione niente altro cibo fino al pranzo'); continue; }
+            if (leggeraInCorso() && !isLightStop(c)) { reject(s, 'vuoto lungo con ritmo Rilassato: una tappa leggera'); continue; }
             if (freeSlot()) { reject(s, `nessun posto entro ${tempoLiberoMinuti} min dalla tappa prima: tempo libero`); continue; }
             const { ok, mine, alt } = modelWins(c);
             if (!ok) { reject(s, whyWorse(mine.key, c, mine.t, alt.key)); continue; }
-            if (m.opzionale && !fitsOptional(mine)) { reject(s, 'passeggiata: oltre il tetto di cammino, fuori strada o famiglia gia\' nel giorno'); continue; }
+            if ((m.opzionale || leggeraInCorso()) && !fitsOptional(mine)) { reject(s, 'passeggiata: oltre il tetto di cammino, fuori strada o famiglia gia\' nel giorno'); continue; }
             // Gate NARRATORE-DOPO — il selettore non scrive testi: una tappa
             // vale per il suo luogo e il suo momento. Il racconto arriva dopo,
             // dal narratore, sulle tappe finali.
@@ -867,9 +874,10 @@ function repairPass({
             const c = inBucket.get(s.place_id);
             if (!c || used.has(s.place_id) || freeSlot()) continue;
             if (colazioneInCorso() && !isBreakfastPlace(c)) continue;
+            if ((dopoColazione() && isLocale(c)) || (leggeraInCorso() && !isLightStop(c))) continue;
             const { ok, mine } = modelWins(c);
             if (!ok) continue;
-            if (m.opzionale && !fitsOptional(mine)) continue;
+            if ((m.opzionale || leggeraInCorso()) && !fitsOptional(mine)) continue;
             take(c, s, 'modello', mine);
             unassigned.splice(i, 1);
             i -= 1;
@@ -903,7 +911,7 @@ function repairPass({
             if (!b) break;
             // C8a — un momento FACOLTATIVO (la passeggiata) entra solo se sta bene: entro il tetto di
             // cammino, sulla strada (soglia C5c) e senza ripetere una famiglia. Altrimenti non entra.
-            if (m.opzionale && !fitsOptional(b)) break;
+            if ((m.opzionale || leggeraInCorso()) && !fitsOptional(b)) break;
             take(b.c, narrationById.get(idOf(b.c)) || null, 'riparata', b);
             report.riempite.push({ place_id: idOf(b.c), name: b.c.name || b.c.title || null, momento: m.id });
         }
@@ -1661,22 +1669,26 @@ export function fillGaps({ moments, repaired, sched, repair, schedule, veto, esp
     let cur = { repaired, sched: retimeWaits(sched) };
     const aggiunte = [];
     let tentativi = 0;
-    // Ritmo Rilassato (1 tappa per momento, scelta dell'utente): non si aggiungono tappe, il buco si dichiara.
-    for (let pass = 0; espandi && pass < maxPasses; pass++) {
-        const gaps = scheduleGaps(cur.sched).sort((a, b) => b.minutes - a.minutes);
+    // Ritmo Rilassato (1 tappa per momento, scelta dell'utente): fino a GAP_RILASSATO_MINUTES il buco si dichiara (CONTINUITA');
+    // oltre, UNA sola tappa leggera per momento (C8d), con le stesse regole e le soglie C5c.
+    for (let pass = 0; pass < maxPasses; pass++) {
+        const gaps = scheduleGaps(cur.sched).filter(g => espandi || g.minutes > GAP_RILASSATO_MINUTES).sort((a, b) => b.minutes - a.minutes);
         if (gaps.length === 0) break;
         let accepted = false;
         for (const gap of gaps) {
             for (const m of momentsToExpand(gap, moments)) {
+                if (!espandi && m.extraLeggero) continue;
                 tentativi += 1;
-                const saved = { stops: m.stops, veto: cloneVeto(veto) };
+                const saved = { stops: m.stops, extraLeggero: m.extraLeggero, veto: cloneVeto(veto) };
                 m.stops += 1;
+                if (!espandi) m.extraLeggero = true;
                 const trial = settleOpeningHours({ repair, schedule, veto });
                 const trialSched = retimeWaits(trial.sched);
                 const rep = trial.repaired.report;
                 const was = cur.repaired.report;
                 const better = trial.residui.length === 0
-                    && mealCount(trialSched) <= mealCount(cur.sched)
+                    // C8d — la tappa leggera di Rilassato puo' essere un caffe' (non un pasto): il controllo sui pasti qui lo fa isLightStop
+                    && (!espandi || mealCount(trialSched) <= mealCount(cur.sched))
                     && realStopCount(trialSched) > realStopCount(cur.sched)
                     && totalGapMinutes(trialSched) < totalGapMinutes(cur.sched)
                     && (rep.ripieghi?.length ?? 0) <= (was.ripieghi?.length ?? 0)
@@ -1689,6 +1701,7 @@ export function fillGaps({ moments, repaired, sched, repair, schedule, veto, esp
                     break;
                 }
                 m.stops = saved.stops;
+                m.extraLeggero = saved.extraLeggero;
                 restoreVeto(veto, saved.veto);
             }
             if (accepted) break;

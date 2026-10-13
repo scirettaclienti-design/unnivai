@@ -144,6 +144,18 @@ export function dolceProblem(candidate, minutes, altre = []) {
     return dopoPasto ? null : 'dolce prima del pasto';
 }
 
+/**
+ * C8d — UNA TAPPA LEGGERA (il vuoto lungo con ritmo Rilassato): un luogo all'aperto, il verde, una chiesa, o un caffe' fuori dai pasti
+ * (mai un dolce: regola C8c, mai un bar da drink). Un caffe' e' un posto con tipo caffe', o con `cafe`/`coffee_shop` fra i tipi di Google.
+ */
+export const isLightStop = (c) => {
+    const k = kindOf(c);
+    if (isOutdoorWalk(c) || k === 'verde' || k === 'chiesa') return true;
+    if (isDolce(c)) return false;
+    const types = Array.isArray(c?.types) ? c.types : [];
+    return k === 'caffe' || types.includes('cafe') || types.includes('coffee_shop');
+};
+
 export const SECONDO_PASTO_MIN_ORE = 3;
 export function perTeMealProblem(candidate, minutes, arrivo, altre = []) {
     if (!mealFitsClock(candidate, minutes)) return 'pasto fuori fascia';

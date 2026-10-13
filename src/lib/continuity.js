@@ -27,6 +27,9 @@ import { MOMENT_BY_KEY } from './dayMoments';
 /** Oltre questa attesa fra due tappe serve una tappa o una riga dichiarata. */
 export const GAP_MAX_MINUTES = 45;
 
+/** C8d — con ritmo Rilassato fino a questa attesa resta la regola CONTINUITA' (tempo libero dichiarato); oltre, UNA tappa leggera. */
+export const GAP_RILASSATO_MINUTES = 90;
+
 /**
  * C8b — I MINIMI DI TAPPE (decisione di Ivano), per la durata della finestra del giorno:
  *   6 ore o piu' → almeno 4 tappe; da 3 a 6 ore → almeno 3; meno di 3 ore → almeno 2; mai 1.

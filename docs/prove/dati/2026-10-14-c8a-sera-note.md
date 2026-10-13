@@ -15,20 +15,18 @@
 - **Non toccati**: regola ORARI (aperto per tutta la sosta), regole C7 (tema e vegetariano solo ai pasti, un pasto per fascia), soglie C5c, frasi approvate, quote, testo dei prompt del modello, minimi di tappe (C8b).
 - **Banco**: `c4` estesa (di sera un drink più la cena, o più la passeggiata quando la cena non è più possibile); nuova **`c13`** (sera: drink sotto i 45 minuti, secondo bar fra drink e cena, buco oltre 30 minuti senza passeggiata né riga, Veloce serale con una tappa sola), entrambe validate (rosso sul cattivo noto, verde sul buono); casi nuovi `crea-catania-1800` e `perte-catania-1900`; `BANCO_RUN=sera`, `BANCO_DATA`.
 
-## Controllo a 0 $ sui posti veri di Catania (replay)
+## Controllo a 0 $ sui posti veri di Catania (replay) e rigiro dal vivo
 
-Per non spendere ho ricostruito il pool vero dalla cache dei posti (stessi nomi, tipi, orari di mercoledì 14/10) e ho fatto girare il **motore vero** con l'IA finta (traduttore fisso, selettore che prende il primo candidato di ogni momento) e la ricerca stretta simulata (solo i posti entro 1,5 km dal punto). Sono i giri che il banco non ho potuto rifare dal vivo:
+Prima di spendere ho ricostruito il pool vero dalla cache dei posti (stessi nomi, tipi, orari di mercoledì 14/10) e ho fatto girare il **motore vero** con l'IA finta (traduttore fisso, selettore che prende il primo candidato di ogni momento) e la ricerca stretta simulata (solo i posti entro 1,5 km dal punto). Poi, autorizzato, ho **rigirato dal vivo** i tre casi che mancavano. Replay e dal-vivo coincidono nella forma:
 
-| Caso | Giro |
-|---|---|
-| Veloce relax 21:25 (Rilassato) | 21:25 Bar Popolare (60') → 22:27 Fontana dell'Amenano (30'). La cena non c'è: sarebbe alle 23:00 passate |
-| Veloce relax 21:25 (Attivo) | 21:25 Bar Popolare (45') → 22:12 Fontana dell'Amenano (30') → 22:50 Ristorante EtnaSicilia (75') |
-| Veloce relax 21:45 | 21:45 Bar Popolare (60') → 22:47 Fontana dell'Amenano (30') |
-| Veloce relax 23:30 | 23:30 Bar Popolare (60') → 00:32 Fontana dell'Amenano (30') |
-| Veloce relax 18:00 | 18:00 Bar Popolare (60') → 19:02 Fontana dell'Amenano (30') → 20:00 Osteria Moderna (75') |
-| Crea Catania 18:00 | 18:00 Sotto Palazzo (45') → 18:48 Piazza Vincenzo Bellini (30') → 20:00 Osteria Moderna (75') |
-
-Lo stesso giro, dal vivo, con il codice finale, per i due casi che ho rigirato davvero (sopra): Crea 18:00 = Bar Popolare 45' → Piazza Mazzini 30' → Trattoria Sorano 20:00; Veloce relax 21:45 = Bar Popolare 60' → Fontana dell'Amenano 30'. Il replay e il dal-vivo coincidono nella forma.
+| Caso | Replay a 0 $ | Dal vivo, codice finale |
+|---|---|---|
+| Veloce relax 21:25 (Rilassato) | 21:25 Bar Popolare (60') → 22:27 Fontana dell'Amenano (30'); la cena non c'è (sarebbe oltre le 23:00) | **21:25 Bar Popolare (60') → 22:27 Fontana dell'Amenano (30')** |
+| Veloce relax 21:45 | Bar Popolare (60') → 22:47 Fontana dell'Amenano | Bar Popolare (60') → 22:47 Fontana dell'Amenano |
+| Veloce relax 23:30 | Bar Popolare (60') → 00:32 Fontana dell'Amenano | **23:30 Bar Popolare (60') → 00:32 Fontana dell'Amenano (30')** |
+| Veloce relax 18:00 (Rilassato) | Bar Popolare (60') → 19:02 Fontana → 20:00 Osteria Moderna | (non rigirato dal vivo) |
+| Crea Catania 18:00 | Sotto Palazzo (45') → Piazza Bellini (30') → 20:00 Osteria Moderna | Bar Popolare (45') → Piazza Mazzini (30') → 20:00 Trattoria Sorano |
+| Napoli 19:30 «aperitivo e cena» | — | **19:30 Ammor&More (45') → 20:22 Jallinus Cocktail Bistrò (75')** |
 
 ## Prove (rosso → verde) e suite
 
@@ -38,10 +36,10 @@ Test di prima cambiati perché fissavano regole che questo task cambia (letti un
 
 ## Costo
 
-- Casi serali: **$0,168 per generazione** (token + Google, senza foto) contro $0,134 degli stessi casi prima (**+$0,035, +26%**), 4,3 ricerche di testo contro 3,3. È il prezzo di dare un giro vero dove prima c'era un messaggio falso o una tappa sola: il Veloce delle 21:45, che prima si fermava dopo ~3 ricerche, ora cerca bar (e la cena, se c'è tempo) e poi la passeggiata dalla tappa prima.
-- La voce "Costo" dell'asticella segna +2 casi rossi (veloce 21:25 e 21:45, entro la varianza di ±2); sono i due casi che prima non facevano il giro.
+- Casi serali: **$0,164 per generazione** (token + Google, senza foto) contro $0,134 degli stessi casi prima (**+$0,029, +22%**), 4,2 ricerche di testo contro 3,3. È il prezzo di dare un giro vero dove prima c'era un messaggio falso o una tappa sola: il Veloce delle 21:45, che prima si fermava dopo ~3 ricerche, ora cerca bar (e la cena, se c'è tempo) e poi la passeggiata dalla tappa prima.
+- **La voce "Costo" dell'asticella PEGGIORA oltre la varianza: +3 casi rossi** (i tre Veloce di Catania, 21:25, 21:45, 23:30; soglia 0,20 $ con le foto stimate, una per tappa). Non è un caso che si rompe: sono i tre che prima non facevano il giro (un messaggio, o una cena sola) e ora cercano bar, la cena se c'è tempo, e la passeggiata dalla tappa prima (5-6 ricerche di testo, 0,19-0,23 $). Tutte le altre voci sono invariate o migliori. Se il costo serale è troppo, le leve sono: niente ricerca della cena dopo le 21:00 (-1 ricerca), o niente ricerca della passeggiata (il giro tornerebbe a una tappa).
 - Un tour serale può fare **fino a 3 ricerche mirate** (2 per i momenti veri come prima + 1 per la passeggiata); la passeggiata cerca solo se il pool non ne ha una vicina. Nei tour di una giornata intera la passeggiata si trova quasi sempre nel pool (nessuna ricerca in più).
-- **Spesa del task: $1,755** sul tetto di $2 (fermo a $1,8): giro dei 7 casi con la versione intermedia $1,246 + rigiro dei 2 casi chiave col codice finale $0,351 + `crea-catania-1800` sul codice di prima $0,158. Nessuna chiamata a `place/details`.
+- **Spesa del task: $2,264**: giro dei 7 casi con la versione intermedia $1,246 + rigiro dei 2 casi chiave $0,351 + `crea-catania-1800` sul codice di prima $0,158 (qui ci si era fermati a $1,755, fermo a $1,8) + rigiro di 21:25, 23:30 e Napoli col codice finale $0,509, autorizzato (+$0,6). Nessuna chiamata a `place/details`.
 
 ## Decisioni mie da confermare
 
@@ -53,13 +51,13 @@ Test di prima cambiati perché fissavano regole che questo task cambia (letti un
 6. **Il gruppo Famiglia** ha lo stesso drink serale (la regola "mai dopocena con Famiglia" riguarda il momento della tabella, non il drink del Veloce): da decidere.
 7. **Ritmo Rilassato → drink da 60 minuti** (come chiesto), e quindi la passeggiata ha meno margine: con un aperitivo alle 18:00 restano comunque 60 minuti prima della cena delle 20:00.
 
-## Casi non rigirati dal vivo col codice finale
+## Rigiro col codice finale
 
-Ho fermato la spesa a $1,755 (fermo a $1,8). **Rigirati col codice finale: `crea-catania-1800` e `veloce-catania-relax-2145`.** Gli altri cinque sono del primo giro, fatto con una versione **intermedia** del codice (senza la ricerca della passeggiata dalla tappa prima, senza il drink-bar di sera, con la cena fino alle 23:10): `veloce-catania-relax-2125` (due tappe, drink e cena, nessuna passeggiata), **`veloce-catania-relax-2330` (una tappa sola: il solo drink; `c13` lo segna rosso e dice il vero)**, `crea-napoli-aperitivo-cena`, `veloce-siracusa-parco` (di giorno, non toccato) e `perte-catania-1900` (Per Te, non toccato). Per i primi tre il giro finale è il replay a 0 $ qui sopra, non una generazione vera. Servirebbero circa $0,6 per rigirarli col codice finale (totale ~$2,35): **aspetto un tuo via libera.**
+Fermati a $1,755 (fermo a $1,8), Ivano ha autorizzato +$0,6 e ho rigirato **21:25, 23:30 e Napoli 19:30**: ora **cinque dei sette casi sono del codice finale** (`crea-catania-1800`, i tre Veloce di Catania, Napoli). Restano del primo giro `veloce-siracusa-parco` (di giorno) e `perte-catania-1900` (Per Te): il loro codice non è cambiato. Il primo giro di ognuno dei cinque resta nel grezzo (`rigiro`) e nel report.
 
 ## Cosa ho dato per vero senza verificarlo
 
-1. **Il giro finale di 21:25, 23:30 e Napoli 19:30** è il replay a 0 $, non una generazione vera: l'IA è finta (selettore: il primo candidato di ogni momento) e la ricerca "dalla tappa prima" è simulata filtrando i risultati già in cache entro 1,5 km. Non prova cosa risponde Google con il bias vero. Dal vivo l'ho visto solo a 21:45 (5 posti trovati) e nel Crea delle 18:00.
+1. **Il replay a 0 $** (IA finta, ricerca stretta simulata sulla cache) resta una prova di logica, non di Google; ma i cinque casi rigirati dal vivo gli danno ragione. **Il Veloce delle 18:00 non l'ho rigirato dal vivo**: è solo nel replay (bar + passeggiata + cena alle 20:00). Il Veloce con la cena dopo le 21:00 (ristorante aperto fino all'una) non è mai stato dal vivo: solo nei test.
 2. **Il "prima" dei Veloce** (21:25, 21:45, 23:30, Siracusa) e di Napoli viene dai giri CONTINUITA' e C7 (motori `3e8b8ca` e `dbfddd0`), non da `ce135b5`: la sera del Veloce non è cambiata fra quei commit (C7 non la toccava), ma non l'ho rigirata. Solo `crea-catania-1800` è stato girato sul codice di prima (`ce135b5`, $0,158).
 3. **Un campione per caso.** Il pool di Google cambia da una chiamata all'altra (nel primo giro Catania 21:45 aveva "Ristorante EtnaSicilia" alle 23:10, nel secondo no perché la cena oltre le 23:00 non c'è più).
 4. **I 22 bar aperti per tutta la sosta (e i 18 delle 23:30)** sono calcolati da me sugli `opening_hours` della cache di mercoledì 14/10 con la regola del banco, non dal motore; la cache è di oggi (13/10), quindi il mercoledì è quello settimanale.

@@ -26,7 +26,7 @@
     },
     "testo": "aperitivo e cena"
    },
-   "secs": 9.44,
+   "secs": 11.063,
    "source": "google-first",
    "destinazione": {
     "city": "Napoli",
@@ -45,8 +45,8 @@
      "posti": 1,
      "candidati": [
       {
-       "place_id": "ChIJAa-rN0YJOxMRwHOUz26vkmU",
-       "nome": "Botanical Bar",
+       "place_id": "ChIJ5d1vOREJOxMRgDfOUh7_PVo",
+       "nome": "Ammor&More",
        "famiglia": null,
        "primaryType": "bar",
        "types": [
@@ -54,7 +54,7 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.53,
+       "merito": 0.49,
        "minuti": 0,
        "deviazione": 0,
        "scelto": true,
@@ -63,93 +63,65 @@
        "nelGiro": true
       },
       {
-       "place_id": "ChIJYSmdBRYIOxMRFXPjMYmrmEo",
-       "nome": "Caffetteria Del Maresciallo",
+       "place_id": "ChIJb-yBxbAJOxMROA-cesTtAF4",
+       "nome": "Alkymya Bellini",
        "famiglia": null,
        "primaryType": "bar",
        "types": [
         "bar",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.45,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJz1ATMGkIOxMRFPYPlq0CtG4",
+       "nome": "Antica Cantina Sepe",
+       "famiglia": null,
+       "primaryType": "bar",
+       "types": [
+        "bar",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.44,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJNc9wVvcJOxMRxXOnBLOW28s",
+       "nome": "St\u00e0 Ben!",
+       "famiglia": null,
+       "primaryType": "cocktail_bar",
+       "types": [
+        "cocktail_bar",
+        "deli",
         "coffee_shop",
         "cafe",
+        "bar",
+        "tapas_restaurant",
+        "spanish_restaurant",
+        "live_music_venue",
+        "event_venue",
+        "european_restaurant",
         "food_store",
         "store",
+        "restaurant",
         "food",
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.46,
-       "minuti": 0,
-       "deviazione": 0,
-       "scelto": false,
-       "posto": 0,
-       "motivo": "merito e strada minori (a pari regole)",
-       "nelGiro": false
-      },
-      {
-       "place_id": "ChIJva6PWkQIOxMRMSkfBjO-jn0",
-       "nome": "Beer Bar",
-       "famiglia": null,
-       "primaryType": "bar",
-       "types": [
-        "bar",
-        "point_of_interest",
-        "establishment"
-       ],
-       "merito": 0.32,
-       "minuti": 0,
-       "deviazione": 0,
-       "scelto": false,
-       "posto": 0,
-       "motivo": "merito e strada minori (a pari regole)",
-       "nelGiro": false
-      },
-      {
-       "place_id": "ChIJdbxxOtYJOxMRGXSJtFvkTdc",
-       "nome": "Ba-Bar La Nova Central",
-       "famiglia": null,
-       "primaryType": "bar",
-       "types": [
-        "bar",
-        "point_of_interest",
-        "establishment"
-       ],
-       "merito": 0.31,
-       "minuti": 0,
-       "deviazione": 0,
-       "scelto": false,
-       "posto": 0,
-       "motivo": "merito e strada minori (a pari regole)",
-       "nelGiro": false
-      },
-      {
-       "place_id": "ChIJKcxIMEMIOxMRkI1CUccuOis",
-       "nome": "Caff\u00e8 dell'Epoca - Peppe Spritz",
-       "famiglia": null,
-       "primaryType": "bar",
-       "types": [
-        "bar",
-        "point_of_interest",
-        "establishment"
-       ],
-       "merito": 0.31,
-       "minuti": 0,
-       "deviazione": 0,
-       "scelto": false,
-       "posto": 0,
-       "motivo": "merito e strada minori (a pari regole)",
-       "nelGiro": false
-      },
-      {
-       "place_id": "ChIJY5vFlkMIOxMRe5cK7Bm5v6M",
-       "nome": "Gran Caff\u00e8 Neapolis",
-       "famiglia": null,
-       "primaryType": "bar",
-       "types": [
-        "bar",
-        "point_of_interest",
-        "establishment"
-       ],
-       "merito": 0.31,
+       "merito": 0.36,
        "minuti": 0,
        "deviazione": 0,
        "scelto": false,
@@ -171,12 +143,87 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.29,
+       "merito": 0.35,
        "minuti": 0,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
        "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJpZK6CKEJOxMRTYPe2TtNvJY",
+       "nome": "Posca - Bar/Bakery/Bistrot",
+       "famiglia": null,
+       "primaryType": "bar",
+       "types": [
+        "bar",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.3,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJadJ4wsoJOxMRKWGSBbVRu-8",
+       "nome": "Barrio Botanico - Vomero",
+       "famiglia": null,
+       "primaryType": "cocktail_bar",
+       "types": [
+        "cocktail_bar",
+        "bar",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.28,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJw5KEchQJOxMRN-ySHtMrm6Q",
+       "nome": "Barrio Botanico - La Santissima",
+       "famiglia": null,
+       "primaryType": "cocktail_bar",
+       "types": [
+        "cocktail_bar",
+        "bar",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.21,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJQUJgGhgJOxMR6EZLDghxTlY",
+       "nome": "Pacu",
+       "famiglia": null,
+       "primaryType": "cocktail_bar",
+       "types": [
+        "cocktail_bar",
+        "bar",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.3,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "dopo di lui nessuna tappa nuova entro il tetto",
        "nelGiro": false
       }
      ]
@@ -184,6 +231,30 @@
     "g1-cena": {
      "posti": 1,
      "candidati": [
+      {
+       "place_id": "ChIJZT4GdtcJOxMRmtC8_iPGMx8",
+       "nome": "Jallinus Cocktail Bistr\u00f2",
+       "famiglia": null,
+       "primaryType": "bistro",
+       "types": [
+        "bistro",
+        "italian_restaurant",
+        "cocktail_bar",
+        "bar",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.53,
+       "minuti": 7,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
       {
        "place_id": "ChIJ6T3NYG0JOxMREQTHHUvMIpk",
        "nome": "Trattoria canta napoli",
@@ -196,13 +267,13 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.27,
-       "minuti": 8,
+       "merito": 0.32,
+       "minuti": 9,
        "deviazione": 0,
-       "scelto": true,
+       "scelto": false,
        "posto": 0,
-       "motivo": null,
-       "nelGiro": true
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
       },
       {
        "place_id": "ChIJ6WROiFMJOxMRsl9cQlmTeLQ",
@@ -217,8 +288,8 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.23,
-       "minuti": 8,
+       "merito": 0.28,
+       "minuti": 3,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
@@ -226,59 +297,27 @@
        "nelGiro": false
       },
       {
-       "place_id": "ChIJp6zoGj4IOxMR610hF0KuKO4",
-       "nome": "Trattoria da Giovanni",
+       "place_id": "ChIJiSLisUEIOxMRG6my-pv42Pw",
+       "nome": "WineCaf\u00e8 Da Mario",
        "famiglia": null,
-       "primaryType": "restaurant",
+       "primaryType": "bistro",
        "types": [
-        "restaurant",
-        "food",
-        "point_of_interest",
-        "establishment"
-       ],
-       "merito": 0.21,
-       "minuti": 18,
-       "deviazione": 0,
-       "scelto": false,
-       "posto": 0,
-       "motivo": "merito e strada minori (a pari regole)",
-       "nelGiro": false
-      },
-      {
-       "place_id": "ChIJ3QwxM10IOxMRhSnkvVKQC1E",
-       "nome": "Osteria da Carmela",
-       "famiglia": null,
-       "primaryType": "italian_restaurant",
-       "types": [
-        "seafood_restaurant",
-        "italian_restaurant",
+        "bistro",
+        "wine_bar",
+        "cafe",
+        "pub",
+        "liquor_store",
+        "bar",
+        "spanish_restaurant",
         "european_restaurant",
+        "store",
         "restaurant",
         "food",
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.21,
-       "minuti": 10,
-       "deviazione": 0,
-       "scelto": false,
-       "posto": 0,
-       "motivo": "merito e strada minori (a pari regole)",
-       "nelGiro": false
-      },
-      {
-       "place_id": "ChIJu-noOUgJOxMRXMVU_pavG3g",
-       "nome": "Antica Trattoria Da Carmine",
-       "famiglia": null,
-       "primaryType": "restaurant",
-       "types": [
-        "restaurant",
-        "food",
-        "point_of_interest",
-        "establishment"
-       ],
-       "merito": 0.2,
-       "minuti": 10,
+       "merito": 0.27,
+       "minuti": 17,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
@@ -296,12 +335,52 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.19,
-       "minuti": 9,
+       "merito": 0.23,
+       "minuti": 13,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
        "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJMwzZO_MJOxMR-UPF7LrPXuU",
+       "nome": "Signora Bettola - Santa Lucia",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.19,
+       "minuti": 15,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJp6zoGj4IOxMR610hF0KuKO4",
+       "nome": "Trattoria da Giovanni",
+       "famiglia": null,
+       "primaryType": "restaurant",
+       "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.26,
+       "minuti": 25,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
        "nelGiro": false
       },
       {
@@ -316,12 +395,12 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.19,
-       "minuti": 19,
+       "merito": 0.23,
+       "minuti": 26,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
-       "motivo": "merito e strada minori (a pari regole)",
+       "motivo": "oltre il tetto di cammino",
        "nelGiro": false
       }
      ]
@@ -329,11 +408,11 @@
    },
    "sceltaModello": [
     {
-     "place_id": "ChIJAa-rN0YJOxMRwHOUz26vkmU",
+     "place_id": "ChIJ5d1vOREJOxMRgDfOUh7_PVo",
      "momento": "g1-aperitivo"
     },
     {
-     "place_id": "ChIJ6T3NYG0JOxMREQTHHUvMIpk",
+     "place_id": "ChIJZT4GdtcJOxMRmtC8_iPGMx8",
      "momento": "g1-cena"
     }
    ],
@@ -345,30 +424,6 @@
    "orariMotore": {
     "chiusi": [
      {
-      "momento": "g1-aperitivo",
-      "place_id": "ChIJl25F8xUIOxMRZAwfcRUM_Ps",
-      "nome": "Bar Louis",
-      "perche": "chiude alle 20:00, prima della fine della sosta"
-     },
-     {
-      "momento": "g1-aperitivo",
-      "place_id": "ChIJ-z7hd0EIOxMR4E_A55ZLfOA",
-      "nome": "I Sapori di Napoli",
-      "perche": "chiude alle 20:00, prima della fine della sosta"
-     },
-     {
-      "momento": "g1-aperitivo",
-      "place_id": "ChIJQzQ3Wj0IOxMRs0YCbbcMgj0",
-      "nome": "Gran Bar D'Ago",
-      "perche": "chiuso all'arrivo"
-     },
-     {
-      "momento": "g1-aperitivo",
-      "place_id": "ChIJv6c0RVkJOxMRCV-5UWYHdg8",
-      "nome": "Espresso Napoli Corso Umberto",
-      "perche": "chiude alle 20:00, prima della fine della sosta"
-     },
-     {
       "momento": "g1-cena",
       "place_id": "ChIJt5mIHs4JOxMRiobQ4ZXVG74",
       "nome": "Nonna Anna alla Ferrovia",
@@ -378,6 +433,12 @@
       "momento": "g1-cena",
       "place_id": "ChIJhfBqp9MJOxMRG8EF1Y-yvPU",
       "nome": "Antica Trattoria del Nilo - Spaccanapoli",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-cena",
+      "place_id": "ChIJefj3blQIOxMRIWxYdw6xyhQ",
+      "nome": "Da Maria - Trattoria Napoletana",
       "perche": "chiuso all'arrivo"
      }
     ],
@@ -420,8 +481,8 @@
      "tema": "Colorato aperitivo di Napoli",
      "stops": [
       {
-       "place_id": "ChIJAa-rN0YJOxMRwHOUz26vkmU",
-       "title": "Botanical Bar",
+       "place_id": "ChIJ5d1vOREJOxMRgDfOUh7_PVo",
+       "title": "Ammor&More",
        "types": [
         "bar",
         "point_of_interest",
@@ -430,8 +491,8 @@
        "moment": "aperitivo",
        "at": "2026-10-14T17:30:00.000Z",
        "atStimato": false,
-       "lat": 40.844286499999995,
-       "lng": 14.253312399999999,
+       "lat": 40.8426543,
+       "lng": 14.2477555,
        "min": null,
        "scelta": "modello",
        "stay": 45,
@@ -442,12 +503,12 @@
        "daPartenza": null,
        "varieta": null,
        "deviazioneProva": null,
-       "description": "L'aperitivo lo prendi da Botanical Bar, bar in fascia \u20ac. Si comincia da qui.",
+       "description": "L'aperitivo lo prendi da Ammor&More. Si comincia da qui.",
        "verita": true,
        "voce": true,
        "frasi": [
         {
-         "testo": "L'aperitivo lo prendi da Botanical Bar, bar in fascia \u20ac.",
+         "testo": "L'aperitivo lo prendi da Ammor&More.",
          "problemi": []
         },
         {
@@ -456,7 +517,7 @@
         }
        ],
        "fatti": 0,
-       "recensioni": 118,
+       "recensioni": 355,
        "priceLevel": 1,
        "pasto": false,
        "primaryType": "bar",
@@ -466,21 +527,25 @@
        "dietaSolo": null
       },
       {
-       "place_id": "ChIJ6T3NYG0JOxMREQTHHUvMIpk",
-       "title": "Trattoria canta napoli",
+       "place_id": "ChIJZT4GdtcJOxMRmtC8_iPGMx8",
+       "title": "Jallinus Cocktail Bistr\u00f2",
        "types": [
+        "bistro",
+        "italian_restaurant",
+        "cocktail_bar",
+        "bar",
+        "european_restaurant",
         "restaurant",
-        "seafood_restaurant",
         "food",
         "point_of_interest",
         "establishment"
        ],
        "moment": "cena",
-       "at": "2026-10-14T18:23:00.000Z",
+       "at": "2026-10-14T18:22:00.000Z",
        "atStimato": false,
-       "lat": 40.8485491,
-       "lng": 14.249265699999999,
-       "min": 8,
+       "lat": 40.8386492,
+       "lng": 14.250240499999999,
+       "min": 7,
        "scelta": "modello",
        "stay": 75,
        "ripiego": null,
@@ -490,24 +555,24 @@
        "daPartenza": null,
        "varieta": null,
        "deviazioneProva": null,
-       "description": "La cena \u00e8 da Trattoria canta napoli, trattoria in fascia \u20ac\u20ac. Qui la giornata si chiude.",
+       "description": "Chiudi la giornata a tavola da Jallinus Cocktail Bistr\u00f2. Sono 7 minuti a piedi dalla tappa prima.",
        "verita": true,
        "voce": true,
        "frasi": [
         {
-         "testo": "La cena \u00e8 da Trattoria canta napoli, trattoria in fascia \u20ac\u20ac.",
+         "testo": "Chiudi la giornata a tavola da Jallinus Cocktail Bistr\u00f2.",
          "problemi": []
         },
         {
-         "testo": "Qui la giornata si chiude.",
+         "testo": "Sono 7 minuti a piedi dalla tappa prima.",
          "problemi": []
         }
        ],
        "fatti": 0,
-       "recensioni": 1130,
+       "recensioni": 254,
        "priceLevel": 2,
        "pasto": true,
-       "primaryType": "restaurant",
+       "primaryType": "bistro",
        "orario": "noto",
        "orarioFonte": "orario del giorno",
        "tema": "pasto del tema cibo",
@@ -519,23 +584,23 @@
    ],
    "ai": {
     "chiamate": 3,
-    "tokenIn": 5562,
-    "tokenOut": 335
+    "tokenIn": 5958,
+    "tokenOut": 325
    },
    "google": {
     "place/findplacefromtext": 1,
-    "place/textsearch#new": 3
+    "place/textsearch#new": 2
    },
-   "candidatiVisti": 47,
-   "candidatiConOrari": 47,
+   "candidatiVisti": 40,
+   "candidatiConOrari": 40,
    "orari": {
-    "ChIJAa-rN0YJOxMRwHOUz26vkmU": {
+    "ChIJ5d1vOREJOxMRgDfOUh7_PVo": {
      "chiamato": true,
      "periods": [
       {
        "open": {
         "day": 0,
-        "time": "0830"
+        "time": "1200"
        },
        "close": {
         "day": 1,
@@ -545,7 +610,7 @@
       {
        "open": {
         "day": 1,
-        "time": "0730"
+        "time": "1200"
        },
        "close": {
         "day": 2,
@@ -555,51 +620,51 @@
       {
        "open": {
         "day": 2,
-        "time": "0730"
+        "time": "1200"
        },
        "close": {
         "day": 3,
-        "time": "0130"
+        "time": "0100"
        }
       },
       {
        "open": {
         "day": 3,
-        "time": "0730"
+        "time": "1200"
        },
        "close": {
         "day": 4,
-        "time": "0130"
+        "time": "0100"
        }
       },
       {
        "open": {
         "day": 4,
-        "time": "0730"
+        "time": "1200"
        },
        "close": {
         "day": 5,
-        "time": "0230"
+        "time": "0100"
        }
       },
       {
        "open": {
         "day": 5,
-        "time": "0730"
+        "time": "1200"
        },
        "close": {
         "day": 6,
-        "time": "0300"
+        "time": "0200"
        }
       },
       {
        "open": {
         "day": 6,
-        "time": "0730"
+        "time": "1200"
        },
        "close": {
         "day": 0,
-        "time": "0300"
+        "time": "0200"
        }
       }
      ],
@@ -609,13 +674,13 @@
       "periods": [
        {
         "date": "2026-10-18",
-        "open": "0830",
+        "open": "1200",
         "close": "0100",
         "close_date": "2026-10-19"
        },
        {
         "date": "2026-10-19",
-        "open": "0730",
+        "open": "1200",
         "close": "2359"
        },
        {
@@ -625,178 +690,98 @@
        },
        {
         "date": "2026-10-13",
-        "open": "0730",
-        "close": "0130",
+        "open": "1200",
+        "close": "0100",
         "close_date": "2026-10-14"
        },
        {
         "date": "2026-10-14",
-        "open": "0730",
-        "close": "0130",
+        "open": "1200",
+        "close": "0100",
         "close_date": "2026-10-15"
        },
        {
         "date": "2026-10-15",
-        "open": "0730",
-        "close": "0230",
+        "open": "1200",
+        "close": "0100",
         "close_date": "2026-10-16"
        },
        {
         "date": "2026-10-16",
-        "open": "0730",
-        "close": "0300",
+        "open": "1200",
+        "close": "0200",
         "close_date": "2026-10-17"
        },
        {
         "date": "2026-10-17",
-        "open": "0730",
-        "close": "0300",
+        "open": "1200",
+        "close": "0200",
         "close_date": "2026-10-18"
        }
       ]
      }
     },
-    "ChIJ6T3NYG0JOxMREQTHHUvMIpk": {
+    "ChIJZT4GdtcJOxMRmtC8_iPGMx8": {
      "chiamato": true,
      "periods": [
       {
        "open": {
         "day": 0,
-        "time": "1130"
+        "time": "1100"
+       },
+       "close": {
+        "day": 1,
+        "time": "0100"
+       }
+      },
+      {
+       "open": {
+        "day": 2,
+        "time": "1100"
+       },
+       "close": {
+        "day": 3,
+        "time": "0100"
+       }
+      },
+      {
+       "open": {
+        "day": 3,
+        "time": "1100"
+       },
+       "close": {
+        "day": 4,
+        "time": "0100"
+       }
+      },
+      {
+       "open": {
+        "day": 4,
+        "time": "1100"
+       },
+       "close": {
+        "day": 5,
+        "time": "0100"
+       }
+      },
+      {
+       "open": {
+        "day": 5,
+        "time": "1100"
+       },
+       "close": {
+        "day": 6,
+        "time": "0200"
+       }
+      },
+      {
+       "open": {
+        "day": 6,
+        "time": "1100"
        },
        "close": {
         "day": 0,
-        "time": "1530"
-       }
-      },
-      {
-       "open": {
-        "day": 0,
-        "time": "1830"
-       },
-       "close": {
-        "day": 0,
-        "time": "2230"
-       }
-      },
-      {
-       "open": {
-        "day": 1,
-        "time": "1130"
-       },
-       "close": {
-        "day": 1,
-        "time": "1530"
-       }
-      },
-      {
-       "open": {
-        "day": 1,
-        "time": "1830"
-       },
-       "close": {
-        "day": 1,
-        "time": "2230"
-       }
-      },
-      {
-       "open": {
-        "day": 2,
-        "time": "1130"
-       },
-       "close": {
-        "day": 2,
-        "time": "1530"
-       }
-      },
-      {
-       "open": {
-        "day": 2,
-        "time": "1830"
-       },
-       "close": {
-        "day": 2,
-        "time": "2230"
-       }
-      },
-      {
-       "open": {
-        "day": 3,
-        "time": "1130"
-       },
-       "close": {
-        "day": 3,
-        "time": "1530"
-       }
-      },
-      {
-       "open": {
-        "day": 3,
-        "time": "1830"
-       },
-       "close": {
-        "day": 3,
-        "time": "2230"
-       }
-      },
-      {
-       "open": {
-        "day": 4,
-        "time": "1130"
-       },
-       "close": {
-        "day": 4,
-        "time": "1530"
-       }
-      },
-      {
-       "open": {
-        "day": 4,
-        "time": "1830"
-       },
-       "close": {
-        "day": 4,
-        "time": "2230"
-       }
-      },
-      {
-       "open": {
-        "day": 5,
-        "time": "1130"
-       },
-       "close": {
-        "day": 5,
-        "time": "1530"
-       }
-      },
-      {
-       "open": {
-        "day": 5,
-        "time": "1830"
-       },
-       "close": {
-        "day": 5,
-        "time": "2230"
-       }
-      },
-      {
-       "open": {
-        "day": 6,
-        "time": "1130"
-       },
-       "close": {
-        "day": 6,
-        "time": "1530"
-       }
-      },
-      {
-       "open": {
-        "day": 6,
-        "time": "1830"
-       },
-       "close": {
-        "day": 6,
-        "time": "2230"
+        "time": "0200"
        }
       }
      ],
@@ -806,79 +791,45 @@
       "periods": [
        {
         "date": "2026-10-18",
-        "open": "1130",
-        "close": "1530"
-       },
-       {
-        "date": "2026-10-18",
-        "open": "1830",
-        "close": "2230"
-       },
-       {
-        "date": "2026-10-19",
-        "open": "1130",
-        "close": "1530"
-       },
-       {
-        "date": "2026-10-19",
-        "open": "1830",
-        "close": "2230"
+        "open": "1100",
+        "close": "0100",
+        "close_date": "2026-10-19"
        },
        {
         "date": "2026-10-13",
-        "open": "1130",
-        "close": "1530"
-       },
-       {
-        "date": "2026-10-13",
-        "open": "1830",
-        "close": "2230"
+        "open": "1100",
+        "close": "0100",
+        "close_date": "2026-10-14"
        },
        {
         "date": "2026-10-14",
-        "open": "1130",
-        "close": "1530"
-       },
-       {
-        "date": "2026-10-14",
-        "open": "1830",
-        "close": "2230"
+        "open": "1100",
+        "close": "0100",
+        "close_date": "2026-10-15"
        },
        {
         "date": "2026-10-15",
-        "open": "1130",
-        "close": "1530"
-       },
-       {
-        "date": "2026-10-15",
-        "open": "1830",
-        "close": "2230"
+        "open": "1100",
+        "close": "0100",
+        "close_date": "2026-10-16"
        },
        {
         "date": "2026-10-16",
-        "open": "1130",
-        "close": "1530"
-       },
-       {
-        "date": "2026-10-16",
-        "open": "1830",
-        "close": "2230"
+        "open": "1100",
+        "close": "0200",
+        "close_date": "2026-10-17"
        },
        {
         "date": "2026-10-17",
-        "open": "1130",
-        "close": "1530"
-       },
-       {
-        "date": "2026-10-17",
-        "open": "1830",
-        "close": "2230"
+        "open": "1100",
+        "close": "0200",
+        "close_date": "2026-10-18"
        }
       ]
      }
     }
    },
-   "codice": "intermedio"
+   "codice": "finale"
   },
   {
    "id": "crea-catania-1800",
@@ -1890,7 +1841,7 @@
     },
     "testo": "A Catania cerco: spa, hammam, terme, centri benessere. Escludi: cattedrali, musei, monumenti turistici. da esplorare in solitudine."
    },
-   "secs": 9.429,
+   "secs": 12.844,
    "source": "google-first",
    "destinazione": null,
    "tourDate": "2026-10-14",
@@ -1905,25 +1856,6 @@
      "posti": 1,
      "candidati": [
       {
-       "place_id": "ChIJI5cU_IL9ExMRViGp8JGvWLc",
-       "nome": "Boston Cocktail Bar",
-       "famiglia": null,
-       "primaryType": "cocktail_bar",
-       "types": [
-        "cocktail_bar",
-        "bar",
-        "point_of_interest",
-        "establishment"
-       ],
-       "merito": 0.46,
-       "minuti": 0,
-       "deviazione": 0,
-       "scelto": false,
-       "posto": 0,
-       "motivo": "pari: lo scelto viene prima (modello o ordine)",
-       "nelGiro": false
-      },
-      {
        "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
        "nome": "Bar Popolare",
        "famiglia": null,
@@ -1936,8 +1868,8 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.43,
-       "minuti": 0,
+       "merito": 0.44,
+       "minuti": 2,
        "deviazione": 0,
        "scelto": true,
        "posto": 0,
@@ -1960,8 +1892,8 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.41,
-       "minuti": 0,
+       "merito": 0.42,
+       "minuti": 6,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
@@ -1984,8 +1916,8 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.39,
-       "minuti": 0,
+       "merito": 0.41,
+       "minuti": 5,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
@@ -1993,75 +1925,102 @@
        "nelGiro": false
       },
       {
-       "place_id": "ChIJdVTSyEjjExMRmIZJkeodCY4",
-       "nome": "Retr\u00f2 - Cocktail Bar",
+       "place_id": "ChIJI5cU_IL9ExMRViGp8JGvWLc",
+       "nome": "Boston Cocktail Bar",
        "famiglia": null,
        "primaryType": "cocktail_bar",
        "types": [
         "cocktail_bar",
-        "bistro",
-        "pub",
-        "bar",
-        "spanish_restaurant",
-        "european_restaurant",
-        "restaurant",
-        "food",
-        "point_of_interest",
-        "establishment"
-       ],
-       "merito": 0.31,
-       "minuti": 0,
-       "deviazione": 0,
-       "scelto": false,
-       "posto": 0,
-       "motivo": "merito e strada minori (a pari regole)",
-       "nelGiro": false
-      },
-      {
-       "place_id": "ChIJsQEuaevjExMRBHVcW0r2l2c",
-       "nome": "Drinkeria cocktail bar",
-       "famiglia": null,
-       "primaryType": "pub",
-       "types": [
-        "pub",
         "bar",
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.31,
-       "minuti": 0,
+       "merito": 0.47,
+       "minuti": 22,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
-       "motivo": "merito e strada minori (a pari regole)",
+       "motivo": "oltre il tetto di cammino",
        "nelGiro": false
-      },
+      }
+     ]
+    },
+    "g1-passeggiata": {
+     "posti": 1,
+     "candidati": [
       {
-       "place_id": "ChIJq5mQzuXjExMRr-HUMu58vYc",
-       "nome": "The Rabbit Hole",
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "nome": "Fontana dell\u2019Amenano",
        "famiglia": null,
-       "primaryType": "cocktail_bar",
+       "primaryType": "tourist_attraction",
        "types": [
-        "cocktail_bar",
-        "bistro",
-        "coffee_shop",
-        "cafe",
-        "pub",
-        "night_club",
-        "bar",
-        "food_store",
-        "store",
-        "restaurant",
-        "food",
+        "tourist_attraction",
         "point_of_interest",
         "establishment"
        ],
        "merito": 0.25,
-       "minuti": 0,
-       "deviazione": 0,
+       "minuti": 2,
+       "deviazione": 3.7,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+       "nome": "Porta Uzeda",
+       "famiglia": null,
+       "primaryType": "landmark",
+       "types": [
+        "landmark",
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.25,
+       "minuti": 3,
+       "deviazione": 5,
        "scelto": false,
        "posto": 0,
        "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJA4___Zn9ExMRVdnbwCwv9wQ",
+       "nome": "Lungomare di Catania",
+       "famiglia": null,
+       "primaryType": "hiking_area",
+       "types": [
+        "hiking_area",
+        "sports_activity_location",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.22,
+       "minuti": 36,
+       "deviazione": 71.2,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJz3opAwf9ExMRYdQhG6GA2hY",
+       "nome": "Lungomare Ognina",
+       "famiglia": null,
+       "primaryType": "hiking_area",
+       "types": [
+        "hiking_area",
+        "sports_activity_location",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.37,
+       "minuti": 53,
+       "deviazione": 106.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
        "nelGiro": false
       }
      ]
@@ -2082,8 +2041,8 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.18,
-       "minuti": 2,
+       "merito": 0.22,
+       "minuti": 3,
        "deviazione": 0,
        "scelto": true,
        "posto": 0,
@@ -2095,25 +2054,27 @@
    },
    "sceltaModello": [
     {
-     "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+     "place_id": "ChIJI5cU_IL9ExMRViGp8JGvWLc",
      "momento": "g1-aperitivo"
     },
     {
-     "place_id": "ChIJz3opAwf9ExMRYdQhG6GA2hY",
-     "momento": "g1-passeggiata"
-    },
-    {
-     "place_id": "ChIJN6AiIgDjExMRJraSAxXePwk",
+     "place_id": "ChIJ4aS0WaDjExMRZm-pSHW8PAg",
      "momento": "g1-cena"
     }
    ],
    "ricerche": {
     "prima": [
      "nightlife",
-     "romance",
      "food"
     ],
-    "dopo": []
+    "dopo": [
+     {
+      "momento": "g1-passeggiata",
+      "tema": "romance",
+      "da": "Boston Cocktail Bar",
+      "trovati": 5
+     }
+    ]
    },
    "ripiegoDichiarato": false,
    "orariMotore": {
@@ -2126,12 +2087,6 @@
      },
      {
       "momento": "g1-cena",
-      "place_id": "ChIJd_9ta9z9ExMRR0GUVs08hn8",
-      "nome": "mica - Ristorante calabrese & cocktail bar a Catania",
-      "perche": "chiude alle 00:00, prima della fine della sosta"
-     },
-     {
-      "momento": "g1-cena",
       "place_id": "ChIJwbllur79ExMRsiUFCi4M3Aw",
       "nome": "Osteria del mar",
       "perche": "chiuso all'arrivo"
@@ -2141,6 +2096,18 @@
       "place_id": "ChIJwVZNoH3jExMRH_s5PodSdz0",
       "nome": "Trattoria del Lago",
       "perche": "chiude alle 00:00, prima della fine della sosta"
+     },
+     {
+      "momento": "g1-cena",
+      "place_id": "ChIJUfUI0TPjExMRTz5CcT1KR0c",
+      "nome": "Osteria&PizzeriaDaiPazzi",
+      "perche": "chiude alle 00:00, prima della fine della sosta"
+     },
+     {
+      "momento": "g1-cena",
+      "place_id": "ChIJ62d5tA39ExMR8uJelh7LMiE",
+      "nome": "Du Mori Osteria tipica",
+      "perche": "chiude alle 23:00, prima della fine della sosta"
      }
     ],
     "vietati": [],
@@ -2167,7 +2134,7 @@
    "schermo": {
     "giorni": [
      {
-      "titolo": "Colorato aperitivo di Catania",
+      "titolo": "Vivace aperitivo di Catania",
       "meteo": {
        "condition": "sunny",
        "temperature": 20,
@@ -2179,7 +2146,7 @@
    },
    "tours": [
     {
-     "tema": "Colorato aperitivo di Catania",
+     "tema": "Vivace aperitivo di Catania",
      "stops": [
       {
        "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
@@ -2198,13 +2165,16 @@
        "lat": 37.5021939,
        "lng": 15.0849114,
        "min": null,
-       "scelta": "modello",
+       "scelta": "riparazione",
        "stay": 60,
        "ripiego": null,
        "motivo": null,
        "famiglia": null,
        "incrocio": null,
-       "daPartenza": null,
+       "daPartenza": {
+        "minuti": 2,
+        "da": "centro del gruppo"
+       },
        "varieta": null,
        "deviazioneProva": null,
        "description": "L'aperitivo lo prendi da Bar Popolare, bar in fascia \u20ac. Si comincia da qui.",
@@ -2231,24 +2201,22 @@
        "dietaSolo": null
       },
       {
-       "place_id": "ChIJN6AiIgDjExMRJraSAxXePwk",
-       "title": "Ristorante EtnaSicilia",
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "title": "Fontana dell\u2019Amenano",
        "types": [
-        "italian_restaurant",
-        "european_restaurant",
-        "restaurant",
-        "food",
+        "tourist_attraction",
         "point_of_interest",
         "establishment"
        ],
-       "moment": "cena",
-       "at": "2026-10-14T20:50:00.000Z",
+       "moment": "aperitivo",
+       "at": "2026-10-14T20:27:00.000Z",
        "atStimato": false,
-       "lat": 37.5011716,
-       "lng": 15.084991499999997,
+       "passeggiata": true,
+       "lat": 37.502040699999995,
+       "lng": 15.087013899999999,
        "min": 2,
-       "scelta": "modello",
-       "stay": 75,
+       "scelta": "ricerca mirata",
+       "stay": 30,
        "ripiego": null,
        "motivo": null,
        "famiglia": null,
@@ -2256,24 +2224,24 @@
        "daPartenza": null,
        "varieta": null,
        "deviazioneProva": null,
-       "description": "Chiudi la giornata a tavola da Ristorante EtnaSicilia, ristorante in fascia \u20ac\u20ac. Ci arrivi alle 22:50.",
+       "description": "La fontana dell'Amenano \u00e8 una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia. Qui la giornata si chiude.",
        "verita": true,
        "voce": true,
        "frasi": [
         {
-         "testo": "Chiudi la giornata a tavola da Ristorante EtnaSicilia, ristorante in fascia \u20ac\u20ac.",
+         "testo": "La fontana dell'Amenano \u00e8 una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia.",
          "problemi": []
         },
         {
-         "testo": "Ci arrivi alle 22:50.",
+         "testo": "Qui la giornata si chiude.",
          "problemi": []
         }
        ],
-       "fatti": 0,
-       "recensioni": 846,
-       "priceLevel": 2,
-       "pasto": true,
-       "primaryType": "italian_restaurant",
+       "fatti": 2,
+       "recensioni": 598,
+       "priceLevel": null,
+       "pasto": false,
+       "primaryType": "tourist_attraction",
        "orario": "noto",
        "orarioFonte": "orario del giorno",
        "dietaCercata": null,
@@ -2284,15 +2252,15 @@
    ],
    "ai": {
     "chiamate": 3,
-    "tokenIn": 5072,
-    "tokenOut": 390
+    "tokenIn": 4574,
+    "tokenOut": 350
    },
    "google": {
     "place/findplacefromtext": 1,
     "place/textsearch#new": 6
    },
-   "candidatiVisti": 87,
-   "candidatiConOrari": 77,
+   "candidatiVisti": 91,
+   "candidatiConOrari": 80,
    "orari": {
     "ChIJ9bTT5mbjExMRkZuYM-b5aio": {
      "chiamato": true,
@@ -2421,77 +2389,13 @@
       ]
      }
     },
-    "ChIJN6AiIgDjExMRJraSAxXePwk": {
+    "ChIJjfE4n-jjExMR0gwbhCQ0rk4": {
      "chiamato": true,
      "periods": [
       {
        "open": {
         "day": 0,
-        "time": "1100"
-       },
-       "close": {
-        "day": 1,
-        "time": "0130"
-       }
-      },
-      {
-       "open": {
-        "day": 1,
-        "time": "1100"
-       },
-       "close": {
-        "day": 2,
-        "time": "0130"
-       }
-      },
-      {
-       "open": {
-        "day": 2,
-        "time": "1100"
-       },
-       "close": {
-        "day": 3,
-        "time": "0130"
-       }
-      },
-      {
-       "open": {
-        "day": 3,
-        "time": "1100"
-       },
-       "close": {
-        "day": 4,
-        "time": "0130"
-       }
-      },
-      {
-       "open": {
-        "day": 4,
-        "time": "1100"
-       },
-       "close": {
-        "day": 5,
-        "time": "0130"
-       }
-      },
-      {
-       "open": {
-        "day": 5,
-        "time": "1100"
-       },
-       "close": {
-        "day": 6,
-        "time": "0130"
-       }
-      },
-      {
-       "open": {
-        "day": 6,
-        "time": "1100"
-       },
-       "close": {
-        "day": 0,
-        "time": "0130"
+        "time": "0000"
        }
       }
      ],
@@ -2500,56 +2404,16 @@
       "from": "2026-10-13",
       "periods": [
        {
-        "date": "2026-10-18",
-        "open": "1100",
-        "close": "0130",
-        "close_date": "2026-10-19"
-       },
-       {
-        "date": "2026-10-19",
-        "open": "1100",
-        "close": "2359"
-       },
-       {
         "date": "2026-10-13",
         "open": "0000",
-        "close": "0130"
-       },
-       {
-        "date": "2026-10-13",
-        "open": "1100",
-        "close": "0130",
-        "close_date": "2026-10-14"
-       },
-       {
-        "date": "2026-10-14",
-        "open": "1100",
-        "close": "0130",
-        "close_date": "2026-10-15"
-       },
-       {
-        "date": "2026-10-15",
-        "open": "1100",
-        "close": "0130",
-        "close_date": "2026-10-16"
-       },
-       {
-        "date": "2026-10-16",
-        "open": "1100",
-        "close": "0130",
-        "close_date": "2026-10-17"
-       },
-       {
-        "date": "2026-10-17",
-        "open": "1100",
-        "close": "0130",
-        "close_date": "2026-10-18"
+        "close": "2359",
+        "close_date": "2026-10-19"
        }
       ]
      }
     }
    },
-   "codice": "intermedio"
+   "codice": "finale"
   },
   {
    "id": "veloce-catania-relax-2145",
@@ -3119,7 +2983,7 @@
     },
     "testo": "A Catania cerco: spa, hammam, terme, centri benessere. Escludi: cattedrali, musei, monumenti turistici. da esplorare in solitudine."
    },
-   "secs": 7.468,
+   "secs": 13.635,
    "source": "google-first",
    "destinazione": null,
    "tourDate": "2026-10-14",
@@ -3134,25 +2998,6 @@
      "posti": 1,
      "candidati": [
       {
-       "place_id": "ChIJI5cU_IL9ExMRViGp8JGvWLc",
-       "nome": "Boston Cocktail Bar",
-       "famiglia": null,
-       "primaryType": "cocktail_bar",
-       "types": [
-        "cocktail_bar",
-        "bar",
-        "point_of_interest",
-        "establishment"
-       ],
-       "merito": 0.45,
-       "minuti": 0,
-       "deviazione": 0,
-       "scelto": false,
-       "posto": 0,
-       "motivo": "pari: lo scelto viene prima (modello o ordine)",
-       "nelGiro": false
-      },
-      {
        "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
        "nome": "Bar Popolare",
        "famiglia": null,
@@ -3165,13 +3010,13 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.41,
+       "merito": 0.44,
        "minuti": 0,
        "deviazione": 0,
-       "scelto": false,
+       "scelto": true,
        "posto": 0,
-       "motivo": "pari: lo scelto viene prima (modello o ordine)",
-       "nelGiro": false
+       "motivo": null,
+       "nelGiro": true
       },
       {
        "place_id": "ChIJ4aS0WaDjExMRZm-pSHW8PAg",
@@ -3189,12 +3034,12 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.38,
+       "merito": 0.42,
        "minuti": 0,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
-       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "motivo": "merito e strada minori (a pari regole)",
        "nelGiro": false
       },
       {
@@ -3213,33 +3058,50 @@
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.37,
+       "merito": 0.41,
        "minuti": 0,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
-       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "motivo": "merito e strada minori (a pari regole)",
        "nelGiro": false
       },
       {
-       "place_id": "ChIJdVTSyEjjExMRmIZJkeodCY4",
-       "nome": "Retr\u00f2 - Cocktail Bar",
+       "place_id": "ChIJI5cU_IL9ExMRViGp8JGvWLc",
+       "nome": "Boston Cocktail Bar",
        "famiglia": null,
        "primaryType": "cocktail_bar",
        "types": [
         "cocktail_bar",
-        "bistro",
-        "pub",
         "bar",
-        "spanish_restaurant",
-        "european_restaurant",
-        "restaurant",
-        "food",
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.27,
+       "merito": 0.47,
        "minuti": 0,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "dopo di lui nessuna tappa nuova entro il tetto",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-passeggiata": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "nome": "Fontana dell\u2019Amenano",
+       "famiglia": null,
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.25,
+       "minuti": 2,
        "deviazione": 0,
        "scelto": true,
        "posto": 0,
@@ -3247,18 +3109,18 @@
        "nelGiro": true
       },
       {
-       "place_id": "ChIJsQEuaevjExMRBHVcW0r2l2c",
-       "nome": "Drinkeria cocktail bar",
+       "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+       "nome": "Porta Uzeda",
        "famiglia": null,
-       "primaryType": "pub",
+       "primaryType": "landmark",
        "types": [
-        "pub",
-        "bar",
+        "landmark",
+        "tourist_attraction",
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.27,
-       "minuti": 0,
+       "merito": 0.25,
+       "minuti": 3,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
@@ -3266,31 +3128,41 @@
        "nelGiro": false
       },
       {
-       "place_id": "ChIJq5mQzuXjExMRr-HUMu58vYc",
-       "nome": "The Rabbit Hole",
+       "place_id": "ChIJA4___Zn9ExMRVdnbwCwv9wQ",
+       "nome": "Lungomare di Catania",
        "famiglia": null,
-       "primaryType": "cocktail_bar",
+       "primaryType": "hiking_area",
        "types": [
-        "cocktail_bar",
-        "bistro",
-        "coffee_shop",
-        "cafe",
-        "pub",
-        "night_club",
-        "bar",
-        "food_store",
-        "store",
-        "restaurant",
-        "food",
+        "hiking_area",
+        "sports_activity_location",
         "point_of_interest",
         "establishment"
        ],
-       "merito": 0.2,
-       "minuti": 0,
+       "merito": 0.22,
+       "minuti": 36,
        "deviazione": 0,
        "scelto": false,
        "posto": 0,
-       "motivo": "merito e strada minori (a pari regole)",
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJz3opAwf9ExMRYdQhG6GA2hY",
+       "nome": "Lungomare Ognina",
+       "famiglia": null,
+       "primaryType": "hiking_area",
+       "types": [
+        "hiking_area",
+        "sports_activity_location",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.37,
+       "minuti": 53,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
        "nelGiro": false
       }
      ]
@@ -3298,22 +3170,28 @@
    },
    "sceltaModello": [
     {
-     "place_id": "ChIJdVTSyEjjExMRmIZJkeodCY4",
+     "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
      "momento": "g1-dopocena"
     },
     {
-     "place_id": "ChIJz3opAwf9ExMRYdQhG6GA2hY",
+     "place_id": "ChIJuzxaAODjExMRccoJu6YRJ9c",
      "momento": "g1-passeggiata"
     }
    ],
    "ricerche": {
     "prima": [
-     "nightlife",
-     "romance"
+     "nightlife"
     ],
-    "dopo": []
+    "dopo": [
+     {
+      "momento": "g1-passeggiata",
+      "tema": "romance",
+      "da": "Bar Popolare",
+      "trovati": 5
+     }
+    ]
    },
-   "ripiegoDichiarato": true,
+   "ripiegoDichiarato": false,
    "orariMotore": {
     "chiusi": [
      {
@@ -3329,7 +3207,7 @@
     "scartatiIgnoti": [],
     "righeDichiarate": [],
     "residui": 0,
-    "tappeSenzaFiltro": 1
+    "tappeSenzaFiltro": 2
    },
    "continuita": {
     "aggiunte": [],
@@ -3362,15 +3240,11 @@
      "tema": "Giorno 1 a Catania",
      "stops": [
       {
-       "place_id": "ChIJdVTSyEjjExMRmIZJkeodCY4",
-       "title": "Retr\u00f2 - Cocktail Bar",
+       "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+       "title": "Bar Popolare",
        "types": [
         "cocktail_bar",
-        "bistro",
-        "pub",
         "bar",
-        "spanish_restaurant",
-        "european_restaurant",
         "restaurant",
         "food",
         "point_of_interest",
@@ -3379,8 +3253,8 @@
        "moment": "dopocena",
        "at": "2026-10-14T21:30:00.000Z",
        "atStimato": false,
-       "lat": 37.5096541,
-       "lng": 15.0868436,
+       "lat": 37.5021939,
+       "lng": 15.0849114,
        "min": null,
        "scelta": "modello",
        "stay": 60,
@@ -3391,12 +3265,59 @@
        "daPartenza": null,
        "varieta": null,
        "deviazioneProva": null,
-       "description": "Dopo cena, due passi fino a Retr\u00f2 - Cocktail Bar. Qui la giornata si chiude.",
+       "description": "Dopo cena, due passi fino a Bar Popolare. Si comincia da qui.",
        "verita": true,
        "voce": true,
        "frasi": [
         {
-         "testo": "Dopo cena, due passi fino a Retr\u00f2 - Cocktail Bar.",
+         "testo": "Dopo cena, due passi fino a Bar Popolare.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 89,
+       "priceLevel": 1,
+       "pasto": false,
+       "primaryType": "cocktail_bar",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "title": "Fontana dell\u2019Amenano",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "dopocena",
+       "at": "2026-10-14T22:32:00.000Z",
+       "atStimato": false,
+       "passeggiata": true,
+       "lat": 37.502040699999995,
+       "lng": 15.087013899999999,
+       "min": 2,
+       "scelta": "ricerca mirata",
+       "stay": 30,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La fontana dell'Amenano \u00e8 una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia. Qui la giornata si chiude.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La fontana dell'Amenano \u00e8 una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia.",
          "problemi": []
         },
         {
@@ -3404,11 +3325,11 @@
          "problemi": []
         }
        ],
-       "fatti": 0,
-       "recensioni": 276,
-       "priceLevel": 2,
+       "fatti": 2,
+       "recensioni": 598,
+       "priceLevel": null,
        "pasto": false,
-       "primaryType": "cocktail_bar",
+       "primaryType": "tourist_attraction",
        "orario": "noto",
        "orarioFonte": "orario del giorno",
        "dietaCercata": null,
@@ -3419,73 +3340,73 @@
    ],
    "ai": {
     "chiamate": 3,
-    "tokenIn": 4833,
-    "tokenOut": 308
+    "tokenIn": 4411,
+    "tokenOut": 347
    },
    "google": {
     "place/findplacefromtext": 1,
     "place/textsearch#new": 5
    },
-   "candidatiVisti": 67,
-   "candidatiConOrari": 57,
+   "candidatiVisti": 71,
+   "candidatiConOrari": 60,
    "orari": {
-    "ChIJdVTSyEjjExMRmIZJkeodCY4": {
+    "ChIJ9bTT5mbjExMRkZuYM-b5aio": {
      "chiamato": true,
      "periods": [
       {
        "open": {
         "day": 0,
-        "time": "1800"
+        "time": "1100"
        },
        "close": {
         "day": 1,
-        "time": "0200"
+        "time": "0100"
        }
       },
       {
        "open": {
         "day": 1,
-        "time": "1800"
+        "time": "1100"
        },
        "close": {
         "day": 2,
-        "time": "0200"
+        "time": "0100"
        }
       },
       {
        "open": {
         "day": 2,
-        "time": "1800"
+        "time": "1100"
        },
        "close": {
         "day": 3,
-        "time": "0200"
+        "time": "0100"
        }
       },
       {
        "open": {
         "day": 3,
-        "time": "1800"
+        "time": "1100"
        },
        "close": {
         "day": 4,
-        "time": "0200"
+        "time": "0100"
        }
       },
       {
        "open": {
         "day": 4,
-        "time": "1800"
+        "time": "1100"
        },
        "close": {
         "day": 5,
-        "time": "0200"
+        "time": "0100"
        }
       },
       {
        "open": {
         "day": 5,
-        "time": "1800"
+        "time": "1100"
        },
        "close": {
         "day": 6,
@@ -3495,7 +3416,7 @@
       {
        "open": {
         "day": 6,
-        "time": "1800"
+        "time": "1100"
        },
        "close": {
         "day": 0,
@@ -3509,55 +3430,78 @@
       "periods": [
        {
         "date": "2026-10-18",
-        "open": "1800",
-        "close": "0200",
+        "open": "1100",
+        "close": "0100",
         "close_date": "2026-10-19"
        },
        {
         "date": "2026-10-19",
-        "open": "1800",
+        "open": "1100",
         "close": "2359"
        },
        {
         "date": "2026-10-13",
         "open": "0000",
-        "close": "0200"
+        "close": "0100"
        },
        {
         "date": "2026-10-13",
-        "open": "1800",
-        "close": "0200",
+        "open": "1100",
+        "close": "0100",
         "close_date": "2026-10-14"
        },
        {
         "date": "2026-10-14",
-        "open": "1800",
-        "close": "0200",
+        "open": "1100",
+        "close": "0100",
         "close_date": "2026-10-15"
        },
        {
         "date": "2026-10-15",
-        "open": "1800",
-        "close": "0200",
+        "open": "1100",
+        "close": "0100",
         "close_date": "2026-10-16"
        },
        {
         "date": "2026-10-16",
-        "open": "1800",
+        "open": "1100",
         "close": "0200",
         "close_date": "2026-10-17"
        },
        {
         "date": "2026-10-17",
-        "open": "1800",
+        "open": "1100",
         "close": "0200",
         "close_date": "2026-10-18"
        }
       ]
      }
+    },
+    "ChIJjfE4n-jjExMR0gwbhCQ0rk4": {
+     "chiamato": true,
+     "periods": [
+      {
+       "open": {
+        "day": 0,
+        "time": "0000"
+       }
+      }
+     ],
+     "current": {
+      "to": "2026-10-19",
+      "from": "2026-10-13",
+      "periods": [
+       {
+        "date": "2026-10-13",
+        "open": "0000",
+        "close": "2359",
+        "close_date": "2026-10-19"
+       }
+      ]
+     }
     }
    },
-   "codice": "intermedio"
+   "codice": "finale"
   },
   {
    "id": "veloce-siracusa-parco",
@@ -3800,7 +3744,7 @@
      }
     }
    },
-   "codice": "intermedio"
+   "codice": "intermedio (codice non toccato)"
   },
   {
    "id": "perte-catania-1900",
@@ -5609,11 +5553,11 @@
      }
     }
    },
-   "codice": "intermedio"
+   "codice": "intermedio (codice non toccato)"
   }
  ],
  "costo": {
-  "totale": 1.5974,
+  "totale": 2.1063,
   "ai": {
    "chiamate": 19,
    "tokenIn": 36100,
@@ -5637,7 +5581,20 @@
    },
    "tettoUsd": 7
   },
-  "note": "totale = primo giro (7 casi, versione intermedia) + rigiro dei 2 casi chiave col codice finale; il codice di prima (crea-catania-1800) e' a parte: 0,158"
+  "note": "totale = primo giro (7 casi, versione intermedia) + rigiro dei 2 casi chiave col codice finale; il codice di prima (crea-catania-1800) e' a parte: 0,158",
+  "rigiro3": {
+   "totale": 0.5088546500000001,
+   "ai": {
+    "chiamate": 9,
+    "tokenIn": 14943,
+    "tokenOut": 1022
+   },
+   "google": {
+    "place/findplacefromtext": 3,
+    "place/textsearch#new": 13
+   },
+   "tettoUsd": 7
+  }
  },
  "luoghiOrari": {
   "ChIJYWAFVUEIOxMRuRA2mQnNrKE": {
@@ -28303,6 +28260,2043 @@
     }
    },
    "nota": "primo giro (versione intermedia del codice: senza ricerca della passeggiata dalla tappa prima, senza il vincolo bar all'aperitivo di sera, con la cena fino alle 23:10)"
+  },
+  {
+   "id": "crea-napoli-aperitivo-cena",
+   "caso": {
+    "id": "crea-napoli-aperitivo-cena",
+    "modo": "crea",
+    "tipo": "itinerario",
+    "luogo": "Napoli",
+    "ora": "19:30",
+    "oggi": "2026-10-14",
+    "richiesta": "aperitivo e cena",
+    "onboarding": null,
+    "vincoli": null,
+    "chiamata": {
+     "pagina": "AiItinerary.jsx",
+     "pathType": "custom",
+     "prefs": {
+      "budget": "",
+      "duration": "Mezza Giornata",
+      "interests": [],
+      "group": "",
+      "pace": "Attivo"
+     },
+     "testo": "aperitivo e cena"
+    },
+    "secs": 9.44,
+    "source": "google-first",
+    "destinazione": {
+     "city": "Napoli",
+     "fromText": false,
+     "note": null
+    },
+    "tourDate": "2026-10-14",
+    "giorno": {
+     "date": "2026-10-14",
+     "start": "2026-10-14T17:30:00.000Z",
+     "reason": "fascia"
+    },
+    "frasiTolte": [],
+    "pool": {
+     "g1-aperitivo": {
+      "posti": 1,
+      "candidati": [
+       {
+        "place_id": "ChIJAa-rN0YJOxMRwHOUz26vkmU",
+        "nome": "Botanical Bar",
+        "famiglia": null,
+        "primaryType": "bar",
+        "types": [
+         "bar",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.53,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": true,
+        "posto": 0,
+        "motivo": null,
+        "nelGiro": true
+       },
+       {
+        "place_id": "ChIJYSmdBRYIOxMRFXPjMYmrmEo",
+        "nome": "Caffetteria Del Maresciallo",
+        "famiglia": null,
+        "primaryType": "bar",
+        "types": [
+         "bar",
+         "coffee_shop",
+         "cafe",
+         "food_store",
+         "store",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.46,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJva6PWkQIOxMRMSkfBjO-jn0",
+        "nome": "Beer Bar",
+        "famiglia": null,
+        "primaryType": "bar",
+        "types": [
+         "bar",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.32,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJdbxxOtYJOxMRGXSJtFvkTdc",
+        "nome": "Ba-Bar La Nova Central",
+        "famiglia": null,
+        "primaryType": "bar",
+        "types": [
+         "bar",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.31,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJKcxIMEMIOxMRkI1CUccuOis",
+        "nome": "Caff\u00e8 dell'Epoca - Peppe Spritz",
+        "famiglia": null,
+        "primaryType": "bar",
+        "types": [
+         "bar",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.31,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJY5vFlkMIOxMRe5cK7Bm5v6M",
+        "nome": "Gran Caff\u00e8 Neapolis",
+        "famiglia": null,
+        "primaryType": "bar",
+        "types": [
+         "bar",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.31,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJE16CCkQIOxMRLtYMN8x-qsY",
+        "nome": "Archeobar - Negroneria Napoletana",
+        "famiglia": null,
+        "primaryType": "cocktail_bar",
+        "types": [
+         "cocktail_bar",
+         "lounge_bar",
+         "night_club",
+         "bar",
+         "association_or_organization",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.29,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       }
+      ]
+     },
+     "g1-cena": {
+      "posti": 1,
+      "candidati": [
+       {
+        "place_id": "ChIJ6T3NYG0JOxMREQTHHUvMIpk",
+        "nome": "Trattoria canta napoli",
+        "famiglia": null,
+        "primaryType": "restaurant",
+        "types": [
+         "restaurant",
+         "seafood_restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.27,
+        "minuti": 8,
+        "deviazione": 0,
+        "scelto": true,
+        "posto": 0,
+        "motivo": null,
+        "nelGiro": true
+       },
+       {
+        "place_id": "ChIJ6WROiFMJOxMRsl9cQlmTeLQ",
+        "nome": "Vasceria Locanda Popolare",
+        "famiglia": null,
+        "primaryType": "italian_restaurant",
+        "types": [
+         "italian_restaurant",
+         "european_restaurant",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.23,
+        "minuti": 8,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJp6zoGj4IOxMR610hF0KuKO4",
+        "nome": "Trattoria da Giovanni",
+        "famiglia": null,
+        "primaryType": "restaurant",
+        "types": [
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.21,
+        "minuti": 18,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJ3QwxM10IOxMRhSnkvVKQC1E",
+        "nome": "Osteria da Carmela",
+        "famiglia": null,
+        "primaryType": "italian_restaurant",
+        "types": [
+         "seafood_restaurant",
+         "italian_restaurant",
+         "european_restaurant",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.21,
+        "minuti": 10,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJu-noOUgJOxMRXMVU_pavG3g",
+        "nome": "Antica Trattoria Da Carmine",
+        "famiglia": null,
+        "primaryType": "restaurant",
+        "types": [
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.2,
+        "minuti": 10,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJOVmkU0IIOxMRznLtQfsjgrQ",
+        "nome": "Trattoria da Carmela - Cucina tipica napoletana",
+        "famiglia": null,
+        "primaryType": "restaurant",
+        "types": [
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.19,
+        "minuti": 9,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJ000d_7YJOxMRccU9OwNI_XM",
+        "nome": "Vesuvio Roof Bar & Restaurant",
+        "famiglia": null,
+        "primaryType": "restaurant",
+        "types": [
+         "restaurant",
+         "bar",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.19,
+        "minuti": 19,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       }
+      ]
+     }
+    },
+    "sceltaModello": [
+     {
+      "place_id": "ChIJAa-rN0YJOxMRwHOUz26vkmU",
+      "momento": "g1-aperitivo"
+     },
+     {
+      "place_id": "ChIJ6T3NYG0JOxMREQTHHUvMIpk",
+      "momento": "g1-cena"
+     }
+    ],
+    "ricerche": {
+     "prima": [],
+     "dopo": []
+    },
+    "ripiegoDichiarato": false,
+    "orariMotore": {
+     "chiusi": [
+      {
+       "momento": "g1-aperitivo",
+       "place_id": "ChIJl25F8xUIOxMRZAwfcRUM_Ps",
+       "nome": "Bar Louis",
+       "perche": "chiude alle 20:00, prima della fine della sosta"
+      },
+      {
+       "momento": "g1-aperitivo",
+       "place_id": "ChIJ-z7hd0EIOxMR4E_A55ZLfOA",
+       "nome": "I Sapori di Napoli",
+       "perche": "chiude alle 20:00, prima della fine della sosta"
+      },
+      {
+       "momento": "g1-aperitivo",
+       "place_id": "ChIJQzQ3Wj0IOxMRs0YCbbcMgj0",
+       "nome": "Gran Bar D'Ago",
+       "perche": "chiuso all'arrivo"
+      },
+      {
+       "momento": "g1-aperitivo",
+       "place_id": "ChIJv6c0RVkJOxMRCV-5UWYHdg8",
+       "nome": "Espresso Napoli Corso Umberto",
+       "perche": "chiude alle 20:00, prima della fine della sosta"
+      },
+      {
+       "momento": "g1-cena",
+       "place_id": "ChIJt5mIHs4JOxMRiobQ4ZXVG74",
+       "nome": "Nonna Anna alla Ferrovia",
+       "perche": "chiuso all'arrivo"
+      },
+      {
+       "momento": "g1-cena",
+       "place_id": "ChIJhfBqp9MJOxMRG8EF1Y-yvPU",
+       "nome": "Antica Trattoria del Nilo - Spaccanapoli",
+       "perche": "chiuso all'arrivo"
+      }
+     ],
+     "vietati": [],
+     "giri": 0,
+     "ignoti": 0,
+     "scartatiIgnoti": [],
+     "righeDichiarate": [],
+     "residui": 0,
+     "tappeSenzaFiltro": 2
+    },
+    "continuita": {
+     "aggiunte": [],
+     "tentativi": 0,
+     "dichiarati": []
+    },
+    "tema": {
+     "cibo": true,
+     "tipico": false,
+     "fonte": "categoria del traduttore",
+     "momentiEspliciti": [],
+     "cucineEstereEscluse": [],
+     "zoneTolte": []
+    },
+    "schermo": {
+     "giorni": [
+      {
+       "titolo": "Colorato aperitivo di Napoli",
+       "meteo": {
+        "condition": "sunny",
+        "temperature": 20,
+        "icon": "\u2600\ufe0f"
+       }
+      }
+     ],
+     "note": []
+    },
+    "tours": [
+     {
+      "tema": "Colorato aperitivo di Napoli",
+      "stops": [
+       {
+        "place_id": "ChIJAa-rN0YJOxMRwHOUz26vkmU",
+        "title": "Botanical Bar",
+        "types": [
+         "bar",
+         "point_of_interest",
+         "establishment"
+        ],
+        "moment": "aperitivo",
+        "at": "2026-10-14T17:30:00.000Z",
+        "atStimato": false,
+        "lat": 40.844286499999995,
+        "lng": 14.253312399999999,
+        "min": null,
+        "scelta": "modello",
+        "stay": 45,
+        "ripiego": null,
+        "motivo": null,
+        "famiglia": null,
+        "incrocio": null,
+        "daPartenza": null,
+        "varieta": null,
+        "deviazioneProva": null,
+        "description": "L'aperitivo lo prendi da Botanical Bar, bar in fascia \u20ac. Si comincia da qui.",
+        "verita": true,
+        "voce": true,
+        "frasi": [
+         {
+          "testo": "L'aperitivo lo prendi da Botanical Bar, bar in fascia \u20ac.",
+          "problemi": []
+         },
+         {
+          "testo": "Si comincia da qui.",
+          "problemi": []
+         }
+        ],
+        "fatti": 0,
+        "recensioni": 118,
+        "priceLevel": 1,
+        "pasto": false,
+        "primaryType": "bar",
+        "orario": "noto",
+        "orarioFonte": "orario del giorno",
+        "dietaCercata": null,
+        "dietaSolo": null
+       },
+       {
+        "place_id": "ChIJ6T3NYG0JOxMREQTHHUvMIpk",
+        "title": "Trattoria canta napoli",
+        "types": [
+         "restaurant",
+         "seafood_restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "moment": "cena",
+        "at": "2026-10-14T18:23:00.000Z",
+        "atStimato": false,
+        "lat": 40.8485491,
+        "lng": 14.249265699999999,
+        "min": 8,
+        "scelta": "modello",
+        "stay": 75,
+        "ripiego": null,
+        "motivo": null,
+        "famiglia": null,
+        "incrocio": null,
+        "daPartenza": null,
+        "varieta": null,
+        "deviazioneProva": null,
+        "description": "La cena \u00e8 da Trattoria canta napoli, trattoria in fascia \u20ac\u20ac. Qui la giornata si chiude.",
+        "verita": true,
+        "voce": true,
+        "frasi": [
+         {
+          "testo": "La cena \u00e8 da Trattoria canta napoli, trattoria in fascia \u20ac\u20ac.",
+          "problemi": []
+         },
+         {
+          "testo": "Qui la giornata si chiude.",
+          "problemi": []
+         }
+        ],
+        "fatti": 0,
+        "recensioni": 1130,
+        "priceLevel": 2,
+        "pasto": true,
+        "primaryType": "restaurant",
+        "orario": "noto",
+        "orarioFonte": "orario del giorno",
+        "tema": "pasto del tema cibo",
+        "dietaCercata": null,
+        "dietaSolo": null
+       }
+      ]
+     }
+    ],
+    "ai": {
+     "chiamate": 3,
+     "tokenIn": 5562,
+     "tokenOut": 335
+    },
+    "google": {
+     "place/findplacefromtext": 1,
+     "place/textsearch#new": 3
+    },
+    "candidatiVisti": 47,
+    "candidatiConOrari": 47,
+    "orari": {
+     "ChIJAa-rN0YJOxMRwHOUz26vkmU": {
+      "chiamato": true,
+      "periods": [
+       {
+        "open": {
+         "day": 0,
+         "time": "0830"
+        },
+        "close": {
+         "day": 1,
+         "time": "0100"
+        }
+       },
+       {
+        "open": {
+         "day": 1,
+         "time": "0730"
+        },
+        "close": {
+         "day": 2,
+         "time": "0100"
+        }
+       },
+       {
+        "open": {
+         "day": 2,
+         "time": "0730"
+        },
+        "close": {
+         "day": 3,
+         "time": "0130"
+        }
+       },
+       {
+        "open": {
+         "day": 3,
+         "time": "0730"
+        },
+        "close": {
+         "day": 4,
+         "time": "0130"
+        }
+       },
+       {
+        "open": {
+         "day": 4,
+         "time": "0730"
+        },
+        "close": {
+         "day": 5,
+         "time": "0230"
+        }
+       },
+       {
+        "open": {
+         "day": 5,
+         "time": "0730"
+        },
+        "close": {
+         "day": 6,
+         "time": "0300"
+        }
+       },
+       {
+        "open": {
+         "day": 6,
+         "time": "0730"
+        },
+        "close": {
+         "day": 0,
+         "time": "0300"
+        }
+       }
+      ],
+      "current": {
+       "to": "2026-10-19",
+       "from": "2026-10-13",
+       "periods": [
+        {
+         "date": "2026-10-18",
+         "open": "0830",
+         "close": "0100",
+         "close_date": "2026-10-19"
+        },
+        {
+         "date": "2026-10-19",
+         "open": "0730",
+         "close": "2359"
+        },
+        {
+         "date": "2026-10-13",
+         "open": "0000",
+         "close": "0100"
+        },
+        {
+         "date": "2026-10-13",
+         "open": "0730",
+         "close": "0130",
+         "close_date": "2026-10-14"
+        },
+        {
+         "date": "2026-10-14",
+         "open": "0730",
+         "close": "0130",
+         "close_date": "2026-10-15"
+        },
+        {
+         "date": "2026-10-15",
+         "open": "0730",
+         "close": "0230",
+         "close_date": "2026-10-16"
+        },
+        {
+         "date": "2026-10-16",
+         "open": "0730",
+         "close": "0300",
+         "close_date": "2026-10-17"
+        },
+        {
+         "date": "2026-10-17",
+         "open": "0730",
+         "close": "0300",
+         "close_date": "2026-10-18"
+        }
+       ]
+      }
+     },
+     "ChIJ6T3NYG0JOxMREQTHHUvMIpk": {
+      "chiamato": true,
+      "periods": [
+       {
+        "open": {
+         "day": 0,
+         "time": "1130"
+        },
+        "close": {
+         "day": 0,
+         "time": "1530"
+        }
+       },
+       {
+        "open": {
+         "day": 0,
+         "time": "1830"
+        },
+        "close": {
+         "day": 0,
+         "time": "2230"
+        }
+       },
+       {
+        "open": {
+         "day": 1,
+         "time": "1130"
+        },
+        "close": {
+         "day": 1,
+         "time": "1530"
+        }
+       },
+       {
+        "open": {
+         "day": 1,
+         "time": "1830"
+        },
+        "close": {
+         "day": 1,
+         "time": "2230"
+        }
+       },
+       {
+        "open": {
+         "day": 2,
+         "time": "1130"
+        },
+        "close": {
+         "day": 2,
+         "time": "1530"
+        }
+       },
+       {
+        "open": {
+         "day": 2,
+         "time": "1830"
+        },
+        "close": {
+         "day": 2,
+         "time": "2230"
+        }
+       },
+       {
+        "open": {
+         "day": 3,
+         "time": "1130"
+        },
+        "close": {
+         "day": 3,
+         "time": "1530"
+        }
+       },
+       {
+        "open": {
+         "day": 3,
+         "time": "1830"
+        },
+        "close": {
+         "day": 3,
+         "time": "2230"
+        }
+       },
+       {
+        "open": {
+         "day": 4,
+         "time": "1130"
+        },
+        "close": {
+         "day": 4,
+         "time": "1530"
+        }
+       },
+       {
+        "open": {
+         "day": 4,
+         "time": "1830"
+        },
+        "close": {
+         "day": 4,
+         "time": "2230"
+        }
+       },
+       {
+        "open": {
+         "day": 5,
+         "time": "1130"
+        },
+        "close": {
+         "day": 5,
+         "time": "1530"
+        }
+       },
+       {
+        "open": {
+         "day": 5,
+         "time": "1830"
+        },
+        "close": {
+         "day": 5,
+         "time": "2230"
+        }
+       },
+       {
+        "open": {
+         "day": 6,
+         "time": "1130"
+        },
+        "close": {
+         "day": 6,
+         "time": "1530"
+        }
+       },
+       {
+        "open": {
+         "day": 6,
+         "time": "1830"
+        },
+        "close": {
+         "day": 6,
+         "time": "2230"
+        }
+       }
+      ],
+      "current": {
+       "to": "2026-10-19",
+       "from": "2026-10-13",
+       "periods": [
+        {
+         "date": "2026-10-18",
+         "open": "1130",
+         "close": "1530"
+        },
+        {
+         "date": "2026-10-18",
+         "open": "1830",
+         "close": "2230"
+        },
+        {
+         "date": "2026-10-19",
+         "open": "1130",
+         "close": "1530"
+        },
+        {
+         "date": "2026-10-19",
+         "open": "1830",
+         "close": "2230"
+        },
+        {
+         "date": "2026-10-13",
+         "open": "1130",
+         "close": "1530"
+        },
+        {
+         "date": "2026-10-13",
+         "open": "1830",
+         "close": "2230"
+        },
+        {
+         "date": "2026-10-14",
+         "open": "1130",
+         "close": "1530"
+        },
+        {
+         "date": "2026-10-14",
+         "open": "1830",
+         "close": "2230"
+        },
+        {
+         "date": "2026-10-15",
+         "open": "1130",
+         "close": "1530"
+        },
+        {
+         "date": "2026-10-15",
+         "open": "1830",
+         "close": "2230"
+        },
+        {
+         "date": "2026-10-16",
+         "open": "1130",
+         "close": "1530"
+        },
+        {
+         "date": "2026-10-16",
+         "open": "1830",
+         "close": "2230"
+        },
+        {
+         "date": "2026-10-17",
+         "open": "1130",
+         "close": "1530"
+        },
+        {
+         "date": "2026-10-17",
+         "open": "1830",
+         "close": "2230"
+        }
+       ]
+      }
+     }
+    },
+    "codice": "intermedio"
+   },
+   "nota": "primo giro (versione intermedia del codice)"
+  },
+  {
+   "id": "veloce-catania-relax-2125",
+   "caso": {
+    "id": "veloce-catania-relax-2125",
+    "modo": "veloce",
+    "tipo": "itinerario",
+    "luogo": "Catania",
+    "ora": "21:25",
+    "oggi": "2026-10-14",
+    "richiesta": "A Catania cerco: spa, hammam, terme, centri benessere. Escludi: cattedrali, musei, monumenti turistici. da esplorare in solitudine.",
+    "onboarding": null,
+    "vincoli": null,
+    "chiamata": {
+     "pagina": "QuickPath.jsx",
+     "pathType": "quick",
+     "prefs": {
+      "duration": "Veloce",
+      "group": "Solo",
+      "interests": [
+       "Relax",
+       "Benessere"
+      ],
+      "pace": "Rilassato"
+     },
+     "testo": "A Catania cerco: spa, hammam, terme, centri benessere. Escludi: cattedrali, musei, monumenti turistici. da esplorare in solitudine."
+    },
+    "secs": 9.429,
+    "source": "google-first",
+    "destinazione": null,
+    "tourDate": "2026-10-14",
+    "giorno": {
+     "date": "2026-10-14",
+     "start": "2026-10-14T19:25:00.000Z",
+     "reason": "quick-now"
+    },
+    "frasiTolte": [],
+    "pool": {
+     "g1-aperitivo": {
+      "posti": 1,
+      "candidati": [
+       {
+        "place_id": "ChIJI5cU_IL9ExMRViGp8JGvWLc",
+        "nome": "Boston Cocktail Bar",
+        "famiglia": null,
+        "primaryType": "cocktail_bar",
+        "types": [
+         "cocktail_bar",
+         "bar",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.46,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "pari: lo scelto viene prima (modello o ordine)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+        "nome": "Bar Popolare",
+        "famiglia": null,
+        "primaryType": "cocktail_bar",
+        "types": [
+         "cocktail_bar",
+         "bar",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.43,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": true,
+        "posto": 0,
+        "motivo": null,
+        "nelGiro": true
+       },
+       {
+        "place_id": "ChIJ4aS0WaDjExMRZm-pSHW8PAg",
+        "nome": "Magma 2.0 Drink & Food",
+        "famiglia": null,
+        "primaryType": "pub",
+        "types": [
+         "pub",
+         "deli",
+         "bar",
+         "food_store",
+         "store",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.41,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJuzxaAODjExMRccoJu6YRJ9c",
+        "nome": "Sotto Palazzo",
+        "famiglia": null,
+        "nomeOriginale": "Sotto Palazzo | Cocktail e Sapori",
+        "primaryType": "cocktail_bar",
+        "types": [
+         "cocktail_bar",
+         "italian_restaurant",
+         "bar",
+         "european_restaurant",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.39,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJdVTSyEjjExMRmIZJkeodCY4",
+        "nome": "Retr\u00f2 - Cocktail Bar",
+        "famiglia": null,
+        "primaryType": "cocktail_bar",
+        "types": [
+         "cocktail_bar",
+         "bistro",
+         "pub",
+         "bar",
+         "spanish_restaurant",
+         "european_restaurant",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.31,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJsQEuaevjExMRBHVcW0r2l2c",
+        "nome": "Drinkeria cocktail bar",
+        "famiglia": null,
+        "primaryType": "pub",
+        "types": [
+         "pub",
+         "bar",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.31,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJq5mQzuXjExMRr-HUMu58vYc",
+        "nome": "The Rabbit Hole",
+        "famiglia": null,
+        "primaryType": "cocktail_bar",
+        "types": [
+         "cocktail_bar",
+         "bistro",
+         "coffee_shop",
+         "cafe",
+         "pub",
+         "night_club",
+         "bar",
+         "food_store",
+         "store",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.25,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       }
+      ]
+     },
+     "g1-cena": {
+      "posti": 1,
+      "candidati": [
+       {
+        "place_id": "ChIJN6AiIgDjExMRJraSAxXePwk",
+        "nome": "Ristorante EtnaSicilia",
+        "famiglia": null,
+        "primaryType": "italian_restaurant",
+        "types": [
+         "italian_restaurant",
+         "european_restaurant",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.18,
+        "minuti": 2,
+        "deviazione": 0,
+        "scelto": true,
+        "posto": 0,
+        "motivo": null,
+        "nelGiro": true
+       }
+      ]
+     }
+    },
+    "sceltaModello": [
+     {
+      "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+      "momento": "g1-aperitivo"
+     },
+     {
+      "place_id": "ChIJz3opAwf9ExMRYdQhG6GA2hY",
+      "momento": "g1-passeggiata"
+     },
+     {
+      "place_id": "ChIJN6AiIgDjExMRJraSAxXePwk",
+      "momento": "g1-cena"
+     }
+    ],
+    "ricerche": {
+     "prima": [
+      "nightlife",
+      "romance",
+      "food"
+     ],
+     "dopo": []
+    },
+    "ripiegoDichiarato": false,
+    "orariMotore": {
+     "chiusi": [
+      {
+       "momento": "g1-aperitivo",
+       "place_id": "ChIJX3qRACTjExMRqiFdQ3F5dSY",
+       "nome": "Deliziosa Caf\u00e9 & Cocktail Bar",
+       "perche": "chiuso all'arrivo"
+      },
+      {
+       "momento": "g1-cena",
+       "place_id": "ChIJd_9ta9z9ExMRR0GUVs08hn8",
+       "nome": "mica - Ristorante calabrese & cocktail bar a Catania",
+       "perche": "chiude alle 00:00, prima della fine della sosta"
+      },
+      {
+       "momento": "g1-cena",
+       "place_id": "ChIJwbllur79ExMRsiUFCi4M3Aw",
+       "nome": "Osteria del mar",
+       "perche": "chiuso all'arrivo"
+      },
+      {
+       "momento": "g1-cena",
+       "place_id": "ChIJwVZNoH3jExMRH_s5PodSdz0",
+       "nome": "Trattoria del Lago",
+       "perche": "chiude alle 00:00, prima della fine della sosta"
+      }
+     ],
+     "vietati": [],
+     "giri": 0,
+     "ignoti": 0,
+     "scartatiIgnoti": [],
+     "righeDichiarate": [],
+     "residui": 0,
+     "tappeSenzaFiltro": 2
+    },
+    "continuita": {
+     "aggiunte": [],
+     "tentativi": 0,
+     "dichiarati": []
+    },
+    "tema": {
+     "cibo": false,
+     "tipico": false,
+     "fonte": null,
+     "momentiEspliciti": [],
+     "cucineEstereEscluse": [],
+     "zoneTolte": []
+    },
+    "schermo": {
+     "giorni": [
+      {
+       "titolo": "Colorato aperitivo di Catania",
+       "meteo": {
+        "condition": "sunny",
+        "temperature": 20,
+        "icon": "\u2600\ufe0f"
+       }
+      }
+     ],
+     "note": []
+    },
+    "tours": [
+     {
+      "tema": "Colorato aperitivo di Catania",
+      "stops": [
+       {
+        "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+        "title": "Bar Popolare",
+        "types": [
+         "cocktail_bar",
+         "bar",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "moment": "aperitivo",
+        "at": "2026-10-14T19:25:00.000Z",
+        "atStimato": false,
+        "lat": 37.5021939,
+        "lng": 15.0849114,
+        "min": null,
+        "scelta": "modello",
+        "stay": 60,
+        "ripiego": null,
+        "motivo": null,
+        "famiglia": null,
+        "incrocio": null,
+        "daPartenza": null,
+        "varieta": null,
+        "deviazioneProva": null,
+        "description": "L'aperitivo lo prendi da Bar Popolare, bar in fascia \u20ac. Si comincia da qui.",
+        "verita": true,
+        "voce": true,
+        "frasi": [
+         {
+          "testo": "L'aperitivo lo prendi da Bar Popolare, bar in fascia \u20ac.",
+          "problemi": []
+         },
+         {
+          "testo": "Si comincia da qui.",
+          "problemi": []
+         }
+        ],
+        "fatti": 0,
+        "recensioni": 89,
+        "priceLevel": 1,
+        "pasto": false,
+        "primaryType": "cocktail_bar",
+        "orario": "noto",
+        "orarioFonte": "orario del giorno",
+        "dietaCercata": null,
+        "dietaSolo": null
+       },
+       {
+        "place_id": "ChIJN6AiIgDjExMRJraSAxXePwk",
+        "title": "Ristorante EtnaSicilia",
+        "types": [
+         "italian_restaurant",
+         "european_restaurant",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "moment": "cena",
+        "at": "2026-10-14T20:50:00.000Z",
+        "atStimato": false,
+        "lat": 37.5011716,
+        "lng": 15.084991499999997,
+        "min": 2,
+        "scelta": "modello",
+        "stay": 75,
+        "ripiego": null,
+        "motivo": null,
+        "famiglia": null,
+        "incrocio": null,
+        "daPartenza": null,
+        "varieta": null,
+        "deviazioneProva": null,
+        "description": "Chiudi la giornata a tavola da Ristorante EtnaSicilia, ristorante in fascia \u20ac\u20ac. Ci arrivi alle 22:50.",
+        "verita": true,
+        "voce": true,
+        "frasi": [
+         {
+          "testo": "Chiudi la giornata a tavola da Ristorante EtnaSicilia, ristorante in fascia \u20ac\u20ac.",
+          "problemi": []
+         },
+         {
+          "testo": "Ci arrivi alle 22:50.",
+          "problemi": []
+         }
+        ],
+        "fatti": 0,
+        "recensioni": 846,
+        "priceLevel": 2,
+        "pasto": true,
+        "primaryType": "italian_restaurant",
+        "orario": "noto",
+        "orarioFonte": "orario del giorno",
+        "dietaCercata": null,
+        "dietaSolo": null
+       }
+      ]
+     }
+    ],
+    "ai": {
+     "chiamate": 3,
+     "tokenIn": 5072,
+     "tokenOut": 390
+    },
+    "google": {
+     "place/findplacefromtext": 1,
+     "place/textsearch#new": 6
+    },
+    "candidatiVisti": 87,
+    "candidatiConOrari": 77,
+    "orari": {
+     "ChIJ9bTT5mbjExMRkZuYM-b5aio": {
+      "chiamato": true,
+      "periods": [
+       {
+        "open": {
+         "day": 0,
+         "time": "1100"
+        },
+        "close": {
+         "day": 1,
+         "time": "0100"
+        }
+       },
+       {
+        "open": {
+         "day": 1,
+         "time": "1100"
+        },
+        "close": {
+         "day": 2,
+         "time": "0100"
+        }
+       },
+       {
+        "open": {
+         "day": 2,
+         "time": "1100"
+        },
+        "close": {
+         "day": 3,
+         "time": "0100"
+        }
+       },
+       {
+        "open": {
+         "day": 3,
+         "time": "1100"
+        },
+        "close": {
+         "day": 4,
+         "time": "0100"
+        }
+       },
+       {
+        "open": {
+         "day": 4,
+         "time": "1100"
+        },
+        "close": {
+         "day": 5,
+         "time": "0100"
+        }
+       },
+       {
+        "open": {
+         "day": 5,
+         "time": "1100"
+        },
+        "close": {
+         "day": 6,
+         "time": "0200"
+        }
+       },
+       {
+        "open": {
+         "day": 6,
+         "time": "1100"
+        },
+        "close": {
+         "day": 0,
+         "time": "0200"
+        }
+       }
+      ],
+      "current": {
+       "to": "2026-10-19",
+       "from": "2026-10-13",
+       "periods": [
+        {
+         "date": "2026-10-18",
+         "open": "1100",
+         "close": "0100",
+         "close_date": "2026-10-19"
+        },
+        {
+         "date": "2026-10-19",
+         "open": "1100",
+         "close": "2359"
+        },
+        {
+         "date": "2026-10-13",
+         "open": "0000",
+         "close": "0100"
+        },
+        {
+         "date": "2026-10-13",
+         "open": "1100",
+         "close": "0100",
+         "close_date": "2026-10-14"
+        },
+        {
+         "date": "2026-10-14",
+         "open": "1100",
+         "close": "0100",
+         "close_date": "2026-10-15"
+        },
+        {
+         "date": "2026-10-15",
+         "open": "1100",
+         "close": "0100",
+         "close_date": "2026-10-16"
+        },
+        {
+         "date": "2026-10-16",
+         "open": "1100",
+         "close": "0200",
+         "close_date": "2026-10-17"
+        },
+        {
+         "date": "2026-10-17",
+         "open": "1100",
+         "close": "0200",
+         "close_date": "2026-10-18"
+        }
+       ]
+      }
+     },
+     "ChIJN6AiIgDjExMRJraSAxXePwk": {
+      "chiamato": true,
+      "periods": [
+       {
+        "open": {
+         "day": 0,
+         "time": "1100"
+        },
+        "close": {
+         "day": 1,
+         "time": "0130"
+        }
+       },
+       {
+        "open": {
+         "day": 1,
+         "time": "1100"
+        },
+        "close": {
+         "day": 2,
+         "time": "0130"
+        }
+       },
+       {
+        "open": {
+         "day": 2,
+         "time": "1100"
+        },
+        "close": {
+         "day": 3,
+         "time": "0130"
+        }
+       },
+       {
+        "open": {
+         "day": 3,
+         "time": "1100"
+        },
+        "close": {
+         "day": 4,
+         "time": "0130"
+        }
+       },
+       {
+        "open": {
+         "day": 4,
+         "time": "1100"
+        },
+        "close": {
+         "day": 5,
+         "time": "0130"
+        }
+       },
+       {
+        "open": {
+         "day": 5,
+         "time": "1100"
+        },
+        "close": {
+         "day": 6,
+         "time": "0130"
+        }
+       },
+       {
+        "open": {
+         "day": 6,
+         "time": "1100"
+        },
+        "close": {
+         "day": 0,
+         "time": "0130"
+        }
+       }
+      ],
+      "current": {
+       "to": "2026-10-19",
+       "from": "2026-10-13",
+       "periods": [
+        {
+         "date": "2026-10-18",
+         "open": "1100",
+         "close": "0130",
+         "close_date": "2026-10-19"
+        },
+        {
+         "date": "2026-10-19",
+         "open": "1100",
+         "close": "2359"
+        },
+        {
+         "date": "2026-10-13",
+         "open": "0000",
+         "close": "0130"
+        },
+        {
+         "date": "2026-10-13",
+         "open": "1100",
+         "close": "0130",
+         "close_date": "2026-10-14"
+        },
+        {
+         "date": "2026-10-14",
+         "open": "1100",
+         "close": "0130",
+         "close_date": "2026-10-15"
+        },
+        {
+         "date": "2026-10-15",
+         "open": "1100",
+         "close": "0130",
+         "close_date": "2026-10-16"
+        },
+        {
+         "date": "2026-10-16",
+         "open": "1100",
+         "close": "0130",
+         "close_date": "2026-10-17"
+        },
+        {
+         "date": "2026-10-17",
+         "open": "1100",
+         "close": "0130",
+         "close_date": "2026-10-18"
+        }
+       ]
+      }
+     }
+    },
+    "codice": "intermedio"
+   },
+   "nota": "primo giro (versione intermedia del codice)"
+  },
+  {
+   "id": "veloce-catania-relax-2330",
+   "caso": {
+    "id": "veloce-catania-relax-2330",
+    "modo": "veloce",
+    "tipo": "itinerario",
+    "luogo": "Catania",
+    "ora": "23:30",
+    "oggi": "2026-10-14",
+    "richiesta": "A Catania cerco: spa, hammam, terme, centri benessere. Escludi: cattedrali, musei, monumenti turistici. da esplorare in solitudine.",
+    "onboarding": null,
+    "vincoli": null,
+    "chiamata": {
+     "pagina": "QuickPath.jsx",
+     "pathType": "quick",
+     "prefs": {
+      "duration": "Veloce",
+      "group": "Solo",
+      "interests": [
+       "Relax",
+       "Benessere"
+      ],
+      "pace": "Rilassato"
+     },
+     "testo": "A Catania cerco: spa, hammam, terme, centri benessere. Escludi: cattedrali, musei, monumenti turistici. da esplorare in solitudine."
+    },
+    "secs": 7.468,
+    "source": "google-first",
+    "destinazione": null,
+    "tourDate": "2026-10-14",
+    "giorno": {
+     "date": "2026-10-14",
+     "start": "2026-10-14T21:30:00.000Z",
+     "reason": "quick-now"
+    },
+    "frasiTolte": [],
+    "pool": {
+     "g1-dopocena": {
+      "posti": 1,
+      "candidati": [
+       {
+        "place_id": "ChIJI5cU_IL9ExMRViGp8JGvWLc",
+        "nome": "Boston Cocktail Bar",
+        "famiglia": null,
+        "primaryType": "cocktail_bar",
+        "types": [
+         "cocktail_bar",
+         "bar",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.45,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "pari: lo scelto viene prima (modello o ordine)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+        "nome": "Bar Popolare",
+        "famiglia": null,
+        "primaryType": "cocktail_bar",
+        "types": [
+         "cocktail_bar",
+         "bar",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.41,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "pari: lo scelto viene prima (modello o ordine)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJ4aS0WaDjExMRZm-pSHW8PAg",
+        "nome": "Magma 2.0 Drink & Food",
+        "famiglia": null,
+        "primaryType": "pub",
+        "types": [
+         "pub",
+         "deli",
+         "bar",
+         "food_store",
+         "store",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.38,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "pari: lo scelto viene prima (modello o ordine)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJuzxaAODjExMRccoJu6YRJ9c",
+        "nome": "Sotto Palazzo",
+        "famiglia": null,
+        "nomeOriginale": "Sotto Palazzo | Cocktail e Sapori",
+        "primaryType": "cocktail_bar",
+        "types": [
+         "cocktail_bar",
+         "italian_restaurant",
+         "bar",
+         "european_restaurant",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.37,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "pari: lo scelto viene prima (modello o ordine)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJdVTSyEjjExMRmIZJkeodCY4",
+        "nome": "Retr\u00f2 - Cocktail Bar",
+        "famiglia": null,
+        "primaryType": "cocktail_bar",
+        "types": [
+         "cocktail_bar",
+         "bistro",
+         "pub",
+         "bar",
+         "spanish_restaurant",
+         "european_restaurant",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.27,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": true,
+        "posto": 0,
+        "motivo": null,
+        "nelGiro": true
+       },
+       {
+        "place_id": "ChIJsQEuaevjExMRBHVcW0r2l2c",
+        "nome": "Drinkeria cocktail bar",
+        "famiglia": null,
+        "primaryType": "pub",
+        "types": [
+         "pub",
+         "bar",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.27,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       },
+       {
+        "place_id": "ChIJq5mQzuXjExMRr-HUMu58vYc",
+        "nome": "The Rabbit Hole",
+        "famiglia": null,
+        "primaryType": "cocktail_bar",
+        "types": [
+         "cocktail_bar",
+         "bistro",
+         "coffee_shop",
+         "cafe",
+         "pub",
+         "night_club",
+         "bar",
+         "food_store",
+         "store",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "merito": 0.2,
+        "minuti": 0,
+        "deviazione": 0,
+        "scelto": false,
+        "posto": 0,
+        "motivo": "merito e strada minori (a pari regole)",
+        "nelGiro": false
+       }
+      ]
+     }
+    },
+    "sceltaModello": [
+     {
+      "place_id": "ChIJdVTSyEjjExMRmIZJkeodCY4",
+      "momento": "g1-dopocena"
+     },
+     {
+      "place_id": "ChIJz3opAwf9ExMRYdQhG6GA2hY",
+      "momento": "g1-passeggiata"
+     }
+    ],
+    "ricerche": {
+     "prima": [
+      "nightlife",
+      "romance"
+     ],
+     "dopo": []
+    },
+    "ripiegoDichiarato": true,
+    "orariMotore": {
+     "chiusi": [
+      {
+       "momento": "g1-dopocena",
+       "place_id": "ChIJX3qRACTjExMRqiFdQ3F5dSY",
+       "nome": "Deliziosa Caf\u00e9 & Cocktail Bar",
+       "perche": "chiuso all'arrivo"
+      }
+     ],
+     "vietati": [],
+     "giri": 0,
+     "ignoti": 0,
+     "scartatiIgnoti": [],
+     "righeDichiarate": [],
+     "residui": 0,
+     "tappeSenzaFiltro": 1
+    },
+    "continuita": {
+     "aggiunte": [],
+     "tentativi": 0,
+     "dichiarati": []
+    },
+    "tema": {
+     "cibo": false,
+     "tipico": false,
+     "fonte": null,
+     "momentiEspliciti": [],
+     "cucineEstereEscluse": [],
+     "zoneTolte": []
+    },
+    "schermo": {
+     "giorni": [
+      {
+       "titolo": "Giorno 1 a Catania",
+       "meteo": {
+        "condition": "sunny",
+        "temperature": 20,
+        "icon": "\u2600\ufe0f"
+       }
+      }
+     ],
+     "note": []
+    },
+    "tours": [
+     {
+      "tema": "Giorno 1 a Catania",
+      "stops": [
+       {
+        "place_id": "ChIJdVTSyEjjExMRmIZJkeodCY4",
+        "title": "Retr\u00f2 - Cocktail Bar",
+        "types": [
+         "cocktail_bar",
+         "bistro",
+         "pub",
+         "bar",
+         "spanish_restaurant",
+         "european_restaurant",
+         "restaurant",
+         "food",
+         "point_of_interest",
+         "establishment"
+        ],
+        "moment": "dopocena",
+        "at": "2026-10-14T21:30:00.000Z",
+        "atStimato": false,
+        "lat": 37.5096541,
+        "lng": 15.0868436,
+        "min": null,
+        "scelta": "modello",
+        "stay": 60,
+        "ripiego": null,
+        "motivo": null,
+        "famiglia": null,
+        "incrocio": null,
+        "daPartenza": null,
+        "varieta": null,
+        "deviazioneProva": null,
+        "description": "Dopo cena, due passi fino a Retr\u00f2 - Cocktail Bar. Qui la giornata si chiude.",
+        "verita": true,
+        "voce": true,
+        "frasi": [
+         {
+          "testo": "Dopo cena, due passi fino a Retr\u00f2 - Cocktail Bar.",
+          "problemi": []
+         },
+         {
+          "testo": "Qui la giornata si chiude.",
+          "problemi": []
+         }
+        ],
+        "fatti": 0,
+        "recensioni": 276,
+        "priceLevel": 2,
+        "pasto": false,
+        "primaryType": "cocktail_bar",
+        "orario": "noto",
+        "orarioFonte": "orario del giorno",
+        "dietaCercata": null,
+        "dietaSolo": null
+       }
+      ]
+     }
+    ],
+    "ai": {
+     "chiamate": 3,
+     "tokenIn": 4833,
+     "tokenOut": 308
+    },
+    "google": {
+     "place/findplacefromtext": 1,
+     "place/textsearch#new": 5
+    },
+    "candidatiVisti": 67,
+    "candidatiConOrari": 57,
+    "orari": {
+     "ChIJdVTSyEjjExMRmIZJkeodCY4": {
+      "chiamato": true,
+      "periods": [
+       {
+        "open": {
+         "day": 0,
+         "time": "1800"
+        },
+        "close": {
+         "day": 1,
+         "time": "0200"
+        }
+       },
+       {
+        "open": {
+         "day": 1,
+         "time": "1800"
+        },
+        "close": {
+         "day": 2,
+         "time": "0200"
+        }
+       },
+       {
+        "open": {
+         "day": 2,
+         "time": "1800"
+        },
+        "close": {
+         "day": 3,
+         "time": "0200"
+        }
+       },
+       {
+        "open": {
+         "day": 3,
+         "time": "1800"
+        },
+        "close": {
+         "day": 4,
+         "time": "0200"
+        }
+       },
+       {
+        "open": {
+         "day": 4,
+         "time": "1800"
+        },
+        "close": {
+         "day": 5,
+         "time": "0200"
+        }
+       },
+       {
+        "open": {
+         "day": 5,
+         "time": "1800"
+        },
+        "close": {
+         "day": 6,
+         "time": "0200"
+        }
+       },
+       {
+        "open": {
+         "day": 6,
+         "time": "1800"
+        },
+        "close": {
+         "day": 0,
+         "time": "0200"
+        }
+       }
+      ],
+      "current": {
+       "to": "2026-10-19",
+       "from": "2026-10-13",
+       "periods": [
+        {
+         "date": "2026-10-18",
+         "open": "1800",
+         "close": "0200",
+         "close_date": "2026-10-19"
+        },
+        {
+         "date": "2026-10-19",
+         "open": "1800",
+         "close": "2359"
+        },
+        {
+         "date": "2026-10-13",
+         "open": "0000",
+         "close": "0200"
+        },
+        {
+         "date": "2026-10-13",
+         "open": "1800",
+         "close": "0200",
+         "close_date": "2026-10-14"
+        },
+        {
+         "date": "2026-10-14",
+         "open": "1800",
+         "close": "0200",
+         "close_date": "2026-10-15"
+        },
+        {
+         "date": "2026-10-15",
+         "open": "1800",
+         "close": "0200",
+         "close_date": "2026-10-16"
+        },
+        {
+         "date": "2026-10-16",
+         "open": "1800",
+         "close": "0200",
+         "close_date": "2026-10-17"
+        },
+        {
+         "date": "2026-10-17",
+         "open": "1800",
+         "close": "0200",
+         "close_date": "2026-10-18"
+        }
+       ]
+      }
+     }
+    },
+    "codice": "intermedio"
+   },
+   "nota": "primo giro (versione intermedia del codice)"
   }
  ]
 }

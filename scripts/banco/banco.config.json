@@ -114,12 +114,13 @@
     "sostaAperitivoMinuti": 45,
     "passeggiataSogliaMinuti": 30,
     "_sera": "C8a — c13: il drink dell'aperitivo dura almeno sostaAperitivoMinuti; fra la fine del drink e la cena, oltre passeggiataSogliaMinuti serve una passeggiata o una riga di tempo libero.",
-    "tettoSeraUsd": 2.0,
+    "tettoSeraUsd": 2.4,
     "baselineComposizione": "docs/prove/dati/2026-10-13-banco-esteso-composizione.json",
     "baselineSera": [
       "docs/prove/dati/2026-10-14-banco-esteso-sera-prima.json",
       "docs/prove/dati/2026-10-13-banco-esteso-composizione.json",
       "docs/prove/dati/2026-10-13-banco-esteso-continuita.json"
-    ]
+    ],
+    "_tettoSera": "C8a: tetto 2 $ (fermo a 1,8), poi +0,6 $ autorizzati per il rigiro: 2,4 $ in tutto, codice di prima compreso"
   }
 }

@@ -192,6 +192,20 @@ Nel flusso a momenti (`momentSelection.fillGaps`, dopo `settleOpeningHours`) il 
 (`AiItinerary`, `TourStopsByMoment`) il tempo libero mostra "HH:MM–HH:MM" (`freeTimeRangeLabel`).
 Il banco ha la classe c11 (`scripts/banco/controlli.js`, soglia `esteso.buchiMinuti`).
 
+### Composizione della giornata (C7): tema solo nei pasti, un pasto per fascia, niente zone
+
+Un tema cibo (testo come «nei ristoranti tipici» / «da catanese», o `categoria=cibo` del traduttore, `src/lib/foodTheme.js`)
+vale **solo per i pasti**: pranzo e cena sono cibo, l'aperitivo è un bar, mattina e pomeriggio sono **esperienze**
+(`moment.tema = 'esperienze'`, ricerca mirata `esperienze`: mercato storico, palazzi, via storica; una sola per i due
+momenti, dentro il tetto di 2). Non scatta più il filtro stretto di categoria per il cibo. `src/lib/mealRules.js`
+(nei bucket di `bucketCandidates`, quindi anche per il riempimento dei buchi): un ristorante (tipo principale) sta solo a
+pranzo e cena; la mattina un locale è una colazione; l'aperitivo è un bar. Eccezione: una richiesta esplicita per il
+momento («il pomeriggio in pasticceria») → `moment.esplicito`, e con ristoranti chiesti `esplicitoPasti`.
+`src/lib/zone.js`: un'area («Centro Storico Catania», tipo da zona, `route` come tipo principale) non è mai una tappa
+(scartata in `discoverRealPOIs` e sul pool). «Tipico»: cucine estere escluse dai pasti, spinta ai posti locali
+(`tipicoBonus`), dichiarato in `_tracciato.tipico`. Banco: c1 (il tipo principale decide cosa è un pasto, momento chiesto,
+Per Te escluso), c2 anche ad aperitivo e dopocena, c12 (zone).
+
 ### City Data Flow
 
 **T1 — in "Crea il tuo percorso" la città scritta nel testo vince sulla posizione.**

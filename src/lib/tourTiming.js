@@ -47,6 +47,7 @@ export const DEFAULT_STAY_MINUTES = 30;
  *   pasto               75     restaurant, italian_restaurant, pizza_restaurant, bistro
  *   spuntino            30     fast_food_restaurant, meal_takeaway, sandwich_shop
  *   chiesa              20     church, place_of_worship, mosque, synagogue
+ *                              (60 se tra i types c'e' anche `museum`: un monastero con il suo museo)
  *   bar                 20     bar, cocktail_bar, wine_bar, pub
  *   caffe               20     cafe, coffee_shop, tea_house
  *   forno               20     bakery
@@ -78,6 +79,10 @@ export const STAY_RULES = [
 export function resolveStayMinutes(types, primaryType = null) {
     const list = Array.isArray(types) ? types : [];
     const { kind } = placeKind({ types: list, primaryType });
+    // Un luogo di culto che e' anche museo (`museum` tra i types: un monastero con
+    // il suo museo) si visita come un museo. Cambia solo la durata: per famiglia
+    // e categorie resta una chiesa.
+    if (kind === 'chiesa' && list.includes('museum')) return KINDS.museo.minuti;
     if (kind) return KINDS[kind].minuti;
     if (list.length === 0) return DEFAULT_STAY_MINUTES;
     const set = new Set(list);

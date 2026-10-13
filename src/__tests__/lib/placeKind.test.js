@@ -157,6 +157,26 @@ describe('C6a — durata dal tipo principale (tabella tipo → minuti)', () => {
     });
 });
 
+describe('C6a — un luogo di culto con `museum` tra i types dura come un museo', () => {
+    // Monastero dei Benedettini di San Nicolo' l'Arena (Catania): tipo principale place_of_worship, ma e' anche museo.
+    const monastero = { name: "Monastero dei Benedettini di San Nicolò l'Arena", primaryType: 'place_of_worship', types: ['place_of_worship', 'museum', 'tourist_attraction'] };
+    it('Monastero dei Benedettini: 60 minuti, non 20', () => {
+        expect(stayOf(monastero)).toBe(60);
+        expect(resolveStayMinutes(monastero.types, monastero.primaryType)).toBe(60);
+    });
+    it('anche con la chiesa come tipo principale', () => {
+        expect(stayOf({ primaryType: 'church', types: ['church', 'museum'] })).toBe(60);
+    });
+    it('una chiesa senza museum resta a 20; un luogo di culto con altri types (bar, ristorante) resta a 20', () => {
+        expect(stayOf({ primaryType: 'church', types: ['church', 'tourist_attraction'] })).toBe(20);
+        expect(stayOf({ primaryType: 'place_of_worship', types: ['place_of_worship', 'cafe'] })).toBe(20);
+    });
+    it('cambia solo la durata: per famiglia e categorie e\' ancora una chiesa', () => {
+        expect(candidateFamily(monastero)).toBe('chiesa');
+        expect(placeKind(monastero).kind).toBe('chiesa');
+    });
+});
+
 describe('C6a — il controllo orari usa la durata nuova', () => {
     // mercoledi' 14/10/2026 (CEST): aperto fino alle 21:00
     const periods = [0, 1, 2, 3, 4, 5, 6].map(d => ({ open: { day: d, time: '1700' }, close: { day: d, time: '2100' } }));

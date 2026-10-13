@@ -84,6 +84,8 @@ function tipoDaPrincipale(pt) {
 /** Il tipo per la sosta: pasto, caffe, museo, chiesa, verde, altro. */
 export function tipoSosta(s) {
     const dalPrincipale = tipoDaPrincipale(s.primaryType);
+    // un luogo di culto che e' anche museo (`museum` tra i types) si visita come un museo
+    if (dalPrincipale === 'chiesa' && tipi(s).includes('museum')) return 'museo';
     if (dalPrincipale) return dalPrincipale;
     const n = norm(nome(s));
     const t = tipi(s);

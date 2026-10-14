@@ -1000,6 +1000,7 @@ export const placesDiscoveryService = {
 // Export nominato per test unitari senza toccare la superficie del service.
 export {
   discoverRealPOIs,
+  buildPOIFromCandidate, // C10 — i posti della lista della città nella stessa forma dei risultati di ricerca
   THEME_TEXTSEARCH, // Gate INTERESSI-VERI — test di completezza
   FALLBACK_THEME,   // Gate INTERESSI-VERI
   HOME_THEMES,      // Gate INTERESSI-VERI

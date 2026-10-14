@@ -381,6 +381,9 @@ import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO, romeMinutes } from '../lib
 import { keepOpenStops } from '../lib/openStops';
 import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
+// C10 — la lista della città: l'AI propone (sul server, una per città e giorno), Google verifica, le regole compongono.
+import { fetchCityKnowledge } from './cityKnowledgeService';
+import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa } from '../lib/cityKnowledge';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
@@ -2370,6 +2373,13 @@ export const aiRecommendationService = {
             await assertQuotaAvailable();
         }
         const quotaTicket = opts.quotaTicket || newGenerationTicket('itinerary');
+        // C10 — la lista della città parte SUBITO, in parallelo al traduttore e alle ricerche: una per città e giorno del
+        // tour, uguale per tutti (la prima richiesta del giorno la fa nascere sul server, le altre la leggono).
+        const cittaT0 = Date.now();
+        const cittaPromise = opts.cityKnowledge === false
+            ? Promise.resolve({ stato: 'spenta', verificati: [] })
+            : fetchCityKnowledge(city, tourWindow.date).catch(err => ({ stato: 'assente', verificati: [], errore: String(err?.message || err) }));
+        const cittaReport = { stato: 'in attesa' };
 
         // G3 — la fascia del timeContext si legge dalla PARTENZA del tour
         // (tourWindow.start, ora di Roma), non dall'ora della richiesta:
@@ -2389,7 +2399,18 @@ export const aiRecommendationService = {
         // candidati, errore onesto con oggetto_umano.
         const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
         try {
-            const { candidates: rawCandidatesTutti, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null, !!opts.baseQueries);
+            const { candidates: rawDalleRicerche, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null, !!opts.baseQueries);
+            // C10 — i posti verificati della lista entrano nel pool come risultati di ricerca: da qui passano per gli stessi
+            // filtri di tutti (zone, raggio, categoria, dieta e budget, cucine estere col tema tipico).
+            const lista = await cittaPromise;
+            const { buildPOIFromCandidate } = await import('./placesDiscoveryService');
+            const poiCitta = poiDallaLista(lista.verificati, city, buildPOIFromCandidate);
+            Object.assign(cittaReport, {
+                stato: lista.stato, cached: lista.cached ?? null, conti: lista.conti ?? null, errore: lista.errore ?? null,
+                attesaMs: Date.now() - cittaT0, risposta: lista.ms ?? null, costo: lista.costo ?? null,
+                verificati: poiCitta.map(p => ({ place_id: p.place_id, nome: p.name, tipo: p._citta.tipo, momento: p._citta.momento })),
+            });
+            const rawCandidatesTutti = uniscialPool(rawDalleRicerche, poiCitta);
 
             // C7 — NIENTE ZONE: un'area generica ("Centro Storico Catania") non e' mai una tappa. La
             // ricerca le scarta gia' (placesDiscoveryService); qui la seconda rete, sul pool intero.
@@ -2528,7 +2549,24 @@ export const aiRecommendationService = {
             const foodBonus = (foodOn || tema.tipico)
                 ? (c) => (foodOn ? foodPrefBonus(c, food, isMealPlace) : 0) + (tema.tipico && isMealPlace(c) ? tipicoBonus(c, { dieta: foodOn ? food.dieta : [] }) : 0)
                 : null;
-            candidates = selectScoredCandidatePool(candidates, { city, dnaWeights: opts.dnaWeights || {}, limit: 20 * nDays, bonus: foodBonus });
+            // C10 — decisione di Ivano su P7a: le ancore (al massimo 3 essenziali per giornata intera, 1 per mezza) e i posti
+            // «da locale» della lista passano davanti e FUORI dal merito (non contano nel limite dei 20 ne' nel tetto delle
+            // icone); gli altri essenziali e tutto il resto restano al merito anti-ovvio di sempre.
+            const conLista = poolConLista(candidates, {
+                tourWindow,
+                seleziona: (altri) => selectScoredCandidatePool(altri, { city, dnaWeights: opts.dnaWeights || {}, limit: 20 * nDays, bonus: foodBonus }),
+            });
+            candidates = conLista.candidates;
+            const ancoreCitta = conLista.ancore;
+            Object.assign(cittaReport, {
+                nelPool: candidates.filter(c => c._citta).map(c => ({ place_id: c.place_id, nome: c.name, tipo: c._citta.tipo, ancora: !!c._citta.ancora })),
+                ancoreCandidate: ancoreCitta.map(c => ({ place_id: c.place_id, nome: c.name })),
+                ancore: [],
+                essenzialiAlMerito: conLista.essenzialiAlMerito.map(c => ({ place_id: c.place_id, nome: c.name, ammesso: candidates.some(x => x.place_id === c.place_id) })),
+            });
+            if (poiCitta.length > 0) {
+                console.info(`[C10 CITTA] ${city}: lista ${lista.cached ? 'dal server' : 'nuova'} — ${poiCitta.length} verificati, ${cittaReport.nelPool.length} nel pool dopo i filtri, ancore: ${ancoreCitta.map(c => c.name).join(' | ') || 'nessuna'}`);
+            }
             if (beforeMerito > 0) {
                 console.info(
                     `[Gate MERITO] ${city}: ${beforeMerito} candidati -> ${candidates.length} ammessi ` +
@@ -2718,10 +2756,22 @@ export const aiRecommendationService = {
                         ? parsed.stops
                         : (Array.isArray(parsed?.days) ? parsed.days : (Array.isArray(parsed) ? parsed : []))
                             .flatMap(d => (Array.isArray(d?.stops) ? d.stops : []));
-                    const aiStops = rawStops
+                    let aiStops = rawStops
                         .filter(st => st && typeof st.place_id === 'string')
                         .map(st => ({ place_id: st.place_id, ...(typeof st.moment === 'string' ? { moment: st.moment } : {}) }));
                     if (aiStops.length === 0) throw new Error('AI returned no stops (F2)');
+                    // C10 — le ancore proposte al riparatore come scelte del modello, in testa al loro momento: valgono
+                    // solo se nessuna alternativa del momento costa meno per le regole (cammino, varieta', orari, percorso).
+                    if (ancoreCitta.length > 0 && moments.length > 0) {
+                        const semina = seminaAncore(aiStops, ancoreCitta, moments, hoursBuckets || buckets, tourWindow);
+                        aiStops = semina.aiStops;
+                        declassa(semina.nonSeminate);
+                        cittaReport.seminate = semina.seminate;
+                        cittaReport.ancore = semina.seminate.map(x => ({ place_id: x.place_id, nome: x.nome }));
+                        cittaReport.declassate = semina.nonSeminate.map(c => ({ place_id: c.place_id, nome: c.name }));
+                    } else if (ancoreCitta.length > 0) {
+                        declassa(ancoreCitta);
+                    }
 
                     const baseMeta = (di) => ({
                         day: di + 1,
@@ -2982,7 +3032,7 @@ export const aiRecommendationService = {
                         console.info(`[ORARI] ${city}: nessuna tappa aperta a quest'ora → messaggio dichiarato`);
                         return {
                             days: [{ stops: [] }], _source: 'closed-now', _messaggio: messaggioChiuso(tourWindow.start),
-                            _orari: orariInfo, ...(momentReport ? { _momentReport: momentReport } : {}),
+                            _orari: orariInfo, ...(momentReport ? { _momentReport: momentReport } : {}), _citta: cittaReport,
                         };
                     }
 
@@ -3079,6 +3129,8 @@ export const aiRecommendationService = {
                             _narrationReport: narrationReport,
                             _ovvieta: ovvieta,
                             _famosita: famosita,
+                            // C10 — la lista della città in questo giro (stato, verificati, nel pool, ancore, seminate)
+                            _citta: cittaReport,
                         };
                         // Un narratore caduto non si mette in cache: la prossima
                         // richiesta deve poter avere il suo racconto.

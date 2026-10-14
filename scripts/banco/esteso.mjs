@@ -24,6 +24,7 @@ import { reportSera } from './report-sera.js';
 import { reportPasti, unisciGrezzi as unisciPasti } from './report-pasti.js';
 import { reportMinimi, unisciGrezzi } from './report-minimi.js';
 import { reportTesti } from './report-testi.js';
+import { reportC10 } from './report-c10.js';
 
 const root = process.cwd();
 const config = JSON.parse(readFileSync(path.join(root, 'scripts/banco/banco.config.json'), 'utf8'));
@@ -59,6 +60,8 @@ const VUOTI = process.env.BANCO_RUN === 'vuoti';
 const TETTO = process.env.BANCO_RUN === 'tetto';
 // TESTI — BANCO_RUN=testi: i testi a schermo (italiano, concordati, mai ripetuti); 6 casi, c7 e c8 a 0.
 const TESTI = process.env.BANCO_RUN === 'testi';
+// C10 — BANCO_RUN=c10: l'AI conosce la città (lista per città e giorno, verificata su Google); 11 tour, voci nuove dell'asticella.
+const C10 = process.env.BANCO_RUN === 'c10';
 const argReport = process.argv.indexOf('--report');
 let jsonPath, nome;
 if (argReport > -1) {
@@ -66,7 +69,7 @@ if (argReport > -1) {
     nome = path.basename(jsonPath, '.json');
 } else {
     // MIG-PLACES — BANCO_PLACES=new: stessi casi con la ricerca nuova (solo l'account di prova), file `-new`.
-    const suffisso = TESTI ? '-testi' : TETTO ? '-tetto' : VUOTI ? '-vuoti' : PASTI ? '-pasti' : MINIMI ? '-minimi' : SERA ? '-sera' : SERA_PRIMA ? '-sera-prima' : COMPOSIZIONE ? '-composizione' : CONTINUITA ? '-continuita' : FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
+    const suffisso = C10 ? '-c10' : TESTI ? '-testi' : TETTO ? '-tetto' : VUOTI ? '-vuoti' : PASTI ? '-pasti' : MINIMI ? '-minimi' : SERA ? '-sera' : SERA_PRIMA ? '-sera-prima' : COMPOSIZIONE ? '-composizione' : CONTINUITA ? '-continuita' : FESTIVI ? '-festivi' : C6A ? '-c6a' : ORARI ? '-orari' : (NUOVA ? '-new' : '');
     nome = `${oggi}-banco-esteso${suffisso}`;
     for (let i = 2; existsSync(path.join(root, 'docs/prove/dati', `${nome}.json`)); i++) nome = `${oggi}-banco-esteso${suffisso}-${i}`;
     jsonPath = path.join(root, 'docs/prove/dati', `${nome}.json`);
@@ -86,6 +89,20 @@ if (argReport > -1) {
     }
 }
 
+if (argReport > -1 && /-c10/.test(process.argv[argReport + 1])) {
+    // C10 — il report del giro (piu' grezzi dello stesso task si uniscono: il tetto e' del task)
+    const files = process.argv[argReport + 1].split(',').map(f => path.resolve(f.trim()));
+    const raws = files.map(f => ({ ...JSON.parse(readFileSync(f, 'utf8')), _nome: path.basename(f) }));
+    const unito = { ...raws.at(-1), casi: [], costo: { totale: raws.reduce((a, r) => a + (r.costo?.totale || 0), 0) } };
+    const visti = new Set();
+    for (const r of [...raws].reverse()) for (const c of r.casi || []) if (!visti.has(c.id) && !c.errore && !c.saltato) { visti.add(c.id); unito.casi.push(c); }
+    const nomeDoc = process.env.BANCO_DOC || `${oggi}-c10-citta`;
+    const testa = path.join(root, 'docs/prove/dati', `${nomeDoc}-testa.md`), coda = path.join(root, 'docs/prove/dati', `${nomeDoc}-coda.md`);
+    const { markdown: md } = reportC10(unito, config, { commit, files: files.map(f => path.basename(f)), baseSec: Number(process.env.C10_BASE_SEC) || 21.2 });
+    writeFileSync(path.join(root, 'docs/prove', `${nomeDoc}.md`), (existsSync(testa) ? readFileSync(testa, 'utf8') + '\n' : '') + md + (existsSync(coda) ? '\n' + readFileSync(coda, 'utf8') : '') + '\n');
+    console.log(`[banco-esteso] report C10: docs/prove/${nomeDoc}.md | ${unito.casi.length} tour | spesa ${unito.costo.totale.toFixed(3)}`);
+    process.exit(0);
+}
 if (argReport > -1 && /-testi/.test(process.argv[argReport + 1])) {
     // TESTI — il report unisce i giri dello stesso task (il tetto e' del task: si somma a mano)
     const files = process.argv[argReport + 1].split(',').map(f => path.resolve(f.trim()));
@@ -138,7 +155,7 @@ if (argReport > -1 && /-minimi/.test(process.argv[argReport + 1])) {
     process.exit(0);
 }
 const raw = JSON.parse(readFileSync(jsonPath, 'utf8'));
-if (raw.motore === 'new' && /-(pasti|vuoti|tetto|testi)/.test(nome)) {
+if (raw.motore === 'new' && /-(pasti|vuoti|tetto|testi|c10)/.test(nome)) {
     // C8c — un giro singolo di prova (il report vero unisce tutti i giri con --report a,b)
     console.log(`[banco-esteso] grezzo del giro: ${path.relative(root, jsonPath)} | spesa ${raw.costo?.totale?.toFixed?.(3) ?? '?'} (il report: BANCO_RUN=pasti npm run banco:esteso -- --report a.json,b.json)`);
     process.exit(0);

@@ -32,12 +32,21 @@
  * OPENAI_CREDIT_EXHAUSTED | OPENAI_RATE_LIMITED | OPENAI_ERROR, e rimborso della
  * generazione (public.ai_quota_refund) se la chiamata aveva un biglietto.
  *
+ * C10 — LA LISTA DELLA CITTÀ (`dv.purpose = 'city_list'`, con `dv.citta` e `dv.giorno`): una lista per città e per giorno,
+ * uguale per tutti. Se c'e' gia' in public.city_knowledge si restituisce (niente OpenAI, niente quota). Altrimenti:
+ * quota di contorno, UNA chiamata OpenAI con il prompt scritto QUI (il client non manda testo: nessuno puo' riscrivere
+ * la lista degli altri), verifica di ogni nome su Google via places-proxy (stessa ricerca e stessa maschera del motore),
+ * salvataggio. Al client vanno solo i posti verificati con momento e tipo: il «perche'» resta nella tabella.
+ *
  * La OPENAI_API_KEY rimane esclusivamente sul server Supabase.
  * Deploy: supabase functions deploy openai-proxy --no-verify-jwt
  */
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
+import {
+  CITY_LIST_VERSION, normCitta, cittaValida, giornoValido, promptCitta, leggiLista, verificaPosto, voceVerificata, raggioCittaKm,
+} from './cityKnowledge.ts';
 
 const OPENAI_BASE = 'https://api.openai.com/v1';
 
@@ -182,6 +191,149 @@ function parseMeta(dv: unknown): Meta {
   return { purpose: 'generation', ticket: m.ticket, kind: m.kind as string };
 }
 
+
+// ─── C10 — la lista della città ─────────────────────────────────────────────
+const oggiRoma = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Rome' }).format(new Date());
+const CITY_LIST_TIMEOUT_MS = 45_000;
+
+// deno-lint-ignore no-explicit-any
+async function placesCall(params: Record<string, string>): Promise<{ body: any; hit: boolean }> {
+  const base = `${Deno.env.get('SUPABASE_URL')}/functions/v1/places-proxy`;
+  const anon = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+  const qs = new URLSearchParams({ language: 'it', ...params }).toString();
+  const res = await fetch(`${base}?${qs}`, { headers: { apikey: anon, Authorization: `Bearer ${anon}` } });
+  const body = await res.json().catch(() => null);
+  return { body, hit: res.headers.get('X-Cache') === 'HIT' };
+}
+
+// deno-lint-ignore no-explicit-any
+async function handleCityList(req: Request, dv: Record<string, any>): Promise<Response> {
+  const citta = typeof dv.citta === 'string' ? dv.citta.trim() : '';
+  const giorno = dv.giorno;
+  if (!cittaValida(citta) || !giornoValido(giorno, oggiRoma())) {
+    return json(400, { error: 'Città o giorno non validi', code: 'BAD_CITY_LIST' });
+  }
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+  if (!SUPABASE_URL || !SERVICE_KEY || !OPENAI_API_KEY) return json(503, { error: 'Configurazione mancante', code: 'CITY_LIST_UNAVAILABLE' });
+  const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  const chiave = normCitta(citta);
+  const leggi = async () => {
+    const { data } = await sb.from('city_knowledge').select('citta_nome, giorno, versione, centro, verificati, proposti, scartati, created_at')
+      .eq('citta', chiave).eq('giorno', giorno).eq('versione', CITY_LIST_VERSION).maybeSingle();
+    return data;
+  };
+  // deno-lint-ignore no-explicit-any
+  const risposta = (row: any, extra: Record<string, unknown>) => json(200, {
+    cityKnowledge: {
+      citta: row.citta_nome, giorno: row.giorno, versione: row.versione, centro: row.centro,
+      verificati: row.verificati,
+      conti: { proposti: (row.proposti || []).length, verificati: (row.verificati || []).length, scartati: (row.scartati || []).length },
+      ...extra,
+    },
+  });
+
+  const gia = await leggi();
+  if (gia) return risposta(gia, { cached: true });
+
+  // Prima lista del giorno per questa città: quota di contorno (fail-closed, come le altre chiamate).
+  try {
+    const subject = await resolveSubject(req, sb);
+    const { data, error } = await sb.rpc('ai_quota_consume', {
+      p_subject_kind: subject.kind, p_subject: subject.id, p_purpose: 'aux', p_ticket: null, p_ticket_kind: null,
+      p_limit: LIMITS[subject.kind].aux, p_global_cap: globalCap(),
+    });
+    if (error) throw new Error(`ai_quota_consume: ${error.message ?? error}`);
+    if (!data?.allowed) return json(429, { error: MSG_USER_LIMIT, code: 'QUOTA_EXCEEDED' });
+  } catch (err) {
+    if (err instanceof HttpError) return json(err.status, err.body);
+    console.error('[openai-proxy] lista città: controllo quota fallito:', scrubLogText(err));
+    return json(503, { error: 'Controllo quota non disponibile, riprova tra poco.', code: 'QUOTA_CHECK_FAILED' });
+  }
+
+  const t0 = Date.now();
+  const { system, user } = promptCitta(citta, giorno);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CITY_LIST_TIMEOUT_MS);
+  // deno-lint-ignore no-explicit-any
+  let ai: any;
+  try {
+    const upstream = await fetch(`${OPENAI_BASE}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini', temperature: 0.2, max_tokens: 2500, response_format: { type: 'json_object' },
+        messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+      }),
+      signal: controller.signal,
+    });
+    ai = await upstream.json().catch(() => null);
+    if (!upstream.ok) {
+      console.error(`[openai-proxy] lista città: OpenAI status=${upstream.status} code=${plain(ai?.error?.code)}`);
+      return json(502, { error: MSG_ENGINE_DOWN, code: 'OPENAI_ERROR', source: 'openai' });
+    }
+  } catch (err) {
+    console.error('[openai-proxy] lista città: OpenAI non risponde:', scrubLogText(err));
+    return json(502, { error: MSG_ENGINE_DOWN, code: 'OPENAI_ERROR', source: 'openai' });
+  } finally {
+    clearTimeout(timer);
+  }
+  const tAi = Date.now() - t0;
+  const proposti = leggiLista(ai?.choices?.[0]?.message?.content, citta);
+  const usage = ai?.usage ?? null;
+
+  // Il centro della città: la stessa ricerca del client (resolveCityCenter), dalla cache condivisa del proxy.
+  const google = { findplace: 0, textsearch: 0, hit: 0 };
+  let centro: { lat: number; lng: number } | null = null;
+  try {
+    const c = await placesCall({ path: 'place/findplacefromtext', input: `${citta}, Italia`, inputtype: 'textquery', fields: 'name,geometry,types' });
+    google.findplace += 1; if (c.hit) google.hit += 1;
+    const loc = c.body?.candidates?.[0]?.geometry?.location;
+    if (Number.isFinite(loc?.lat) && Number.isFinite(loc?.lng)) centro = { lat: loc.lat, lng: loc.lng };
+  } catch { /* senza centro ogni posto resta «senza coordinate»: la lista esce vuota, non sbagliata */ }
+  const raggio = raggioCittaKm(citta);
+
+  // Ogni nome, in parallelo: «nome, città», bias sul centro con il raggio massimo del motore.
+  const esiti = await Promise.all(proposti.map(async (p) => {
+    try {
+      const r = await placesCall({
+        path: 'place/textsearch', query: `${p.nome}, ${citta}`,
+        ...(centro ? { location: `${centro.lat},${centro.lng}`, radius: String(raggio * 1000) } : {}),
+      });
+      google.textsearch += 1; if (r.hit) google.hit += 1;
+      return { p, v: verificaPosto(p, r.body?.results, centro, raggio) };
+    } catch (err) {
+      return { p, v: { ok: false as const, motivo: `ricerca fallita (${scrubLogText(err).slice(0, 40)})` } };
+    }
+  }));
+  const visti = new Set<string>();
+  // deno-lint-ignore no-explicit-any
+  const verificati: any[] = [];
+  const scartati: Array<{ nome: string; tipo: string; momento: string; motivo: string }> = [];
+  for (const { p, v } of esiti) {
+    if (v.ok) {
+      const id = String(v.risultato.place_id || '');
+      if (id && visti.has(id)) { scartati.push({ nome: p.nome, tipo: p.tipo, momento: p.momento, motivo: 'doppione di un posto gia\' in lista' }); continue; }
+      if (id) visti.add(id);
+      verificati.push(voceVerificata(p, v.risultato));
+    } else {
+      scartati.push({ nome: p.nome, tipo: p.tipo, momento: p.momento, motivo: v.motivo });
+    }
+  }
+
+  const row = {
+    citta: chiave, giorno, versione: CITY_LIST_VERSION, citta_nome: citta, centro,
+    proposti, verificati, scartati,
+    costo: { usage, google, ms: { ai: tAi, totale: Date.now() - t0 } },
+  };
+  // Due prime richieste insieme: vince la prima scritta, e tutti ricevono quella (la lista resta una sola).
+  const { error: insErr } = await sb.from('city_knowledge').upsert(row, { onConflict: 'citta,giorno,versione', ignoreDuplicates: true });
+  if (insErr) console.error('[openai-proxy] lista città: salvataggio fallito:', scrubLogText(insErr.message));
+  const salvata = (await leggi()) || row;
+  return risposta(salvata, { cached: false, usage, google, ms: { ai: tAi, totale: Date.now() - t0 } });
+}
+
 serve(async (req: Request) => {
   // Preflight
   if (req.method === 'OPTIONS') {
@@ -202,6 +354,17 @@ serve(async (req: Request) => {
     body = await req.json();
   } catch {
     return json(400, { error: 'Invalid JSON body' });
+  }
+
+  // C10 — la lista della città non e' una chiamata libera a OpenAI: il prompt lo scrive il proxy.
+  const dvIn = body.dv as Record<string, unknown> | undefined;
+  if (dvIn && typeof dvIn === 'object' && dvIn.purpose === 'city_list') {
+    try {
+      return await handleCityList(req, dvIn);
+    } catch (err) {
+      console.error('[openai-proxy] lista città: errore:', scrubLogText(err));
+      return json(503, { error: 'Lista della città non disponibile', code: 'CITY_LIST_UNAVAILABLE' });
+    }
   }
 
   // Whitelist dei path OpenAI consentiti

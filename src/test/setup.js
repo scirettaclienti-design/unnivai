@@ -80,3 +80,10 @@ Object.defineProperty(global.navigator, 'geolocation', {
 // Tests that specifically check these warnings can restore it with vi.spyOn.
 vi.spyOn(console, 'error').mockImplementation(() => {})
 vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+// C10 — la lista della città è una chiamata di rete in più (openai-proxy, `city_list`): nei test è spenta per difetto,
+// così i test del motore contano le stesse chiamate di prima. I test di C10 la accendono con un loro mock.
+vi.mock('@/services/cityKnowledgeService', () => ({
+    fetchCityKnowledge: vi.fn(async () => ({ stato: 'spenta', verificati: [] })),
+    CITY_LIST_TIMEOUT_MS: 50_000,
+}));

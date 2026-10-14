@@ -1,0 +1,6332 @@
+{
+ "avvio": "2026-10-14T01:14:35.213Z",
+ "identita": "account di prova",
+ "motore": "new",
+ "giornoSimulato": "2026-10-14",
+ "casi": [
+  {
+   "id": "c10-ivano",
+   "modo": "crea",
+   "tipo": "itinerario",
+   "luogo": "Catania",
+   "ora": "22:19",
+   "oggi": "2026-10-14",
+   "richiesta": "Domani un giorno da catanese",
+   "onboarding": null,
+   "vincoli": null,
+   "chiamata": {
+    "pagina": "AiItinerary.jsx",
+    "pathType": "custom",
+    "prefs": {
+     "budget": "",
+     "duration": "1 Giorno",
+     "interests": [],
+     "group": "",
+     "pace": ""
+    },
+    "testo": "Domani un giorno da catanese"
+   },
+   "secs": 36.622,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Catania",
+    "fromText": false,
+    "note": null
+   },
+   "tourDate": "2026-10-15",
+   "giorno": {
+    "date": "2026-10-15",
+    "start": "2026-10-15T07:30:00.000Z",
+    "reason": "day"
+   },
+   "frasiTolte": [],
+   "pool": {
+    "g1-mattina": {
+     "posti": 3,
+     "candidati": [
+      {
+       "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+       "nome": "Piazza Carlo Alberto",
+       "famiglia": "piazza",
+       "primaryType": "market",
+       "types": [
+        "market",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 1.39,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJNUWnES_jExMRjswiRH1TJmg",
+       "nome": "Storico mercato del pesce di Catania",
+       "famiglia": null,
+       "primaryType": "market",
+       "types": [
+        "market",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 1.35,
+       "minuti": 1,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJLZa9AC7jExMRQpSE-ITO9ZM",
+       "nome": "Piazza Vincenzo Bellini",
+       "famiglia": "piazza",
+       "primaryType": "plaza",
+       "types": [
+        "plaza",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.49,
+       "minuti": 5,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+       "nome": "Palazzo dei Chierici",
+       "famiglia": null,
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.46,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 2,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJaUl7zSjjExMRoCTWa8ahogs",
+       "nome": "Piazza Giuseppe Mazzini",
+       "famiglia": "piazza",
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.46,
+       "minuti": 3,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+       "nome": "Piazza Umbrella",
+       "famiglia": "piazza",
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.44,
+       "minuti": 2,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJ8bebwy7jExMReUMMdh7yjj0",
+       "nome": "Piazza Università",
+       "famiglia": "piazza",
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "tourist_attraction",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.42,
+       "minuti": 2,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJV63v_C7jExMRhTLFcc2p9Z8",
+       "nome": "Palazzo degli Elefanti",
+       "famiglia": null,
+       "primaryType": "government_office",
+       "types": [
+        "tourist_attraction",
+        "government_office",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.42,
+       "minuti": 1,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "nome": "Fontana dell’Amenano",
+       "famiglia": null,
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.38,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+       "nome": "Porta Uzeda",
+       "famiglia": null,
+       "primaryType": "landmark",
+       "types": [
+        "landmark",
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.37,
+       "minuti": 1,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJhVn-jdniExMRlAlDXwl--r0",
+       "nome": "Porta Garibaldi",
+       "famiglia": null,
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "tourist_attraction",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.25,
+       "minuti": 16,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pranzo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJy2gp4i7jExMR6XntqGDy140",
+       "nome": "Caffè del Duomo e Ristorante",
+       "famiglia": null,
+       "primaryType": "restaurant",
+       "types": [
+        "restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 1.21,
+       "minuti": 1,
+       "deviazione": 0.9,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJq3DCq4HjExMRyvmYVFTImqY",
+       "nome": "Trattoria Sorano",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.34,
+       "minuti": 2,
+       "deviazione": 3.8,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJRQknxC3jExMRyRWDa7bzwNA",
+       "nome": "Trattoria Casalinga da Nino Mannino",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.5,
+       "minuti": 6,
+       "deviazione": 11,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJvYTRwijjExMRvj0zmgrt6q4",
+       "nome": "Trattoria Giglio Rosso",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "steak_house",
+        "seafood_restaurant",
+        "family_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.28,
+       "minuti": 4,
+       "deviazione": 8.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJb018Ipv9ExMRS1tjQaIdbOs",
+       "nome": "La Pentolaccia",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.27,
+       "minuti": 6,
+       "deviazione": 11.4,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJU84fUCzjExMR4rI0uZuCtQQ",
+       "nome": "Trattoria del Cavaliere",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.18,
+       "minuti": 7,
+       "deviazione": 13.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ62d5tA39ExMR8uJelh7LMiE",
+       "nome": "Du Mori Osteria tipica",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "brunch_restaurant",
+        "family_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.34,
+       "minuti": 18,
+       "deviazione": 36.4,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJQ6UhD8z8ExMRd4z9v5P6kz8",
+       "nome": "Trattoria Saltimbocca Da Giancarlo",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.34,
+       "minuti": 20,
+       "deviazione": 39,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ2b8-Gtf8ExMRGtMuV_yD7vQ",
+       "nome": "Trattoria Da Peppino di Tumia Giovanni",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.29,
+       "minuti": 25,
+       "deviazione": 50.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pomeriggio": {
+     "posti": 3,
+     "candidati": [
+      {
+       "place_id": "ChIJV63v_C7jExMRhTLFcc2p9Z8",
+       "nome": "Palazzo degli Elefanti",
+       "famiglia": null,
+       "primaryType": "government_office",
+       "types": [
+        "tourist_attraction",
+        "government_office",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.42,
+       "minuti": 1,
+       "deviazione": 1.2,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "nome": "Fontana dell’Amenano",
+       "famiglia": null,
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.38,
+       "minuti": 1,
+       "deviazione": 0.1,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+       "nome": "Porta Uzeda",
+       "famiglia": null,
+       "primaryType": "landmark",
+       "types": [
+        "landmark",
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.37,
+       "minuti": 1,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 2,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJhVn-jdniExMRlAlDXwl--r0",
+       "nome": "Porta Garibaldi",
+       "famiglia": null,
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "tourist_attraction",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.25,
+       "minuti": 16,
+       "deviazione": 30.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+       "nome": "Piazza Umbrella",
+       "famiglia": "piazza",
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.44,
+       "minuti": 2,
+       "deviazione": 1.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJaUl7zSjjExMRoCTWa8ahogs",
+       "nome": "Piazza Giuseppe Mazzini",
+       "famiglia": "piazza",
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.46,
+       "minuti": 2,
+       "deviazione": 4.3,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ8bebwy7jExMReUMMdh7yjj0",
+       "nome": "Piazza Università",
+       "famiglia": "piazza",
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "tourist_attraction",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.42,
+       "minuti": 2,
+       "deviazione": 3.4,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJLZa9AC7jExMRQpSE-ITO9ZM",
+       "nome": "Piazza Vincenzo Bellini",
+       "famiglia": "piazza",
+       "primaryType": "plaza",
+       "types": [
+        "plaza",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.49,
+       "minuti": 6,
+       "deviazione": 9.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-aperitivo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJ66bqgSrjExMR_H74p5yMbeA",
+       "nome": "Caffè Sicilia",
+       "famiglia": null,
+       "primaryType": "bar",
+       "types": [
+        "bar",
+        "cafe",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.63,
+       "minuti": 14,
+       "deviazione": 17,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJq0lDS_r9ExMR_7ulnb1X_nU",
+       "nome": "Costa Caffè Catania",
+       "famiglia": null,
+       "primaryType": "coffee_shop",
+       "types": [
+        "coffee_shop",
+        "cafe",
+        "food_store",
+        "food",
+        "store",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.59,
+       "minuti": 26,
+       "deviazione": 38.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJdQr9cPX7ExMRxA2GjNivuuU",
+       "nome": "Belvedere Di Carminello",
+       "famiglia": "panorama",
+       "primaryType": "observation_deck",
+       "types": [
+        "observation_deck",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.48,
+       "minuti": 110,
+       "deviazione": 207,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-passeggiata": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJhVn-jdniExMRlAlDXwl--r0",
+       "nome": "Porta Garibaldi",
+       "famiglia": null,
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "tourist_attraction",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.25,
+       "minuti": 15,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJLZa9AC7jExMRQpSE-ITO9ZM",
+       "nome": "Piazza Vincenzo Bellini",
+       "famiglia": "piazza",
+       "primaryType": "plaza",
+       "types": [
+        "plaza",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.49,
+       "minuti": 15,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJaUl7zSjjExMRoCTWa8ahogs",
+       "nome": "Piazza Giuseppe Mazzini",
+       "famiglia": "piazza",
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.46,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+       "nome": "Piazza Umbrella",
+       "famiglia": "piazza",
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.44,
+       "minuti": 14,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ8bebwy7jExMReUMMdh7yjj0",
+       "nome": "Piazza Università",
+       "famiglia": "piazza",
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "tourist_attraction",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.42,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJdQr9cPX7ExMRxA2GjNivuuU",
+       "nome": "Belvedere Di Carminello",
+       "famiglia": "panorama",
+       "primaryType": "observation_deck",
+       "types": [
+        "observation_deck",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.48,
+       "minuti": 106,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-cena": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJRQknxC3jExMRyRWDa7bzwNA",
+       "nome": "Trattoria Casalinga da Nino Mannino",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.5,
+       "minuti": 20,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJq3DCq4HjExMRyvmYVFTImqY",
+       "nome": "Trattoria Sorano",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.34,
+       "minuti": 14,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJwYpRey7jExMRJxudW7ZTTBM",
+       "nome": "Trattoria U Fucularu",
+       "famiglia": null,
+       "primaryType": "restaurant",
+       "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.28,
+       "minuti": 18,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJvYTRwijjExMRvj0zmgrt6q4",
+       "nome": "Trattoria Giglio Rosso",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "steak_house",
+        "seafood_restaurant",
+        "family_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.28,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJb018Ipv9ExMRS1tjQaIdbOs",
+       "nome": "La Pentolaccia",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.27,
+       "minuti": 20,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJMUd6UynjExMRuCV-wh1ktK0",
+       "nome": "Trattoria da Mario",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.27,
+       "minuti": 15,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJU84fUCzjExMR4rI0uZuCtQQ",
+       "nome": "Trattoria del Cavaliere",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.18,
+       "minuti": 19,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ2b8-Gtf8ExMRGtMuV_yD7vQ",
+       "nome": "Trattoria Da Peppino di Tumia Giovanni",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.29,
+       "minuti": 31,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ62d5tA39ExMR8uJelh7LMiE",
+       "nome": "Du Mori Osteria tipica",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "brunch_restaurant",
+        "family_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.34,
+       "minuti": 32,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJQ6UhD8z8ExMRd4z9v5P6kz8",
+       "nome": "Trattoria Saltimbocca Da Giancarlo",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.34,
+       "minuti": 33,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    }
+   },
+   "finestraMinuti": [
+    780
+   ],
+   "motori": {
+    "tolti": [],
+    "facoltativiSenzaPosto": [],
+    "ricercheMirate": []
+   },
+   "sceltaModello": [
+    {
+     "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJy2gp4i7jExMR6XntqGDy140",
+     "momento": "g1-pranzo"
+    },
+    {
+     "place_id": "ChIJNUWnES_jExMRjswiRH1TJmg",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJ8bebwy7jExMReUMMdh7yjj0",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJLZa9AC7jExMRQpSE-ITO9ZM",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJRQknxC3jExMRyRWDa7bzwNA",
+     "momento": "g1-pranzo"
+    },
+    {
+     "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJV63v_C7jExMRhTLFcc2p9Z8",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJq0lDS_r9ExMR_7ulnb1X_nU",
+     "momento": "g1-aperitivo"
+    },
+    {
+     "place_id": "ChIJU84fUCzjExMR4rI0uZuCtQQ",
+     "momento": "g1-cena"
+    }
+   ],
+   "ricerche": {
+    "prima": [],
+    "dopo": []
+   },
+   "ripiegoDichiarato": false,
+   "orariMotore": {
+    "chiusi": [
+     {
+      "momento": "g1-pranzo",
+      "place_id": "ChIJx9flJSdYERMRDx_r853MtJs",
+      "nome": "Il Covo",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-pranzo",
+      "place_id": "ChIJH9OmNizjExMR3xfvyNJjX3E",
+      "nome": "Trattoria Il mare",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-pranzo",
+      "place_id": "ChIJwYpRey7jExMRJxudW7ZTTBM",
+      "nome": "Trattoria U Fucularu",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-pranzo",
+      "place_id": "ChIJMUd6UynjExMRuCV-wh1ktK0",
+      "nome": "Trattoria da Mario",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-pomeriggio",
+      "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+      "nome": "Piazza Carlo Alberto",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-pomeriggio",
+      "place_id": "ChIJNUWnES_jExMRjswiRH1TJmg",
+      "nome": "Storico mercato del pesce di Catania",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-pomeriggio",
+      "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+      "nome": "Palazzo dei Chierici",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-passeggiata",
+      "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+      "nome": "Piazza Carlo Alberto",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-passeggiata",
+      "place_id": "ChIJNUWnES_jExMRjswiRH1TJmg",
+      "nome": "Storico mercato del pesce di Catania",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-cena",
+      "place_id": "ChIJx9flJSdYERMRDx_r853MtJs",
+      "nome": "Il Covo",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-cena",
+      "place_id": "ChIJH9OmNizjExMR3xfvyNJjX3E",
+      "nome": "Trattoria Il mare",
+      "perche": "chiuso all'arrivo"
+     }
+    ],
+    "vietati": [],
+    "giri": 0,
+    "ignoti": 6,
+    "scartatiIgnoti": [],
+    "righeDichiarate": [],
+    "residui": 0,
+    "tappeSenzaFiltro": 10
+   },
+   "continuita": {
+    "aggiunte": [
+     {
+      "momento": "g1-pomeriggio",
+      "dayIndex": 0,
+      "minutiPrima": 253,
+      "minutiDopo": 222
+     },
+     {
+      "momento": "g1-mattina",
+      "dayIndex": 0,
+      "minutiPrima": 222,
+      "minutiDopo": 191
+     }
+    ],
+    "tentativi": 4,
+    "dichiarati": [
+     {
+      "momento": "g1-mattina",
+      "minuti": 87,
+      "prima": "ChIJy2gp4i7jExMR6XntqGDy140"
+     },
+     {
+      "momento": "g1-pomeriggio",
+      "minuti": 104,
+      "prima": "ChIJ66bqgSrjExMR_H74p5yMbeA"
+     }
+    ],
+    "minimo": {
+     "richiesto": {
+      "0": 4
+     },
+     "aggiunte": [],
+     "tentativi": 0,
+     "dichiarati": []
+    }
+   },
+   "tema": {
+    "cibo": true,
+    "tipico": true,
+    "fonte": "testo (\"da …\")",
+    "momentiEspliciti": [],
+    "cucineEstereEscluse": [],
+    "zoneTolte": [
+     {
+      "nome": "Via Etnea",
+      "motivo": "via (route) senza altro tipo di luogo"
+     },
+     {
+      "nome": "Piazza del Duomo",
+      "motivo": "via (route) senza altro tipo di luogo"
+     }
+    ]
+   },
+   "citta": {
+    "stato": "ok",
+    "cached": false,
+    "conti": {
+     "proposti": 14,
+     "verificati": 11,
+     "scartati": 3
+    },
+    "errore": null,
+    "attesaMs": 12115,
+    "risposta": 12109,
+    "costo": {
+     "google": {
+      "findplace": 1,
+      "textsearch": 14,
+      "hit": 1
+     },
+     "usage": {
+      "prompt_tokens": 542,
+      "completion_tokens": 1118,
+      "total_tokens": 1660,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     },
+     "ms": {
+      "ai": 9974,
+      "totale": 11272
+     }
+    },
+    "verificati": [
+     {
+      "place_id": "ChIJy2gp4i7jExMR6XntqGDy140",
+      "nome": "Caffè del Duomo e Ristorante",
+      "tipo": "essenziale",
+      "momento": "colazione"
+     },
+     {
+      "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+      "nome": "Piazza Carlo Alberto",
+      "tipo": "essenziale",
+      "momento": "mattina"
+     },
+     {
+      "place_id": "ChIJ8bebwy7jExMReUMMdh7yjj0",
+      "nome": "Piazza Università",
+      "tipo": "da locale",
+      "momento": "pomeriggio"
+     },
+     {
+      "place_id": "ChIJq0lDS_r9ExMR_7ulnb1X_nU",
+      "nome": "Costa Caffè Catania",
+      "tipo": "da locale",
+      "momento": "dopocena"
+     },
+     {
+      "place_id": "ChIJbyaUUNP8ExMREfzUYuzO35c",
+      "nome": "Pasticceria Savia",
+      "tipo": "essenziale",
+      "momento": "colazione"
+     },
+     {
+      "place_id": "ChIJNUWnES_jExMRjswiRH1TJmg",
+      "nome": "Storico mercato del pesce di Catania",
+      "tipo": "essenziale",
+      "momento": "mattina"
+     },
+     {
+      "place_id": "ChIJRQknxC3jExMRyRWDa7bzwNA",
+      "nome": "Trattoria Casalinga da Nino Mannino",
+      "tipo": "da locale",
+      "momento": "pranzo"
+     },
+     {
+      "place_id": "ChIJY0P1DNT8ExMR9QiL54XqybI",
+      "nome": "Via Etnea",
+      "tipo": "da locale",
+      "momento": "pomeriggio"
+     },
+     {
+      "place_id": "ChIJ66bqgSrjExMR_H74p5yMbeA",
+      "nome": "Caffè Sicilia",
+      "tipo": "da locale",
+      "momento": "aperitivo"
+     },
+     {
+      "place_id": "ChIJx9flJSdYERMRDx_r853MtJs",
+      "nome": "Il Covo",
+      "tipo": "da locale",
+      "momento": "cena"
+     },
+     {
+      "place_id": "ChIJQ35Z_S7jExMRuOKCpFq-5XM",
+      "nome": "Piazza del Duomo",
+      "tipo": "da locale",
+      "momento": "dopocena"
+     }
+    ],
+    "nelPool": [
+     {
+      "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+      "nome": "Piazza Carlo Alberto",
+      "tipo": "essenziale",
+      "ancora": true
+     },
+     {
+      "place_id": "ChIJy2gp4i7jExMR6XntqGDy140",
+      "nome": "Caffè del Duomo e Ristorante",
+      "tipo": "essenziale",
+      "ancora": true
+     },
+     {
+      "place_id": "ChIJbyaUUNP8ExMREfzUYuzO35c",
+      "nome": "Pasticceria Savia",
+      "tipo": "essenziale",
+      "ancora": true
+     },
+     {
+      "place_id": "ChIJNUWnES_jExMRjswiRH1TJmg",
+      "nome": "Storico mercato del pesce di Catania",
+      "tipo": "essenziale",
+      "ancora": true
+     },
+     {
+      "place_id": "ChIJ8bebwy7jExMReUMMdh7yjj0",
+      "nome": "Piazza Università",
+      "tipo": "da locale",
+      "ancora": false
+     },
+     {
+      "place_id": "ChIJRQknxC3jExMRyRWDa7bzwNA",
+      "nome": "Trattoria Casalinga da Nino Mannino",
+      "tipo": "da locale",
+      "ancora": false
+     },
+     {
+      "place_id": "ChIJq0lDS_r9ExMR_7ulnb1X_nU",
+      "nome": "Costa Caffè Catania",
+      "tipo": "da locale",
+      "ancora": false
+     },
+     {
+      "place_id": "ChIJ66bqgSrjExMR_H74p5yMbeA",
+      "nome": "Caffè Sicilia",
+      "tipo": "da locale",
+      "ancora": false
+     },
+     {
+      "place_id": "ChIJx9flJSdYERMRDx_r853MtJs",
+      "nome": "Il Covo",
+      "tipo": "da locale",
+      "ancora": false
+     }
+    ],
+    "ancoreCandidate": [
+     {
+      "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+      "nome": "Piazza Carlo Alberto"
+     },
+     {
+      "place_id": "ChIJy2gp4i7jExMR6XntqGDy140",
+      "nome": "Caffè del Duomo e Ristorante"
+     },
+     {
+      "place_id": "ChIJbyaUUNP8ExMREfzUYuzO35c",
+      "nome": "Pasticceria Savia"
+     },
+     {
+      "place_id": "ChIJNUWnES_jExMRjswiRH1TJmg",
+      "nome": "Storico mercato del pesce di Catania"
+     }
+    ],
+    "ancore": [
+     {
+      "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+      "nome": "Piazza Carlo Alberto"
+     },
+     {
+      "place_id": "ChIJy2gp4i7jExMR6XntqGDy140",
+      "nome": "Caffè del Duomo e Ristorante"
+     },
+     {
+      "place_id": "ChIJNUWnES_jExMRjswiRH1TJmg",
+      "nome": "Storico mercato del pesce di Catania"
+     }
+    ],
+    "essenzialiAlMerito": [],
+    "seminate": [
+     {
+      "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+      "nome": "Piazza Carlo Alberto",
+      "momento": "g1-mattina"
+     },
+     {
+      "place_id": "ChIJy2gp4i7jExMR6XntqGDy140",
+      "nome": "Caffè del Duomo e Ristorante",
+      "momento": "g1-pranzo"
+     },
+     {
+      "place_id": "ChIJNUWnES_jExMRjswiRH1TJmg",
+      "nome": "Storico mercato del pesce di Catania",
+      "momento": "g1-mattina"
+     }
+    ],
+    "declassate": [
+     {
+      "place_id": "ChIJbyaUUNP8ExMREfzUYuzO35c",
+      "nome": "Pasticceria Savia"
+     }
+    ]
+   },
+   "schermo": {
+    "giorni": [
+     {
+      "titolo": "Colorata Piazza di Catania",
+      "meteo": null
+     }
+    ],
+    "sezioni": [
+     {
+      "etichetta": "Mattina",
+      "ora": "09:30"
+     },
+     {
+      "etichetta": "Pranzo",
+      "ora": "12:30"
+     },
+     {
+      "etichetta": "Pomeriggio",
+      "ora": "14:30"
+     },
+     {
+      "etichetta": "Aperitivo",
+      "ora": "18:00"
+     },
+     {
+      "etichetta": "Cena",
+      "ora": "20:00"
+     }
+    ],
+    "note": []
+   },
+   "tours": [
+    {
+     "tema": "Colorata Piazza di Catania",
+     "stops": [
+      {
+       "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+       "title": "Piazza Umbrella",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-15T07:30:00.000Z",
+       "atStimato": false,
+       "lat": 37.501422999999996,
+       "lng": 15.086302499999997,
+       "min": null,
+       "scelta": "riparazione",
+       "stay": 30,
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Piazza Carlo Alberto\"",
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Attraversi Piazza Umbrella piano, senza fretta. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Attraversi Piazza Umbrella piano, senza fretta.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 176,
+       "priceLevel": null,
+       "pasto": false,
+       "primaryType": "tourist_attraction",
+       "tipoInterno": "monument",
+       "etichetta": "monumento",
+       "orario": "sconosciuto",
+       "tema": "esperienza nello spirito del tema cibo",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJNUWnES_jExMRjswiRH1TJmg",
+       "title": "Storico mercato del pesce di Catania",
+       "types": [
+        "market",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-15T08:01:00.000Z",
+       "atStimato": false,
+       "lat": 37.5016148,
+       "lng": 15.086854599999999,
+       "min": 1,
+       "scelta": "modello",
+       "stay": 30,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": "incrocio rimasto: toglierlo costerebbe una famiglia ripetuta",
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Alle 10:01 sei a Storico mercato del pesce di Catania: è qui che ti porta la giornata. È a un minuto a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Alle 10:01 sei a Storico mercato del pesce di Catania: è qui che ti porta la giornata.",
+         "problemi": []
+        },
+        {
+         "testo": "È a un minuto a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": null,
+       "priceLevel": null,
+       "pasto": false,
+       "tipoInterno": "restaurant",
+       "etichetta": "mercato",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "tema": "esperienza nello spirito del tema cibo",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+       "title": "Palazzo dei Chierici",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-15T08:32:00.000Z",
+       "atStimato": false,
+       "lat": 37.5021169,
+       "lng": 15.087216499999998,
+       "min": 1,
+       "scelta": "riparazione",
+       "stay": 30,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Ti fermi davanti a Palazzo dei Chierici il tempo che serve. Ci arrivi alle 10:32.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Ti fermi davanti a Palazzo dei Chierici il tempo che serve.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 10:32.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 89,
+       "priceLevel": null,
+       "pasto": false,
+       "primaryType": "tourist_attraction",
+       "tipoInterno": "monument",
+       "etichetta": "monumento",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "tema": "esperienza nello spirito del tema cibo",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": null,
+       "title": "Tempo libero",
+       "types": [],
+       "moment": "mattina",
+       "at": "2026-10-15T09:02:00.000Z",
+       "atStimato": false,
+       "tempoLibero": true,
+       "lat": null,
+       "lng": null,
+       "min": null,
+       "scelta": "tempo libero",
+       "stay": 87,
+       "ripiego": null,
+       "motivo": "87 min fra \"Palazzo dei Chierici\" e \"Caffè del Duomo e Ristorante\": nessuna tappa in piu' da aggiungere (varieta', percorso e orari)",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Niente in agenda: cammina dove ti porta la strada.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Niente in agenda: cammina dove ti porta la strada.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": null,
+       "priceLevel": null,
+       "pasto": false,
+       "etichetta": null,
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJy2gp4i7jExMR6XntqGDy140",
+       "title": "Caffè del Duomo e Ristorante",
+       "types": [
+        "restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "pranzo",
+       "at": "2026-10-15T10:30:00.000Z",
+       "atStimato": false,
+       "lat": 37.50239090000001,
+       "lng": 15.086810099999997,
+       "min": 1,
+       "scelta": "modello",
+       "stay": 75,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "A un minuto a piedi ti siedi da Caffè del Duomo e Ristorante, ristorante con prezzi bassi.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "A un minuto a piedi ti siedi da Caffè del Duomo e Ristorante, ristorante con prezzi bassi.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": null,
+       "priceLevel": null,
+       "pasto": true,
+       "tipoInterno": "restaurant",
+       "etichetta": "ristorante",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "tema": "pasto del tema cibo",
+       "tipico": {
+        "richiesto": true,
+        "locale": true,
+        "perche": "tipo: italian_restaurant"
+       },
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "title": "Fontana dell’Amenano",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-15T12:30:00.000Z",
+       "atStimato": false,
+       "lat": 37.502040699999995,
+       "lng": 15.087013899999999,
+       "min": 1,
+       "scelta": "riparazione",
+       "stay": 30,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": "incrocio rimasto: toglierlo costerebbe una famiglia ripetuta",
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 598,
+       "priceLevel": null,
+       "pasto": false,
+       "primaryType": "tourist_attraction",
+       "tipoInterno": "monument",
+       "etichetta": "monumento",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "tema": "esperienza nello spirito del tema cibo",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+       "title": "Porta Uzeda",
+       "types": [
+        "landmark",
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-15T13:01:00.000Z",
+       "atStimato": false,
+       "lat": 37.5017967,
+       "lng": 15.087635899999999,
+       "min": 1,
+       "scelta": "riparazione",
+       "stay": 30,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca.",
+         "problemi": []
+        }
+       ],
+       "fatti": 2,
+       "recensioni": 586,
+       "priceLevel": null,
+       "pasto": false,
+       "primaryType": "landmark",
+       "tipoInterno": "monument",
+       "etichetta": "monumento",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "tema": "esperienza nello spirito del tema cibo",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJV63v_C7jExMRhTLFcc2p9Z8",
+       "title": "Palazzo degli Elefanti",
+       "types": [
+        "tourist_attraction",
+        "government_office",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "pomeriggio",
+       "at": "2026-10-15T13:33:00.000Z",
+       "atStimato": false,
+       "lat": 37.5028541,
+       "lng": 15.0871515,
+       "min": 2,
+       "scelta": "modello",
+       "stay": 30,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Passi da Palazzo degli Elefanti: guardati intorno prima di ripartire. Sono 2 minuti a piedi dalla tappa prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Passi da Palazzo degli Elefanti: guardati intorno prima di ripartire.",
+         "problemi": []
+        },
+        {
+         "testo": "Sono 2 minuti a piedi dalla tappa prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 5,
+       "recensioni": 275,
+       "priceLevel": null,
+       "pasto": false,
+       "primaryType": "government_office",
+       "tipoInterno": "monument",
+       "etichetta": null,
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "tema": "esperienza nello spirito del tema cibo",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": null,
+       "title": "Tempo libero",
+       "types": [],
+       "moment": "pomeriggio",
+       "at": "2026-10-15T14:03:00.000Z",
+       "atStimato": false,
+       "tempoLibero": true,
+       "lat": null,
+       "lng": null,
+       "min": null,
+       "scelta": "tempo libero",
+       "stay": 104,
+       "ripiego": null,
+       "motivo": "104 min fra \"Palazzo degli Elefanti\" e \"Caffè Sicilia\": nessuna tappa in piu' da aggiungere (varieta', percorso e orari)",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Niente in agenda: cammina dove ti porta la strada.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Niente in agenda: cammina dove ti porta la strada.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": null,
+       "priceLevel": null,
+       "pasto": false,
+       "etichetta": null,
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJ66bqgSrjExMR_H74p5yMbeA",
+       "title": "Caffè Sicilia",
+       "types": [
+        "bar",
+        "cafe",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-15T16:00:00.000Z",
+       "atStimato": false,
+       "lat": 37.5087857,
+       "lng": 15.0791723,
+       "min": 13,
+       "scelta": "riparazione",
+       "stay": 45,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 11.5,
+        "esito": "pool",
+        "candidatiMomento": 3,
+        "alternative": [
+         {
+          "nome": "Costa Caffè Catania",
+          "famiglia": null,
+          "deviazione": 47.8,
+          "merito": 0.59,
+          "tetto": false
+         },
+         {
+          "nome": "Belvedere Di Carminello",
+          "famiglia": "panorama",
+          "deviazione": 213.8,
+          "merito": 0.48,
+          "tetto": false
+         }
+        ]
+       },
+       "description": "L'aperitivo lo prendi da Caffè Sicilia. Il sole tramonta alle 18:23: sei qui 23 minuti prima.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "L'aperitivo lo prendi da Caffè Sicilia.",
+         "problemi": []
+        },
+        {
+         "testo": "Il sole tramonta alle 18:23: sei qui 23 minuti prima.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": null,
+       "priceLevel": null,
+       "pasto": false,
+       "tipoInterno": "restaurant",
+       "etichetta": "bar",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJhVn-jdniExMRlAlDXwl--r0",
+       "title": "Porta Garibaldi",
+       "types": [
+        "historical_landmark",
+        "tourist_attraction",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "aperitivo",
+       "at": "2026-10-15T17:00:00.000Z",
+       "atStimato": false,
+       "passeggiata": true,
+       "lat": 37.4996307,
+       "lng": 15.073914400000001,
+       "min": 15,
+       "scelta": "riparazione",
+       "stay": 30,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": {
+        "minuti": 15.6,
+        "esito": "composizione",
+        "candidatiMomento": 8,
+        "alternative": [
+         {
+          "nome": "Piazza Giuseppe Mazzini",
+          "famiglia": "piazza",
+          "deviazione": 2.8,
+          "merito": 0.46,
+          "tetto": true,
+          "bloccata": [
+           "una famiglia ripetuta"
+          ]
+         },
+         {
+          "nome": "Piazza Università",
+          "famiglia": "piazza",
+          "deviazione": 5.7,
+          "merito": 0.42,
+          "tetto": true
+         },
+         {
+          "nome": "Piazza Vincenzo Bellini",
+          "famiglia": "piazza",
+          "deviazione": 13.1,
+          "merito": 0.49,
+          "tetto": true
+         },
+         {
+          "nome": "Belvedere Di Carminello",
+          "famiglia": "panorama",
+          "deviazione": 207,
+          "merito": 0.48,
+          "tetto": false
+         }
+        ]
+       },
+       "description": "Passi sotto Porta Garibaldi, poi ti giri e la guardi dall'altra parte. Ci arrivi alle 19.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Passi sotto Porta Garibaldi, poi ti giri e la guardi dall'altra parte.",
+         "problemi": []
+        },
+        {
+         "testo": "Ci arrivi alle 19.",
+         "problemi": []
+        }
+       ],
+       "fatti": 3,
+       "recensioni": 3737,
+       "priceLevel": null,
+       "pasto": false,
+       "primaryType": "historical_landmark",
+       "tipoInterno": "monument",
+       "etichetta": "monumento",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": "ChIJvYTRwijjExMRvj0zmgrt6q4",
+       "title": "Trattoria Giglio Rosso",
+       "types": [
+        "steak_house",
+        "seafood_restaurant",
+        "family_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "cena",
+       "at": "2026-10-15T18:00:00.000Z",
+       "atStimato": false,
+       "lat": 37.5020854,
+       "lng": 15.0835805,
+       "min": 12,
+       "scelta": "riparazione",
+       "stay": 75,
+       "ripiego": null,
+       "motivo": "sulla strada: al posto di \"Trattoria del Cavaliere\"",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Chiudi la giornata a tavola da Trattoria Giglio Rosso, trattoria con prezzi medi.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Chiudi la giornata a tavola da Trattoria Giglio Rosso, trattoria con prezzi medi.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 2748,
+       "priceLevel": 2,
+       "pasto": true,
+       "primaryType": "italian_restaurant",
+       "tipoInterno": "restaurant",
+       "etichetta": "ristorante",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "tema": "pasto del tema cibo",
+       "tipico": {
+        "richiesto": true,
+        "locale": true,
+        "perche": "nome: trattoria"
+       },
+       "dietaCercata": null,
+       "dietaSolo": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 4,
+    "tokenIn": 8965,
+    "tokenOut": 2074
+   },
+   "google": {
+    "place/findplacefromtext": 2,
+    "place/textsearch#new": 17
+   },
+   "googleListaHit": 1,
+   "candidatiVisti": 41,
+   "candidatiConOrari": 33,
+   "orari": {
+    "ChIJLwS8dRrjExMRhq1VsrqkFGo": {
+     "chiamato": true,
+     "periods": null
+    },
+    "ChIJNUWnES_jExMRjswiRH1TJmg": {
+     "chiamato": true,
+     "periods": null
+    },
+    "ChIJiS624y7jExMREIKeZ58jDjg": {
+     "chiamato": true,
+     "periods": [
+      {
+       "open": {
+        "day": 1,
+        "time": "0800"
+       },
+       "close": {
+        "day": 1,
+        "time": "1300"
+       }
+      },
+      {
+       "open": {
+        "day": 2,
+        "time": "0800"
+       },
+       "close": {
+        "day": 2,
+        "time": "1300"
+       }
+      },
+      {
+       "open": {
+        "day": 3,
+        "time": "0800"
+       },
+       "close": {
+        "day": 3,
+        "time": "1300"
+       }
+      },
+      {
+       "open": {
+        "day": 4,
+        "time": "0800"
+       },
+       "close": {
+        "day": 4,
+        "time": "1300"
+       }
+      },
+      {
+       "open": {
+        "day": 4,
+        "time": "1530"
+       },
+       "close": {
+        "day": 4,
+        "time": "1700"
+       }
+      },
+      {
+       "open": {
+        "day": 5,
+        "time": "0800"
+       },
+       "close": {
+        "day": 5,
+        "time": "1300"
+       }
+      }
+     ],
+     "current": {
+      "to": "2026-10-19",
+      "from": "2026-10-13",
+      "periods": [
+       {
+        "date": "2026-10-19",
+        "open": "0800",
+        "close": "1300"
+       },
+       {
+        "date": "2026-10-13",
+        "open": "0800",
+        "close": "1300"
+       },
+       {
+        "date": "2026-10-14",
+        "open": "0800",
+        "close": "1300"
+       },
+       {
+        "date": "2026-10-15",
+        "open": "0800",
+        "close": "1300"
+       },
+       {
+        "date": "2026-10-15",
+        "open": "1530",
+        "close": "1700"
+       },
+       {
+        "date": "2026-10-16",
+        "open": "0800",
+        "close": "1300"
+       }
+      ]
+     }
+    },
+    "ChIJy2gp4i7jExMR6XntqGDy140": {
+     "chiamato": true,
+     "periods": null
+    },
+    "ChIJjfE4n-jjExMR0gwbhCQ0rk4": {
+     "chiamato": true,
+     "periods": [
+      {
+       "open": {
+        "day": 0,
+        "time": "0000"
+       }
+      }
+     ],
+     "current": {
+      "to": "2026-10-19",
+      "from": "2026-10-13",
+      "periods": [
+       {
+        "date": "2026-10-13",
+        "open": "0000",
+        "close": "2359",
+        "close_date": "2026-10-19"
+       }
+      ]
+     }
+    },
+    "ChIJ246EAS_jExMR__mpdyI1ULw": {
+     "chiamato": true,
+     "periods": [
+      {
+       "open": {
+        "day": 0,
+        "time": "0000"
+       }
+      }
+     ],
+     "current": {
+      "to": "2026-10-19",
+      "from": "2026-10-13",
+      "periods": [
+       {
+        "date": "2026-10-13",
+        "open": "0000",
+        "close": "2359",
+        "close_date": "2026-10-19"
+       }
+      ]
+     }
+    },
+    "ChIJV63v_C7jExMRhTLFcc2p9Z8": {
+     "chiamato": true,
+     "periods": [
+      {
+       "open": {
+        "day": 0,
+        "time": "0900"
+       },
+       "close": {
+        "day": 0,
+        "time": "2200"
+       }
+      },
+      {
+       "open": {
+        "day": 1,
+        "time": "0900"
+       },
+       "close": {
+        "day": 1,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 2,
+        "time": "0900"
+       },
+       "close": {
+        "day": 2,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 3,
+        "time": "0900"
+       },
+       "close": {
+        "day": 3,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 4,
+        "time": "0900"
+       },
+       "close": {
+        "day": 4,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 5,
+        "time": "0900"
+       },
+       "close": {
+        "day": 5,
+        "time": "1900"
+       }
+      },
+      {
+       "open": {
+        "day": 6,
+        "time": "0900"
+       },
+       "close": {
+        "day": 6,
+        "time": "2300"
+       }
+      }
+     ],
+     "current": {
+      "to": "2026-10-19",
+      "from": "2026-10-13",
+      "periods": [
+       {
+        "date": "2026-10-18",
+        "open": "0900",
+        "close": "2200"
+       },
+       {
+        "date": "2026-10-19",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-13",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-14",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-15",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-16",
+        "open": "0900",
+        "close": "1900"
+       },
+       {
+        "date": "2026-10-17",
+        "open": "0900",
+        "close": "2300"
+       }
+      ]
+     }
+    },
+    "ChIJ66bqgSrjExMR_H74p5yMbeA": {
+     "chiamato": true,
+     "periods": null
+    },
+    "ChIJhVn-jdniExMRlAlDXwl--r0": {
+     "chiamato": true,
+     "periods": [
+      {
+       "open": {
+        "day": 0,
+        "time": "0000"
+       }
+      }
+     ],
+     "current": {
+      "to": "2026-10-19",
+      "from": "2026-10-13",
+      "periods": [
+       {
+        "date": "2026-10-13",
+        "open": "0000",
+        "close": "2359",
+        "close_date": "2026-10-19"
+       }
+      ]
+     }
+    },
+    "ChIJvYTRwijjExMRvj0zmgrt6q4": {
+     "chiamato": true,
+     "periods": [
+      {
+       "open": {
+        "day": 0,
+        "time": "1200"
+       },
+       "close": {
+        "day": 1,
+        "time": "0000"
+       }
+      },
+      {
+       "open": {
+        "day": 1,
+        "time": "1200"
+       },
+       "close": {
+        "day": 2,
+        "time": "0000"
+       }
+      },
+      {
+       "open": {
+        "day": 2,
+        "time": "1200"
+       },
+       "close": {
+        "day": 3,
+        "time": "0000"
+       }
+      },
+      {
+       "open": {
+        "day": 3,
+        "time": "1200"
+       },
+       "close": {
+        "day": 4,
+        "time": "0000"
+       }
+      },
+      {
+       "open": {
+        "day": 4,
+        "time": "1200"
+       },
+       "close": {
+        "day": 5,
+        "time": "0000"
+       }
+      },
+      {
+       "open": {
+        "day": 5,
+        "time": "1200"
+       },
+       "close": {
+        "day": 6,
+        "time": "0000"
+       }
+      },
+      {
+       "open": {
+        "day": 6,
+        "time": "1200"
+       },
+       "close": {
+        "day": 0,
+        "time": "0000"
+       }
+      }
+     ],
+     "current": {
+      "to": "2026-10-19",
+      "from": "2026-10-13",
+      "periods": [
+       {
+        "date": "2026-10-18",
+        "open": "1200",
+        "close": "0000",
+        "close_date": "2026-10-19"
+       },
+       {
+        "date": "2026-10-19",
+        "open": "1200",
+        "close": "2359"
+       },
+       {
+        "date": "2026-10-13",
+        "open": "1200",
+        "close": "0000",
+        "close_date": "2026-10-14"
+       },
+       {
+        "date": "2026-10-14",
+        "open": "1200",
+        "close": "0000",
+        "close_date": "2026-10-15"
+       },
+       {
+        "date": "2026-10-15",
+        "open": "1200",
+        "close": "0000",
+        "close_date": "2026-10-16"
+       },
+       {
+        "date": "2026-10-16",
+        "open": "1200",
+        "close": "0000",
+        "close_date": "2026-10-17"
+       },
+       {
+        "date": "2026-10-17",
+        "open": "1200",
+        "close": "0000",
+        "close_date": "2026-10-18"
+       }
+      ]
+     }
+    }
+   }
+  }
+ ],
+ "costo": {
+  "totale": 0.6315891500000002,
+  "ai": {
+   "chiamate": 4,
+   "tokenIn": 8965,
+   "tokenOut": 2074
+  },
+  "google": {
+   "place/findplacefromtext": 2,
+   "place/textsearch#new": 17
+  },
+  "tettoUsd": 7
+ },
+ "luoghiOrari": {
+  "ChIJ55aw3yvjExMRxH4YivZs54w": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "historical_landmark",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  },
+  "ChIJaUl7zSjjExMRoCTWa8ahogs": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "historical_landmark",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  },
+  "ChIJLZa9AC7jExMRQpSE-ITO9ZM": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "plaza",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  },
+  "ChIJ2537JADjExMRQG5XqiMwXoU": {
+   "periods": null,
+   "primaryType": "tourist_attraction",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJ8bebwy7jExMReUMMdh7yjj0": {
+   "periods": null,
+   "primaryType": "historical_landmark",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJvyzUwwD9ExMRVYfMpkOyrOY": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "historical_landmark",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  },
+  "ChIJHxe7Li3jExMRy061KouX28I": {
+   "periods": null,
+   "primaryType": "town_square",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJ6RNXTADjExMR1pQLd63mdYQ": {
+   "periods": null,
+   "primaryType": "museum",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJ246EAS_jExMR__mpdyI1ULw": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "landmark",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  },
+  "ChIJYfQrh9PjExMRzAWyM3SylP4": {
+   "periods": null,
+   "primaryType": "park",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJq6rbKynjExMRofyeNFdwVY4": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "sculpture",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  },
+  "ChIJSaqNeCzjExMR6dcdA61sYzg": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0900"
+     },
+     "close": {
+      "day": 1,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0900"
+     },
+     "close": {
+      "day": 3,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0900"
+     },
+     "close": {
+      "day": 4,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0900"
+     },
+     "close": {
+      "day": 5,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0900"
+     },
+     "close": {
+      "day": 6,
+      "time": "1900"
+     }
+    }
+   ],
+   "primaryType": "historical_landmark",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0900",
+      "close": "1900"
+     }
+    ]
+   }
+  },
+  "ChIJpXx7_b_jExMR0n1fIi6-0Ig": {
+   "periods": null,
+   "primaryType": "historical_landmark",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJLwS8dRrjExMRhq1VsrqkFGo": {
+   "periods": null,
+   "primaryType": "tourist_attraction",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJV63v_C7jExMRhTLFcc2p9Z8": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0900"
+     },
+     "close": {
+      "day": 1,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0900"
+     },
+     "close": {
+      "day": 2,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0900"
+     },
+     "close": {
+      "day": 3,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0900"
+     },
+     "close": {
+      "day": 4,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0900"
+     },
+     "close": {
+      "day": 5,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0900"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "government_office",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0900",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0900",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJjfE4n-jjExMR0gwbhCQ0rk4": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "tourist_attraction",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  },
+  "ChIJiS624y7jExMREIKeZ58jDjg": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "0800"
+     },
+     "close": {
+      "day": 1,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0800"
+     },
+     "close": {
+      "day": 2,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0800"
+     },
+     "close": {
+      "day": 3,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0800"
+     },
+     "close": {
+      "day": 4,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1530"
+     },
+     "close": {
+      "day": 4,
+      "time": "1700"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0800"
+     },
+     "close": {
+      "day": 5,
+      "time": "1300"
+     }
+    }
+   ],
+   "primaryType": "tourist_attraction",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "0800",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0800",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0800",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0800",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1530",
+      "close": "1700"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0800",
+      "close": "1300"
+     }
+    ]
+   }
+  },
+  "ChIJhVn-jdniExMRlAlDXwl--r0": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "historical_landmark",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  },
+  "ChIJi9FazSjjExMR4ON7aN3VlAs": {
+   "periods": null,
+   "primaryType": "town_square",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJzUeIFp_9ExMRVmZDnrg6Jng": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "0800"
+     },
+     "close": {
+      "day": 1,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0800"
+     },
+     "close": {
+      "day": 2,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0800"
+     },
+     "close": {
+      "day": 3,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0800"
+     },
+     "close": {
+      "day": 4,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0800"
+     },
+     "close": {
+      "day": 5,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0800"
+     },
+     "close": {
+      "day": 6,
+      "time": "1230"
+     }
+    }
+   ],
+   "primaryType": "market",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "0800",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0800",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0800",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0800",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0800",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0800",
+      "close": "1230"
+     }
+    ]
+   }
+  },
+  "ChIJU84fUCzjExMR4rI0uZuCtQQ": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1230"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1230"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1230"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1230"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1230"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1230"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1230"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1230",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1230",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJwYpRey7jExMRJxudW7ZTTBM": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1000"
+     },
+     "close": {
+      "day": 0,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1800"
+     },
+     "close": {
+      "day": 0,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1800"
+     },
+     "close": {
+      "day": 1,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1800"
+     },
+     "close": {
+      "day": 3,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1800"
+     },
+     "close": {
+      "day": 4,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1800"
+     },
+     "close": {
+      "day": 5,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1800"
+     },
+     "close": {
+      "day": 6,
+      "time": "2330"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1000",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1800",
+      "close": "2330"
+     }
+    ]
+   }
+  },
+  "ChIJq3DCq4HjExMRyvmYVFTImqY": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1000"
+     },
+     "close": {
+      "day": 0,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1000"
+     },
+     "close": {
+      "day": 1,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1000"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1000"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1000"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1000"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1000"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1000",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1000",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJo0WsJxnjExMRMo-GLQiQBG0": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1300"
+     },
+     "close": {
+      "day": 0,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1830"
+     },
+     "close": {
+      "day": 0,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1300"
+     },
+     "close": {
+      "day": 2,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1830"
+     },
+     "close": {
+      "day": 2,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1300"
+     },
+     "close": {
+      "day": 3,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1830"
+     },
+     "close": {
+      "day": 3,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1300"
+     },
+     "close": {
+      "day": 4,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1830"
+     },
+     "close": {
+      "day": 4,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1300"
+     },
+     "close": {
+      "day": 5,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1830"
+     },
+     "close": {
+      "day": 5,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1300"
+     },
+     "close": {
+      "day": 6,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1830"
+     },
+     "close": {
+      "day": 6,
+      "time": "2330"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1830",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1830",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1830",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1830",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1830",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1300",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1830",
+      "close": "2330"
+     }
+    ]
+   }
+  },
+  "ChIJ62d5tA39ExMR8uJelh7LMiE": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJRQknxC3jExMRyRWDa7bzwNA": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1800"
+     },
+     "close": {
+      "day": 1,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1800"
+     },
+     "close": {
+      "day": 2,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1800"
+     },
+     "close": {
+      "day": 3,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1800"
+     },
+     "close": {
+      "day": 4,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1800"
+     },
+     "close": {
+      "day": 5,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1800"
+     },
+     "close": {
+      "day": 6,
+      "time": "2330"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1800",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1800",
+      "close": "2330"
+     }
+    ]
+   }
+  },
+  "ChIJb018Ipv9ExMRS1tjQaIdbOs": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1830"
+     },
+     "close": {
+      "day": 0,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1830"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1830"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1830"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1830"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1830"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1830",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1830",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1830",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1830",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1830",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1830",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJvYTRwijjExMRvj0zmgrt6q4": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJ2b8-Gtf8ExMRGtMuV_yD7vQ": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1145"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1145"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1145"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1145"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1145"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1145"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1145"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1145",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1145",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJH9OmNizjExMR3xfvyNJjX3E": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1230"
+     },
+     "close": {
+      "day": 0,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1930"
+     },
+     "close": {
+      "day": 0,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1230"
+     },
+     "close": {
+      "day": 1,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1930"
+     },
+     "close": {
+      "day": 1,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1230"
+     },
+     "close": {
+      "day": 2,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1930"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1230"
+     },
+     "close": {
+      "day": 3,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1930"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1230"
+     },
+     "close": {
+      "day": 5,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1930"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1230"
+     },
+     "close": {
+      "day": 6,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1930"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1930",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1930",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJMUd6UynjExMRuCV-wh1ktK0": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "1900"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "1900",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJQ6UhD8z8ExMRd4z9v5P6kz8": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1230"
+     },
+     "close": {
+      "day": 0,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1930"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1230"
+     },
+     "close": {
+      "day": 1,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1930"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1230"
+     },
+     "close": {
+      "day": 2,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1930"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1230"
+     },
+     "close": {
+      "day": 4,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1930"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1230"
+     },
+     "close": {
+      "day": 5,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1930"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1230"
+     },
+     "close": {
+      "day": 6,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1930"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1930",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1930",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1930",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1930",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1930",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1930",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJgRe-lM38ExMRU_AYn59GIdA": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "1230"
+     },
+     "close": {
+      "day": 1,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1930"
+     },
+     "close": {
+      "day": 1,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1230"
+     },
+     "close": {
+      "day": 2,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1930"
+     },
+     "close": {
+      "day": 2,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1230"
+     },
+     "close": {
+      "day": 4,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1930"
+     },
+     "close": {
+      "day": 4,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1230"
+     },
+     "close": {
+      "day": 5,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1930"
+     },
+     "close": {
+      "day": 5,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1230"
+     },
+     "close": {
+      "day": 6,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1930"
+     },
+     "close": {
+      "day": 6,
+      "time": "2330"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1930",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1930",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1930",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1930",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1230",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1930",
+      "close": "2330"
+     }
+    ]
+   }
+  },
+  "ChIJE9yf2SzjExMRevMzdrcuCTc": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "0730"
+     },
+     "close": {
+      "day": 1,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0730"
+     },
+     "close": {
+      "day": 2,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0730"
+     },
+     "close": {
+      "day": 3,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0730"
+     },
+     "close": {
+      "day": 4,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0730"
+     },
+     "close": {
+      "day": 5,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0730"
+     },
+     "close": {
+      "day": 6,
+      "time": "1600"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "0730",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "0730",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0730",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0730",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0730",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0730",
+      "close": "1600"
+     }
+    ]
+   }
+  },
+  "ChIJoYhy9i7jExMR1DEoB81TdZI": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1900"
+     },
+     "close": {
+      "day": 1,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 2,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "2330"
+     }
+    }
+   ],
+   "primaryType": "seafood_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1900",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1900",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "2330"
+     }
+    ]
+   }
+  },
+  "ChIJ4wkXcizjExMRApHj7M7eg9Y": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1230"
+     },
+     "close": {
+      "day": 0,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "1530"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "1530"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJN0RepCvjExMRKS3o4fWFRBs": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1215"
+     },
+     "close": {
+      "day": 0,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1215"
+     },
+     "close": {
+      "day": 2,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 2,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1215"
+     },
+     "close": {
+      "day": 3,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1215"
+     },
+     "close": {
+      "day": 4,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1215"
+     },
+     "close": {
+      "day": 5,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1215"
+     },
+     "close": {
+      "day": 6,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "2200"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1215",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1215",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1900",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1215",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1215",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1215",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1215",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "2200"
+     }
+    ]
+   }
+  },
+  "ChIJ2YDhHwDjExMRyHIkaDTWh8o": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1730"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1730"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1730"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1730"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1730",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1730",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1730",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1730",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJ_bLcis38ExMRQHIlAzb34rg": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1230"
+     },
+     "close": {
+      "day": 0,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1930"
+     },
+     "close": {
+      "day": 0,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1230"
+     },
+     "close": {
+      "day": 2,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1930"
+     },
+     "close": {
+      "day": 2,
+      "time": "2230"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1230"
+     },
+     "close": {
+      "day": 3,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1930"
+     },
+     "close": {
+      "day": 3,
+      "time": "2230"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1230"
+     },
+     "close": {
+      "day": 4,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1930"
+     },
+     "close": {
+      "day": 4,
+      "time": "2230"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1230"
+     },
+     "close": {
+      "day": 5,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1930"
+     },
+     "close": {
+      "day": 5,
+      "time": "2230"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1230"
+     },
+     "close": {
+      "day": 6,
+      "time": "1430"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1930"
+     },
+     "close": {
+      "day": 6,
+      "time": "2230"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1230",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1930",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1230",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1930",
+      "close": "2230"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1230",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1930",
+      "close": "2230"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1230",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1930",
+      "close": "2230"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1230",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1930",
+      "close": "2230"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1230",
+      "close": "1430"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1930",
+      "close": "2230"
+     }
+    ]
+   }
+  },
+  "ChIJww7TwC3jExMR7alXAJ53EGM": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1830"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1830"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1200"
+     },
+     "close": {
+      "day": 2,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1830"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1830"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1830"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1830"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "1600"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1830"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1830",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-13",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-14"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "1600"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1830",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJdQr9cPX7ExMRxA2GjNivuuU": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "observation_deck",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-19",
+    "from": "2026-10-13",
+    "periods": [
+     {
+      "date": "2026-10-13",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  }
+ },
+ "orariRiepilogo": {
+  "postiDistinti": 41,
+  "chiamati": 0,
+  "nonRichiesti": 0,
+  "senzaOrari": 8,
+  "daRicerca": true
+ },
+ "fine": "2026-10-14T01:15:12.794Z"
+}

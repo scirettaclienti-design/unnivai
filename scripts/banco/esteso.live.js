@@ -23,6 +23,7 @@ import { buildPromptFromSelections, buildQuickPrefs } from '@/pages/QuickPath';
 import { isSeraStart } from '@/lib/daySkeleton';
 import { groupStopsByDayAndMoment } from '@/lib/stopMoments';
 import { typeLabelOf } from '@/lib/italianLabels';
+import { weightsToAIProfile } from '@/services/preferenceEngine';
 import { row, conComposizione } from '../prova-reale/righe.js';
 import config from './banco.config.json';
 import { CASI_ESTESI, istanteSimulato } from './casi-esteso.js';
@@ -45,7 +46,7 @@ const save = () => { mkdirSync(path.dirname(OUT), { recursive: true }); writeFil
 
 // ─── Il fetch che conta e annota (come banco.live.js) ────────────────────────
 const realFetch = globalThis.fetch;
-const cont = { ai: 0, tokenIn: 0, tokenOut: 0, google: {} };
+const cont = { ai: 0, tokenIn: 0, tokenOut: 0, google: {}, googleListaHit: 0 };
 const luoghi = new Map();
 // MIG-PLACES — i posti visti nelle ricerche del caso in corso (per contare candidati e orari noti).
 let vistiCaso = new Set();
@@ -94,12 +95,28 @@ globalThis.fetch = vi.fn(async (url, init) => {
         }
     }
     if (u.includes('openai-proxy')) {
-        cont.ai++;
         try {
             const j = await res.clone().json();
-            cont.tokenIn += j?.usage?.prompt_tokens || 0;
-            cont.tokenOut += j?.usage?.completion_tokens || 0;
-        } catch { /* stream o errore */ }
+            const ck = j?.cityKnowledge;
+            if (ck) {
+                // i posti della lista arrivano col loro dato di Google: tipo principale e orari servono ai controlli (pasto, c5)
+                for (const v of ck.verificati || []) annota(v, null);
+                // C10 — la lista della città: una chiamata AI e le verifiche su Google le fa il SERVER (solo la prima volta del
+                // giorno); il proxy dice quante sono, e qui si contano come se le avesse fatte il client (stesso listino).
+                if (!ck.cached) cont.ai++;
+                cont.tokenIn += ck.usage?.prompt_tokens || 0;
+                cont.tokenOut += ck.usage?.completion_tokens || 0;
+                if (ck.google) {
+                    cont.google['place/textsearch#new'] = (cont.google['place/textsearch#new'] || 0) + (ck.google.textsearch || 0);
+                    cont.google['place/findplacefromtext'] = (cont.google['place/findplacefromtext'] || 0) + (ck.google.findplace || 0);
+                    cont.googleListaHit += ck.google.hit || 0;
+                }
+            } else {
+                cont.ai++;
+                cont.tokenIn += j?.usage?.prompt_tokens || 0;
+                cont.tokenOut += j?.usage?.completion_tokens || 0;
+            }
+        } catch { cont.ai++; /* stream o errore */ }
     }
     return res;
 });
@@ -149,8 +166,8 @@ const tappa = (s, fatti, comp, riempite, dieta, atStimato) => {
         description: r.description, verita: r.verita, voce: r.voce, frasi, fatti: (fatti || []).length,
         recensioni: l.recensioni ?? null, priceLevel: l.priceLevel ?? null,
         // C7 — il tipo principale decide cosa e' un pasto (un cocktail bar marcato anche `restaurant` e' un bar)
-        pasto: isMealPlace({ types, primaryType: l.primaryType, name: r.title, title: r.title }),
-        ...(l.primaryType ? { primaryType: l.primaryType } : {}),
+        pasto: isMealPlace({ types, primaryType: l.primaryType ?? s.primaryType, name: r.title, title: r.title }),
+        ...((l.primaryType ?? s.primaryType) ? { primaryType: l.primaryType ?? s.primaryType } : {}),
         // TESTI — il tipo interno della tappa e l'etichetta che la schermata mostra (dal tipo principale; null = nessuna etichetta)
         ...(s.type ? { tipoInterno: s.type } : {}),
         etichetta: s.tempoLibero ? null : typeLabelOf({ ...s, primaryType: s.primaryType ?? l.primaryType }),
@@ -182,8 +199,9 @@ async function genera(caso) {
     if (caso.modo === 'crea') {
         const prefs = { budget: '', duration: '', interests: [], group: '', pace: '', ...caso.prefs };
         rec.chiamata = { pagina: 'AiItinerary.jsx', pathType: 'custom', prefs, testo: caso.richiesta };
-        r = await aiRecommendationService.generateItinerary(caso.luogo, prefs, caso.richiesta, meteoApp, '', cc,
-            { dnaWeights: {}, pathType: 'custom', onboardingPrefs: onboarding, ...base });
+        // C10 — i profili A e B portano il loro DNA (con fiducia piena) e il profilo al selettore, come il banco nazionale
+        r = await aiRecommendationService.generateItinerary(caso.luogo, prefs, caso.richiesta, meteoApp, caso.dna ? weightsToAIProfile(caso.dna) : '', cc,
+            { dnaWeights: caso.dna || {}, pathType: 'custom', onboardingPrefs: onboarding, ...base });
     } else if (caso.modo === 'veloce') {
         const s = caso.scelta;
         const durata = { Veloce: 'veloce', Medio: 'medio', Lungo: 'lungo' }[caso.durata];
@@ -221,6 +239,7 @@ for (const caso of casi) {
         const delta = () => ({
             ai: { chiamate: cont.ai - c0.ai, tokenIn: cont.tokenIn - c0.tokenIn, tokenOut: cont.tokenOut - c0.tokenOut },
             google: Object.fromEntries(Object.entries(cont.google).map(([k, v]) => [k, v - (c0.google[k] || 0)]).filter(([, v]) => v > 0)),
+            googleListaHit: cont.googleListaHit - (c0.googleListaHit || 0),
         });
         const t0 = Date.now();
         try {
@@ -294,6 +313,9 @@ for (const caso of casi) {
                 rec.continuita = r._momentReport?.continuita ?? null;
                 // C7 — il tema cibo, il tipico, le cucine estere escluse, le zone tolte, le ricerche mirate fatte
                 rec.tema = r._momentReport?.tema ?? null;
+                // C10 — la lista della città in questo giro (stato, dal server o nuova, verificati, nel pool, ancore, seminate)
+                rec.citta = r._citta ?? null;
+                if (caso.profilo) rec.profilo = caso.profilo;
                 // TESTI — le sezioni come la schermata le intitola (groupStopsByDayAndMoment, la stessa funzione di AiItinerary e TourStopsByMoment) con l'ora della sua prima tappa
                 const sezioni = (r.days || []).flatMap(d => groupStopsByDayAndMoment(d.stops || []).flatMap(g => g.groups))
                     .filter(g => g.moment).map(g => ({ etichetta: g.moment.label, ora: g.items[0]?.timeLabel ?? null }));

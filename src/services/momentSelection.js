@@ -268,6 +268,13 @@ export const MOMENT_CATEGORY_TO_THEME = {
     'punti panoramici': 'romance',
 };
 
+// C10 — la lista della città (decisione di Ivano su P7a): nella scelta per momenti un'ANCORA (essenziale scelto, al
+// massimo 3 per giornata intera) vince sempre a parita' di regole, un posto «da locale» pesa di piu' degli altri.
+// Le regole (tetto di cammino, varieta', orari, percorso) vengono prima del merito: il bonus non le scavalca.
+export const BONUS_ANCORA = 1;
+export const BONUS_DA_LOCALE = 0.2;
+export const bonusLista = (c) => (c?._citta?.ancora ? BONUS_ANCORA : (c?._citta ? BONUS_DA_LOCALE : 0));
+
 /** BANCO-POOL — quanti candidati per momento finiscono nel tracciato. */
 export const POOL_MAX = 15;
 
@@ -597,7 +604,7 @@ function repairPass({
     const scoreCache = new Map();
     const scoreOf = (c) => {
         const k = idOf(c);
-        if (!scoreCache.has(k)) scoreCache.set(k, computeCandidateScore(c, pool || [], dnaWeights));
+        if (!scoreCache.has(k)) scoreCache.set(k, computeCandidateScore(c, pool || [], dnaWeights) + bonusLista(c));
         return scoreCache.get(k);
     };
     const famCache = new Map();
@@ -1031,7 +1038,7 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
     const scoreCache = new Map();
     const scoreOf = (c) => {
         const k = idOf(c);
-        if (!scoreCache.has(k)) scoreCache.set(k, computeCandidateScore(c, pool || [], dnaWeights));
+        if (!scoreCache.has(k)) scoreCache.set(k, computeCandidateScore(c, pool || [], dnaWeights) + bonusLista(c));
         return scoreCache.get(k);
     };
     const used = new Set(plan.flatMap(p => p.stops.map(s => idOf(s.candidate))));

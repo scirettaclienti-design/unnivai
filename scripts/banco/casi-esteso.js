@@ -56,6 +56,20 @@ export const CASI_ESTESI = [
     crea('crea-catania-domani', 'Catania', '09:30', 'Domani una giornata a Catania', { duration: '1 Giorno', pace: 'Attivo' }),
     crea('crea-catania-colazione-0800', 'Catania', '08:00', 'Una giornata a Catania con colazione', { duration: '1 Giorno', pace: 'Attivo' }),
 
+    // C10 — l'AI conosce la città: «Domani una giornata a X» nelle 6 città della lista, il caso di Ivano, i profili A e B
+    // (gli stessi del banco nazionale: interessi, vincoli del primo accesso, DNA con fiducia piena) su Catania e Roma.
+    // `giorno`/`ora`: mercoledì 14/10 alle 22:19, come il giro di Ivano (il tour è per giovedì 15/10).
+    // Ordine del giro: Catania (Ivano, neutro, A, B), Roma (neutro, A, B), poi le altre città: se il tetto ferma il giro restano fuori le ultime.
+    { ...crea('c10-ivano', 'Catania', '22:19', 'Domani un giorno da catanese', { duration: '1 Giorno' }), giorno: '2026-10-14' },
+    ...['Catania', 'Roma'].flatMap(l => [
+        { ...crea(`c10-${l.toLowerCase()}`, l, '22:19', `Domani una giornata a ${l}`, { duration: '1 Giorno' }), giorno: '2026-10-14' },
+        { ...crea(`c10-${l.toLowerCase()}-a`, l, '22:19', `Domani una giornata a ${l}`, { duration: '1 Giorno', interests: ['Arte', 'Chiese'] }, { dieta: ['vegetariano'], budget: '€€€', stile: null }),
+            giorno: '2026-10-14', profilo: 'A', dna: { arte: 0.9, cultura: 0.8, _share: 0.45 } },
+        { ...crea(`c10-${l.toLowerCase()}-b`, l, '22:19', `Domani una giornata a ${l}`, { duration: '1 Giorno', interests: ['Street food', 'Panorami'] }, { dieta: [], budget: '€', stile: null }),
+            giorno: '2026-10-14', profilo: 'B', dna: { food: 0.9, relax: 0.7, _share: 0.45 } },
+    ]),
+    ...['Napoli', 'Palermo', 'Lecce', 'Troina'].map(l => ({ ...crea(`c10-${l.toLowerCase()}`, l, '22:19', `Domani una giornata a ${l}`, { duration: '1 Giorno' }), giorno: '2026-10-14' })),
+
     // ── Percorso Veloce (9) — ritmo e umore come QuickPath.jsx (buildQuickPrefs) ──
     veloce('veloce-catania-relax-2125', 'Catania', '21:25', 'relax', 'Veloce'),
     veloce('veloce-catania-relax-2145', 'Catania', '21:45', 'relax', 'Veloce'),

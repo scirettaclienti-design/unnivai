@@ -113,6 +113,13 @@ globalThis.fetch = vi.fn(async (url, init) => {
     if (proxy === 'places' && path_ === 'place/photo') return new Response('', { status: 204 });
     const k = chiaveDi(u, init);
     if (MODE === 'replay') {
+        // C10 — la lista della città: in replay la risposta viene da C9_LISTA (una lista costruita a mano dai dati registrati)
+        if (proxy === 'ai' && String(init?.body || '').includes('"city_list"')) {
+            if (!process.env.C9_LISTA) return new Response(JSON.stringify({ error: 'lista non registrata', code: 'CITY_LIST_UNAVAILABLE' }), { status: 503 });
+            const lista = JSON.parse(readFileSync(process.env.C9_LISTA, 'utf8'));
+            out.proxy.push({ tipo: 'ai', lista: true });
+            return new Response(JSON.stringify({ cityKnowledge: { ...lista, cached: true } }), { status: 200, headers: { 'content-type': 'application/json' } });
+        }
         let r = fixture.risposte[k];
         if (!r && proxy === 'ai') {
             // file registrato senza corpi di richiesta: la risposta del tipo giusto, nell'ordine registrato
@@ -241,6 +248,7 @@ it.skipIf(MODE === 'extra')(CASO.id, async () => {
         source: r._source, destinazione: r.destination ? { city: r.destination.city, fromText: r.destination.fromText, note: r.destination.note || null } : null,
         tourWindow: r.tourWindow ? { date: r.tourWindow.date, start: r.tourWindow.start, reason: r.tourWindow.reason, windows: (r.tourWindow.windows || []).map(w => ({ date: w.date, start: w.start, end: w.end })) } : null,
         momentReport: r._momentReport ?? null,
+        citta: r._citta ?? null,
         giorni: (r.days || []).map(d => ({ titolo: d.title || null, stops: (d.stops || []).map(s => ({
             title: s.title, place_id: s.place_id ?? null, moment: s.moment ?? null, momentLabel: s.momentLabel ?? null, tempoLibero: !!s.tempoLibero,
             scheduledTime: s.scheduledTime ?? null, stay: s.stayMinutes ?? null, cammino: s.travelMinutesFromPrev ?? null, attesa: s.waitMinutesBefore ?? null,

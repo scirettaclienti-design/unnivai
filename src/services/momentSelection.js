@@ -135,6 +135,8 @@ export function candidateMomentCategories(candidate) {
     const name = String(candidate?.name || candidate?.title || '').trim();
     if (PANORAMA_NAME.test(name)) out.add('punti panoramici');
     if (WALK_NAME.test(name)) out.add('passeggiata');
+    // C10b3 — nel borgo la via principale della lista vale come passeggiata (anche se il nome non comincia con «Via»)
+    if (candidate?._citta?.passeggiata) out.add('passeggiata');
     return out;
 }
 

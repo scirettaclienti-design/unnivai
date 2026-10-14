@@ -1,0 +1,1796 @@
+{
+ "avvio": "2026-10-14T13:09:13.234Z",
+ "giorno": "2026-10-15",
+ "liste": [
+  {
+   "citta": "Catania",
+   "status": 200,
+   "ms": 52468,
+   "cached": false,
+   "scala": "città",
+   "conti": {
+    "proposti": 15,
+    "verificati": 13,
+    "scartati": 2
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 15,
+    "hit": 9
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2723,
+     "usage": {
+      "prompt_tokens": 56,
+      "completion_tokens": 13,
+      "total_tokens": 69,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 42363,
+     "usage": {
+      "prompt_tokens": 882,
+      "completion_tokens": 1530,
+      "total_tokens": 2412,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 266,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 45087,
+    "totale": 50320
+   },
+   "quote": {
+    "dopo": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 15,
+     "ancore": 4,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Fontana dell'Elefante"
+     ],
+     "dopocena": 1,
+     "colazioni": 2,
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "piazze e belvedere ≤ 2 (0)",
+      "simbolo presente (1)",
+      "ancore 3–4 (4)",
+      "colazioni 1–2 (2)",
+      "mercato ≤ 1 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)"
+     ],
+     "perQuartiere": {},
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 0,
+     "mancanoQuartieri": {}
+    },
+    "prima": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 15,
+     "ancore": 4,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Fontana dell'Elefante"
+     ],
+     "dopocena": 1,
+     "colazioni": 2,
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "piazze e belvedere ≤ 2 (0)",
+      "simbolo presente (1)",
+      "ancore 3–4 (4)",
+      "colazioni 1–2 (2)",
+      "mercato ≤ 1 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)"
+     ],
+     "perQuartiere": {},
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 0,
+     "mancanoQuartieri": {}
+    },
+    "completamento": null
+   },
+   "simboli": [
+    {
+     "nome": "Fontana dell'Elefante (uʻ Liotru)",
+     "categoria": "monumento",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "essenzialiControllo": {
+    "trovati": [
+     "Cattedrale di Sant'Agata",
+     "Pescheria",
+     "Monastero dei Benedettini",
+     "Castello Ursino",
+     "Villa Bellini"
+    ],
+    "totale": 8
+   },
+   "verificati": [
+    {
+     "nome": "Fontana dell'Elefante (uʻ Liotru)",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "historical_landmark"
+    },
+    {
+     "nome": "Basilica Cattedrale di Sant'Agata",
+     "tipo": "essenziale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Castello Ursino",
+     "tipo": "essenziale",
+     "categoria": "museo",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "castle"
+    },
+    {
+     "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "place_of_worship"
+    },
+    {
+     "nome": "Chiesa di San Nicolò l'Arena",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Palazzo Biscari",
+     "tipo": "da locale",
+     "categoria": "palazzo",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Orto Botanico di Catania",
+     "tipo": "da locale",
+     "categoria": "giardino",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "botanical_garden"
+    },
+    {
+     "nome": "Giardino Bellini - Villa Bellini",
+     "tipo": "da locale",
+     "categoria": "giardino",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "park"
+    },
+    {
+     "nome": "Pasticceria Savia",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "pastry_shop"
+    },
+    {
+     "nome": "Pasticceria Spinella",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "cake_shop"
+    },
+    {
+     "nome": "Pescheria di Catania",
+     "tipo": "da locale",
+     "categoria": "mercato",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "market"
+    },
+    {
+     "nome": "Trattoria del Cavaliere",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "pranzo",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "italian_restaurant"
+    },
+    {
+     "nome": "Osteria Antica Marina",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "cena",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "seafood_restaurant"
+    }
+   ]
+  },
+  {
+   "citta": "Roma",
+   "status": 200,
+   "ms": 69335,
+   "cached": false,
+   "scala": "metropoli",
+   "conti": {
+    "proposti": 14,
+    "verificati": 12,
+    "scartati": 2
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 14,
+    "hit": 7
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2014,
+     "usage": {
+      "prompt_tokens": 54,
+      "completion_tokens": 15,
+      "total_tokens": 69,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-4o-mini",
+     "ripiego": true,
+     "motivo": "HTTP 500 -",
+     "msChiesto": 39892,
+     "ms": 9544,
+     "usage": {
+      "prompt_tokens": 962,
+      "completion_tokens": 910,
+      "total_tokens": 1872,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "completamento",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 10769,
+     "usage": {
+      "prompt_tokens": 303,
+      "completion_tokens": 416,
+      "total_tokens": 719,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 198,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 51450,
+    "totale": 64808
+   },
+   "quote": {
+    "dopo": {
+     "vie": 1,
+     "pasti": 3,
+     "posti": 14,
+     "ancore": 2,
+     "visite": 8,
+     "mancano": 0,
+     "mancate": [
+      "dopocena ≥ 1 (0)"
+     ],
+     "mercati": 0,
+     "simboli": [
+      "Colosseo",
+      "Museo Nazionale Romano - Palazzo Massimo alle Terme"
+     ],
+     "dopocena": 0,
+     "colazioni": 2,
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (8)",
+      "piazze e belvedere ≤ 2 (1)",
+      "simbolo presente (2)",
+      "colazioni 1–2 (2)",
+      "mercato ≤ 1 (0)",
+      "pasti ≥ 2 (3)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Celio 3, Esquilino 3)"
+     ],
+     "perQuartiere": {
+      "Celio": 3,
+      "Esquilino": 3
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 1,
+     "mancanoQuartieri": {}
+    },
+    "prima": {
+     "vie": 1,
+     "pasti": 3,
+     "posti": 9,
+     "ancore": 2,
+     "visite": 3,
+     "mancano": 5,
+     "mancate": [
+      "luoghi da visitare ≥ 8 (3)",
+      "dopocena ≥ 1 (0)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Celio 1, Esquilino 1)"
+     ],
+     "mercati": 0,
+     "simboli": [
+      "Colosseo",
+      "Museo Nazionale Romano - Palazzo Massimo alle Terme"
+     ],
+     "dopocena": 0,
+     "colazioni": 2,
+     "rispettate": [
+      "piazze e belvedere ≤ 2 (1)",
+      "simbolo presente (2)",
+      "colazioni 1–2 (2)",
+      "mercato ≤ 1 (0)",
+      "pasti ≥ 2 (3)"
+     ],
+     "perQuartiere": {
+      "Celio": 1,
+      "Esquilino": 1
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 1,
+     "mancanoQuartieri": {
+      "Celio": 2,
+      "Esquilino": 2
+     }
+    },
+    "completamento": {
+     "aggiunti": [
+      "Basilica dei Santi Giovanni e Paolo",
+      "Basilica di Santa Maria in Domnica al Celio",
+      "Basilica di Santa Maria Maggiore",
+      "Chiesa di Sant'Alfonso all'Esquilino",
+      "Pantheon"
+     ],
+     "mancavano": 5,
+     "quartieri": {
+      "Celio": 2,
+      "Esquilino": 2
+     }
+    }
+   },
+   "simboli": [
+    {
+     "nome": "Colosseo",
+     "categoria": "monumento",
+     "quartiere": "Celio",
+     "dedotto": false
+    },
+    {
+     "nome": "Museo Nazionale Romano, Palazzo Massimo alle Terme",
+     "categoria": "museo",
+     "quartiere": "Esquilino",
+     "dedotto": false
+    }
+   ],
+   "essenzialiControllo": {
+    "trovati": [
+     "Colosseo",
+     "Pantheon"
+    ],
+    "totale": 6
+   },
+   "verificati": [
+    {
+     "nome": "Colosseo",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": "Celio",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "historical_landmark"
+    },
+    {
+     "nome": "Trattoria Da Enzo",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "pranzo",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "italian_restaurant"
+    },
+    {
+     "nome": "Pizzeria Da Baffetto",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "cena",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "pizza_restaurant"
+    },
+    {
+     "nome": "Museo Nazionale Romano, Palazzo Massimo alle Terme",
+     "tipo": "essenziale",
+     "categoria": "museo",
+     "momento": "pomeriggio",
+     "quartiere": "Esquilino",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Sant'Eustachio Caffè",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "coffee_shop"
+    },
+    {
+     "nome": "Giolitti",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "ice_cream_shop"
+    },
+    {
+     "nome": "Trastevere",
+     "tipo": "da locale",
+     "categoria": "via",
+     "momento": "dopocena",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": null
+    },
+    {
+     "nome": "Gianicolo Belvedere",
+     "tipo": "da locale",
+     "categoria": "belvedere",
+     "momento": "pomeriggio",
+     "quartiere": "Gianicolo",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "garden"
+    },
+    {
+     "nome": "Basilica Santi Giovanni e Paolo",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "Celio",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": true,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Basilica di Santa Maria in Domnica alla Navicella",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "Celio",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": true,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Basilica Papale di Santa Maria Maggiore",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "pomeriggio",
+     "quartiere": "Esquilino",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": true,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Pantheon",
+     "tipo": "da locale",
+     "categoria": "monumento",
+     "momento": "pomeriggio",
+     "quartiere": "Pigna",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": true,
+     "primaryType": "historical_landmark"
+    }
+   ]
+  },
+  {
+   "citta": "Napoli",
+   "status": 200,
+   "ms": 39369,
+   "cached": false,
+   "scala": "metropoli",
+   "conti": {
+    "proposti": 15,
+    "verificati": 15,
+    "scartati": 0
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 15,
+    "hit": 6
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 1795,
+     "usage": {
+      "prompt_tokens": 54,
+      "completion_tokens": 13,
+      "total_tokens": 67,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 35500,
+     "usage": {
+      "prompt_tokens": 962,
+      "completion_tokens": 1780,
+      "total_tokens": 2742,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 379,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 37295,
+    "totale": 38530
+   },
+   "quote": {
+    "dopo": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 15,
+     "ancore": 3,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Museo Cappella Sansevero",
+      "Palazzo Reale di Napoli",
+      "Castel Sant'Elmo"
+     ],
+     "dopocena": 1,
+     "colazioni": 2,
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "piazze e belvedere ≤ 2 (0)",
+      "simbolo presente (3)",
+      "colazioni 1–2 (2)",
+      "mercato ≤ 1 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Decumani 3, San Ferdinando 3, Vomero 3)"
+     ],
+     "perQuartiere": {
+      "Vomero": 3,
+      "Decumani": 3,
+      "San Ferdinando": 3
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 0,
+     "mancanoQuartieri": {}
+    },
+    "prima": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 15,
+     "ancore": 3,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Museo Cappella Sansevero",
+      "Palazzo Reale di Napoli",
+      "Castel Sant'Elmo"
+     ],
+     "dopocena": 1,
+     "colazioni": 2,
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "piazze e belvedere ≤ 2 (0)",
+      "simbolo presente (3)",
+      "colazioni 1–2 (2)",
+      "mercato ≤ 1 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Decumani 3, San Ferdinando 3, Vomero 3)"
+     ],
+     "perQuartiere": {
+      "Vomero": 3,
+      "Decumani": 3,
+      "San Ferdinando": 3
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 0,
+     "mancanoQuartieri": {}
+    },
+    "completamento": null
+   },
+   "simboli": [
+    {
+     "nome": "Museo Cappella Sansevero",
+     "categoria": "museo",
+     "quartiere": "Decumani",
+     "dedotto": false
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "categoria": "palazzo",
+     "quartiere": "San Ferdinando",
+     "dedotto": false
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "categoria": "monumento",
+     "quartiere": "Vomero",
+     "dedotto": false
+    }
+   ],
+   "essenzialiControllo": {
+    "trovati": [
+     "Cappella Sansevero"
+    ],
+    "totale": 6
+   },
+   "verificati": [
+    {
+     "nome": "Museo Cappella Sansevero",
+     "tipo": "essenziale",
+     "categoria": "museo",
+     "momento": "mattina",
+     "quartiere": "Decumani",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "art_museum"
+    },
+    {
+     "nome": "Complesso Monumentale di Santa Chiara",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "Decumani",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "place_of_worship"
+    },
+    {
+     "nome": "La Neapolis Sotterrata - Complesso Monumentale San Lorenzo Maggiore",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "pomeriggio",
+     "quartiere": "Decumani",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "history_museum"
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "tipo": "essenziale",
+     "categoria": "palazzo",
+     "momento": "mattina",
+     "quartiere": "San Ferdinando",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Basilica di San Francesco di Paola",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Galleria Umberto I",
+     "tipo": "da locale",
+     "categoria": "monumento",
+     "momento": "aperitivo",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "historical_landmark"
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "pomeriggio",
+     "quartiere": "Vomero",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "castle"
+    },
+    {
+     "nome": "Certosa di San Martino",
+     "tipo": "da locale",
+     "categoria": "museo",
+     "momento": "mattina",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Villa Floridiana",
+     "tipo": "da locale",
+     "categoria": "giardino",
+     "momento": "pomeriggio",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "state_park"
+    },
+    {
+     "nome": "Pasticceria Giovanni Scaturchio",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": "Decumani",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "dessert_shop"
+    },
+    {
+     "nome": "Gran Caffè Gambrinus",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "bar"
+    },
+    {
+     "nome": "Mercato di Antignano",
+     "tipo": "da locale",
+     "categoria": "mercato",
+     "momento": "mattina",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "market"
+    },
+    {
+     "nome": "La Campagnola Pizzería & Trattoria",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "pranzo",
+     "quartiere": "Decumani",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "pizza_restaurant"
+    },
+    {
+     "nome": "Osteria Della Mattonella",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "cena",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "restaurant"
+    },
+    {
+     "nome": "Fonoteca",
+     "tipo": "da locale",
+     "categoria": "dopocena",
+     "momento": "dopocena",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "bar"
+    }
+   ]
+  },
+  {
+   "citta": "Palermo",
+   "status": 200,
+   "ms": 43247,
+   "cached": false,
+   "scala": "città",
+   "conti": {
+    "proposti": 14,
+    "verificati": 14,
+    "scartati": 0
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 14,
+    "hit": 7
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2226,
+     "usage": {
+      "prompt_tokens": 54,
+      "completion_tokens": 13,
+      "total_tokens": 67,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 39195,
+     "usage": {
+      "prompt_tokens": 873,
+      "completion_tokens": 1487,
+      "total_tokens": 2360,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 294,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 41422,
+    "totale": 42695
+   },
+   "quote": {
+    "dopo": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 14,
+     "ancore": 4,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Cattedrale di Palermo"
+     ],
+     "dopocena": 1,
+     "colazioni": 1,
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "piazze e belvedere ≤ 2 (0)",
+      "simbolo presente (1)",
+      "ancore 3–4 (4)",
+      "colazioni 1–2 (1)",
+      "mercato ≤ 1 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)"
+     ],
+     "perQuartiere": {},
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 0,
+     "mancanoQuartieri": {}
+    },
+    "prima": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 14,
+     "ancore": 4,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Cattedrale di Palermo"
+     ],
+     "dopocena": 1,
+     "colazioni": 1,
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "piazze e belvedere ≤ 2 (0)",
+      "simbolo presente (1)",
+      "ancore 3–4 (4)",
+      "colazioni 1–2 (1)",
+      "mercato ≤ 1 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)"
+     ],
+     "perQuartiere": {},
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 0,
+     "mancanoQuartieri": {}
+    },
+    "completamento": null
+   },
+   "simboli": [
+    {
+     "nome": "Cattedrale di Palermo",
+     "categoria": "chiesa",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "essenzialiControllo": {
+    "trovati": [
+     "Cattedrale di Palermo",
+     "Palazzo dei Normanni / Cappella Palatina",
+     "Teatro Massimo",
+     "Mercato di Ballarò",
+     "Chiesa della Martorana"
+    ],
+    "totale": 6
+   },
+   "verificati": [
+    {
+     "nome": "Cattedrale di Palermo",
+     "tipo": "essenziale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Palazzo dei Normanni",
+     "tipo": "essenziale",
+     "categoria": "palazzo",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "historical_landmark"
+    },
+    {
+     "nome": "Teatro Massimo di Palermo",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "performing_arts_theater"
+    },
+    {
+     "nome": "Chiesa di Santa Maria dell'Ammiraglio (Chiesa della Martorana)",
+     "tipo": "essenziale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Museo Archeologico Regionale \"Antonino Salinas\"",
+     "tipo": "da locale",
+     "categoria": "museo",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Palazzo Abatellis",
+     "tipo": "da locale",
+     "categoria": "museo",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Orto Botanico di Palermo",
+     "tipo": "da locale",
+     "categoria": "giardino",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "botanical_garden"
+    },
+    {
+     "nome": "Villa Giulia",
+     "tipo": "da locale",
+     "categoria": "giardino",
+     "momento": "aperitivo",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "city_park"
+    },
+    {
+     "nome": "Chiesa e Monastero di Santa Caterina d'Alessandria",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Pasticceria Cappello",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "cake_shop"
+    },
+    {
+     "nome": "Mercato Ballarò",
+     "tipo": "da locale",
+     "categoria": "mercato",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "market"
+    },
+    {
+     "nome": "Trattoria Al Ferro di Cavallo",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "pranzo",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "italian_restaurant"
+    },
+    {
+     "nome": "Osteria Ballarò",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "cena",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "italian_restaurant"
+    },
+    {
+     "nome": "Maison Bocum - suites&bakery",
+     "tipo": "da locale",
+     "categoria": "dopocena",
+     "momento": "dopocena",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "coffee_shop"
+    }
+   ]
+  },
+  {
+   "citta": "Lecce",
+   "status": 200,
+   "ms": 35785,
+   "cached": false,
+   "scala": "città",
+   "conti": {
+    "proposti": 14,
+    "verificati": 13,
+    "scartati": 1
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 14,
+    "hit": 11
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2609,
+     "usage": {
+      "prompt_tokens": 55,
+      "completion_tokens": 40,
+      "total_tokens": 95,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 20,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 31234,
+     "usage": {
+      "prompt_tokens": 878,
+      "completion_tokens": 1524,
+      "total_tokens": 2402,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 349,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 33843,
+    "totale": 35148
+   },
+   "quote": {
+    "dopo": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 14,
+     "ancore": 3,
+     "visite": 8,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Basilica di Santa Croce"
+     ],
+     "dopocena": 1,
+     "colazioni": 2,
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (8)",
+      "piazze e belvedere ≤ 2 (0)",
+      "simbolo presente (1)",
+      "ancore 3–4 (3)",
+      "colazioni 1–2 (2)",
+      "mercato ≤ 1 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)"
+     ],
+     "perQuartiere": {},
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 0,
+     "mancanoQuartieri": {}
+    },
+    "prima": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 14,
+     "ancore": 3,
+     "visite": 8,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Basilica di Santa Croce"
+     ],
+     "dopocena": 1,
+     "colazioni": 2,
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (8)",
+      "piazze e belvedere ≤ 2 (0)",
+      "simbolo presente (1)",
+      "ancore 3–4 (3)",
+      "colazioni 1–2 (2)",
+      "mercato ≤ 1 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)"
+     ],
+     "perQuartiere": {},
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 0,
+     "mancanoQuartieri": {}
+    },
+    "completamento": null
+   },
+   "simboli": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "categoria": "chiesa",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "essenzialiControllo": {
+    "trovati": [
+     "Basilica di Santa Croce",
+     "Anfiteatro Romano",
+     "Porta Napoli"
+    ],
+    "totale": 6
+   },
+   "verificati": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "tipo": "essenziale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Cattedrale di Maria Santissima Assunta",
+     "tipo": "essenziale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Anfiteatro Romano di Lecce",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "historical_landmark"
+    },
+    {
+     "nome": "Chiesa di San Matteo",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Chiesa di Santa Chiara",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Museo Faggiano",
+     "tipo": "da locale",
+     "categoria": "museo",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Porta Napoli",
+     "tipo": "da locale",
+     "categoria": "monumento",
+     "momento": "aperitivo",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "historical_landmark"
+    },
+    {
+     "nome": "Caffè Alvino",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "bar"
+    },
+    {
+     "nome": "Pasticceria Natale",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "cake_shop"
+    },
+    {
+     "nome": "Mercatino Porta rudiae",
+     "tipo": "da locale",
+     "categoria": "mercato",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "market"
+    },
+    {
+     "nome": "Le Zie Trattoria Casereccia",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "pranzo",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "restaurant"
+    },
+    {
+     "nome": "Osteria degli Spiriti",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "cena",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "italian_restaurant"
+    },
+    {
+     "nome": "Quanto Basta Cocktail Bar",
+     "tipo": "da locale",
+     "categoria": "dopocena",
+     "momento": "dopocena",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "cocktail_bar"
+    }
+   ]
+  },
+  {
+   "citta": "Troina",
+   "status": 200,
+   "ms": 35769,
+   "cached": false,
+   "scala": "borgo",
+   "conti": {
+    "proposti": 7,
+    "verificati": 7,
+    "scartati": 0
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 7,
+    "hit": 5
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 3434,
+     "usage": {
+      "prompt_tokens": 55,
+      "completion_tokens": 84,
+      "total_tokens": 139,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 64,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 30805,
+     "usage": {
+      "prompt_tokens": 812,
+      "completion_tokens": 947,
+      "total_tokens": 1759,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 377,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 34239,
+    "totale": 35257
+   },
+   "quote": {
+    "dopo": {
+     "vie": 1,
+     "pasti": 1,
+     "posti": 7,
+     "ancore": 4,
+     "visite": 5,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 0,
+     "simboli": [
+      "Cattedrale di Maria Santissima Assunta"
+     ],
+     "dopocena": 0,
+     "colazioni": 0,
+     "rispettate": [
+      "luoghi da visitare ≥ 4 (5)",
+      "piazze e belvedere ≤ 2 (1)",
+      "simbolo presente (1)",
+      "posti ≤ 8 (7)",
+      "via principale (1)"
+     ],
+     "perQuartiere": {},
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 1,
+     "mancanoQuartieri": {}
+    },
+    "prima": {
+     "vie": 1,
+     "pasti": 1,
+     "posti": 7,
+     "ancore": 4,
+     "visite": 5,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 0,
+     "simboli": [
+      "Cattedrale di Maria Santissima Assunta"
+     ],
+     "dopocena": 0,
+     "colazioni": 0,
+     "rispettate": [
+      "luoghi da visitare ≥ 4 (5)",
+      "piazze e belvedere ≤ 2 (1)",
+      "simbolo presente (1)",
+      "posti ≤ 8 (7)",
+      "via principale (1)"
+     ],
+     "perQuartiere": {},
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 1,
+     "mancanoQuartieri": {}
+    },
+    "completamento": null
+   },
+   "simboli": [
+    {
+     "nome": "Chiesa Madre di Maria Santissima Assunta",
+     "categoria": "chiesa",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "essenzialiControllo": {
+    "trovati": [
+     "Cattedrale di Maria Santissima Assunta (Chiesa Madre)",
+     "Torre Capitania"
+    ],
+    "totale": 3
+   },
+   "verificati": [
+    {
+     "nome": "Chiesa Madre di Maria Santissima Assunta",
+     "tipo": "essenziale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Chiesa di San Silvestro Monaco Basiliano",
+     "tipo": "essenziale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": null
+    },
+    {
+     "nome": "Torre Capitania",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Chiesa San Nicolò",
+     "tipo": "essenziale",
+     "categoria": "chiesa",
+     "momento": "pomeriggio",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Via Conte Ruggero",
+     "tipo": "da locale",
+     "categoria": "via",
+     "momento": "aperitivo",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": true,
+     "completamento": false,
+     "primaryType": null
+    },
+    {
+     "nome": "La Contea dei Normanni",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "cena",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": "restaurant"
+    },
+    {
+     "nome": "Piazza Conte Ruggero",
+     "tipo": "da locale",
+     "categoria": "piazza",
+     "momento": "dopocena",
+     "quartiere": null,
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "primaryType": null
+    }
+   ]
+  }
+ ],
+ "fine": "2026-10-14T13:13:50.656Z"
+}

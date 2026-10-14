@@ -47,6 +47,10 @@ export function poiDallaLista(verificati, city, buildPOI) {
                 ...(_citta?.quartiere ? { quartiere: String(_citta.quartiere) } : {}),
                 ...(ess && _citta?.simbolo ? { simbolo: true } : {}),
                 ...(ess && _citta?.simboloDedotto ? { simboloDedotto: true } : {}),
+                // C10b3 — la categoria detta dall'AI, la via principale del borgo (vale come passeggiata), le aggiunte del completamento
+                ...(_citta?.categoria ? { categoria: String(_citta.categoria) } : {}),
+                ...(_citta?.passeggiata ? { passeggiata: true } : {}),
+                ...(_citta?.completamento ? { completamento: true } : {}),
             },
         };
     });
@@ -71,6 +75,46 @@ export const MEZZA_GIORNATA_MINUTI = 240;
  */
 export const MINUTI_PER_TAPPA_BORGO = 45;
 export const durataBorgoCorto = (visitabili) => MINUTI_PER_TAPPA_BORGO * Math.min(4, Math.max(2, Number(visitabili) || 0));
+/**
+ * C10b3 — il giro corto di un borgo nella FASCIA APERTA (decisione di Ivano): fra l'inizio e la fine della finestra, a passi di
+ * 30 minuti, la fascia in cui sono aperti piu' posti della lista (poi piu' luoghi da visitare in tutto); a parita' la prima.
+ * La durata segue i luoghi aperti in quella fascia (durataBorgoCorto: 45 min ciascuno, 2–4). La finestra non si allunga mai.
+ * Un posto conta se e' aperto per una sosta intera (45 min) dentro la fascia; senza orari conta come aperto.
+ * @returns {{ start: Date, end: Date, minuti: number, listaAperti: number, aperti: number }|null}
+ */
+export function fasciaApertaBorgo({ candidati = [], lista = [], finestra = null, passoMinuti = 30 } = {}) {
+    if (!(finestra?.start instanceof Date) || !(finestra?.end instanceof Date)) return null;
+    const s0 = finestra.start.getTime(), e0 = finestra.end.getTime();
+    const idLista = new Set(lista.map(idOf));
+    const minimo = durataBorgoCorto(0);
+    let meglio = null;
+    for (let t = s0; t + minimo * 60000 <= e0; t += passoMinuti * 60000) {
+        // aperto per una sosta intera (45 min) dentro la fascia, come vuole ORARI; senza orari conta come aperto
+        const apertiIn = (min) => {
+            const fine = Math.min(e0, t + min * 60000);
+            return candidati.filter(c => {
+                let ignoto = false;
+                for (let u = t; u + MINUTI_PER_TAPPA_BORGO * 60000 <= fine; u += 15 * 60000) {
+                    const st = openStatus(c, new Date(u), MINUTI_PER_TAPPA_BORGO).stato;
+                    if (st === 'aperto') return true;
+                    if (st === 'sconosciuto') ignoto = true;
+                }
+                return ignoto;
+            });
+        };
+        const minuti = Math.min((e0 - t) / 60000, durataBorgoCorto(apertiIn(MINUTI_PER_TAPPA_BORGO * 4).length));
+        const aperti = apertiIn(minuti);
+        const listaAperti = aperti.filter(c => idLista.has(idOf(c))).length;
+        // a parita', la fascia in cui i posti della lista sono gia' aperti all'inizio (niente attesa davanti alle porte chiuse)
+        const subito = aperti.filter(c => idLista.has(idOf(c)) && openStatus(c, new Date(t), MINUTI_PER_TAPPA_BORGO).stato === 'aperto').length;
+        const punti = listaAperti * 10 + aperti.length + subito * 0.5;
+        if (!meglio || punti > meglio.punti) meglio = { punti, start: new Date(t), end: new Date(t + minuti * 60000), minuti, listaAperti, aperti: aperti.length };
+    }
+    if (!meglio) return null;
+    const { punti: _p, ...fascia } = meglio;
+    return fascia;
+}
+
 /** La riga a schermo (testo approvato da Ivano nel task C10b). */
 export const rigaBorgo = (citta) => `${citta} si gira in mezza giornata.`;
 /** C10b2 — il raggio del quartiere: 2 km dal suo centro (decisione di Ivano). */

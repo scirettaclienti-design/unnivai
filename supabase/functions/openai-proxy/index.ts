@@ -46,7 +46,7 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import {
   CITY_LIST_VERSION, normCitta, cittaValida, giornoValido, promptCitta, leggiLista, verificaPosto, voceVerificata,
-  promptScala, leggiAbitanti, scalaDaAbitanti, type Scala, promptQuartiere, leggiListaQuartiere, versioneQuartiere,
+  promptScala, leggiAbitanti, scalaDaAbitanti, type Scala, promptQuartiere, leggiListaQuartiere, versioneQuartiere, completaLista,
   provinciaDa, queryVerifica, raggioVerificaKm,
 } from './cityKnowledge.ts';
 import {
@@ -243,6 +243,8 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
       verificati: row.verificati,
       // C10b2 — il modello usato per la lista (e se ha ripiegato), dalla riga salvata
       modelli: row.costo?.modelli ?? null,
+      // C10b3 — le quote della lista (prima e dopo il completamento)
+      quote: row.costo?.quote ?? null,
       conti: { proposti: (row.proposti || []).length, verificati: (row.verificati || []).length, scartati: (row.scartati || []).length },
       ...extra,
     },
@@ -324,9 +326,20 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   }
   const tAi = Date.now() - t0;
   // la scala decide quanti posti si leggono e come si verificano (un borgo: «nome, comune, provincia»)
-  const proposti = quartiereChiesto
+  let proposti = quartiereChiesto
     ? leggiListaQuartiere(ai?.choices?.[0]?.message?.content, citta, quartiereChiesto)
     : leggiLista(ai?.choices?.[0]?.message?.content, citta, scala);
+  // C10b3 — le quote sulla risposta: se mancano luoghi da visitare, UNA richiesta di completamento (stesso modello, stesso ripiego)
+  // deno-lint-ignore no-explicit-any
+  let quote: any = null;
+  if (!quartiereChiesto) {
+    const r = await completaLista({
+      posti: proposti, scala, citta, giorno,
+      chiedi: async (pr) => (await chiama('completamento', [{ role: 'system', content: pr.system }, { role: 'user', content: pr.user }], 2000, 0.2))?.choices?.[0]?.message?.content,
+    });
+    proposti = r.posti;
+    quote = { prima: r.quotePrima, dopo: r.quoteDopo, completamento: r.completamento };
+  }
   const usage = ai?.usage
     ? { prompt_tokens: (ai.usage.prompt_tokens || 0) + (usageScala?.prompt_tokens || 0), completion_tokens: (ai.usage.completion_tokens || 0) + (usageScala?.completion_tokens || 0) }
     : null;
@@ -377,7 +390,7 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   const row = {
     citta: chiave, giorno, versione, citta_nome: citta, scala: quartiereChiesto ? null : scala, centro: centro ? { ...centro, provincia, raggioKm: raggio, abitanti } : null,
     proposti, verificati, scartati,
-    costo: { usage, google, ms: { ai: tAi, totale: Date.now() - t0 }, modelli: modelliUsati },
+    costo: { usage, google, ms: { ai: tAi, totale: Date.now() - t0 }, modelli: modelliUsati, ...(quote ? { quote } : {}) },
   };
   // Due prime richieste insieme: vince la prima scritta, e tutti ricevono quella (la lista resta una sola).
   const { error: insErr } = await sb.from('city_knowledge').upsert(row, { onConflict: 'citta,giorno,versione', ignoreDuplicates: true });

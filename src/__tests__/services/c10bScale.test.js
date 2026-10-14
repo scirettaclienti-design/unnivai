@@ -79,14 +79,14 @@ describe('C10b — la lista per scala, il quartiere, il simbolo', () => {
         expect(m.map(p => [p.nome, !!p.simbolo, !!p.simboloDedotto])).toEqual([['Colosseo', true, false], ['Santa Maria in Trastevere', true, true]]);
     });
     it('il prompt è scritto per la scala: quartiere solo in metropoli, 8 posti nel borgo, il simbolo (un luogo); nessun nome di città oltre a quella chiesta', () => {
-        expect(CITY_LIST_VERSION).toBe('c10b-4');
+        expect(CITY_LIST_VERSION).toBe('c10b-5');
         const citta = promptCitta('Lecce', '2026-10-15').system;
         const metro = promptCitta('Lecce', '2026-10-15', 'metropoli').system;
         const borgo = promptCitta('Lecce', '2026-10-15', 'borgo').system;
         expect(citta).not.toMatch(/quartiere/);
         expect(metro).toMatch(/"quartiere": per ogni posto, il quartiere camminabile/);
         expect(metro).toMatch(/uno per quartiere/);
-        expect(borgo).toMatch(/Al massimo 8 posti, tutti dentro il comune/);
+        expect(borgo).toMatch(/al massimo 8 posti, tutti dentro il comune/);
         for (const sys of [citta, metro, borgo]) {
             expect(sys).toMatch(/il posto che un abitante non ti perdonerebbe mai di aver saltato|l'essenziale che un abitante non ti perdonerebbe mai di aver saltato/);
             expect(sys).toMatch(/Il simbolo è un luogo da visitare/);

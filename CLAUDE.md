@@ -304,6 +304,14 @@ Il client manda sempre `gpt-4o-mini` e il passaggio; il proxy usa il modello del
 **Metropoli** (lista `c10b-4`): raggio del quartiere **2 km**, centro = **baricentro dei posti verificati** del quartiere. In giornata intera (6 ore o più) la **mattina in un quartiere e il pomeriggio in un quartiere vicino** (centri entro 3 km: i cerchi si sovrappongono e il passaggio sta nel tetto C5c, che non cambia), il pranzo in uno dei due (`bucketsNelleAree`); salvo che la richiesta nomini un quartiere: allora vale solo quello, anche senza essenziali. Senza richiesta un quartiere si sceglie solo se ha almeno 1 essenziale verificato. Un quartiere chiesto con meno di 3 luoghi da visitare in lista riceve la sua **lista dedicata** (6–8 luoghi, verificati come la lista, una per città, giorno e quartiere: `city_knowledge.versione = 'c10b-4#q:<quartiere>'`); i suoi luoghi sono le ancore candidate.
 **Borgo**: l'AI dà anche la categoria di ogni posto; se nessun nome di Google è compatibile si accetta il risultato **dentro il comune con la stessa categoria** (`categoriaGoogle`), e la sostituzione si scrive (`_citta.sostituzione`, `_citta.sostituzioni` nel tracciato). Con meno di 4 posti la **durata segue le tappe** (`durataBorgoCorto`: 45 min per luogo da visitare, 2–4 luoghi), niente tempo libero per riempire la mezza giornata; la riga «X si gira in mezza giornata.» resta.
 
+### La lista bilanciata (C10b3, lista `c10b-5`)
+
+**Composizione a quote** (`cityKnowledge.ts`, `QUOTE`, `CATEGORIE`): citta' e metropoli almeno 8 luoghi da visitare (piazze e belvedere al massimo 2), 3–4 ancore col simbolo, 1–2 colazioni, 1 mercato, 2 pasti, 1 dopocena; metropoli almeno 3 luoghi da visitare per quartiere principale; borgo al massimo 8 nomi, almeno 4 luoghi da visitare e la via principale (`passeggiata: true`). Ogni posto ha la `categoria`.
+`quoteLista` controlla, `completaLista` fa **una sola** richiesta di completamento se mancano luoghi da visitare (aggiunte «da locale», mai ancore); quote in `costo.quote` e `cityKnowledge.quote`. Un locale non e' mai essenziale; il simbolo e' un luogo da visitare (mai piazza, belvedere, via, mercato).
+**Metropoli**: il motore aspetta la lista, sceglie il quartiere e fa le ricerche iniziali dal suo centro (`biasMeters` → `radiusMeters`, `_citta.centroRicerche`).
+**Borgo**: la via principale vale come passeggiata e la regola delle zone non la toglie (`_citta.viaPrincipale`); il giro corto va nella fascia in cui i posti della lista sono aperti per una sosta intera (`fasciaApertaBorgo`).
+Fase A del 14/10: cancello non passato (`docs/prove/2026-10-17-c10b3-lista-bilanciata.md`).
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

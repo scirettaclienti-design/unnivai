@@ -386,7 +386,7 @@ import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
 // C10 — la lista della città: l'AI propone (sul server, una per città e giorno), Google verifica, le regole compongono.
 import { fetchCityKnowledge, fetchQuartiereKnowledge } from './cityKnowledgeService';
-import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scalaConfermata, scegliQuartiere, dentroArea, delQuartiere, rigaBorgo, BORGO_MIN_VERIFICATI, areaDeiQuartieri, bucketsNelleAree, durataBorgoCorto, LUOGHI_QUARTIERE_MIN, RAGGIO_QUARTIERE_KM, GIORNATA_INTERA_MINUTI } from '../lib/cityKnowledge';
+import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scalaConfermata, scegliQuartiere, dentroArea, delQuartiere, rigaBorgo, BORGO_MIN_VERIFICATI, areaDeiQuartieri, bucketsNelleAree, fasciaApertaBorgo, LUOGHI_QUARTIERE_MIN, RAGGIO_QUARTIERE_KM, GIORNATA_INTERA_MINUTI } from '../lib/cityKnowledge';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
@@ -805,6 +805,8 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
     const lat = cityCenter?.latitude;
     const lng = cityCenter?.longitude;
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { candidates: [], intent: null };
+    // C10b3 — in metropoli le ricerche partono dal quartiere scelto, col suo raggio come bias (non dal centro citta' a 20 km)
+    const bias = Number.isFinite(cityCenter?.biasMeters) ? { radiusMeters: cityCenter.biasMeters } : {};
     // Import dinamico per rompere il ciclo aiRecomm → placesDiscovery → aiRecomm.
     const { placesDiscoveryService } = await import('./placesDiscoveryService');
 
@@ -883,12 +885,12 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
                 // allarga tenendo la dieta (searchFoodWithDiet), mai senza.
                 if (dieta.length > 0 && deriveKindFromQuery(q) === 'FOOD') {
                     return searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(
-                        cityName, lat, lng, null, { customQuery: fq, customKind, skipLegacyFallback: true },
+                        cityName, lat, lng, null, { customQuery: fq, customKind, skipLegacyFallback: true, ...bias },
                     ), q, dieta).then(r => r.results).then(conRicerca(q));
                 }
                 return placesDiscoveryService.discoverRealPOIs(
                     cityName, lat, lng, null,
-                    { customQuery: q, customKind, skipLegacyFallback: true }
+                    { customQuery: q, customKind, skipLegacyFallback: true, ...bias }
                 ).then(conRicerca(q));
             }),
             `path A ${cityName}`,
@@ -900,9 +902,9 @@ const fetchRealPOICandidates = async (cityName, cityCenter, prefs, userPrompt = 
         lists = await settleSearches(
             themes.map(t => (t === 'food' && dieta.length > 0
                 ? searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, null, {
-                    customQuery: fq, customKind: 'FOOD',
+                    customQuery: fq, customKind: 'FOOD', ...bias,
                 }), THEME_FOOD_QUERY, dieta).then(r => r.results).then(conTema(t))
-                : placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t).then(conTema(t)))),
+                : placesDiscoveryService.discoverRealPOIs(cityName, lat, lng, t, { ...bias }).then(conTema(t)))),
             `path B ${cityName} [${themes.join(',')}]`,
         );
     }
@@ -2411,10 +2413,10 @@ export const aiRecommendationService = {
         // candidati, errore onesto con oggetto_umano.
         const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
         try {
-            const { candidates: rawDalleRicerche, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null, !!opts.baseQueries);
-            modelliReport.traduttore = intent?._modello ?? null;
             // C10 — i posti verificati della lista entrano nel pool come risultati di ricerca: da qui passano per gli stessi
             // filtri di tutti (zone, raggio, categoria, dieta e budget, cucine estere col tema tipico).
+            // C10b3 — la lista PRIMA delle ricerche: in metropoli le ricerche iniziali partono dal quartiere scelto (decisione di
+            // Ivano). Con la lista gia' fatta (dal server) l'attesa e' di un secondo; la prima lista del giorno la si aspettava gia'.
             const lista = await cittaPromise;
             const { buildPOIFromCandidate } = await import('./placesDiscoveryService');
             let poiCitta = poiDallaLista(lista.verificati, city, buildPOIFromCandidate);
@@ -2430,32 +2432,17 @@ export const aiRecommendationService = {
             //   metropoli → la giornata in un quartiere, o (C10b2, giornata intera) mattina e pomeriggio in due quartieri vicini.
             let area = null;
             let scalaNote = null;
+            let conferma = null;
+            const w0 = tourWindow.windows[0];
+            const minuti0 = w0 ? (w0.end.getTime() - w0.start.getTime()) / 60000 : 0;
             if (poiCitta.length > 0) {
-                const conferma = scalaConfermata({ proposta: lista.scala ?? null, poi: poiCitta });
+                conferma = scalaConfermata({ proposta: lista.scala ?? null, poi: poiCitta });
                 cittaReport.scala = conferma;
                 cittaReport.simboli = poiCitta.filter(p => p._citta.simbolo)
                     .map(p => ({ nome: p.name, ...(p._citta.quartiere ? { quartiere: p._citta.quartiere } : {}), ...(p._citta.simboloDedotto ? { dedotto: true } : {}) }));
                 // C10b2 — nel borgo: i nomi di Google accettati per la stessa categoria (scritti nel tracciato)
                 const sostituzioni = poiCitta.filter(p => p._citta.sostituzione).map(p => p._citta.sostituzione);
                 if (sostituzioni.length) cittaReport.sostituzioni = sostituzioni;
-                const w0 = tourWindow.windows[0];
-                const minuti0 = w0 ? (w0.end.getTime() - w0.start.getTime()) / 60000 : 0;
-                if (conferma.scala === 'borgo' && poiCitta.length < BORGO_MIN_VERIFICATI && tourWindow.windows.length === 1) {
-                    // C10b2 — la durata del giro si adatta alle tappe che il borgo ha: niente tempo libero per riempire la mezza giornata.
-                    const raggio = cityCenter?.radiusKm ?? 5;
-                    const visitabili = new Set(uniscialPool(rawDalleRicerche, poiCitta)
-                        .filter(c => !isMealPlace(c) && !zoneReason({ ...c, primaryType: c.primaryType ?? c.primary_type }, city)
-                            && (!cityCenter || !Number.isFinite(c.latitude ?? c.lat) || haversineKm(cityCenter.latitude, cityCenter.longitude, c.latitude ?? c.lat, c.longitude ?? c.lng) <= raggio))
-                        .map(c => c.place_id || c.googlePlaceId)).size;
-                    const minuti = durataBorgoCorto(visitabili);
-                    if (minuti0 > minuti) {
-                        w0.end = new Date(w0.start.getTime() + minuti * 60000);
-                        tourWindow.end = w0.end;
-                    }
-                    scalaNote = rigaBorgo(city);
-                    cittaReport.mezzaGiornata = { verificati: poiCitta.length, minimo: BORGO_MIN_VERIFICATI, riga: scalaNote, visitabili, minuti: Math.min(minuti0, minuti), fine: w0.end.toISOString() };
-                    console.info(`[C10b SCALA] ${city}: borgo con ${poiCitta.length} posti verificati (< ${BORGO_MIN_VERIFICATI}), ${visitabili} luoghi da visitare → giro di ${Math.min(minuti0, minuti)} min`);
-                }
                 if (conferma.scala === 'metropoli' && tourWindow.windows.length === 1) {
                     const testo = opts.pathType === 'custom' ? userPrompt : '';
                     const intera = minuti0 >= GIORNATA_INTERA_MINUTI;
@@ -2500,6 +2487,35 @@ export const aiRecommendationService = {
                 }
                 console.info(`[C10b SCALA] ${city}: proposta ${conferma.proposta ?? '-'} → ${conferma.scala} (${conferma.motivo})`);
             }
+            // C10b3 — le ricerche iniziali: dal centro del quartiere (o dei due quartieri), col loro raggio come bias
+            const centroRicerche = area
+                ? { latitude: area.centro.latitude, longitude: area.centro.longitude, biasMeters: Math.round(area.raggioKm * 1000) }
+                : cityCenter;
+            if (area) cittaReport.centroRicerche = { latitude: centroRicerche.latitude, longitude: centroRicerche.longitude, biasKm: area.raggioKm, area: area.nome };
+            const { candidates: rawDalleRicerche, intent } = await fetchRealPOICandidates(city, centroRicerche, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null, !!opts.baseQueries);
+            modelliReport.traduttore = intent?._modello ?? null;
+            // C10b3 — BORGHI (decisione di Ivano): il giro corto si colloca nella fascia della giornata in cui i posti della lista sono
+            // aperti; la via principale vale come passeggiata (una sola) e non la toglie la regola delle zone.
+            const nonZona = (c) => !zoneReason({ ...c, primaryType: c.primaryType ?? c.primary_type }, city);
+            const postiBorgo = poiCitta.filter(p => !p._citta.passeggiata && nonZona(p));
+            if (conferma?.scala === 'borgo' && postiBorgo.length < BORGO_MIN_VERIFICATI && tourWindow.windows.length === 1) {
+                const raggio = MAX_WALK_METERS / 1000;
+                const vicini = (c) => !cityCenter || !Number.isFinite(c.latitude ?? c.lat)
+                    || haversineKm(cityCenter.latitude, cityCenter.longitude, c.latitude ?? c.lat, c.longitude ?? c.lng) <= raggio;
+                const candidatiBorgo = uniscialPool(rawDalleRicerche, poiCitta)
+                    .filter(c => !isMealPlace(c) && (c._citta?.passeggiata || nonZona(c)) && vicini(c));
+                const fascia = fasciaApertaBorgo({ candidati: candidatiBorgo, lista: postiBorgo, finestra: w0 });
+                if (fascia) {
+                    w0.start = fascia.start;
+                    w0.end = fascia.end;
+                    tourWindow.start = fascia.start;
+                    tourWindow.end = fascia.end;
+                }
+                scalaNote = rigaBorgo(city);
+                cittaReport.mezzaGiornata = { verificati: poiCitta.length, utilizzabili: postiBorgo.length, minimo: BORGO_MIN_VERIFICATI, riga: scalaNote,
+                    ...(fascia ? { fascia: { inizio: fascia.start.toISOString(), fine: fascia.end.toISOString(), minuti: fascia.minuti, listaAperti: fascia.listaAperti, aperti: fascia.aperti } } : { fascia: null }) };
+                console.info(`[C10b3 BORGO] ${city}: ${postiBorgo.length} posti della lista (< ${BORGO_MIN_VERIFICATI}) → giro corto ${fascia ? `${fascia.minuti} min dalle ${fascia.start.toISOString()}, ${fascia.listaAperti} della lista aperti` : 'senza fascia aperta'}`);
+            }
             const rawCandidatesTutti = uniscialPool(rawDalleRicerche, poiCitta).filter(c => {
                 if (dentroArea(c, area)) return true;
                 ((cittaReport.quartiere ??= {}).fuoriArea ??= []).push(c.name || c.title || '?');
@@ -2511,6 +2527,8 @@ export const aiRecommendationService = {
             const zoneTolte = [];
             const rawCandidates = rawCandidatesTutti.filter(c => {
                 const z = zoneReason({ ...c, primaryType: c.primaryType ?? c.primary_type }, city);
+                // C10b3 — nel borgo la via principale della lista vale come passeggiata: la regola delle zone non la toglie
+                if (z && c._citta?.passeggiata && conferma?.scala === 'borgo') { cittaReport.viaPrincipale = { nome: c.name || c.title, zona: z }; return true; }
                 if (z) zoneTolte.push({ nome: c.name || c.title || '?', motivo: z });
                 return !z;
             });

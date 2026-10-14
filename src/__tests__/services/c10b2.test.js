@@ -84,8 +84,9 @@ describe('C10b2 — borgo: il nome di Google con la stessa categoria, dentro il 
         expect(verificaPosto({ nome: 'Cattedrale di Troina', citta: 'Troina', categoria: 'chiesa' }, [chiesaMadre], TROINA, 20).ok).toBe(false);
     });
     it('il prompt del borgo chiede la categoria; la lista la legge', () => {
-        expect(promptCitta('Troina', '2026-10-15', 'borgo').system).toMatch(/"categoria": cos'e' il posto, una fra: chiesa, monumento/);
-        expect(promptCitta('Catania', '2026-10-15', 'città').system).not.toMatch(/"categoria"/);
+        // C10b3 — la categoria la chiede ora ogni scala (decide le quote); nel borgo c'e' in piu' la via principale
+        expect(promptCitta('Troina', '2026-10-15', 'borgo').system).toMatch(/"categoria": cos'e' il posto, una fra: chiesa, museo, monumento/);
+        expect(promptCitta('Troina', '2026-10-15', 'borgo').system).toMatch(/la via principale del paese, una sola, con "categoria" "via"/);
         const l = leggiLista(JSON.stringify({ posti: [{ nome: 'Cattedrale di Troina', momento: 'mattina', tipo: 'essenziale', categoria: 'Chiesa' }] }), 'Troina', 'borgo');
         expect(l[0].categoria).toBe('chiesa');
     });

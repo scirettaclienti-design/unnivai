@@ -1,0 +1,856 @@
+{
+ "versione": "c10b-7",
+ "avvio": "2026-10-14T14:59:30.406Z",
+ "giorno": "2026-10-15",
+ "liste": [
+  {
+   "citta": "Napoli",
+   "status": 200,
+   "ms": 850,
+   "cached": true,
+   "scala": "metropoli",
+   "conti": {
+    "proposti": 17,
+    "verificati": 17,
+    "scartati": 0
+   },
+   "google": null,
+   "modelli": [
+    {
+     "ms": 2045,
+     "cosa": "abitanti",
+     "usage": {
+      "total_tokens": 67,
+      "prompt_tokens": 54,
+      "completion_tokens": 13,
+      "prompt_tokens_details": {
+       "audio_tokens": 0,
+       "cached_tokens": 0,
+       "cache_write_tokens": 0
+      },
+      "completion_tokens_details": {
+       "audio_tokens": 0,
+       "reasoning_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     },
+     "usato": "gpt-6.1-sol",
+     "chiesto": "gpt-6.1-sol",
+     "ripiego": false,
+     "passaggio": "lista"
+    },
+    {
+     "ms": 50124,
+     "cosa": "lista",
+     "usage": {
+      "total_tokens": 3344,
+      "prompt_tokens": 1215,
+      "completion_tokens": 2129,
+      "prompt_tokens_details": {
+       "audio_tokens": 0,
+       "cached_tokens": 1212,
+       "cache_write_tokens": 0
+      },
+      "completion_tokens_details": {
+       "audio_tokens": 0,
+       "reasoning_tokens": 496,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     },
+     "usato": "gpt-6.1-sol",
+     "chiesto": "gpt-6.1-sol",
+     "ripiego": false,
+     "passaggio": "lista"
+    }
+   ],
+   "msServer": null,
+   "quote": {
+    "dopo": {
+     "vie": 1,
+     "pasti": 2,
+     "posti": 17,
+     "ancore": 3,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Museo Cappella Sansevero",
+      "Castel Nuovo",
+      "Certosa e Museo di San Martino"
+     ],
+     "dopocena": 1,
+     "mancanti": {
+      "ancore": 0,
+      "visite": 0,
+      "dopocena": 0,
+      "storiche": 0
+     },
+     "storiche": 2,
+     "belvedere": 0,
+     "colazioni": 2,
+     "ancoreNomi": [
+      "Museo Cappella Sansevero",
+      "Castel Nuovo",
+      "Certosa e Museo di San Martino"
+     ],
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "simbolo presente (3)",
+      "piazze e vie storiche 2–3 (2)",
+      "belvedere ≤ 1 (0)",
+      "ancore ≥ 3 (3)",
+      "colazioni 1–2 (2)",
+      "mercati ≤ 2 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Centro storico 3, San Ferdinando 3, Vomero 3)"
+     ],
+     "perQuartiere": {
+      "Vomero": 3,
+      "Centro storico": 3,
+      "San Ferdinando": 3
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 1,
+     "mancanoQuartieri": {}
+    },
+    "prima": {
+     "vie": 1,
+     "pasti": 2,
+     "posti": 17,
+     "ancore": 3,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Museo Cappella Sansevero",
+      "Castel Nuovo",
+      "Certosa e Museo di San Martino"
+     ],
+     "dopocena": 1,
+     "mancanti": {
+      "ancore": 0,
+      "visite": 0,
+      "dopocena": 0,
+      "storiche": 0
+     },
+     "storiche": 2,
+     "belvedere": 0,
+     "colazioni": 2,
+     "ancoreNomi": [
+      "Museo Cappella Sansevero",
+      "Castel Nuovo",
+      "Certosa e Museo di San Martino"
+     ],
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "simbolo presente (3)",
+      "piazze e vie storiche 2–3 (2)",
+      "belvedere ≤ 1 (0)",
+      "ancore ≥ 3 (3)",
+      "colazioni 1–2 (2)",
+      "mercati ≤ 2 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Centro storico 3, San Ferdinando 3, Vomero 3)"
+     ],
+     "perQuartiere": {
+      "Vomero": 3,
+      "Centro storico": 3,
+      "San Ferdinando": 3
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 1,
+     "mancanoQuartieri": {}
+    },
+    "completamento": null
+   },
+   "simboli": [
+    {
+     "nome": "Museo Cappella Sansevero",
+     "categoria": "museo",
+     "quartiere": "Centro storico",
+     "dedotto": true
+    },
+    {
+     "nome": "Castel Nuovo - Maschio Angioino",
+     "categoria": "monumento",
+     "quartiere": "San Ferdinando",
+     "dedotto": false
+    },
+    {
+     "nome": "Certosa di San Martino",
+     "categoria": "museo",
+     "quartiere": "Vomero",
+     "dedotto": true
+    }
+   ],
+   "essenzialiControllo": {
+    "trovati": [
+     "Duomo di Napoli",
+     "Cappella Sansevero",
+     "Piazza del Plebiscito",
+     "Spaccanapoli"
+    ],
+    "mancanti": [
+     "Museo Archeologico Nazionale",
+     "Castel dell'Ovo"
+    ],
+    "totale": 6
+   },
+   "simboloAtteso": {
+    "applicabile": true,
+    "atteso": "Castel Nuovo | Castel dell'Ovo | Duomo",
+    "simbolo": "Castel Nuovo - Maschio Angioino",
+    "dedotto": false,
+    "riconosciuto": "Castel Nuovo",
+    "ok": true
+   },
+   "verificati": [
+    {
+     "nome": "Museo Cappella Sansevero",
+     "tipo": "essenziale",
+     "categoria": "museo",
+     "momento": "mattina",
+     "quartiere": "Centro storico",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "art_museum"
+    },
+    {
+     "nome": "Duomo di Santa Maria Assunta",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "Centro storico",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Castel Nuovo - Maschio Angioino",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": "San Ferdinando",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "castle"
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "tipo": "da locale",
+     "categoria": "palazzo",
+     "momento": "pomeriggio",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Certosa di San Martino",
+     "tipo": "essenziale",
+     "categoria": "museo",
+     "momento": "mattina",
+     "quartiere": "Vomero",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Piazza del Plebiscito",
+     "tipo": "da locale",
+     "categoria": "piazza",
+     "momento": "pomeriggio",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "plaza"
+    },
+    {
+     "nome": "Via San Biagio dei Librai",
+     "tipo": "da locale",
+     "categoria": "via",
+     "momento": "mattina",
+     "quartiere": "Centro storico",
+     "simbolo": false,
+     "passeggiata": true,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": null
+    },
+    {
+     "nome": "Complesso Monumentale di Santa Chiara",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "pomeriggio",
+     "quartiere": "Centro storico",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "place_of_worship"
+    },
+    {
+     "nome": "Basilica di San Francesco di Paola",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "tipo": "da locale",
+     "categoria": "monumento",
+     "momento": "pomeriggio",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "castle"
+    },
+    {
+     "nome": "Villa Floridiana",
+     "tipo": "da locale",
+     "categoria": "giardino",
+     "momento": "pomeriggio",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "state_park"
+    },
+    {
+     "nome": "Mercato Pignasecca",
+     "tipo": "da locale",
+     "categoria": "mercato",
+     "momento": "mattina",
+     "quartiere": "Centro storico",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "market"
+    },
+    {
+     "nome": "Pasticceria Giovanni Scaturchio",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": "Centro storico",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "dessert_shop"
+    },
+    {
+     "nome": "Gran Caffè Gambrinus",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "bar"
+    },
+    {
+     "nome": "Osteria Della Mattonella",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "pranzo",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "restaurant"
+    },
+    {
+     "nome": "Ristorante Pizzeria Gorizia 1916",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "cena",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "pizza_restaurant"
+    },
+    {
+     "nome": "Fonoteca",
+     "tipo": "da locale",
+     "categoria": "dopocena",
+     "momento": "dopocena",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "bar"
+    }
+   ]
+  },
+  {
+   "citta": "Roma",
+   "status": 200,
+   "ms": 451,
+   "cached": true,
+   "scala": "metropoli",
+   "conti": {
+    "proposti": 16,
+    "verificati": 16,
+    "scartati": 0
+   },
+   "google": null,
+   "modelli": [
+    {
+     "ms": 1937,
+     "cosa": "abitanti",
+     "usage": {
+      "total_tokens": 69,
+      "prompt_tokens": 54,
+      "completion_tokens": 15,
+      "prompt_tokens_details": {
+       "audio_tokens": 0,
+       "cached_tokens": 0,
+       "cache_write_tokens": 0
+      },
+      "completion_tokens_details": {
+       "audio_tokens": 0,
+       "reasoning_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     },
+     "usato": "gpt-6.1-sol",
+     "chiesto": "gpt-6.1-sol",
+     "ripiego": false,
+     "passaggio": "lista"
+    },
+    {
+     "ms": 40252,
+     "cosa": "lista",
+     "usage": {
+      "total_tokens": 2778,
+      "prompt_tokens": 1214,
+      "completion_tokens": 1564,
+      "prompt_tokens_details": {
+       "audio_tokens": 0,
+       "cached_tokens": 1211,
+       "cache_write_tokens": 0
+      },
+      "completion_tokens_details": {
+       "audio_tokens": 0,
+       "reasoning_tokens": 512,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     },
+     "usato": "gpt-6.1-sol",
+     "chiesto": "gpt-6.1-sol",
+     "ripiego": false,
+     "passaggio": "lista"
+    }
+   ],
+   "msServer": null,
+   "quote": {
+    "dopo": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 16,
+     "ancore": 3,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Colosseo",
+      "Pantheon",
+      "Basilica di San Pietro"
+     ],
+     "dopocena": 1,
+     "mancanti": {
+      "ancore": 0,
+      "visite": 0,
+      "dopocena": 0,
+      "storiche": 0
+     },
+     "storiche": 2,
+     "belvedere": 0,
+     "colazioni": 1,
+     "ancoreNomi": [
+      "Colosseo",
+      "Pantheon",
+      "Basilica di San Pietro"
+     ],
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "simbolo presente (3)",
+      "piazze e vie storiche 2–3 (2)",
+      "belvedere ≤ 1 (0)",
+      "ancore ≥ 3 (3)",
+      "colazioni 1–2 (1)",
+      "mercati ≤ 2 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Monti 3, Centro 3, Prati e Borgo 3)"
+     ],
+     "perQuartiere": {
+      "Monti": 3,
+      "Centro": 3,
+      "Prati e Borgo": 3
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 2,
+     "mancanoQuartieri": {}
+    },
+    "prima": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 16,
+     "ancore": 3,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Colosseo",
+      "Pantheon",
+      "Basilica di San Pietro"
+     ],
+     "dopocena": 1,
+     "mancanti": {
+      "ancore": 0,
+      "visite": 0,
+      "dopocena": 0,
+      "storiche": 0
+     },
+     "storiche": 2,
+     "belvedere": 0,
+     "colazioni": 1,
+     "ancoreNomi": [
+      "Colosseo",
+      "Pantheon",
+      "Basilica di San Pietro"
+     ],
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "simbolo presente (3)",
+      "piazze e vie storiche 2–3 (2)",
+      "belvedere ≤ 1 (0)",
+      "ancore ≥ 3 (3)",
+      "colazioni 1–2 (1)",
+      "mercati ≤ 2 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Monti 3, Centro 3, Prati e Borgo 3)"
+     ],
+     "perQuartiere": {
+      "Monti": 3,
+      "Centro": 3,
+      "Prati e Borgo": 3
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 2,
+     "mancanoQuartieri": {}
+    },
+    "completamento": null
+   },
+   "simboli": [
+    {
+     "nome": "Colosseo",
+     "categoria": "monumento",
+     "quartiere": "Monti",
+     "dedotto": false
+    },
+    {
+     "nome": "Pantheon",
+     "categoria": "monumento",
+     "quartiere": "Centro",
+     "dedotto": true
+    },
+    {
+     "nome": "Basilica di San Pietro",
+     "categoria": "chiesa",
+     "quartiere": "Prati e Borgo",
+     "dedotto": true
+    }
+   ],
+   "essenzialiControllo": {
+    "trovati": [
+     "Colosseo",
+     "Fontana di Trevi",
+     "Pantheon",
+     "Basilica di San Pietro",
+     "Foro Romano",
+     "Piazza Navona"
+    ],
+    "mancanti": [],
+    "totale": 6
+   },
+   "simboloAtteso": {
+    "applicabile": true,
+    "atteso": "Colosseo",
+    "simbolo": "Colosseo",
+    "dedotto": false,
+    "riconosciuto": "Colosseo",
+    "ok": true
+   },
+   "verificati": [
+    {
+     "nome": "Colosseo",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": "Monti",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "historical_landmark"
+    },
+    {
+     "nome": "Foro Romano",
+     "tipo": "da locale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": "Monti",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Pantheon",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": "Centro",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "historical_landmark"
+    },
+    {
+     "nome": "Fontana di Trevi",
+     "tipo": "da locale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": "Centro",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "fountain"
+    },
+    {
+     "nome": "Basilica di San Pietro",
+     "tipo": "essenziale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "Prati e Borgo",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Musei Vaticani",
+     "tipo": "da locale",
+     "categoria": "museo",
+     "momento": "mattina",
+     "quartiere": "Prati e Borgo",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "art_museum"
+    },
+    {
+     "nome": "Castel Sant'Angelo",
+     "tipo": "da locale",
+     "categoria": "monumento",
+     "momento": "pomeriggio",
+     "quartiere": "Prati e Borgo",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "castle"
+    },
+    {
+     "nome": "Piazza Navona",
+     "tipo": "da locale",
+     "categoria": "piazza",
+     "momento": "pomeriggio",
+     "quartiere": "Centro",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": true,
+     "primaryType": "plaza"
+    },
+    {
+     "nome": "Basilica di San Pietro in Vincoli",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "pomeriggio",
+     "quartiere": "Monti",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Chiesa di San Luigi dei Francesi",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "pomeriggio",
+     "quartiere": "Centro",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Piazza di Spagna",
+     "tipo": "da locale",
+     "categoria": "piazza",
+     "momento": "aperitivo",
+     "quartiere": "Centro",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "plaza"
+    },
+    {
+     "nome": "Mercato Trionfale",
+     "tipo": "da locale",
+     "categoria": "mercato",
+     "momento": "mattina",
+     "quartiere": "Prati e Borgo",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "market"
+    },
+    {
+     "nome": "Sant'Eustachio Caffè",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": "Centro",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "coffee_shop"
+    },
+    {
+     "nome": "La Taverna dei Fori Imperiali",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "pranzo",
+     "quartiere": "Monti",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "italian_restaurant"
+    },
+    {
+     "nome": "Hostaria Dino e Tony",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "cena",
+     "quartiere": "Prati e Borgo",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "italian_restaurant"
+    },
+    {
+     "nome": "Blackmarket Hall - Rione Monti",
+     "tipo": "da locale",
+     "categoria": "dopocena",
+     "momento": "dopocena",
+     "quartiere": "Monti",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "imperdibile": false,
+     "primaryType": "restaurant"
+    }
+   ]
+  }
+ ],
+ "fine": "2026-10-14T14:59:32.603Z"
+}

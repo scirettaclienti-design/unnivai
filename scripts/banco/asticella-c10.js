@@ -35,21 +35,34 @@ export const ESSENZIALI_CONTROLLO = {
         ['Monastero di San Michele Arcangelo (ruderi)', /san michele|monastero nuovo/i],
     ],
 };
-// C10b3-ter (decisione di Ivano) — il SIMBOLO atteso di ogni citta' e' il primo nome della sua lista di controllo (l'ordine
-// c'era gia': Colosseo, Duomo di Napoli, Cattedrale di Palermo, Basilica di Santa Croce, Cattedrale di Sant'Agata, Chiesa
-// Madre). Le liste non cambiano: il primo posto diventa il simbolo da controllare.
-export const SIMBOLO_CONTROLLO = Object.fromEntries(Object.entries(ESSENZIALI_CONTROLLO).map(([c, l]) => [c, l[0]]));
+// C10b3-chiusura (decisione di Ivano) — i SIMBOLI ACCETTATI di ogni citta' (al posto del «primo nome della lista di
+// controllo» di C10b3-ter). Le liste di controllo non cambiano.
+export const SIMBOLI_ACCETTATI = {
+    Roma: [['Colosseo', /colosseo|anfiteatro flavio/i]],
+    Napoli: [
+        ['Castel Nuovo', /castel nuovo|maschio angioino/i], ["Castel dell'Ovo", /castel dell.?ovo/i],
+        ['Duomo', /duomo di (napoli|santa maria assunta)|cattedrale di (napoli|santa maria assunta)/i],
+    ],
+    Catania: [['Fontana dell\'Elefante', /fontana dell.?elefante|liotru/i], ["Cattedrale di Sant'Agata", /cattedrale di sant.?agata/i]],
+    Palermo: [
+        ['Cattedrale', /cattedrale (metropolitana )?di palermo|^cattedrale/i],
+        ['Palazzo dei Normanni con Cappella Palatina', /palazzo dei normanni|palazzo reale di palermo|cappella palatina/i],
+    ],
+    Lecce: [['Basilica di Santa Croce', /santa croce/i], ['Duomo', /duomo di lecce|^duomo$|cattedrale (di )?maria (santissima|ss\.?) assunta/i]],
+    Troina: [['Chiesa Madre', /cattedrale|chiesa madre|maria (santissima|ss\.?) assunta/i]],
+};
 /**
- * Il simbolo della lista e' quello atteso? Il simbolo della citta' e' il PRIMO posto segnato simbolo dall'AI (non dedotto): in
- * una metropoli i simboli sono uno per quartiere, e un'ancora qualsiasi (il Pantheon a Roma) non basta.
+ * Il simbolo della lista e' fra quelli accettati? Il simbolo della citta' e' il PRIMO posto segnato simbolo dall'AI (non
+ * dedotto): in una metropoli i simboli sono uno per quartiere, e un'ancora qualsiasi (il Pantheon a Roma) non basta.
  * `simboli`: [{ nome, dedotto? }] nell'ordine della lista.
  */
 export function simboloGiusto(simboli, luogo) {
-    const atteso = SIMBOLO_CONTROLLO[luogo];
-    if (!atteso) return { applicabile: false };
+    const accettati = SIMBOLI_ACCETTATI[luogo];
+    if (!accettati) return { applicabile: false };
     const primo = (simboli || []).find(x => x && !x.dedotto) || null;
-    const [nome, rx] = atteso;
-    return { applicabile: true, atteso: nome, simbolo: primo?.nome ?? null, dedotto: !primo && (simboli || []).length > 0, ok: !!primo && rx.test(primo.nome || '') };
+    const quale = primo ? accettati.find(([, rx]) => rx.test(primo.nome || '')) : null;
+    return { applicabile: true, atteso: accettati.map(([n]) => n).join(' | '), simbolo: primo?.nome ?? null, dedotto: !primo && (simboli || []).length > 0,
+        riconosciuto: quale ? quale[0] : null, ok: !!quale };
 }
 export const BORGHI = new Set(['Troina']);
 export const SOGLIE_C10 = {

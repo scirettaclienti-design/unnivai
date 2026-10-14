@@ -52,9 +52,11 @@ describe('C10b2 — il modello di ogni passaggio, in un posto solo', () => {
         expect(info).toMatchObject({ chiesto: 'gpt-6.1-sol', usato: MODELLO_DI_PRIMA, ripiego: true, motivo: `oltre il tempo massimo (${MODELLI.lista.timeoutMs / 1000} s)` });
     });
 
-    it('anche un errore o una risposta vuota del modello nuovo fanno ripiegare', async () => {
-        const errore = vi.fn().mockRejectedValueOnce(new Error('HTTP 400 unsupported_parameter')).mockResolvedValueOnce(risposta());
-        expect((await chiamaConRipiego('selettore', payload, errore)).info).toMatchObject({ ripiego: true, motivo: 'HTTP 400 unsupported_parameter' });
+    it('anche un errore (due volte: C10b3-bis) o una risposta vuota del modello nuovo fanno ripiegare', async () => {
+        const errore = vi.fn().mockRejectedValueOnce(new Error('HTTP 400 unsupported_parameter')).mockRejectedValueOnce(new Error('HTTP 400 unsupported_parameter'))
+            .mockResolvedValueOnce(risposta());
+        expect((await chiamaConRipiego('selettore', payload, errore)).info).toMatchObject({ ripiego: true, motivo: 'HTTP 400 unsupported_parameter', tentativi: 2 });
+        expect(errore).toHaveBeenCalledTimes(3);
         const vuota = vi.fn().mockResolvedValueOnce(risposta('')).mockResolvedValueOnce(risposta());
         expect((await chiamaConRipiego('traduttore', payload, vuota)).info).toMatchObject({ ripiego: true, motivo: 'risposta vuota' });
     });

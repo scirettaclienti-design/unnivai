@@ -1,0 +1,810 @@
+{
+ "versione": "c10b-6",
+ "avvio": "2026-10-14T14:18:49.456Z",
+ "giorno": "2026-10-15",
+ "liste": [
+  {
+   "citta": "Napoli",
+   "status": 200,
+   "ms": 54997,
+   "cached": false,
+   "scala": "metropoli",
+   "conti": {
+    "proposti": 17,
+    "verificati": 17,
+    "scartati": 0
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 17,
+    "hit": 13
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2999,
+     "usage": {
+      "prompt_tokens": 54,
+      "completion_tokens": 14,
+      "total_tokens": 68,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 48132,
+     "usage": {
+      "prompt_tokens": 1108,
+      "completion_tokens": 1971,
+      "total_tokens": 3079,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 1105,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 430,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 51132,
+    "totale": 52657
+   },
+   "quote": {
+    "dopo": {
+     "vie": 1,
+     "pasti": 2,
+     "posti": 17,
+     "ancore": 3,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Duomo di Napoli",
+      "Palazzo Reale di Napoli",
+      "Castel Sant'Elmo"
+     ],
+     "dopocena": 1,
+     "mancanti": {
+      "ancore": 0,
+      "visite": 0,
+      "dopocena": 0,
+      "storiche": 0
+     },
+     "storiche": 2,
+     "belvedere": 0,
+     "colazioni": 2,
+     "ancoreNomi": [
+      "Duomo di Napoli",
+      "Palazzo Reale di Napoli",
+      "Castel Sant'Elmo"
+     ],
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "simbolo presente (3)",
+      "piazze e vie storiche 2–3 (2)",
+      "belvedere ≤ 1 (0)",
+      "ancore ≥ 3 (3)",
+      "colazioni 1–2 (2)",
+      "mercati ≤ 2 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Centro storico 3, San Ferdinando 3, Vomero 3)"
+     ],
+     "perQuartiere": {
+      "Vomero": 3,
+      "Centro storico": 3,
+      "San Ferdinando": 3
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 1,
+     "mancanoQuartieri": {}
+    },
+    "prima": {
+     "vie": 1,
+     "pasti": 2,
+     "posti": 17,
+     "ancore": 3,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Duomo di Napoli",
+      "Palazzo Reale di Napoli",
+      "Castel Sant'Elmo"
+     ],
+     "dopocena": 1,
+     "mancanti": {
+      "ancore": 0,
+      "visite": 0,
+      "dopocena": 0,
+      "storiche": 0
+     },
+     "storiche": 2,
+     "belvedere": 0,
+     "colazioni": 2,
+     "ancoreNomi": [
+      "Duomo di Napoli",
+      "Palazzo Reale di Napoli",
+      "Castel Sant'Elmo"
+     ],
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "simbolo presente (3)",
+      "piazze e vie storiche 2–3 (2)",
+      "belvedere ≤ 1 (0)",
+      "ancore ≥ 3 (3)",
+      "colazioni 1–2 (2)",
+      "mercati ≤ 2 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Centro storico 3, San Ferdinando 3, Vomero 3)"
+     ],
+     "perQuartiere": {
+      "Vomero": 3,
+      "Centro storico": 3,
+      "San Ferdinando": 3
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 1,
+     "mancanoQuartieri": {}
+    },
+    "completamento": null
+   },
+   "simboli": [
+    {
+     "nome": "Duomo di Santa Maria Assunta",
+     "categoria": "chiesa",
+     "quartiere": "Centro storico",
+     "dedotto": false
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "categoria": "palazzo",
+     "quartiere": "San Ferdinando",
+     "dedotto": false
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "categoria": "monumento",
+     "quartiere": "Vomero",
+     "dedotto": false
+    }
+   ],
+   "essenzialiControllo": {
+    "trovati": [
+     "Duomo di Napoli",
+     "Piazza del Plebiscito"
+    ],
+    "mancanti": [
+     "Cappella Sansevero",
+     "Museo Archeologico Nazionale",
+     "Castel dell'Ovo",
+     "Spaccanapoli"
+    ],
+    "totale": 6
+   },
+   "verificati": [
+    {
+     "nome": "Duomo di Santa Maria Assunta",
+     "tipo": "essenziale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "Centro storico",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Complesso Monumentale di Santa Chiara",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "Centro storico",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "place_of_worship"
+    },
+    {
+     "nome": "Chiesa del Gesù Nuovo",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "pomeriggio",
+     "quartiere": "Centro storico",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "tipo": "essenziale",
+     "categoria": "palazzo",
+     "momento": "mattina",
+     "quartiere": "San Ferdinando",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Teatro di San Carlo",
+     "tipo": "da locale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "opera_house"
+    },
+    {
+     "nome": "Basilica di San Francesco di Paola",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "pomeriggio",
+     "quartiere": "Vomero",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "castle"
+    },
+    {
+     "nome": "Certosa di San Martino",
+     "tipo": "da locale",
+     "categoria": "museo",
+     "momento": "pomeriggio",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Villa Floridiana",
+     "tipo": "da locale",
+     "categoria": "giardino",
+     "momento": "mattina",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "state_park"
+    },
+    {
+     "nome": "Via San Gregorio Armeno",
+     "tipo": "da locale",
+     "categoria": "via",
+     "momento": "pomeriggio",
+     "quartiere": "Centro storico",
+     "simbolo": false,
+     "passeggiata": true,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": null
+    },
+    {
+     "nome": "Piazza del Plebiscito",
+     "tipo": "da locale",
+     "categoria": "piazza",
+     "momento": "aperitivo",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "plaza"
+    },
+    {
+     "nome": "Mercato di Antignano",
+     "tipo": "da locale",
+     "categoria": "mercato",
+     "momento": "mattina",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "market"
+    },
+    {
+     "nome": "Gran Caffè Gambrinus",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": "San Ferdinando",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "bar"
+    },
+    {
+     "nome": "Pasticceria Giovanni Scaturchio",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": "Centro storico",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "dessert_shop"
+    },
+    {
+     "nome": "Gino e Toto Sorbillo",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "pranzo",
+     "quartiere": "Centro storico",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "pizza_restaurant"
+    },
+    {
+     "nome": "Osteria Donna Teresa",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "cena",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "italian_restaurant"
+    },
+    {
+     "nome": "Archivio Storico - Cocktail Bar & Wonderfood",
+     "tipo": "da locale",
+     "categoria": "dopocena",
+     "momento": "dopocena",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "bar"
+    }
+   ]
+  },
+  {
+   "citta": "Roma",
+   "status": 200,
+   "ms": 46677,
+   "cached": false,
+   "scala": "metropoli",
+   "conti": {
+    "proposti": 16,
+    "verificati": 15,
+    "scartati": 1
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 16,
+    "hit": 10
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2171,
+     "usage": {
+      "prompt_tokens": 54,
+      "completion_tokens": 15,
+      "total_tokens": 69,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 42465,
+     "usage": {
+      "prompt_tokens": 1107,
+      "completion_tokens": 1983,
+      "total_tokens": 3090,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 1104,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 507,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 44637,
+    "totale": 46098
+   },
+   "quote": {
+    "dopo": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 16,
+     "ancore": 3,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Pantheon",
+      "Basilica di Santa Maria in Trastevere",
+      "Piramide di Caio Cestio"
+     ],
+     "dopocena": 1,
+     "mancanti": {
+      "ancore": 0,
+      "visite": 0,
+      "dopocena": 0,
+      "storiche": 0
+     },
+     "storiche": 2,
+     "belvedere": 0,
+     "colazioni": 1,
+     "ancoreNomi": [
+      "Pantheon",
+      "Basilica di Santa Maria in Trastevere",
+      "Piramide di Caio Cestio"
+     ],
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "simbolo presente (3)",
+      "piazze e vie storiche 2–3 (2)",
+      "belvedere ≤ 1 (0)",
+      "ancore ≥ 3 (3)",
+      "colazioni 1–2 (1)",
+      "mercati ≤ 2 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Pantheon 3, Trastevere 3, Testaccio 3)"
+     ],
+     "perQuartiere": {
+      "Pantheon": 3,
+      "Testaccio": 3,
+      "Trastevere": 3
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 2,
+     "mancanoQuartieri": {}
+    },
+    "prima": {
+     "vie": 0,
+     "pasti": 2,
+     "posti": 16,
+     "ancore": 3,
+     "visite": 9,
+     "mancano": 0,
+     "mancate": [],
+     "mercati": 1,
+     "simboli": [
+      "Pantheon",
+      "Basilica di Santa Maria in Trastevere",
+      "Piramide di Caio Cestio"
+     ],
+     "dopocena": 1,
+     "mancanti": {
+      "ancore": 0,
+      "visite": 0,
+      "dopocena": 0,
+      "storiche": 0
+     },
+     "storiche": 2,
+     "belvedere": 0,
+     "colazioni": 1,
+     "ancoreNomi": [
+      "Pantheon",
+      "Basilica di Santa Maria in Trastevere",
+      "Piramide di Caio Cestio"
+     ],
+     "rispettate": [
+      "luoghi da visitare ≥ 8 (9)",
+      "simbolo presente (3)",
+      "piazze e vie storiche 2–3 (2)",
+      "belvedere ≤ 1 (0)",
+      "ancore ≥ 3 (3)",
+      "colazioni 1–2 (1)",
+      "mercati ≤ 2 (1)",
+      "pasti ≥ 2 (2)",
+      "dopocena ≥ 1 (1)",
+      "quartieri principali con ≥ 3 luoghi da visitare (Pantheon 3, Trastevere 3, Testaccio 3)"
+     ],
+     "perQuartiere": {
+      "Pantheon": 3,
+      "Testaccio": 3,
+      "Trastevere": 3
+     },
+     "senzaCategoria": 0,
+     "piazzeBelvedere": 2,
+     "mancanoQuartieri": {}
+    },
+    "completamento": null
+   },
+   "simboli": [
+    {
+     "nome": "Pantheon",
+     "categoria": "monumento",
+     "quartiere": "Pantheon",
+     "dedotto": false
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "categoria": "chiesa",
+     "quartiere": "Trastevere",
+     "dedotto": false
+    },
+    {
+     "nome": "Piramide di Caio Cestio",
+     "categoria": "monumento",
+     "quartiere": "Testaccio",
+     "dedotto": false
+    }
+   ],
+   "essenzialiControllo": {
+    "trovati": [
+     "Pantheon"
+    ],
+    "mancanti": [
+     "Colosseo",
+     "Fontana di Trevi",
+     "Basilica di San Pietro",
+     "Foro Romano",
+     "Piazza Navona"
+    ],
+    "totale": 6
+   },
+   "verificati": [
+    {
+     "nome": "Pantheon",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": "Pantheon",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "historical_landmark"
+    },
+    {
+     "nome": "Basilica di Santa Maria Sopra Minerva",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "Pantheon",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Chiesa di Sant'Ignazio di Loyola",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "pomeriggio",
+     "quartiere": "Pantheon",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "tipo": "essenziale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "Trastevere",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Basilica di Santa Cecilia in Trastevere",
+     "tipo": "da locale",
+     "categoria": "chiesa",
+     "momento": "mattina",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "church"
+    },
+    {
+     "nome": "Villa Farnesina",
+     "tipo": "da locale",
+     "categoria": "museo",
+     "momento": "mattina",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "art_museum"
+    },
+    {
+     "nome": "Piramide di Caio Cestio",
+     "tipo": "essenziale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": "Testaccio",
+     "simbolo": true,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "historical_landmark"
+    },
+    {
+     "nome": "Cimitero Acattolico per gli Stranieri di Roma",
+     "tipo": "da locale",
+     "categoria": "monumento",
+     "momento": "mattina",
+     "quartiere": "Testaccio",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "park"
+    },
+    {
+     "nome": "Mattatoio",
+     "tipo": "da locale",
+     "categoria": "palazzo",
+     "momento": "pomeriggio",
+     "quartiere": "Testaccio",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "museum"
+    },
+    {
+     "nome": "Piazza della Rotonda",
+     "tipo": "da locale",
+     "categoria": "piazza",
+     "momento": "mattina",
+     "quartiere": "Pantheon",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": null
+    },
+    {
+     "nome": "Piazza S. Ignazio",
+     "tipo": "da locale",
+     "categoria": "piazza",
+     "momento": "aperitivo",
+     "quartiere": "Pantheon",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": null
+    },
+    {
+     "nome": "Mercato di Testaccio",
+     "tipo": "da locale",
+     "categoria": "mercato",
+     "momento": "mattina",
+     "quartiere": "Testaccio",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "market"
+    },
+    {
+     "nome": "Sant'Eustachio Caffè",
+     "tipo": "da locale",
+     "categoria": "colazione",
+     "momento": "colazione",
+     "quartiere": "Pantheon",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "coffee_shop"
+    },
+    {
+     "nome": "Felice a Testaccio | ROMA",
+     "tipo": "da locale",
+     "categoria": "ristorante",
+     "momento": "pranzo",
+     "quartiere": "Testaccio",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "italian_restaurant"
+    },
+    {
+     "nome": "Freni e Frizioni",
+     "tipo": "da locale",
+     "categoria": "dopocena",
+     "momento": "dopocena",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "passeggiata": false,
+     "completamento": false,
+     "ancoraDalCompletamento": false,
+     "primaryType": "cocktail_bar"
+    }
+   ]
+  }
+ ],
+ "fine": "2026-10-14T14:20:32.611Z"
+}

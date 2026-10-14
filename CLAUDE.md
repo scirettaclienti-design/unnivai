@@ -311,6 +311,7 @@ Il client manda sempre `gpt-4o-mini` e il passaggio; il proxy usa il modello del
 **Metropoli**: il motore aspetta la lista, sceglie il quartiere e fa le ricerche iniziali dal suo centro (`biasMeters` → `radiusMeters`, `_citta.centroRicerche`).
 **Borgo**: la via principale vale come passeggiata e la regola delle zone non la toglie (`_citta.viaPrincipale`); il giro corto va nella fascia in cui i posti della lista sono aperti per una sosta intera (`fasciaApertaBorgo`).
 Fase A del 14/10: cancello non passato (`docs/prove/2026-10-17-c10b3-lista-bilanciata.md`).
+**C10b3-bis (lista `c10b-6`)**: in citta' e metropoli le piazze monumentali e le vie storiche sono una categoria a se' (2–3, fuori dagli 8 luoghi da visitare; le vie valgono come passeggiata), belvedere al massimo 1, mercati 1–2, ancore anche piazze o vie (il simbolo no), dopocena obbligatorio; `completaLista` fa UNA richiesta per tutte le quote mancanti (luoghi, piazze e vie, ancore — anche promuovendo un posto gia' in lista —, dopocena). Il borgo resta C10b3. Un errore di `gpt-6.1-sol` (non il tempo scaduto) ha un nuovo tentativo prima del ripiego (lista, traduttore, selettore); `costo.usage` conta tutte le chiamate (`usageTotale`). Nessun nome delle liste di controllo del banco nel prompt della lista. Fase A: cancello non passato su Napoli e Roma (`docs/prove/2026-10-17-c10b3bis-quote-corrette.md`).
 
 ### Regole di lavoro (decise da Ivano)
 

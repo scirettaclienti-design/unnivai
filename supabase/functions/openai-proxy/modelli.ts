@@ -5,8 +5,8 @@
  * Lista della città (con la chiamata degli abitanti) e lista dedicata del quartiere passano dal server; traduttore,
  * selettore e narratore arrivano dal client. Il narratore (frasi chiuse) resta sul modello di prima.
  *
- * Se il modello del passaggio non risponde, risponde con un errore, o va oltre `timeoutMs`, il proxy rifà la stessa
- * chiamata con MODELLO_DI_PRIMA e lo scrive nella risposta (`_modello`: chiesto, usato, ripiego, motivo, ms).
+ * Se il modello del passaggio risponde con un errore, lo si richiama una volta (C10b3-bis); se non risponde, risponde
+ * vuoto, va oltre `timeoutMs` o sbaglia anche la seconda volta, il proxy rifà la stessa chiamata con MODELLO_DI_PRIMA e lo scrive nella risposta (`_modello`: chiesto, usato, ripiego, motivo, ms).
  *
  * Modulo PURO (nessun import): lo usa openai-proxy (Deno) e lo prova la suite (vitest).
  */
@@ -78,19 +78,48 @@ export async function chiamaConRipiego(passaggio: Passaggio, payload: Record<str
     const { modello, timeoutMs } = MODELLI[passaggio];
     const t0 = Date.now();
     let motivo: string | null = null;
+    // C10b3-bis (decisione di Ivano) — un ERRORE del modello nuovo (non il tempo scaduto, non la risposta vuota) ha UN nuovo
+    // tentativo, con lo stesso tempo massimo, prima del ripiego. Il primo errore resta nel tracciato (`primoErrore`).
+    let primoErrore: string | null = null;
     if (modello !== MODELLO_DI_PRIMA) {
-        try {
-            const d = await invia(corpoPer(modello, payload), timeoutMs);
-            if (rispostaVuota(d)) throw new Error('risposta vuota');
-            return { data: d, info: { passaggio, chiesto: modello, usato: modello, ripiego: false, ms: Date.now() - t0, usage: d?.usage ?? null } };
-        } catch (err) {
-            motivo = (err as Error)?.name === 'AbortError' ? `oltre il tempo massimo (${timeoutMs / 1000} s)` : String((err as Error)?.message ?? err).slice(0, 80);
+        for (let tentativo = 1; tentativo <= 2; tentativo++) {
+            try {
+                const d = await invia(corpoPer(modello, payload), timeoutMs);
+                if (rispostaVuota(d)) throw Object.assign(new Error('risposta vuota'), { vuota: true });
+                return { data: d, info: { passaggio, chiesto: modello, usato: modello, ripiego: false, ms: Date.now() - t0, usage: d?.usage ?? null,
+                    ...(primoErrore ? { tentativi: 2, primoErrore } : {}) } };
+            } catch (err) {
+                const scaduto = (err as Error)?.name === 'AbortError';
+                motivo = scaduto ? `oltre il tempo massimo (${timeoutMs / 1000} s)` : String((err as Error)?.message ?? err).slice(0, 80);
+                if (scaduto || (err as { vuota?: boolean })?.vuota || tentativo === 2) break;
+                primoErrore = motivo;
+            }
         }
     }
     const t1 = Date.now();
     const d = await invia(corpoPer(MODELLO_DI_PRIMA, payload), limiteDiPrima);
     return {
         data: d,
-        info: { passaggio, chiesto: modello, usato: MODELLO_DI_PRIMA, ripiego: modello !== MODELLO_DI_PRIMA, ...(motivo ? { motivo, msChiesto: t1 - t0 } : {}), ms: Date.now() - t1, usage: d?.usage ?? null },
+        info: { passaggio, chiesto: modello, usato: MODELLO_DI_PRIMA, ripiego: modello !== MODELLO_DI_PRIMA, ...(motivo ? { motivo, msChiesto: t1 - t0 } : {}),
+            ...(primoErrore ? { tentativi: 2, primoErrore } : {}), ms: Date.now() - t1, usage: d?.usage ?? null },
     };
+}
+
+/**
+ * C10b3-bis — i token di TUTTE le chiamate di una lista (abitanti, lista, completamento, ripieghi), dal tracciato dei modelli:
+ * il costo salvato nella riga li conta tutti. Per modello, perche' i prezzi sono diversi.
+ */
+// deno-lint-ignore no-explicit-any
+export function usageTotale(chiamate: Array<Record<string, any>>) {
+    const perModello: Record<string, { prompt_tokens: number; completion_tokens: number }> = {};
+    let prompt_tokens = 0, completion_tokens = 0;
+    for (const c of chiamate || []) {
+        const u = c?.usage;
+        if (!u) continue;
+        const p = Number(u.prompt_tokens) || 0, o = Number(u.completion_tokens) || 0;
+        prompt_tokens += p; completion_tokens += o;
+        const m = String(c.usato || '?');
+        perModello[m] = { prompt_tokens: (perModello[m]?.prompt_tokens || 0) + p, completion_tokens: (perModello[m]?.completion_tokens || 0) + o };
+    }
+    return { prompt_tokens, completion_tokens, perModello };
 }

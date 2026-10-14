@@ -100,8 +100,9 @@ describe('C10 — la lista dell\'AI, ripulita', () => {
         const { system, user } = promptCitta('Catania', '2026-10-15');
         // C10b3 — le stesse richieste, ora scritte come quote della composizione
         expect(system).toMatch(/da 1 a 2 colazioni o caffè storici/);
-        expect(system).toMatch(/1 mercato, se esiste, con i suoi giorni e orari/);
-        expect(system).toMatch(/1 posto per il dopocena/);
+        // C10b3-bis — mercati storici 1–2, dopocena obbligatorio
+        expect(system).toMatch(/da 1 a 2 mercati storici, se esistono, con i loro giorni e orari/);
+        expect(system).toMatch(/1 posto per il dopocena .*: è obbligatorio/);
         expect(system).toMatch(/"essenziale" \(da 3 a 4/);
         expect(system).toMatch(/Un essenziale non è MAI un bar, un caffè, una pasticceria, un ristorante/);
         expect(user).toBe('Città: Catania. Giorno: giovedì 15 ottobre 2026.');

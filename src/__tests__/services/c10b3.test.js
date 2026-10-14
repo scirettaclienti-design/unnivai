@@ -20,24 +20,25 @@ describe('C10b3 — le quote della lista e il completamento', () => {
         posto('Pub Notte', 'dopocena', { momento: 'dopocena' }), posto('Mercato', 'mercato', { giorni: 'lun–sab', orari: '7–14' }),
         posto('Piazza Uno', 'piazza'), posto('Piazza Due', 'piazza'), posto('Belvedere', 'belvedere'),
     ];
-    it('le quote: piazze e belvedere contano al massimo 2 fra i luoghi da visitare; mancano luoghi da visitare', () => {
+    // C10b3-bis — piazze e belvedere non contano piu' fra i luoghi da visitare (le piazze sono «piazze e vie storiche»)
+    it('le quote: mancano luoghi da visitare (piazze e belvedere non contano)', () => {
         const l = leggiLista(JSON.stringify({ posti: scarsa }), 'Catania', 'città');
         const q = quoteLista(l, 'città');
         expect(q.piazzeBelvedere).toBe(3);
-        expect(q.visite).toBe(5); // 3 + 2 piazze/belvedere contate
-        expect(q.mancano).toBe(QUOTE.visiteMin - 5);
-        expect(q.mancate.join(' ')).toMatch(/luoghi da visitare ≥ 8 \(5\)/);
+        expect(q.visite).toBe(3);
+        expect(q.mancano).toBe(QUOTE.visiteMin - 3);
+        expect(q.mancate.join(' ')).toMatch(/luoghi da visitare ≥ 8 \(3\)/);
     });
     it('una lista senza abbastanza luoghi da visitare viene completata: una sola richiesta, solo luoghi da visitare, niente doppioni', async () => {
         const l = leggiLista(JSON.stringify({ posti: scarsa }), 'Catania', 'città');
         const chiedi = vi.fn(async () => JSON.stringify({ posti: [
             posto('Teatro Massimo Bellini', 'monumento'), posto('Monastero dei Benedettini', 'chiesa'), posto('Villa Bellini', 'giardino'),
-            posto('Cattedrale', 'chiesa'), posto('Bar Altro', 'colazione'), posto('Palazzo Biscari', 'palazzo'), posto('Piazza Tre', 'piazza'),
+            posto('Cattedrale', 'chiesa'), posto('Bar Altro', 'colazione'), posto('Palazzo Biscari', 'palazzo'), posto('Piazza Tre', 'piazza'), posto('Museo Due', 'museo'),
         ] }));
         const r = await completaLista({ posti: l, scala: 'città', citta: 'Catania', giorno: '2026-10-15', chiedi });
         expect(chiedi).toHaveBeenCalledTimes(1);
-        expect(chiedi.mock.calls[0][0].system).toMatch(/mancano 3 LUOGHI DA VISITARE/);
-        expect(r.completamento.aggiunti).toEqual(['Teatro Massimo Bellini', 'Monastero dei Benedettini', 'Villa Bellini']);
+        expect(chiedi.mock.calls[0][0].system).toMatch(/- 5 LUOGHI DA VISITARE/);
+        expect(r.completamento.aggiunti).toEqual(['Teatro Massimo Bellini', 'Monastero dei Benedettini', 'Villa Bellini', 'Palazzo Biscari', 'Museo Due']);
         expect(r.quoteDopo.visite).toBe(8);
         expect(r.quoteDopo.mancano).toBe(0);
         // le aggiunte non sono ancore, non sono simbolo

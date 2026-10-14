@@ -19,8 +19,17 @@
 // posto (per accettare il nome di Google con la stessa categoria). Il prompt di citta' e metropoli non cambia.
 // c10b-3 → c10b-4: il tempo massimo del modello della lista passa da 28 a 60 s (con 28 s le liste del 14/10 ripiegavano su
 // gpt-4o-mini): le liste c10b-3 del giorno sono di gpt-4o-mini e non si riusano.
-export const CITY_LIST_VERSION = 'c10b-4';
-export const POSTI_LISTA = 15;
+// c10b-4 → c10b-5 (C10b3, decisione di Ivano): la lista ha una COMPOSIZIONE fissa, scritta come quote (luoghi da visitare
+// prima dei locali), ogni posto dice la sua categoria, il simbolo e' sempre un luogo da visitare, e il codice controlla le
+// quote sulla risposta: se mancano luoghi da visitare, una sola richiesta di completamento.
+// c10b-5 → c10b-6 (C10b3-bis, decisione di Ivano): QUOTE CORRETTE per citta' e metropoli — le piazze monumentali e le vie
+// storiche sono una categoria a se' (2–3, fuori dagli 8 luoghi da visitare), il belvedere al massimo 1, i mercati storici 1–2,
+// le ancore possono essere una piazza o una via storica (il simbolo no), il dopocena e' obbligatorio; il completamento copre in
+// UNA richiesta tutte le quote mancanti (luoghi, piazze e vie, ancore, dopocena). Il borgo non cambia.
+// c10b-6 → c10b-7 (C10b3-ter, decisione di Ivano): la variante C del prompt, vincitrice della fase A0 — prima gli
+// imperdibili (i luoghi che chiunque citerebbe, anche se ovvi), poi i posti da abitante; le ancore dagli imperdibili.
+export const CITY_LIST_VERSION = 'c10b-7';
+export const POSTI_LISTA = 18;
 export const MAX_ESSENZIALI = 4;
 export const SCALE = ['borgo', 'città', 'metropoli'] as const;
 export type Scala = typeof SCALE[number];
@@ -38,8 +47,16 @@ export type Tipo = 'essenziale' | 'da locale';
 export type PostoProposto = {
     nome: string; citta: string; momento: Momento; tipo: Tipo; perche: string; giorni?: string; orari?: string;
     quartiere?: string; simbolo?: boolean; simboloDedotto?: boolean;
-    /** C10b2 — solo nel borgo: la categoria del posto (CATEGORIE_BORGO), per riconoscerlo col nome che ha su Google. */
+    /** C10b3 — la categoria del posto (CATEGORIE): decide le quote; nel borgo serve anche a riconoscerlo col nome di Google. */
     categoria?: string;
+    /** C10b3 — nel borgo: la via principale, che vale come passeggiata. */
+    passeggiata?: boolean;
+    /** C10b3 — aggiunto dalla richiesta di completamento. */
+    completamento?: boolean;
+    /** C10b3-bis — un posto della lista diventato ancora con il completamento. */
+    ancoraDalCompletamento?: boolean;
+    /** C10b3-ter, variante C — uno degli imperdibili (prima parte della lista). */
+    imperdibile?: boolean;
 };
 // deno-lint-ignore no-explicit-any
 export type RisultatoGoogle = Record<string, any>;
@@ -97,42 +114,95 @@ export function leggiAbitanti(content: unknown): number | null {
 /** La scala proposta dagli abitanti: meno di 30.000 borgo, almeno 800.000 metropoli, altrimenti città (senza numero: città). */
 export const scalaDaAbitanti = (n: number | null): Scala => (n === null ? 'città' : n < ABITANTI_BORGO_MAX ? 'borgo' : n >= ABITANTI_METROPOLI_MIN ? 'metropoli' : 'città');
 
-// ─── Il prompt della lista (completo nei report C10 e C10b), scritto per la scala ──────────────────────────────────────
+// ─── C10b3 / C10b3-bis — le categorie e le quote della lista (decisioni di Ivano) ─────────────────────────────────────
+/** Le categorie di un posto della lista. */
+export const CATEGORIE = ['chiesa', 'museo', 'monumento', 'palazzo', 'giardino', 'piazza', 'via', 'belvedere', 'mercato', 'colazione', 'ristorante', 'dopocena'] as const;
+/** C10b3-bis — i LUOGHI DA VISITARE di citta' e metropoli: chiese, musei, monumenti, palazzi, giardini (piazze e vie storiche a parte). */
+export const CATEGORIE_DA_VISITARE = new Set(['chiesa', 'museo', 'monumento', 'palazzo', 'giardino', 'parco']);
+/** C10b3-bis — piazze monumentali e vie storiche: una categoria a se', che non conta fra i luoghi da visitare. */
+export const CATEGORIE_STORICHE = new Set(['piazza', 'via']);
+/** Il borgo resta come in C10b3: piazze e belvedere contano fra i luoghi da visitare, al massimo 2. */
+const CATEGORIE_APERTE = new Set(['piazza', 'belvedere']);
+export const CATEGORIE_LOCALE = new Set(['colazione', 'ristorante', 'dopocena', 'bar', 'pasticceria']);
+/** Le quote di una lista di citta' o metropoli (C10b3-bis), e del borgo (C10b3, invariate). */
+export const QUOTE = {
+    visiteMin: 8, storicheMin: 2, storicheMax: 3, belvedereMax: 1, mercatiMax: 2,
+    ancoreMin: 3, ancoreMax: 4, colazioniMin: 1, colazioniMax: 2, pastiMin: 2, dopocenaMin: 1,
+    visitePerQuartiere: 3,
+    borgo: { postiMax: 8, visiteMin: 4, piazzeBelvedereMax: 2, viaMax: 1 },
+} as const;
+
+// ─── C10b3-ter — tre varianti del prompt della lista (decisione di Ivano), provate su liste grezze (fase A0) ────────────
+//   A — quella di C10b3-bis (v22);
+//   B — 2 ancore per quartiere principale; quartieri e ancore «dove un abitante porta un amico la prima volta»;
+//   C — due parti esplicite: prima GLI IMPERDIBILI (i luoghi che chiunque citerebbe, anche se ovvi: citta' 5–6, metropoli
+//       6–8, a livello di citta'; il simbolo e' il piu' riconosciuto al mondo, un luogo da visitare), poi i posti da abitante;
+//       le ancore si scelgono fra gli imperdibili.
+// Quote, piazze e vie, mercati, dopocena e borgo sono gli stessi nelle tre. VARIANTE_LISTA e' quella in produzione.
+export const VARIANTI_LISTA = ['A', 'B', 'C'] as const;
+export type Variante = typeof VARIANTI_LISTA[number];
+// C10b3-ter — la variante in produzione: C (fase A0 del 14/10, 24 liste grezze: essenziali di controllo in media A 4,75,
+// B 4,00, C 5,00; quote rispettate 8/8 per C). Report: docs/prove/2026-10-17-c10b3ter-imperdibili.md
+export const VARIANTE_LISTA: Variante = 'C';
+/** C — quanti imperdibili: citta' 5–6, metropoli 6–8. */
+export const IMPERDIBILI = { 'città': { min: 5, max: 6 }, metropoli: { min: 6, max: 8 } } as const;
+
+// ─── Il prompt della lista (completo nei report C10, C10b e C10b3), scritto per la scala ──────────────────────────────
 // Regola generale: nessun nome di città nel testo, se non quella chiesta.
-export function promptCitta(citta: string, giorno: string, scala: Scala = 'città'): { system: string; user: string } {
+export function promptCitta(citta: string, giorno: string, scala: Scala = 'città', variante: Variante = VARIANTE_LISTA): { system: string; user: string } {
     const quando = giornoParlato(giorno);
     const metropoli = scala === 'metropoli';
     const borgo = scala === 'borgo';
-    const quanti = borgo
-        ? `- Al massimo ${POSTI_PER_SCALA.borgo} posti, tutti dentro il comune di ${citta} (non nei paesi intorno): solo posti che esistono davvero, con il nome che hanno su Google Maps. Meglio 4 veri che 8 incerti.`
-        : metropoli
-            ? `- Fino a ${POSTI_PER_SCALA.metropoli} posti, tutti dentro ${citta}, divisi in 3–5 quartieri camminabili (ognuno si gira a piedi in una giornata). Ogni quartiere ha almeno 3 posti.`
-            : `- Esattamente ${POSTI_PER_SCALA['città']} posti, tutti dentro ${citta} (non nei paesi intorno).`;
+    // il borgo e' lo stesso nelle tre varianti
+    const v: Variante = borgo ? 'A' : variante;
+    const imp = metropoli ? IMPERDIBILI.metropoli : IMPERDIBILI['città'];
+    const composizione = borgo
+        ? `COMPOSIZIONE (rispettala):
+- al massimo ${QUOTE.borgo.postiMax} posti, tutti dentro il comune di ${citta} (non nei paesi intorno): solo posti che esistono davvero, con il nome che hanno su Google Maps;
+- almeno ${QUOTE.borgo.visiteMin} LUOGHI DA VISITARE: chiese, musei, monumenti, palazzi, giardini (piazze e belvedere al massimo ${QUOTE.borgo.piazzeBelvedereMax});
+- la via principale del paese, una sola, con "categoria" "via": vale come passeggiata;
+- il resto, se c'e': una colazione, un posto per mangiare.`
+        : `COMPOSIZIONE (rispettala: i luoghi da visitare vengono prima dei locali):
+- almeno ${QUOTE.visiteMin} LUOGHI DA VISITARE: chiese, musei, monumenti, palazzi, giardini (categoria "chiesa", "museo", "monumento", "palazzo" o "giardino");
+- da ${QUOTE.storicheMin} a ${QUOTE.storicheMax} PIAZZE MONUMENTALI o VIE STORICHE (categoria "piazza" o "via"): quelle dove un abitante porta per prime un amico; si vivono camminando e non contano fra i luoghi da visitare;
+- al massimo ${QUOTE.belvedereMax} belvedere;
+- da 1 a ${QUOTE.mercatiMax} mercati storici, se esistono, con i loro giorni e orari nei campi "giorni" e "orari";
+${v === 'C' ? `- PRIMA PARTE, GLI IMPERDIBILI: da ${imp.min} a ${imp.max} posti con "imperdibile": true, a livello di città${metropoli ? ' (prima di pensare ai quartieri; ognuno ha comunque il suo quartiere)' : ''}: i luoghi che chiunque citerebbe per ${citta}, anche se ovvi — luoghi da visitare, piazze o vie storiche, mai un locale. Scrivili per primi; contano nelle quote della loro categoria.
+- SECONDA PARTE, I POSTI DA ABITANTE: tutto il resto della composizione, dove va davvero chi ci abita.
+` : ''}- ${v === 'B' && metropoli ? `esattamente ${MAX_ESSENZIALI_QUARTIERE} ancore per ogni quartiere principale` : metropoli ? `da 1 a ${MAX_ESSENZIALI_QUARTIERE} ancore per quartiere (almeno ${QUOTE.ancoreMin} in tutto)` : `da ${QUOTE.ancoreMin} a ${QUOTE.ancoreMax} ancore`} ("tipo" "essenziale"): ${v === 'C' ? 'scelte FRA GLI IMPERDIBILI; fra loro il simbolo;' : `${v === 'B' ? 'i posti dove un abitante porta un amico la prima volta' : 'i posti che un abitante nomina per primi'}; possono essere un luogo da visitare, una piazza o una via storica, mai un locale; fra loro il simbolo;`}
+- da ${QUOTE.colazioniMin} a ${QUOTE.colazioniMax} colazioni o caffè storici (momento "colazione");
+- ${QUOTE.pastiMin} posti per pranzo o cena tipici;
+- ${QUOTE.dopocenaMin} posto per il dopocena (momento "dopocena", categoria "dopocena"): è obbligatorio.
+${metropoli ? `- Fino a ${POSTI_PER_SCALA.metropoli} posti in tutto, divisi in 3–5 quartieri camminabili${v === 'B' ? ': quelli dove un abitante porta un amico la prima volta in città' : ''} (ognuno si gira a piedi in una giornata): ogni quartiere principale ha almeno ${QUOTE.visitePerQuartiere} luoghi da visitare.` : `- Da 16 a ${POSTI_LISTA} posti in tutto, tutti dentro ${citta} (non nei paesi intorno).`}`;
     const quartiere = metropoli
         ? `\n- "quartiere": per ogni posto, il quartiere camminabile dove sta, col nome che usa chi ci abita (lo stesso nome per tutti i posti di quel quartiere).`
         : '';
-    const essenziali = metropoli
-        ? `- "tipo" "essenziale" (da 1 a ${MAX_ESSENZIALI_QUARTIERE} per quartiere): i luoghi simbolo da vedere nel quartiere — monumenti, cattedrale e chiese, musei, castelli, teatri, piazze, strade storiche, mercati storici, giardini — anche se sono famosi. Un essenziale non è MAI un bar, un caffè, una pasticceria, un ristorante o un locale.`
-        : `- "tipo" "essenziale" (da 3 a ${MAX_ESSENZIALI}): i luoghi simbolo da vedere a ${citta} — monumenti, cattedrale e chiese, musei, castelli, teatri, piazze, strade storiche, mercati storici, giardini — anche se sono famosi. Un essenziale non è MAI un bar, un caffè, una pasticceria, un ristorante o un locale.`;
-    const simbolo = metropoli
+    const simbolo = v === 'C'
+        ? `- "simbolo": segna con "simbolo": true UN solo posto: l'imperdibile più riconosciuto al mondo di ${citta}, che dev'essere un luogo da visitare. Per gli altri posti ometti il campo.`
+        : metropoli
         ? `- "simbolo": in ogni quartiere, segna con "simbolo": true l'essenziale che un abitante non ti perdonerebbe mai di aver saltato (uno per quartiere). Per gli altri posti ometti il campo.`
         : `- "simbolo": fra gli essenziali, segna con "simbolo": true il posto che un abitante non ti perdonerebbe mai di aver saltato (uno solo). Per gli altri posti ometti il campo.`;
-    // il simbolo e' un luogo che si visita: una piazza o una strada per Google spesso e' una via (C7: una zona non e' una tappa)
-    const simboloLuogo = `- Il simbolo è un luogo da visitare — un monumento, una chiesa o cattedrale, un museo, un castello, un teatro —, non una strada né una piazza.`;
+    const chiedono = v === 'C'
+        ? `Ti chiedono quali posti di ${citta} vivere ${quando}. La lista ha DUE PARTI, in quest'ordine: prima gli imperdibili, i luoghi che chiunque citerebbe per ${citta} anche se ovvi; poi i posti dove va davvero chi ci abita.`
+        : v === 'B'
+        ? `Ti chiedono quali posti di ${citta} vivere ${quando}: quelli dove porti un amico la prima volta che viene in città, e i posti dove va davvero chi ci abita.`
+        : `Ti chiedono quali posti di ${citta} vivere ${quando}: i simboli che non faresti mai saltare a un amico in visita, e i posti dove va davvero chi ci abita.`;
     const system = `Sei una persona nata e cresciuta a ${citta} che conosce la sua città strada per strada.
-Ti chiedono quali posti di ${citta} vivere ${quando}: i simboli che non faresti mai saltare a un amico in visita, e i posti dove va davvero chi ci abita.
+${chiedono}
 
 Rispondi SOLO con un JSON, senza testo fuori:
-{"posti":[{"nome":"...","citta":"${citta}",${metropoli ? '"quartiere":"...",' : ''}${borgo ? `"categoria":"${CATEGORIE_BORGO.join('|')}",` : ''}"momento":"colazione|mattina|pranzo|pomeriggio|aperitivo|cena|dopocena","tipo":"essenziale|da locale","simbolo":true,"perche":"...","giorni":"...","orari":"..."}]}
+{"posti":[{"nome":"...","citta":"${citta}",${metropoli ? '"quartiere":"...",' : ''}"categoria":"${CATEGORIE.join('|')}","momento":"colazione|mattina|pranzo|pomeriggio|aperitivo|cena|dopocena","tipo":"essenziale|da locale",${v === 'C' ? '"imperdibile":true,' : ''}"simbolo":true,"perche":"...","giorni":"...","orari":"..."}]}
 
-REGOLE
-${quanti}${quartiere}${borgo ? `\n- "categoria": cos'e' il posto, una fra: ${CATEGORIE_BORGO.join(', ')}.` : ''}
+${composizione}
+
+REGOLE${quartiere}
+- "categoria": cos'e' il posto, una fra: ${CATEGORIE.join(', ')}.
 - "nome": il nome proprio esatto del posto, come compare su Google Maps. Niente indirizzi, niente descrizioni, niente zone generiche ("centro storico", "lungomare" senza nome).
-${essenziali}
+- "tipo" "essenziale" (da 3 a ${MAX_ESSENZIALI}${metropoli ? `; in una metropoli ${v === 'B' ? `${MAX_ESSENZIALI_QUARTIERE} per quartiere principale` : `da 1 a ${MAX_ESSENZIALI_QUARTIERE} per quartiere`}` : ''}): ${v === 'C' ? 'scelti fra gli imperdibili' : `${v === 'B' ? 'i posti dove chi ci abita porta un amico la prima volta' : 'i posti che chi ci abita nomina per primi'} — monumenti, cattedrale e chiese, musei, castelli, teatri, palazzi, giardini${borgo ? '' : ', le piazze monumentali e le vie storiche'} — anche se sono famosi`}. Un essenziale non è MAI un bar, un caffè, una pasticceria, un ristorante o un locale.${v === 'C' ? `
+- "imperdibile": true solo per i posti della prima parte; per gli altri ometti il campo.` : ''}
 ${simbolo}
-${simboloLuogo}
-- "tipo" "da locale": tutti gli altri — dove va davvero chi ci abita: la colazione, il mercato, la trattoria, il bar dell'aperitivo, il posto del dopocena, un angolo che i turisti non conoscono.
-- Se esistono a ${citta}, devono esserci: una colazione vera (il bar o la pasticceria dove i locali fanno colazione, momento "colazione"); un mercato, con i suoi giorni e orari nei campi "giorni" e "orari"; cosa fa un locale dopo cena (momento "dopocena").
+- Il simbolo è un luogo da visitare — un monumento, una chiesa o cattedrale, un museo, un castello, un teatro —, non una strada, una piazza o un locale.
+- "tipo" "da locale": tutti gli altri — dove va davvero chi ci abita.
 - "momento": quando quel posto si vive meglio. Copri la giornata: colazione, mattina, pranzo, pomeriggio, aperitivo, cena, dopocena.
 - Solo posti aperti ${quando}: un mercato che quel giorno non c'è, o un posto chiuso quel giorno, non va in lista.
 - Niente catene, niente posti chiusi per sempre, niente posti inventati: se non sei sicuro che un posto esista con quel nome, non scriverlo.
@@ -143,7 +213,26 @@ ${simboloLuogo}
 }
 
 // ─── La risposta dell'AI, ripulita ──────────────────────────────────────────
+/**
+ * Un simbolo per lista (per quartiere in una metropoli): il primo segnato resta, gli altri no; senza, il primo essenziale
+ * che e' un luogo da visitare (`simboloDedotto`). Il simbolo non e' mai una piazza, una via, un belvedere, un mercato, un locale.
+ */
+function assegnaSimbolo(posti: PostoProposto[], metropoli: boolean) {
+    const gruppi = new Map<string, PostoProposto[]>();
+    for (const p of posti) if (p.tipo === 'essenziale') {
+        const k = metropoli ? normNome(p.quartiere || '') : '';
+        gruppi.set(k, [...(gruppi.get(k) || []), p]);
+    }
+    for (const ess of gruppi.values()) {
+        const segnati = ess.filter(p => p.simbolo);
+        for (const p of segnati.slice(1)) delete p.simbolo;
+        const primo = ess.find(p => simboloPossibile(p.categoria || ''));
+        if (segnati.length === 0 && primo) { primo.simbolo = true; primo.simboloDedotto = true; }
+    }
+}
 const corto = (s: unknown, max: number) => String(s ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
+/** C10b3 — un simbolo e' un luogo da visitare (senza categoria detta non si giudica). Mai piazza, belvedere, via, locale, mercato. */
+const simboloPossibile = (categoria: string) => !categoria || (CATEGORIE_DA_VISITARE.has(categoria) && !CATEGORIE_APERTE.has(categoria)) || categoria === 'parco';
 
 /**
  * La lista proposta, ripulita, secondo la scala (senza scala: città): al massimo 8 posti (borgo), 15 (città), 20
@@ -152,7 +241,9 @@ const corto = (s: unknown, max: number) => String(s ?? '').replace(/\s+/g, ' ').
  * Il SIMBOLO: uno solo (in una metropoli uno per quartiere), sempre un essenziale. Se l'AI non l'ha segnato, lo diventa il
  * primo essenziale (del quartiere), con `simboloDedotto` (dichiarato nel report).
  */
-export function leggiLista(content: unknown, citta: string, scala: Scala = 'città'): PostoProposto[] {
+export function leggiLista(content: unknown, citta: string, scala: Scala = 'città', variante: Variante = VARIANTE_LISTA): PostoProposto[] {
+    // C10b3-ter — variante C: le ancore e il simbolo vengono solo dagli imperdibili (il borgo non ha imperdibili)
+    const conImperdibili = variante === 'C' && scala !== 'borgo';
     // deno-lint-ignore no-explicit-any
     let parsed: any = null;
     try { parsed = typeof content === 'string' ? JSON.parse(content) : content; } catch { return []; }
@@ -173,7 +264,14 @@ export function leggiLista(content: unknown, citta: string, scala: Scala = 'citt
         if (!momento) continue;
         const quartiere = metropoli ? corto(p?.quartiere, 60) : '';
         const q = normNome(quartiere);
-        let tipo: Tipo = /essenzial/i.test(String(p?.tipo || '')) ? 'essenziale' : 'da locale';
+        // C10b3 — la categoria (tutte le scale): un essenziale che e' un locale non e' un essenziale
+        const cat = String(p?.categoria || '').trim().toLowerCase();
+        const categoria = (CATEGORIE as readonly string[]).includes(cat) || CATEGORIE_BORGO.includes(cat) ? cat : '';
+        const imperdibile = conImperdibili && p?.imperdibile === true && !CATEGORIE_LOCALE.has(categoria);
+        // il simbolo indicato fra gli imperdibili e' sempre un'ancora (se e' un luogo da visitare)
+        const simboloImp = imperdibile && p?.simbolo === true && simboloPossibile(categoria);
+        let tipo: Tipo = (/essenzial/i.test(String(p?.tipo || '')) || simboloImp) && !CATEGORIE_LOCALE.has(categoria) && (!conImperdibili || imperdibile)
+            ? 'essenziale' : 'da locale';
         if (tipo === 'essenziale') {
             const pieno = metropoli
                 ? (essenziali >= MAX_ESSENZIALI_METROPOLI || (perQuartiere.get(q) || 0) >= MAX_ESSENZIALI_QUARTIERE)
@@ -185,24 +283,199 @@ export function leggiLista(content: unknown, citta: string, scala: Scala = 'citt
         out.push({
             nome, citta, momento, tipo, perche: corto(p?.perche, 160),
             ...(quartiere ? { quartiere } : {}),
-            ...(scala === 'borgo' && CATEGORIE_BORGO.includes(String(p?.categoria || '').trim().toLowerCase()) ? { categoria: String(p.categoria).trim().toLowerCase() } : {}),
-            ...(tipo === 'essenziale' && p?.simbolo === true ? { simbolo: true } : {}),
+            ...(categoria ? { categoria } : {}),
+            // il simbolo e' sempre un luogo da visitare (mai un locale, una via, un mercato)
+            ...(tipo === 'essenziale' && p?.simbolo === true && simboloPossibile(categoria) ? { simbolo: true } : {}),
+            ...(imperdibile ? { imperdibile: true } : {}),
             ...(p?.giorni ? { giorni: corto(p.giorni, 80) } : {}), ...(p?.orari ? { orari: corto(p.orari, 80) } : {}),
         });
         if (out.length >= maxPosti) break;
     }
-    // un simbolo per lista (per quartiere in una metropoli): il primo segnato resta, gli altri no; senza, il primo essenziale
-    const gruppi = new Map<string, PostoProposto[]>();
-    for (const p of out) if (p.tipo === 'essenziale') {
-        const k = metropoli ? normNome(p.quartiere || '') : '';
-        gruppi.set(k, [...(gruppi.get(k) || []), p]);
+    // C10b3-ter, variante C — meno di 3 ancore: diventano ancore gli imperdibili che non lo sono, nell'ordine dell'AI (mai un
+    // belvedere, dentro i tetti di sempre)
+    if (conImperdibili) {
+        for (const p of out) {
+            if (out.filter(x => x.tipo === 'essenziale').length >= QUOTE.ancoreMin) break;
+            if (!p.imperdibile || p.tipo === 'essenziale' || p.categoria === 'belvedere') continue;
+            const q = normNome(p.quartiere || '');
+            const nQ = out.filter(x => x.tipo === 'essenziale' && normNome(x.quartiere || '') === q).length;
+            const nTot = out.filter(x => x.tipo === 'essenziale').length;
+            if (metropoli ? (nTot < MAX_ESSENZIALI_METROPOLI && nQ < MAX_ESSENZIALI_QUARTIERE) : nTot < MAX_ESSENZIALI) p.tipo = 'essenziale';
+        }
     }
-    for (const ess of gruppi.values()) {
-        const segnati = ess.filter(p => p.simbolo);
-        for (const p of segnati.slice(1)) delete p.simbolo;
-        if (segnati.length === 0 && ess[0]) { ess[0].simbolo = true; ess[0].simboloDedotto = true; }
+    assegnaSimbolo(out, metropoli);
+    // C10b3 — nel borgo la via principale (una sola) vale come passeggiata; C10b3-bis — in citta' e metropoli le vie storiche
+    // (categoria «via») valgono come passeggiata
+    if (scala === 'borgo') {
+        const via = out.find(p => p.categoria === 'via');
+        if (via) via.passeggiata = true;
+    } else {
+        for (const p of out) if (p.categoria === 'via') p.passeggiata = true;
     }
     return out;
+}
+
+// ─── C10b3 / C10b3-bis — le quote sulla risposta, e una sola richiesta di completamento ─────────────────────────────
+/** Luogo da visitare: in citta' e metropoli chiese, musei, monumenti, palazzi, giardini; nel borgo (C10b3) anche piazze e belvedere. */
+const eVisita = (p: PostoProposto, scala: Scala = 'città') =>
+    CATEGORIE_DA_VISITARE.has(p.categoria || '') || (scala === 'borgo' && CATEGORIE_APERTE.has(p.categoria || ''));
+const eStorica = (p: PostoProposto) => CATEGORIE_STORICHE.has(p.categoria || '');
+
+/**
+ * Le quote di una lista. Citta' e metropoli (C10b3-bis): almeno 8 luoghi da visitare, 2–3 piazze o vie storiche (fuori dagli
+ * 8), belvedere al massimo 1, mercati al massimo 2, 3–4 ancore (in metropoli almeno 3, al massimo 2 per quartiere),
+ * colazioni 1–2, pasti almeno 2, dopocena almeno 1; in metropoli almeno 3 luoghi da visitare per quartiere principale.
+ * Borgo (C10b3, invariato): almeno 4 luoghi da visitare (piazze e belvedere contano, al massimo 2), al massimo 8 posti, la via.
+ * `mancanti`: cosa chiede il completamento (luoghi da visitare, piazze e vie, ancore, dopocena); `mancano` = luoghi da visitare.
+ */
+export function quoteLista(posti: PostoProposto[], scala: Scala = 'città') {
+    const borgo = scala === 'borgo';
+    const visite = posti.filter(p => eVisita(p, scala));
+    const aperte = visite.filter(p => CATEGORIE_APERTE.has(p.categoria || ''));
+    const visiteContate = borgo ? visite.length - Math.max(0, aperte.length - QUOTE.borgo.piazzeBelvedereMax) : visite.length;
+    const conta = (cats: string[]) => posti.filter(p => cats.includes(p.categoria || '')).length;
+    const q = {
+        posti: posti.length, visite: visiteContate, piazzeBelvedere: conta(['piazza', 'belvedere']),
+        storiche: posti.filter(eStorica).length, belvedere: conta(['belvedere']),
+        ancore: posti.filter(p => p.tipo === 'essenziale').length,
+        ancoreNomi: posti.filter(p => p.tipo === 'essenziale').map(p => p.nome),
+        simboli: posti.filter(p => p.simbolo).map(p => p.nome),
+        colazioni: conta(['colazione', 'bar', 'pasticceria']), mercati: conta(['mercato']), pasti: conta(['ristorante']),
+        dopocena: conta(['dopocena']), vie: conta(['via']),
+        senzaCategoria: posti.filter(p => !p.categoria).length,
+        perQuartiere: {} as Record<string, number>, mancano: 0, mancanoQuartieri: {} as Record<string, number>,
+        mancanti: { visite: 0, storiche: 0, ancore: 0, dopocena: 0 },
+        rispettate: [] as string[], mancate: [] as string[],
+    };
+    const minVisite = borgo ? QUOTE.borgo.visiteMin : QUOTE.visiteMin;
+    q.mancano = Math.max(0, minVisite - q.visite);
+    if (scala === 'metropoli') {
+        const principali = new Set(posti.filter(p => p.tipo === 'essenziale' && p.quartiere).map(p => p.quartiere as string));
+        for (const qn of principali) {
+            const n = posti.filter(p => p.quartiere === qn && eVisita(p, scala)).length;
+            q.perQuartiere[qn] = n;
+            if (n < QUOTE.visitePerQuartiere) q.mancanoQuartieri[qn] = QUOTE.visitePerQuartiere - n;
+        }
+        q.mancano = Math.max(q.mancano, Object.values(q.mancanoQuartieri).reduce((a, n) => a + n, 0));
+    }
+    q.mancanti.visite = q.mancano;
+    if (!borgo) {
+        q.mancanti.storiche = Math.max(0, QUOTE.storicheMin - q.storiche);
+        q.mancanti.ancore = Math.max(0, QUOTE.ancoreMin - q.ancore);
+        q.mancanti.dopocena = Math.max(0, QUOTE.dopocenaMin - q.dopocena);
+    }
+    const voce = (ok: boolean, testo: string) => (ok ? q.rispettate : q.mancate).push(testo);
+    voce(q.visite >= minVisite, `luoghi da visitare ≥ ${minVisite} (${q.visite})`);
+    voce(q.simboli.length >= 1, `simbolo presente (${q.simboli.length})`);
+    if (borgo) {
+        voce(aperte.length <= QUOTE.borgo.piazzeBelvedereMax, `piazze e belvedere ≤ ${QUOTE.borgo.piazzeBelvedereMax} (${aperte.length})`);
+        voce(q.posti <= QUOTE.borgo.postiMax, `posti ≤ ${QUOTE.borgo.postiMax} (${q.posti})`);
+        voce(q.vie === QUOTE.borgo.viaMax, `via principale (${q.vie})`);
+    } else {
+        voce(q.storiche >= QUOTE.storicheMin && q.storiche <= QUOTE.storicheMax, `piazze e vie storiche ${QUOTE.storicheMin}–${QUOTE.storicheMax} (${q.storiche})`);
+        voce(q.belvedere <= QUOTE.belvedereMax, `belvedere ≤ ${QUOTE.belvedereMax} (${q.belvedere})`);
+        voce(scala === 'metropoli' ? q.ancore >= QUOTE.ancoreMin : (q.ancore >= QUOTE.ancoreMin && q.ancore <= QUOTE.ancoreMax),
+            scala === 'metropoli' ? `ancore ≥ ${QUOTE.ancoreMin} (${q.ancore})` : `ancore ${QUOTE.ancoreMin}–${QUOTE.ancoreMax} (${q.ancore})`);
+        voce(q.colazioni >= QUOTE.colazioniMin && q.colazioni <= QUOTE.colazioniMax, `colazioni ${QUOTE.colazioniMin}–${QUOTE.colazioniMax} (${q.colazioni})`);
+        voce(q.mercati <= QUOTE.mercatiMax, `mercati ≤ ${QUOTE.mercatiMax} (${q.mercati})`);
+        voce(q.pasti >= QUOTE.pastiMin, `pasti ≥ ${QUOTE.pastiMin} (${q.pasti})`);
+        voce(q.dopocena >= QUOTE.dopocenaMin, `dopocena ≥ ${QUOTE.dopocenaMin} (${q.dopocena})`);
+        if (scala === 'metropoli') voce(Object.keys(q.mancanoQuartieri).length === 0, `quartieri principali con ≥ ${QUOTE.visitePerQuartiere} luoghi da visitare (${Object.entries(q.perQuartiere).map(([k, n]) => `${k} ${n}`).join(', ') || '—'})`);
+    }
+    return q;
+}
+const daCompletare = (m: { visite: number; storiche: number; ancore: number; dopocena: number }) => m.visite + m.storiche + m.ancore + m.dopocena > 0;
+
+/**
+ * La richiesta di completamento (C10b3-bis): UNA sola, per tutte le quote mancanti insieme — luoghi da visitare (anche per
+ * quartiere), piazze o vie storiche, ancore, dopocena. Un'ancora puo' essere anche un posto gia' in lista (si ripete il nome).
+ */
+export function promptCompletamento(citta: string, giorno: string, scala: Scala, posti: PostoProposto[],
+    mancanti: { visite: number; storiche: number; ancore: number; dopocena: number }, quartieri: Record<string, number> = {},
+    variante: Variante = VARIANTE_LISTA): { system: string; user: string } {
+    const quando = giornoParlato(giorno);
+    const conImperdibili = variante === 'C' && scala !== 'borgo';
+    const metropoli = scala === 'metropoli';
+    const doveQ = Object.entries(quartieri).map(([q, n]) => `${n} nel quartiere ${q}`).join(', ');
+    const righe = [
+        mancanti.visite > 0 ? `- ${mancanti.visite} LUOGHI DA VISITARE${doveQ ? ` (${doveQ})` : ''}: chiese, musei, monumenti, palazzi, giardini (categoria "chiesa", "museo", "monumento", "palazzo" o "giardino"), "tipo" "da locale";` : '',
+        mancanti.storiche > 0 ? `- ${mancanti.storiche} PIAZZE MONUMENTALI o VIE STORICHE (categoria "piazza" o "via"), quelle dove un abitante porta per prime un amico;` : '',
+        mancanti.ancore > 0 ? (conImperdibili
+            ? `- ${mancanti.ancore} ANCORE ("tipo" "essenziale", "imperdibile": true): luoghi che chiunque citerebbe per ${citta}, anche se ovvi — un luogo da visitare, una piazza o una via storica, mai un locale. Possono essere posti già in lista: in quel caso ripeti il nome esatto con "tipo" "essenziale" e "imperdibile": true;`
+            : `- ${mancanti.ancore} ANCORE ("tipo" "essenziale"): i posti che un abitante nomina per primi — un luogo da visitare, una piazza o una via storica, mai un locale. Possono essere posti già in lista: in quel caso ripeti il nome esatto con "tipo" "essenziale";`) : '',
+        mancanti.dopocena > 0 ? `- ${mancanti.dopocena} posto per il DOPOCENA (categoria "dopocena", momento "dopocena"), dove va davvero chi ci abita;` : '',
+    ].filter(Boolean).join('\n');
+    const system = `Sei una persona nata e cresciuta a ${citta}. Alla lista dei posti di ${citta} per ${quando} mancano:
+${righe}
+Posti già in lista (non ripeterli, salvo per segnare un'ancora): ${posti.map(p => p.nome).join('; ')}.
+Rispondi SOLO con un JSON {"posti":[{"nome":"...","citta":"${citta}",${metropoli ? '"quartiere":"...",' : ''}"categoria":"${CATEGORIE.join('|')}","momento":"colazione|mattina|pranzo|pomeriggio|aperitivo|cena|dopocena","tipo":"essenziale|da locale"${conImperdibili ? ',"imperdibile":true' : ''}}]}.
+"nome": il nome esatto come compare su Google Maps. Solo posti aperti ${quando}, che esistono davvero: se non sei sicuro, non scriverlo.`;
+    return { system, user: `Città: ${citta}.` };
+}
+
+/**
+ * Controlla le quote e, se ne manca qualcuna fra luoghi da visitare, piazze e vie storiche, ancore, dopocena, fa UNA sola
+ * richiesta di completamento (`chiedi(prompt)` → il testo dell'AI). Si prende solo cio' che manca, per categoria; un'ancora
+ * nuova o ripetuta (un posto gia' in lista che non e' un locale) diventa essenziale, dentro i tetti; le aggiunte non sono mai
+ * simbolo. Restituisce la lista, le quote prima e dopo, e cosa e' stato chiesto, aggiunto e promosso.
+ */
+export async function completaLista({ posti, scala, citta, giorno, chiedi, variante = VARIANTE_LISTA }: {
+    posti: PostoProposto[]; scala: Scala; citta: string; giorno: string; chiedi: (p: { system: string; user: string }) => Promise<unknown>; variante?: Variante;
+}) {
+    const prima = quoteLista(posti, scala);
+    if (!daCompletare(prima.mancanti)) return { posti, quotePrima: prima, quoteDopo: prima, completamento: null };
+    const pr = promptCompletamento(citta, giorno, scala, posti, prima.mancanti, prima.mancanoQuartieri, variante);
+    // C10b3-ter, variante C — un'ancora e' sempre un imperdibile (anche quella promossa dal completamento)
+    const conImperdibili = variante === 'C' && scala !== 'borgo';
+    const metropoli = scala === 'metropoli';
+    const lista = posti.map(p => ({ ...p }));
+    const aggiunti: PostoProposto[] = [];
+    const promossi: string[] = [];
+    let errore: string | null = null;
+    try {
+        const content = await chiedi(pr);
+        const resta = { ...prima.mancanti };
+        const restaQ = { ...prima.mancanoQuartieri };
+        const essenziali = () => lista.filter(p => p.tipo === 'essenziale').length + aggiunti.filter(p => p.tipo === 'essenziale').length;
+        const essDelQuartiere = (q: string) => [...lista, ...aggiunti].filter(p => p.tipo === 'essenziale' && normNome(p.quartiere || '') === normNome(q)).length;
+        const puoEssereAncora = (p: PostoProposto) => resta.ancore > 0 && !CATEGORIE_LOCALE.has(p.categoria || '') && p.categoria !== 'belvedere'
+            && (metropoli ? essenziali() < MAX_ESSENZIALI_METROPOLI && essDelQuartiere(p.quartiere || '') < MAX_ESSENZIALI_QUARTIERE : essenziali() < MAX_ESSENZIALI);
+        const indice = new Map(lista.map(p => [normNome(p.nome), p]));
+        for (const p of leggiLista(content, citta, scala, variante)) {
+            const gia = indice.get(normNome(p.nome));
+            const vuoleAncora = p.tipo === 'essenziale';
+            if (gia) {
+                // un'ancora ripetuta: un posto gia' in lista diventa essenziale
+                if (vuoleAncora && gia.tipo !== 'essenziale' && puoEssereAncora(gia) && (!conImperdibili || gia.imperdibile || p.imperdibile)) {
+                    gia.tipo = 'essenziale'; gia.ancoraDalCompletamento = true; resta.ancore--; promossi.push(gia.nome);
+                    if (conImperdibili) gia.imperdibile = true;
+                }
+                continue;
+            }
+            const { simbolo: _s, simboloDedotto: _d, ...base } = p;
+            let serve = false;
+            // le aggiunte per i luoghi da visitare: mai piazze o belvedere (anche nel borgo, come in C10b3)
+            if (CATEGORIE_DA_VISITARE.has(base.categoria || '') && resta.visite > 0) {
+                serve = true; resta.visite--;
+                if (base.quartiere && restaQ[base.quartiere] > 0) restaQ[base.quartiere]--;
+            } else if (eStorica(base) && resta.storiche > 0) { serve = true; resta.storiche--; }
+            else if (base.categoria === 'dopocena' && resta.dopocena > 0) { serve = true; resta.dopocena--; }
+            const ancora = vuoleAncora && puoEssereAncora(base);
+            if (!serve && !ancora) continue;
+            if (ancora) resta.ancore--;
+            const nuovo: PostoProposto = { ...base, tipo: ancora ? 'essenziale' : 'da locale', completamento: true };
+            if (!metropoli) delete nuovo.quartiere;
+            aggiunti.push(nuovo);
+            indice.set(normNome(nuovo.nome), nuovo);
+        }
+    } catch (err) {
+        errore = String((err as Error)?.message ?? err).slice(0, 80);
+    }
+    const tutti = [...lista, ...aggiunti];
+    // un simbolo c'e' sempre, se un essenziale e' un luogo da visitare (le aggiunte non lo diventano: solo se manca)
+    assegnaSimbolo(tutti, metropoli);
+    return { posti: tutti, quotePrima: prima, quoteDopo: quoteLista(tutti, scala),
+        completamento: { mancavano: prima.mancanti, quartieri: prima.mancanoQuartieri, aggiunti: aggiunti.map(p => p.nome), promossi, ...(errore ? { errore } : {}) } };
 }
 
 // ─── La verifica su Google ──────────────────────────────────────────────────
@@ -265,7 +538,9 @@ export const kmFra = (a: { lat: number; lng: number }, b: { lat: number; lng: nu
 // indirizzo) con la STESSA CATEGORIA di quella proposta dall'AI; la sostituzione si scrive (proposto, Google, categoria).
 export const CATEGORIE_BORGO = ['chiesa', 'monumento', 'museo', 'piazza', 'mercato', 'bar', 'pasticceria', 'ristorante', 'parco'];
 // le categorie che per Google sono la stessa cosa (un castello o una torre e' un monumento; una pasticceria e' spesso un bar)
-const FAMIGLIA_CATEGORIA: Record<string, string> = { chiesa: 'chiesa', monumento: 'monumento', museo: 'museo', piazza: 'piazza', mercato: 'mercato', bar: 'bar', pasticceria: 'bar', ristorante: 'ristorante', parco: 'parco' };
+const FAMIGLIA_CATEGORIA: Record<string, string> = { chiesa: 'chiesa', monumento: 'monumento', museo: 'museo', piazza: 'piazza', mercato: 'mercato', bar: 'bar', pasticceria: 'bar', ristorante: 'ristorante', parco: 'parco',
+    // C10b3 — le categorie della lista bilanciata
+    palazzo: 'monumento', giardino: 'parco', belvedere: 'monumento', via: 'piazza', colazione: 'bar', dopocena: 'bar' };
 /** La categoria (famiglia) di un risultato di Google dai suoi tipi, o null. L'ordine conta: il piu' specifico prima. */
 export function categoriaGoogle(r: RisultatoGoogle): string | null {
     const tipi = [String(r?.primary_type || ''), ...(Array.isArray(r?.types) ? r.types.map(String) : [])].filter(Boolean);
@@ -352,6 +627,9 @@ export function voceVerificata(p: PostoProposto, r: RisultatoGoogle, sostituzion
         _citta: {
             momento: p.momento, tipo: p.tipo, nomeProposto: p.nome,
             ...(p.quartiere ? { quartiere: p.quartiere } : {}), ...(p.simbolo ? { simbolo: true } : {}), ...(p.simboloDedotto ? { simboloDedotto: true } : {}),
+            // C10b3 — la categoria, la via principale del borgo, il posto aggiunto dal completamento
+            ...(p.categoria ? { categoria: p.categoria } : {}), ...(p.passeggiata ? { passeggiata: true } : {}), ...(p.completamento ? { completamento: true } : {}),
+            ...(p.imperdibile ? { imperdibile: true } : {}),
             // C10b2 — nel borgo: il nome di Google accettato per la stessa categoria (scritto nel tracciato)
             ...(sostituzione ? { sostituzione } : {}),
         },
@@ -388,5 +666,5 @@ REGOLE
 
 /** La lista del quartiere, ripulita: come una lista di metropoli, al massimo 8 posti, tutti col nome del quartiere chiesto. */
 export function leggiListaQuartiere(content: unknown, citta: string, quartiere: string): PostoProposto[] {
-    return leggiLista(content, citta, 'metropoli').slice(0, POSTI_QUARTIERE_MAX).map(p => ({ ...p, quartiere }));
+    return leggiLista(content, citta, 'metropoli', 'A').slice(0, POSTI_QUARTIERE_MAX).map(p => ({ ...p, quartiere }));
 }

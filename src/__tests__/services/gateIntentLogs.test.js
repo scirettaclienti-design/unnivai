@@ -181,7 +181,8 @@ describe('Gate INTENT — nessun cambio di comportamento', () => {
         // cambia la QUERY, non customKind.
         const chiamata = dopo.slice(0, dopo.indexOf('`path A ${cityName}`'));
         expect(chiamata).toContain('customQuery: q, customKind');
-        expect(chiamata).toContain('{ customQuery: fq, customKind, skipLegacyFallback: true }');
+        // C10b3 — in metropoli si aggiunge solo il bias del quartiere (`...bias`): customKind resta quello della categoria
+        expect(chiamata).toContain('{ customQuery: fq, customKind, skipLegacyFallback: true, ...bias }');
         expect(chiamata).not.toMatch(/customKind:\s*deriveKindFromQuery/);
     });
 

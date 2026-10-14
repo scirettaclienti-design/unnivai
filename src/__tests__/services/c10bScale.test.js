@@ -58,7 +58,7 @@ describe('C10b — la lista per scala, il quartiere, il simbolo', () => {
         expect(scalaDaAbitanti(960000)).toBe('metropoli');
         expect(scalaDaAbitanti(null)).toBe('città');
         expect(leggiLista(JSON.stringify({ posti: posti(20) }), 'Troina', 'borgo').length).toBe(POSTI_PER_SCALA.borgo);
-        const m = leggiLista(JSON.stringify({ posti: posti(25, (i) => ({ quartiere: i % 2 ? 'Trastevere' : 'Monti' })) }), 'Roma', 'metropoli');
+        const m = leggiLista(JSON.stringify({ posti: posti(25, (i) => ({ quartiere: i % 2 ? 'Trastevere' : 'Monti' })) }), 'Roma', 'metropoli', 'A');
         expect(m.length).toBe(20);
         expect(m[0].quartiere).toBe('Monti');
         // in una città il quartiere non c'e'
@@ -70,23 +70,24 @@ describe('C10b — la lista per scala, il quartiere, il simbolo', () => {
             { nome: 'Castello', momento: 'mattina', tipo: 'essenziale' },
             { nome: 'Cattedrale', momento: 'mattina', tipo: 'essenziale', simbolo: true },
             { nome: 'Teatro', momento: 'pomeriggio', tipo: 'essenziale', simbolo: true },
-        ] }), 'Catania', 'città');
+        ] }), 'Catania', 'città', 'A');
         expect(l.filter(p => p.simbolo).map(p => p.nome)).toEqual(['Cattedrale']);
         const m = leggiLista(JSON.stringify({ posti: [
             { nome: 'Colosseo', momento: 'mattina', tipo: 'essenziale', quartiere: 'Monti', simbolo: true },
             { nome: 'Santa Maria in Trastevere', momento: 'pomeriggio', tipo: 'essenziale', quartiere: 'Trastevere' },
-        ] }), 'Roma', 'metropoli');
+        ] }), 'Roma', 'metropoli', 'A');
         expect(m.map(p => [p.nome, !!p.simbolo, !!p.simboloDedotto])).toEqual([['Colosseo', true, false], ['Santa Maria in Trastevere', true, true]]);
     });
     it('il prompt è scritto per la scala: quartiere solo in metropoli, 8 posti nel borgo, il simbolo (un luogo); nessun nome di città oltre a quella chiesta', () => {
-        expect(CITY_LIST_VERSION).toBe('c10b-4');
-        const citta = promptCitta('Lecce', '2026-10-15').system;
-        const metro = promptCitta('Lecce', '2026-10-15', 'metropoli').system;
+        expect(CITY_LIST_VERSION).toBe('c10b-7');
+        // C10b3-ter — il testo delle varianti A e B (la C ha gli imperdibili: c10b3ter.test.js)
+        const citta = promptCitta('Lecce', '2026-10-15', 'città', 'A').system;
+        const metro = promptCitta('Lecce', '2026-10-15', 'metropoli', 'A').system;
         const borgo = promptCitta('Lecce', '2026-10-15', 'borgo').system;
         expect(citta).not.toMatch(/quartiere/);
         expect(metro).toMatch(/"quartiere": per ogni posto, il quartiere camminabile/);
         expect(metro).toMatch(/uno per quartiere/);
-        expect(borgo).toMatch(/Al massimo 8 posti, tutti dentro il comune/);
+        expect(borgo).toMatch(/al massimo 8 posti, tutti dentro il comune/);
         for (const sys of [citta, metro, borgo]) {
             expect(sys).toMatch(/il posto che un abitante non ti perdonerebbe mai di aver saltato|l'essenziale che un abitante non ti perdonerebbe mai di aver saltato/);
             expect(sys).toMatch(/Il simbolo è un luogo da visitare/);

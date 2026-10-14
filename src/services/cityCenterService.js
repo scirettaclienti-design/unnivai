@@ -298,6 +298,35 @@ export async function confirmCityFromText(cityName) {
     return { sure: true, city: c.name, center };
 }
 
+/**
+ * C10c — un quartiere chiesto che non e' nella lista: UNA findplacefromtext «nome, citta'» (nome, punto, riquadro, tipi).
+ * La conferma (tipo da quartiere, nome compatibile, dentro la citta') la fa `quartiereConfermato` (lib/cityKnowledge).
+ * @returns {Promise<{ candidato: object|null, errore?: string }>}
+ */
+export async function cercaQuartiere(nome, city) {
+    const q = String(nome || '').trim();
+    if (!q || !city) return { candidato: null, errore: 'parametri' };
+    if (!isPlacesProxyEnabled()) return { candidato: null, errore: 'proxy' };
+    const proxyUrl = buildPlacesProxyUrl({
+        path: 'place/findplacefromtext',
+        input: `${q}, ${city}`,
+        inputtype: 'textquery',
+        fields: 'name,geometry,types',
+    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    try {
+        const res = await fetch(proxyUrl, { signal: controller.signal });
+        if (!res.ok) return { candidato: null, errore: `HTTP ${res.status}` };
+        const data = await res.json();
+        return { candidato: data?.status === 'OK' && Array.isArray(data.candidates) ? (data.candidates[0] || null) : null };
+    } catch (err) {
+        return { candidato: null, errore: err?.name === 'AbortError' ? 'timeout' : String(err?.message || err).slice(0, 80) };
+    } finally {
+        clearTimeout(timeoutId);
+    }
+}
+
 // Utility esportata per i test: forza un valore in cache senza chiamare il proxy.
 // Non usata dai chiamanti in produzione.
 export const __testing__ = {

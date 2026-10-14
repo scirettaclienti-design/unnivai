@@ -47,6 +47,10 @@ export function poiDallaLista(verificati, city, buildPOI) {
                 ...(_citta?.quartiere ? { quartiere: String(_citta.quartiere) } : {}),
                 ...(ess && _citta?.simbolo ? { simbolo: true } : {}),
                 ...(ess && _citta?.simboloDedotto ? { simboloDedotto: true } : {}),
+                // C10b3 — la categoria detta dall'AI, la via principale del borgo (vale come passeggiata), le aggiunte del completamento
+                ...(_citta?.categoria ? { categoria: String(_citta.categoria) } : {}),
+                ...(_citta?.passeggiata ? { passeggiata: true } : {}),
+                ...(_citta?.completamento ? { completamento: true } : {}),
             },
         };
     });
@@ -71,6 +75,46 @@ export const MEZZA_GIORNATA_MINUTI = 240;
  */
 export const MINUTI_PER_TAPPA_BORGO = 45;
 export const durataBorgoCorto = (visitabili) => MINUTI_PER_TAPPA_BORGO * Math.min(4, Math.max(2, Number(visitabili) || 0));
+/**
+ * C10b3 — il giro corto di un borgo nella FASCIA APERTA (decisione di Ivano): fra l'inizio e la fine della finestra, a passi di
+ * 30 minuti, la fascia in cui sono aperti piu' posti della lista (poi piu' luoghi da visitare in tutto); a parita' la prima.
+ * La durata segue i luoghi aperti in quella fascia (durataBorgoCorto: 45 min ciascuno, 2–4). La finestra non si allunga mai.
+ * Un posto conta se e' aperto per una sosta intera (45 min) dentro la fascia; senza orari conta come aperto.
+ * @returns {{ start: Date, end: Date, minuti: number, listaAperti: number, aperti: number }|null}
+ */
+export function fasciaApertaBorgo({ candidati = [], lista = [], finestra = null, passoMinuti = 30 } = {}) {
+    if (!(finestra?.start instanceof Date) || !(finestra?.end instanceof Date)) return null;
+    const s0 = finestra.start.getTime(), e0 = finestra.end.getTime();
+    const idLista = new Set(lista.map(idOf));
+    const minimo = durataBorgoCorto(0);
+    let meglio = null;
+    for (let t = s0; t + minimo * 60000 <= e0; t += passoMinuti * 60000) {
+        // aperto per una sosta intera (45 min) dentro la fascia, come vuole ORARI; senza orari conta come aperto
+        const apertiIn = (min) => {
+            const fine = Math.min(e0, t + min * 60000);
+            return candidati.filter(c => {
+                let ignoto = false;
+                for (let u = t; u + MINUTI_PER_TAPPA_BORGO * 60000 <= fine; u += 15 * 60000) {
+                    const st = openStatus(c, new Date(u), MINUTI_PER_TAPPA_BORGO).stato;
+                    if (st === 'aperto') return true;
+                    if (st === 'sconosciuto') ignoto = true;
+                }
+                return ignoto;
+            });
+        };
+        const minuti = Math.min((e0 - t) / 60000, durataBorgoCorto(apertiIn(MINUTI_PER_TAPPA_BORGO * 4).length));
+        const aperti = apertiIn(minuti);
+        const listaAperti = aperti.filter(c => idLista.has(idOf(c))).length;
+        // a parita', la fascia in cui i posti della lista sono gia' aperti all'inizio (niente attesa davanti alle porte chiuse)
+        const subito = aperti.filter(c => idLista.has(idOf(c)) && openStatus(c, new Date(t), MINUTI_PER_TAPPA_BORGO).stato === 'aperto').length;
+        const punti = listaAperti * 10 + aperti.length + subito * 0.5;
+        if (!meglio || punti > meglio.punti) meglio = { punti, start: new Date(t), end: new Date(t + minuti * 60000), minuti, listaAperti, aperti: aperti.length };
+    }
+    if (!meglio) return null;
+    const { punti: _p, ...fascia } = meglio;
+    return fascia;
+}
+
 /** La riga a schermo (testo approvato da Ivano nel task C10b). */
 export const rigaBorgo = (citta) => `${citta} si gira in mezza giornata.`;
 /** C10b2 — il raggio del quartiere: 2 km dal suo centro (decisione di Ivano). */
@@ -176,8 +220,11 @@ export function scegliQuartiere({ poi = [], testo = '', partenza = null, finestr
     const conEssenziali = quartieri.filter(q => q.essenziali.length >= 1);
     if (conEssenziali.length === 0) return { quartiere: null, secondo: null, motivo: 'nessun quartiere con un essenziale verificato', motivoSecondo: null, classifica };
     const km = (q) => (partenza && conCoordinate(partenza) ? kmTra(partenza, q.centro) : 0);
-    const primo = [...conEssenziali].sort((a, b) => (aperte(b) - aperte(a)) || (km(a) - km(b)))[0];
-    const motivo = 'il quartiere con piu\' ancore aperte, il piu\' vicino alla partenza a parita\'';
+    // C10c — il simbolo dichiarato dall'AI entra sempre (decisione di Ivano): senza un quartiere chiesto, la giornata parte dal suo
+    const sAI = simboloAI(poi);
+    const delSimbolo = sAI ? conEssenziali.find(q => delQuartiere(sAI, q) && (!finestre.length || finestre.some(w => apertoNellaFinestra(sAI, w)))) : null;
+    const primo = delSimbolo || [...conEssenziali].sort((a, b) => (aperte(b) - aperte(a)) || (km(a) - km(b)))[0];
+    const motivo = delSimbolo ? `il quartiere del simbolo (${sAI.name || sAI.title})` : 'il quartiere con piu\' ancore aperte, il piu\' vicino alla partenza a parita\'';
     if (!dueQuartieri) return { quartiere: primo, secondo: null, motivo, motivoSecondo: null, classifica };
     const vicini = conEssenziali.filter(q => q !== primo).map(q => ({ q, d: kmTra(primo.centro, q.centro) })).filter(x => x.d <= QUARTIERI_VICINI_KM)
         .sort((a, b) => a.d - b.d);
@@ -272,14 +319,20 @@ export function scegliAncore(essenziali, { cap, finestre = [] } = {}) {
  * @param {{ seleziona: (altri: Array) => Array, tourWindow?: object }} o
  * @returns {{ candidates: Array, ancore: Array, daLocale: Array, essenzialiAlMerito: Array }}
  */
+/** C10c — 2 il simbolo dichiarato dall'AI, 1 un simbolo dedotto dal codice, 0 gli altri. */
+export const rangoSimbolo = (c) => (c?._citta?.simbolo ? (c._citta.simboloDedotto ? 1 : 2) : 0);
+/** C10c — il simbolo della citta' dichiarato dall'AI (il primo non dedotto), o null. */
+export const simboloAI = (poi) => (poi || []).find(p => p?._citta?.tipo === 'essenziale' && rangoSimbolo(p) === 2) || null;
+
 export function poolConLista(candidates, { seleziona, tourWindow = null } = {}) {
     const lista = (candidates || []).filter(c => c?._citta);
     if (lista.length === 0) return { candidates: seleziona(candidates || []), ancore: [], daLocale: [], essenzialiAlMerito: [] };
     // un essenziale che e' un locale (bar, caffe', ristorante, negozio) non e' un'ancora: resta un posto «da locale»
     const locale = (c) => COMMERCIAL_KINDS.has(placeKind(c).kind);
     for (const c of lista) if (c._citta.tipo === 'essenziale' && locale(c)) c._citta = { ...c._citta, tipo: 'da locale', eraEssenziale: true };
-    // C10b — il SIMBOLO per primo: e' la prima ancora (una famiglia gia' presa non lo scavalca)
-    const essenziali = lista.filter(c => c._citta.tipo === 'essenziale').sort((x, y) => (y._citta.simbolo ? 1 : 0) - (x._citta.simbolo ? 1 : 0));
+    // C10b — il SIMBOLO per primo: e' la prima ancora (una famiglia gia' presa non lo scavalca).
+    // C10c — il simbolo DICHIARATO dall'AI vince su uno dedotto dal codice (decisione di Ivano): prima lui, poi i dedotti.
+    const essenziali = lista.filter(c => c._citta.tipo === 'essenziale').sort((x, y) => rangoSimbolo(y) - rangoSimbolo(x));
     const ancore = scegliAncore(essenziali, { cap: ANCORE_CANDIDATE_MAX, finestre: tourWindow?.windows || [] })
         .map(c => ({ ...c, _citta: { ...c._citta, ancora: true } }));
     const idAncore = new Set(ancore.map(idOf));
@@ -340,3 +393,154 @@ export function seminaAncore(aiStops, ancore, moments, buckets, tourWindow = nul
 export function declassa(nonSeminate) {
     for (const c of nonSeminate || []) if (c && c._citta) { delete c._citta; c._cittaEssenziale = true; }
 }
+
+// ─── C10c — un quartiere chiesto che non e' nella lista (decisione di Ivano) ──────────────────────────────────────────
+//
+// Se la richiesta nomina un quartiere che la lista del giorno non ha («una giornata a Trastevere» con una lista Monti /
+// Centro / Prati), il motore lo riconosce comunque: il nome si verifica su Google dentro la citta' (un quartiere, non una
+// via), parte la lista dedicata del quartiere (C10b2) e la giornata parte da li'. Regola: almeno meta' delle tappe nel
+// quartiere (il NUCLEO: 1 km dal punto di Google, dentro il suo riquadro), le altre nei quartieri vicini a piedi (l'AREA: 2 km).
+
+const PREPOSIZIONI = 'a|in|nel|nella|nello|al|allo|alla|ai|agli|alle|per|da|dal|dalla|dai|tra|fra|verso|sul|sulla|dentro';
+const PAROLE_NON_LUOGO = new Set(['domani', 'oggi', 'dopodomani', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica', 'italia']);
+
+/**
+ * I nomi propri dopo una preposizione («a Trastevere», «nel Rione Monti», «a Campo de' Fiori»), tolto il nome della citta':
+ * i candidati a quartiere, da verificare su Google. Al massimo 2.
+ */
+export function nomiDiLuogoNelTesto(testo, citta = '') {
+    const t = String(testo || '');
+    const re = new RegExp(`(?:^|\\s)(?:${PREPOSIZIONI})\\s+((?:[A-ZÀ-Ý][\\p{L}'’]*)(?:\\s+(?:(?:de'|de’|di|del|dei|della|delle|degli|dello|e)\\s+)?[A-ZÀ-Ý][\\p{L}'’]*)*)`, 'gu');
+    const cittaN = normTesto(citta).trim();
+    const out = [];
+    for (const m of t.matchAll(re)) {
+        const nome = m[1].trim();
+        const k = normTesto(nome).trim();
+        if (!k || k === cittaN || PAROLE_NON_LUOGO.has(k) || out.some(x => normTesto(x).trim() === k)) continue;
+        out.push(nome);
+        if (out.length >= 2) break;
+    }
+    return out;
+}
+
+/** I tipi Google di un quartiere (mai una via, mai una citta'). */
+export const TIPI_QUARTIERE = new Set(['neighborhood', 'sublocality', 'sublocality_level_1', 'sublocality_level_2', 'sublocality_level_3',
+    'sublocality_level_4', 'sublocality_level_5', 'colloquial_area', 'administrative_area_level_4', 'administrative_area_level_5']);
+/** Il nucleo di un quartiere senza riquadro di Google: 1 km dal suo punto. */
+export const NUCLEO_QUARTIERE_KM = 1;
+/** Il margine sul riquadro di Google: un posto sul bordo del rione (una piazza, un ponte) e' ancora del rione. */
+export const MARGINE_NUCLEO_KM = 0.15;
+
+/**
+ * Il risultato di Google per «nome, citta'» e' davvero quel quartiere? Un tipo da quartiere, il nome compatibile, dentro la
+ * citta' (entro `raggioCittaKm` dal centro).
+ * @returns {{ ok: boolean, motivo?: string }}
+ */
+export function quartiereConfermato(candidato, nome, centroCitta, raggioCittaKm = 20) {
+    if (!candidato) return { ok: false, motivo: 'nessun risultato' };
+    const tipi = Array.isArray(candidato.types) ? candidato.types : [];
+    if (!tipi.some(x => TIPI_QUARTIERE.has(x))) return { ok: false, motivo: `non e' un quartiere (${tipi.join(', ') || 'senza tipi'})` };
+    const a = normTesto(candidato.name).trim(), b = normTesto(nome).trim();
+    if (!a || !b || !(a.includes(b) || b.includes(a))) return { ok: false, motivo: `nome diverso («${candidato.name}»)` };
+    const loc = candidato.geometry?.location;
+    if (!loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) return { ok: false, motivo: 'senza coordinate' };
+    if (centroCitta && conCoordinate(centroCitta) && kmTra(centroCitta, { latitude: loc.lat, longitude: loc.lng }) > raggioCittaKm) {
+        return { ok: false, motivo: 'fuori dalla citta\'' };
+    }
+    return { ok: true };
+}
+
+/**
+ * Il quartiere chiesto fuori lista, nella forma di `quartieriDallaLista`: centro = il punto di Google, raggio dell'area 2 km,
+ * gli essenziali e i luoghi da visitare dalla sua lista dedicata; `nucleo` = 1 km dal punto di Google, dentro il suo riquadro.
+ */
+export function quartiereFuoriLista({ nome, candidato, poiQuartiere = [] }) {
+    const loc = candidato.geometry.location;
+    const centro = { latitude: loc.lat, longitude: loc.lng };
+    const vp = candidato.geometry?.viewport;
+    const ne = vp?.northeast, sw = vp?.southwest;
+    // il riquadro di Google di un quartiere e' largo (Trastevere: 2 x 1,8 km, fino al Pantheon): il nucleo e' il cerchio di 1 km
+    // dal punto del quartiere, e se c'e' il riquadro anche dentro di lui
+    const nucleo = { tipo: 'cerchio', centro, raggioKm: NUCLEO_QUARTIERE_KM,
+        ...(ne && sw && [ne.lat, ne.lng, sw.lat, sw.lng].every(Number.isFinite) ? { riquadro: { nord: ne.lat, est: ne.lng, sud: sw.lat, ovest: sw.lng, margineKm: MARGINE_NUCLEO_KM } } : {}) };
+    const posti = poiQuartiere.filter(conCoordinate);
+    return {
+        nome, chiave: normTesto(nome).trim(), centro, raggioKm: RAGGIO_QUARTIERE_KM, posti,
+        essenziali: posti.filter(p => p._citta?.tipo === 'essenziale'), daVisitare: posti.filter(p => !COMMERCIAL_KINDS.has(placeKind(p).kind)),
+        nucleo, fuoriLista: true,
+    };
+}
+
+/** Il nucleo di un quartiere della lista (chiesto per nome): 1 km dal suo centro. */
+export const nucleoDi = (q) => q?.nucleo || (q?.centro ? { tipo: 'cerchio', centro: q.centro, raggioKm: NUCLEO_QUARTIERE_KM } : null);
+
+/** Un posto nel nucleo del quartiere chiesto (senza coordinate: non si giudica, resta). */
+export function dentroNucleo(c, nucleo) {
+    if (!nucleo || !conCoordinate(c)) return true;
+    if (kmTra(nucleo.centro, c) > nucleo.raggioKm) return false;
+    const r = nucleo.riquadro;
+    if (!r) return true;
+    const mLat = (r.margineKm || 0) / 111;
+    const mLng = (r.margineKm || 0) / (111 * Math.cos((latOf(c) * Math.PI) / 180));
+    return latOf(c) <= r.nord + mLat && latOf(c) >= r.sud - mLat && lngOf(c) <= r.est + mLng && lngOf(c) >= r.ovest - mLng;
+}
+
+// Le visite e il pranzo stanno nel nucleo del quartiere chiesto; aperitivo, passeggiata, cena e dopocena nell'area (a piedi).
+const MOMENTI_NEL_NUCLEO = new Set(['colazione', 'mattina', 'pranzo', 'pomeriggio']);
+
+/**
+ * C10c — i bucket con un quartiere chiesto: mattina, pranzo e pomeriggio nel suo nucleo (cosi' il giro parte da li' e la
+ * maggior parte delle tappe ci sta), la sera nell'area a piedi. Un momento che nel nucleo resterebbe vuoto tiene l'area.
+ */
+export function bucketsNelNucleo(moments, buckets, nucleo) {
+    if (!buckets || !nucleo) return buckets;
+    const out = new Map(buckets);
+    for (const m of moments || []) {
+        if (!MOMENTI_NEL_NUCLEO.has(m.key)) continue;
+        const b = buckets.get(m.id) || [];
+        const dentro = b.filter(c => dentroNucleo(c, nucleo));
+        if (dentro.length > 0) out.set(m.id, dentro);
+    }
+    return out;
+}
+
+/**
+ * C10c — ORARI: un'ancora vietata nel suo momento (chiusa quando ci si arriva) puo' andare in un altro momento dello stesso
+ * giorno in cui e' aperta (il bucket, gia' filtrato per orari e divieti, la contiene) e c'e' posto per un'ancora (mai piu'
+ * ancore delle tappe del momento). Prima le visite (mattina, pomeriggio).
+ * @returns {{ aiStops: Array, spostate: Array<{ place_id, da, a }> }}
+ */
+export function spostaAncoreVietate(aiStops, idAncore, moments, buckets, veto) {
+    if (!veto?.size || !idAncore?.size) return { aiStops, spostate: [] };
+    const spostate = [];
+    const out = [...(aiStops || [])];
+    const byId = new Map((moments || []).map(m => [m.id, m]));
+    const ancoreIn = (mid) => out.filter(s => idAncore.has(s?.place_id) && s.moment === mid).length;
+    for (let i = 0; i < out.length; i++) {
+        const s = out[i];
+        if (!idAncore.has(s?.place_id) || !veto.get(s.moment)?.has(s.place_id)) continue;
+        const da = byId.get(s.moment);
+        if (!da) continue;
+        const altro = [...moments]
+            .filter(m => m.dayIndex === da.dayIndex && m.id !== da.id && !veto.get(m.id)?.has(s.place_id)
+                && (buckets?.get(m.id) || []).some(c => idOf(c) === s.place_id)
+                && ancoreIn(m.id) < (Number.isFinite(m.stops) ? m.stops : Infinity))
+            .sort((x, y) => (VISITE.includes(y.key) ? 1 : 0) - (VISITE.includes(x.key) ? 1 : 0))[0];
+        if (!altro) continue;
+        out[i] = { ...s, moment: altro.id };
+        spostate.push({ place_id: s.place_id, da: da.id, a: altro.id });
+    }
+    return { aiStops: out, spostate };
+}
+
+/**
+ * C10c — BORGO (decisione di Ivano): la regola «la durata segue le tappe» conta solo i luoghi da visitare (e, per la durata,
+ * le passeggiate): non i ristoranti, i bar, i negozi, ne' i posti che per Google non hanno un tipo.
+ */
+const TIPI_GENERICI = new Set(['point_of_interest', 'establishment']);
+export const luogoDaVisitareBorgo = (p) => {
+    // «point_of_interest» ed «establishment» li ha ogni posto: da soli non dicono cosa sia (San Silvestro a Troina)
+    const tipi = (Array.isArray(p?.types) ? p.types : []).filter(t => !TIPI_GENERICI.has(t));
+    if (tipi.length === 0 && !p?.primaryType) return false;
+    return !COMMERCIAL_KINDS.has(placeKind(p).kind);
+};

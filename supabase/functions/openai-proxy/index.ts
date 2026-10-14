@@ -46,11 +46,11 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import {
   CITY_LIST_VERSION, normCitta, cittaValida, giornoValido, promptCitta, leggiLista, verificaPosto, voceVerificata,
-  promptScala, leggiAbitanti, scalaDaAbitanti, type Scala, promptQuartiere, leggiListaQuartiere, versioneQuartiere,
+  promptScala, leggiAbitanti, scalaDaAbitanti, type Scala, promptQuartiere, leggiListaQuartiere, versioneQuartiere, completaLista,
   provinciaDa, queryVerifica, raggioVerificaKm,
 } from './cityKnowledge.ts';
 import {
-  MODELLO_DI_PRIMA, modelloPer, timeoutPer, corpoPer, rispostaVuota, passaggioValido, MODELLI_AMMESSI, chiamaConRipiego,
+  MODELLO_DI_PRIMA, modelloPer, timeoutPer, corpoPer, rispostaVuota, passaggioValido, MODELLI_AMMESSI, chiamaConRipiego, usageTotale,
 } from './modelli.ts';
 
 const OPENAI_BASE = 'https://api.openai.com/v1';
@@ -243,6 +243,8 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
       verificati: row.verificati,
       // C10b2 — il modello usato per la lista (e se ha ripiegato), dalla riga salvata
       modelli: row.costo?.modelli ?? null,
+      // C10b3 — le quote della lista (prima e dopo il completamento)
+      quote: row.costo?.quote ?? null,
       conti: { proposti: (row.proposti || []).length, verificati: (row.verificati || []).length, scartati: (row.scartati || []).length },
       ...extra,
     },
@@ -281,7 +283,8 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
         signal: c.signal,
       });
       const body = await upstream.json().catch(() => null);
-      if (!upstream.ok) throw new Error(`HTTP ${upstream.status} ${plain(body?.error?.code)}`);
+      // C10b3-bis — il motivo dice anche il tipo e il messaggio di OpenAI (il 500 di Roma del 14/10 non aveva il codice)
+      if (!upstream.ok) throw new Error(`HTTP ${upstream.status} ${plain(body?.error?.code)} ${plain(body?.error?.type)} ${plain(body?.error?.message)}`.slice(0, 120));
       return body;
     } finally {
       clearTimeout(t);
@@ -324,12 +327,22 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   }
   const tAi = Date.now() - t0;
   // la scala decide quanti posti si leggono e come si verificano (un borgo: «nome, comune, provincia»)
-  const proposti = quartiereChiesto
+  let proposti = quartiereChiesto
     ? leggiListaQuartiere(ai?.choices?.[0]?.message?.content, citta, quartiereChiesto)
     : leggiLista(ai?.choices?.[0]?.message?.content, citta, scala);
-  const usage = ai?.usage
-    ? { prompt_tokens: (ai.usage.prompt_tokens || 0) + (usageScala?.prompt_tokens || 0), completion_tokens: (ai.usage.completion_tokens || 0) + (usageScala?.completion_tokens || 0) }
-    : null;
+  // C10b3 — le quote sulla risposta: se mancano luoghi da visitare, UNA richiesta di completamento (stesso modello, stesso ripiego)
+  // deno-lint-ignore no-explicit-any
+  let quote: any = null;
+  if (!quartiereChiesto) {
+    const r = await completaLista({
+      posti: proposti, scala, citta, giorno,
+      chiedi: async (pr) => (await chiama('completamento', [{ role: 'system', content: pr.system }, { role: 'user', content: pr.user }], 2000, 0.2))?.choices?.[0]?.message?.content,
+    });
+    proposti = r.posti;
+    quote = { prima: r.quotePrima, dopo: r.quoteDopo, completamento: r.completamento };
+  }
+  // C10b3-bis — il costo conta i token di tutte le chiamate (abitanti, lista, completamento), dal tracciato dei modelli
+  const usage = modelliUsati.length ? usageTotale(modelliUsati) : null;
 
   // Il centro della città: la stessa ricerca del client (resolveCityCenter), dalla cache condivisa del proxy.
   const google = { findplace: 0, textsearch: 0, hit: 0 };
@@ -377,7 +390,7 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   const row = {
     citta: chiave, giorno, versione, citta_nome: citta, scala: quartiereChiesto ? null : scala, centro: centro ? { ...centro, provincia, raggioKm: raggio, abitanti } : null,
     proposti, verificati, scartati,
-    costo: { usage, google, ms: { ai: tAi, totale: Date.now() - t0 }, modelli: modelliUsati },
+    costo: { usage, google, ms: { ai: tAi, totale: Date.now() - t0 }, modelli: modelliUsati, ...(quote ? { quote } : {}) },
   };
   // Due prime richieste insieme: vince la prima scritta, e tutti ricevono quella (la lista resta una sola).
   const { error: insErr } = await sb.from('city_knowledge').upsert(row, { onConflict: 'citta,giorno,versione', ignoreDuplicates: true });
@@ -528,28 +541,39 @@ serve(async (req: Request) => {
   if (passaggioValido(passaggio) && !isStreaming && modelloPassaggio !== chiesto && MODELLI_AMMESSI.has(modelloPassaggio)) {
     const t0 = Date.now();
     const limite = timeoutPer(passaggio, UPSTREAM_TIMEOUT_MS);
-    const c2 = new AbortController();
-    const t2 = setTimeout(() => c2.abort(), limite);
     let motivo = '';
-    try {
-      const r = await fetch(`${OPENAI_BASE}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
-        body: JSON.stringify(corpoPer(modelloPassaggio, openAiPayload)),
-        signal: c2.signal,
-      });
-      const d = await r.json().catch(() => null);
-      if (r.ok && d && !rispostaVuota(d)) {
+    // C10b3-bis (decisione di Ivano) — un errore del modello nuovo (HTTP o rete; non il tempo scaduto, non la risposta vuota)
+    // ha UN nuovo tentativo prima del ripiego, come nella lista (modelli.ts, chiamaConRipiego).
+    let primoErrore: string | null = null;
+    for (let tentativo = 1; tentativo <= 2; tentativo++) {
+      const c2 = new AbortController();
+      const t2 = setTimeout(() => c2.abort(), limite);
+      let errore = false;
+      try {
+        const r = await fetch(`${OPENAI_BASE}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
+          body: JSON.stringify(corpoPer(modelloPassaggio, openAiPayload)),
+          signal: c2.signal,
+        });
+        const d = await r.json().catch(() => null);
+        if (r.ok && d && !rispostaVuota(d)) {
+          clearTimeout(t2);
+          return json(200, { ...d, _modello: { passaggio, chiesto: modelloPassaggio, usato: modelloPassaggio, ripiego: false, ms: Date.now() - t0,
+            ...(primoErrore ? { tentativi: 2, primoErrore } : {}) } }, quotaHeaders);
+        }
+        errore = !r.ok;
+        motivo = r.ok ? 'risposta vuota' : `HTTP ${r.status} ${plain(d?.error?.code)} ${plain(d?.error?.type)} ${plain(d?.error?.message)}`.slice(0, 120);
+      } catch (err) {
+        errore = (err as Error)?.name !== 'AbortError';
+        motivo = errore ? `rete (${scrubLogText(err).slice(0, 40)})` : `oltre il tempo massimo (${limite / 1000} s)`;
+      } finally {
         clearTimeout(t2);
-        return json(200, { ...d, _modello: { passaggio, chiesto: modelloPassaggio, usato: modelloPassaggio, ripiego: false, ms: Date.now() - t0 } }, quotaHeaders);
       }
-      motivo = r.ok ? 'risposta vuota' : `HTTP ${r.status} ${plain(d?.error?.code)}`;
-    } catch (err) {
-      motivo = (err as Error)?.name === 'AbortError' ? `oltre il tempo massimo (${limite / 1000} s)` : `rete (${scrubLogText(err).slice(0, 40)})`;
-    } finally {
-      clearTimeout(t2);
+      if (!errore || tentativo === 2) break;
+      primoErrore = motivo;
     }
-    infoModello = { passaggio, chiesto: modelloPassaggio, usato: chiesto, ripiego: true, motivo, ms: Date.now() - t0 };
+    infoModello = { passaggio, chiesto: modelloPassaggio, usato: chiesto, ripiego: true, motivo, ...(primoErrore ? { tentativi: 2, primoErrore } : {}), ms: Date.now() - t0 };
     console.warn(`[openai-proxy] ${passaggio}: ${modelloPassaggio} → ripiego su ${chiesto} (${motivo})`);
   }
 

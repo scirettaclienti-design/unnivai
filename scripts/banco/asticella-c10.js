@@ -35,6 +35,35 @@ export const ESSENZIALI_CONTROLLO = {
         ['Monastero di San Michele Arcangelo (ruderi)', /san michele|monastero nuovo/i],
     ],
 };
+// C10b3-chiusura (decisione di Ivano) — i SIMBOLI ACCETTATI di ogni citta' (al posto del «primo nome della lista di
+// controllo» di C10b3-ter). Le liste di controllo non cambiano.
+export const SIMBOLI_ACCETTATI = {
+    Roma: [['Colosseo', /colosseo|anfiteatro flavio/i]],
+    Napoli: [
+        ['Castel Nuovo', /castel nuovo|maschio angioino/i], ["Castel dell'Ovo", /castel dell.?ovo/i],
+        ['Duomo', /duomo di (napoli|santa maria assunta)|cattedrale di (napoli|santa maria assunta)/i],
+    ],
+    Catania: [['Fontana dell\'Elefante', /fontana dell.?elefante|liotru/i], ["Cattedrale di Sant'Agata", /cattedrale di sant.?agata/i]],
+    Palermo: [
+        ['Cattedrale', /cattedrale (metropolitana )?di palermo|^cattedrale/i],
+        ['Palazzo dei Normanni con Cappella Palatina', /palazzo dei normanni|palazzo reale di palermo|cappella palatina/i],
+    ],
+    Lecce: [['Basilica di Santa Croce', /santa croce/i], ['Duomo', /duomo di lecce|^duomo$|cattedrale (di )?maria (santissima|ss\.?) assunta/i]],
+    Troina: [['Chiesa Madre', /cattedrale|chiesa madre|maria (santissima|ss\.?) assunta/i]],
+};
+/**
+ * Il simbolo della lista e' fra quelli accettati? Il simbolo della citta' e' il PRIMO posto segnato simbolo dall'AI (non
+ * dedotto): in una metropoli i simboli sono uno per quartiere, e un'ancora qualsiasi (il Pantheon a Roma) non basta.
+ * `simboli`: [{ nome, dedotto? }] nell'ordine della lista.
+ */
+export function simboloGiusto(simboli, luogo) {
+    const accettati = SIMBOLI_ACCETTATI[luogo];
+    if (!accettati) return { applicabile: false };
+    const primo = (simboli || []).find(x => x && !x.dedotto) || null;
+    const quale = primo ? accettati.find(([, rx]) => rx.test(primo.nome || '')) : null;
+    return { applicabile: true, atteso: accettati.map(([n]) => n).join(' | '), simbolo: primo?.nome ?? null, dedotto: !primo && (simboli || []).length > 0,
+        riconosciuto: quale ? quale[0] : null, ok: !!quale };
+}
 export const BORGHI = new Set(['Troina']);
 export const SOGLIE_C10 = {
     ancoreMin: 3, visiteDallaListaMin: 0.5, borgoDallaListaMin: 2, tempoLiberoMax: 45, giornataMinuti: 360,

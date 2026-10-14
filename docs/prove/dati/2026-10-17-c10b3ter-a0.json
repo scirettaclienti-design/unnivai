@@ -1,0 +1,5443 @@
+{
+ "avvio": "2026-10-14T14:40:19.984Z",
+ "giorno": "2026-10-15",
+ "liste": [
+  {
+   "variante": "B",
+   "citta": "Napoli",
+   "rip": 1,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 43802,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 41837
+   },
+   "usage": {
+    "in": 1116,
+    "out": 1981
+   },
+   "costo": 0.022042,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Duomo di Napoli",
+     "Cappella Sansevero",
+     "Piazza del Plebiscito"
+    ],
+    "mancanti": [
+     "Museo Archeologico Nazionale",
+     "Castel dell'Ovo",
+     "Spaccanapoli"
+    ],
+    "totale": 6
+   },
+   "dubbi": [
+    {
+     "essenziale": "Castel dell'Ovo",
+     "nome": "Castel Nuovo"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Duomo di Napoli",
+    "simbolo": "Museo Cappella Sansevero",
+    "dedotto": false,
+    "ok": false
+   },
+   "simboli": [
+    {
+     "nome": "Museo Cappella Sansevero",
+     "quartiere": "Centro storico",
+     "dedotto": false
+    },
+    {
+     "nome": "Basilica di Santa Maria della Sanità",
+     "quartiere": "Sanità",
+     "dedotto": false
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "quartiere": "San Ferdinando",
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Museo Cappella Sansevero",
+    "Duomo di Napoli",
+    "Basilica di Santa Maria della Sanità",
+    "Catacombe di San Gaudioso",
+    "Palazzo Reale di Napoli",
+    "Castel Nuovo"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (9)",
+     "simbolo presente (3)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore ≥ 3 (6)",
+     "colazioni 1–2 (2)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (Centro storico 3, Sanità 3, San Ferdinando 3)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 9,
+    "storiche": 2,
+    "ancore": 6,
+    "dopocena": 1,
+    "perQuartiere": {
+     "Centro storico": 3,
+     "Sanità": 3,
+     "San Ferdinando": 3
+    }
+   },
+   "lista": [
+    {
+     "nome": "Museo Cappella Sansevero",
+     "categoria": "museo",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Duomo di Napoli",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Complesso Monumentale di Santa Chiara",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di Santa Maria della Sanità",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Sanità",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Catacombe di San Gaudioso",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Sanità",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Palazzo dello Spagnolo",
+     "categoria": "palazzo",
+     "tipo": "da locale",
+     "quartiere": "Sanità",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "categoria": "palazzo",
+     "tipo": "essenziale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Castel Nuovo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Teatro di San Carlo",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via San Gregorio Armeno",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Plebiscito",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato dei Vergini",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": "Sanità",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Scaturchio",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Poppella",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Sanità",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Gino e Toto Sorbillo",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Osteria Il Gobbetto",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Libreria Berisio",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "C",
+   "citta": "Napoli",
+   "rip": 1,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 54669,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 50757
+   },
+   "usage": {
+    "in": 1215,
+    "out": 2236
+   },
+   "costo": 0.02479,
+   "nomiGrezzi": 18,
+   "nomiLetti": 18,
+   "essenziali": {
+    "trovati": [
+     "Duomo di Napoli",
+     "Cappella Sansevero",
+     "Piazza del Plebiscito",
+     "Spaccanapoli"
+    ],
+    "mancanti": [
+     "Museo Archeologico Nazionale",
+     "Castel dell'Ovo"
+    ],
+    "totale": 6
+   },
+   "dubbi": [
+    {
+     "essenziale": "Castel dell'Ovo",
+     "nome": "Castel Nuovo"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Duomo di Napoli",
+    "simbolo": "Castel Nuovo",
+    "dedotto": false,
+    "ok": false
+   },
+   "simboli": [
+    {
+     "nome": "Castel Nuovo",
+     "quartiere": "San Ferdinando",
+     "dedotto": false
+    },
+    {
+     "nome": "Museo Cappella Sansevero",
+     "quartiere": "Centro storico",
+     "dedotto": true
+    }
+   ],
+   "ancore": [
+    "Castel Nuovo",
+    "Museo Cappella Sansevero",
+    "Duomo di Napoli",
+    "Palazzo Reale di Napoli"
+   ],
+   "imperdibili": [
+    "Castel Nuovo",
+    "Museo Cappella Sansevero",
+    "Duomo di Napoli",
+    "Palazzo Reale di Napoli",
+    "Teatro di San Carlo",
+    "Basilica Reale Pontificia San Francesco da Paola",
+    "Piazza del Plebiscito",
+    "Via Benedetto Croce"
+   ],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (11)",
+     "simbolo presente (2)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore ≥ 3 (4)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (San Ferdinando 4, Centro storico 3)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 11,
+    "storiche": 2,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {
+     "San Ferdinando": 4,
+     "Centro storico": 3
+    }
+   },
+   "lista": [
+    {
+     "nome": "Castel Nuovo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Museo Cappella Sansevero",
+     "categoria": "museo",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Duomo di Napoli",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "categoria": "palazzo",
+     "tipo": "essenziale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Teatro di San Carlo",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica Reale Pontificia San Francesco da Paola",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Plebiscito",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Benedetto Croce",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Complesso Monumentale di Santa Chiara",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Museo Pignatelli",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Santa Teresa a Chiaia",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Santa Maria in Portico",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato della Torretta",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Gran Caffè Gambrinus",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria da Nennella",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Umberto",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "L'Antiquario",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Comunale di Napoli",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "A",
+   "citta": "Napoli",
+   "rip": 1,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 71632,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-4o-mini",
+    "ripiego": true,
+    "motivo": "oltre il tempo massimo (60 s)",
+    "ms": 60008
+   },
+   "usage": {
+    "in": 1109,
+    "out": 943
+   },
+   "costo": 0.00073215,
+   "nomiGrezzi": 18,
+   "nomiLetti": 6,
+   "essenziali": {
+    "trovati": [
+     "Duomo di Napoli",
+     "Cappella Sansevero",
+     "Museo Archeologico Nazionale",
+     "Piazza del Plebiscito"
+    ],
+    "mancanti": [
+     "Castel dell'Ovo",
+     "Spaccanapoli"
+    ],
+    "totale": 6
+   },
+   "dubbi": [
+    {
+     "essenziale": "Castel dell'Ovo",
+     "nome": "Castel Nuovo"
+    },
+    {
+     "essenziale": "Castel dell'Ovo",
+     "nome": "Caffè dell'Epoca"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Duomo di Napoli",
+    "simbolo": null,
+    "dedotto": false,
+    "ok": false
+   },
+   "simboli": [],
+   "ancore": [],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "belvedere ≤ 1 (0)",
+     "colazioni 1–2 (2)",
+     "mercati ≤ 2 (0)",
+     "pasti ≥ 2 (3)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (—)"
+    ],
+    "mancate": [
+     "luoghi da visitare ≥ 8 (0)",
+     "simbolo presente (0)",
+     "piazze e vie storiche 2–3 (0)",
+     "ancore ≥ 3 (0)"
+    ],
+    "mancanti": {
+     "visite": 8,
+     "storiche": 2,
+     "ancore": 3,
+     "dopocena": 0
+    },
+    "visite": 0,
+    "storiche": 0,
+    "ancore": 0,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Caffè Gambrinus",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria Da Nennella",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Quartieri Spagnoli",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pizzeria Sorbillo",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Caffè dell'Epoca",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Ristorante Da Michele",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chalet Ciro",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Mergellina",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "B",
+   "citta": "Roma",
+   "rip": 1,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 44070,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 40513
+   },
+   "usage": {
+    "in": 1115,
+    "out": 1825
+   },
+   "costo": 0.02048,
+   "nomiGrezzi": 16,
+   "nomiLetti": 16,
+   "essenziali": {
+    "trovati": [
+     "Colosseo",
+     "Pantheon",
+     "Basilica di San Pietro",
+     "Foro Romano",
+     "Piazza Navona"
+    ],
+    "mancanti": [
+     "Fontana di Trevi"
+    ],
+    "totale": 6
+   },
+   "dubbi": [],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Colosseo",
+    "simbolo": "Pantheon",
+    "dedotto": false,
+    "ok": false
+   },
+   "simboli": [
+    {
+     "nome": "Pantheon",
+     "quartiere": "Centro",
+     "dedotto": false
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "quartiere": "Trastevere",
+     "dedotto": false
+    },
+    {
+     "nome": "Colosseo",
+     "quartiere": "Monti",
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Pantheon",
+    "Basilica di Santa Maria in Trastevere",
+    "Villa Farnesina",
+    "Colosseo",
+    "Foro Romano",
+    "Piazza Navona"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (9)",
+     "simbolo presente (3)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore ≥ 3 (6)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (Centro 3, Trastevere 3, Monti 3)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 9,
+    "storiche": 2,
+    "ancore": 6,
+    "dopocena": 1,
+    "perQuartiere": {
+     "Centro": 3,
+     "Trastevere": 3,
+     "Monti": 3
+    }
+   },
+   "lista": [
+    {
+     "nome": "Pantheon",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Chiesa di San Luigi dei Francesi",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Sant'Ignazio di Loyola",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Villa Farnesina",
+     "categoria": "palazzo",
+     "tipo": "essenziale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Francesco a Ripa",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Colosseo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Foro Romano",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di San Pietro in Vincoli",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Navona",
+     "categoria": "piazza",
+     "tipo": "essenziale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via dei Fori Imperiali",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di San Cosimato",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Sant'Eustachio Il Caffè",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "La Taverna dei Fori Imperiali",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Da Enzo al 29",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Freni e Frizioni",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "C",
+   "citta": "Roma",
+   "rip": 1,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 42915,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 42142
+   },
+   "usage": {
+    "in": 1214,
+    "out": 1985
+   },
+   "costo": 0.022278,
+   "nomiGrezzi": 16,
+   "nomiLetti": 16,
+   "essenziali": {
+    "trovati": [
+     "Colosseo",
+     "Fontana di Trevi",
+     "Pantheon",
+     "Basilica di San Pietro",
+     "Foro Romano",
+     "Piazza Navona"
+    ],
+    "mancanti": [],
+    "totale": 6
+   },
+   "dubbi": [],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Colosseo",
+    "simbolo": "Colosseo",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Colosseo",
+     "quartiere": "Monti",
+     "dedotto": false
+    },
+    {
+     "nome": "Pantheon",
+     "quartiere": "Centro storico",
+     "dedotto": true
+    },
+    {
+     "nome": "Basilica di San Pietro",
+     "quartiere": "Borgo",
+     "dedotto": true
+    }
+   ],
+   "ancore": [
+    "Colosseo",
+    "Pantheon",
+    "Basilica di San Pietro"
+   ],
+   "imperdibili": [
+    "Colosseo",
+    "Foro Romano",
+    "Pantheon",
+    "Fontana di Trevi",
+    "Basilica di San Pietro",
+    "Castel Sant'Angelo",
+    "Piazza Navona"
+   ],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (9)",
+     "simbolo presente (3)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore ≥ 3 (3)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (Monti 3, Centro storico 3, Borgo 3)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 9,
+    "storiche": 2,
+    "ancore": 3,
+    "dopocena": 1,
+    "perQuartiere": {
+     "Monti": 3,
+     "Centro storico": 3,
+     "Borgo": 3
+    }
+   },
+   "lista": [
+    {
+     "nome": "Colosseo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Monti",
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Foro Romano",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Pantheon",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Fontana di Trevi",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di San Pietro",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Borgo",
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Castel Sant'Angelo",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": "Borgo",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Navona",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di San Pietro in Vincoli",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Luigi dei Francesi",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Santo Spirito in Sassia",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Borgo",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza San Pietro",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "Borgo",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Campo de' Fiori",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Sant'Eustachio Il Caffè",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Armando al Pantheon",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "La Taverna dei Fori Imperiali",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Blackmarket Hall",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "A",
+   "citta": "Roma",
+   "rip": 1,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 43484,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 42795
+   },
+   "usage": {
+    "in": 1107,
+    "out": 2085
+   },
+   "costo": 0.023064,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Colosseo",
+     "Fontana di Trevi",
+     "Pantheon",
+     "Basilica di San Pietro",
+     "Foro Romano",
+     "Piazza Navona"
+    ],
+    "mancanti": [],
+    "totale": 6
+   },
+   "dubbi": [],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Colosseo",
+    "simbolo": "Pantheon",
+    "dedotto": false,
+    "ok": false
+   },
+   "simboli": [
+    {
+     "nome": "Pantheon",
+     "quartiere": "Centro",
+     "dedotto": false
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "quartiere": "Trastevere",
+     "dedotto": false
+    },
+    {
+     "nome": "Colosseo",
+     "quartiere": "Monti",
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Pantheon",
+    "Fontana di Trevi",
+    "Basilica di Santa Maria in Trastevere",
+    "Colosseo"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (10)",
+     "simbolo presente (3)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore ≥ 3 (4)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (Centro 4, Trastevere 3, Monti 3)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 10,
+    "storiche": 2,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {
+     "Centro": 4,
+     "Trastevere": 3,
+     "Monti": 3
+    }
+   },
+   "lista": [
+    {
+     "nome": "Pantheon",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Chiesa di Sant'Ignazio di Loyola",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Luigi dei Francesi",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Fontana di Trevi",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Basilica di Santa Cecilia in Trastevere",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Francesco a Ripa",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Colosseo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Basilica di San Pietro in Vincoli",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di Santa Prassede",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Navona",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza di Santa Maria in Trastevere",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Campo de' Fiori",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Sant'Eustachio Il Caffè",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Centro",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "La Taverna dei Fori Imperiali",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Da Enzo al 29",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Freni e Frizioni",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "B",
+   "citta": "Catania",
+   "rip": 1,
+   "scala": "città",
+   "status": 200,
+   "ms": 32479,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 31870
+   },
+   "usage": {
+    "in": 1023,
+    "out": 1683
+   },
+   "costo": 0.018876,
+   "nomiGrezzi": 16,
+   "nomiLetti": 16,
+   "essenziali": {
+    "trovati": [
+     "Cattedrale di Sant'Agata",
+     "Pescheria",
+     "Via Etnea",
+     "Monastero dei Benedettini",
+     "Castello Ursino",
+     "Villa Bellini"
+    ],
+    "mancanti": [
+     "Teatro Massimo Bellini",
+     "Fera 'o Luni"
+    ],
+    "totale": 8
+   },
+   "dubbi": [
+    {
+     "essenziale": "Teatro Massimo Bellini",
+     "nome": "Villa Bellini"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Cattedrale di Sant'Agata",
+    "simbolo": "Cattedrale di Sant'Agata",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Cattedrale di Sant'Agata",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Cattedrale di Sant'Agata",
+    "Castello Ursino",
+    "Monastero dei Benedettini di San Nicolò l'Arena",
+    "Piazza del Duomo"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (8)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (4)",
+     "colazioni 1–2 (2)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 8,
+    "storiche": 2,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Cattedrale di Sant'Agata",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Fontana dell'Elefante",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Castello Ursino",
+     "categoria": "museo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Bellini",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Teatro Romano di Catania",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa della Badia di Sant'Agata",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Nicolò l'Arena",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Etnea",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pescheria di Catania",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Savia",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Spinella",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria del Cavaliere",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "U Fucularu",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Nievski",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "C",
+   "citta": "Catania",
+   "rip": 1,
+   "scala": "città",
+   "status": 200,
+   "ms": 44150,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 43075
+   },
+   "usage": {
+    "in": 1117,
+    "out": 1698
+   },
+   "costo": 0.019214,
+   "nomiGrezzi": 16,
+   "nomiLetti": 16,
+   "essenziali": {
+    "trovati": [
+     "Cattedrale di Sant'Agata",
+     "Pescheria",
+     "Via Etnea",
+     "Monastero dei Benedettini",
+     "Castello Ursino",
+     "Villa Bellini"
+    ],
+    "mancanti": [
+     "Teatro Massimo Bellini",
+     "Fera 'o Luni"
+    ],
+    "totale": 8
+   },
+   "dubbi": [
+    {
+     "essenziale": "Teatro Massimo Bellini",
+     "nome": "Villa Bellini"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Cattedrale di Sant'Agata",
+    "simbolo": "Fontana dell'Elefante",
+    "dedotto": false,
+    "ok": false
+   },
+   "simboli": [
+    {
+     "nome": "Fontana dell'Elefante",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Fontana dell'Elefante",
+    "Cattedrale di Sant'Agata",
+    "Castello Ursino",
+    "Monastero dei Benedettini di San Nicolò l'Arena"
+   ],
+   "imperdibili": [
+    "Fontana dell'Elefante",
+    "Cattedrale di Sant'Agata",
+    "Castello Ursino",
+    "Monastero dei Benedettini di San Nicolò l'Arena",
+    "Piazza del Duomo",
+    "Via Etnea"
+   ],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (9)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (4)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 9,
+    "storiche": 2,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Fontana dell'Elefante",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Cattedrale di Sant'Agata",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Castello Ursino",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Etnea",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Bellini",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Orto Botanico dell'Università di Catania",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Teatro Romano di Catania",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Benedetto",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Palazzo Biscari",
+     "categoria": "palazzo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "La Pescheria",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Savia",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria del Cavaliere",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "La Pentolaccia",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Nievski",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "A",
+   "citta": "Catania",
+   "rip": 1,
+   "scala": "città",
+   "status": 200,
+   "ms": 40195,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 39521
+   },
+   "usage": {
+    "in": 1020,
+    "out": 1797
+   },
+   "costo": 0.02001,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Cattedrale di Sant'Agata",
+     "Pescheria",
+     "Via Etnea",
+     "Monastero dei Benedettini",
+     "Castello Ursino",
+     "Teatro Massimo Bellini",
+     "Villa Bellini"
+    ],
+    "mancanti": [
+     "Fera 'o Luni"
+    ],
+    "totale": 8
+   },
+   "dubbi": [],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Cattedrale di Sant'Agata",
+    "simbolo": "Cattedrale di Sant'Agata",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Cattedrale di Sant'Agata",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Cattedrale di Sant'Agata",
+    "Castello Ursino",
+    "Monastero dei Benedettini di San Nicolò l'Arena",
+    "Via Etnea"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (8)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (3)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (4)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (2)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 8,
+    "storiche": 3,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Cattedrale di Sant'Agata",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Fontana dell'Elefante",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Castello Ursino",
+     "categoria": "museo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Teatro Massimo Bellini",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Bellini",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa della Badia di Sant'Agata",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Palazzo Biscari",
+     "categoria": "palazzo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Etnea",
+     "categoria": "via",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Crociferi",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pescheria di Catania",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Piazza Carlo Alberto",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Savia",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria del Cavaliere",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria da Antonio",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Nievski",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "B",
+   "citta": "Lecce",
+   "rip": 1,
+   "scala": "città",
+   "status": 200,
+   "ms": 38973,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 38403
+   },
+   "usage": {
+    "in": 1019,
+    "out": 1803
+   },
+   "costo": 0.020068,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Basilica di Santa Croce",
+     "Piazza del Duomo",
+     "Porta Napoli"
+    ],
+    "mancanti": [
+     "Anfiteatro Romano",
+     "Teatro Romano",
+     "Castello di Carlo V"
+    ],
+    "totale": 6
+   },
+   "dubbi": [],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Basilica di Santa Croce",
+    "simbolo": "Basilica di Santa Croce",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Basilica di Santa Croce",
+    "Cattedrale di Maria Santissima Assunta",
+    "Piazza Sant'Oronzo"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (9)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (3)",
+     "colazioni 1–2 (2)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 9,
+    "storiche": 2,
+    "ancore": 3,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Cattedrale di Maria Santissima Assunta",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Porta Napoli",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Porta Rudiae",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Comunale Giuseppe Garibaldi",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Museo Sigismondo Castromediano",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Matteo",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Santa Chiara",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di San Giovanni Battista al Rosario",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Sant'Oronzo",
+     "categoria": "piazza",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato coperto di via Birago",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Alvino Caffè e Pasticceria",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Natale",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Le Zie Trattoria Casereccia",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Osteria degli Spiriti",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Quanto Basta",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "C",
+   "citta": "Lecce",
+   "rip": 1,
+   "scala": "città",
+   "status": 200,
+   "ms": 38853,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 37943
+   },
+   "usage": {
+    "in": 1110,
+    "out": 1809
+   },
+   "costo": 0.02031,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Basilica di Santa Croce",
+     "Piazza del Duomo",
+     "Anfiteatro Romano",
+     "Castello di Carlo V"
+    ],
+    "mancanti": [
+     "Porta Napoli",
+     "Teatro Romano"
+    ],
+    "totale": 6
+   },
+   "dubbi": [
+    {
+     "essenziale": "Teatro Romano",
+     "nome": "Anfiteatro Romano"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Basilica di Santa Croce",
+    "simbolo": "Basilica di Santa Croce",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Basilica di Santa Croce",
+    "Cattedrale di Maria Santissima Assunta",
+    "Anfiteatro Romano",
+    "Castello Carlo V"
+   ],
+   "imperdibili": [
+    "Basilica di Santa Croce",
+    "Cattedrale di Maria Santissima Assunta",
+    "Anfiteatro Romano",
+    "Castello Carlo V",
+    "Piazza del Duomo",
+    "Piazza Sant'Oronzo"
+   ],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (8)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (3)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (4)",
+     "colazioni 1–2 (2)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 8,
+    "storiche": 3,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Cattedrale di Maria Santissima Assunta",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Anfiteatro Romano",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Castello Carlo V",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Sant'Oronzo",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Matteo",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Santa Chiara",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Museo Faggiano",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Comunale Giuseppe Garibaldi",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Giuseppe Libertini",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Settelacquare",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Caffè Alvino",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Natale Pasticceria",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Osteria da Angiulino",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "La Vecchia Osteria",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Quanto Basta",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "A",
+   "citta": "Lecce",
+   "rip": 1,
+   "scala": "città",
+   "status": 200,
+   "ms": 35638,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 34967
+   },
+   "usage": {
+    "in": 1016,
+    "out": 1689
+   },
+   "costo": 0.018922,
+   "nomiGrezzi": 16,
+   "nomiLetti": 16,
+   "essenziali": {
+    "trovati": [
+     "Basilica di Santa Croce",
+     "Piazza del Duomo",
+     "Anfiteatro Romano",
+     "Porta Napoli"
+    ],
+    "mancanti": [
+     "Teatro Romano",
+     "Castello di Carlo V"
+    ],
+    "totale": 6
+   },
+   "dubbi": [
+    {
+     "essenziale": "Teatro Romano",
+     "nome": "Anfiteatro Romano"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Basilica di Santa Croce",
+    "simbolo": "Basilica di Santa Croce",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Basilica di Santa Croce",
+    "Cattedrale di Maria Santissima Assunta",
+    "Anfiteatro Romano",
+    "Piazza Sant'Oronzo"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (9)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (4)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 9,
+    "storiche": 2,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Cattedrale di Maria Santissima Assunta",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Anfiteatro Romano",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Porta Napoli",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Porta Rudiae",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Comunale Giuseppe Garibaldi",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Matteo",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Santa Chiara",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Museo Faggiano",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Sant'Oronzo",
+     "categoria": "piazza",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Settelacquare",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Caffè Alvino",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Le Zie Trattoria Casereccia",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Osteria da Angiulino",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Quanto Basta",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "B",
+   "citta": "Napoli",
+   "rip": 2,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 46529,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 44750
+   },
+   "usage": {
+    "in": 1116,
+    "out": 2116
+   },
+   "costo": 0.023392,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Duomo di Napoli",
+     "Cappella Sansevero",
+     "Piazza del Plebiscito"
+    ],
+    "mancanti": [
+     "Museo Archeologico Nazionale",
+     "Castel dell'Ovo",
+     "Spaccanapoli"
+    ],
+    "totale": 6
+   },
+   "dubbi": [
+    {
+     "essenziale": "Castel dell'Ovo",
+     "nome": "Castel Sant'Elmo"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Duomo di Napoli",
+    "simbolo": "Duomo di Napoli",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Duomo di Napoli",
+     "quartiere": "Centro storico",
+     "dedotto": false
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "quartiere": "San Ferdinando",
+     "dedotto": false
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "quartiere": "Vomero",
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Duomo di Napoli",
+    "Museo Cappella Sansevero",
+    "Palazzo Reale di Napoli",
+    "Castel Sant'Elmo",
+    "Certosa e Museo di San Martino",
+    "Piazza del Plebiscito"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (9)",
+     "simbolo presente (3)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore ≥ 3 (6)",
+     "colazioni 1–2 (2)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (Centro storico 3, San Ferdinando 3, Vomero 3)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 9,
+    "storiche": 2,
+    "ancore": 6,
+    "dopocena": 1,
+    "perQuartiere": {
+     "Centro storico": 3,
+     "San Ferdinando": 3,
+     "Vomero": 3
+    }
+   },
+   "lista": [
+    {
+     "nome": "Duomo di Napoli",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Museo Cappella Sansevero",
+     "categoria": "museo",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Complesso Monumentale di Santa Chiara",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "categoria": "palazzo",
+     "tipo": "essenziale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Teatro di San Carlo",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica Reale Pontificia San Francesco da Paola",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Certosa e Museo di San Martino",
+     "categoria": "museo",
+     "tipo": "essenziale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Floridiana",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via San Gregorio Armeno",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Plebiscito",
+     "categoria": "piazza",
+     "tipo": "essenziale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Antignano",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Gran Caffè Gambrinus",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Scaturchio",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Tandem",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Osteria Donna Teresa",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Fonoteca",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "C",
+   "citta": "Napoli",
+   "rip": 2,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 41983,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 41309
+   },
+   "usage": {
+    "in": 1215,
+    "out": 2017
+   },
+   "costo": 0.0226,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Duomo di Napoli",
+     "Cappella Sansevero",
+     "Piazza del Plebiscito",
+     "Spaccanapoli"
+    ],
+    "mancanti": [
+     "Museo Archeologico Nazionale",
+     "Castel dell'Ovo"
+    ],
+    "totale": 6
+   },
+   "dubbi": [
+    {
+     "essenziale": "Castel dell'Ovo",
+     "nome": "Castel Nuovo"
+    },
+    {
+     "essenziale": "Castel dell'Ovo",
+     "nome": "Castel Sant'Elmo"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Duomo di Napoli",
+    "simbolo": "Castel Nuovo",
+    "dedotto": false,
+    "ok": false
+   },
+   "simboli": [
+    {
+     "nome": "Museo Cappella Sansevero",
+     "quartiere": "Centro storico",
+     "dedotto": true
+    },
+    {
+     "nome": "Castel Nuovo",
+     "quartiere": "San Ferdinando",
+     "dedotto": false
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "quartiere": "Vomero",
+     "dedotto": true
+    }
+   ],
+   "ancore": [
+    "Museo Cappella Sansevero",
+    "Castel Nuovo",
+    "Castel Sant'Elmo"
+   ],
+   "imperdibili": [
+    "Museo Cappella Sansevero",
+    "Duomo di Napoli",
+    "Castel Nuovo",
+    "Palazzo Reale di Napoli",
+    "Castel Sant'Elmo",
+    "Piazza del Plebiscito",
+    "Via San Biagio dei Librai"
+   ],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (9)",
+     "simbolo presente (3)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore ≥ 3 (3)",
+     "colazioni 1–2 (2)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (Centro storico 3, San Ferdinando 3, Vomero 3)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 9,
+    "storiche": 2,
+    "ancore": 3,
+    "dopocena": 1,
+    "perQuartiere": {
+     "Centro storico": 3,
+     "San Ferdinando": 3,
+     "Vomero": 3
+    }
+   },
+   "lista": [
+    {
+     "nome": "Museo Cappella Sansevero",
+     "categoria": "museo",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Duomo di Napoli",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Castel Nuovo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "categoria": "palazzo",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Vomero",
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Piazza del Plebiscito",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Via San Biagio dei Librai",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Complesso Monumentale di Santa Chiara",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Teatro di San Carlo",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Certosa e Museo di San Martino",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Museo Nazionale della Ceramica Duca di Martina",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Antignano",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Giovanni Scaturchio",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Gran Caffè Gambrinus",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Gorizia 1916",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Osteria della Mattonella",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Kestè",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "A",
+   "citta": "Napoli",
+   "rip": 2,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 50335,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 49653
+   },
+   "usage": {
+    "in": 1108,
+    "out": 2179
+   },
+   "costo": 0.024006,
+   "nomiGrezzi": 18,
+   "nomiLetti": 18,
+   "essenziali": {
+    "trovati": [
+     "Duomo di Napoli",
+     "Cappella Sansevero",
+     "Piazza del Plebiscito"
+    ],
+    "mancanti": [
+     "Museo Archeologico Nazionale",
+     "Castel dell'Ovo",
+     "Spaccanapoli"
+    ],
+    "totale": 6
+   },
+   "dubbi": [
+    {
+     "essenziale": "Castel dell'Ovo",
+     "nome": "Castel Sant'Elmo"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Duomo di Napoli",
+    "simbolo": "Duomo di Napoli",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Duomo di Napoli",
+     "quartiere": "Centro storico",
+     "dedotto": false
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "quartiere": "San Ferdinando",
+     "dedotto": false
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "quartiere": "Vomero",
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Duomo di Napoli",
+    "Palazzo Reale di Napoli",
+    "Castel Sant'Elmo"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (10)",
+     "simbolo presente (3)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore ≥ 3 (3)",
+     "colazioni 1–2 (2)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (Centro storico 4, San Ferdinando 3, Vomero 3)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 10,
+    "storiche": 2,
+    "ancore": 3,
+    "dopocena": 1,
+    "perQuartiere": {
+     "Centro storico": 4,
+     "San Ferdinando": 3,
+     "Vomero": 3
+    }
+   },
+   "lista": [
+    {
+     "nome": "Duomo di Napoli",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Museo Cappella Sansevero",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Complesso Monumentale di Santa Chiara",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa del Gesù Nuovo",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Palazzo Reale di Napoli",
+     "categoria": "palazzo",
+     "tipo": "essenziale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Teatro di San Carlo",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica Reale Pontificia San Francesco da Paola",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Certosa e Museo di San Martino",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Floridiana",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via San Gregorio Armeno",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Plebiscito",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Antignano",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Giovanni Scaturchio",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Gran Caffè Gambrinus",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Gino e Toto Sorbillo",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Osteria Il Gobbetto",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "San Ferdinando",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Libreria Berisio",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "B",
+   "citta": "Roma",
+   "rip": 2,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 38425,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 37789
+   },
+   "usage": {
+    "in": 1115,
+    "out": 1842
+   },
+   "costo": 0.02065,
+   "nomiGrezzi": 16,
+   "nomiLetti": 16,
+   "essenziali": {
+    "trovati": [
+     "Colosseo",
+     "Pantheon",
+     "Basilica di San Pietro",
+     "Piazza Navona"
+    ],
+    "mancanti": [
+     "Fontana di Trevi",
+     "Foro Romano"
+    ],
+    "totale": 6
+   },
+   "dubbi": [],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Colosseo",
+    "simbolo": "Pantheon",
+    "dedotto": false,
+    "ok": false
+   },
+   "simboli": [
+    {
+     "nome": "Pantheon",
+     "quartiere": "Centro storico",
+     "dedotto": false
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "quartiere": "Trastevere",
+     "dedotto": false
+    },
+    {
+     "nome": "Colosseo",
+     "quartiere": "Monti e Celio",
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Pantheon",
+    "Basilica di Santa Maria in Trastevere",
+    "Villa Farnesina",
+    "Colosseo",
+    "Basilica di San Clemente",
+    "Piazza Navona"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (9)",
+     "simbolo presente (3)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore ≥ 3 (6)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (Centro storico 3, Trastevere 3, Monti e Celio 3)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 9,
+    "storiche": 2,
+    "ancore": 6,
+    "dopocena": 1,
+    "perQuartiere": {
+     "Centro storico": 3,
+     "Trastevere": 3,
+     "Monti e Celio": 3
+    }
+   },
+   "lista": [
+    {
+     "nome": "Pantheon",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Chiesa di San Luigi dei Francesi",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Sant'Ignazio di Loyola",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Villa Farnesina",
+     "categoria": "palazzo",
+     "tipo": "essenziale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di Santa Cecilia in Trastevere",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Colosseo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Monti e Celio",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Basilica di San Clemente",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Monti e Celio",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di San Pietro in Vincoli",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Monti e Celio",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Navona",
+     "categoria": "piazza",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza di Santa Maria in Trastevere",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di San Cosimato",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Sant'Eustachio Il Caffè",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Armando al Pantheon",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Da Enzo al 29",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Bar San Calisto",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "C",
+   "citta": "Roma",
+   "rip": 2,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 40711,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 40017
+   },
+   "usage": {
+    "in": 1214,
+    "out": 2007
+   },
+   "costo": 0.022498,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Colosseo",
+     "Fontana di Trevi",
+     "Pantheon",
+     "Basilica di San Pietro",
+     "Foro Romano",
+     "Piazza Navona"
+    ],
+    "mancanti": [],
+    "totale": 6
+   },
+   "dubbi": [],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Colosseo",
+    "simbolo": "Colosseo",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Colosseo",
+     "quartiere": "Monti",
+     "dedotto": false
+    },
+    {
+     "nome": "Pantheon",
+     "quartiere": "Centro storico",
+     "dedotto": true
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "quartiere": "Trastevere",
+     "dedotto": true
+    }
+   ],
+   "ancore": [
+    "Colosseo",
+    "Foro Romano",
+    "Pantheon",
+    "Basilica di Santa Maria in Trastevere"
+   ],
+   "imperdibili": [
+    "Colosseo",
+    "Foro Romano",
+    "Pantheon",
+    "Fontana di Trevi",
+    "Piazza Navona",
+    "Basilica di Santa Maria in Trastevere"
+   ],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (10)",
+     "simbolo presente (3)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore ≥ 3 (4)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (Monti 3, Centro storico 4, Trastevere 3)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 10,
+    "storiche": 2,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {
+     "Monti": 3,
+     "Centro storico": 4,
+     "Trastevere": 3
+    }
+   },
+   "lista": [
+    {
+     "nome": "Colosseo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Monti",
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Foro Romano",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Monti",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Pantheon",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Fontana di Trevi",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Navona",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Trastevere",
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Basilica di San Pietro in Vincoli",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Sant'Ignazio di Loyola",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Museo Nazionale Romano, Palazzo Altemps",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di Santa Cecilia in Trastevere",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Farnesina",
+     "categoria": "palazzo",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza della Madonna dei Monti",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di San Cosimato",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Sant'Eustachio Il Caffè",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "La Taverna dei Fori Imperiali",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Da Enzo al 29",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Ma Che Siete Venuti A Fà",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "B",
+   "citta": "Catania",
+   "rip": 2,
+   "scala": "città",
+   "status": 200,
+   "ms": 32876,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 32220
+   },
+   "usage": {
+    "in": 1023,
+    "out": 1708
+   },
+   "costo": 0.019126,
+   "nomiGrezzi": 16,
+   "nomiLetti": 16,
+   "essenziali": {
+    "trovati": [
+     "Cattedrale di Sant'Agata",
+     "Pescheria",
+     "Via Etnea",
+     "Monastero dei Benedettini",
+     "Castello Ursino",
+     "Villa Bellini"
+    ],
+    "mancanti": [
+     "Teatro Massimo Bellini",
+     "Fera 'o Luni"
+    ],
+    "totale": 8
+   },
+   "dubbi": [
+    {
+     "essenziale": "Teatro Massimo Bellini",
+     "nome": "Villa Bellini"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Cattedrale di Sant'Agata",
+    "simbolo": "Basilica Cattedrale di Sant'Agata",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Basilica Cattedrale di Sant'Agata",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Basilica Cattedrale di Sant'Agata",
+    "Castello Ursino",
+    "Monastero dei Benedettini di San Nicolò l'Arena",
+    "Via Etnea"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (8)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (4)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (2)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 8,
+    "storiche": 2,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Basilica Cattedrale di Sant'Agata",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Fontana dell'Elefante",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Castello Ursino",
+     "categoria": "museo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Nicolò l'Arena",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Bellini",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Palazzo Biscari",
+     "categoria": "palazzo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Teatro Antico greco-romano di Catania",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Etnea",
+     "categoria": "via",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pescheria di Catania",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Piazza Carlo Alberto",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Savia",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria del Cavaliere",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria Achille",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Nievski",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "A",
+   "citta": "Roma",
+   "rip": 2,
+   "scala": "metropoli",
+   "status": 200,
+   "ms": 38918,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 38399
+   },
+   "usage": {
+    "in": 1107,
+    "out": 1941
+   },
+   "costo": 0.021624,
+   "nomiGrezzi": 16,
+   "nomiLetti": 16,
+   "essenziali": {
+    "trovati": [
+     "Colosseo",
+     "Pantheon",
+     "Basilica di San Pietro",
+     "Foro Romano",
+     "Piazza Navona"
+    ],
+    "mancanti": [
+     "Fontana di Trevi"
+    ],
+    "totale": 6
+   },
+   "dubbi": [],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Colosseo",
+    "simbolo": "Pantheon",
+    "dedotto": false,
+    "ok": false
+   },
+   "simboli": [
+    {
+     "nome": "Pantheon",
+     "quartiere": "Centro storico",
+     "dedotto": false
+    },
+    {
+     "nome": "Colosseo",
+     "quartiere": "Monti",
+     "dedotto": false
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "quartiere": "Trastevere",
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Pantheon",
+    "Colosseo",
+    "Basilica di Santa Maria in Trastevere",
+    "Piazza Navona"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (9)",
+     "simbolo presente (3)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore ≥ 3 (4)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)",
+     "quartieri principali con ≥ 3 luoghi da visitare (Centro storico 3, Monti 3, Trastevere 3)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 9,
+    "storiche": 2,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {
+     "Centro storico": 3,
+     "Monti": 3,
+     "Trastevere": 3
+    }
+   },
+   "lista": [
+    {
+     "nome": "Pantheon",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Chiesa di San Luigi dei Francesi",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di Santa Maria sopra Minerva",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Colosseo",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Basilica di San Pietro in Vincoli",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercati di Traiano Museo dei Fori Imperiali",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Basilica di Santa Cecilia in Trastevere",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Farnesina",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Navona",
+     "categoria": "piazza",
+     "tipo": "essenziale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza della Madonna dei Monti",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di San Cosimato",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Sant'Eustachio Il Caffè",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Armando al Pantheon",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Centro storico",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria Da Teo",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Ai Tre Scalini",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "C",
+   "citta": "Catania",
+   "rip": 2,
+   "scala": "città",
+   "status": 200,
+   "ms": 41037,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 39174
+   },
+   "usage": {
+    "in": 1117,
+    "out": 1830
+   },
+   "costo": 0.020534,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Cattedrale di Sant'Agata",
+     "Pescheria",
+     "Via Etnea",
+     "Monastero dei Benedettini",
+     "Castello Ursino",
+     "Villa Bellini"
+    ],
+    "mancanti": [
+     "Teatro Massimo Bellini",
+     "Fera 'o Luni"
+    ],
+    "totale": 8
+   },
+   "dubbi": [
+    {
+     "essenziale": "Teatro Massimo Bellini",
+     "nome": "Giardino Bellini"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Cattedrale di Sant'Agata",
+    "simbolo": "Fontana dell'Elefante",
+    "dedotto": false,
+    "ok": false
+   },
+   "simboli": [
+    {
+     "nome": "Fontana dell'Elefante",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Fontana dell'Elefante",
+    "Cattedrale di Sant'Agata",
+    "Castello Ursino",
+    "Monastero dei Benedettini di San Nicolò l'Arena"
+   ],
+   "imperdibili": [
+    "Fontana dell'Elefante",
+    "Cattedrale di Sant'Agata",
+    "Castello Ursino",
+    "Monastero dei Benedettini di San Nicolò l'Arena",
+    "Piazza del Duomo",
+    "Via Etnea"
+   ],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (8)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (3)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (4)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (2)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 8,
+    "storiche": 3,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Fontana dell'Elefante",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Cattedrale di Sant'Agata",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Castello Ursino",
+     "categoria": "museo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Etnea",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Teatro Romano di Catania",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Giardino Bellini",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Nicolò l'Arena",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Palazzo Biscari",
+     "categoria": "palazzo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Crociferi",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "La Pescheria",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Piazza Carlo Alberto",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Savia",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria del Cavaliere",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria da Antonio",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Nievski",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "B",
+   "citta": "Lecce",
+   "rip": 2,
+   "scala": "città",
+   "status": 200,
+   "ms": 39796,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 38997
+   },
+   "usage": {
+    "in": 1019,
+    "out": 1789
+   },
+   "costo": 0.019928,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Basilica di Santa Croce",
+     "Piazza del Duomo"
+    ],
+    "mancanti": [
+     "Anfiteatro Romano",
+     "Porta Napoli",
+     "Teatro Romano",
+     "Castello di Carlo V"
+    ],
+    "totale": 6
+   },
+   "dubbi": [],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Basilica di Santa Croce",
+    "simbolo": "Basilica di Santa Croce",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Basilica di Santa Croce",
+    "Cattedrale di Maria Santissima Assunta e Sant'Oronzo",
+    "Piazza Sant'Oronzo"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (8)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (3)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (3)",
+     "colazioni 1–2 (2)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 8,
+    "storiche": 3,
+    "ancore": 3,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Cattedrale di Maria Santissima Assunta e Sant'Oronzo",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Santa Chiara",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Matteo",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Basilica di San Giovanni Battista al Rosario",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Museo Faggiano",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Museo Sigismondo Castromediano",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Comunale Giuseppe Garibaldi",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Sant'Oronzo",
+     "categoria": "piazza",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Giuseppe Libertini",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Settelacquare",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Caffè Alvino",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Natale",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Le Zie Trattoria Casereccia",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Osteria degli Spiriti",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Quanto Basta",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "A",
+   "citta": "Catania",
+   "rip": 2,
+   "scala": "città",
+   "status": 200,
+   "ms": 43222,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 38025
+   },
+   "usage": {
+    "in": 1020,
+    "out": 1829
+   },
+   "costo": 0.02033,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Cattedrale di Sant'Agata",
+     "Pescheria",
+     "Via Etnea",
+     "Monastero dei Benedettini",
+     "Castello Ursino",
+     "Villa Bellini"
+    ],
+    "mancanti": [
+     "Teatro Massimo Bellini",
+     "Fera 'o Luni"
+    ],
+    "totale": 8
+   },
+   "dubbi": [
+    {
+     "essenziale": "Teatro Massimo Bellini",
+     "nome": "Giardino Bellini"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Cattedrale di Sant'Agata",
+    "simbolo": "Basilica Cattedrale di Sant'Agata",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Basilica Cattedrale di Sant'Agata",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Basilica Cattedrale di Sant'Agata",
+    "Castello Ursino",
+    "Giardino Bellini",
+    "Piazza del Duomo"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (8)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (3)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (4)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (2)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 8,
+    "storiche": 3,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Basilica Cattedrale di Sant'Agata",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Castello Ursino",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Nicolò l'Arena",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Teatro Romano di Catania",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Palazzo Biscari",
+     "categoria": "palazzo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa della Badia di Sant'Agata",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Giardino Bellini",
+     "categoria": "giardino",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Etnea",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Crociferi",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "La Pescheria",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Piazza Carlo Alberto",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Savia",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Trattoria del Cavaliere",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Osteria Antica Marina",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Razmataz",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "C",
+   "citta": "Lecce",
+   "rip": 2,
+   "scala": "città",
+   "status": 200,
+   "ms": 39336,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 38724
+   },
+   "usage": {
+    "in": 1110,
+    "out": 1747
+   },
+   "costo": 0.01969,
+   "nomiGrezzi": 16,
+   "nomiLetti": 16,
+   "essenziali": {
+    "trovati": [
+     "Basilica di Santa Croce",
+     "Piazza del Duomo",
+     "Anfiteatro Romano",
+     "Teatro Romano"
+    ],
+    "mancanti": [
+     "Porta Napoli",
+     "Castello di Carlo V"
+    ],
+    "totale": 6
+   },
+   "dubbi": [
+    {
+     "essenziale": "Porta Napoli",
+     "nome": "Mercato di Porta Rudiae"
+    }
+   ],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Basilica di Santa Croce",
+    "simbolo": "Basilica di Santa Croce",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Basilica di Santa Croce",
+    "Cattedrale di Maria Santissima Assunta",
+    "Anfiteatro Romano"
+   ],
+   "imperdibili": [
+    "Basilica di Santa Croce",
+    "Cattedrale di Maria Santissima Assunta",
+    "Anfiteatro Romano",
+    "Teatro Romano",
+    "Piazza del Duomo",
+    "Piazza Sant'Oronzo"
+   ],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (8)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (3)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (3)",
+     "colazioni 1–2 (1)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 8,
+    "storiche": 3,
+    "ancore": 3,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": true
+    },
+    {
+     "nome": "Cattedrale di Maria Santissima Assunta",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Anfiteatro Romano",
+     "categoria": "monumento",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Teatro Romano",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Sant'Oronzo",
+     "categoria": "piazza",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": true,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Matteo",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Santa Chiara",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Museo Faggiano",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Comunale Giuseppe Garibaldi",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Via Giuseppe Libertini",
+     "categoria": "via",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Porta Rudiae",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Caffè Alvino",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Osteria da Angiulino",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Le Zie Trattoria Casereccia",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Quanto Basta",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  },
+  {
+   "variante": "A",
+   "citta": "Lecce",
+   "rip": 2,
+   "scala": "città",
+   "status": 200,
+   "ms": 35391,
+   "modello": {
+    "passaggio": "lista",
+    "chiesto": "gpt-6.1-sol",
+    "usato": "gpt-6.1-sol",
+    "ripiego": false,
+    "ms": 34843
+   },
+   "usage": {
+    "in": 1016,
+    "out": 1762
+   },
+   "costo": 0.019652,
+   "nomiGrezzi": 17,
+   "nomiLetti": 17,
+   "essenziali": {
+    "trovati": [
+     "Basilica di Santa Croce",
+     "Piazza del Duomo",
+     "Porta Napoli"
+    ],
+    "mancanti": [
+     "Anfiteatro Romano",
+     "Teatro Romano",
+     "Castello di Carlo V"
+    ],
+    "totale": 6
+   },
+   "dubbi": [],
+   "simbolo": {
+    "applicabile": true,
+    "atteso": "Basilica di Santa Croce",
+    "simbolo": "Basilica di Santa Croce",
+    "dedotto": false,
+    "ok": true
+   },
+   "simboli": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "quartiere": null,
+     "dedotto": false
+    }
+   ],
+   "ancore": [
+    "Basilica di Santa Croce",
+    "Cattedrale Maria Santissima Assunta",
+    "Piazza del Duomo",
+    "Piazza Sant'Oronzo"
+   ],
+   "imperdibili": [],
+   "quote": {
+    "rispettate": [
+     "luoghi da visitare ≥ 8 (9)",
+     "simbolo presente (1)",
+     "piazze e vie storiche 2–3 (2)",
+     "belvedere ≤ 1 (0)",
+     "ancore 3–4 (4)",
+     "colazioni 1–2 (2)",
+     "mercati ≤ 2 (1)",
+     "pasti ≥ 2 (2)",
+     "dopocena ≥ 1 (1)"
+    ],
+    "mancate": [],
+    "mancanti": {
+     "visite": 0,
+     "storiche": 0,
+     "ancore": 0,
+     "dopocena": 0
+    },
+    "visite": 9,
+    "storiche": 2,
+    "ancore": 4,
+    "dopocena": 1,
+    "perQuartiere": {}
+   },
+   "lista": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": true
+    },
+    {
+     "nome": "Cattedrale Maria Santissima Assunta",
+     "categoria": "chiesa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di Santa Chiara",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Chiesa di San Matteo",
+     "categoria": "chiesa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Museo Faggiano",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Museo Sigismondo Castromediano",
+     "categoria": "museo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Villa Comunale Giuseppe Garibaldi",
+     "categoria": "giardino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Porta Napoli",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Porta Rudiae",
+     "categoria": "monumento",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "categoria": "piazza",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Piazza Sant'Oronzo",
+     "categoria": "piazza",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Mercato di Settelacquare",
+     "categoria": "mercato",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Caffè Alvino",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Pasticceria Natale",
+     "categoria": "colazione",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Alle due Corti",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Le Zie Trattoria Casereccia",
+     "categoria": "ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    },
+    {
+     "nome": "Quanto Basta",
+     "categoria": "dopocena",
+     "tipo": "da locale",
+     "quartiere": null,
+     "imperdibile": false,
+     "simbolo": false
+    }
+   ]
+  }
+ ],
+ "fine": "2026-10-14T14:46:21.298Z"
+}

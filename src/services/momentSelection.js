@@ -135,6 +135,8 @@ export function candidateMomentCategories(candidate) {
     const name = String(candidate?.name || candidate?.title || '').trim();
     if (PANORAMA_NAME.test(name)) out.add('punti panoramici');
     if (WALK_NAME.test(name)) out.add('passeggiata');
+    // C10b3 — nel borgo la via principale della lista vale come passeggiata (anche se il nome non comincia con «Via»)
+    if (candidate?._citta?.passeggiata) out.add('passeggiata');
     return out;
 }
 
@@ -290,6 +292,10 @@ export const momentTheme = (m) => (m?.tema && THEME_OF_MOMENT_TEMA[m.tema])
 export const THEME_OF_MOMENT_TEMA = { esperienze: 'esperienze' };
 
 const idOf = (c) => c?.place_id || c?.googlePlaceId || null;
+
+/** C10c — una piazza o via storica della lista (categoria di C10b3-bis): vale come passeggiata. */
+export const CATEGORIE_STORICHE_LISTA = new Set(['piazza', 'via']);
+export const isStoricaLista = (c) => CATEGORIE_STORICHE_LISTA.has(c?._citta?.categoria);
 
 // ─── 1. Momenti piatti, con un id stabile ────────────────────────────────────
 
@@ -675,8 +681,11 @@ function repairPass({
         const dopoColazione = () => !!m.colazione && !colazioneInCorso();
         // C8d — RILASSATO: l'ultima tappa di un momento allargato per un vuoto lungo e' una tappa LEGGERA (all'aperto, verde, chiesa, caffe').
         const leggeraInCorso = () => !!m.extraLeggero && chosen.length === m.stops - 1;
+        // C10c — le piazze e vie storiche della lista contano come passeggiata: al massimo una per mattina e una per pomeriggio
+        const storicaGiaPresa = () => (m.key === 'mattina' || m.key === 'pomeriggio') && chosen.some(x => isStoricaLista(x.candidate));
         const free = (except) => bucket.filter(c => !used.has(idOf(c)) && idOf(c) !== except
-            && (!colazioneInCorso() || isBreakfastPlace(c)) && (!dopoColazione() || !isLocale(c)) && (!leggeraInCorso() || isLightStop(c)));
+            && (!colazioneInCorso() || isBreakfastPlace(c)) && (!dopoColazione() || !isLocale(c)) && (!leggeraInCorso() || isLightStop(c))
+            && (!isStoricaLista(c) || !storicaGiaPresa()));
         // C5e (O) — solo se attivo (dopo le ricerche mirate), solo fuori dai
         // pasti, solo con una tappa vera prima nello stesso giorno.
         const freeSlot = () => !!tempoLiberoMinuti && !FOOD_ONLY_MOMENT_KEYS.has(m.key) && !m.opzionale && !!last()
@@ -880,6 +889,7 @@ function repairPass({
             if (colazioneInCorso() && !isBreakfastPlace(c)) { no('colazione chiesta: la prima tappa e\' un posto da colazione'); continue; }
             if (dopoColazione() && isLocale(c)) { no('dopo la colazione niente altro cibo fino al pranzo'); continue; }
             if (leggeraInCorso() && !isLightStop(c)) { no('vuoto lungo con ritmo Rilassato: una tappa leggera'); continue; }
+            if (isStoricaLista(c) && storicaGiaPresa()) { no('una piazza o via storica per momento: c\'e\' gia\''); continue; }
             if (freeSlot()) { no(`nessun posto entro ${tempoLiberoMinuti} min dalla tappa prima: tempo libero`); continue; }
             const { ok, mine, alt } = modelWins(c);
             if (!ok) {
@@ -899,6 +909,7 @@ function repairPass({
             if (!c || used.has(s.place_id) || freeSlot()) continue;
             if (colazioneInCorso() && !isBreakfastPlace(c)) continue;
             if ((dopoColazione() && isLocale(c)) || (leggeraInCorso() && !isLightStop(c))) continue;
+            if (isStoricaLista(c) && storicaGiaPresa()) continue;
             const { ok, mine } = modelWins(c);
             if (!ok) continue;
             if ((m.opzionale || leggeraInCorso()) && !fitsOptional(mine)) continue;
@@ -1482,12 +1493,31 @@ export function scheduleMomentPlan(plan, dayStarts) {
             prev = null;
         }
         if (!days[m.dayIndex]) days[m.dayIndex] = [];
-        for (const s of stops) {
-            const dayStart = startOf(m.dayIndex);
-            const earliest = prev
-                ? prev.end + (travelMinutes(prev.candidate, s.candidate) ?? 0) * 60000
-                : (dayStart instanceof Date ? dayStart.getTime() : m.start.getTime());
-            const start = earliest + Math.ceil((Math.max(m.start.getTime(), earliest) - earliest) / 60000) * 60000;
+        const dayStart = startOf(m.dayIndex);
+        const earliestOf = (s) => (prev
+            ? prev.end + (travelMinutes(prev.candidate, s.candidate) ?? 0) * 60000
+            : (dayStart instanceof Date ? dayStart.getTime() : m.start.getTime()));
+        const startAt = (e) => e + Math.ceil((Math.max(m.start.getTime(), e) - e) / 60000) * 60000;
+        const apertoA = (s, t) => openStatus(s.candidate, new Date(t), stayInMoment(s.candidate, m)).stato !== CLOSED;
+        // C10c — ORARI ALL'ARRIVO (decisione di Ivano): il posto si guarda all'ora in cui ci si arriva. Se la prossima tappa e'
+        // chiusa a quell'ora e una tappa dopo, nello stesso momento, e' gia' aperta (ed entro il tetto di cammino dalla tappa
+        // prima), va prima quella; altrimenti si aspetta l'apertura dentro il momento (`primaAperturaNelMomento`). La garanzia
+        // resta: il controllo vero e' settleOpeningHours sul giro messo in orario (una tappa chiusa si vieta e il giro si rifa').
+        const rest = [...stops];
+        while (rest.length > 0) {
+            let k = 0;
+            if (!apertoA(rest[0], startAt(earliestOf(rest[0])))) {
+                const j = rest.findIndex((x, i) => i > 0 && apertoA(x, startAt(earliestOf(x)))
+                    && (!prev || (travelMinutes(prev.candidate, x.candidate) ?? 0) <= MAX_WALK_MINUTES));
+                if (j > 0) k = j;
+            }
+            const s = rest.splice(k, 1)[0];
+            const earliest = earliestOf(s);
+            let start = startAt(earliest);
+            if (!apertoA(s, start)) {
+                const apre = primaAperturaNelMomento(s.candidate, m, new Date(start));
+                if (apre) start = apre.getTime();
+            }
             if (start >= m.end.getTime()) {
                 tolte.push({ place_id: idOf(s.candidate), momento: m.id, motivo: 'non entra nel suo momento' });
                 continue;
@@ -1506,6 +1536,22 @@ export function scheduleMomentPlan(plan, dayStarts) {
         }
     }
     return { days: Array.from(days, d => d || []), tolte };
+}
+
+/**
+ * C10c — il primo istante (a passi di 5 minuti, da `from`) in cui il posto e' aperto per tutta la sosta e la sosta comincia
+ * dentro il momento. null se nel momento non apre (o se l'orario e' sconosciuto: allora non si aspetta niente).
+ */
+export function primaAperturaNelMomento(candidate, m, from = null) {
+    if (!(m?.start instanceof Date) || !(m?.end instanceof Date)) return null;
+    const stay = stayInMoment(candidate, m);
+    const t0 = Math.max(m.start.getTime(), from instanceof Date ? from.getTime() : m.start.getTime());
+    for (let t = t0; t < m.end.getTime(); t += 5 * 60000) {
+        const st = openStatus(candidate, new Date(t), stay).stato;
+        if (st === OPEN) return new Date(t);
+        if (st === UNKNOWN) return null;
+    }
+    return null;
 }
 
 // ─── 5. ORARI — una tappa vale solo se il posto e' aperto per tutta la sosta ─
@@ -1554,7 +1600,16 @@ export function applyOpeningToBuckets(moments, buckets, { veto = null } = {}) {
             }
             const st = openStatus(c, arrival, stayInMoment(c, m));
             if (st.stato === CLOSED) {
-                report.chiusi.push({ momento: m.id, place_id: id, nome: nameOf(c), perche: st.motivo });
+                // C10c — ORARI ALL'ARRIVO (decisione di Ivano): chiuso all'inizio del momento ma aperto piu' tardi nello stesso
+                // momento (per tutta la sosta) resta nel bucket; l'orario vero lo decide il giro (scheduleMomentPlan aspetta
+                // l'apertura, settleOpeningHours vieta cio' che resta chiuso all'arrivo).
+                const apre = primaAperturaNelMomento(c, m);
+                if (!apre) {
+                    report.chiusi.push({ momento: m.id, place_id: id, nome: nameOf(c), perche: st.motivo });
+                    continue;
+                }
+                (report.apronoDopo ??= []).push({ momento: m.id, place_id: id, nome: nameOf(c), apre: apre.toISOString() });
+                kept.push({ c, stato: OPEN });
                 continue;
             }
             kept.push({ c, stato: st.stato });
@@ -1668,6 +1723,55 @@ const restoreVeto = (veto, saved) => {
 };
 const overlapMin = (aS, aE, bS, bE) => Math.max(0, (Math.min(aE, bE) - Math.max(aS, bS)) / 60000);
 
+// C10c — il criterio di un motivo scritto dal riparatore: varieta', strada, cammino, orario o altro.
+const criterioDi = (motivo) => {
+    const t = String(motivo || '');
+    if (/chius|orari/.test(t)) return 'orario';
+    if (/famiglia|ripetut/.test(t)) return 'varietà';
+    if (/strada|deviazion|incroc/.test(t)) return 'strada';
+    if (/entro|tetto|min dal|vicin/.test(t)) return 'cammino';
+    return 'altro';
+};
+const chiaveRiga = (x) => `${x?.place_id ?? ''}|${x?.momento ?? ''}|${x?.motivo ?? ''}`;
+const nuoveRighe = (ora, prima) => { const p = new Set((prima || []).map(chiaveRiga)); return (ora || []).filter(x => !p.has(chiaveRiga(x))); };
+
+/**
+ * C10c — SOLO REGISTRAZIONE: perche' un tentativo di fillGaps e' stato respinto. Lo stesso ordine dei criteri del controllo
+ * «non peggiora niente»: una tappa chiusa all'arrivo, un ripiego in piu', una riga di tempo libero in piu', una tappa che non
+ * entra nel suo momento, un pasto in piu', nessuna tappa vera in piu', il buco che non scende.
+ * @returns {{ criterio: 'varietà'|'strada'|'cammino'|'orario'|'altro', dettaglio: string }}
+ */
+export function criterioRespinto({ trial, trialSched, cur, espandi = true, moment = null }) {
+    const rep = trial?.repaired?.report || {};
+    const was = cur?.repaired?.report || {};
+    if ((trial?.residui?.length ?? 0) > 0) return { criterio: 'orario', dettaglio: `chiuso all'arrivo: ${trial.residui.map(x => x.nome).join(', ')}` };
+    if ((rep.ripieghi?.length ?? 0) > (was.ripieghi?.length ?? 0)) {
+        const rip = nuoveRighe(rep.ripieghi, was.ripieghi)[0];
+        return { criterio: criterioDi(rip?.motivo), dettaglio: `ripiego in piu': ${rip?.motivo ?? '?'}` };
+    }
+    if ((rep.tempoLibero?.length ?? 0) > (was.tempoLibero?.length ?? 0)) {
+        const lib = nuoveRighe(rep.tempoLibero, was.tempoLibero)[0];
+        return { criterio: lib?.motivo ? criterioDi(lib.motivo) : 'cammino', dettaglio: `tempo libero in piu': ${lib?.motivo ?? '?'}` };
+    }
+    if ((trialSched?.tolte?.length ?? 0) > (cur?.sched?.tolte?.length ?? 0)) return { criterio: 'altro', dettaglio: 'una tappa non entra nel suo momento' };
+    if (espandi && mealCount(trialSched) > mealCount(cur?.sched)) return { criterio: 'altro', dettaglio: 'un pasto in piu\'' };
+    if (realStopCount(trialSched) <= realStopCount(cur?.sched)) {
+        // il posto in piu' del momento e' rimasto vuoto? Il motivo e' quello scritto per QUEL momento
+        const pm = moment ? (trial?.repaired?.plan || []).find(p => p.moment?.id === moment.id) : null;
+        if (pm && pm.stops.length < moment.stops) {
+            const lib = (rep.tempoLibero || []).find(x => x.momento === moment.id);
+            if (lib) return { criterio: criterioDi(lib.motivo), dettaglio: `posto vuoto: ${lib.motivo}` };
+            const sc = (rep.scartate || []).filter(x => x.momento === moment.id).pop();
+            if (sc) return { criterio: criterioDi(sc.motivo), dettaglio: `posto vuoto: ${sc.motivo}` };
+            return { criterio: 'altro', dettaglio: 'posto vuoto: nessun candidato libero nel momento (gia\' usati o fuori dal bucket)' };
+        }
+        const inc = (rep.incrociRimasti?.length ?? 0) > (was.incrociRimasti?.length ?? 0);
+        if (inc) return { criterio: 'strada', dettaglio: 'il momento si riempie ma il giro perde una tappa: incroci nel percorso' };
+        return { criterio: 'altro', dettaglio: 'il momento si riempie ma il giro perde una tappa altrove (rifinitura o orari)' };
+    }
+    return { criterio: 'altro', dettaglio: 'il buco non scende' };
+}
+
 /** I momenti in cui si puo' mettere una tappa in piu' per chiudere un buco, dal piu' sovrapposto. */
 export function momentsToExpand(gap, moments) {
     // C8e — il tetto conta solo le visite (pasti, drink e passeggiata no); 8 a giornata, 6 con ritmo Rilassato
@@ -1703,6 +1807,7 @@ export function momentAt(moments, dayIndex, when) {
 export function fillGaps({ moments, repaired, sched, repair, schedule, veto, espandi = true, maxPasses = 8 }) {
     let cur = { repaired, sched: retimeWaits(sched) };
     const aggiunte = [];
+    const respinti = [];
     let tentativi = 0;
     // Ritmo Rilassato (1 tappa per momento, scelta dell'utente): fino a GAP_RILASSATO_MINUTES il buco si dichiara (CONTINUITA');
     // oltre, UNA sola tappa leggera per momento (C8d), con le stesse regole e le soglie C5c.
@@ -1735,6 +1840,9 @@ export function fillGaps({ moments, repaired, sched, repair, schedule, veto, esp
                     accepted = true;
                     break;
                 }
+                // C10c — solo registrazione: il criterio che ha fermato il tentativo (nessun cambio di comportamento)
+                respinti.push({ momento: m.id, dayIndex: m.dayIndex, buco: gap.minutes, dalle: gap.from.toISOString(), alle: gap.to.toISOString(),
+                    ...criterioRespinto({ trial, trialSched, cur, espandi, moment: m }) });
                 m.stops = saved.stops;
                 m.extraLeggero = saved.extraLeggero;
                 restoreVeto(veto, saved.veto);
@@ -1743,7 +1851,7 @@ export function fillGaps({ moments, repaired, sched, repair, schedule, veto, esp
         }
         if (!accepted) break;
     }
-    return { repaired: cur.repaired, sched: cur.sched, aggiunte, tentativi };
+    return { repaired: cur.repaired, sched: cur.sched, aggiunte, tentativi, respinti };
 }
 
 // ─── 7. C8b — i MINIMI di tappe ─────────────────────────────────────────────

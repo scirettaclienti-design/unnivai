@@ -72,6 +72,10 @@ export const CASI_ESTESI = [
     // C10b — il quartiere nominato in una metropoli, e il borgo in mezza giornata (posizione a Roma e a Troina)
     { ...crea('c10b-trastevere', 'Roma', '22:19', 'Domani una giornata a Trastevere', { duration: '1 Giorno' }), giorno: '2026-10-14' },
     { ...crea('c10b-troina-mezza', 'Troina', '22:19', 'Domani mezza giornata a Troina', { duration: 'Mezza Giornata' }), giorno: '2026-10-14' },
+    // C10b3-chiusura — l'attesa del primo tour del giorno, con la lista ancora da generare: giovedì 15/10 alle 22:19, tour per
+    // venerdì 16/10 (nessuna lista di quel giorno). Una metropoli e una città.
+    { ...crea('c10b3-attesa-roma', 'Roma', '22:19', 'Domani una giornata a Roma', { duration: '1 Giorno' }), giorno: '2026-10-15' },
+    { ...crea('c10b3-attesa-lecce', 'Lecce', '22:19', 'Domani una giornata a Lecce', { duration: '1 Giorno' }), giorno: '2026-10-15' },
 
     // ── Percorso Veloce (9) — ritmo e umore come QuickPath.jsx (buildQuickPrefs) ──
     veloce('veloce-catania-relax-2125', 'Catania', '21:25', 'relax', 'Veloce'),

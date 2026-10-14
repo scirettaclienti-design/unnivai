@@ -340,9 +340,14 @@ Diagnosi in `docs/prove/2026-10-17-c10c-diagnosi-perdite.md`; decisioni di Ivano
 **Il tracciato salva anche le richieste fallite** (timeout, rete: `annotaErrore`): il replay le fa fallire allo stesso modo (`fallimentiRigiocati`), mai una chiamata vera.
 Proxy pubblicato: `openai-proxy` v24 (ramo `c10c`, `7a4426f`). Report: `docs/prove/2026-10-19-c10c-piena-2.md`.
 
-### In produzione (main dal merge di c10b3)
+### In produzione (main dal merge di c10b3 e di c10c)
 
-- **Lista della città = variante C** («prima gli imperdibili», `VARIANTE_LISTA = 'C'` in `supabase/functions/openai-proxy/cityKnowledge.ts`, lista `c10b-7`); il codice del proxy su main coincide con `openai-proxy` v23 pubblicato.
+- **Lista della città = variante C** («prima gli imperdibili», `VARIANTE_LISTA = 'C'` in `supabase/functions/openai-proxy/cityKnowledge.ts`, lista `c10b-7`); dal merge di c10c il codice del proxy su main coincide con `openai-proxy` **v24** pubblicato (lista del quartiere con la categoria, versione `c10c-q2`).
+- **Varietà come preferenza a cascata** (C10c-piena-2): tipo diverso → stesso tipo → lo stesso posto, solo la sera e solo se è un'ancora o il simbolo, una volta nel giorno.
+- **Stesso nome = stesso posto**: due schede di Google con lo stesso nome contano come lo stesso posto (mai due volte nel giro).
+- **Nucleo del quartiere chiesto = baricentro dei luoghi della sua lista** (raggio fino al luogo più lontano + 150 m, fra 500 m e 1 km).
+- **Ogni correzione al motore si prova prima col replay** (`npm run banco:replay`, 0 $), poi **un solo giro pagato con 2 ripetizioni**.
+- **Deploy di `openai-proxy` sempre con `--use-api`** (`supabase functions deploy openai-proxy --project-ref ahecpiwsdhghkndncejb --no-verify-jwt --use-api`); dopo il deploy si confronta la versione attiva con i file del repo.
 - **Simboli accettati dal banco**: `SIMBOLI_ACCETTATI` in `scripts/banco/asticella-c10.js` (non in `banco.config.json`).
 - **Orari verificati all'arrivo** (C10c-piena-1): un posto conta aperto o chiuso all'ora in cui ci arrivi, per tutta la sosta, non all'inizio del momento.
 

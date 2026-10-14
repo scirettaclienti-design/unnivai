@@ -325,6 +325,12 @@ Diagnosi in `docs/prove/2026-10-17-c10c-diagnosi-perdite.md`; decisioni di Ivano
 - **Borgo**: la soglia del giro corto conta solo i luoghi da visitare (`luogoDaVisitareBorgo`: non ristoranti, bar, negozi, non posti senza tipi Google); la durata conta luoghi da visitare e passeggiate.
 - **Tracciato dei riempimenti**: `fillGaps` registra ogni tentativo respinto con il criterio (`criterioRespinto`: varieta', strada, cammino, orario, altro) in `continuita.respinti`. Solo registrazione.
 
+### In produzione (main dal merge di c10b3)
+
+- **Lista della città = variante C** («prima gli imperdibili», `VARIANTE_LISTA = 'C'` in `supabase/functions/openai-proxy/cityKnowledge.ts`, lista `c10b-7`); il codice del proxy su main coincide con `openai-proxy` v23 pubblicato.
+- **Simboli accettati dal banco**: `SIMBOLI_ACCETTATI` in `scripts/banco/asticella-c10.js` (non in `banco.config.json`).
+- **Orari verificati all'arrivo** (C10c-piena-1): un posto conta aperto o chiuso all'ora in cui ci arrivi, per tutta la sosta, non all'inizio del momento.
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

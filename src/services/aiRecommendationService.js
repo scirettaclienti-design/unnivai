@@ -378,6 +378,7 @@ import {
     repairMomentSelection, scheduleMomentPlan, isMealPlace, scheduleHoursSources,
     requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme,
     applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule, fillGaps, gapRows, fillMinimum, belowMinimumRows,
+    isStoricaLista,
 } from './momentSelection';
 // ORARI — una tappa vale solo se il posto e' aperto per tutta la sosta (lib/openingHours).
 import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO, romeMinutes } from '../lib/openingHours';
@@ -386,7 +387,7 @@ import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
 // C10 — la lista della città: l'AI propone (sul server, una per città e giorno), Google verifica, le regole compongono.
 import { fetchCityKnowledge, fetchQuartiereKnowledge } from './cityKnowledgeService';
-import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scalaConfermata, scegliQuartiere, dentroArea, delQuartiere, rigaBorgo, BORGO_MIN_VERIFICATI, areaDeiQuartieri, bucketsNelleAree, fasciaApertaBorgo, LUOGHI_QUARTIERE_MIN, RAGGIO_QUARTIERE_KM, GIORNATA_INTERA_MINUTI } from '../lib/cityKnowledge';
+import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scalaConfermata, scegliQuartiere, dentroArea, delQuartiere, rigaBorgo, BORGO_MIN_VERIFICATI, areaDeiQuartieri, bucketsNelleAree, fasciaApertaBorgo, LUOGHI_QUARTIERE_MIN, RAGGIO_QUARTIERE_KM, GIORNATA_INTERA_MINUTI, nomiDiLuogoNelTesto, quartiereConfermato, quartiereFuoriLista, nucleoDi, dentroNucleo, bucketsNelNucleo, spostaAncoreVietate, luogoDaVisitareBorgo } from '../lib/cityKnowledge';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
@@ -2432,6 +2433,8 @@ export const aiRecommendationService = {
             //   borgo con meno di 4 verificati → giro corto (C10b2: la durata segue le tappe), con la riga approvata;
             //   metropoli → la giornata in un quartiere, o (C10b2, giornata intera) mattina e pomeriggio in due quartieri vicini.
             let area = null;
+            // C10c — il nucleo del quartiere chiesto: le visite e il pranzo stanno li'
+            let nucleo = null;
             let scalaNote = null;
             let conferma = null;
             const w0 = tourWindow.windows[0];
@@ -2444,13 +2447,16 @@ export const aiRecommendationService = {
                 // C10b2 — nel borgo: i nomi di Google accettati per la stessa categoria (scritti nel tracciato)
                 const sostituzioni = poiCitta.filter(p => p._citta.sostituzione).map(p => p._citta.sostituzione);
                 if (sostituzioni.length) cittaReport.sostituzioni = sostituzioni;
-                if (conferma.scala === 'metropoli' && tourWindow.windows.length === 1) {
-                    const testo = opts.pathType === 'custom' ? userPrompt : '';
-                    const intera = minuti0 >= GIORNATA_INTERA_MINUTI;
+                const unGiorno = tourWindow.windows.length === 1;
+                const testoQ = opts.pathType === 'custom' ? userPrompt : '';
+                const intera = minuti0 >= GIORNATA_INTERA_MINUTI;
+                let sq = null;
+                if (conferma.scala === 'metropoli' && unGiorno) {
+                    const testo = testoQ;
                     const scegli = () => scegliQuartiere({
                         poi: poiCitta, testo, partenza: opts.startPoint || cityCenter, finestre: tourWindow.windows, dueQuartieri: intera,
                     });
-                    let sq = scegli();
+                    sq = scegli();
                     // C10b2 — un quartiere CHIESTO con meno di 3 luoghi da visitare in lista: la sua lista dedicata (6–8 luoghi, verificati)
                     if (sq.quartiere && sq.motivo === 'nominato nella richiesta' && sq.quartiere.daVisitare.length < LUOGHI_QUARTIERE_MIN) {
                         const lq = await fetchQuartiereKnowledge(city, tourWindow.date, sq.quartiere.nome)
@@ -2468,8 +2474,39 @@ export const aiRecommendationService = {
                         console.info(`[C10b2 QUARTIERE] ${city}: ${sq.quartiere.nome} chiesto con ${sq.quartiere.daVisitare.length} luoghi da visitare → lista dedicata: ${poiQ.length} verificati (${lq.cached ? 'dal server' : lq.stato})`);
                         sq = scegli();
                     }
+                }
+                // C10c — un quartiere CHIESTO che non e' nella lista (decisione di Ivano): il nome si verifica su Google dentro la
+                // citta' (un quartiere, non una via), parte la sua lista dedicata (C10b2) e la giornata parte da li'. Anche quando la
+                // lista del giorno conferma la citta' (nessun quartiere). Mai nel borgo, mai in un giro di piu' giorni.
+                if (unGiorno && conferma.scala !== 'borgo' && testoQ && sq?.motivo !== 'nominato nella richiesta') {
+                    const { cercaQuartiere } = await import('./cityCenterService');
+                    for (const nome of nomiDiLuogoNelTesto(testoQ, city)) {
+                        const r = await cercaQuartiere(nome, city);
+                        const conf = quartiereConfermato(r.candidato, nome, cityCenter, 20);
+                        (cittaReport.quartiereChiesto ??= []).push({ nome, esito: conf.ok ? 'riconosciuto' : 'no', motivo: conf.motivo ?? null,
+                            google: r.candidato ? { nome: r.candidato.name, tipi: r.candidato.types || [] } : null, ...(r.errore ? { errore: r.errore } : {}) });
+                        if (!conf.ok) continue;
+                        const nomeQ = r.candidato.name || nome;
+                        const lq = await fetchQuartiereKnowledge(city, tourWindow.date, nomeQ)
+                            .catch(err => ({ stato: 'assente', verificati: [], errore: String(err?.message || err) }));
+                        modelliReport.quartiere = lq.modelli ?? null;
+                        const poiQ = poiDallaLista(lq.verificati, city, buildPOIFromCandidate)
+                            .map(p => ({ ...p, _citta: { ...p._citta, quartiere: nomeQ, tipo: 'essenziale', ...(p._citta.tipo !== 'essenziale' ? { daListaQuartiere: true } : {}) } }));
+                        const gia = new Set(poiCitta.map(p => p.place_id));
+                        poiCitta = [...poiCitta.map(p => (poiQ.some(q => q.place_id === p.place_id) ? poiQ.find(q => q.place_id === p.place_id) : p)), ...poiQ.filter(p => !gia.has(p.place_id))];
+                        cittaReport.listaQuartiere = { quartiere: nomeQ, fuoriLista: true, stato: lq.stato, cached: lq.cached ?? null, conti: lq.conti ?? null, costo: lq.costo ?? null,
+                            luoghiPrima: 0, verificati: poiQ.map(p => ({ place_id: p.place_id, nome: p.name, tipo: p._citta.tipo })) };
+                        const qf = quartiereFuoriLista({ nome: nomeQ, candidato: r.candidato, poiQuartiere: poiQ });
+                        sq = { quartiere: qf, secondo: null, motivo: 'nominato nella richiesta (fuori lista, verificato su Google)', motivoSecondo: null, classifica: sq?.classifica || [] };
+                        console.info(`[C10c QUARTIERE] ${city}: «${nome}» non e' nella lista → ${nomeQ} riconosciuto su Google (${(r.candidato.types || []).join(', ')}); lista dedicata: ${poiQ.length} verificati (${lq.cached ? 'dal server' : lq.stato})`);
+                        break;
+                    }
+                }
+                if (sq) {
                     if (sq.quartiere) {
                         area = areaDeiQuartieri(sq.quartiere, sq.secondo);
+                        // C10c — un quartiere chiesto: il giro parte dal suo nucleo e ci tiene la maggior parte delle tappe
+                        if (/^nominato nella richiesta/.test(sq.motivo || '')) nucleo = nucleoDi(sq.quartiere);
                         const scelti = [sq.quartiere, ...(sq.secondo ? [sq.secondo] : [])];
                         const fuori = poiCitta.filter(p => !dentroArea(p, area));
                         // le ancore (e il simbolo) sono quelle dei quartieri scelti: un essenziale di un quartiere vicino che cade
@@ -2477,7 +2514,7 @@ export const aiRecommendationService = {
                         poiCitta = poiCitta.filter(p => dentroArea(p, area)).map(p => (p._citta.tipo === 'essenziale' && !scelti.some(q => delQuartiere(p, q))
                             ? { ...p, _citta: { tipo: 'da locale', momento: p._citta.momento, quartiere: p._citta.quartiere, eraEssenziale: true } } : p));
                         cittaReport.quartiere = { nome: sq.quartiere.nome, motivo: sq.motivo, centro: sq.quartiere.centro, raggioKm: sq.quartiere.raggioKm, classifica: sq.classifica,
-                            listaFuori: fuori.map(p => p.name) };
+                            listaFuori: fuori.map(p => p.name), ...(nucleo ? { nucleo } : {}) };
                         cittaReport.quartieri = scelti.map((q, i) => ({ nome: q.nome, momenti: scelti.length === 1 ? 'tutta la giornata' : (i === 0 ? 'mattina (e pranzo)' : '(pranzo e) pomeriggio, sera'),
                             centro: q.centro, raggioKm: q.raggioKm, essenziali: q.essenziali.map(e => e.name), motivo: i === 0 ? sq.motivo : sq.motivoSecondo }));
                         if (!sq.secondo && intera && sq.motivoSecondo) cittaReport.quartieri[0].nota = sq.motivoSecondo;
@@ -2498,13 +2535,15 @@ export const aiRecommendationService = {
             // C10b3 — BORGHI (decisione di Ivano): il giro corto si colloca nella fascia della giornata in cui i posti della lista sono
             // aperti; la via principale vale come passeggiata (una sola) e non la toglie la regola delle zone.
             const nonZona = (c) => !zoneReason({ ...c, primaryType: c.primaryType ?? c.primary_type }, city);
-            const postiBorgo = poiCitta.filter(p => !p._citta.passeggiata && nonZona(p));
+            // C10c — BORGO (decisione di Ivano): contano solo i luoghi da visitare, non ristoranti, bar e negozi ne' i posti che per
+            // Google non hanno un tipo; la via principale e le piazze storiche sono passeggiate (contano nella durata, non qui).
+            const postiBorgo = poiCitta.filter(p => !p._citta.passeggiata && !isStoricaLista(p) && nonZona(p) && luogoDaVisitareBorgo(p));
             if (conferma?.scala === 'borgo' && postiBorgo.length < BORGO_MIN_VERIFICATI && tourWindow.windows.length === 1) {
                 const raggio = MAX_WALK_METERS / 1000;
                 const vicini = (c) => !cityCenter || !Number.isFinite(c.latitude ?? c.lat)
                     || haversineKm(cityCenter.latitude, cityCenter.longitude, c.latitude ?? c.lat, c.longitude ?? c.lng) <= raggio;
                 const candidatiBorgo = uniscialPool(rawDalleRicerche, poiCitta)
-                    .filter(c => !isMealPlace(c) && (c._citta?.passeggiata || nonZona(c)) && vicini(c));
+                    .filter(c => !isMealPlace(c) && (c._citta?.passeggiata || (nonZona(c) && luogoDaVisitareBorgo(c))) && vicini(c));
                 const fascia = fasciaApertaBorgo({ candidati: candidatiBorgo, lista: postiBorgo, finestra: w0 });
                 if (fascia) {
                     w0.start = fascia.start;
@@ -2530,9 +2569,13 @@ export const aiRecommendationService = {
                 const z = zoneReason({ ...c, primaryType: c.primaryType ?? c.primary_type }, city);
                 // C10b3 — nel borgo la via principale della lista vale come passeggiata: la regola delle zone non la toglie
                 if (z && c._citta?.passeggiata && conferma?.scala === 'borgo') { cittaReport.viaPrincipale = { nome: c.name || c.title, zona: z }; return true; }
+                // C10c — le piazze e vie storiche della lista (decisione di Ivano): la regola delle zone non le toglie, valgono come passeggiata
+                if (z && isStoricaLista(c)) { (cittaReport.storicheTenute ??= []).push({ nome: c.name || c.title, zona: z }); return true; }
                 if (z) zoneTolte.push({ nome: c.name || c.title || '?', motivo: z });
                 return !z;
             });
+            // C10c — una piazza o via storica della lista conta come passeggiata (al massimo una per mattina e una per pomeriggio: momentSelection)
+            for (const c of rawCandidates) if (isStoricaLista(c) && !c._citta.passeggiata) c._citta = { ...c._citta, passeggiata: true };
             if (zoneTolte.length > 0) console.warn(`[C7 ZONE] ${city}: ${zoneTolte.length} zone tolte dal pool — ${zoneTolte.map(x => `${x.nome} (${x.motivo})`).join(' | ')}`);
 
             // Gate RAGGIO-CATEGORIA — la categoria richiesta, quando e' una delle
@@ -2716,7 +2759,11 @@ export const aiRecommendationService = {
             let seraleVeloce = false;
             const openBuckets = () => (buckets ? applyOpeningToBuckets(moments, buckets, { veto }) : null);
             // C10b2 — con due quartieri: la mattina nel primo, il pranzo in uno dei due, dal pomeriggio in poi nel secondo
-            const nelleAree = (b) => (area?.aree?.length > 1 ? bucketsNelleAree(moments, b, area) : b);
+            const nelleAree = (b) => {
+                const x = area?.aree?.length > 1 ? bucketsNelleAree(moments, b, area) : b;
+                // C10c — con un quartiere chiesto, mattina, pranzo e pomeriggio nel suo nucleo
+                return nucleo ? bucketsNelNucleo(moments, x, nucleo) : x;
+            };
             // Gate NARRATORE-DOPO — si cerca per i momenti che il pool non riesce
             // a riempire, non solo per quelli vuoti (vedi shortMomentThemes).
             // C1 — le famiglie che la categoria o il testo chiedono: per quelle
@@ -2924,8 +2971,17 @@ export const aiRecommendationService = {
                             // C8a — la passeggiata fra drink e cena ha UNA ricerca sua, dalla tappa prima, in piu' del tetto dei momenti veri.
                             let walkBudget = moments.some(x => x.key === 'passeggiata') ? 1 : 0;
                             const eWalk = (x) => moments.find(m => m.id === x.momento)?.key === 'passeggiata';
+                            // C10c — ORARI: un'ancora vietata nel suo momento (chiusa all'arrivo) va in un altro momento del giorno in cui e' aperta
+                            const idAncoreSemi = new Set((cittaReport.seminate || []).map(x => x.place_id));
                             const repair = (tempoLibero = false) => repairMomentSelection({
-                                moments, buckets: openBuckets().buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
+                                moments, buckets: openBuckets().buckets, aiStops: (() => {
+                                    const sp = spostaAncoreVietate(aiStops, idAncoreSemi, moments, openBuckets().buckets, veto);
+                                    if (sp.spostate.length) {
+                                        aiStops = sp.aiStops;
+                                        cittaReport.ancoreSpostate = [...(cittaReport.ancoreSpostate || []), ...sp.spostate];
+                                    }
+                                    return aiStops;
+                                })(), pool: candidates, dnaWeights: opts.dnaWeights || {},
                                 requestedFamilies: familiesAsked, searchedIds, searchedMoments,
                                 // C5b — il punto di partenza, se il chiamante lo conosce;
                                 // senza, la prima tappa si misura dal centro del gruppo.
@@ -3041,7 +3097,7 @@ export const aiRecommendationService = {
                                 righeDichiarate: righeChiuse.map(x => ({ momento: x.momento, pasto: x.pasto })), residui: settled.residui.length,
                                 tappeSenzaFiltro,
                             };
-                            const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })),
+                            const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, respinti: filled.respinti || [], dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })),
                                 minimo: { richiesto: Object.fromEntries(minPerDay), aggiunte: minimo.aggiunte, tentativi: minimo.tentativi, dichiarati: righeMinimo.map(x => ({ momento: x.momento, giorno: x.dayIndex + 1 })) } };
                             momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
                             logMomentReport(city, momentReport);
@@ -3251,6 +3307,12 @@ export const aiRecommendationService = {
                                 return { nome: a.nome, nelGiro: false, motivo: tolta?.motivo
                                     || (vietata ? 'regola dura: orari (chiuso quando ci si arriva)' : fuori ? `regola dura: orari (${fuori.motivo})` : 'non nel giro: motivo non registrato') };
                             });
+                        }
+                        // C10c — un quartiere chiesto: quante tappe stanno nel suo nucleo, e se il giro parte da li'
+                        if (nucleo) {
+                            const vere = narratedDays.flatMap(d => d.stops || []).filter(st => !st.tempoLibero && Number.isFinite(st.latitude ?? st.lat));
+                            const nel = vere.filter(st => dentroNucleo(st, nucleo));
+                            cittaReport.tappeNelQuartiere = { nel: nel.length, totali: vere.length, parteDaLi: vere.length > 0 && dentroNucleo(vere[0], nucleo) };
                         }
                         const result = {
                             days: narratedDays, _source: 'google-first', _singleStop: singleStop,

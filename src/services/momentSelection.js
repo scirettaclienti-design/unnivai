@@ -659,6 +659,8 @@ function repairPass({
         const inBucket = new Map(bucket.map(c => [idOf(c), c]));
         const later = moments.slice(mi + 1).filter(x => x.dayIndex === m.dayIndex && x.stops > 0);
         const chosen = [];
+        // C10c-replay — perche' un momento facoltativo resta senza posto (solo registrazione)
+        let perFacoltativo = null;
         const last = () => (chosen.length ? chosen[chosen.length - 1].candidate : prev);
         // C5d — la tappa dopo il posto che si sta riempiendo (dal giro di prima).
         const targetOf = () => targets?.get(m.id)?.[chosen.length] ?? null;
@@ -746,6 +748,25 @@ function repairPass({
         // C8a — un momento facoltativo non fa mai un ripiego: niente oltre il tetto di cammino, niente
         // famiglia ripetuta, niente giro oltre la deviazione massima (C5c) verso la tappa dopo.
         const fitsOptional = (x) => !x.hard && !x.dup && !x.chain && !(x.dev > ROUTE_DEVIATION_MAX_MINUTES);
+        // C10c-replay — SOLO REGISTRAZIONE: perche' il momento facoltativo resta senza posto. Il migliore dei candidati liberi
+        // e la prova che non passa (il primo che fallisce decide: nessuno migliore passa), e quanti candidati falliscono ogni prova.
+        const proveFallite = (x) => [
+            x.chain ? 'marchio gia\' nel giorno' : null,
+            x.hard ? `oltre il tetto di cammino (${x.t} min)` : null,
+            x.dup ? `famiglia gia' presente nel giorno (${famOf(x.c)})` : null,
+            x.dev > ROUTE_DEVIATION_MAX_MINUTES ? `deviazione di ${Math.round(x.dev)} min (oltre ${ROUTE_DEVIATION_MAX_MINUTES})` : null,
+        ].filter(Boolean);
+        const motivoFacoltativo = (b) => {
+            const tutti = free(null).map(costOf);
+            return {
+                migliore: b ? { nome: b.c.name || b.c.title || null, minuti: b.t, prove: proveFallite(b) } : null,
+                candidati: tutti.length,
+                cammino: tutti.filter(x => x.hard).length,
+                famiglia: tutti.filter(x => x.dup).length,
+                deviazione: tutti.filter(x => x.dev > ROUTE_DEVIATION_MAX_MINUTES).length,
+                marchio: tutti.filter(x => x.chain).length,
+            };
+        };
         // Tutti i candidati liberi del momento col loro costo, dal migliore.
         const ranked = () => {
             const all = free(null).map(costOf);
@@ -943,10 +964,10 @@ function repairPass({
                 break;
             }
             const b = best(null);
-            if (!b) break;
+            if (!b) { if (m.opzionale) perFacoltativo = motivoFacoltativo(null); break; }
             // C8a — un momento FACOLTATIVO (la passeggiata) entra solo se sta bene: entro il tetto di
             // cammino, sulla strada (soglia C5c) e senza ripetere una famiglia. Altrimenti non entra.
-            if ((m.opzionale || leggeraInCorso()) && !fitsOptional(b)) break;
+            if ((m.opzionale || leggeraInCorso()) && !fitsOptional(b)) { if (m.opzionale) perFacoltativo = motivoFacoltativo(b); break; }
             take(b.c, narrationById.get(idOf(b.c)) || null, 'riparata', b);
             report.riempite.push({ place_id: idOf(b.c), name: b.c.name || b.c.title || null, momento: m.id });
         }
@@ -1015,7 +1036,8 @@ function repairPass({
             // C8a — un momento facoltativo (la passeggiata) senza un posto che sta bene non e' "tolto": non era dovuto.
             // Ma si prova a cercarlo DALLA tappa prima (ricerca mirata C1b, bias al tetto di cammino): e' li' che serve.
             if (m.opzionale) {
-                report.facoltativiSenzaPosto.push({ momento: m.id, label: m.label, motivo: 'nessun candidato valido (all\'aperto, entro il tetto di cammino e sulla strada)' });
+                report.facoltativiSenzaPosto.push({ momento: m.id, label: m.label, motivo: 'nessun candidato valido (all\'aperto, entro il tetto di cammino e sulla strada)',
+                    ...(perFacoltativo ? { senzaPosto: perFacoltativo } : {}) });
                 if (prev) report.facoltativiVuoti.push({ momento: m.id, da: pointOf(prev) });
             }
             else if (!report.tempoLibero.some(x => x.momento === m.id)) {
@@ -1767,9 +1789,80 @@ export function criterioRespinto({ trial, trialSched, cur, espandi = true, momen
         }
         const inc = (rep.incrociRimasti?.length ?? 0) > (was.incrociRimasti?.length ?? 0);
         if (inc) return { criterio: 'strada', dettaglio: 'il momento si riempie ma il giro perde una tappa: incroci nel percorso' };
-        return { criterio: 'altro', dettaglio: 'il momento si riempie ma il giro perde una tappa altrove (rifinitura o orari)' };
+        // C10c-replay — quale tappa si perde, dove e per quale regola (solo registrazione)
+        const persa = tappaPersa({ trial, trialSched, cur, moment });
+        return { criterio: 'altro', dettaglio: 'il momento si riempie ma il giro perde una tappa altrove (rifinitura o orari)', ...(persa ? { persa } : {}) };
     }
     return { criterio: 'altro', dettaglio: 'il buco non scende' };
+}
+
+// C10c-replay — la regola di un motivo scritto dal riparatore, per la tappa persa: cammino C5c (tetto di cammino e
+// deviazione), tetto C8, orario o altro.
+const regolaDi = (motivo) => {
+    const t = String(motivo || '');
+    if (/tetto (delle )?visite|visite al giorno|C8/i.test(t)) return 'tetto C8';
+    if (/incroc/.test(t)) return 'altro';
+    const c = criterioDi(t);
+    if (c === 'orario') return 'orario';
+    if (c === 'cammino' || c === 'strada' || /tetto di cammino/.test(t)) return 'cammino C5c';
+    return 'altro';
+};
+const tappeDelGiro = (sched) => (sched?.days || []).flat().map(s => ({ place_id: idOf(s.candidate), nome: nameOf(s.candidate), momento: s.moment?.id ?? null }));
+const perMomento = (tappe) => tappe.reduce((m, x) => m.set(x.momento, (m.get(x.momento) || 0) + 1), new Map());
+
+/**
+ * C10c-replay — SOLO REGISTRAZIONE: quando un tentativo di fillGaps riempie il suo momento ma il giro non guadagna una tappa,
+ * quale tappa si perde, in quale momento e per quale regola.
+ * Il momento che perde e' quello che nel tentativo ha meno tappe di prima (un momento che cambia solo posto — un altro
+ * ristorante a pranzo — non perde niente); la tappa persa e' quella che nel tentativo non e' piu' in quel momento (spesso
+ * scivolata nel momento allargato o in quello accanto). La regola, in quest'ordine:
+ *   orario       — nel tentativo la tappa e' arrivata chiusa e il giro l'ha vietata (settleOpeningHours);
+ *   la riga del riparatore per quel momento (facoltativo senza posto, momento tolto, tempo libero, scarto, ripiego,
+ *   lontano) — cammino C5c (tetto di cammino, deviazione), tetto C8, orario, altro;
+ *   altro        — la tappa non entra piu' nel suo momento, o e' passata in un altro momento senza sostituto.
+ * @returns {{ place_id, nome, momento, regola: 'cammino C5c'|'tetto C8'|'orario'|'altro', dettaglio: string, passataIn?: string }|null}
+ */
+export function tappaPersa({ trial, trialSched, cur, moment = null }) {
+    const prima = tappeDelGiro(cur?.sched);
+    const dopo = tappeDelGiro(trialSched);
+    const nPrima = perMomento(prima);
+    const nDopo = perMomento(dopo);
+    const perdenti = [...nPrima.keys()].filter(k => k !== moment?.id && (nDopo.get(k) || 0) < nPrima.get(k));
+    const nelMomento = new Set(dopo.map(x => `${x.place_id}|${x.momento}`));
+    const nelGiro = new Map(dopo.map(x => [x.place_id, x.momento]));
+    const mancanti = prima.filter(x => x.momento !== moment?.id && !nelMomento.has(`${x.place_id}|${x.momento}`));
+    const candidati = perdenti.length ? mancanti.filter(x => perdenti.includes(x.momento)) : mancanti;
+    if (candidati.length === 0) return null;
+    const p = candidati.find(x => !nelGiro.has(x.place_id)) || candidati[0];
+    const passataIn = nelGiro.get(p.place_id) ?? null;
+    const base = { place_id: p.place_id, nome: p.nome, momento: p.momento, ...(passataIn ? { passataIn } : {}) };
+    const chiusa = (trial?.giri || []).flat().find(x => x.place_id === p.place_id);
+    if (chiusa) return { ...base, regola: 'orario', dettaglio: `chiusa all'arrivo nel tentativo${chiusa.perche ? ` (${chiusa.perche})` : ''}` };
+    const rep = trial?.repaired?.report || {};
+    const was = cur?.repaired?.report || {};
+    // «gia' usato» non spiega niente: e' la tappa stessa, passata in un altro momento
+    const righe = ['facoltativiSenzaPosto', 'momentiTolti', 'tempoLibero', 'scartate', 'ripieghi', 'lontani']
+        .flatMap(k => nuoveRighe(rep[k], was[k]).map(x => ({ ...x, _k: k })))
+        .filter(x => x.momento === p.momento && x.motivo && !/gia' usat/.test(x.motivo));
+    // prima il motivo del momento (un facoltativo rimasto senza posto, un momento tolto), poi quello della tappa
+    const riga = righe.find(x => x._k === 'facoltativiSenzaPosto' || x._k === 'momentiTolti') || righe.find(x => x.place_id === p.place_id) || righe[0];
+    const dove = passataIn ? `passata in ${passataIn}; ` : '';
+    // il facoltativo rimasto senza posto: decide la prova che il migliore dei candidati non passa
+    if (riga?.senzaPosto) {
+        const pr = riga.senzaPosto;
+        const prova = pr.migliore?.prove?.[0] ?? null;
+        const regola = !prova ? 'altro' : /tetto di cammino|deviazione/.test(prova) ? 'cammino C5c' : 'altro';
+        const conti = `${pr.candidati} candidati liberi: ${pr.famiglia} famiglia gia' nel giorno, ${pr.cammino} oltre il tetto di cammino, ${pr.deviazione} oltre la deviazione, ${pr.marchio} marchio ripetuto`;
+        return { ...base, regola, dettaglio: `${dove}${riga.label || riga.momento} senza posto: ${pr.migliore ? `il migliore, «${pr.migliore.nome}» a ${pr.migliore.minuti} min, non passa per ${prova}` : 'nessun candidato libero'} (${conti})`, prova: prova ? (/famiglia/.test(prova) ? 'varietà' : /marchio/.test(prova) ? 'marchio' : /deviazione/.test(prova) ? 'deviazione C5c' : 'tetto di cammino C5c') : 'nessun candidato' };
+    }
+    if (riga) return { ...base, regola: regolaDi(riga.motivo), dettaglio: `${dove}${riga._k}: ${riga.motivo}` };
+    if ((trialSched?.tolte || []).some(x => x.place_id === p.place_id)) return { ...base, regola: 'altro', dettaglio: 'non entra piu\' nel suo momento (orari del giro)' };
+    // il pool registrato del momento: se ogni candidato e' gia' nel giro, nel momento non resta nessuno
+    const cand = rep.pool?.[p.momento]?.candidati || [];
+    const esaurito = cand.length > 0 && cand.every(x => x.scelto || /gia' usat/.test(String(x.motivo || '')));
+    const vuoto = esaurito ? `nessun candidato libero nel momento (i ${cand.length} del pool sono gia' nel giro)` : 'nessun motivo scritto';
+    if (passataIn) return { ...base, regola: 'altro', dettaglio: `passata in ${passataIn}: nel suo momento nessun sostituto, ${vuoto}` };
+    return { ...base, regola: 'altro', dettaglio: `tolta senza sostituto, ${vuoto}` };
 }
 
 /** I momenti in cui si puo' mettere una tappa in piu' per chiudere un buco, dal piu' sovrapposto. */

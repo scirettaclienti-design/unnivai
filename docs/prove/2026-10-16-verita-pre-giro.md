@@ -103,7 +103,8 @@ I test nuovi o riscritti, copiati su un worktree di `b9f4e83` (con `validazione.
 
 ## Su main
 
-`wip/verita-pre-giro` → `main` in avanti veloce, push su `origin/main`, ramo locale eliminato dopo il merge. Esito del gate in fondo.
+`wip/verita-pre-giro` → `main` in avanti veloce (`b276487`), push su `origin/main`, ramo locale eliminato dopo il merge.
+CI sul commit `b276487` (run 38533071231): «Lint & Test» success, «E2E Smoke» success; `decide()` di `scripts/ci-gate-parser.mjs` sui job reali → **PROCEED ALL_GREEN**. La riga `GATE_VERDICT` del build di Vercel non l'ho letta.
 
 **Deploy da verificare da Ivano.**
 

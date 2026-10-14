@@ -1,0 +1,332 @@
+[
+ {
+  "id": "base",
+  "nome": "Il giro di Ivano (registrato)",
+  "query": "piazza storica|trattoria tipica|belvedere panorama",
+  "merito": {
+   "maxIcons": 1,
+   "limite": 20,
+   "famosi": null
+  },
+  "tappeVere": 8,
+  "tempoLiberoMattinaPomeriggio": 264,
+  "tempoLiberoTotale": 264,
+  "seraMisurabile": true,
+  "mancanti": 0,
+  "poolIngresso": 25,
+  "poolAmmessi": 20,
+  "icone": 3,
+  "tour": [
+   "09:30 Palazzo dei Chierici",
+   "10:01 Piazza Umbrella",
+   "10:31 TEMPO LIBERO 118 min",
+   "12:30 Trattoria Sorano",
+   "14:30 Fontana dell’Amenano",
+   "15:01 Palazzo degli Elefanti",
+   "15:31 TEMPO LIBERO 146 min",
+   "18:00 Sotto Palazzo",
+   "18:48 Porta Uzeda",
+   "20:00 Trattoria U Fucularu"
+  ],
+  "essenziali": {
+   "Cattedrale di Sant'Agata": "non nel pool",
+   "La Pescheria": "non nel pool",
+   "Via Etnea": "non nel pool",
+   "Monastero dei Benedettini": "non nel pool",
+   "Castello Ursino": "non nel pool",
+   "Teatro Massimo Bellini": "non nel pool",
+   "Villa Bellini": "non nel pool",
+   "Fera 'o Luni": "non nel pool"
+  }
+ },
+ {
+  "id": "a",
+  "nome": "Stesso pool, merito senza tetto icone e senza limite 20",
+  "query": "piazza storica|trattoria tipica|belvedere panorama",
+  "merito": {
+   "maxIcons": 10,
+   "limite": 40,
+   "famosi": null
+  },
+  "tappeVere": 9,
+  "tempoLiberoMattinaPomeriggio": 230,
+  "tempoLiberoTotale": 230,
+  "seraMisurabile": true,
+  "mancanti": 0,
+  "poolIngresso": 25,
+  "poolAmmessi": 24,
+  "icone": 3,
+  "tour": [
+   "09:30 Palazzo dei Chierici",
+   "10:03 Piazza Giuseppe Mazzini",
+   "10:33 TEMPO LIBERO 116 min",
+   "12:30 Trattoria Sorano",
+   "14:30 Fontana dell’Amenano",
+   "15:01 Porta Uzeda",
+   "15:33 Palazzo degli Elefanti",
+   "16:03 TEMPO LIBERO 114 min",
+   "18:00 Bar Popolare",
+   "18:58 Porta Garibaldi",
+   "20:00 Trattoria Giglio Rosso"
+  ],
+  "essenziali": {
+   "Cattedrale di Sant'Agata": "non nel pool",
+   "La Pescheria": "non nel pool",
+   "Via Etnea": "non nel pool",
+   "Monastero dei Benedettini": "non nel pool",
+   "Castello Ursino": "non nel pool",
+   "Teatro Massimo Bellini": "non nel pool",
+   "Villa Bellini": "non nel pool",
+   "Fera 'o Luni": "non nel pool"
+  }
+ },
+ {
+  "id": "a3",
+  "nome": "Come A + bonus +0,3 ai luoghi famosi (≥ 2.500 recensioni, non pasti)",
+  "query": "piazza storica|trattoria tipica|belvedere panorama",
+  "merito": {
+   "maxIcons": 10,
+   "limite": 40,
+   "famosi": "2500:0.3"
+  },
+  "tappeVere": 9,
+  "tempoLiberoMattinaPomeriggio": 178,
+  "tempoLiberoTotale": 256,
+  "seraMisurabile": false,
+  "mancanti": 3,
+  "poolIngresso": 25,
+  "poolAmmessi": 24,
+  "icone": 3,
+  "tour": [
+   "09:30 Palazzo dei Chierici",
+   "10:03 Piazza Giuseppe Mazzini",
+   "10:33 TEMPO LIBERO 116 min",
+   "12:30 Trattoria Sorano",
+   "14:30 Fontana dell’Amenano",
+   "15:01 Porta Uzeda",
+   "15:33 Palazzo degli Elefanti",
+   "16:10 Anfiteatro Romano di Catania",
+   "16:40 TEMPO LIBERO 62 min",
+   "18:00 Porta Garibaldi",
+   "18:30 TEMPO LIBERO 78 min",
+   "20:00 Trattoria Giglio Rosso"
+  ],
+  "essenziali": {
+   "Cattedrale di Sant'Agata": "non nel pool",
+   "La Pescheria": "non nel pool",
+   "Via Etnea": "non nel pool",
+   "Monastero dei Benedettini": "non nel pool",
+   "Castello Ursino": "non nel pool",
+   "Teatro Massimo Bellini": "non nel pool",
+   "Villa Bellini": "non nel pool",
+   "Fera 'o Luni": "non nel pool"
+  }
+ },
+ {
+  "id": "b1",
+  "nome": "«monumenti» al posto di «belvedere panorama», merito di oggi",
+  "query": "piazza storica|trattoria tipica|monumenti",
+  "merito": {
+   "maxIcons": 1,
+   "limite": 20,
+   "famosi": null
+  },
+  "tappeVere": 9,
+  "tempoLiberoMattinaPomeriggio": 230,
+  "tempoLiberoTotale": 230,
+  "seraMisurabile": true,
+  "mancanti": 0,
+  "poolIngresso": 32,
+  "poolAmmessi": 20,
+  "icone": 4,
+  "tour": [
+   "09:30 Palazzo dei Chierici",
+   "10:01 Piazza Umbrella",
+   "10:31 TEMPO LIBERO 116 min",
+   "12:30 Trattoria Giglio Rosso",
+   "14:30 Arco di San Benedetto",
+   "15:03 Palazzo degli Elefanti",
+   "15:34 Fontana dell’Amenano",
+   "16:04 TEMPO LIBERO 114 min",
+   "18:00 Bar Popolare",
+   "18:48 Porta Uzeda",
+   "20:00 Trattoria U Fucularu"
+  ],
+  "essenziali": {
+   "Cattedrale di Sant'Agata": "tagliato dal merito (icona), punteggio 0.191 → non nel tour",
+   "La Pescheria": "non nel pool",
+   "Via Etnea": "non nel pool",
+   "Monastero dei Benedettini": "tagliato dal merito, punteggio 0.289 → non nel tour",
+   "Castello Ursino": "non nel pool",
+   "Teatro Massimo Bellini": "non nel pool",
+   "Villa Bellini": "non nel pool",
+   "Fera 'o Luni": "non nel pool"
+  }
+ },
+ {
+  "id": "b2",
+  "nome": "Come B1, merito senza tetto icone e senza limite 20",
+  "query": "piazza storica|trattoria tipica|monumenti",
+  "merito": {
+   "maxIcons": 10,
+   "limite": 40,
+   "famosi": null
+  },
+  "tappeVere": 12,
+  "tempoLiberoMattinaPomeriggio": 146,
+  "tempoLiberoTotale": 146,
+  "seraMisurabile": true,
+  "mancanti": 0,
+  "poolIngresso": 32,
+  "poolAmmessi": 31,
+  "icone": 4,
+  "tour": [
+   "09:30 Teatro Antico greco-romano di Catania",
+   "10:02 Piazza Giuseppe Mazzini",
+   "10:35 Palazzo dei Chierici",
+   "11:05 TEMPO LIBERO 83 min",
+   "12:30 Trattoria Sorano",
+   "14:30 Fontana dell’Amenano",
+   "15:01 Porta Uzeda",
+   "15:32 Fontana dell'Elefante (uʻ Liotru)",
+   "16:03 Chiesa della Badia di Sant'Agata",
+   "16:24 Palazzo degli Elefanti",
+   "16:54 TEMPO LIBERO 63 min",
+   "18:00 Deliziosa Café & Cocktail Bar",
+   "18:45 Arco di San Benedetto",
+   "20:00 Trattoria da Mario"
+  ],
+  "essenziali": {
+   "Cattedrale di Sant'Agata": "ammesso (icona), punteggio 0.191 → non nel tour",
+   "La Pescheria": "non nel pool",
+   "Via Etnea": "non nel pool",
+   "Monastero dei Benedettini": "ammesso, punteggio 0.289 → non nel tour",
+   "Castello Ursino": "non nel pool",
+   "Teatro Massimo Bellini": "non nel pool",
+   "Villa Bellini": "non nel pool",
+   "Fera 'o Luni": "non nel pool"
+  }
+ },
+ {
+  "id": "b3",
+  "nome": "Come B2 + bonus +0,3 ai luoghi famosi",
+  "query": "piazza storica|trattoria tipica|monumenti",
+  "merito": {
+   "maxIcons": 10,
+   "limite": 40,
+   "famosi": "2500:0.3"
+  },
+  "tappeVere": 10,
+  "tempoLiberoMattinaPomeriggio": 157,
+  "tempoLiberoTotale": 157,
+  "seraMisurabile": true,
+  "mancanti": 0,
+  "poolIngresso": 32,
+  "poolAmmessi": 31,
+  "icone": 4,
+  "tour": [
+   "09:30 Porta Garibaldi",
+   "10:09 Monastero dei Benedettini di San Nicolò l'Arena",
+   "11:09 TEMPO LIBERO 76 min",
+   "12:30 Trattoria Giglio Rosso",
+   "14:30 Teatro Antico greco-romano di Catania",
+   "15:02 Arco di San Benedetto",
+   "15:35 Palazzo degli Elefanti",
+   "16:06 Fontana dell'Elefante (uʻ Liotru)",
+   "16:36 TEMPO LIBERO 81 min",
+   "18:00 Bar Popolare",
+   "18:48 Porta Uzeda",
+   "20:00 Trattoria U Fucularu"
+  ],
+  "essenziali": {
+   "Cattedrale di Sant'Agata": "ammesso (icona), punteggio 0.491 → non nel tour",
+   "La Pescheria": "non nel pool",
+   "Via Etnea": "non nel pool",
+   "Monastero dei Benedettini": "ammesso, punteggio 0.589 → NEL TOUR",
+   "Castello Ursino": "non nel pool",
+   "Teatro Massimo Bellini": "non nel pool",
+   "Villa Bellini": "non nel pool",
+   "Fera 'o Luni": "non nel pool"
+  }
+ },
+ {
+  "id": "b4",
+  "nome": "La ricerca «esperienze» di C7 al posto di «piazza storica», merito di oggi",
+  "query": "mercato storico palazzo barocco via storica|trattoria tipica|belvedere panorama",
+  "merito": {
+   "maxIcons": 1,
+   "limite": 20,
+   "famosi": null
+  },
+  "tappeVere": 7,
+  "tempoLiberoMattinaPomeriggio": 83,
+  "tempoLiberoTotale": 343,
+  "seraMisurabile": false,
+  "mancanti": 2,
+  "poolIngresso": 25,
+  "poolAmmessi": 20,
+  "icone": 3,
+  "tour": [
+   "09:30 Palazzo Minoriti",
+   "10:04 Palazzo degli Elefanti",
+   "10:35 Palazzo dei Chierici",
+   "11:05 TEMPO LIBERO 83 min",
+   "12:30 Trattoria Sorano",
+   "14:30 Palazzo Platamone",
+   "15:08 Palazzo Beneventano",
+   "15:38 TEMPO LIBERO 260 min",
+   "20:00 Trattoria del Cavaliere"
+  ],
+  "essenziali": {
+   "Cattedrale di Sant'Agata": "tagliato dal merito (icona), punteggio 0.191 → non nel tour",
+   "La Pescheria": "tagliato dal merito (icona), punteggio 0.206 → non nel tour",
+   "Via Etnea": "non nel pool",
+   "Monastero dei Benedettini": "non nel pool",
+   "Castello Ursino": "non nel pool",
+   "Teatro Massimo Bellini": "non nel pool",
+   "Villa Bellini": "non nel pool",
+   "Fera 'o Luni": "ammesso, punteggio 0.517 → non nel tour"
+  }
+ },
+ {
+  "id": "b5",
+  "nome": "Come B4, merito senza tetto icone e senza limite 20",
+  "query": "mercato storico palazzo barocco via storica|trattoria tipica|belvedere panorama",
+  "merito": {
+   "maxIcons": 10,
+   "limite": 40,
+   "famosi": null
+  },
+  "tappeVere": 9,
+  "tempoLiberoMattinaPomeriggio": 83,
+  "tempoLiberoTotale": 289,
+  "seraMisurabile": false,
+  "mancanti": 2,
+  "poolIngresso": 25,
+  "poolAmmessi": 24,
+  "icone": 3,
+  "tour": [
+   "09:30 Palazzo Minoriti",
+   "10:04 Palazzo degli Elefanti",
+   "10:35 Palazzo dei Chierici",
+   "11:05 TEMPO LIBERO 83 min",
+   "12:30 Trattoria Sorano",
+   "14:30 Basilica Cattedrale di Sant'Agata",
+   "14:53 Palazzo Platamone",
+   "15:31 Palazzo Beneventano",
+   "16:02 Piazza Stesicoro",
+   "16:32 TEMPO LIBERO 206 min",
+   "20:00 Trattoria del Cavaliere"
+  ],
+  "essenziali": {
+   "Cattedrale di Sant'Agata": "ammesso (icona), punteggio 0.191 → NEL TOUR",
+   "La Pescheria": "ammesso (icona), punteggio 0.206 → non nel tour",
+   "Via Etnea": "non nel pool",
+   "Monastero dei Benedettini": "non nel pool",
+   "Castello Ursino": "non nel pool",
+   "Teatro Massimo Bellini": "non nel pool",
+   "Villa Bellini": "non nel pool",
+   "Fera 'o Luni": "ammesso, punteggio 0.517 → non nel tour"
+  }
+ }
+]

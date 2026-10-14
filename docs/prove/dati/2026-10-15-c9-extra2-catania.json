@@ -1,0 +1,68 @@
+{
+ "avvio": "2026-10-14T00:28:23.558Z",
+ "modo": "extra",
+ "caso": {
+  "id": "c9-catania-domani-da-catanese",
+  "luogo": "Catania",
+  "oggi": "2026-10-14",
+  "ora": "22:19",
+  "fuso": "+02:00",
+  "richiesta": "Domani un giorno da catanese",
+  "prefs": {
+   "budget": "",
+   "duration": "1 Giorno",
+   "interests": [],
+   "group": "",
+   "pace": ""
+  }
+ },
+ "chiamata": null,
+ "risultato": {
+  "extra": true
+ },
+ "log": [],
+ "proxy": [
+  {
+   "tipo": "places",
+   "path": "place/textsearch",
+   "query": "bar cocktail pub locale musica vino Catania",
+   "radius": "20000",
+   "location": "37.5078836,15.0830032",
+   "n": 20,
+   "status": "OK",
+   "cache": "HIT",
+   "engine": "new"
+  },
+  {
+   "tipo": "places",
+   "path": "place/textsearch",
+   "query": "trattoria ristorante pizzeria osteria Catania",
+   "radius": "20000",
+   "location": "37.5078836,15.0830032",
+   "n": 20,
+   "status": "OK",
+   "cache": "HIT",
+   "engine": "new"
+  }
+ ],
+ "mancanti": [],
+ "costo": {
+  "listino": 0.064,
+  "reale": 0,
+  "ai": {
+   "chiamate": 0,
+   "tokenIn": 0,
+   "tokenOut": 0
+  },
+  "google": {
+   "place/textsearch": 2
+  },
+  "googleDallaCache": {
+   "place/textsearch": 2
+  }
+ },
+ "meriti": [],
+ "riparazioni": [],
+ "erroriTraccia": [],
+ "fine": "2026-10-14T00:28:27.601Z"
+}

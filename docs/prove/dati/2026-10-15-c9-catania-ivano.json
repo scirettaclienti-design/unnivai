@@ -1,0 +1,1592 @@
+{
+ "avvio": "2026-10-14T00:17:06.244Z",
+ "modo": "record",
+ "caso": {
+  "id": "c9-catania-domani-da-catanese",
+  "luogo": "Catania",
+  "oggi": "2026-10-14",
+  "ora": "22:19",
+  "fuso": "+02:00",
+  "richiesta": "Domani un giorno da catanese",
+  "prefs": {
+   "budget": "",
+   "duration": "1 Giorno",
+   "interests": [],
+   "group": "",
+   "pace": ""
+  }
+ },
+ "chiamata": {
+  "pagina": "AiItinerary.jsx",
+  "pathType": "custom",
+  "prefs": {
+   "budget": "",
+   "duration": "1 Giorno",
+   "interests": [],
+   "group": "",
+   "pace": ""
+  },
+  "testo": "Domani un giorno da catanese",
+  "meteo": {
+   "condition": "sunny",
+   "temperature": 20
+  },
+  "aiProfile": "",
+  "cityCenter": {
+   "latitude": 37.5078836,
+   "longitude": 15.0830032,
+   "isSmallTown": false,
+   "radiusKm": 10
+  },
+  "ora": "2026-10-14T22:19:00+02:00"
+ },
+ "risultato": {
+  "source": "google-first",
+  "destinazione": {
+   "city": "Catania",
+   "fromText": false,
+   "note": null
+  },
+  "tourWindow": {
+   "date": "2026-10-15",
+   "start": "2026-10-15T07:30:00.000Z",
+   "reason": "day",
+   "windows": [
+    {
+     "date": "2026-10-15",
+     "start": "2026-10-15T07:30:00.000Z",
+     "end": "2026-10-15T20:30:00.000Z"
+    }
+   ]
+  },
+  "momentReport": {
+   "scartate": [
+    {
+     "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+     "momento": "g1-pomeriggio",
+     "motivo": "famiglia gia' presente nel giorno (piazza)"
+    },
+    {
+     "place_id": "ChIJdQr9cPX7ExMRxA2GjNivuuU",
+     "momento": "g1-aperitivo",
+     "motivo": "oltre il tetto di cammino (110 min > 20)"
+    }
+   ],
+   "riempite": [
+    {
+     "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+     "name": "Fontana dell’Amenano",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+     "name": "Bar Popolare",
+     "momento": "g1-aperitivo"
+    },
+    {
+     "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+     "name": "Piazza Umbrella",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJuzxaAODjExMRccoJu6YRJ9c",
+     "name": "Sotto Palazzo",
+     "momento": "g1-aperitivo"
+    },
+    {
+     "place_id": "ChIJwYpRey7jExMRJxudW7ZTTBM",
+     "name": "Trattoria U Fucularu",
+     "momento": "g1-cena"
+    }
+   ],
+   "momentiTolti": [],
+   "facoltativiSenzaPosto": [],
+   "facoltativiVuoti": [],
+   "ripieghi": [],
+   "lontani": [],
+   "ripetuti": [],
+   "ritocchi": [
+    {
+     "momento": "g1-mattina",
+     "tolta": "ChIJLZa9AC7jExMRQpSE-ITO9ZM",
+     "messa": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+     "name": "Piazza Umbrella"
+    },
+    {
+     "momento": "g1-aperitivo",
+     "tolta": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+     "messa": "ChIJuzxaAODjExMRccoJu6YRJ9c",
+     "name": "Sotto Palazzo"
+    },
+    {
+     "momento": "g1-cena",
+     "tolta": "ChIJU84fUCzjExMR4rI0uZuCtQQ",
+     "messa": "ChIJwYpRey7jExMRJxudW7ZTTBM",
+     "name": "Trattoria U Fucularu"
+    }
+   ],
+   "tempoLibero": [
+    {
+     "momento": "g1-mattina",
+     "key": "mattina",
+     "label": "Mattina",
+     "dayIndex": 0,
+     "posto": 0,
+     "dopo": "Piazza Umbrella",
+     "prima": "ChIJq3DCq4HjExMRyvmYVFTImqY",
+     "piuVicino": null,
+     "chiuso": false,
+     "pasto": false,
+     "buco": 118,
+     "motivo": "118 min fra \"Piazza Umbrella\" e \"Trattoria Sorano\": nessuna tappa in piu' da aggiungere (varieta', percorso e orari)"
+    },
+    {
+     "momento": "g1-pomeriggio",
+     "key": "pomeriggio",
+     "label": "Pomeriggio",
+     "dayIndex": 0,
+     "posto": 0,
+     "dopo": "Palazzo degli Elefanti",
+     "prima": "ChIJuzxaAODjExMRccoJu6YRJ9c",
+     "piuVicino": null,
+     "chiuso": false,
+     "pasto": false,
+     "buco": 146,
+     "motivo": "146 min fra \"Palazzo degli Elefanti\" e \"Sotto Palazzo\": nessuna tappa in piu' da aggiungere (varieta', percorso e orari)"
+    }
+   ],
+   "sceltaModello": [
+    {
+     "place_id": "ChIJLZa9AC7jExMRQpSE-ITO9ZM",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJq3DCq4HjExMRyvmYVFTImqY",
+     "momento": "g1-pranzo"
+    },
+    {
+     "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJV63v_C7jExMRhTLFcc2p9Z8",
+     "momento": "g1-pomeriggio"
+    },
+    {
+     "place_id": "ChIJdQr9cPX7ExMRxA2GjNivuuU",
+     "momento": "g1-aperitivo"
+    },
+    {
+     "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+     "momento": "g1-passeggiata"
+    },
+    {
+     "place_id": "ChIJU84fUCzjExMR4rI0uZuCtQQ",
+     "momento": "g1-cena"
+    }
+   ],
+   "pool": {
+    "g1-mattina": {
+     "posti": 2,
+     "candidati": [
+      {
+       "place_id": "ChIJLZa9AC7jExMRQpSE-ITO9ZM",
+       "nome": "Piazza Vincenzo Bellini",
+       "famiglia": "piazza",
+       "primaryType": "plaza",
+       "types": [
+        "plaza",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.48,
+       "minuti": 5,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+       "nome": "Palazzo dei Chierici",
+       "famiglia": null,
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.46,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJaUl7zSjjExMRoCTWa8ahogs",
+       "nome": "Piazza Giuseppe Mazzini",
+       "famiglia": "piazza",
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.45,
+       "minuti": 3,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+       "nome": "Piazza Umbrella",
+       "famiglia": "piazza",
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.43,
+       "minuti": 1,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJV63v_C7jExMRhTLFcc2p9Z8",
+       "nome": "Palazzo degli Elefanti",
+       "famiglia": null,
+       "primaryType": "government_office",
+       "types": [
+        "tourist_attraction",
+        "government_office",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.41,
+       "minuti": 1,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+       "nome": "Piazza Carlo Alberto",
+       "famiglia": "piazza",
+       "primaryType": "market",
+       "types": [
+        "market",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.38,
+       "minuti": 12,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "nome": "Fontana dell’Amenano",
+       "famiglia": null,
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.37,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+       "nome": "Porta Uzeda",
+       "famiglia": null,
+       "primaryType": "landmark",
+       "types": [
+        "landmark",
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.36,
+       "minuti": 1,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pranzo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJq3DCq4HjExMRyvmYVFTImqY",
+       "nome": "Trattoria Sorano",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.33,
+       "minuti": 2,
+       "deviazione": 3.8,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJvYTRwijjExMRvj0zmgrt6q4",
+       "nome": "Trattoria Giglio Rosso",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "steak_house",
+        "seafood_restaurant",
+        "family_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.27,
+       "minuti": 4,
+       "deviazione": 8.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJRQknxC3jExMRyRWDa7bzwNA",
+       "nome": "Trattoria Casalinga da Nino Mannino",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.29,
+       "minuti": 6,
+       "deviazione": 11,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJb018Ipv9ExMRS1tjQaIdbOs",
+       "nome": "La Pentolaccia",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.26,
+       "minuti": 6,
+       "deviazione": 11.4,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJU84fUCzjExMR4rI0uZuCtQQ",
+       "nome": "Trattoria del Cavaliere",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.17,
+       "minuti": 7,
+       "deviazione": 13.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ62d5tA39ExMR8uJelh7LMiE",
+       "nome": "Du Mori Osteria tipica",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "brunch_restaurant",
+        "family_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.33,
+       "minuti": 18,
+       "deviazione": 36.4,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJQ6UhD8z8ExMRd4z9v5P6kz8",
+       "nome": "Trattoria Saltimbocca Da Giancarlo",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.33,
+       "minuti": 20,
+       "deviazione": 39,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "fuori strada",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ2b8-Gtf8ExMRGtMuV_yD7vQ",
+       "nome": "Trattoria Da Peppino di Tumia Giovanni",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.27,
+       "minuti": 25,
+       "deviazione": 50.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-pomeriggio": {
+     "posti": 2,
+     "candidati": [
+      {
+       "place_id": "ChIJV63v_C7jExMRhTLFcc2p9Z8",
+       "nome": "Palazzo degli Elefanti",
+       "famiglia": null,
+       "primaryType": "government_office",
+       "types": [
+        "tourist_attraction",
+        "government_office",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.41,
+       "minuti": 3,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+       "nome": "Fontana dell’Amenano",
+       "famiglia": null,
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.37,
+       "minuti": 2,
+       "deviazione": 0.6,
+       "scelto": true,
+       "posto": 1,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+       "nome": "Porta Uzeda",
+       "famiglia": null,
+       "primaryType": "landmark",
+       "types": [
+        "landmark",
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.36,
+       "minuti": 3,
+       "deviazione": 1.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJaUl7zSjjExMRoCTWa8ahogs",
+       "nome": "Piazza Giuseppe Mazzini",
+       "famiglia": "piazza",
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.45,
+       "minuti": 1,
+       "deviazione": 1.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+       "nome": "Piazza Umbrella",
+       "famiglia": "piazza",
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.43,
+       "minuti": 1,
+       "deviazione": 1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-aperitivo": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJ9bTT5mbjExMRkZuYM-b5aio",
+       "nome": "Bar Popolare",
+       "famiglia": null,
+       "primaryType": "cocktail_bar",
+       "types": [
+        "cocktail_bar",
+        "bar",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.52,
+       "minuti": 2,
+       "deviazione": 4.9,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJuzxaAODjExMRccoJu6YRJ9c",
+       "nome": "Sotto Palazzo",
+       "famiglia": null,
+       "nomeOriginale": "Sotto Palazzo | Cocktail e Sapori",
+       "primaryType": "cocktail_bar",
+       "types": [
+        "cocktail_bar",
+        "italian_restaurant",
+        "bar",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.5,
+       "minuti": 3,
+       "deviazione": 5.4,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJ4aS0WaDjExMRZm-pSHW8PAg",
+       "nome": "Magma 2.0 Drink & Food",
+       "famiglia": null,
+       "primaryType": "pub",
+       "types": [
+        "pub",
+        "deli",
+        "bar",
+        "food_store",
+        "store",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.5,
+       "minuti": 4,
+       "deviazione": 7.6,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJdQr9cPX7ExMRxA2GjNivuuU",
+       "nome": "Belvedere Di Carminello",
+       "famiglia": "panorama",
+       "primaryType": "observation_deck",
+       "types": [
+        "observation_deck",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.48,
+       "minuti": 110,
+       "deviazione": 220.1,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-passeggiata": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+       "nome": "Porta Uzeda",
+       "famiglia": null,
+       "primaryType": "landmark",
+       "types": [
+        "landmark",
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.36,
+       "minuti": 3,
+       "deviazione": 3.3,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJaUl7zSjjExMRoCTWa8ahogs",
+       "nome": "Piazza Giuseppe Mazzini",
+       "famiglia": "piazza",
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.45,
+       "minuti": 1,
+       "deviazione": 1.2,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+       "nome": "Piazza Umbrella",
+       "famiglia": "piazza",
+       "primaryType": "tourist_attraction",
+       "types": [
+        "tourist_attraction",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.43,
+       "minuti": 2,
+       "deviazione": 2.7,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "famiglia gia' presente nel giorno (piazza)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJdQr9cPX7ExMRxA2GjNivuuU",
+       "nome": "Belvedere Di Carminello",
+       "famiglia": "panorama",
+       "primaryType": "observation_deck",
+       "types": [
+        "observation_deck",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.48,
+       "minuti": 111,
+       "deviazione": 207.9,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    },
+    "g1-cena": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJ62d5tA39ExMR8uJelh7LMiE",
+       "nome": "Du Mori Osteria tipica",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "brunch_restaurant",
+        "family_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.33,
+       "minuti": 18,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJQ6UhD8z8ExMRd4z9v5P6kz8",
+       "nome": "Trattoria Saltimbocca Da Giancarlo",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.33,
+       "minuti": 20,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJRQknxC3jExMRyRWDa7bzwNA",
+       "nome": "Trattoria Casalinga da Nino Mannino",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.29,
+       "minuti": 6,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJvYTRwijjExMRvj0zmgrt6q4",
+       "nome": "Trattoria Giglio Rosso",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "steak_house",
+        "seafood_restaurant",
+        "family_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.27,
+       "minuti": 5,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJwYpRey7jExMRJxudW7ZTTBM",
+       "nome": "Trattoria U Fucularu",
+       "famiglia": null,
+       "primaryType": "restaurant",
+       "types": [
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.27,
+       "minuti": 3,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJb018Ipv9ExMRS1tjQaIdbOs",
+       "nome": "La Pentolaccia",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.26,
+       "minuti": 6,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJMUd6UynjExMRuCV-wh1ktK0",
+       "nome": "Trattoria da Mario",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.26,
+       "minuti": 6,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "pari: lo scelto viene prima (modello o ordine)",
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJU84fUCzjExMR4rI0uZuCtQQ",
+       "nome": "Trattoria del Cavaliere",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "italian_restaurant",
+        "seafood_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.17,
+       "minuti": 7,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": false
+      },
+      {
+       "place_id": "ChIJ2b8-Gtf8ExMRGtMuV_yD7vQ",
+       "nome": "Trattoria Da Peppino di Tumia Giovanni",
+       "famiglia": null,
+       "primaryType": "italian_restaurant",
+       "types": [
+        "seafood_restaurant",
+        "italian_restaurant",
+        "european_restaurant",
+        "restaurant",
+        "food",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.27,
+       "minuti": 26,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "oltre il tetto di cammino",
+       "nelGiro": false
+      }
+     ]
+    }
+   },
+   "incrociRimasti": [
+    {
+     "giorno": 1,
+     "incroci": 1,
+     "motivo": "incrocio rimasto: toglierlo costerebbe un tratto oltre il tetto o una famiglia ripetuta"
+    }
+   ],
+   "ricercheDaFare": [],
+   "finestraMinuti": [
+    780
+   ],
+   "tolte": [],
+   "ricercheMirate": [],
+   "ricercheDopo": [
+    {
+     "momento": "g1-aperitivo",
+     "tema": "nightlife",
+     "da": "Fontana dell’Amenano",
+     "trovati": 5
+    }
+   ],
+   "orari": {
+    "chiusi": [
+     {
+      "momento": "g1-pranzo",
+      "place_id": "ChIJH9OmNizjExMR3xfvyNJjX3E",
+      "nome": "Trattoria Il mare",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-pranzo",
+      "place_id": "ChIJwYpRey7jExMRJxudW7ZTTBM",
+      "nome": "Trattoria U Fucularu",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-pranzo",
+      "place_id": "ChIJMUd6UynjExMRuCV-wh1ktK0",
+      "nome": "Trattoria da Mario",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-pomeriggio",
+      "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+      "nome": "Palazzo dei Chierici",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-pomeriggio",
+      "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+      "nome": "Piazza Carlo Alberto",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-aperitivo",
+      "place_id": "ChIJmysZMQDjExMR71d5dtbg_Vs",
+      "nome": "The Broken Barrel Bar",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-aperitivo",
+      "place_id": "ChIJI5cU_IL9ExMRViGp8JGvWLc",
+      "nome": "Boston Cocktail Bar",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-passeggiata",
+      "place_id": "ChIJzUeIFp_9ExMRVmZDnrg6Jng",
+      "nome": "Piazza Carlo Alberto",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-cena",
+      "place_id": "ChIJH9OmNizjExMR3xfvyNJjX3E",
+      "nome": "Trattoria Il mare",
+      "perche": "chiuso all'arrivo"
+     }
+    ],
+    "vietati": [],
+    "giri": 0,
+    "ignoti": 3,
+    "scartatiIgnoti": [],
+    "righeDichiarate": [],
+    "residui": 0,
+    "tappeSenzaFiltro": 8
+   },
+   "continuita": {
+    "aggiunte": [],
+    "tentativi": 2,
+    "dichiarati": [
+     {
+      "momento": "g1-mattina",
+      "minuti": 118,
+      "prima": "ChIJq3DCq4HjExMRyvmYVFTImqY"
+     },
+     {
+      "momento": "g1-pomeriggio",
+      "minuti": 146,
+      "prima": "ChIJuzxaAODjExMRccoJu6YRJ9c"
+     }
+    ],
+    "minimo": {
+     "richiesto": {
+      "0": 4
+     },
+     "aggiunte": [],
+     "tentativi": 0,
+     "dichiarati": []
+    }
+   },
+   "tema": {
+    "cibo": true,
+    "tipico": true,
+    "fonte": "testo (\"da …\")",
+    "momentiEspliciti": [],
+    "cucineEstereEscluse": [],
+    "zoneTolte": []
+   },
+   "percorso": [
+    {
+     "tappe": 8,
+     "km": 1.15,
+     "incroci": 1,
+     "indice": null,
+     "indiceLibero": 1.48,
+     "giroCorto": true,
+     "catene": 0,
+     "motivoIncroci": "incrocio rimasto: toglierlo costerebbe un tratto oltre il tetto o una famiglia ripetuta"
+    }
+   ]
+  },
+  "giorni": [
+   {
+    "titolo": "Il tuo giro a Catania",
+    "stops": [
+     {
+      "title": "Palazzo dei Chierici",
+      "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+      "moment": "mattina",
+      "momentLabel": "Mattina",
+      "tempoLibero": false,
+      "scheduledTime": "2026-10-15T07:30:00.000Z",
+      "stay": 30,
+      "cammino": null,
+      "attesa": 0,
+      "types": [
+       "tourist_attraction",
+       "point_of_interest",
+       "establishment"
+      ],
+      "primaryType": "tourist_attraction",
+      "lat": 37.5021169,
+      "lng": 15.087216499999998,
+      "description": "Ti fermi davanti a Palazzo dei Chierici il tempo che serve. Si comincia da qui.",
+      "tracciato": {
+       "scelta": "modello",
+       "minuti": null,
+       "famiglia": null,
+       "deviazione": 0,
+       "tema": "esperienza nello spirito del tema cibo",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno"
+      }
+     },
+     {
+      "title": "Piazza Umbrella",
+      "place_id": "ChIJLwS8dRrjExMRhq1VsrqkFGo",
+      "moment": "mattina",
+      "momentLabel": "Mattina",
+      "tempoLibero": false,
+      "scheduledTime": "2026-10-15T08:01:00.000Z",
+      "stay": 30,
+      "cammino": 1,
+      "attesa": 0,
+      "types": [
+       "tourist_attraction",
+       "point_of_interest",
+       "establishment"
+      ],
+      "primaryType": "tourist_attraction",
+      "lat": 37.501422999999996,
+      "lng": 15.086302499999997,
+      "description": "Attraversi Piazza Umbrella piano, senza fretta. È a un minuto a piedi dalla tappa prima.",
+      "tracciato": {
+       "scelta": "riparazione",
+       "minuti": 1,
+       "famiglia": "piazza",
+       "motivo": "sulla strada: al posto di \"Piazza Vincenzo Bellini\"",
+       "tema": "esperienza nello spirito del tema cibo",
+       "orario": "sconosciuto"
+      }
+     },
+     {
+      "title": "Tempo libero",
+      "place_id": null,
+      "moment": "mattina",
+      "momentLabel": "Mattina",
+      "tempoLibero": true,
+      "scheduledTime": "2026-10-15T08:31:00.000Z",
+      "stay": 118,
+      "cammino": 0,
+      "attesa": 0,
+      "types": [],
+      "primaryType": null,
+      "lat": null,
+      "lng": null,
+      "description": "Niente in agenda: cammina dove ti porta la strada.",
+      "tracciato": {
+       "scelta": "tempo libero",
+       "minuti": null,
+       "famiglia": null,
+       "motivo": "118 min fra \"Piazza Umbrella\" e \"Trattoria Sorano\": nessuna tappa in piu' da aggiungere (varieta', percorso e orari)",
+       "piuVicino": null,
+       "buco": 118
+      }
+     },
+     {
+      "title": "Trattoria Sorano",
+      "place_id": "ChIJq3DCq4HjExMRyvmYVFTImqY",
+      "moment": "pranzo",
+      "momentLabel": "Pranzo",
+      "tempoLibero": false,
+      "scheduledTime": "2026-10-15T10:30:00.000Z",
+      "stay": 75,
+      "cammino": 1,
+      "attesa": 0,
+      "types": [
+       "italian_restaurant",
+       "european_restaurant",
+       "restaurant",
+       "food",
+       "point_of_interest",
+       "establishment"
+      ],
+      "primaryType": "italian_restaurant",
+      "lat": 37.5018302,
+      "lng": 15.085401599999999,
+      "description": "Pranzi da Trattoria Sorano, trattoria con prezzi medi. Ci arrivi alle 12:30.",
+      "tracciato": {
+       "scelta": "modello",
+       "minuti": 1,
+       "famiglia": null,
+       "deviazione": 4,
+       "tema": "pasto del tema cibo",
+       "tipico": {
+        "richiesto": true,
+        "locale": true,
+        "perche": "nome: trattoria"
+       },
+       "orario": "noto",
+       "orarioFonte": "orario del giorno"
+      }
+     },
+     {
+      "title": "Fontana dell’Amenano",
+      "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+      "moment": "pomeriggio",
+      "momentLabel": "Pomeriggio",
+      "tempoLibero": false,
+      "scheduledTime": "2026-10-15T12:30:00.000Z",
+      "stay": 30,
+      "cammino": 2,
+      "attesa": 43,
+      "types": [
+       "tourist_attraction",
+       "point_of_interest",
+       "establishment"
+      ],
+      "primaryType": "tourist_attraction",
+      "lat": 37.502040699999995,
+      "lng": 15.087013899999999,
+      "description": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia. Sono 2 minuti a piedi dalla tappa prima.",
+      "tracciato": {
+       "scelta": "riparazione",
+       "minuti": 2,
+       "famiglia": null,
+       "deviazione": 1,
+       "tema": "esperienza nello spirito del tema cibo",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno"
+      }
+     },
+     {
+      "title": "Palazzo degli Elefanti",
+      "place_id": "ChIJV63v_C7jExMRhTLFcc2p9Z8",
+      "moment": "pomeriggio",
+      "momentLabel": "Pomeriggio",
+      "tempoLibero": false,
+      "scheduledTime": "2026-10-15T13:01:00.000Z",
+      "stay": 30,
+      "cammino": 1,
+      "attesa": 0,
+      "types": [
+       "tourist_attraction",
+       "government_office",
+       "point_of_interest",
+       "establishment"
+      ],
+      "primaryType": "government_office",
+      "lat": 37.5028541,
+      "lng": 15.0871515,
+      "description": "Passi da Palazzo degli Elefanti: guardati intorno prima di ripartire.",
+      "tracciato": {
+       "scelta": "modello",
+       "minuti": 1,
+       "famiglia": null,
+       "deviazione": 0,
+       "incrocio": "incrocio rimasto: toglierlo costerebbe un tratto oltre il tetto o una famiglia ripetuta",
+       "tema": "esperienza nello spirito del tema cibo",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno"
+      }
+     },
+     {
+      "title": "Tempo libero",
+      "place_id": null,
+      "moment": "pomeriggio",
+      "momentLabel": "Pomeriggio",
+      "tempoLibero": true,
+      "scheduledTime": "2026-10-15T13:31:00.000Z",
+      "stay": 146,
+      "cammino": 0,
+      "attesa": 0,
+      "types": [],
+      "primaryType": null,
+      "lat": null,
+      "lng": null,
+      "description": "Niente in agenda: cammina dove ti porta la strada.",
+      "tracciato": {
+       "scelta": "tempo libero",
+       "minuti": null,
+       "famiglia": null,
+       "motivo": "146 min fra \"Palazzo degli Elefanti\" e \"Sotto Palazzo\": nessuna tappa in piu' da aggiungere (varieta', percorso e orari)",
+       "piuVicino": null,
+       "buco": 146
+      }
+     },
+     {
+      "title": "Sotto Palazzo",
+      "place_id": "ChIJuzxaAODjExMRccoJu6YRJ9c",
+      "moment": "aperitivo",
+      "momentLabel": "Aperitivo",
+      "tempoLibero": false,
+      "scheduledTime": "2026-10-15T16:00:00.000Z",
+      "stay": 45,
+      "cammino": 3,
+      "attesa": 0,
+      "types": [
+       "cocktail_bar",
+       "italian_restaurant",
+       "bar",
+       "european_restaurant",
+       "restaurant",
+       "food",
+       "point_of_interest",
+       "establishment"
+      ],
+      "primaryType": "cocktail_bar",
+      "lat": 37.5023773,
+      "lng": 15.0898786,
+      "description": "L'aperitivo lo prendi da Sotto Palazzo. Il sole tramonta alle 18:23: sei qui 23 minuti prima.",
+      "tracciato": {
+       "scelta": "ricerca mirata",
+       "minuti": 3,
+       "famiglia": null,
+       "motivo": "sulla strada: al posto di \"Bar Popolare\"",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno",
+       "nomeOriginale": "Sotto Palazzo | Cocktail e Sapori"
+      }
+     },
+     {
+      "title": "Porta Uzeda",
+      "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+      "moment": "aperitivo",
+      "momentLabel": "Aperitivo",
+      "tempoLibero": false,
+      "scheduledTime": "2026-10-15T16:48:00.000Z",
+      "stay": 30,
+      "cammino": 3,
+      "attesa": 0,
+      "types": [
+       "landmark",
+       "tourist_attraction",
+       "point_of_interest",
+       "establishment"
+      ],
+      "primaryType": "landmark",
+      "lat": 37.5017967,
+      "lng": 15.087635899999999,
+      "description": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca.",
+      "tracciato": {
+       "scelta": "modello",
+       "minuti": 3,
+       "famiglia": null,
+       "deviazione": 3,
+       "incrocio": "incrocio rimasto: toglierlo costerebbe un tratto oltre il tetto o una famiglia ripetuta",
+       "orario": "noto",
+       "orarioFonte": "orario del giorno"
+      }
+     },
+     {
+      "title": "Trattoria U Fucularu",
+      "place_id": "ChIJwYpRey7jExMRJxudW7ZTTBM",
+      "moment": "cena",
+      "momentLabel": "Cena",
+      "tempoLibero": false,
+      "scheduledTime": "2026-10-15T18:00:00.000Z",
+      "stay": 75,
+      "cammino": 3,
+      "attesa": 39,
+      "types": [
+       "restaurant",
+       "food",
+       "point_of_interest",
+       "establishment"
+      ],
+      "primaryType": "restaurant",
+      "lat": 37.5040376,
+      "lng": 15.088306499999998,
+      "description": "La cena è da Trattoria U Fucularu, trattoria con prezzi medi. Qui la giornata si chiude.",
+      "tracciato": {
+       "scelta": "riparazione",
+       "minuti": 3,
+       "famiglia": null,
+       "motivo": "sulla strada: al posto di \"Trattoria del Cavaliere\"",
+       "tema": "pasto del tema cibo",
+       "tipico": {
+        "richiesto": true,
+        "locale": true,
+        "perche": "nome: trattoria"
+       },
+       "orario": "noto",
+       "orarioFonte": "orario del giorno"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "log": [
+  "log: [AI Proxy] Chiamata → https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy (autenticato)",
+  "info: [Gate B] intent tradotto: queries=[\"piazza storica\",\"trattoria tipica\",\"belvedere panorama\"] categoria=misto oggetto=\"un giro insider\" source=ai",
+  "info: [Gate B] kind globale=CULTURA | per-query: piazza storica->CULTURA, trattoria tipica->FOOD, belvedere panorama->RELAX | 2/3 divergenti",
+  "warn: [Qualita] scartati 6/18 | kind=CULTURA soglia=4/50 (large) livello=1 | i piu' alti: \"Piazza duomo\" (r=5, n=3), \"Piazza Martiri della Libertà\" (r=5, n=3), \"Piazzetta Goliarda Sapienza\" (r=4.7, n=32)",
+  "warn: [DVAI-060] CULTURA scale-down livello 3 (permissivo, pochi luoghi disponibili)",
+  "info: [DVAI-060] Catania/belvedere panorama scale-down livello 3, 1 POI",
+  "info: [Gate B] merge: 25 candidati dedup, ordinati per qualityScore (nessun taglio qui)",
+  "info: [C7 TEMA] Catania: tema cibo (testo (\"da …\")), tipico → vale solo per i pasti",
+  "info: [Gate MERITO] Catania: 25 candidati -> 20 ammessi (soglia qualita' + punteggio affinita'/unicita'/voto, tetto 1 icona, limite 20)",
+  "info: [P3 SCHELETRO] Catania: 6 momenti — g1-mattina×2(8 cand.), g1-pranzo×1(8 cand.), g1-pomeriggio×2(6 cand.), g1-aperitivo×1(1 cand.), g1-passeggiata×1(6 cand.), g1-cena×1(10 cand.) | nessuna ricerca mirata",
+  "info: [ORARI] Catania: 7 posti chiusi quando ci si arriva, tolti dai momenti — Trattoria Il mare @g1-pranzo (chiuso all'arrivo) | Trattoria U Fucularu @g1-pranzo (chiuso all'arrivo) | Trattoria da Mario @g1-pranzo (chiuso all'arrivo) | Palazzo dei Chierici @g1-pomeriggio (chiuso all'arrivo) | Piazza Carlo Alberto @g1-pomeriggio (chiuso all'arrivo) | Piazza Carlo Alberto @g1-passeggiata (chiuso all'arrivo)",
+  "log: [AI Proxy] Chiamata → https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy (autenticato)",
+  "warn: [Qualita] scartati 1/20 | kind=FOOD soglia=4.2/50 (large) livello=1 | i piu' alti: \"Civita - Beats, Bites & Bottles\" (r=5, n=42)",
+  "info: [C1b RICERCA MIRATA] Catania: g1-aperitivo da \"Fontana dell’Amenano\" (nightlife) → 5 candidati",
+  "warn: [P3 SCHELETRO] Catania: scartata ChIJLwS8dRrjExMRhq1VsrqkFGo (g1-pomeriggio) — famiglia gia' presente nel giorno (piazza)",
+  "warn: [P3 SCHELETRO] Catania: scartata ChIJdQr9cPX7ExMRxA2GjNivuuU (g1-aperitivo) — oltre il tetto di cammino (110 min > 20)",
+  "info: [P3 SCHELETRO] Catania: g1-pomeriggio riempito dal codice con \"Fontana dell’Amenano\" (merito)",
+  "info: [P3 SCHELETRO] Catania: g1-aperitivo riempito dal codice con \"Bar Popolare\" (merito)",
+  "info: [P3 SCHELETRO] Catania: g1-mattina riempito dal codice con \"Piazza Umbrella\" (merito)",
+  "info: [P3 SCHELETRO] Catania: g1-aperitivo riempito dal codice con \"Sotto Palazzo\" (merito)",
+  "info: [P3 SCHELETRO] Catania: g1-cena riempito dal codice con \"Trattoria U Fucularu\" (merito)",
+  "info: [C5e TEMPO LIBERO] Catania: g1-mattina — 118 min fra \"Piazza Umbrella\" e \"Trattoria Sorano\": nessuna tappa in piu' da aggiungere (varieta', percorso e orari)",
+  "info: [C5e TEMPO LIBERO] Catania: g1-pomeriggio — 146 min fra \"Palazzo degli Elefanti\" e \"Sotto Palazzo\": nessuna tappa in piu' da aggiungere (varieta', percorso e orari)",
+  "info: [C5 PERCORSO] Catania: g1-mattina \"Piazza Umbrella\" al posto di ChIJLZa9AC7jExMRQpSE-ITO9ZM (sulla strada)",
+  "info: [C5 PERCORSO] Catania: g1-aperitivo \"Sotto Palazzo\" al posto di ChIJ9bTT5mbjExMRkZuYM-b5aio (sulla strada)",
+  "info: [C5 PERCORSO] Catania: g1-cena \"Trattoria U Fucularu\" al posto di ChIJU84fUCzjExMR4rI0uZuCtQQ (sulla strada)",
+  "info: [C5 PERCORSO] Catania giorno 1: 8 tappe, 1.15 km, incroci 1, indice non applicato (giro corto) (libero 1.48), catene 0 — incrocio rimasto: toglierlo costerebbe un tratto oltre il tetto o una famiglia ripetuta",
+  "info: [P3d-e FATTI] Catania: 4/5 luoghi con fatti (4 da cache, 3 locali esclusi) in 3633 ms",
+  "log: [AI Proxy] Chiamata → https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy (autenticato)",
+  "info: [Narratore] check avviato, 10 tappe, path=narratore",
+  "warn: [Narratore] VIOLAZIONE no-orario-affermato | campo=description | POI=\"Trattoria Sorano\" | estratto=\"alle 12:30\"",
+  "warn: [Narratore] VIOLAZIONE no-description-duplicata | campo=description | POI=\"Tempo libero\" | estratto=\"Niente in agenda: cammina dove ti porta la strada.\"",
+  "warn: [Narratore] VIOLAZIONE no-orario-affermato | campo=description | POI=\"Sotto Palazzo\" | estratto=\"alle 18:23\"",
+  "info: [P3d-j SCELTE] Catania: \"Piazza Umbrella\" — riserva del codice su gancio",
+  "info: [P3d-j SCELTE] Catania: \"Trattoria Sorano\" — riserva del codice su gancio",
+  "info: [P3d-j SCELTE] Catania: \"Fontana dell’Amenano\" — riserva del codice su gancio",
+  "info: [P3d-j SCELTE] Catania: \"Palazzo degli Elefanti\" — riserva del codice su gancio",
+  "info: [P3d-j SCELTE] Catania: \"Porta Uzeda\" — riserva del codice su gancio",
+  "info: [P7a2 famosita'] Catania: mediana 586 recensioni, 0/10 tappe sopra 5000",
+  "info: [P7a ovvieta'] Catania: 0/10 tappe nel 10% piu' recensito (25 candidati, soglia 4310 recensioni)"
+ ],
+ "proxy": [
+  {
+   "tipo": "places",
+   "path": "place/findplacefromtext",
+   "query": null,
+   "radius": null,
+   "location": null,
+   "n": null,
+   "status": "OK",
+   "cache": "HIT",
+   "engine": null
+  },
+  {
+   "tipo": "ai",
+   "path": null,
+   "query": null,
+   "radius": null,
+   "location": null,
+   "n": null,
+   "status": 200,
+   "cache": null,
+   "engine": null
+  },
+  {
+   "tipo": "places",
+   "path": "place/textsearch",
+   "query": "piazza storica Catania",
+   "radius": "20000",
+   "location": "37.5078836,15.0830032",
+   "n": 20,
+   "status": "OK",
+   "cache": "HIT",
+   "engine": "new"
+  },
+  {
+   "tipo": "places",
+   "path": "place/textsearch",
+   "query": "belvedere panorama Catania",
+   "radius": "20000",
+   "location": "37.5078836,15.0830032",
+   "n": 1,
+   "status": "OK",
+   "cache": "HIT",
+   "engine": "new"
+  },
+  {
+   "tipo": "places",
+   "path": "place/textsearch",
+   "query": "trattoria tipica Catania",
+   "radius": "20000",
+   "location": "37.5078836,15.0830032",
+   "n": 20,
+   "status": "OK",
+   "cache": "HIT",
+   "engine": "new"
+  },
+  {
+   "tipo": "ai",
+   "path": null,
+   "query": null,
+   "radius": null,
+   "location": null,
+   "n": null,
+   "status": 200,
+   "cache": null,
+   "engine": null
+  },
+  {
+   "tipo": "places",
+   "path": "place/textsearch",
+   "query": "bar cocktail pub locale musica vino Catania",
+   "radius": "1500",
+   "location": "37.502040699999995,15.087013899999999",
+   "n": 20,
+   "status": "OK",
+   "cache": "HIT",
+   "engine": "new"
+  },
+  {
+   "tipo": "ai",
+   "path": null,
+   "query": null,
+   "radius": null,
+   "location": null,
+   "n": null,
+   "status": 200,
+   "cache": null,
+   "engine": null
+  }
+ ],
+ "mancanti": [],
+ "costo": {
+  "listino": 0.1466404,
+  "reale": 0.0016404000000000002,
+  "ai": {
+   "chiamate": 3,
+   "tokenIn": 7352,
+   "tokenOut": 896
+  },
+  "google": {
+   "place/findplacefromtext": 1,
+   "place/textsearch": 4
+  },
+  "googleDallaCache": {
+   "place/findplacefromtext": 1,
+   "place/textsearch": 4
+  }
+ },
+ "secs": 18.903,
+ "fine": "2026-10-14T00:17:29.445Z"
+}

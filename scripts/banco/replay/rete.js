@@ -102,8 +102,29 @@ export function creaRegistratore() {
                 else rete.ai[p].push({ status, corpo, prompt: impronta(init?.body) });
             }
         },
+        // C10c-piena-2 — una richiesta fallita nel giro vero (timeout, rete) si registra: il replay la fa fallire allo stesso modo
+        annotaErrore(url, init, err) {
+            const u = String(url);
+            const errore = { errore: err?.name || 'Error', messaggio: String(err?.message || err).slice(0, 120) };
+            if (u.includes('places-proxy')) {
+                const k = chiavePlaces(u);
+                if (!k.startsWith('place/photo')) rete.places[k] = errore;
+            } else if (u.includes('openai-proxy')) {
+                const p = passaggioAI(init?.body);
+                if (p === 'lista' || p === 'quartiere') rete.ai[p][chiaveLista(init?.body)] = errore;
+                else rete.ai[p].push({ ...errore, prompt: impronta(init?.body) });
+            }
+        },
     };
 }
+
+// Una richiesta registrata come fallita: si rilancia lo stesso errore (un timeout resta un timeout), mai una chiamata vera.
+const rifallisci = (stato, r, chiave) => {
+    stato.fallimentiRigiocati.push({ chiave: String(chiave).slice(0, 200), errore: r.errore });
+    const e = new Error(`replay: ${r.messaggio || r.errore}`);
+    e.name = r.errore;
+    throw e;
+};
 
 const risposta = (status, corpo) => new Response(corpo == null ? null : JSON.stringify(corpo), { status, headers: { 'content-type': 'application/json' } });
 
@@ -115,7 +136,7 @@ const risposta = (status, corpo) => new Response(corpo == null ? null : JSON.str
  */
 export function creaReteReplay(tracciato, { racconto = 'registrato' } = {}) {
     const rete = tracciato?.rete || tracciaVuota();
-    const stato = { servite: 0, uscite: [], promptDiversi: [], raccontoMancante: [] };
+    const stato = { servite: 0, uscite: [], promptDiversi: [], raccontoMancante: [], fallimentiRigiocati: [] };
     const contatori = {};
     const vieta = (tipo, chiave) => {
         const e = new ReteVietataError(tipo, chiave);
@@ -129,6 +150,7 @@ export function creaReteReplay(tracciato, { racconto = 'registrato' } = {}) {
             if (k.startsWith('place/photo')) return new Response(null, { status: 204 });
             const r = rete.places[k];
             if (!r) return vieta('places', k);
+            if (r.errore) return rifallisci(stato, r, k);
             stato.servite += 1;
             return risposta(r.status, r.corpo);
         }
@@ -138,6 +160,7 @@ export function creaReteReplay(tracciato, { racconto = 'registrato' } = {}) {
                 const k = chiaveLista(init?.body);
                 const r = rete.ai[p]?.[k];
                 if (!r) return vieta(`ai:${p}`, k);
+                if (r.errore) return rifallisci(stato, r, k);
                 stato.servite += 1;
                 return risposta(r.status, r.corpo);
             }
@@ -151,6 +174,7 @@ export function creaReteReplay(tracciato, { racconto = 'registrato' } = {}) {
                 return vieta(`ai:${p}`, `chiamata ${i + 1}`);
             }
             if (r.prompt && r.prompt !== impronta(init?.body)) stato.promptDiversi.push({ passaggio: p, chiamata: i + 1 });
+            if (r.errore) return rifallisci(stato, r, `${p} ${i + 1}`);
             stato.servite += 1;
             return risposta(r.status, r.corpo);
         }

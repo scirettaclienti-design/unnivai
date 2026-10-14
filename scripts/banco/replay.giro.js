@@ -70,6 +70,7 @@ for (const traccia of casi) {
         } finally {
             rec.spesaUsd = 0;
             rec.replay = { servite: stato.servite, uscite: stato.uscite, promptDiversi: stato.promptDiversi, raccontoMancante: stato.raccontoMancante,
+                fallimentiRigiocati: stato.fallimentiRigiocati,
                 scrittureDatabase: accessi.slice(accessi0).filter(a => a.cosa !== 'from') };
             save();
         }

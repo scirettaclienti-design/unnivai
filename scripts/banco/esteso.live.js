@@ -90,7 +90,12 @@ globalThis.fetch = vi.fn(async (url, init) => {
         init = { ...(init || {}), headers: { ...(init?.headers || {}), Authorization: `Bearer ${data?.session?.access_token}` } };
         nuova = true;
     }
-    const res = await realFetch(u, init);
+    let res;
+    try { res = await realFetch(u, init); } catch (err) {
+        // C10c-piena-2 — anche una richiesta fallita (timeout, rete) entra nel tracciato: il replay la fa fallire allo stesso modo
+        registratore?.annotaErrore(u, init, err);
+        throw err;
+    }
     if (u.includes('places-proxy')) {
         let params = null;
         try { params = new URL(u, 'http://x').searchParams; } catch { /* url strano */ }

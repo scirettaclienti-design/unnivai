@@ -76,6 +76,24 @@ describe('C10c-piena-2 — la varieta\' e\' una preferenza a cascata', () => {
     });
 });
 
+describe('C10c-piena-2 — lo stesso posto in due schede di Google non torna', () => {
+    it('Piazza Sant\'Oronzo come monumento al pomeriggio e come piazza alla passeggiata: la seconda non entra', () => {
+        const comeMonumento = posto('Piazza Sant\'Oronzo', 0, 0, { primaryType: 'historical_landmark', types: ['historical_landmark', 'tourist_attraction'] });
+        const comePiazza = { ...posto('Piazza Sant\'Oronzo', 0.0005, -0.002, { types: ['route'] }), place_id: 'pid-sant-oronzo-via' };
+        const chiesa = posto('Chiesa di Santa Chiara', 0.2, 0.1, { types: ['church'], primaryType: 'church' });
+        const pranzo = posto('Trattoria Sotto', -0.2, 0, { types: ['restaurant', 'food'], primaryType: 'italian_restaurant' });
+        const bar = posto('Bar Centrale', 0.1, -0.1, { types: ['bar'], primaryType: 'bar' });
+        const cena = posto('Osteria Sera', 0.05, -0.15, { types: ['restaurant', 'food'], primaryType: 'italian_restaurant' });
+        const moments = [M('pomeriggio', 2), M('aperitivo', 1, { bevuta: true }), M('passeggiata', 1, { opzionale: true }), M('cena', 1)];
+        const buckets = new Map([['g1-pomeriggio', [comeMonumento, chiesa]], ['g1-aperitivo', [bar]], ['g1-passeggiata', [comePiazza]], ['g1-cena', [cena]]]);
+        const aiStops = [{ place_id: comeMonumento.place_id, moment: 'g1-pomeriggio' }, { place_id: chiesa.place_id, moment: 'g1-pomeriggio' },
+            { place_id: bar.place_id, moment: 'g1-aperitivo' }, { place_id: comePiazza.place_id, moment: 'g1-passeggiata' }, { place_id: cena.place_id, moment: 'g1-cena' }];
+        const { plan, report } = repairMomentSelection({ moments, buckets, aiStops, pool: [comeMonumento, comePiazza, chiesa, pranzo, bar, cena], tempoLiberoMinuti: 45 });
+        expect(plan.flatMap(p => p.stops.map(s => s.candidate.name)).filter(n => n === 'Piazza Sant\'Oronzo')).toHaveLength(1);
+        expect(report.scartate.find(x => x.place_id === 'pid-sant-oronzo-via')?.motivo).toMatch(/stesso posto/);
+    });
+});
+
 // ─── il borgo nel motore: la sera torna sulla piazza emblematica, con un testo diverso da quello della mattina ───
 describe('C10c-piena-2 — il borgo: la piazza emblematica torna la sera con un altro testo', () => {
     const TR = { latitude: 37.7845, longitude: 14.5975, isSmallTown: true, radiusKm: 5 };

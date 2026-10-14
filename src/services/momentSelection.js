@@ -626,6 +626,10 @@ function repairPass({
 
     const momentIds = new Set(moments.map(m => m.id));
     const used = new Set();
+    // C10c-piena-2 — lo stesso posto con due schede di Google (Piazza Sant'Oronzo come piazza e come monumento, a 25 m): conta
+    // come gia' usato. Prima lo teneva fuori, per caso, il divieto di ripetere la famiglia; con la varieta' come preferenza no.
+    const usedNames = new Set();
+    const nomeUsato = (c) => { const n = nomeNorm(c); return !!n && usedNames.has(n) && !used.has(idOf(c)); };
     // Le tappe senza `moment` non sono "fuori dal loro momento": il modello
     // non l'ha detto. Prendono il primo momento libero in cui stanno.
     const unassigned = [];
@@ -687,7 +691,7 @@ function repairPass({
         const leggeraInCorso = () => !!m.extraLeggero && chosen.length === m.stops - 1;
         // C10c — le piazze e vie storiche della lista contano come passeggiata: al massimo una per mattina e una per pomeriggio
         const storicaGiaPresa = () => (m.key === 'mattina' || m.key === 'pomeriggio') && chosen.some(x => isStoricaLista(x.candidate));
-        const free = (except) => bucket.filter(c => !used.has(idOf(c)) && idOf(c) !== except
+        const free = (except) => bucket.filter(c => !used.has(idOf(c)) && !nomeUsato(c) && idOf(c) !== except
             && (!colazioneInCorso() || isBreakfastPlace(c)) && (!dopoColazione() || !isLocale(c)) && (!leggeraInCorso() || isLightStop(c))
             && (!isStoricaLista(c) || !storicaGiaPresa()));
         // C5e (O) — solo se attivo (dopo le ricerche mirate), solo fuori dai
@@ -908,6 +912,7 @@ function repairPass({
             if (cost.ripetuta) trace.ripetuta = true;
             chosen.push({ candidate: c, narration, source, trace });
             used.add(idOf(c));
+            if (nomeNorm(c)) usedNames.add(nomeNorm(c));
             if (counted(famOf(c))) dayFamilies.add(famOf(c));
             if (brandOf(c)) dayBrands.add(brandOf(c));
         };
@@ -938,6 +943,7 @@ function repairPass({
             if (!poolIds.has(s.place_id)) { reject(s, 'luogo non fra i candidati'); continue; }
             if (!c) { reject(s, 'fuori dal suo momento'); continue; }
             if (used.has(s.place_id)) { reject(s, 'gia\' usato'); continue; }
+            if (nomeUsato(c)) { no('stesso posto gia\' nel giro (un\'altra scheda di Google)'); continue; }
             if (colazioneInCorso() && !isBreakfastPlace(c)) { no('colazione chiesta: la prima tappa e\' un posto da colazione'); continue; }
             if (dopoColazione() && isLocale(c)) { no('dopo la colazione niente altro cibo fino al pranzo'); continue; }
             if (leggeraInCorso() && !isLightStop(c)) { no('vuoto lungo con ritmo Rilassato: una tappa leggera'); continue; }
@@ -958,7 +964,7 @@ function repairPass({
         for (let i = 0; i < unassigned.length && chosen.length < m.stops; i++) {
             const s = unassigned[i];
             const c = inBucket.get(s.place_id);
-            if (!c || used.has(s.place_id) || freeSlot()) continue;
+            if (!c || used.has(s.place_id) || nomeUsato(c) || freeSlot()) continue;
             if (colazioneInCorso() && !isBreakfastPlace(c)) continue;
             if ((dopoColazione() && isLocale(c)) || (leggeraInCorso() && !isLightStop(c))) continue;
             if (isStoricaLista(c) && storicaGiaPresa()) continue;
@@ -1129,6 +1135,9 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
         return scoreCache.get(k);
     };
     const used = new Set(plan.flatMap(p => p.stops.map(s => idOf(s.candidate))));
+    // C10c-piena-2 — un'altra scheda di Google dello stesso posto (stesso nome) non entra al posto di una tappa
+    const nomiNelGiro = () => new Set(plan.flatMap(p => p.stops.map(s => nomeNorm(s.candidate))).filter(Boolean));
+    const giaNelGiro = (c) => used.has(idOf(c)) || (!!nomeNorm(c) && nomiNelGiro().has(nomeNorm(c)));
     const measure = (entries) => {
         const seq = orderPlanWalk(entries, { maxWalk, startPoint }).flatMap(p => p.stops.map(s => s.candidate));
         const fams = seq.map(candidateFamily).filter(f => f && !asked?.has(f));
@@ -1211,7 +1220,7 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
                 // oltre il tetto.
                 const ancora = isAncora(s.candidate);
                 for (const c of buckets.get(e.moment.id) || []) {
-                    if (used.has(idOf(c))) continue;
+                    if (giaNelGiro(c)) continue;
                     // Fuori dai pasti un posto dove si mangia entra solo al
                     // posto di un altro: un locale senza famiglia "toglierebbe"
                     // una ripetizione mettendo una trattoria nel pomeriggio.
@@ -1633,6 +1642,8 @@ const isLocaleCandidate = (c) => {
     return cats.has('cibo') || cats.has('bar');
 };
 const nameOf = (c) => c?.name || c?.title || null;
+// C10c-piena-2 — il nome per riconoscere lo stesso posto in due schede di Google: minuscolo, senza accenti ne' segni
+const nomeNorm = (c) => String(nameOf(c) || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 /**
  * I bucket senza i posti chiusi.

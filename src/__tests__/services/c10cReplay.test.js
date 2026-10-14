@@ -114,6 +114,17 @@ describe('C10c-replay — il banco rigiocato dai tracciati', () => {
         await expect(fetch('https://replay.invalid/functions/v1/places-proxy?path=place%2Ftextsearch&query=altro')).rejects.toBeInstanceOf(ReteVietataError);
     });
 
+    it('una richiesta fallita nel giro vero (timeout) si registra e nel replay fallisce allo stesso modo, senza uscire in rete', async () => {
+        const reg = creaRegistratore();
+        const u = 'https://x/functions/v1/places-proxy?path=place%2Ftextsearch&query=piazza+storica+Roma&location=41.9%2C12.4&radius=2670&language=it&engine=new';
+        const timeout = Object.assign(new Error('The operation was aborted'), { name: 'AbortError' });
+        reg.annotaErrore(u, {}, timeout);
+        const { fetch, stato } = creaReteReplay({ rete: reg.rete });
+        await expect(fetch(u)).rejects.toMatchObject({ name: 'AbortError' });
+        expect(stato.uscite).toEqual([]);
+        expect(stato.fallimentiRigiocati).toHaveLength(1);
+    });
+
     it('la chiave di una richiesta e quella della cache del proxy coincidono (motore nuovo e findplace)', () => {
         expect(chiavePlaces('https://x/functions/v1/places-proxy?path=place%2Ftextsearch&query=piazza+storica+Roma&location=41.9%2C12.4&radius=2000&language=it&engine=new'))
             .toBe(chiaveDaCache('v1:new2-1x08rj6:place/textsearch:language=it&location=41.9,12.4&query=piazza storica Roma&radius=2000'));

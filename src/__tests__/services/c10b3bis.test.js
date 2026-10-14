@@ -14,7 +14,8 @@ const locali = [
     posto('Caffè della Piazza', 'colazione', { momento: 'colazione' }), posto('Trattoria Prima', 'ristorante', { momento: 'pranzo' }),
     posto('Osteria Seconda', 'ristorante', { momento: 'cena' }),
 ];
-const leggi = (posti, scala = 'città') => leggiLista(JSON.stringify({ posti }), 'Città Prova', scala);
+// C10b3-ter — le regole di C10b3-bis con la variante A del prompt (con la C le ancore vengono dagli imperdibili)
+const leggi = (posti, scala = 'città') => leggiLista(JSON.stringify({ posti }), 'Città Prova', scala, 'A');
 
 describe('C10b3-bis — piazze e vie storiche, ancore, simbolo', () => {
     it('una piazza o una via storica entra nella lista senza contare negli 8 luoghi da visitare', () => {
@@ -41,7 +42,7 @@ describe('C10b3-bis — piazze e vie storiche, ancore, simbolo', () => {
         expect(l.find(p => p.nome === 'Cattedrale Prova')).toMatchObject({ simbolo: true, simboloDedotto: true });
         // il prompt lo chiede cosi' (citta' e metropoli): ancore anche piazze e vie storiche, il simbolo un luogo da visitare
         for (const scala of ['città', 'metropoli']) {
-            const sys = promptCitta('Città Prova', '2026-10-15', scala).system;
+            const sys = promptCitta('Città Prova', '2026-10-15', scala, 'A').system;
             expect(sys).toMatch(/possono essere un luogo da visitare, una piazza o una via storica, mai un locale; fra loro il simbolo/);
             expect(sys).toMatch(/Il simbolo è un luogo da visitare .*non una strada, una piazza o un locale/);
         }
@@ -62,7 +63,7 @@ describe('C10b3-bis — un solo completamento per tutte le quote', () => {
             posto('Chiesa numero 1', 'chiesa', { tipo: 'essenziale' }), // un'ancora ripetuta: diventa essenziale
             posto('Bar Notturno', 'dopocena', { momento: 'dopocena' }),
         ] }));
-        const r = await completaLista({ posti: l, scala: 'città', citta: 'Città Prova', giorno: '2026-10-15', chiedi });
+        const r = await completaLista({ posti: l, scala: 'città', citta: 'Città Prova', giorno: '2026-10-15', chiedi, variante: 'A' });
         expect(chiedi).toHaveBeenCalledTimes(1);
         const sys = chiedi.mock.calls[0][0].system;
         expect(sys).toMatch(/- 2 LUOGHI DA VISITARE/);
@@ -82,7 +83,7 @@ describe('C10b3-bis — un solo completamento per tutte le quote', () => {
             posto('Museo Prova', 'museo', { tipo: 'essenziale' }), ...visite(5), posto('Piazza Grande', 'piazza'), posto('Via Antica', 'via'), ...locali]);
         expect(quoteLista(l, 'città').mancanti).toEqual({ visite: 0, storiche: 0, ancore: 0, dopocena: 1 });
         const chiedi = vi.fn(async () => JSON.stringify({ posti: [posto('Enoteca Tarda', 'dopocena', { momento: 'dopocena' }), posto('Chiesa in più', 'chiesa')] }));
-        const r = await completaLista({ posti: l, scala: 'città', citta: 'Città Prova', giorno: '2026-10-15', chiedi });
+        const r = await completaLista({ posti: l, scala: 'città', citta: 'Città Prova', giorno: '2026-10-15', chiedi, variante: 'A' });
         expect(chiedi).toHaveBeenCalledTimes(1);
         expect(r.completamento.aggiunti).toEqual(['Enoteca Tarda']);
         expect(r.quoteDopo.dopocena).toBe(1);

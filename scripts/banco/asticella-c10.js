@@ -35,6 +35,22 @@ export const ESSENZIALI_CONTROLLO = {
         ['Monastero di San Michele Arcangelo (ruderi)', /san michele|monastero nuovo/i],
     ],
 };
+// C10b3-ter (decisione di Ivano) — il SIMBOLO atteso di ogni citta' e' il primo nome della sua lista di controllo (l'ordine
+// c'era gia': Colosseo, Duomo di Napoli, Cattedrale di Palermo, Basilica di Santa Croce, Cattedrale di Sant'Agata, Chiesa
+// Madre). Le liste non cambiano: il primo posto diventa il simbolo da controllare.
+export const SIMBOLO_CONTROLLO = Object.fromEntries(Object.entries(ESSENZIALI_CONTROLLO).map(([c, l]) => [c, l[0]]));
+/**
+ * Il simbolo della lista e' quello atteso? Il simbolo della citta' e' il PRIMO posto segnato simbolo dall'AI (non dedotto): in
+ * una metropoli i simboli sono uno per quartiere, e un'ancora qualsiasi (il Pantheon a Roma) non basta.
+ * `simboli`: [{ nome, dedotto? }] nell'ordine della lista.
+ */
+export function simboloGiusto(simboli, luogo) {
+    const atteso = SIMBOLO_CONTROLLO[luogo];
+    if (!atteso) return { applicabile: false };
+    const primo = (simboli || []).find(x => x && !x.dedotto) || null;
+    const [nome, rx] = atteso;
+    return { applicabile: true, atteso: nome, simbolo: primo?.nome ?? null, dedotto: !primo && (simboli || []).length > 0, ok: !!primo && rx.test(primo.nome || '') };
+}
 export const BORGHI = new Set(['Troina']);
 export const SOGLIE_C10 = {
     ancoreMin: 3, visiteDallaListaMin: 0.5, borgoDallaListaMin: 2, tempoLiberoMax: 45, giornataMinuti: 360,

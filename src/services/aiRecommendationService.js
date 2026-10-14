@@ -530,6 +530,7 @@ const saveIntentToCache = (key, data) => {
 // - `note` max 150 char (un vincolo, non un discorso).
 // - Il traduttore produce anche `oggetto_umano` (1-3 parole, come lo direbbe una
 //   persona) — usato dal messaggio d'errore onesto quando 0 candidati trovati.
+// C10b3-ter (decisione di Ivano) — negli esempi nessun nome delle citta' del banco (ne' dei loro posti): il banco misura, non suggerisce.
 const INTENT_TRANSLATOR_PROMPT = `Sei il traduttore di intenti di DoveVAI.
 Il tuo unico compito: leggere una frase in italiano scritta da un turista, e produrre in JSON gli input per una ricerca di luoghi reali su Google Places nella città indicata.
 
@@ -560,8 +561,8 @@ REGOLE SU queries (array di 1 a 3 stringhe):
 REGOLA CRITICA — TERMINI COME LI USA GOOGLE MAPS (non come li usa un dizionario):
 - Le queries devono usare i termini con cui i luoghi sono REALMENTE registrati su Google Maps, non le categorie astratte.
 - I luoghi si registrano col loro NOME PROPRIO tipico. In Italia:
-    parchi urbani     → si chiamano quasi sempre "villa" (Villa Bellini, Villa Comunale, Villa Borghese, Villa Sciarra).
-                        Solo raramente "parco" (Parco Sempione, Parco della Musica).
+    parchi urbani     → si chiamano quasi sempre "villa" (Villa Comunale, Villa Durazzo Pallavicini, Villa Croce).
+                        Solo raramente "parco" (Parco del Valentino, Parco della Musica).
                         Query giusta per natura urbana: ["villa comunale parco", "orto botanico", "giardino pubblico"].
                         Query debole: ["parchi", "giardini", "aree verdi"] — non matcha nomi propri veri.
     giardini botanici → "orto botanico" (non "giardino botanico").
@@ -570,7 +571,7 @@ REGOLA CRITICA — TERMINI COME LI USA GOOGLE MAPS (non come li usa un dizionari
     spiagge           → "spiagge", "lidi", "cale" — tutti termini nativi Google Maps.
     musei archeologici → "museo archeologico" (non "archeologia").
 - Esempio applicato:
-    input: "un giro nei parchi di Catania"
+    input: "un giro nei parchi di Verona"
     queries: ["villa comunale parco", "orto botanico", "giardino pubblico"]  ✓
     queries: ["parchi", "giardini", "aree verdi"]                            ✗ (nomi generici non matchano su Google)
 - Regola generale: pensa al nome PROPRIO che una persona darebbe al posto trovandolo su Google Maps, non alla categoria che ci mette un dizionario.
@@ -591,9 +592,9 @@ REGOLE SU oggetto_umano (1-3 parole):
 
 REGOLE SU citta:
 - La riga "Città:" del messaggio è la POSIZIONE dell'utente, non per forza la meta.
-- Se la frase nomina una città o un paese italiano dove fare il giro ("Domani Roma", "una giornata a Catania"), scrivi il suo nome com'è in italiano ("Roma", "Catania").
-- Se la frase nomina un luogo famoso di un'altra città ("il Colosseo"), scrivi quella città.
-- Un nome di città dentro il nome di una strada o piazza NON è una città: "via Roma", "piazza Roma", "corso Catania" → null.
+- Se la frase nomina una città o un paese italiano dove fare il giro ("Domani Torino", "una giornata a Bari"), scrivi il suo nome com'è in italiano ("Torino", "Bari").
+- Se la frase nomina un luogo famoso di un'altra città ("la Mole Antonelliana"), scrivi quella città.
+- Un nome di città dentro il nome di una strada o piazza NON è una città: "via Torino", "piazza Torino", "corso Genova" → null.
 - Se la frase non nomina nessuna città o luogo → null. NON ripetere la città della riga "Città:" se la frase non la nomina.
 
 REGOLE SU vincoli.tempo:
@@ -4354,3 +4355,6 @@ ${image_urls?.length ? `Immagini disponibili: ${image_urls.length}` : ''}`;
         }
     },
 };
+
+// C10b3-ter — il testo del traduttore, per il test che controlla gli esempi
+export { INTENT_TRANSLATOR_PROMPT };

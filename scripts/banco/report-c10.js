@@ -4,7 +4,7 @@ import { costoUsd } from './misure.js';
 import { usd } from './sezioni.js';
 import { eseguiControlli } from './controlli.js';
 import { giornoEMinuti } from './orari.js';
-import { conosceCitta, giornataPiena, suMisura, invenzioni, costoETempo, SOGLIE_C10 } from './asticella-c10.js';
+import { conosceCitta, giornataPiena, suMisura, invenzioni, costoETempo, simboloGiusto, SOGLIE_C10 } from './asticella-c10.js';
 
 const CLASSI = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c10', 'c11', 'c12', 'c13'];
 const S = (ok) => (ok === null || ok === undefined ? '⚪' : ok ? '🟢' : '🔴');
@@ -66,8 +66,8 @@ export function reportC10(raw, config, meta = {}) {
     // ── C10b — scala, quartiere, simbolo, ancore ──
     L.push('## Scala, quartiere, simbolo, ancore (C10b)');
     L.push('');
-    L.push('| Tour | Scala (proposta → confermata, diametro) | Quartiere | Simbolo nella lista | Simbolo nel tour | Ancore seminate → esito |');
-    L.push('|---|---|---|---|---|---|');
+    L.push('| Tour | Scala (proposta → confermata, diametro) | Quartiere | Simbolo nella lista | Simbolo atteso (C10b3-ter) | Simbolo nel tour | Ancore seminate → esito |');
+    L.push('|---|---|---|---|---|---|---|');
     for (const c of casi) {
         const k = c.citta || {};
         const sc = k.scala ? `${k.scala.proposta ?? '—'} → **${k.scala.scala}** (${k.scala.diametroKm} km, ${k.scala.su})` : '—';
@@ -78,7 +78,10 @@ export function reportC10(raw, config, meta = {}) {
         const titoli = new Set(vere(c).map(s => s.title));
         const nelTour = (k.simboli || []).filter(x => titoli.has(x.nome)).map(x => x.nome);
         const esito = (k.ancoreEsito || []).map(a => `${a.nome}: ${a.nelGiro ? 'nel giro' : `tolta (${a.motivo})`}`);
-        L.push(`| ${c.id} | ${cella(sc)} | ${cella(q)} | ${cella(simboli.join('; ')) || '—'} | ${cella(nelTour.join(', ')) || '—'} | ${cella(esito.join('; ')) || '—'} |`);
+        // C10b3-ter — il simbolo della citta' (il primo segnato dall'AI) e' quello della lista di controllo?
+        const sg = simboloGiusto(k.simboli, c.luogo);
+        const atteso = sg.applicabile ? `${S(sg.ok)} ${cella(sg.atteso)}${sg.ok ? '' : ` (lista: ${cella(sg.simbolo ?? '—')})`}` : '—';
+        L.push(`| ${c.id} | ${cella(sc)} | ${cella(q)} | ${cella(simboli.join('; ')) || '—'} | ${atteso} | ${cella(nelTour.join(', ')) || '—'} | ${cella(esito.join('; ')) || '—'} |`);
     }
     L.push('');
 

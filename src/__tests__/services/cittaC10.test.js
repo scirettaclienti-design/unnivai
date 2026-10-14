@@ -81,7 +81,7 @@ describe('C10 — la lista dell\'AI, ripulita', () => {
     const cinque = Array.from({ length: 6 }, (_, i) => ({ nome: `Essenziale ${i}`, momento: 'mattina', tipo: 'essenziale', perche: 'x' }));
     it('al massimo 4 essenziali (gli altri diventano «da locale»), al massimo 15 posti, momenti validi, niente doppioni', () => {
         const molti = Array.from({ length: 20 }, (_, i) => ({ nome: `Posto ${i}`, momento: 'pomeriggio', tipo: 'da locale', perche: 'y' }));
-        const l = leggiLista(JSON.stringify({ posti: [...cinque, { nome: 'Posto 1', momento: 'cena', tipo: 'da locale' }, { nome: 'Senza momento', momento: 'notte fonda', tipo: 'da locale' }, ...molti] }), 'Catania');
+        const l = leggiLista(JSON.stringify({ posti: [...cinque, { nome: 'Posto 1', momento: 'cena', tipo: 'da locale' }, { nome: 'Senza momento', momento: 'notte fonda', tipo: 'da locale' }, ...molti] }), 'Catania', 'città', 'A');
         expect(l.length).toBe(POSTI_LISTA);
         expect(l.filter(x => x.tipo === 'essenziale').length).toBe(MAX_ESSENZIALI);
         expect(l.some(x => x.nome === 'Senza momento')).toBe(false);

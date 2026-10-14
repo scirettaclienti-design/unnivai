@@ -1,4 +1,5 @@
-// C10b3 — la lista della città bilanciata (decisioni di Ivano):
+// C10b3 — la lista della città bilanciata (decisioni di Ivano). C10b3-ter: le regole valgono per le varianti A e B del prompt
+// (qui la variante A, esplicita); con la C le ancore vengono dagli imperdibili (c10b3ter.test.js).
 //   · una lista senza abbastanza luoghi da visitare viene completata (una sola richiesta);
 //   · il simbolo non può essere un locale;
 //   · in metropoli le ricerche iniziali partono dal quartiere scelto;
@@ -22,7 +23,7 @@ describe('C10b3 — le quote della lista e il completamento', () => {
     ];
     // C10b3-bis — piazze e belvedere non contano piu' fra i luoghi da visitare (le piazze sono «piazze e vie storiche»)
     it('le quote: mancano luoghi da visitare (piazze e belvedere non contano)', () => {
-        const l = leggiLista(JSON.stringify({ posti: scarsa }), 'Catania', 'città');
+        const l = leggiLista(JSON.stringify({ posti: scarsa }), 'Catania', 'città', 'A');
         const q = quoteLista(l, 'città');
         expect(q.piazzeBelvedere).toBe(3);
         expect(q.visite).toBe(3);
@@ -30,12 +31,12 @@ describe('C10b3 — le quote della lista e il completamento', () => {
         expect(q.mancate.join(' ')).toMatch(/luoghi da visitare ≥ 8 \(3\)/);
     });
     it('una lista senza abbastanza luoghi da visitare viene completata: una sola richiesta, solo luoghi da visitare, niente doppioni', async () => {
-        const l = leggiLista(JSON.stringify({ posti: scarsa }), 'Catania', 'città');
+        const l = leggiLista(JSON.stringify({ posti: scarsa }), 'Catania', 'città', 'A');
         const chiedi = vi.fn(async () => JSON.stringify({ posti: [
             posto('Teatro Massimo Bellini', 'monumento'), posto('Monastero dei Benedettini', 'chiesa'), posto('Villa Bellini', 'giardino'),
             posto('Cattedrale', 'chiesa'), posto('Bar Altro', 'colazione'), posto('Palazzo Biscari', 'palazzo'), posto('Piazza Tre', 'piazza'), posto('Museo Due', 'museo'),
         ] }));
-        const r = await completaLista({ posti: l, scala: 'città', citta: 'Catania', giorno: '2026-10-15', chiedi });
+        const r = await completaLista({ posti: l, scala: 'città', citta: 'Catania', giorno: '2026-10-15', chiedi, variante: 'A' });
         expect(chiedi).toHaveBeenCalledTimes(1);
         expect(chiedi.mock.calls[0][0].system).toMatch(/- 5 LUOGHI DA VISITARE/);
         expect(r.completamento.aggiunti).toEqual(['Teatro Massimo Bellini', 'Monastero dei Benedettini', 'Villa Bellini', 'Palazzo Biscari', 'Museo Due']);
@@ -45,7 +46,7 @@ describe('C10b3 — le quote della lista e il completamento', () => {
         expect(r.posti.filter(p => p.completamento).every(p => p.tipo === 'da locale' && !p.simbolo)).toBe(true);
         // una lista gia' bilanciata non chiede niente
         const chiedi2 = vi.fn();
-        await completaLista({ posti: r.posti, scala: 'città', citta: 'Catania', giorno: '2026-10-15', chiedi: chiedi2 });
+        await completaLista({ posti: r.posti, scala: 'città', citta: 'Catania', giorno: '2026-10-15', chiedi: chiedi2, variante: 'A' });
         expect(chiedi2).not.toHaveBeenCalled();
     });
     it('metropoli: un quartiere principale con meno di 3 luoghi da visitare chiede i suoi', async () => {
@@ -53,10 +54,10 @@ describe('C10b3 — le quote della lista e il completamento', () => {
             ...['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(n => posto(`Chiesa ${n}`, 'chiesa', { quartiere: 'Monti' })),
             posto('Santa Maria in Trastevere', 'chiesa', { quartiere: 'Trastevere', tipo: 'essenziale', simbolo: true }),
             posto('Colosseo', 'monumento', { quartiere: 'Monti', tipo: 'essenziale', simbolo: true }),
-        ] }), 'Roma', 'metropoli');
+        ] }), 'Roma', 'metropoli', 'A');
         expect(quoteLista(l, 'metropoli').mancanoQuartieri).toEqual({ Trastevere: 2 });
         const chiedi = vi.fn(async () => JSON.stringify({ posti: [posto('Villa Farnesina', 'museo', { quartiere: 'Trastevere' }), posto('Orto Botanico', 'giardino', { quartiere: 'Trastevere' })] }));
-        const r = await completaLista({ posti: l, scala: 'metropoli', citta: 'Roma', giorno: '2026-10-15', chiedi });
+        const r = await completaLista({ posti: l, scala: 'metropoli', citta: 'Roma', giorno: '2026-10-15', chiedi, variante: 'A' });
         expect(chiedi.mock.calls[0][0].system).toMatch(/2 nel quartiere Trastevere/);
         expect(r.quoteDopo.perQuartiere.Trastevere).toBe(3);
     });
@@ -65,7 +66,7 @@ describe('C10b3 — le quote della lista e il completamento', () => {
             posto('Caffè Storico', 'colazione', { tipo: 'essenziale', simbolo: true, momento: 'colazione' }),
             posto('Piazza Grande', 'piazza', { tipo: 'essenziale' }),
             posto('Duomo', 'chiesa', { tipo: 'essenziale' }),
-        ] }), 'Lecce', 'città');
+        ] }), 'Lecce', 'città', 'A');
         const caffe = l.find(p => p.nome === 'Caffè Storico');
         expect(caffe.tipo).toBe('da locale');
         expect(caffe.simbolo).toBeUndefined();

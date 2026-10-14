@@ -52,3 +52,6 @@ COST_PER_TOUR.md
 # PAR-1 — cartelle di lavoro locali di "unnivai ricresa" (screenshot hero)
 __hero_shot__
 _hero_shot/
+
+# CLI di Supabase: file locali, mai nel repo
+supabase/.temp

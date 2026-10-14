@@ -642,7 +642,10 @@ export function voceVerificata(p: PostoProposto, r: RisultatoGoogle, sostituzion
 // tabella, versione `c10b-3#q:<quartiere>`).
 export const POSTI_QUARTIERE_MIN = 6;
 export const POSTI_QUARTIERE_MAX = 8;
-export const versioneQuartiere = (quartiere: string): string => `${CITY_LIST_VERSION}#q:${normCitta(quartiere)}`;
+// C10c-piena-2 — la lista del quartiere dice la categoria di ogni posto (piazze e vie storiche riconosciute dal motore): ha la sua
+// versione, cosi' si rigenera solo lei e le liste delle citta' (CITY_LIST_VERSION) restano quelle del giorno.
+export const QUARTIERE_LIST_VERSION = 'c10c-q2';
+export const versioneQuartiere = (quartiere: string): string => `${QUARTIERE_LIST_VERSION}#q:${normCitta(quartiere)}`;
 
 export function promptQuartiere(citta: string, quartiere: string, giorno: string): { system: string; user: string } {
     const quando = giornoParlato(giorno);
@@ -650,12 +653,13 @@ export function promptQuartiere(citta: string, quartiere: string, giorno: string
 Ti chiedono quali luoghi da visitare ci sono nel quartiere ${quartiere} di ${citta}, ${quando}: le cose da vedere, non i locali.
 
 Rispondi SOLO con un JSON, senza testo fuori:
-{"posti":[{"nome":"...","citta":"${citta}","quartiere":"${quartiere}","momento":"mattina|pomeriggio","tipo":"essenziale|da locale","simbolo":true}]}
+{"posti":[{"nome":"...","citta":"${citta}","quartiere":"${quartiere}","categoria":"${CATEGORIE.join('|')}","momento":"mattina|pomeriggio","tipo":"essenziale|da locale","simbolo":true}]}
 
 REGOLE
 - Da ${POSTI_QUARTIERE_MIN} a ${POSTI_QUARTIERE_MAX} luoghi da visitare, tutti dentro il quartiere ${quartiere} (non nei quartieri intorno): chiese e basiliche, monumenti, musei, palazzi, piazze storiche, giardini, belvederi, strade storiche.
 - Mai un bar, un caffè, una pasticceria, un ristorante o un locale.
 - "nome": il nome proprio esatto del posto, come compare su Google Maps. Niente indirizzi, niente descrizioni, niente zone generiche.
+- "categoria": cos'e' il posto, una fra: ${CATEGORIE.join(', ')} (una piazza storica e' "piazza", una strada storica e' "via").
 - "tipo" "essenziale" (da 1 a ${MAX_ESSENZIALI_QUARTIERE}): i simboli del quartiere; gli altri "da locale".
 - "simbolo": segna con "simbolo": true l'essenziale che un abitante del quartiere non ti perdonerebbe mai di aver saltato (uno solo). Il simbolo è un luogo da visitare, non una strada né una piazza.
 - "momento": "mattina" o "pomeriggio", quando quel posto si vive meglio.

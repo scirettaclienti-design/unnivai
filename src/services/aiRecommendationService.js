@@ -2507,6 +2507,8 @@ export const aiRecommendationService = {
                         area = areaDeiQuartieri(sq.quartiere, sq.secondo);
                         // C10c — un quartiere chiesto: il giro parte dal suo nucleo e ci tiene la maggior parte delle tappe
                         if (/^nominato nella richiesta/.test(sq.motivo || '')) nucleo = nucleoDi(sq.quartiere);
+                        // C10c-piena-2 — nel tracciato: da dove viene il nucleo (i luoghi della lista o il punto di Google) e il suo raggio
+                        if (nucleo) cittaReport.nucleo = { fonte: nucleo.fonte ?? 'centro del quartiere', raggioKm: nucleo.raggioKm, centro: nucleo.centro, ...(nucleo.luoghi ? { luoghi: nucleo.luoghi } : {}) };
                         const scelti = [sq.quartiere, ...(sq.secondo ? [sq.secondo] : [])];
                         const fuori = poiCitta.filter(p => !dentroArea(p, area));
                         // le ancore (e il simbolo) sono quelle dei quartieri scelti: un essenziale di un quartiere vicino che cade

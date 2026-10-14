@@ -247,7 +247,8 @@ describe('Gate NARRATORE-DOPO — le scelte sulle tappe finali, il testo dal cod
         expect(result.days).toHaveLength(3);
         for (const d of result.days) {
             const reali = d.stops.filter(s => !s.tempoLibero);
-            expect(reali.map(s => s.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
+            // C10c-piena-2 — un vuoto lungo puo' prendere una tappa in piu' della stessa famiglia (gradino b): i momenti restano quelli
+            expect([...new Set(reali.map(s => s.moment))]).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
             for (const s of reali) expect(s.description, `${s.title} (${s.moment})`).toBeTruthy();
         }
         const ids = allStops(result).map(s => s.place_id);

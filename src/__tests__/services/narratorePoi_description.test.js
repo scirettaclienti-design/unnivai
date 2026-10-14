@@ -93,7 +93,7 @@ const INTENT = {
 // 1ª chiamata AI = traduttore d'intento, 2ª = selettore, 3ª = narratore
 // (Gate NARRATORE-DOPO: selettore e narratore ricevono la stessa risposta finta;
 // il selettore ne tiene solo i place_id, il narratore i testi).
-const routeFetch = (selectorPayload) => {
+const routeFetch = (selectorPayload, places = PLACES_OK) => {
     let aiCall = 0;
     return vi.fn(async (url) => {
         const u = String(url);
@@ -106,7 +106,7 @@ const routeFetch = (selectorPayload) => {
             };
         }
         if (u.includes('places-proxy')) {
-            return { ok: true, json: async () => PLACES_OK };
+            return { ok: true, json: async () => places };
         }
         throw new Error(`fetch inatteso nel test: ${u}`);
     });
@@ -136,6 +136,8 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
         vi.useRealTimers();
     });
 
+    // C10c-piena-2 — con due musei nello stesso punto il secondo ora entra (varieta' come preferenza, gradino b) e il giro ha
+    // le sue 2 tappe: la tappa sola e' quella di un pool con UN solo posto.
     it('Veloce 2 ore alle 10 → una tappa sola, il tour esiste e accende _singleStop', async () => {
         vi.stubGlobal('fetch', routeFetch({
             days: [{
@@ -146,7 +148,7 @@ describe('Gate NARRATORE/POI Fase 2b — generateItinerary applica la regola #16
                     { place_id: 'pid-due', description: '' },
                 ],
             }],
-        }));
+        }, { status: 'OK', results: [PLACE('pid-uno', 'Torre Capitania')] }));
 
         const result = await aiRecommendationService.generateItinerary(
             CITY, { interests: ['Arte'] }, 'cerco musei', {}, '', CENTER,

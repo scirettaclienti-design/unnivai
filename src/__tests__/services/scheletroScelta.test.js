@@ -143,7 +143,9 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
 
         expect(result._source).toBe('google-first');
         const stops = result.days[0].stops;
-        expect(reali(stops).map(s => s.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
+        // C10c-piena-2 — varieta' come preferenza: un vuoto lungo puo' prendere una tappa in piu' anche della stessa famiglia
+        // (gradino b); lo scheletro resta quello, nell'ordine dei momenti
+        expect([...new Set(reali(stops).map(s => s.moment))]).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
         // Ritmo Rilassato: nessuna tappa in piu', i buchi oltre 45 minuti sono righe dichiarate con la loro fascia.
         expect(stops.filter(s => s.tempoLibero).every(s => s.stayMinutes > 45)).toBe(true);
         expect(stops.filter(isFood).length).toBeLessThanOrEqual(2);
@@ -184,7 +186,9 @@ describe('P3 — la scelta segue lo scheletro della giornata', () => {
 
         expect(result._source).toBe('google-first');
         const stops = result.days[0].stops;
-        expect(reali(stops).map(s => s.moment)).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
+        // C10c-piena-2 — varieta' come preferenza: un vuoto lungo puo' prendere una tappa in piu' anche della stessa famiglia
+        // (gradino b); lo scheletro resta quello, nell'ordine dei momenti
+        expect([...new Set(reali(stops).map(s => s.moment))]).toEqual(['mattina', 'pranzo', 'pomeriggio', 'aperitivo', 'cena']);
         expect(stops.filter(isFood).length).toBe(2);
         expect(stops.filter(isFood).map(s => s.moment)).toEqual(['pranzo', 'cena']);
         expectInsideMoments(stops, MARTEDI);

@@ -588,7 +588,7 @@ function repairPass({
     searchedIds = null, searchedMoments = null, startPoint = null, registraPool = true,
     tempoLiberoMinuti = null,
 }, targets, starts) {
-    const report = { scartate: [], riempite: [], momentiTolti: [], facoltativiSenzaPosto: [], facoltativiVuoti: [], ripieghi: [], lontani: [], ripetuti: [], ritocchi: [], tempoLibero: [], ancoreTolte: [] };
+    const report = { scartate: [], riempite: [], momentiTolti: [], facoltativiSenzaPosto: [], facoltativiVuoti: [], ripieghi: [], lontani: [], ripetuti: [], ritocchi: [], tempoLibero: [], ancoreTolte: [], cascata: [] };
     // BANCO-POOL — le scelte del modello cosi' come sono arrivate, e (sotto) la
     // classifica che il codice ha calcolato a ogni posto. Solo registrazione:
     // niente di qui entra nelle decisioni.
@@ -626,6 +626,10 @@ function repairPass({
 
     const momentIds = new Set(moments.map(m => m.id));
     const used = new Set();
+    // C10c-piena-2 — lo stesso posto con due schede di Google (Piazza Sant'Oronzo come piazza e come monumento, a 25 m): conta
+    // come gia' usato. Prima lo teneva fuori, per caso, il divieto di ripetere la famiglia; con la varieta' come preferenza no.
+    const usedNames = new Set();
+    const nomeUsato = (c) => { const n = nomeNorm(c); return !!n && usedNames.has(n) && !used.has(idOf(c)); };
     // Le tappe senza `moment` non sono "fuori dal loro momento": il modello
     // non l'ha detto. Prendono il primo momento libero in cui stanno.
     const unassigned = [];
@@ -645,6 +649,8 @@ function repairPass({
     let prev = null;
     let day = null;
     let dayFamilies = new Set();
+    // C10c-piena-2 — i posti gia' tornati una volta nel giorno (gradino c della cascata): mai una terza
+    let ripetutiNelGiorno = new Set();
     // C5 — i marchi gia' nel giorno: mai due locali della stessa catena.
     let dayBrands = new Set();
     const brandCache = new Map();
@@ -654,11 +660,13 @@ function repairPass({
         return brandCache.get(k);
     };
     moments.forEach((m, mi) => {
-        if (m.dayIndex !== day) { day = m.dayIndex; prev = null; dayFamilies = new Set(); dayBrands = new Set(); }
+        if (m.dayIndex !== day) { day = m.dayIndex; prev = null; dayFamilies = new Set(); dayBrands = new Set(); ripetutiNelGiorno = new Set(); }
         const bucket = buckets.get(m.id) || [];
         const inBucket = new Map(bucket.map(c => [idOf(c), c]));
         const later = moments.slice(mi + 1).filter(x => x.dayIndex === m.dayIndex && x.stops > 0);
         const chosen = [];
+        // C10c-replay — perche' un momento facoltativo resta senza posto (solo registrazione)
+        let perFacoltativo = null;
         const last = () => (chosen.length ? chosen[chosen.length - 1].candidate : prev);
         // C5d — la tappa dopo il posto che si sta riempiendo (dal giro di prima).
         const targetOf = () => targets?.get(m.id)?.[chosen.length] ?? null;
@@ -683,7 +691,7 @@ function repairPass({
         const leggeraInCorso = () => !!m.extraLeggero && chosen.length === m.stops - 1;
         // C10c — le piazze e vie storiche della lista contano come passeggiata: al massimo una per mattina e una per pomeriggio
         const storicaGiaPresa = () => (m.key === 'mattina' || m.key === 'pomeriggio') && chosen.some(x => isStoricaLista(x.candidate));
-        const free = (except) => bucket.filter(c => !used.has(idOf(c)) && idOf(c) !== except
+        const free = (except) => bucket.filter(c => !used.has(idOf(c)) && !nomeUsato(c) && idOf(c) !== except
             && (!colazioneInCorso() || isBreakfastPlace(c)) && (!dopoColazione() || !isLocale(c)) && (!leggeraInCorso() || isLightStop(c))
             && (!isStoricaLista(c) || !storicaGiaPresa()));
         // C5e (O) — solo se attivo (dopo le ricerche mirate), solo fuori dai
@@ -743,9 +751,52 @@ function repairPass({
         };
         // Merito e strada insieme: il punteggio meno il peso della deviazione.
         const worth = (x) => scoreOf(x.c) - DETOUR_WEIGHT * x.dev;
-        // C8a — un momento facoltativo non fa mai un ripiego: niente oltre il tetto di cammino, niente
-        // famiglia ripetuta, niente giro oltre la deviazione massima (C5c) verso la tappa dopo.
-        const fitsOptional = (x) => !x.hard && !x.dup && !x.chain && !(x.dev > ROUTE_DEVIATION_MAX_MINUTES);
+        // C8a — un momento facoltativo non fa mai un ripiego: niente oltre il tetto di cammino, niente marchio ripetuto, niente
+        // giro oltre la deviazione massima (C5c) verso la tappa dopo.
+        // C10c-piena-2 — VARIETA' COME PREFERENZA (decisione di Ivano: «se si puo' evitare si evita, ma non deve essere
+        // vincolante»): la famiglia ripetuta non lo esclude piu'. La cascata: a) una famiglia nuova (la classifica la mette
+        // davanti), b) un altro posto della stessa famiglia, c) lo stesso posto gia' visto di giorno se e' un'ancora o il
+        // simbolo, una volta sola (`ripetibile`). Dove c'e' un gradino prima, la cascata si ferma li'.
+        const fitsOptional = (x) => !x.hard && !x.chain && !(x.dev > ROUTE_DEVIATION_MAX_MINUTES);
+        const gradinoDi = (x) => (x.dup ? 'b' : 'a');
+        // C10c-piena-2 — gradino c): un posto del bucket gia' nel giorno, solo se e' un'ancora o il simbolo, mai ripetuto
+        // due volte, mai subito dopo se stesso, e con le stesse soglie del momento (tetto di cammino, strada, marchio).
+        // Solo nella scelta finale, dopo le ricerche mirate (`tempoLiberoMinuti`): prima si cerca un posto nuovo dalla tappa prima.
+        // Solo la sera (la passeggiata, il dopocena): «lo stesso posto gia' visto di giorno». Di giorno un riempimento che riporta
+        // nella stessa chiesa poche ore dopo non e' una tappa in piu': li' valgono a) e b).
+        const ripetibile = () => {
+            if (tempoLiberoMinuti == null || !(m.opzionale || m.key === 'passeggiata' || m.key === 'dopocena')) return null;
+            const ultimo = last();
+            const ok = bucket
+                .filter(c => used.has(idOf(c)) && !ripetutiNelGiorno.has(idOf(c)) && (isAncora(c) || c?._citta?.simbolo)
+                    && idOf(c) !== idOf(ultimo) && !chosen.some(x => idOf(x.candidate) === idOf(c))
+                    && (!leggeraInCorso() || isLightStop(c)) && (!isStoricaLista(c) || !storicaGiaPresa()))
+                .map(c => ({ ...costOf(c), dup: true, ripetuta: true }))
+                .filter(x => !x.hard && !x.chain && !(m.opzionale && x.dev > ROUTE_DEVIATION_MAX_MINUTES))
+                .sort((a, b) => a.t - b.t);
+            if (!ok.length) return null;
+            ripetutiNelGiorno.add(idOf(ok[0].c));
+            return ok[0];
+        };
+        // C10c-replay — SOLO REGISTRAZIONE: perche' il momento facoltativo resta senza posto. Il migliore dei candidati liberi
+        // e la prova che non passa (il primo che fallisce decide: nessuno migliore passa), e quanti candidati falliscono ogni prova.
+        const proveFallite = (x) => [
+            x.chain ? 'marchio gia\' nel giorno' : null,
+            x.hard ? `oltre il tetto di cammino (${x.t} min)` : null,
+            x.dup ? `famiglia gia' presente nel giorno (${famOf(x.c)})` : null,
+            x.dev > ROUTE_DEVIATION_MAX_MINUTES ? `deviazione di ${Math.round(x.dev)} min (oltre ${ROUTE_DEVIATION_MAX_MINUTES})` : null,
+        ].filter(Boolean);
+        const motivoFacoltativo = (b) => {
+            const tutti = free(null).map(costOf);
+            return {
+                migliore: b ? { nome: b.c.name || b.c.title || null, minuti: b.t, prove: proveFallite(b) } : null,
+                candidati: tutti.length,
+                cammino: tutti.filter(x => x.hard).length,
+                famiglia: tutti.filter(x => x.dup).length,
+                deviazione: tutti.filter(x => x.dev > ROUTE_DEVIATION_MAX_MINUTES).length,
+                marchio: tutti.filter(x => x.chain).length,
+            };
+        };
         // Tutti i candidati liberi del momento col loro costo, dal migliore.
         const ranked = () => {
             const all = free(null).map(costOf);
@@ -852,10 +903,16 @@ function repairPass({
                     report.ripetuti.push({ momento: m.id, place_id: idOf(c), da });
                 }
                 if (mirata) trace.motivo += ' (dalla ricerca mirata)';
-                report.ripieghi.push({ place_id: idOf(c), name: c.name || c.title || null, momento: m.id, motivo: trace.motivo });
+                report.ripieghi.push({ place_id: idOf(c), name: c.name || c.title || null, momento: m.id, motivo: trace.motivo, tipo: ripiego });
             }
+            // C10c-piena-2 — il gradino della cascata della varieta' (a: famiglia nuova, b: stessa famiglia, c: stesso posto)
+            trace.gradino = cost.ripetuta ? 'c' : gradinoDi(cost);
+            report.cascata.push({ momento: m.id, place_id: idOf(c), nome: c.name || c.title || null, gradino: trace.gradino, fonte: source,
+                ...(m.opzionale ? { facoltativo: true } : {}) });
+            if (cost.ripetuta) trace.ripetuta = true;
             chosen.push({ candidate: c, narration, source, trace });
             used.add(idOf(c));
+            if (nomeNorm(c)) usedNames.add(nomeNorm(c));
             if (counted(famOf(c))) dayFamilies.add(famOf(c));
             if (brandOf(c)) dayBrands.add(brandOf(c));
         };
@@ -886,6 +943,7 @@ function repairPass({
             if (!poolIds.has(s.place_id)) { reject(s, 'luogo non fra i candidati'); continue; }
             if (!c) { reject(s, 'fuori dal suo momento'); continue; }
             if (used.has(s.place_id)) { reject(s, 'gia\' usato'); continue; }
+            if (nomeUsato(c)) { no('stesso posto gia\' nel giro (un\'altra scheda di Google)'); continue; }
             if (colazioneInCorso() && !isBreakfastPlace(c)) { no('colazione chiesta: la prima tappa e\' un posto da colazione'); continue; }
             if (dopoColazione() && isLocale(c)) { no('dopo la colazione niente altro cibo fino al pranzo'); continue; }
             if (leggeraInCorso() && !isLightStop(c)) { no('vuoto lungo con ritmo Rilassato: una tappa leggera'); continue; }
@@ -906,7 +964,7 @@ function repairPass({
         for (let i = 0; i < unassigned.length && chosen.length < m.stops; i++) {
             const s = unassigned[i];
             const c = inBucket.get(s.place_id);
-            if (!c || used.has(s.place_id) || freeSlot()) continue;
+            if (!c || used.has(s.place_id) || nomeUsato(c) || freeSlot()) continue;
             if (colazioneInCorso() && !isBreakfastPlace(c)) continue;
             if ((dopoColazione() && isLocale(c)) || (leggeraInCorso() && !isLightStop(c))) continue;
             if (isStoricaLista(c) && storicaGiaPresa()) continue;
@@ -942,11 +1000,17 @@ function repairPass({
                 });
                 break;
             }
-            const b = best(null);
-            if (!b) break;
-            // C8a — un momento FACOLTATIVO (la passeggiata) entra solo se sta bene: entro il tetto di
-            // cammino, sulla strada (soglia C5c) e senza ripetere una famiglia. Altrimenti non entra.
-            if ((m.opzionale || leggeraInCorso()) && !fitsOptional(b)) break;
+            let b = best(null);
+            // C8a — un momento FACOLTATIVO (la passeggiata) entra solo se sta bene: entro il tetto di cammino e sulla strada
+            // (soglia C5c). C10c-piena-2 — la famiglia ripetuta non lo esclude: fra i candidati che stanno bene il primo della
+            // classifica (famiglia nuova prima, poi la stessa famiglia).
+            if (b && (m.opzionale || leggeraInCorso()) && !fitsOptional(b)) b = ranked().find(x => fitsOptional(x) && (!leggeraInCorso() || isLightStop(x.c))) || null;
+            // C10c-piena-2 — gradino c): nessun posto nuovo, lo stesso posto gia' visto di giorno se e' un'ancora o il simbolo
+            if (!b) b = ripetibile();
+            if (!b) {
+                if (m.opzionale) perFacoltativo = motivoFacoltativo(best(null));
+                break;
+            }
             take(b.c, narrationById.get(idOf(b.c)) || null, 'riparata', b);
             report.riempite.push({ place_id: idOf(b.c), name: b.c.name || b.c.title || null, momento: m.id });
         }
@@ -1015,7 +1079,8 @@ function repairPass({
             // C8a — un momento facoltativo (la passeggiata) senza un posto che sta bene non e' "tolto": non era dovuto.
             // Ma si prova a cercarlo DALLA tappa prima (ricerca mirata C1b, bias al tetto di cammino): e' li' che serve.
             if (m.opzionale) {
-                report.facoltativiSenzaPosto.push({ momento: m.id, label: m.label, motivo: 'nessun candidato valido (all\'aperto, entro il tetto di cammino e sulla strada)' });
+                report.facoltativiSenzaPosto.push({ momento: m.id, label: m.label, motivo: 'nessun candidato valido (all\'aperto, entro il tetto di cammino e sulla strada)',
+                    ...(perFacoltativo ? { senzaPosto: perFacoltativo } : {}) });
                 if (prev) report.facoltativiVuoti.push({ momento: m.id, da: pointOf(prev) });
             }
             else if (!report.tempoLibero.some(x => x.momento === m.id)) {
@@ -1070,6 +1135,9 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
         return scoreCache.get(k);
     };
     const used = new Set(plan.flatMap(p => p.stops.map(s => idOf(s.candidate))));
+    // C10c-piena-2 — un'altra scheda di Google dello stesso posto (stesso nome) non entra al posto di una tappa
+    const nomiNelGiro = () => new Set(plan.flatMap(p => p.stops.map(s => nomeNorm(s.candidate))).filter(Boolean));
+    const giaNelGiro = (c) => used.has(idOf(c)) || (!!nomeNorm(c) && nomiNelGiro().has(nomeNorm(c)));
     const measure = (entries) => {
         const seq = orderPlanWalk(entries, { maxWalk, startPoint }).flatMap(p => p.stops.map(s => s.candidate));
         const fams = seq.map(candidateFamily).filter(f => f && !asked?.has(f));
@@ -1152,7 +1220,7 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
                 // oltre il tetto.
                 const ancora = isAncora(s.candidate);
                 for (const c of buckets.get(e.moment.id) || []) {
-                    if (used.has(idOf(c))) continue;
+                    if (giaNelGiro(c)) continue;
                     // Fuori dai pasti un posto dove si mangia entra solo al
                     // posto di un altro: un locale senza famiglia "toglierebbe"
                     // una ripetizione mettendo una trattoria nel pomeriggio.
@@ -1309,7 +1377,9 @@ function syncRepeatTraces(plan, asked, report, { buckets = null, maxWalk = MAX_W
                 if (repeat && !marked) {
                     s.trace = { ...(s.trace || {}), scelta: 'ripiego', ripiego: 'famiglia', famiglia: f,
                         motivo: `nessuna famiglia nuova sulla strada: ${f} ripetuta` };
-                    report.ripieghi.push({ place_id: id, name: s.candidate.name || s.candidate.title || null, momento: p.moment.id, motivo: s.trace.motivo });
+                    // C10c-piena-2 — una famiglia ripetuta (gradino b della cascata): il tipo dice che non e' un peggioramento
+                    s.trace.gradino = s.trace.gradino === 'c' ? 'c' : 'b';
+                    report.ripieghi.push({ place_id: id, name: s.candidate.name || s.candidate.title || null, momento: p.moment.id, motivo: s.trace.motivo, tipo: 'famiglia' });
                     if (!report.ripetuti.some(x => x.place_id === id)) report.ripetuti.push({ momento: p.moment.id, place_id: id, da: pointOf(prevStop) });
                 }
                 if (repeat && buckets) {
@@ -1572,6 +1642,8 @@ const isLocaleCandidate = (c) => {
     return cats.has('cibo') || cats.has('bar');
 };
 const nameOf = (c) => c?.name || c?.title || null;
+// C10c-piena-2 — il nome per riconoscere lo stesso posto in due schede di Google: minuscolo, senza accenti ne' segni
+const nomeNorm = (c) => String(nameOf(c) || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 /**
  * I bucket senza i posti chiusi.
@@ -1732,6 +1804,9 @@ const criterioDi = (motivo) => {
     if (/entro|tetto|min dal|vicin/.test(t)) return 'cammino';
     return 'altro';
 };
+// C10c-piena-2 — VARIETA' COME PREFERENZA: una famiglia ripetuta (gradino b della cascata) non e' un peggioramento che
+// respinge un riempimento; lo restano il passo oltre il tetto, la prima tappa lontana, il marchio ripetuto.
+const ripieghiVeri = (report) => (report?.ripieghi || []).filter(x => x.tipo !== 'famiglia').length;
 const chiaveRiga = (x) => `${x?.place_id ?? ''}|${x?.momento ?? ''}|${x?.motivo ?? ''}`;
 const nuoveRighe = (ora, prima) => { const p = new Set((prima || []).map(chiaveRiga)); return (ora || []).filter(x => !p.has(chiaveRiga(x))); };
 
@@ -1745,8 +1820,8 @@ export function criterioRespinto({ trial, trialSched, cur, espandi = true, momen
     const rep = trial?.repaired?.report || {};
     const was = cur?.repaired?.report || {};
     if ((trial?.residui?.length ?? 0) > 0) return { criterio: 'orario', dettaglio: `chiuso all'arrivo: ${trial.residui.map(x => x.nome).join(', ')}` };
-    if ((rep.ripieghi?.length ?? 0) > (was.ripieghi?.length ?? 0)) {
-        const rip = nuoveRighe(rep.ripieghi, was.ripieghi)[0];
+    if (ripieghiVeri(rep) > ripieghiVeri(was)) {
+        const rip = nuoveRighe(rep.ripieghi, was.ripieghi).filter(x => x.tipo !== 'famiglia')[0];
         return { criterio: criterioDi(rip?.motivo), dettaglio: `ripiego in piu': ${rip?.motivo ?? '?'}` };
     }
     if ((rep.tempoLibero?.length ?? 0) > (was.tempoLibero?.length ?? 0)) {
@@ -1767,9 +1842,80 @@ export function criterioRespinto({ trial, trialSched, cur, espandi = true, momen
         }
         const inc = (rep.incrociRimasti?.length ?? 0) > (was.incrociRimasti?.length ?? 0);
         if (inc) return { criterio: 'strada', dettaglio: 'il momento si riempie ma il giro perde una tappa: incroci nel percorso' };
-        return { criterio: 'altro', dettaglio: 'il momento si riempie ma il giro perde una tappa altrove (rifinitura o orari)' };
+        // C10c-replay — quale tappa si perde, dove e per quale regola (solo registrazione)
+        const persa = tappaPersa({ trial, trialSched, cur, moment });
+        return { criterio: 'altro', dettaglio: 'il momento si riempie ma il giro perde una tappa altrove (rifinitura o orari)', ...(persa ? { persa } : {}) };
     }
     return { criterio: 'altro', dettaglio: 'il buco non scende' };
+}
+
+// C10c-replay — la regola di un motivo scritto dal riparatore, per la tappa persa: cammino C5c (tetto di cammino e
+// deviazione), tetto C8, orario o altro.
+const regolaDi = (motivo) => {
+    const t = String(motivo || '');
+    if (/tetto (delle )?visite|visite al giorno|C8/i.test(t)) return 'tetto C8';
+    if (/incroc/.test(t)) return 'altro';
+    const c = criterioDi(t);
+    if (c === 'orario') return 'orario';
+    if (c === 'cammino' || c === 'strada' || /tetto di cammino/.test(t)) return 'cammino C5c';
+    return 'altro';
+};
+const tappeDelGiro = (sched) => (sched?.days || []).flat().map(s => ({ place_id: idOf(s.candidate), nome: nameOf(s.candidate), momento: s.moment?.id ?? null }));
+const perMomento = (tappe) => tappe.reduce((m, x) => m.set(x.momento, (m.get(x.momento) || 0) + 1), new Map());
+
+/**
+ * C10c-replay — SOLO REGISTRAZIONE: quando un tentativo di fillGaps riempie il suo momento ma il giro non guadagna una tappa,
+ * quale tappa si perde, in quale momento e per quale regola.
+ * Il momento che perde e' quello che nel tentativo ha meno tappe di prima (un momento che cambia solo posto — un altro
+ * ristorante a pranzo — non perde niente); la tappa persa e' quella che nel tentativo non e' piu' in quel momento (spesso
+ * scivolata nel momento allargato o in quello accanto). La regola, in quest'ordine:
+ *   orario       — nel tentativo la tappa e' arrivata chiusa e il giro l'ha vietata (settleOpeningHours);
+ *   la riga del riparatore per quel momento (facoltativo senza posto, momento tolto, tempo libero, scarto, ripiego,
+ *   lontano) — cammino C5c (tetto di cammino, deviazione), tetto C8, orario, altro;
+ *   altro        — la tappa non entra piu' nel suo momento, o e' passata in un altro momento senza sostituto.
+ * @returns {{ place_id, nome, momento, regola: 'cammino C5c'|'tetto C8'|'orario'|'altro', dettaglio: string, passataIn?: string }|null}
+ */
+export function tappaPersa({ trial, trialSched, cur, moment = null }) {
+    const prima = tappeDelGiro(cur?.sched);
+    const dopo = tappeDelGiro(trialSched);
+    const nPrima = perMomento(prima);
+    const nDopo = perMomento(dopo);
+    const perdenti = [...nPrima.keys()].filter(k => k !== moment?.id && (nDopo.get(k) || 0) < nPrima.get(k));
+    const nelMomento = new Set(dopo.map(x => `${x.place_id}|${x.momento}`));
+    const nelGiro = new Map(dopo.map(x => [x.place_id, x.momento]));
+    const mancanti = prima.filter(x => x.momento !== moment?.id && !nelMomento.has(`${x.place_id}|${x.momento}`));
+    const candidati = perdenti.length ? mancanti.filter(x => perdenti.includes(x.momento)) : mancanti;
+    if (candidati.length === 0) return null;
+    const p = candidati.find(x => !nelGiro.has(x.place_id)) || candidati[0];
+    const passataIn = nelGiro.get(p.place_id) ?? null;
+    const base = { place_id: p.place_id, nome: p.nome, momento: p.momento, ...(passataIn ? { passataIn } : {}) };
+    const chiusa = (trial?.giri || []).flat().find(x => x.place_id === p.place_id);
+    if (chiusa) return { ...base, regola: 'orario', dettaglio: `chiusa all'arrivo nel tentativo${chiusa.perche ? ` (${chiusa.perche})` : ''}` };
+    const rep = trial?.repaired?.report || {};
+    const was = cur?.repaired?.report || {};
+    // «gia' usato» non spiega niente: e' la tappa stessa, passata in un altro momento
+    const righe = ['facoltativiSenzaPosto', 'momentiTolti', 'tempoLibero', 'scartate', 'ripieghi', 'lontani']
+        .flatMap(k => nuoveRighe(rep[k], was[k]).map(x => ({ ...x, _k: k })))
+        .filter(x => x.momento === p.momento && x.motivo && !/gia' usat/.test(x.motivo));
+    // prima il motivo del momento (un facoltativo rimasto senza posto, un momento tolto), poi quello della tappa
+    const riga = righe.find(x => x._k === 'facoltativiSenzaPosto' || x._k === 'momentiTolti') || righe.find(x => x.place_id === p.place_id) || righe[0];
+    const dove = passataIn ? `passata in ${passataIn}; ` : '';
+    // il facoltativo rimasto senza posto: decide la prova che il migliore dei candidati non passa
+    if (riga?.senzaPosto) {
+        const pr = riga.senzaPosto;
+        const prova = pr.migliore?.prove?.[0] ?? null;
+        const regola = !prova ? 'altro' : /tetto di cammino|deviazione/.test(prova) ? 'cammino C5c' : 'altro';
+        const conti = `${pr.candidati} candidati liberi: ${pr.famiglia} famiglia gia' nel giorno, ${pr.cammino} oltre il tetto di cammino, ${pr.deviazione} oltre la deviazione, ${pr.marchio} marchio ripetuto`;
+        return { ...base, regola, dettaglio: `${dove}${riga.label || riga.momento} senza posto: ${pr.migliore ? `il migliore, «${pr.migliore.nome}» a ${pr.migliore.minuti} min, non passa per ${prova}` : 'nessun candidato libero'} (${conti})`, prova: prova ? (/famiglia/.test(prova) ? 'varietà' : /marchio/.test(prova) ? 'marchio' : /deviazione/.test(prova) ? 'deviazione C5c' : 'tetto di cammino C5c') : 'nessun candidato' };
+    }
+    if (riga) return { ...base, regola: regolaDi(riga.motivo), dettaglio: `${dove}${riga._k}: ${riga.motivo}` };
+    if ((trialSched?.tolte || []).some(x => x.place_id === p.place_id)) return { ...base, regola: 'altro', dettaglio: 'non entra piu\' nel suo momento (orari del giro)' };
+    // il pool registrato del momento: se ogni candidato e' gia' nel giro, nel momento non resta nessuno
+    const cand = rep.pool?.[p.momento]?.candidati || [];
+    const esaurito = cand.length > 0 && cand.every(x => x.scelto || /gia' usat/.test(String(x.motivo || '')));
+    const vuoto = esaurito ? `nessun candidato libero nel momento (i ${cand.length} del pool sono gia' nel giro)` : 'nessun motivo scritto';
+    if (passataIn) return { ...base, regola: 'altro', dettaglio: `passata in ${passataIn}: nel suo momento nessun sostituto, ${vuoto}` };
+    return { ...base, regola: 'altro', dettaglio: `tolta senza sostituto, ${vuoto}` };
 }
 
 /** I momenti in cui si puo' mettere una tappa in piu' per chiudere un buco, dal piu' sovrapposto. */
@@ -1831,7 +1977,7 @@ export function fillGaps({ moments, repaired, sched, repair, schedule, veto, esp
                     && (!espandi || mealCount(trialSched) <= mealCount(cur.sched))
                     && realStopCount(trialSched) > realStopCount(cur.sched)
                     && totalGapMinutes(trialSched) < totalGapMinutes(cur.sched)
-                    && (rep.ripieghi?.length ?? 0) <= (was.ripieghi?.length ?? 0)
+                    && ripieghiVeri(rep) <= ripieghiVeri(was)
                     && (rep.tempoLibero?.length ?? 0) <= (was.tempoLibero?.length ?? 0)
                     && trialSched.tolte.length <= cur.sched.tolte.length;
                 if (better) {
@@ -1901,7 +2047,7 @@ export function fillMinimum({ moments, repaired, sched, repair, schedule, veto, 
                 const better = trial.residui.length === 0
                     && mealCount(trialSched) <= mealCount(cur.sched)
                     && dayCount(trialSched, di) > dayCount(cur.sched, di)
-                    && (rep.ripieghi?.length ?? 0) <= (was.ripieghi?.length ?? 0)
+                    && ripieghiVeri(rep) <= ripieghiVeri(was)
                     && (rep.tempoLibero?.length ?? 0) <= (was.tempoLibero?.length ?? 0)
                     && trialSched.tolte.length <= cur.sched.tolte.length;
                 if (better) {

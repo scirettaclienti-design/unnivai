@@ -1,0 +1,869 @@
+{
+ "giorno": "2026-10-15",
+ "citta": [
+  {
+   "citta": "Roma",
+   "abitanti": 2873000,
+   "scala": "metropoli",
+   "usage": [
+    {
+     "prompt_tokens": 55,
+     "completion_tokens": 8,
+     "total_tokens": 63,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    },
+    {
+     "prompt_tokens": 762,
+     "completion_tokens": 994,
+     "total_tokens": 1756,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    }
+   ],
+   "posti": [
+    {
+     "nome": "Colosseo",
+     "tipo": "essenziale",
+     "quartiere": "Celio",
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Basilica di San Giovanni in Laterano",
+     "tipo": "essenziale",
+     "quartiere": "Celio",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Trattoria Da Enzo al 29",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza Santa Maria in Trastevere",
+     "tipo": "essenziale",
+     "quartiere": "Trastevere",
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Mercato di Testaccio",
+     "tipo": "da locale",
+     "quartiere": "Testaccio",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Cimitero Acattolico",
+     "tipo": "essenziale",
+     "quartiere": "Testaccio",
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Pasticceria Regoli",
+     "tipo": "da locale",
+     "quartiere": "Esquilino",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Basilica di Santa Maria Maggiore",
+     "tipo": "essenziale",
+     "quartiere": "Esquilino",
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Bar San Calisto",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Pizzeria Da Baffetto",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza Navona",
+     "tipo": "essenziale",
+     "quartiere": "Centro Storico",
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Gelateria Giolitti",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Mercato di Campo de' Fiori",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza del Popolo",
+     "tipo": "essenziale",
+     "quartiere": "Flaminio",
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Villa Borghese",
+     "tipo": "essenziale",
+     "quartiere": "Flaminio",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Caffè Rosati",
+     "tipo": "da locale",
+     "quartiere": "Flaminio",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Trattoria Da Teo",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza Venezia",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Caffè Sant'Eustachio",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    }
+   ]
+  },
+  {
+   "citta": "Napoli",
+   "abitanti": 960000,
+   "scala": "metropoli",
+   "usage": [
+    {
+     "prompt_tokens": 55,
+     "completion_tokens": 7,
+     "total_tokens": 62,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    },
+    {
+     "prompt_tokens": 763,
+     "completion_tokens": 1538,
+     "total_tokens": 2301,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    }
+   ],
+   "posti": [
+    {
+     "nome": "Duomo di Napoli",
+     "tipo": "essenziale",
+     "quartiere": "Centro Storico",
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Via San Gregorio Armeno",
+     "tipo": "essenziale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza del Plebiscito",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Gran Caffè Gambrinus",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Mercato di Porta Nolana",
+     "tipo": "da locale",
+     "quartiere": "Mercato",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Trattoria da Nennella",
+     "tipo": "da locale",
+     "quartiere": "Quartieri Spagnoli",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza Bellini",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Castel dell'Ovo",
+     "tipo": "essenziale",
+     "quartiere": "Lungomare",
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Lungomare Caracciolo",
+     "tipo": "essenziale",
+     "quartiere": "Lungomare",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Pizzeria Sorbillo",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Caffè dell'Epoca",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Museo Archeologico Nazionale",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza San Domenico Maggiore",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Mercato di Pignasecca",
+     "tipo": "da locale",
+     "quartiere": "Pignasecca",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Borgo Marinari",
+     "tipo": "da locale",
+     "quartiere": "Lungomare",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Pizzeria Da Michele",
+     "tipo": "da locale",
+     "quartiere": "Forcella",
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Cimitero delle Fontanelle",
+     "tipo": "essenziale",
+     "quartiere": "Materdei",
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Chiesa di Santa Chiara",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "dedotto": false
+    }
+   ]
+  },
+  {
+   "citta": "Catania",
+   "abitanti": 311584,
+   "scala": "città",
+   "usage": [
+    {
+     "prompt_tokens": 57,
+     "completion_tokens": 7,
+     "total_tokens": 64,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    },
+    {
+     "prompt_tokens": 700,
+     "completion_tokens": 991,
+     "total_tokens": 1691,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    }
+   ],
+   "posti": [
+    {
+     "nome": "Piazza del Duomo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Cattedrale di Sant'Agata",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Castello Ursino",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Teatro Massimo Bellini",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Mercato del pesce",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Caffè del Duomo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Trattoria da Antonio",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Giardino Bellini",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Bar Mola",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Ristorante Il Sale",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Pasticceria Savia",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Via Etnea",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Chiesa di San Benedetto",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Mercato di Piazza Carlo Alberto",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Caffè Sicilia",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    }
+   ]
+  },
+  {
+   "citta": "Palermo",
+   "abitanti": 670000,
+   "scala": "città",
+   "usage": [
+    {
+     "prompt_tokens": 55,
+     "completion_tokens": 7,
+     "total_tokens": 62,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    },
+    {
+     "prompt_tokens": 687,
+     "completion_tokens": 1151,
+     "total_tokens": 1838,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    }
+   ],
+   "posti": [
+    {
+     "nome": "Cattedrale di Palermo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Teatro Massimo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Palazzo dei Normanni",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Mercato di Ballarò",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Pasticceria Cappello",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Trattoria da Pino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Giardino Inglese",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Bar Marocco",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Ristorante Osteria dei Vespri",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Caffè del Kassaro",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Chiesa del Gesù",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza Pretoria",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Mercato del Capo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Villa Giulia",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Caffè Sicilia",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    }
+   ]
+  },
+  {
+   "citta": "Lecce",
+   "abitanti": 95000,
+   "scala": "città",
+   "usage": [
+    {
+     "prompt_tokens": 56,
+     "completion_tokens": 7,
+     "total_tokens": 63,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    },
+    {
+     "prompt_tokens": 694,
+     "completion_tokens": 975,
+     "total_tokens": 1669,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    }
+   ],
+   "posti": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Castello Carlo V",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Teatro Romano",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Caffè Alvino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Mercato di Lecce",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Trattoria da Nonna Tetta",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Pasticceria Ascalone",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Bar F.lli Mazzotta",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Ristorante La Vecchia Osteria",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Caffè Letterario",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza Sant'Oronzo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Chiesa di Sant'Irene",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Via dei Lupi",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza Mazzini",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    }
+   ]
+  },
+  {
+   "citta": "Troina",
+   "abitanti": 6000,
+   "scala": "borgo",
+   "usage": [
+    {
+     "prompt_tokens": 56,
+     "completion_tokens": 7,
+     "total_tokens": 63,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    },
+    {
+     "prompt_tokens": 723,
+     "completion_tokens": 371,
+     "total_tokens": 1094,
+     "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+     },
+     "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+     }
+    }
+   ],
+   "posti": [
+    {
+     "nome": "Cattedrale di Troina",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "dedotto": false
+    },
+    {
+     "nome": "Castello di Troina",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Piazza Garibaldi",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Bar Pasticceria Da Franco",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Mercato di Troina",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Trattoria Da Nino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Bar Centrale",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    },
+    {
+     "nome": "Pizzeria Da Salvo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "dedotto": false
+    }
+   ]
+  }
+ ]
+}

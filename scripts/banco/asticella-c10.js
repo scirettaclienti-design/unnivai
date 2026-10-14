@@ -67,14 +67,22 @@ export function conosceCitta(c) {
     const vis = visite(c);
     const visDallaLista = vis.filter(s => ids.has(s.place_id));
     if (scala === 'metropoli' && c.citta?.quartiere?.nome) {
-        const q = String(c.citta.quartiere.nome).toLowerCase();
-        const ancoreQ = new Set((c.citta.verificati || []).filter(x => x.tipo === 'essenziale' && String(x.quartiere || '').toLowerCase() === q).map(x => x.place_id));
+        // C10b2 — in giornata intera i quartieri sono due (mattina e pomeriggio): contano le ancore di entrambi; un quartiere
+        // chiesto conta anche i luoghi della sua lista dedicata (sono le sue ancore)
+        const nomi = new Set((c.citta.quartieri?.length ? c.citta.quartieri.map(x => x.nome) : [c.citta.quartiere.nome]).map(n => String(n).toLowerCase()));
+        const q = [...nomi].join(' + ');
+        const ancoreQ = new Set([
+            ...(c.citta.verificati || []).filter(x => x.tipo === 'essenziale' && nomi.has(String(x.quartiere || '').toLowerCase())).map(x => x.place_id),
+            ...(c.citta.listaQuartiere?.verificati || []).map(x => x.place_id),
+        ]);
+        for (const x of c.citta.listaQuartiere?.verificati || []) ids.add(x.place_id);
         const nelTour = vere(c).filter(s => ancoreQ.has(s.place_id)).map(s => s.title);
-        const quota = vis.length ? visDallaLista.length / vis.length : 0;
+        const visQ = vis.filter(s => ids.has(s.place_id));
+        const quota = vis.length ? visQ.length / vis.length : 0;
         const essenziali = lista ? lista.filter(([, rx]) => vere(c).some(s => rx.test(s.title || ''))).map(([n]) => n) : [];
         return {
-            applicabile: true, borgo: false, metropoli: true, quartiere: c.citta.quartiere.nome, ancoreQuartiere: nelTour, essenziali,
-            visite: vis.length, visiteDallaLista: visDallaLista.length, quota,
+            applicabile: true, borgo: false, metropoli: true, quartiere: c.citta.quartieri?.length ? c.citta.quartieri.map(x => x.nome).join(' + ') : q, ancoreQuartiere: nelTour, essenziali,
+            visite: vis.length, visiteDallaLista: visQ.length, quota,
             ok: nelTour.length >= SOGLIE_C10.ancoreQuartiereMin && quota >= SOGLIE_C10.visiteDallaListaMin,
         };
     }

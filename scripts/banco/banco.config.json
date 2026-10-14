@@ -38,6 +38,8 @@
   },
   "prezziUsd": {
     "_fonte": "listini pubblici al 10/2026, da ricontrollare: gpt-4o-mini per milione di token; Google Places (API legacy) per chiamata",
+    "_openaiPerModello": "C10b2 — prezzo per milione di token di ogni modello (listino ufficiale https://developers.openai.com/api/docs/pricing, letto il 14/10/2026, tariffa Standard). I token di un modello che ragiona contano anche il ragionamento (sono fatturati in uscita).",
+    "openaiPerModello": { "gpt-4o-mini": { "input": 0.15, "output": 0.6 }, "gpt-6.1-sol": { "input": 2.0, "output": 10.0 } },
     "openaiInputPerMilione": 0.15,
     "openaiOutputPerMilione": 0.6,
     "google": {
@@ -61,8 +63,8 @@
     "tettoGenerazioniUsd": 5.2,
     "stimaCaso": {
       "_nota": "C10b — la stima del costo di un caso PRIMA di lanciarlo (listino di prezziUsd, senza foto): un tour con la lista gia' fatta, e la lista nuova di una citta' (il primo tour del giorno). Valori dal giro C10 del 16/10: tour 0,15–0,19 $, lista 15 nomi 0,55 $; una metropoli arriva a 20 nomi.",
-      "tourUsd": 0.2,
-      "listaNuovaUsd": 0.75
+      "tourUsd": 0.25,
+      "listaNuovaUsd": 0.8
     },
     "_tetti": "le generazioni (token + Google contati, senza foto: lo script non le carica) si fermano a tettoGenerazioniUsd; il resto fino a tettoUsd e' per gli orari (place/details) pagati al listino di prezziUsd",
     "fasce": {

@@ -1,0 +1,96 @@
+/**
+ * C10b2 — IL MODELLO DI OGNI PASSAGGIO, in un posto solo (decisione di Ivano).
+ *
+ * Il client non sceglie il modello: dice quale passaggio sta chiamando (`dv.passaggio`) e il proxy usa quello scritto qui.
+ * Lista della città (con la chiamata degli abitanti) e lista dedicata del quartiere passano dal server; traduttore,
+ * selettore e narratore arrivano dal client. Il narratore (frasi chiuse) resta sul modello di prima.
+ *
+ * Se il modello del passaggio non risponde, risponde con un errore, o va oltre `timeoutMs`, il proxy rifà la stessa
+ * chiamata con MODELLO_DI_PRIMA e lo scrive nella risposta (`_modello`: chiesto, usato, ripiego, motivo, ms).
+ *
+ * Modulo PURO (nessun import): lo usa openai-proxy (Deno) e lo prova la suite (vitest).
+ */
+
+export const MODELLO_DI_PRIMA = 'gpt-4o-mini';
+
+export type Passaggio = 'lista' | 'quartiere' | 'traduttore' | 'selettore' | 'narratore';
+
+/**
+ * Il modello e il tempo massimo di ogni passaggio. Tempi scelti perche' il ripiego stia dentro l'attesa del client:
+ * selettore 22 s (+ ripiego ~10 s, il client aspetta 50 s); traduttore 15 s (il client non ha un tempo massimo);
+ * lista e quartiere 60 s (+ ripiego e verifica su Google, il client aspetta 110 s). Misurato il 14/10: gpt-6.1-sol scrive
+ * ~37 token al secondo, una lista da 15–18 posti (1.000–1.400 token) chiede 30–45 s; con 28 s ripiegavano 5 liste su 6.
+ */
+export const MODELLI: Record<Passaggio, { modello: string; timeoutMs: number }> = {
+    lista: { modello: 'gpt-6.1-sol', timeoutMs: 60_000 },
+    quartiere: { modello: 'gpt-6.1-sol', timeoutMs: 60_000 },
+    traduttore: { modello: 'gpt-6.1-sol', timeoutMs: 15_000 },
+    selettore: { modello: 'gpt-6.1-sol', timeoutMs: 22_000 },
+    narratore: { modello: MODELLO_DI_PRIMA, timeoutMs: 25_000 },
+};
+
+/**
+ * Come si chiama ogni modello. gpt-6.1-sol ragiona (prova del 14/10 sull'account): rifiuta `max_tokens` (vuole
+ * `max_completion_tokens`, che conta anche il ragionamento), accetta solo la `temperature` di difetto (1), e
+ * `reasoning_effort` va da 'low' in su. `margine`: token in piu' per il ragionamento, oltre a quelli della risposta.
+ */
+export const CARATTERISTICHE: Record<string, { ragiona: boolean; sforzo?: string; margine?: number; tettoToken?: number }> = {
+    'gpt-6.1-sol': { ragiona: true, sforzo: 'low', margine: 3000, tettoToken: 8000 },
+    'gpt-4o-mini': { ragiona: false },
+};
+
+export const PASSAGGI = new Set<string>(Object.keys(MODELLI));
+export const passaggioValido = (p: unknown): p is Passaggio => typeof p === 'string' && PASSAGGI.has(p);
+export const MODELLI_AMMESSI = new Set<string>([MODELLO_DI_PRIMA, ...Object.values(MODELLI).map(m => m.modello)]);
+
+/** Il modello del passaggio (senza passaggio: quello chiesto dal client, come prima). */
+export const modelloPer = (passaggio: unknown, chiesto: string): string => (passaggioValido(passaggio) ? MODELLI[passaggio].modello : chiesto);
+export const timeoutPer = (passaggio: unknown, difetto: number): number => (passaggioValido(passaggio) ? MODELLI[passaggio].timeoutMs : difetto);
+
+/**
+ * Il corpo della chiamata adattato al modello. Per un modello che ragiona: `max_tokens` → `max_completion_tokens` (+ il
+ * margine del ragionamento, fino al tetto), via `temperature`, `reasoning_effort` dal listino sopra. Per gli altri: com'e'.
+ */
+// deno-lint-ignore no-explicit-any
+export function corpoPer(modello: string, payload: Record<string, any>): Record<string, any> {
+    const c = CARATTERISTICHE[modello];
+    // deno-lint-ignore no-explicit-any
+    const base: Record<string, any> = { ...payload, model: modello };
+    if (!c?.ragiona) return base;
+    const { max_tokens, max_completion_tokens, temperature: _t, top_p: _p, ...resto } = base;
+    const chiesti = Number(max_completion_tokens ?? max_tokens);
+    const uscita = Math.min(c.tettoToken ?? 8000, (Number.isFinite(chiesti) && chiesti > 0 ? chiesti : 2000) + (c.margine ?? 0));
+    return { ...resto, max_completion_tokens: uscita, ...(c.sforzo ? { reasoning_effort: c.sforzo } : {}) };
+}
+
+/** Una risposta di OpenAI senza testo (un modello che ragiona puo' finire i token nel ragionamento) e' un guasto: si ripiega. */
+// deno-lint-ignore no-explicit-any
+export const rispostaVuota = (data: any): boolean => !String(data?.choices?.[0]?.message?.content ?? '').trim();
+
+/**
+ * La chiamata di un passaggio col suo modello e, se fallisce, col modello di prima. `invia(corpo, limiteMs)` fa la chiamata
+ * vera (con il suo tempo massimo) e restituisce il JSON di OpenAI, o lancia: un errore con `name === 'AbortError'` e' un
+ * tempo massimo superato. Restituisce i dati e `info` per il tracciato (chiesto, usato, ripiego, motivo, ms, usage).
+ */
+// deno-lint-ignore no-explicit-any
+export async function chiamaConRipiego(passaggio: Passaggio, payload: Record<string, any>, invia: (corpo: Record<string, any>, limiteMs: number) => Promise<any>,
+    limiteDiPrima = 45_000) {
+    const { modello, timeoutMs } = MODELLI[passaggio];
+    const t0 = Date.now();
+    let motivo: string | null = null;
+    if (modello !== MODELLO_DI_PRIMA) {
+        try {
+            const d = await invia(corpoPer(modello, payload), timeoutMs);
+            if (rispostaVuota(d)) throw new Error('risposta vuota');
+            return { data: d, info: { passaggio, chiesto: modello, usato: modello, ripiego: false, ms: Date.now() - t0, usage: d?.usage ?? null } };
+        } catch (err) {
+            motivo = (err as Error)?.name === 'AbortError' ? `oltre il tempo massimo (${timeoutMs / 1000} s)` : String((err as Error)?.message ?? err).slice(0, 80);
+        }
+    }
+    const t1 = Date.now();
+    const d = await invia(corpoPer(MODELLO_DI_PRIMA, payload), limiteDiPrima);
+    return {
+        data: d,
+        info: { passaggio, chiesto: modello, usato: MODELLO_DI_PRIMA, ripiego: modello !== MODELLO_DI_PRIMA, ...(motivo ? { motivo, msChiesto: t1 - t0 } : {}), ms: Date.now() - t1, usage: d?.usage ?? null },
+    };
+}

@@ -64,11 +64,27 @@ export const SOGLIA_METROPOLI_KM = 2;
 /** Un borgo con meno di 4 posti verificati si gira in mezza giornata. */
 export const BORGO_MIN_VERIFICATI = 4;
 export const MEZZA_GIORNATA_MINUTI = 240;
+/**
+ * C10b2 — il giro corto di un borgo con meno di 4 posti: la durata segue le tappe che ci sono (decisione di Ivano), niente
+ * tempo libero aggiunto per riempire la mezza giornata. 45 minuti per luogo da visitare (sosta media 30 + cammino 15), da 2
+ * a 4 luoghi: 90–180 minuti dalla partenza. La finestra non si allunga mai.
+ */
+export const MINUTI_PER_TAPPA_BORGO = 45;
+export const durataBorgoCorto = (visitabili) => MINUTI_PER_TAPPA_BORGO * Math.min(4, Math.max(2, Number(visitabili) || 0));
 /** La riga a schermo (testo approvato da Ivano nel task C10b). */
 export const rigaBorgo = (citta) => `${citta} si gira in mezza giornata.`;
-/** Il raggio del quartiere: il tetto di cammino (20 min = 1,5 km); al massimo 2,5 km se i posti del quartiere stanno piu' lontani. */
-export const RAGGIO_QUARTIERE_KM = MAX_WALK_METERS / 1000;
-export const RAGGIO_QUARTIERE_MAX_KM = 2.5;
+/** C10b2 — il raggio del quartiere: 2 km dal suo centro (decisione di Ivano). */
+export const RAGGIO_QUARTIERE_KM = 2;
+/**
+ * C10b2 — due quartieri sono VICINI se i loro centri stanno entro 3 km: i due cerchi da 2 km si sovrappongono per almeno 1 km,
+ * e nella parte comune c'e' un passaggio dalla mattina al pomeriggio dentro il tetto di cammino C5c (20 min = 1,5 km), che
+ * poi il riparatore controlla tappa per tappa come sempre.
+ */
+export const QUARTIERI_VICINI_KM = 3;
+/** Un quartiere chiesto con meno di questi luoghi da visitare (non locali) in lista riceve la sua lista dedicata. */
+export const LUOGHI_QUARTIERE_MIN = 3;
+/** Il tetto di cammino in km (lo stesso di C5c): serve solo a dichiarare la regola dei quartieri vicini. */
+export const TETTO_CAMMINO_KM = MAX_WALK_METERS / 1000;
 
 const latOf = (c) => c?.latitude ?? c?.lat ?? c?.geometry?.location?.lat;
 const lngOf = (c) => c?.longitude ?? c?.lng ?? c?.geometry?.location?.lng;
@@ -113,7 +129,11 @@ export function scalaConfermata({ proposta = null, poi = [] } = {}) {
 
 const normTesto = (s) => ` ${String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[’`']/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim()} `;
 
-/** I quartieri della lista (solo metropoli): nome, centro (media dei posti), posti, essenziali, raggio. */
+/**
+ * I quartieri della lista (solo metropoli): nome, centro, posti, essenziali, raggio (2 km). Il CENTRO e' il baricentro dei
+ * posti VERIFICATI del quartiere (lista della citta' e, se c'e', lista dedicata del quartiere), mai il punto geografico del
+ * nome: e' dove stanno davvero le cose da fare.
+ */
 export function quartieriDallaLista(poi) {
     const per = new Map();
     for (const p of poi || []) {
@@ -126,42 +146,81 @@ export function quartieriDallaLista(poi) {
     return [...per.values()].map(q => {
         const centro = { latitude: q.posti.reduce((a, p) => a + latOf(p), 0) / q.posti.length, longitude: q.posti.reduce((a, p) => a + lngOf(p), 0) / q.posti.length };
         const essenziali = q.posti.filter(p => p._citta?.tipo === 'essenziale');
-        const lontano = Math.max(0, ...essenziali.map(p => kmTra(centro, p)));
-        const raggioKm = Math.round(Math.min(RAGGIO_QUARTIERE_MAX_KM, Math.max(RAGGIO_QUARTIERE_KM, lontano)) * 100) / 100;
-        return { nome: q.nome, chiave: q.chiave, centro, raggioKm, posti: q.posti, essenziali };
+        const daVisitare = q.posti.filter(p => !COMMERCIAL_KINDS.has(placeKind(p).kind));
+        return { nome: q.nome, chiave: q.chiave, centro, raggioKm: RAGGIO_QUARTIERE_KM, posti: q.posti, essenziali, daVisitare };
     });
 }
 
 /**
- * Il quartiere della giornata in una metropoli: quello NOMINATO nella richiesta («Trastevere»); se non c'e', quello con piu'
- * ancore (essenziali) aperte nella finestra, e a parita' il piu' vicino alla partenza.
- * @returns {{ quartiere: object|null, motivo: string|null, classifica: Array }}
+ * Il quartiere (o i due quartieri) della giornata in una metropoli (C10b2, decisioni di Ivano):
+ *   - nominato nella richiesta («Trastevere»): vale da solo, anche senza essenziali in lista;
+ *   - altrimenti si sceglie SOLO fra i quartieri con almeno 1 essenziale verificato: quello con piu' ancore aperte nella
+ *     finestra, a parita' il piu' vicino alla partenza;
+ *   - `dueQuartieri` (giornata intera, nessun quartiere nominato): la mattina nel primo, il pomeriggio nel quartiere con
+ *     almeno 1 essenziale piu' vicino al primo, se i centri stanno entro QUARTIERI_VICINI_KM.
+ * @returns {{ quartiere, secondo, motivo, motivoSecondo, classifica }}
  */
-export function scegliQuartiere({ poi = [], testo = '', partenza = null, finestre = [] } = {}) {
+export function scegliQuartiere({ poi = [], testo = '', partenza = null, finestre = [], dueQuartieri = false } = {}) {
     const quartieri = quartieriDallaLista(poi);
-    if (quartieri.length === 0) return { quartiere: null, motivo: null, classifica: [] };
+    if (quartieri.length === 0) return { quartiere: null, secondo: null, motivo: null, motivoSecondo: null, classifica: [] };
     const t = normTesto(testo);
     const nominato = quartieri
         .filter(q => q.chiave.length >= 3 && t.includes(` ${q.chiave} `))
         .sort((a, b) => b.chiave.length - a.chiave.length)[0];
+    const aperte = (q) => q.essenziali.filter(e => !finestre.length || finestre.some(w => apertoNellaFinestra(e, w))).length;
     const classifica = quartieri.map(q => ({
-        nome: q.nome,
-        ancoreAperte: q.essenziali.filter(e => !finestre.length || finestre.some(w => apertoNellaFinestra(e, w))).length,
+        nome: q.nome, essenziali: q.essenziali.length, ancoreAperte: aperte(q), luoghiDaVisitare: q.daVisitare.length,
         kmDallaPartenza: partenza && conCoordinate(partenza) ? Math.round(kmTra(partenza, q.centro) * 100) / 100 : null,
     }));
-    if (nominato) return { quartiere: nominato, motivo: 'nominato nella richiesta', classifica };
-    const ordine = [...quartieri].sort((a, b) => {
-        const ca = classifica.find(x => x.nome === a.nome), cb = classifica.find(x => x.nome === b.nome);
-        return (cb.ancoreAperte - ca.ancoreAperte) || ((ca.kmDallaPartenza ?? 0) - (cb.kmDallaPartenza ?? 0));
-    });
-    return { quartiere: ordine[0], motivo: 'il quartiere con piu\' ancore aperte, il piu\' vicino alla partenza a parita\'', classifica };
+    if (nominato) return { quartiere: nominato, secondo: null, motivo: 'nominato nella richiesta', motivoSecondo: null, classifica };
+    const conEssenziali = quartieri.filter(q => q.essenziali.length >= 1);
+    if (conEssenziali.length === 0) return { quartiere: null, secondo: null, motivo: 'nessun quartiere con un essenziale verificato', motivoSecondo: null, classifica };
+    const km = (q) => (partenza && conCoordinate(partenza) ? kmTra(partenza, q.centro) : 0);
+    const primo = [...conEssenziali].sort((a, b) => (aperte(b) - aperte(a)) || (km(a) - km(b)))[0];
+    const motivo = 'il quartiere con piu\' ancore aperte, il piu\' vicino alla partenza a parita\'';
+    if (!dueQuartieri) return { quartiere: primo, secondo: null, motivo, motivoSecondo: null, classifica };
+    const vicini = conEssenziali.filter(q => q !== primo).map(q => ({ q, d: kmTra(primo.centro, q.centro) })).filter(x => x.d <= QUARTIERI_VICINI_KM)
+        .sort((a, b) => a.d - b.d);
+    if (!vicini.length) return { quartiere: primo, secondo: null, motivo, motivoSecondo: `nessun quartiere con un essenziale entro ${QUARTIERI_VICINI_KM} km: tutta la giornata a ${primo.nome}`, classifica };
+    return { quartiere: primo, secondo: vicini[0].q, motivo, motivoSecondo: `il quartiere con un essenziale piu' vicino a ${primo.nome} (${Math.round(vicini[0].d * 100) / 100} km fra i centri)`, classifica };
+}
+
+/** L'area della giornata: un quartiere, o due (mattina nel primo, pomeriggio nel secondo). `centro`/`raggioKm` per le ricerche. */
+export function areaDeiQuartieri(q1, q2 = null) {
+    const area = (q) => ({ nome: q.nome, chiave: q.chiave, centro: q.centro, raggioKm: q.raggioKm });
+    if (!q2) return { ...area(q1), aree: [area(q1)] };
+    const centro = { latitude: (q1.centro.latitude + q2.centro.latitude) / 2, longitude: (q1.centro.longitude + q2.centro.longitude) / 2 };
+    // le ricerche senza una tappa da cui partire guardano tutto lo spazio dei due quartieri
+    const raggioKm = Math.round((kmTra(q1.centro, q2.centro) / 2 + Math.max(q1.raggioKm, q2.raggioKm)) * 100) / 100;
+    return { nome: `${q1.nome} + ${q2.nome}`, chiave: `${q1.chiave}+${q2.chiave}`, centro, raggioKm, aree: [area(q1), area(q2)] };
+}
+
+// I momenti della MATTINA stanno nel primo quartiere, quelli dal pomeriggio in poi nel secondo, il pranzo in uno dei due.
+const MOMENTI_MATTINA = new Set(['colazione', 'mattina']);
+const MOMENTI_PONTE = new Set(['pranzo']);
+
+/** I bucket dei momenti dentro la loro area: con due quartieri, mattina nel primo, pranzo in uno dei due, il resto nel secondo. */
+export function bucketsNelleAree(moments, buckets, area) {
+    if (!buckets || !area?.aree || area.aree.length < 2) return buckets;
+    const [a1, a2] = area.aree;
+    const out = new Map();
+    for (const m of moments || []) {
+        const b = buckets.get(m.id) || [];
+        const dentro = MOMENTI_MATTINA.has(m.key) ? (c) => dentroUna(c, a1)
+            : MOMENTI_PONTE.has(m.key) ? (c) => dentroUna(c, a1) || dentroUna(c, a2)
+                : (c) => dentroUna(c, a2);
+        out.set(m.id, b.filter(dentro));
+    }
+    for (const [k, v] of buckets) if (!out.has(k)) out.set(k, v);
+    return out;
 }
 
 /** Il posto e' di quel quartiere? (nome confrontato senza maiuscole, accenti e punteggiatura) */
 export const delQuartiere = (c, q) => !!q && normTesto(c?._citta?.quartiere).trim() === q.chiave;
 
-/** Un posto dentro l'area del quartiere (cerchio attorno al suo centro). Senza coordinate: non si giudica, resta. */
-export const dentroArea = (c, area) => !area || !conCoordinate(c) || kmTra(area.centro, c) <= area.raggioKm;
+const dentroUna = (c, a) => !conCoordinate(c) || kmTra(a.centro, c) <= a.raggioKm;
+/** Un posto dentro l'area della giornata (un quartiere, o uno dei due). Senza coordinate: non si giudica, resta. */
+export const dentroArea = (c, area) => !area || (Array.isArray(area.aree) && area.aree.length ? area.aree.some(a => dentroUna(c, a)) : dentroUna(c, area));
 
 /** I candidati delle ricerche con quelli della lista: un posto gia' trovato dalla ricerca resta quello, e prende `_citta`. */
 export function uniscialPool(candidates, poiCitta) {

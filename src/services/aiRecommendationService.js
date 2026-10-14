@@ -53,7 +53,9 @@ export const buildPlacesProxyUrl = (params) => {
  * @param {AbortSignal} [signal]
  * @returns {Promise<object>} La risposta JSON di OpenAI
  */
-const callOpenAIProxy = async (payload, signal, quota) => {
+// C10b2 — `passaggio` (lista, traduttore, selettore, narratore…): il modello lo sceglie il proxy (openai-proxy/modelli.ts),
+// il client manda il modello di prima, che e' anche il ripiego. La risposta dice quale ha usato (`_modello`).
+const callOpenAIProxy = async (payload, signal, quota, passaggio = null) => {
   const { data: { session } } = await supabase.auth.getSession();
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -80,7 +82,8 @@ const callOpenAIProxy = async (payload, signal, quota) => {
       headers,
       // Gate QUOTA-SERVER — `dv` dice al proxy a quale generazione appartiene la
       // chiamata (biglietto). Senza `dv` il proxy la conta come chiamata di contorno.
-      body: JSON.stringify({ endpoint: '/chat/completions', ...payload, ...(quota ? { dv: quota } : {}) }),
+      body: JSON.stringify({ endpoint: '/chat/completions', ...payload,
+        ...(quota || passaggio ? { dv: { ...(quota || { purpose: 'aux' }), ...(passaggio ? { passaggio } : {}) } } : {}) }),
       ...(signal ? { signal } : {}),
     });
   } catch (err) {
@@ -382,8 +385,8 @@ import { keepOpenStops } from '../lib/openStops';
 import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
 // C10 — la lista della città: l'AI propone (sul server, una per città e giorno), Google verifica, le regole compongono.
-import { fetchCityKnowledge } from './cityKnowledgeService';
-import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scalaConfermata, scegliQuartiere, dentroArea, delQuartiere, rigaBorgo, BORGO_MIN_VERIFICATI, MEZZA_GIORNATA_MINUTI } from '../lib/cityKnowledge';
+import { fetchCityKnowledge, fetchQuartiereKnowledge } from './cityKnowledgeService';
+import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scalaConfermata, scegliQuartiere, dentroArea, delQuartiere, rigaBorgo, BORGO_MIN_VERIFICATI, areaDeiQuartieri, bucketsNelleAree, durataBorgoCorto, LUOGHI_QUARTIERE_MIN, RAGGIO_QUARTIERE_KM, GIORNATA_INTERA_MINUTI } from '../lib/cityKnowledge';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
@@ -659,7 +662,7 @@ export async function translateIntentToQueries(userPrompt, cityName, quota) {
         response_format: { type: 'json_object' },
         temperature: 0.3, // locked: determinismo
         max_tokens: 200,
-    }, undefined, quota);
+    }, undefined, quota, 'traduttore');
     const raw = data?.choices?.[0]?.message?.content;
     if (!raw) throw new Error('translateIntentToQueries: no AI response');
 
@@ -685,9 +688,11 @@ export async function translateIntentToQueries(userPrompt, cityName, quota) {
     // T1b — zero query non e' piu' un errore: la frase porta ancora la citta'
     // e il motore cerca con le query di base (fetchRealPOICandidates). Una
     // traduzione vuota non si mette in cache: la prossima volta si riprova.
-    if (queries.length === 0) return { ...result, _source: 'ai-vuota' };
+    // C10b2 — quale modello ha tradotto (e se ha ripiegato): nel tracciato, mai in cache
+    const _modello = data?._modello ?? null;
+    if (queries.length === 0) return { ...result, _source: 'ai-vuota', _modello };
     saveIntentToCache(key, result);
-    return { ...result, _source: 'ai' };
+    return { ...result, _source: 'ai', _modello };
 }
 
 /**
@@ -2210,7 +2215,7 @@ const chooseStopHooks = async ({ city, days, ctxs, interessi, quotaTicket }) => 
             response_format: { type: 'json_object' },
             temperature: 0.3,
             max_tokens: 1200,
-        }, controller.signal, quotaTicket);
+        }, controller.signal, quotaTicket, 'narratore');
         clearTimeout(timeoutId);
         const parsed = JSON.parse(data?.choices?.[0]?.message?.content || '{}');
         const meta = Array.isArray(parsed?.days) ? parsed.days : [];
@@ -2385,6 +2390,8 @@ export const aiRecommendationService = {
             ? Promise.resolve({ stato: 'spenta', verificati: [] })
             : fetchCityKnowledge(city, tourWindow.date).catch(err => ({ stato: 'assente', verificati: [], errore: String(err?.message || err) }));
         const cittaReport = { stato: 'in attesa' };
+        // C10b2 — il modello di ogni passaggio di questo giro (e se ha ripiegato su quello di prima)
+        const modelliReport = { lista: null, quartiere: null, traduttore: null, selettore: null };
 
         // G3 — la fascia del timeContext si legge dalla PARTENZA del tour
         // (tourWindow.start, ora di Roma), non dall'ora della richiesta:
@@ -2405,11 +2412,13 @@ export const aiRecommendationService = {
         const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
         try {
             const { candidates: rawDalleRicerche, intent } = await fetchRealPOICandidates(city, cityCenter, prefs, userPrompt, quotaTicket, food, opts.presetIntent || null, !!opts.baseQueries);
+            modelliReport.traduttore = intent?._modello ?? null;
             // C10 — i posti verificati della lista entrano nel pool come risultati di ricerca: da qui passano per gli stessi
             // filtri di tutti (zone, raggio, categoria, dieta e budget, cucine estere col tema tipico).
             const lista = await cittaPromise;
             const { buildPOIFromCandidate } = await import('./placesDiscoveryService');
             let poiCitta = poiDallaLista(lista.verificati, city, buildPOIFromCandidate);
+            modelliReport.lista = lista.modelli ?? null;
             Object.assign(cittaReport, {
                 stato: lista.stato, cached: lista.cached ?? null, conti: lista.conti ?? null, errore: lista.errore ?? null,
                 attesaMs: Date.now() - cittaT0, risposta: lista.ms ?? null, costo: lista.costo ?? null,
@@ -2417,7 +2426,8 @@ export const aiRecommendationService = {
                     ...(p._citta.quartiere ? { quartiere: p._citta.quartiere } : {}), ...(p._citta.simbolo ? { simbolo: true } : {}) })),
             });
             // C10b — TRE SCALE (decisione di Ivano): l'AI propone, il motore conferma col diametro della lista.
-            //   borgo con meno di 4 verificati → mezza giornata, con la riga approvata; metropoli → la giornata in un quartiere.
+            //   borgo con meno di 4 verificati → giro corto (C10b2: la durata segue le tappe), con la riga approvata;
+            //   metropoli → la giornata in un quartiere, o (C10b2, giornata intera) mattina e pomeriggio in due quartieri vicini.
             let area = null;
             let scalaNote = null;
             if (poiCitta.length > 0) {
@@ -2425,37 +2435,74 @@ export const aiRecommendationService = {
                 cittaReport.scala = conferma;
                 cittaReport.simboli = poiCitta.filter(p => p._citta.simbolo)
                     .map(p => ({ nome: p.name, ...(p._citta.quartiere ? { quartiere: p._citta.quartiere } : {}), ...(p._citta.simboloDedotto ? { dedotto: true } : {}) }));
+                // C10b2 — nel borgo: i nomi di Google accettati per la stessa categoria (scritti nel tracciato)
+                const sostituzioni = poiCitta.filter(p => p._citta.sostituzione).map(p => p._citta.sostituzione);
+                if (sostituzioni.length) cittaReport.sostituzioni = sostituzioni;
                 const w0 = tourWindow.windows[0];
                 const minuti0 = w0 ? (w0.end.getTime() - w0.start.getTime()) / 60000 : 0;
-                if (conferma.scala === 'borgo' && poiCitta.length < BORGO_MIN_VERIFICATI && tourWindow.windows.length === 1 && minuti0 > MEZZA_GIORNATA_MINUTI) {
-                    w0.end = new Date(w0.start.getTime() + MEZZA_GIORNATA_MINUTI * 60000);
-                    tourWindow.end = w0.end;
+                if (conferma.scala === 'borgo' && poiCitta.length < BORGO_MIN_VERIFICATI && tourWindow.windows.length === 1) {
+                    // C10b2 — la durata del giro si adatta alle tappe che il borgo ha: niente tempo libero per riempire la mezza giornata.
+                    const raggio = cityCenter?.radiusKm ?? 5;
+                    const visitabili = new Set(uniscialPool(rawDalleRicerche, poiCitta)
+                        .filter(c => !isMealPlace(c) && !zoneReason({ ...c, primaryType: c.primaryType ?? c.primary_type }, city)
+                            && (!cityCenter || !Number.isFinite(c.latitude ?? c.lat) || haversineKm(cityCenter.latitude, cityCenter.longitude, c.latitude ?? c.lat, c.longitude ?? c.lng) <= raggio))
+                        .map(c => c.place_id || c.googlePlaceId)).size;
+                    const minuti = durataBorgoCorto(visitabili);
+                    if (minuti0 > minuti) {
+                        w0.end = new Date(w0.start.getTime() + minuti * 60000);
+                        tourWindow.end = w0.end;
+                    }
                     scalaNote = rigaBorgo(city);
-                    cittaReport.mezzaGiornata = { verificati: poiCitta.length, minimo: BORGO_MIN_VERIFICATI, riga: scalaNote, fine: w0.end.toISOString() };
-                    console.info(`[C10b SCALA] ${city}: borgo con ${poiCitta.length} posti verificati (< ${BORGO_MIN_VERIFICATI}) → mezza giornata`);
+                    cittaReport.mezzaGiornata = { verificati: poiCitta.length, minimo: BORGO_MIN_VERIFICATI, riga: scalaNote, visitabili, minuti: Math.min(minuti0, minuti), fine: w0.end.toISOString() };
+                    console.info(`[C10b SCALA] ${city}: borgo con ${poiCitta.length} posti verificati (< ${BORGO_MIN_VERIFICATI}), ${visitabili} luoghi da visitare → giro di ${Math.min(minuti0, minuti)} min`);
                 }
                 if (conferma.scala === 'metropoli' && tourWindow.windows.length === 1) {
-                    const sq = scegliQuartiere({
-                        poi: poiCitta, testo: opts.pathType === 'custom' ? userPrompt : '',
-                        partenza: opts.startPoint || cityCenter, finestre: tourWindow.windows,
+                    const testo = opts.pathType === 'custom' ? userPrompt : '';
+                    const intera = minuti0 >= GIORNATA_INTERA_MINUTI;
+                    const scegli = () => scegliQuartiere({
+                        poi: poiCitta, testo, partenza: opts.startPoint || cityCenter, finestre: tourWindow.windows, dueQuartieri: intera,
                     });
+                    let sq = scegli();
+                    // C10b2 — un quartiere CHIESTO con meno di 3 luoghi da visitare in lista: la sua lista dedicata (6–8 luoghi, verificati)
+                    if (sq.quartiere && sq.motivo === 'nominato nella richiesta' && sq.quartiere.daVisitare.length < LUOGHI_QUARTIERE_MIN) {
+                        const lq = await fetchQuartiereKnowledge(city, tourWindow.date, sq.quartiere.nome)
+                            .catch(err => ({ stato: 'assente', verificati: [], errore: String(err?.message || err) }));
+                        modelliReport.quartiere = lq.modelli ?? null;
+                        // un quartiere chiesto vale: i suoi luoghi da visitare sono le ancore candidate della giornata (al massimo 3 per
+                        // giornata intera, una per famiglia, il simbolo per primo: le regole di poolConLista e seminaAncore)
+                        const poiQ = poiDallaLista(lq.verificati, city, buildPOIFromCandidate)
+                            .map(p => ({ ...p, _citta: { ...p._citta, quartiere: sq.quartiere.nome, tipo: 'essenziale', ...(p._citta.tipo !== 'essenziale' ? { daListaQuartiere: true } : {}) } }));
+                        const gia = new Set(poiCitta.map(p => p.place_id));
+                        const nuovi = poiQ.filter(p => !gia.has(p.place_id));
+                        poiCitta = [...poiCitta, ...nuovi];
+                        cittaReport.listaQuartiere = { quartiere: sq.quartiere.nome, stato: lq.stato, cached: lq.cached ?? null, conti: lq.conti ?? null, costo: lq.costo ?? null,
+                            luoghiPrima: sq.quartiere.daVisitare.length, verificati: poiQ.map(p => ({ place_id: p.place_id, nome: p.name, tipo: p._citta.tipo, ...(p._citta.simbolo ? { simbolo: true } : {}) })) };
+                        console.info(`[C10b2 QUARTIERE] ${city}: ${sq.quartiere.nome} chiesto con ${sq.quartiere.daVisitare.length} luoghi da visitare → lista dedicata: ${poiQ.length} verificati (${lq.cached ? 'dal server' : lq.stato})`);
+                        sq = scegli();
+                    }
                     if (sq.quartiere) {
-                        area = { nome: sq.quartiere.nome, centro: sq.quartiere.centro, raggioKm: sq.quartiere.raggioKm };
+                        area = areaDeiQuartieri(sq.quartiere, sq.secondo);
+                        const scelti = [sq.quartiere, ...(sq.secondo ? [sq.secondo] : [])];
                         const fuori = poiCitta.filter(p => !dentroArea(p, area));
-                        // le ancore (e il simbolo) sono quelle del quartiere scelto: un essenziale di un quartiere vicino che cade
+                        // le ancore (e il simbolo) sono quelle dei quartieri scelti: un essenziale di un quartiere vicino che cade
                         // nel raggio resta un posto della lista, senza priorita' di ancora
-                        poiCitta = poiCitta.filter(p => dentroArea(p, area)).map(p => (p._citta.tipo === 'essenziale' && !delQuartiere(p, sq.quartiere)
+                        poiCitta = poiCitta.filter(p => dentroArea(p, area)).map(p => (p._citta.tipo === 'essenziale' && !scelti.some(q => delQuartiere(p, q))
                             ? { ...p, _citta: { tipo: 'da locale', momento: p._citta.momento, quartiere: p._citta.quartiere, eraEssenziale: true } } : p));
-                        cittaReport.quartiere = { nome: area.nome, motivo: sq.motivo, centro: area.centro, raggioKm: area.raggioKm, classifica: sq.classifica,
+                        cittaReport.quartiere = { nome: sq.quartiere.nome, motivo: sq.motivo, centro: sq.quartiere.centro, raggioKm: sq.quartiere.raggioKm, classifica: sq.classifica,
                             listaFuori: fuori.map(p => p.name) };
-                        console.info(`[C10b QUARTIERE] ${city}: giornata a ${area.nome} (${sq.motivo}), raggio ${area.raggioKm} km`);
+                        cittaReport.quartieri = scelti.map((q, i) => ({ nome: q.nome, momenti: scelti.length === 1 ? 'tutta la giornata' : (i === 0 ? 'mattina (e pranzo)' : '(pranzo e) pomeriggio, sera'),
+                            centro: q.centro, raggioKm: q.raggioKm, essenziali: q.essenziali.map(e => e.name), motivo: i === 0 ? sq.motivo : sq.motivoSecondo }));
+                        if (!sq.secondo && intera && sq.motivoSecondo) cittaReport.quartieri[0].nota = sq.motivoSecondo;
+                        console.info(`[C10b QUARTIERE] ${city}: ${scelti.map(q => q.nome).join(' → ')} (${sq.motivo}${sq.secondo ? `; ${sq.motivoSecondo}` : ''}), raggio ${RAGGIO_QUARTIERE_KM} km`);
+                    } else if (sq.motivo) {
+                        cittaReport.quartiere = { nome: null, motivo: sq.motivo, classifica: sq.classifica };
                     }
                 }
                 console.info(`[C10b SCALA] ${city}: proposta ${conferma.proposta ?? '-'} → ${conferma.scala} (${conferma.motivo})`);
             }
             const rawCandidatesTutti = uniscialPool(rawDalleRicerche, poiCitta).filter(c => {
                 if (dentroArea(c, area)) return true;
-                (cittaReport.quartiere.fuoriArea ??= []).push(c.name || c.title || '?');
+                ((cittaReport.quartiere ??= {}).fuoriArea ??= []).push(c.name || c.title || '?');
                 return false;
             });
 
@@ -2649,6 +2696,8 @@ export const aiRecommendationService = {
             let extraThemes = [];
             let seraleVeloce = false;
             const openBuckets = () => (buckets ? applyOpeningToBuckets(moments, buckets, { veto }) : null);
+            // C10b2 — con due quartieri: la mattina nel primo, il pranzo in uno dei due, dal pomeriggio in poi nel secondo
+            const nelleAree = (b) => (area?.aree?.length > 1 ? bucketsNelleAree(moments, b, area) : b);
             // Gate NARRATORE-DOPO — si cerca per i momenti che il pool non riesce
             // a riempire, non solo per quelli vuoti (vedi shortMomentThemes).
             // C1 — le famiglie che la categoria o il testo chiedono: per quelle
@@ -2692,7 +2741,7 @@ export const aiRecommendationService = {
                 // C7 — con lo street food un forno puo' essere un pasto (panelle, focaccia): pranzo e cena lo ammettono.
                 if (tema.streetFood) for (const m of moments) m.streetFood = true;
                 anyCategory = !!catStretta;
-                buckets = moments.length > 0 ? bucketCandidates(moments, candidates, { anyCategory }) : null;
+                buckets = moments.length > 0 ? nelleAree(bucketCandidates(moments, candidates, { anyCategory })) : null;
                 // Percorso A: se NESSUN luogo trovato per la frase sta in NESSUN
                 // momento, la frase chiede qualcosa che la tabella dei momenti non
                 // nomina (terme, spa…). E' una richiesta esplicita: vale per tutti
@@ -2701,7 +2750,7 @@ export const aiRecommendationService = {
                 if (buckets && isFreeTextIntent && !anyCategory && [...buckets.values()].every(b => b.length === 0)) {
                     console.info(`[P3 SCHELETRO] ${city}: nessun candidato sta in un momento → la richiesta vale per tutti i momenti`);
                     anyCategory = true;
-                    buckets = bucketCandidates(moments, candidates, { anyCategory });
+                    buckets = nelleAree(bucketCandidates(moments, candidates, { anyCategory }));
                 }
                 veto.clear();
                 mealOnlyIds = null;
@@ -2722,7 +2771,7 @@ export const aiRecommendationService = {
                     });
                     candidates = [...candidates, ...extra];
                     mealOnlyIds = addMealOnly(extra);
-                    buckets = bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds });
+                    buckets = nelleAree(bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds }));
                     if (extraThemes.includes('food')) foodGiaCercato = true;
                 }
                 if (cenaPrima) {
@@ -2776,7 +2825,8 @@ export const aiRecommendationService = {
                     foodPrefs: foodOn ? food : null,
                 });
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 35_000);
+                // C10b2 — 50 s: il proxy da' al modello del selettore 22 s, poi ripiega su quello di prima.
+                const timeoutId = setTimeout(() => controller.abort(), 50_000);
                 try {
                     // Gate NARRATORE-DOPO — 2ª chiamata: il selettore restituisce
                     // SOLO place_id (e momento). Pochi token: niente testi.
@@ -2789,7 +2839,8 @@ export const aiRecommendationService = {
                         response_format: { type: 'json_object' },
                         temperature: 0.7,
                         max_tokens: 1000,
-                    }, controller.signal, quotaTicket);
+                    }, controller.signal, quotaTicket, 'selettore');
+                    modelliReport.selettore = data?._modello ?? null;
                     clearTimeout(timeoutId);
 
                     const raw = data.choices?.[0]?.message?.content;
@@ -2890,7 +2941,7 @@ export const aiRecommendationService = {
                                     for (const c of found) searchedIds.add(c.place_id || c.googlePlaceId);
                                     candidates = [...candidates, ...found];
                                     mealOnlyIds = addMealOnly(found);
-                                    buckets = bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds });
+                                    buckets = nelleAree(bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds }));
                                 }
                                 repaired = repair();
                             }
@@ -3079,7 +3130,7 @@ export const aiRecommendationService = {
                         console.info(`[ORARI] ${city}: nessuna tappa aperta a quest'ora → messaggio dichiarato`);
                         return {
                             days: [{ stops: [] }], _source: 'closed-now', _messaggio: messaggioChiuso(tourWindow.start),
-                            _orari: orariInfo, ...(momentReport ? { _momentReport: momentReport } : {}), _citta: cittaReport,
+                            _orari: orariInfo, ...(momentReport ? { _momentReport: momentReport } : {}), _citta: cittaReport, _modelli: modelliReport,
                         };
                     }
 
@@ -3191,7 +3242,7 @@ export const aiRecommendationService = {
                             _ovvieta: ovvieta,
                             _famosita: famosita,
                             // C10 — la lista della città in questo giro (stato, verificati, nel pool, ancore, seminate)
-                            _citta: cittaReport,
+                            _citta: cittaReport, _modelli: modelliReport,
                         };
                         // Un narratore caduto non si mette in cache: la prossima
                         // richiesta deve poter avere il suo racconto.

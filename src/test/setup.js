@@ -85,5 +85,7 @@ vi.spyOn(console, 'warn').mockImplementation(() => {})
 // così i test del motore contano le stesse chiamate di prima. I test di C10 la accendono con un loro mock.
 vi.mock('@/services/cityKnowledgeService', () => ({
     fetchCityKnowledge: vi.fn(async () => ({ stato: 'spenta', verificati: [] })),
-    CITY_LIST_TIMEOUT_MS: 50_000,
+    // C10b2 — la lista dedicata di un quartiere chiesto: spenta allo stesso modo
+    fetchQuartiereKnowledge: vi.fn(async () => ({ stato: 'spenta', verificati: [] })),
+    CITY_LIST_TIMEOUT_MS: 110_000,
 }));

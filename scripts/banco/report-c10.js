@@ -71,12 +71,27 @@ export function reportC10(raw, config, meta = {}) {
     for (const c of casi) {
         const k = c.citta || {};
         const sc = k.scala ? `${k.scala.proposta ?? '—'} → **${k.scala.scala}** (${k.scala.diametroKm} km, ${k.scala.su})` : '—';
-        const q = k.quartiere ? `${k.quartiere.nome} (${k.quartiere.motivo}, ${k.quartiere.raggioKm} km)` : '—';
+        const q = k.quartieri?.length
+            ? k.quartieri.map(x => `${x.nome} [${x.momenti}] (${x.motivo})`).join(' → ')
+            : k.quartiere ? `${k.quartiere.nome ?? '—'} (${k.quartiere.motivo}${k.quartiere.raggioKm ? `, ${k.quartiere.raggioKm} km` : ''})` : '—';
         const simboli = (k.simboli || []).map(x => `${x.nome}${x.quartiere ? ` [${x.quartiere}]` : ''}${x.dedotto ? ' (dedotto)' : ''}`);
         const titoli = new Set(vere(c).map(s => s.title));
         const nelTour = (k.simboli || []).filter(x => titoli.has(x.nome)).map(x => x.nome);
         const esito = (k.ancoreEsito || []).map(a => `${a.nome}: ${a.nelGiro ? 'nel giro' : `tolta (${a.motivo})`}`);
         L.push(`| ${c.id} | ${cella(sc)} | ${cella(q)} | ${cella(simboli.join('; ')) || '—'} | ${cella(nelTour.join(', ')) || '—'} | ${cella(esito.join('; ')) || '—'} |`);
+    }
+    L.push('');
+
+    // ── C10b2 — il modello di ogni passaggio ──
+    L.push('## Il modello di ogni passaggio (C10b2)');
+    L.push('');
+    L.push('| Tour | Lista | Lista del quartiere | Traduttore | Selettore | Ripieghi | Token per modello |');
+    L.push('|---|---|---|---|---|---|---|');
+    const mod = (x) => (Array.isArray(x) ? x : x ? [x] : []).map(m => `${m.usato}${m.ripiego ? ` (ripiego: ${m.motivo})` : ''}${Number.isFinite(m.ms) ? `, ${(m.ms / 1000).toFixed(1)} s` : ''}`).join('; ') || '—';
+    for (const c of casi) {
+        const m = c.modelli || {};
+        const tok = Object.entries(c.ai?.perModello || {}).map(([k, t]) => `${k}: ${t.in}/${t.out}`).join('; ') || '—';
+        L.push(`| ${c.id} | ${cella(mod(m.lista))}${c.citta?.cached ? ' (lista dal server)' : ''} | ${cella(mod(m.quartiere))} | ${cella(mod(m.traduttore))} | ${cella(mod(m.selettore))} | ${(c.ai?.ripieghi || []).length} | ${cella(tok)} |`);
     }
     L.push('');
 

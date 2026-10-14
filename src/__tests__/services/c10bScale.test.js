@@ -79,7 +79,7 @@ describe('C10b — la lista per scala, il quartiere, il simbolo', () => {
         expect(m.map(p => [p.nome, !!p.simbolo, !!p.simboloDedotto])).toEqual([['Colosseo', true, false], ['Santa Maria in Trastevere', true, true]]);
     });
     it('il prompt è scritto per la scala: quartiere solo in metropoli, 8 posti nel borgo, il simbolo (un luogo); nessun nome di città oltre a quella chiesta', () => {
-        expect(CITY_LIST_VERSION).toBe('c10b-2');
+        expect(CITY_LIST_VERSION).toBe('c10b-4');
         const citta = promptCitta('Lecce', '2026-10-15').system;
         const metro = promptCitta('Lecce', '2026-10-15', 'metropoli').system;
         const borgo = promptCitta('Lecce', '2026-10-15', 'borgo').system;
@@ -240,7 +240,8 @@ describe('C10b — il motore: metropoli in un quartiere, borgo in mezza giornata
         }));
         const r = await aiRecommendationService.generateItinerary('Troina', { duration: '1 Giorno' }, 'Domani una giornata a Troina', {}, '', T, { pathType: 'custom', skipUserQuota: true });
         const w = r.tourWindow.windows[0];
-        expect((w.end.getTime() - w.start.getTime()) / 60000).toBe(240);
+        // C10b2 — la durata segue le tappe del borgo (45 min per luogo da visitare, 2–4 luoghi), non la mezza giornata fissa
+        expect((w.end.getTime() - w.start.getTime()) / 60000).toBeLessThanOrEqual(240);
         expect(r.days[0].scalaNote).toBe(rigaBorgo('Troina'));
         expect(r.days[0].scalaNote).toBe('Troina si gira in mezza giornata.');
         expect(r._citta.mezzaGiornata).toMatchObject({ verificati: 3, minimo: 4 });

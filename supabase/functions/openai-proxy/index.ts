@@ -46,9 +46,12 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import {
   CITY_LIST_VERSION, normCitta, cittaValida, giornoValido, promptCitta, leggiLista, verificaPosto, voceVerificata,
-  promptScala, leggiAbitanti, scalaDaAbitanti, type Scala,
+  promptScala, leggiAbitanti, scalaDaAbitanti, type Scala, promptQuartiere, leggiListaQuartiere, versioneQuartiere,
   provinciaDa, queryVerifica, raggioVerificaKm,
 } from './cityKnowledge.ts';
+import {
+  MODELLO_DI_PRIMA, modelloPer, timeoutPer, corpoPer, rispostaVuota, passaggioValido, MODELLI_AMMESSI, chiamaConRipiego,
+} from './modelli.ts';
 
 const OPENAI_BASE = 'https://api.openai.com/v1';
 
@@ -212,9 +215,13 @@ async function placesCall(params: Record<string, string>): Promise<{ body: any; 
 async function handleCityList(req: Request, dv: Record<string, any>): Promise<Response> {
   const citta = typeof dv.citta === 'string' ? dv.citta.trim() : '';
   const giorno = dv.giorno;
-  if (!cittaValida(citta) || !giornoValido(giorno, oggiRoma())) {
+  // C10b2 — `purpose: 'quartiere_list'`: la lista dedicata di un quartiere chiesto (stessa tabella, versione col quartiere)
+  const quartiereChiesto = dv.purpose === 'quartiere_list' && typeof dv.quartiere === 'string' ? dv.quartiere.trim() : null;
+  const passaggioLista: 'lista' | 'quartiere' = quartiereChiesto ? 'quartiere' : 'lista';
+  if (!cittaValida(citta) || !giornoValido(giorno, oggiRoma()) || (dv.purpose === 'quartiere_list' && !cittaValida(quartiereChiesto))) {
     return json(400, { error: 'Città o giorno non validi', code: 'BAD_CITY_LIST' });
   }
+  const versione = quartiereChiesto ? versioneQuartiere(quartiereChiesto) : CITY_LIST_VERSION;
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
   const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
@@ -222,8 +229,8 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
   const chiave = normCitta(citta);
   const leggi = async () => {
-    const { data } = await sb.from('city_knowledge').select('citta_nome, giorno, versione, scala, centro, verificati, proposti, scartati, created_at')
-      .eq('citta', chiave).eq('giorno', giorno).eq('versione', CITY_LIST_VERSION).maybeSingle();
+    const { data } = await sb.from('city_knowledge').select('citta_nome, giorno, versione, scala, centro, verificati, proposti, scartati, costo, created_at')
+      .eq('citta', chiave).eq('giorno', giorno).eq('versione', versione).maybeSingle();
     return data;
   };
   // deno-lint-ignore no-explicit-any
@@ -232,7 +239,10 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
       citta: row.citta_nome, giorno: row.giorno, versione: row.versione, centro: row.centro,
       // C10b — la scala PROPOSTA dall'AI; il motore la conferma con le distanze fra i verificati
       scala: row.scala ?? null,
+      ...(quartiereChiesto ? { quartiere: quartiereChiesto } : {}),
       verificati: row.verificati,
+      // C10b2 — il modello usato per la lista (e se ha ripiegato), dalla riga salvata
+      modelli: row.costo?.modelli ?? null,
       conti: { proposti: (row.proposti || []).length, verificati: (row.verificati || []).length, scartati: (row.scartati || []).length },
       ...extra,
     },
@@ -257,19 +267,33 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   }
 
   const t0 = Date.now();
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), CITY_LIST_TIMEOUT_MS);
+  // C10b2 — il modello del passaggio (modelli.ts), e se non risponde o va oltre il suo tempo il modello di prima.
+  const modelliUsati: Array<Record<string, unknown>> = [];
   // deno-lint-ignore no-explicit-any
-  const chiama = async (messages: any[], max_tokens: number, temperature: number): Promise<any> => {
-    const upstream = await fetch(`${OPENAI_BASE}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
-      body: JSON.stringify({ model: 'gpt-4o-mini', temperature, max_tokens, response_format: { type: 'json_object' }, messages }),
-      signal: controller.signal,
-    });
-    const body = await upstream.json().catch(() => null);
-    if (!upstream.ok) throw new Error(`OpenAI status=${upstream.status} code=${plain(body?.error?.code)}`);
-    return body;
+  const invia = async (corpo: Record<string, any>, limite: number): Promise<any> => {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), limite);
+    try {
+      const upstream = await fetch(`${OPENAI_BASE}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
+        body: JSON.stringify(corpo),
+        signal: c.signal,
+      });
+      const body = await upstream.json().catch(() => null);
+      if (!upstream.ok) throw new Error(`HTTP ${upstream.status} ${plain(body?.error?.code)}`);
+      return body;
+    } finally {
+      clearTimeout(t);
+    }
+  };
+  // deno-lint-ignore no-explicit-any
+  const chiama = async (cosa: string, messages: any[], max_tokens: number, temperature: number): Promise<any> => {
+    const { data, info } = await chiamaConRipiego(passaggioLista,
+      { model: MODELLO_DI_PRIMA, temperature, max_tokens, response_format: { type: 'json_object' }, messages }, invia, CITY_LIST_TIMEOUT_MS);
+    if (info.ripiego) console.warn(`[openai-proxy] ${passaggioLista} (${cosa}): ${info.chiesto} → ripiego su ${info.usato} (${info.motivo})`);
+    modelliUsati.push({ cosa, ...info });
+    return data;
   };
   // deno-lint-ignore no-explicit-any
   let ai: any;
@@ -280,22 +304,29 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   // deno-lint-ignore no-explicit-any
   let usageScala: any = null;
   try {
-    const ps = promptScala(citta);
-    const r = await chiama([{ role: 'system', content: ps.system }, { role: 'user', content: ps.user }], 60, 0);
-    abitanti = leggiAbitanti(r?.choices?.[0]?.message?.content);
-    scala = scalaDaAbitanti(abitanti);
-    usageScala = r?.usage ?? null;
-    const { system, user } = promptCitta(citta, giorno, scala);
-    ai = await chiama([{ role: 'system', content: system }, { role: 'user', content: user }], 3500, 0.2);
+    if (quartiereChiesto) {
+      // la lista del quartiere: una sola chiamata, luoghi da visitare; si verifica come una metropoli (raggio della citta')
+      scala = 'metropoli';
+      const pq = promptQuartiere(citta, quartiereChiesto, giorno);
+      ai = await chiama('quartiere', [{ role: 'system', content: pq.system }, { role: 'user', content: pq.user }], 2000, 0.2);
+    } else {
+      const ps = promptScala(citta);
+      const r = await chiama('abitanti', [{ role: 'system', content: ps.system }, { role: 'user', content: ps.user }], 60, 0);
+      abitanti = leggiAbitanti(r?.choices?.[0]?.message?.content);
+      scala = scalaDaAbitanti(abitanti);
+      usageScala = r?.usage ?? null;
+      const { system, user } = promptCitta(citta, giorno, scala);
+      ai = await chiama('lista', [{ role: 'system', content: system }, { role: 'user', content: user }], 3500, 0.2);
+    }
   } catch (err) {
     console.error('[openai-proxy] lista città: OpenAI non risponde o rifiuta:', scrubLogText(err));
     return json(502, { error: MSG_ENGINE_DOWN, code: 'OPENAI_ERROR', source: 'openai' });
-  } finally {
-    clearTimeout(timer);
   }
   const tAi = Date.now() - t0;
   // la scala decide quanti posti si leggono e come si verificano (un borgo: «nome, comune, provincia»)
-  const proposti = leggiLista(ai?.choices?.[0]?.message?.content, citta, scala);
+  const proposti = quartiereChiesto
+    ? leggiListaQuartiere(ai?.choices?.[0]?.message?.content, citta, quartiereChiesto)
+    : leggiLista(ai?.choices?.[0]?.message?.content, citta, scala);
   const usage = ai?.usage
     ? { prompt_tokens: (ai.usage.prompt_tokens || 0) + (usageScala?.prompt_tokens || 0), completion_tokens: (ai.usage.completion_tokens || 0) + (usageScala?.completion_tokens || 0) }
     : null;
@@ -337,22 +368,22 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
       const id = String(v.risultato.place_id || '');
       if (id && visti.has(id)) { scartati.push({ nome: p.nome, tipo: p.tipo, momento: p.momento, motivo: 'doppione di un posto gia\' in lista' }); continue; }
       if (id) visti.add(id);
-      verificati.push(voceVerificata(p, v.risultato));
+      verificati.push(voceVerificata(p, v.risultato, v.sostituzione ?? null));
     } else {
       scartati.push({ nome: p.nome, tipo: p.tipo, momento: p.momento, motivo: v.motivo });
     }
   }
 
   const row = {
-    citta: chiave, giorno, versione: CITY_LIST_VERSION, citta_nome: citta, scala, centro: centro ? { ...centro, provincia, raggioKm: raggio, abitanti } : null,
+    citta: chiave, giorno, versione, citta_nome: citta, scala: quartiereChiesto ? null : scala, centro: centro ? { ...centro, provincia, raggioKm: raggio, abitanti } : null,
     proposti, verificati, scartati,
-    costo: { usage, google, ms: { ai: tAi, totale: Date.now() - t0 } },
+    costo: { usage, google, ms: { ai: tAi, totale: Date.now() - t0 }, modelli: modelliUsati },
   };
   // Due prime richieste insieme: vince la prima scritta, e tutti ricevono quella (la lista resta una sola).
   const { error: insErr } = await sb.from('city_knowledge').upsert(row, { onConflict: 'citta,giorno,versione', ignoreDuplicates: true });
   if (insErr) console.error('[openai-proxy] lista città: salvataggio fallito:', scrubLogText(insErr.message));
   const salvata = (await leggi()) || row;
-  return risposta(salvata, { cached: false, usage, google, ms: { ai: tAi, totale: Date.now() - t0 } });
+  return risposta(salvata, { cached: false, usage, google, ms: { ai: tAi, totale: Date.now() - t0 }, modelli: modelliUsati });
 }
 
 serve(async (req: Request) => {
@@ -379,7 +410,7 @@ serve(async (req: Request) => {
 
   // C10 — la lista della città non e' una chiamata libera a OpenAI: il prompt lo scrive il proxy.
   const dvIn = body.dv as Record<string, unknown> | undefined;
-  if (dvIn && typeof dvIn === 'object' && dvIn.purpose === 'city_list') {
+  if (dvIn && typeof dvIn === 'object' && (dvIn.purpose === 'city_list' || dvIn.purpose === 'quartiere_list')) {
     try {
       return await handleCityList(req, dvIn);
     } catch (err) {
@@ -486,6 +517,42 @@ serve(async (req: Request) => {
     return json(502, { error: MSG_ENGINE_DOWN, code, source: 'openai', refunded });
   };
 
+  // C10b2 — il modello del passaggio (modelli.ts). Se non risponde, sbaglia o va oltre il suo tempo massimo, la stessa
+  // chiamata riparte qui sotto con il modello che il client ha chiesto (quello di prima), e la risposta lo dice (`_modello`).
+  const passaggio = (dv && typeof dv === 'object') ? (dv as Record<string, unknown>).passaggio : undefined;
+  const chiesto = String(openAiPayload.model);
+  const modelloPassaggio = modelloPer(passaggio, chiesto);
+  // deno-lint-ignore no-explicit-any
+  let infoModello: Record<string, any> | null = passaggioValido(passaggio)
+    ? { passaggio, chiesto: modelloPassaggio, usato: chiesto, ripiego: false } : null;
+  if (passaggioValido(passaggio) && !isStreaming && modelloPassaggio !== chiesto && MODELLI_AMMESSI.has(modelloPassaggio)) {
+    const t0 = Date.now();
+    const limite = timeoutPer(passaggio, UPSTREAM_TIMEOUT_MS);
+    const c2 = new AbortController();
+    const t2 = setTimeout(() => c2.abort(), limite);
+    let motivo = '';
+    try {
+      const r = await fetch(`${OPENAI_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
+        body: JSON.stringify(corpoPer(modelloPassaggio, openAiPayload)),
+        signal: c2.signal,
+      });
+      const d = await r.json().catch(() => null);
+      if (r.ok && d && !rispostaVuota(d)) {
+        clearTimeout(t2);
+        return json(200, { ...d, _modello: { passaggio, chiesto: modelloPassaggio, usato: modelloPassaggio, ripiego: false, ms: Date.now() - t0 } }, quotaHeaders);
+      }
+      motivo = r.ok ? 'risposta vuota' : `HTTP ${r.status} ${plain(d?.error?.code)}`;
+    } catch (err) {
+      motivo = (err as Error)?.name === 'AbortError' ? `oltre il tempo massimo (${limite / 1000} s)` : `rete (${scrubLogText(err).slice(0, 40)})`;
+    } finally {
+      clearTimeout(t2);
+    }
+    infoModello = { passaggio, chiesto: modelloPassaggio, usato: chiesto, ripiego: true, motivo, ms: Date.now() - t0 };
+    console.warn(`[openai-proxy] ${passaggio}: ${modelloPassaggio} → ripiego su ${chiesto} (${motivo})`);
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
   try {
@@ -533,7 +600,7 @@ serve(async (req: Request) => {
     } finally {
       clearTimeout(timer);
     }
-    return json(upstream.status, data, quotaHeaders);
+    return json(upstream.status, infoModello && data && typeof data === 'object' ? { ...(data as Record<string, unknown>), _modello: infoModello } : data, quotaHeaders);
 
   } catch (err) {
     clearTimeout(timer);

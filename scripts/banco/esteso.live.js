@@ -46,7 +46,14 @@ const save = () => { mkdirSync(path.dirname(OUT), { recursive: true }); writeFil
 
 // ─── Il fetch che conta e annota (come banco.live.js) ────────────────────────
 const realFetch = globalThis.fetch;
-const cont = { ai: 0, tokenIn: 0, tokenOut: 0, google: {}, googleListaHit: 0 };
+const cont = { ai: 0, tokenIn: 0, tokenOut: 0, google: {}, googleListaHit: 0, perModello: {}, ripieghi: [] };
+// C10b2 — i token di ogni modello (il prezzo cambia da un modello all'altro)
+const segnaToken = (modello, usage) => {
+    const m = modello || 'gpt-4o-mini';
+    const t = cont.perModello[m] || (cont.perModello[m] = { in: 0, out: 0 });
+    t.in += usage?.prompt_tokens || 0; t.out += usage?.completion_tokens || 0;
+    cont.tokenIn += usage?.prompt_tokens || 0; cont.tokenOut += usage?.completion_tokens || 0;
+};
 const luoghi = new Map();
 // MIG-PLACES — i posti visti nelle ricerche del caso in corso (per contare candidati e orari noti).
 let vistiCaso = new Set();
@@ -103,9 +110,12 @@ globalThis.fetch = vi.fn(async (url, init) => {
                 for (const v of ck.verificati || []) annota(v, null);
                 // C10 — la lista della città: una chiamata AI e le verifiche su Google le fa il SERVER (solo la prima volta del
                 // giorno); il proxy dice quante sono, e qui si contano come se le avesse fatte il client (stesso listino).
-                if (!ck.cached) cont.ai++;
-                cont.tokenIn += ck.usage?.prompt_tokens || 0;
-                cont.tokenOut += ck.usage?.completion_tokens || 0;
+                if (!ck.cached) {
+                    cont.ai++;
+                    // C10b2 — ogni chiamata della lista col suo modello (e i ripieghi)
+                    if (Array.isArray(ck.modelli) && ck.modelli.length) for (const x of ck.modelli) { segnaToken(x.usato, x.usage); if (x.ripiego) cont.ripieghi.push({ passaggio: x.passaggio, cosa: x.cosa, motivo: x.motivo }); }
+                    else segnaToken('gpt-4o-mini', ck.usage);
+                }
                 if (ck.google) {
                     cont.google['place/textsearch#new'] = (cont.google['place/textsearch#new'] || 0) + (ck.google.textsearch || 0);
                     cont.google['place/findplacefromtext'] = (cont.google['place/findplacefromtext'] || 0) + (ck.google.findplace || 0);
@@ -113,8 +123,8 @@ globalThis.fetch = vi.fn(async (url, init) => {
                 }
             } else {
                 cont.ai++;
-                cont.tokenIn += j?.usage?.prompt_tokens || 0;
-                cont.tokenOut += j?.usage?.completion_tokens || 0;
+                segnaToken(j?._modello?.usato, j?.usage);
+                if (j?._modello?.ripiego) cont.ripieghi.push({ passaggio: j._modello.passaggio, motivo: j._modello.motivo });
             }
         } catch { cont.ai++; /* stream o errore */ }
     }
@@ -127,8 +137,10 @@ let oltreTetto = false;
 
 // Costo corrente (token + Google contati; le foto le carica il browser, non lo script).
 const P = config.prezziUsd;
-const costoOra = () => (cont.tokenIn * P.openaiInputPerMilione + cont.tokenOut * P.openaiOutputPerMilione) / 1e6
-    + Object.entries(cont.google).reduce((a, [k, n]) => a + n * (P.google[k] ?? P.google.altro), 0);
+const costoOra = () => Object.entries(cont.perModello).reduce((a, [m, t]) => {
+    const pr = P.openaiPerModello?.[m] || { input: P.openaiInputPerMilione, output: P.openaiOutputPerMilione };
+    return a + ((t.in || 0) * pr.input + (t.out || 0) * pr.output) / 1e6;
+}, 0) + Object.entries(cont.google).reduce((a, [k, n]) => a + n * (P.google[k] ?? P.google.altro), 0);
 
 beforeAll(async () => {
     const email = process.env.TEST_ACCOUNT_EMAIL;
@@ -142,7 +154,7 @@ beforeAll(async () => {
 });
 afterAll(async () => {
     out.fine = new Date().toISOString();
-    out.costo = { totale: costoOra(), ai: { chiamate: cont.ai, tokenIn: cont.tokenIn, tokenOut: cont.tokenOut }, google: cont.google, tettoUsd: E.tettoUsd };
+    out.costo = { totale: costoOra(), ai: { chiamate: cont.ai, tokenIn: cont.tokenIn, tokenOut: cont.tokenOut, perModello: cont.perModello, ripieghi: cont.ripieghi }, google: cont.google, tettoUsd: E.tettoUsd };
     save();
     await supabase.auth.signOut();
 });
@@ -237,7 +249,8 @@ for (const caso of casi) {
         const tettoGen = MOTORE === 'new' ? (Number(process.env.BANCO_TETTO) || E.tettoUsd) : E.tettoGenerazioniUsd;
         // C10b — PRIMA di lanciare: la stima del caso (un tour, piu' la lista nuova se e' il primo tour della citta' in questo
         // giro) deve stare nel tetto restante; DOPO: se la spesa vera ha passato il tetto, i casi seguenti non partono.
-        const listaNuova = caso.modo !== 'perte' && !cittaGiaListate.has(caso.luogo.toLowerCase());
+        // BANCO_LISTE_PRONTE=1: le liste del giorno ci sono gia' (fatte prima del giro): nessun caso le paga
+        const listaNuova = !process.env.BANCO_LISTE_PRONTE && caso.modo !== 'perte' && !cittaGiaListate.has(caso.luogo.toLowerCase());
         const stima = (E.stimaCaso?.tourUsd ?? 0.2) + (listaNuova ? (E.stimaCaso?.listaNuovaUsd ?? 0.75) : 0);
         rec.stimaUsd = Math.round(stima * 1000) / 1000;
         if (oltreTetto) { rec.saltato = `tetto superato da un caso precedente ($${costoOra().toFixed(3)} > $${tettoGen})`; save(); return; }
@@ -249,10 +262,12 @@ for (const caso of casi) {
         // Ogni caso parte a cache vuota: le chiamate Google sono quelle di UNA generazione. La sessione (sb-*) resta.
         for (const k of Object.keys(window.localStorage)) if (!k.startsWith('sb-')) window.localStorage.removeItem(k);
         vistiCaso = new Set();
-        const c0 = { ...cont, google: { ...cont.google } };
+        const c0 = { ...cont, google: { ...cont.google }, perModello: JSON.parse(JSON.stringify(cont.perModello)), ripieghi: [...cont.ripieghi] };
         const costo0 = costoOra();
         const delta = () => ({
-            ai: { chiamate: cont.ai - c0.ai, tokenIn: cont.tokenIn - c0.tokenIn, tokenOut: cont.tokenOut - c0.tokenOut },
+            ai: { chiamate: cont.ai - c0.ai, tokenIn: cont.tokenIn - c0.tokenIn, tokenOut: cont.tokenOut - c0.tokenOut,
+                perModello: Object.fromEntries(Object.entries(cont.perModello).map(([m, t]) => [m, { in: t.in - (c0.perModello[m]?.in || 0), out: t.out - (c0.perModello[m]?.out || 0) }]).filter(([, t]) => t.in || t.out)),
+                ripieghi: cont.ripieghi.slice(c0.ripieghi.length) },
             google: Object.fromEntries(Object.entries(cont.google).map(([k, v]) => [k, v - (c0.google[k] || 0)]).filter(([, v]) => v > 0)),
             googleListaHit: cont.googleListaHit - (c0.googleListaHit || 0),
         });
@@ -330,6 +345,8 @@ for (const caso of casi) {
                 rec.tema = r._momentReport?.tema ?? null;
                 // C10 — la lista della città in questo giro (stato, dal server o nuova, verificati, nel pool, ancore, seminate)
                 rec.citta = r._citta ?? null;
+                // C10b2 — il modello di ogni passaggio di questo giro
+                rec.modelli = r._modelli ?? null;
                 if (caso.profilo) rec.profilo = caso.profilo;
                 // TESTI — le sezioni come la schermata le intitola (groupStopsByDayAndMoment, la stessa funzione di AiItinerary e TourStopsByMoment) con l'ora della sua prima tappa
                 const sezioni = (r.days || []).flatMap(d => groupStopsByDayAndMoment(d.stops || []).flatMap(g => g.groups))

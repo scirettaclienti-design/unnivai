@@ -108,9 +108,12 @@ describe('Gate QUOTA-SERVER — client', () => {
         // Gate NARRATORE-DOPO: 3 chiamate, il massimo che il biglietto 'itinerary' ammette.
         expect(proxyBodies).toHaveLength(3);
         const [traduttore, selettore, narratore] = proxyBodies.map(b => b.dv);
-        expect(traduttore).toEqual({ purpose: 'generation', ticket: expect.stringMatching(UUID_RE), kind: 'itinerary' });
-        expect(selettore).toEqual(traduttore);
-        expect(narratore).toEqual(traduttore);
+        // C10b2 — il biglietto e' lo stesso; in piu' ogni chiamata dice il suo passaggio (il modello lo sceglie il proxy)
+        expect(traduttore).toEqual({ purpose: 'generation', ticket: expect.stringMatching(UUID_RE), kind: 'itinerary', passaggio: 'traduttore' });
+        const biglietto = ({ passaggio: _p, ...b }) => b;
+        expect(biglietto(selettore)).toEqual(biglietto(traduttore));
+        expect(biglietto(narratore)).toEqual(biglietto(traduttore));
+        expect([selettore.passaggio, narratore.passaggio]).toEqual(['selettore', 'narratore']);
     });
 
     it('due generazioni diverse → due biglietti diversi', async () => {

@@ -26,7 +26,13 @@ export const tappeDi = (caso) => (caso.tours || []).flatMap(t => t.stops || []);
 /** Costo stimato in dollari: token, chiamate Google contate, foto stimate. */
 export function costoUsd(caso, prezzi) {
     const ai = caso.ai || {};
-    const tokenUsd = ((ai.tokenIn || 0) * prezzi.openaiInputPerMilione + (ai.tokenOut || 0) * prezzi.openaiOutputPerMilione) / 1e6;
+    // C10b2 — con i token per modello (banco esteso dal 14/10) ogni modello ha il suo prezzo; senza, il prezzo di gpt-4o-mini
+    const tokenUsd = ai.perModello && prezzi.openaiPerModello
+        ? Object.entries(ai.perModello).reduce((a, [m, t]) => {
+            const pr = prezzi.openaiPerModello[m] || { input: prezzi.openaiInputPerMilione, output: prezzi.openaiOutputPerMilione };
+            return a + ((t.in || 0) * pr.input + (t.out || 0) * pr.output) / 1e6;
+        }, 0)
+        : ((ai.tokenIn || 0) * prezzi.openaiInputPerMilione + (ai.tokenOut || 0) * prezzi.openaiOutputPerMilione) / 1e6;
     const googleUsd = Object.entries(caso.google || {})
         .reduce((a, [k, n]) => a + n * (prezzi.google[k] ?? prezzi.google.altro), 0);
     const fotoUsd = tappeDi(caso).length * (prezzi.fotoPerTappa || 0) * (prezzi.google['place/photo'] || 0);

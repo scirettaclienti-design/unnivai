@@ -15,7 +15,11 @@
 // c10-2 → c10b-1 → c10b-2 (C10b; c10b-2: la scala la propone l'AI con gli abitanti, la regola la applica il codice, e il
 // prompt della lista e' scritto per quella scala — vedi promptScala): la SCALA del luogo (borgo, città, metropoli: decisione di Ivano), il quartiere camminabile di ogni
 // posto in una metropoli, e il SIMBOLO (il posto che un abitante non ti perdonerebbe di saltare) fra gli essenziali.
-export const CITY_LIST_VERSION = 'c10b-2';
+// c10b-2 → c10b-3 (C10b2): il modello della lista e' quello di modelli.ts (gpt-6.1-sol), e il borgo dice la categoria di ogni
+// posto (per accettare il nome di Google con la stessa categoria). Il prompt di citta' e metropoli non cambia.
+// c10b-3 → c10b-4: il tempo massimo del modello della lista passa da 28 a 60 s (con 28 s le liste del 14/10 ripiegavano su
+// gpt-4o-mini): le liste c10b-3 del giorno sono di gpt-4o-mini e non si riusano.
+export const CITY_LIST_VERSION = 'c10b-4';
 export const POSTI_LISTA = 15;
 export const MAX_ESSENZIALI = 4;
 export const SCALE = ['borgo', 'città', 'metropoli'] as const;
@@ -34,6 +38,8 @@ export type Tipo = 'essenziale' | 'da locale';
 export type PostoProposto = {
     nome: string; citta: string; momento: Momento; tipo: Tipo; perche: string; giorni?: string; orari?: string;
     quartiere?: string; simbolo?: boolean; simboloDedotto?: boolean;
+    /** C10b2 — solo nel borgo: la categoria del posto (CATEGORIE_BORGO), per riconoscerlo col nome che ha su Google. */
+    categoria?: string;
 };
 // deno-lint-ignore no-explicit-any
 export type RisultatoGoogle = Record<string, any>;
@@ -117,10 +123,10 @@ export function promptCitta(citta: string, giorno: string, scala: Scala = 'citt�
 Ti chiedono quali posti di ${citta} vivere ${quando}: i simboli che non faresti mai saltare a un amico in visita, e i posti dove va davvero chi ci abita.
 
 Rispondi SOLO con un JSON, senza testo fuori:
-{"posti":[{"nome":"...","citta":"${citta}",${metropoli ? '"quartiere":"...",' : ''}"momento":"colazione|mattina|pranzo|pomeriggio|aperitivo|cena|dopocena","tipo":"essenziale|da locale","simbolo":true,"perche":"...","giorni":"...","orari":"..."}]}
+{"posti":[{"nome":"...","citta":"${citta}",${metropoli ? '"quartiere":"...",' : ''}${borgo ? `"categoria":"${CATEGORIE_BORGO.join('|')}",` : ''}"momento":"colazione|mattina|pranzo|pomeriggio|aperitivo|cena|dopocena","tipo":"essenziale|da locale","simbolo":true,"perche":"...","giorni":"...","orari":"..."}]}
 
 REGOLE
-${quanti}${quartiere}
+${quanti}${quartiere}${borgo ? `\n- "categoria": cos'e' il posto, una fra: ${CATEGORIE_BORGO.join(', ')}.` : ''}
 - "nome": il nome proprio esatto del posto, come compare su Google Maps. Niente indirizzi, niente descrizioni, niente zone generiche ("centro storico", "lungomare" senza nome).
 ${essenziali}
 ${simbolo}
@@ -179,6 +185,7 @@ export function leggiLista(content: unknown, citta: string, scala: Scala = 'citt
         out.push({
             nome, citta, momento, tipo, perche: corto(p?.perche, 160),
             ...(quartiere ? { quartiere } : {}),
+            ...(scala === 'borgo' && CATEGORIE_BORGO.includes(String(p?.categoria || '').trim().toLowerCase()) ? { categoria: String(p.categoria).trim().toLowerCase() } : {}),
             ...(tipo === 'essenziale' && p?.simbolo === true ? { simbolo: true } : {}),
             ...(p?.giorni ? { giorni: corto(p.giorni, 80) } : {}), ...(p?.orari ? { orari: corto(p.orari, 80) } : {}),
         });
@@ -252,8 +259,30 @@ export const kmFra = (a: { lat: number; lng: number }, b: { lat: number; lng: nu
     return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
 };
 
+// ─── C10b2 — il borgo: il nome di Google con la stessa categoria ─────────────────────────────────────────────────────
+// Decisione di Ivano: in un borgo l'AI conosce i posti ma non il loro nome su Google («Cattedrale di Troina» ↔ «Chiesa Madre
+// di Maria Santissima Assunta»). Se nessun risultato ha un nome compatibile, si accetta il primo dentro il comune (raggio e
+// indirizzo) con la STESSA CATEGORIA di quella proposta dall'AI; la sostituzione si scrive (proposto, Google, categoria).
+export const CATEGORIE_BORGO = ['chiesa', 'monumento', 'museo', 'piazza', 'mercato', 'bar', 'pasticceria', 'ristorante', 'parco'];
+// le categorie che per Google sono la stessa cosa (un castello o una torre e' un monumento; una pasticceria e' spesso un bar)
+const FAMIGLIA_CATEGORIA: Record<string, string> = { chiesa: 'chiesa', monumento: 'monumento', museo: 'museo', piazza: 'piazza', mercato: 'mercato', bar: 'bar', pasticceria: 'bar', ristorante: 'ristorante', parco: 'parco' };
+/** La categoria (famiglia) di un risultato di Google dai suoi tipi, o null. L'ordine conta: il piu' specifico prima. */
+export function categoriaGoogle(r: RisultatoGoogle): string | null {
+    const tipi = [String(r?.primary_type || ''), ...(Array.isArray(r?.types) ? r.types.map(String) : [])].filter(Boolean);
+    const ha = (re: RegExp) => tipi.some(t => re.test(t));
+    if (ha(/church|place_of_worship|cathedral|chapel|mosque|synagogue/)) return 'chiesa';
+    if (ha(/museum|art_gallery/)) return 'museo';
+    if (ha(/restaurant|meal_takeaway|pizzeria|trattoria/)) return 'ristorante';
+    if (ha(/^bar$|cafe|coffee|bakery|pastry|dessert|ice_cream|confectioner/)) return 'bar';
+    if (ha(/market/)) return 'mercato';
+    if (ha(/park|garden/)) return 'parco';
+    if (ha(/plaza|^route$/)) return 'piazza';
+    if (ha(/castle|fortress|historical_landmark|monument|tourist_attraction|landmark/)) return 'monumento';
+    return null;
+}
+
 export type Verifica =
-    | { ok: true; risultato: RisultatoGoogle; km: number }
+    | { ok: true; risultato: RisultatoGoogle; km: number; sostituzione?: { proposto: string; google: string; categoria: string } }
     | { ok: false; motivo: string };
 
 /** La sigla della provincia dall'indirizzo di Google ("94018 Troina EN, Italia" → "EN"), o null. */
@@ -282,12 +311,26 @@ export function nelComune(indirizzo: unknown, comune: string): boolean {
  * (nessun risultato col nome compatibile), «fuori città» (un omonimo oltre il raggio), «chiuso per sempre».
  * C10b — con `comune` (un borgo): anche l'indirizzo deve essere nel comune, altrimenti «fuori comune». Mai un posto fuori comune.
  */
-export function verificaPosto(p: { nome: string; citta: string }, risultati: RisultatoGoogle[] | null | undefined,
+export function verificaPosto(p: { nome: string; citta: string; categoria?: string }, risultati: RisultatoGoogle[] | null | undefined,
     centro: { lat: number; lng: number } | null, raggioKm: number, { comune = null }: { comune?: string | null } = {}): Verifica {
     const lista = Array.isArray(risultati) ? risultati.slice(0, 5) : [];
     if (lista.length === 0) return { ok: false, motivo: 'non trovato su Google' };
     const compatibili = lista.filter(r => nomeCompatibile(p.nome, String(r?.name || ''), p.citta));
-    if (compatibili.length === 0) return { ok: false, motivo: `nome diverso (Google: «${corto(lista[0]?.name, 60)}»)` };
+    if (compatibili.length === 0) {
+        // C10b2 — nel borgo: il nome di Google con la stessa categoria, dentro il comune
+        const fam = p.categoria ? FAMIGLIA_CATEGORIA[p.categoria] : null;
+        if (comune && fam && centro) {
+            for (const r of lista) {
+                if (categoriaGoogle(r) !== fam) continue;
+                const lat = Number(r?.geometry?.location?.lat), lng = Number(r?.geometry?.location?.lng);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+                const km = kmFra(centro, { lat, lng });
+                if (km > raggioKm || !nelComune(r?.formatted_address, comune) || String(r?.business_status || '') === 'CLOSED_PERMANENTLY') continue;
+                return { ok: true, risultato: r, km, sostituzione: { proposto: p.nome, google: corto(r?.name, 80), categoria: p.categoria as string } };
+            }
+        }
+        return { ok: false, motivo: `nome diverso (Google: «${corto(lista[0]?.name, 60)}»)` };
+    }
     let ultimo = '';
     for (const r of compatibili) {
         const lat = Number(r?.geometry?.location?.lat), lng = Number(r?.geometry?.location?.lng);
@@ -302,13 +345,48 @@ export function verificaPosto(p: { nome: string; citta: string }, risultati: Ris
 }
 
 /** La voce verificata come la riceve il client: il risultato di Google (stessa forma della ricerca) + momento, tipo, quartiere, simbolo. Mai il perché. */
-export function voceVerificata(p: PostoProposto, r: RisultatoGoogle): RisultatoGoogle {
+export function voceVerificata(p: PostoProposto, r: RisultatoGoogle, sostituzione: { proposto: string; google: string; categoria: string } | null = null): RisultatoGoogle {
     const { photos, ...resto } = r || {};
     return {
         ...resto, ...(Array.isArray(photos) && photos.length ? { photos: photos.slice(0, 1) } : {}),
         _citta: {
             momento: p.momento, tipo: p.tipo, nomeProposto: p.nome,
             ...(p.quartiere ? { quartiere: p.quartiere } : {}), ...(p.simbolo ? { simbolo: true } : {}), ...(p.simboloDedotto ? { simboloDedotto: true } : {}),
+            // C10b2 — nel borgo: il nome di Google accettato per la stessa categoria (scritto nel tracciato)
+            ...(sostituzione ? { sostituzione } : {}),
         },
     };
+}
+
+// ─── C10b2 — la lista dedicata di un quartiere chiesto (decisione di Ivano) ──────────────────────────────────────────
+// Se la richiesta nomina un quartiere che nella lista ha meno di 3 luoghi da visitare, una chiamata AI dedicata ne propone
+// 6–8 in quel quartiere, verificati su Google come la lista. Una per citta', giorno e quartiere, uguale per tutti (stessa
+// tabella, versione `c10b-3#q:<quartiere>`).
+export const POSTI_QUARTIERE_MIN = 6;
+export const POSTI_QUARTIERE_MAX = 8;
+export const versioneQuartiere = (quartiere: string): string => `${CITY_LIST_VERSION}#q:${normCitta(quartiere)}`;
+
+export function promptQuartiere(citta: string, quartiere: string, giorno: string): { system: string; user: string } {
+    const quando = giornoParlato(giorno);
+    const system = `Sei una persona nata e cresciuta a ${citta} che conosce il quartiere ${quartiere} strada per strada.
+Ti chiedono quali luoghi da visitare ci sono nel quartiere ${quartiere} di ${citta}, ${quando}: le cose da vedere, non i locali.
+
+Rispondi SOLO con un JSON, senza testo fuori:
+{"posti":[{"nome":"...","citta":"${citta}","quartiere":"${quartiere}","momento":"mattina|pomeriggio","tipo":"essenziale|da locale","simbolo":true}]}
+
+REGOLE
+- Da ${POSTI_QUARTIERE_MIN} a ${POSTI_QUARTIERE_MAX} luoghi da visitare, tutti dentro il quartiere ${quartiere} (non nei quartieri intorno): chiese e basiliche, monumenti, musei, palazzi, piazze storiche, giardini, belvederi, strade storiche.
+- Mai un bar, un caffè, una pasticceria, un ristorante o un locale.
+- "nome": il nome proprio esatto del posto, come compare su Google Maps. Niente indirizzi, niente descrizioni, niente zone generiche.
+- "tipo" "essenziale" (da 1 a ${MAX_ESSENZIALI_QUARTIERE}): i simboli del quartiere; gli altri "da locale".
+- "simbolo": segna con "simbolo": true l'essenziale che un abitante del quartiere non ti perdonerebbe mai di aver saltato (uno solo). Il simbolo è un luogo da visitare, non una strada né una piazza.
+- "momento": "mattina" o "pomeriggio", quando quel posto si vive meglio.
+- Solo posti aperti ${quando}. Niente posti chiusi per sempre, niente posti inventati: se non sei sicuro che un posto esista con quel nome, non scriverlo.`;
+    const user = `Città: ${citta}. Quartiere: ${quartiere}. Giorno: ${quando}.`;
+    return { system, user };
+}
+
+/** La lista del quartiere, ripulita: come una lista di metropoli, al massimo 8 posti, tutti col nome del quartiere chiesto. */
+export function leggiListaQuartiere(content: unknown, citta: string, quartiere: string): PostoProposto[] {
+    return leggiLista(content, citta, 'metropoli').slice(0, POSTI_QUARTIERE_MAX).map(p => ({ ...p, quartiere }));
 }

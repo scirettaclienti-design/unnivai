@@ -1,0 +1,3727 @@
+{
+ "avvio": "2026-10-14T12:19:12.130Z",
+ "identita": "account di prova",
+ "motore": "new",
+ "giornoSimulato": "2026-10-14",
+ "casi": [
+  {
+   "id": "c10-troina",
+   "modo": "crea",
+   "tipo": "itinerario",
+   "luogo": "Troina",
+   "ora": "22:19",
+   "oggi": "2026-10-14",
+   "richiesta": "Domani una giornata a Troina",
+   "onboarding": null,
+   "stimaUsd": 0.25,
+   "vincoli": null,
+   "chiamata": {
+    "pagina": "AiItinerary.jsx",
+    "pathType": "custom",
+    "prefs": {
+     "budget": "",
+     "duration": "1 Giorno",
+     "interests": [],
+     "group": "",
+     "pace": ""
+    },
+    "testo": "Domani una giornata a Troina"
+   },
+   "secs": 17.249,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Troina",
+    "fromText": false,
+    "note": null
+   },
+   "tourDate": "2026-10-15",
+   "giorno": {
+    "date": "2026-10-15",
+    "start": "2026-10-15T07:30:00.000Z",
+    "reason": "day"
+   },
+   "frasiTolte": [],
+   "pool": {
+    "g1-mattina": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJBcsc22XLFhMRlebZppwKek0",
+       "nome": "Piazza Giacomo Matteotti",
+       "famiglia": "piazza",
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.53,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJT8KlHjPKFhMRJlLZos1YRa0",
+       "nome": "Ponte di Failla",
+       "famiglia": null,
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.38,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      }
+     ]
+    }
+   },
+   "finestraMinuti": [
+    180
+   ],
+   "motori": {
+    "tolti": [],
+    "facoltativiSenzaPosto": [],
+    "ricercheMirate": [
+     "cultura"
+    ]
+   },
+   "sceltaModello": [
+    {
+     "place_id": "ChIJBcsc22XLFhMRlebZppwKek0",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJT8KlHjPKFhMRJlLZos1YRa0",
+     "momento": "g1-mattina"
+    }
+   ],
+   "ricerche": {
+    "prima": [
+     "cultura"
+    ],
+    "dopo": [
+     {
+      "momento": "g1-mattina",
+      "tema": "cultura",
+      "da": "Piazza Giacomo Matteotti",
+      "trovati": 1
+     }
+    ]
+   },
+   "ripiegoDichiarato": true,
+   "orariMotore": {
+    "chiusi": [
+     {
+      "momento": "g1-mattina",
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "nome": "Chiesa Madre di Maria Santissima Assunta",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-mattina",
+      "place_id": "ChIJSdi3PqbLFhMRevZmDu4FnbQ",
+      "nome": "Torre Capitania",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-mattina",
+      "place_id": "ChIJvSFWIBDLFhMRILmIiEDfuw8",
+      "nome": "Museo della fotografia Robert Capa",
+      "perche": "chiuso all'arrivo"
+     }
+    ],
+    "vietati": [],
+    "giri": 0,
+    "ignoti": 2,
+    "scartatiIgnoti": [],
+    "righeDichiarate": [],
+    "residui": 0,
+    "tappeSenzaFiltro": 2
+   },
+   "continuita": {
+    "aggiunte": [],
+    "tentativi": 0,
+    "dichiarati": [],
+    "minimo": {
+     "richiesto": {
+      "0": 3
+     },
+     "aggiunte": [],
+     "tentativi": 1,
+     "dichiarati": []
+    }
+   },
+   "tema": {
+    "cibo": false,
+    "tipico": false,
+    "fonte": null,
+    "momentiEspliciti": [],
+    "cucineEstereEscluse": [],
+    "zoneTolte": [
+     {
+      "nome": "Piazza Conte Ruggero",
+      "motivo": "via (route) senza altro tipo di luogo"
+     },
+     {
+      "nome": "Piazza Giacomo Matteotti",
+      "motivo": "via (route) senza altro tipo di luogo"
+     }
+    ]
+   },
+   "citta": {
+    "stato": "ok",
+    "cached": true,
+    "conti": {
+     "proposti": 4,
+     "verificati": 4,
+     "scartati": 0
+    },
+    "errore": null,
+    "attesaMs": 1348,
+    "risposta": 325,
+    "costo": null,
+    "verificati": [
+     {
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "nome": "Chiesa Madre di Maria Santissima Assunta",
+      "tipo": "essenziale",
+      "momento": "mattina",
+      "simbolo": true
+     },
+     {
+      "place_id": "ChIJURBAhqjLFhMRVX85ZKJnc_w",
+      "nome": "Chiesa di San Silvestro Monaco Basiliano",
+      "tipo": "essenziale",
+      "momento": "pomeriggio"
+     },
+     {
+      "place_id": "ChIJkSKaqKjLFhMROMP-9DO305o",
+      "nome": "Piazza Conte Ruggero",
+      "tipo": "essenziale",
+      "momento": "aperitivo"
+     },
+     {
+      "place_id": "ChIJE1UrZafLFhMR-V-gosiwDFg",
+      "nome": "Piazza Giacomo Matteotti",
+      "tipo": "da locale",
+      "momento": "dopocena"
+     }
+    ],
+    "scala": {
+     "proposta": "borgo",
+     "diametroKm": 0.23,
+     "su": "essenziali",
+     "scala": "borgo",
+     "motivo": "i posti stanno in 0.23 km: si gira tutto a piedi"
+    },
+    "simboli": [
+     {
+      "nome": "Chiesa Madre di Maria Santissima Assunta"
+     }
+    ],
+    "mezzaGiornata": {
+     "verificati": 4,
+     "utilizzabili": 2,
+     "minimo": 4,
+     "riga": "Troina si gira in mezza giornata.",
+     "visitabili": 7,
+     "minuti": 180,
+     "fine": "2026-10-15T10:30:00.000Z"
+    },
+    "nelPool": [
+     {
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "nome": "Chiesa Madre di Maria Santissima Assunta",
+      "tipo": "essenziale",
+      "ancora": true
+     }
+    ],
+    "ancoreCandidate": [
+     {
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "nome": "Chiesa Madre di Maria Santissima Assunta"
+     }
+    ],
+    "ancore": [],
+    "essenzialiAlMerito": [
+     {
+      "place_id": "ChIJURBAhqjLFhMRVX85ZKJnc_w",
+      "nome": "Chiesa di San Silvestro Monaco Basiliano",
+      "ammesso": true
+     }
+    ],
+    "seminate": [],
+    "declassate": [
+     {
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "nome": "Chiesa Madre di Maria Santissima Assunta"
+     }
+    ],
+    "ancoreEsito": []
+   },
+   "modelli": {
+    "lista": [
+     {
+      "ms": 3183,
+      "cosa": "abitanti",
+      "usage": {
+       "total_tokens": 121,
+       "prompt_tokens": 55,
+       "completion_tokens": 66,
+       "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+       },
+       "completion_tokens_details": {
+        "audio_tokens": 0,
+        "reasoning_tokens": 46,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+       }
+      },
+      "usato": "gpt-6.1-sol",
+      "chiesto": "gpt-6.1-sol",
+      "ripiego": false,
+      "passaggio": "lista"
+     },
+     {
+      "ms": 18223,
+      "cosa": "lista",
+      "usage": {
+       "total_tokens": 1475,
+       "prompt_tokens": 833,
+       "completion_tokens": 642,
+       "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+       },
+       "completion_tokens_details": {
+        "audio_tokens": 0,
+        "reasoning_tokens": 388,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+       }
+      },
+      "usato": "gpt-6.1-sol",
+      "chiesto": "gpt-6.1-sol",
+      "ripiego": false,
+      "passaggio": "lista"
+     }
+    ],
+    "quartiere": null,
+    "traduttore": {
+     "passaggio": "traduttore",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2975
+    },
+    "selettore": {
+     "passaggio": "selettore",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 3239
+    }
+   },
+   "schermo": {
+    "giorni": [
+     {
+      "titolo": "Piazza Giacomo Matteotti di Troina",
+      "meteo": null
+     }
+    ],
+    "sezioni": [
+     {
+      "etichetta": "Mattina",
+      "ora": "09:30"
+     }
+    ],
+    "note": [
+     "Troina si gira in mezza giornata."
+    ]
+   },
+   "tours": [
+    {
+     "tema": "Piazza Giacomo Matteotti di Troina",
+     "stops": [
+      {
+       "place_id": "ChIJBcsc22XLFhMRlebZppwKek0",
+       "title": "Piazza Giacomo Matteotti",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-15T07:30:00.000Z",
+       "atStimato": false,
+       "lat": 37.781368199999996,
+       "lng": 14.596772600000001,
+       "min": null,
+       "scelta": "modello",
+       "stay": 30,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Attraversi Piazza Giacomo Matteotti piano, senza fretta. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Attraversi Piazza Giacomo Matteotti piano, senza fretta.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 12,
+       "priceLevel": null,
+       "pasto": false,
+       "primaryType": "historical_landmark",
+       "tipoInterno": "place",
+       "etichetta": "monumento",
+       "orario": "sconosciuto",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": null,
+       "title": "Tempo libero",
+       "types": [],
+       "moment": "mattina",
+       "at": "2026-10-15T08:00:00.000Z",
+       "atStimato": false,
+       "tempoLibero": true,
+       "lat": null,
+       "lng": null,
+       "min": null,
+       "scelta": "tempo libero",
+       "stay": 0,
+       "ripiego": null,
+       "motivo": "nessun posto entro 40 min dalla tappa prima (anche dopo la ricerca mirata): il piu' vicino, \"Ponte di Failla\", e' a 43 min",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Niente in agenda: cammina dove ti porta la strada.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Niente in agenda: cammina dove ti porta la strada.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": null,
+       "priceLevel": null,
+       "pasto": false,
+       "etichetta": null,
+       "dietaCercata": null,
+       "dietaSolo": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 3918,
+    "tokenOut": 326,
+    "perModello": {
+     "gpt-6.1-sol": {
+      "in": 3097,
+      "out": 185
+     },
+     "gpt-4o-mini": {
+      "in": 821,
+      "out": 141
+     }
+    },
+    "ripieghi": []
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch#new": 5
+   },
+   "googleListaHit": 0,
+   "spesaUsd": 0.2,
+   "candidatiVisti": 28,
+   "candidatiConOrari": 22,
+   "orari": {
+    "ChIJBcsc22XLFhMRlebZppwKek0": {
+     "chiamato": true,
+     "periods": null
+    }
+   }
+  },
+  {
+   "id": "c10b-troina-mezza",
+   "modo": "crea",
+   "tipo": "itinerario",
+   "luogo": "Troina",
+   "ora": "22:19",
+   "oggi": "2026-10-14",
+   "richiesta": "Domani mezza giornata a Troina",
+   "onboarding": null,
+   "stimaUsd": 0.25,
+   "vincoli": null,
+   "chiamata": {
+    "pagina": "AiItinerary.jsx",
+    "pathType": "custom",
+    "prefs": {
+     "budget": "",
+     "duration": "Mezza Giornata",
+     "interests": [],
+     "group": "",
+     "pace": ""
+    },
+    "testo": "Domani mezza giornata a Troina"
+   },
+   "secs": 13.866,
+   "source": "google-first",
+   "destinazione": {
+    "city": "Troina",
+    "fromText": false,
+    "note": null
+   },
+   "tourDate": "2026-10-15",
+   "giorno": {
+    "date": "2026-10-15",
+    "start": "2026-10-15T07:30:00.000Z",
+    "reason": "day"
+   },
+   "frasiTolte": [],
+   "pool": {
+    "g1-mattina": {
+     "posti": 1,
+     "candidati": [
+      {
+       "place_id": "ChIJBcsc22XLFhMRlebZppwKek0",
+       "nome": "Piazza Giacomo Matteotti",
+       "famiglia": "piazza",
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.53,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": true,
+       "posto": 0,
+       "motivo": null,
+       "nelGiro": true
+      },
+      {
+       "place_id": "ChIJT8KlHjPKFhMRJlLZos1YRa0",
+       "nome": "Ponte di Failla",
+       "famiglia": null,
+       "primaryType": "historical_landmark",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "merito": 0.38,
+       "minuti": 0,
+       "deviazione": 0,
+       "scelto": false,
+       "posto": 0,
+       "motivo": "merito e strada minori (a pari regole)",
+       "nelGiro": false
+      }
+     ]
+    }
+   },
+   "finestraMinuti": [
+    180
+   ],
+   "motori": {
+    "tolti": [],
+    "facoltativiSenzaPosto": [],
+    "ricercheMirate": [
+     "cultura"
+    ]
+   },
+   "sceltaModello": [
+    {
+     "place_id": "ChIJBcsc22XLFhMRlebZppwKek0",
+     "momento": "g1-mattina"
+    },
+    {
+     "place_id": "ChIJT8KlHjPKFhMRJlLZos1YRa0",
+     "momento": "g1-mattina"
+    }
+   ],
+   "ricerche": {
+    "prima": [
+     "cultura"
+    ],
+    "dopo": [
+     {
+      "momento": "g1-mattina",
+      "tema": "cultura",
+      "da": "Piazza Giacomo Matteotti",
+      "trovati": 1
+     }
+    ]
+   },
+   "ripiegoDichiarato": true,
+   "orariMotore": {
+    "chiusi": [
+     {
+      "momento": "g1-mattina",
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "nome": "Chiesa Madre di Maria Santissima Assunta",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-mattina",
+      "place_id": "ChIJSdi3PqbLFhMRevZmDu4FnbQ",
+      "nome": "Torre Capitania",
+      "perche": "chiuso all'arrivo"
+     },
+     {
+      "momento": "g1-mattina",
+      "place_id": "ChIJvSFWIBDLFhMRILmIiEDfuw8",
+      "nome": "Museo della fotografia Robert Capa",
+      "perche": "chiuso all'arrivo"
+     }
+    ],
+    "vietati": [],
+    "giri": 0,
+    "ignoti": 2,
+    "scartatiIgnoti": [],
+    "righeDichiarate": [],
+    "residui": 0,
+    "tappeSenzaFiltro": 2
+   },
+   "continuita": {
+    "aggiunte": [],
+    "tentativi": 0,
+    "dichiarati": [],
+    "minimo": {
+     "richiesto": {
+      "0": 3
+     },
+     "aggiunte": [],
+     "tentativi": 1,
+     "dichiarati": []
+    }
+   },
+   "tema": {
+    "cibo": false,
+    "tipico": false,
+    "fonte": null,
+    "momentiEspliciti": [],
+    "cucineEstereEscluse": [],
+    "zoneTolte": [
+     {
+      "nome": "Piazza Conte Ruggero",
+      "motivo": "via (route) senza altro tipo di luogo"
+     },
+     {
+      "nome": "Piazza Giacomo Matteotti",
+      "motivo": "via (route) senza altro tipo di luogo"
+     }
+    ]
+   },
+   "citta": {
+    "stato": "ok",
+    "cached": true,
+    "conti": {
+     "proposti": 4,
+     "verificati": 4,
+     "scartati": 0
+    },
+    "errore": null,
+    "attesaMs": 616,
+    "risposta": 321,
+    "costo": null,
+    "verificati": [
+     {
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "nome": "Chiesa Madre di Maria Santissima Assunta",
+      "tipo": "essenziale",
+      "momento": "mattina",
+      "simbolo": true
+     },
+     {
+      "place_id": "ChIJURBAhqjLFhMRVX85ZKJnc_w",
+      "nome": "Chiesa di San Silvestro Monaco Basiliano",
+      "tipo": "essenziale",
+      "momento": "pomeriggio"
+     },
+     {
+      "place_id": "ChIJkSKaqKjLFhMROMP-9DO305o",
+      "nome": "Piazza Conte Ruggero",
+      "tipo": "essenziale",
+      "momento": "aperitivo"
+     },
+     {
+      "place_id": "ChIJE1UrZafLFhMR-V-gosiwDFg",
+      "nome": "Piazza Giacomo Matteotti",
+      "tipo": "da locale",
+      "momento": "dopocena"
+     }
+    ],
+    "scala": {
+     "proposta": "borgo",
+     "diametroKm": 0.23,
+     "su": "essenziali",
+     "scala": "borgo",
+     "motivo": "i posti stanno in 0.23 km: si gira tutto a piedi"
+    },
+    "simboli": [
+     {
+      "nome": "Chiesa Madre di Maria Santissima Assunta"
+     }
+    ],
+    "mezzaGiornata": {
+     "verificati": 4,
+     "utilizzabili": 2,
+     "minimo": 4,
+     "riga": "Troina si gira in mezza giornata.",
+     "visitabili": 7,
+     "minuti": 180,
+     "fine": "2026-10-15T10:30:00.000Z"
+    },
+    "nelPool": [
+     {
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "nome": "Chiesa Madre di Maria Santissima Assunta",
+      "tipo": "essenziale",
+      "ancora": true
+     }
+    ],
+    "ancoreCandidate": [
+     {
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "nome": "Chiesa Madre di Maria Santissima Assunta"
+     }
+    ],
+    "ancore": [],
+    "essenzialiAlMerito": [
+     {
+      "place_id": "ChIJURBAhqjLFhMRVX85ZKJnc_w",
+      "nome": "Chiesa di San Silvestro Monaco Basiliano",
+      "ammesso": true
+     }
+    ],
+    "seminate": [],
+    "declassate": [
+     {
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "nome": "Chiesa Madre di Maria Santissima Assunta"
+     }
+    ],
+    "ancoreEsito": []
+   },
+   "modelli": {
+    "lista": [
+     {
+      "ms": 3183,
+      "cosa": "abitanti",
+      "usage": {
+       "total_tokens": 121,
+       "prompt_tokens": 55,
+       "completion_tokens": 66,
+       "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+       },
+       "completion_tokens_details": {
+        "audio_tokens": 0,
+        "reasoning_tokens": 46,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+       }
+      },
+      "usato": "gpt-6.1-sol",
+      "chiesto": "gpt-6.1-sol",
+      "ripiego": false,
+      "passaggio": "lista"
+     },
+     {
+      "ms": 18223,
+      "cosa": "lista",
+      "usage": {
+       "total_tokens": 1475,
+       "prompt_tokens": 833,
+       "completion_tokens": 642,
+       "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cached_tokens": 0,
+        "cache_write_tokens": 0
+       },
+       "completion_tokens_details": {
+        "audio_tokens": 0,
+        "reasoning_tokens": 388,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+       }
+      },
+      "usato": "gpt-6.1-sol",
+      "chiesto": "gpt-6.1-sol",
+      "ripiego": false,
+      "passaggio": "lista"
+     }
+    ],
+    "quartiere": null,
+    "traduttore": {
+     "passaggio": "traduttore",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 3464
+    },
+    "selettore": {
+     "passaggio": "selettore",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2705
+    }
+   },
+   "schermo": {
+    "giorni": [
+     {
+      "titolo": "Piazza Giacomo Matteotti di Troina",
+      "meteo": null
+     }
+    ],
+    "sezioni": [
+     {
+      "etichetta": "Mattina",
+      "ora": "09:30"
+     }
+    ],
+    "note": [
+     "Troina si gira in mezza giornata."
+    ]
+   },
+   "tours": [
+    {
+     "tema": "Piazza Giacomo Matteotti di Troina",
+     "stops": [
+      {
+       "place_id": "ChIJBcsc22XLFhMRlebZppwKek0",
+       "title": "Piazza Giacomo Matteotti",
+       "types": [
+        "historical_landmark",
+        "historical_place",
+        "point_of_interest",
+        "establishment"
+       ],
+       "moment": "mattina",
+       "at": "2026-10-15T07:30:00.000Z",
+       "atStimato": false,
+       "lat": 37.781368199999996,
+       "lng": 14.596772600000001,
+       "min": null,
+       "scelta": "modello",
+       "stay": 30,
+       "ripiego": null,
+       "motivo": null,
+       "famiglia": "piazza",
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Attraversi Piazza Giacomo Matteotti piano, senza fretta. Si comincia da qui.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Attraversi Piazza Giacomo Matteotti piano, senza fretta.",
+         "problemi": []
+        },
+        {
+         "testo": "Si comincia da qui.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": 12,
+       "priceLevel": null,
+       "pasto": false,
+       "primaryType": "historical_landmark",
+       "tipoInterno": "place",
+       "etichetta": "monumento",
+       "orario": "sconosciuto",
+       "dietaCercata": null,
+       "dietaSolo": null
+      },
+      {
+       "place_id": null,
+       "title": "Tempo libero",
+       "types": [],
+       "moment": "mattina",
+       "at": "2026-10-15T08:00:00.000Z",
+       "atStimato": false,
+       "tempoLibero": true,
+       "lat": null,
+       "lng": null,
+       "min": null,
+       "scelta": "tempo libero",
+       "stay": 0,
+       "ripiego": null,
+       "motivo": "nessun posto entro 40 min dalla tappa prima (anche dopo la ricerca mirata): il piu' vicino, \"Ponte di Failla\", e' a 43 min",
+       "famiglia": null,
+       "incrocio": null,
+       "daPartenza": null,
+       "varieta": null,
+       "deviazioneProva": null,
+       "description": "Niente in agenda: cammina dove ti porta la strada.",
+       "verita": true,
+       "voce": true,
+       "frasi": [
+        {
+         "testo": "Niente in agenda: cammina dove ti porta la strada.",
+         "problemi": []
+        }
+       ],
+       "fatti": 0,
+       "recensioni": null,
+       "priceLevel": null,
+       "pasto": false,
+       "etichetta": null,
+       "dietaCercata": null,
+       "dietaSolo": null
+      }
+     ]
+    }
+   ],
+   "ai": {
+    "chiamate": 3,
+    "tokenIn": 3920,
+    "tokenOut": 326,
+    "perModello": {
+     "gpt-6.1-sol": {
+      "in": 3099,
+      "out": 185
+     },
+     "gpt-4o-mini": {
+      "in": 821,
+      "out": 141
+     }
+    },
+    "ripieghi": []
+   },
+   "google": {
+    "place/findplacefromtext": 1,
+    "place/textsearch#new": 5
+   },
+   "googleListaHit": 0,
+   "spesaUsd": 0.2,
+   "candidatiVisti": 28,
+   "candidatiConOrari": 22,
+   "orari": {
+    "ChIJBcsc22XLFhMRlebZppwKek0": {
+     "chiamato": true,
+     "periods": null
+    }
+   }
+  }
+ ],
+ "costo": {
+  "totale": 0.4005075,
+  "ai": {
+   "chiamate": 6,
+   "tokenIn": 7838,
+   "tokenOut": 652,
+   "perModello": {
+    "gpt-6.1-sol": {
+     "in": 6196,
+     "out": 370
+    },
+    "gpt-4o-mini": {
+     "in": 1642,
+     "out": 282
+    }
+   },
+   "ripieghi": []
+  },
+  "google": {
+   "place/findplacefromtext": 2,
+   "place/textsearch#new": 10
+  },
+  "tettoUsd": 7
+ },
+ "luoghiOrari": {
+  "ChIJwTstqajLFhMRnwdcVrWeGsY": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1030"
+     },
+     "close": {
+      "day": 0,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1700"
+     },
+     "close": {
+      "day": 0,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1030"
+     },
+     "close": {
+      "day": 1,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1700"
+     },
+     "close": {
+      "day": 1,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1030"
+     },
+     "close": {
+      "day": 2,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1700"
+     },
+     "close": {
+      "day": 2,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1030"
+     },
+     "close": {
+      "day": 3,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1700"
+     },
+     "close": {
+      "day": 3,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1030"
+     },
+     "close": {
+      "day": 4,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1700"
+     },
+     "close": {
+      "day": 4,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1030"
+     },
+     "close": {
+      "day": 5,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1700"
+     },
+     "close": {
+      "day": 5,
+      "time": "2000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1030"
+     },
+     "close": {
+      "day": 6,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1700"
+     },
+     "close": {
+      "day": 6,
+      "time": "2000"
+     }
+    }
+   ],
+   "primaryType": "church",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1030",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1700",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1030",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1700",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1030",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1700",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1030",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1700",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1030",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1700",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1030",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1700",
+      "close": "2000"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1030",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1700",
+      "close": "2000"
+     }
+    ]
+   }
+  },
+  "ChIJURBAhqjLFhMRVX85ZKJnc_w": {
+   "periods": null,
+   "primaryType": null,
+   "utcOffsetMinutes": 120
+  },
+  "ChIJkSKaqKjLFhMROMP-9DO305o": {
+   "periods": null,
+   "primaryType": null,
+   "utcOffsetMinutes": 120
+  },
+  "ChIJE1UrZafLFhMR-V-gosiwDFg": {
+   "periods": null,
+   "primaryType": null,
+   "utcOffsetMinutes": 120
+  },
+  "ChIJAy66yI_LFhMRFXQd-vcV1xs": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "scenic_spot",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-14",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-20"
+     }
+    ]
+   }
+  },
+  "ChIJBcsc22XLFhMRlebZppwKek0": {
+   "periods": null,
+   "primaryType": "historical_landmark",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJyW-_gaHLFhMRTJ750aCx3QY": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1100"
+     },
+     "close": {
+      "day": 0,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1800"
+     },
+     "close": {
+      "day": 0,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1100"
+     },
+     "close": {
+      "day": 1,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1800"
+     },
+     "close": {
+      "day": 1,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1100"
+     },
+     "close": {
+      "day": 2,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1800"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1100"
+     },
+     "close": {
+      "day": 3,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1800"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1100"
+     },
+     "close": {
+      "day": 4,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1800"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1100"
+     },
+     "close": {
+      "day": 6,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1800"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1100",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1800",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1100",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1800",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1100",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1800",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1100",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1800",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1100",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1800",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1100",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1800",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJx_n07-nLFhMRoNr1mFOQ2Ys": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-14",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-20"
+     }
+    ]
+   }
+  },
+  "ChIJe1mWPa_LFhMReziUgGgDI4g": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0630"
+     },
+     "close": {
+      "day": 0,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1600"
+     },
+     "close": {
+      "day": 1,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0600"
+     },
+     "close": {
+      "day": 3,
+      "time": "0030"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0600"
+     },
+     "close": {
+      "day": 4,
+      "time": "0030"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0600"
+     },
+     "close": {
+      "day": 5,
+      "time": "0030"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0600"
+     },
+     "close": {
+      "day": 6,
+      "time": "0030"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0600"
+     },
+     "close": {
+      "day": 0,
+      "time": "0030"
+     }
+    }
+   ],
+   "primaryType": "bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0630",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1600",
+      "close": "0100",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "0600",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0000",
+      "close": "0030"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0600",
+      "close": "0030",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0600",
+      "close": "0030",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0600",
+      "close": "0030",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0600",
+      "close": "0030",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJNyJ-HabLFhMRJRM3dyMW35s": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1230"
+     },
+     "close": {
+      "day": 0,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1900"
+     },
+     "close": {
+      "day": 1,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1230"
+     },
+     "close": {
+      "day": 2,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1230"
+     },
+     "close": {
+      "day": 3,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1230"
+     },
+     "close": {
+      "day": 4,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "0100"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1230"
+     },
+     "close": {
+      "day": 5,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1230"
+     },
+     "close": {
+      "day": 6,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "0300"
+     }
+    }
+   ],
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1900",
+      "close": "0300",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1900",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0000",
+      "close": "0100"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "0100",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "0100",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "0300",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1230",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "0300",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJfQMai6bLFhMRfJTrhbm8R8Y": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1030"
+     },
+     "close": {
+      "day": 0,
+      "time": "1400"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0800"
+     },
+     "close": {
+      "day": 2,
+      "time": "1400"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1900"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0800"
+     },
+     "close": {
+      "day": 3,
+      "time": "1400"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0800"
+     },
+     "close": {
+      "day": 4,
+      "time": "1400"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0800"
+     },
+     "close": {
+      "day": 5,
+      "time": "1400"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0800"
+     },
+     "close": {
+      "day": 6,
+      "time": "1400"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1030",
+      "close": "1400"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1900",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "0800",
+      "close": "1400"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1900",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0800",
+      "close": "1400"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0800",
+      "close": "1400"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0800",
+      "close": "1400"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0800",
+      "close": "1400"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJawl-T_3KFhMRIiCOFhp3xJM": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "hotel",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-14",
+      "open": "0000",
+      "close": "2359",
+      "close_date": "2026-10-20"
+     }
+    ]
+   }
+  },
+  "ChIJwXkXUZ_LFhMRhyMxQd2ShGQ": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0900"
+     },
+     "close": {
+      "day": 0,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1000"
+     },
+     "close": {
+      "day": 2,
+      "time": "1930"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1000"
+     },
+     "close": {
+      "day": 3,
+      "time": "1930"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1000"
+     },
+     "close": {
+      "day": 4,
+      "time": "1930"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1000"
+     },
+     "close": {
+      "day": 5,
+      "time": "1930"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1000"
+     },
+     "close": {
+      "day": 6,
+      "time": "1900"
+     }
+    }
+   ],
+   "primaryType": "food_store",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0900",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1000",
+      "close": "1930"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1000",
+      "close": "1930"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1000",
+      "close": "1930"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1000",
+      "close": "1930"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1000",
+      "close": "1900"
+     }
+    ]
+   }
+  },
+  "ChIJhd5vFqbLFhMRNNt246-xrqc": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1200"
+     },
+     "close": {
+      "day": 0,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1900"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1200"
+     },
+     "close": {
+      "day": 1,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1900"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1200"
+     },
+     "close": {
+      "day": 3,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1900"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1200"
+     },
+     "close": {
+      "day": 4,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1900"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1200"
+     },
+     "close": {
+      "day": 5,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1900"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1200"
+     },
+     "close": {
+      "day": 6,
+      "time": "1500"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1900"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-20"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1200",
+      "close": "1500"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1900",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJ2aeVh6HLFhMRH97wsXn2fVA": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1730"
+     },
+     "close": {
+      "day": 1,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1730"
+     },
+     "close": {
+      "day": 4,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1730"
+     },
+     "close": {
+      "day": 5,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1730"
+     },
+     "close": {
+      "day": 6,
+      "time": "0300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1730"
+     },
+     "close": {
+      "day": 0,
+      "time": "0300"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1730",
+      "close": "0300",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1730",
+      "close": "0300",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1730",
+      "close": "0300",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1730",
+      "close": "0300",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1730",
+      "close": "0300",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJ222zBQC1FhMR6iw5_2VUL0Q": {
+   "periods": null,
+   "primaryType": "italian_restaurant",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJCTLyvmLLFhMRC0k-mO54w2U": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "0500"
+     },
+     "close": {
+      "day": 1,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0500"
+     },
+     "close": {
+      "day": 2,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0500"
+     },
+     "close": {
+      "day": 3,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0500"
+     },
+     "close": {
+      "day": 4,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0500"
+     },
+     "close": {
+      "day": 5,
+      "time": "2100"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0500"
+     },
+     "close": {
+      "day": 6,
+      "time": "2100"
+     }
+    }
+   ],
+   "primaryType": "bakery",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "0500",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "0500",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0500",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0500",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0500",
+      "close": "2100"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0500",
+      "close": "2100"
+     }
+    ]
+   }
+  },
+  "ChIJa41x7nLLFhMRVz7l5o-xMrk": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0800"
+     },
+     "close": {
+      "day": 0,
+      "time": "2345"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0700"
+     },
+     "close": {
+      "day": 1,
+      "time": "2345"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0630"
+     },
+     "close": {
+      "day": 2,
+      "time": "2345"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0630"
+     },
+     "close": {
+      "day": 3,
+      "time": "2345"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0630"
+     },
+     "close": {
+      "day": 4,
+      "time": "2345"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0800"
+     },
+     "close": {
+      "day": 5,
+      "time": "2345"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0630"
+     },
+     "close": {
+      "day": 6,
+      "time": "2345"
+     }
+    }
+   ],
+   "primaryType": "coffee_shop",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0800",
+      "close": "2345"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0700",
+      "close": "2345"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "0630",
+      "close": "2345"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0630",
+      "close": "2345"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0630",
+      "close": "2345"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0800",
+      "close": "2345"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0630",
+      "close": "2345"
+     }
+    ]
+   }
+  },
+  "ChIJ9RJ7RrDKFhMRapQZoWyF-30": {
+   "periods": null,
+   "primaryType": "farmstay",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJx6JflgHLFhMRtyKeuw1cF00": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1700"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1700"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1700"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1700"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1700"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1700"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "sandwich_shop",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1700",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1700",
+      "close": "0000",
+      "close_date": "2026-10-20"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1700",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1700",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1700",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1700",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJiX0_tJjLFhMR7B446QndRGU": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0930"
+     },
+     "close": {
+      "day": 1,
+      "time": "0130"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0930"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0930"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0930"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0930"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0930"
+     },
+     "close": {
+      "day": 0,
+      "time": "0130"
+     }
+    }
+   ],
+   "primaryType": "pizza_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0930",
+      "close": "0130",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "0930",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0930",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0930",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0930",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0930",
+      "close": "0130",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJbSN-HabLFhMRnZRVGgjavwA": {
+   "periods": [
+    {
+     "open": {
+      "day": 2,
+      "time": "0000"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-20",
+      "open": "0000",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0000",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     }
+    ]
+   }
+  },
+  "ChIJC7V-f4nLFhMRwDRpRQQGCHM": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0800"
+     },
+     "close": {
+      "day": 0,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0800"
+     },
+     "close": {
+      "day": 1,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0800"
+     },
+     "close": {
+      "day": 2,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0800"
+     },
+     "close": {
+      "day": 3,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0800"
+     },
+     "close": {
+      "day": 4,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0800"
+     },
+     "close": {
+      "day": 5,
+      "time": "2300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0800"
+     },
+     "close": {
+      "day": 6,
+      "time": "2300"
+     }
+    }
+   ],
+   "primaryType": "restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0800",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0800",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "0800",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0800",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0800",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0800",
+      "close": "2300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0800",
+      "close": "2300"
+     }
+    ]
+   }
+  },
+  "ChIJQQOmSkfLFhMRZV4-biY9Cu8": {
+   "periods": [
+    {
+     "open": {
+      "day": 1,
+      "time": "0700"
+     },
+     "close": {
+      "day": 1,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0700"
+     },
+     "close": {
+      "day": 2,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0700"
+     },
+     "close": {
+      "day": 3,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "0700"
+     },
+     "close": {
+      "day": 4,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0700"
+     },
+     "close": {
+      "day": 5,
+      "time": "2200"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0700"
+     },
+     "close": {
+      "day": 6,
+      "time": "2200"
+     }
+    }
+   ],
+   "primaryType": "coffee_shop",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-19",
+      "open": "0700",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "0700",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0700",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "0700",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0700",
+      "close": "2200"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0700",
+      "close": "2200"
+     }
+    ]
+   }
+  },
+  "ChIJ8-CLRIPLFhMRuGTC1IS4wE0": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "0600"
+     },
+     "close": {
+      "day": 0,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "0600"
+     },
+     "close": {
+      "day": 1,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "0600"
+     },
+     "close": {
+      "day": 2,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "0600"
+     },
+     "close": {
+      "day": 3,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "0600"
+     },
+     "close": {
+      "day": 5,
+      "time": "2330"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "0600"
+     },
+     "close": {
+      "day": 6,
+      "time": "2330"
+     }
+    }
+   ],
+   "primaryType": "bar",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "0600",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "0600",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "0600",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "0600",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "0600",
+      "close": "2330"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "0600",
+      "close": "2330"
+     }
+    ]
+   }
+  },
+  "ChIJIaoXH6LLFhMRR59tKsstNqs": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1730"
+     },
+     "close": {
+      "day": 1,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 1,
+      "time": "1730"
+     },
+     "close": {
+      "day": 2,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1730"
+     },
+     "close": {
+      "day": 3,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1730"
+     },
+     "close": {
+      "day": 4,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1730"
+     },
+     "close": {
+      "day": 5,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1730"
+     },
+     "close": {
+      "day": 6,
+      "time": "0000"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1730"
+     },
+     "close": {
+      "day": 0,
+      "time": "0000"
+     }
+    }
+   ],
+   "primaryType": "pizza_restaurant",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1730",
+      "close": "0000",
+      "close_date": "2026-10-19"
+     },
+     {
+      "date": "2026-10-19",
+      "open": "1730",
+      "close": "0000",
+      "close_date": "2026-10-20"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1730",
+      "close": "2359"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1730",
+      "close": "0000",
+      "close_date": "2026-10-15"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1730",
+      "close": "0000",
+      "close_date": "2026-10-16"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1730",
+      "close": "0000",
+      "close_date": "2026-10-17"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1730",
+      "close": "0000",
+      "close_date": "2026-10-18"
+     }
+    ]
+   }
+  },
+  "ChIJSdi3PqbLFhMRevZmDu4FnbQ": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1000"
+     },
+     "close": {
+      "day": 0,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1630"
+     },
+     "close": {
+      "day": 0,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1000"
+     },
+     "close": {
+      "day": 2,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1630"
+     },
+     "close": {
+      "day": 2,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1000"
+     },
+     "close": {
+      "day": 3,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1630"
+     },
+     "close": {
+      "day": 3,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1000"
+     },
+     "close": {
+      "day": 4,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1630"
+     },
+     "close": {
+      "day": 4,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1000"
+     },
+     "close": {
+      "day": 5,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1630"
+     },
+     "close": {
+      "day": 5,
+      "time": "1900"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1000"
+     },
+     "close": {
+      "day": 6,
+      "time": "1230"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1630"
+     },
+     "close": {
+      "day": 6,
+      "time": "1900"
+     }
+    }
+   ],
+   "primaryType": "museum",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1000",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1630",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1000",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1630",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1000",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1630",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1000",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1630",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1000",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1630",
+      "close": "1900"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1000",
+      "close": "1230"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1630",
+      "close": "1900"
+     }
+    ]
+   }
+  },
+  "ChIJvSFWIBDLFhMRILmIiEDfuw8": {
+   "periods": [
+    {
+     "open": {
+      "day": 0,
+      "time": "1000"
+     },
+     "close": {
+      "day": 0,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 0,
+      "time": "1630"
+     },
+     "close": {
+      "day": 0,
+      "time": "1930"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1000"
+     },
+     "close": {
+      "day": 2,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 2,
+      "time": "1630"
+     },
+     "close": {
+      "day": 2,
+      "time": "1930"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1000"
+     },
+     "close": {
+      "day": 3,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 3,
+      "time": "1630"
+     },
+     "close": {
+      "day": 3,
+      "time": "1930"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1000"
+     },
+     "close": {
+      "day": 4,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 4,
+      "time": "1630"
+     },
+     "close": {
+      "day": 4,
+      "time": "1930"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1000"
+     },
+     "close": {
+      "day": 5,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 5,
+      "time": "1630"
+     },
+     "close": {
+      "day": 5,
+      "time": "1930"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1000"
+     },
+     "close": {
+      "day": 6,
+      "time": "1300"
+     }
+    },
+    {
+     "open": {
+      "day": 6,
+      "time": "1630"
+     },
+     "close": {
+      "day": 6,
+      "time": "1930"
+     }
+    }
+   ],
+   "primaryType": "museum",
+   "utcOffsetMinutes": 120,
+   "current": {
+    "to": "2026-10-20",
+    "from": "2026-10-14",
+    "periods": [
+     {
+      "date": "2026-10-18",
+      "open": "1000",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-18",
+      "open": "1630",
+      "close": "1930"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1000",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-20",
+      "open": "1630",
+      "close": "1930"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1000",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-14",
+      "open": "1630",
+      "close": "1930"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1000",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-15",
+      "open": "1630",
+      "close": "1930"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1000",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-16",
+      "open": "1630",
+      "close": "1930"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1000",
+      "close": "1300"
+     },
+     {
+      "date": "2026-10-17",
+      "open": "1630",
+      "close": "1930"
+     }
+    ]
+   }
+  },
+  "ChIJ43Vb4YnLFhMRoXSqPyg7qyA": {
+   "periods": null,
+   "primaryType": "tourist_attraction",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJT8KlHjPKFhMRJlLZos1YRa0": {
+   "periods": null,
+   "primaryType": "historical_landmark",
+   "utcOffsetMinutes": 120
+  },
+  "ChIJGTp9lqfLFhMRxZjKYqBueSo": {
+   "periods": null,
+   "primaryType": "historical_landmark",
+   "utcOffsetMinutes": 120
+  }
+ },
+ "orariRiepilogo": {
+  "postiDistinti": 31,
+  "chiamati": 0,
+  "nonRichiesti": 0,
+  "senzaOrari": 9,
+  "daRicerca": true
+ },
+ "fine": "2026-10-14T12:19:43.921Z"
+}

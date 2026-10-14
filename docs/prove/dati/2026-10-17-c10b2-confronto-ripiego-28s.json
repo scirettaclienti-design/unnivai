@@ -1,0 +1,1155 @@
+{
+ "avvio": "2026-10-14T11:49:40.136Z",
+ "giorno": "2026-10-15",
+ "liste": [
+  {
+   "citta": "Catania",
+   "status": 200,
+   "ms": 43649,
+   "cached": false,
+   "scala": "città",
+   "abitanti": 299000,
+   "conti": {
+    "proposti": 15,
+    "verificati": 12,
+    "scartati": 3
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 15,
+    "hit": 15
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2114,
+     "usage": {
+      "prompt_tokens": 56,
+      "completion_tokens": 14,
+      "total_tokens": 70,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-4o-mini",
+     "ripiego": true,
+     "motivo": "oltre il tempo massimo (28 s)",
+     "msChiesto": 28005,
+     "ms": 10000,
+     "usage": {
+      "prompt_tokens": 742,
+      "completion_tokens": 1052,
+      "total_tokens": 1794,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 40120,
+    "totale": 41970
+   },
+   "verificati": [
+    {
+     "nome": "Basilica Cattedrale di Sant'Agata",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Teatro Massimo Bellini",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Castello Ursino",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Storico mercato del pesce di Catania",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Pasticceria Savia",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Caffè del Duomo e Ristorante",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Giardino Bellini - Villa Bellini",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Chiesa di San Benedetto",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Via Etnea",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza Carlo Alberto",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza Stesicoro",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  },
+  {
+   "citta": "Roma",
+   "status": 200,
+   "ms": 52195,
+   "cached": false,
+   "scala": "metropoli",
+   "abitanti": 2750000,
+   "conti": {
+    "proposti": 18,
+    "verificati": 17,
+    "scartati": 1
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 18,
+    "hit": 15
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 1781,
+     "usage": {
+      "prompt_tokens": 54,
+      "completion_tokens": 15,
+      "total_tokens": 69,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-4o-mini",
+     "ripiego": true,
+     "motivo": "oltre il tempo massimo (28 s)",
+     "msChiesto": 28004,
+     "ms": 18960,
+     "usage": {
+      "prompt_tokens": 804,
+      "completion_tokens": 1366,
+      "total_tokens": 2170,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 48747,
+    "totale": 51426
+   },
+   "verificati": [
+    {
+     "nome": "Colosseo",
+     "tipo": "essenziale",
+     "quartiere": "Celio",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Basilica di San Giovanni in Laterano",
+     "tipo": "essenziale",
+     "quartiere": "Celio",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Trattoria Da Enzo",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Mercato di Testaccio",
+     "tipo": "da locale",
+     "quartiere": "Testaccio",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza Navona",
+     "tipo": "essenziale",
+     "quartiere": "Navona",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Giolitti",
+     "tipo": "da locale",
+     "quartiere": "Colonna",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Ponte Sant'Angelo",
+     "tipo": "essenziale",
+     "quartiere": "Borgo",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Bar San Calisto",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Villa Borghese",
+     "tipo": "essenziale",
+     "quartiere": "Pinciano",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Pizzeria Da Baffetto",
+     "tipo": "da locale",
+     "quartiere": "Navona",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Museo Nazionale Romano, Palazzo Massimo alle Terme",
+     "tipo": "essenziale",
+     "quartiere": "Esquilino",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Sant'Eustachio Caffè",
+     "tipo": "da locale",
+     "quartiere": "Piazza Navona",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Campo de' Fiori",
+     "tipo": "essenziale",
+     "quartiere": "Parione",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Trastevere",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza di Spagna",
+     "tipo": "essenziale",
+     "quartiere": "Spagna",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Antico Caffè Greco",
+     "tipo": "da locale",
+     "quartiere": "Colonna",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Castel Sant'Angelo",
+     "tipo": "da locale",
+     "quartiere": "Borgo",
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  },
+  {
+   "citta": "Napoli",
+   "status": 200,
+   "ms": 42262,
+   "cached": false,
+   "scala": "metropoli",
+   "abitanti": 910000,
+   "conti": {
+    "proposti": 18,
+    "verificati": 18,
+    "scartati": 0
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 18,
+    "hit": 15
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2837,
+     "usage": {
+      "prompt_tokens": 54,
+      "completion_tokens": 13,
+      "total_tokens": 67,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-4o-mini",
+     "ripiego": true,
+     "motivo": "oltre il tempo massimo (28 s)",
+     "msChiesto": 28004,
+     "ms": 9122,
+     "usage": {
+      "prompt_tokens": 805,
+      "completion_tokens": 1023,
+      "total_tokens": 1828,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 39964,
+    "totale": 41453
+   },
+   "verificati": [
+    {
+     "nome": "Duomo di Santa Maria Assunta",
+     "tipo": "essenziale",
+     "quartiere": "Centro Storico",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Museo Archeologico Nazionale di Napoli",
+     "tipo": "essenziale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza del Plebiscito",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "La Sfogliatella di Mary",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Mercato Porta Nolana",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Trattoria da Nennella",
+     "tipo": "da locale",
+     "quartiere": "Quartieri Spagnoli",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Via Toledo",
+     "tipo": "essenziale",
+     "quartiere": "Quartieri Spagnoli",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Teatro di San Carlo",
+     "tipo": "essenziale",
+     "quartiere": "Quartieri Spagnoli",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Gran Caffè Gambrinus",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Villa Comunale di Napoli",
+     "tipo": "essenziale",
+     "quartiere": "Chiaia",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Castel dell'Ovo",
+     "tipo": "essenziale",
+     "quartiere": "Chiaia",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Pizzeria Antonio Sorbillo",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Donna Luisella | Ristorante Borgo Marinari Napoli",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Complesso Monumentale di Santa Chiara",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Mercato Pignasecca",
+     "tipo": "da locale",
+     "quartiere": "Quartieri Spagnoli",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Gelateria Scimmia Factory",
+     "tipo": "da locale",
+     "quartiere": "Centro Storico",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Cimitero delle Fontanelle",
+     "tipo": "essenziale",
+     "quartiere": "Materdei",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Antica Trattoria Da Carmine",
+     "tipo": "da locale",
+     "quartiere": "Quartieri Spagnoli",
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  },
+  {
+   "citta": "Palermo",
+   "status": 200,
+   "ms": 44590,
+   "cached": false,
+   "scala": "città",
+   "abitanti": 630000,
+   "conti": {
+    "proposti": 15,
+    "verificati": 15,
+    "scartati": 0
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 15,
+    "hit": 15
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 3870,
+     "usage": {
+      "prompt_tokens": 54,
+      "completion_tokens": 47,
+      "total_tokens": 101,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 28,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-4o-mini",
+     "ripiego": true,
+     "motivo": "oltre il tempo massimo (28 s)",
+     "msChiesto": 28006,
+     "ms": 10204,
+     "usage": {
+      "prompt_tokens": 729,
+      "completion_tokens": 1153,
+      "total_tokens": 1882,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 42080,
+    "totale": 43960
+   },
+   "verificati": [
+    {
+     "nome": "Cattedrale di Palermo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Teatro Massimo di Palermo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Palazzo dei Normanni",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Mercato Ballarò",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Pasticceria Cappello",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Trattoria da Pino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Parco Piersanti Mattarella (Giardino Inglese)",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "BAR MAROCCO",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Osteria dei Vespri",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza San Domenico",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Mercato del Capo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Chiesa del Gesù di Casa Professa",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Caffè del Kassaro",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza Pretoria",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Cappella Palatina",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  },
+  {
+   "citta": "Lecce",
+   "status": 200,
+   "ms": 40186,
+   "cached": false,
+   "scala": "città",
+   "abitanti": 95000,
+   "conti": {
+    "proposti": 15,
+    "verificati": 13,
+    "scartati": 2
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 15,
+    "hit": 13
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 1481,
+     "usage": {
+      "prompt_tokens": 55,
+      "completion_tokens": 13,
+      "total_tokens": 68,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-4o-mini",
+     "ripiego": true,
+     "motivo": "oltre il tempo massimo (28 s)",
+     "msChiesto": 28006,
+     "ms": 8570,
+     "usage": {
+      "prompt_tokens": 736,
+      "completion_tokens": 974,
+      "total_tokens": 1710,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 38057,
+    "totale": 39208
+   },
+   "verificati": [
+    {
+     "nome": "Basilica di Santa Croce",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza del Duomo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Castello Carlo V di Lecce",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Teatro Romano",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Caffè Alvino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Le Zie Trattoria Casereccia",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Pasticceria Natale",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Osteria degli Spiriti",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Caffè Letterario di Lecce",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza Sant'Oronzo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Chiesa di Santa Irene",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Via Giuseppe Palmieri",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Museo Faggiano",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  },
+  {
+   "citta": "Troina",
+   "status": 200,
+   "ms": 20066,
+   "cached": false,
+   "scala": "borgo",
+   "abitanti": 8800,
+   "conti": {
+    "proposti": 4,
+    "verificati": 4,
+    "scartati": 0
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 4,
+    "hit": 2
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 3125,
+     "usage": {
+      "prompt_tokens": 55,
+      "completion_tokens": 71,
+      "total_tokens": 126,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 52,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 15118,
+     "usage": {
+      "prompt_tokens": 833,
+      "completion_tokens": 556,
+      "total_tokens": 1389,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 313,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 18243,
+    "totale": 19153
+   },
+   "verificati": [
+    {
+     "nome": "Chiesa Madre di Maria Santissima Assunta",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Torre Capitania",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Chiesa di San Silvestro Monaco Basiliano",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza Conte Ruggero",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  }
+ ],
+ "scalaAParole": [
+  {
+   "citta": "Catania",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "città",
+   "ms": 1552,
+   "usage": {
+    "in": 120,
+    "out": 7
+   }
+  },
+  {
+   "citta": "Catania",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "città",
+   "ms": 7189,
+   "usage": {
+    "in": 119,
+    "out": 131
+   }
+  },
+  {
+   "citta": "Roma",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 2090,
+   "usage": {
+    "in": 116,
+    "out": 7
+   }
+  },
+  {
+   "citta": "Roma",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 3734,
+   "usage": {
+    "in": 115,
+    "out": 13
+   }
+  },
+  {
+   "citta": "Napoli",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 1278,
+   "usage": {
+    "in": 116,
+    "out": 7
+   }
+  },
+  {
+   "citta": "Napoli",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 2327,
+   "usage": {
+    "in": 115,
+    "out": 13
+   }
+  },
+  {
+   "citta": "Palermo",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 2503,
+   "usage": {
+    "in": 116,
+    "out": 7
+   }
+  },
+  {
+   "citta": "Palermo",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 2668,
+   "usage": {
+    "in": 115,
+    "out": 30
+   }
+  },
+  {
+   "citta": "Lecce",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "città",
+   "ms": 1350,
+   "usage": {
+    "in": 118,
+    "out": 7
+   }
+  },
+  {
+   "citta": "Lecce",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "città",
+   "ms": 2159,
+   "usage": {
+    "in": 117,
+    "out": 13
+   }
+  },
+  {
+   "citta": "Troina",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "borgo",
+   "ms": 1800,
+   "usage": {
+    "in": 118,
+    "out": 6
+   }
+  },
+  {
+   "citta": "Troina",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "borgo",
+   "ms": 3224,
+   "usage": {
+    "in": 117,
+    "out": 34
+   }
+  }
+ ],
+ "fine": "2026-10-14T11:54:15.804Z"
+}

@@ -1,0 +1,1108 @@
+{
+ "avvio": "2026-10-14T12:07:40.243Z",
+ "giorno": "2026-10-15",
+ "liste": [
+  {
+   "citta": "Catania",
+   "status": 200,
+   "ms": 46409,
+   "cached": false,
+   "scala": "città",
+   "abitanti": 298000,
+   "conti": {
+    "proposti": 15,
+    "verificati": 14,
+    "scartati": 1
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 15,
+    "hit": 3
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2320,
+     "usage": {
+      "prompt_tokens": 56,
+      "completion_tokens": 14,
+      "total_tokens": 70,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 40481,
+     "usage": {
+      "prompt_tokens": 741,
+      "completion_tokens": 1564,
+      "total_tokens": 2305,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 438,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 42801,
+    "totale": 44394
+   },
+   "verificati": [
+    {
+     "nome": "Pasticceria Savia",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Basilica Cattedrale di Sant'Agata",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Pescheria di Catania",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Scirocco",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Trattoria del Cavaliere",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Castello Ursino",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Pasticceria Privitera",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Ernesto - Gelateria Bar",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Caffè Europa",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Vermut - Salumeria, vineria, vermouth bar",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Razmataz | Wine Bar Catania",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Me Cumpari Turiddu",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Lettera 82 Risto Pub",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  },
+  {
+   "citta": "Roma",
+   "status": 200,
+   "ms": 38838,
+   "cached": false,
+   "scala": "metropoli",
+   "abitanti": 2750000,
+   "conti": {
+    "proposti": 14,
+    "verificati": 13,
+    "scartati": 1
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 14,
+    "hit": 2
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 1999,
+     "usage": {
+      "prompt_tokens": 54,
+      "completion_tokens": 15,
+      "total_tokens": 69,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 35014,
+     "usage": {
+      "prompt_tokens": 803,
+      "completion_tokens": 1545,
+      "total_tokens": 2348,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 384,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 37013,
+    "totale": 38425
+   },
+   "verificati": [
+    {
+     "nome": "Pasticceria Barberini",
+     "tipo": "da locale",
+     "quartiere": "Testaccio",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piramide di Caio Cestio",
+     "tipo": "essenziale",
+     "quartiere": "Testaccio",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Cimitero Acattolico per gli Stranieri di Roma",
+     "tipo": "essenziale",
+     "quartiere": "Testaccio",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Mercato di Testaccio",
+     "tipo": "da locale",
+     "quartiere": "Testaccio",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Flavio al Velavevodetto",
+     "tipo": "da locale",
+     "quartiere": "Testaccio",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Basilica di Santa Maria in Trastevere",
+     "tipo": "essenziale",
+     "quartiere": "Trastevere",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Villa Farnesina",
+     "tipo": "essenziale",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Freni e Frizioni",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Bar San Calisto",
+     "tipo": "da locale",
+     "quartiere": "Trastevere",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Er Baretto",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Basilica di San Pietro in Vincoli",
+     "tipo": "essenziale",
+     "quartiere": "Monti",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Ai Tre Scalini - Bottiglieria dal 1895",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Urbana 47",
+     "tipo": "da locale",
+     "quartiere": "Monti",
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  },
+  {
+   "citta": "Napoli",
+   "status": 200,
+   "ms": 41950,
+   "cached": false,
+   "scala": "metropoli",
+   "abitanti": 910000,
+   "conti": {
+    "proposti": 16,
+    "verificati": 14,
+    "scartati": 2
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 16,
+    "hit": 3
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 1895,
+     "usage": {
+      "prompt_tokens": 54,
+      "completion_tokens": 14,
+      "total_tokens": 68,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 38452,
+     "usage": {
+      "prompt_tokens": 804,
+      "completion_tokens": 1502,
+      "total_tokens": 2306,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 512,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 40347,
+    "totale": 41522
+   },
+   "verificati": [
+    {
+     "nome": "Duomo di Santa Maria Assunta",
+     "tipo": "essenziale",
+     "quartiere": "Decumani",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Museo Cappella Sansevero",
+     "tipo": "essenziale",
+     "quartiere": "Decumani",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Gino e Toto Sorbillo",
+     "tipo": "da locale",
+     "quartiere": "Decumani",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Libreria Berisio",
+     "tipo": "da locale",
+     "quartiere": "Decumani",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Basilica di Santa Maria della Sanità",
+     "tipo": "essenziale",
+     "quartiere": "Sanità",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Pasticceria Poppella",
+     "tipo": "da locale",
+     "quartiere": "Sanità",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Pizzeria Concettina ai Tre Santi",
+     "tipo": "da locale",
+     "quartiere": "Sanità",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Castel Sant'Elmo",
+     "tipo": "essenziale",
+     "quartiere": "Vomero",
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Certosa di San Martino",
+     "tipo": "essenziale",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Mercato di Antignano",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Friggitoria Vomero",
+     "tipo": "da locale",
+     "quartiere": "Vomero",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Villa Comunale di Napoli",
+     "tipo": "essenziale",
+     "quartiere": "Chiaia",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Umberto Ristorante Napoli dal 1916",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "L' Antiquario",
+     "tipo": "da locale",
+     "quartiere": "Chiaia",
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  },
+  {
+   "citta": "Palermo",
+   "status": 200,
+   "ms": 36276,
+   "cached": false,
+   "scala": "città",
+   "abitanti": 630000,
+   "conti": {
+    "proposti": 15,
+    "verificati": 15,
+    "scartati": 0
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 15,
+    "hit": 6
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 2035,
+     "usage": {
+      "prompt_tokens": 54,
+      "completion_tokens": 13,
+      "total_tokens": 67,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 0,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 30973,
+     "usage": {
+      "prompt_tokens": 728,
+      "completion_tokens": 1474,
+      "total_tokens": 2202,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 412,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 33008,
+    "totale": 35666
+   },
+   "verificati": [
+    {
+     "nome": "Pasticceria Cappello",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Bar Touring",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Cattedrale di Palermo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Palazzo dei Normanni",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Mercato del Capo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Nino 'u Ballerino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Trattoria Ai Cascinari",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Teatro Massimo di Palermo",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Villa Trabia",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Villa Giulia",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Enoteca Picone",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Botteghe Colletti",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Osteria Mercede",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Nni Franco U Vastiddaru",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Taverna azzurra",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  },
+  {
+   "citta": "Lecce",
+   "status": 200,
+   "ms": 47143,
+   "cached": false,
+   "scala": "città",
+   "abitanti": 95000,
+   "conti": {
+    "proposti": 15,
+    "verificati": 13,
+    "scartati": 2
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 15,
+    "hit": 4
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 3543,
+     "usage": {
+      "prompt_tokens": 55,
+      "completion_tokens": 56,
+      "total_tokens": 111,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 37,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 41676,
+     "usage": {
+      "prompt_tokens": 735,
+      "completion_tokens": 1254,
+      "total_tokens": 1989,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 470,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 45221,
+    "totale": 46640
+   },
+   "verificati": [
+    {
+     "nome": "Caffè Alvino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Pasticceria Franchini",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Settelacquare",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Basilica di Santa Croce",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Anfiteatro Romano di Lecce",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Osteria Da Angiulino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Le Zie Trattoria Casereccia",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Parco di Belloluogo",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Pasticceria Natale",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "00 Doppiozero",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Caffè Cittadino",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "400 Gradi Lecce",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Quanto Basta Cocktail Bar",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  },
+  {
+   "citta": "Troina",
+   "status": 200,
+   "ms": 22945,
+   "cached": false,
+   "scala": "borgo",
+   "abitanti": 8500,
+   "conti": {
+    "proposti": 4,
+    "verificati": 4,
+    "scartati": 0
+   },
+   "google": {
+    "findplace": 1,
+    "textsearch": 4,
+    "hit": 3
+   },
+   "modelli": [
+    {
+     "cosa": "abitanti",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 3183,
+     "usage": {
+      "prompt_tokens": 55,
+      "completion_tokens": 66,
+      "total_tokens": 121,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 46,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    },
+    {
+     "cosa": "lista",
+     "passaggio": "lista",
+     "chiesto": "gpt-6.1-sol",
+     "usato": "gpt-6.1-sol",
+     "ripiego": false,
+     "ms": 18223,
+     "usage": {
+      "prompt_tokens": 833,
+      "completion_tokens": 642,
+      "total_tokens": 1475,
+      "prompt_tokens_details": {
+       "cached_tokens": 0,
+       "cache_write_tokens": 0,
+       "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+       "reasoning_tokens": 388,
+       "audio_tokens": 0,
+       "accepted_prediction_tokens": 0,
+       "rejected_prediction_tokens": 0
+      }
+     }
+    }
+   ],
+   "msServer": {
+    "ai": 21406,
+    "totale": 22482
+   },
+   "verificati": [
+    {
+     "nome": "Chiesa Madre di Maria Santissima Assunta",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": true,
+     "sostituzione": null
+    },
+    {
+     "nome": "Chiesa di San Silvestro Monaco Basiliano",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza Conte Ruggero",
+     "tipo": "essenziale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    },
+    {
+     "nome": "Piazza Giacomo Matteotti",
+     "tipo": "da locale",
+     "quartiere": null,
+     "simbolo": false,
+     "sostituzione": null
+    }
+   ]
+  }
+ ],
+ "scalaAParole": [
+  {
+   "citta": "Catania",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 1195,
+   "usage": {
+    "in": 120,
+    "out": 7
+   }
+  },
+  {
+   "citta": "Catania",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "città",
+   "ms": 3123,
+   "usage": {
+    "in": 119,
+    "out": 43
+   }
+  },
+  {
+   "citta": "Roma",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 1170,
+   "usage": {
+    "in": 116,
+    "out": 7
+   }
+  },
+  {
+   "citta": "Roma",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 2714,
+   "usage": {
+    "in": 115,
+    "out": 13
+   }
+  },
+  {
+   "citta": "Napoli",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 1081,
+   "usage": {
+    "in": 116,
+    "out": 7
+   }
+  },
+  {
+   "citta": "Napoli",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 2192,
+   "usage": {
+    "in": 115,
+    "out": 13
+   }
+  },
+  {
+   "citta": "Palermo",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 1150,
+   "usage": {
+    "in": 116,
+    "out": 7
+   }
+  },
+  {
+   "citta": "Palermo",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "metropoli",
+   "ms": 3186,
+   "usage": {
+    "in": 115,
+    "out": 33
+   }
+  },
+  {
+   "citta": "Lecce",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "città",
+   "ms": 1167,
+   "usage": {
+    "in": 118,
+    "out": 7
+   }
+  },
+  {
+   "citta": "Lecce",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "città",
+   "ms": 2774,
+   "usage": {
+    "in": 117,
+    "out": 13
+   }
+  },
+  {
+   "citta": "Troina",
+   "modello": "gpt-4o-mini",
+   "usato": "gpt-4o-mini",
+   "ripiego": false,
+   "scala": "borgo",
+   "ms": 2425,
+   "usage": {
+    "in": 118,
+    "out": 6
+   }
+  },
+  {
+   "citta": "Troina",
+   "modello": "gpt-6.1-sol",
+   "usato": "gpt-6.1-sol",
+   "ripiego": false,
+   "scala": "borgo",
+   "ms": 4238,
+   "usage": {
+    "in": 117,
+    "out": 12
+   }
+  }
+ ],
+ "fine": "2026-10-14T12:12:01.145Z"
+}

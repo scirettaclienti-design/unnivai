@@ -59,6 +59,11 @@
     "fusoOffset": "+02:00",
     "tettoUsd": 7.0,
     "tettoGenerazioniUsd": 5.2,
+    "stimaCaso": {
+      "_nota": "C10b — la stima del costo di un caso PRIMA di lanciarlo (listino di prezziUsd, senza foto): un tour con la lista gia' fatta, e la lista nuova di una citta' (il primo tour del giorno). Valori dal giro C10 del 16/10: tour 0,15–0,19 $, lista 15 nomi 0,55 $; una metropoli arriva a 20 nomi.",
+      "tourUsd": 0.2,
+      "listaNuovaUsd": 0.75
+    },
     "_tetti": "le generazioni (token + Google contati, senza foto: lo script non le carica) si fermano a tettoGenerazioniUsd; il resto fino a tettoUsd e' per gli orari (place/details) pagati al listino di prezziUsd",
     "fasce": {
       "pranzo": [

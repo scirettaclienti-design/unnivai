@@ -121,6 +121,10 @@ globalThis.fetch = vi.fn(async (url, init) => {
     return res;
 });
 
+// C10b — le citta' che hanno gia' la lista in questo giro (il primo tour la paga) e il tetto superato.
+const cittaGiaListate = new Set();
+let oltreTetto = false;
+
 // Costo corrente (token + Google contati; le foto le carica il browser, non lo script).
 const P = config.prezziUsd;
 const costoOra = () => (cont.tokenIn * P.openaiInputPerMilione + cont.tokenOut * P.openaiOutputPerMilione) / 1e6
@@ -231,11 +235,22 @@ for (const caso of casi) {
         out.casi.push(rec);
         // Con la ricerca nuova non c'e' la fase dei dettagli per gli orari: le generazioni possono usare tutto il tetto.
         const tettoGen = MOTORE === 'new' ? (Number(process.env.BANCO_TETTO) || E.tettoUsd) : E.tettoGenerazioniUsd;
-        if (costoOra() >= tettoGen) { rec.saltato = `tetto di spesa delle generazioni raggiunto ($${costoOra().toFixed(2)})`; save(); return; }
+        // C10b — PRIMA di lanciare: la stima del caso (un tour, piu' la lista nuova se e' il primo tour della citta' in questo
+        // giro) deve stare nel tetto restante; DOPO: se la spesa vera ha passato il tetto, i casi seguenti non partono.
+        const listaNuova = caso.modo !== 'perte' && !cittaGiaListate.has(caso.luogo.toLowerCase());
+        const stima = (E.stimaCaso?.tourUsd ?? 0.2) + (listaNuova ? (E.stimaCaso?.listaNuovaUsd ?? 0.75) : 0);
+        rec.stimaUsd = Math.round(stima * 1000) / 1000;
+        if (oltreTetto) { rec.saltato = `tetto superato da un caso precedente ($${costoOra().toFixed(3)} > $${tettoGen})`; save(); return; }
+        if (costoOra() + stima > tettoGen) {
+            rec.saltato = `stima oltre il tetto restante: $${stima.toFixed(3)} > $${(tettoGen - costoOra()).toFixed(3)} (spesi $${costoOra().toFixed(3)} su $${tettoGen})`;
+            save(); return;
+        }
+        cittaGiaListate.add(caso.luogo.toLowerCase());
         // Ogni caso parte a cache vuota: le chiamate Google sono quelle di UNA generazione. La sessione (sb-*) resta.
         for (const k of Object.keys(window.localStorage)) if (!k.startsWith('sb-')) window.localStorage.removeItem(k);
         vistiCaso = new Set();
         const c0 = { ...cont, google: { ...cont.google } };
+        const costo0 = costoOra();
         const delta = () => ({
             ai: { chiamate: cont.ai - c0.ai, tokenIn: cont.tokenIn - c0.tokenIn, tokenOut: cont.tokenOut - c0.tokenOut },
             google: Object.fromEntries(Object.entries(cont.google).map(([k, v]) => [k, v - (c0.google[k] || 0)]).filter(([, v]) => v > 0)),
@@ -320,7 +335,7 @@ for (const caso of casi) {
                 const sezioni = (r.days || []).flatMap(d => groupStopsByDayAndMoment(d.stops || []).flatMap(g => g.groups))
                     .filter(g => g.moment).map(g => ({ etichetta: g.moment.label, ora: g.items[0]?.timeLabel ?? null }));
                 rec.schermo = { giorni: (r.days || []).map(d => ({ titolo: d.title || null, meteo: d.weather ?? null })), sezioni,
-                    note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote)].filter(Boolean) };
+                    note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote), ...(r.days || []).map(d => d.scalaNote)].filter(Boolean) };
                 const per = new Map((r._narrationReport?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
                 const comp = new Map((r._narrationReport?.composizione || []).map(x => [x.place_id, x]));
                 const riempite = new Set((r._momentReport?.riempite || []).map(x => x.place_id));
@@ -331,6 +346,9 @@ for (const caso of casi) {
             rec.errore = e?.code || e?.message || String(e);
         } finally {
             Object.assign(rec, delta());
+            // C10b — il controllo dopo: la spesa vera del caso e il tetto
+            rec.spesaUsd = Math.round((costoOra() - costo0) * 1000) / 1000;
+            if (costoOra() > tettoGen) { oltreTetto = true; rec.oltreTetto = `dopo questo caso $${costoOra().toFixed(3)} > tetto $${tettoGen}`; }
             // MIG-PLACES — candidati visti dalle ricerche del caso, e quanti con orari settimanali
             rec.candidatiVisti = vistiCaso.size;
             rec.candidatiConOrari = [...vistiCaso].filter(id => luoghi.get(id)?.periods).length;

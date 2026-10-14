@@ -629,6 +629,10 @@ export default function AIItineraryPage() {
                                                     {day.dietNote && (
                                                         <p data-diet-note className="text-obsidian-secondary text-[11px] mt-1">{day.dietNote}</p>
                                                     )}
+                                                    {/* C10b — un borgo che si gira in mezza giornata (riga approvata) */}
+                                                    {day.scalaNote && (
+                                                        <p data-scala-note className="text-obsidian-secondary text-[11px] mt-1">{day.scalaNote}</p>
+                                                    )}
                                                 </div>
                                                 <button
                                                     type="button"

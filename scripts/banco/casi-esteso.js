@@ -69,6 +69,9 @@ export const CASI_ESTESI = [
             giorno: '2026-10-14', profilo: 'B', dna: { food: 0.9, relax: 0.7, _share: 0.45 } },
     ]),
     ...['Napoli', 'Palermo', 'Lecce', 'Troina'].map(l => ({ ...crea(`c10-${l.toLowerCase()}`, l, '22:19', `Domani una giornata a ${l}`, { duration: '1 Giorno' }), giorno: '2026-10-14' })),
+    // C10b — il quartiere nominato in una metropoli, e il borgo in mezza giornata (posizione a Roma e a Troina)
+    { ...crea('c10b-trastevere', 'Roma', '22:19', 'Domani una giornata a Trastevere', { duration: '1 Giorno' }), giorno: '2026-10-14' },
+    { ...crea('c10b-troina-mezza', 'Troina', '22:19', 'Domani mezza giornata a Troina', { duration: 'Mezza Giornata' }), giorno: '2026-10-14' },
 
     // ── Percorso Veloce (9) — ritmo e umore come QuickPath.jsx (buildQuickPrefs) ──
     veloce('veloce-catania-relax-2125', 'Catania', '21:25', 'relax', 'Veloce'),

@@ -383,7 +383,7 @@ import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
 // C10 — la lista della città: l'AI propone (sul server, una per città e giorno), Google verifica, le regole compongono.
 import { fetchCityKnowledge } from './cityKnowledgeService';
-import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa } from '../lib/cityKnowledge';
+import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scalaConfermata, scegliQuartiere, dentroArea, delQuartiere, rigaBorgo, BORGO_MIN_VERIFICATI, MEZZA_GIORNATA_MINUTI } from '../lib/cityKnowledge';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
@@ -1112,14 +1112,17 @@ const THEME_FOOD_QUERY = 'trattoria ristorante pizzeria osteria';
 // "italian_restaurant", "vegetarian_restaurant"); altrimenti null, mai dedotto.
 const cuisineOf = (c) => (Array.isArray(c?.types) ? c.types : [])
     .find(t => /_restaurant$/.test(t) && t !== 'fast_food_restaurant')?.replace(/_restaurant$/, '') || null;
-const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null, foodAnchor = null, anchor = null, tipico = false }) => {
+const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null, foodAnchor = null, anchor = null, tipico = false, area = null }) => {
     const { placesDiscoveryService, FOOD_QUERY_COLAZIONE } = await import('./placesDiscoveryService');
     const dieta = foodPrefs?.dieta || [];
     const at = (t) => {
         const a = anchor || (t === 'food' ? foodAnchor : null);
+        // C10b — in una metropoli, senza una tappa da cui partire, si cerca nel quartiere della giornata (non dal centro città).
         return a
             ? { lat: a.latitude, lng: a.longitude, bias: { radiusMeters: MAX_WALK_METERS } }
-            : { lat: cityCenter.latitude, lng: cityCenter.longitude, bias: {} };
+            : area
+                ? { lat: area.centro.latitude, lng: area.centro.longitude, bias: { radiusMeters: Math.round(area.raggioKm * 1000) } }
+                : { lat: cityCenter.latitude, lng: cityCenter.longitude, bias: {} };
     };
     const settled = await Promise.allSettled(themes.map(t => (t === 'colazione'
         // C8c — la colazione chiesta: caffetterie, pasticcerie, forni (la query di Per Te prima delle 11:00)
@@ -1147,6 +1150,8 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
             return true;
         });
     extra = applyRadiusFilter(extra, cityCenter, city, { requireCenter: true });
+    // C10b — la giornata di una metropoli resta nel suo quartiere
+    if (area) extra = extra.filter(c => dentroArea(c, area));
     if (categoria) extra = extra.filter(c => candidateMatchesIntentCategoria(c, categoria) || isMealPlace(c));
     if (foodPrefs) extra = applyFoodConstraints(extra, foodPrefs, isMealPlace).candidates;
     // C7 — le ESPERIENZE di mattina e pomeriggio (tema cibo) non sono ristoranti: un posto dove ci si
@@ -2404,13 +2409,55 @@ export const aiRecommendationService = {
             // filtri di tutti (zone, raggio, categoria, dieta e budget, cucine estere col tema tipico).
             const lista = await cittaPromise;
             const { buildPOIFromCandidate } = await import('./placesDiscoveryService');
-            const poiCitta = poiDallaLista(lista.verificati, city, buildPOIFromCandidate);
+            let poiCitta = poiDallaLista(lista.verificati, city, buildPOIFromCandidate);
             Object.assign(cittaReport, {
                 stato: lista.stato, cached: lista.cached ?? null, conti: lista.conti ?? null, errore: lista.errore ?? null,
                 attesaMs: Date.now() - cittaT0, risposta: lista.ms ?? null, costo: lista.costo ?? null,
-                verificati: poiCitta.map(p => ({ place_id: p.place_id, nome: p.name, tipo: p._citta.tipo, momento: p._citta.momento })),
+                verificati: poiCitta.map(p => ({ place_id: p.place_id, nome: p.name, tipo: p._citta.tipo, momento: p._citta.momento,
+                    ...(p._citta.quartiere ? { quartiere: p._citta.quartiere } : {}), ...(p._citta.simbolo ? { simbolo: true } : {}) })),
             });
-            const rawCandidatesTutti = uniscialPool(rawDalleRicerche, poiCitta);
+            // C10b — TRE SCALE (decisione di Ivano): l'AI propone, il motore conferma col diametro della lista.
+            //   borgo con meno di 4 verificati → mezza giornata, con la riga approvata; metropoli → la giornata in un quartiere.
+            let area = null;
+            let scalaNote = null;
+            if (poiCitta.length > 0) {
+                const conferma = scalaConfermata({ proposta: lista.scala ?? null, poi: poiCitta });
+                cittaReport.scala = conferma;
+                cittaReport.simboli = poiCitta.filter(p => p._citta.simbolo)
+                    .map(p => ({ nome: p.name, ...(p._citta.quartiere ? { quartiere: p._citta.quartiere } : {}), ...(p._citta.simboloDedotto ? { dedotto: true } : {}) }));
+                const w0 = tourWindow.windows[0];
+                const minuti0 = w0 ? (w0.end.getTime() - w0.start.getTime()) / 60000 : 0;
+                if (conferma.scala === 'borgo' && poiCitta.length < BORGO_MIN_VERIFICATI && tourWindow.windows.length === 1 && minuti0 > MEZZA_GIORNATA_MINUTI) {
+                    w0.end = new Date(w0.start.getTime() + MEZZA_GIORNATA_MINUTI * 60000);
+                    tourWindow.end = w0.end;
+                    scalaNote = rigaBorgo(city);
+                    cittaReport.mezzaGiornata = { verificati: poiCitta.length, minimo: BORGO_MIN_VERIFICATI, riga: scalaNote, fine: w0.end.toISOString() };
+                    console.info(`[C10b SCALA] ${city}: borgo con ${poiCitta.length} posti verificati (< ${BORGO_MIN_VERIFICATI}) → mezza giornata`);
+                }
+                if (conferma.scala === 'metropoli' && tourWindow.windows.length === 1) {
+                    const sq = scegliQuartiere({
+                        poi: poiCitta, testo: opts.pathType === 'custom' ? userPrompt : '',
+                        partenza: opts.startPoint || cityCenter, finestre: tourWindow.windows,
+                    });
+                    if (sq.quartiere) {
+                        area = { nome: sq.quartiere.nome, centro: sq.quartiere.centro, raggioKm: sq.quartiere.raggioKm };
+                        const fuori = poiCitta.filter(p => !dentroArea(p, area));
+                        // le ancore (e il simbolo) sono quelle del quartiere scelto: un essenziale di un quartiere vicino che cade
+                        // nel raggio resta un posto della lista, senza priorita' di ancora
+                        poiCitta = poiCitta.filter(p => dentroArea(p, area)).map(p => (p._citta.tipo === 'essenziale' && !delQuartiere(p, sq.quartiere)
+                            ? { ...p, _citta: { tipo: 'da locale', momento: p._citta.momento, quartiere: p._citta.quartiere, eraEssenziale: true } } : p));
+                        cittaReport.quartiere = { nome: area.nome, motivo: sq.motivo, centro: area.centro, raggioKm: area.raggioKm, classifica: sq.classifica,
+                            listaFuori: fuori.map(p => p.name) };
+                        console.info(`[C10b QUARTIERE] ${city}: giornata a ${area.nome} (${sq.motivo}), raggio ${area.raggioKm} km`);
+                    }
+                }
+                console.info(`[C10b SCALA] ${city}: proposta ${conferma.proposta ?? '-'} → ${conferma.scala} (${conferma.motivo})`);
+            }
+            const rawCandidatesTutti = uniscialPool(rawDalleRicerche, poiCitta).filter(c => {
+                if (dentroArea(c, area)) return true;
+                (cittaReport.quartiere.fuoriArea ??= []).push(c.name || c.title || '?');
+                return false;
+            });
 
             // C7 — NIENTE ZONE: un'area generica ("Centro Storico Catania") non e' mai una tappa. La
             // ricerca le scarta gia' (placesDiscoveryService); qui la seconda rete, sul pool intero.
@@ -2671,7 +2718,7 @@ export const aiRecommendationService = {
                         // C8a — la sera del Veloce ha drink, passeggiata e cena qualunque sia l'umore: la categoria dell'intento non la restringe.
                         categoria: catStretta && !seraleVeloce ? intent.categoria : null,
                         foodPrefs: foodOn ? food : null,
-                        foodAnchor, tipico: tema.tipico,
+                        foodAnchor, tipico: tema.tipico, area,
                     });
                     candidates = [...candidates, ...extra];
                     mealOnlyIds = addMealOnly(extra);
@@ -2835,7 +2882,7 @@ export const aiRecommendationService = {
                                     dnaWeights: opts.dnaWeights || {},
                                     categoria: catStretta && !seraleVeloce ? intent.categoria : null,
                                     foodPrefs: foodOn ? food : null,
-                                    anchor: target.da, tipico: tema.tipico,
+                                    anchor: target.da, tipico: tema.tipico, area,
                                 });
                                 ricercheDopo.push({ momento: target.momento, tema: theme, da: target.da.name, trovati: found.length });
                                 console.info(`[C1b RICERCA MIRATA] ${city}: ${target.momento} da "${target.da.name}" (${theme}) → ${found.length} candidati`);
@@ -3121,6 +3168,20 @@ export const aiRecommendationService = {
                         const vincoliCibo = { ...food, tappePasto, dietNote };
                         if (foodOn) console.info(`[P7b VINCOLI] ${city}: dieta=${food.dieta.join('+') || '-'} (${food.dietaFonte || '-'}), budget=${food.budget || '-'} (${food.budgetFonte || '-'}), stile=${food.stile || '-'} | pasti: ${tappePasto.map(x => `${x.title} [pl=${x.price_level ?? '?'}, ${x.criterio || 'senza criterio'}]`).join(' | ') || 'nessuno'}`);
                         if (dietNote) for (const d of narratedDays) d.dietNote = dietNote;
+                        // C10b — il borgo che si gira in mezza giornata: la riga approvata, sul giorno
+                        if (scalaNote && narratedDays[0]) narratedDays[0].scalaNote = scalaNote;
+                        // C10b — l'esito di ogni ancora seminata: nel giro, o tolta da una regola dura scritta qui
+                        if (Array.isArray(cittaReport.seminate)) {
+                            const finali = new Set(allStops.map(st => st.place_id));
+                            cittaReport.ancoreEsito = cittaReport.seminate.map(a => {
+                                if (finali.has(a.place_id)) return { nome: a.nome, nelGiro: true };
+                                const tolta = (momentReport?.ancoreTolte || []).find(x => x.place_id === a.place_id);
+                                const vietata = (orariInfo?.vietati || []).some(x => (x.place_id || []).includes(a.place_id));
+                                const fuori = (momentReport?.tolte || []).find(x => x.place_id === a.place_id);
+                                return { nome: a.nome, nelGiro: false, motivo: tolta?.motivo
+                                    || (vietata ? 'regola dura: orari (chiuso quando ci si arriva)' : fuori ? `regola dura: orari (${fuori.motivo})` : 'non nel giro: motivo non registrato') };
+                            });
+                        }
                         const result = {
                             days: narratedDays, _source: 'google-first', _singleStop: singleStop,
                             ...(foodOn ? { _vincoliCibo: vincoliCibo } : {}),

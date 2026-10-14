@@ -38,6 +38,8 @@ export const ESSENZIALI_CONTROLLO = {
 export const BORGHI = new Set(['Troina']);
 export const SOGLIE_C10 = {
     ancoreMin: 3, visiteDallaListaMin: 0.5, borgoDallaListaMin: 2, tempoLiberoMax: 45, giornataMinuti: 360,
+    // C10b — metropoli (decisione di Ivano): almeno 2 ancore del quartiere scelto e metà delle visite dalla lista
+    ancoreQuartiereMin: 2,
     diverseMin: 0.5, invenzioniMax: 0.2, costoPrimoMax: 0.60, costoAltriMax: 0.20, tempoPeggioreMaxSec: 5,
 };
 
@@ -49,15 +51,34 @@ const intera = (c) => {
 };
 const visite = (c) => vere(c).filter(s => ['mattina', 'pomeriggio'].includes(s.moment) && !s.pasto && !s.passeggiata);
 
-/** Conosce la città: almeno 3 essenziali della lista di controllo nel tour e almeno metà delle visite dalla lista verificata (borgo: almeno 2 posti della lista verificata). */
+/**
+ * Conosce la città: almeno 3 essenziali della lista di controllo nel tour e almeno metà delle visite dalla lista verificata
+ * (borgo: almeno 2 posti della lista verificata, anche in mezza giornata: C10b, un borgo con pochi posti si gira in mezza
+ * giornata). C10b — metropoli: almeno 2 ancore del quartiere scelto (gli essenziali verificati di quel quartiere) e metà
+ * delle visite dalla lista.
+ */
 export function conosceCitta(c) {
-    if (!intera(c)) return { applicabile: false };
+    const scala = c.citta?.scala?.scala || null;
+    const borgo = scala === 'borgo' || (!scala && BORGHI.has(c.luogo));
+    if (!intera(c) && !borgo) return { applicabile: false };
     const lista = ESSENZIALI_CONTROLLO[c.luogo] || null;
     const ids = new Set((c.citta?.verificati || []).map(x => x.place_id));
     const dallaLista = vere(c).filter(s => ids.has(s.place_id));
     const vis = visite(c);
     const visDallaLista = vis.filter(s => ids.has(s.place_id));
-    if (BORGHI.has(c.luogo)) {
+    if (scala === 'metropoli' && c.citta?.quartiere?.nome) {
+        const q = String(c.citta.quartiere.nome).toLowerCase();
+        const ancoreQ = new Set((c.citta.verificati || []).filter(x => x.tipo === 'essenziale' && String(x.quartiere || '').toLowerCase() === q).map(x => x.place_id));
+        const nelTour = vere(c).filter(s => ancoreQ.has(s.place_id)).map(s => s.title);
+        const quota = vis.length ? visDallaLista.length / vis.length : 0;
+        const essenziali = lista ? lista.filter(([, rx]) => vere(c).some(s => rx.test(s.title || ''))).map(([n]) => n) : [];
+        return {
+            applicabile: true, borgo: false, metropoli: true, quartiere: c.citta.quartiere.nome, ancoreQuartiere: nelTour, essenziali,
+            visite: vis.length, visiteDallaLista: visDallaLista.length, quota,
+            ok: nelTour.length >= SOGLIE_C10.ancoreQuartiereMin && quota >= SOGLIE_C10.visiteDallaListaMin,
+        };
+    }
+    if (borgo) {
         const essenziali = lista ? lista.filter(([, rx]) => vere(c).some(s => rx.test(s.title || ''))).map(([n]) => n) : [];
         return { applicabile: true, borgo: true, essenziali, dallaLista: dallaLista.map(s => s.title), ok: dallaLista.length >= SOGLIE_C10.borgoDallaListaMin };
     }

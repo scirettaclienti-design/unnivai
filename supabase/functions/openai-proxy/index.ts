@@ -45,7 +45,9 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import {
-  CITY_LIST_VERSION, normCitta, cittaValida, giornoValido, promptCitta, leggiLista, verificaPosto, voceVerificata, raggioCittaKm,
+  CITY_LIST_VERSION, normCitta, cittaValida, giornoValido, promptCitta, leggiLista, verificaPosto, voceVerificata,
+  promptScala, leggiAbitanti, scalaDaAbitanti, type Scala,
+  provinciaDa, queryVerifica, raggioVerificaKm,
 } from './cityKnowledge.ts';
 
 const OPENAI_BASE = 'https://api.openai.com/v1';
@@ -220,7 +222,7 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
   const chiave = normCitta(citta);
   const leggi = async () => {
-    const { data } = await sb.from('city_knowledge').select('citta_nome, giorno, versione, centro, verificati, proposti, scartati, created_at')
+    const { data } = await sb.from('city_knowledge').select('citta_nome, giorno, versione, scala, centro, verificati, proposti, scartati, created_at')
       .eq('citta', chiave).eq('giorno', giorno).eq('versione', CITY_LIST_VERSION).maybeSingle();
     return data;
   };
@@ -228,6 +230,8 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   const risposta = (row: any, extra: Record<string, unknown>) => json(200, {
     cityKnowledge: {
       citta: row.citta_nome, giorno: row.giorno, versione: row.versione, centro: row.centro,
+      // C10b — la scala PROPOSTA dall'AI; il motore la conferma con le distanze fra i verificati
+      scala: row.scala ?? null,
       verificati: row.verificati,
       conti: { proposti: (row.proposti || []).length, verificati: (row.verificati || []).length, scartati: (row.scartati || []).length },
       ...extra,
@@ -253,56 +257,73 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   }
 
   const t0 = Date.now();
-  const { system, user } = promptCitta(citta, giorno);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), CITY_LIST_TIMEOUT_MS);
   // deno-lint-ignore no-explicit-any
-  let ai: any;
-  try {
+  const chiama = async (messages: any[], max_tokens: number, temperature: number): Promise<any> => {
     const upstream = await fetch(`${OPENAI_BASE}/chat/completions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini', temperature: 0.2, max_tokens: 2500, response_format: { type: 'json_object' },
-        messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
-      }),
+      body: JSON.stringify({ model: 'gpt-4o-mini', temperature, max_tokens, response_format: { type: 'json_object' }, messages }),
       signal: controller.signal,
     });
-    ai = await upstream.json().catch(() => null);
-    if (!upstream.ok) {
-      console.error(`[openai-proxy] lista città: OpenAI status=${upstream.status} code=${plain(ai?.error?.code)}`);
-      return json(502, { error: MSG_ENGINE_DOWN, code: 'OPENAI_ERROR', source: 'openai' });
-    }
+    const body = await upstream.json().catch(() => null);
+    if (!upstream.ok) throw new Error(`OpenAI status=${upstream.status} code=${plain(body?.error?.code)}`);
+    return body;
+  };
+  // deno-lint-ignore no-explicit-any
+  let ai: any;
+  // C10b — 1) la scala proposta: l'AI dice gli abitanti, il codice applica la regola (scalaDaAbitanti);
+  //        2) la lista, col prompt scritto per quella scala.
+  let abitanti: number | null = null;
+  let scala: Scala = 'città';
+  // deno-lint-ignore no-explicit-any
+  let usageScala: any = null;
+  try {
+    const ps = promptScala(citta);
+    const r = await chiama([{ role: 'system', content: ps.system }, { role: 'user', content: ps.user }], 60, 0);
+    abitanti = leggiAbitanti(r?.choices?.[0]?.message?.content);
+    scala = scalaDaAbitanti(abitanti);
+    usageScala = r?.usage ?? null;
+    const { system, user } = promptCitta(citta, giorno, scala);
+    ai = await chiama([{ role: 'system', content: system }, { role: 'user', content: user }], 3500, 0.2);
   } catch (err) {
-    console.error('[openai-proxy] lista città: OpenAI non risponde:', scrubLogText(err));
+    console.error('[openai-proxy] lista città: OpenAI non risponde o rifiuta:', scrubLogText(err));
     return json(502, { error: MSG_ENGINE_DOWN, code: 'OPENAI_ERROR', source: 'openai' });
   } finally {
     clearTimeout(timer);
   }
   const tAi = Date.now() - t0;
-  const proposti = leggiLista(ai?.choices?.[0]?.message?.content, citta);
-  const usage = ai?.usage ?? null;
+  // la scala decide quanti posti si leggono e come si verificano (un borgo: «nome, comune, provincia»)
+  const proposti = leggiLista(ai?.choices?.[0]?.message?.content, citta, scala);
+  const usage = ai?.usage
+    ? { prompt_tokens: (ai.usage.prompt_tokens || 0) + (usageScala?.prompt_tokens || 0), completion_tokens: (ai.usage.completion_tokens || 0) + (usageScala?.completion_tokens || 0) }
+    : null;
 
   // Il centro della città: la stessa ricerca del client (resolveCityCenter), dalla cache condivisa del proxy.
   const google = { findplace: 0, textsearch: 0, hit: 0 };
   let centro: { lat: number; lng: number } | null = null;
+  let provincia: string | null = null;
   try {
-    const c = await placesCall({ path: 'place/findplacefromtext', input: `${citta}, Italia`, inputtype: 'textquery', fields: 'name,geometry,types' });
+    const c = await placesCall({ path: 'place/findplacefromtext', input: `${citta}, Italia`, inputtype: 'textquery', fields: 'name,geometry,types,formatted_address' });
     google.findplace += 1; if (c.hit) google.hit += 1;
     const loc = c.body?.candidates?.[0]?.geometry?.location;
     if (Number.isFinite(loc?.lat) && Number.isFinite(loc?.lng)) centro = { lat: loc.lat, lng: loc.lng };
+    provincia = provinciaDa(c.body?.candidates?.[0]?.formatted_address);
   } catch { /* senza centro ogni posto resta «senza coordinate»: la lista esce vuota, non sbagliata */ }
-  const raggio = raggioCittaKm(citta);
+  const raggio = raggioVerificaKm(citta, scala);
+  // un borgo: mai un posto fuori comune (indirizzo nel comune, oltre al raggio)
+  const comune = scala === 'borgo' ? citta : null;
 
   // Ogni nome, in parallelo: «nome, città», bias sul centro con il raggio massimo del motore.
   const esiti = await Promise.all(proposti.map(async (p) => {
     try {
       const r = await placesCall({
-        path: 'place/textsearch', query: `${p.nome}, ${citta}`,
+        path: 'place/textsearch', query: queryVerifica(p, citta, scala, provincia),
         ...(centro ? { location: `${centro.lat},${centro.lng}`, radius: String(raggio * 1000) } : {}),
       });
       google.textsearch += 1; if (r.hit) google.hit += 1;
-      return { p, v: verificaPosto(p, r.body?.results, centro, raggio) };
+      return { p, v: verificaPosto(p, r.body?.results, centro, raggio, { comune }) };
     } catch (err) {
       return { p, v: { ok: false as const, motivo: `ricerca fallita (${scrubLogText(err).slice(0, 40)})` } };
     }
@@ -323,7 +344,7 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   }
 
   const row = {
-    citta: chiave, giorno, versione: CITY_LIST_VERSION, citta_nome: citta, centro,
+    citta: chiave, giorno, versione: CITY_LIST_VERSION, citta_nome: citta, scala, centro: centro ? { ...centro, provincia, raggioKm: raggio, abitanti } : null,
     proposti, verificati, scartati,
     costo: { usage, google, ms: { ai: tAi, totale: Date.now() - t0 } },
   };

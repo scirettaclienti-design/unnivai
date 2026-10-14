@@ -274,6 +274,8 @@ export const MOMENT_CATEGORY_TO_THEME = {
 export const BONUS_ANCORA = 1;
 export const BONUS_DA_LOCALE = 0.2;
 export const bonusLista = (c) => (c?._citta?.ancora ? BONUS_ANCORA : (c?._citta ? BONUS_DA_LOCALE : 0));
+// C10b — un'ancora della lista (essenziale seminato): resta nel giro salvo una regola dura.
+export const isAncora = (c) => !!c?._citta?.ancora;
 
 /** BANCO-POOL — quanti candidati per momento finiscono nel tracciato. */
 export const POOL_MAX = 15;
@@ -580,7 +582,7 @@ function repairPass({
     searchedIds = null, searchedMoments = null, startPoint = null, registraPool = true,
     tempoLiberoMinuti = null,
 }, targets, starts) {
-    const report = { scartate: [], riempite: [], momentiTolti: [], facoltativiSenzaPosto: [], facoltativiVuoti: [], ripieghi: [], lontani: [], ripetuti: [], ritocchi: [], tempoLibero: [] };
+    const report = { scartate: [], riempite: [], momentiTolti: [], facoltativiSenzaPosto: [], facoltativiVuoti: [], ripieghi: [], lontani: [], ripetuti: [], ritocchi: [], tempoLibero: [], ancoreTolte: [] };
     // BANCO-POOL — le scelte del modello cosi' come sono arrivate, e (sotto) la
     // classifica che il codice ha calcolato a ogni posto. Solo registrazione:
     // niente di qui entra nelle decisioni.
@@ -850,26 +852,41 @@ function repairPass({
         };
         // C1 — una scelta del modello vale se nessuna alternativa del momento
         // costa meno (vedi costOf): il tetto e la varieta' valgono anche per lui.
+        // C10b — un'ANCORA della lista resta: la toglie solo una regola dura. Orari e pasti stanno gia' nei bucket (un posto
+        // chiuso o fuori dal suo momento non c'e'); qui resta il tetto di cammino. Varieta', strada, deviazione e le altre
+        // preferenze di forma non la tolgono piu' (prima: «pari: lo scelto viene prima», Teatro Massimo Bellini).
         const modelWins = (c) => {
             const all = ranked();
             const mine = all.find(x => idOf(x.c) === idOf(c));
             const alt = all.find(x => idOf(x.c) !== idOf(c)) || null;
+            if (isAncora(c)) return { ok: !mine.hard, mine, alt };
             return { ok: !alt || cmpKey(mine.key, alt.key) <= 0, mine, alt };
         };
         const reject = (s, motivo) => report.scartate.push({ place_id: s.place_id, momento: m.id, motivo });
+        // C10b — un'ancora tolta dice la regola dura che l'ha tolta.
+        const rejectAncora = (s, c, motivo) => {
+            reject(s, motivo);
+            report.ancoreTolte.push({ place_id: s.place_id, nome: c?.name || c?.title || null, momento: m.id, motivo });
+        };
 
         for (const s of byMoment.get(m.id)) {
             const c = inBucket.get(s.place_id);
-            if (chosen.length >= m.stops) { reject(s, 'oltre il numero di tappe'); continue; }
+            // C10b — per un'ancora ogni scarto e' scritto anche fra le ancore tolte, con la sua regola.
+            const no = (motivo) => (isAncora(c) ? rejectAncora(s, c, motivo) : reject(s, motivo));
+            if (chosen.length >= m.stops) { no('oltre il numero di tappe'); continue; }
             if (!poolIds.has(s.place_id)) { reject(s, 'luogo non fra i candidati'); continue; }
             if (!c) { reject(s, 'fuori dal suo momento'); continue; }
             if (used.has(s.place_id)) { reject(s, 'gia\' usato'); continue; }
-            if (colazioneInCorso() && !isBreakfastPlace(c)) { reject(s, 'colazione chiesta: la prima tappa e\' un posto da colazione'); continue; }
-            if (dopoColazione() && isLocale(c)) { reject(s, 'dopo la colazione niente altro cibo fino al pranzo'); continue; }
-            if (leggeraInCorso() && !isLightStop(c)) { reject(s, 'vuoto lungo con ritmo Rilassato: una tappa leggera'); continue; }
-            if (freeSlot()) { reject(s, `nessun posto entro ${tempoLiberoMinuti} min dalla tappa prima: tempo libero`); continue; }
+            if (colazioneInCorso() && !isBreakfastPlace(c)) { no('colazione chiesta: la prima tappa e\' un posto da colazione'); continue; }
+            if (dopoColazione() && isLocale(c)) { no('dopo la colazione niente altro cibo fino al pranzo'); continue; }
+            if (leggeraInCorso() && !isLightStop(c)) { no('vuoto lungo con ritmo Rilassato: una tappa leggera'); continue; }
+            if (freeSlot()) { no(`nessun posto entro ${tempoLiberoMinuti} min dalla tappa prima: tempo libero`); continue; }
             const { ok, mine, alt } = modelWins(c);
-            if (!ok) { reject(s, whyWorse(mine.key, c, mine.t, alt.key)); continue; }
+            if (!ok) {
+                if (isAncora(c)) rejectAncora(s, c, `regola dura: ${whyWorse(mine.key, c, mine.t, mine.key.map(() => 0))}`);
+                else reject(s, whyWorse(mine.key, c, mine.t, alt.key));
+                continue;
+            }
             if ((m.opzionale || leggeraInCorso()) && !fitsOptional(mine)) { reject(s, 'passeggiata: oltre il tetto di cammino, fuori strada o famiglia gia\' nel giorno'); continue; }
             // Gate NARRATORE-DOPO — il selettore non scrive testi: una tappa
             // vale per il suo luogo e il suo momento. Il racconto arriva dopo,
@@ -1117,7 +1134,12 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
             const entries = idx.map(i => out[i]);
             let best = null;
             let bestM = measure(entries);
+            const base = bestM;
             entries.forEach((e, ei) => e.stops.forEach((s, si) => {
+                // C10b — un'ANCORA non si cambia per strada, deviazioni, incroci o varieta' (prima: Piazza Navona e il Duomo di
+                // Napoli scelti e poi tolti qui). Solo la regola dura del cammino la toglie: lo scambio deve togliere un tratto
+                // oltre il tetto.
+                const ancora = isAncora(s.candidate);
                 for (const c of buckets.get(e.moment.id) || []) {
                     if (used.has(idOf(c))) continue;
                     // Fuori dai pasti un posto dove si mangia entra solo al
@@ -1127,12 +1149,17 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
                     const stops = e.stops.map((x, k) => (k === si ? { ...x, candidate: c } : x));
                     const trial = entries.map((x, k) => (k === ei ? { ...x, stops } : x));
                     const t = measure(trial);
+                    if (ancora && !(t.oltre < base.oltre)) continue;
                     if (better(t, bestM)) { best = { ei, si, c }; bestM = t; }
                 }
             }));
             if (!best) break;
             const e = out[idx[best.ei]];
             const old = e.stops[best.si];
+            if (isAncora(old.candidate)) {
+                report.ancoreTolte = [...(report.ancoreTolte || []), { place_id: idOf(old.candidate), nome: old.candidate.name || old.candidate.title || null,
+                    momento: e.moment.id, motivo: `regola dura: un tratto oltre il tetto di cammino (${maxWalk} min) tolto con "${best.c.name || best.c.title || idOf(best.c)}"` }];
+            }
             used.delete(idOf(old.candidate));
             used.add(idOf(best.c));
             // La tappa tolta porta via il SUO ripiego, e solo il suo (C5b: prima

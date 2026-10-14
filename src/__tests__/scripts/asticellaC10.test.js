@@ -75,3 +75,31 @@ describe('C10 — le voci nuove su un giro buono: verdi', () => {
         expect(ESSENZIALI_CONTROLLO.Troina.length).toBe(3);
     });
 });
+
+describe('C10b — conosce la città in una metropoli e in un borgo', () => {
+    const verificati = [
+        { place_id: 'p-Santa Maria in Trastevere', tipo: 'essenziale', quartiere: 'Trastevere' },
+        { place_id: 'p-Villa Farnesina', tipo: 'essenziale', quartiere: 'Trastevere' },
+        { place_id: 'p-Colosseo', tipo: 'essenziale', quartiere: 'Monti' },
+        { place_id: 'p-Piazza di Santa Maria', tipo: 'da locale', quartiere: 'Trastevere' },
+    ];
+    const giro = (titoli) => ({
+        id: 'trastevere', luogo: 'Roma', tipo: 'itinerario', finestraMinuti: [780],
+        citta: { cached: true, scala: { scala: 'metropoli' }, quartiere: { nome: 'Trastevere' }, verificati },
+        tours: [{ stops: titoli.map(([t, m]) => st(t, m)) }],
+    });
+    it('verde con 2 ancore del quartiere scelto e metà delle visite dalla lista', () => {
+        const v = conosceCitta(giro([['Santa Maria in Trastevere', 'mattina'], ['Villa Farnesina', 'mattina'], ['Piazza di Santa Maria', 'pomeriggio'], ['Orto Botanico', 'pomeriggio']]));
+        expect(v).toMatchObject({ applicabile: true, metropoli: true, ok: true });
+        expect(v.ancoreQuartiere).toEqual(['Santa Maria in Trastevere', 'Villa Farnesina']);
+    });
+    it('rossa con una sola ancora del quartiere (il Colosseo è di un altro quartiere)', () => {
+        expect(conosceCitta(giro([['Santa Maria in Trastevere', 'mattina'], ['Colosseo', 'mattina'], ['Piazza di Santa Maria', 'pomeriggio']])).ok).toBe(false);
+    });
+    it('un borgo si misura anche in mezza giornata (almeno 2 posti della lista)', () => {
+        const borgo = { id: 'troina', luogo: 'Troina', tipo: 'itinerario', finestraMinuti: [240],
+            citta: { scala: { scala: 'borgo' }, verificati: [{ place_id: 'p-Chiesa Madre' }, { place_id: 'p-Chiesa San Nicolò' }] },
+            tours: [{ stops: [st('Chiesa Madre', 'mattina'), st('Chiesa San Nicolò', 'mattina')] }] };
+        expect(conosceCitta(borgo)).toMatchObject({ applicabile: true, borgo: true, ok: true });
+    });
+});

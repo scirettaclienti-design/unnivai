@@ -35,6 +35,8 @@ export async function fetchCityKnowledge(citta, giorno) {
         if (!res.ok || !k) return { stato: 'assente', verificati: [], errore: `${res.status} ${body?.code || ''}`.trim(), ms: Date.now() - t0 };
         return {
             stato: 'ok', verificati: Array.isArray(k.verificati) ? k.verificati : [], conti: k.conti || null, cached: !!k.cached,
+            // C10b — la scala proposta dall'AI (la conferma il motore) e il centro usato dalla verifica
+            scala: k.scala ?? null, centro: k.centro ?? null,
             ms: Date.now() - t0, ...(k.google || k.usage ? { costo: { google: k.google || null, usage: k.usage || null, ms: k.ms || null } } : {}),
         };
     } catch (err) {

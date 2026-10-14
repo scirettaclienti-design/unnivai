@@ -27,12 +27,13 @@ export function reportC10(raw, config, meta = {}) {
     // ── 1. tour × voci ──
     L.push('## Tour × voci dell\'asticella');
     L.push('');
-    L.push(`Soglie: conosce la città ≥ ${SOGLIE_C10.ancoreMin} essenziali della lista di controllo nel tour e ≥ ${SOGLIE_C10.visiteDallaListaMin * 100}% delle visite dalla lista verificata (borgo: ≥ ${SOGLIE_C10.borgoDallaListaMin} posti della lista); giornata piena ≤ ${SOGLIE_C10.tempoLiberoMax} min di tempo libero; costo primo tour della città nel giorno ≤ ${SOGLIE_C10.costoPrimoMax.toFixed(2).replace('.', ',')} $, gli altri ≤ ${SOGLIE_C10.costoAltriMax.toFixed(2).replace('.', ',')} $; tempo ≤ ${baseSec ?? '?'} s + ${SOGLIE_C10.tempoPeggioreMaxSec} s.`);
+    L.push(`Soglie: conosce la città ≥ ${SOGLIE_C10.ancoreMin} essenziali della lista di controllo nel tour e ≥ ${SOGLIE_C10.visiteDallaListaMin * 100}% delle visite dalla lista verificata (metropoli: ≥ ${SOGLIE_C10.ancoreQuartiereMin} ancore del quartiere scelto e la stessa quota; borgo: ≥ ${SOGLIE_C10.borgoDallaListaMin} posti della lista, anche in mezza giornata); giornata piena ≤ ${SOGLIE_C10.tempoLiberoMax} min di tempo libero; costo primo tour della città nel giorno ≤ ${SOGLIE_C10.costoPrimoMax.toFixed(2).replace('.', ',')} $, gli altri ≤ ${SOGLIE_C10.costoAltriMax.toFixed(2).replace('.', ',')} $; tempo ≤ ${baseSec ?? '?'} s + ${SOGLIE_C10.tempoPeggioreMaxSec} s.`);
     L.push('');
     L.push('| Tour | Tappe | Conosce la città | Essenziali nel tour | Visite dalla lista | Giornata piena (tempo libero) | Lista | Costo | Tempo |');
     L.push('|---|---|---|---|---|---|---|---|---|');
     for (const { c, conosce, piena, ct } of righe) {
-        const ess = conosce.applicabile ? (conosce.essenziali || []).join(', ') || '—' : '—';
+        const ess = conosce.applicabile
+            ? (conosce.metropoli ? `${conosce.quartiere}: ${(conosce.ancoreQuartiere || []).join(', ') || 'nessuna ancora del quartiere'}` : (conosce.essenziali || []).join(', ') || '—') : '—';
         const vis = conosce.applicabile ? (conosce.borgo ? `${(conosce.dallaLista || []).length} posti della lista` : `${conosce.visiteDallaLista}/${conosce.visite}`) : '—';
         L.push(`| ${c.id} | ${vere(c).length} | ${S(conosce.applicabile ? conosce.ok : null)} | ${cella(ess)} | ${vis} | ${S(piena.applicabile ? piena.ok : null)} ${piena.minuti ?? '—'} min | ${c.citta ? (c.citta.cached ? 'dal server' : '**nuova**') : '—'} | ${S(ct.okCosto)} ${usd(ct.costo)} | ${S(ct.okTempo)} ${c.secs?.toFixed?.(1) ?? '—'} s |`);
     }
@@ -59,6 +60,23 @@ export function reportC10(raw, config, meta = {}) {
     for (const [citta, conti] of liste) {
         const v = invenzioni(conti);
         L.push(`| ${citta} | ${conti.proposti} | ${conti.verificati} | ${conti.scartati} | ${Math.round(v.quota * 100)}% | ${S(v.ok)} |`);
+    }
+    L.push('');
+
+    // ── C10b — scala, quartiere, simbolo, ancore ──
+    L.push('## Scala, quartiere, simbolo, ancore (C10b)');
+    L.push('');
+    L.push('| Tour | Scala (proposta → confermata, diametro) | Quartiere | Simbolo nella lista | Simbolo nel tour | Ancore seminate → esito |');
+    L.push('|---|---|---|---|---|---|');
+    for (const c of casi) {
+        const k = c.citta || {};
+        const sc = k.scala ? `${k.scala.proposta ?? '—'} → **${k.scala.scala}** (${k.scala.diametroKm} km, ${k.scala.su})` : '—';
+        const q = k.quartiere ? `${k.quartiere.nome} (${k.quartiere.motivo}, ${k.quartiere.raggioKm} km)` : '—';
+        const simboli = (k.simboli || []).map(x => `${x.nome}${x.quartiere ? ` [${x.quartiere}]` : ''}${x.dedotto ? ' (dedotto)' : ''}`);
+        const titoli = new Set(vere(c).map(s => s.title));
+        const nelTour = (k.simboli || []).filter(x => titoli.has(x.nome)).map(x => x.nome);
+        const esito = (k.ancoreEsito || []).map(a => `${a.nome}: ${a.nelGiro ? 'nel giro' : `tolta (${a.motivo})`}`);
+        L.push(`| ${c.id} | ${cella(sc)} | ${cella(q)} | ${cella(simboli.join('; ')) || '—'} | ${cella(nelTour.join(', ')) || '—'} | ${cella(esito.join('; ')) || '—'} |`);
     }
     L.push('');
 

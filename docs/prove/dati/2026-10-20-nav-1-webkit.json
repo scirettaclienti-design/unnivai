@@ -1,0 +1,107 @@
+{
+  "webkit": "webkit",
+  "base": "http://localhost:5181",
+  "esiti": [
+    {
+      "scenario": "gps-lento",
+      "secondi": 33,
+      "ok": true,
+      "attesa": true,
+      "watchDopo30": 1,
+      "sbloccata": true,
+      "messaggioVia": true,
+      "errori": [],
+      "schermate": [
+        "docs/prove/schermate/nav-1/01-gps-lento-attesa.png",
+        "docs/prove/schermate/nav-1/02-gps-lento-tappa-sbloccata.png"
+      ]
+    },
+    {
+      "scenario": "gps-perso",
+      "secondi": 50,
+      "ok": true,
+      "perso": true,
+      "tornato": true,
+      "errori": [],
+      "schermate": [
+        "docs/prove/schermate/nav-1/03-gps-ok.png",
+        "docs/prove/schermate/nav-1/04-gps-perso.png",
+        "docs/prove/schermate/nav-1/05-gps-tornato.png"
+      ]
+    },
+    {
+      "scenario": "negata",
+      "secondi": 4,
+      "ok": true,
+      "msg": true,
+      "aMano": true,
+      "errori": [],
+      "schermate": [
+        "docs/prove/schermate/nav-1/06-posizione-negata.png",
+        "docs/prove/schermate/nav-1/07-negata-tappa-a-mano.png"
+      ]
+    },
+    {
+      "scenario": "ripresa",
+      "secondi": 11,
+      "ok": true,
+      "fatta": true,
+      "proposta": true,
+      "ripreso": true,
+      "sulCruscotto": true,
+      "oltre12oreProposto": false,
+      "cancellato": true,
+      "errori": [
+        "/ahecpiwsdhghkndncejb.supabase.co/rest/v1/tours?select=*&city=ilike.Catania due to access control checks."
+      ],
+      "schermate": [
+        "docs/prove/schermate/nav-1/08-ripresa-proposta.png",
+        "docs/prove/schermate/nav-1/09-ripresa-ripreso.png",
+        "docs/prove/schermate/nav-1/10-ripresa-dal-cruscotto.png",
+        "docs/prove/schermate/nav-1/11-giro-oltre-12-ore.png"
+      ]
+    },
+    {
+      "scenario": "offline",
+      "secondi": 7,
+      "ok": true,
+      "msg": true,
+      "tornaLaRete": true,
+      "errori": [
+        "Error: Could not load \"onion\".",
+        "Error: Could not load \"directions\"."
+      ],
+      "schermate": [
+        "docs/prove/schermate/nav-1/12-offline.png"
+      ]
+    },
+    {
+      "scenario": "percorso",
+      "secondi": 4,
+      "ok": true,
+      "msg": true,
+      "codiceInglese": false,
+      "linkMappe": "https://maps.apple.com/?daddr=<tappa>&dirflg=w",
+      "errori": [],
+      "schermate": [
+        "docs/prove/schermate/nav-1/13-percorso-non-calcolabile.png"
+      ],
+      "htmlLen": 161192
+    },
+    {
+      "scenario": "superata",
+      "secondi": 8,
+      "ok": true,
+      "domanda": true,
+      "vista": true,
+      "wakeLock": {
+        "api": true
+      },
+      "errori": [],
+      "schermate": [
+        "docs/prove/schermate/nav-1/14-tappa-superata-domanda.png",
+        "docs/prove/schermate/nav-1/15-tappa-superata-vista.png"
+      ]
+    }
+  ]
+}

@@ -351,6 +351,16 @@ Proxy pubblicato: `openai-proxy` v24 (ramo `c10c`, `7a4426f`). Report: `docs/pro
 - **Simboli accettati dal banco**: `SIMBOLI_ACCETTATI` in `scripts/banco/asticella-c10.js` (non in `banco.config.json`).
 - **Orari verificati all'arrivo** (C10c-piena-1): un posto conta aperto o chiuso all'ora in cui ci arrivi, per tutta la sosta, non all'inizio del momento.
 
+### La navigazione non si blocca (NAV-1)
+
+Diagnosi in `docs/prove/2026-10-20-nav-diagnosi.md`, lavoro in `docs/prove/2026-10-20-nav-1.md`.
+- **Tracciamento sempre attivo** (`src/lib/navTracking.js`, `avviaTracciamento`): il `watchPosition` della navigazione parte subito, anche senza un primo fix; riprova dopo un errore, dopo 30 s di silenzio e al ritorno in primo piano (anche dopo un «negato»). Stati `attesa | ok | perso | negato`. MapPage passa ogni posizione a `onNavPosition` (via `navPositionRef`). I timer si chiamano avvolti: Safari lancia se `setInterval` è chiamato come metodo di un altro oggetto.
+- **Giro salvato** (`src/lib/navSession.js`, `localStorage` `dvai_nav_giro_v1`): tour, tappe fatte e saltate, bersaglio, ora d'inizio; oltre 12 ore non si propone e si cancella. Proposta di ripresa: sulla mappa con lo stesso tour (MapPage) e all'apertura dell'app fuori dalla mappa (`GiroInCorso` in App). `GiroRipresaDialog` per entrambe.
+- **Comandi nella barra** (`NavigationHUD`): «Sono arrivato», «Salta»; tappa superata (`src/lib/navPassaggio.js`): «Sei passato da [nome]?» «Vista» / «Saltala», mai uno sblocco da solo. Le tappe saltate (`skippedSteps`) non si inseguono più e contano per la fine del giro.
+- **Schermo acceso** (`src/lib/wakeLock.js`): Screen Wake Lock durante la navigazione, richiesto di nuovo al ritorno in primo piano; dove manca, niente.
+- **Messaggi** (`src/lib/navMessaggi.js`, `NAV_TESTI`): testi di Ivano alla lettera, uno alla volta (`avvisoNavigazione`); un errore di Directions non si mostra mai col suo codice.
+- Telemetria invariata (NAV-2). Prova WebKit: `scripts/prova-nav/nav1.webkit.mjs` (porta e titolo verificati, GPS finto).
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

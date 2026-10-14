@@ -5,6 +5,10 @@
  * collaterali. Riceve routeStats + activeRoute + completedSteps + handler
  * (onToggleVoice, onEndNavigation, onRecenterCamera).
  *
+ * NAV-1: «Sono arrivato» e «Salta» nella barra, un avviso alla volta (GPS, rete, percorso:
+ * testi di Ivano in navMessaggi), la domanda sulla tappa superata. Mai un codice d'errore
+ * di Google a schermo (routeStats.error non si mostra più).
+ *
  * Design: Scala Ossidiana canonica DoveVAI (bg-obsidian-card, accento arancione su distanza e progresso).
  */
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,7 +29,11 @@ import {
     VolumeX,
     LocateFixed,
     X,
+    Check,
+    SkipForward,
+    AlertTriangle,
 } from 'lucide-react';
+import { NAV_TESTI } from '../../lib/navMessaggi';
 
 // Mapping Google Directions maneuver → lucide icon. Cade su Navigation di default.
 // Ref: https://developers.google.com/maps/documentation/directions/get-directions#Step
@@ -89,6 +97,15 @@ export default function NavigationHUD({
     onEndNavigation,
     isCameraFollowing,
     onRecenterCamera,
+    nextStop: nextStopProp,
+    skippedSteps,
+    avviso,
+    mappeUrl,
+    onArrived,
+    onSkip,
+    tappaPassata,
+    onPassataVista,
+    onPassataSalta,
 }) {
     const step0 = routeStats?.steps?.[0];
     // Fase 2b-2 FIX 2: distanza REATTIVA alla prossima tappa (scende camminando).
@@ -99,8 +116,10 @@ export default function NavigationHUD({
         ? DOMPurify.sanitize(activeManeuver.instructionHtml, { ALLOWED_TAGS: ['b', 'strong', 'span', 'div'], ALLOWED_ATTR: ['style'] })
         : null;
     const totalSteps = activeRoute?.length || 0;
-    const doneSteps = completedSteps?.length || 0;
-    const nextStop = (activeRoute || []).find(s => !(completedSteps || []).includes(s.id));
+    const doneSteps = (completedSteps?.length || 0) + (skippedSteps?.length || 0);
+    const nextStop = nextStopProp !== undefined
+        ? nextStopProp
+        : (activeRoute || []).find(s => !(completedSteps || []).includes(s.id) && !(skippedSteps || []).includes(s.id));
     const nextStopName = nextStop?.name || nextStop?.title || null;
     const allDone = totalSteps > 0 && !nextStop;
     const currentStopName = nextStopName || 'Prossima tappa';
@@ -129,11 +148,7 @@ export default function NavigationHUD({
                             <ManeuverIcon size={24} strokeWidth={2.4} />
                         </div>
                         <div className="flex-1 min-w-0">
-                            {routeStats?.error ? (
-                                <p className="text-sm font-medium text-status-error leading-snug break-words">
-                                    {routeStats.error}
-                                </p>
-                            ) : (
+                            {(
                                 <>
                                     {/* 1. Nome della tappa di destinazione (elemento principale) */}
                                     <h2 className="text-base sm:text-[17px] font-bold text-obsidian-primary leading-tight truncate">
@@ -169,6 +184,38 @@ export default function NavigationHUD({
                         </div>
                     </div>
 
+                    {/* ─── NAV-1: un avviso alla volta (GPS, rete, percorso) ───────── */}
+                    {avviso && (
+                        <div role="status" data-testid="nav-avviso" data-tipo={avviso.tipo} className="mx-3 mb-3 px-3 py-2 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-start gap-2">
+                            <AlertTriangle size={15} className="text-status-warning shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs text-obsidian-primary leading-snug">{avviso.testo}</p>
+                                {avviso.tipo === 'percorso' && mappeUrl && (
+                                    <a href={mappeUrl} target="_blank" rel="noopener noreferrer" className="inline-block mt-1.5 text-xs font-semibold text-brand-orange underline underline-offset-2">
+                                        Apri in Mappe
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ─── NAV-1: la tappa superata senza fermarsi ─────────────────── */}
+                    {tappaPassata && (
+                        <div role="alertdialog" data-testid="nav-passata" className="mx-3 mb-3 px-3 py-2.5 rounded-2xl bg-obsidian-raised border border-brand-orange/50">
+                            <p className="text-sm font-semibold text-obsidian-primary leading-snug">
+                                {NAV_TESTI.PASSATA(tappaPassata.name || tappaPassata.title || 'questa tappa')}
+                            </p>
+                            <div className="flex gap-2 mt-2">
+                                <button onClick={onPassataVista} className="flex-1 py-1.5 rounded-full text-xs font-semibold bg-brand-orange text-obsidian-bg active:scale-95">
+                                    {NAV_TESTI.PASSATA_VISTA}
+                                </button>
+                                <button onClick={onPassataSalta} className="flex-1 py-1.5 rounded-full text-xs font-medium bg-obsidian-card text-obsidian-primary border border-obsidian-border active:scale-95">
+                                    {NAV_TESTI.PASSATA_SALTA}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     {/* ─── Progress bar + counter tappa ─────────────────────────────── */}
                     {totalSteps > 0 && (
                         <div className="px-4 pb-3">
@@ -192,6 +239,30 @@ export default function NavigationHUD({
                                 <div className="text-[11px] text-obsidian-secondary/70 mt-1 font-normal">
                                     {distanceRemainingText} totali · ~{durationText}
                                 </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* ─── NAV-1: segnare la tappa a mano, anche senza GPS ──────────── */}
+                    {nextStop && !allDone && (onArrived || onSkip) && (
+                        <div className="px-3 pb-3 flex items-center gap-2">
+                            {onArrived && (
+                                <button
+                                    onClick={() => onArrived(nextStop)}
+                                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-full text-xs font-semibold bg-brand-orange text-obsidian-bg active:scale-95 transition-transform"
+                                >
+                                    <Check size={15} strokeWidth={2.5} />
+                                    <span>{NAV_TESTI.ARRIVATO}</span>
+                                </button>
+                            )}
+                            {onSkip && (
+                                <button
+                                    onClick={() => onSkip(nextStop)}
+                                    className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium bg-obsidian-raised text-obsidian-primary border border-obsidian-border active:scale-95 transition-transform"
+                                >
+                                    <SkipForward size={14} />
+                                    <span>{NAV_TESTI.SALTA}</span>
+                                </button>
                             )}
                         </div>
                     )}

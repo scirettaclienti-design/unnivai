@@ -8,6 +8,7 @@ import { useOnboardingStatus } from './hooks/useOnboardingStatus';
 import RoleGuard from './components/RoleGuard';
 import ErrorBoundary from './components/ErrorBoundary';
 import ToastProvider from './components/ToastProvider';
+import GiroInCorso from './components/GiroInCorso';
 // Gate K — Guard che redirige rotte V2/V3 (Guide/Business/BecomeGuide) a
 // /dashboard-user con toast onesto "Disponibile prossimamente."
 import V1LockedGuard from './components/V1LockedGuard';
@@ -203,6 +204,8 @@ function App() {
               <Suspense fallback={<GlobalLoading />}>
                 <AnimatedAppRoutes />
               </Suspense>
+              {/* NAV-1: un giro in corso si propone all'apertura dell'app */}
+              <GiroInCorso />
             </ErrorBoundary>
           </Router>
         </CityProvider>

@@ -1,0 +1,31 @@
+# VERITÀ-PRE-GIRO — validazione dei controlli (0 $, nessuna generazione)
+
+## Codice nuovo
+c1 cattivi rossi: true | buoni verdi: true 
+c2 cattivi rossi: true | buoni verdi: true 
+c3 cattivi rossi: true | buoni verdi: true 
+c4 cattivi rossi: true | buoni verdi: true 
+c5 cattivi rossi: true | buoni verdi: true 
+c6 cattivi rossi: true | buoni verdi: true 
+c7 cattivi rossi: true | buoni verdi: true 
+c8 cattivi rossi: true | buoni verdi: true 
+c9 cattivi rossi: true | buoni verdi: true 
+c10 cattivi rossi: true | buoni verdi: true 
+c11 cattivi rossi: true | buoni verdi: true 
+c12 cattivi rossi: true | buoni verdi: true 
+c13 cattivi rossi: true | buoni verdi: true 
+giornata cattivo:rosso cattivo2:rosso buono:verde buono2:verde buono3:null buono4:verde
+
+## c13 di b9f4e83 con gli stessi esempi
+c13 cattivi rossi: true | buoni verdi: false | falsi allarmi: Giro serale delle 22:20: nessuna cena (Bar Popolare, Fontana dell’Amenano) e nessuna riga «nessun locale aperto» al suo posto
+
+## c13 e c6 sui grezzi del giro TESTI (codice nuovo)
+2026-10-15-banco-esteso-testi.json crea-catania-1800 18:00 crea c13 [] c6 []
+2026-10-15-banco-esteso-testi.json crea-catania-domani 09:30 crea c13 [] c6 []
+2026-10-15-banco-esteso-testi.json veloce-catania-relax-2220 22:20 veloce c13 [] c6 [
+  'Bar Popolare (caffe): sosta di 60 min, la durata tipica di museo (per caffe: 20 min)'
+2026-10-15-banco-esteso-testi-2.json veloce-catania-relax-2220 22:20 veloce c13 [] c6 [
+  'Bar Popolare (caffe): sosta di 60 min, la durata tipica di museo (per caffe: 20 min)'
+2026-10-15-banco-esteso-testi-2.json veloce-firenze-cultura 10:30 veloce c13 [] c6 []
+2026-10-15-banco-esteso-testi-2.json sorprendimi-catania-pomeriggio 15:30 sorprendimi c13 [] c6 []
+2026-10-15-banco-esteso-testi-2.json perte-catania-1300 13:00 perte c13 [] c6 []

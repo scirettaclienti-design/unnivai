@@ -36,12 +36,11 @@ export function useUserContext() {
     // 'Ospite' e' una label di stato utente, non un dato mascherato da fatto.
     // NON dipende dalla citta': l'auth risolve subito, il nome arriva subito.
     // TESTI — il saluto scrive il nome con l'iniziale maiuscola («Ciao, Ivano!», non «ivano»).
-    const realFirstName = capitalizeName(user?.user_metadata?.full_name?.split(' ')[0]
-        || user?.user_metadata?.first_name
-        // il nome dalla mail: solo la prima parola prima di punti, piu', trattini e cifre ("ivano.rossi85@…" → "Ivano")
-        || user?.email?.split('@')[0]?.split(/[._+\-\d]/)[0]
-        || userContext?.firstName
-        || 'Ospite');
+    // VERITÀ-PRE-GIRO (decisione di Ivano): senza nome nel profilo firstName è null e il saluto è «Ciao!»; mai un nome dalla mail.
+    const nomeProfilo = String(user?.user_metadata?.full_name || '').trim().split(/\s+/)[0]
+        || String(user?.user_metadata?.first_name || '').trim()
+        || userContext?.firstName;
+    const realFirstName = nomeProfilo ? capitalizeName(nomeProfilo) : (user ? null : 'Ospite');
 
     return {
         ...(userContext || {}),

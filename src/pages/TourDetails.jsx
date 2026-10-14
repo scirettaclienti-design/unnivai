@@ -83,7 +83,7 @@ const RequestModal = ({ isOpen, onClose, guideName, tourTitle, guideId, tourId, 
         const rawMessage = formData.get('message');
         const richMessage = `Richiesta per: ${tourTitle}\nData: ${date}\nOspiti: ${guests}\n\n${rawMessage || ''}`;
 
-        const userName = (`${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`).trim() || user.user_metadata?.name || user.email?.split('@')[0] || 'Utente';
+        const userName = (`${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`).trim() || user.user_metadata?.name || 'Utente'; // mai un nome dalla mail (VERITÀ-PRE-GIRO)
 
         setIsSubmitting(true);
         try {

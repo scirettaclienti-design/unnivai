@@ -1,71 +1,68 @@
 import React, { useState, useEffect } from 'react';
-import { CloudSun, Wind, CloudRain, Sun, Cloud, Snowflake } from 'lucide-react';
+import { Wind, CloudRain, Sun, Cloud, Snowflake, CloudFog } from 'lucide-react';
+import { weatherService } from '../../services/weatherService';
+import { weatherLabel } from '../../lib/italianLabels';
+
+// VERITÀ-PRE-GIRO — il badge mostra il meteo vero o niente: senza coordinate, senza risposta o con una risposta incompleta non appare
+// (prima, senza coordinate, mostrava «Soleggiato, 22°, vento 10» inventati). La condizione si legge con la stessa tabella del servizio
+// (un temporale non è «Neve», la nebbia non è «Sereno»).
+const ICONE = {
+    sunny: { Icon: Sun, iconColor: 'text-yellow-500' },
+    cloudy: { Icon: Cloud, iconColor: 'text-gray-400' },
+    rainy: { Icon: CloudRain, iconColor: 'text-blue-500' },
+    snowy: { Icon: Snowflake, iconColor: 'text-sky-300' },
+    foggy: { Icon: CloudFog, iconColor: 'text-gray-400' },
+};
+const maiuscola = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
 
 export const WeatherAirBadge = ({ city, center, onClick }) => {
     const [weather, setWeather] = useState(null);
 
     useEffect(() => {
+        let vivo = true;
         const fetchWeather = async () => {
             try {
                 const lat = center?.latitude || center?.lat;
                 const lng = center?.longitude || center?.lng;
 
-                // Fallback graceful se le coordinate non sono ancora proiettate
-                if (!lat || !lng) {
-                    setWeather({
-                        temp: 22,
-                        windSpeed: 10,
-                        conditionText: 'Soleggiato',
-                        color: 'text-green-500', 
-                        Icon: CloudSun
-                    });
-                    return;
-                }
+                // Senza coordinate non si sa dove: nessun meteo.
+                if (!lat || !lng) { setWeather(null); return; }
 
                 // Chiama le API gratuite di Open-Meteo per dati reali
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m,weather_code`);
+                if (!res.ok) { if (vivo) setWeather(null); return; }
                 const data = await res.json();
 
-                if (data && data.current) {
-                    const code = data.current.weather_code;
-                    let conditionText = 'Sereno';
-                    let Icon = Sun;
-                    let iconColor = 'text-yellow-500';
-
-                    if (code >= 1 && code <= 3) {
-                        conditionText = 'Nuvoloso';
-                        Icon = Cloud;
-                        iconColor = 'text-gray-400';
-                    } else if (code >= 51 && code <= 67) {
-                        conditionText = 'Pioggia';
-                        Icon = CloudRain;
-                        iconColor = 'text-blue-500';
-                    } else if (code >= 71) {
-                        conditionText = 'Neve';
-                        Icon = Snowflake;
-                        iconColor = 'text-sky-300';
-                    }
-
-                    const windSpeedKmh = Math.round(data.current.wind_speed_10m);
-                    let windColor = 'text-green-500';
-                    if (windSpeedKmh > 15) windColor = 'text-amber-500';
-                    if (windSpeedKmh > 30) windColor = 'text-red-500';
-
-                    setWeather({
-                        temp: Math.round(data.current.temperature_2m),
-                        windSpeed: windSpeedKmh,
-                        conditionText,
-                        color: windColor,
-                        Icon,
-                        iconColor
-                    });
+                const temp = data?.current?.temperature_2m;
+                const vento = data?.current?.wind_speed_10m;
+                const codice = data?.current?.weather_code;
+                const condizione = typeof codice === 'number' ? weatherService.mapWmoCodeToCondition(codice) : null;
+                // risposta incompleta o con un codice che non conosciamo: niente
+                if (typeof temp !== 'number' || !Number.isFinite(temp) || typeof vento !== 'number' || !Number.isFinite(vento) || !condizione) {
+                    if (vivo) setWeather(null);
+                    return;
                 }
+
+                const windSpeedKmh = Math.round(vento);
+                let windColor = 'text-green-500';
+                if (windSpeedKmh > 15) windColor = 'text-amber-500';
+                if (windSpeedKmh > 30) windColor = 'text-red-500';
+
+                if (vivo) setWeather({
+                    temp: Math.round(temp),
+                    windSpeed: windSpeedKmh,
+                    conditionText: maiuscola(weatherLabel(condizione)),
+                    color: windColor,
+                    ...ICONE[condizione],
+                });
             } catch (error) {
                 console.warn("Meteo non disponibile", error);
+                if (vivo) setWeather(null);
             }
         };
 
         fetchWeather();
+        return () => { vivo = false; };
     }, [center?.lat, center?.latitude, center?.lng, center?.longitude]);
 
     if (!weather) return null;

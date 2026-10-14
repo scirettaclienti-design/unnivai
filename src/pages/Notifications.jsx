@@ -121,7 +121,7 @@ export default function NotificationsPage() {
                     return aiRecommendationService.generateSystemPrewarmTour(
                         city,
                         selectedNotification.chosenPois,
-                        { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
+                        { condition: weatherCondition ?? null, temperature: temperatureC ?? null },
                         cityCenter,
                     );
                 })();

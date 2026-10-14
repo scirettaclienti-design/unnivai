@@ -131,7 +131,8 @@ export default function TopBar() {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    Ciao, {isLoading ? '...' : capitalizeName(firstName)}!
+                                    {/* VERITÀ-PRE-GIRO — senza nome nel profilo il saluto è «Ciao!» (mai un nome dalla mail) */}
+                                    {isLoading ? 'Ciao, ...!' : (String(firstName || '').trim() ? `Ciao, ${capitalizeName(firstName)}!` : 'Ciao!')}
                                 </motion.h1>
                             </Link>
                             <div className="text-xs font-medium text-obsidian-secondary flex items-center space-x-2">

@@ -649,7 +649,7 @@ export default function QuickPathPage() {
                 activeCity,
                 prefsObject,
                 prompt,
-                { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
+                { condition: weatherCondition ?? null, temperature: temperatureC ?? null },
                 aiProfile,
                 cityCenter,
                 // G3 — Percorso Veloce: parte SEMPRE da adesso, il testo non conta.

@@ -208,7 +208,7 @@ export default function AIItineraryPage() {
                 activeCity,
                 prefsObject,
                 userPrompt, // F65: la frase dell'utente, PULITA. Il profilo va sotto.
-                { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
+                { condition: weatherCondition ?? null, temperature: temperatureC ?? null },
                 aiProfile, // Tour DNA iniettato nel system prompt
                 cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)
                 // Gate MERITO — affinità nella formula di scoring.
@@ -341,7 +341,7 @@ export default function AIItineraryPage() {
                 tourCity,
                 { ...prefsObject, duration: 'Mezza Giornata' },
                 `Rigenera solo il giorno ${dayNumber} con varianti diverse rispetto al precedente.`,
-                { condition: weatherCondition || 'sunny', temperature: temperatureC || 20 },
+                { condition: weatherCondition ?? null, temperature: temperatureC ?? null },
                 // P7a — il DNA passa come nelle altre sezioni (prima: '' e niente pesi).
                 getAIContext?.() || '',
                 cityCenter, // Gate 2 FASE 3 — centro amministrativo città (mai GPS utente)

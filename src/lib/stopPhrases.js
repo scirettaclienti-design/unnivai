@@ -291,10 +291,16 @@ function aperture(d) {
 
 // TESTI — nello stesso tour nessuna frase uguale due volte: quando le frasi di una famiglia sono finite se ne usa una gia' approvata
 // per un luogo simile (mai una frase nuova). Solo frasi senza genere ne' verbi di un'altra famiglia ("entri", "la guardi").
+// VERITÀ-PRE-GIRO — tolti i prestiti che non stanno in piedi: a una piazza (o a una passeggiata, una via) non ci si ferma «davanti»,
+// e un luogo qualunque («altro»: un mercato, una spa) non è un monumento. I verbi che vanno col luogo li controlla `frasePossibile`.
 const SORELLE = {
-    monumento: ['piazza'], piazza: ['monumento'], porta: ['monumento', 'piazza'], arco: ['monumento', 'piazza'],
-    chiesa: ['monumento'], altro: ['piazza', 'monumento'],
+    monumento: ['piazza'], porta: ['monumento', 'piazza'], arco: ['monumento', 'piazza'],
+    chiesa: ['monumento'], altro: ['piazza'],
 };
+// VERITÀ-PRE-GIRO — «Attraversi…» solo dove si attraversa (una piazza, una passeggiata, una porta, un arco): mai una chiesa, una statua,
+// un palazzo, un luogo qualunque. «Ti fermi davanti a…» solo davanti a qualcosa: un monumento, una porta, un arco, una chiesa.
+const SI_ATTRAVERSA = new Set(['piazza', 'porta', 'arco']);
+const CI_SI_FERMA_DAVANTI = new Set(['monumento', 'porta', 'arco', 'chiesa']);
 
 // Una frase che dice il falso su QUESTA tappa non si usa: «Si parte da…» solo se e' la prima,
 // «Chiudi la giornata…» solo se e' l'ultima di un giro che finisce di sera.
@@ -303,6 +309,8 @@ const frasePossibile = (tpl, d) => {
     if (/\bchiudi la giornata\b/i.test(tpl) && !(d.ultimo && d.giornata && d.sera)) return false;
     // «prima della prossima tappa» non si dice sull'ultima.
     if (d.ultimo && /prossima tappa/.test(tpl) && /prima della/.test(tpl)) return false;
+    if (/^Attraversi\b/.test(tpl) && !SI_ATTRAVERSA.has(d.famiglia)) return false;
+    if (/^Ti fermi davanti\b/.test(tpl) && !CI_SI_FERMA_DAVANTI.has(d.famiglia)) return false;
     return true;
 };
 

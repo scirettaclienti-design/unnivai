@@ -334,7 +334,7 @@ describe('userContextService.getUserContext()', () => {
       expect(ctx.isGuest).toBe(false)
     })
 
-    it('falls back to email-prefix when full_name is absent from metadata', async () => {
+    it('VERITÀ 2 — senza nome nel profilo firstName è null: mai un nome ricavato dalla mail', async () => {
       vi.mocked(supabase.auth.getSession).mockResolvedValue({
         data: {
           session: {
@@ -348,8 +348,9 @@ describe('userContextService.getUserContext()', () => {
         error: null,
       })
       const ctx = await userContextService.getUserContext(null, null)
-      // Email prefix is used as-is; no capitalisation is applied to firstName.
-      expect(ctx.firstName).toBe('giulia')
+      // Decisione di Ivano: nessun nome dalla mail (giulia@… non è «giulia»); l'utente c'è (non e' un ospite), il nome no.
+      expect(ctx.isGuest).toBe(false)
+      expect(ctx.firstName).toBeNull()
     })
 
     it('continues as guest and returns city=null when supabase.auth throws (Gate O.2)', async () => {

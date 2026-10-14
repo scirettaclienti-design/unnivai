@@ -309,6 +309,12 @@ export const ESEMPI = {
             st('Belvedere di Pizzofalcone', { types: ['tourist_attraction'], moment: 'aperitivo', at: at('21:25'), stay: 30, passeggiata: true }),
             st('Tempo libero', { place_id: null, types: [], moment: 'cena', at: at('21:55'), stay: 0, tempoLibero: true, description: 'Nessun locale aperto qui vicino a quest\u2019ora.' }),
         ], { modo: 'veloce', ora: '20:00', finestraMinuti: [120] }) },
+        // VERITÀ-PRE-GIRO — la cena e' dovuta solo prima delle 22:00: il Veloce Catania delle 22:20 (drink + passeggiata, nessuna riga) e' verde.
+        buono6: { nome: 'Veloce 22:20 (Bar Popolare 60 min + Fontana dell\u2019Amenano): dalle 22:00 la cena non e\' dovuta', origine: 'giro TESTI 15/10 (docs/prove/dati/2026-10-15-banco-esteso-testi-2.json, veloce-catania-relax-2220)',
+            caso: caso([
+                st('Bar Popolare', { types: ['cocktail_bar', 'bar', 'restaurant', 'food'], primaryType: 'cocktail_bar', moment: 'aperitivo', at: '2026-10-14T20:20:00.000Z', stay: 60 }),
+                st('Fontana dell\u2019Amenano', { types: ['tourist_attraction'], primaryType: 'tourist_attraction', moment: 'aperitivo', at: '2026-10-14T21:22:00.000Z', stay: 30, passeggiata: true }),
+            ], { modo: 'veloce', ora: '22:20', finestraMinuti: [120] }) },
         cattivo3: { nome: 'Veloce 23:30 con una tappa sola: il solo drink (Retrò - Cocktail Bar), senza passeggiata', origine: 'giro sera, versione intermedia del codice (veloce-catania-relax-2330)',
             caso: caso([
                 st('Retrò - Cocktail Bar', { types: ['cocktail_bar'], primaryType: 'cocktail_bar', moment: 'dopocena', at: at('23:30'), stay: 60 }),

@@ -2,6 +2,9 @@
 // OpenMeteo is a free API that does not require an API key
 const WEATHER_API_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
 
+// VERITÀ-PRE-GIRO — il meteo vero o niente. Se il servizio non risponde, risponde male o non si sa dove, il risultato è `null`:
+// mai «sunny, 24°» (il vecchio valore di riserva), mai un codice sconosciuto detto «nuvoloso». Chi consuma nasconde il campo.
+
 class WeatherService {
     constructor() {
         this.cache = new Map();
@@ -9,7 +12,7 @@ class WeatherService {
     }
 
     async getCurrentWeather(lat, lng) {
-        if (!lat || !lng) return this.getFallbackWeather();
+        if (!lat || !lng) return null;
 
         const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)}`;
         const cached = this.cache.get(cacheKey);
@@ -32,10 +35,17 @@ class WeatherService {
 
             const data = await response.json();
 
+            // risponde male (senza `current`, temperatura nulla o non numerica, codice mancante o sconosciuto): non si mostra niente
+            const temp = data?.current?.temperature_2m;
+            const code = data?.current?.weather_code;
+            if (typeof temp !== 'number' || !Number.isFinite(temp) || typeof code !== 'number') return null;
+            const condition = this.mapWmoCodeToCondition(code);
+            if (!condition) return null;
+
             const weatherData = {
-                temperature: Math.round(data.current.temperature_2m),
-                condition: this.mapWmoCodeToCondition(data.current.weather_code),
-                description: this.getWmoDescription(data.current.weather_code)
+                temperature: Math.round(temp),
+                condition,
+                description: this.getWmoDescription(code)
             };
 
             this.cache.set(cacheKey, {
@@ -46,34 +56,28 @@ class WeatherService {
             return weatherData;
 
         } catch (error) {
-            console.warn('Weather Service failed, using fallback:', error);
-            return this.getFallbackWeather();
+            console.warn('Weather Service failed, no weather shown:', error);
+            return null;
         }
     }
 
-    getFallbackWeather() {
-        return {
-            temperature: 24,
-            condition: 'sunny',
-            description: 'Soleggiato'
-        };
-    }
-
+    // WMO Weather interpretation codes (WW) → condizione. Un codice che non conosciamo è `null`: non si indovina.
     mapWmoCodeToCondition(code) {
-        // WMO Weather interpretation codes (WW)
         if (code === 0 || code === 1) return 'sunny';
         if (code === 2 || code === 3) return 'cloudy';
+        if (code === 45 || code === 48) return 'foggy';
         if (code >= 51 && code <= 67) return 'rainy'; // Drizzle / Rain
+        if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snowy'; // Snow / snow showers
         if (code >= 80 && code <= 82) return 'rainy'; // Showers
-        if (code >= 95) return 'rainy'; // Thunderstorm
-        return 'cloudy'; // Default
+        if (code >= 95 && code <= 99) return 'rainy'; // Thunderstorm
+        return null;
     }
 
     getWmoDescription(code) {
         if (code === 0) return 'Cielo sereno';
         if (code === 1 || code === 2 || code === 3) return 'Parzialmente nuvoloso';
         if (code >= 51 && code <= 67) return 'Pioggia';
-        return 'Variabile';
+        return null;
     }
     // Bust the cache for a specific lat/lng pair — called on manual city change
     clearCacheForCoords(lat, lng) {
@@ -102,8 +106,8 @@ class WeatherService {
             }
         }
 
-        // 3. Fallback
-        return this.getFallbackWeather();
+        // 3. Niente coordinate e nessuna città riconosciuta: nessun meteo
+        return null;
     }
 
     async getCoordsFromCity(city) {

@@ -56,7 +56,8 @@ export const DEFINIZIONI = {
     c13: 'C8a — in un giro con un drink (aperitivo, o il drink serale del Percorso Veloce): (a) il drink dura meno di `sostaAperitivoMinuti` (45) — all\'aperitivo un bar è una sosta vera; '
         + '(b) un SECONDO bar fra il drink e la cena (o dopo il drink, se la cena non c\'è); (c) fra la fine del drink e la cena restano più di `passeggiataSogliaMinuti` (30) minuti senza una passeggiata e senza una riga di tempo libero che li dichiara; '
         + '(d) un Percorso Veloce che parte dalle 18:00 in poi (o prima dell\'alba) con UNA tappa sola: mai 1 tappa (il messaggio "quasi tutto chiuso", senza tappe, è un altro caso: vale solo se nel pool non c\'è niente di aperto); '
-        + '(e) C8c — un giro che parte la sera (dalle 18:00, prima delle 23:00) senza la cena e senza la riga «Nessun locale aperto qui vicino a quest\'ora.» al suo posto.',
+        + '(e) C8c — un giro che parte la sera (dalle 18:00, prima delle 22:00) senza la cena e senza la riga «Nessun locale aperto qui vicino a quest\'ora.» al suo posto. '
+        + 'VERITÀ-PRE-GIRO (decisione di Ivano): dalle 22:00 la cena non è dovuta (il Veloce dopo le 22:00 è drink + passeggiata, C8b).',
     c12: 'C7 — una tappa che è una ZONA: tipo principale o tipo da zona (locality, sublocality, neighborhood, political, route…) oppure un nome che è solo quello di un\'area ("Centro Storico Catania", "Zona Centro"). '
         + 'Una zona può orientare la ricerca, non essere una tappa.',
 };
@@ -485,9 +486,15 @@ export function giroSerale(caso, vere) {
     const primo = vere[0];
     return !!primo && ['aperitivo', 'cena', 'dopocena'].includes(primo.moment) && Number.isFinite(hh) && hh >= 18 && hh < 23;
 }
+// VERITÀ-PRE-GIRO (decisione di Ivano) — la cena è dovuta solo nei giri serali che partono prima delle 22:00. Vale solo per c13(e):
+// `giroSerale` (usata anche dalla voce «Giornata») resta com'era.
+export const CENA_DOVUTA_FINO_A = '22:00';
+const minutiDi = (hhmm) => { const m = String(hhmm || '').match(/^(\d{1,2}):(\d{2})/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
 /** C8c — una sera con la cena (un ristorante di sera) o con la riga approvata al suo posto. */
 export function sera_senza_cena_ok(caso, righe, vere) {
     if (!giroSerale(caso, vere)) return true;
+    const parte = minutiDi(caso.ora);
+    if (parte === null || parte >= minutiDi(CENA_DOVUTA_FINO_A)) return true;
     return vere.some(s => s.moment === 'cena' && s.pasto) || righe.some(s => s.tempoLibero && RIGA_NESSUN_LOCALE.test(s.description || ''));
 }
 /** C8c — una sera COMPLETA: drink + cena, oppure cena + passeggiata (o, se la cena non c'e', la riga approvata e almeno due tappe). */

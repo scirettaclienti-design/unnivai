@@ -18,12 +18,13 @@ class UserContextService {
             const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
                 const meta = session.user.user_metadata || {};
-                const emailName = session.user.email?.split('@')[0] || 'Utente';
-                const fullName = meta.full_name || meta.name || emailName;
+                // VERITÀ-PRE-GIRO (decisione di Ivano): il nome viene solo dal profilo; senza, firstName è null
+                // (il saluto è «Ciao!»). Mai un nome ricavato dalla mail.
+                const fullName = String(meta.full_name || meta.name || meta.first_name || '').trim();
 
                 profile = {
                     userId: session.user.id,
-                    firstName: fullName.split(' ')[0],
+                    firstName: fullName ? fullName.split(/\s+/)[0] : null,
                     isGuest: false
                 };
             }

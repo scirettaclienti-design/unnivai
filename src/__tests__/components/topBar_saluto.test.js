@@ -16,8 +16,9 @@ vi.mock('react-router-dom', async () => {
 vi.mock('@/components/NotificationBell', () => ({ default: () => null }));
 vi.mock('@/context/CityContext', () => ({ useCity: () => ({ city: 'Roma', setCity: vi.fn(), isManual: false }) }));
 vi.mock('@/context/AuthContext', () => ({ useAuth: () => ({ signOut: vi.fn() }) }));
+let nome = 'ivano';
 vi.mock('@/hooks/useUserContext', () => ({
-    useUserContext: () => ({ userId: 'u1', city: 'Roma', firstName: 'ivano', isLoading: false, needsCityChoice: false }),
+    useUserContext: () => ({ userId: 'u1', city: 'Roma', firstName: nome, isLoading: false, needsCityChoice: false }),
 }));
 
 const { createElement } = await import('react');
@@ -28,5 +29,15 @@ describe('TESTI 8 — il saluto', () => {
         render(createElement(TopBar));
         expect(screen.getByText('Ciao, Ivano!')).toBeInTheDocument();
         expect(screen.queryByText('Ciao, ivano!')).toBeNull();
+    });
+    it('VERITÀ 2 — senza nome nel profilo il saluto è «Ciao!», senza nome e senza virgola', () => {
+        for (const senza of [null, undefined, '', '   ']) {
+            nome = senza;
+            const { container, unmount } = render(createElement(TopBar));
+            const h1 = container.querySelector('h1');
+            expect(h1.textContent).toBe('Ciao!');
+            unmount();
+        }
+        nome = 'ivano';
     });
 });

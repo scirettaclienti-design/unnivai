@@ -588,7 +588,7 @@ function repairPass({
     searchedIds = null, searchedMoments = null, startPoint = null, registraPool = true,
     tempoLiberoMinuti = null,
 }, targets, starts) {
-    const report = { scartate: [], riempite: [], momentiTolti: [], facoltativiSenzaPosto: [], facoltativiVuoti: [], ripieghi: [], lontani: [], ripetuti: [], ritocchi: [], tempoLibero: [], ancoreTolte: [] };
+    const report = { scartate: [], riempite: [], momentiTolti: [], facoltativiSenzaPosto: [], facoltativiVuoti: [], ripieghi: [], lontani: [], ripetuti: [], ritocchi: [], tempoLibero: [], ancoreTolte: [], cascata: [] };
     // BANCO-POOL — le scelte del modello cosi' come sono arrivate, e (sotto) la
     // classifica che il codice ha calcolato a ogni posto. Solo registrazione:
     // niente di qui entra nelle decisioni.
@@ -645,6 +645,8 @@ function repairPass({
     let prev = null;
     let day = null;
     let dayFamilies = new Set();
+    // C10c-piena-2 — i posti gia' tornati una volta nel giorno (gradino c della cascata): mai una terza
+    let ripetutiNelGiorno = new Set();
     // C5 — i marchi gia' nel giorno: mai due locali della stessa catena.
     let dayBrands = new Set();
     const brandCache = new Map();
@@ -654,7 +656,7 @@ function repairPass({
         return brandCache.get(k);
     };
     moments.forEach((m, mi) => {
-        if (m.dayIndex !== day) { day = m.dayIndex; prev = null; dayFamilies = new Set(); dayBrands = new Set(); }
+        if (m.dayIndex !== day) { day = m.dayIndex; prev = null; dayFamilies = new Set(); dayBrands = new Set(); ripetutiNelGiorno = new Set(); }
         const bucket = buckets.get(m.id) || [];
         const inBucket = new Map(bucket.map(c => [idOf(c), c]));
         const later = moments.slice(mi + 1).filter(x => x.dayIndex === m.dayIndex && x.stops > 0);
@@ -745,9 +747,33 @@ function repairPass({
         };
         // Merito e strada insieme: il punteggio meno il peso della deviazione.
         const worth = (x) => scoreOf(x.c) - DETOUR_WEIGHT * x.dev;
-        // C8a — un momento facoltativo non fa mai un ripiego: niente oltre il tetto di cammino, niente
-        // famiglia ripetuta, niente giro oltre la deviazione massima (C5c) verso la tappa dopo.
-        const fitsOptional = (x) => !x.hard && !x.dup && !x.chain && !(x.dev > ROUTE_DEVIATION_MAX_MINUTES);
+        // C8a — un momento facoltativo non fa mai un ripiego: niente oltre il tetto di cammino, niente marchio ripetuto, niente
+        // giro oltre la deviazione massima (C5c) verso la tappa dopo.
+        // C10c-piena-2 — VARIETA' COME PREFERENZA (decisione di Ivano: «se si puo' evitare si evita, ma non deve essere
+        // vincolante»): la famiglia ripetuta non lo esclude piu'. La cascata: a) una famiglia nuova (la classifica la mette
+        // davanti), b) un altro posto della stessa famiglia, c) lo stesso posto gia' visto di giorno se e' un'ancora o il
+        // simbolo, una volta sola (`ripetibile`). Dove c'e' un gradino prima, la cascata si ferma li'.
+        const fitsOptional = (x) => !x.hard && !x.chain && !(x.dev > ROUTE_DEVIATION_MAX_MINUTES);
+        const gradinoDi = (x) => (x.dup ? 'b' : 'a');
+        // C10c-piena-2 — gradino c): un posto del bucket gia' nel giorno, solo se e' un'ancora o il simbolo, mai ripetuto
+        // due volte, mai subito dopo se stesso, e con le stesse soglie del momento (tetto di cammino, strada, marchio).
+        // Solo nella scelta finale, dopo le ricerche mirate (`tempoLiberoMinuti`): prima si cerca un posto nuovo dalla tappa prima.
+        // Solo la sera (la passeggiata, il dopocena): «lo stesso posto gia' visto di giorno». Di giorno un riempimento che riporta
+        // nella stessa chiesa poche ore dopo non e' una tappa in piu': li' valgono a) e b).
+        const ripetibile = () => {
+            if (tempoLiberoMinuti == null || !(m.opzionale || m.key === 'passeggiata' || m.key === 'dopocena')) return null;
+            const ultimo = last();
+            const ok = bucket
+                .filter(c => used.has(idOf(c)) && !ripetutiNelGiorno.has(idOf(c)) && (isAncora(c) || c?._citta?.simbolo)
+                    && idOf(c) !== idOf(ultimo) && !chosen.some(x => idOf(x.candidate) === idOf(c))
+                    && (!leggeraInCorso() || isLightStop(c)) && (!isStoricaLista(c) || !storicaGiaPresa()))
+                .map(c => ({ ...costOf(c), dup: true, ripetuta: true }))
+                .filter(x => !x.hard && !x.chain && !(m.opzionale && x.dev > ROUTE_DEVIATION_MAX_MINUTES))
+                .sort((a, b) => a.t - b.t);
+            if (!ok.length) return null;
+            ripetutiNelGiorno.add(idOf(ok[0].c));
+            return ok[0];
+        };
         // C10c-replay — SOLO REGISTRAZIONE: perche' il momento facoltativo resta senza posto. Il migliore dei candidati liberi
         // e la prova che non passa (il primo che fallisce decide: nessuno migliore passa), e quanti candidati falliscono ogni prova.
         const proveFallite = (x) => [
@@ -873,8 +899,13 @@ function repairPass({
                     report.ripetuti.push({ momento: m.id, place_id: idOf(c), da });
                 }
                 if (mirata) trace.motivo += ' (dalla ricerca mirata)';
-                report.ripieghi.push({ place_id: idOf(c), name: c.name || c.title || null, momento: m.id, motivo: trace.motivo });
+                report.ripieghi.push({ place_id: idOf(c), name: c.name || c.title || null, momento: m.id, motivo: trace.motivo, tipo: ripiego });
             }
+            // C10c-piena-2 — il gradino della cascata della varieta' (a: famiglia nuova, b: stessa famiglia, c: stesso posto)
+            trace.gradino = cost.ripetuta ? 'c' : gradinoDi(cost);
+            report.cascata.push({ momento: m.id, place_id: idOf(c), nome: c.name || c.title || null, gradino: trace.gradino, fonte: source,
+                ...(m.opzionale ? { facoltativo: true } : {}) });
+            if (cost.ripetuta) trace.ripetuta = true;
             chosen.push({ candidate: c, narration, source, trace });
             used.add(idOf(c));
             if (counted(famOf(c))) dayFamilies.add(famOf(c));
@@ -963,11 +994,17 @@ function repairPass({
                 });
                 break;
             }
-            const b = best(null);
-            if (!b) { if (m.opzionale) perFacoltativo = motivoFacoltativo(null); break; }
-            // C8a — un momento FACOLTATIVO (la passeggiata) entra solo se sta bene: entro il tetto di
-            // cammino, sulla strada (soglia C5c) e senza ripetere una famiglia. Altrimenti non entra.
-            if ((m.opzionale || leggeraInCorso()) && !fitsOptional(b)) { if (m.opzionale) perFacoltativo = motivoFacoltativo(b); break; }
+            let b = best(null);
+            // C8a — un momento FACOLTATIVO (la passeggiata) entra solo se sta bene: entro il tetto di cammino e sulla strada
+            // (soglia C5c). C10c-piena-2 — la famiglia ripetuta non lo esclude: fra i candidati che stanno bene il primo della
+            // classifica (famiglia nuova prima, poi la stessa famiglia).
+            if (b && (m.opzionale || leggeraInCorso()) && !fitsOptional(b)) b = ranked().find(x => fitsOptional(x) && (!leggeraInCorso() || isLightStop(x.c))) || null;
+            // C10c-piena-2 — gradino c): nessun posto nuovo, lo stesso posto gia' visto di giorno se e' un'ancora o il simbolo
+            if (!b) b = ripetibile();
+            if (!b) {
+                if (m.opzionale) perFacoltativo = motivoFacoltativo(best(null));
+                break;
+            }
             take(b.c, narrationById.get(idOf(b.c)) || null, 'riparata', b);
             report.riempite.push({ place_id: idOf(b.c), name: b.c.name || b.c.title || null, momento: m.id });
         }
@@ -1331,7 +1368,9 @@ function syncRepeatTraces(plan, asked, report, { buckets = null, maxWalk = MAX_W
                 if (repeat && !marked) {
                     s.trace = { ...(s.trace || {}), scelta: 'ripiego', ripiego: 'famiglia', famiglia: f,
                         motivo: `nessuna famiglia nuova sulla strada: ${f} ripetuta` };
-                    report.ripieghi.push({ place_id: id, name: s.candidate.name || s.candidate.title || null, momento: p.moment.id, motivo: s.trace.motivo });
+                    // C10c-piena-2 — una famiglia ripetuta (gradino b della cascata): il tipo dice che non e' un peggioramento
+                    s.trace.gradino = s.trace.gradino === 'c' ? 'c' : 'b';
+                    report.ripieghi.push({ place_id: id, name: s.candidate.name || s.candidate.title || null, momento: p.moment.id, motivo: s.trace.motivo, tipo: 'famiglia' });
                     if (!report.ripetuti.some(x => x.place_id === id)) report.ripetuti.push({ momento: p.moment.id, place_id: id, da: pointOf(prevStop) });
                 }
                 if (repeat && buckets) {
@@ -1754,6 +1793,9 @@ const criterioDi = (motivo) => {
     if (/entro|tetto|min dal|vicin/.test(t)) return 'cammino';
     return 'altro';
 };
+// C10c-piena-2 — VARIETA' COME PREFERENZA: una famiglia ripetuta (gradino b della cascata) non e' un peggioramento che
+// respinge un riempimento; lo restano il passo oltre il tetto, la prima tappa lontana, il marchio ripetuto.
+const ripieghiVeri = (report) => (report?.ripieghi || []).filter(x => x.tipo !== 'famiglia').length;
 const chiaveRiga = (x) => `${x?.place_id ?? ''}|${x?.momento ?? ''}|${x?.motivo ?? ''}`;
 const nuoveRighe = (ora, prima) => { const p = new Set((prima || []).map(chiaveRiga)); return (ora || []).filter(x => !p.has(chiaveRiga(x))); };
 
@@ -1767,8 +1809,8 @@ export function criterioRespinto({ trial, trialSched, cur, espandi = true, momen
     const rep = trial?.repaired?.report || {};
     const was = cur?.repaired?.report || {};
     if ((trial?.residui?.length ?? 0) > 0) return { criterio: 'orario', dettaglio: `chiuso all'arrivo: ${trial.residui.map(x => x.nome).join(', ')}` };
-    if ((rep.ripieghi?.length ?? 0) > (was.ripieghi?.length ?? 0)) {
-        const rip = nuoveRighe(rep.ripieghi, was.ripieghi)[0];
+    if (ripieghiVeri(rep) > ripieghiVeri(was)) {
+        const rip = nuoveRighe(rep.ripieghi, was.ripieghi).filter(x => x.tipo !== 'famiglia')[0];
         return { criterio: criterioDi(rip?.motivo), dettaglio: `ripiego in piu': ${rip?.motivo ?? '?'}` };
     }
     if ((rep.tempoLibero?.length ?? 0) > (was.tempoLibero?.length ?? 0)) {
@@ -1924,7 +1966,7 @@ export function fillGaps({ moments, repaired, sched, repair, schedule, veto, esp
                     && (!espandi || mealCount(trialSched) <= mealCount(cur.sched))
                     && realStopCount(trialSched) > realStopCount(cur.sched)
                     && totalGapMinutes(trialSched) < totalGapMinutes(cur.sched)
-                    && (rep.ripieghi?.length ?? 0) <= (was.ripieghi?.length ?? 0)
+                    && ripieghiVeri(rep) <= ripieghiVeri(was)
                     && (rep.tempoLibero?.length ?? 0) <= (was.tempoLibero?.length ?? 0)
                     && trialSched.tolte.length <= cur.sched.tolte.length;
                 if (better) {
@@ -1994,7 +2036,7 @@ export function fillMinimum({ moments, repaired, sched, repair, schedule, veto, 
                 const better = trial.residui.length === 0
                     && mealCount(trialSched) <= mealCount(cur.sched)
                     && dayCount(trialSched, di) > dayCount(cur.sched, di)
-                    && (rep.ripieghi?.length ?? 0) <= (was.ripieghi?.length ?? 0)
+                    && ripieghiVeri(rep) <= ripieghiVeri(was)
                     && (rep.tempoLibero?.length ?? 0) <= (was.tempoLibero?.length ?? 0)
                     && trialSched.tolte.length <= cur.sched.tolte.length;
                 if (better) {

@@ -94,6 +94,9 @@ export const tappa = (luoghi, s, fatti, comp, riempite, dieta, atStimato) => {
         ...(s._tracciato?.tema ? { tema: s._tracciato.tema } : {}),
         ...(s._tracciato?.tipico ? { tipico: s._tracciato.tipico } : {}),
         ...(s._tracciato?.esplicito ? { esplicito: s._tracciato.esplicito } : {}),
+        // C10c-piena-2 — il gradino della cascata della varieta' (a famiglia nuova, b stessa famiglia, c stesso posto della sera)
+        ...(s._tracciato?.gradino ? { gradino: s._tracciato.gradino } : {}),
+        ...(s._tracciato?.ripetuta ? { ripetuta: true } : {}),
         dietaCercata: parole.length ? qs.some(conDieta) : null,
         dietaSolo: parole.length ? (qs.length > 0 && qs.every(conDieta)) : null,
     };
@@ -158,6 +161,8 @@ export function registraItinerario(rec, { r, rec: extra, food }, caso, luoghi) {
     rec.orariMotore = r._orari ?? null;
     // CONTINUITA' — le tappe aggiunte ai buchi e i buchi dichiarati, dal rapporto del motore
     rec.continuita = r._momentReport?.continuita ?? null;
+    // C10c-piena-2 — ogni scelta del riparatore col suo gradino della cascata
+    rec.cascata = r._momentReport?.cascata ?? null;
     // C7 — il tema cibo, il tipico, le cucine estere escluse, le zone tolte, le ricerche mirate fatte
     rec.tema = r._momentReport?.tema ?? null;
     // C10 — la lista della città in questo giro (stato, dal server o nuova, verificati, nel pool, ancore, seminate)

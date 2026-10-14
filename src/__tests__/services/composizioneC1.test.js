@@ -510,12 +510,19 @@ describe('C1b — generateItinerary: ricerca mirata quando non c\'e\' niente di 
             mirata: (q) => (q === 'bar cocktail pub locale musica vino' ? [place('BAR', 'Bar del Fico', ['bar'], 0.005)] : []),
         });
         const res = await genera();
-        const st = byMoment(res);
         expect(searches.filter(s => s.radius === String(MAX_WALK_METERS) && !PASSEGGIATA.test(s.q))).toHaveLength(1);
         expect(res._momentReport.ricercheDopo[0]).toMatchObject({ momento: 'g1-aperitivo', tema: 'nightlife', trovati: 1 });
-        expect(st.aperitivo.title).toBe('Bar del Fico');
-        expect(st.aperitivo._tracciato.scelta).toBe('ricerca mirata');
-        const fams = Object.values(st).map(x => x._tracciato.famiglia).filter(Boolean);
+        // C10c-piena-2 — la passeggiata (a schermo sotto l'aperitivo) non resta piu' vuota: senza famiglie nuove vicine prende
+        // l'altro belvedere (varieta' come preferenza, gradino b); il drink resta il bar della ricerca mirata
+        const tutte = senzaBuchi(res.days.flatMap(d => d.stops));
+        const drink = tutte.find(x => x.moment === 'aperitivo' && !x.passeggiata);
+        expect(drink.title).toBe('Bar del Fico');
+        expect(drink._tracciato.scelta).toBe('ricerca mirata');
+        const passeggiata = tutte.find(x => x.passeggiata);
+        expect(passeggiata).toMatchObject({ title: 'Belvedere Cederna' });
+        expect(passeggiata._tracciato.gradino).toBe('b');
+        // fuori dalla passeggiata nessuna famiglia ripetuta: c'era una famiglia nuova (il bar)
+        const fams = tutte.filter(x => !x.passeggiata).map(x => x._tracciato.famiglia).filter(Boolean);
         expect(new Set(fams).size, fams.join(' | ')).toBe(fams.length);
     });
 });

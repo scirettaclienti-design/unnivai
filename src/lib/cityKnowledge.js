@@ -457,18 +457,26 @@ export function quartiereConfermato(candidato, nome, centroCitta, raggioCittaKm 
 export function quartiereFuoriLista({ nome, candidato, poiQuartiere = [] }) {
     const loc = candidato.geometry.location;
     const centro = { latitude: loc.lat, longitude: loc.lng };
-    const vp = candidato.geometry?.viewport;
-    const ne = vp?.northeast, sw = vp?.southwest;
-    // il riquadro di Google di un quartiere e' largo (Trastevere: 2 x 1,8 km, fino al Pantheon): il nucleo e' il cerchio di 1 km
-    // dal punto del quartiere, e se c'e' il riquadro anche dentro di lui
-    const nucleo = { tipo: 'cerchio', centro, raggioKm: NUCLEO_QUARTIERE_KM,
-        ...(ne && sw && [ne.lat, ne.lng, sw.lat, sw.lng].every(Number.isFinite) ? { riquadro: { nord: ne.lat, est: ne.lng, sud: sw.lat, ovest: sw.lng, margineKm: MARGINE_NUCLEO_KM } } : {}) };
     const posti = poiQuartiere.filter(conCoordinate);
     return {
         nome, chiave: normTesto(nome).trim(), centro, raggioKm: RAGGIO_QUARTIERE_KM, posti,
         essenziali: posti.filter(p => p._citta?.tipo === 'essenziale'), daVisitare: posti.filter(p => !COMMERCIAL_KINDS.has(placeKind(p).kind)),
-        nucleo, fuoriLista: true,
+        nucleo: nucleoDellaLista(posti) || { tipo: 'cerchio', centro, raggioKm: NUCLEO_QUARTIERE_KM, fonte: 'google' }, fuoriLista: true,
     };
+}
+
+// C10c-piena-2 — IL NUCLEO VERO del quartiere chiesto (decisione di Ivano): il baricentro dei luoghi verificati della sua lista,
+// non il punto ne' il riquadro di Google. Il raggio arriva fin dove stanno i suoi luoghi (il piu' lontano + 150 m), mai oltre
+// 1 km e mai sotto 500 m: con 1 km pieno dal baricentro di Trastevere il Giardino degli Aranci (0,98 km, oltre il Tevere)
+// conterebbe come Trastevere.
+export const NUCLEO_MIN_KM = 0.5;
+export function nucleoDellaLista(posti) {
+    const p = (posti || []).filter(conCoordinate);
+    if (p.length < 2) return null;
+    const centro = { latitude: p.reduce((a, x) => a + latOf(x), 0) / p.length, longitude: p.reduce((a, x) => a + lngOf(x), 0) / p.length };
+    const lontano = Math.max(...p.map(x => kmTra(centro, x)));
+    const raggioKm = Math.round(Math.min(NUCLEO_QUARTIERE_KM, Math.max(NUCLEO_MIN_KM, lontano + MARGINE_NUCLEO_KM)) * 100) / 100;
+    return { tipo: 'cerchio', centro, raggioKm, fonte: 'lista', luoghi: p.length };
 }
 
 /** Il nucleo di un quartiere della lista (chiesto per nome): 1 km dal suo centro. */

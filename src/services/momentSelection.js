@@ -1741,7 +1741,7 @@ const nuoveRighe = (ora, prima) => { const p = new Set((prima || []).map(chiaveR
  * entra nel suo momento, un pasto in piu', nessuna tappa vera in piu', il buco che non scende.
  * @returns {{ criterio: 'varietà'|'strada'|'cammino'|'orario'|'altro', dettaglio: string }}
  */
-export function criterioRespinto({ trial, trialSched, cur, espandi = true }) {
+export function criterioRespinto({ trial, trialSched, cur, espandi = true, moment = null }) {
     const rep = trial?.repaired?.report || {};
     const was = cur?.repaired?.report || {};
     if ((trial?.residui?.length ?? 0) > 0) return { criterio: 'orario', dettaglio: `chiuso all'arrivo: ${trial.residui.map(x => x.nome).join(', ')}` };
@@ -1756,11 +1756,18 @@ export function criterioRespinto({ trial, trialSched, cur, espandi = true }) {
     if ((trialSched?.tolte?.length ?? 0) > (cur?.sched?.tolte?.length ?? 0)) return { criterio: 'altro', dettaglio: 'una tappa non entra nel suo momento' };
     if (espandi && mealCount(trialSched) > mealCount(cur?.sched)) return { criterio: 'altro', dettaglio: 'un pasto in piu\'' };
     if (realStopCount(trialSched) <= realStopCount(cur?.sched)) {
-        const sc = nuoveRighe(rep.scartate, was.scartate)[0] || nuoveRighe(rep.ancoreTolte, was.ancoreTolte)[0];
+        // il posto in piu' del momento e' rimasto vuoto? Il motivo e' quello scritto per QUEL momento
+        const pm = moment ? (trial?.repaired?.plan || []).find(p => p.moment?.id === moment.id) : null;
+        if (pm && pm.stops.length < moment.stops) {
+            const lib = (rep.tempoLibero || []).find(x => x.momento === moment.id);
+            if (lib) return { criterio: criterioDi(lib.motivo), dettaglio: `posto vuoto: ${lib.motivo}` };
+            const sc = (rep.scartate || []).filter(x => x.momento === moment.id).pop();
+            if (sc) return { criterio: criterioDi(sc.motivo), dettaglio: `posto vuoto: ${sc.motivo}` };
+            return { criterio: 'altro', dettaglio: 'posto vuoto: nessun candidato libero nel momento (gia\' usati o fuori dal bucket)' };
+        }
         const inc = (rep.incrociRimasti?.length ?? 0) > (was.incrociRimasti?.length ?? 0);
-        if (sc) return { criterio: criterioDi(sc.motivo), dettaglio: `nessuna tappa in piu': ${sc.motivo}` };
-        if (inc) return { criterio: 'strada', dettaglio: 'nessuna tappa in piu\': incroci nel percorso' };
-        return { criterio: 'altro', dettaglio: 'nessuna tappa in piu\': nessun candidato valido nel momento (varieta\', percorso e orari)' };
+        if (inc) return { criterio: 'strada', dettaglio: 'il momento si riempie ma il giro perde una tappa: incroci nel percorso' };
+        return { criterio: 'altro', dettaglio: 'il momento si riempie ma il giro perde una tappa altrove (rifinitura o orari)' };
     }
     return { criterio: 'altro', dettaglio: 'il buco non scende' };
 }
@@ -1835,7 +1842,7 @@ export function fillGaps({ moments, repaired, sched, repair, schedule, veto, esp
                 }
                 // C10c — solo registrazione: il criterio che ha fermato il tentativo (nessun cambio di comportamento)
                 respinti.push({ momento: m.id, dayIndex: m.dayIndex, buco: gap.minutes, dalle: gap.from.toISOString(), alle: gap.to.toISOString(),
-                    ...criterioRespinto({ trial, trialSched, cur, espandi }) });
+                    ...criterioRespinto({ trial, trialSched, cur, espandi, moment: m }) });
                 m.stops = saved.stops;
                 m.extraLeggero = saved.extraLeggero;
                 restoreVeto(veto, saved.veto);

@@ -8,7 +8,7 @@
 //   · il tracciato dice perche' un riempimento e' stato respinto.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { applyOpeningToBuckets, scheduleMomentPlan, closedInSchedule, criterioRespinto } from '../../services/momentSelection';
-import { poolConLista, spostaAncoreVietate } from '../../lib/cityKnowledge';
+import { poolConLista, spostaAncoreVietate, quartiereFuoriLista, dentroNucleo, luogoDaVisitareBorgo } from '../../lib/cityKnowledge';
 import { openStatus } from '../../lib/openingHours';
 import { fetchCityKnowledge, fetchQuartiereKnowledge } from '../../services/cityKnowledgeService';
 import { aiRecommendationService } from '../../services/aiRecommendationService';
@@ -195,6 +195,21 @@ describe('C10c — simbolo dell\'AI, ancore vietate, riempimenti respinti', () =
         const r = spostaAncoreVietate([{ place_id: 'teatro', moment: 'g1-pomeriggio' }], new Set(['teatro']), moments, buckets, veto);
         expect(r.aiStops[0].moment).toBe('g1-mattina');
         expect(r.spostate).toEqual([{ place_id: 'teatro', da: 'g1-pomeriggio', a: 'g1-mattina' }]);
+    });
+
+    it('il nucleo del quartiere chiesto non è il riquadro di Google (largo): 1 km dal suo punto, dentro il riquadro', () => {
+        // il riquadro di Trastevere per Google arriva al Pantheon
+        const cand = { name: 'Trastevere', types: ['neighborhood'], geometry: { location: { lat: 41.8848, lng: 12.4704 },
+            viewport: { northeast: { lat: 41.9002, lng: 12.4792 }, southwest: { lat: 41.8821, lng: 12.4569 } } } };
+        const q = quartiereFuoriLista({ nome: 'Trastevere', candidato: cand, poiQuartiere: [] });
+        expect(dentroNucleo({ latitude: 41.8895, longitude: 12.4699 }, q.nucleo)).toBe(true);   // Santa Maria in Trastevere
+        expect(dentroNucleo({ latitude: 41.8986, longitude: 12.4769 }, q.nucleo)).toBe(false);  // Pantheon: nel riquadro, a 1,6 km
+    });
+
+    it('nel borgo un posto con i soli tipi generici di Google non è un luogo da visitare', () => {
+        expect(luogoDaVisitareBorgo({ types: ['point_of_interest', 'establishment'] })).toBe(false);
+        expect(luogoDaVisitareBorgo({ types: ['church', 'point_of_interest'], primaryType: 'church' })).toBe(true);
+        expect(luogoDaVisitareBorgo({ types: ['restaurant', 'food'], primaryType: 'restaurant' })).toBe(false);
     });
 
     it('il tracciato registra il criterio che ha fermato un riempimento (varietà, cammino, orario)', () => {

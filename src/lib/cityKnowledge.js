@@ -399,7 +399,7 @@ export function declassa(nonSeminate) {
 // Se la richiesta nomina un quartiere che la lista del giorno non ha («una giornata a Trastevere» con una lista Monti /
 // Centro / Prati), il motore lo riconosce comunque: il nome si verifica su Google dentro la citta' (un quartiere, non una
 // via), parte la lista dedicata del quartiere (C10b2) e la giornata parte da li'. Regola: almeno meta' delle tappe nel
-// quartiere (il NUCLEO: il riquadro di Google, o 1 km dal suo punto), le altre nei quartieri vicini a piedi (l'AREA: 2 km).
+// quartiere (il NUCLEO: 1 km dal punto di Google, dentro il suo riquadro), le altre nei quartieri vicini a piedi (l'AREA: 2 km).
 
 const PREPOSIZIONI = 'a|in|nel|nella|nello|al|allo|alla|ai|agli|alle|per|da|dal|dalla|dai|tra|fra|verso|sul|sulla|dentro';
 const PAROLE_NON_LUOGO = new Set(['domani', 'oggi', 'dopodomani', 'lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica', 'italia']);
@@ -452,16 +452,17 @@ export function quartiereConfermato(candidato, nome, centroCitta, raggioCittaKm 
 
 /**
  * Il quartiere chiesto fuori lista, nella forma di `quartieriDallaLista`: centro = il punto di Google, raggio dell'area 2 km,
- * gli essenziali e i luoghi da visitare dalla sua lista dedicata; `nucleo` = il riquadro di Google (piu' un margine) o 1 km.
+ * gli essenziali e i luoghi da visitare dalla sua lista dedicata; `nucleo` = 1 km dal punto di Google, dentro il suo riquadro.
  */
 export function quartiereFuoriLista({ nome, candidato, poiQuartiere = [] }) {
     const loc = candidato.geometry.location;
     const centro = { latitude: loc.lat, longitude: loc.lng };
     const vp = candidato.geometry?.viewport;
     const ne = vp?.northeast, sw = vp?.southwest;
-    const nucleo = ne && sw && [ne.lat, ne.lng, sw.lat, sw.lng].every(Number.isFinite)
-        ? { tipo: 'riquadro', nord: ne.lat, est: ne.lng, sud: sw.lat, ovest: sw.lng, margineKm: MARGINE_NUCLEO_KM }
-        : { tipo: 'cerchio', centro, raggioKm: NUCLEO_QUARTIERE_KM };
+    // il riquadro di Google di un quartiere e' largo (Trastevere: 2 x 1,8 km, fino al Pantheon): il nucleo e' il cerchio di 1 km
+    // dal punto del quartiere, e se c'e' il riquadro anche dentro di lui
+    const nucleo = { tipo: 'cerchio', centro, raggioKm: NUCLEO_QUARTIERE_KM,
+        ...(ne && sw && [ne.lat, ne.lng, sw.lat, sw.lng].every(Number.isFinite) ? { riquadro: { nord: ne.lat, est: ne.lng, sud: sw.lat, ovest: sw.lng, margineKm: MARGINE_NUCLEO_KM } } : {}) };
     const posti = poiQuartiere.filter(conCoordinate);
     return {
         nome, chiave: normTesto(nome).trim(), centro, raggioKm: RAGGIO_QUARTIERE_KM, posti,
@@ -476,10 +477,12 @@ export const nucleoDi = (q) => q?.nucleo || (q?.centro ? { tipo: 'cerchio', cent
 /** Un posto nel nucleo del quartiere chiesto (senza coordinate: non si giudica, resta). */
 export function dentroNucleo(c, nucleo) {
     if (!nucleo || !conCoordinate(c)) return true;
-    if (nucleo.tipo === 'cerchio') return kmTra(nucleo.centro, c) <= nucleo.raggioKm;
-    const mLat = (nucleo.margineKm || 0) / 111;
-    const mLng = (nucleo.margineKm || 0) / (111 * Math.cos((latOf(c) * Math.PI) / 180));
-    return latOf(c) <= nucleo.nord + mLat && latOf(c) >= nucleo.sud - mLat && lngOf(c) <= nucleo.est + mLng && lngOf(c) >= nucleo.ovest - mLng;
+    if (kmTra(nucleo.centro, c) > nucleo.raggioKm) return false;
+    const r = nucleo.riquadro;
+    if (!r) return true;
+    const mLat = (r.margineKm || 0) / 111;
+    const mLng = (r.margineKm || 0) / (111 * Math.cos((latOf(c) * Math.PI) / 180));
+    return latOf(c) <= r.nord + mLat && latOf(c) >= r.sud - mLat && lngOf(c) <= r.est + mLng && lngOf(c) >= r.ovest - mLng;
 }
 
 // Le visite e il pranzo stanno nel nucleo del quartiere chiesto; aperitivo, passeggiata, cena e dopocena nell'area (a piedi).
@@ -534,8 +537,10 @@ export function spostaAncoreVietate(aiStops, idAncore, moments, buckets, veto) {
  * C10c — BORGO (decisione di Ivano): la regola «la durata segue le tappe» conta solo i luoghi da visitare (e, per la durata,
  * le passeggiate): non i ristoranti, i bar, i negozi, ne' i posti che per Google non hanno un tipo.
  */
+const TIPI_GENERICI = new Set(['point_of_interest', 'establishment']);
 export const luogoDaVisitareBorgo = (p) => {
-    const tipi = Array.isArray(p?.types) ? p.types : [];
+    // «point_of_interest» ed «establishment» li ha ogni posto: da soli non dicono cosa sia (San Silvestro a Troina)
+    const tipi = (Array.isArray(p?.types) ? p.types : []).filter(t => !TIPI_GENERICI.has(t));
     if (tipi.length === 0 && !p?.primaryType) return false;
     return !COMMERCIAL_KINDS.has(placeKind(p).kind);
 };

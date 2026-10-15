@@ -347,7 +347,7 @@ Proxy pubblicato: `openai-proxy` v24 (ramo `c10c`, `7a4426f`). Report: `docs/pro
 - **Stesso nome = stesso posto**: due schede di Google con lo stesso nome contano come lo stesso posto (mai due volte nel giro).
 - **Nucleo del quartiere chiesto = baricentro dei luoghi della sua lista** (raggio fino al luogo più lontano + 150 m, fra 500 m e 1 km).
 - **Ogni correzione al motore si prova prima col replay** (`npm run banco:replay`, 0 $), poi **un solo giro pagato con 2 ripetizioni**.
-- **Prima di ogni merge: `npm run banco:guardia`** (la guardia della home in replay, 0 $): nessun flusso della home vuoto a Troina e a Catania.
+- **Prima di ogni merge: la guardia di tutti i flussi della home, `npm run banco:guardia`** (replay, 0 $): Per Te, Quiz Natura e Storia, Sorprendimi Natura e Arte, Crea il tuo Percorso, a Troina e a Catania; deve dare 12 su 12, nessun flusso vuoto.
 - **Deploy di `openai-proxy` sempre con `--use-api`** (`supabase functions deploy openai-proxy --project-ref ahecpiwsdhghkndncejb --no-verify-jwt --use-api`); dopo il deploy si confronta la versione attiva con i file del repo.
 - **Simboli accettati dal banco**: `SIMBOLI_ACCETTATI` in `scripts/banco/asticella-c10.js` (non in `banco.config.json`).
 - **Orari verificati all'arrivo** (C10c-piena-1): un posto conta aperto o chiuso all'ora in cui ci arrivi, per tutta la sosta, non all'inizio del momento.

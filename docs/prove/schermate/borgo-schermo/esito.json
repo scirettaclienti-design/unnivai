@@ -1,0 +1,36 @@
+[
+ {
+  "scenario": "quiz",
+  "pronto": true,
+  "schermata": "docs/prove/schermate/borgo-schermo/01-quiz-natura-sera.png",
+  "riquadroMood": [],
+  "riquadroIspirazione": [],
+  "durata": "1h 15m",
+  "naturaNote": [
+   "La natura di notte non si vede. Stasera ti porto qui; domattina alle 9 si sale a Monte Muganà."
+  ],
+  "scalaNote": [],
+  "testo": "Ciao! Troina 12°C Percorso Veloce Scopri qualcosa di speciale in pochi minuti TROINA Il tuo giro a Troina Itinerario cucito dall'AI IL TUO DNA ESPLORATIVO Veloce Solo La natura di notte non si vede. Stasera ti porto qui; domattina alle 9 si sale a Monte Muganà. 2 TAPPE 1h 15m DURATA ITINERARIO GENERATO DOPOCENA 1 Barbera Silvestro 23:00 Dopo cena, due passi fino a Barbera Silvestro. Si comincia da qui. 2 Piazza Conte Ruggero 23:45 Attraversi Piazza Conte Ruggero piano, senza fretta. Qui la giornata si chiude. Vedi mappa Torna alla Home Home Esplora Foto Profilo",
+  "errori": [],
+  "uscite": [],
+  "promptDiversi": 1,
+  "servite": 4
+ },
+ {
+  "scenario": "sorprendimi",
+  "pronto": true,
+  "schermata": "docs/prove/schermate/borgo-schermo/02-sorprendimi-natura-sera.png",
+  "riquadroMood": [],
+  "riquadroIspirazione": [],
+  "durata": "1h 15m",
+  "naturaNote": [
+   "La natura di notte non si vede. Stasera ti porto qui; domattina alle 9 si sale a Monte Muganà."
+  ],
+  "scalaNote": [],
+  "testo": "Ciao! Troina 12°C Altra sorpresa ESPERIENZA CREATA TROINA Il tuo giro a Troina Itinerario cucito dall'AI IL TUO DNA ESPLORATIVO Categoria Natura Ritmo Mezza Giornata 1h 15m Esperienza Unica 2 TAPPE 1h 15m DURATA La natura di notte non si vede. Stasera ti porto qui; domattina alle 9 si sale a Monte Muganà. ITINERARIO GENERATO DOPOCENA 1 Barbera Silvestro 23:00 Dopo cena, due passi fino a Barbera Silvestro. Si comincia da qui. 2 Piazza Conte Ruggero 23:45 Attraversi Piazza Conte Ruggero piano, senza fretta. Qui la giornata si chiude. Vedi Dettagli Tour Genera un'altra sorpresa Home Esplora Foto Profilo",
+  "errori": [],
+  "uscite": [],
+  "promptDiversi": 1,
+  "servite": 4
+ }
+]

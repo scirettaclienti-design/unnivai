@@ -2069,7 +2069,8 @@ const insertFreeTime = (days, entries) => {
 };
 
 /** Il contesto di composizione di ogni tappa, sugli orari di adesso. */
-const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map() }) => {
+// BORGO-SCHERMO — `giornata: false` (il giro della sera di Per Te, il tour misto del borgo): niente «Qui la giornata si chiude».
+const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map(), giornata = true }) => {
     const timed = refreshTourScheduledTimes(days, starts);
     return (days || []).map((day, di) => {
         const sun = sunForDay(day, di, tourWindow, cityCenter);
@@ -2096,6 +2097,7 @@ const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map
                     fatti,
                     primo: s === vere[0],
                     ultimo: s === vere[vere.length - 1],
+                    giornata,
                 });
                 return { d, arrival, fatti, fattiSu, fonti: s._comp?.fonti ?? (entry?.fonti || []) };
             }),
@@ -3350,7 +3352,7 @@ export const aiRecommendationService = {
                             dnaWeights: opts.dnaWeights || null,
                         });
                         const voce = { richiesta: userPrompt, oggetto: intent?.oggetto_umano || '' };
-                        const ctxs = composeContexts(daysForNarration, { starts, tourWindow, cityCenter, facts });
+                        const ctxs = composeContexts(daysForNarration, { starts, tourWindow, cityCenter, facts, giornata: opts.giornata !== false });
                         const scelte = await chooseStopHooks({ city, days: daysForNarration, ctxs, interessi, quotaTicket });
                         const composed = composeDays(applyDayMeta(daysForNarration, scelte.meta, city), {
                             starts, tourWindow, cityCenter, facts, scelte: scelte.byId, interessi, voce,
@@ -4045,7 +4047,8 @@ export const aiRecommendationService = {
         const now = requestNow(opts);
         const nowRome = romeParts(now);
         const prefsSera = { duration: durata, group: prefs?.group || 'solo', pace: prefs?.pace || 'rilassato', interests: [] };
-        const r = await this.generateItinerary(city, prefsSera, '', weather, aiProfile, cityCenter, { ...opts, pathType });
+        // BORGO-SCHERMO — un giro suggerito adesso non e' una giornata: niente «Qui la giornata si chiude» (come Per Te a temi)
+        const r = await this.generateItinerary(city, prefsSera, '', weather, aiProfile, cityCenter, { ...opts, pathType, giornata: false });
         const report = {
             serale,
             ...(serale ? {} : { borgoMisto: true }),

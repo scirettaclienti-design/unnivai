@@ -1,3 +1,4 @@
+import { displayedTourMinutes } from "@/lib/tourTiming";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { MapPin, Star, Clock, Users, ArrowLeft, Sparkles, Gift, ArrowRight, AlertCircle, Compass } from "lucide-react";
@@ -291,7 +292,8 @@ export default function SurpriseTourPage() {
                     return 'Sorpresa';
                 }).join(', ')}.`,
                 city: city || 'Roma',
-                duration_minutes: 180,
+                // BORGO-SCHERMO — la durata vera del giro (orologio, o somma senza orari), non 180 fisso
+                duration_minutes: displayedTourMinutes(surpriseTour.stops),
                 price_eur: 0,
                 // Gate PULIZIA (24/09): via `rating: 5.0` fisso, stesso difetto
                 // di QuickPath.jsx. Un tour a sorpresa generato ora non ha
@@ -306,6 +308,8 @@ export default function SurpriseTourPage() {
                 stops: surpriseTour.stops,
                 // P7b2 — riga onesta sulla dieta, se un pasto e' stato cercato col criterio.
                 dietNote: surpriseTour.dietNote || null,
+                // BORGO-FIX (decisione 3) — la nota «La natura di notte non si vede…», se il motore l'ha scritta
+                naturaNote: surpriseTour.naturaNote || null,
             }, {
                 cityFallback: city || 'Roma',
                 // DVAI-055-b: doppio filtro innocuo — generateItinerary ha già filtrato con
@@ -506,7 +510,7 @@ export default function SurpriseTourPage() {
                                     </div>
                                     <div className="flex items-center gap-2 mt-1">
                                         <Clock size={15} className="text-brand-orange" />
-                                        <span className="font-bold text-obsidian-primary">{durationLabel || '3h'}</span>
+                                        <span className="font-bold text-obsidian-primary">{durationLabel || '—'}</span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-1">
                                         <Users size={15} className="text-brand-orange" />
@@ -535,6 +539,9 @@ export default function SurpriseTourPage() {
                             {/* P7b2 — riga onesta sulla dieta: "cercati come", mai "e' vegetariano". */}
                             {mappedTour.dietNote && (
                                 <p data-diet-note className="text-obsidian-secondary text-xs px-1">{mappedTour.dietNote}</p>
+                            )}
+                            {mappedTour.naturaNote && (
+                                <p data-natura-note className="text-obsidian-secondary text-xs px-1">{mappedTour.naturaNote}</p>
                             )}
 
                             {/* Tappe Generate (Linguaggio QuickPath) */}

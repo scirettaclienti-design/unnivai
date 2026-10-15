@@ -123,7 +123,7 @@ describe('QuickPathSummary — durata dalla prima tappa alla fine dell\'ultima',
     });
 });
 
-describe('QuickPath — senza orari la card usa la durata del motore', () => {
+describe('QuickPath — senza orari la card usa la somma delle soste (BORGO-SCHERMO: una sola durata per tutte le schermate)', () => {
     const percorri = async (durata) => {
         const view = render(createElement(QuickPath));
         fireEvent.click(screen.getByText('Città').closest('button'));
@@ -134,20 +134,22 @@ describe('QuickPath — senza orari la card usa la durata del motore', () => {
         return view;
     };
 
-    it('Veloce, tappe senza scheduledTime → QUICK_MINUTES.veloce, non 90', async () => {
+    // BORGO-SCHERMO (decisione di Ivano): l'orologio con gli orari, la somma di soste e spostamenti senza; la durata del motore
+    // (QUICK_MINUTES) solo senza tappe. Una tappa da 30 minuti con 10 di cammino: 40 minuti, qualunque durata abbia scelto l'utente.
+    it('Veloce, tappe senza scheduledTime → la somma (40 min), non QUICK_MINUTES.veloce', async () => {
         generateItinerary.mockResolvedValue({
             days: [{ title: 'Roma', stops: [stop('Senza Orario', null)] }],
         });
         const { container } = await percorri('Veloce');
         expect(QUICK_MINUTES.veloce).toBe(120);
-        expect(statDurata(container)).toBe('2h');
+        expect(statDurata(container)).toBe('40 min');
     });
 
-    it('Lungo, tappe senza scheduledTime → QUICK_MINUTES.lungo, non 300', async () => {
+    it('Lungo, tappe senza scheduledTime → la stessa somma (40 min), non QUICK_MINUTES.lungo', async () => {
         generateItinerary.mockResolvedValue({
             days: [{ title: 'Roma', stops: [stop('Senza Orario', null)] }],
         });
         const { container } = await percorri('Lungo');
-        expect(statDurata(container)).toBe(`${QUICK_MINUTES.lungo / 60}h`);
+        expect(statDurata(container)).toBe('40 min');
     });
 });

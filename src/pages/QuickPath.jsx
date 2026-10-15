@@ -731,6 +731,8 @@ export default function QuickPathPage() {
                 center: { latitude: cityCenter.latitude, longitude: cityCenter.longitude },
                 // P7b2 — riga onesta sulla dieta, se un pasto e' stato cercato col criterio.
                 dietNote: result?.days?.[0]?.dietNote || null,
+                // BORGO-FIX (decisione 3) — la nota «La natura di notte non si vede…», se il motore l'ha scritta
+                naturaNote: result?.days?.[0]?.naturaNote || null,
             }, {
                 cityFallback: activeCity,
                 cityCenter, // enforceRadius default (on): il raggio si applica.
@@ -1066,6 +1068,7 @@ export default function QuickPathPage() {
                                 <QuickPathSummary
                                     tourData={readyTourData}
                                     choices={{
+                                        mainId: selectedOption,
                                         mood: mainOptions.find(o => o.id === selectedOption)?.title || selectedOption,
                                         inspiration: selectedSubOption?.title,
                                         duration: selectedDuration?.title,

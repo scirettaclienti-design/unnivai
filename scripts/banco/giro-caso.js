@@ -6,7 +6,8 @@ import { resolveCityCenter } from '@/services/cityCenterService';
 import { isSeraStart } from '@/lib/daySkeleton';
 import { isMealPlace, requestedFamilies } from '@/services/momentSelection';
 import { isBreakfastPlace } from '@/lib/mealRules';
-import { totalTourMinutes, tourSpanMinutes } from '@/lib/tourTiming';
+import { displayedTourMinutes } from '@/lib/tourTiming';
+import { sceltaConfermata } from '@/lib/quizRiquadro';
 import { resolveFoodPrefs, DIETE } from '@/lib/foodPrefs';
 import { voiceIssues } from '@/lib/narrationLight';
 import { buildPromptFromSelections, buildQuickPrefs } from '@/pages/QuickPath';
@@ -155,17 +156,16 @@ async function generaItinerario(caso, { base, onboarding, cc, rec }) {
     return r;
 }
 
-// GUARDIA-PERTINENZA (controllo 4) — i numeri di durata che le schermate del flusso mostrano, con le funzioni vere di
-// tourTiming.js sulle tappe del motore. Oggi (BORGO-DIAGNOSI, sezione 4): la scheda di Per Te e il suo dettaglio sommano
-// soste e spostamenti (totalTourMinutes); il riepilogo del Quiz legge l'orologio (tourSpanMinutes); la scheda di Sorprendimi
-// e' fissa a 180 (SurpriseTour.jsx) mentre il giro dura quanto dice l'orologio; Crea mostra un numero solo.
+// GUARDIA-PERTINENZA (controllo 4) — i numeri di durata che le schermate del flusso mostrano, con la funzione vera di
+// tourTiming.js sulle tappe del motore. BORGO-SCHERMO: una sola funzione per tutte le schermate (displayedTourMinutes:
+// l'orologio con gli orari, la somma senza): la scheda di Per Te e il dettaglio (DashboardUser, TourDetails), il riepilogo del
+// Quiz (QuickPathSummary), la scheda di Sorprendimi (non piu' 180 fisso) e il giro, le notifiche. Crea mostra un numero solo.
 export function durateSchermo(modo, stops) {
-    const orologio = tourSpanMinutes(stops);
-    const somma = totalTourMinutes(stops);
-    if (modo === 'perte') return { scheda: somma, dettaglio: somma };
-    if (modo === 'veloce') return { riepilogo: orologio };
-    if (modo === 'sorprendimi') return { scheda: 180, giro: orologio };
-    return { giro: orologio };
+    const mostrata = displayedTourMinutes(stops);
+    if (modo === 'perte') return { scheda: mostrata, dettaglio: mostrata };
+    if (modo === 'veloce') return { riepilogo: mostrata };
+    if (modo === 'sorprendimi') return { scheda: mostrata, giro: mostrata };
+    return { giro: mostrata };
 }
 
 /** I campi del grezzo di un itinerario (Crea, Veloce, Sorprendimi) dal risultato del motore. */
@@ -208,8 +208,9 @@ export function registraItinerario(rec, { r, rec: extra, food }, caso, luoghi) {
     rec.schermo = { giorni: (r.days || []).map(d => ({ titolo: d.title || null, meteo: d.weather ?? null })), sezioni,
         // BORGO-FIX — anche la nota della natura di notte (decisione 3)
         note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote), ...(r.days || []).map(d => d.scalaNote), ...(r.days || []).map(d => d.naturaNote)].filter(Boolean),
-        // GUARDIA-PERTINENZA — il riquadro «Il tuo DNA Esplorativo» del riepilogo del Quiz (QuickPathSummary): oggi mostra sempre la scelta
-        ...(caso.modo === 'veloce' ? { riquadro: { mostrato: true, scelta: [caso.scelta?.mainTitle, caso.scelta?.subTitle].filter(Boolean).join(' / ') } } : {}),
+        // GUARDIA-PERTINENZA — il riquadro «Il tuo DNA Esplorativo» del riepilogo del Quiz (QuickPathSummary): BORGO-SCHERMO, la scelta si
+        // mostra solo se una tappa e' della sua famiglia (sceltaConfermata, la stessa funzione della pagina)
+        ...(caso.modo === 'veloce' ? { riquadro: { mostrato: sceltaConfermata({ main: caso.scelta?.main, steps: r.days?.[0]?.stops || [] }), scelta: [caso.scelta?.mainTitle, caso.scelta?.subTitle].filter(Boolean).join(' / ') } } : {}),
         durate: durateSchermo(caso.modo, r.days?.[0]?.stops || []) };
     const per = new Map((r._narrationReport?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
     const comp = new Map((r._narrationReport?.composizione || []).map(x => [x.place_id, x]));

@@ -223,6 +223,22 @@ export function tourSpanMinutes(stops) {
 }
 
 /**
+ * BORGO-SCHERMO — LA DURATA CHE SI MOSTRA, UNA SOLA FUNZIONE per tutte le schermate (home, dettaglio, riepilogo del Quiz,
+ * Sorprendimi, notifiche; decisione di Ivano, task BORGO-COMPLETO): l'orologio (tourSpanMinutes: dal primo arrivo alla fine
+ * dell'ultima sosta, attese comprese) quando le tappe hanno gli orari; la somma di soste e spostamenti (totalTourMinutes) solo
+ * quando mancano; `fallback` (la durata del motore) solo senza tappe. Prima la scheda di Per Te sommava, il riepilogo del Quiz
+ * leggeva l'orologio e Sorprendimi scriveva 180 fisso: tre numeri per lo stesso giro.
+ * @returns {number|null}
+ */
+export function displayedTourMinutes(stops, fallback = null) {
+    const span = tourSpanMinutes(stops);
+    if (Number.isFinite(span) && span > 0) return span;
+    const somma = totalTourMinutes(stops);
+    if (Number.isFinite(somma) && somma > 0) return somma;
+    return Number.isFinite(fallback) && fallback > 0 ? fallback : null;
+}
+
+/**
  * Formatta una stima per la UI. Il tilde NON e' decorativo: e' la dichiarazione
  * che il numero e' una stima. Chi mostra durate deve passare da qui.
  * @returns {string|null} null se non c'e' niente di onesto da dire

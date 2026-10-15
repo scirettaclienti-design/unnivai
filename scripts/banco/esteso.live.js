@@ -20,6 +20,7 @@ import config from './banco.config.json';
 import { CASI_ESTESI, istanteSimulato } from './casi-esteso.js';
 import { creaLuoghi, annotaRisposta, tappa as tappaDi, genera, registraItinerario, recordCaso, generaPerTe, registraPerTe } from './giro-caso.js';
 import { CASI_HOME } from './casi-home.js';
+import { CASI_BORGO } from './casi-borgo.js';
 import { FORMATO, creaRegistratore, fattiRegistrati } from './replay/rete.js';
 
 // C10c-replay — i fatti aperti delle tappe si registrano (per place_id) per il replay: la funzione vera gira com'e'.
@@ -47,7 +48,8 @@ for (const t of new Set([...CASI_ESTESI, ...CASI_HOME].filter(c => c.scelta).fla
 
 const SCELTI = (process.env.BANCO_CASI || '').split(',').map(s => s.trim()).filter(Boolean);
 // TROINA-FIX — i casi della guardia della home (casi-home.js) si scelgono per nome: BANCO_CASI=home-troina-perte,…
-const casi = SCELTI.length ? [...CASI_ESTESI, ...CASI_HOME].filter(c => SCELTI.includes(c.id)) : CASI_ESTESI;
+// BORGO-DIAGNOSI — anche i casi di Ivano a Troina (casi-borgo.js), per nome
+const casi = SCELTI.length ? [...CASI_ESTESI, ...CASI_HOME, ...CASI_BORGO].filter(c => SCELTI.includes(c.id)) : CASI_ESTESI;
 const out = { avvio: new Date().toISOString(), identita: null, motore: process.env.BANCO_PLACES === 'new' ? 'new' : 'legacy', giornoSimulato: E.giornoSimulato, casi: [], costo: null };
 const commitGiro = (() => { try { return execSync('git rev-parse --short HEAD').toString().trim(); } catch { return null; } })();
 const tracciati = { formato: FORMATO, registrato: out.avvio, commit: commitGiro, motore: out.motore, giornoSimulato: E.giornoSimulato, casi: [] };

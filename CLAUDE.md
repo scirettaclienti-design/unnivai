@@ -362,6 +362,16 @@ Diagnosi in `docs/prove/2026-10-15-troina-zero.md`, giro in `docs/prove/2026-10-
 - **Messaggi** (`src/lib/esitoVuoto.js`, Quiz, Sorprendimi, Crea, Per Te): «A [città] non troviamo [categoria]. Cambia richiesta e riprovo.» **solo se il motore segna `_zeroVero`** (ricerca riuscita, zero candidati dopo raggio e categoria, lista arrivata); ogni altro vuoto (rete, timeout, lista mancante, selettore caduto, posti nel pool che nessun momento prende) è **«Non sono riuscito a completare il giro: un servizio non ha risposto. Riprova tra poco.»** col tasto «Riprova» (testo di Ivano). Quote e guasto del motore AI tengono i loro testi.
 - **GUARDIA DELLA HOME** (`scripts/banco/casi-home.js`, `guardia-home.js`, `guardia.mjs`): «ogni flusso della home dà almeno un tour con posti veri» a Troina e a Catania (Per Te, Quiz Natura/parchi, Quiz Storia/luoghi storici, Su misura per te Natura e Arte, Crea il tuo Percorso), alle 12:05 del 15/10. **`npm run banco:guardia` va lanciato prima di ogni merge** (replay dei tracciati `docs/prove/dati/guardia-home-tracciati.json.gz`, 0 $, nessuna rete; esce con 1 se un flusso è vuoto o se il replay prova a uscire in rete). Se una modifica cambia le richieste ai proxy (uscite in rete), si rifanno i tracciati con `npm run banco:guardia -- --registra` (giro pagato, account di prova, tetto `BANCO_TETTO`).
 
+### La navigazione non si blocca (NAV-1)
+
+Diagnosi in `docs/prove/2026-10-20-nav-diagnosi.md`, lavoro in `docs/prove/2026-10-20-nav-1.md`.
+- **Tracciamento sempre attivo** (`src/lib/navTracking.js`, `avviaTracciamento`): il `watchPosition` della navigazione parte subito, anche senza un primo fix; riprova dopo un errore, dopo 30 s di silenzio e al ritorno in primo piano (anche dopo un «negato»). Stati `attesa | ok | perso | negato`. MapPage passa ogni posizione a `onNavPosition` (via `navPositionRef`). I timer si chiamano avvolti: Safari lancia se `setInterval` è chiamato come metodo di un altro oggetto.
+- **Giro salvato** (`src/lib/navSession.js`, `localStorage` `dvai_nav_giro_v1`): tour, tappe fatte e saltate, bersaglio, ora d'inizio; oltre 12 ore non si propone e si cancella. Proposta di ripresa: sulla mappa con lo stesso tour (MapPage) e all'apertura dell'app fuori dalla mappa (`GiroInCorso` in App). `GiroRipresaDialog` per entrambe.
+- **Comandi nella barra** (`NavigationHUD`): «Sono arrivato», «Salta»; tappa superata (`src/lib/navPassaggio.js`): «Sei passato da [nome]?» «Vista» / «Saltala», mai uno sblocco da solo. Le tappe saltate (`skippedSteps`) non si inseguono più e contano per la fine del giro.
+- **Schermo acceso** (`src/lib/wakeLock.js`): Screen Wake Lock durante la navigazione, richiesto di nuovo al ritorno in primo piano; dove manca, niente.
+- **Messaggi** (`src/lib/navMessaggi.js`, `NAV_TESTI`): testi di Ivano alla lettera, uno alla volta (`avvisoNavigazione`); un errore di Directions non si mostra mai col suo codice.
+- Telemetria invariata (NAV-2). Prova WebKit: `scripts/prova-nav/nav1.webkit.mjs` (porta e titolo verificati, GPS finto).
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

@@ -28,6 +28,12 @@ import { POIPopupCard } from '../components/Map/POIPopupCard';
 import { supabase } from '../lib/supabase';
 import { logNavEvent } from '../lib/navTelemetry';
 import { haversineM, pickActiveStep } from '../lib/navGeo';
+import { avviaTracciamento } from '../lib/navTracking';
+import { salvaGiro, leggiGiro, chiudiGiro, chiaveGiro, puntoDelGiro } from '../lib/navSession';
+import GiroRipresaDialog from '../components/Map/GiroRipresaDialog';
+import { valutaPassaggio } from '../lib/navPassaggio';
+import { creaSchermoAcceso } from '../lib/wakeLock';
+import { NAV_TESTI, avvisoNavigazione, linkMappe } from '../lib/navMessaggi';
 import NavDebugPanel from '../components/NavDebugPanel';
 import { useAILearning } from '../hooks/useAILearning';
 import './MapPage.css';
@@ -352,7 +358,6 @@ const MapPage = () => {
     const [pageTransportMode, setPageTransportMode] = useState('walking');
     const [isNavigating, setIsNavigating] = useState(false);
     const [isMapReady, setIsMapReady] = useState(false);
-    const [watchId, setWatchId] = useState(null);
     const [localCenter, setLocalCenter] = useState(null);
     const [customOriginAddress, setCustomOriginAddress] = useState('');
     const [isLocating, setIsLocating] = useState(!passedCenter && !activeTourData);
@@ -510,6 +515,19 @@ const MapPage = () => {
     // Fase 2b-2 FIX 2: distanza live dalla posizione GPS alla PROSSIMA tappa
     // (scende mentre cammini). Alimentata dal geofence, mostrata nell'HUD.
     const [nextStepDistanceM, setNextStepDistanceM] = useState(null);
+    // NAV-1: tappe saltate («Salta», «Saltala»), stato del GPS della navigazione
+    // (attesa | ok | perso | negato), il messaggio d'attesa dopo 5 s, la tappa
+    // superata da confermare, il giro salvato da riprendere.
+    const [skippedSteps, setSkippedSteps] = useState([]);
+    const skippedStepsRef = useRef(skippedSteps);
+    const [navGps, setNavGps] = useState(null);
+    const [gpsAttesaVisibile, setGpsAttesaVisibile] = useState(false);
+    const [tappaPassata, setTappaPassata] = useState(null);
+    const [giroDaRiprendere, setGiroDaRiprendere] = useState(null);
+    const navTrackerRef = useRef(null);
+    const navPositionRef = useRef(null);
+    const passaggioRef = useRef(null);
+    const schermoAcceso = useMemo(() => creaSchermoAcceso(), []);
     // L2-1: dati Directions trasportati (copia in MapPage, leggibile dal watchPosition
     // senza stale-closure) + precompute punto→stepIdx + cursori monotòni + istruzione.
     const directionsDataRef = useRef({ steps: [], overviewPath: [] });
@@ -639,9 +657,8 @@ const MapPage = () => {
         return () => {
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
-            if (watchId) navigator.geolocation.clearWatch(watchId);
         };
-    }, [watchId]);
+    }, []);
     
     // NEW STATE: Background monuments for Level 0 when viewing a tour
     const [backgroundMonuments, setBackgroundMonuments] = useState([]);
@@ -967,8 +984,11 @@ const MapPage = () => {
         setIsNavigating(false);
         setFollowing(false);
         setLiveRoute(null);
-        // Pulizia GPS tracking navigazione
-        if (watchId) { navigator.geolocation.clearWatch(watchId); setWatchId(null); }
+        // Pulizia GPS tracking navigazione (NAV-1: il tracciamento, lo schermo acceso, il giro salvato)
+        navTrackerRef.current?.stop(); navTrackerRef.current = null;
+        setNavGps(null); setGpsAttesaVisibile(false); setTappaPassata(null);
+        schermoAcceso.rilascia();
+        chiudiGiro();
         // Pulizia SpeechSynthesis
         window.speechSynthesis?.cancel();
         lastSpokenRef.current = '';
@@ -1000,23 +1020,284 @@ const MapPage = () => {
     useEffect(() => {
         return () => {
             window.speechSynthesis?.cancel();
-            // watchId nel ref verrà pulito dal clearWatch del bgWatch (riga 374)
+            // NAV-1: il tracciamento e lo schermo acceso si fermano; il giro salvato resta (si può riprendere).
+            navTrackerRef.current?.stop(); navTrackerRef.current = null;
+            schermoAcceso.rilascia();
         };
     }, []);
 
-    const handleStartNavigationReal = () => {
-        console.log('[DVAI-Nav] handleStartNavigationReal: click Avvia');
-        // FASE 1 DEBUG — RIMUOVERE in Fase 3. Verifica su device che insiderTip/bestTime
-        // di Gate II arrivino sull'oggetto tappa (null onesto se assenti, mai placeholder).
-        console.log('[Fase1-debug] tappe insider:', (activeRoute || []).map(s => ({ name: s.name })));
+    // NAV-1: il corpo di ogni posizione della navigazione. Prima era la callback di un
+    // watchPosition aperto solo se il primo GPS rispondeva entro 5 s (NAV-DIAGNOSI B1);
+    // ora lo chiama il tracciamento (src/lib/navTracking.js) per ogni posizione,
+    // anche arrivata dopo minuti. Si legge da un ref: sempre l'ultimo render.
+    const navCameraRef = useRef({ last: 0, ticks: 0 });
+    const onNavPosition = (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        setLocalCenter({ latitude, longitude });
+
+        // GATE DEBUG PANEL: riga di calibrazione per questo tick.
+        // dbg=null quando DEBUG_NAV è spento → tutte le capture sotto saltano.
+        // dt = secondi dal tick precedente (regressione fluidità: tick irregolari).
+        let dbg = null;
+        if (DEBUG_NAV) {
+            const nowMs = Date.now();
+            const dt = lastDebugMsRef.current != null ? ((nowMs - lastDebugMsRef.current) / 1000).toFixed(1) : null;
+            lastDebugMsRef.current = nowMs;
+            dbg = { ts: new Date().toLocaleTimeString('it-IT'), dt, lat: latitude.toFixed(6), lng: longitude.toFixed(6), accuracy: Math.round(accuracy || 0) };
+        }
+
+        // ── Fase 2b GEOFENCE auto-unlock + distanza live ──────────
+        // FIX 1: se il tour è completato, i tick non ricalcolano nulla.
+        // Prossima tappa = prima di activeRoute NON completata (per
+        // esclusione, non per conteggio) e non già auto-sbloccata.
+        // Calcolo client-side (haversine, dati in memoria): zero API.
+        if (!navCompletedRef.current) {
+            const doneIds = completedStepsRef.current || [];
+            const firedSet = geofenceFiredRef.current;
+            const armedSet = armedStepsRef.current;
+            // FIX A: TARGET reale.
+            //  - "Naviga" su una tappa (targetId) → insegue SOLO quella.
+            //  - "Avvia" tour (no single target) → prossima non completata in ordine.
+            //  - "Naviga" verso un punto non-tappa → nessuna tappa da sbloccare.
+            const targetId = navTargetStepIdRef.current;
+            // NAV-1: una tappa saltata non si insegue più.
+            const skippedIds = skippedStepsRef.current || [];
+            let nextStep;
+            if (targetId) {
+                nextStep = (activeRoute || []).find(
+                    s => s.id === targetId && !doneIds.includes(s.id) && !firedSet.has(s.id) && !skippedIds.includes(s.id)
+                );
+            } else if (!navIsSingleTargetRef.current) {
+                nextStep = (activeRoute || []).find(
+                    s => !doneIds.includes(s.id) && !firedSet.has(s.id) && !skippedIds.includes(s.id)
+                );
+            } else {
+                nextStep = undefined;
+            }
+            if (nextStep && Number.isFinite(nextStep.latitude) && Number.isFinite(nextStep.longitude)) {
+                const distM = haversineM(latitude, longitude, nextStep.latitude, nextStep.longitude);
+                // FIX 2: distanza live alla prossima tappa (scende camminando).
+                setNextStepDistanceM(Math.round(distM));
+                if (dbg) { dbg.nextTappaDistM = Math.round(distM); dbg.nextTappaName = nextStep.name || nextStep.title; }
+                // Soglia adattiva (R1): si allarga se il GPS è impreciso.
+                const soglia = Math.max(GEOFENCE_BASE_M, accuracy || 0);
+                // FIX B arm-then-fire: fuori raggio → "arma" la tappa; dentro
+                // raggio → scatta SOLO se armata (già vista fuori→dentro) OPPURE
+                // è il primissimo sblocco della sessione (sei partito lì apposta).
+                // Da fermo, le tappe successive vicine non sono mai state "fuori"
+                // → non armate → non scattano a catena.
+                if (distM > soglia) armedSet.add(nextStep.id);
+                const isArmed = armedSet.has(nextStep.id);
+                const isFirstOfSession = doneIds.length === 0 && firedSet.size === 0;
+                const scattato = distM <= soglia && (isArmed || isFirstOfSession);
+                // Strumento di calibrazione (rimuovere/ridurre dopo Troina).
+                console.log('[DVAI-Geofence]', {
+                    modo: targetId ? 'naviga' : 'tour',
+                    prossimaTappa: nextStep.name || nextStep.title,
+                    distanzaM: Math.round(distM),
+                    accuracy: Math.round(accuracy || 0),
+                    soglia: Math.round(soglia),
+                    armata: isArmed,
+                    primoDellaSessione: isFirstOfSession,
+                    scattato,
+                });
+                // GATE DEBUG-NAV PERSIST: stessi valori del console.log, stesso
+                // istante, zero ricalcolo → nel buffer/localStorage per calibrare
+                // la soglia senza Mac collegato.
+                if (dbg) {
+                    dbg.soglia = Math.round(soglia);
+                    dbg.armata = isArmed;
+                    dbg.primo = isFirstOfSession;
+                    dbg.scattato = scattato;
+                }
+                if (scattato && handlePOIUnlockRef.current) {
+                    // Dedup sincrono: marca PRIMA di chiamare, così il tick
+                    // successivo passa già alla tappa dopo (niente doppioni,
+                    // niente fly-to/toast a raffica). handlePOIUnlock ha
+                    // comunque la sua guard su completedSteps (N3).
+                    // GATE DEBUG: riga marcata di sblocco con la distanza REALE allo scatto.
+                    if (DEBUG_NAV) pushNavDebug({ ts: new Date().toLocaleTimeString('it-IT'), unlock: true, tappa: nextStep.name || nextStep.title, distReale: Math.round(distM), accuracy: Math.round(accuracy || 0) });
+                    firedSet.add(nextStep.id);
+                    handlePOIUnlockRef.current(nextStep);
+                } else if (!scattato) {
+                    // NAV-1: la tappa superata senza entrare nella soglia (passata
+                    // accanto, o col telefono bloccato) → si chiede, mai uno sblocco da solo.
+                    const dopo = targetId ? null : (activeRoute || []).find(
+                        s => s.index > nextStep.index && !doneIds.includes(s.id) && !skippedIds.includes(s.id)
+                            && Number.isFinite(s.latitude) && Number.isFinite(s.longitude)
+                    );
+                    const { st, superata } = valutaPassaggio(passaggioRef.current, {
+                        stepId: nextStep.id, dist: distM, soglia, now: Date.now(),
+                        distDopoDaUtente: dopo ? haversineM(latitude, longitude, dopo.latitude, dopo.longitude) : null,
+                        distDopoDaTappa: dopo ? haversineM(nextStep.latitude, nextStep.longitude, dopo.latitude, dopo.longitude) : null,
+                    });
+                    passaggioRef.current = st;
+                    if (superata) setTappaPassata(nextStep);
+                }
+            } else {
+                // Nessuna prossima tappa (tutte fatte / non trovata / target
+                // non-tappa) → azzera la distanza live.
+                setNextStepDistanceM(null);
+                if (dbg) dbg.nextTappaDistM = null;
+            }
+        }
+
+        // ── L2-1: avanzamento maneuver (proiezione + indice monotòno) ──
+        // Ortogonale al geofence: legge posizione + directionsData, scrive
+        // SOLO nearestPointIdxRef/activeStepIdxRef + setActiveManeuver.
+        // Mai handlePOIUnlock, mai armedStepsRef/geofenceFiredRef/completedSteps.
+        if (!navCompletedRef.current) {
+            const steps = directionsDataRef.current?.steps || [];
+            let maneuver = null;
+            const hit = pickActiveStep(routePointsRef.current, latitude, longitude, nearestPointIdxRef.current);
+            if (hit && steps.length > 0) {
+                nearestPointIdxRef.current = hit.pointIdx;
+                const stepIdx = Math.max(activeStepIdxRef.current, hit.stepIdx);
+                activeStepIdxRef.current = stepIdx;
+                const s = steps[stepIdx];
+                if (s && (s.maneuver || s.instructions)) {
+                    maneuver = { maneuver: s.maneuver || null, instructionHtml: s.instructions || null };
+                }
+            }
+            // hit === null (pts vuoto / coords invalide / fuori tolleranza) →
+            // maneuver resta null → HUD torna a "→ Prossima tappa" (mai stale).
+            setActiveManeuver(prev => {
+                if (prev?.maneuver === maneuver?.maneuver && prev?.instructionHtml === maneuver?.instructionHtml) return prev;
+                return maneuver;
+            });
+            if (dbg) {
+                dbg.stepIdx = hit?.stepIdx ?? null;
+                dbg.snapDistM = hit?.snapDistM ?? null;
+                dbg.instr = maneuver?.instructionHtml
+                    ? maneuver.instructionHtml.replace(/<[^>]*>/g, '').slice(0, 40)
+                    : (dbg.nextTappaName ? `→ ${dbg.nextTappaName}` : '→ prossima tappa');
+            }
+        }
+        // GATE DEBUG: registra la riga del tick (SOLO se DEBUG_NAV).
+        if (dbg) pushNavDebug(dbg);
+
+        const now = Date.now();
+        // Adatta camera al mezzo di trasporto
+        const isWalking = pageTransportMode === 'walking' || pageTransportMode === 'bicycling';
+        const isDriving = pageTransportMode === 'driving';
+        const throttleMs = isWalking ? 400 : isDriving ? 300 : 500;
+        const navZoom = isWalking ? 19 : isDriving ? 16 : 17;
+        const navTilt = isWalking ? 60 : isDriving ? 45 : 50;
+
+        if (followingRef.current && map && (now - navCameraRef.current.last > throttleMs)) {
+            navCameraRef.current.last = now;
+            navCameraRef.current.ticks += 1;
+            // Log ogni ~10 tick (~4s a piedi) per non spammare la console
+            if (navCameraRef.current.ticks % 10 === 1) {
+                console.log(`[DVAI-Nav] writer#3 watchPosition moveCamera (tick #${navCameraRef.current.ticks}, zoom ${navZoom}, tilt ${navTilt})`);
+            }
+            // FIX 4 (minimo): Google Maps JS non ha easeTo/flyTo con
+            // durata (a differenza di Mapbox). panTo anima SOLO il center
+            // → toglie lo scatto di posizione. zoom/tilt restano quelli
+            // del follow-start (setFollowing/flyToUser). Il per-tick NON
+            // ri-setta più heading (era lo scatto in rotazione). La
+            // rotazione heading-up fluida è debito Antigravity.
+            map.panTo({ lat: latitude, lng: longitude });
+        }
+
+        // Cultural Surprise: solo A PIEDI, ogni ~300m + audioguida
+        if (isWalking && lastSurprisePos.current) {
+            const d = Math.hypot(
+                (latitude - lastSurprisePos.current.lat) * 111320,
+                (longitude - lastSurprisePos.current.lng) * 111320 * Math.cos(latitude * Math.PI / 180)
+            );
+            if (d > 300) {
+                lastSurprisePos.current = { lat: latitude, lng: longitude };
+                surpriseCount.current += 1;
+                const surprises = [
+                    'Molti palazzi storici italiani hanno cortili segreti. Prova ad affacciarti dal portone più bello che vedi!',
+                    'Gli artisti di strada in Italia devono avere un permesso comunale. Ogni esibizione che vedi è certificata.',
+                    'Le trattorie con i menù scritti a mano sono quasi sempre le migliori. Segui la calligrafia!',
+                    'Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!',
+                    'I locali del posto sanno che il tramonto migliore non è dal punto panoramico, ma dal bar accanto.',
+                    'Le botteghe artigiane nei vicoli spesso esistono da generazioni. Chiedi la loro storia, ti sorprenderanno.',
+                    'In molte piazze italiane, la musica che senti non è casuale. È programmata dal comune per creare atmosfera.',
+                ];
+                const text = surprises[surpriseCount.current % surprises.length];
+                window.dispatchEvent(new CustomEvent('dvai:toast', {
+                    detail: { message: `🎧 ${text}`, type: 'info', duration: 6000 }
+                }));
+                // Audioguida: leggi la curiosità ad alta voce se voce attiva
+                if (voiceEnabled && window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'it-IT';
+                    utterance.rate = 0.9;
+                    if (italianVoiceRef.current) utterance.voice = italianVoiceRef.current;
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+        } else {
+            lastSurprisePos.current = { lat: latitude, lng: longitude };
+        }
+    };
+    useEffect(() => { navPositionRef.current = onNavPosition; });
+
+    // NAV-1: la mappa vola sull'utente (riprova finché il wrapper della mappa non è pronto).
+    const flyToUser = (coords, attempt = 0) => {
+        const ref = mapRef.current;
+        if (ref?.flyTo) {
+            console.log(`[DVAI-Nav] flyTo su utente (attempt ${attempt})`);
+            ref.flyTo({ center: [coords.longitude, coords.latitude], zoom: 18, pitch: 55, bearing: 0 });
+            return;
+        }
+        if (attempt < 3) setTimeout(() => flyToUser(coords, attempt + 1), 100);
+        else console.warn('[DVAI-Nav] mapRef non pronto dopo 300ms: skip flyTo iniziale');
+    };
+
+    // NAV-1: le tappe ancora da fare (né fatte né saltate).
+    const tappeRimaste = (done = completedStepsRef.current || [], skipped = skippedStepsRef.current || []) =>
+        (activeRoute || []).filter(s => !done.includes(s.id) && !skipped.includes(s.id));
+
+    // NAV-1: il percorso disegnato dalla posizione alle tappe rimaste (o al bersaglio di «Naviga»).
+    const percorsoDa = (coords, target) => {
+        if (target) {
+            const destLat = target.latitude ?? target.lat;
+            const destLng = target.longitude ?? target.lng;
+            if (!destLat || !destLng) return [];
+            return [
+                { lat: coords.latitude, lng: coords.longitude, title: 'La tua posizione' },
+                { lat: destLat, lng: destLng, title: target.name || target.title || 'Destinazione' },
+            ];
+        }
+        const rimaste = tappeRimaste();
+        if (!rimaste.length) return [];
+        return [
+            { lat: coords.latitude, lng: coords.longitude, title: 'La tua posizione' },
+            ...rimaste.map(step => ({ lat: parseFloat(step.latitude || step.lat), lng: parseFloat(step.longitude || step.lng), title: step.name || step.title })),
+        ];
+    };
+
+    // NAV-1: senza posizione si parte dalla prima tappa ancora da fare (era il ramo d'errore
+    // del vecchio avvio; ora la navigazione intanto continua a cercare il segnale).
+    const partiDallaTappa = () => {
+        const rimaste = tappeRimaste();
+        const first = rimaste[0] || activeRoute?.[0];
+        if (!first) return;
+        setLocalCenter({ latitude: first.latitude, longitude: first.longitude });
+        setLiveRoute(rimaste.map(s => ({ lat: parseFloat(s.latitude || s.lat), lng: parseFloat(s.longitude || s.lng), title: s.name || s.title })));
+        if (map) map.moveCamera({ center: { lat: first.latitude, lng: first.longitude }, zoom: 17, tilt: 45 });
+    };
+
+    /**
+     * NAV-1: avvio della navigazione. `ripresa` = un giro salvato (dopo una ricarica o una
+     * chiusura di iOS): tappe fatte, saltate, bersaglio e ora d'inizio tornano come erano.
+     */
+    const handleStartNavigationReal = (ripresa = null) => {
+        console.log('[DVAI-Nav] handleStartNavigationReal:', ripresa ? 'ripresa del giro' : 'click Avvia');
         // Fase 2b: nuova sessione nav → azzera geofence, latch completamento,
         // istruzioni vocali già dette, distanza live.
-        geofenceFiredRef.current = new Set();
+        geofenceFiredRef.current = new Set(ripresa?.completedSteps || []);
         navCompletedRef.current = false;
         spokenIdentitiesRef.current = new Set();
         setNextStepDistanceM(null);
-        // Fase 2c-2: avvio cronometro tempo reale.
-        navStartTimeRef.current = Date.now();
+        // Fase 2c-2: avvio cronometro tempo reale (in ripresa: l'ora d'inizio vera).
+        navStartTimeRef.current = ripresa?.startedAt ?? Date.now();
         setNavElapsedMs(null);
         // L2-1: azzera dati/cursori maneuver (si rinfrescano al primo onDirectionsData).
         directionsDataRef.current = { steps: [], overviewPath: [] };
@@ -1029,348 +1310,138 @@ const MapPage = () => {
         // fallback coordinate). "Avvia" tour (nessuna selezione) → sequenziale.
         // "Naviga" verso un punto non-tappa → single-target senza tappa da sbloccare.
         armedStepsRef.current = new Set();
-        const singleTarget = selectedPOI || selectedActivity;
-        navIsSingleTargetRef.current = !!singleTarget;
-        if (singleTarget) {
-            const tLat = singleTarget.latitude ?? singleTarget.lat;
-            const tLng = singleTarget.longitude ?? singleTarget.lng;
-            const matched = (activeRoute || []).find(s =>
-                (singleTarget.id != null && s.id === singleTarget.id)
-                || (Number.isFinite(s.latitude) && s.latitude === tLat && s.longitude === tLng)
-            );
-            navTargetStepIdRef.current = matched?.id || null;
+        passaggioRef.current = null;
+        setTappaPassata(null);
+        // In ripresa il bersaglio di «Naviga» è la tappa salvata (se c'era).
+        const singleTarget = ripresa
+            ? (ripresa.targetStepId ? (activeRoute || []).find(s => s.id === ripresa.targetStepId) || null : null)
+            : (selectedPOI || selectedActivity);
+        if (ripresa) {
+            navIsSingleTargetRef.current = !!ripresa.singleTarget;
+            navTargetStepIdRef.current = ripresa.targetStepId ?? null;
+            if (ripresa.mode) setPageTransportMode(ripresa.mode);
         } else {
-            navTargetStepIdRef.current = null;
+            navIsSingleTargetRef.current = !!singleTarget;
+            if (singleTarget) {
+                const tLat = singleTarget.latitude ?? singleTarget.lat;
+                const tLng = singleTarget.longitude ?? singleTarget.lng;
+                const matched = (activeRoute || []).find(s =>
+                    (singleTarget.id != null && s.id === singleTarget.id)
+                    || (Number.isFinite(s.latitude) && s.latitude === tLat && s.longitude === tLng)
+                );
+                navTargetStepIdRef.current = matched?.id || null;
+            } else {
+                navTargetStepIdRef.current = null;
+            }
         }
+        const fatte = ripresa?.completedSteps || [];
+        const saltate = ripresa?.skippedSteps || [];
+        completedStepsRef.current = fatte;
+        skippedStepsRef.current = saltate;
+        setCompletedSteps(fatte);
+        setSkippedSteps(saltate);
+        setGiroDaRiprendere(null);
         setIsRoutePlannerOpen(false);
         setIsNavigating(true);
         setFollowing(true);
-        // DVAI-065 Fix HUD — requestNavFullscreen() rimosso: su iOS Chrome
-        // il cambio a fullscreen alterava env(safe-area-inset-*) rompendo il
-        // centraggio dell'HUD. iOS Chrome nasconde comunque la URL bar quando
-        // l'utente scrolla o interagisce, non serve forzare fullscreen (che
-        // può anche non essere concesso da iOS su un tap non-user-initiated).
-        // requestNavFullscreen();
-        setCompletedSteps([]);
+        // DVAI-065 Fix HUD — requestNavFullscreen() rimosso (safe-area su iOS Chrome).
 
         // Imposta subito il percorso dal tour
-        if (activeRoute?.length > 0) {
-            const initialRoute = activeRoute.map(step => ({
+        const rimaste = (activeRoute || []).filter(s => !fatte.includes(s.id) && !saltate.includes(s.id));
+        if (rimaste.length > 0 && !singleTarget) {
+            setLiveRoute(rimaste.map(step => ({
                 lat: parseFloat(step.latitude || step.lat),
                 lng: parseFloat(step.longitude || step.lng),
                 title: step.name || step.title
-            }));
-            setLiveRoute(initialRoute);
+            })));
         } else if (plannerPreviewRoute) {
             setLiveRoute([...plannerPreviewRoute]);
         }
 
-        window.dispatchEvent(new CustomEvent('dvai:toast', {
-            detail: { message: '🧭 Navigazione avviata! Segui il percorso.', type: 'success', duration: 3000 }
-        }));
-
-        if (navigator.geolocation) {
-            console.log('[DVAI-Nav] start: getCurrentPosition richiesto');
-            navigator.geolocation.getCurrentPosition(
-                ({ coords }) => {
-                    console.log('[DVAI-Nav] start: GPS ok', { lat: coords.latitude, lng: coords.longitude });
-                    // Fase 1 telemetria: nav_start (una sola volta per sessione, con
-                    // esito GPS come contesto — non un evento separato).
-                    logNavEvent('nav_start', { tour_id: tourData?.id || tourData?.tourId || null, mode: pageTransportMode });
-                    // Layer C Fix 2 — Zoom sulla posizione utente all'avvio.
-                    // Uso mapRef.current.flyTo (wrapper testato) invece di map.moveCamera diretto.
-                    // Retry con backoff se il wrapper non è pronto (max 300ms), poi warn esplicito.
-                    const flyToUser = (attempt = 0) => {
-                        const ref = mapRef.current;
-                        if (ref?.flyTo) {
-                            console.log(`[DVAI-Nav] flyTo su utente (attempt ${attempt})`);
-                            ref.flyTo({
-                                center: [coords.longitude, coords.latitude],
-                                zoom: 18,
-                                pitch: 55,
-                                bearing: 0,
-                            });
-                            return true;
-                        }
-                        if (attempt < 3) {
-                            setTimeout(() => flyToUser(attempt + 1), 100);
-                        } else {
-                            console.warn('[DVAI-Nav] mapRef non pronto dopo 300ms: skip flyTo iniziale');
-                        }
-                        return false;
-                    };
-                    flyToUser();
-
-                    const remainingRoute = activeRoute?.filter(step => !completedSteps.includes(step.id)) || [];
-                    let newLiveRoute = [];
-                    
-                    if (selectedPOI || selectedActivity) {
-                        const destLat = selectedPOI?.latitude || selectedPOI?.lat || selectedActivity?.latitude;
-                        const destLng = selectedPOI?.longitude || selectedPOI?.lng || selectedActivity?.longitude;
-                        if (destLat && destLng) {
-                            newLiveRoute = [
-                                { lat: coords.latitude, lng: coords.longitude, title: 'La tua posizione' },
-                                { lat: destLat, lng: destLng, title: selectedPOI?.name || selectedActivity?.name || 'Destinazione' }
-                            ];
-                        }
-                    } else if (remainingRoute.length > 0) {
-                        newLiveRoute = [
-                            { lat: coords.latitude, lng: coords.longitude, title: 'La tua posizione' },
-                            ...remainingRoute.map(step => ({ lat: parseFloat(step.latitude || step.lat), lng: parseFloat(step.longitude || step.lng), title: step.name || step.title }))
-                        ];
-                    }
-
-                    if (newLiveRoute.length > 0) {
-                        setLiveRoute(newLiveRoute);
-                    }
-
-                    // Traking Posizione e Auto-Flight
-                    let lastUpdateTime = 0;
-                    let writer3Ticks = 0;
-                    const wId = navigator.geolocation.watchPosition(
-                        (pos) => {
-                            const { latitude, longitude, accuracy } = pos.coords;
-                            setLocalCenter({ latitude, longitude });
-
-                            // GATE DEBUG PANEL: riga di calibrazione per questo tick.
-                            // dbg=null quando DEBUG_NAV è spento → tutte le capture sotto saltano.
-                            // dt = secondi dal tick precedente (regressione fluidità: tick irregolari).
-                            let dbg = null;
-                            if (DEBUG_NAV) {
-                                const nowMs = Date.now();
-                                const dt = lastDebugMsRef.current != null ? ((nowMs - lastDebugMsRef.current) / 1000).toFixed(1) : null;
-                                lastDebugMsRef.current = nowMs;
-                                dbg = { ts: new Date().toLocaleTimeString('it-IT'), dt, lat: latitude.toFixed(6), lng: longitude.toFixed(6), accuracy: Math.round(accuracy || 0) };
-                            }
-
-                            // ── Fase 2b GEOFENCE auto-unlock + distanza live ──────────
-                            // FIX 1: se il tour è completato, i tick non ricalcolano nulla.
-                            // Prossima tappa = prima di activeRoute NON completata (per
-                            // esclusione, non per conteggio) e non già auto-sbloccata.
-                            // Calcolo client-side (haversine, dati in memoria): zero API.
-                            if (!navCompletedRef.current) {
-                                const doneIds = completedStepsRef.current || [];
-                                const firedSet = geofenceFiredRef.current;
-                                const armedSet = armedStepsRef.current;
-                                // FIX A: TARGET reale.
-                                //  - "Naviga" su una tappa (targetId) → insegue SOLO quella.
-                                //  - "Avvia" tour (no single target) → prossima non completata in ordine.
-                                //  - "Naviga" verso un punto non-tappa → nessuna tappa da sbloccare.
-                                const targetId = navTargetStepIdRef.current;
-                                let nextStep;
-                                if (targetId) {
-                                    nextStep = (activeRoute || []).find(
-                                        s => s.id === targetId && !doneIds.includes(s.id) && !firedSet.has(s.id)
-                                    );
-                                } else if (!navIsSingleTargetRef.current) {
-                                    nextStep = (activeRoute || []).find(
-                                        s => !doneIds.includes(s.id) && !firedSet.has(s.id)
-                                    );
-                                } else {
-                                    nextStep = undefined;
-                                }
-                                if (nextStep && Number.isFinite(nextStep.latitude) && Number.isFinite(nextStep.longitude)) {
-                                    const distM = haversineM(latitude, longitude, nextStep.latitude, nextStep.longitude);
-                                    // FIX 2: distanza live alla prossima tappa (scende camminando).
-                                    setNextStepDistanceM(Math.round(distM));
-                                    if (dbg) { dbg.nextTappaDistM = Math.round(distM); dbg.nextTappaName = nextStep.name || nextStep.title; }
-                                    // Soglia adattiva (R1): si allarga se il GPS è impreciso.
-                                    const soglia = Math.max(GEOFENCE_BASE_M, accuracy || 0);
-                                    // FIX B arm-then-fire: fuori raggio → "arma" la tappa; dentro
-                                    // raggio → scatta SOLO se armata (già vista fuori→dentro) OPPURE
-                                    // è il primissimo sblocco della sessione (sei partito lì apposta).
-                                    // Da fermo, le tappe successive vicine non sono mai state "fuori"
-                                    // → non armate → non scattano a catena.
-                                    if (distM > soglia) armedSet.add(nextStep.id);
-                                    const isArmed = armedSet.has(nextStep.id);
-                                    const isFirstOfSession = doneIds.length === 0 && firedSet.size === 0;
-                                    const scattato = distM <= soglia && (isArmed || isFirstOfSession);
-                                    // Strumento di calibrazione (rimuovere/ridurre dopo Troina).
-                                    console.log('[DVAI-Geofence]', {
-                                        modo: targetId ? 'naviga' : 'tour',
-                                        prossimaTappa: nextStep.name || nextStep.title,
-                                        distanzaM: Math.round(distM),
-                                        accuracy: Math.round(accuracy || 0),
-                                        soglia: Math.round(soglia),
-                                        armata: isArmed,
-                                        primoDellaSessione: isFirstOfSession,
-                                        scattato,
-                                    });
-                                    // GATE DEBUG-NAV PERSIST: stessi valori del console.log, stesso
-                                    // istante, zero ricalcolo → nel buffer/localStorage per calibrare
-                                    // la soglia senza Mac collegato.
-                                    if (dbg) {
-                                        dbg.soglia = Math.round(soglia);
-                                        dbg.armata = isArmed;
-                                        dbg.primo = isFirstOfSession;
-                                        dbg.scattato = scattato;
-                                    }
-                                    if (scattato && handlePOIUnlockRef.current) {
-                                        // Dedup sincrono: marca PRIMA di chiamare, così il tick
-                                        // successivo passa già alla tappa dopo (niente doppioni,
-                                        // niente fly-to/toast a raffica). handlePOIUnlock ha
-                                        // comunque la sua guard su completedSteps (N3).
-                                        // GATE DEBUG: riga marcata di sblocco con la distanza REALE allo scatto.
-                                        if (DEBUG_NAV) pushNavDebug({ ts: new Date().toLocaleTimeString('it-IT'), unlock: true, tappa: nextStep.name || nextStep.title, distReale: Math.round(distM), accuracy: Math.round(accuracy || 0) });
-                                        firedSet.add(nextStep.id);
-                                        handlePOIUnlockRef.current(nextStep);
-                                    }
-                                } else {
-                                    // Nessuna prossima tappa (tutte fatte / non trovata / target
-                                    // non-tappa) → azzera la distanza live.
-                                    setNextStepDistanceM(null);
-                                    if (dbg) dbg.nextTappaDistM = null;
-                                }
-                            }
-
-                            // ── L2-1: avanzamento maneuver (proiezione + indice monotòno) ──
-                            // Ortogonale al geofence: legge posizione + directionsData, scrive
-                            // SOLO nearestPointIdxRef/activeStepIdxRef + setActiveManeuver.
-                            // Mai handlePOIUnlock, mai armedStepsRef/geofenceFiredRef/completedSteps.
-                            if (!navCompletedRef.current) {
-                                const steps = directionsDataRef.current?.steps || [];
-                                let maneuver = null;
-                                const hit = pickActiveStep(routePointsRef.current, latitude, longitude, nearestPointIdxRef.current);
-                                if (hit && steps.length > 0) {
-                                    nearestPointIdxRef.current = hit.pointIdx;
-                                    const stepIdx = Math.max(activeStepIdxRef.current, hit.stepIdx);
-                                    activeStepIdxRef.current = stepIdx;
-                                    const s = steps[stepIdx];
-                                    if (s && (s.maneuver || s.instructions)) {
-                                        maneuver = { maneuver: s.maneuver || null, instructionHtml: s.instructions || null };
-                                    }
-                                }
-                                // hit === null (pts vuoto / coords invalide / fuori tolleranza) →
-                                // maneuver resta null → HUD torna a "→ Prossima tappa" (mai stale).
-                                setActiveManeuver(prev => {
-                                    if (prev?.maneuver === maneuver?.maneuver && prev?.instructionHtml === maneuver?.instructionHtml) return prev;
-                                    return maneuver;
-                                });
-                                if (dbg) {
-                                    dbg.stepIdx = hit?.stepIdx ?? null;
-                                    dbg.snapDistM = hit?.snapDistM ?? null;
-                                    dbg.instr = maneuver?.instructionHtml
-                                        ? maneuver.instructionHtml.replace(/<[^>]*>/g, '').slice(0, 40)
-                                        : (dbg.nextTappaName ? `→ ${dbg.nextTappaName}` : '→ prossima tappa');
-                                }
-                            }
-                            // GATE DEBUG: registra la riga del tick (SOLO se DEBUG_NAV).
-                            if (dbg) pushNavDebug(dbg);
-
-                            const now = Date.now();
-                            // Adatta camera al mezzo di trasporto
-                            const isWalking = pageTransportMode === 'walking' || pageTransportMode === 'bicycling';
-                            const isDriving = pageTransportMode === 'driving';
-                            const throttleMs = isWalking ? 400 : isDriving ? 300 : 500;
-                            const navZoom = isWalking ? 19 : isDriving ? 16 : 17;
-                            const navTilt = isWalking ? 60 : isDriving ? 45 : 50;
-
-                            if (followingRef.current && map && (now - lastUpdateTime > throttleMs)) {
-                                lastUpdateTime = now;
-                                writer3Ticks += 1;
-                                // Log ogni ~10 tick (~4s a piedi) per non spammare la console
-                                if (writer3Ticks % 10 === 1) {
-                                    console.log(`[DVAI-Nav] writer#3 watchPosition moveCamera (tick #${writer3Ticks}, zoom ${navZoom}, tilt ${navTilt})`);
-                                }
-                                // FIX 4 (minimo): Google Maps JS non ha easeTo/flyTo con
-                                // durata (a differenza di Mapbox). panTo anima SOLO il center
-                                // → toglie lo scatto di posizione. zoom/tilt restano quelli
-                                // del follow-start (setFollowing/flyToUser). Il per-tick NON
-                                // ri-setta più heading (era lo scatto in rotazione). La
-                                // rotazione heading-up fluida è debito Antigravity.
-                                map.panTo({ lat: latitude, lng: longitude });
-                            }
-
-                            // Cultural Surprise: solo A PIEDI, ogni ~300m + audioguida
-                            if (isWalking && lastSurprisePos.current) {
-                                const d = Math.hypot(
-                                    (latitude - lastSurprisePos.current.lat) * 111320,
-                                    (longitude - lastSurprisePos.current.lng) * 111320 * Math.cos(latitude * Math.PI / 180)
-                                );
-                                if (d > 300) {
-                                    lastSurprisePos.current = { lat: latitude, lng: longitude };
-                                    surpriseCount.current += 1;
-                                    const surprises = [
-                                        'Molti palazzi storici italiani hanno cortili segreti. Prova ad affacciarti dal portone più bello che vedi!',
-                                        'Gli artisti di strada in Italia devono avere un permesso comunale. Ogni esibizione che vedi è certificata.',
-                                        'Le trattorie con i menù scritti a mano sono quasi sempre le migliori. Segui la calligrafia!',
-                                        'Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!',
-                                        'I locali del posto sanno che il tramonto migliore non è dal punto panoramico, ma dal bar accanto.',
-                                        'Le botteghe artigiane nei vicoli spesso esistono da generazioni. Chiedi la loro storia, ti sorprenderanno.',
-                                        'In molte piazze italiane, la musica che senti non è casuale. È programmata dal comune per creare atmosfera.',
-                                    ];
-                                    const text = surprises[surpriseCount.current % surprises.length];
-                                    window.dispatchEvent(new CustomEvent('dvai:toast', {
-                                        detail: { message: `🎧 ${text}`, type: 'info', duration: 6000 }
-                                    }));
-                                    // Audioguida: leggi la curiosità ad alta voce se voce attiva
-                                    if (voiceEnabled && window.speechSynthesis) {
-                                        window.speechSynthesis.cancel();
-                                        const utterance = new SpeechSynthesisUtterance(text);
-                                        utterance.lang = 'it-IT';
-                                        utterance.rate = 0.9;
-                                        if (italianVoiceRef.current) utterance.voice = italianVoiceRef.current;
-                                        window.speechSynthesis.speak(utterance);
-                                    }
-                                }
-                            } else {
-                                lastSurprisePos.current = { lat: latitude, lng: longitude };
-                            }
-                        },
-                        (err) => console.warn("Errore Inseguimento Navigazione:", err),
-                        // R2: high-accuracy giustificato SOLO qui (nav attiva, serve
-                        // precisione marciapiede per il geofence). Parte all'avvio nav,
-                        // fermato da clearWatch in handleEndNavigation. timeout per non pendere.
-                        { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
-                    );
-                    setWatchId(wId);
-                },
-                (err) => {
-                    console.warn('[DVAI-Nav] start: GPS fallito', err?.code, err?.message);
-                    // Fase 1 telemetria: la nav parte comunque (fallback prima tappa
-                    // sotto). Registriamo nav_start con gps_denied nel context.
-                    logNavEvent('nav_start', { tour_id: tourData?.id || tourData?.tourId || null, mode: pageTransportMode, gps_denied: true });
-                    // Layer C Fix 2 — messaggio più informativo. Distinguo permission
-                    // denied (utente ha detto no) da altri errori (timeout, unavailable).
-                    const isPermissionDenied = err?.code === 1;
-                    const msg = isPermissionDenied
-                        ? '📍 Posizione non condivisa. Partiamo dalla prima tappa del tour.'
-                        : '📍 GPS non disponibile ora. Partiamo dalla prima tappa — poi ti raggiungeremo appena il segnale c\'è.';
-                    window.dispatchEvent(new CustomEvent('dvai:toast', {
-                        detail: { type: 'info', message: msg, duration: 5000 }
-                    }));
-                    if (activeRoute?.length) {
-                        // Usa prima tappa come ancora di partenza
-                        const firstStep = activeRoute[0];
-                        setLocalCenter({ latitude: firstStep.latitude, longitude: firstStep.longitude });
-                        // Costruisci liveRoute completa per l'HUD
-                        const fallbackRoute = activeRoute.map(s => ({
-                            lat: parseFloat(s.latitude || s.lat),
-                            lng: parseFloat(s.longitude || s.lng),
-                            title: s.name || s.title
-                        }));
-                        setLiveRoute(fallbackRoute);
-                    }
-                    if (activeRoute?.length && map) {
-                        map.moveCamera({
-                            center: { lat: activeRoute[0].latitude, lng: activeRoute[0].longitude },
-                            zoom: 17, tilt: 45
-                        });
-                    }
-                },
-                { enableHighAccuracy: true, timeout: 5000 }
-            );
-        } else {
-            // Nessuna API geolocation: la nav parte comunque. Registriamo nav_start
-            // con gps_denied per non perdere la sessione nel conteggio.
-            logNavEvent('nav_start', { tour_id: tourData?.id || tourData?.tourId || null, mode: pageTransportMode, gps_denied: true });
+        if (!ripresa) {
+            window.dispatchEvent(new CustomEvent('dvai:toast', {
+                detail: { message: '🧭 Navigazione avviata! Segui il percorso.', type: 'success', duration: 3000 }
+            }));
         }
+
+        // NAV-1 punto 4: lo schermo resta acceso dove il browser lo permette (altrimenti niente).
+        schermoAcceso.attiva();
+
+        // NAV-1 punto 1: il tracciamento parte SEMPRE, subito, e continua a riprovare.
+        // nav_start resta com'era (telemetria = NAV-2): una volta, al primo fix entro 5 s,
+        // oppure con gps_denied se il primo fix non arriva in 5 s o la posizione è negata.
+        // Una ripresa non apre una nuova sessione di telemetria.
+        navTrackerRef.current?.stop();
+        setNavGps('attesa');
+        setGpsAttesaVisibile(false);
+        let startLogged = !!ripresa;
+        const logStart = (gpsDenied) => {
+            if (startLogged) return;
+            startLogged = true;
+            logNavEvent('nav_start', {
+                tour_id: tourData?.id || tourData?.tourId || null,
+                mode: pageTransportMode,
+                ...(gpsDenied ? { gps_denied: true } : {}),
+            });
+        };
+        if (!navigator.geolocation) {
+            logStart(true);
+            setNavGps('negato');
+            partiDallaTappa();
+            return;
+        }
+        navTrackerRef.current = avviaTracciamento({
+            geolocation: navigator.geolocation,
+            onStato: (s) => {
+                setNavGps(s);
+                if (s === 'negato') { logStart(true); partiDallaTappa(); }
+            },
+            onPrimoFixMancato: () => {
+                logStart(true);
+                setGpsAttesaVisibile(true);
+                partiDallaTappa();
+            },
+            onPosizione: (pos, { primo }) => {
+                if (primo) {
+                    const { coords } = pos;
+                    console.log('[DVAI-Nav] primo fix della navigazione');
+                    logStart(false);
+                    setGpsAttesaVisibile(false);
+                    flyToUser(coords);
+                    const percorso = percorsoDa(coords, singleTarget);
+                    if (percorso.length > 0) setLiveRoute(percorso);
+                }
+                navPositionRef.current?.(pos);
+            },
+        });
+    };
+
+    // NAV-1: fine del giro (tutte le tappe fatte o saltate). Stop del GPS, latch, riepilogo.
+    const concludiGiro = (fatteIds) => {
+        const totalSteps = activeRoute.length;
+        // P7a — tour completato: +0,3 alle categorie vere delle tappe (solo se tutte FATTE,
+        // come prima). Una volta sola: dopo questo punto il latch ferma tutto.
+        if (!navCompletedRef.current && fatteIds.length >= totalSteps) {
+            trackDnaEvent?.('tour_completed', tourData?.steps?.length ? tourData.steps : activeRoute, { city: tourData?.city || null });
+        }
+        navCompletedRef.current = true;
+        navTrackerRef.current?.stop(); navTrackerRef.current = null;
+        setNavGps(null); setGpsAttesaVisibile(false); setTappaPassata(null);
+        chiudiGiro();
+        setNextStepDistanceM(null);
+        // Fase 2c-2: congela il tempo reale al momento del completamento.
+        setNavElapsedMs(navStartTimeRef.current != null ? Date.now() - navStartTimeRef.current : null);
+        setTimeout(() => setIsSummaryModalOpen(true), 2000);
     };
 
     const handlePOIUnlock = (poiObj) => {
-        if (!completedSteps.includes(poiObj.id)) {
-            const newCompleted = [...completedSteps, poiObj.id];
+        const doneNow = completedStepsRef.current || completedSteps;
+        if (!doneNow.includes(poiObj.id)) {
+            const newCompleted = [...doneNow, poiObj.id];
+            completedStepsRef.current = newCompleted;
+            geofenceFiredRef.current.add(poiObj.id);
             setCompletedSteps(newCompleted);
+            setTappaPassata(t => (t?.id === poiObj.id ? null : t));
 
             // Fase 1 telemetria: step_reached. Dentro la guard di idempotenza
             // (N3) → un solo evento per tappa. In Fase 2 lo stesso punto sara'
@@ -1380,9 +1451,32 @@ const MapPage = () => {
                 step_index: typeof poiObj.index === 'number' ? poiObj.index : (newCompleted.length - 1),
             });
 
-            // Feedback visivo: toast celebrativo
-            const stepNum = newCompleted.length;
-            const totalSteps = activeRoute.length;
+            avanzaDopo(poiObj, newCompleted, skippedStepsRef.current || [], true);
+        }
+    };
+
+    // NAV-1 punto 3: «Salta» e «Saltala». La tappa esce dal giro senza contare come fatta
+    // (nessun evento di telemetria: NAV-2).
+    const handleSkipStep = (poiObj) => {
+        if (!poiObj) return;
+        const skippedNow = skippedStepsRef.current || [];
+        const doneNow = completedStepsRef.current || [];
+        if (skippedNow.includes(poiObj.id) || doneNow.includes(poiObj.id)) return;
+        const newSkipped = [...skippedNow, poiObj.id];
+        skippedStepsRef.current = newSkipped;
+        setSkippedSteps(newSkipped);
+        setTappaPassata(t => (t?.id === poiObj.id ? null : t));
+        avanzaDopo(poiObj, doneNow, newSkipped, false);
+    };
+
+    // Dopo una tappa fatta o saltata: messaggio, la mappa vola alla prossima, fine del giro.
+    const avanzaDopo = (poiObj, fatte, saltate, fatta) => {
+        const totalSteps = activeRoute.length;
+        const gestite = fatte.length + saltate.length;
+        const singola = !!navTargetStepIdRef.current;
+        const rimaste = (activeRoute || []).filter(s => !fatte.includes(s.id) && !saltate.includes(s.id));
+        if (fatta) {
+            const stepNum = fatte.length;
             window.dispatchEvent(new CustomEvent('dvai:toast', {
                 detail: {
                     message: stepNum >= totalSteps
@@ -1392,49 +1486,80 @@ const MapPage = () => {
                     duration: 3000,
                 }
             }));
-
-            // Fly-to cinematico alla prossima tappa con overlay nome
-            if (stepNum < totalSteps && map) {
-                const next = activeRoute[stepNum];
-                if (next?.latitude && next?.longitude) {
-                    setFlyToLabel(next.name || next.title || `Tappa ${stepNum + 1}`);
-                    setTimeout(() => {
-                        console.log(`[DVAI-Nav] writer#6 handlePOIUnlock moveCamera → prossima tappa "${next.name || next.title}", zoom 18 tilt 55`);
-                        map.moveCamera({
-                            center: { lat: next.latitude, lng: next.longitude },
-                            zoom: 18,
-                            tilt: 55,
-                        });
-                    }, 500);
-                    setTimeout(() => setFlyToLabel(null), 3000);
-                }
-            }
-
-            // Se tutte le tappe completate → FIX 1: stop DEFINITIVO dei tick GPS
-            // (clearWatch) + latch irreversibile. Nessun ricalcolo può più girare,
-            // la UI di successo si congela (regola locked #11: nessuno stato
-            // completato torna indietro per una fluttuazione GPS).
-            if (newCompleted.length >= totalSteps) {
-                // P7a — tour completato: +0,3 alle categorie vere delle tappe.
-                // Una volta sola: dopo questo punto il latch ferma tutto.
-                if (!navCompletedRef.current) {
-                    trackDnaEvent?.('tour_completed', tourData?.steps?.length ? tourData.steps : activeRoute, { city: tourData?.city || null });
-                }
-                navCompletedRef.current = true;
-                if (watchId) { navigator.geolocation.clearWatch(watchId); setWatchId(null); }
-                setNextStepDistanceM(null);
-                // Fase 2c-2: congela il tempo reale al momento del completamento.
-                setNavElapsedMs(navStartTimeRef.current != null ? Date.now() - navStartTimeRef.current : null);
-                setTimeout(() => setIsSummaryModalOpen(true), 2000);
-            }
         }
+        // Fly-to cinematico alla prossima tappa con overlay nome
+        const next = singola ? null : rimaste[0];
+        if (next && map && next.latitude && next.longitude) {
+            setFlyToLabel(next.name || next.title || `Tappa ${(next.index ?? 0) + 1}`);
+            setTimeout(() => {
+                console.log(`[DVAI-Nav] writer#6 avanzaDopo moveCamera → prossima tappa "${next.name || next.title}", zoom 18 tilt 55`);
+                map.moveCamera({ center: { lat: next.latitude, lng: next.longitude }, zoom: 18, tilt: 55 });
+            }, 500);
+            setTimeout(() => setFlyToLabel(null), 3000);
+        }
+        // Il percorso disegnato riparte dalle tappe rimaste.
+        if (!singola && rimaste.length > 0) {
+            setLiveRoute(rimaste.map(s => ({ lat: parseFloat(s.latitude || s.lat), lng: parseFloat(s.longitude || s.lng), title: s.name || s.title })));
+        }
+        // Se tutte le tappe sono fatte o saltate → FIX 1: stop DEFINITIVO dei tick GPS
+        // + latch irreversibile (regola locked #11). In «Naviga» verso una tappa il giro
+        // resta aperto come prima (si chiude con «Fine»).
+        if (totalSteps > 0 && gestite >= totalSteps) concludiGiro(fatte);
     };
 
     // Fase 2b-1: tieni i ref allineati all'ultimo render, così il callback
     // watchPosition (geofence) legge sempre l'ultimo completedSteps e chiama
     // l'ultimo handlePOIUnlock (il cui setCompletedSteps parte dallo stato reale).
     useEffect(() => { completedStepsRef.current = completedSteps; }, [completedSteps]);
+    useEffect(() => { skippedStepsRef.current = skippedSteps; }, [skippedSteps]);
     useEffect(() => { handlePOIUnlockRef.current = handlePOIUnlock; });
+
+    // NAV-1 punto 2: il giro in corso si salva a ogni passo (tour, tappe fatte e saltate,
+    // bersaglio, ora d'inizio); sopravvive a una ricarica e alla chiusura di iOS.
+    useEffect(() => {
+        if (!isNavigating || navCompletedRef.current || !tourData || !(activeRoute?.length > 0)) return;
+        salvaGiro({
+            tourData,
+            completedSteps,
+            skippedSteps,
+            targetStepId: navTargetStepIdRef.current,
+            singleTarget: navIsSingleTargetRef.current,
+            startedAt: navStartTimeRef.current ?? Date.now(),
+            mode: pageTransportMode,
+        });
+    }, [isNavigating, completedSteps, skippedSteps, tourData, activeRoute, pageTransportMode]);
+
+    // NAV-1 punto 2: alla riapertura della mappa con lo stesso tour, si propone di riprendere
+    // (mai un giro iniziato da più di 12 ore: leggiGiro lo cancella). Arrivando da «Riprendi»
+    // altrove (GiroInCorso), si riprende subito.
+    const ripresaFattaRef = useRef(false);
+    useEffect(() => {
+        if (ripresaFattaRef.current || isNavigating || !(activeRoute?.length > 0)) return;
+        const g = leggiGiro();
+        if (!g || g.chiave !== chiaveGiro(tourData)) return;
+        ripresaFattaRef.current = true;
+        if (location.state?.riprendiGiro) {
+            // Consumato: una ricarica successiva propone di nuovo, non riprende da sola.
+            try { window.history.replaceState({ ...window.history.state, usr: { ...(window.history.state?.usr || {}), riprendiGiro: false } }, ''); } catch { /* niente */ }
+            handleStartNavigationReal(g);
+        } else setGiroDaRiprendere(g);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeRoute, tourData, isNavigating]);
+
+    const chiudiGiroSalvato = () => {
+        chiudiGiro();
+        setGiroDaRiprendere(null);
+    };
+
+    // NAV-1: la prossima tappa da mostrare nella barra (rispetta «Naviga» su una tappa e le saltate).
+    const navNextStop = (() => {
+        if (!isNavigating) return null;
+        const targetId = navTargetStepIdRef.current;
+        const libera = s => !completedSteps.includes(s.id) && !skippedSteps.includes(s.id);
+        if (targetId) return (activeRoute || []).find(s => s.id === targetId && libera(s)) || null;
+        if (navIsSingleTargetRef.current) return null;
+        return (activeRoute || []).find(libera) || null;
+    })();
 
     // ─── CUSTOM POI INTERCEPTION (Premium Google Maps Feel) ───
     const handleNativePOIClick = useCallback((e) => {
@@ -1808,7 +1933,7 @@ const MapPage = () => {
                                     {/* Start Nav Button — sticky bottom */}
                                     <div className="shrink-0 p-4 pt-2 md:pb-6 bg-obsidian-card border-t border-obsidian-border">
                                         <button 
-                                            onClick={handleStartNavigationReal}
+                                            onClick={() => handleStartNavigationReal()}
                                             className="w-full bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg font-bold text-base md:text-lg py-4 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
                                         >
                                             <NavIcon size={24} className="animate-pulse" />
@@ -1920,6 +2045,24 @@ const MapPage = () => {
                     onEndNavigation={handleEndNavigation}
                     isCameraFollowing={isCameraFollowing}
                     onRecenterCamera={() => setFollowing(true)}
+                    nextStop={navNextStop}
+                    skippedSteps={skippedSteps}
+                    avviso={avvisoNavigazione({ gps: navGps, attesaVisibile: gpsAttesaVisibile, offline: isOffline, percorsoErrore: !!routeStats?.error })}
+                    mappeUrl={linkMappe(navNextStop || selectedPOI || selectedActivity, pageTransportMode)}
+                    onArrived={navNextStop ? handlePOIUnlock : null}
+                    onSkip={navNextStop ? handleSkipStep : null}
+                    tappaPassata={tappaPassata}
+                    onPassataVista={() => tappaPassata && handlePOIUnlock(tappaPassata)}
+                    onPassataSalta={() => tappaPassata && handleSkipStep(tappaPassata)}
+                />
+            )}
+
+            {/* NAV-1 punto 2: un giro in corso dopo una ricarica o una chiusura di iOS */}
+            {giroDaRiprendere && !isNavigating && (
+                <GiroRipresaDialog
+                    {...puntoDelGiro(giroDaRiprendere)}
+                    onRiprendi={() => handleStartNavigationReal(giroDaRiprendere)}
+                    onChiudi={chiudiGiroSalvato}
                 />
             )}
 

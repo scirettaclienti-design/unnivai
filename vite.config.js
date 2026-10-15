@@ -75,6 +75,11 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
     plugins: [react(), devPlacesProxyPlugin(env)],
+    // MERGE-3 — la versione del build (Profilo, src/lib/versione.js): il commit lo fornisce Vercel; in locale resta vuoto («sviluppo»)
+    define: {
+      __DV_COMMIT__: JSON.stringify(mode === 'production' ? (process.env.VERCEL_GIT_COMMIT_SHA || '') : ''),
+      __DV_BUILD__: JSON.stringify(new Date().toISOString()),
+    },
     server: {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',

@@ -33,6 +33,13 @@ vi.mock('@/services/factsService', async (importOriginal) => {
     } };
 });
 
+// GUARDIA-PERTINENZA — la sonda dei candidati senza momento: `bucketCandidates` vera, avvolta solo per annotare (pertinenza-sonda.js)
+vi.mock('@/services/momentSelection', async (importOriginal) => {
+    const m = await importOriginal();
+    const { avvolgiMomentSelection } = await import('./pertinenza-sonda.js');
+    return avvolgiMomentSelection(m);
+});
+
 const OUT = process.env.BANCO_OUT;
 if (!OUT) throw new Error('BANCO_OUT mancante: lancia il banco esteso con `npm run banco:esteso`');
 // C10c-replay — il tracciato di ogni caso (risposte dei proxy e fatti), accanto al grezzo: `npm run banco:replay` lo rigioca a 0 $.

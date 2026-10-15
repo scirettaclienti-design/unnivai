@@ -3027,7 +3027,7 @@ export const aiRecommendationService = {
                                     }
                                     return aiStops;
                                 })(), pool: candidates, dnaWeights: opts.dnaWeights || {},
-                                requestedFamilies: familiesAsked, searchedIds, searchedMoments,
+                                requestedFamilies: familiesAsked, searchedIds, searchedMoments, dellaRichiesta: catStretta === 'natura' ? isNaturaOPanorama : null,
                                 // C5b — il punto di partenza, se il chiamante lo conosce;
                                 // senza, la prima tappa si misura dal centro del gruppo.
                                 startPoint: opts.startPoint || null,
@@ -3117,7 +3117,7 @@ export const aiRecommendationService = {
                             if (hoursReport.chiusi.length > 0 || veto.size > 0) {
                                 const senza = repairMomentSelection({
                                     moments, buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
-                                    requestedFamilies: familiesAsked, searchedIds, searchedMoments,
+                                    requestedFamilies: familiesAsked, searchedIds, searchedMoments, dellaRichiesta: catStretta === 'natura' ? isNaturaOPanorama : null,
                                     startPoint: opts.startPoint || null, tempoLiberoMinuti: FREE_TIME_MAX_MINUTES, registraPool: false,
                                 });
                                 tappeSenzaFiltro = scheduleMomentPlan(senza.plan, tourWindow.windows.map(w => w.start)).days.flat().length;

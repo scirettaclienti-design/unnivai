@@ -156,7 +156,19 @@ Per Te, gli scarti di quel giro:
 - Quiz Natura: 12:30 Maccarruni, 14:30 Via Etnea, 15:02 Piazza del Duomo.
 - Catania è una città: niente giro corto. A margine: anche qui il «Natura» non dà verde. Lo segnalo, non l'ho indagato.
 
-**Commit provati dal vivo:** main e `9babc43`. `a2aeb9f` e `37425ef` li ho confrontati solo leggendo il codice: la sola differenza che conta è `TIPI_GENERICI` in `luogoDaVisitareBorgo`.
+**Commit provati dal vivo:** main e `9babc43`.
+
+**`a2aeb9f` contro `37425ef`, a 0 $.** Ho applicato la regola del borgo alla lista vera di Troina del 15/10 (`c10b-7`, `city_knowledge.verificati`, solo nomi, tipi, tipo principale e `_citta`).
+- Il conteggio usa lo stesso filtro del motore (`aiRecommendationService.js:2542`): niente passeggiate, piazze e vie della lista, zone.
+- Per `37425ef` ho usato il `luogoDaVisitareBorgo` di main, identico a quello del commit. Per `a2aeb9f` ho usato la stessa funzione senza il filtro `TIPI_GENERICI`, che è l'unica differenza nel diff della funzione.
+- Nessuna chiamata AI né Google. Il test era temporaneo e non è committato.
+
+| Regola | Luoghi da visitare | Soglia | Giro corto |
+|---|---|---|---|
+| `a2aeb9f` | Chiesa Madre, **San Silvestro**, Torre Capitania, Convento di Sant'Agostino: **4** | 4 | no |
+| `37425ef` = main | Chiesa Madre, Torre Capitania, Convento di Sant'Agostino: **3** | 4 | **sì** |
+
+San Silvestro ha per Google solo `point_of_interest` ed `establishment`. Con `37425ef` esce dal conto, ed è l'unico posto che cambia.
 
 ## 4) Tutti i «non troviamo», veri o no
 
@@ -219,7 +231,7 @@ Le quote esaurite e gli errori del motore AI non diventano «non troviamo»: `mu
 - Il listino conta ogni ricerca Google a prezzo pieno, come il banco.
 - Le ricerche nuove sono 19 textsearch e 2 findplace (righe scritte in `places_cache` durante le prove); le altre venivano dalla cache.
 - Costo reale stimato **≈ 0,77 $**: circa 0,70 di Google e 0,07 di AI.
-- Mi sono fermato prima di altre prove pagate: `a2aeb9f` e `37425ef` sono confrontati sul codice.
+- Mi sono fermato prima di altre prove pagate. Il confronto `a2aeb9f`/`37425ef` l'ho fatto dopo, a 0 $: la regola del borgo applicata alla lista salvata, senza rete (vedi §3).
 - **Scritture sul database:** solo quelle che fa il proxy da sé, cioè 21 righe di `places_cache` e i biglietti `ai_generation_ticket` dell'account di prova (`label = 'test'`). Nessuna lista nuova: quella di Troina e quella di Catania erano già sul server.
 
 ## 7) Verifiche e commit
@@ -232,7 +244,7 @@ Le quote esaurite e gli errori del motore AI non diventano «non troviamo»: `mu
 
 1. **Quale bottone ha premuto l'utente alle 12:06.** I log non dicono la pagina. «orto botanico», «giardino pubblico», «villa comunale parco» coincidono col traduttore del Quiz Natura riprodotto; la stessa sequenza di chiamate (lista, traduttore, selettore, secondo tentativo) vale per Sorprendimi. «piazza storica», «monumenti storici», «centro storico» possono essere il Quiz Storia o il Quiz Città: la mia riproduzione del Quiz Storia ha tradotto in «museo, sito archeologico, monumento storico». Il meccanismo del giro corto è lo stesso.
 2. **Che cosa ha visto l'utente.** Lo deduco dal codice delle pagine e dal `_source` riprodotto, non da uno schermo.
-3. **`a2aeb9f` contro `37425ef`.** Che `a2aeb9f` non faccia il giro corto a Troina lo deduco dal codice (`TIPI_GENERICI` assente) e dal report di C10c-piena-1. Dal vivo ho provato solo `9babc43` e main.
+3. **`a2aeb9f` contro `37425ef`.** Il conteggio del borgo l'ho verificato sulla lista salvata (4 contro 3, §3). Non ho rigenerato un tour completo sui due commit. Che con 4 luoghi il Quiz esca pieno lo deduco da `9babc43`, che non fa il giro corto e dà 3 tappe.
 4. **Il proxy è quello di oggi in tutte le prove.** Anche `9babc43` ha usato `openai-proxy` v24 e la lista `c10b-7` del server. Sui commit vecchi, in produzione, la lista dipendeva dal proxy pubblicato in quel momento.
 5. **Il vuoto poteva esserci a tratti anche prima.** Con la lista `c10b-2` del 14/10 mattina (1 solo verificato) il giro corto scattava già (regola C10b). Non l'ho riprodotto.
 6. **Per Te prima di oggi.** Che a Troina desse tour «prima» non l'ho verificato. Il suo codice non cambia nell'intervallo; il vuoto viene dagli orari veri (ORARI, 13/10) e dal minimo di 3 tappe, e dipende dall'ora.

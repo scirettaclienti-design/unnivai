@@ -17,6 +17,7 @@ import { searchFoodWithDiet } from '../lib/foodPrefs';
 import { placeKind } from '../lib/placeKind';
 import { cleanPlaceName } from '../lib/placeName';
 import { zoneReason } from '../lib/zone';
+import { isOrganizzazione } from '../lib/borgoConfini';
 import { romeMinutes } from '../lib/openingHours';
 
 // DVAI-055-b: prefix bumped da 'unnivai_poiv2_' per invalidare i POI tematici
@@ -323,6 +324,12 @@ const passesHardExclusions = (c) => {
       console.warn(`[Gate TOUR-SENSATO] scartato "${c.name || '?'}" → non visitabile (${hitNonVisit}, nessun type di visita) — types=[${c.types.join('|')}]`);
       return false;
     }
+  }
+  // BORGO-FIX — decisione 6: un parco o un luogo di natura (o un posto con soli tipi generici) con un nome da organizzazione
+  // (azienda, agenzia, ente, consorzio, ufficio, associazione, escursioni…) non e' una tappa, in nessun flusso.
+  if (isOrganizzazione(c)) {
+    console.warn(`[BORGO-FIX] scartato "${c.name || '?'}" → un'organizzazione, non un luogo da visitare — types=[${(c.types || []).join('|')}]`);
+    return false;
   }
   // Rumore garantito: 1 sola recensione e rating basso.
   const r = c.rating || 0;

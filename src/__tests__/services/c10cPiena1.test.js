@@ -169,7 +169,9 @@ describe('C10c — il motore: orari, quartiere chiesto, piazze storiche, borgo',
     it('un borgo con 5 posti di cui un ristorante applica «la durata segue le tappe» (contano i luoghi da visitare)', async () => {
         vi.mocked(fetchCityKnowledge).mockResolvedValue({ stato: 'ok', cached: true, scala: 'borgo', verificati: BORGO });
         vi.stubGlobal('fetch', fetchFinto());
-        const r = await aiRecommendationService.generateItinerary('Troina', { duration: '1 Giorno' }, 'Domani una giornata a Troina', {}, '', TR, { pathType: 'custom', skipUserQuota: true });
+        // BORGO-FIX — decisione 1: con «giornata» o «domani» nel testo il borgo non scende sotto mattina e pomeriggio; il giro corto si prova con un testo senza
+        vi.setSystemTime(new Date('2026-10-15T08:00:00+02:00'));
+        const r = await aiRecommendationService.generateItinerary('Troina', { duration: '1 Giorno' }, 'Un giro a Troina', {}, '', TR, { pathType: 'custom', skipUserQuota: true });
         expect(r._citta.mezzaGiornata).toMatchObject({ utilizzabili: 3 });
         const w = r.tourWindow.windows[0];
         expect((w.end.getTime() - w.start.getTime()) / 60000).toBeLessThanOrEqual(180);

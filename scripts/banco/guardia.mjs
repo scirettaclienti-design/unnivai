@@ -24,9 +24,16 @@ const opt = (nome) => { const i = args.indexOf(nome); return i > -1 ? args[i + 1
 const DATI = path.join(root, 'docs/prove/dati');
 const GREZZO_GIRO = path.join(DATI, 'guardia-home.json');
 const TRACCIATI = opt('--tracciati') ? path.resolve(opt('--tracciati')) : path.join(DATI, 'guardia-home-tracciati.json.gz');
-// GUARDIA-PERTINENZA — i tracciati dei 6 casi del borgo (il giro di BORGO-DIAGNOSI del 21/10)
-export const TRACCIATI_BORGO_DEFAULT = 'docs/prove/dati/2026-10-21-borgo-diagnosi-tracciati.json.gz';
-const TRACCIATI_BORGO = opt('--tracciati-borgo') ? path.resolve(opt('--tracciati-borgo')) : path.join(root, TRACCIATI_BORGO_DEFAULT);
+// GUARDIA-PERTINENZA — i tracciati dei 6 casi del borgo: ogni file rigioca i casi che gli sono assegnati (BORGO-FIX: i 5 casi di
+// Troina dal giro pagato R2 sul codice finale; Catania dal giro di BORGO-DIAGNOSI del 21/10, che il giro pagato ha saltato per
+// il tetto e che il replay riproduce identico). `--tracciati-borgo <f>` rigioca tutti i casi del borgo da un solo file.
+export const TRACCIATI_BORGO_DEFAULT = [
+    { file: 'docs/prove/dati/2026-10-16-borgo-fix-2-tracciati.json.gz', casi: ['borgo-a-perte', 'borgo-b-quiz-natura', 'borgo-b-sorpresa-natura', 'borgo-c-crea-2300', 'borgo-c2-crea-1000'] },
+    { file: 'docs/prove/dati/2026-10-21-borgo-diagnosi-tracciati.json.gz', casi: ['borgo-cat-crea-2300'] },
+];
+const TRACCIATI_BORGO = opt('--tracciati-borgo')
+    ? [{ file: path.resolve(opt('--tracciati-borgo')), casi: CASI_BORGO.map(c => c.id) }]
+    : TRACCIATI_BORGO_DEFAULT.map(t => ({ file: path.join(root, t.file), casi: t.casi }));
 const NOTI = path.join(root, 'scripts/banco/pertinenza-noti.json');
 const ids = CASI_HOME.map(c => c.id).join(',');
 
@@ -67,7 +74,8 @@ const esito = controllaGuardia(grezzo, { attesi: CASI_HOME });
 console.log(tabellaGuardia(esito));
 
 // GUARDIA-PERTINENZA — i 5 controlli sui casi del borgo (dai loro tracciati, sempre in replay) e sui casi della guardia
-const borgo = rigioca(TRACCIATI_BORGO, CASI_BORGO.map(c => c.id).join(','), 'borgo');
+const borghi = TRACCIATI_BORGO.map((t, i) => rigioca(t.file, t.casi.join(','), `borgo-${i + 1}`));
+const borgo = borghi.some(Boolean) ? { casi: borghi.flatMap(b => b?.casi || []) } : null;
 const casiPertinenza = [...(borgo?.casi || []), ...(grezzo.casi || [])];
 const attesi = [...CASI_BORGO.map(c => c.id), ...CASI_HOME.map(c => c.id)];
 const perId = new Map(casiPertinenza.map(c => [c.id, c]));

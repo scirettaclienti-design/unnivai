@@ -95,6 +95,15 @@ const TYPE_CATEGORIES = {
     park: ['natura'],
     natural_feature: ['natura'],
     campground: ['natura'],
+    // BORGO-FIX — decisione 2 (Ivano): i tipi di natura della ricerca nuova (borgoConfini.js li conosceva gia', qui mancavano:
+    // Monte Muganà, `scenic_spot`, non stava in nessun momento). Un punto panoramico e' anche natura.
+    scenic_spot: ['punti panoramici', 'natura'],
+    observation_deck: ['punti panoramici', 'natura'],
+    hiking_area: ['natura'],
+    nature_preserve: ['natura'],
+    national_park: ['natura'],
+    state_park: ['natura'],
+    garden: ['natura'],
     zoo: ['natura'],
     aquarium: ['natura'],
     store: ['shopping'],
@@ -148,6 +157,8 @@ export function candidateMomentCategories(candidate) {
 // momento sta sotto il tetto si prende il piu' vicino — un momento non resta
 // mai vuoto per colpa della distanza.
 export const MAX_WALK_MINUTES = 20;
+/** BORGO-FIX — decisione 3: nel borgo, con la natura chiesta, la passeggiata di giorno puo' arrivare a 30 minuti (Monte Muganà a 29). */
+export const WALK_NATURA_BORGO_MINUTES = 30;
 // Lo stesso tetto in metri: il bias delle ricerche mirate (pasti e luoghi).
 export const MAX_WALK_METERS = Math.round((MAX_WALK_MINUTES / 60) * WALKING_KMH * 1000);
 // C1b — la varieta' vince sulla distanza fino a qui: una famiglia nuova a 25
@@ -327,11 +338,15 @@ export function flattenSkeleton(skeleton) {
  *   (fuori dalla categoria scelta): con anyCategory non vanno negli altri momenti.
  * @returns {Map<string, Array>} id momento → candidati ammessi (ordine del pool)
  */
-export function bucketCandidates(moments, candidates, { anyCategory = false, mealOnlyIds = null } = {}) {
+export function bucketCandidates(moments, candidates, { anyCategory = false, mealOnlyIds = null, borgo = false } = {}) {
     const pool = Array.isArray(candidates) ? candidates.filter(idOf) : [];
     const cats = new Map(pool.map(c => [idOf(c), candidateMomentCategories(c)]));
     const buckets = new Map();
     for (const m of moments) {
+        // BORGO-FIX — decisione 4 (solo borgo): nel dopocena entra anche un posto con `bar` o `pub` fra i tipi, anche se il tipo
+        // principale e' da ristorante (Black & White a Troina: italian_restaurant con pub, bar, irish_pub). Gli orari all'arrivo
+        // restano (applyOpeningToBuckets, settleOpeningHours). «Se ci sono due cose non se ne scarta una.»
+        const pubDelBorgo = (c) => borgo && m.key === 'dopocena' && isBarOrPub(c);
         // C8a — la passeggiata fra il drink e la cena sceglie SEMPRE per categoria (all'aperto): una
         // categoria che vale per tutti i momenti non la trasforma in un posto qualunque.
         const base = anyCategory && !FOOD_ONLY_MOMENT_KEYS.has(m.key) && !m.soloCategorie
@@ -341,14 +356,19 @@ export function bucketCandidates(moments, candidates, { anyCategory = false, mea
                 // pasticceria") accoglie ogni locale, anche quelli senza categoria dello scheletro (dolci).
                 || (m.esplicito && isLocale(c))
                 // C8a — la passeggiata accetta anche un luogo all'aperto che le categorie non riconoscono (fontana, porta, ponte…)
-                || (m.key === 'passeggiata' && isOutdoorWalk(c)));
+                || (m.key === 'passeggiata' && isOutdoorWalk(c))
+                || pubDelBorgo(c));
         // C7 — UN PASTO PER FASCIA: un ristorante sta solo a pranzo e cena; la mattina un locale e'
         // una colazione; l'aperitivo e' un bar. Vale anche con la categoria che vale per tutti i momenti.
         // C8c — i posti trovati dalla ricerca della colazione servono solo alla colazione (non al pranzo).
-        buckets.set(m.id, base.filter(c => momentAdmits(c, m) && !(c._tema === 'colazione' && !m.colazione)));
+        buckets.set(m.id, base.filter(c => (momentAdmits(c, m) || pubDelBorgo(c)) && !(c._tema === 'colazione' && !m.colazione)));
     }
     return buckets;
 }
+
+/** BORGO-FIX — decisione 4: `bar` o un pub (pub, irish_pub, gastropub…) fra i tipi di Google. */
+export const isBarOrPub = (c) => [...(Array.isArray(c?.types) ? c.types : []), c?.primaryType ?? c?.primary_type].filter(Boolean)
+    .some(t => t === 'bar' || /pub$/.test(t));
 
 /** P3e — un posto dove mangiare: sta nella categoria `cibo` dello scheletro. */
 export const isMealPlace = (candidate) => candidateMomentCategories(candidate).has('cibo');
@@ -736,7 +756,8 @@ function repairPass({
         const costOf = (c) => {
             const from = origin();
             const t = from ? walkFrom(from, c) : 0;
-            const over = !!from && t > maxWalk;
+            // BORGO-FIX — decisione 3: un momento puo' avere il suo tetto (la passeggiata di natura nel borgo: 30 minuti)
+            const over = !!from && t > (m.maxWalkMinutes ?? maxWalk);
             const dup = !okFam(c, dayFamilies);
             const stretch = over && !fromRef() && t <= varietyWalk && newFam(c, dayFamilies);
             const hard = over && !stretch;
@@ -798,12 +819,15 @@ function repairPass({
             };
         };
         // Tutti i candidati liberi del momento col loro costo, dal migliore.
+        // BORGO-FIX — decisione 3: di giorno, con la natura chiesta, la passeggiata prende per prima una natura o un panorama
+        // (`m.naturaPrima`, messo dal motore): davanti nella classifica, con le stesse regole di sempre dopo (tetto, strada, marchio).
+        const naturaPrima = (x) => (m.naturaPrima && m.naturaPrimaTest?.(x.c) ? 0 : 1);
         const ranked = () => {
             const all = free(null).map(costOf);
             const ok = all.filter(x => !x.chain && !x.hard);
             const minDev = Math.min(...(ok.length ? ok : all).map(x => x.dev));
             for (const x of all) x.key = [...x.pre, x.dev > minDev + OFF_ROUTE_MINUTES ? 1 : 0];
-            return all.sort((a, b) => cmpKey(a.key, b.key) || (worth(b) - worth(a)) || (a.t - b.t));
+            return all.sort((a, b) => (naturaPrima(a) - naturaPrima(b)) || cmpKey(a.key, b.key) || (worth(b) - worth(a)) || (a.t - b.t));
         };
         // Il miglior candidato libero del momento (escluso `except`), col suo costo.
         const best = (except) => ranked().find(x => idOf(x.c) !== except) || null;

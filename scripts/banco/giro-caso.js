@@ -206,7 +206,8 @@ export function registraItinerario(rec, { r, rec: extra, food }, caso, luoghi) {
     const sezioni = (r.days || []).flatMap(d => groupStopsByDayAndMoment(d.stops || []).flatMap(g => g.groups))
         .filter(g => g.moment).map(g => ({ etichetta: g.moment.label, ora: g.items[0]?.timeLabel ?? null }));
     rec.schermo = { giorni: (r.days || []).map(d => ({ titolo: d.title || null, meteo: d.weather ?? null })), sezioni,
-        note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote), ...(r.days || []).map(d => d.scalaNote)].filter(Boolean),
+        // BORGO-FIX — anche la nota della natura di notte (decisione 3)
+        note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote), ...(r.days || []).map(d => d.scalaNote), ...(r.days || []).map(d => d.naturaNote)].filter(Boolean),
         // GUARDIA-PERTINENZA — il riquadro «Il tuo DNA Esplorativo» del riepilogo del Quiz (QuickPathSummary): oggi mostra sempre la scelta
         ...(caso.modo === 'veloce' ? { riquadro: { mostrato: true, scelta: [caso.scelta?.mainTitle, caso.scelta?.subTitle].filter(Boolean).join(' / ') } } : {}),
         durate: durateSchermo(caso.modo, r.days?.[0]?.stops || []) };

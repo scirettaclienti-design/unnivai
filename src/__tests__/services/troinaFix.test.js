@@ -90,9 +90,11 @@ describe('TROINA-FIX — a Troina a mezzogiorno nessun flusso esce vuoto', () =>
         expect(r._citta.mezzaGiornata).toMatchObject({ utilizzabili: 3 });
         expect(titoli.length).toBeGreaterThan(0);
         expect(titoli.some(t => /Muganà|Belvedere/.test(t))).toBe(true);
-        // la durata del giro corto non cambia: al massimo 4 luoghi da 45 minuti
-        const w = r.tourWindow.windows[0];
-        expect((w.end.getTime() - w.start.getTime()) / 60000).toBeLessThanOrEqual(180);
+        // BORGO-FIX — decisione 1: la natura delle ricerche entra nel conto della mezza giornata (3 luoghi + Monte Muganà = 4):
+        // niente giro corto, niente riga «si gira in mezza giornata»
+        expect(r._citta.mezzaGiornata.naturaContate).toEqual(expect.arrayContaining([expect.stringMatching(/Muganà|Belvedere/)]));
+        expect(r._citta.mezzaGiornata.riga).toBeNull();
+        expect(r.days[0].scalaNote).toBeUndefined();
     });
 
     it('Per Te in un borgo sotto soglia, con i temi tutti sotto le 3 tappe aperte: almeno un tour con posti veri', async () => {

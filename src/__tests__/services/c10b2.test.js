@@ -247,7 +247,9 @@ describe('C10b2 — il motore: due quartieri, il quartiere chiesto, il borgo cor
             }
             return { ok: true, json: async () => ({ status: 'ZERO_RESULTS', candidates: [] }) };
         }));
-        const r = await aiRecommendationService.generateItinerary('Troina', { duration: '1 Giorno' }, 'Domani una giornata a Troina', {}, '', TR, { pathType: 'custom', skipUserQuota: true });
+        // BORGO-FIX — decisione 1: con «giornata» o «domani» nel testo il borgo non scende sotto mattina e pomeriggio; il giro corto si prova con un testo senza
+        vi.setSystemTime(new Date('2026-10-15T08:00:00+02:00'));
+        const r = await aiRecommendationService.generateItinerary('Troina', { duration: '1 Giorno' }, 'Un giro a Troina', {}, '', TR, { pathType: 'custom', skipUserQuota: true });
         const w = r.tourWindow.windows[0];
         expect((w.end.getTime() - w.start.getTime()) / 60000).toBeLessThan(240);
         expect(r.days.flatMap(d => d.stops).filter(s => s.tempoLibero)).toEqual([]);

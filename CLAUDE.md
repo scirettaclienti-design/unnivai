@@ -42,6 +42,8 @@ prova; scrive `docs/prove/AAAA-MM-GG-banco.md` (semafori) e il grezzo in `docs/p
 Soglie e prezzi in `scripts/banco/banco.config.json`. Si rilancia dopo ogni modifica del motore;
 `BANCO_CASI=a-roma,…` per un sottoinsieme, `npm run banco -- --report <json>` per il solo report.
 
+**Si lavora solo da `unni <modello>` nell'app Terminale** (`~/bin/unni`, alias `unni` e `dv` in `~/.zshrc`; modelli `sonnet|opus|fable`): apre Claude Code in `~/unnivai-1b` dopo aver mostrato cartella, ramo, stato rispetto a GitHub e commit in produzione su unnivai.vercel.app. La cartella «unnivai ricresa» è archiviata: non si apre più.
+
 **Porta e titolo verificati prima di inserire credenziali.** Sulla 5173 gira spesso un'altra
 app locale (aispace): `npm run dev` con strictPort fallisce e la pagina che risponde non e'
 DoveVai. Il 10-11/10 le credenziali dell'account di prova sono finite nel login di aispace

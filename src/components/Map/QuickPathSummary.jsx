@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { MapPin, Navigation, Clock, Users, ArrowRight, Sparkles, Home } from 'lucide-react';
 import { getCoverPalette } from '@/lib/categoryPalette';
 import { TourStopsByMoment, TopFadeScroll } from '@/components/TourStopsByMoment';
-import { tourSpanMinutes } from '@/lib/tourTiming';
+import { displayedTourMinutes } from '@/lib/tourTiming';
+import { sceltaConfermata } from '@/lib/quizRiquadro';
 
 // Gate PULIZIA P1 — formatta minuti → "45 min" / "3h" / "1h 30m".
 // Il vecchio inline `(min % 60 || '')` trattava lo 0 come falsy e stampava
@@ -23,7 +24,11 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
     // Gate MOMENTO + DURATA VERA — la durata e' quella del tour sull'orologio
     // (prima tappa → fine dell'ultima). Senza orari, duration_minutes: la
     // durata del motore che QuickPath legge da tourWindow.js.
-    const durationLabel = formatMinutes(tourSpanMinutes(tourData.steps) ?? tourData.duration_minutes);
+    // BORGO-SCHERMO — la stessa durata di tutte le schermate (displayedTourMinutes); la durata del motore solo senza tappe.
+    const durationLabel = formatMinutes(displayedTourMinutes(tourData.steps, tourData.duration_minutes));
+    // BORGO-SCHERMO — la scelta (mood e ispirazione) si mostra solo se almeno una tappa e' di quella famiglia: a Troina alle 23
+    // il riquadro diceva «Natura / Parchi e Verde» sopra un bar e una via.
+    const sceltaMostrata = sceltaConfermata({ main: choices?.mainId, steps: tourData.steps });
 
     // Gate VERITÀ VISIVA (F26) DIFF 4 — via lo stock Unsplash di ripiego.
     // Questa e' la copertina del tour appena generato: se non c'e' una foto
@@ -82,14 +87,18 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                         </h3>
                         
                         <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
-                            <div className="flex flex-col">
-                                <span className="text-obsidian-secondary text-xs">Mood</span>
-                                <span className="font-bold text-obsidian-primary">{choices?.mood || '—'}</span>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-obsidian-secondary text-xs">Ispirazione</span>
-                                <span className="font-bold text-obsidian-primary">{choices?.inspiration || '—'}</span>
-                            </div>
+                            {sceltaMostrata && (
+                                <div className="flex flex-col" data-riquadro-mood>
+                                    <span className="text-obsidian-secondary text-xs">Mood</span>
+                                    <span className="font-bold text-obsidian-primary">{choices?.mood || '—'}</span>
+                                </div>
+                            )}
+                            {sceltaMostrata && (
+                                <div className="flex flex-col" data-riquadro-ispirazione>
+                                    <span className="text-obsidian-secondary text-xs">Ispirazione</span>
+                                    <span className="font-bold text-obsidian-primary">{choices?.inspiration || '—'}</span>
+                                </div>
+                            )}
                             <div className="flex items-center gap-2 mt-1">
                                 <Clock size={15} className="text-brand-orange" />
                                 <span className="font-bold text-obsidian-primary">{choices?.duration || '—'}</span>
@@ -100,6 +109,11 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                             </div>
                         </div>
                     </div>
+
+                    {/* BORGO-FIX (decisione 3) — la natura di notte non si vede: la nota di Ivano, sotto il riquadro */}
+                    {tourData.naturaNote && (
+                        <p data-natura-note className="text-obsidian-secondary text-xs px-1">{tourData.naturaNote}</p>
+                    )}
 
                     {/* Stats */}
                     <div className="flex items-center justify-around px-2">

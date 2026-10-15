@@ -239,7 +239,9 @@ describe('C10b — il motore: metropoli in un quartiere, borgo in mezza giornata
             }
             return { ok: true, json: async () => ({ status: 'ZERO_RESULTS', candidates: [] }) };
         }));
-        const r = await aiRecommendationService.generateItinerary('Troina', { duration: '1 Giorno' }, 'Domani una giornata a Troina', {}, '', T, { pathType: 'custom', skipUserQuota: true });
+        // BORGO-FIX — decisione 1: con «giornata» o «domani» nel testo il borgo non scende sotto mattina e pomeriggio; il giro corto si prova con un testo senza
+        vi.setSystemTime(new Date('2026-10-15T08:00:00+02:00'));
+        const r = await aiRecommendationService.generateItinerary('Troina', { duration: '1 Giorno' }, 'Un giro a Troina', {}, '', T, { pathType: 'custom', skipUserQuota: true });
         const w = r.tourWindow.windows[0];
         // C10b2 — la durata segue le tappe del borgo (45 min per luogo da visitare, 2–4 luoghi), non la mezza giornata fissa
         expect((w.end.getTime() - w.start.getTime()) / 60000).toBeLessThanOrEqual(240);

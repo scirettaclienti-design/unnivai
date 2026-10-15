@@ -24,12 +24,16 @@ import { mapTypeToCoreCategory } from './preferenceEngine';
 export const QUALITY_THRESHOLDS = {
     topCity: { minRating: 4.2, minReviews: 20 },
     smallTown: { minRating: 4.0, minReviews: 10 },
+    // BORGO-FIX — decisione 5 (Ivano): nel BORGO (scala confermata dalla lista, non isSmallTown) bastano 5 recensioni per la natura e i
+    // panorami (il Belvedere della Piazza Conte Ruggero: 5,0 su 8). Il chiamante passa `borgoNatura`, il test «e' natura o panorama».
+    borgoNatura: { minRating: 4.0, minReviews: 5 },
 };
 
-export const passesQualityThreshold = (candidate, city) => {
+export const passesQualityThreshold = (candidate, city, { borgoNatura = null } = {}) => {
     const rating = Number(candidate?.rating) || 0;
     const reviews = Number(candidate?.user_ratings_total) || 0;
-    const t = isSmallTown(city) ? QUALITY_THRESHOLDS.smallTown : QUALITY_THRESHOLDS.topCity;
+    const t = borgoNatura && borgoNatura(candidate) ? QUALITY_THRESHOLDS.borgoNatura
+        : isSmallTown(city) ? QUALITY_THRESHOLDS.smallTown : QUALITY_THRESHOLDS.topCity;
     return rating >= t.minRating && reviews >= t.minReviews;
 };
 
@@ -166,9 +170,9 @@ export const computeCandidateScore = (candidate, pool, dnaWeights = {}) => {
 // P7b — `bonus(c)`: una spinta che si somma al punteggio (lo stile a tavola,
 // lib/foodPrefs.js). Non esclude nessuno: sposta solo l'ordine. Senza `bonus`
 // il punteggio e' identico a prima.
-export const selectScoredCandidatePool = (candidates, { city, dnaWeights = {}, limit = 20, maxIcons = 1, bonus = null } = {}) => {
+export const selectScoredCandidatePool = (candidates, { city, dnaWeights = {}, limit = 20, maxIcons = 1, bonus = null, borgoNatura = null } = {}) => {
     const idOf = (c) => c?.place_id || c?.googlePlaceId || c?.name;
-    const pool = (Array.isArray(candidates) ? candidates : []).filter(c => passesQualityThreshold(c, city));
+    const pool = (Array.isArray(candidates) ? candidates : []).filter(c => passesQualityThreshold(c, city, { borgoNatura }));
     const icons = identifyIcons(pool);
 
     const scored = pool.map(c => ({

@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { VERSIONE_APP } from '@/lib/versione';
 import { useState, useEffect } from "react";
 import { User, Mail, MapPin, Heart, Star, Edit, ArrowLeft, Home, Share2, Facebook, Twitter, Instagram, Link as LinkIcon, Eye, ChevronRight, Award, Target, Users, Compass, Search, Map, Clock, ArrowRight, X, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -885,6 +886,9 @@ export default function ProfilePage() {
                     userId={userId}
                     userName={firstName || 'Utente'}
                 />
+
+                {/* MERGE-3 — la versione in produzione: commit e data del build */}
+                <p data-versione className="text-center text-[11px] text-obsidian-secondary/60 pt-6 pb-2">{VERSIONE_APP}</p>
             </main>
 
             <BottomNavigation />

@@ -350,7 +350,15 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
             const overlap = (m) => Math.max(0, Math.min(wEnd, romeDate(day, m.end).getTime()) - Math.max(wStart, romeDate(day, m.start).getTime()));
             const best = [...MOMENTS].sort((a, b) => overlap(b) - overlap(a) || MOMENTS.indexOf(b) - MOMENTS.indexOf(a))[0];
             const m = overlap(best) > 0 ? best : momentAtClock(startClock.h, startClock.mi);
-            moments.push(build(m, wStart, wEnd, { daRiserva: true }));
+            // BORGO-FIX — decisione 3: la riserva non trasforma la sera in natura. Il momento di riserva tiene le categorie DELLA
+            // TABELLA (non quella chiesta: con «natura» alle 23 il dopocena diventava un monte) e le tiene anche quando la richiesta
+            // vale per tutti i momenti (soloCategorie). Un dopocena o un aperitivo di riserva e' un drink (bevuta, una tappa), e
+            // addEveningWalk gli mette accanto la passeggiata: belvedere e piazze dentro il paese restano.
+            const bevutaRiserva = m.key === 'dopocena' || m.key === 'aperitivo';
+            moments.push(build(m, wStart, wEnd, {
+                daRiserva: true, soloCategorie: true, categories: [...m.categories], preferred: [],
+                ...(bevutaRiserva ? { bevuta: true, stops: 1, sostaAperitivo } : {}),
+            }));
         }
 
         const tettoVisite = paceKey === 'rilassato' ? MAX_VISITS_RILASSATO : MAX_VISITS_PER_DAY;
@@ -405,7 +413,11 @@ export function addEveningWalk(skeleton, { veloce = false } = {}) {
         const cenaOpzionale = next && next.key === 'cena' && next.opzionale ? next : null;
         const drinkEnd = drink.start.getTime() + (drink.sostaAperitivo || APERITIVO_STAY_MINUTES) * 60000;
         let endMs;
-        if (veloce) {
+        // BORGO-FIX — decisione 3: il drink di riserva (la sera tardi senza momenti in tabella) ha la sua passeggiata come il Veloce,
+        // dentro la finestra
+        if (drink.daRiserva) {
+            endMs = Math.min(drink.start.getTime() + VELOCE_WALK_WINDOW_MINUTES * 60000, drink.end.getTime());
+        } else if (veloce) {
             // drink + passeggiata + cena: la passeggiata ha la sua finestra, la cena viene dopo
             endMs = drink.start.getTime() + VELOCE_WALK_WINDOW_MINUTES * 60000;
             if (cenaFissa) endMs = Math.max(endMs, drinkEnd + 30 * 60000);

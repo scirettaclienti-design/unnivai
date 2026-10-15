@@ -351,9 +351,9 @@ import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } fr
 // Gate RAGGIO DIFF 1a — stime di durata (sosta da types + spostamento haversine).
 // Va chiamato SEMPRE dopo l'ordinamento definitivo: lo spostamento e' una
 // proprieta' della coppia di tappe consecutive, non della singola tappa.
-import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes } from '@/lib/tourTiming';
+import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes, APERITIVO_STAY_MINUTES } from '@/lib/tourTiming';
 // Gate FINESTRA TEMPORALE (G3) — quando parte il tour lo decide il codice, non il modello.
-import { resolveTourWindow, romeParts } from '@/lib/tourWindow';
+import { resolveTourWindow, romeParts, romeDate } from '@/lib/tourWindow';
 import { DESTINATION_UNSURE_NOTE, destinationNote, extractCityCandidate, isStreetMention, sameCity } from '@/lib/textDestination';
 // Gate NARRATORE-DOPO — alba/tramonto nel codice, controllo luce/ora, fascia dalla tabella.
 import { sunTimes } from '@/lib/sunTimes';
@@ -376,19 +376,19 @@ import { buildDaySkeleton, addEveningWalk, normalizePace, isSeraStart, parseExpl
 import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan, isMealPlace, scheduleHoursSources,
-    requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme,
+    requestedFamilies, mealSearchAnchor, MAX_WALK_METERS, MAX_EXTRA_SEARCHES, momentTheme, WALK_NATURA_BORGO_MINUTES,
     applyOpeningToBuckets, settleOpeningHours, closedMomentRows, scheduleHoursLabels, dropFromSchedule, fillGaps, gapRows, fillMinimum, belowMinimumRows,
     isStoricaLista,
 } from './momentSelection';
 // ORARI — una tappa vale solo se il posto e' aperto per tutta la sosta (lib/openingHours).
-import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO, romeMinutes } from '../lib/openingHours';
+import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO, romeMinutes, openStatus } from '../lib/openingHours';
 import { keepOpenStops } from '../lib/openStops';
 import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
 // C10 — la lista della città: l'AI propone (sul server, una per città e giorno), Google verifica, le regole compongono.
 import { fetchCityKnowledge, fetchQuartiereKnowledge } from './cityKnowledgeService';
-import { NATURA_BORGO_KM, isNaturaOPanorama, isLuogoStorico, nelComuneIndirizzo } from '../lib/borgoConfini';
-import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scalaConfermata, scegliQuartiere, dentroArea, delQuartiere, rigaBorgo, BORGO_MIN_VERIFICATI, areaDeiQuartieri, bucketsNelleAree, fasciaApertaBorgo, LUOGHI_QUARTIERE_MIN, RAGGIO_QUARTIERE_KM, GIORNATA_INTERA_MINUTI, nomiDiLuogoNelTesto, quartiereConfermato, quartiereFuoriLista, nucleoDi, dentroNucleo, bucketsNelNucleo, spostaAncoreVietate, luogoDaVisitareBorgo, oreDiVisita, RAGGIO_BORGO_KM } from '../lib/cityKnowledge';
+import { NATURA_BORGO_KM, isNaturaOPanorama, isLuogoStorico, nelComuneIndirizzo, isOrganizzazione, isNaturaDaFuori, NOTA_NATURA_NOTTE, chiedeGiornata } from '../lib/borgoConfini';
+import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scalaConfermata, scegliQuartiere, dentroArea, delQuartiere, rigaBorgo, BORGO_MIN_VERIFICATI, areaDeiQuartieri, bucketsNelleAree, fasciaApertaBorgo, LUOGHI_QUARTIERE_MIN, RAGGIO_QUARTIERE_KM, GIORNATA_INTERA_MINUTI, nomiDiLuogoNelTesto, quartiereConfermato, quartiereFuoriLista, nucleoDi, dentroNucleo, bucketsNelNucleo, spostaAncoreVietate, luogoDaVisitareBorgo, oreDiVisita, RAGGIO_BORGO_KM, apertoNellaFinestra } from '../lib/cityKnowledge';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
@@ -1122,8 +1122,10 @@ const THEME_FOOD_QUERY = 'trattoria ristorante pizzeria osteria';
 // "italian_restaurant", "vegetarian_restaurant"); altrimenti null, mai dedotto.
 const cuisineOf = (c) => (Array.isArray(c?.types) ? c.types : [])
     .find(t => /_restaurant$/.test(t) && t !== 'fast_food_restaurant')?.replace(/_restaurant$/, '') || null;
-const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null, foodAnchor = null, anchor = null, tipico = false, area = null }) => {
-    const { placesDiscoveryService, FOOD_QUERY_COLAZIONE } = await import('./placesDiscoveryService');
+// BORGO-FIX — `borgoNatura` (decisione 5: nel borgo 5 recensioni per natura e panorami) e `borgoPub` (decisione 4: nel borgo la
+// ricerca mirata della sera aggiunge «pub» al testo).
+const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeights, categoria, perTheme = 5, foodPrefs = null, foodAnchor = null, anchor = null, tipico = false, area = null, borgoNatura = null, borgoPub = false }) => {
+    const { placesDiscoveryService, FOOD_QUERY_COLAZIONE, THEME_TEXTSEARCH } = await import('./placesDiscoveryService');
     const dieta = foodPrefs?.dieta || [];
     const at = (t) => {
         const a = anchor || (t === 'food' ? foodAnchor : null);
@@ -1141,6 +1143,9 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
         ? searchFoodWithDiet((fq) => placesDiscoveryService.discoverRealPOIs(city, at(t).lat, at(t).lng, null, {
             customQuery: fq, customKind: 'FOOD', ...at(t).bias,
         }), THEME_FOOD_QUERY, dieta).then(r => r.results)
+        // BORGO-FIX — decisione 4: nel borgo la ricerca dei locali della sera chiede anche «pub» (Black & White non usciva da quella dei bar)
+        : t === 'nightlife' && borgoPub
+        ? placesDiscoveryService.discoverRealPOIs(city, at(t).lat, at(t).lng, null, { customQuery: `${THEME_TEXTSEARCH.nightlife.query} pub`, customKind: THEME_TEXTSEARCH.nightlife.kind, ...at(t).bias })
         // C7 — le esperienze servono a DUE momenti (mattina e pomeriggio): tutta la pagina di Google (20), non i primi 12.
         : placesDiscoveryService.discoverRealPOIs(city, at(t).lat, at(t).lng, t, { ...at(t).bias, ...(t === 'esperienze' ? { maxResults: 20 } : {}) }))
         // P3d-g — il tema della ricerca mirata, come dato del "perche' qui".
@@ -1178,7 +1183,7 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
     // misurano sulla citta' (tutti i candidati della generazione), come per
     // "Per Te" (rankByMerit, P7a2). Stessa soglia di qualita', zero icone.
     if (anchor) {
-        const ok = extra.filter(c => passesQualityThreshold(c, city));
+        const ok = extra.filter(c => passesQualityThreshold(c, city, { borgoNatura }));
         return rankByMerit(ok, { reference: [...known, ...ok], dnaWeights, maxIcons: 0, bonus }).slice(0, perTheme * themes.length);
     }
     // C8a — OGNI TEMA HA I SUOI POSTI. Con piu' temi insieme (bar, passeggiata, cena) i migliori per merito
@@ -1189,7 +1194,7 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
         const taken = new Set();
         for (const t of themes) {
             const mine = extra.filter(c => c._tema === t);
-            for (const c of selectScoredCandidatePool(mine, { city, dnaWeights, limit: perTheme, maxIcons: 0, bonus })) {
+            for (const c of selectScoredCandidatePool(mine, { city, dnaWeights, limit: perTheme, maxIcons: 0, bonus, borgoNatura })) {
                 const id = c.place_id || c.googlePlaceId;
                 if (id && taken.has(id)) continue;
                 if (id) taken.add(id);
@@ -1199,7 +1204,7 @@ const searchMomentCandidates = async ({ city, cityCenter, themes, known, dnaWeig
         return out;
     }
     return selectScoredCandidatePool(extra, {
-        city, dnaWeights, limit: perTheme * themes.length, maxIcons: 0, bonus,
+        city, dnaWeights, limit: perTheme * themes.length, maxIcons: 0, bonus, borgoNatura,
     });
 };
 
@@ -2064,7 +2069,8 @@ const insertFreeTime = (days, entries) => {
 };
 
 /** Il contesto di composizione di ogni tappa, sugli orari di adesso. */
-const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map() }) => {
+// BORGO-SCHERMO — `giornata: false` (il giro della sera di Per Te, il tour misto del borgo): niente «Qui la giornata si chiude».
+const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map(), giornata = true }) => {
     const timed = refreshTourScheduledTimes(days, starts);
     return (days || []).map((day, di) => {
         const sun = sunForDay(day, di, tourWindow, cityCenter);
@@ -2091,6 +2097,7 @@ const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map
                     fatti,
                     primo: s === vere[0],
                     ultimo: s === vere[vere.length - 1],
+                    giornata,
                 });
                 return { d, arrival, fatti, fattiSu, fonti: s._comp?.fonti ?? (entry?.fonti || []) };
             }),
@@ -2546,8 +2553,27 @@ export const aiRecommendationService = {
             const nonZona = (c) => !zoneReason({ ...c, primaryType: c.primaryType ?? c.primary_type }, city);
             // C10c — BORGO (decisione di Ivano): contano solo i luoghi da visitare, non ristoranti, bar e negozi ne' i posti che per
             // Google non hanno un tipo; la via principale e le piazze storiche sono passeggiate (contano nella durata, non qui).
-            const postiBorgo = poiCitta.filter(p => !p._citta.passeggiata && !isStoricaLista(p) && nonZona(p) && luogoDaVisitareBorgo(p));
-            if (conferma?.scala === 'borgo' && postiBorgo.length < BORGO_MIN_VERIFICATI && tourWindow.windows.length === 1) {
+            const postiBorgo = poiCitta.filter(p => !p._citta.passeggiata && !isStoricaLista(p) && nonZona(p) && luogoDaVisitareBorgo(p) && !isOrganizzazione(p));
+            // BORGO-FIX — decisione 1 (Ivano): nel conto della mezza giornata entrano anche la natura e i panorami delle RICERCHE
+            // (visitabili, non organizzazioni), entro NATURA_BORGO_KM dal centro, che passano il voto (nel borgo 5 recensioni per la
+            // natura: decisione 5) e sono aperti nella finestra chiesta. A Troina: Monte Muganà. Solo nel borgo.
+            const borgoNatura = conferma?.scala === 'borgo' ? isNaturaOPanorama : null;
+            const idLista = new Set(poiCitta.map(p => p.place_id || p.googlePlaceId));
+            const kmDalCentro = (c) => {
+                const lat = c.latitude ?? c.lat, lng = c.longitude ?? c.lng;
+                return cityCenter && Number.isFinite(cityCenter.latitude) && Number.isFinite(lat) && Number.isFinite(lng) ? haversineKm(cityCenter.latitude, cityCenter.longitude, lat, lng) : null;
+            };
+            const naturaNelConto = conferma?.scala === 'borgo' && w0
+                ? rawDalleRicerche.filter(c => !idLista.has(c.place_id || c.googlePlaceId) && isNaturaOPanorama(c) && !isOrganizzazione(c) && nonZona(c)
+                    && (kmDalCentro(c) ?? Infinity) <= NATURA_BORGO_KM && passesQualityThreshold(c, city, { borgoNatura }) && apertoNellaFinestra(c, w0))
+                : [];
+            // BORGO-FIX — decisione 1: con «giornata» o «domani» nel testo il giro non scende sotto mattina e pomeriggio: la finestra resta quella chiesta
+            const giornataChiesta = opts.pathType === 'custom' && chiedeGiornata(userPrompt);
+            if (conferma?.scala === 'borgo') {
+                cittaReport.mezzaGiornata = { verificati: poiCitta.length, utilizzabili: postiBorgo.length, naturaContate: naturaNelConto.map(c => c.name || c.title),
+                    minimo: BORGO_MIN_VERIFICATI, giornataChiesta, riga: null, fascia: null };
+            }
+            if (conferma?.scala === 'borgo' && postiBorgo.length + naturaNelConto.length < BORGO_MIN_VERIFICATI && tourWindow.windows.length === 1 && !giornataChiesta) {
                 // TROINA-FIX — la fascia del giro corto si sceglie su TUTTI i posti veri (lista e ricerche) che possono stare nel
                 // giro, non solo su quelli che contano per la soglia: una chiesa che per Google ha i soli tipi generici, un
                 // belvedere, un monte a un chilometro e mezzo. Restano fuori i pasti, le zone e quello che e' oltre il raggio del
@@ -2564,9 +2590,10 @@ export const aiRecommendationService = {
                     tourWindow.start = fascia.start;
                     tourWindow.end = fascia.end;
                 }
-                scalaNote = rigaBorgo(city);
-                cittaReport.mezzaGiornata = { verificati: poiCitta.length, utilizzabili: postiBorgo.length, minimo: BORGO_MIN_VERIFICATI, riga: scalaNote,
-                    ...(fascia ? { fascia: { inizio: fascia.start.toISOString(), fine: fascia.end.toISOString(), minuti: fascia.minuti, listaAperti: fascia.listaAperti, aperti: fascia.aperti } } : { fascia: null }) };
+                // BORGO-FIX — la riga «X si gira in mezza giornata.» solo se e' VERA (la finestra e' stata accorciata) e mai su un giro della sera
+                scalaNote = fascia && !isSeraStart(fascia.start) ? rigaBorgo(city) : null;
+                Object.assign(cittaReport.mezzaGiornata, { riga: scalaNote,
+                    ...(fascia ? { fascia: { inizio: fascia.start.toISOString(), fine: fascia.end.toISOString(), minuti: fascia.minuti, listaAperti: fascia.listaAperti, aperti: fascia.aperti } } : { fascia: null }) });
                 console.info(`[C10b3 BORGO] ${city}: ${postiBorgo.length} posti della lista (< ${BORGO_MIN_VERIFICATI}) → giro corto ${fascia ? `${fascia.minuti} min dalle ${fascia.start.toISOString()}, ${fascia.listaAperti} della lista aperti` : 'senza fascia aperta'}`);
             }
             const rawCandidatesTutti = uniscialPool(rawDalleRicerche, poiCitta).filter(c => {
@@ -2747,7 +2774,7 @@ export const aiRecommendationService = {
             // icone); gli altri essenziali e tutto il resto restano al merito anti-ovvio di sempre.
             const conLista = poolConLista(candidates, {
                 tourWindow,
-                seleziona: (altri) => selectScoredCandidatePool(altri, { city, dnaWeights: opts.dnaWeights || {}, limit: 20 * nDays, bonus: foodBonus }),
+                seleziona: (altri) => selectScoredCandidatePool(altri, { city, dnaWeights: opts.dnaWeights || {}, limit: 20 * nDays, bonus: foodBonus, borgoNatura }),
             });
             candidates = conLista.candidates;
             const ancoreCitta = conLista.ancore;
@@ -2794,12 +2821,37 @@ export const aiRecommendationService = {
             let mealOnlyIds = null;
             let extraThemes = [];
             let seraleVeloce = false;
+            let drinkDiRiserva = false;
             const openBuckets = () => (buckets ? applyOpeningToBuckets(moments, buckets, { veto }) : null);
             // C10b2 — con due quartieri: la mattina nel primo, il pranzo in uno dei due, dal pomeriggio in poi nel secondo
+            // BORGO-FIX — decisione 3: dopo il TRAMONTO del giorno del tour nessuna tappa di natura «da fuori» (monti, riserve, sentieri,
+            // parchi fuori dall'abitato), in nessun flusso: i bucket dei momenti che cominciano dopo il tramonto le perdono (la passeggiata
+            // conta dall'arrivo stimato: inizio del drink + sosta). Belvedere e piazze dentro il paese restano. Il tramonto e' quello che il
+            // motore conosce gia' (sunTimes sul centro della citta', lo stesso del narratore).
+            const tramontoDi = (m) => sunForDay({ windowIndex: m.dayIndex }, m.dayIndex, tourWindow, cityCenter).sunset;
+            const inizioEffettivo = (m) => (m.start instanceof Date ? m.start.getTime() + (m.key === 'passeggiata' ? APERITIVO_STAY_MINUTES * 60000 : 0) : null);
+            const dopoIlTramonto = (m) => { const t = tramontoDi(m); const i = inizioEffettivo(m); return t instanceof Date && Number.isFinite(i) && i >= t.getTime(); };
+            const senzaNaturaDiNotte = (b) => {
+                if (!b) return b;
+                const out = new Map(b);
+                for (const m of moments) {
+                    if (!dopoIlTramonto(m)) continue;
+                    const lista = b.get(m.id) || [];
+                    const tolti = lista.filter(c => isNaturaDaFuori(c, cityCenter));
+                    if (!tolti.length) continue;
+                    out.set(m.id, lista.filter(c => !tolti.includes(c)));
+                    cittaReport.naturaDiNotte ??= [];
+                    for (const c of tolti) {
+                        const nome = c.name || c.title || '?';
+                        if (!cittaReport.naturaDiNotte.some(x => x.nome === nome && x.momento === m.id)) cittaReport.naturaDiNotte.push({ nome, momento: m.id, tramonto: tramontoDi(m).toISOString() });
+                    }
+                }
+                return out;
+            };
             const nelleAree = (b) => {
                 const x = area?.aree?.length > 1 ? bucketsNelleAree(moments, b, area) : b;
                 // C10c — con un quartiere chiesto, mattina, pranzo e pomeriggio nel suo nucleo
-                return nucleo ? bucketsNelNucleo(moments, x, nucleo) : x;
+                return senzaNaturaDiNotte(nucleo ? bucketsNelNucleo(moments, x, nucleo) : x);
             };
             // Gate NARRATORE-DOPO — si cerca per i momenti che il pool non riesce
             // a riempire, non solo per quelli vuoti (vedi shortMomentThemes).
@@ -2810,6 +2862,8 @@ export const aiRecommendationService = {
                 category: parseExplicitCategory(opts.pathType === 'custom' ? userPrompt : '') ?? (catStretta ? (TOUR_CATEGORY_TO_SKELETON[catStretta] || catStretta) : null),
                 text: opts.pathType === 'custom' ? userPrompt : '',
             });
+            // BORGO-FIX — decisione 3: la natura e' chiesta (categoria natura del Quiz/Sorprendimi/traduttore, o «natura» nel testo di Crea)
+            const naturaChiesta = catStretta === 'natura' || familiesAsked.has('verde');
             // P3e — con la categoria che vale per tutti i momenti, un
             // ristorante trovato fuori da quella categoria serve SOLO a pranzo
             // e cena: mai al mattino di un tour Rioni Storici. Vale per ogni
@@ -2839,12 +2893,20 @@ export const aiRecommendationService = {
                     cenaPrima,
                 }), { veloce });
                 moments = candidates.length >= 1 ? flattenSkeleton(skeleton) : [];
+                // BORGO-FIX — decisione 3: di giorno, con la natura chiesta, la passeggiata prende per prima una natura o un panorama;
+                // nel borgo il tetto di cammino per quella tappa sale a 30 minuti (Monte Muganà a 29 dal bar).
+                for (const m of moments) {
+                    if (m.key !== 'passeggiata' || !naturaChiesta || dopoIlTramonto(m)) continue;
+                    m.naturaPrima = true;
+                    m.naturaPrimaTest = isNaturaOPanorama;
+                    if (conferma?.scala === 'borgo') m.maxWalkMinutes = WALK_NATURA_BORGO_MINUTES;
+                }
                 // la cena facoltativa non si cerca due volte
                 if (foodGiaCercato) moments = moments.filter(m => !(m.key === 'cena' && m.opzionale));
                 // C7 — con lo street food un forno puo' essere un pasto (panelle, focaccia): pranzo e cena lo ammettono.
                 if (tema.streetFood) for (const m of moments) m.streetFood = true;
                 anyCategory = !!catStretta;
-                buckets = moments.length > 0 ? nelleAree(bucketCandidates(moments, candidates, { anyCategory })) : null;
+                buckets = moments.length > 0 ? nelleAree(bucketCandidates(moments, candidates, { anyCategory, borgo: conferma?.scala === 'borgo' })) : null;
                 // Percorso A: se NESSUN luogo trovato per la frase sta in NESSUN
                 // momento, la frase chiede qualcosa che la tabella dei momenti non
                 // nomina (terme, spa…). E' una richiesta esplicita: vale per tutti
@@ -2853,11 +2915,13 @@ export const aiRecommendationService = {
                 if (buckets && isFreeTextIntent && !anyCategory && [...buckets.values()].every(b => b.length === 0)) {
                     console.info(`[P3 SCHELETRO] ${city}: nessun candidato sta in un momento → la richiesta vale per tutti i momenti`);
                     anyCategory = true;
-                    buckets = nelleAree(bucketCandidates(moments, candidates, { anyCategory }));
+                    buckets = nelleAree(bucketCandidates(moments, candidates, { anyCategory, borgo: conferma?.scala === 'borgo' }));
                 }
                 veto.clear();
                 mealOnlyIds = null;
                 seraleVeloce = veloce && moments.some(m => (m.bevuta && m.soloCategorie) || m.cenaPrima || m.key === 'passeggiata');
+                // BORGO-FIX — decisione 3: il drink di riserva (la sera tardi) cerca un bar: la categoria chiesta (natura) non filtra quella ricerca
+                drinkDiRiserva = moments.some(m => m.daRiserva && m.bevuta);
                 extraThemes = buckets ? shortMomentThemes(moments, openBuckets().buckets, candidates, undefined, { requestedFamilies: familiesAsked }) : [];
                 if (extraThemes.length > 0) {
                     const foodAnchor = extraThemes.includes('food')
@@ -2866,15 +2930,16 @@ export const aiRecommendationService = {
                     if (foodAnchor) console.info(`[C1 COMPOSIZIONE] ${city}: ricerca dei pasti da "${foodAnchor.name}", non dal centro`);
                     const extra = await searchMomentCandidates({
                         city, cityCenter, themes: extraThemes, known: candidates, perTheme: (extraThemes.includes('esperienze') ? 8 : 5) * nDays,
+                        borgoNatura, borgoPub: conferma?.scala === 'borgo',
                         dnaWeights: opts.dnaWeights || {},
                         // C8a — la sera del Veloce ha drink, passeggiata e cena qualunque sia l'umore: la categoria dell'intento non la restringe.
-                        categoria: catStretta && !seraleVeloce ? intent.categoria : null,
+                        categoria: catStretta && !seraleVeloce && !drinkDiRiserva ? intent.categoria : null,
                         foodPrefs: foodOn ? food : null,
                         foodAnchor, tipico: tema.tipico, area,
                     });
                     candidates = [...candidates, ...extra];
                     mealOnlyIds = addMealOnly(extra);
-                    buckets = nelleAree(bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds }));
+                    buckets = nelleAree(bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds, borgo: conferma?.scala === 'borgo' }));
                     if (extraThemes.includes('food')) foodGiaCercato = true;
                 }
                 if (cenaPrima) {
@@ -3051,9 +3116,9 @@ export const aiRecommendationService = {
                                 const found = await searchMomentCandidates({
                                     city, cityCenter, themes: [theme], known: candidates, perTheme: 5,
                                     dnaWeights: opts.dnaWeights || {},
-                                    categoria: catStretta && !seraleVeloce ? intent.categoria : null,
+                                    categoria: catStretta && !seraleVeloce && !drinkDiRiserva ? intent.categoria : null,
                                     foodPrefs: foodOn ? food : null,
-                                    anchor: target.da, tipico: tema.tipico, area,
+                                    anchor: target.da, tipico: tema.tipico, area, borgoNatura, borgoPub: conferma?.scala === 'borgo',
                                 });
                                 ricercheDopo.push({ momento: target.momento, tema: theme, da: target.da.name, trovati: found.length });
                                 console.info(`[C1b RICERCA MIRATA] ${city}: ${target.momento} da "${target.da.name}" (${theme}) → ${found.length} candidati`);
@@ -3061,7 +3126,7 @@ export const aiRecommendationService = {
                                     for (const c of found) searchedIds.add(c.place_id || c.googlePlaceId);
                                     candidates = [...candidates, ...found];
                                     mealOnlyIds = addMealOnly(found);
-                                    buckets = nelleAree(bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds }));
+                                    buckets = nelleAree(bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds, borgo: conferma?.scala === 'borgo' }));
                                 }
                                 repaired = repair();
                             }
@@ -3287,7 +3352,7 @@ export const aiRecommendationService = {
                             dnaWeights: opts.dnaWeights || null,
                         });
                         const voce = { richiesta: userPrompt, oggetto: intent?.oggetto_umano || '' };
-                        const ctxs = composeContexts(daysForNarration, { starts, tourWindow, cityCenter, facts });
+                        const ctxs = composeContexts(daysForNarration, { starts, tourWindow, cityCenter, facts, giornata: opts.giornata !== false });
                         const scelte = await chooseStopHooks({ city, days: daysForNarration, ctxs, interessi, quotaTicket });
                         const composed = composeDays(applyDayMeta(daysForNarration, scelte.meta, city), {
                             starts, tourWindow, cityCenter, facts, scelte: scelte.byId, interessi, voce,
@@ -3341,6 +3406,18 @@ export const aiRecommendationService = {
                         if (dietNote) for (const d of narratedDays) d.dietNote = dietNote;
                         // C10b — il borgo che si gira in mezza giornata: la riga approvata, sul giorno
                         if (scalaNote && narratedDays[0]) narratedDays[0].scalaNote = scalaNote;
+                        // BORGO-FIX — decisione 3: natura chiesta, giro che comincia dopo il tramonto, nessuna natura nel giro → la nota di Ivano
+                        // (la seconda frase solo se un posto di natura verificato, nel pool, e' aperto domattina alle 9).
+                        if (naturaChiesta && narratedDays[0] && !allStops.some(st => isNaturaOPanorama(st))) {
+                            const tramonto0 = sunForDay({ windowIndex: 0 }, 0, tourWindow, cityCenter).sunset;
+                            if (tramonto0 instanceof Date && tourWindow.start instanceof Date && tourWindow.start.getTime() >= tramonto0.getTime()) {
+                                const p0 = romeParts(tourWindow.start);
+                                const alle9 = new Date(romeDate({ y: p0.y, m: p0.m, d: p0.d }, { h: 9, m: 0 }).getTime() + (p0.h < 6 ? 0 : 24 * 3600 * 1000));
+                                const luogo = candidates.find(c => isNaturaOPanorama(c) && !isOrganizzazione(c) && openStatus(c, alle9, 45).stato !== 'chiuso') || null;
+                                narratedDays[0].naturaNote = NOTA_NATURA_NOTTE(luogo ? (luogo.name || luogo.title) : null);
+                                cittaReport.naturaNotte = { nota: narratedDays[0].naturaNote, luogo: luogo ? (luogo.name || luogo.title) : null, tramonto: tramonto0.toISOString(), alle9: alle9.toISOString() };
+                            }
+                        }
                         // C10b — l'esito di ogni ancora seminata: nel giro, o tolta da una regola dura scritta qui
                         if (Array.isArray(cittaReport.seminate)) {
                             const finali = new Set(allStops.map(st => st.place_id));
@@ -3811,7 +3888,9 @@ export const aiRecommendationService = {
                 const poolTema = nonEmptyPools[themeType] || [];
                 const aperti = keepOpenStops({
                     // C8b — le stesse fasce dei pasti di Crea: un ristorante solo a pranzo e a cena, la mattina una colazione.
-                    invalidAt: (c, arrivo, altre) => perTeMealProblem(c, romeMinutes(arrivo), arrivo, altre),
+                    invalidAt: (c, arrivo, altre) => perTeMealProblem(c, romeMinutes(arrivo), arrivo, altre)
+                        // BORGO-FIX — decisione 3: la natura «da fuori» dopo il tramonto non e' una tappa nemmeno in Per Te
+                        || (sunNow.sunset instanceof Date && arrivo instanceof Date && arrivo.getTime() >= sunNow.sunset.getTime() && isNaturaDaFuori(c, cityCenter) ? 'natura da fuori dopo il tramonto' : null),
                     stops: computeStopTimings(sortByProximity(withinRadius)).stops, pool: poolTema, start: now, exclude: usati,
                     retime: (list) => computeStopTimings(sortByProximity(list)).stops,
                     toStop: (c) => {
@@ -3968,7 +4047,8 @@ export const aiRecommendationService = {
         const now = requestNow(opts);
         const nowRome = romeParts(now);
         const prefsSera = { duration: durata, group: prefs?.group || 'solo', pace: prefs?.pace || 'rilassato', interests: [] };
-        const r = await this.generateItinerary(city, prefsSera, '', weather, aiProfile, cityCenter, { ...opts, pathType });
+        // BORGO-SCHERMO — un giro suggerito adesso non e' una giornata: niente «Qui la giornata si chiude» (come Per Te a temi)
+        const r = await this.generateItinerary(city, prefsSera, '', weather, aiProfile, cityCenter, { ...opts, pathType, giornata: false });
         const report = {
             serale,
             ...(serale ? {} : { borgoMisto: true }),

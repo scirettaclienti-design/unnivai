@@ -30,7 +30,7 @@ const experiencesErrorText = (err) => {
     return MESSAGGIO_TECNICO;
 };
 import { normalizeTour } from '@/services/tourShape';
-import { totalTourMinutes, formatEstimate } from '@/lib/tourTiming';
+import { displayedTourMinutes, formatEstimate } from '@/lib/tourTiming';
 import { resolveCityCenter, CityCenterUnresolvedError } from '@/services/cityCenterService';
 import TourCover from '@/components/TourCover';
 // 🧠 AI-POWERED EXPERIENCE GENERATOR (REAL POI DISCOVERY)
@@ -297,7 +297,8 @@ const DashboardUser = () => {
                     // (durata chiesta al modello) e' RIMOSSA. Il totale ora viene
                     // dalla fonte unica: soste stimate dai types + spostamenti
                     // haversine, gia' calcolati a monte in generateHomeTours.
-                    const durationMin = totalTourMinutes(tour.stops);
+                    // BORGO-SCHERMO — la stessa durata di tutte le schermate: l'orologio con gli orari (il giro della sera), la somma senza
+                    const durationMin = displayedTourMinutes(tour.stops);
 
                     // featuredPoi (Gate O.4): POI di punta = qualityScore max tra
                     // stops con rating reale. Solo tra step Google-verified.

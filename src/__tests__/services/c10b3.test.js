@@ -147,7 +147,8 @@ describe('C10b3 — il motore: ricerche dal quartiere, borgo con la via e la fas
         if (u.includes('textsearch')) return { ok: true, json: async () => ({ status: 'ZERO_RESULTS', results: [] }) };
         return { ok: true, json: async () => ({ status: 'ZERO_RESULTS', candidates: [] }) };
     });
-    const generaBorgo = () => aiRecommendationService.generateItinerary('Troina', { duration: '1 Giorno' }, 'Domani una giornata a Troina', {}, '', TR, { pathType: 'custom', skipUserQuota: true });
+    // BORGO-FIX — decisione 1: con «giornata» o «domani» nel testo il borgo non scende sotto mattina e pomeriggio; il giro corto si prova con un testo senza
+    const generaBorgo = () => { vi.setSystemTime(new Date('2026-10-15T08:00:00+02:00')); return aiRecommendationService.generateItinerary('Troina', { duration: '1 Giorno' }, 'Un giro a Troina', {}, '', TR, { pathType: 'custom', skipUserQuota: true }); };
 
     it('nel borgo la via principale resta, come passeggiata: la regola delle zone non la toglie', async () => {
         // la chiesa e la via: senza la via il giro avrebbe una tappa sola

@@ -4,7 +4,10 @@ import { aiRecommendationService, buildInsiderPool } from '@/services/aiRecommen
 import { placesDiscoveryService } from '@/services/placesDiscoveryService';
 import { resolveCityCenter } from '@/services/cityCenterService';
 import { isSeraStart } from '@/lib/daySkeleton';
-import { isMealPlace } from '@/services/momentSelection';
+import { isMealPlace, requestedFamilies } from '@/services/momentSelection';
+import { isBreakfastPlace } from '@/lib/mealRules';
+import { displayedTourMinutes } from '@/lib/tourTiming';
+import { sceltaConfermata } from '@/lib/quizRiquadro';
 import { resolveFoodPrefs, DIETE } from '@/lib/foodPrefs';
 import { voiceIssues } from '@/lib/narrationLight';
 import { buildPromptFromSelections, buildQuickPrefs } from '@/pages/QuickPath';
@@ -13,6 +16,8 @@ import { typeLabelOf } from '@/lib/italianLabels';
 import { weightsToAIProfile } from '@/services/preferenceEngine';
 import { row, conComposizione } from '../prova-reale/righe.js';
 import { istanteSimulato } from './casi-esteso.js';
+// GUARDIA-PERTINENZA — la sonda (senza momento, intento del traduttore): solo registrazione, vedi pertinenza-sonda.js
+import { azzeraSonda, conIntento, senzaMomentoDellaSonda, sonda } from './pertinenza-sonda.js';
 
 // ─── I posti visti nelle risposte dei proxy (tipi, tipo principale, orari, recensioni) ───────────────────────────────
 export function creaLuoghi() {
@@ -82,6 +87,8 @@ export const tappa = (luoghi, s, fatti, comp, riempite, dieta, atStimato) => {
         recensioni: l.recensioni ?? null, priceLevel: l.priceLevel ?? null,
         // C7 — il tipo principale decide cosa e' un pasto (un cocktail bar marcato anche `restaurant` e' un bar)
         pasto: isMealPlace({ types, primaryType: l.primaryType ?? s.primaryType, name: r.title, title: r.title }),
+        // GUARDIA-PERTINENZA (controllo 5) — un posto da colazione (caffe', forno, dolce, bar semplice), con la regola vera di mealRules
+        ...(s.tempoLibero ? {} : { colazione: isBreakfastPlace({ types, primaryType: l.primaryType ?? s.primaryType }) }),
         ...((l.primaryType ?? s.primaryType) ? { primaryType: l.primaryType ?? s.primaryType } : {}),
         // TESTI — il tipo interno della tappa e l'etichetta che la schermata mostra (dal tipo principale; null = nessuna etichetta)
         ...(s.type ? { tipoInterno: s.type } : {}),
@@ -114,6 +121,12 @@ export async function genera(caso, E) {
     const onboarding = caso.onboarding || null;
     const food = resolveFoodPrefs({ userPrompt: caso.richiesta || '', wizardBudget: caso.prefs?.budget, onboarding });
     const rec = { vincoli: food.dieta?.length || food.budget ? { dieta: food.dieta, budget: food.budget, maxPriceLevel: food.maxPriceLevel } : null };
+    azzeraSonda();
+    const r = await conIntento(() => generaItinerario(caso, { prefs: null, base, onboarding, cc, rec }));
+    return { r, rec, cc, now, food };
+}
+
+async function generaItinerario(caso, { base, onboarding, cc, rec }) {
     let r;
     if (caso.modo === 'crea') {
         const prefs = { budget: '', duration: '', interests: [], group: '', pace: '', ...caso.prefs };
@@ -140,7 +153,19 @@ export async function genera(caso, E) {
         r = await aiRecommendationService.generateItinerary(caso.luogo, prefs, prompt, {}, '', { latitude: cc.latitude, longitude: cc.longitude },
             { dnaWeights: {}, onboardingPrefs: onboarding, ...base });
     }
-    return { r, rec, cc, now, food };
+    return r;
+}
+
+// GUARDIA-PERTINENZA (controllo 4) — i numeri di durata che le schermate del flusso mostrano, con la funzione vera di
+// tourTiming.js sulle tappe del motore. BORGO-SCHERMO: una sola funzione per tutte le schermate (displayedTourMinutes:
+// l'orologio con gli orari, la somma senza): la scheda di Per Te e il dettaglio (DashboardUser, TourDetails), il riepilogo del
+// Quiz (QuickPathSummary), la scheda di Sorprendimi (non piu' 180 fisso) e il giro, le notifiche. Crea mostra un numero solo.
+export function durateSchermo(modo, stops) {
+    const mostrata = displayedTourMinutes(stops);
+    if (modo === 'perte') return { scheda: mostrata, dettaglio: mostrata };
+    if (modo === 'veloce') return { riepilogo: mostrata };
+    if (modo === 'sorprendimi') return { scheda: mostrata, giro: mostrata };
+    return { giro: mostrata };
 }
 
 /** I campi del grezzo di un itinerario (Crea, Veloce, Sorprendimi) dal risultato del motore. */
@@ -171,12 +196,22 @@ export function registraItinerario(rec, { r, rec: extra, food }, caso, luoghi) {
     rec.citta = r._citta ?? null;
     // C10b2 — il modello di ogni passaggio di questo giro
     rec.modelli = r._modelli ?? null;
+    // GUARDIA-PERTINENZA — le righe nuove: l'intento del traduttore (query, categoria, famiglie chieste come le legge il motore)
+    // e i candidati del pool che nessun momento ha preso (dalla sonda, solo registrazione)
+    const it = sonda()?.intento || null;
+    rec.intento = it ? { ...it, famiglie: [...requestedFamilies({ category: it.categoria, text: caso.modo === 'crea' ? (caso.richiesta || '') : '' })] } : null;
+    rec.senzaMomento = senzaMomentoDellaSonda();
     if (caso.profilo) rec.profilo = caso.profilo;
     // TESTI — le sezioni come la schermata le intitola (groupStopsByDayAndMoment, la stessa funzione di AiItinerary e TourStopsByMoment) con l'ora della sua prima tappa
     const sezioni = (r.days || []).flatMap(d => groupStopsByDayAndMoment(d.stops || []).flatMap(g => g.groups))
         .filter(g => g.moment).map(g => ({ etichetta: g.moment.label, ora: g.items[0]?.timeLabel ?? null }));
     rec.schermo = { giorni: (r.days || []).map(d => ({ titolo: d.title || null, meteo: d.weather ?? null })), sezioni,
-        note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote), ...(r.days || []).map(d => d.scalaNote)].filter(Boolean) };
+        // BORGO-FIX — anche la nota della natura di notte (decisione 3)
+        note: [r.destination?.note, r._messaggio, ...(r.days || []).map(d => d.dietNote), ...(r.days || []).map(d => d.scalaNote), ...(r.days || []).map(d => d.naturaNote)].filter(Boolean),
+        // GUARDIA-PERTINENZA — il riquadro «Il tuo DNA Esplorativo» del riepilogo del Quiz (QuickPathSummary): BORGO-SCHERMO, la scelta si
+        // mostra solo se una tappa e' della sua famiglia (sceltaConfermata, la stessa funzione della pagina)
+        ...(caso.modo === 'veloce' ? { riquadro: { mostrato: sceltaConfermata({ main: caso.scelta?.main, steps: r.days?.[0]?.stops || [] }), scelta: [caso.scelta?.mainTitle, caso.scelta?.subTitle].filter(Boolean).join(' / ') } } : {}),
+        durate: durateSchermo(caso.modo, r.days?.[0]?.stops || []) };
     const per = new Map((r._narrationReport?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
     const comp = new Map((r._narrationReport?.composizione || []).map(x => [x.place_id, x]));
     const riempite = new Set((r._momentReport?.riempite || []).map(x => x.place_id));
@@ -194,6 +229,7 @@ export async function generaPerTe(caso, E) {
     const now = istanteSimulato(caso, E);
     const food = resolveFoodPrefs({ onboarding: caso.onboarding });
     const cc = await resolveCityCenter(caso.luogo);
+    azzeraSonda();
     // C8b — dalle 18:00 Per Te e' il giro della sera (nessuna ricerca per temi); prima la ricerca del cibo segue l'ora (colazione, merenda)
     const sera = isSeraStart(new Date(now));
     const themed = sera ? {} : await placesDiscoveryService.discoverAllThemes(caso.luogo, cc.latitude, cc.longitude, { foodPrefs: food, ora: new Date(now) });
@@ -238,7 +274,10 @@ export function registraPerTe(rec, { r, now, food, sera, themed, insider }, E, l
             return x;
         }) };
     });
-    rec.schermo = { giorni: (rec.tours || []).map(t => ({ titolo: t.titolo, meteo: null })), note: r._source === 'closed-now' ? [r._messaggio] : [] };
+    // GUARDIA-PERTINENZA — la scheda in home e il dettaglio sommano soste e spostamenti (DashboardUser.jsx, TourDetails.jsx): per ogni tour
+    for (const [i, t] of (rec.tours || []).entries()) t.durate = durateSchermo('perte', r.tours?.[i]?.stops || []);
+    rec.schermo = { giorni: (rec.tours || []).map(t => ({ titolo: t.titolo, meteo: null })), note: r._source === 'closed-now' ? [r._messaggio] : [],
+        durate: rec.tours?.[0]?.durate ?? null };
     // ORARI — il messaggio "meglio domattina" al posto dei tour e' un ripiego dichiarato
     rec.ripiegoDichiarato = r._source === 'closed-now';
     if (r._source === 'closed-now') rec.chiusoOra = r._messaggio;

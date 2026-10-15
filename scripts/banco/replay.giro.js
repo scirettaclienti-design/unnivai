@@ -22,6 +22,13 @@ vi.mock('@/services/factsService', async (importOriginal) => {
     return { ...m, fetchFactsForStops: async (stops) => fattiDalTracciato(globalThis.__replayFatti, stops) };
 });
 
+// GUARDIA-PERTINENZA — la sonda dei candidati senza momento: `bucketCandidates` vera, avvolta solo per annotare (pertinenza-sonda.js)
+vi.mock('@/services/momentSelection', async (importOriginal) => {
+    const m = await importOriginal();
+    const { avvolgiMomentSelection } = await import('./pertinenza-sonda.js');
+    return avvolgiMomentSelection(m);
+});
+
 const IN = process.env.REPLAY_IN;
 const OUT = process.env.REPLAY_OUT;
 if (!IN || !OUT) throw new Error('REPLAY_IN e REPLAY_OUT mancanti: lancia il replay con `npm run banco:replay -- <tracciati>`');

@@ -1,8 +1,8 @@
 // Gate INTERESSI-VERI — i due messaggi a schermo: errore di ricerca contro zero.
 //
-//   errore (rete/HTTP/eccezione) → "Connessione instabile: non riesco a cercare
-//                                    adesso. Riprova tra un momento."
-//   Google ha risposto zero       → "… non trovo luoghi verificati …"
+//   errore (rete/HTTP/eccezione) → TROINA-FIX: "Non sono riuscito a completare il giro: un servizio non ha
+//                                    risposto. Riprova tra poco." col tasto «Riprova» (testo di Ivano)
+//   Google ha risposto zero       → "… non trovo luoghi verificati …" (solo con `_zeroVero` dal motore)
 //
 // Percorso B (AiItinerary) e "Per Te" (DashboardUser). Mock solo di
 // infrastruttura; in DashboardUser la `queryFn` della Home gira davvero, con un
@@ -13,7 +13,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createElement } from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 
-const CONNECTION = 'Connessione instabile: non riesco a cercare adesso. Riprova tra un momento.';
+const CONNECTION = 'Non sono riuscito a completare il giro: un servizio non ha risposto. Riprova tra poco.';
 
 vi.mock('framer-motion', async () => {
     const React = await import('react');
@@ -122,15 +122,18 @@ beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new 
 afterEach(() => { vi.useRealTimers(); });
 
 describe('Percorso B (AiItinerary)', () => {
-    it('ricerca fallita → testo di connessione, esatto e senza aggiunte', async () => {
+    it('ricerca fallita → il messaggio tecnico col tasto «Riprova», niente toast', async () => {
         generateItinerary.mockResolvedValue({ days: [{ stops: [] }], _source: 'search-error', _pathB: true });
-        const t = await generaConArte();
-        expect(t.title).toBe(CONNECTION);
-        expect(t.description).toBeUndefined();
+        render(createElement(AiItinerary));
+        fireEvent.click(screen.getByText('Arte'));
+        fireEvent.click(screen.getByText('Genera Viaggio'));
+        expect(await screen.findByText(CONNECTION)).toBeTruthy();
+        expect(screen.getByText('Riprova')).toBeTruthy();
+        expect(toast).not.toHaveBeenCalled();
     });
 
-    it('Google ha risposto zero → "non trovo luoghi verificati"', async () => {
-        generateItinerary.mockResolvedValue({ days: [{ stops: [] }], _source: 'no-results', _pathB: true });
+    it('Google ha risposto zero (zero vero) → "non trovo luoghi verificati"', async () => {
+        generateItinerary.mockResolvedValue({ days: [{ stops: [] }], _source: 'no-results', _pathB: true, _zeroVero: true });
         const t = await generaConArte();
         expect(t.title).toBe('A Roma non trovo luoghi verificati per questi interessi.');
     });

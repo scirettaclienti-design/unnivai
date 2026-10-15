@@ -1127,7 +1127,7 @@ const POLISH_MIN_GAIN = 2;
  *     una scelta del modello.
  * Il numero di tappe e i momenti non cambiano; ogni sostituzione va nel report.
  */
-export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: asked = null, maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES, searchedIds = null, startPoint = null }, report) {
+export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFamilies: asked = null, maxWalk = MAX_WALK_MINUTES, varietyWalk = VARIETY_MAX_WALK_MINUTES, searchedIds = null, startPoint = null, dellaRichiesta = null }, report) {
     const scoreCache = new Map();
     const scoreOf = (c) => {
         const k = idOf(c);
@@ -1219,6 +1219,11 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
                 // Napoli scelti e poi tolti qui). Solo la regola dura del cammino la toglie: lo scambio deve togliere un tratto
                 // oltre il tetto.
                 const ancora = isAncora(s.candidate);
+                // TROINA-FIX — una tappa della categoria chiesta (`dellaRichiesta`: con «natura», un luogo di natura o un panorama)
+                // non si cambia per strada con una che non lo e': a Troina Monte Muganà, scelto dal modello, diventava Piazza Conte
+                // Ruggero (4 min invece di 16) e il Quiz Natura usciva senza natura. Come per l'ancora, solo la regola dura del
+                // cammino la toglie; con un'altra tappa della categoria lo scambio resta libero.
+                const dellaCategoria = !!dellaRichiesta && dellaRichiesta(s.candidate);
                 for (const c of buckets.get(e.moment.id) || []) {
                     if (giaNelGiro(c)) continue;
                     // Fuori dai pasti un posto dove si mangia entra solo al
@@ -1229,6 +1234,7 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
                     const trial = entries.map((x, k) => (k === ei ? { ...x, stops } : x));
                     const t = measure(trial);
                     if (ancora && !(t.oltre < base.oltre)) continue;
+                    if (dellaCategoria && !dellaRichiesta(c) && !(t.oltre < base.oltre)) continue;
                     if (better(t, bestM)) { best = { ei, si, c }; bestM = t; }
                 }
             }));

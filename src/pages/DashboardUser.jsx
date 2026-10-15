@@ -14,19 +14,20 @@ import { useQuery } from "@tanstack/react-query";
 import { dataService, createGuideRequest } from "@/services/dataService";
 import { useAILearning } from '../hooks/useAILearning';
 import { resolveFoodPrefs, foodPrefsFingerprint } from '@/lib/foodPrefs';
-import { placesDiscoveryService, PlacesSearchError, PLACES_SEARCH_ERROR_MESSAGE } from '@/services/placesDiscoveryService';
+import { placesDiscoveryService, PlacesSearchError } from '@/services/placesDiscoveryService';
+import { MESSAGGIO_TECNICO, TASTO_RIPROVA } from '@/lib/esitoVuoto';
 
 // Gate INTERESSI-VERI — tre esiti diversi, tre testi diversi:
 //   ricerca Google fallita (rete/HTTP/eccezione) → testo di connessione
 //   quota esaurita                               → testo del server
 //   altro errore (narratore, bug)                → errore generico
 // Il "non trovo luoghi verificati" resta SOLO per lo stato vuoto vero.
+// TROINA-FIX — la ricerca fallita e ogni altro guasto (narratore, rete, bug) hanno il testo tecnico di Ivano, col tasto «Riprova».
 const experiencesErrorText = (err) => {
-    if (err?.code === 'PLACES_SEARCH_FAILED') return PLACES_SEARCH_ERROR_MESSAGE;
     if (err?.code === 'QUOTA_EXCEEDED' && err?.userMessage) return err.userMessage;
     // Gate P8b — OpenAI ha rifiutato o non ha risposto.
     if (isAiEngineError(err)) return AI_ENGINE_MESSAGE;
-    return 'Non riesco a caricare le esperienze';
+    return MESSAGGIO_TECNICO;
 };
 import { normalizeTour } from '@/services/tourShape';
 import { totalTourMinutes, formatEstimate } from '@/lib/tourTiming';
@@ -275,8 +276,9 @@ const DashboardUser = () => {
                     });
                 } catch (err) {
                     // Gate INTERESSI-VERI — quota esaurita non e' "non trovo".
-                    if (err?.code === 'QUOTA_EXCEEDED' || isAiEngineError(err)) throw err;
+                    // TROINA-FIX — e nemmeno un altro guasto: prima si inghiottiva e la home diceva «non trovo luoghi verificati».
                     console.warn('[Per Te] generateHomeTours errore:', err.message);
+                    throw err;
                 }
                 // Google aveva luoghi ma il narratore e' caduto: errore, non stato vuoto.
                 if (homeToursResult?._source === 'error') {
@@ -637,7 +639,7 @@ const DashboardUser = () => {
                         {experiencesError ? (
                             <div className="flex flex-col items-center justify-center py-8 w-full text-center">
                                 <p className="text-obsidian-secondary text-sm mb-3">{experiencesErrorText(experiencesErrorObj)}</p>
-                                <button onClick={() => refetchExperiences()} className="px-4 py-2 bg-brand-orange text-obsidian-bg rounded-xl text-sm font-bold active:scale-95 transition-transform">Riprova</button>
+                                <button onClick={() => refetchExperiences()} className="px-4 py-2 bg-brand-orange text-obsidian-bg rounded-xl text-sm font-bold active:scale-95 transition-transform">{TASTO_RIPROVA}</button>
                             </div>
                         ) : experiencesLoading ? (
                             [0, 1, 2].map(i => (

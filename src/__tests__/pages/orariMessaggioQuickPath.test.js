@@ -63,6 +63,7 @@ vi.mock('@/services/aiRecommendationService', () => ({
 
 import QuickPath from '../../pages/QuickPath';
 import { MESSAGGIO_SERA as MESSAGGIO_CHIUSO } from '../../lib/openingHours';
+import { MESSAGGIO_TECNICO } from '../../lib/esitoVuoto';
 
 beforeEach(() => { generateItinerary.mockReset(); });
 
@@ -78,14 +79,18 @@ describe('QuickPath — a quest\'ora quasi tutto chiuso', () => {
         expect(screen.queryByText('Non basta per un tour.')).toBeNull();
         expect(screen.queryByText(/non ci sono abbastanza posti veri/)).toBeNull();
     });
-    it('un risultato vuoto qualunque (non per gli orari) resta il messaggio di prima', async () => {
+    // TROINA-FIX — un vuoto che non e' uno zero vero (il motore non lo segna `_zeroVero`) e' il messaggio tecnico col tasto
+    // «Riprova», mai «non troviamo» ne' «Non basta per un tour.» (non esiste piu').
+    it('un risultato vuoto qualunque (non per gli orari, non uno zero vero) e\' il messaggio tecnico, non quello degli orari', async () => {
         generateItinerary.mockResolvedValue({ days: [{ stops: [] }], _source: 'no-results' });
         render(createElement(QuickPath));
         fireEvent.click(screen.getByText('Città').closest('button'));
         fireEvent.click(screen.getByText('Rioni Storici').closest('button'));
         fireEvent.click(screen.getByText('Veloce').closest('button'));
         fireEvent.click(screen.getByText('Solo').closest('button'));
-        await waitFor(() => expect(screen.getByText('Non basta per un tour.')).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByText(MESSAGGIO_TECNICO)).toBeInTheDocument());
+        expect(screen.getByText('Riprova')).toBeInTheDocument();
         expect(screen.queryByText(MESSAGGIO_CHIUSO)).toBeNull();
+        expect(screen.queryByText(/non troviamo/)).toBeNull();
     });
 });

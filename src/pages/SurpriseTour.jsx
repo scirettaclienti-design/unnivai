@@ -54,6 +54,7 @@ import { useUserContext } from "@/hooks/useUserContext";
 import { useAILearning } from "@/hooks/useAILearning";
 import { aiRecommendationService, QUOTA_USER_MESSAGE } from "@/services/aiRecommendationService";
 import { AI_ENGINE_MESSAGE, isAiEngineError } from "@/lib/aiEngineError";
+import { esitoVuoto, MESSAGGIO_TECNICO } from "@/lib/esitoVuoto";
 import { normalizeTour } from "@/services/tourShape";
 import { useToast } from "@/hooks/use-toast";
 
@@ -251,16 +252,10 @@ export default function SurpriseTourPage() {
                 return;
             }
             if (outcome === 'empty') {
-                const oggetto = result?._oggetto_umano || null;
-                console.warn(`[DVAI-061] shuffleExperience: motore 0 tappe → nessuna navigazione (oggetto="${oggetto || 'n/a'}", source=${result?._source || 'unknown'})`);
-                setGenerationError({
-                    title: oggetto
-                        ? `A ${city || 'Roma'} non troviamo ${oggetto}.`
-                        : 'Non basta per un tour.',
-                    description: oggetto
-                        ? 'Cambia richiesta e riprovo.'
-                        : `A ${city || 'Roma'} non ci sono abbastanza posti veri per quello che hai chiesto.`
-                });
+                // TROINA-FIX — «non troviamo» solo per uno zero vero; ogni altro vuoto e' il messaggio tecnico con «Riprova».
+                const esito = esitoVuoto(result, city || 'Roma');
+                console.warn(`[DVAI-061] shuffleExperience: motore 0 tappe → ${esito.tipo} (oggetto="${result?._oggetto_umano || 'n/a'}", source=${result?._source || 'unknown'})`);
+                setGenerationError({ title: esito.titolo, description: esito.sottotitolo || '', tecnico: esito.tipo === 'tecnico' });
                 return;
             }
 
@@ -341,10 +336,8 @@ export default function SurpriseTourPage() {
                 setGenerationError({ title: AI_ENGINE_MESSAGE, description: '' });
             } else {
                 // DVAI-051: NON cadere più su mock numerico. Toast in-app coerente.
-                setGenerationError({
-                    title: "L'AI sta avendo un momento difficile",
-                    description: 'Non è stato possibile generare l\'itinerario a sorpresa. Riprova tra qualche secondo.'
-                });
+                // TROINA-FIX — rete, timeout, risposta vuota: il messaggio tecnico, mai «non troviamo».
+                setGenerationError({ title: MESSAGGIO_TECNICO, description: '', tecnico: true });
             }
             setIsShuffling(false);
         } finally {

@@ -13,6 +13,8 @@
  */
 import { openStatus } from './openingHours';
 import { placeKind, COMMERCIAL_KINDS } from './placeKind';
+import { romeParts, romeDate } from './tourWindow';
+import { MOMENT_BY_KEY } from './dayMoments';
 import { candidateFamily, MAX_WALK_METERS } from '../services/momentSelection';
 
 export const ANCORE_GIORNATA_INTERA = 3;
@@ -67,6 +69,9 @@ export function poiDallaLista(verificati, city, buildPOI) {
 export const SOGLIA_METROPOLI_KM = 2;
 /** Un borgo con meno di 4 posti verificati si gira in mezza giornata. */
 export const BORGO_MIN_VERIFICATI = 4;
+/** Il raggio del borgo nel client: lo stesso della verifica della lista sul server (`RAGGIO_BORGO_KM` del proxy) e del filtro
+ * del raggio per i borghi (`applyRadiusFilter`, 5 km). */
+export const RAGGIO_BORGO_KM = 5;
 export const MEZZA_GIORNATA_MINUTI = 240;
 /**
  * C10b2 — il giro corto di un borgo con meno di 4 posti: la durata segue le tappe che ci sono (decisione di Ivano), niente
@@ -80,10 +85,32 @@ export const durataBorgoCorto = (visitabili) => MINUTI_PER_TAPPA_BORGO * Math.mi
  * 30 minuti, la fascia in cui sono aperti piu' posti della lista (poi piu' luoghi da visitare in tutto); a parita' la prima.
  * La durata segue i luoghi aperti in quella fascia (durataBorgoCorto: 45 min ciascuno, 2–4). La finestra non si allunga mai.
  * Un posto conta se e' aperto per una sosta intera (45 min) dentro la fascia; senza orari conta come aperto.
+ *
+ * TROINA-FIX — `visite`: le ore in cui una visita sta nel giro (la mattina e il pomeriggio della tabella dei momenti; pranzo,
+ * aperitivo e cena prendono locali, non luoghi). Con `visite` un posto conta solo se la sua sosta intera cade in quelle ore, e
+ * una fascia senza il tempo di una visita (45 min) non si sceglie: alle 12:06 la fascia 12:06–15:06 era tutta pranzo, e un
+ * Quiz Natura usciva vuoto. Se nessuna fascia ha il tempo di una visita (una finestra di sera), vale la regola di prima.
+ * La durata non cambia: 45 minuti per luogo aperto, da 2 a 4.
+ * @param {{ candidati?: object[], lista?: object[], finestra?: { start: Date, end: Date }, passoMinuti?: number,
+ *   visite?: Array<{ start: Date, end: Date }>|null }} p
  * @returns {{ start: Date, end: Date, minuti: number, listaAperti: number, aperti: number }|null}
  */
-export function fasciaApertaBorgo({ candidati = [], lista = [], finestra = null, passoMinuti = 30 } = {}) {
+export function fasciaApertaBorgo({ candidati = [], lista = [], finestra = null, passoMinuti = 30, visite = null } = {}) {
     if (!(finestra?.start instanceof Date) || !(finestra?.end instanceof Date)) return null;
+    if (Array.isArray(visite) && visite.length > 0) {
+        const conVisite = fasciaPer({ candidati, lista, finestra, passoMinuti, visite });
+        if (conVisite) return conVisite;
+    }
+    return fasciaPer({ candidati, lista, finestra, passoMinuti, visite: null });
+}
+
+const SOSTA_MS = MINUTI_PER_TAPPA_BORGO * 60000;
+// i minuti di [da, a] che cadono nelle ore di visita
+const minutiDiVisita = (da, a, visite) => visite.reduce((n, v) => n + Math.max(0, Math.min(a, v.end.getTime()) - Math.max(da, v.start.getTime())), 0) / 60000;
+// una sosta intera [u, u + 45 min] dentro le ore di visita (senza `visite`, sempre)
+const sostaInVisita = (u, visite) => !visite || visite.some(v => u >= v.start.getTime() && u + SOSTA_MS <= v.end.getTime());
+
+function fasciaPer({ candidati, lista, finestra, passoMinuti, visite }) {
     const s0 = finestra.start.getTime(), e0 = finestra.end.getTime();
     const idLista = new Set(lista.map(idOf));
     const minimo = durataBorgoCorto(0);
@@ -94,7 +121,8 @@ export function fasciaApertaBorgo({ candidati = [], lista = [], finestra = null,
             const fine = Math.min(e0, t + min * 60000);
             return candidati.filter(c => {
                 let ignoto = false;
-                for (let u = t; u + MINUTI_PER_TAPPA_BORGO * 60000 <= fine; u += 15 * 60000) {
+                for (let u = t; u + SOSTA_MS <= fine; u += 15 * 60000) {
+                    if (!sostaInVisita(u, visite)) continue;
                     const st = openStatus(c, new Date(u), MINUTI_PER_TAPPA_BORGO).stato;
                     if (st === 'aperto') return true;
                     if (st === 'sconosciuto') ignoto = true;
@@ -103,7 +131,10 @@ export function fasciaApertaBorgo({ candidati = [], lista = [], finestra = null,
             });
         };
         const minuti = Math.min((e0 - t) / 60000, durataBorgoCorto(apertiIn(MINUTI_PER_TAPPA_BORGO * 4).length));
+        // TROINA-FIX — una fascia senza il tempo di una visita non e' un giro: si passa alla prossima
+        if (visite && minutiDiVisita(t, t + minuti * 60000, visite) < MINUTI_PER_TAPPA_BORGO) continue;
         const aperti = apertiIn(minuti);
+        if (visite && aperti.length === 0) continue;
         const listaAperti = aperti.filter(c => idLista.has(idOf(c))).length;
         // a parita', la fascia in cui i posti della lista sono gia' aperti all'inizio (niente attesa davanti alle porte chiuse)
         const subito = aperti.filter(c => idLista.has(idOf(c)) && openStatus(c, new Date(t), MINUTI_PER_TAPPA_BORGO).stato === 'aperto').length;
@@ -114,6 +145,18 @@ export function fasciaApertaBorgo({ candidati = [], lista = [], finestra = null,
     const { punti: _p, ...fascia } = meglio;
     return fascia;
 }
+
+/**
+ * TROINA-FIX — le ore di visita di un giorno (la mattina e il pomeriggio della tabella dei momenti: «una visita e' una tappa
+ * di mattina o pomeriggio», C8e), per `fasciaApertaBorgo`.
+ * @param {Date} giorno un istante del giorno (ora di Roma)
+ * @returns {Array<{ start: Date, end: Date }>}
+ */
+export const oreDiVisita = (giorno) => {
+    const p = romeParts(giorno);
+    const day = { y: p.y, m: p.m, d: p.d };
+    return ['mattina', 'pomeriggio'].map(k => MOMENT_BY_KEY[k]).map(m => ({ start: romeDate(day, m.start), end: romeDate(day, m.end) }));
+};
 
 /** La riga a schermo (testo approvato da Ivano nel task C10b). */
 export const rigaBorgo = (citta) => `${citta} si gira in mezza giornata.`;

@@ -15,14 +15,11 @@ import { gzipSync } from 'node:zlib';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { supabase } from '@/lib/supabase';
-import { aiRecommendationService, buildInsiderPool, buildPlacesProxyUrl } from '@/services/aiRecommendationService';
-import { placesDiscoveryService } from '@/services/placesDiscoveryService';
-import { resolveCityCenter } from '@/services/cityCenterService';
-import { resolveFoodPrefs } from '@/lib/foodPrefs';
-import { isSeraStart } from '@/lib/daySkeleton';
+import { buildPlacesProxyUrl } from '@/services/aiRecommendationService';
 import config from './banco.config.json';
 import { CASI_ESTESI, istanteSimulato } from './casi-esteso.js';
-import { creaLuoghi, annotaRisposta, tappa as tappaDi, genera, registraItinerario, recordCaso } from './giro-caso.js';
+import { creaLuoghi, annotaRisposta, tappa as tappaDi, genera, registraItinerario, recordCaso, generaPerTe, registraPerTe } from './giro-caso.js';
+import { CASI_HOME } from './casi-home.js';
 import { FORMATO, creaRegistratore, fattiRegistrati } from './replay/rete.js';
 
 // C10c-replay — i fatti aperti delle tappe si registrano (per place_id) per il replay: la funzione vera gira com'e'.
@@ -44,12 +41,13 @@ const E = { ...config.esteso, ...(process.env.BANCO_GIORNO ? { giornoSimulato: p
 
 // Le scelte del wizard di Veloce sono scritte in casi-esteso.js: se QuickPath.jsx cambia titolo, ci si ferma.
 const quickSrc = readFileSync(path.join(process.cwd(), 'src/pages/QuickPath.jsx'), 'utf8');
-for (const t of new Set(CASI_ESTESI.filter(c => c.scelta).flatMap(c => [c.scelta.mainTitle, c.scelta.subTitle]))) {
+for (const t of new Set([...CASI_ESTESI, ...CASI_HOME].filter(c => c.scelta).flatMap(c => [c.scelta.mainTitle, c.scelta.subTitle]))) {
     if (!quickSrc.includes(`title: '${t}'`)) throw new Error(`QuickPath.jsx non ha piu' la scelta «${t}»: aggiorna casi-esteso.js`);
 }
 
 const SCELTI = (process.env.BANCO_CASI || '').split(',').map(s => s.trim()).filter(Boolean);
-const casi = SCELTI.length ? CASI_ESTESI.filter(c => SCELTI.includes(c.id)) : CASI_ESTESI;
+// TROINA-FIX — i casi della guardia della home (casi-home.js) si scelgono per nome: BANCO_CASI=home-troina-perte,…
+const casi = SCELTI.length ? [...CASI_ESTESI, ...CASI_HOME].filter(c => SCELTI.includes(c.id)) : CASI_ESTESI;
 const out = { avvio: new Date().toISOString(), identita: null, motore: process.env.BANCO_PLACES === 'new' ? 'new' : 'legacy', giornoSimulato: E.giornoSimulato, casi: [], costo: null };
 const commitGiro = (() => { try { return execSync('git rev-parse --short HEAD').toString().trim(); } catch { return null; } })();
 const tracciati = { formato: FORMATO, registrato: out.avvio, commit: commitGiro, motore: out.motore, giornoSimulato: E.giornoSimulato, casi: [] };
@@ -209,52 +207,10 @@ for (const caso of casi) {
         const t0 = Date.now();
         try {
             if (caso.modo === 'perte') {
-                const now = istanteSimulato(caso, E);
-                const food = resolveFoodPrefs({ onboarding: caso.onboarding });
-                if (food.dieta?.length || food.budget) rec.vincoli = { dieta: food.dieta, budget: food.budget, maxPriceLevel: food.maxPriceLevel };
-                rec.chiamata = { pagina: 'DashboardUser.jsx', pathType: null, prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, testo: null };
-                const cc = await resolveCityCenter(caso.luogo);
-                // C8b — dalle 18:00 Per Te e' il giro della sera (nessuna ricerca per temi); prima la ricerca del cibo segue l'ora (colazione, merenda)
-                const sera = isSeraStart(new Date(now));
-                const themed = sera ? {} : await placesDiscoveryService.discoverAllThemes(caso.luogo, cc.latitude, cc.longitude, { foodPrefs: food, ora: new Date(now) });
-                const insider = sera ? [] : buildInsiderPool(themed, cc, caso.luogo, undefined, { _share: 0 });
-                const r = await aiRecommendationService.generateHomeTours({ city: caso.luogo, cityCenter: cc, themedCandidates: { insider, ...themed },
-                    prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, aiProfile: '',
-                    opts: { dnaWeights: { _share: 0 }, onboardingPrefs: caso.onboarding || null, skipUserQuota: true, simulatedNow: now } });
+                // TROINA-FIX — la chiamata e il grezzo di Per Te vivono in giro-caso.js (li usa anche il replay)
+                const g = await generaPerTe(caso, E);
                 rec.secs = (Date.now() - t0) / 1000;
-                rec.source = r._source;
-                rec.momento = r._report?.momento ?? null;
-                rec.tourDate = E.giornoSimulato;
-                rec.pool = Object.fromEntries(Object.entries({ insider, ...themed }).map(([k, arr]) => [k,
-                    (Array.isArray(arr) ? arr : []).slice(0, 25).map(p => ({ place_id: p.place_id || p.googlePlaceId, nome: p.name || p.title, types: (p.types || []).slice(0, 4), rating: p.rating ?? null, recensioni: p.user_ratings_total ?? null }))]));
-                const per = new Map((r._report?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
-                const comp = new Map((r._report?.composizione || []).map(x => [x.place_id, x]));
-                rec.serale = sera;
-                if (sera) {
-                    // C8b — di sera il giro e' quello del motore dei momenti: gli orari sono veri, valgono i controlli degli itinerari
-                    rec.tipo = 'itinerario';
-                    rec.finestraMinuti = r._report?.momentReport?.finestraMinuti ?? null;
-                    rec.continuita = r._report?.momentReport?.continuita ?? null;
-                    const mr = r._report?.momentReport; rec.motori = mr ? { tolti: mr.momentiTolti ?? null, facoltativiSenzaPosto: mr.facoltativiSenzaPosto ?? null, ricercheMirate: mr.ricercheMirate ?? null } : null;
-                }
-                rec.tours = (r.tours || []).map(t => {
-                    // "Per Te" di giorno non ha orari: l'arrivo si stima da ora simulata + cammino + soste.
-                    let t_ = new Date(now).getTime();
-                    return { tema: t.themeType, titolo: t.title || null, stops: t.stops.map(s => {
-                        t_ += (s.travelMinutesFromPrev || 0) * 60000;
-                        const stimato = new Date(t_).toISOString();
-                        t_ += (s.stayMinutes || 0) * 60000;
-                        const x = tappa(s, per.get(s.place_id), comp, null, food.dieta || [], stimato);
-                        // C8b — i controlli dei pasti valgono anche per Per Te: il momento si ricava dall'ora d'arrivo (la mattina e' prima di mezzogiorno)
-                        if (!x.moment) { const hh = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', hour12: false }).format(new Date(x.at))); if (hh < 12) x.moment = 'mattina'; }
-                        return x;
-                    }) };
-                });
-                rec.schermo = { giorni: (rec.tours || []).map(t => ({ titolo: t.titolo, meteo: null })), note: r._source === 'closed-now' ? [r._messaggio] : [] };
-                // ORARI — il messaggio "meglio domattina" al posto dei tour e' un ripiego dichiarato
-                rec.ripiegoDichiarato = r._source === 'closed-now';
-                if (r._source === 'closed-now') rec.chiusoOra = r._messaggio;
-                rec.orariMotore = r._report?.orari ?? null;
+                registraPerTe(rec, g, E, luoghi);
             } else {
                 const g = await genera(caso, E);
                 rec.secs = (Date.now() - t0) / 1000;

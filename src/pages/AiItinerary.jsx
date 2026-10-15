@@ -7,6 +7,7 @@ import BottomNavigation from "../components/BottomNavigation";
 import { useUserContext } from "../hooks/useUserContext";
 import { aiRecommendationService, QUOTA_USER_MESSAGE } from "../services/aiRecommendationService";
 import { AI_ENGINE_MESSAGE, isAiEngineError } from "../lib/aiEngineError";
+import { esitoVuoto, MESSAGGIO_TECNICO, TASTO_RIPROVA } from "../lib/esitoVuoto";
 import { PLACES_SEARCH_ERROR_MESSAGE } from "../services/placesDiscoveryService";
 import { normalizeTour } from "../services/tourShape";
 import { FactSources } from "@/components/FactSources";
@@ -114,6 +115,8 @@ export default function AIItineraryPage() {
     // l'ha confermata, altrimenti la posizione. Mappa, messaggi e "Rigenera
     // giorno" usano questa, non la posizione. `note` e' la riga in testa al tour.
     const [tourDestination, setTourDestination] = useState(null);
+    // TROINA-FIX — un giro non completato per un servizio che non ha risposto: il messaggio tecnico col tasto «Riprova»
+    const [erroreTecnico, setErroreTecnico] = useState(false);
     const tourCity = tourDestination?.city || activeCity;
     const tourCenter = tourDestination?.fromText ? tourDestination.cityCenter : resolvedCityCenter;
 
@@ -128,6 +131,7 @@ export default function AIItineraryPage() {
         setIsGenerating(true);
         setGeneratedItinerary(null);
         setTourDestination(null);
+        setErroreTecnico(false);
 
         const prefsObject = userPreferences.reduce((acc, pref) => {
             acc[pref.id] = pref.selected;
@@ -187,12 +191,7 @@ export default function AIItineraryPage() {
             } catch (ccErr) {
                 if (ccErr instanceof CityCenterUnresolvedError) {
                     console.warn('[AiItinerary] resolveCityCenter failed:', ccErr.reason, ccErr.message);
-                    toast({
-                        title: 'Non riesco a raggiungere i posti.',
-                        description: 'Riprova tra un attimo.',
-                        type: 'warning',
-                        duration: 5000,
-                    });
+                    setErroreTecnico(true);
                     setGeneratedItinerary(null);
                     setCurrentStep(0);
                     return;
@@ -225,7 +224,8 @@ export default function AIItineraryPage() {
             // deciso da Ivano, identico per i due percorsi.
             if (result?._source === 'search-error') {
                 console.warn(`[AiItinerary] search-error (path=${result?._pathB ? 'B' : 'A'})`);
-                toast({ title: PLACES_SEARCH_ERROR_MESSAGE, type: 'warning', duration: 6000 });
+                // TROINA-FIX — la rete: il messaggio tecnico col tasto «Riprova»
+                setErroreTecnico(true);
                 setGeneratedItinerary(null);
                 setCurrentStep(0);
                 return;
@@ -250,7 +250,16 @@ export default function AIItineraryPage() {
                 // l'una né l'altro: dirgli "cambia richiesta" sarebbe assurdo,
                 // non ha scritto niente.
                 const oggetto = result?._oggetto_umano || 'quello che hai chiesto';
-                console.warn(`[AiItinerary] no-results (source=${result._source}, path=${result?._pathB ? 'B' : 'A'}, oggetto="${oggetto}")`);
+                // TROINA-FIX — «non troviamo» solo per uno zero vero; un selettore caduto, la lista mancante o un giro andato a
+                // vuoto con dei posti nel pool sono il messaggio tecnico col tasto «Riprova».
+                const esito = esitoVuoto(result, resultCity);
+                console.warn(`[AiItinerary] no-results (source=${result._source}, path=${result?._pathB ? 'B' : 'A'}, oggetto="${oggetto}") → ${esito.tipo}`);
+                if (esito.tipo === 'tecnico') {
+                    setErroreTecnico(true);
+                    setGeneratedItinerary(null);
+                    setCurrentStep(0);
+                    return;
+                }
                 toast({
                     title: result?._pathB
                         ? `A ${resultCity} non trovo luoghi verificati per questi interessi.`
@@ -297,12 +306,8 @@ export default function AIItineraryPage() {
                 // Gate P8b — OpenAI ha rifiutato o non ha risposto: testo fisso.
                 toast({ title: AI_ENGINE_MESSAGE, type: 'warning', duration: 6000 });
             } else {
-                toast({
-                    title: "L'AI sta avendo un momento difficile",
-                    description: 'Riprova tra qualche secondo — il tuo itinerario personalizzato è quasi pronto.',
-                    type: 'warning',
-                    duration: 5000,
-                });
+                // TROINA-FIX — rete, timeout, risposta vuota: il messaggio tecnico col tasto «Riprova»
+                setErroreTecnico(true);
             }
             // Non mostriamo un fallback statico — l'utente può riprovare
             setGeneratedItinerary(null);
@@ -440,6 +445,17 @@ export default function AIItineraryPage() {
                         transition={{ duration: 0.5 }}
                     >
                         <div className="space-y-6">
+                            {erroreTecnico && (
+                                <div data-errore-tecnico className="bg-obsidian-card rounded-2xl p-4 border border-obsidian-border shadow-sm text-center">
+                                    <p className="font-bold text-obsidian-primary text-sm mb-3">{MESSAGGIO_TECNICO}</p>
+                                    <button
+                                        onClick={() => { setErroreTecnico(false); generateItinerary(); }}
+                                        className="px-5 py-2.5 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-xl font-bold text-sm transition-colors cursor-pointer"
+                                    >
+                                        {TASTO_RIPROVA}
+                                    </button>
+                                </div>
+                            )}
                             {/* Pro Input Card */}
                             <div className="bg-obsidian-card rounded-2xl p-4 border border-obsidian-border shadow-sm">
                                 <div className="flex items-center space-x-2 mb-3">

@@ -121,7 +121,9 @@ describe('Gate INTENT — il taglio a 20 e il suo ranking (comportamento)', () =
             'Cabras', { interests: ['Natura'] }, 'portami in posti belli', {}, '', CABRAS,
         );
 
-        expect(stato.aiCalls).toBe(2);
+        // TROINA-FIX — il selettore finto non sceglie niente: il riparatore sceglie fra i posti veri e il narratore
+        // racconta (traduttore, selettore, narratore). Prima il giro finiva in errore dopo il selettore (2 chiamate).
+        expect(stato.aiCalls).toBe(3);
         // Il messaggio utente del selettore dichiara la dimensione del pool.
         expect(stato.selectorBody).toContain('20 luoghi disponibili');
         // L'escluso e' la civetta, nonostante sia la meglio votata.
@@ -158,7 +160,9 @@ describe('Gate INTENT — il taglio a 20 e il suo ranking (comportamento)', () =
             'Cabras', { interests: ['Natura'] }, 'le spiagge piu belle', {}, '', CABRAS,
         );
 
-        expect(stato.aiCalls).toBe(2);
+        // TROINA-FIX — il selettore finto non sceglie niente: il riparatore sceglie fra i posti veri e il narratore
+        // racconta (traduttore, selettore, narratore). Prima il giro finiva in errore dopo il selettore (2 chiamate).
+        expect(stato.aiCalls).toBe(3);
         expect(stato.selectorBody).toContain('3 luoghi disponibili');
         for (const n of ['Spiaggia Maimoni', 'Spiaggia Is Arutas', 'Spiaggia Mari Ermi']) {
             expect(stato.selectorBody, `${n} non e' arrivata al selettore`).toContain(n);

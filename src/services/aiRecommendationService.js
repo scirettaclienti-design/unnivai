@@ -387,7 +387,8 @@ import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
 // C10 — la lista della città: l'AI propone (sul server, una per città e giorno), Google verifica, le regole compongono.
 import { fetchCityKnowledge, fetchQuartiereKnowledge } from './cityKnowledgeService';
-import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scalaConfermata, scegliQuartiere, dentroArea, delQuartiere, rigaBorgo, BORGO_MIN_VERIFICATI, areaDeiQuartieri, bucketsNelleAree, fasciaApertaBorgo, LUOGHI_QUARTIERE_MIN, RAGGIO_QUARTIERE_KM, GIORNATA_INTERA_MINUTI, nomiDiLuogoNelTesto, quartiereConfermato, quartiereFuoriLista, nucleoDi, dentroNucleo, bucketsNelNucleo, spostaAncoreVietate, luogoDaVisitareBorgo } from '../lib/cityKnowledge';
+import { NATURA_BORGO_KM, isNaturaOPanorama, isLuogoStorico, nelComuneIndirizzo } from '../lib/borgoConfini';
+import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scalaConfermata, scegliQuartiere, dentroArea, delQuartiere, rigaBorgo, BORGO_MIN_VERIFICATI, areaDeiQuartieri, bucketsNelleAree, fasciaApertaBorgo, LUOGHI_QUARTIERE_MIN, RAGGIO_QUARTIERE_KM, GIORNATA_INTERA_MINUTI, nomiDiLuogoNelTesto, quartiereConfermato, quartiereFuoriLista, nucleoDi, dentroNucleo, bucketsNelNucleo, spostaAncoreVietate, luogoDaVisitareBorgo, oreDiVisita, RAGGIO_BORGO_KM } from '../lib/cityKnowledge';
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
@@ -1218,6 +1219,9 @@ const logMomentReport = (city, r) => {
 export const candidateMatchesIntentCategoria = (candidate, categoriaRaw) => {
     const target = CATEGORIA_TO_TOUR_CATEGORY[String(categoriaRaw || '').toLowerCase()];
     if (!target) return true;
+    // TROINA-FIX — un monte, un belvedere, un parco non contrastano con «natura» perche' Google li segna anche
+    // `tourist_attraction` (che CATEGORY_ALIASES porta a «cultura»): Monte Muganà a Troina usciva da ogni Quiz Natura.
+    if (target === 'natura' && isNaturaOPanorama(candidate)) return true;
     return !candidateConflictsWithCategoria(candidate, target);
 };
 
@@ -2414,6 +2418,9 @@ export const aiRecommendationService = {
         // guida la textsearch. Path A NON cade mai sul vecchio AI-first: se 0
         // candidati, errore onesto con oggetto_umano.
         const isFreeTextIntent = !!(userPrompt && String(userPrompt).trim());
+        // TROINA-FIX — «non troviamo» solo se la ricerca e' riuscita e i posti sono davvero zero (esitoVuoto.js): lo dice qui
+        // il motore, nel ramo dei zero candidati, e solo se anche la lista della citta' e' arrivata (o e' spenta).
+        let zeroVero = false;
         try {
             // C10 — i posti verificati della lista entrano nel pool come risultati di ricerca: da qui passano per gli stessi
             // filtri di tutti (zone, raggio, categoria, dieta e budget, cucine estere col tema tipico).
@@ -2541,12 +2548,16 @@ export const aiRecommendationService = {
             // Google non hanno un tipo; la via principale e le piazze storiche sono passeggiate (contano nella durata, non qui).
             const postiBorgo = poiCitta.filter(p => !p._citta.passeggiata && !isStoricaLista(p) && nonZona(p) && luogoDaVisitareBorgo(p));
             if (conferma?.scala === 'borgo' && postiBorgo.length < BORGO_MIN_VERIFICATI && tourWindow.windows.length === 1) {
-                const raggio = MAX_WALK_METERS / 1000;
-                const vicini = (c) => !cityCenter || !Number.isFinite(c.latitude ?? c.lat)
-                    || haversineKm(cityCenter.latitude, cityCenter.longitude, c.latitude ?? c.lat, c.longitude ?? c.lng) <= raggio;
+                // TROINA-FIX — la fascia del giro corto si sceglie su TUTTI i posti veri (lista e ricerche) che possono stare nel
+                // giro, non solo su quelli che contano per la soglia: una chiesa che per Google ha i soli tipi generici, un
+                // belvedere, un monte a un chilometro e mezzo. Restano fuori i pasti, le zone e quello che e' oltre il raggio del
+                // borgo (lo stesso del filtro che segue). E conta solo nelle ore di visita (mattina e pomeriggio): una fascia tutta
+                // pranzo non e' un giro.
+                const nelRaggio = (c) => !cityCenter || !Number.isFinite(c.latitude ?? c.lat)
+                    || haversineKm(cityCenter.latitude, cityCenter.longitude, c.latitude ?? c.lat, c.longitude ?? c.lng) <= (cityCenter.radiusKm ?? RAGGIO_BORGO_KM);
                 const candidatiBorgo = uniscialPool(rawDalleRicerche, poiCitta)
-                    .filter(c => !isMealPlace(c) && (c._citta?.passeggiata || (nonZona(c) && luogoDaVisitareBorgo(c))) && vicini(c));
-                const fascia = fasciaApertaBorgo({ candidati: candidatiBorgo, lista: postiBorgo, finestra: w0 });
+                    .filter(c => !isMealPlace(c) && (c._citta?.passeggiata || isStoricaLista(c) || nonZona(c)) && nelRaggio(c));
+                const fascia = fasciaApertaBorgo({ candidati: candidatiBorgo, lista: postiBorgo, finestra: w0, visite: oreDiVisita(w0.start) });
                 if (fascia) {
                     w0.start = fascia.start;
                     w0.end = fascia.end;
@@ -2634,6 +2645,30 @@ export const aiRecommendationService = {
                         return `${c.name || c.title || '?'} (${d})`;
                     });
                 console.warn(`[Gate TOUR-DISTANZA] ${city}: ${rawCandidates.length - candidates.length}/${rawCandidates.length} candidati scartati PRIMA della chiamata AI — [${scartati.join(' | ')}]`);
+            }
+            // TROINA-FIX — I CONFINI DEL BORGO (borgoConfini.js): con una richiesta di natura, i luoghi di natura e i panorami
+            // fino a NATURA_BORGO_KM (12 km) entrano anche oltre il raggio del borgo e fuori dal comune; i luoghi storici
+            // restano nel comune (l'indirizzo di Google lo dice). Nel tracciato: `_citta.naturaOltre`, `_citta.fuoriComune`.
+            if (conferma?.scala === 'borgo' && cityCenter && Number.isFinite(cityCenter.latitude)) {
+                const kmDi = (c) => {
+                    const lat = c.latitude ?? c.lat, lng = c.longitude ?? c.lng;
+                    return Number.isFinite(lat) && Number.isFinite(lng) ? haversineKm(cityCenter.latitude, cityCenter.longitude, lat, lng) : null;
+                };
+                if (catStretta === 'natura') {
+                    const gia = new Set(candidates);
+                    const oltre = rawCandidates.filter(c => !gia.has(c) && isNaturaOPanorama(c) && (kmDi(c) ?? Infinity) <= NATURA_BORGO_KM);
+                    if (oltre.length > 0) {
+                        candidates = [...candidates, ...oltre];
+                        cittaReport.naturaOltre = oltre.map(c => ({ nome: c.name || c.title, km: Math.round(kmDi(c) * 10) / 10 }));
+                        console.info(`[TROINA-FIX] ${city}: natura oltre il raggio del borgo (entro ${NATURA_BORGO_KM} km) — ${cittaReport.naturaOltre.map(x => `${x.nome} ${x.km} km`).join(' | ')}`);
+                    }
+                }
+                const fuori = candidates.filter(c => isLuogoStorico(c) && nelComuneIndirizzo(c, city) === false);
+                if (fuori.length > 0) {
+                    candidates = candidates.filter(c => !fuori.includes(c));
+                    cittaReport.fuoriComune = fuori.map(c => ({ nome: c.name || c.title, indirizzo: c.address ?? c.formatted_address ?? null }));
+                    console.info(`[TROINA-FIX] ${city}: luoghi storici fuori dal comune tolti — ${cittaReport.fuoriComune.map(x => x.nome).join(' | ')}`);
+                }
             }
 
             // Gate RAGGIO-CATEGORIA — guard-rail deterministico: un candidato fuori
@@ -2925,7 +2960,15 @@ export const aiRecommendationService = {
                     let aiStops = rawStops
                         .filter(st => st && typeof st.place_id === 'string')
                         .map(st => ({ place_id: st.place_id, ...(typeof st.moment === 'string' ? { moment: st.moment } : {}) }));
-                    if (aiStops.length === 0) throw new Error('AI returned no stops (F2)');
+                    // TROINA-FIX — il selettore che non sceglie niente non svuota il giro: se i momenti hanno posti veri aperti, li
+                    // sceglie il riparatore del codice (il posto vuoto lo prende il candidato migliore per merito, con tutte le regole).
+                    // Si scrive nel tracciato. Senza momenti (o senza candidati aperti) resta l'errore di prima.
+                    if (aiStops.length === 0) {
+                        const conPosti = moments.length > 0 && hoursBuckets && [...hoursBuckets.values()].some(b => b.length > 0);
+                        if (!conPosti) throw new Error('AI returned no stops (F2)');
+                        console.warn(`[TROINA-FIX] ${city}: il selettore non ha scelto nessuna tappa → sceglie il riparatore fra i posti veri dei momenti`);
+                        cittaReport.selettoreVuoto = true;
+                    }
                     // C10 — le ancore proposte al riparatore come scelte del modello, in testa al loro momento: valgono
                     // solo se nessuna alternativa del momento costa meno per le regole (cammino, varieta', orari, percorso).
                     if (ancoreCitta.length > 0 && moments.length > 0) {
@@ -3369,11 +3412,16 @@ export const aiRecommendationService = {
                 // Scatta per candidates === 0, oppure (P3) quando nessun
                 // momento dello scheletro ha un candidato valido: nessun
                 // luogo inventato, il risultato e' vuoto e onesto.
+                // TROINA-FIX — e' uno zero vero solo con zero candidati (dopo raggio, categoria e vincoli) e la lista arrivata:
+                // con dei candidati che nessun momento prende, o senza la lista, il vuoto non e' «non troviamo».
+                const listaArrivata = lista.stato !== 'assente' && !lista.errore;
+                zeroVero = candidates.length === 0 && listaArrivata;
                 if (isFreeTextIntent) {
-                    console.info(`[Gate B] path A "${city}" — 0 candidati Places → errore onesto (no fallback AI-first)`);
+                    console.info(`[Gate B] path A "${city}" — 0 candidati Places → errore onesto (no fallback AI-first)${zeroVero ? ' (zero vero)' : ''}`);
                     return {
                         days: [{ stops: [] }],
                         _source: 'no-results',
+                        _zeroVero: zeroVero,
                         _query: intent?.queries || [],
                         _categoria: intent?.categoria || 'sconosciuta',
                         _oggetto_umano: intent?.oggetto_umano || 'quello che hai chiesto',
@@ -3442,6 +3490,7 @@ export const aiRecommendationService = {
         return {
             days: [{ stops: [] }],
             _source: 'no-results',
+            _zeroVero: zeroVero,
             _pathB: true,
             _query: [],
             _categoria: 'sconosciuta',
@@ -3505,7 +3554,21 @@ export const aiRecommendationService = {
     // @param {object} params.weather { condition, temperature }
     // @param {object} params.opts { skipUserQuota? }
     // @returns {Promise<{ tours: Array, _source: string }>}
-    async generateHomeTours({ city, cityCenter, themedCandidates, prefs = {}, aiProfile = '', weather = {}, opts = {} } = {}) {
+    async generateHomeTours(args = {}) {
+        const r = await this._homeTemi(args);
+        // TROINA-FIX — nei borghi "Per Te" non resta vuoto se ci sono posti veri: quando i temi non danno nessun tour (tutti sotto
+        // le 3 tappe aperte, o nessun pool), un tour misto dal motore dei momenti. Un errore (motore AI, quota) resta un errore.
+        const { city, cityCenter, opts = {} } = args;
+        const borgo = cityCenter?.isSmallTown ?? isSmallTown(city);
+        const vuoto = (r?.tours || []).length === 0 && ['closed-now', 'no-pools', 'unified-home'].includes(r?._source);
+        if (!borgo || !vuoto || isSeraStart(requestNow(opts))) return r;
+        console.info(`[TROINA-FIX] Per Te ${city}: nessun tour dai temi (${r._source}) → un tour misto del borgo dal motore dei momenti`);
+        const m = await this._homeBorgo(args);
+        if ((m.tours || []).length > 0) return { ...m, _report: { ...m._report, temi: { source: r._source, report: r._report ?? null } } };
+        return { ...r, _report: { ...(r._report || {}), borgoMisto: { source: m._source, report: m._report ?? null } } };
+    },
+
+    async _homeTemi({ city, cityCenter, themedCandidates, prefs = {}, aiProfile = '', weather = {}, opts = {} } = {}) {
         // C8b — DI SERA "PER TE" E' IL GIRO DELLA SERA. Dalle 18:00 fino all'alba i cinque tour tematici (trattorie a
         // quell'ora, musei chiusi) non hanno senso: la sera ha una forma sola — drink + passeggiata + cena, con la cena
         // tardi se parti fra le 21:00 e le 22:00 — ed e' quella del motore dei momenti (come il Percorso Veloce). Per Te la
@@ -3887,12 +3950,28 @@ export const aiRecommendationService = {
      * @returns {Promise<{ tours: Array, _source: string, _messaggio?: string, _report: object }>}
      */
     async _homeSera({ city, cityCenter, prefs = {}, aiProfile = '', weather = {}, opts = {} }) {
+        return this._homeDaMotore({ city, cityCenter, prefs, aiProfile, weather, opts, durata: 'Veloce', pathType: 'quick', serale: true });
+    },
+
+    /**
+     * TROINA-FIX — "Per Te" in un borgo dove nessun tema arriva a 3 tappe aperte (Troina a mezzogiorno: i musei chiusi, il
+     * belvedere e il monte soli nel loro tema): UN tour misto, fatto dal motore dei momenti come la sera (i posti veri della
+     * lista e delle ricerche, il giro corto del borgo, gli orari all'arrivo), mezza giornata da adesso. Solo nei borghi e solo
+     * quando i temi non danno nessun tour: il resto di "Per Te" non cambia.
+     */
+    async _homeBorgo({ city, cityCenter, prefs = {}, aiProfile = '', weather = {}, opts = {} }) {
+        return this._homeDaMotore({ city, cityCenter, prefs, aiProfile, weather, opts, durata: 'Mezza Giornata', pathType: undefined, serale: false });
+    },
+
+    /** Un solo tour di "Per Te" dal motore dei momenti (la sera, o il tour misto del borgo). */
+    async _homeDaMotore({ city, cityCenter, prefs = {}, aiProfile = '', weather = {}, opts = {}, durata, pathType, serale }) {
         const now = requestNow(opts);
         const nowRome = romeParts(now);
-        const prefsSera = { duration: 'Veloce', group: prefs?.group || 'solo', pace: prefs?.pace || 'rilassato', interests: [] };
-        const r = await this.generateItinerary(city, prefsSera, '', weather, aiProfile, cityCenter, { ...opts, pathType: 'quick' });
+        const prefsSera = { duration: durata, group: prefs?.group || 'solo', pace: prefs?.pace || 'rilassato', interests: [] };
+        const r = await this.generateItinerary(city, prefsSera, '', weather, aiProfile, cityCenter, { ...opts, pathType });
         const report = {
-            serale: true,
+            serale,
+            ...(serale ? {} : { borgoMisto: true }),
             momento: momentAtClock(nowRome.h, nowRome.mi).key,
             giorno: `${nowRome.y}-${String(nowRome.m).padStart(2, '0')}-${String(nowRome.d).padStart(2, '0')}`,
             fatti: r._narrationReport?.fatti, composizione: r._narrationReport?.composizione || [],

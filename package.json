@@ -11,6 +11,7 @@
     "banco": "node scripts/banco/banco.mjs",
     "banco:esteso": "node scripts/banco/esteso.mjs",
     "banco:replay": "node scripts/banco/replay.mjs",
+    "banco:guardia": "node scripts/banco/guardia.mjs",
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",

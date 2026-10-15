@@ -1,7 +1,9 @@
 // C10c-replay — un caso del banco esteso: la chiamata della sua pagina e il grezzo che ne esce. Lo usano il giro vero
 // (esteso.live.js) e il replay (replay.giro.js): stesso codice, stesso formato del grezzo.
-import { aiRecommendationService } from '@/services/aiRecommendationService';
+import { aiRecommendationService, buildInsiderPool } from '@/services/aiRecommendationService';
+import { placesDiscoveryService } from '@/services/placesDiscoveryService';
 import { resolveCityCenter } from '@/services/cityCenterService';
+import { isSeraStart } from '@/lib/daySkeleton';
 import { isMealPlace } from '@/services/momentSelection';
 import { resolveFoodPrefs, DIETE } from '@/lib/foodPrefs';
 import { voiceIssues } from '@/lib/narrationLight';
@@ -185,3 +187,61 @@ export function registraItinerario(rec, { r, rec: extra, food }, caso, luoghi) {
 /** Il record di partenza di un caso (come il giro vero lo scrive prima di generare). */
 export const recordCaso = (caso, E) => ({ id: caso.id, modo: caso.modo, tipo: caso.modo === 'perte' ? 'perte' : 'itinerario', luogo: caso.luogo, ora: caso.ora,
     oggi: caso.giorno ?? E.giornoSimulato, richiesta: caso.richiesta || (caso.modo === 'veloce' ? null : caso.tema || null), onboarding: caso.onboarding || null });
+
+// ─── Per Te (TROINA-FIX: anche il replay lo rigioca) ─────────────────────────────────────────────────────────────────
+/** La chiamata della home (DashboardUser.jsx), con l'ora simulata: i temi, l'insider e i tour. */
+export async function generaPerTe(caso, E) {
+    const now = istanteSimulato(caso, E);
+    const food = resolveFoodPrefs({ onboarding: caso.onboarding });
+    const cc = await resolveCityCenter(caso.luogo);
+    // C8b — dalle 18:00 Per Te e' il giro della sera (nessuna ricerca per temi); prima la ricerca del cibo segue l'ora (colazione, merenda)
+    const sera = isSeraStart(new Date(now));
+    const themed = sera ? {} : await placesDiscoveryService.discoverAllThemes(caso.luogo, cc.latitude, cc.longitude, { foodPrefs: food, ora: new Date(now) });
+    const insider = sera ? [] : buildInsiderPool(themed, cc, caso.luogo, undefined, { _share: 0 });
+    const r = await aiRecommendationService.generateHomeTours({ city: caso.luogo, cityCenter: cc, themedCandidates: { insider, ...themed },
+        prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, aiProfile: '',
+        opts: { dnaWeights: { _share: 0 }, onboardingPrefs: caso.onboarding || null, skipUserQuota: true, simulatedNow: now } });
+    return { r, now, food, sera, themed, insider };
+}
+
+/** I campi del grezzo di "Per Te" dal risultato della home. */
+export function registraPerTe(rec, { r, now, food, sera, themed, insider }, E, luoghi) {
+    if (food.dieta?.length || food.budget) rec.vincoli = { dieta: food.dieta, budget: food.budget, maxPriceLevel: food.maxPriceLevel };
+    rec.chiamata = { pagina: 'DashboardUser.jsx', pathType: null, prefs: { duration: '1 Giorno', group: 'solo', pace: 'rilassato' }, testo: null };
+    rec.source = r._source;
+    rec.momento = r._report?.momento ?? null;
+    rec.tourDate = rec.oggi ?? E.giornoSimulato;
+    rec.pool = Object.fromEntries(Object.entries({ insider, ...themed }).map(([k, arr]) => [k,
+        (Array.isArray(arr) ? arr : []).slice(0, 25).map(p => ({ place_id: p.place_id || p.googlePlaceId, nome: p.name || p.title, types: (p.types || []).slice(0, 4), rating: p.rating ?? null, recensioni: p.user_ratings_total ?? null }))]));
+    const per = new Map((r._report?.fatti?.perTappa || []).map(x => [x.place_id, x.fatti]));
+    const comp = new Map((r._report?.composizione || []).map(x => [x.place_id, x]));
+    rec.serale = sera;
+    // TROINA-FIX — il tour misto del borgo (nessun tema a 3 tappe aperte): un giro del motore dei momenti, come la sera
+    rec.borgoMisto = !!r._report?.borgoMisto && (r.tours || []).length > 0;
+    if (sera || rec.borgoMisto) {
+        // C8b — di sera il giro e' quello del motore dei momenti: gli orari sono veri, valgono i controlli degli itinerari
+        rec.tipo = 'itinerario';
+        rec.finestraMinuti = r._report?.momentReport?.finestraMinuti ?? null;
+        rec.continuita = r._report?.momentReport?.continuita ?? null;
+        const mr = r._report?.momentReport; rec.motori = mr ? { tolti: mr.momentiTolti ?? null, facoltativiSenzaPosto: mr.facoltativiSenzaPosto ?? null, ricercheMirate: mr.ricercheMirate ?? null } : null;
+    }
+    rec.tours = (r.tours || []).map(t => {
+        // "Per Te" di giorno non ha orari: l'arrivo si stima da ora simulata + cammino + soste.
+        let t_ = new Date(now).getTime();
+        return { tema: t.themeType, titolo: t.title || null, stops: t.stops.map(s => {
+            t_ += (s.travelMinutesFromPrev || 0) * 60000;
+            const stimato = new Date(t_).toISOString();
+            t_ += (s.stayMinutes || 0) * 60000;
+            const x = tappa(luoghi, s, per.get(s.place_id), comp, null, food.dieta || [], stimato);
+            // C8b — i controlli dei pasti valgono anche per Per Te: il momento si ricava dall'ora d'arrivo (la mattina e' prima di mezzogiorno)
+            if (!x.moment) { const hh = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', hour12: false }).format(new Date(x.at))); if (hh < 12) x.moment = 'mattina'; }
+            return x;
+        }) };
+    });
+    rec.schermo = { giorni: (rec.tours || []).map(t => ({ titolo: t.titolo, meteo: null })), note: r._source === 'closed-now' ? [r._messaggio] : [] };
+    // ORARI — il messaggio "meglio domattina" al posto dei tour e' un ripiego dichiarato
+    rec.ripiegoDichiarato = r._source === 'closed-now';
+    if (r._source === 'closed-now') rec.chiusoOra = r._messaggio;
+    rec.orariMotore = r._report?.orari ?? null;
+    return rec;
+}

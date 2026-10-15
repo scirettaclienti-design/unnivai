@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import path from 'node:path';
 import config from './banco.config.json';
-import { creaLuoghi, annotaRisposta, genera, registraItinerario, recordCaso } from './giro-caso.js';
+import { creaLuoghi, annotaRisposta, genera, registraItinerario, recordCaso, generaPerTe, registraPerTe } from './giro-caso.js';
 import { FORMATO, creaReteReplay, fattiDalTracciato } from './replay/rete.js';
 import { accessi } from './replay/supabase-finto.js';
 
@@ -47,7 +47,7 @@ for (const traccia of casi) {
         const caso = traccia.caso;
         const rec = recordCaso(caso, E);
         out.casi.push(rec);
-        if (caso.modo === 'perte') { rec.saltato = 'replay: Per Te non e\' ancora rigiocabile'; save(); return; }
+        // TROINA-FIX — anche Per Te si rigioca: le ricerche dei temi e la chiamata dei tour (passaggio `altro`, in ordine) dal tracciato
         for (const k of Object.keys(window.localStorage)) window.localStorage.removeItem(k);
         // le risposte comuni a tutto il giro (tracciati ricostruiti) valgono come quelle del caso
         const rete = { ...traccia.rete, places: { ...(tracciati.comune?.places || {}), ...(traccia.rete?.places || {}) } };
@@ -61,9 +61,15 @@ for (const traccia of casi) {
         const accessi0 = accessi.length;
         const t0 = Date.now();
         try {
-            const g = await genera(caso, E);
-            rec.secs = (Date.now() - t0) / 1000;
-            registraItinerario(rec, g, caso, registro.luoghi);
+            if (caso.modo === 'perte') {
+                const g = await generaPerTe(caso, E);
+                rec.secs = (Date.now() - t0) / 1000;
+                registraPerTe(rec, g, E, registro.luoghi);
+            } else {
+                const g = await genera(caso, E);
+                rec.secs = (Date.now() - t0) / 1000;
+                registraItinerario(rec, g, caso, registro.luoghi);
+            }
         } catch (e) {
             rec.secs = (Date.now() - t0) / 1000;
             rec.errore = e?.code || e?.message || String(e);

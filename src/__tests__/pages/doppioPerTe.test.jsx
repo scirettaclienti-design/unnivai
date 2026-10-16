@@ -6,7 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createElement } from 'react';
-import { render, renderHook, waitFor, cleanup } from '@testing-library/react';
+import { render, renderHook, waitFor, cleanup, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 vi.mock('framer-motion', async () => {
@@ -65,7 +65,8 @@ vi.mock('@/services/aiRecommendationService', () => ({
     buildInsiderPool: () => [],
 }));
 
-const { useAILearning } = await import('@/hooks/useAILearning');
+const { useAILearning, DNA_ATTESA_MAX_MS } = await import('@/hooks/useAILearning');
+const { giornoEFasciaPerTe } = await import('@/lib/perTeSalvato');
 const DashboardUser = (await import('@/pages/DashboardUser')).default;
 
 const BRAIN = 'unnivai_ai_learning_brain_v2';
@@ -82,14 +83,18 @@ const serverRisponde = (valore, ms = 60) => getUserPreferences.mockImplementatio
     return valore;
 });
 
-const apriHome = async () => {
-    // le opzioni di App.jsx
-    const client = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } } });
-    render(createElement(QueryClientProvider, { client }, createElement(DashboardUser)));
-    await waitFor(() => expect(generateHomeTours).toHaveBeenCalled(), { timeout: 2000 });
+// le opzioni di App.jsx
+const nuovoClient = () => new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 1000 * 60 * 5, refetchOnWindowFocus: false } } });
+const monta = (client) => render(createElement(QueryClientProvider, { client }, createElement(DashboardUser)));
+const apriHome = async (client = nuovoClient(), attese = 1, timeout = 2000) => {
+    monta(client);
+    await waitFor(() => expect(generateHomeTours.mock.calls.length).toBeGreaterThanOrEqual(attese), { timeout });
     await attesa(400); // il tempo per una seconda generazione, se partisse
     return client;
 };
+// Rientro (stesso client: la pagina non si e' ricaricata) o ricarica (client nuovo, stesso localStorage): nessuna attesa di generazione.
+const rientra = async (client) => { monta(client); await attesa(700); };
+const VUOTO = 'Qui intorno non trovo ancora luoghi verificati da proporti.';
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -99,7 +104,8 @@ beforeEach(() => {
     generateHomeTours.mockImplementation(async () => { generateHomeTours.alle ??= []; generateHomeTours.alle.push(Date.now()); return { tours: [] }; });
     generateHomeTours.alle = [];
 });
-afterEach(() => { cleanup(); });
+afterEach(() => { cleanup(); vi.useRealTimers(); });
+const allOra = (iso) => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date(iso)); };
 
 describe('DOPPIO-FIX — una generazione per apertura della home', () => {
     it('a freddo (nessuna copia locale del DNA): 1 generazione, dopo la lettura del DNA, col DNA del server', async () => {
@@ -143,6 +149,59 @@ describe('DOPPIO-FIX — una generazione per apertura della home', () => {
         await apriHome();
         expect(generateHomeTours).toHaveBeenCalledTimes(1);
         expect(getUserPreferences).not.toHaveBeenCalled();
+    });
+});
+
+describe('DOPPIO-FIX-2 — rientro, ricarica, fascia, DNA muto', () => {
+    it('rientro in home dopo 3 minuti, stessa fascia: 0 generazioni in piu\', Per Te gia\' a schermo', async () => {
+        allOra('2026-10-15T12:05:00+02:00');
+        serverRisponde(DNA_SERVER);
+        const client = await apriHome();
+        cleanup();
+        vi.setSystemTime(new Date('2026-10-15T12:08:00+02:00'));
+        await rientra(client);
+        expect(generateHomeTours).toHaveBeenCalledTimes(1);
+        expect(screen.getByText(VUOTO)).toBeTruthy();
+    });
+
+    it('ricarica della pagina, stessa fascia: 0 generazioni in piu\' (l\'ultimo Per Te salvato sul telefono)', async () => {
+        allOra('2026-10-15T12:05:00+02:00');
+        serverRisponde(DNA_SERVER);
+        await apriHome();
+        cleanup();
+        vi.setSystemTime(new Date('2026-10-15T12:20:00+02:00'));
+        await rientra(nuovoClient());
+        expect(generateHomeTours).toHaveBeenCalledTimes(1);
+        expect(getUserPreferences).toHaveBeenCalledTimes(2); // il DNA si rilegge, Per Te no
+        expect(screen.getByText(VUOTO)).toBeTruthy();
+    });
+
+    it('cambio di fascia 17:59 → 18:01: 1 generazione nuova (il giro della sera)', async () => {
+        allOra('2026-10-15T17:59:00+02:00');
+        serverRisponde(DNA_SERVER);
+        const client = await apriHome();
+        expect(generateHomeTours).toHaveBeenCalledTimes(1);
+        cleanup();
+        vi.setSystemTime(new Date('2026-10-15T18:01:00+02:00'));
+        await apriHome(client, 2);
+        expect(generateHomeTours).toHaveBeenCalledTimes(2);
+    });
+
+    it('DNA che non risponde: Per Te parte dopo 4 s con quello che c\'e\', 1 generazione', async () => {
+        getUserPreferences.mockImplementation(() => new Promise(() => {}));
+        const t0 = Date.now();
+        await apriHome(nuovoClient(), 1, 6000);
+        expect(generateHomeTours).toHaveBeenCalledTimes(1);
+        expect(generateHomeTours.alle[0] - t0).toBeGreaterThanOrEqual(DNA_ATTESA_MAX_MS);
+    }, 10000);
+
+    it('le fasce sono quelle del motore (sera dalle 18, momenti della giornata), ora di Roma', () => {
+        expect(giornoEFasciaPerTe(new Date('2026-10-15T17:59:00+02:00'))).toEqual({ giorno: '2026-10-15', fascia: 'giorno:pomeriggio' });
+        expect(giornoEFasciaPerTe(new Date('2026-10-15T18:01:00+02:00'))).toEqual({ giorno: '2026-10-15', fascia: 'sera:aperitivo' });
+        expect(giornoEFasciaPerTe(new Date('2026-10-15T12:31:00+02:00'))).toEqual({ giorno: '2026-10-15', fascia: 'giorno:pranzo' });
+        // la sera dopo mezzanotte resta la sera del giorno prima
+        expect(giornoEFasciaPerTe(new Date('2026-10-15T23:50:00+02:00'))).toEqual({ giorno: '2026-10-15', fascia: 'sera:dopocena' });
+        expect(giornoEFasciaPerTe(new Date('2026-10-16T00:10:00+02:00'))).toEqual({ giorno: '2026-10-15', fascia: 'sera:dopocena' });
     });
 });
 

@@ -92,6 +92,8 @@ export const AuthProvider = ({ children }) => {
             // precedente), il difetto stava a monte: non c'era nessun altro
             // posto dove il seme vivesse.
             'unnivai_onboarding_seed_v1',
+            // DOPPIO-FIX-2: l'ultimo Per Te (fatto col DNA dell'utente).
+            'dvai_per_te_v1',
             // ONB-1: 'dvai_onboarding_done' NON e' piu' qui. "Onboarding fatto" e' un
             // dato dell'account (user_preferences.onboarding_seed); il flag nel browser
             // e' legato all'id utente (lib/onboardingStatus.js), quindi non puo' far

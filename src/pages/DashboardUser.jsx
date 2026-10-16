@@ -16,6 +16,7 @@ import { useAILearning } from '../hooks/useAILearning';
 import { resolveFoodPrefs, foodPrefsFingerprint } from '@/lib/foodPrefs';
 import { placesDiscoveryService, PlacesSearchError } from '@/services/placesDiscoveryService';
 import { MESSAGGIO_TECNICO, TASTO_RIPROVA } from '@/lib/esitoVuoto';
+import { giornoEFasciaPerTe, leggiPerTe, salvaPerTe } from '@/lib/perTeSalvato';
 
 // Gate INTERESSI-VERI — tre esiti diversi, tre testi diversi:
 //   ricerca Google fallita (rete/HTTP/eccezione) → testo di connessione
@@ -150,7 +151,7 @@ const DashboardUser = () => {
         }
     };
 
-    const { getAIContext, getTourAffinity, dnaShare, dnaWeights, onboardingPrefs, interestIds, dnaPronto } = useAILearning();
+    const { getAIContext, getTourAffinity, dnaShare, dnaWeights, onboardingPrefs, interestIds, dnaPronto, utenteId } = useAILearning();
     // Gate SEME (L1): il ranking DNA (:216 tour reali, :359 riordino) si attiva
     // con >=3 interazioni reali OPPURE con un seme onboarding non vuoto — cosi'
     // gli interessi scelti contano dal primo ingresso (R1).
@@ -158,8 +159,6 @@ const DashboardUser = () => {
     // DOPPIO-FIX — fuori dalla chiave di 'home-experiences': cambia con le azioni dell'utente.
     const hasPreferences = dnaShare > 0;
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
-    // ORARI — a quest'ora i posti chiusi hanno tolto tutti i tour: lo stato vuoto dice "meglio domattina".
-    const [chiusoOra, setChiusoOra] = useState(null);   // il messaggio (per fascia oraria) o null
 
     useEffect(() => {
         const goOffline = () => setIsOffline(true);
@@ -183,15 +182,20 @@ const DashboardUser = () => {
     // DOPPIO-FIX — una generazione per apertura: si parte solo col DNA del server letto (dnaPronto), e la chiave ha solo
     // valori stabili (citta', giorno, dieta e interessi dichiarati), mai contatori che cambiano a ogni azione
     // (totalInteractions, la fiducia del DNA). Una chiave superata viene interrotta col `signal` prima di ogni passo che spende.
-    const oggi = new Date();
-    const giorno = `${oggi.getFullYear()}-${oggi.getMonth() + 1}-${oggi.getDate()}`;
-    const { data: experiences, isError: experiencesError, error: experiencesErrorObj, isPending: experiencesLoading, refetch: refetchExperiences } = useQuery({
-        queryKey: ['home-experiences', city, giorno, foodPrefsFingerprint(onboardingPrefs), (interestIds || []).join('+')],
+    // DOPPIO-FIX-2 — nella chiave anche la fascia del giorno (perTeSalvato), e nessuna scadenza: dentro la stessa chiave
+    // rientrare non rigenera; ricaricando si riusa l'ultimo Per Te salvato sul telefono con la stessa chiave.
+    const { giorno, fascia } = giornoEFasciaPerTe(new Date());
+    const chiavePerTe = ['home-experiences', city, giorno, fascia, foodPrefsFingerprint(onboardingPrefs), (interestIds || []).join('+')];
+    const { data: perTe, isError: experiencesError, error: experiencesErrorObj, isPending: experiencesLoading, refetch: refetchExperiences } = useQuery({
+        queryKey: chiavePerTe,
         enabled: !!city && !!dnaPronto,
-        queryFn: async ({ signal }) => {
+        initialData: () => leggiPerTe(chiavePerTe, utenteId),
+        staleTime: Infinity,
+        queryFn: async ({ signal, queryKey }) => {
             const superata = () => { if (signal?.aborted) throw new Error('[Per Te] richiesta superata'); };
             const currentCity = city;
             let finalTours = [];
+            let chiusoOra = null;
 
             try {
                 const tours = await dataService.getToursByCity(currentCity);
@@ -226,7 +230,7 @@ const DashboardUser = () => {
                             throw new PlacesSearchError(`cityCenter: ${err.message}`, err);
                         }
                         console.warn(`[Per Te] cityCenter irrisolto (${err.reason}) per "${currentCity}" — empty state`);
-                        return [];
+                        return { tours: [], chiusoOra: null };
                     }
                     throw err;
                 }
@@ -292,8 +296,7 @@ const DashboardUser = () => {
                 if (homeToursResult?._source === 'error') {
                     throw new Error(`generateHomeTours: ${homeToursResult._error || 'errore'}`);
                 }
-                superata();
-                setChiusoOra(homeToursResult?._source === 'closed-now' ? homeToursResult._messaggio : null);
+                chiusoOra = homeToursResult?._source === 'closed-now' ? homeToursResult._messaggio : null;
 
                 // Mapping output → shape UI. Ogni tour del narratore diventa una
                 // card, insider in cima (badge dedicato). Regola II.2 applicata a
@@ -387,7 +390,7 @@ const DashboardUser = () => {
             // città" era il nome gentile di "metti uno stock che assomigli al posto":
             // il Colosseo su Roma, una piazza generica ovunque. Senza foto vera la
             // copertina e' il gradient di categoria di TourCover.
-            return finalTours.slice(0, 5).map((t, i) => ({
+            const tours = finalTours.slice(0, 5).map((t, i) => ({
                 ...t,
                 image: t.image || t.imageUrl || null,
                 images: (t.images?.length > 0) ? t.images : [t.image || t.imageUrl].filter(Boolean),
@@ -395,14 +398,19 @@ const DashboardUser = () => {
                     ? 'Scelto per te'
                     : (t.category || (hasPreferences ? 'Basato sui tuoi gusti' : 'Popolare a ' + currentCity)),
             }));
+            superata();
+            const dati = { tours, chiusoOra };
+            salvaPerTe(queryKey, utenteId, dati);
+            return dati;
         },
         // Gate D-2: placeholderData rimosso. Prima serviva 3 tour finti con
         // rating "4.8" e coordinate Roma spacciati per reali. Ora la UI mostra
         // uno skeleton (isPending) mentre carica, empty state se non c'è nulla,
         // errore se la fetch fallisce.
-        // Invalida cache e refetch quando la città cambia
-        staleTime: 120_000, // 2 min — permette refetch rapido al cambio città
     });
+    const experiences = perTe?.tours;
+    // ORARI — a quest'ora i posti chiusi hanno tolto tutti i tour: lo stato vuoto dice "meglio domattina".
+    const chiusoOra = perTe?.chiusoOra ?? null;
 
     const [tourHistory, setTourHistory] = useState([]);
     useEffect(() => {

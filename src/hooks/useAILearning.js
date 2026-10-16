@@ -18,6 +18,8 @@ const STORAGE_KEY = 'unnivai_ai_learning_brain_v2';
 const ONBOARDING_SEED_KEY = 'unnivai_onboarding_seed_v1';
 const MAX_INTERACTIONS = 30;
 const SYNC_DEBOUNCE_MS = 3000;
+// DOPPIO-FIX-2 — quanto Per Te aspetta il DNA del server (decisione di Ivano).
+export const DNA_ATTESA_MAX_MS = 4000;
 
 // Gate SEME (L1): lettura SINCRONA del seme (nessun async nel path critico).
 // JSON malformato/assente → [] (regola #1: nessun fallback produce contenuto,
@@ -194,10 +196,13 @@ export function useAILearning() {
                 };
             });
         };
-        // Lettura fallita o senza riga: Per Te parte lo stesso con quello che c'e' (mai home vuota).
+        // Lettura fallita, senza riga o senza risposta entro DNA_ATTESA_MAX_MS: Per Te parte lo stesso con quello che c'e'
+        // (mai home bloccata). Se il DNA arriva dopo, si applica come sempre.
+        const scadenza = setTimeout(() => setDnaPronto(true), DNA_ATTESA_MAX_MS);
         loadFromDb()
             .catch(err => console.warn('[useAILearning] lettura del DNA dal server fallita:', err?.message))
-            .finally(() => setDnaPronto(true));
+            .finally(() => { clearTimeout(scadenza); setDnaPronto(true); });
+        return () => clearTimeout(scadenza);
     }, [userId]);
 
     // ─── Salva in localStorage ad ogni cambio ─────────────────────────────────
@@ -429,6 +434,7 @@ export function useAILearning() {
         // DOPPIO-FIX — Per Te ('home-experiences') parte solo con dnaPronto, quindi vede gia' il seme del server.
         hasSeed: onboardingSeed.length > 0,
         dnaPronto,
+        utenteId: userId || null,
         // P7b — { dieta: [], budget: '€'|null, stile: 'trattoria'|null } dal primo accesso.
         onboardingPrefs,
         saveFoodPrefs,

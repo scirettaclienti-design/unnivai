@@ -105,12 +105,12 @@ Il caso a freddo controlla anche l'ordine (la generazione parte dopo la risposta
 - **La rigenerazione a tempo resta.** `staleTime: 120_000` sulla query: rientrando nella home dopo 2 minuti Per Te si rigenera, come
   prima; ricaricando la pagina pure (la cache e' in memoria). L'obiettivo «si rigenera solo quando cambiano città, giorno o
   preferenze dichiarate» vale quindi per la sessione aperta, non oltre. **Proposta (non applicata):** `staleTime: Infinity` sulla
-  query di Per Te, con il giorno nella chiave come scadenza.
+  query di Per Te, con il giorno nella chiave come scadenza. *(Applicata in DOPPIO-FIX-2, sotto.)*
 - **La città che cambia durante il caricamento** (quella salvata, poi quella del GPS): chiave nuova, seconda generazione; il `signal`
   la evita solo se la prima non ha ancora aperto il biglietto. Non osservata.
 - **Una lettura del DNA che non risponde mai** (ne' risposta ne' errore) lascia Per Te in attesa. Non e' un modo nuovo di restare
   vuoti: il primo passo del `queryFn`, `getToursByCity`, va sullo stesso Supabase senza tempo massimo. **Proposta (non applicata):**
-  un tempo massimo per la lettura del DNA, oltre il quale Per Te parte con la copia locale.
+  un tempo massimo per la lettura del DNA, oltre il quale Per Te parte con la copia locale. *(Applicata in DOPPIO-FIX-2: 4 s.)*
 - **Le interazioni della sessione non cambiano il Per Te gia' generato**: ordine per affinita' ed etichette («Scelto per te») sono
   quelli dell'apertura fino alla prossima rigenerazione. E' l'obiettivo, ma e' un cambio visibile.
 - **Per Te parte piu' tardi**: dopo `GET user_preferences` (nelle prove 0,55–1,8 s dal caricamento), prima di qualunque ricerca.
@@ -141,3 +141,136 @@ Il caso a freddo controlla anche l'ordine (la generazione parte dopo la risposta
 - **Il giorno della chiave** e' la data del telefono, non quella di Roma: per un telefono con un altro fuso cambia a un'altra ora.
 - **Il conteggio dei warning di `main`** (196) l'ho ricavato: 194 di questo ramo + i 2 tolti in `DashboardUser.jsx`, misurati file
   per file su `main`. Non ho lanciato il lint completo su `main`.
+
+---
+
+# DOPPIO-FIX-2 — Per Te non brucia giri al rientro e alla ricarica; cambia con la fascia del giorno
+
+Stesso ramo `doppio-fix`, sopra `bf125ea`. Nessun deploy, nessuna migrazione, nessun push su `main`, nessun merge.
+
+## In breve
+
+Generazioni (biglietti distinti a openai-proxy) per caso. WebKit (iPhone 13), account di prova, **build di produzione** del codice
+finale (`vite build` con `VITE_PLACES_PROXY_ENABLED=true` in una cartella fuori dal repo, `vite preview` sulla 5192: porta libera,
+processo di questo repo, titolo «DoveVai» prima delle credenziali), places-proxy e openai-proxy dai tracciati del banco (0 $).
+Script: `scripts/prova-doppio/doppio-fix-2.webkit.mjs`.
+
+| Caso | Atteso | Prova WebKit | Test `doppioPerTe` |
+|---|---|---|---|
+| Prima apertura (Catania, 12:05) | 1 | **1** (`home_tours`) | **1** |
+| Rientro in home dopo 3 minuti (12:08) | 0 | **0**, stesso Per Te a schermo (3 carte, stessa prima carta) | **0** |
+| Ricarica della pagina (12:20) | 0 | **0**, stesso Per Te (3 carte, **stesso id** della prima carta: viene dalla copia salvata; un `queryFn` ripartito avrebbe un id nuovo) | **0** |
+| Cambio di fascia | 1 | **1** (Troina 12:05 → 23:00, `itinerary`: il giro della sera) | **1** (17:59 → 18:01) |
+| DNA che non risponde | 1 dopo 4 s | **1**, primo biglietto a 6,2 s dall'apertura | **1**, partita dopo ≥ 4 s |
+
+- **Il cambio di fascia in WebKit è 12:05 → 23:00, non 17:59 → 18:01**: i tracciati del banco hanno Per Te a Troina solo alle 12:05
+  (guardia) e alle 23:00 (BORGO-DIAGNOSI); a 17:59 e 18:01 le ricerche e le chiamate non ci sono. Il passaggio delle 18:00 esatto
+  lo prova il test automatico. Le due ore cadono in fasce diverse (`giorno:mattina` → `sera:dopocena`) dello stesso giorno.
+- **Troina alle 12:05 apre 2 biglietti in una sola esecuzione di Per Te**: i temi (`home_tours`) non danno un tour e il motore fa
+  il tour misto del borgo (`itinerary`, TROINA-FIX). Il tracciato della guardia è registrato così (una generazione dei temi più
+  lista, selettore e narratore del tour misto). Non è un doppio avvio: la chiave è una sola.
+- **Ricerche Google per fase:** apertura 9, DNA muto 9, Troina 7 e poi 1. Al rientro 5 e alla ricarica 4: non sono di Per Te (la
+  prima carta ha lo stesso id, quindi il `queryFn` non è ripartito); vengono dalla pagina «Vedi tutte» visitata per uscire dalla
+  home e dal resto della home. Non ho cercato quali.
+
+## A) Le fasce: quelle del motore, nessuna nuova
+
+La chiave di Per Te è `['home-experiences', città, giorno, fascia, dieta, interessi]`
+(`src/lib/perTeSalvato.js`, `giornoEFasciaPerTe`, ora di Roma). La fascia è fatta di due funzioni che il motore usa già:
+
+| Pezzo | Funzione del motore | Valori |
+|---|---|---|
+| sera o giorno | `isSeraStart` (`src/lib/daySkeleton.js`, `SERA_FROM_MINUTES` 18:00, `ALBA_MINUTES` 05:00): di sera Per Te è il giro della sera (`_homeSera`) | `sera` dalle 18:00 alle 05:00, altrimenti `giorno` |
+| momento | `momentAtClock` (`src/lib/dayMoments.js`): lo stesso momento che il motore mette nelle sue cache di Per Te (`hometours_v2_…_<momento>_…` di giorno, `…_<data>_<momento>` del giro della sera) | mattina (fino alle 12:30), pranzo (12:30–14:30), pomeriggio (14:30–18:00), aperitivo (18:00–20:00), cena (20:00–22:30), dopocena (22:30–00:30); dalle 00:30 alle 09:30 la tabella dice «mattina» |
+
+Esempi: 17:59 → `giorno:pomeriggio`, 18:01 → `sera:aperitivo`, 01:00 → `sera:mattina` (diverso da `giorno:mattina` delle 09:00:
+per questo c'è il pezzo sera/giorno). **La sera dopo mezzanotte resta la sera del giorno prima** (giorno della chiave = il giorno
+prima, fino alle 05:00): rientrare alle 00:10 non rigenera il giro delle 23:50. Il giorno ora è quello di Roma (prima: la data del
+telefono).
+
+Quindi Per Te si rigenera al massimo una volta per momento: 6 momenti di giorno e di sera, più la notte (00:30–05:00).
+La ricerca del cibo cambia anche alle 11:00 e alle 14:45 (`foodQueryForClock`, colazione e merenda), dentro la mattina e il
+pomeriggio: **non** l'ho messa nella chiave, perché il motore stesso riusa Per Te per momento; un Per Te delle 10:50 resta quello
+fino alle 12:30.
+
+## B) Le quattro decisioni, nel codice
+
+1. **Chiave** con giorno e fascia (sopra).
+2. **Nessuna scadenza dentro la chiave:** `staleTime: Infinity` sulla query di Per Te (prima 2 minuti). Rientrare in home non
+   rigenera; il tasto «Riprova» sì (è una richiesta esplicita).
+3. **Ricarica.** *Cosa ho trovato, prima di cambiare:* sul codice di `bf125ea`, in WebKit a 0 $ (build di produzione, ricarica 40 s
+   dopo l'apertura), la ricarica **non** ha aperto nessun biglietto, né di giorno (Catania 12:05) né di sera (Troina 23:00). Non lo
+   evita il server (openai-proxy non ha una cache delle generazioni; `ai_quota_consume` conta ogni biglietto nuovo): lo evita **la
+   cache del motore sul telefono** (`localStorage`, 24 ore). La sera la sua chiave è città, preferenze, data e momento: la ricarica
+   nello stesso momento la ritrova. **Di giorno la chiave contiene anche l'impronta dei posti trovati**: la ricarica rifà le ricerche
+   Google e trova la cache solo se tornano gli stessi posti. Nella prova tornavano uguali (stesse risposte del tracciato, ricerche
+   in cache sul telefono); non tornano uguali quando la ricerca del cibo cambia dentro lo stesso momento (alle 11:00 e alle 14:45) o
+   quando scade la cache delle ricerche, e allora **la ricarica apre un biglietto** (dedotto dal codice, non provato). Quindi la
+   ricarica può crearlo, e ho applicato la decisione: **l'ultimo Per Te si salva sul telefono** (`dvai_per_te_v1`: chiave, utente,
+   tour e riga «chiuso a quest'ora») e, con la stessa chiave e lo stesso utente, torna come dato iniziale della query: niente
+   generazione, niente ricerche Google, Per Te a schermo subito. Si salva solo un Per Te riuscito (un errore no); il logout lo
+   cancella (`AuthContext`, con le altre chiavi dell'utente). La riga «chiuso a quest'ora» ora viaggia col dato (prima era uno
+   stato a parte, che dalla copia salvata non sarebbe tornato).
+4. **DNA in 4 secondi** (`DNA_ATTESA_MAX_MS` in `useAILearning.js`): se la lettura non risponde, `dnaPronto` diventa vero dopo 4 s e
+   Per Te parte con la copia locale. Se il DNA arriva dopo, si applica come sempre.
+
+## C) Test automatico
+
+`src/__tests__/pages/doppioPerTe.test.jsx`: 14 test (9 di DOPPIO-FIX + 5 nuovi). Quelli nuovi:
+
+| Caso | Correzione | Codice di `bf125ea` |
+|---|---|---|
+| rientro in home dopo 3 minuti, stessa fascia | ✅ 0 generazioni in più, Per Te a schermo | ❌ 1 in più |
+| ricarica (client nuovo, stesso telefono), stessa fascia | ✅ 0 in più (il DNA si rilegge, Per Te no) | ❌ 1 in più |
+| cambio di fascia 17:59 → 18:01 | ✅ 1 in più | ✅ 1 in più (ma per la scadenza di 2 minuti, non per la fascia) |
+| DNA che non risponde | ✅ 1, partita dopo ≥ 4 s | ❌ 0: Per Te resta fermo |
+| le fasce (17:59, 18:01, 12:31, 23:50, 00:10 del giorno dopo) | ✅ | — (la funzione è nuova) |
+
+Anche `dashboardUser_emptyState.test.js`: il dato finto ha la forma nuova (`{ tours, chiusoOra }`).
+
+## D) Controlli
+
+| Controllo | Esito |
+|---|---|
+| Suite (`npx vitest run`) | **167 file, 2143 test, tutti verdi** (prima 2138: +5) |
+| Lint (`npm run lint`) | **0 errori**, 194 warning, come `bf125ea`; nei file toccati nessun warning nuovo (`DashboardUser.jsx` 7, `useAILearning.js` 0, `AuthContext.jsx` 1, `perTeSalvato.js` 0) |
+| Build (`vite build`) | ok |
+| Guardia (`npm run banco:guardia`) | **12/12** flussi della home con posti veri |
+| Pertinenza (nella guardia) | **nessun ❌ nuovo** (3 in tutto, 3 già noti) |
+
+## E) Cosa NON risolve
+
+- **Con la home aperta il cambio di fascia si vede al prossimo rientro o ricarica**: la chiave si ricalcola quando la pagina si
+  ridisegna; nessun timer la aggiorna alle 18:00 in punto.
+- **Il DNA che arriva dopo i 4 secondi** con dieta o interessi diversi da quelli del telefono cambia la chiave: Per Te si rigenera
+  una volta (è un cambio di preferenze). Con lo stesso DNA, niente.
+- **Tutto quello che restava da DOPPIO-FIX:** una generazione già partita sul server non si ferma; il nuovo tentativo dopo un errore
+  (`retry: 1`) è un biglietto nuovo; uscire dalla home durante la generazione la annulla lato client.
+- **Il Per Te salvato vale per un telefono**: su un secondo telefono, o con i dati del sito cancellati, la prima apertura nella
+  fascia genera (o trova la cache del motore).
+- **Il tasto «Riprova»** genera sempre, anche nella stessa fascia.
+- **Un Per Te vuoto** («Qui intorno non trovo…», o tutto chiuso) si salva come gli altri: nella stessa fascia non si riprova da solo.
+
+## F) Spesa, produzione, processi
+
+- **Spesa: 0 $.** Nessuna generazione vera.
+- **Produzione invariata:** nessun deploy, nessuna migrazione, nessuna scrittura mia nel database (le aperture della home hanno fatto
+  su Supabase cio' che l'app fa sempre con l'account di prova).
+- **Processi:** l'anteprima della build di `bf125ea` (per la prova della ricarica di prima) e quella del codice finale, entrambe
+  sulla 5192, chiuse; le due build stavano nella cartella temporanea della sessione, fuori dal repo, cancellate. WebKit si chiude da
+  sé a fine script. Nessun server di sviluppo avviato in questa parte.
+
+## Cosa ho dato per vero senza verificarlo (DOPPIO-FIX-2)
+
+- **Che di giorno la ricarica apra un biglietto quando la ricerca del cibo cambia dentro lo stesso momento** (11:00, 14:45) o quando
+  scade la cache delle ricerche: dedotto dalla chiave della cache del motore (contiene l'impronta dei posti), non provato. È il motivo
+  per cui ho applicato la copia sul telefono; nella prova la ricarica di `bf125ea` dava 0.
+- **Che i momenti siano la fascia giusta.** Le ho prese dal motore (le usa nelle sue cache di Per Te); la decisione citava solo «il
+  giro della sera dalle 18». Con questa scelta Per Te può rigenerarsi fino a 7 volte al giorno se la home si apre in ogni momento
+  (6 momenti più la notte); con sole sera/giorno sarebbero 2, ma un Per Te del pranzo resterebbe fino alle 18.
+- **Che il giorno di Roma vada bene a un telefono con un altro fuso**: la fascia del motore è sull'ora di Roma, la chiave pure.
+- **Che le ricerche Google del rientro e della ricarica non siano di Per Te**: lo deduco dall'id della prima carta, che non cambia;
+  non ho registrato quali richieste fossero.
+- **Che su unnivai.vercel.app valga lo stesso**: build locale, proxy dai tracciati.
+- **Che i tour di Per Te reggano il passaggio in JSON** della copia salvata: la cache del motore li salva già così, e nella prova le
+  carte tornano uguali dopo la ricarica; non ho aperto il dettaglio di un tour tornato dalla copia.

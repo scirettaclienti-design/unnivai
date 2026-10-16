@@ -150,14 +150,12 @@ const DashboardUser = () => {
         }
     };
 
-    const { userDNAPreferences, preferenceGraph, totalInteractions, getAIContext, getTourAffinity, dnaShare, dnaWeights, onboardingPrefs } = useAILearning();
+    const { getAIContext, getTourAffinity, dnaShare, dnaWeights, onboardingPrefs, interestIds, dnaPronto } = useAILearning();
     // Gate SEME (L1): il ranking DNA (:216 tour reali, :359 riordino) si attiva
     // con >=3 interazioni reali OPPURE con un seme onboarding non vuoto — cosi'
-    // gli interessi scelti contano dal primo ingresso (R1). hasSeed e' disponibile
-    // sincrono al primo render (letto da localStorage nell'initializer del hook),
-    // quindi la query 'home-experiences' parte gia' col valore giusto. La queryKey
-    // NON cambia struttura: hasPreferences ne era gia' membro.
+    // gli interessi scelti contano dal primo ingresso (R1).
     // P7a — "Per Te" solo quando il DNA ha fiducia (>= 5 eventi, o un seme).
+    // DOPPIO-FIX — fuori dalla chiave di 'home-experiences': cambia con le azioni dell'utente.
     const hasPreferences = dnaShare > 0;
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
     // ORARI — a quest'ora i posti chiusi hanno tolto tutti i tour: lo stato vuoto dice "meglio domattina".
@@ -181,10 +179,17 @@ const DashboardUser = () => {
     // Gate O.2: `enabled: !!city`. Se la citta' non e' ancora risolta,
     // la query NON parte → skeleton in UI. Zero fallback 'Roma' che
     // trapelano allo user come contenuto-ponte finto.
+    //
+    // DOPPIO-FIX — una generazione per apertura: si parte solo col DNA del server letto (dnaPronto), e la chiave ha solo
+    // valori stabili (citta', giorno, dieta e interessi dichiarati), mai contatori che cambiano a ogni azione
+    // (totalInteractions, la fiducia del DNA). Una chiave superata viene interrotta col `signal` prima di ogni passo che spende.
+    const oggi = new Date();
+    const giorno = `${oggi.getFullYear()}-${oggi.getMonth() + 1}-${oggi.getDate()}`;
     const { data: experiences, isError: experiencesError, error: experiencesErrorObj, isPending: experiencesLoading, refetch: refetchExperiences } = useQuery({
-        queryKey: ['home-experiences', city, totalInteractions, hasPreferences, foodPrefsFingerprint(onboardingPrefs)],
-        enabled: !!city,
-        queryFn: async () => {
+        queryKey: ['home-experiences', city, giorno, foodPrefsFingerprint(onboardingPrefs), (interestIds || []).join('+')],
+        enabled: !!city && !!dnaPronto,
+        queryFn: async ({ signal }) => {
+            const superata = () => { if (signal?.aborted) throw new Error('[Per Te] richiesta superata'); };
             const currentCity = city;
             let finalTours = [];
 
@@ -209,6 +214,7 @@ const DashboardUser = () => {
                 // non esiste su Places (typo o proxy giù), fail-CLOSED: nessun tour
                 // finto. La useQuery esce con [] → empty state onesto in UI.
                 let cityCenter;
+                superata();
                 try {
                     cityCenter = await resolveCityCenter(currentCity);
                 } catch (err) {
@@ -237,6 +243,7 @@ const DashboardUser = () => {
                 // C8b — di sera (dalle 18:00 all'alba) "Per Te" e' il giro della sera del motore dei momenti (drink +
                 // passeggiata + cena): i temi non si cercano, nessuna ricerca in piu'. Di giorno il tema cibo segue le fasce.
                 const sera = isSeraStart(new Date());
+                superata();
                 try {
                     // P7b — con una dieta il tema food cerca col criterio dentro.
                     if (!sera) {
@@ -261,6 +268,7 @@ const DashboardUser = () => {
 
                 // Call unificata: 1 sola call OpenAI, N tour narrati.
                 let homeToursResult = { tours: [] };
+                superata(); // l'ultimo punto prima del biglietto: oltre, la generazione e' partita sul server
                 try {
                     homeToursResult = await aiRecommendationService.generateHomeTours({
                         city: currentCity,
@@ -284,6 +292,7 @@ const DashboardUser = () => {
                 if (homeToursResult?._source === 'error') {
                     throw new Error(`generateHomeTours: ${homeToursResult._error || 'errore'}`);
                 }
+                superata();
                 setChiusoOra(homeToursResult?._source === 'closed-now' ? homeToursResult._messaggio : null);
 
                 // Mapping output → shape UI. Ogni tour del narratore diventa una

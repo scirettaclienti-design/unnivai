@@ -46,7 +46,7 @@ vi.mock('@tanstack/react-query', async () => {
             React.useEffect(() => {
                 if (!enabled) return;
                 let alive = true;
-                Promise.resolve().then(queryFn)
+                Promise.resolve().then(() => queryFn({ signal: new AbortController().signal }))
                     .then(data => alive && setState({ data, error: null, isPending: false }))
                     .catch(error => alive && setState({ data: undefined, error, isPending: false }));
                 return () => { alive = false; };
@@ -65,7 +65,7 @@ vi.mock('@/hooks/useUserContext', () => ({
 }));
 vi.mock('@/hooks/useAILearning', () => ({
     useAILearning: () => ({
-        userDNAPreferences: [], preferenceGraph: {}, totalInteractions: 0, hasSeed: false, weights: {},
+        userDNAPreferences: [], preferenceGraph: {}, totalInteractions: 0, hasSeed: false, weights: {}, dnaPronto: true,
         trackGeneratedTour: vi.fn(), trackInteraction: vi.fn(), getAIContext: () => '', getTourAffinity: () => 0,
     }),
 }));

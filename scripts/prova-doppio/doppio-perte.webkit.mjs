@@ -10,6 +10,7 @@
  *   PROVA_RICARICA=1  dopo 40 s ricarica la stessa scheda e osserva altri 40 s (apertura "a caldo")
  *   PROVA_FREDDO=1    la prima apertura senza la copia locale del DNA (unnivai_ai_learning_brain_v2)
  *   PROVA_CALDO=1     la copia locale del DNA ha gia' totalInteractions = PROVA_CALDO_N (default 2, quanto il server)
+ *   PROVA_AUX_A_PARTE=1  una chiamata a openai-proxy senza `dv` riceve 503 senza passare dal replay (vedi doppio-fix)
  *   PROVA_RIPETI=n  aperture per scenario (default 2: la prima dopo l'accesso, la seconda a freddo con la sessione salvata)
  * Prima: porta del vite di QUESTO repo e titolo con "DoveVai" (CLAUDE.md); lo script ricontrolla il titolo prima delle
  * credenziali. Credenziali da .env.local, mai stampate. Esito JSON su stdout (nessun id utente, nessuna email).
@@ -102,6 +103,9 @@ async function apri(browser, statePath, nome, n) {
         let dv = null; try { dv = JSON.parse(req.postData() || '{}').dv || null; } catch { /* corpo non JSON */ }
         const voce = { ms: ms(), purpose: dv?.purpose || 'aux', kind: dv?.kind || null, passaggio: dv?.passaggio || dv?.purpose || null, ticket: dv?.ticket || null, esito: null };
         openai.push(voce);
+        // PROVA_AUX_A_PARTE=1 (DOPPIO-FIX): una chiamata senza `dv` non e' nei tracciati del banco e riceve comunque un 503; qui lo
+        // riceve senza passare dal replay, che serve le chiamate «altro» in ordine: arrivando prima, prendeva la risposta della generazione
+        if (!dv && process.env.PROVA_AUX_A_PARTE === '1') { voce.esito = 'aux: 503 senza replay'; return route.fulfill(json({ error: 'aux non servita nella prova' }, 503)); }
         try { const res = await reteReplay(req.url(), { method: req.method(), body: req.postData() ?? undefined }); voce.esito = res.status; route.fulfill(json(await res.text(), res.status)); }
         catch (e) { voce.esito = `uscita: ${String(e?.message || e).slice(0, 80)}`; route.fulfill(json({ error: 'uscita in rete vietata' }, 503)); }
     });
@@ -112,8 +116,9 @@ async function apri(browser, statePath, nome, n) {
     if (process.env.PROVA_SPIA === '1') {
         await page.route(/\/src\/pages\/DashboardUser\.jsx/, async (route) => {
             const res = await route.fetch();
-            const testo = (await res.text()).replace('queryFn: async () => {',
-                'queryFn: async ({ queryKey: __k }) => { console.log("[DOPPIO] queryFn " + JSON.stringify(__k));');
+            // prima di DOPPIO-FIX `async () =>`, dopo `async ({ signal }) =>`
+            const testo = (await res.text()).replace(/queryFn: async \((\{ signal \})?\) => \{/,
+                (_m, s) => `queryFn: async (__ctx) => { const ${s || '__ctxNonUsato'} = __ctx; console.log("[DOPPIO] queryFn " + JSON.stringify(__ctx.queryKey));`);
             route.fulfill({ response: res, body: testo });
         });
     }

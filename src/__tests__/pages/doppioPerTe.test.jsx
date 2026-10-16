@@ -195,13 +195,55 @@ describe('DOPPIO-FIX-2 — rientro, ricarica, fascia, DNA muto', () => {
         expect(generateHomeTours.alle[0] - t0).toBeGreaterThanOrEqual(DNA_ATTESA_MAX_MS);
     }, 10000);
 
-    it('le fasce sono quelle del motore (sera dalle 18, momenti della giornata), ora di Roma', () => {
-        expect(giornoEFasciaPerTe(new Date('2026-10-15T17:59:00+02:00'))).toEqual({ giorno: '2026-10-15', fascia: 'giorno:pomeriggio' });
-        expect(giornoEFasciaPerTe(new Date('2026-10-15T18:01:00+02:00'))).toEqual({ giorno: '2026-10-15', fascia: 'sera:aperitivo' });
-        expect(giornoEFasciaPerTe(new Date('2026-10-15T12:31:00+02:00'))).toEqual({ giorno: '2026-10-15', fascia: 'giorno:pranzo' });
+    it('tre fasce (DOPPIO-FIX-3): mattina fino alle 14:30, pomeriggio fino alle 18:00, sera fino alle 05:00, ora di Roma', () => {
+        const f = (iso) => giornoEFasciaPerTe(new Date(iso));
+        expect(f('2026-10-15T05:00:00+02:00')).toEqual({ giorno: '2026-10-15', fascia: 'mattina' });
+        expect(f('2026-10-15T12:31:00+02:00')).toEqual({ giorno: '2026-10-15', fascia: 'mattina' });
+        expect(f('2026-10-15T14:29:00+02:00')).toEqual({ giorno: '2026-10-15', fascia: 'mattina' });
+        expect(f('2026-10-15T14:31:00+02:00')).toEqual({ giorno: '2026-10-15', fascia: 'pomeriggio' });
+        expect(f('2026-10-15T17:59:00+02:00')).toEqual({ giorno: '2026-10-15', fascia: 'pomeriggio' });
+        expect(f('2026-10-15T18:01:00+02:00')).toEqual({ giorno: '2026-10-15', fascia: 'sera' });
         // la sera dopo mezzanotte resta la sera del giorno prima
-        expect(giornoEFasciaPerTe(new Date('2026-10-15T23:50:00+02:00'))).toEqual({ giorno: '2026-10-15', fascia: 'sera:dopocena' });
-        expect(giornoEFasciaPerTe(new Date('2026-10-16T00:10:00+02:00'))).toEqual({ giorno: '2026-10-15', fascia: 'sera:dopocena' });
+        expect(f('2026-10-15T23:50:00+02:00')).toEqual({ giorno: '2026-10-15', fascia: 'sera' });
+        expect(f('2026-10-16T00:10:00+02:00')).toEqual({ giorno: '2026-10-15', fascia: 'sera' });
+        expect(f('2026-10-16T04:59:00+02:00')).toEqual({ giorno: '2026-10-15', fascia: 'sera' });
+    });
+});
+
+describe('DOPPIO-FIX-3 — al massimo tre Per Te al giorno: i passaggi di fascia', () => {
+    // apre la home a `da`, esce, rientra a `a` (stesso telefono, la pagina non si ricarica): quante generazioni in piu'
+    const passaggio = async (da, a, rigenera) => {
+        allOra(da);
+        serverRisponde(DNA_SERVER);
+        const client = await apriHome();
+        expect(generateHomeTours).toHaveBeenCalledTimes(1);
+        cleanup();
+        vi.setSystemTime(new Date(a));
+        if (rigenera) await apriHome(client, 2);
+        else await rientra(client);
+        return generateHomeTours.mock.calls.length - 1;
+    };
+
+    it('14:29 → 14:31 (mattina → pomeriggio): rigenera', async () => {
+        expect(await passaggio('2026-10-15T14:29:00+02:00', '2026-10-15T14:31:00+02:00', true)).toBe(1);
+    });
+    it('15:00 → 17:00 (pomeriggio): non rigenera', async () => {
+        expect(await passaggio('2026-10-15T15:00:00+02:00', '2026-10-15T17:00:00+02:00', false)).toBe(0);
+        expect(screen.getByText(VUOTO)).toBeTruthy();
+    });
+    it('17:59 → 18:01 (pomeriggio → sera): rigenera', async () => {
+        expect(await passaggio('2026-10-15T17:59:00+02:00', '2026-10-15T18:01:00+02:00', true)).toBe(1);
+    });
+    it('23:50 → 00:10 (sera, dopo mezzanotte vale la sera del giorno prima): non rigenera', async () => {
+        expect(await passaggio('2026-10-15T23:50:00+02:00', '2026-10-16T00:10:00+02:00', false)).toBe(0);
+        expect(screen.getByText(VUOTO)).toBeTruthy();
+    });
+    // con le sette fasce di DOPPIO-FIX-2 (i momenti) questi due rigeneravano
+    it('12:00 → 13:00 (mattina, prima: mattina → pranzo): non rigenera', async () => {
+        expect(await passaggio('2026-10-15T12:00:00+02:00', '2026-10-15T13:00:00+02:00', false)).toBe(0);
+    });
+    it('18:30 → 22:45 (sera, prima: aperitivo → dopocena): non rigenera', async () => {
+        expect(await passaggio('2026-10-15T18:30:00+02:00', '2026-10-15T22:45:00+02:00', false)).toBe(0);
     });
 });
 

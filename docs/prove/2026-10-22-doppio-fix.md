@@ -175,6 +175,8 @@ Script: `scripts/prova-doppio/doppio-fix-2.webkit.mjs`.
 
 ## A) Le fasce: quelle del motore, nessuna nuova
 
+> **Superata da DOPPIO-FIX-3** (in fondo): la chiave ora ha 3 fasce, non i 7 momenti descritti qui.
+
 La chiave di Per Te è `['home-experiences', città, giorno, fascia, dieta, interessi]`
 (`src/lib/perTeSalvato.js`, `giornoEFasciaPerTe`, ora di Roma). La fascia è fatta di due funzioni che il motore usa già:
 
@@ -274,3 +276,77 @@ Anche `dashboardUser_emptyState.test.js`: il dato finto ha la forma nuova (`{ to
 - **Che su unnivai.vercel.app valga lo stesso**: build locale, proxy dai tracciati.
 - **Che i tour di Per Te reggano il passaggio in JSON** della copia salvata: la cache del motore li salva già così, e nella prova le
   carte tornano uguali dopo la ricarica; non ho aperto il dettaglio di un tour tornato dalla copia.
+
+---
+
+# DOPPIO-FIX-3 — tre fasce nella chiave di Per Te: al massimo tre rigenerazioni al giorno
+
+Stesso ramo `doppio-fix`, sopra `cc3b216`. Nessun deploy, nessuna migrazione, nessun push su `main`, nessun merge. 0 $.
+
+## Cosa cambia
+
+Solo la fascia nella chiave di Per Te (`giornoEFasciaPerTe`, `src/lib/perTeSalvato.js`); `DashboardUser.jsx` non cambia (usa già
+quella funzione) e **il motore non cambia**: continua a scegliere i posti coi suoi momenti (`momentAtClock`, cache comprese).
+
+| Fascia | Ore (Roma) | Da dove viene il confine |
+|---|---|---|
+| `mattina` | 05:00–14:30 | fine della sera (`ALBA_MINUTES`) e inizio del momento «pomeriggio» |
+| `pomeriggio` | 14:30–18:00 | il momento «pomeriggio» di `momentAtClock` (`dayMoments.js`) |
+| `sera` | 18:00–05:00 | `isSeraStart` (`SERA_FROM_MINUTES`, `ALBA_MINUTES`) |
+
+Dopo mezzanotte vale la sera del giorno prima (il giorno della chiave resta quello della sera fino alle 05:00), come in
+DOPPIO-FIX-2. Nessuna soglia scritta a mano: i tre confini sono costanti e tabelle che il motore usa già.
+
+## Test
+
+`src/__tests__/pages/doppioPerTe.test.jsx`: **20 test** (14 di prima + 6 passaggi nuovi; la verifica della funzione delle fasce è
+riscritta per le 3 fasce). Ogni passaggio apre la home all'ora di partenza, esce e rientra all'ora d'arrivo con lo stesso telefono.
+
+| Passaggio | Atteso | Con 3 fasce | Con le 7 fasce di `cc3b216` |
+|---|---|---|---|
+| 14:29 → 14:31 | rigenera | ✅ 1 | 1 |
+| 15:00 → 17:00 | no | ✅ 0 | 0 |
+| 17:59 → 18:01 | rigenera | ✅ 1 | 1 |
+| 23:50 → 00:10 | no | ✅ 0 | 0 |
+| 12:00 → 13:00 (aggiunto) | no | ✅ 0 | ❌ 1 (mattina → pranzo) |
+| 18:30 → 22:45 (aggiunto) | no | ✅ 0 | ❌ 1 (aperitivo → dopocena) |
+| la funzione delle fasce (05:00, 12:31, 14:29, 14:31, 17:59, 18:01, 23:50, 00:10, 04:59) | — | ✅ | ❌ |
+
+I quattro passaggi chiesti danno lo stesso esito anche con le 7 fasce; i due aggiunti sono quelli che mostrano la differenza (con
+le 7 fasce rigeneravano). Rilanciati sul file di `cc3b216` e poi ripristinato.
+
+## Controlli
+
+| Controllo | Esito |
+|---|---|
+| Suite (`npx vitest run`) | **167 file, 2149 test, tutti verdi** (prima 2143: +6) |
+| Lint (`npm run lint`) | **0 errori**, 194 warning, come `cc3b216` (`perTeSalvato.js` 0 prima e dopo) |
+| Build (`vite build`) | ok |
+| Guardia (`npm run banco:guardia`) | **12/12** flussi della home con posti veri |
+| Pertinenza (nella guardia) | **nessun ❌ nuovo** (3 in tutto, 3 già noti) |
+
+## Cosa NON risolve
+
+- **Al massimo tre Per Te al giorno per chiave**: un cambio di città, di dieta o di interessi, o il tasto «Riprova», generano anche
+  dentro la fascia, come prima.
+- **Un Per Te fatto alle 05:30 resta fino alle 14:30**: la ricerca del cibo del motore cambia alle 11:00 (colazione) e i momenti alle
+  12:30 (pranzo), ma la chiave no. Un giro scritto per la colazione può restare a schermo all'ora di pranzo: le tappe chiuse
+  all'arrivo il motore le ha escluse all'ora della generazione, non all'ora in cui si guarda.
+- Tutto il resto di DOPPIO-FIX e DOPPIO-FIX-2 (generazione già partita sul server, nuovo tentativo dopo un errore, cambio di fascia
+  visto al prossimo rientro).
+
+## Processi
+
+Nessun server avviato in questa parte: solo test, lint, build (in una cartella temporanea fuori dal repo, cancellata) e la guardia
+in replay, tutti finiti da soli. Nessun processo acceso a fine task. Produzione invariata: nessun deploy, `main` su GitHub a `5b82249`.
+
+## Cosa ho dato per vero senza verificarlo (DOPPIO-FIX-3)
+
+- **Che «mattina» parta alle 05:00.** Il prompt dice «mattina fino alle 14:30» e «sera dalle 18:00 alle 05:00»: tra le 05:00 e le
+  14:30 ho messo mattina.
+- **Che tre Per Te al giorno bastino a non svuotare il tetto dei 10**: lo dice la decisione; non ho misurato quante volte un utente
+  vero apre la home per fascia.
+- **Che nessuna prova WebKit serva qui**: la chiave è una funzione pura dell'ora, provata nel test con DashboardUser, React Query e
+  `useAILearning` veri; il resto del percorso (copia sul telefono, rientro, ricarica) non cambia rispetto a DOPPIO-FIX-2, dove è stato
+  provato in WebKit.
+- **Che su unnivai.vercel.app valga lo stesso**: nessuna prova in produzione vera.

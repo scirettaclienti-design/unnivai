@@ -1,7 +1,8 @@
 // DOPPIO-FIX-2 — la chiave di Per Te e l'ultimo Per Te salvato sul telefono.
 //
-// La fascia e' quella che il motore usa gia': di sera (isSeraStart, dalle 18:00 all'alba) Per Te e' il giro della sera, di giorno
-// i temi col momento della tabella dei momenti (momentAtClock), lo stesso che entra nella cache di generateHomeTours. Ora di Roma.
+// DOPPIO-FIX-3 — tre fasce (decisione di Ivano), ora di Roma, coi confini del motore: sera = isSeraStart (dalle 18:00 alle 05:00),
+// pomeriggio = il momento «pomeriggio» di momentAtClock (14:30–18:00), mattina = il resto del giorno (05:00–14:30). Al massimo tre
+// Per Te al giorno; il motore continua a scegliere i posti coi suoi momenti.
 // La sera dopo mezzanotte resta la sera del giorno prima: rientrare alle 00:10 non rigenera il giro delle 23:50.
 import { isSeraStart, ALBA_MINUTES } from './daySkeleton';
 import { momentAtClock } from './dayMoments';
@@ -18,7 +19,7 @@ export function giornoEFasciaPerTe(ora = new Date()) {
     if (sera && p.h * 60 + p.mi < ALBA_MINUTES) data = new Date(data.getTime() - 24 * 60 * 60 * 1000);
     return {
         giorno: `${data.getUTCFullYear()}-${due(data.getUTCMonth() + 1)}-${due(data.getUTCDate())}`,
-        fascia: `${sera ? 'sera' : 'giorno'}:${momentAtClock(p.h, p.mi).key}`,
+        fascia: sera ? 'sera' : (momentAtClock(p.h, p.mi).key === 'pomeriggio' ? 'pomeriggio' : 'mattina'),
     };
 }
 

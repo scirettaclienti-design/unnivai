@@ -29,9 +29,10 @@ import { supabase } from '../lib/supabase';
 import { logNavEvent } from '../lib/navTelemetry';
 import { haversineM, pickActiveStep } from '../lib/navGeo';
 import { avviaTracciamento } from '../lib/navTracking';
-import { salvaGiro, leggiGiro, chiudiGiro, chiaveGiro, puntoDelGiro } from '../lib/navSession';
+import { salvaGiro, leggiGiro, chiudiGiro, chiaveGiro, puntoDelGiro, centroDelGiro } from '../lib/navSession';
 import GiroRipresaDialog from '../components/Map/GiroRipresaDialog';
 import { valutaPassaggio } from '../lib/navPassaggio';
+import { valutaArrivo } from '../lib/navArrivo';
 import { creaSchermoAcceso } from '../lib/wakeLock';
 import { NAV_TESTI, avvisoNavigazione, linkMappe } from '../lib/navMessaggi';
 import NavDebugPanel from '../components/NavDebugPanel';
@@ -324,7 +325,6 @@ const MapPage = () => {
         } : null
     }), [map]);
 
-    const activeCity = city || DEFAULT_CITY;
     // Gate F38 — rimossa `const cityData = DEMO_CITIES[activeCity] || DEMO_CITIES['Roma']`.
     // Era il cuore del difetto: DEMO_CITIES contiene 18 città, e il `||` non
     // distingueva "città sconosciuta" da "città Roma". Per ogni città italiana
@@ -345,6 +345,11 @@ const MapPage = () => {
         : null;
 
     const [activeTourData] = useState(() => location.state?.tourData || null);
+    // NAV-1-FIX (D3, NAV-SIM): dopo una ricarica la città dell'utente non è ancora risolta (GPS in corso) e la barra
+    // diceva «Roma» (DEFAULT_CITY) con un giro in corso a Troina o a Catania. Con un tour aperto vale la sua città.
+    const activeCity = city || activeTourData?.city || DEFAULT_CITY;
+    // D3: il giro salvato all'apertura (una lettura sola): se è questo tour, la mappa parte dalla sua tappa in corso.
+    const [centroGiroSalvato] = useState(() => centroDelGiro(leggiGiro(), activeTourData));
     const [viewMode] = useState(() => {
         const s = location.state;
         return (s?.tourData || s?.focusedActivity || s?.route) ? 'activities' : 'tours';
@@ -387,14 +392,14 @@ const MapPage = () => {
     //  6. niente. NESSUN default Roma.
     const { center: mapCenter, source: centerSource } = useMemo(
         () => resolveMapCenter({
-            tourCenter: activeTourData?.center,
+            tourCenter: activeTourData?.center || centroGiroSalvato,
             passedCenter,
             manualCenter,
             gpsCenter: localCenter,
             cityCenter,
             isManual,
         }),
-        [activeTourData, passedCenter, manualCenter, localCenter, cityCenter?.latitude, cityCenter?.longitude, isManual],
+        [activeTourData, centroGiroSalvato, passedCenter, manualCenter, localCenter, cityCenter?.latitude, cityCenter?.longitude, isManual],
     );
 
     const centerStatus = resolveCenterStatus({ center: mapCenter, isLocating, userContextLoading });
@@ -527,6 +532,8 @@ const MapPage = () => {
     const navTrackerRef = useRef(null);
     const navPositionRef = useRef(null);
     const passaggioRef = useRef(null);
+    // NAV-1-FIX (D2): le letture consecutive dentro la soglia della tappa inseguita (src/lib/navArrivo.js).
+    const arrivoRef = useRef(null);
     const schermoAcceso = useMemo(() => creaSchermoAcceso(), []);
     // L2-1: dati Directions trasportati (copia in MapPage, leggibile dal watchPosition
     // senza stale-closure) + precompute punto→stepIdx + cursori monotòni + istruzione.
@@ -1089,7 +1096,10 @@ const MapPage = () => {
                 if (distM > soglia) armedSet.add(nextStep.id);
                 const isArmed = armedSet.has(nextStep.id);
                 const isFirstOfSession = doneIds.length === 0 && firedSet.size === 0;
-                const scattato = distM <= soglia && (isArmed || isFirstOfSession);
+                // NAV-1-FIX (D2): dentro la soglia per DUE letture di fila, non per una sola.
+                const arrivo = valutaArrivo(arrivoRef.current, { stepId: nextStep.id, dist: distM, soglia, puoScattare: isArmed || isFirstOfSession });
+                arrivoRef.current = arrivo.st;
+                const scattato = arrivo.scattato;
                 // Strumento di calibrazione (rimuovere/ridurre dopo Troina).
                 console.log('[DVAI-Geofence]', {
                     modo: targetId ? 'naviga' : 'tour',
@@ -1099,6 +1109,7 @@ const MapPage = () => {
                     soglia: Math.round(soglia),
                     armata: isArmed,
                     primoDellaSessione: isFirstOfSession,
+                    conferme: arrivo.conferme,
                     scattato,
                 });
                 // GATE DEBUG-NAV PERSIST: stessi valori del console.log, stesso
@@ -1130,6 +1141,7 @@ const MapPage = () => {
                         stepId: nextStep.id, dist: distM, soglia, now: Date.now(),
                         distDopoDaUtente: dopo ? haversineM(latitude, longitude, dopo.latitude, dopo.longitude) : null,
                         distDopoDaTappa: dopo ? haversineM(nextStep.latitude, nextStep.longitude, dopo.latitude, dopo.longitude) : null,
+                        pos: { lat: latitude, lng: longitude },
                     });
                     passaggioRef.current = st;
                     if (superata) setTappaPassata(nextStep);
@@ -1311,6 +1323,7 @@ const MapPage = () => {
         // "Naviga" verso un punto non-tappa → single-target senza tappa da sbloccare.
         armedStepsRef.current = new Set();
         passaggioRef.current = null;
+        arrivoRef.current = null;
         setTappaPassata(null);
         // In ripresa il bersaglio di «Naviga» è la tappa salvata (se c'era).
         const singleTarget = ripresa

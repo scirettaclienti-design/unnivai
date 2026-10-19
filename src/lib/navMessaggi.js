@@ -16,6 +16,7 @@ export const NAV_TESTI = Object.freeze({
     PASSATA_SALTA: 'Saltala',
     ARRIVATO: 'Sono arrivato',
     SALTA: 'Salta',
+    APRI_MAPPE: 'Apri in Mappe',
 });
 
 /**
@@ -33,11 +34,26 @@ export function avvisoNavigazione({ gps = null, attesaVisibile = false, offline 
     return null;
 }
 
-/** Il link «Mappe» verso la prossima tappa: Mappe di Apple (su iPhone apre l'app, altrove il sito). */
-export const linkMappe = (tappa, modo = 'walking') => {
+/**
+ * NAV-1-FIX: Mappe di Apple su iPhone (e iPad: iPadOS si presenta come un Mac, lo tradiscono i punti di contatto),
+ * Google Maps altrove.
+ */
+export const usaMappeApple = (nav = typeof navigator !== 'undefined' ? navigator : null) => {
+    const ua = String(nav?.userAgent || '');
+    if (/iPhone|iPad|iPod/i.test(ua)) return true;
+    return /Macintosh/i.test(ua) && Number(nav?.maxTouchPoints || 0) > 1;
+};
+
+/**
+ * Il link «Apri in Mappe» verso una tappa: le indicazioni a piedi (in auto se la navigazione è in auto).
+ * Solo le coordinate della tappa: nessuna partenza (l'app di mappe usa la posizione del telefono), nessun dato
+ * dell'utente. Mappe di Apple su iPhone, Google Maps altrove (`apple` per forzarlo).
+ */
+export const linkMappe = (tappa, modo = 'walking', { apple = usaMappeApple() } = {}) => {
     const lat = Number(tappa?.latitude ?? tappa?.lat);
     const lng = Number(tappa?.longitude ?? tappa?.lng);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-    const dirflg = modo === 'driving' ? 'd' : 'w';
-    return `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=${dirflg}`;
+    const inAuto = modo === 'driving';
+    if (apple) return `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=${inAuto ? 'd' : 'w'}`;
+    return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=${inAuto ? 'driving' : 'walking'}`;
 };

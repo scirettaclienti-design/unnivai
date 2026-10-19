@@ -1,0 +1,708 @@
+{
+ "webkit": "26.5",
+ "base": "http://localhost:5187",
+ "esiti": [
+  {
+   "giro": "catania",
+   "luogo": "Catania",
+   "tappe": 12,
+   "metriPercorso": 3205,
+   "secondi": 646,
+   "video": "~/DoveVai-prove-video/nav-1-fix-b/catania/catania-2026-10-19.webm",
+   "completato": true,
+   "misure": {
+    "riaggancio": [
+     {
+      "tappa": "Castello Ursino",
+      "secondiAlMessaggio": 31,
+      "messaggioVisto": true,
+      "riaggancioS": 0.3,
+      "tornato": true
+     }
+    ],
+    "ripresa": {
+     "attesa": "8/12",
+     "proposta": "8/12",
+     "propostaS": 0.9,
+     "barraDopo": "8/12",
+     "tessereMappa": 39,
+     "corretta": true,
+     "secondiTotali": 9.4,
+     "d3": {
+      "letture": 8,
+      "conRoma": 0,
+      "conPreparo": 0,
+      "mappaMontataPrimaDiRiprendi": true
+     }
+    },
+    "nascosta": {
+     "tappa": "Fontana dell’Amenano",
+     "watchRipartitoS": 0.7,
+     "domanda": "Fontana dell’Amenano"
+    },
+    "offline": {
+     "tappa": "Bar Popolare",
+     "avvisoVisto": true,
+     "secondiAvviso": 0.3,
+     "avvisoTolto": true,
+     "secondiAlRitorno": 0.5
+    },
+    "negata": {
+     "avvisoVisto": true,
+     "watchRipartito": true,
+     "avvisoTolto": true,
+     "secondi": 0.8
+    },
+    "tasto": [],
+    "domande": [
+     {
+      "tappa": "Palazzo dei Chierici",
+      "dopo": "in cammino"
+     },
+     {
+      "tappa": "Fontana dell’Amenano",
+      "dopo": "pagina nascosta"
+     }
+    ],
+    "arriviDaSoli": 10,
+    "scatti": [
+     {
+      "t": "00:34",
+      "tappa": "Porta Uzeda",
+      "distanzaM": 23,
+      "accuracy": 19,
+      "soglia": 25,
+      "distanzaVeraM": 2,
+      "versoTappa": 1
+     },
+     {
+      "t": "00:45",
+      "tappa": "Basilica Cattedrale di Sant'Agata",
+      "distanzaM": 16,
+      "accuracy": 10,
+      "soglia": 25,
+      "distanzaVeraM": 24,
+      "versoTappa": 2
+     },
+     {
+      "t": "02:27",
+      "tappa": "Fontana dell'Elefante (uʻ Liotru)",
+      "distanzaM": 21,
+      "accuracy": 19,
+      "soglia": 25,
+      "distanzaVeraM": 0,
+      "versoTappa": 3
+     },
+     {
+      "t": "02:53",
+      "tappa": "Teatro Antico greco-romano di Catania",
+      "distanzaM": 20,
+      "accuracy": 21,
+      "soglia": 25,
+      "distanzaVeraM": 0,
+      "versoTappa": 4
+     },
+     {
+      "t": "03:13",
+      "tappa": "Trattoria Sorano",
+      "distanzaM": 15,
+      "accuracy": 18,
+      "soglia": 25,
+      "distanzaVeraM": 5,
+      "versoTappa": 5
+     },
+     {
+      "t": "03:24",
+      "tappa": "Piazza Giuseppe Mazzini",
+      "distanzaM": 24,
+      "accuracy": 26,
+      "soglia": 26,
+      "distanzaVeraM": 0,
+      "versoTappa": 6
+     },
+     {
+      "t": "05:42",
+      "tappa": "Castello Ursino",
+      "distanzaM": 13,
+      "accuracy": 6,
+      "soglia": 25,
+      "distanzaVeraM": 7,
+      "versoTappa": 7
+     },
+     {
+      "t": "06:53",
+      "tappa": "Via Etnea",
+      "distanzaM": 10,
+      "accuracy": 10,
+      "soglia": 25,
+      "distanzaVeraM": 1,
+      "versoTappa": 9
+     },
+     {
+      "t": "07:55",
+      "tappa": "Bar Popolare",
+      "distanzaM": 9,
+      "accuracy": 9,
+      "soglia": 25,
+      "distanzaVeraM": 0,
+      "versoTappa": 10
+     },
+     {
+      "t": "10:39",
+      "tappa": "Camelot",
+      "distanzaM": 3,
+      "accuracy": 9,
+      "soglia": 25,
+      "distanzaVeraM": 7,
+      "versoTappa": 12
+     }
+    ],
+    "falsiArrivi": [],
+    "verita": [
+     {
+      "t": "06:38",
+      "tappa": "Palazzo dei Chierici",
+      "veroM": 81,
+      "nonPassata": false,
+      "sbagliata": false
+     },
+     {
+      "t": "10:13",
+      "tappa": "Fontana dell’Amenano",
+      "veroM": 90,
+      "nonPassata": false,
+      "sbagliata": false
+     }
+    ],
+    "domandeSbagliate": 0,
+    "mappe": [
+     {
+      "tappa": "Porta Uzeda",
+      "href": "https://maps.apple.com/?daddr=37.5017967,15.087635899999999&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Basilica Cattedrale di Sant'Agata",
+      "href": "https://maps.apple.com/?daddr=37.5024087,15.0877191&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Fontana dell'Elefante (uʻ Liotru)",
+      "href": "https://maps.apple.com/?daddr=37.502516899999996,15.087099600000002&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Teatro Antico greco-romano di Catania",
+      "href": "https://maps.apple.com/?daddr=37.502662,15.083870300000001&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Trattoria Sorano",
+      "href": "https://maps.apple.com/?daddr=37.5018302,15.085401599999999&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Piazza Giuseppe Mazzini",
+      "href": "https://maps.apple.com/?daddr=37.50176,15.084904799999997&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Castello Ursino",
+      "href": "https://maps.apple.com/?daddr=37.4991663,15.084493199999997&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Palazzo dei Chierici",
+      "href": "https://maps.apple.com/?daddr=37.5021169,15.087216499999998&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Palazzo dei Chierici",
+      "href": "https://maps.apple.com/?daddr=37.5021169,15.087216499999998&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Via Etnea",
+      "href": "https://maps.apple.com/?daddr=37.503894,15.0871153&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Bar Popolare",
+      "href": "https://maps.apple.com/?daddr=37.5021939,15.0849114&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Fontana dell’Amenano",
+      "href": "https://maps.apple.com/?daddr=37.502040699999995,15.087013899999999&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     },
+     {
+      "tappa": "Camelot",
+      "href": "https://maps.apple.com/?daddr=37.4997222,15.083888900000002&dirflg=w",
+      "giusto": true,
+      "soloTappa": true
+     }
+    ]
+   },
+   "cronologia": [
+    {
+     "t": "00:00",
+     "s": 0,
+     "tipo": "percorsi",
+     "gambe": 12,
+     "metri": 3205
+    },
+    {
+     "t": "00:01",
+     "s": 1,
+     "tipo": "avvia",
+     "tappe": 12
+    },
+    {
+     "t": "00:01",
+     "s": 1,
+     "tipo": "barra",
+     "tappa": "1/12",
+     "fatte": 0,
+     "saltate": 0
+    },
+    {
+     "t": "00:01",
+     "s": 1,
+     "tipo": "avviso-mostrato",
+     "avviso": "negato"
+    },
+    {
+     "t": "00:09",
+     "s": 9,
+     "tipo": "posizione-concessa"
+    },
+    {
+     "t": "00:10",
+     "s": 10,
+     "tipo": "avviso-tolto",
+     "avviso": "negato"
+    },
+    {
+     "t": "00:10",
+     "s": 10,
+     "tipo": "dopo-concessa",
+     "watchAttivo": true,
+     "avvisoTolto": true,
+     "secondi": 0.8
+    },
+    {
+     "t": "00:34",
+     "s": 34,
+     "tipo": "arrivo-da-solo",
+     "tappa": "Porta Uzeda",
+     "distanzaM": 23,
+     "soglia": 25,
+     "distanzaVeraM": 2
+    },
+    {
+     "t": "00:38",
+     "s": 38,
+     "tipo": "barra",
+     "tappa": "2/12",
+     "fatte": 1,
+     "saltate": 0
+    },
+    {
+     "t": "00:45",
+     "s": 45,
+     "tipo": "arrivo-da-solo",
+     "tappa": "Basilica Cattedrale di Sant'Agata",
+     "distanzaM": 16,
+     "soglia": 25,
+     "distanzaVeraM": 24
+    },
+    {
+     "t": "00:48",
+     "s": 48,
+     "tipo": "sosta-lunga-inizio",
+     "tappa": "Basilica Cattedrale di Sant'Agata",
+     "secondi": 90
+    },
+    {
+     "t": "00:49",
+     "s": 49,
+     "tipo": "barra",
+     "tappa": "3/12",
+     "fatte": 2,
+     "saltate": 0
+    },
+    {
+     "t": "02:19",
+     "s": 139,
+     "tipo": "sosta-lunga-fine",
+     "tappa": "Basilica Cattedrale di Sant'Agata",
+     "fatte": 2
+    },
+    {
+     "t": "02:27",
+     "s": 147,
+     "tipo": "arrivo-da-solo",
+     "tappa": "Fontana dell'Elefante (uʻ Liotru)",
+     "distanzaM": 21,
+     "soglia": 25,
+     "distanzaVeraM": 0
+    },
+    {
+     "t": "02:31",
+     "s": 151,
+     "tipo": "barra",
+     "tappa": "4/12",
+     "fatte": 3,
+     "saltate": 0
+    },
+    {
+     "t": "02:53",
+     "s": 173,
+     "tipo": "arrivo-da-solo",
+     "tappa": "Teatro Antico greco-romano di Catania",
+     "distanzaM": 20,
+     "soglia": 25,
+     "distanzaVeraM": 0
+    },
+    {
+     "t": "02:57",
+     "s": 177,
+     "tipo": "barra",
+     "tappa": "5/12",
+     "fatte": 4,
+     "saltate": 0
+    },
+    {
+     "t": "03:13",
+     "s": 193,
+     "tipo": "arrivo-da-solo",
+     "tappa": "Trattoria Sorano",
+     "distanzaM": 15,
+     "soglia": 25,
+     "distanzaVeraM": 5
+    },
+    {
+     "t": "03:17",
+     "s": 197,
+     "tipo": "barra",
+     "tappa": "6/12",
+     "fatte": 5,
+     "saltate": 0
+    },
+    {
+     "t": "03:24",
+     "s": 204,
+     "tipo": "arrivo-da-solo",
+     "tappa": "Piazza Giuseppe Mazzini",
+     "distanzaM": 24,
+     "soglia": 26,
+     "distanzaVeraM": 0
+    },
+    {
+     "t": "03:28",
+     "s": 208,
+     "tipo": "barra",
+     "tappa": "7/12",
+     "fatte": 6,
+     "saltate": 0
+    },
+    {
+     "t": "03:41",
+     "s": 221,
+     "tipo": "segnale-perso-inizio",
+     "tappa": "Castello Ursino"
+    },
+    {
+     "t": "04:12",
+     "s": 252,
+     "tipo": "avviso-mostrato",
+     "avviso": "perso"
+    },
+    {
+     "t": "05:41",
+     "s": 341,
+     "tipo": "avviso-tolto",
+     "avviso": "perso"
+    },
+    {
+     "t": "05:41",
+     "s": 341,
+     "tipo": "segnale-tornato",
+     "tappa": "Castello Ursino",
+     "secondiAlMessaggio": 31,
+     "messaggioVisto": true,
+     "riaggancioS": 0.3,
+     "tornato": true
+    },
+    {
+     "t": "05:42",
+     "s": 342,
+     "tipo": "arrivo-da-solo",
+     "tappa": "Castello Ursino",
+     "distanzaM": 13,
+     "soglia": 25,
+     "distanzaVeraM": 7
+    },
+    {
+     "t": "05:45",
+     "s": 345,
+     "tipo": "barra",
+     "tappa": "8/12",
+     "fatte": 7,
+     "saltate": 0
+    },
+    {
+     "t": "05:49",
+     "s": 349,
+     "tipo": "ricarica",
+     "tappaAttesa": 8
+    },
+    {
+     "t": "05:49",
+     "s": 349,
+     "tipo": "proposta-ripresa",
+     "tappa": "8/12"
+    },
+    {
+     "t": "05:53",
+     "s": 353,
+     "tipo": "barra",
+     "tappa": "8/12",
+     "fatte": 7,
+     "saltate": 0
+    },
+    {
+     "t": "05:58",
+     "s": 358,
+     "tipo": "ripresa",
+     "attesa": "8/12",
+     "proposta": "8/12",
+     "propostaS": 0.9,
+     "barraDopo": "8/12",
+     "tessereMappa": 39,
+     "corretta": true,
+     "secondiTotali": 9.4,
+     "d3": {
+      "letture": 8,
+      "conRoma": 0,
+      "conPreparo": 0,
+      "mappaMontataPrimaDiRiprendi": true
+     }
+    },
+    {
+     "t": "05:58",
+     "s": 358,
+     "tipo": "superata-pianificata",
+     "tappa": "Palazzo dei Chierici",
+     "accantoM": 60,
+     "minimoM": 60
+    },
+    {
+     "t": "06:38",
+     "s": 398,
+     "tipo": "domanda",
+     "tappa": "Palazzo dei Chierici",
+     "veroM": 81,
+     "nonPassata": false,
+     "sbagliata": false
+    },
+    {
+     "t": "06:39",
+     "s": 399,
+     "tipo": "risposta-vista",
+     "tappa": "Palazzo dei Chierici",
+     "motivo": "in cammino"
+    },
+    {
+     "t": "06:42",
+     "s": 402,
+     "tipo": "barra",
+     "tappa": "9/12",
+     "fatte": 8,
+     "saltate": 0
+    },
+    {
+     "t": "06:53",
+     "s": 413,
+     "tipo": "arrivo-da-solo",
+     "tappa": "Via Etnea",
+     "distanzaM": 10,
+     "soglia": 25,
+     "distanzaVeraM": 1
+    },
+    {
+     "t": "06:57",
+     "s": 417,
+     "tipo": "barra",
+     "tappa": "10/12",
+     "fatte": 9,
+     "saltate": 0
+    },
+    {
+     "t": "07:12",
+     "s": 432,
+     "tipo": "rete-spenta",
+     "tappa": "Bar Popolare"
+    },
+    {
+     "t": "07:12",
+     "s": 432,
+     "tipo": "avviso-mostrato",
+     "avviso": "offline"
+    },
+    {
+     "t": "07:43",
+     "s": 463,
+     "tipo": "avviso-tolto",
+     "avviso": "offline"
+    },
+    {
+     "t": "07:43",
+     "s": 463,
+     "tipo": "rete-tornata",
+     "tappa": "Bar Popolare",
+     "avvisoVisto": true,
+     "secondiAvviso": 0.3,
+     "avvisoTolto": true,
+     "secondiAlRitorno": 0.5
+    },
+    {
+     "t": "07:55",
+     "s": 475,
+     "tipo": "arrivo-da-solo",
+     "tappa": "Bar Popolare",
+     "distanzaM": 9,
+     "soglia": 25,
+     "distanzaVeraM": 0
+    },
+    {
+     "t": "07:59",
+     "s": 479,
+     "tipo": "barra",
+     "tappa": "11/12",
+     "fatte": 10,
+     "saltate": 0
+    },
+    {
+     "t": "08:12",
+     "s": 492,
+     "tipo": "pagina-nascosta",
+     "tappa": "Fontana dell’Amenano",
+     "mancanoM": 48
+    },
+    {
+     "t": "08:43",
+     "s": 523,
+     "tipo": "avviso-mostrato",
+     "avviso": "perso"
+    },
+    {
+     "t": "10:12",
+     "s": 612,
+     "tipo": "pagina-visibile"
+    },
+    {
+     "t": "10:13",
+     "s": 613,
+     "tipo": "avviso-tolto",
+     "avviso": "perso"
+    },
+    {
+     "t": "10:13",
+     "s": 613,
+     "tipo": "domanda",
+     "tappa": "Fontana dell’Amenano",
+     "veroM": 90,
+     "nonPassata": false,
+     "sbagliata": false
+    },
+    {
+     "t": "10:13",
+     "s": 613,
+     "tipo": "dopo-nascosta",
+     "tappa": "Fontana dell’Amenano",
+     "watchRipartitoS": 0.7,
+     "domanda": "Fontana dell’Amenano"
+    },
+    {
+     "t": "10:13",
+     "s": 613,
+     "tipo": "risposta-vista",
+     "tappa": "Fontana dell’Amenano",
+     "motivo": "dopo la pagina nascosta"
+    },
+    {
+     "t": "10:17",
+     "s": 617,
+     "tipo": "barra",
+     "tappa": "12/12",
+     "fatte": 11,
+     "saltate": 0
+    },
+    {
+     "t": "10:39",
+     "s": 639,
+     "tipo": "tour-completato"
+    },
+    {
+     "t": "10:39",
+     "s": 639,
+     "tipo": "arrivo-da-solo",
+     "tappa": "Camelot",
+     "distanzaM": 3,
+     "soglia": 25,
+     "distanzaVeraM": 7
+    },
+    {
+     "t": "10:45",
+     "s": 645,
+     "tipo": "fine",
+     "completato": true,
+     "fatte": null,
+     "saltate": null
+    }
+   ],
+   "schermate": {
+    "negata": "docs/prove/schermate/nav-1-fix-b/catania/01-posizione-negata.png",
+    "concessa": "docs/prove/schermate/nav-1-fix-b/catania/02-posizione-concessa.png",
+    "primaTappa": "docs/prove/schermate/nav-1-fix-b/catania/08-prima-tappa.png",
+    "sosta": "docs/prove/schermate/nav-1-fix-b/catania/07-sosta-lunga.png",
+    "perso": "docs/prove/schermate/nav-1-fix-b/catania/03-segnale-perso.png",
+    "tornato": "docs/prove/schermate/nav-1-fix-b/catania/04-segnale-tornato.png",
+    "ripresa": "docs/prove/schermate/nav-1-fix-b/catania/09-ripresa-proposta.png",
+    "ripreso": "docs/prove/schermate/nav-1-fix-b/catania/10-ripreso.png",
+    "domanda-Palazzo dei Chierici": "docs/prove/schermate/nav-1-fix-b/catania/domanda-8.png",
+    "offline": "docs/prove/schermate/nav-1-fix-b/catania/05-offline.png",
+    "nascosta": "docs/prove/schermate/nav-1-fix-b/catania/06-dopo-pagina-nascosta.png",
+    "domanda-Fontana dell’Amenano": "docs/prove/schermate/nav-1-fix-b/catania/domanda-11.png",
+    "fine": "docs/prove/schermate/nav-1-fix-b/catania/11-fine-giro.png"
+   },
+   "errori": [],
+   "ultimoTick": {
+    "modo": "tour",
+    "prossimaTappa": "Camelot",
+    "distanzaM": 3,
+    "accuracy": 9,
+    "soglia": 25,
+    "armata": true,
+    "primoDellaSessione": false,
+    "conferme": 2,
+    "scattato": true,
+    "t": "10:39"
+   }
+  }
+ ]
+}

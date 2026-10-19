@@ -18,6 +18,13 @@
  *   scatta l'arrivo viene da lì; la distanza VERA (senza rumore) dalla traccia. La barra si legge ogni mezzo secondo.
  * - Il video va FUORI dal repository (NAV_VIDEO, default ~/DoveVai-prove-video/nav-sim); schermate e cronologia nel repository.
  * Prima delle credenziali: titolo «DoveVai» verificato (CLAUDE.md). Credenziali da .env.local, mai stampate.
+ *
+ * NAV-1-FIX: stessi giri, stessi percorsi, stesso seme. Le uscite si scelgono (NAV_SCHERMATE, NAV_ESITI) così una nuova
+ * camminata non sovrascrive quella di NAV-SIM. Misure in più: «Roma» a schermo dalla ricarica a «Riprendi» (D3) e la mappa
+ * montata o ferma su «Preparo la mappa»; ogni domanda «Sei passato da…?» con la distanza vera e se il camminatore ha
+ * già passato la tappa sul percorso. Domanda SBAGLIATA = la tappa non è ancora passata E il camminatore è a più di
+ * DOMANDA_SBAGLIATA_M veri (100 m = VICINO_M 80 di NAV-1 + 20): sotto, è la domanda «di passaggio» di NAV-1, che scatta
+ * mentre costeggi la tappa (Torre Capitania, Palazzo dei Chierici). Il link «Apri in Mappe» a ogni tappa.
  */
 import { webkit, devices } from 'playwright';
 import fs from 'node:fs';
@@ -28,8 +35,8 @@ const BASE = process.env.NAV_BASE || 'http://localhost:5181';
 const GIRI_FILE = 'docs/prove/dati/2026-10-16-nav-sim-giri.json';
 const PERCORSI_FILE = 'docs/prove/dati/2026-10-16-nav-sim-percorsi.json';
 const VIDEO = process.env.NAV_VIDEO || path.join(os.homedir(), 'DoveVai-prove-video', 'nav-sim');
-const OUT = path.resolve('docs/prove/schermate/nav-sim');
-const ESITI = 'docs/prove/dati/2026-10-16-nav-sim-esiti.json';
+const OUT = path.resolve(process.env.NAV_SCHERMATE || 'docs/prove/schermate/nav-sim');
+const ESITI = process.env.NAV_ESITI || 'docs/prove/dati/2026-10-16-nav-sim-esiti.json';
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'navsim-'));
 const SOLO = (process.argv[2] || '').split(',').filter(Boolean);
 fs.mkdirSync(OUT, { recursive: true });
@@ -61,7 +68,7 @@ const PIANI = {
     },
 };
 const PASSO_M = 15, PASSO_SALITA_M = 10, AVANZA_EVENTO_M = 150, SOSTA_LUNGA_S = 90, SILENZIO_S = 120, NASCOSTA_S = 120, OFFLINE_S = 30;
-const OFFSET_SUPERATA_M = 60, PRIMA_NASCOSTA_M = 60, PARTENZA_M = 250;
+const OFFSET_SUPERATA_M = 60, PRIMA_NASCOSTA_M = 60, PARTENZA_M = 250, DOMANDA_SBAGLIATA_M = 100;
 
 // ─── geometria ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 const R = 6371000, rad = (x) => (x * Math.PI) / 180;
@@ -138,6 +145,10 @@ const leggiStato = (page) => page.evaluate((avvisi) => {
         saltate: Array.isArray(giro?.skippedSteps) ? giro.skippedSteps.length : null,
         watch: window.__gps?.navWatch?.() ?? null,
         vis: window.__vis,
+        // NAV-1-FIX: «Roma» a schermo (senza la curiosità sui nasoni di Roma, un avviso del giro), la mappa in attesa
+        roma: /\bRoma\b/.test(testo.replace(/Roma ha più di duemila fontanelle[^\n]*/g, '')),
+        preparo: testo.includes('Preparo la mappa'),
+        mappeHref: document.querySelector('[data-testid="nav-apri-mappe"]')?.getAttribute('href') ?? null,
     };
 }, AVVISI).catch(() => null);
 
@@ -259,8 +270,9 @@ async function camminata(browser, statePath, nome) {
         return { ...q, acc: Math.round(Math.max(5, r + (rnd() - 0.5) * 6)) };
     };
     const lente = [];
-    const emetti = async (p, versoTappa) => {
-        veroOra = { p, verso: versoTappa };
+    // oltre = il camminatore ha già passato, sul percorso, il punto più vicino alla tappa verso cui va (D1)
+    const emetti = async (p, versoTappa, oltre = false) => {
+        veroOra = { p, verso: versoTappa, oltre };
         const q = rumore(p);
         const t = Date.now();
         await page.evaluate(([a, b, c]) => window.__gps?.emit(a, b, c), [q.lat, q.lng, q.acc]).catch(() => {});
@@ -277,6 +289,9 @@ async function camminata(browser, statePath, nome) {
     // la barra letta ogni mezzo secondo: ogni cambio è un evento della cronologia
     let ultimo = {};
     let osserva = true;
+    const verita = [];
+    const mappe = [];
+    const finestraRicarica = { attiva: false, letture: 0, roma: 0, preparo: 0 };
     const osservatore = (async () => {
         while (osserva) {
             const tL = Date.now();
@@ -286,7 +301,22 @@ async function camminata(browser, statePath, nome) {
                 if (s.tappa !== ultimo.tappa && s.tappa) evento('barra', { tappa: s.tappa, fatte: s.fatte, saltate: s.saltate });
                 for (const a of s.avvisi) if (!(ultimo.avvisi || []).includes(a)) evento('avviso-mostrato', { avviso: a });
                 for (const a of ultimo.avvisi || []) if (!s.avvisi.includes(a)) evento('avviso-tolto', { avviso: a });
-                if (s.domanda && s.domanda !== ultimo.domanda) evento('domanda', { tappa: s.domanda });
+                if (s.domanda && s.domanda !== ultimo.domanda) {
+                    const a = vere.findIndex(x => x.title === s.domanda) + 1;
+                    const veroM = a > 0 && veroOra ? Math.round(dist(veroOra.p, vere[a - 1])) : null;
+                    const nonPassata = !!veroOra && veroOra.verso === a && !veroOra.oltre;
+                    const sbagliata = nonPassata && veroM != null && veroM > DOMANDA_SBAGLIATA_M;
+                    verita.push({ t: ora(), tappa: s.domanda, veroM, nonPassata, sbagliata });
+                    evento('domanda', { tappa: s.domanda, veroM, nonPassata, sbagliata });
+                }
+                if (finestraRicarica.attiva) { finestraRicarica.letture += 1; if (s.roma) finestraRicarica.roma += 1; if (s.preparo) finestraRicarica.preparo += 1; }
+                if (s.tappa && s.tappa !== ultimo.tappa) {
+                    const n = Number(s.tappa.split('/')[0]);
+                    const st = vere[n - 1];
+                    const m = String(s.mappeHref || '').match(/(?:daddr|destination)=(-?[\d.]+),(-?[\d.]+)/);
+                    mappe.push({ tappa: st?.title ?? null, href: s.mappeHref, giusto: !!(m && st && Math.abs(Number(m[1]) - st.lat) < 1e-6 && Math.abs(Number(m[2]) - st.lng) < 1e-6),
+                        soloTappa: !!s.mappeHref && !/saddr|origin=/.test(s.mappeHref) });
+                }
                 if (s.ripresa && s.ripresa !== ultimo.ripresa) evento('proposta-ripresa', { tappa: s.ripresa });
                 if (s.completato && !ultimo.completato) evento('tour-completato', {});
                 ultimo = s;
@@ -367,8 +397,14 @@ async function camminata(browser, statePath, nome) {
             evento('superata-pianificata', { tappa: tappa.title, accantoM: Math.round(dist(accanto, tappa)), minimoM });
         }
         const metaIdx = Math.floor(punti.length / 2);
+        // il punto del percorso più vicino alla tappa: da lì in poi il camminatore l'ha «passata»
+        let idxVicino = 0;
+        punti.forEach((q, j) => { if (dist(q, tappa) < dist(punti[idxVicino], tappa)) idxVicino = j; });
         for (let i = 0; i < punti.length; i++) {
-            const p = punti[i];
+            // NAV-1-FIX: `let`, riletto dopo i 2 minuti senza segnale e dopo la rete assente. Prima restava il punto di
+            // PRIMA dell'evento e veniva emesso subito dopo quello nuovo: un salto indietro di 150 m (o di 30 m) in 1 s
+            // che il GPS vero non fa (al Castello Ursino: 7 m, poi 123 m).
+            let p = punti[i];
             // ── 2 minuti senza segnale (i vicoli, la salita) ──
             if (piano.senzaSegnale === k && i === metaIdx) {
                 evento('segnale-perso-inizio', { tappa: tappa.title });
@@ -382,8 +418,9 @@ async function camminata(browser, statePath, nome) {
                 let j = i, fatto = 0;
                 while (j < punti.length - 1 && fatto < AVANZA_EVENTO_M) { fatto += dist(punti[j], punti[j + 1]); j++; }
                 i = j;
+                p = punti[i];
                 const tR = Date.now();
-                await emetti(punti[i], k);
+                await emetti(punti[i], k, i >= idxVicino);
                 const tornato = await attendi(s => !s.avvisi?.includes('perso'), 15000);
                 const r = { tappa: tappa.title, secondiAlMessaggio, messaggioVisto: persoVisto, riaggancioS: Math.round((Date.now() - tR) / 100) / 10, tornato };
                 misure.riaggancio.push(r);
@@ -402,9 +439,10 @@ async function camminata(browser, statePath, nome) {
                 let j = i;
                 while (Date.now() - tO < OFFLINE_S * 1000) {
                     const target = Math.min(punti.length - 1, i + Math.floor(((Date.now() - tO) / 1000) * 1.25 / passo));
-                    j = target; await emetti(punti[j], k); await page.waitForTimeout(1000);
+                    j = target; await emetti(punti[j], k, j >= idxVicino); await page.waitForTimeout(1000);
                 }
                 i = j;
+                p = punti[i];
                 await ctx.setOffline(false);
                 const tOn = Date.now();
                 const via = await attendi(s => !s.avvisi?.includes('offline'), 10000);
@@ -424,9 +462,9 @@ async function camminata(browser, statePath, nome) {
                 await page.evaluate(() => window.__setVis('visible'));
                 evento('pagina-visibile', {});
                 await attendi(s => (s.watch || 0) > 0, 6000);
-                await emetti(oltre, k + 1);
+                await emetti(oltre, k + 1, true);
                 await page.waitForTimeout(700);
-                await emetti(sposta(oltre, v.est * PASSO_M, v.nord * PASSO_M), k + 1);
+                await emetti(sposta(oltre, v.est * PASSO_M, v.nord * PASSO_M), k + 1, true);
                 const domanda = await attendi(s => !!s.domanda, 8000);
                 misure.nascosta = { tappa: tappa.title, watchRipartitoS: Math.round((Date.now() - tV) / 100) / 10, domanda: domanda ? ultimo.domanda : null };
                 evento('dopo-nascosta', misure.nascosta);
@@ -436,7 +474,7 @@ async function camminata(browser, statePath, nome) {
                 ripartiDa = { p: oltre, oltreM: AVANZA_EVENTO_M - PRIMA_NASCOSTA_M };
                 break;
             }
-            await emetti(p, k);
+            await emetti(p, k, i >= idxVicino);
             if (ultimo.domanda) { misure.domande.push({ tappa: ultimo.domanda, dopo: 'in cammino' }); await rispondiDomanda('in cammino'); }
             await page.waitForTimeout(1000);
         }
@@ -447,7 +485,7 @@ async function camminata(browser, statePath, nome) {
             if (lunga) evento('sosta-lunga-inizio', { tappa: tappa.title, secondi });
             const fine = Date.now() + secondi * 1000;
             // da fermi iOS manda posizioni più di rado: una ogni 3 s nella sosta lunga
-            while (Date.now() < fine) { await emetti({ lat: tappa.lat, lng: tappa.lng }, k); await page.waitForTimeout(lunga ? 3000 : 1000); }
+            while (Date.now() < fine) { await emetti({ lat: tappa.lat, lng: tappa.lng }, k, true); await page.waitForTimeout(lunga ? 3000 : 1000); }
             if (lunga) { schermate.sosta = await shot('07-sosta-lunga'); evento('sosta-lunga-fine', { tappa: tappa.title, fatte: fatteOra() }); }
             // non scattata da sola? la domanda arriva allontanandosi; se non arriva nemmeno quella, il tasto
             await attendi(s => fatteOra() >= k || !!s.domanda, 3000);
@@ -456,7 +494,7 @@ async function camminata(browser, statePath, nome) {
                 // un passo verso la tappa dopo: se il GPS chiede «Sei passato da…?» è la regola di NAV-1, non un tasto
                 if (vere[k]) {
                     const v = verso(tappa, vere[k]);
-                    for (let m = 1; m <= 4 && !ultimo.domanda; m++) { await emetti(sposta(tappa, v.est * 30 * m, v.nord * 30 * m), k + 1); await page.waitForTimeout(1000); }
+                    for (let m = 1; m <= 4 && !ultimo.domanda; m++) { await emetti(sposta(tappa, v.est * 30 * m, v.nord * 30 * m), k + 1, true); await page.waitForTimeout(1000); }
                 }
                 if (ultimo.domanda) { misure.domande.push({ tappa: ultimo.domanda, dopo: 'allontanandosi' }); await rispondiDomanda('allontanandosi'); }
                 if (fatteOra() < k) {
@@ -480,17 +518,23 @@ async function camminata(browser, statePath, nome) {
             const atteso = fatteOra() + 1;
             const tR = Date.now();
             evento('ricarica', { tappaAttesa: atteso });
+            finestraRicarica.attiva = true;
             await page.reload({ waitUntil: 'domcontentloaded' });
             const proposta = await attendi(s => !!s.ripresa, 30000);
             const secondiProposta = Math.round((Date.now() - tR) / 100) / 10;
+            // D3: 3 s con la proposta a schermo (la barra in alto, la mappa), prima di «Riprendi»
+            await page.waitForTimeout(3000);
+            const mappaMontata = await page.evaluate(() => !!document.querySelector('.gm-style')).catch(() => null);
+            finestraRicarica.attiva = false;
             const propostaTesto = ultimo.ripresa;
             schermate.ripresa = await shot('09-ripresa-proposta');
             if (proposta) await page.getByText('Riprendi', { exact: true }).click({ timeout: 5000 }).catch(() => {});
-            await emetti({ lat: tappa.lat, lng: tappa.lng }, k + 1);
+            await emetti({ lat: tappa.lat, lng: tappa.lng }, k + 1, false);
             const ripresa = await attendi(s => s.tappa === `${atteso}/${N}`, 15000);
             await page.waitForTimeout(5000);
             misure.ripresa = { attesa: `${atteso}/${N}`, proposta: propostaTesto, propostaS: secondiProposta, barraDopo: ultimo.tappa, tessereMappa: ultimo.tessere, corretta: proposta && propostaTesto === `${atteso}/${N}` && ripresa,
-                secondiTotali: Math.round((Date.now() - tR) / 100) / 10 };
+                secondiTotali: Math.round((Date.now() - tR) / 100) / 10,
+                d3: { letture: finestraRicarica.letture, conRoma: finestraRicarica.roma, conPreparo: finestraRicarica.preparo, mappaMontataPrimaDiRiprendi: mappaMontata } };
             evento('ripresa', misure.ripresa);
             schermate.ripreso = await shot('10-ripreso');
         }
@@ -511,7 +555,7 @@ async function camminata(browser, statePath, nome) {
     return {
         giro: nome, luogo: giro.luogo, tappe: N, metriPercorso: legs.reduce((a, l) => a + l.metri, 0), secondi: Math.round((Date.now() - t0) / 1000),
         video: fileVideo ? fileVideo.replace(os.homedir(), '~') : null, completato,
-        misure: { ...misure, arriviDaSoli: daSole.length, scatti, falsiArrivi: falsi },
+        misure: { ...misure, arriviDaSoli: daSole.length, scatti, falsiArrivi: falsi, verita, domandeSbagliate: verita.filter(v => v.sbagliata).length, mappe },
         cronologia, schermate, errori, ultimoTick,
     };
 }

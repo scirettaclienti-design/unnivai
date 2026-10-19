@@ -4,6 +4,9 @@
  * Stampa per ogni giro: tappe riconosciute da sole, con la domanda «Sei passato da…?», col tasto; la distanza a cui scatta
  * l'arrivo (GPS e vera, senza rumore); i falsi arrivi (scatto con il camminatore a più di 40 m veri dalla tappa); i tempi di
  * riaggancio; la ripresa dopo la ricarica; rete, pagina nascosta, posizione negata; gli errori di Directions.
+ * NAV-1-FIX (esiti nuovi): le domande con la verità (distanza vera, tappa passata o no, sbagliata), «Roma» a schermo dopo
+ * la ricarica e la mappa montata prima di «Riprendi» (D3), il link «Apri in Mappe» a ogni tappa. Negli esiti di NAV-SIM
+ * queste voci non ci sono (null).
  */
 import fs from 'node:fs';
 
@@ -27,6 +30,10 @@ for (const e of esiti) {
         falsiArrivi: m.falsiArrivi.map(s => ({ tappa: s.tappa, veroM: s.distanzaVeraM, gpsM: s.distanzaM, t: s.t })),
         segnalePerso: m.riaggancio, ripresa: m.ripresa, offline: m.offline, nascosta: m.nascosta, negata: m.negata,
         directions: direzioni.map(d => ({ t: d.t, stato: d.stato, versoTappa: d.verso })),
+        domandeVerita: m.verita ?? null,
+        domandeSbagliate: m.verita ? m.verita.filter(v => v.sbagliata).length : null,
+        dopoRicarica: m.ripresa?.d3 ?? null,
+        apriInMappe: m.mappe ? { tappe: m.mappe.length, giuste: m.mappe.filter(x => x.giusto).length, soloTappa: m.mappe.filter(x => x.soloTappa).length, esempio: m.mappe[0]?.href ?? null } : null,
         erroriPagina: e.errori.length,
     });
 }

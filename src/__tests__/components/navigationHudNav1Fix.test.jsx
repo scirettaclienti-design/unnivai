@@ -15,21 +15,30 @@ const barra = (props = {}) => render(
         onArrived={() => {}} onSkip={() => {}} onToggleVoice={() => {}} onEndNavigation={() => {}} {...props} />,
 );
 
-describe('D4 — la barra di navigazione ha uno sfondo', () => {
-    it('ogni classe di sfondo del riquadro della barra produce un background-color nel CSS di Tailwind', async () => {
-        const { container } = barra();
+describe('D4 — la barra di navigazione ha uno sfondo e testi che si leggono', () => {
+    // il selettore CSS della classe (Tailwind scrive «bg-x/95» come «.bg-x\\/95»), poi reso letterale per la RegExp
+    const selettore = (c) => `.${c.replace(/[/[\]().:%]/g, (m) => `\\${m}`)}`;
+    const letterale = (t) => t.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
+    const produce = (css, c, proprieta) => new RegExp(`${letterale(selettore(c))}\\s*\\{[^}]*${proprieta}`).test(css);
+
+    it('il riquadro ha uno sfondo, e ogni colore di sfondo o di testo dentro la barra produce CSS', async () => {
+        // la barra con tutte le righe: istruzione, «km totali», voce spenta
+        const { container } = barra({ voiceEnabled: false, routeStats: { distanceM: 5200, durationSec: 4920 },
+            activeManeuver: { maneuver: 'turn-left', instructionHtml: 'Gira a <b>sinistra</b>' } });
         // il riquadro della barra: l'elemento con l'angolo da 28 px (Scala Ossidiana)
         const riquadro = container.querySelector('[class*="rounded-[28px]"]');
         expect(riquadro).toBeTruthy();
+        const { css } = await postcss([tailwind('./tailwind.config.js')]).process('@tailwind utilities;', { from: undefined });
         const sfondi = [...riquadro.classList].filter(c => /^bg-/.test(c));
         expect(sfondi.length).toBeGreaterThan(0);
-        const { css } = await postcss([tailwind('./tailwind.config.js')]).process('@tailwind utilities;', { from: undefined });
-        // il selettore CSS della classe (Tailwind scrive «bg-x/95» come «.bg-x\\/95»), poi reso letterale per la RegExp
-        const selettore = (c) => `.${c.replace(/[/[\]().:%]/g, (m) => `\\${m}`)}`;
-        const letterale = (t) => t.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
-        for (const c of sfondi) {
-            const regola = new RegExp(`${letterale(selettore(c))}\\s*\\{[^}]*background-color`);
-            expect(regola.test(css), `la classe ${c} non produce uno sfondo`).toBe(true);
+        for (const c of sfondi) expect(produce(css, c, 'background-color'), `la classe ${c} non produce uno sfondo`).toBe(true);
+        const colori = new Set();
+        for (const el of [riquadro, ...riquadro.querySelectorAll('*')]) {
+            for (const c of el.classList || []) if (/^(bg|text)-(obsidian|brand|status)-/.test(c)) colori.add(c);
+        }
+        expect(colori.size).toBeGreaterThan(3);
+        for (const c of colori) {
+            expect(produce(css, c, c.startsWith('bg-') ? 'background-color' : 'color'), `la classe ${c} non produce un colore`).toBe(true);
         }
     }, 30_000);
 });

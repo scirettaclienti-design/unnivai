@@ -1853,7 +1853,7 @@ const MapPage = () => {
                                                             value={customOriginAddress || (localCenter ? 'La tua posizione GPS' : '')}
                                                             onChange={(e) => setCustomOriginAddress(e.target.value)}
                                                             placeholder={isLocating ? 'Rilevamento GPS...' : 'Scrivi indirizzo di partenza'}
-                                                            className="flex-1 bg-transparent text-sm font-medium text-obsidian-primary placeholder:text-obsidian-secondary/60 outline-none min-w-0"
+                                                            className="flex-1 bg-transparent text-sm font-medium text-obsidian-primary placeholder:text-obsidian-secondary/80 outline-none min-w-0"
                                                         />
                                                     </>
                                                 ) : isLocating ? (
@@ -2210,7 +2210,7 @@ const MapPage = () => {
                             </div>
                             <div className="absolute bottom-3 left-4">
                                 <h2 className="text-white font-bold text-lg leading-tight">{selectedPartner.name}</h2>
-                                <p className="text-white/70 text-xs flex items-center gap-1">
+                                <p className="text-white text-xs flex items-center gap-1">
                                     <MapPin size={10} /> {selectedPartner.address || `${selectedPartner.distanceM}m dal percorso`}
                                 </p>
                             </div>

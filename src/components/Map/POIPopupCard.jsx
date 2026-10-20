@@ -139,7 +139,7 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
 
                 {/* Address/Description */}
                 <p className="text-xs text-obsidian-secondary line-clamp-2 mb-3 pr-2 flex items-start gap-1">
-                    <MapPin size={12} className="shrink-0 mt-0.5 text-obsidian-secondary/70" />
+                    <MapPin size={12} className="shrink-0 mt-0.5 text-obsidian-secondary/80" />
                     {poi.description || poi.address || poi.vicinity || `Punto di interesse${poi.city ? ` a ${poi.city}` : ''}`}
                 </p>
 

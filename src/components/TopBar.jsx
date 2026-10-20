@@ -138,7 +138,7 @@ export default function TopBar() {
                             <div className="text-xs font-medium text-obsidian-secondary flex items-center space-x-2">
                                 <span className="flex items-center">
                                     <MapPin className="w-3 h-3 mr-1 text-brand-orange" />
-                                    {currentCity || <span className="italic text-obsidian-secondary/70">Scegli citta&apos;</span>}
+                                    {currentCity || <span className="italic text-obsidian-secondary/80">Scegli citta&apos;</span>}
                                     <button onClick={handleCityChange} className="ml-2 hover:bg-obsidian-card p-1 rounded-full text-brand-orange transition-colors">
                                         <Edit2 size={10} />
                                     </button>
@@ -240,7 +240,7 @@ function CityModal({ isOpen, onClose, initialCity, onSave, mode = "edit" }) {
                         onFocus={(e) => e.target.select()}
                         onKeyDown={(e) => { if (e.key === 'Enter') onSave(tempCity); }}
                         placeholder="Cerca una città..."
-                        className="w-full bg-obsidian-bg border border-obsidian-border text-obsidian-primary font-bold rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 transition-all placeholder:font-normal placeholder:text-obsidian-secondary/50"
+                        className="w-full bg-obsidian-bg border border-obsidian-border text-obsidian-primary font-bold rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/50 transition-all placeholder:font-normal placeholder:text-obsidian-secondary/80"
                         autoFocus
                     />
                 </div>

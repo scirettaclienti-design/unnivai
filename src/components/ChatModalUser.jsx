@@ -114,7 +114,7 @@ export default function ChatModalUser({ isOpen, onClose, request, userId, userNa
                                 Chat Attiva
                             </p>
                         </div>
-                        <button onClick={onClose} className="p-2 -mr-2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors">
+                        <button onClick={onClose} className="p-2 -mr-2 text-white hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                     </div>

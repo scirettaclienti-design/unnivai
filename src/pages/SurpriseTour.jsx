@@ -650,7 +650,7 @@ export default function SurpriseTourPage() {
                         disabled={isShuffling || quotaExhaustedFlash || selectedSurpriseType === null}
                         className={`w-full py-4 px-6 rounded-2xl font-bold transition-colors flex items-center justify-center gap-2 shadow-lg ${
                             selectedSurpriseType === null
-                                ? 'bg-obsidian-raised text-obsidian-secondary/50 border border-obsidian-border cursor-not-allowed'
+                                ? 'bg-obsidian-raised text-obsidian-secondary/80 border border-obsidian-border cursor-not-allowed'
                                 : quotaExhaustedFlash
                                     ? 'bg-obsidian-card border border-brand-orange/40 text-brand-orange'
                                     : 'bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg shadow-brand-orange/20 cursor-pointer'

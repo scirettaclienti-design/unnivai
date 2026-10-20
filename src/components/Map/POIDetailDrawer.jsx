@@ -147,7 +147,7 @@ export const POIDetailDrawer = ({
 
               {(poi.city || poi.location) && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-obsidian-secondary">
-                  <MapPin size={11} className="text-obsidian-secondary/60" />
+                  <MapPin size={11} className="text-obsidian-secondary/80" />
                   {poi.city || poi.location}
                 </span>
               )}
@@ -262,7 +262,7 @@ export const POIDetailDrawer = ({
                 <button
                   type="button"
                   disabled
-                  className="w-full bg-obsidian-raised border border-obsidian-border text-obsidian-secondary/50 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-not-allowed"
+                  className="w-full bg-obsidian-raised border border-obsidian-border text-obsidian-secondary/80 py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-not-allowed"
                 >
                   <MapPin size={15} /> Tappa completata
                 </button>

@@ -15,6 +15,8 @@ MIGRATION_REFUND="$ROOT/supabase/migrations/20261008_ai_quota_refund.sql"
 MIGRATION_4CALLS="$ROOT/supabase/migrations/20261008_ai_ticket_itinerary_4_calls.sql"
 # TEST-ACC — l'account di prova senza tetto personale.
 MIGRATION_TESTACC="$ROOT/supabase/migrations/20261010_ai_quota_test_account.sql"
+# QUOTA-TESTER — l'account di prova non muove nessun contatore (personale e globale).
+MIGRATION_QT="$ROOT/supabase/migrations/20261021_ai_quota_test_senza_contatori.sql"
 NAME="dv-quota-sql-test-$$"
 
 cleanup() { docker rm -f "$NAME" >/dev/null 2>&1 || true; }
@@ -83,6 +85,8 @@ psql < "$MIGRATION_4CALLS"
 psql < "$MIGRATION_4CALLS"
 psql < "$MIGRATION_TESTACC"
 psql < "$MIGRATION_TESTACC"
+psql < "$MIGRATION_QT"
+psql < "$MIGRATION_QT"
 
 echo "→ asserzioni"
 psql <<'SQL'
@@ -300,9 +304,10 @@ psql <<'SQL'
 CREATE FUNCTION pg_temp.ok(cond boolean, msg text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN IF cond IS NOT TRUE THEN RAISE EXCEPTION 'FALLITO: %', msg; END IF; RAISE NOTICE 'ok  %', msg; END $$;
 SET ROLE service_role;
-DO $$ DECLARE r jsonb; i int; oggi date := (now() AT TIME ZONE 'Europe/Rome')::date; g int;
+DO $$ DECLARE r jsonb; i int; oggi date := (now() AT TIME ZONE 'Europe/Rome')::date; g int; g0 int;
   normale text := '44444444-4444-4444-4444-444444444444'; prova text := 'cee972ab-10ed-48b8-a3e9-bfd53cf66e64'; BEGIN
   PERFORM pg_temp.ok((SELECT count(*) FROM ai_quota_test_account) = 1, 'una sola riga registrata');
+  g0 := coalesce((SELECT count FROM ai_quota_global WHERE day = oggi), 0);
   -- utente normale: 10 passano, l'11a no
   FOR i IN 1..10 LOOP
     r := public.ai_quota_consume('user', normale, 'generation', gen_random_uuid(), 'itinerary', 10, 100000);
@@ -310,29 +315,48 @@ DO $$ DECLARE r jsonb; i int; oggi date := (now() AT TIME ZONE 'Europe/Rome')::d
   END LOOP;
   r := public.ai_quota_consume('user', normale, 'generation', gen_random_uuid(), 'itinerary', 10, 100000);
   PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'limit', 'normale: 11a generazione bloccata');
-  -- account di prova: 15 passano, contate, con etichetta 'test'
+  -- (a) account di prova: l'11a (e la 15a) generazione passa; NON e' contata, ma il biglietto c'e' con label 'test'
   FOR i IN 1..15 LOOP
     r := public.ai_quota_consume('user', prova, 'generation', gen_random_uuid(), 'itinerary', 10, 100000);
     PERFORM pg_temp.ok((r->>'allowed')::boolean AND r->>'reason' = 'test', format('prova: generazione %s passa', i));
   END LOOP;
-  PERFORM pg_temp.ok((SELECT count FROM ai_quota_daily WHERE user_id = prova::uuid AND day = oggi) = 15, 'prova: le generazioni sono contate (15)');
+  PERFORM pg_temp.ok(coalesce((SELECT count FROM ai_quota_daily WHERE user_id = prova::uuid AND day = oggi), 0) = 0, 'prova: contatore personale a 0 (il preflight del client non la ferma)');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_global WHERE day = oggi) = g0 + 10, 'globale: solo le 10 del normale, nessuna della prova');
   PERFORM pg_temp.ok((SELECT count(*) FROM ai_generation_ticket WHERE subject = 'user:' || prova AND label = 'test') = 15, 'prova: 15 biglietti con etichetta test');
   PERFORM pg_temp.ok(NOT EXISTS (SELECT 1 FROM ai_generation_ticket WHERE subject = 'user:' || normale AND label IS NOT NULL), 'normale: nessuna etichetta');
-  -- contorno: anche li' niente tetto personale per la prova, si per il normale
+  -- chiamata successiva dello stesso biglietto: passa come prima
+  r := public.ai_quota_consume('user', prova, 'generation', (SELECT id FROM ai_generation_ticket WHERE subject = 'user:' || prova LIMIT 1), 'itinerary', 10, 100000);
+  PERFORM pg_temp.ok((r->>'allowed')::boolean AND r->>'reason' = 'ticket', 'prova: seconda chiamata dello stesso biglietto passa');
+  -- contorno: nessun tetto e nessun conteggio per la prova, tetto normale per il normale
   FOR i IN 1..45 LOOP r := public.ai_quota_consume('user', prova, 'aux', NULL, NULL, 40, 100000); END LOOP;
   PERFORM pg_temp.ok((r->>'allowed')::boolean, 'prova: 45a chiamata di contorno passa');
-  -- tetto globale: vale anche per la prova
+  PERFORM pg_temp.ok(coalesce((SELECT calls FROM ai_quota_daily WHERE user_id = prova::uuid AND day = oggi), 0) = 0, 'prova: contorno non contato');
+  FOR i IN 1..40 LOOP r := public.ai_quota_consume('user', normale, 'aux', NULL, NULL, 40, 100000); END LOOP;
+  r := public.ai_quota_consume('user', normale, 'aux', NULL, NULL, 40, 100000);
+  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'limit', 'normale: 41a chiamata di contorno bloccata');
+  -- (b) il normale all'11a e' ancora fermato anche dopo la nuova migrazione (vedi sopra: 'normale: 11a generazione bloccata')
+  -- tetto globale come barriera: se oggi e' gia' pieno la prova e' fermata, e nulla viene contato
   g := (SELECT count FROM ai_quota_global WHERE day = oggi);
   r := public.ai_quota_consume('user', prova, 'generation', gen_random_uuid(), 'itinerary', 10, g);
-  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'global', 'prova: il tetto globale la blocca');
-  PERFORM pg_temp.ok((SELECT count FROM ai_quota_daily WHERE user_id = prova::uuid AND day = oggi) = 15, 'prova: generazione rifiutata dal globale non contata');
+  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'global', 'prova: col globale gia'' pieno e'' fermata');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_global WHERE day = oggi) = g, 'prova: globale invariato dopo il rifiuto');
   -- un ospite non e' mai la prova, nemmeno con lo stesso testo come soggetto
   FOR i IN 1..5 LOOP PERFORM public.ai_quota_consume('guest', prova, 'generation', gen_random_uuid(), 'itinerary', 5, 100000); END LOOP;
   r := public.ai_quota_consume('guest', prova, 'generation', gen_random_uuid(), 'itinerary', 5, 100000);
   PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean, 'ospite con lo stesso id come soggetto: tetto normale');
-  -- rimborso della prova: il personale torna indietro
-  r := public.ai_quota_refund('user', prova, (SELECT id FROM ai_generation_ticket WHERE subject = 'user:' || prova LIMIT 1));
-  PERFORM pg_temp.ok((SELECT count FROM ai_quota_daily WHERE user_id = prova::uuid AND day = oggi) = 14, 'prova: rimborso del personale');
+  -- (c) un client non puo' dichiararsi esente: ne' un utente normale con parametri strani, ne' una riga scritta da lui
+  r := public.ai_quota_consume('user', normale, 'generation', gen_random_uuid(), 'itinerary', 10, 100000);
+  PERFORM pg_temp.ok(NOT (r->>'allowed')::boolean AND r->>'reason' = 'limit', 'normale resta fermato (nessun parametro lo rende esente)');
+  -- rimborso della prova: niente scende, il biglietto sparisce
+  g := (SELECT count FROM ai_quota_global WHERE day = oggi);
+  r := public.ai_quota_refund('user', prova, (SELECT id FROM ai_generation_ticket WHERE subject = 'user:' || prova AND label = 'test' LIMIT 1));
+  PERFORM pg_temp.ok((r->>'refunded')::boolean AND r->>'reason' = 'test', 'prova: rimborso del biglietto test');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_global WHERE day = oggi) = g, 'prova: il rimborso non scala il globale');
+  -- rimborso del normale: come prima (personale -1 e globale -1)
+  g := (SELECT count FROM ai_quota_global WHERE day = oggi);
+  r := public.ai_quota_refund('user', normale, (SELECT id FROM ai_generation_ticket WHERE subject = 'user:' || normale LIMIT 1));
+  PERFORM pg_temp.ok((r->>'refunded')::boolean AND r->>'reason' = 'ok', 'normale: rimborso come prima');
+  PERFORM pg_temp.ok((SELECT count FROM ai_quota_global WHERE day = oggi) = g - 1, 'normale: il rimborso scala il globale');
   -- una seconda riga e' impossibile
   BEGIN INSERT INTO ai_quota_test_account (user_id) VALUES (normale::uuid); RAISE EXCEPTION 'FALLITO: seconda riga';
   EXCEPTION WHEN unique_violation THEN RAISE NOTICE 'ok  seconda riga rifiutata'; END;

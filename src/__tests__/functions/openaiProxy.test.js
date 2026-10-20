@@ -343,6 +343,28 @@ describe('openai-proxy — quota applicata dal server', () => {
     expect(fakeQuota.global).toBe(0);
   });
 
+  // QUOTA-TESTER (c) — l'esenzione dell'account di prova sta solo nel database (ai_quota_test_account,
+  // letta da ai_quota_consume con l'id del JWT). Un client non la puo' dichiarare: il proxy passa al
+  // server soltanto i 7 parametri previsti, qualunque cosa dica il corpo o l'intestazione.
+  it('un client che si dichiara esente (dv, corpo, intestazioni) resta fermato all\'11a generazione', async () => {
+    const seen = [];
+    rpcImpl = async (_n, params) => { seen.push(params); return { data: fakeQuota.consume(params), error: null }; };
+    const furbo = (extra) => ({
+      token: 'tok-anna',
+      dv: { purpose: 'generation', ticket: newTicket(), kind: 'itinerary',
+        exempt: true, esente: true, test: true, label: 'test', is_unlimited: true, user_id: 'cee972ab-10ed-48b8-a3e9-bfd53cf66e64', ...extra },
+      payload: { exempt: true, label: 'test', is_unlimited: true, user: 'cee972ab-10ed-48b8-a3e9-bfd53cf66e64' },
+    });
+    for (let i = 0; i < 10; i++) expect((await call(furbo())).status).toBe(200);
+    const r = await call(furbo());
+    expect(r.status).toBe(429);
+    expect((await r.json()).error).toBe(USER_TEXT);
+    for (const p of seen) {
+      expect(Object.keys(p).sort()).toEqual(['p_global_cap', 'p_limit', 'p_purpose', 'p_subject', 'p_subject_kind', 'p_ticket', 'p_ticket_kind']);
+      expect(p.p_subject).toBe('user-anna');
+    }
+  });
+
   it('account is_unlimited: nessun limite personale', async () => {
     fakeQuota.unlimited.add('user-anna');
     for (let i = 0; i < 12; i++) {

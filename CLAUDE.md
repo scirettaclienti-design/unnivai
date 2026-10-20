@@ -30,9 +30,10 @@ npm run test:coverage     # coverage report (v8)
 
 `scripts/prova-reale/prova.live.js` (`PROVA_RICHIESTE=roma,catania,perte npx vitest run -c scripts/prova-reale/vitest.prova.config.js`).
 Se `.env.local` ha `TEST_ACCOUNT_EMAIL` e `TEST_ACCOUNT_PASSWORD` entra con l'**account di prova**
-(registrato in `public.ai_quota_test_account`, scrivibile solo da service_role): nessun tetto
-personale, **tetto globale valido**, generazioni etichettate `label = 'test'` in
-`ai_generation_ticket`. Senza quelle variabili resta ospite. Le credenziali vivono solo in
+(registrato in `public.ai_quota_test_account`, scrivibile solo da service_role): **nessun contatore**
+(né personale né globale: `ai_quota_daily` resta a 0, così il preflight del client non lo ferma), generazioni
+etichettate `label = 'test'` in `ai_generation_ticket`; il tetto globale lo ferma solo se è già pieno
+(migrazione `20261021_ai_quota_test_senza_contatori.sql`). Senza quelle variabili resta ospite. Le credenziali vivono solo in
 `.env.local` (ignorato da `*.local`): mai stamparle, mai committarle, mai nei report.
 `PROVA_RICHIESTE=login` controlla solo l'accesso, senza chiamate AI.
 

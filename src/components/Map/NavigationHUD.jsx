@@ -10,6 +10,12 @@
  * di Google a schermo (routeStats.error non si mostra più).
  *
  * Design: Scala Ossidiana canonica DoveVAI (bg-obsidian-card, accento arancione su distanza e progresso).
+ *
+ * NAV-1-FIX (D4, NAV-SIM): lo sfondo era `bg-obsidian-card/95`, che non produce CSS (il colore è `var(--obsidian-card)`
+ * e Tailwind v3 non ci sa applicare un'opacità): la barra era trasparente e sulla mappa chiara il nome della tappa si
+ * confondeva con i nomi della mappa. Ora `bg-obsidian-card`, pieno. Stesso difetto nei tre testi secondari (istruzione,
+ * «km totali», «Muto»: `text-obsidian-secondary/80|70|60`, nessun CSS, testo scuro): sul fondo scuro non si leggevano,
+ * ora `text-obsidian-secondary`. «Apri in Mappe» per la tappa corrente (mappeUrl).
  */
 import { motion, AnimatePresence } from 'framer-motion';
 import DOMPurify from 'dompurify';
@@ -141,7 +147,7 @@ export default function NavigationHUD({
                 className="fixed left-2 right-2 z-[70] max-w-md mx-auto pointer-events-auto font-sans"
                 style={{ top: 'max(0.5rem, env(safe-area-inset-top))' }}
             >
-                <div className="bg-obsidian-card/95 backdrop-blur-xl rounded-[28px] overflow-hidden border border-obsidian-border shadow-2xl">
+                <div data-testid="nav-hud-barra" className="bg-obsidian-card backdrop-blur-xl rounded-[28px] overflow-hidden border border-obsidian-border shadow-2xl">
                     {/* ─── Head: icona manovra + destinazione principale + distanza + istruzione ─────── */}
                     <div className="px-4 pt-4 pb-3 flex items-start gap-3">
                         <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-obsidian-raised border border-obsidian-border text-brand-orange">
@@ -175,7 +181,7 @@ export default function NavigationHUD({
                                     {/* 3. Istruzione di manovra (riga piccola secondaria) */}
                                     {maneuverHtml && (
                                         <p
-                                            className="text-xs text-obsidian-secondary/80 leading-normal line-clamp-1 break-words font-normal mt-1"
+                                            className="text-xs text-obsidian-secondary leading-normal line-clamp-1 break-words font-normal mt-1"
                                             dangerouslySetInnerHTML={{ __html: maneuverHtml }}
                                         />
                                     )}
@@ -192,7 +198,7 @@ export default function NavigationHUD({
                                 <p className="text-xs text-obsidian-primary leading-snug">{avviso.testo}</p>
                                 {avviso.tipo === 'percorso' && mappeUrl && (
                                     <a href={mappeUrl} target="_blank" rel="noopener noreferrer" className="inline-block mt-1.5 text-xs font-semibold text-brand-orange underline underline-offset-2">
-                                        Apri in Mappe
+                                        {NAV_TESTI.APRI_MAPPE}
                                     </a>
                                 )}
                             </div>
@@ -236,7 +242,7 @@ export default function NavigationHUD({
                                 />
                             </div>
                             {distanceRemainingText && durationText && (
-                                <div className="text-[11px] text-obsidian-secondary/70 mt-1 font-normal">
+                                <div className="text-[11px] text-obsidian-secondary mt-1 font-normal">
                                     {distanceRemainingText} totali · ~{durationText}
                                 </div>
                             )}
@@ -264,6 +270,18 @@ export default function NavigationHUD({
                                     <span>{NAV_TESTI.SALTA}</span>
                                 </button>
                             )}
+                            {/* NAV-1-FIX: le indicazioni verso la tappa corrente nell'app di mappe del telefono */}
+                            {mappeUrl && (
+                                <a
+                                    href={mappeUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    data-testid="nav-apri-mappe"
+                                    className="flex items-center justify-center px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap bg-obsidian-raised text-obsidian-primary border border-obsidian-border active:scale-95 transition-transform"
+                                >
+                                    {NAV_TESTI.APRI_MAPPE}
+                                </a>
+                            )}
                         </div>
                     )}
 
@@ -274,7 +292,7 @@ export default function NavigationHUD({
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors border border-obsidian-border ${
                                 voiceEnabled
                                     ? 'bg-obsidian-raised text-obsidian-primary'
-                                    : 'bg-obsidian-card text-obsidian-secondary/60 hover:text-obsidian-secondary'
+                                    : 'bg-obsidian-card text-obsidian-secondary'
                             }`}
                             aria-label={voiceEnabled ? 'Disattiva voce' : 'Attiva voce'}
                         >

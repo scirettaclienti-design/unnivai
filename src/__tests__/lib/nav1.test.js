@@ -190,7 +190,7 @@ describe('navMessaggi — un avviso alla volta, i testi di Ivano', () => {
     });
 
     it('link a Mappe solo con coordinate vere', () => {
-        expect(linkMappe({ latitude: 37.5, longitude: 15.08 })).toBe('https://maps.apple.com/?daddr=37.5,15.08&dirflg=w');
+        expect(linkMappe({ latitude: 37.5, longitude: 15.08 }, 'walking', { apple: true })).toBe('https://maps.apple.com/?daddr=37.5,15.08&dirflg=w');
         expect(linkMappe({})).toBeNull();
     });
 });

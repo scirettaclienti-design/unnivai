@@ -65,3 +65,25 @@ export function puntoDelGiro(g) {
     const gestite = (g?.completedSteps?.length || 0) + (g?.skippedSteps?.length || 0);
     return { n: Math.min(m, gestite + 1), m };
 }
+
+/**
+ * NAV-1-FIX (D3): il centro della mappa alla riapertura con un giro in corso di QUESTO tour: la tappa da raggiungere
+ * (la prima né fatta né saltata; in «Naviga» la tappa bersaglio), altrimenti la prima tappa. null se il giro salvato
+ * è di un altro tour o non c'è: allora valgono le regole di sempre (src/lib/mapCenter.js), mai Roma.
+ * Gli id delle tappe sono quelli della mappa: `s.id`, o `step-<indice>` (MapPage, activeRoute).
+ * @returns {{ latitude: number, longitude: number }|null}
+ */
+export function centroDelGiro(g, tourData) {
+    if (!g || !tourData || g.chiave !== chiaveGiro(tourData)) return null;
+    const steps = Array.isArray(tourData.steps) ? tourData.steps : [];
+    const punti = steps.map((s, i) => ({
+        id: s.id || `step-${i}`,
+        latitude: parseFloat(s.lat ?? s.latitude),
+        longitude: parseFloat(s.lng ?? s.longitude),
+    })).filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+    if (!punti.length) return null;
+    const gestite = new Set([...(g.completedSteps || []), ...(g.skippedSteps || [])]);
+    const bersaglio = g.targetStepId ? punti.find(p => p.id === g.targetStepId && !gestite.has(p.id)) : null;
+    const p = bersaglio || punti.find(x => !gestite.has(x.id)) || punti[0];
+    return { latitude: p.latitude, longitude: p.longitude };
+}

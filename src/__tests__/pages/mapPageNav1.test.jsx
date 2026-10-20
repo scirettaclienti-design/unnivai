@@ -108,6 +108,8 @@ describe('NAV-1 — tracciamento sempre attivo', () => {
         expect(screen.getByText('Cerco il segnale. Intanto segui la mappa: le tappe si sbloccano appena ti trovo.')).toBeInTheDocument();
         // Il segnale arriva: sei lontano, poi alla prima tappa.
         act(() => { gps.emit(37.5100, 15.0800); });
+        // NAV-1-FIX (D2): l'arrivo vuole due letture di fila dentro la soglia.
+        act(() => { gps.emit(37.50270, 15.08710); });
         act(() => { gps.emit(37.50270, 15.08710); });
         expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
     });
@@ -157,6 +159,7 @@ describe('NAV-1 — ripresa dopo una ricarica', () => {
         avvia();
         // La prima tappa si fa col GPS (lontano, poi sul posto).
         act(() => { gps.emit(37.5100, 15.0800); });
+        act(() => { gps.emit(37.50270, 15.08710); });
         act(() => { gps.emit(37.50270, 15.08710); });
         expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
         prima.unmount(); // la ricarica: la pagina sparisce, resta solo ciò che è salvato

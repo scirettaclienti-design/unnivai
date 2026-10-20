@@ -88,7 +88,7 @@ export const POIDetailDrawer = ({
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-        className="absolute bottom-0 left-0 right-0 z-[1001] bg-obsidian-card rounded-t-[2rem] shadow-[0_-15px_40px_rgba(0,0,0,0.5)] border-t border-obsidian-border min-h-[38vh] max-h-[82vh] flex flex-col overflow-hidden font-quicksand"
+        className="absolute bottom-0 left-0 right-0 z-[1001] bg-obsidian-card rounded-t-[2rem] shadow-[0_-15px_40px_rgb(14_12_11/0.5)] border-t border-obsidian-border min-h-[38vh] max-h-[82vh] flex flex-col overflow-hidden font-quicksand"
       >
         {/* Grab Handle */}
         <div className="absolute top-0 left-0 right-0 h-4 flex justify-center items-center z-20 pointer-events-none">
@@ -100,7 +100,7 @@ export const POIDetailDrawer = ({
           onClick={onClose}
           type="button"
           aria-label="Chiudi scheda"
-          className="absolute top-3 right-3 z-30 p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-colors active:scale-95 shadow-sm"
+          className="absolute top-3 right-3 z-30 p-2 bg-obsidian-bg/60 hover:bg-obsidian-bg/80 backdrop-blur-md rounded-full text-obsidian-primary transition-colors active:scale-95 shadow-sm"
         >
           <X size={16} strokeWidth={2.5} />
         </button>

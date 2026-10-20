@@ -75,7 +75,7 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
                     <img loading="lazy" src={displayImage} alt={poi.name || poi.title} className="w-full h-full object-cover transition-opacity duration-700 opacity-100" />
                     <button 
                         onClick={(e) => { e.stopPropagation(); onClose(); }}
-                        className="absolute top-2 right-2 p-1.5 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-colors"
+                        className="absolute top-2 right-2 p-1.5 bg-obsidian-bg/60 hover:bg-obsidian-bg/80 backdrop-blur-md rounded-full text-obsidian-primary transition-colors"
                     >
                         <X size={14} strokeWidth={3} />
                     </button>

@@ -193,7 +193,7 @@ export default function NavigationHUD({
                     {/* ─── NAV-1: un avviso alla volta (GPS, rete, percorso) ───────── */}
                     {avviso && (
                         <div role="status" data-testid="nav-avviso" data-tipo={avviso.tipo} className="mx-3 mb-3 px-3 py-2 rounded-2xl bg-obsidian-raised border border-obsidian-border flex items-start gap-2">
-                            <AlertTriangle size={15} className="text-status-warning shrink-0 mt-0.5" />
+                            <AlertTriangle size={15} className="text-brand-orange shrink-0 mt-0.5" />
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs text-obsidian-primary leading-snug">{avviso.testo}</p>
                                 {avviso.tipo === 'percorso' && mappeUrl && (
@@ -313,7 +313,7 @@ export default function NavigationHUD({
 
                         <button
                             onClick={onEndNavigation}
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium text-status-error bg-obsidian-raised hover:bg-obsidian-border border border-obsidian-border transition-colors active:scale-95"
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium text-brand-orange bg-obsidian-raised hover:bg-obsidian-border border border-obsidian-border transition-colors active:scale-95"
                             aria-label="Termina navigazione"
                         >
                             <X size={14} strokeWidth={2.5} />

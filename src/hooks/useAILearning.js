@@ -18,6 +18,8 @@ const STORAGE_KEY = 'unnivai_ai_learning_brain_v2';
 const ONBOARDING_SEED_KEY = 'unnivai_onboarding_seed_v1';
 const MAX_INTERACTIONS = 30;
 const SYNC_DEBOUNCE_MS = 3000;
+// DOPPIO-FIX-2 — quanto Per Te aspetta il DNA del server (decisione di Ivano).
+export const DNA_ATTESA_MAX_MS = 4000;
 
 // Gate SEME (L1): lettura SINCRONA del seme (nessun async nel path critico).
 // JSON malformato/assente → [] (regola #1: nessun fallback produce contenuto,
@@ -99,6 +101,9 @@ export function useAILearning() {
 
     const syncTimerRef = useRef(null);
     const hasSyncedFromDb = useRef(false);
+    // DOPPIO-FIX — true quando il DNA del server e' stato letto (subito per un ospite, che non ne ha). Per Te aspetta questo:
+    // partendo prima, la sua chiave cambiava a lettura finita e partiva una seconda generazione.
+    const [dnaPronto, setDnaPronto] = useState(() => !userId);
 
     // ─── Sync da Supabase al mount (solo una volta) ──────────────────────────
     useEffect(() => {
@@ -191,7 +196,13 @@ export function useAILearning() {
                 };
             });
         };
-        loadFromDb();
+        // Lettura fallita, senza riga o senza risposta entro DNA_ATTESA_MAX_MS: Per Te parte lo stesso con quello che c'e'
+        // (mai home bloccata). Se il DNA arriva dopo, si applica come sempre.
+        const scadenza = setTimeout(() => setDnaPronto(true), DNA_ATTESA_MAX_MS);
+        loadFromDb()
+            .catch(err => console.warn('[useAILearning] lettura del DNA dal server fallita:', err?.message))
+            .finally(() => { clearTimeout(scadenza); setDnaPronto(true); });
+        return () => clearTimeout(scadenza);
     }, [userId]);
 
     // ─── Salva in localStorage ad ogni cambio ─────────────────────────────────
@@ -419,14 +430,11 @@ export function useAILearning() {
         //
         // Gate SEME (L2): puo' passare da false a true DOPO il mount, quando il
         // seme arriva dal server su un device che non ce l'aveva in cache (il
-        // caso "nuovo accesso dopo logout"). DashboardUser:204 lo usa come
-        // membro della queryKey di 'home-experiences' via hasPreferences: il
-        // cambio provoca un refetch sotto la chiave nuova, che e' il
-        // comportamento voluto (il seme e' arrivato, il ranking deve cambiare).
-        // Non e' un caso nuovo per quella query: totalInteractions, gia' membro
-        // della stessa chiave, cambia allo stesso identico momento per effetto
-        // del sync-in.
+        // caso "nuovo accesso dopo logout").
+        // DOPPIO-FIX — Per Te ('home-experiences') parte solo con dnaPronto, quindi vede gia' il seme del server.
         hasSeed: onboardingSeed.length > 0,
+        dnaPronto,
+        utenteId: userId || null,
         // P7b — { dieta: [], budget: '€'|null, stile: 'trattoria'|null } dal primo accesso.
         onboardingPrefs,
         saveFoodPrefs,

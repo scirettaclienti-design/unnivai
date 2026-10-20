@@ -36,7 +36,7 @@ vi.mock('react-router-dom', async () => {
 
 // La query esce con [] — è il caso sotto test: nessuna esperienza da mostrare.
 const QUERY_VUOTA = Object.freeze({
-    data: [], isError: false, isPending: false, refetch: () => {},
+    data: { tours: [], chiusoOra: null }, isError: false, isPending: false, refetch: () => {},
 });
 vi.mock('@tanstack/react-query', () => ({ useQuery: () => QUERY_VUOTA }));
 

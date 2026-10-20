@@ -231,19 +231,19 @@ export default function ProfilePage() {
                     {/* Stats — Stato Vuoto Pulito */}
                     <div className="flex justify-around pt-4 border-t border-obsidian-border">
                         <div className="text-center">
-                            <div className="text-lg font-medium text-obsidian-secondary/40 font-mono">—</div>
+                            <div className="text-lg font-medium text-obsidian-secondary/80 font-mono">—</div>
                             <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Tour</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-lg font-medium text-obsidian-secondary/40 font-mono">—</div>
+                            <div className="text-lg font-medium text-obsidian-secondary/80 font-mono">—</div>
                             <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Guide</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-lg font-medium text-obsidian-secondary/40 font-mono">—</div>
+                            <div className="text-lg font-medium text-obsidian-secondary/80 font-mono">—</div>
                             <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Rating</div>
                         </div>
                     </div>
-                    <p className="text-center text-xs text-obsidian-secondary/70 mt-3">Il tuo primo giro ti aspetta: completane uno e questi numeri prendono vita.</p>
+                    <p className="text-center text-xs text-obsidian-secondary/80 mt-3">Il tuo primo giro ti aspetta: completane uno e questi numeri prendono vita.</p>
                 </motion.div>
 
                 {/* Tour DNA — Informativo */}
@@ -289,7 +289,7 @@ export default function ProfilePage() {
                                             );
                                         })}
                                     </div>
-                                    <p className="text-[10px] text-obsidian-secondary/70 mt-2">{validTotal} interazioni di gusto analizzate</p>
+                                    <p className="text-[10px] text-obsidian-secondary/80 mt-2">{validTotal} interazioni di gusto analizzate</p>
                                 </>
                             )}
                         </motion.div>
@@ -888,7 +888,7 @@ export default function ProfilePage() {
                 />
 
                 {/* MERGE-3 — la versione in produzione: commit e data del build */}
-                <p data-versione className="text-center text-[11px] text-obsidian-secondary/60 pt-6 pb-2">{VERSIONE_APP}</p>
+                <p data-versione className="text-center text-[11px] text-obsidian-secondary/80 pt-6 pb-2">{VERSIONE_APP}</p>
             </main>
 
             <BottomNavigation />

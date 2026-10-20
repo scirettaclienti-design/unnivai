@@ -988,7 +988,7 @@ export default function TourDetailsPage() {
                                         {review.comment && (
                                             <p className="text-sm text-obsidian-secondary leading-relaxed ml-9">{review.comment}</p>
                                         )}
-                                        <p className="text-[10px] text-obsidian-secondary/70 ml-9 mt-1">
+                                        <p className="text-[10px] text-obsidian-secondary/80 ml-9 mt-1">
                                             {new Date(review.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}
                                         </p>
                                     </div>

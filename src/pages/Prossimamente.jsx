@@ -94,12 +94,12 @@ export default function Prossimamente({ kind }) {
     const content = CONTENT[kind] || CONTENT.guide;
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-orange-50/40 to-white pb-24">
+        <div className="min-h-screen pb-24 bg-obsidian-bg">
             <TopBar />
             <div className="max-w-md mx-auto px-6 pt-4">
                 <button
                     onClick={() => navigate(-1)}
-                    className="mb-6 p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors text-gray-600"
+                    className="mb-6 p-2 -ml-2 rounded-full hover:bg-obsidian-raised transition-colors text-obsidian-secondary"
                     aria-label="Torna indietro"
                 >
                     <ArrowLeft className="w-5 h-5" />
@@ -107,16 +107,16 @@ export default function Prossimamente({ kind }) {
 
                 {/* Marcatore fase — smorzato, no pallino animato */}
                 <div className="mb-5">
-                    <span className="inline-flex items-center bg-terracotta-50 text-terracotta-700 text-[10px] font-bold px-3 py-1 rounded-full border border-terracotta-200 uppercase tracking-wider">
+                    <span className="inline-flex items-center bg-brand-orange/10 text-brand-orange text-[10px] font-bold px-3 py-1 rounded-full border border-brand-orange/30 uppercase tracking-wider">
                         <span className="mr-1.5 text-sm leading-none">◇</span>
                         {content.phase}
                     </span>
                 </div>
 
-                <h1 className="text-3xl font-bold font-playfair text-gray-900 leading-tight mb-3">
+                <h1 className="text-3xl font-bold font-playfair text-obsidian-primary leading-tight mb-3">
                     {content.title}
                 </h1>
-                <p className="text-gray-600 text-base leading-relaxed mb-8">
+                <p className="text-obsidian-secondary text-base leading-relaxed mb-8">
                     {content.subtitleBuilder(cityLabel)}
                 </p>
 
@@ -132,7 +132,7 @@ export default function Prossimamente({ kind }) {
                 >
                     <Link
                         to="/explore"
-                        className="w-full inline-flex items-center justify-center gap-2 bg-terracotta-500 text-white font-bold py-3.5 px-5 rounded-2xl shadow-lg shadow-terracotta-500/20 hover:bg-terracotta-600 transition-colors"
+                        className="w-full inline-flex items-center justify-center gap-2 bg-brand-orange text-obsidian-bg font-bold py-3.5 px-5 rounded-2xl shadow-lg shadow-brand-orange/20 hover:bg-brand-orange-hover transition-colors"
                     >
                         Vai a esplorare
                         <ArrowRight className="w-4 h-4" />
@@ -147,10 +147,10 @@ export default function Prossimamente({ kind }) {
 function Section({ label, text }) {
     return (
         <div className="mb-6">
-            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+            <div className="text-[11px] font-bold text-obsidian-secondary uppercase tracking-widest mb-2">
                 — {label}
             </div>
-            <p className="text-gray-700 text-sm leading-relaxed">{text}</p>
+            <p className="text-obsidian-primary text-sm leading-relaxed">{text}</p>
         </div>
     );
 }

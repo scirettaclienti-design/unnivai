@@ -75,7 +75,7 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
                     <img loading="lazy" src={displayImage} alt={poi.name || poi.title} className="w-full h-full object-cover transition-opacity duration-700 opacity-100" />
                     <button 
                         onClick={(e) => { e.stopPropagation(); onClose(); }}
-                        className="absolute top-2 right-2 p-1.5 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full text-white transition-colors"
+                        className="absolute top-2 right-2 p-1.5 bg-obsidian-bg/60 hover:bg-obsidian-bg/80 backdrop-blur-md rounded-full text-obsidian-primary transition-colors"
                     >
                         <X size={14} strokeWidth={3} />
                     </button>
@@ -139,7 +139,7 @@ export const POIPopupCard = ({ poi, onClose, onNavigate }) => {
 
                 {/* Address/Description */}
                 <p className="text-xs text-obsidian-secondary line-clamp-2 mb-3 pr-2 flex items-start gap-1">
-                    <MapPin size={12} className="shrink-0 mt-0.5 text-obsidian-secondary/70" />
+                    <MapPin size={12} className="shrink-0 mt-0.5 text-obsidian-secondary/80" />
                     {poi.description || poi.address || poi.vicinity || `Punto di interesse${poi.city ? ` a ${poi.city}` : ''}`}
                 </p>
 

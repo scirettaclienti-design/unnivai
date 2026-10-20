@@ -1,5 +1,28 @@
 import { THEME } from "./src/styles/themeTokens.js";
 
+/**
+ * I colori sono variabili CSS (`var(--x)`): Tailwind v3 non sa applicarvi un'opacità
+ * (`bg-obsidian-card/95` non produceva nessuna regola). Ogni colore `var(...)` passa da
+ * qui: senza modificatore resta la variabile identica a prima; con `/NN` diventa un `color-mix` con
+ * trasparente, qualunque sia il formato della variabile (hex, hsl).
+ */
+const conOpacita = (colore) => ({ opacityValue }) =>
+    opacityValue === undefined || String(opacityValue).startsWith("var(--tw-")
+        ? colore
+        : `color-mix(in srgb, ${colore} calc(${opacityValue} * 100%), transparent)`;
+
+const abilitaOpacita = (colori) =>
+    Object.fromEntries(
+        Object.entries(colori).map(([nome, valore]) => [
+            nome,
+            typeof valore === "string" && valore.startsWith("var(")
+                ? conOpacita(valore)
+                : valore && typeof valore === "object"
+                    ? abilitaOpacita(valore)
+                    : valore,
+        ])
+    );
+
 /** @type {import('tailwindcss').Config} */
 export default {
     darkMode: ["class"],
@@ -11,7 +34,7 @@ export default {
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
             },
-            colors: {
+            colors: abilitaOpacita({
                 background: "var(--background)",
                 foreground: "var(--foreground)",
                 card: {
@@ -112,7 +135,7 @@ export default {
                     border: "var(--sidebar-border)",
                     ring: "var(--sidebar-ring)",
                 },
-            },
+            }),
             fontFamily: {
                 quicksand: ['Quicksand', 'sans-serif'],
             },

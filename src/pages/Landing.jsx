@@ -699,7 +699,7 @@ const Landing = () => {
                             }}
                             className="absolute bottom-3 right-4 sm:bottom-4 sm:right-6 z-10 pointer-events-none select-none flex items-center gap-1.5"
                         >
-                            <MapPin className="w-3.5 h-3.5 text-obsidian-secondary/70 shrink-0" />
+                            <MapPin className="w-3.5 h-3.5 text-obsidian-secondary/80 shrink-0" />
                             <span className="text-[11px] text-obsidian-secondary font-medium tracking-wide">
                                 {currentPhoto.title} · {currentPhoto.city}
                             </span>

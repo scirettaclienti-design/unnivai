@@ -723,7 +723,7 @@ const DashboardUser = () => {
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center gap-1 text-[10px] text-obsidian-secondary truncate">
-                                                    <MapPin className="w-3 h-3 text-obsidian-secondary/60 shrink-0" />
+                                                    <MapPin className="w-3 h-3 text-obsidian-secondary/80 shrink-0" />
                                                     <span className="truncate">{exp.location || (city ? `Tour a ${city}` : 'Esperienza')}</span>
                                                 </div>
                                             )}
@@ -862,7 +862,7 @@ const DashboardUser = () => {
                                                 value={requestText}
                                                 onChange={(e) => setRequestText(e.target.value)}
                                                 placeholder="Vorrei visitare i mercati storici e assaggiare lo street food locale..."
-                                                className="w-full bg-obsidian-bg border border-obsidian-border rounded-xl p-4 min-h-[120px] focus:outline-none focus:border-brand-orange transition-all resize-none text-obsidian-primary placeholder:text-obsidian-secondary/60 disabled:opacity-50"
+                                                className="w-full bg-obsidian-bg border border-obsidian-border rounded-xl p-4 min-h-[120px] focus:outline-none focus:border-brand-orange transition-all resize-none text-obsidian-primary placeholder:text-obsidian-secondary/80 disabled:opacity-50"
                                                 autoFocus
                                                 disabled={requestStatus === 'submitting'}
                                             />

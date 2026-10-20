@@ -540,7 +540,7 @@ export default function AIItineraryPage() {
                                         pref.selected && (Array.isArray(pref.selected) ? pref.selected.length > 0 : true)
                                     )
                                         ? 'bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg shadow-brand-orange/20 cursor-pointer'
-                                        : 'bg-obsidian-raised text-obsidian-secondary/40 border border-obsidian-border cursor-not-allowed'
+                                        : 'bg-obsidian-raised text-obsidian-secondary/80 border border-obsidian-border cursor-not-allowed'
                                 }`}
                             >
                                 <Brain className="w-5 h-5" />

@@ -90,7 +90,7 @@ export default function TourLivePage() {
     const liveCount = liveTours.filter(t => t.live).length;
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-ochre-100 to-ochre-200 font-quicksand">
+        <div className="min-h-screen font-quicksand bg-obsidian-bg">
             <TopBar />
 
             <main className="max-w-md mx-auto px-4 py-8 pb-24">
@@ -104,11 +104,11 @@ export default function TourLivePage() {
                     <div className="flex items-center mb-6">
                         <Link to="/dashboard-user">
                             <motion.button
-                                className="p-2 rounded-full bg-white/60 backdrop-blur-sm mr-4 hover:bg-white/80 transition-colors"
+                                className="p-2 rounded-full bg-obsidian-card/60 backdrop-blur-sm mr-4 hover:bg-obsidian-card/80 transition-colors"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                             >
-                                <ArrowLeft className="w-5 h-5 text-gray-700" />
+                                <ArrowLeft className="w-5 h-5 text-obsidian-primary" />
                             </motion.button>
                         </Link>
                         <div className="flex-1">
@@ -121,8 +121,8 @@ export default function TourLivePage() {
                                     🎯
                                 </motion.div>
                                 <div>
-                                    <h1 className="text-2xl font-bold text-gray-800">Tour Live</h1>
-                                    <p className="text-gray-600 text-sm">Esperienze autentiche in diretta</p>
+                                    <h1 className="text-2xl font-bold text-obsidian-primary">Tour Live</h1>
+                                    <p className="text-obsidian-secondary text-sm">Esperienze autentiche in diretta</p>
                                 </div>
                             </div>
                         </div>
@@ -136,13 +136,13 @@ export default function TourLivePage() {
                         #6: un fatto, non un aggettivo). */}
                     {liveCount > 0 && (
                         <motion.div
-                            className="bg-gradient-to-r from-red-400 to-pink-400 rounded-2xl p-4 mb-6 text-white relative overflow-hidden"
+                            className="rounded-2xl p-4 mb-6 text-obsidian-bg relative overflow-hidden bg-brand-orange"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ duration: 0.8 }}
                         >
                             <motion.div
-                                className="absolute inset-0 bg-white/10 rounded-2xl"
+                                className="absolute inset-0 bg-obsidian-bg/10 rounded-2xl"
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ duration: 1, delay: 0.3 }}
@@ -150,7 +150,7 @@ export default function TourLivePage() {
                             <div className="relative flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
                                     <motion.div
-                                        className="w-3 h-3 bg-white rounded-full"
+                                        className="w-3 h-3 bg-obsidian-bg rounded-full"
                                         animate={{ scale: [1, 1.2, 1] }}
                                         transition={{ duration: 1, repeat: Infinity }}
                                     />
@@ -181,11 +181,11 @@ export default function TourLivePage() {
                         // perche' non esistono guide che li conducono. Non diciamo
                         // "torna piu' tardi" — non sappiamo se e quando.
                         <div className="flex flex-col items-center justify-center py-14 text-center">
-                            <div className="w-14 h-14 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/40 flex items-center justify-center mx-auto mb-4 text-gray-500">
+                            <div className="w-14 h-14 rounded-2xl bg-obsidian-card/60 backdrop-blur-sm border border-obsidian-border flex items-center justify-center mx-auto mb-4 text-obsidian-secondary">
                                 <Calendar className="w-7 h-7 stroke-[1.5]" />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-800 mb-1">Nessun tour live oggi</h3>
-                            <p className="text-gray-600 text-sm mb-6 max-w-xs leading-relaxed">
+                            <h3 className="text-lg font-bold text-obsidian-primary mb-1">Nessun tour live oggi</h3>
+                            <p className="text-obsidian-secondary text-sm mb-6 max-w-xs leading-relaxed">
                                 {currentCity
                                     ? `Nessuna guida sta conducendo un tour a ${currentCity} in questo momento.`
                                     : 'Nessuna guida sta conducendo un tour in questo momento.'}
@@ -201,7 +201,7 @@ export default function TourLivePage() {
                         liveTours.map((tour, index) => (
                             <motion.div
                                 key={tour.id}
-                                className="bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl border border-white/30 relative"
+                                className="backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl border border-obsidian-border relative bg-obsidian-card"
                                 initial={{ opacity: 0, rotateY: -90 }}
                                 animate={{ opacity: 1, rotateY: 0 }}
                                 transition={{ duration: 0.8, delay: index * 0.2, type: "spring" }}
@@ -210,11 +210,11 @@ export default function TourLivePage() {
                                 {/* Live Indicator */}
                                 {tour.live && (
                                     <motion.div
-                                        className="absolute top-4 left-4 z-10 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1"
+                                        className="absolute top-4 left-4 z-10 bg-brand-orange text-obsidian-bg px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1"
                                         animate={{ scale: [1, 1.1, 1] }}
                                         transition={{ duration: 2, repeat: Infinity }}
                                     >
-                                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                                        <div className="w-2 h-2 bg-obsidian-bg rounded-full animate-pulse" />
                                         <span>LIVE</span>
                                     </motion.div>
                                 )}
@@ -230,7 +230,7 @@ export default function TourLivePage() {
 
                                     {/* Price Badge */}
                                     <motion.div
-                                        className="absolute top-4 right-4 bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white px-4 py-2 rounded-2xl shadow-lg"
+                                        className="absolute top-4 right-4 text-obsidian-bg px-4 py-2 rounded-2xl shadow-lg bg-brand-orange"
                                         whileHover={{ scale: 1.1, rotateZ: 5 }}
                                     >
                                         <div className="text-center">
@@ -243,11 +243,11 @@ export default function TourLivePage() {
 
                                     {/* Category Icon */}
                                     <motion.div
-                                        className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-lg"
+                                        className="absolute bottom-4 left-4 bg-obsidian-card/90 backdrop-blur-sm p-3 rounded-2xl shadow-lg"
                                         whileHover={{ scale: 1.2, rotate: 15 }}
                                         transition={{ type: "spring", stiffness: 300 }}
                                     >
-                                        <tour.categoryIcon className="w-6 h-6 text-terracotta-400" />
+                                        <tour.categoryIcon className="w-6 h-6 text-brand-orange" />
                                     </motion.div>
                                 </div>
 
@@ -255,8 +255,8 @@ export default function TourLivePage() {
                                     {/* Title and Status */}
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex-1">
-                                            <h3 className="text-xl font-bold text-gray-800 mb-2">{tour.title}</h3>
-                                            <p className="text-gray-600 leading-relaxed">{tour.description}</p>
+                                            <h3 className="text-xl font-bold text-obsidian-primary mb-2">{tour.title}</h3>
+                                            <p className="text-obsidian-secondary leading-relaxed">{tour.description}</p>
                                         </div>
                                         <motion.div
                                             className="text-4xl ml-4"
@@ -271,7 +271,7 @@ export default function TourLivePage() {
 
                                     {/* Guide Info */}
                                     <motion.div
-                                        className="bg-gradient-to-r from-terracotta-100 to-ochre-100 rounded-2xl p-4 mb-6"
+                                        className="rounded-2xl p-4 mb-6 bg-obsidian-card border border-obsidian-border"
                                         whileHover={{ scale: 1.02 }}
                                     >
                                         <div className="flex items-center space-x-3">
@@ -282,7 +282,7 @@ export default function TourLivePage() {
                                                 {tour.guideAvatar}
                                             </motion.div>
                                             <div className="flex-1">
-                                                <h4 className="font-bold text-gray-800">La tua guida: {tour.guide}</h4>
+                                                <h4 className="font-bold text-obsidian-primary">La tua guida: {tour.guide}</h4>
                                                 {/* F37 — il cluster rating si monta solo su voto REALE
                                                     con recensioni reali. Prima usciva sempre, perche'
                                                     mapTourToUI ripiegava su 5.0: un tour senza
@@ -294,11 +294,11 @@ export default function TourLivePage() {
                                                 {Number.isFinite(tour.rating) && Number.isFinite(tour.reviews) && tour.reviews > 0 && (
                                                     <div className="flex items-center space-x-4 mt-1">
                                                         <div className="flex items-center">
-                                                            <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                                                            <Star className="w-4 h-4 text-brand-orange fill-current mr-1" />
                                                             <span className="text-sm font-medium">{tour.rating}</span>
-                                                            <span className="text-xs text-gray-500 ml-1">({tour.reviews})</span>
+                                                            <span className="text-xs text-obsidian-secondary ml-1">({tour.reviews})</span>
                                                         </div>
-                                                        <div className="text-xs text-gray-500">
+                                                        <div className="text-xs text-obsidian-secondary">
                                                             💬 {tour.reviews} recensioni
                                                         </div>
                                                     </div>
@@ -309,12 +309,12 @@ export default function TourLivePage() {
 
                                     {/* Highlights */}
                                     <div className="mb-6">
-                                        <h4 className="font-bold text-gray-800 mb-3">Cosa ti aspetta:</h4>
+                                        <h4 className="font-bold text-obsidian-primary mb-3">Cosa ti aspetta:</h4>
                                         <div className="flex flex-wrap gap-2">
                                             {tour.highlights.map((highlight, hidx) => (
                                                 <motion.span
                                                     key={hidx}
-                                                    className="bg-gradient-to-r from-terracotta-200 to-ochre-200 px-3 py-2 rounded-full text-sm font-medium text-gray-700"
+                                                    className="px-3 py-2 rounded-full text-sm font-medium text-obsidian-primary bg-brand-orange/20"
                                                     initial={{ opacity: 0, scale: 0.8 }}
                                                     animate={{ opacity: 1, scale: 1 }}
                                                     transition={{ duration: 0.6, delay: index * 0.2 + hidx * 0.1 }}
@@ -329,45 +329,45 @@ export default function TourLivePage() {
                                     {/* Tour Details */}
                                     <div className="grid grid-cols-2 gap-4 mb-6">
                                         <motion.div
-                                            className="bg-white/50 rounded-xl p-3 flex items-center space-x-2"
+                                            className="bg-obsidian-card/50 rounded-xl p-3 flex items-center space-x-2"
                                             whileHover={{ scale: 1.05 }}
                                         >
-                                            <MapPin className="w-5 h-5 text-terracotta-400" />
+                                            <MapPin className="w-5 h-5 text-brand-orange" />
                                             <div>
-                                                <div className="text-xs text-gray-500">Dove</div>
+                                                <div className="text-xs text-obsidian-secondary">Dove</div>
                                                 <div className="text-sm font-medium">{tour.location}</div>
                                             </div>
                                         </motion.div>
 
                                         <motion.div
-                                            className="bg-white/50 rounded-xl p-3 flex items-center space-x-2"
+                                            className="bg-obsidian-card/50 rounded-xl p-3 flex items-center space-x-2"
                                             whileHover={{ scale: 1.05 }}
                                         >
-                                            <Clock className="w-5 h-5 text-terracotta-400" />
+                                            <Clock className="w-5 h-5 text-brand-orange" />
                                             <div>
-                                                <div className="text-xs text-gray-500">Durata</div>
+                                                <div className="text-xs text-obsidian-secondary">Durata</div>
                                                 <div className="text-sm font-medium">{tour.duration}</div>
                                             </div>
                                         </motion.div>
 
                                         <motion.div
-                                            className="bg-white/50 rounded-xl p-3 flex items-center space-x-2"
+                                            className="bg-obsidian-card/50 rounded-xl p-3 flex items-center space-x-2"
                                             whileHover={{ scale: 1.05 }}
                                         >
-                                            <Users className="w-5 h-5 text-terracotta-400" />
+                                            <Users className="w-5 h-5 text-brand-orange" />
                                             <div>
-                                                <div className="text-xs text-gray-500">Partecipanti</div>
+                                                <div className="text-xs text-obsidian-secondary">Partecipanti</div>
                                                 <div className="text-sm font-medium">{tour.participants}/{tour.maxParticipants}</div>
                                             </div>
                                         </motion.div>
 
                                         <motion.div
-                                            className="bg-white/50 rounded-xl p-3 flex items-center space-x-2"
+                                            className="bg-obsidian-card/50 rounded-xl p-3 flex items-center space-x-2"
                                             whileHover={{ scale: 1.05 }}
                                         >
-                                            <Calendar className="w-5 h-5 text-terracotta-400" />
+                                            <Calendar className="w-5 h-5 text-brand-orange" />
                                             <div>
-                                                <div className="text-xs text-gray-500">Inizio</div>
+                                                <div className="text-xs text-obsidian-secondary">Inizio</div>
                                                 <div className="text-sm font-medium">{tour.nextStart}</div>
                                             </div>
                                         </motion.div>
@@ -377,7 +377,7 @@ export default function TourLivePage() {
                                     <div className="flex space-x-3">
                                         <Link to="/map" state={{ focusedActivity: tour }}>
                                             <motion.button
-                                                className="bg-white text-terracotta-500 border-2 border-terracotta-400 p-4 rounded-2xl shadow-lg hover:bg-terracotta-50 transition-all duration-300 h-full flex items-center justify-center"
+                                                className="bg-obsidian-card text-brand-orange border-2 border-brand-orange/30 p-4 rounded-2xl shadow-lg hover:bg-brand-orange/10 transition-all duration-300 h-full flex items-center justify-center"
                                                 whileHover={{ scale: 1.1, rotate: -5 }}
                                                 whileTap={{ scale: 0.9 }}
                                             >
@@ -387,7 +387,7 @@ export default function TourLivePage() {
                                         <Link to={`/tour-details/${tour.id}`} className="flex-1">
                                             {tour.live ? (
                                                 <motion.button
-                                                    className="w-full bg-gradient-to-r from-red-400 to-red-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                                                    className="w-full text-obsidian-bg py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2 bg-brand-orange"
                                                     whileHover={{ scale: 1.05, rotateX: 5 }}
                                                     whileTap={{ scale: 0.95 }}
                                                 >
@@ -396,7 +396,7 @@ export default function TourLivePage() {
                                                 </motion.button>
                                             ) : (
                                                 <motion.button
-                                                    className="w-full bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                                                    className="w-full text-obsidian-bg py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2 bg-brand-orange"
                                                     whileHover={{ scale: 1.05, rotateX: 5 }}
                                                     whileTap={{ scale: 0.95 }}
                                                 >
@@ -407,7 +407,7 @@ export default function TourLivePage() {
                                         </Link>
 
                                         <motion.button
-                                            className="bg-gradient-to-r from-olive-400 to-olive-500 text-white p-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                                            className="text-obsidian-bg p-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-brand-orange"
                                             whileHover={{ scale: 1.1, rotate: 15 }}
                                             whileTap={{ scale: 0.9 }}
                                             onClick={() => dataService.toggleFavorite(tour.id).then(r => { if (r?.added) trackDnaEvent?.('tour_saved', tour.steps || [], { city: tour.city || currentCity }); })}
@@ -432,7 +432,7 @@ export default function TourLivePage() {
                     <div className="grid grid-cols-2 gap-4">
                         <Link to="/explore">
                             <motion.button
-                                className="w-full bg-gradient-to-r from-olive-400 to-olive-500 text-white p-6 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col items-center space-y-2"
+                                className="w-full text-obsidian-bg p-6 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col items-center space-y-2 bg-brand-orange"
                                 whileHover={{ scale: 1.05, rotateX: 5 }}
                                 whileTap={{ scale: 0.95 }}
                                 initial={{ rotateY: -90 }}
@@ -451,7 +451,7 @@ export default function TourLivePage() {
 
                         <Link to="/ai-itinerary">
                             <motion.button
-                                className="w-full bg-gradient-to-r from-terracotta-400 to-terracotta-500 text-white p-6 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col items-center space-y-2"
+                                className="w-full text-obsidian-bg p-6 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col items-center space-y-2 bg-brand-orange"
                                 whileHover={{ scale: 1.05, rotateX: -5 }}
                                 whileTap={{ scale: 0.95 }}
                                 initial={{ rotateY: 90 }}

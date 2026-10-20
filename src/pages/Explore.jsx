@@ -288,7 +288,7 @@ function ExplorePage() {
                             placeholder="Cerca attività, luoghi, categorie..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3.5 bg-obsidian-card text-obsidian-primary font-medium placeholder:text-obsidian-secondary/60 rounded-2xl border border-obsidian-border focus:outline-none focus:border-brand-orange transition-colors"
+                            className="w-full pl-12 pr-4 py-3.5 bg-obsidian-card text-obsidian-primary font-medium placeholder:text-obsidian-secondary/80 rounded-2xl border border-obsidian-border focus:outline-none focus:border-brand-orange transition-colors"
                         />
                     </div>
                     {/* Active Filters Summary */}

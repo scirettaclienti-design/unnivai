@@ -49,23 +49,23 @@ export default function NotificationSettings() {
     };
 
     const Row = ({ label, desc, settingKey, icon: Icon }) => (
-        <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-0">
+        <div className="flex items-center justify-between py-4 border-b border-obsidian-border last:border-0">
             <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center">
-                    <Icon className="w-4 h-4 text-orange-500" />
+                <div className="w-9 h-9 rounded-xl bg-brand-orange/10 flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-brand-orange" />
                 </div>
                 <div>
-                    <p className="text-sm font-semibold text-gray-800">{label}</p>
-                    {desc && <p className="text-xs text-gray-400 mt-0.5">{desc}</p>}
+                    <p className="text-sm font-semibold text-obsidian-primary">{label}</p>
+                    {desc && <p className="text-xs text-obsidian-secondary mt-0.5">{desc}</p>}
                 </div>
             </div>
             <button
                 onClick={() => toggle(settingKey)}
                 className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
-                    settings[settingKey] ? 'bg-orange-500' : 'bg-gray-200'
+                    settings[settingKey] ? 'bg-brand-orange' : 'bg-obsidian-raised border border-obsidian-border-elevated'
                 }`}
             >
-                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-obsidian-primary rounded-full shadow transition-transform duration-200 ${
                     settings[settingKey] ? 'translate-x-5' : 'translate-x-0'
                 }`} />
             </button>
@@ -73,17 +73,17 @@ export default function NotificationSettings() {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="min-h-screen bg-obsidian-bg pb-24">
             <TopBar />
             <div className="max-w-lg mx-auto px-4 py-6">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-6">
-                    <Link to="/notifications" className="w-9 h-9 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center">
-                        <ArrowLeft className="w-4 h-4 text-gray-600" />
+                    <Link to="/notifications" className="w-9 h-9 rounded-xl bg-obsidian-card border border-obsidian-border shadow-sm flex items-center justify-center">
+                        <ArrowLeft className="w-4 h-4 text-obsidian-secondary" />
                     </Link>
                     <div>
-                        <h1 className="text-xl font-bold text-gray-900">Impostazioni Notifiche</h1>
-                        <p className="text-xs text-gray-500">Personalizza come ricevi gli aggiornamenti</p>
+                        <h1 className="text-xl font-bold text-obsidian-primary">Impostazioni Notifiche</h1>
+                        <p className="text-xs text-obsidian-secondary">Personalizza come ricevi gli aggiornamenti</p>
                     </div>
                 </div>
 
@@ -91,9 +91,9 @@ export default function NotificationSettings() {
                 <motion.div
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-100 px-4 mb-4"
+                    className="bg-obsidian-card rounded-2xl shadow-sm border border-obsidian-border px-4 mb-4"
                 >
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-4 pb-2">Canali</p>
+                    <p className="text-xs font-bold text-obsidian-secondary uppercase tracking-wider pt-4 pb-2">Canali</p>
                     <Row label="Notifiche Push"       settingKey="pushEnabled"    icon={Smartphone} />
                     <Row label="Email"                settingKey="emailEnabled"   icon={Mail}       desc="Riepilogo giornaliero" />
                     <Row label="Suoni"                settingKey="soundEnabled"   icon={settings.soundEnabled ? Volume2 : VolumeX} />
@@ -104,9 +104,9 @@ export default function NotificationSettings() {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.05 }}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-100 px-4 mb-6"
+                    className="bg-obsidian-card rounded-2xl shadow-sm border border-obsidian-border px-4 mb-6"
                 >
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider pt-4 pb-2">Tipologie</p>
+                    <p className="text-xs font-bold text-obsidian-secondary uppercase tracking-wider pt-4 pb-2">Tipologie</p>
                     <Row label="Aggiornamenti prenotazioni" settingKey="bookingUpdates"  icon={Bell}    desc="Accettazioni, rifiuti, conferme" />
                     <Row label="Messaggi chat"              settingKey="chatMessages"    icon={Bell}    desc="Guide e utenti" />
                     <Row label="Consigli AI"                settingKey="aiTips"          icon={Bell}    desc="Suggerimenti personalizzati" />
@@ -116,7 +116,7 @@ export default function NotificationSettings() {
 
                 <button
                     onClick={saveAll}
-                    className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-2xl shadow-lg shadow-orange-200 hover:shadow-orange-300 transition-all"
+                    className="w-full py-3.5 text-obsidian-bg font-bold rounded-2xl shadow-lg shadow-brand-orange/20 hover:bg-brand-orange-hover transition-all bg-brand-orange"
                 >
                     Salva Impostazioni
                 </button>

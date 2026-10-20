@@ -430,7 +430,7 @@ export default function NotificationsPage() {
                                     </p>
 
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-3 text-[11px] text-obsidian-secondary/70 font-medium">
+                                        <div className="flex items-center space-x-3 text-[11px] text-obsidian-secondary/80 font-medium">
                                             <span>{notification.time}</span>
                                             {notification.location && (
                                                 <span className="flex items-center text-obsidian-secondary">
@@ -481,7 +481,7 @@ export default function NotificationsPage() {
                                                 }
                                                 deleteNotification(notification.id);
                                             }}
-                                            className="p-2 ml-2 text-obsidian-secondary/70 hover:text-obsidian-primary bg-obsidian-bg border border-obsidian-secondary/40 hover:border-obsidian-secondary rounded-xl transition-all shadow-inner"
+                                            className="p-2 ml-2 text-obsidian-secondary/80 hover:text-obsidian-primary bg-obsidian-bg border border-obsidian-secondary/40 hover:border-obsidian-secondary rounded-xl transition-all shadow-inner"
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             title="Elimina notifica"
@@ -607,7 +607,7 @@ export default function NotificationsPage() {
                                     {selectedNotification.category === 'messages' && selectedNotification.actionData?.guide_id ? (
                                         <div className="w-full">
                                             <textarea
-                                                className="w-full bg-obsidian-bg border border-obsidian-border text-obsidian-primary placeholder:text-obsidian-secondary/50 rounded-xl p-3 text-xs focus:outline-none focus:border-brand-orange mb-3 resize-none"
+                                                className="w-full bg-obsidian-bg border border-obsidian-border text-obsidian-primary placeholder:text-obsidian-secondary/80 rounded-xl p-3 text-xs focus:outline-none focus:border-brand-orange mb-3 resize-none"
                                                 rows="3"
                                                 placeholder="Scrivi la tua risposta qui..."
                                                 value={replyText}
@@ -629,7 +629,7 @@ export default function NotificationsPage() {
                                                 <button
                                                     onClick={handleReplySubmit}
                                                     disabled={isReplying || !replyText.trim()}
-                                                    className="flex-1 py-3 bg-brand-orange hover:bg-brand-orange-hover disabled:bg-obsidian-raised disabled:text-obsidian-secondary/40 text-obsidian-bg rounded-xl font-bold text-center shadow-md transition-colors flex items-center justify-center gap-2 text-xs"
+                                                    className="flex-1 py-3 bg-brand-orange hover:bg-brand-orange-hover disabled:bg-obsidian-raised disabled:text-obsidian-secondary/80 text-obsidian-bg rounded-xl font-bold text-center shadow-md transition-colors flex items-center justify-center gap-2 text-xs"
                                                 >
                                                     <span>{isReplying ? 'Invio...' : 'INVIA RISPOSTA'}</span>
                                                     <ArrowRight className="w-4 h-4 text-obsidian-bg" />
@@ -651,7 +651,7 @@ export default function NotificationsPage() {
                                                     <button
                                                         onClick={handleAcceptOffer}
                                                         disabled={isCheckingOut}
-                                                        className="flex-none py-3 px-4 bg-brand-orange hover:bg-brand-orange-hover disabled:bg-obsidian-raised disabled:text-obsidian-secondary/40 text-obsidian-bg rounded-xl font-bold text-center transition-colors shadow-md flex items-center gap-2 text-xs"
+                                                        className="flex-none py-3 px-4 bg-brand-orange hover:bg-brand-orange-hover disabled:bg-obsidian-raised disabled:text-obsidian-secondary/80 text-obsidian-bg rounded-xl font-bold text-center transition-colors shadow-md flex items-center gap-2 text-xs"
                                                     >
                                                         {isCheckingOut ? (
                                                             <>
@@ -686,7 +686,7 @@ export default function NotificationsPage() {
                                                     className={`w-full py-3 rounded-xl font-bold text-center shadow-lg transition-all flex items-center justify-center gap-1.5 text-xs whitespace-nowrap ${
                                                         prewarm.status === 'ready'
                                                             ? 'bg-brand-orange text-obsidian-bg hover:bg-brand-orange-hover cursor-pointer shadow-brand-orange/20'
-                                                            : 'bg-obsidian-raised text-obsidian-secondary/50 border border-obsidian-border cursor-not-allowed'
+                                                            : 'bg-obsidian-raised text-obsidian-secondary/80 border border-obsidian-border cursor-not-allowed'
                                                     }`}
                                                 >
                                                     {prewarm.status === 'loading' ? (

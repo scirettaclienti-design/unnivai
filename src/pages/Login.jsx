@@ -308,7 +308,7 @@ const Login = () => {
                                                         value={email}
                                                         onChange={e => setEmail(e.target.value)}
                                                         required
-                                                        className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/50 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
+                                                        className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/80 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
                                                     />
                                                 </div>
                                                 {error && (
@@ -380,7 +380,7 @@ const Login = () => {
                                                         value={fullName}
                                                         onChange={e => setFullName(e.target.value)}
                                                         required
-                                                        className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/50 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
+                                                        className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/80 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
                                                     />
                                                 </div>
                                             )}
@@ -393,7 +393,7 @@ const Login = () => {
                                                         value={businessName}
                                                         onChange={e => setBusinessName(e.target.value)}
                                                         required
-                                                        className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/50 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
+                                                        className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/80 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
                                                     />
                                                 </div>
                                             )}
@@ -405,7 +405,7 @@ const Login = () => {
                                                     value={email}
                                                     onChange={e => setEmail(e.target.value)}
                                                     required
-                                                    className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/50 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
+                                                    className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/80 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
                                                 />
                                             </div>
                                             {/* Password field con show/hide + Zod validation */}
@@ -418,7 +418,7 @@ const Login = () => {
                                                         value={password}
                                                         onChange={e => { setPassword(e.target.value); setFieldErrors(prev => ({ ...prev, password: undefined })); }}
                                                         required
-                                                        className={`w-full bg-obsidian-raised border rounded-xl pl-11 pr-11 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/50 focus:outline-none transition-all text-sm font-medium ${
+                                                        className={`w-full bg-obsidian-raised border rounded-xl pl-11 pr-11 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/80 focus:outline-none transition-all text-sm font-medium ${
                                                             fieldErrors.password
                                                                 ? 'border-brand-orange/60 focus:border-brand-orange'
                                                                 : 'border-obsidian-border focus:border-brand-orange'

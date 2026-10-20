@@ -405,7 +405,7 @@ export default function Onboarding() {
                                     Non le abbiamo perse, ma non sono ancora al sicuro: senza salvarle
                                     andrebbero via al prossimo accesso. Controlla la connessione e riprova.
                                 </p>
-                                <p className="text-[11px] font-mono text-obsidian-secondary/70 break-words pt-0.5">
+                                <p className="text-[11px] font-mono text-obsidian-secondary/80 break-words pt-0.5">
                                     {saveError}
                                 </p>
                             </div>

@@ -20,8 +20,8 @@ const raw = {
     borderElevated: '#332C28',
     routeStroke: '#5A5048',
     statusSuccess: '#10B981',
-    statusError: '#F87171',
-    statusWarning: '#EAB308',
+    statusError: '#E0817A',
+    statusWarning: '#D9B25A',
 };
 
 export const THEME = {

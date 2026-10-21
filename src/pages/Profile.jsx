@@ -14,6 +14,7 @@ import { normalizeCategory } from "../services/preferenceEngine";
 import { supabase } from "../lib/supabase";
 import FoodPrefsEditor from "../components/FoodPrefsEditor";
 import InterestsEditor from "../components/InterestsEditor";
+import { salvaNomeProfilo } from "../lib/nomeProfilo";
 
 // Fase 2 Gate DNA: soglia minima di interazioni di gusto CATEGORIZZATE sotto la
 // quale NON si mostrano percentuali. Motivo: con pochi eventi una categoria
@@ -50,6 +51,28 @@ export default function ProfilePage() {
     const { toast } = useToast();
     const { preferenceGraph, onboardingPrefs, saveFoodPrefs, interestIds, saveInterests } = useAILearning();
     const [editName, setEditName] = useState(firstName || "Viaggiatore");
+    // ACCESSO-1: il nome si modifica qui e si salva (profiles.first_name + metadati dell'account).
+    const [modificaNome, setModificaNome] = useState(false);
+    const [bozzaNome, setBozzaNome] = useState('');
+    const [erroreNome, setErroreNome] = useState(null);
+    const [salvandoNome, setSalvandoNome] = useState(false);
+
+    const salvaNome = async (e) => {
+        e.preventDefault();
+        setErroreNome(null);
+        setSalvandoNome(true);
+        try {
+            const r = await salvaNomeProfilo(supabase, userId, bozzaNome);
+            if (!r.ok) { setErroreNome(r.errore); return; }
+            setEditName(r.nome.split(/\s+/)[0]);
+            setModificaNome(false);
+            toast({ title: 'Nome salvato.', type: 'success' });
+        } catch {
+            setErroreNome('Non sono riuscito a salvare il nome. Riprova tra poco.');
+        } finally {
+            setSalvandoNome(false);
+        }
+    };
     const [selectedTour, setSelectedTour] = useState(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [activeQuickTab, setActiveQuickTab] = useState('requests');
@@ -216,7 +239,40 @@ export default function ProfilePage() {
                             <User className="text-obsidian-primary w-8 h-8 stroke-[1.75]" />
                         </div>
                         <div className="flex-1">
-                            <h2 className="text-xl font-bold text-obsidian-primary">{editName}</h2>
+                            {modificaNome ? (
+                                <form onSubmit={salvaNome} noValidate className="mb-1">
+                                    <input
+                                        type="text"
+                                        value={bozzaNome}
+                                        onChange={e => setBozzaNome(e.target.value)}
+                                        aria-label="Il tuo nome"
+                                        autoFocus
+                                        className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl px-3 py-2 text-obsidian-primary text-base font-bold focus:outline-none focus:border-brand-orange"
+                                    />
+                                    {erroreNome && <p role="alert" className="text-brand-orange text-xs pt-1 font-medium">{erroreNome}</p>}
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="submit" disabled={salvandoNome} className="px-3 py-1.5 rounded-xl bg-brand-orange text-obsidian-bg text-xs font-bold disabled:opacity-50 cursor-pointer">
+                                            {salvandoNome ? 'Salvo...' : 'Salva'}
+                                        </button>
+                                        <button type="button" onClick={() => { setModificaNome(false); setErroreNome(null); }} className="px-3 py-1.5 rounded-xl bg-obsidian-raised border border-obsidian-border text-obsidian-secondary text-xs font-bold cursor-pointer">
+                                            Annulla
+                                        </button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-xl font-bold text-obsidian-primary">{editName}</h2>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setBozzaNome(editName === 'Viaggiatore' ? '' : editName); setErroreNome(null); setModificaNome(true); }}
+                                        aria-label="Modifica il nome"
+                                        title="Modifica il nome"
+                                        className="p-1.5 rounded-full text-obsidian-secondary hover:text-brand-orange transition-colors cursor-pointer"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
                             <p className="text-obsidian-secondary flex items-center text-sm mb-1">
                                 <Mail className="w-3 h-3 mr-1.5 text-obsidian-secondary" />
                                 {user?.email || 'Email non verificata'}

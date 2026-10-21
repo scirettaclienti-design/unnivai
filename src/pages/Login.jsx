@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Flag, Store, ArrowRight, User, Mail, Lock, Briefcase, CheckCircle, Compass, ChevronLeft, Sparkles, Eye, EyeOff } from 'lucide-react';
-import { LoginSchema, SignupSchema, validateForm } from '../lib/validationSchemas';
+import { LoginSchema, SignupSchema, EmailSchema, validateForm } from '../lib/validationSchemas';
+import { erroreAuthItaliano } from '../lib/erroriAuth';
 
 // Gate K — In V1 il selettore ruolo mostra SOLO "Viaggiatore".
 // Le opzioni "Sono una Guida" e "Ho un'Attività" sono commentate ma restano nel
@@ -29,18 +30,24 @@ const ROLES = [
     // { id: 'business', ... }
 ];
 
+const MSG_LINK_RECUPERO = 'Il link non è valido o è scaduto. Scrivi la tua email e te ne mandiamo uno nuovo.';
+
 const Login = () => {
-    const [selectedRole, setSelectedRole] = useState(null);
+    // ACCESSO-1: /update-password senza sessione di recupero rimanda qui, già sul
+    // modulo «password dimenticata», con un messaggio chiaro.
+    const [searchParams] = useSearchParams();
+    const daRecupero = searchParams.get('recupero') === '1';
+    const [selectedRole, setSelectedRole] = useState(daRecupero ? 'tourist' : null);
     const [authMode, setAuthMode] = useState('signup');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
     const [businessName, setBusinessName] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState(daRecupero ? MSG_LINK_RECUPERO : null);
     const [fieldErrors, setFieldErrors] = useState({});
     const [emailSent, setEmailSent] = useState(false);
-    const [resetMode, setResetMode] = useState(false);
+    const [resetMode, setResetMode] = useState(daRecupero);
     const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
@@ -74,10 +81,8 @@ const Login = () => {
 
         const validation = validateForm(schema, formPayload);
         if (!validation.ok) {
+            // ACCESSO-1: ogni errore sta sotto il suo campo, una volta sola (niente riga generale).
             setFieldErrors(validation.errors);
-            // Mostra il primo errore generale
-            const firstError = Object.values(validation.errors)[0];
-            setError(firstError);
             return;
         }
 
@@ -95,7 +100,7 @@ const Login = () => {
                     }
                 });
                 if (signUpError) throw signUpError;
-                if (user && (!user.identities || user.identities.length === 0)) throw new Error('Email già registrata. Prova ad accedere.');
+                if (user && (!user.identities || user.identities.length === 0)) throw Object.assign(new Error('User already registered'), { code: 'user_already_exists' });
                 if (user && selectedRole === 'business') {
                     await supabase.from('activities').insert({
                         owner_id: user.id,
@@ -106,7 +111,7 @@ const Login = () => {
                 setEmailSent(true);
             }
         } catch (err) {
-            setError(err.message);
+            setError(erroreAuthItaliano(err));
         } finally {
             setLoading(false);
         }
@@ -114,14 +119,20 @@ const Login = () => {
 
     const handleResetPassword = async (e) => {
         e.preventDefault();
-        setLoading(true);
         setError(null);
+        setFieldErrors({});
+        const validation = validateForm(EmailSchema, { email });
+        if (!validation.ok) {
+            setFieldErrors(validation.errors);
+            return;
+        }
+        setLoading(true);
         try {
             const { error } = await resetPassword(email);
             if (error) throw error;
             setEmailSent(true);
         } catch (err) {
-            setError(err.message);
+            setError(erroreAuthItaliano(err));
         } finally {
             setLoading(false);
         }
@@ -299,7 +310,7 @@ const Login = () => {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <form onSubmit={handleResetPassword} className="space-y-4">
+                                            <form onSubmit={handleResetPassword} noValidate className="space-y-4">
                                                 <div className="relative">
                                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-obsidian-secondary w-4 h-4 stroke-[1.75]" />
                                                     <input
@@ -311,6 +322,9 @@ const Login = () => {
                                                         className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/80 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
                                                     />
                                                 </div>
+                                                {fieldErrors.email && (
+                                                    <p role="alert" className="text-brand-orange text-xs pl-1 pt-1 font-medium">{fieldErrors.email}</p>
+                                                )}
                                                 {error && (
                                                     <p className="text-brand-orange text-xs bg-obsidian-raised border border-brand-orange/40 px-4 py-2.5 rounded-xl font-bold text-center">
                                                         {error}
@@ -370,8 +384,9 @@ const Login = () => {
                                             ))}
                                         </div>
 
-                                        <form onSubmit={handleAuth} className="space-y-3.5">
+                                        <form onSubmit={handleAuth} noValidate className="space-y-3.5">
                                             {authMode === 'signup' && (
+                                                <>
                                                 <div className="relative">
                                                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-obsidian-secondary w-4 h-4 stroke-[1.75]" />
                                                     <input
@@ -383,8 +398,13 @@ const Login = () => {
                                                         className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/80 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
                                                     />
                                                 </div>
+                                                {fieldErrors.fullName && (
+                                                    <p role="alert" className="text-brand-orange text-xs pl-1 pt-1 font-medium">{fieldErrors.fullName}</p>
+                                                )}
+                                                </>
                                             )}
                                             {authMode === 'signup' && selectedRole === 'business' && (
+                                                <>
                                                 <div className="relative">
                                                     <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-obsidian-secondary w-4 h-4 stroke-[1.75]" />
                                                     <input
@@ -396,6 +416,10 @@ const Login = () => {
                                                         className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/80 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
                                                     />
                                                 </div>
+                                                {fieldErrors.businessName && (
+                                                    <p role="alert" className="text-brand-orange text-xs pl-1 pt-1 font-medium">{fieldErrors.businessName}</p>
+                                                )}
+                                                </>
                                             )}
                                             <div className="relative">
                                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-obsidian-secondary w-4 h-4 stroke-[1.75]" />
@@ -408,6 +432,9 @@ const Login = () => {
                                                     className="w-full bg-obsidian-raised border border-obsidian-border rounded-xl pl-11 pr-4 py-3.5 text-obsidian-primary placeholder:text-obsidian-secondary/80 focus:outline-none focus:border-brand-orange transition-all text-sm font-medium"
                                                 />
                                             </div>
+                                            {fieldErrors.email && (
+                                                <p role="alert" className="text-brand-orange text-xs pl-1 pt-1 font-medium">{fieldErrors.email}</p>
+                                            )}
                                             {/* Password field con show/hide + Zod validation */}
                                             <div className="space-y-1">
                                                 <div className="relative">

@@ -164,7 +164,10 @@ export const AuthProvider = ({ children }) => {
         signOut,
         resetPassword,
         refreshRole,
-        isPasswordRecovery
+        isPasswordRecovery,
+        // ACCESSO-1: a password cambiata il recupero è finito (senza, RootDispatcher
+        // riporterebbe l'utente su /update-password).
+        fineRecupero: () => setIsPasswordRecovery(false),
     };
 
     return (

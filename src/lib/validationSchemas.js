@@ -11,19 +11,43 @@ const nonEmptyString = (label) =>
      .min(1, `${label} non può essere vuoto`);
 
 // ─── LOGIN / SIGNUP ───────────────────────────────────────────────────────────
+const emailField = z
+    .string({ required_error: 'Scrivi la tua email.' })
+    .trim()
+    .min(1, 'Scrivi la tua email.')
+    .email('Email non valida. Controlla come l\'hai scritta.');
+
+// ACCESSO-1: la complessità vale solo quando una password si CREA (registrazione,
+// cambio password). Al login non si controlla: chi ha una vecchia password che non
+// le rispetta deve poter entrare; sulla correttezza decide Supabase.
+export const passwordNuovaField = z
+    .string({ required_error: 'Scrivi la password.' })
+    .min(8, 'La password deve avere almeno 8 caratteri')
+    .regex(/[A-Z]/, 'La password deve contenere almeno una lettera maiuscola')
+    .regex(/[0-9]/, 'La password deve contenere almeno un numero');
+
+export const EmailSchema = z.object({ email: emailField });
+
 export const LoginSchema = z.object({
-    email: z
-        .string({ required_error: 'Email obbligatoria' })
-        .trim()
-        .email('Email non valida'),
+    email: emailField,
     password: z
-        .string({ required_error: 'Password obbligatoria' })
-        .min(8, 'La password deve avere almeno 8 caratteri')
-        .regex(/[A-Z]/, 'La password deve contenere almeno una lettera maiuscola')
-        .regex(/[0-9]/, 'La password deve contenere almeno un numero'),
+        .string({ required_error: 'Scrivi la password.' })
+        .min(1, 'Scrivi la password.'),
 });
 
-export const SignupSchema = LoginSchema.extend({
+export const NuovaPasswordSchema = z.object({ password: passwordNuovaField });
+
+export const NomeProfiloSchema = z.object({
+    nome: z
+        .string({ required_error: 'Scrivi il tuo nome.' })
+        .trim()
+        .min(2, 'Inserisci almeno 2 caratteri')
+        .max(60, 'Massimo 60 caratteri'),
+});
+
+export const SignupSchema = z.object({
+    email: emailField,
+    password: passwordNuovaField,
     fullName: nonEmptyString('Nome completo').min(3, 'Inserisci almeno 3 caratteri'),
     role: z.enum(['tourist', 'guide', 'business'], {
         required_error: 'Seleziona un ruolo',

@@ -163,6 +163,7 @@ export default function TopBar() {
                             onClick={handleLogout}
                             className="p-2 rounded-full hover:bg-obsidian-card text-obsidian-secondary hover:text-brand-orange transition-colors"
                             title="Esci"
+                            aria-label="Esci"
                         >
                             <LogOut size={20} />
                         </button>

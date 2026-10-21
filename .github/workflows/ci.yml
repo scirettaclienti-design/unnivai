@@ -44,6 +44,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # SICUREZZA-CHIAVI — nessuna chiave segreta (sk-ant-, sk-proj-, sk- lunghi, JWT service_role,
+      # sk_live_, whsec_, ghp_/github_pat_) nei file tracciati. Stampa file e riga, mai il valore.
+      - name: Chiavi segrete nei file tracciati
+        run: node scripts/controlla-chiavi.mjs
+
       - name: Lint
         run: npm run lint
 
@@ -51,6 +56,14 @@ jobs:
       # This is the correct CI invocation — "npm test" starts watch mode.
       - name: Run tests
         run: npm run test:run
+
+      # SICUREZZA-CHIAVI — il sito costruito non deve contenere nessuna chiave segreta
+      # (stessi prefissi, più la parola service_role). Nessuna variabile d'ambiente segreta in build.
+      - name: Build
+        run: npm run build
+
+      - name: Chiavi segrete nel sito costruito (dist/)
+        run: node scripts/controlla-chiavi.mjs --dist
 
   e2e:
     name: E2E Smoke

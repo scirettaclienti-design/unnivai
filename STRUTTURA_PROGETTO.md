@@ -130,7 +130,7 @@ L'elenco delle chiavi rilevate (file: `.env` / `.env.example`):
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_GOOGLE_MAPS_API_KEY`
 - `VITE_GOOGLE_MAP_ID`
-- `VITE_OPENAI_API_KEY`
+- `OPENAI_API_KEY` (solo server: segreto di Supabase per `openai-proxy`, mai con prefisso `VITE_`)
 
 ### Catena di rendering
 L'albero di dipendenza DOM parte da `index.html` → `src/main.jsx` → `src/App.jsx`.

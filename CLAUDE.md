@@ -64,10 +64,10 @@ VITE_SUPABASE_ANON_KEY=
 VITE_GOOGLE_MAPS_API_KEY=
 VITE_GOOGLE_MAP_ID=
 VITE_PLACES_PROXY_ENABLED=true
-VITE_OPENAI_API_KEY=   # Optional: enables real AI itinerary generation
+OPENAI_API_KEY=   # SOLO server (segreto di Supabase per openai-proxy): mai con prefisso VITE_, mai nel client
 ```
 
-All env vars must be prefixed with `VITE_` to be accessible via `import.meta.env`.
+Le variabili che il browser deve leggere hanno il prefisso `VITE_` (`import.meta.env`) e sono pubbliche per natura (Supabase anon, Google Maps, Map ID). **Un segreto non ha mai il prefisso `VITE_`** (finirebbe nel sito): `OPENAI_API_KEY` vive solo nei segreti di Supabase. `scripts/controlla-chiavi.mjs` (CI) blocca le chiavi nei file tracciati e in `dist/`.
 
 ## Architecture Overview
 
@@ -109,7 +109,7 @@ All pages are lazy-loaded via `React.lazy()`.
 | Service | File | Responsibility |
 |---|---|---|
 | `dataService` | `src/services/dataService.js` | Supabase CRUD: tours, bookings, favorites, notifications, activities, businesses. Exposes `mapTourToUI()` which normalizes DB rows to the UI contract. |
-| `aiRecommendationService` | `src/services/aiRecommendationService.js` | AI itinerary generation. Uses OpenAI GPT (if `VITE_OPENAI_API_KEY` set) or falls back to local mock data. Also handles business analysis via vision model. |
+| `aiRecommendationService` | `src/services/aiRecommendationService.js` | AI itinerary generation. Uses OpenAI GPT (via `openai-proxy`, la chiave `OPENAI_API_KEY` sta solo sul server) or falls back to local mock data. Also handles business analysis via vision model. |
 | `userContextService` | `src/services/userContextService.js` | Resolves effective city from manual override → GPS → Supabase profile → localStorage. Does reverse geocoding via Nominatim (OSM). |
 | `weatherService` | `src/services/weatherService.js` | Provides weather data for the current city. |
 
@@ -173,7 +173,7 @@ Validation is **non-blocking** via `validateData(schema, data, label)` (defined 
 
 `aiRecommendationService.generateItinerary()`:
 1. Fetches simulated/real weather
-2. If `VITE_OPENAI_API_KEY` is set → calls `gpt-3.5-turbo` with partner business context injected into the system prompt
+2. Via `openai-proxy` (chiave `OPENAI_API_KEY` solo sul server) → calls `gpt-3.5-turbo` with partner business context injected into the system prompt
 3. Validates/geocodes AI-returned coordinates **via Google Places (proxy)** if missing —
    *non* via Mapbox
 4. Falls back to `generateItineraryLocal()` with hardcoded city POIs + partner businesses from Supabase

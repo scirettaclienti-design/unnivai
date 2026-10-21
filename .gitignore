@@ -55,3 +55,6 @@ _hero_shot/
 
 # CLI di Supabase: file locali, mai nel repo
 supabase/.temp
+
+# SICUREZZA-CHIAVI — configurazione locale di un agente con la sua chiave: mai nel repository.
+.antigravityrc

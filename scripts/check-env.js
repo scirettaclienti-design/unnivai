@@ -24,15 +24,15 @@ if (!mapboxToken || mapboxToken.length < 20) {
 
 
 // 2. OpenAI Key
-const openaiKey = process.env.VITE_OPENAI_API_KEY;
+const openaiKey = process.env.OPENAI_API_KEY;
 if (!openaiKey || openaiKey.length < 10) {
-    console.warn('⚠️ VITE_OPENAI_API_KEY missing - AI will use restricted "Local Mode".');
+    console.warn('⚠️ OPENAI_API_KEY missing - AI will use restricted "Local Mode".');
 } else {
-    console.log('✅ VITE_OPENAI_API_KEY found. AI "Insider Mode" Active ✨');
+    console.log('✅ OPENAI_API_KEY found. AI "Insider Mode" Active ✨');
 
     // Simple validation (format check)
     if (!openaiKey.startsWith('sk-')) {
-        console.warn('⚠️ VITE_OPENAI_API_KEY format looks unusual (should start with sk-).');
+        console.warn('⚠️ OPENAI_API_KEY format looks unusual (should start with sk-).');
     }
 }
 

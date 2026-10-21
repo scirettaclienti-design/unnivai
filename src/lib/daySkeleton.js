@@ -49,7 +49,7 @@
  * prolunga: l'utente ha detto quando smette.
  */
 
-import { MOMENTS, MOMENT_BY_KEY, momentAtClock } from './dayMoments';
+import { MOMENTS, MOMENT_BY_KEY, momentAtClock, ALBA_MINUTES } from './dayMoments';
 import { explicitFoodMoments, asksSitDownMeal, asksBreakfast } from './foodTheme';
 import { romeDate, romeParts } from './tourWindow';
 import { APERITIVO_STAY_MINUTES, APERITIVO_STAY_RELAX_MINUTES } from './tourTiming';
@@ -84,7 +84,7 @@ export const FOOD_ONLY_MOMENT_KEYS = new Set(['pranzo', 'cena']);
 
 /** C8a — il Percorso Veloce e' "serale" da quest'ora (minuti dalla mezzanotte di Roma) fino all'alba. */
 export const SERA_FROM_MINUTES = 18 * 60;
-export const ALBA_MINUTES = 5 * 60;
+export { ALBA_MINUTES };
 /** C8b — l'istante e' "di sera" (dalle 18:00 fino all'alba, ora di Roma): il percorso serale e' drink + passeggiata + cena. */
 export const isSeraStart = (date) => {
     if (!(date instanceof Date) || Number.isNaN(date.getTime())) return false;

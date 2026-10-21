@@ -23,6 +23,21 @@ const MS_PER_DAY = 86400000;
 const jdToDate = (jd) => new Date(Math.round((jd - UNIX_EPOCH_JD) * MS_PER_DAY));
 
 /**
+ * NOTTE-FIX — la regola unica del buio: un istante e' «di buio» prima dell'alba o dal tramonto, entrambi del giorno
+ * civile della finestra (dopo mezzanotte il giorno e' quello nuovo: le 02:00 sono prima della SUA alba). Senza alba
+ * o tramonto (non succede in Italia) non e' buio. Usata dalla natura «da fuori» e dalla sua nota.
+ * @param {Date|number} istante
+ * @param {{ sunrise: Date|null, sunset: Date|null }} sole  i tempi del giorno della finestra
+ */
+export function eBuio(istante, sole) {
+    const t = istante instanceof Date ? istante.getTime() : istante;
+    const alba = sole?.sunrise instanceof Date ? sole.sunrise.getTime() : null;
+    const tramonto = sole?.sunset instanceof Date ? sole.sunset.getTime() : null;
+    if (!Number.isFinite(t) || alba === null || tramonto === null) return false;
+    return t < alba || t >= tramonto;
+}
+
+/**
  * @param {{ y: number, m: number, d: number }} day  giorno civile
  * @param {number} lat  latitudine (gradi, nord positivo)
  * @param {number} lng  longitudine (gradi, est positivo)

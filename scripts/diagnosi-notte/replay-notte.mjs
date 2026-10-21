@@ -28,7 +28,7 @@ for (const [flusso, id] of Object.entries(FLUSSI)) {
     }
 }
 const tmp = path.join(outDir, 'diagnosi-notte-tracciati.tmp.json');
-const rep = path.join(outDir, '2026-10-21-diagnosi-notte-replay.json');
+const rep = path.join(outDir, process.env.REPLAY_NOME || '2026-10-21-diagnosi-notte-replay.json');
 writeFileSync(tmp, JSON.stringify(t));
 spawnSync('npx', ['vitest', 'run', '-c', 'scripts/banco/vitest.replay.config.js'], {
     cwd: root, stdio: 'ignore', env: { ...process.env, REPLAY_IN: tmp, REPLAY_OUT: rep },

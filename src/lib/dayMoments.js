@@ -29,12 +29,15 @@ export const MOMENTS = [
         categories: ['vita notturna'] },
 ];
 
+/** NOTTE-FIX — dove finisce la notte per la tabella: fino alle 05:00 (minuti dalla mezzanotte di Roma) e' ancora sera. Una sola soglia: la usa anche daySkeleton (isSeraStart). */
+export const ALBA_MINUTES = 5 * 60;
+
 export const MOMENT_BY_KEY = Object.fromEntries(MOMENTS.map(m => [m.key, m]));
 
 /**
  * Gate NARRATORE-DOPO — il momento che contiene un orario civile di Roma.
- * Prima della mattina vale la mattina (la prossima giornata); 00:00–00:30 e'
- * ancora il dopocena del giorno prima. Serve al timeContext e al narratore:
+ * Dalle 05:00 alla mattina vale la mattina (la prossima giornata); fino alle
+ * 05:00 e' ancora il dopocena del giorno prima (NOTTE-FIX: era solo 00:00–00:30). Serve al timeContext e al narratore:
  * la fascia si legge da questa tabella, non da soglie scritte altrove.
  * Funzione senza import, come il resto del modulo.
  */
@@ -42,7 +45,7 @@ export function momentAtClock(h, mi = 0) {
     const t = h * 60 + mi;
     const min = ({ h: hh, m }) => hh * 60 + m;
     const dopocena = MOMENT_BY_KEY.dopocena;
-    if (t + 24 * 60 < min(dopocena.end)) return dopocena;
+    if (t < ALBA_MINUTES) return dopocena;
     return MOMENTS.find(m => t >= min(m.start) && t < min(m.end))
         ?? (t < min(MOMENTS[0].start) ? MOMENTS[0] : dopocena);
 }

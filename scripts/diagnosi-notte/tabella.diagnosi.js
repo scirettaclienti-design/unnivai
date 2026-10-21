@@ -10,5 +10,5 @@ it('tabella flusso × ora', () => {
         for (const o of ORE) out[f][o.etichetta] = cella(f, o.iso);
     }
     console.log(JSON.stringify(out, null, 1));
-    if (process.env.DIAGNOSI_SCRIVI === '1') writeFileSync('docs/prove/dati/2026-10-21-diagnosi-notte-tabella.json', JSON.stringify(out, null, 1));
+    if (process.env.DIAGNOSI_SCRIVI === '1') writeFileSync(process.env.DIAGNOSI_FILE || 'docs/prove/dati/2026-10-21-diagnosi-notte-tabella.json', JSON.stringify(out, null, 1));
 });

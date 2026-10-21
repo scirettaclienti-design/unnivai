@@ -1,0 +1,407 @@
+{
+ "perte": {
+  "23:30": {
+   "flusso": "perte",
+   "sera": true,
+   "rotta": "giro della sera (Veloce)",
+   "momentoOra": "dopocena"
+  },
+  "00:30": {
+   "flusso": "perte",
+   "sera": true,
+   "rotta": "giro della sera (Veloce)",
+   "momentoOra": "dopocena"
+  },
+  "02:00": {
+   "flusso": "perte",
+   "sera": true,
+   "rotta": "giro della sera (Veloce)",
+   "momentoOra": "dopocena"
+  },
+  "04:30": {
+   "flusso": "perte",
+   "sera": true,
+   "rotta": "giro della sera (Veloce)",
+   "momentoOra": "dopocena"
+  },
+  "05:30": {
+   "flusso": "perte",
+   "sera": false,
+   "rotta": "giorno (temi)",
+   "momentoOra": "mattina"
+  }
+ },
+ "quiz": {
+  "23:30": {
+   "flusso": "quiz",
+   "finestra": "2026-10-20 23:30–01:30",
+   "data": "2026-10-20",
+   "momenti": [
+    "dopocena",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "bar",
+    "vita notturna"
+   ],
+   "dopoTramonto": true,
+   "tramonto": "18:18",
+   "momentoOra": "dopocena"
+  },
+  "00:30": {
+   "flusso": "quiz",
+   "finestra": "2026-10-21 00:30–02:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "dopocena",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "bar",
+    "vita notturna"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "02:00": {
+   "flusso": "quiz",
+   "finestra": "2026-10-21 02:00–04:00",
+   "data": "2026-10-21",
+   "momenti": [
+    "dopocena",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "bar",
+    "vita notturna"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "04:30": {
+   "flusso": "quiz",
+   "finestra": "2026-10-21 04:30–06:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "dopocena",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "bar",
+    "vita notturna"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "05:30": {
+   "flusso": "quiz",
+   "finestra": "2026-10-21 05:30–07:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "mattina(riserva)"
+   ],
+   "primo": "mattina",
+   "categoriePrimo": [
+    "cultura",
+    "monumenti",
+    "musei",
+    "passeggiata"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "mattina"
+  }
+ },
+ "sorprendimi": {
+  "23:30": {
+   "flusso": "sorprendimi",
+   "finestra": "2026-10-20 23:30–03:30",
+   "data": "2026-10-20",
+   "momenti": [
+    "dopocena(riserva)",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "vita notturna"
+   ],
+   "dopoTramonto": true,
+   "tramonto": "18:18",
+   "momentoOra": "dopocena"
+  },
+  "00:30": {
+   "flusso": "sorprendimi",
+   "finestra": "2026-10-21 00:30–04:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "dopocena(riserva)",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "vita notturna"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "02:00": {
+   "flusso": "sorprendimi",
+   "finestra": "2026-10-21 02:00–06:00",
+   "data": "2026-10-21",
+   "momenti": [
+    "dopocena(riserva)",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "vita notturna"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "04:30": {
+   "flusso": "sorprendimi",
+   "finestra": "2026-10-21 04:30–08:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "dopocena(riserva)",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "vita notturna"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "05:30": {
+   "flusso": "sorprendimi",
+   "finestra": "2026-10-21 05:30–09:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "mattina(riserva)"
+   ],
+   "primo": "mattina",
+   "categoriePrimo": [
+    "cultura",
+    "monumenti",
+    "musei",
+    "passeggiata"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "mattina"
+  }
+ },
+ "rigenera": {
+  "23:30": {
+   "flusso": "rigenera",
+   "finestra": "2026-10-20 23:30–03:30",
+   "data": "2026-10-20",
+   "momenti": [
+    "dopocena(riserva)",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "vita notturna"
+   ],
+   "dopoTramonto": true,
+   "tramonto": "18:18",
+   "momentoOra": "dopocena"
+  },
+  "00:30": {
+   "flusso": "rigenera",
+   "finestra": "2026-10-21 00:30–04:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "dopocena(riserva)",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "vita notturna"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "02:00": {
+   "flusso": "rigenera",
+   "finestra": "2026-10-21 02:00–06:00",
+   "data": "2026-10-21",
+   "momenti": [
+    "dopocena(riserva)",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "vita notturna"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "04:30": {
+   "flusso": "rigenera",
+   "finestra": "2026-10-21 04:30–08:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "dopocena(riserva)",
+    "passeggiata"
+   ],
+   "primo": "dopocena",
+   "categoriePrimo": [
+    "vita notturna"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "05:30": {
+   "flusso": "rigenera",
+   "finestra": "2026-10-21 05:30–09:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "mattina(riserva)"
+   ],
+   "primo": "mattina",
+   "categoriePrimo": [
+    "cultura",
+    "monumenti",
+    "musei",
+    "passeggiata"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "mattina"
+  }
+ },
+ "crea": {
+  "23:30": {
+   "flusso": "crea",
+   "finestra": "2026-10-21 09:30–22:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "mattina",
+    "pranzo",
+    "pomeriggio",
+    "aperitivo",
+    "passeggiata",
+    "cena"
+   ],
+   "primo": "mattina",
+   "categoriePrimo": [
+    "cultura",
+    "monumenti",
+    "musei",
+    "passeggiata"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "00:30": {
+   "flusso": "crea",
+   "finestra": "2026-10-21 00:30–22:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "mattina",
+    "pranzo",
+    "pomeriggio",
+    "aperitivo",
+    "passeggiata",
+    "cena"
+   ],
+   "primo": "mattina",
+   "categoriePrimo": [
+    "cultura",
+    "monumenti",
+    "musei",
+    "passeggiata"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "02:00": {
+   "flusso": "crea",
+   "finestra": "2026-10-21 02:00–22:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "mattina",
+    "pranzo",
+    "pomeriggio",
+    "aperitivo",
+    "passeggiata",
+    "cena"
+   ],
+   "primo": "mattina",
+   "categoriePrimo": [
+    "cultura",
+    "monumenti",
+    "musei",
+    "passeggiata"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "04:30": {
+   "flusso": "crea",
+   "finestra": "2026-10-21 04:30–22:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "mattina",
+    "pranzo",
+    "pomeriggio",
+    "aperitivo",
+    "passeggiata",
+    "cena"
+   ],
+   "primo": "mattina",
+   "categoriePrimo": [
+    "cultura",
+    "monumenti",
+    "musei",
+    "passeggiata"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "dopocena"
+  },
+  "05:30": {
+   "flusso": "crea",
+   "finestra": "2026-10-21 05:30–22:30",
+   "data": "2026-10-21",
+   "momenti": [
+    "mattina",
+    "pranzo",
+    "pomeriggio",
+    "aperitivo",
+    "passeggiata",
+    "cena"
+   ],
+   "primo": "mattina",
+   "categoriePrimo": [
+    "cultura",
+    "monumenti",
+    "musei",
+    "passeggiata"
+   ],
+   "dopoTramonto": false,
+   "tramonto": "18:17",
+   "momentoOra": "mattina"
+  }
+ }
+}

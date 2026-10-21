@@ -43,16 +43,21 @@ const LOADING_STEPS = [
     { icon: CheckCircle2, textFn: () => 'Ci siamo quasi.' },
 ];
 
+// NOTTE-FIX — la prima richiesta del giorno in una città aspetta la lista nuova (30-60 s): dopo questi secondi lo dice.
+const ATTESA_LUNGA_MS = 10000;
+const testoAttesaLunga = (city) => `Sto conoscendo ${city} per oggi. Meno di un minuto.`;
+
 const LoadingSubSteps = ({ city }) => {
     const [step, setStep] = useState(0);
+    const [attesaLunga, setAttesaLunga] = useState(false);
     useEffect(() => {
-        // Gate B — Il safety timeout QuickPath è 35s. Tre stringhe che cambiano ogni
-        // ~4s: fase 1 (~0-4s), fase 2 (~4-8s), fase 3 (~8-35s) — l'ultima fa da
-        // "ci siamo quasi" per i tour realmente lenti (10-15s tipici + margine).
+        // Gate B — Tre stringhe che cambiano ogni ~4s: fase 1 (~0-4s), fase 2 (~4-8s),
+        // fase 3 (da ~8s) — l'ultima fa da "ci siamo quasi" per i tour realmente lenti.
         const interval = setInterval(() => {
             setStep(prev => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
         }, 4000);
-        return () => clearInterval(interval);
+        const lunga = setTimeout(() => setAttesaLunga(true), ATTESA_LUNGA_MS);
+        return () => { clearInterval(interval); clearTimeout(lunga); };
     }, []);
 
     const CurrentIcon = LOADING_STEPS[Math.min(step, LOADING_STEPS.length - 1)].icon;
@@ -89,6 +94,17 @@ const LoadingSubSteps = ({ city }) => {
                     {LOADING_STEPS[Math.min(step, LOADING_STEPS.length - 1)].textFn(city)}
                 </motion.p>
             </AnimatePresence>
+            {attesaLunga && (
+                <motion.p
+                    data-attesa-lunga
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="text-obsidian-secondary text-sm font-medium mt-3"
+                >
+                    {testoAttesaLunga(city)}
+                </motion.p>
+            )}
             {/* Progress dots */}
             <div className="flex gap-2 mt-6">
                 {LOADING_STEPS.map((_, i) => (
@@ -600,17 +616,16 @@ export default function QuickPathPage() {
         setGenerationError(null);
         setReadyTourData(null);
 
-        // Gate B — Safety timeout 35s (era 20s). Con Path A c'è una chiamata AI
-        // extra (traduttore) prima del textsearch + selettore: latenza totale
-        // può arrivare a 20-25s realistici (su 4G di un turista). 35s dà margine
-        // senza far scattare un errore falso su un tour che sta per arrivare.
+        // NOTTE-FIX — Safety timeout 150s (era 35s). La pagina non può arrendersi prima del motore: la prima
+        // richiesta del giorno in una città aspetta la lista nuova (fino a 110 s, CITY_LIST_TIMEOUT_MS; 31-58 s
+        // misurati) e poi il resto del giro. 150 s = i 110 s della lista + 40 s per traduttore, selettore e narratore.
         let timedOut = false;
         const safetyTimeoutId = setTimeout(() => {
             timedOut = true;
-            console.warn('[QuickPath] safety timeout 35s → error-technical');
-            setGenerationError({ reason: 'technical', detail: 'timeout 35s' });
+            console.warn('[QuickPath] safety timeout 150s → error-technical');
+            setGenerationError({ reason: 'technical', detail: 'timeout 150s' });
             setGenerationStatus('error-technical');
-        }, 35000);
+        }, 150000);
 
         try {
             // 1. Costruisci prompt dalle 4 selezioni (buildPromptFromSelections).

@@ -356,7 +356,7 @@ import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes, APERIT
 import { resolveTourWindow, romeParts, romeDate } from '@/lib/tourWindow';
 import { DESTINATION_UNSURE_NOTE, destinationNote, extractCityCandidate, isStreetMention, sameCity } from '@/lib/textDestination';
 // Gate NARRATORE-DOPO — alba/tramonto nel codice, controllo luce/ora, fascia dalla tabella.
-import { sunTimes } from '@/lib/sunTimes';
+import { sunTimes, eBuio } from '@/lib/sunTimes';
 // Gate PAROLE VIETATE — l'unico elenco: i prompt lo mostrano, il filtro lo applica.
 import { filterBannedWords, bannedWordsPromptLines, unsupportedJudgments } from '@/lib/narrationLight';
 // P3d-e — fatti aperti sulle tappe finali, controllo anti-invenzione, frase sicura.
@@ -2828,9 +2828,11 @@ export const aiRecommendationService = {
             // parchi fuori dall'abitato), in nessun flusso: i bucket dei momenti che cominciano dopo il tramonto le perdono (la passeggiata
             // conta dall'arrivo stimato: inizio del drink + sosta). Belvedere e piazze dentro il paese restano. Il tramonto e' quello che il
             // motore conosce gia' (sunTimes sul centro della citta', lo stesso del narratore).
-            const tramontoDi = (m) => sunForDay({ windowIndex: m.dayIndex }, m.dayIndex, tourWindow, cityCenter).sunset;
+            // NOTTE-FIX — «dopo il tramonto» e' «al buio»: prima dell'alba o dal tramonto del giorno della finestra (eBuio, sunTimes.js).
+            const soleDi = (m) => sunForDay({ windowIndex: m.dayIndex }, m.dayIndex, tourWindow, cityCenter);
+            const tramontoDi = (m) => soleDi(m).sunset;
             const inizioEffettivo = (m) => (m.start instanceof Date ? m.start.getTime() + (m.key === 'passeggiata' ? APERITIVO_STAY_MINUTES * 60000 : 0) : null);
-            const dopoIlTramonto = (m) => { const t = tramontoDi(m); const i = inizioEffettivo(m); return t instanceof Date && Number.isFinite(i) && i >= t.getTime(); };
+            const dopoIlTramonto = (m) => { const i = inizioEffettivo(m); return Number.isFinite(i) && eBuio(i, soleDi(m)); };
             const senzaNaturaDiNotte = (b) => {
                 if (!b) return b;
                 const out = new Map(b);
@@ -3409,10 +3411,12 @@ export const aiRecommendationService = {
                         // BORGO-FIX — decisione 3: natura chiesta, giro che comincia dopo il tramonto, nessuna natura nel giro → la nota di Ivano
                         // (la seconda frase solo se un posto di natura verificato, nel pool, e' aperto domattina alle 9).
                         if (naturaChiesta && narratedDays[0] && !allStops.some(st => isNaturaOPanorama(st))) {
-                            const tramonto0 = sunForDay({ windowIndex: 0 }, 0, tourWindow, cityCenter).sunset;
-                            if (tramonto0 instanceof Date && tourWindow.start instanceof Date && tourWindow.start.getTime() >= tramonto0.getTime()) {
+                            const sole0 = sunForDay({ windowIndex: 0 }, 0, tourWindow, cityCenter);
+                            const tramonto0 = sole0.sunset;
+                            if (tourWindow.start instanceof Date && eBuio(tourWindow.start, sole0)) {
                                 const p0 = romeParts(tourWindow.start);
-                                const alle9 = new Date(romeDate({ y: p0.y, m: p0.m, d: p0.d }, { h: 9, m: 0 }).getTime() + (p0.h < 6 ? 0 : 24 * 3600 * 1000));
+                                // NOTTE-FIX — «domattina alle 9»: se il giro comincia prima dell'alba le 9 sono di questo stesso giorno (era `p0.h < 6`)
+                                const alle9 = new Date(romeDate({ y: p0.y, m: p0.m, d: p0.d }, { h: 9, m: 0 }).getTime() + (tourWindow.start.getTime() < sole0.sunrise.getTime() ? 0 : 24 * 3600 * 1000));
                                 const luogo = candidates.find(c => isNaturaOPanorama(c) && !isOrganizzazione(c) && openStatus(c, alle9, 45).stato !== 'chiuso') || null;
                                 narratedDays[0].naturaNote = NOTA_NATURA_NOTTE(luogo ? (luogo.name || luogo.title) : null);
                                 cittaReport.naturaNotte = { nota: narratedDays[0].naturaNote, luogo: luogo ? (luogo.name || luogo.title) : null, tramonto: tramonto0.toISOString(), alle9: alle9.toISOString() };
@@ -3890,7 +3894,8 @@ export const aiRecommendationService = {
                     // C8b — le stesse fasce dei pasti di Crea: un ristorante solo a pranzo e a cena, la mattina una colazione.
                     invalidAt: (c, arrivo, altre) => perTeMealProblem(c, romeMinutes(arrivo), arrivo, altre)
                         // BORGO-FIX — decisione 3: la natura «da fuori» dopo il tramonto non e' una tappa nemmeno in Per Te
-                        || (sunNow.sunset instanceof Date && arrivo instanceof Date && arrivo.getTime() >= sunNow.sunset.getTime() && isNaturaDaFuori(c, cityCenter) ? 'natura da fuori dopo il tramonto' : null),
+                        // NOTTE-FIX — la terza copia della regola: «al buio» = prima dell'alba o dal tramonto (eBuio), non solo dal tramonto
+                        || (arrivo instanceof Date && eBuio(arrivo, sunNow) && isNaturaDaFuori(c, cityCenter) ? 'natura da fuori al buio' : null),
                     stops: computeStopTimings(sortByProximity(withinRadius)).stops, pool: poolTema, start: now, exclude: usati,
                     retime: (list) => computeStopTimings(sortByProximity(list)).stops,
                     toStop: (c) => {

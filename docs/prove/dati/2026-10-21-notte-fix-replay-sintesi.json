@@ -1,0 +1,160 @@
+[
+ {
+  "id": "quiz-2330",
+  "flusso": "quiz",
+  "ora": "23:30",
+  "sezioni": [
+   "Dopocena"
+  ],
+  "tappe": [
+   "Barbera Silvestro (bar)",
+   "Piazza Conte Ruggero (route)"
+  ],
+  "monte": false,
+  "nota": true,
+  "usciteInRete": 0,
+  "errore": null
+ },
+ {
+  "id": "quiz-0030",
+  "flusso": "quiz",
+  "ora": "00:30",
+  "sezioni": [
+   "Dopocena"
+  ],
+  "tappe": [
+   "Barbera Silvestro (bar)",
+   "Piazza Conte Ruggero (route)"
+  ],
+  "monte": false,
+  "nota": true,
+  "usciteInRete": 0,
+  "errore": null
+ },
+ {
+  "id": "quiz-0200",
+  "flusso": "quiz",
+  "ora": "02:00",
+  "sezioni": [
+   "Dopocena"
+  ],
+  "tappe": [
+   "Barbera Silvestro (bar)",
+   "Piazza Conte Ruggero (route)"
+  ],
+  "monte": false,
+  "nota": true,
+  "usciteInRete": 0,
+  "errore": null
+ },
+ {
+  "id": "quiz-0430",
+  "flusso": "quiz",
+  "ora": "04:30",
+  "sezioni": [
+   "Dopocena"
+  ],
+  "tappe": [
+   "Barbera Silvestro (bar)",
+   "Piazza Conte Ruggero (route)"
+  ],
+  "monte": false,
+  "nota": true,
+  "usciteInRete": 0,
+  "errore": null
+ },
+ {
+  "id": "quiz-0530",
+  "flusso": "quiz",
+  "ora": "05:30",
+  "sezioni": [
+   "Mattina"
+  ],
+  "tappe": [
+   "Piazza Conte Ruggero (route)"
+  ],
+  "monte": false,
+  "nota": true,
+  "usciteInRete": 0,
+  "errore": null
+ },
+ {
+  "id": "sorprendimi-2330",
+  "flusso": "sorprendimi",
+  "ora": "23:30",
+  "sezioni": [
+   "Dopocena"
+  ],
+  "tappe": [
+   "Barbera Silvestro (bar)",
+   "Piazza Conte Ruggero (route)"
+  ],
+  "monte": false,
+  "nota": true,
+  "usciteInRete": 0,
+  "errore": null
+ },
+ {
+  "id": "sorprendimi-0030",
+  "flusso": "sorprendimi",
+  "ora": "00:30",
+  "sezioni": [
+   "Dopocena"
+  ],
+  "tappe": [
+   "Barbera Silvestro (bar)",
+   "Piazza Conte Ruggero (route)"
+  ],
+  "monte": false,
+  "nota": true,
+  "usciteInRete": 0,
+  "errore": null
+ },
+ {
+  "id": "sorprendimi-0200",
+  "flusso": "sorprendimi",
+  "ora": "02:00",
+  "sezioni": [
+   "Dopocena"
+  ],
+  "tappe": [
+   "Barbera Silvestro (bar)",
+   "Piazza Conte Ruggero (route)"
+  ],
+  "monte": false,
+  "nota": true,
+  "usciteInRete": 0,
+  "errore": null
+ },
+ {
+  "id": "sorprendimi-0430",
+  "flusso": "sorprendimi",
+  "ora": "04:30",
+  "sezioni": [
+   "Dopocena"
+  ],
+  "tappe": [
+   "Barbera Silvestro (bar)",
+   "Piazza Conte Ruggero (route)"
+  ],
+  "monte": false,
+  "nota": true,
+  "usciteInRete": 0,
+  "errore": null
+ },
+ {
+  "id": "sorprendimi-0530",
+  "flusso": "sorprendimi",
+  "ora": "05:30",
+  "sezioni": [
+   "Mattina"
+  ],
+  "tappe": [
+   "Piazza Conte Ruggero (route)"
+  ],
+  "monte": false,
+  "nota": true,
+  "usciteInRete": 1,
+  "errore": null
+ }
+]

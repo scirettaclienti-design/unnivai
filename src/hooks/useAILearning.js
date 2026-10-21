@@ -105,10 +105,6 @@ export function useAILearning() {
     // la chiave di Per Te non cambia sotto i piedi). null = mai letto e nessuna cache.
     const [registro, setRegistro] = useState(() => leggiCacheRegistro(userId));
     const [oraDelCalcolo] = useState(() => new Date()); // l'«adesso» dei pesi: fisso per la sessione
-    // L'utente puo' arrivare dopo il primo render (sessione che si risolve): intanto vale la sua ultima cache.
-    useEffect(() => {
-        if (userId) setRegistro(prev => prev ?? leggiCacheRegistro(userId));
-    }, [userId]);
 
     const syncTimerRef = useRef(null);
     const hasSyncedFromDb = useRef(false);
@@ -376,7 +372,11 @@ export function useAILearning() {
     // Il grafo locale resta solo per l'ospite, per la scheda del profilo e se il registro non e' mai
     // stato letto (nessuna cache e lettura fallita).
     const dnaDalRegistro = useMemo(
-        () => (userId && registro ? pesiDaEventi(registro, onboardingSeed, oraDelCalcolo) : null),
+        () => {
+            // L'utente puo' arrivare dopo il primo render (sessione che si risolve): intanto vale la sua ultima cache.
+            const righe = registro ?? leggiCacheRegistro(userId);
+            return userId && righe ? pesiDaEventi(righe, onboardingSeed, oraDelCalcolo) : null;
+        },
         [userId, registro, onboardingSeed, oraDelCalcolo],
     );
     const weights = useMemo(() => {

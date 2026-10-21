@@ -410,7 +410,7 @@ export default function TourLivePage() {
                                             className="text-obsidian-bg p-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-brand-orange"
                                             whileHover={{ scale: 1.1, rotate: 15 }}
                                             whileTap={{ scale: 0.9 }}
-                                            onClick={() => dataService.toggleFavorite(tour.id).then(r => { if (r?.added) trackDnaEvent?.('tour_saved', tour.steps || [], { city: tour.city || currentCity }); })}
+                                            onClick={() => dataService.toggleFavorite(tour.id).then(r => { if (r?.added) trackDnaEvent?.('tour_saved', tour.steps || [], { city: tour.city || currentCity, tourId: tour.id }); })}
                                         >
                                             <Heart className="w-6 h-6" />
                                         </motion.button>

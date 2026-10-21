@@ -30,6 +30,8 @@ import { logNavEvent } from '../lib/navTelemetry';
 import { haversineM, pickActiveStep } from '../lib/navGeo';
 import { avviaTracciamento } from '../lib/navTracking';
 import { salvaGiro, leggiGiro, chiudiGiro, chiaveGiro, puntoDelGiro, centroDelGiro } from '../lib/navSession';
+import { logDnaEvent } from '../lib/dnaRegistro';
+import { stopCoreCategory } from '../services/preferenceEngine';
 import GiroRipresaDialog from '../components/Map/GiroRipresaDialog';
 import { valutaPassaggio } from '../lib/navPassaggio';
 import { valutaArrivo } from '../lib/navArrivo';
@@ -716,6 +718,18 @@ const MapPage = () => {
     }, [selectedPOI, city]);
 
     const tourData = activeTourData || location.state?.tourData;
+
+    // DNA-1 — i campi del registro per una tappa del giro: categoria vera (dai `types` della
+    // tappa in tourData.steps, che activeRoute non porta), citta', momento e giro.
+    const gestoDellaTappa = (poi) => {
+        const step = tourData?.steps?.[poi?.index] || poi;
+        return {
+            category: stopCoreCategory(step),
+            city: tourData?.city || step?.city || null,
+            moment: step?.moment || null,
+            tourId: tourData?.id || tourData?.tourId || null,
+        };
+    };
 
     // ─── ACTIVE ROUTE ────────────────────────────────────────────────────────
     const activeRoute = useMemo(() => {
@@ -1435,7 +1449,7 @@ const MapPage = () => {
         // P7a — tour completato: +0,3 alle categorie vere delle tappe (solo se tutte FATTE,
         // come prima). Una volta sola: dopo questo punto il latch ferma tutto.
         if (!navCompletedRef.current && fatteIds.length >= totalSteps) {
-            trackDnaEvent?.('tour_completed', tourData?.steps?.length ? tourData.steps : activeRoute, { city: tourData?.city || null });
+            trackDnaEvent?.('tour_completed', tourData?.steps?.length ? tourData.steps : activeRoute, { city: tourData?.city || null, tourId: tourData?.id || tourData?.tourId || null });
         }
         navCompletedRef.current = true;
         navTrackerRef.current?.stop(); navTrackerRef.current = null;
@@ -1463,6 +1477,7 @@ const MapPage = () => {
                 tour_id: tourData?.id || tourData?.tourId || null,
                 step_index: typeof poiObj.index === 'number' ? poiObj.index : (newCompleted.length - 1),
             });
+            logDnaEvent('stop_reached', gestoDellaTappa(poiObj)); // DNA-1: registro, mai bloccante
 
             avanzaDopo(poiObj, newCompleted, skippedStepsRef.current || [], true);
         }
@@ -1479,6 +1494,8 @@ const MapPage = () => {
         skippedStepsRef.current = newSkipped;
         setSkippedSteps(newSkipped);
         setTappaPassata(t => (t?.id === poiObj.id ? null : t));
+        // DNA-1: la tappa saltata entra nel registro (i pesi non cambiano: stop_skipped non passa da trackDnaEvent).
+        logDnaEvent('stop_skipped', gestoDellaTappa(poiObj));
         avanzaDopo(poiObj, doneNow, newSkipped, false);
     };
 

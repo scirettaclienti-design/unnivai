@@ -4,6 +4,7 @@ import { dataService } from '../services/dataService';
 import { computeWeights, weightsToAIProfile, tourAffinityScore, normalizeCategory, applyDnaEvent, computeDnaShare, dnaEventCount, tourCoreCategories } from '../services/preferenceEngine';
 import { parseSeed, seedFoodPrefs, buildSeed } from '../lib/foodPrefs';
 import { computeSeed, interestIdsFromSeed } from '../lib/interests';
+import { logDnaEvent } from '../lib/dnaRegistro';
 
 // Fase 2 Gate DNA: bump chiave localStorage (v1→v2). Il "brain" v1 conteneva
 // chiavi cat: sporche (nomi-sezione, "guide"): ignorandolo, i client ripartono
@@ -277,6 +278,10 @@ export function useAILearning() {
     // li', mai dall'etichetta del tour. Nessuna categoria → nessun evento.
     const trackDnaEvent = useCallback((kind, stops = [], opts = {}) => {
         const categories = tourCoreCategories(stops);
+        // DNA-1 — il registro riceve il gesto anche senza categoria (una riga con categoria nulla);
+        // i pesi no: senza categorie non cambiano (DNA-2 li leggera' dal registro). Solo i gesti
+        // ammessi dalla tabella (giro completato, giro salvato) vengono scritti.
+        logDnaEvent(kind, { categories, city: opts.city, tourId: opts.tourId });
         if (categories.length === 0) return;
         setLearningState(prev => {
             const graph = applyDnaEvent(prev.preferenceGraph, kind, categories, opts);

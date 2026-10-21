@@ -29,6 +29,7 @@ import BottomNavigation from "@/components/BottomNavigation";
 import { QuickPathSummary } from "@/components/Map/QuickPathSummary";
 import { useUserContext } from "@/hooks/useUserContext";
 import { useAILearning } from "@/hooks/useAILearning";
+import { gestiDelQuiz, logDnaGesti } from "@/lib/dnaRegistro";
 import { DEMO_CITIES } from "@/data/demoData";
 // Gate E-2: import PaywallModal rimosso. Il paywall gate è morto (modello di
 // lancio locked: nessun paywall V1). Il componente resta nel repo per V2/V3.
@@ -579,6 +580,13 @@ export default function QuickPathPage() {
 
     const handleGroupSelection = (groupOption) => {
         setSelectedGroup(groupOption);
+        // DNA-1 — la scelta finale del Quiz entra nel registro (mai bloccante, i pesi non cambiano).
+        logDnaGesti(gestiDelQuiz({
+            main: selectedOption,
+            sub: selectedSubOption?.id || selectedSubOption?.title,
+            group: groupOption?.id,
+            city: activeCity,
+        }));
         // Gate E-2: rimosso il paywall gate silenzioso qui. Prima
         // hasHitPaywall (>=10 tour vita) faceva setShowPaywall(true)+return,
         // ma <PaywallModal> non era mai renderizzato → utente bloccato senza

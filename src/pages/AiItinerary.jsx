@@ -22,6 +22,7 @@ import { groupStopsByDayAndMoment, stopClockLabel, freeTimeRangeLabel } from "@/
 // La vecchia riga inline cancellava ogni lettera accentata: vedi promptTags.js.
 import { extractPromptTags } from "@/lib/promptTags";
 import { useAILearning } from "../hooks/useAILearning"; // DVAI-045
+import { gestiDiCrea, logDnaGesti } from "../lib/dnaRegistro";
 import { useToast } from "../hooks/use-toast";
 // Gate 2 FASE 3 — resolveCityCenter come sorgente unica del centro città.
 // Sostituisce il vecchio pattern `{ latitude: lat, longitude: lng }` che usava
@@ -137,6 +138,9 @@ export default function AIItineraryPage() {
             acc[pref.id] = pref.selected;
             return acc;
         }, {});
+
+        // DNA-1 — ritmo e compagnia scelti entrano nel registro (mai bloccante, i pesi non cambiano).
+        logDnaGesti(gestiDiCrea({ pace: prefsObject.pace, group: prefsObject.group, city: activeCity }));
 
         // Preference Graph: contesto AI dal grafo preferenze + DNA legacy
         const graphContext = getAIContext();

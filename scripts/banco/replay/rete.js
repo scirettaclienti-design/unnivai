@@ -134,7 +134,7 @@ const risposta = (status, corpo) => new Response(corpo == null ? null : JSON.str
  * @param {{ racconto?: 'registrato'|'vuoto' }} [opts]
  * @returns {{ fetch: Function, stato: { servite: number, uscite: Array, promptDiversi: Array, raccontoMancante: Array } }}
  */
-export function creaReteReplay(tracciato, { racconto = 'registrato' } = {}) {
+export function creaReteReplay(tracciato, { racconto = 'registrato', selettore = 'registrato' } = {}) {
     const rete = tracciato?.rete || tracciaVuota();
     const stato = { servite: 0, uscite: [], promptDiversi: [], raccontoMancante: [], fallimentiRigiocati: [] };
     const contatori = {};
@@ -165,6 +165,12 @@ export function creaReteReplay(tracciato, { racconto = 'registrato' } = {}) {
                 return risposta(r.status, r.corpo);
             }
             const i = contatori[p] = (contatori[p] ?? -1) + 1;
+            // DNA-3 — `selettore: 'vuoto'`: il selettore non sceglie niente e le tappe le sceglie il codice (merito, DNA, regole): serve a
+            // misurare cosa decide il DNA nel codice, senza la scelta registrata dell'utente nuovo. Mai usato nei giri di confronto.
+            if (p === 'selettore' && selettore === 'vuoto') {
+                stato.servite += 1;
+                return risposta(200, { choices: [{ message: { content: JSON.stringify({ days: [{ day: 1, stops: [] }] }) } }] });
+            }
             const r = rete.ai[p]?.[i];
             if (!r) {
                 if (racconto === 'vuoto' && p === 'narratore') {

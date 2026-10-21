@@ -333,11 +333,14 @@ export function applyEvent(currentWeights = {}, eventType, category) {
  * @param {object} weights - Pesi normalizzati
  * @returns {string} Contesto da iniettare nel system prompt
  */
-export function weightsToAIProfile(weights = {}) {
+export function weightsToAIProfile(weights = {}, richiesta = null) {
     // P7a — se il DNA non pesa (fiducia 0), il profilo non va al modello.
     if (weights && weights._share === 0) return '';
+    // DNA-3 — con una richiesta esplicita, il profilo non nomina le categorie che l'utente ha chiesto o escluso
+    // (il modello potrebbe pesarle contro la richiesta) e dice che la richiesta vince. Senza richiesta: come prima.
+    const fuori = new Set(richiesta && !richiesta.vuota ? [...richiesta.chieste, ...(richiesta.catsTesto || []), ...richiesta.escluse] : []);
     const sorted = Object.entries(weights || {})
-        .filter(([k, v]) => CORE_CATEGORIES.includes(k) && v > 0.2) // Ignora categorie con peso trascurabile
+        .filter(([k, v]) => CORE_CATEGORIES.includes(k) && v > 0.2 && !fuori.has(k)) // Ignora categorie con peso trascurabile
         .sort(([, a], [, b]) => b - a);
 
     if (sorted.length === 0) return '';
@@ -347,7 +350,7 @@ export function weightsToAIProfile(weights = {}) {
     // ne' conclusioni sotto soglia: un peso basso su una categoria non e' un
     // rifiuto dell'utente, e' spesso solo un dato che manca ancora.
     const dominant = sorted.slice(0, 3).map(([cat, w]) => `${cat} (${Math.round(w * 100)}%)`);
-    return `Preferenze dominanti: ${dominant.join(', ')}.`;
+    return `Preferenze dominanti: ${dominant.join(', ')}.${richiesta ? " La richiesta dell'utente vince sempre sul profilo." : ''}`;
 }
 
 /**

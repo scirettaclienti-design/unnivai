@@ -376,6 +376,10 @@ Diagnosi in `docs/prove/2026-10-20-nav-diagnosi.md`, lavoro in `docs/prove/2026-
 - **Messaggi** (`src/lib/navMessaggi.js`, `NAV_TESTI`): testi di Ivano alla lettera, uno alla volta (`avvisoNavigazione`); un errore di Directions non si mostra mai col suo codice.
 - Telemetria invariata (NAV-2). Prova WebKit: `scripts/prova-nav/nav1.webkit.mjs` (porta e titolo verificati, GPS finto).
 
+### La richiesta esplicita vince sul DNA (DNA-3)
+
+`src/lib/richiestaEsplicita.js`: **richiesta esplicita** = categorie (testo di Crea, categoria del traduttore, interessi di Crea e Quiz), luoghi per nome, esclusioni (`vincoli.escludi` e «niente/senza X» nel testo), budget, durata, ritmo, compagnia, momento; **scelta libera** = tutto il resto. Il motore la mette in `dnaWeights._richiesta` (`_generateItinerary`, dopo `catStretta`) e `candidateScoring.affinitaEffettiva` la legge: un tipo escluso ha affinità DNA 0 (il DNA non lo porta mai su), un posto chiesto parte un gradino sopra (+1,01) quando nel pool ci sono anche scelte libere, il resto ha il DNA di sempre. Il profilo al selettore (`weightsToAIProfile(w, richiesta)`) non nomina le categorie chieste o escluse e dice «La richiesta dell'utente vince sempre sul profilo.». La curva del peso (0 → 0,45) non cambia; con fiducia 0 e per un utente nuovo il giro è identico a prima. Le `queries` del traduttore non sono richiesta (davanti a una frase vaga le riempie da solo). `escludi` resta senza filtro in codice (solo prompt): vedi `docs/prove/2026-10-21-dna-3.md`. Replay con un altro DNA: `REPLAY_DNA='{"food":1,"_share":0.45}'`; col selettore vuoto (decide il codice): `REPLAY_SELETTORE=vuoto`.
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

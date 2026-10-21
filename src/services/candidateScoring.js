@@ -19,6 +19,7 @@
 
 import { isSmallTown } from './tourShape';
 import { mapTypeToCoreCategory } from './preferenceEngine';
+import { statoCandidato } from '../lib/richiestaEsplicita';
 
 // ─── Soglia di qualita' (filtro, non classifica) ────────────────────────────
 export const QUALITY_THRESHOLDS = {
@@ -146,9 +147,38 @@ export const dnaShareOf = (dnaWeights = {}) => (
     Number.isFinite(dnaWeights?._share) ? Math.max(0, Math.min(SCORE_WEIGHTS.affinita, dnaWeights._share)) : SCORE_WEIGHTS.affinita
 );
 
+// DNA-3 — LA RICHIESTA ESPLICITA VINCE (lib/richiestaEsplicita.js). Il motore mette la richiesta dell'utente in
+// `dnaWeights._richiesta`; l'affinita' DNA che entra nel punteggio e' questa, non quella nuda:
+//   · un posto di un tipo ESCLUSO ha affinita' 0: il DNA non lo porta mai su, al massimo lo porta giu';
+//   · un posto CHIESTO (tipo o nome) parte un gradino sopra (+1,01 all'affinita', un gradino sopra qualunque DNA) quando nel pool ci sono anche
+//     scelte libere: il DNA non puo' mai far passare davanti un posto libero a uno chiesto. Dentro i chiesti
+//     il DNA ordina come prima (il gradino e' uguale per tutti);
+//   · un posto LIBERO ha l'affinita' DNA di sempre.
+// Senza richiesta (o con fiducia 0, che non arriva fin qui) niente cambia: stessa funzione di prima.
+// un gradino sopra qualunque affinita' DNA (che arriva al massimo a 1): il DNA non inverte mai chiesto e libero
+const GRADINO_CHIESTO = 1.01;
+const poolConLiberi = new WeakMap();
+const haScelteLibere = (pool, r) => {
+    if (!Array.isArray(pool)) return false;
+    let perRichiesta = poolConLiberi.get(pool);
+    if (!perRichiesta) { perRichiesta = new Map(); poolConLiberi.set(pool, perRichiesta); }
+    if (!perRichiesta.has(r)) perRichiesta.set(r, pool.some(c => statoCandidato(c, r, mapCandidateToCoreCategories) === 'libero'));
+    return perRichiesta.get(r);
+};
+export const affinitaEffettiva = (candidate, pool, dnaWeights = {}) => {
+    const base = computeAffinityScore(candidate, dnaWeights);
+    const r = dnaWeights?._richiesta;
+    if (!r || (r.vuota && !r.testoNomi)) return base;
+    // un DNA senza nessun peso positivo (utente nuovo) non ha niente da far valere: punteggio di sempre
+    if (!CORE_CATEGORIES.some(cat => Number(dnaWeights?.[cat]) > 0)) return base;
+    const stato = statoCandidato(candidate, r, mapCandidateToCoreCategories);
+    if (stato === 'escluso') return 0;
+    return stato === 'chiesto' && haScelteLibere(pool, r) ? base + GRADINO_CHIESTO : base;
+};
+
 export const computeCandidateScore = (candidate, pool, dnaWeights = {}) => {
     const share = dnaShareOf(dnaWeights);
-    const affinita = share > 0 ? computeAffinityScore(candidate, dnaWeights) : 0;
+    const affinita = share > 0 ? affinitaEffettiva(candidate, pool, dnaWeights) : 0;
     const unicita = computeUniquenessScore(candidate, pool);
     const voto = (Number(candidate?.rating) || 0) / 5;
     const resto = 1 - share;

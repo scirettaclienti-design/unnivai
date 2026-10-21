@@ -5,6 +5,7 @@
 // Non si lancia da solo: `npm run banco:replay -- <tracciati.json.gz>` (scripts/banco/replay.mjs).
 // REPLAY_IN (tracciati, .json o .json.gz), REPLAY_OUT (grezzo del replay), REPLAY_CASI (sottoinsieme),
 // REPLAY_RACCONTO=vuoto (narratore non registrato: frasi del codice, tappe e orari non cambiano).
+// REPLAY_DNA='{"food":1,"_share":0.45}' (DNA-3: lo stesso caso con un altro profilo DNA).
 import { it, vi, expect, afterAll } from 'vitest';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
@@ -33,6 +34,7 @@ const IN = process.env.REPLAY_IN;
 const OUT = process.env.REPLAY_OUT;
 if (!IN || !OUT) throw new Error('REPLAY_IN e REPLAY_OUT mancanti: lancia il replay con `npm run banco:replay -- <tracciati>`');
 const RACCONTO = process.env.REPLAY_RACCONTO === 'vuoto' ? 'vuoto' : 'registrato';
+const SELETTORE = process.env.REPLAY_SELETTORE === 'vuoto' ? 'vuoto' : 'registrato'; // DNA-3: il selettore non sceglie, scelgono le regole del codice
 const grezzo = readFileSync(IN);
 const tracciati = JSON.parse((IN.endsWith('.gz') ? gunzipSync(grezzo) : grezzo).toString('utf8'));
 if (tracciati.formato !== FORMATO) throw new Error(`formato del tracciato sconosciuto: ${tracciati.formato} (atteso ${FORMATO})`);
@@ -51,14 +53,16 @@ const registro = creaLuoghi();
 
 for (const traccia of casi) {
     it(traccia.id, async () => {
-        const caso = traccia.caso;
+        // DNA-3 — REPLAY_DNA (JSON): lo stesso tracciato rigiocato con un altro profilo DNA (0 $: le risposte registrate
+        // sono quelle dell'utente nuovo; cambia solo cio' che il codice decide col DNA). Senza, il caso e' quello registrato.
+        const caso = process.env.REPLAY_DNA ? { ...traccia.caso, dna: JSON.parse(process.env.REPLAY_DNA) } : traccia.caso;
         const rec = recordCaso(caso, E);
         out.casi.push(rec);
         // TROINA-FIX — anche Per Te si rigioca: le ricerche dei temi e la chiamata dei tour (passaggio `altro`, in ordine) dal tracciato
         for (const k of Object.keys(window.localStorage)) window.localStorage.removeItem(k);
         // le risposte comuni a tutto il giro (tracciati ricostruiti) valgono come quelle del caso
         const rete = { ...traccia.rete, places: { ...(tracciati.comune?.places || {}), ...(traccia.rete?.places || {}) } };
-        const { fetch: reteReplay, stato } = creaReteReplay({ rete }, { racconto: RACCONTO });
+        const { fetch: reteReplay, stato } = creaReteReplay({ rete }, { racconto: RACCONTO, selettore: SELETTORE });
         vi.stubGlobal('fetch', async (url, init) => {
             const res = await reteReplay(url, init);
             try { if (res.status !== 204) annotaRisposta(registro, url, await res.clone().json()); } catch { /* non JSON */ }

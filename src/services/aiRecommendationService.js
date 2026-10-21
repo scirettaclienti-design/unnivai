@@ -392,6 +392,8 @@ import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scal
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
+import { richiestaEsplicita } from '../lib/richiestaEsplicita';
+import { weightsToAIProfile } from './preferenceEngine';
 import { selectScoredCandidatePool, passesQualityThreshold, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport, computeAffinityScore, dnaShareOf } from './candidateScoring';
 import {
     resolveFoodPrefs, applyFoodConstraints, foodPrefBonus, foodPrefsFingerprint, hasFoodPrefs,
@@ -2633,6 +2635,16 @@ export const aiRecommendationService = {
                 ? detectFoodTheme({ text: opts.pathType === 'custom' ? userPrompt : '', categoria: intent.categoria, tipicoText: userPrompt })
                 : { tema: false, tipico: false, streetFood: false, momenti: new Set(), fonte: null };
             const catStretta = tema.tema ? undefined : categoriaTarget;
+            // DNA-3 — LA RICHIESTA ESPLICITA VINCE SUL DNA (lib/richiestaEsplicita.js). Cio' che l'utente ha detto o scelto
+            // (categorie, luoghi per nome, esclusioni) filtra e ordina per prima; il DNA decide solo le scelte libere.
+            // La richiesta viaggia dentro `dnaWeights._richiesta`: tutti i punteggi a valle la leggono da li'. Con fiducia 0
+            // (`_share` 0 o pesi vuoti) non si aggiunge niente: il giro di un utente nuovo e' identico a prima.
+            const richiesta = richiestaEsplicita({ intent: isFreeTextIntent ? intent : null, testo: userPrompt, prefs, pathType: opts.pathType });
+            const dnaW = (opts.dnaWeights && dnaShareOf(opts.dnaWeights) > 0 && Object.keys(opts.dnaWeights).some(k => k !== '_share'))
+                ? { ...opts.dnaWeights, _richiesta: richiesta }
+                : (opts.dnaWeights || {});
+            // il profilo per il modello: senza le categorie chieste o escluse, con la clausola «la richiesta vince»
+            const aiProfileEff = (aiProfile && dnaW._richiesta) ? (weightsToAIProfile(dnaW, richiesta) || '') : aiProfile;
             if (tema.tema) console.info(`[C7 TEMA] ${city}: tema cibo (${tema.fonte})${tema.tipico ? ', tipico' : ''}${tema.momenti.size ? `, richiesti espliciti: ${[...tema.momenti].join(', ')}` : ''} → vale solo per i pasti`);
 
             // Gate TOUR-DISTANZA — il raggio PRIMA della chiamata AI.
@@ -2774,7 +2786,7 @@ export const aiRecommendationService = {
             // icone); gli altri essenziali e tutto il resto restano al merito anti-ovvio di sempre.
             const conLista = poolConLista(candidates, {
                 tourWindow,
-                seleziona: (altri) => selectScoredCandidatePool(altri, { city, dnaWeights: opts.dnaWeights || {}, limit: 20 * nDays, bonus: foodBonus, borgoNatura }),
+                seleziona: (altri) => selectScoredCandidatePool(altri, { city, dnaWeights: dnaW, limit: 20 * nDays, bonus: foodBonus, borgoNatura }),
             });
             candidates = conLista.candidates;
             const ancoreCitta = conLista.ancore;
@@ -2933,7 +2945,7 @@ export const aiRecommendationService = {
                     const extra = await searchMomentCandidates({
                         city, cityCenter, themes: extraThemes, known: candidates, perTheme: (extraThemes.includes('esperienze') ? 8 : 5) * nDays,
                         borgoNatura, borgoPub: conferma?.scala === 'borgo',
-                        dnaWeights: opts.dnaWeights || {},
+                        dnaWeights: dnaW,
                         // C8a — la sera del Veloce ha drink, passeggiata e cena qualunque sia l'umore: la categoria dell'intento non la restringe.
                         categoria: catStretta && !seraleVeloce && !drinkDiRiserva ? intent.categoria : null,
                         foodPrefs: foodOn ? food : null,
@@ -2986,7 +2998,7 @@ export const aiRecommendationService = {
             if (selectorCandidates.length >= 1) {
                 const selectorPrompt = buildSelectorSystemPrompt({
                     city, timeContext,
-                    prefs, aiProfile, cityCenter, candidates: selectorCandidates, userPrompt,
+                    prefs, aiProfile: aiProfileEff, cityCenter, candidates: selectorCandidates, userPrompt,
                     // C7 — col tema cibo la categoria `cibo` non e' una clausola dura per tutti i momenti: al selettore
                     // arriva `misto` (i momenti dicono gia' cosa serve: esperienze la mattina e il pomeriggio).
                     intent: tema.tema ? { ...intent, categoria: 'misto' } : intent, // Gate B — clausole dure (categoria/escludi/tempo/note) nel prompt
@@ -3093,7 +3105,7 @@ export const aiRecommendationService = {
                                         cittaReport.ancoreSpostate = [...(cittaReport.ancoreSpostate || []), ...sp.spostate];
                                     }
                                     return aiStops;
-                                })(), pool: candidates, dnaWeights: opts.dnaWeights || {},
+                                })(), pool: candidates, dnaWeights: dnaW,
                                 requestedFamilies: familiesAsked, searchedIds, searchedMoments, dellaRichiesta: catStretta === 'natura' ? isNaturaOPanorama : null,
                                 // C5b — il punto di partenza, se il chiamante lo conosce;
                                 // senza, la prima tappa si misura dal centro del gruppo.
@@ -3117,7 +3129,7 @@ export const aiRecommendationService = {
                                 if (eWalk(target)) walkBudget -= 1; else budget -= 1;
                                 const found = await searchMomentCandidates({
                                     city, cityCenter, themes: [theme], known: candidates, perTheme: 5,
-                                    dnaWeights: opts.dnaWeights || {},
+                                    dnaWeights: dnaW,
                                     categoria: catStretta && !seraleVeloce && !drinkDiRiserva ? intent.categoria : null,
                                     foodPrefs: foodOn ? food : null,
                                     anchor: target.da, tipico: tema.tipico, area, borgoNatura, borgoPub: conferma?.scala === 'borgo',
@@ -3183,7 +3195,7 @@ export const aiRecommendationService = {
                             let tappeSenzaFiltro = null;
                             if (hoursReport.chiusi.length > 0 || veto.size > 0) {
                                 const senza = repairMomentSelection({
-                                    moments, buckets, aiStops, pool: candidates, dnaWeights: opts.dnaWeights || {},
+                                    moments, buckets, aiStops, pool: candidates, dnaWeights: dnaW,
                                     requestedFamilies: familiesAsked, searchedIds, searchedMoments, dellaRichiesta: catStretta === 'natura' ? isNaturaOPanorama : null,
                                     startPoint: opts.startPoint || null, tempoLiberoMinuti: FREE_TIME_MAX_MINUTES, registraPool: false,
                                 });

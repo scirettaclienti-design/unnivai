@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { dataService } from '../services/dataService';
-import { computeWeights, weightsToAIProfile, tourAffinityScore, normalizeCategory, applyDnaEvent, computeDnaShare, dnaEventCount, tourCoreCategories } from '../services/preferenceEngine';
+import { computeWeights, weightsToAIProfile, tourAffinityScore, normalizeCategory, applyDnaEvent, computeDnaShare, dnaEventCount, tourCoreCategories, pesiDaEventi } from '../services/preferenceEngine';
 import { parseSeed, seedFoodPrefs, buildSeed } from '../lib/foodPrefs';
 import { computeSeed, interestIdsFromSeed } from '../lib/interests';
-import { logDnaEvent } from '../lib/dnaRegistro';
+import { logDnaEvent, leggiRegistro, leggiCacheRegistro, salvaCacheRegistro } from '../lib/dnaRegistro';
 
 // Fase 2 Gate DNA: bump chiave localStorage (v1→v2). Il "brain" v1 conteneva
 // chiavi cat: sporche (nomi-sezione, "guide"): ignorandolo, i client ripartono
@@ -99,6 +99,16 @@ export function useAILearning() {
     const [onboardingSeed, setOnboardingSeed] = useState(readOnboardingSeed);
     // P7b — dieta, budget e stile del primo accesso (vincoli e gusti).
     const [onboardingPrefs, setOnboardingPrefs] = useState(() => seedFoodPrefs(readRawSeed()));
+
+    // DNA-2 — il registro degli eventi (public.dna_events) e' la fonte dei pesi. Parte dall'ultima
+    // cache di questo utente; si rilegge dal server una volta per apertura (mai a meta' sessione:
+    // la chiave di Per Te non cambia sotto i piedi). null = mai letto e nessuna cache.
+    const [registro, setRegistro] = useState(() => leggiCacheRegistro(userId));
+    const [oraDelCalcolo] = useState(() => new Date()); // l'«adesso» dei pesi: fisso per la sessione
+    // L'utente puo' arrivare dopo il primo render (sessione che si risolve): intanto vale la sua ultima cache.
+    useEffect(() => {
+        if (userId) setRegistro(prev => prev ?? leggiCacheRegistro(userId));
+    }, [userId]);
 
     const syncTimerRef = useRef(null);
     const hasSyncedFromDb = useRef(false);
@@ -200,9 +210,15 @@ export function useAILearning() {
         // Lettura fallita, senza riga o senza risposta entro DNA_ATTESA_MAX_MS: Per Te parte lo stesso con quello che c'e'
         // (mai home bloccata). Se il DNA arriva dopo, si applica come sempre.
         const scadenza = setTimeout(() => setDnaPronto(true), DNA_ATTESA_MAX_MS);
-        loadFromDb()
-            .catch(err => console.warn('[useAILearning] lettura del DNA dal server fallita:', err?.message))
-            .finally(() => { clearTimeout(scadenza); setDnaPronto(true); });
+        // DNA-2: il registro si legge insieme al resto. Se fallisce resta l'ultima cache (mai blocca).
+        const caricaRegistro = async () => {
+            const r = await leggiRegistro();
+            if (r.ok) { setRegistro(r.rows); salvaCacheRegistro(userId, r.rows); }
+        };
+        Promise.all([
+            loadFromDb().catch(err => console.warn('[useAILearning] lettura del DNA dal server fallita:', err?.message)),
+            caricaRegistro().catch(err => console.warn('[useAILearning] lettura del registro fallita:', err?.message)),
+        ]).finally(() => { clearTimeout(scadenza); setDnaPronto(true); });
         return () => clearTimeout(scadenza);
     }, [userId]);
 
@@ -354,12 +370,21 @@ export function useAILearning() {
     // e accanto ai pesi la FIDUCIA: `dnaShare` = quanto il DNA pesa nel
     // punteggio (0 sotto 5 eventi, 0,45 a 20; 0,15 al massimo coi soli semi).
     // `dnaWeights` = pesi + `_share`, da passare al motore.
+    //
+    // DNA-2: per un utente con account i pesi vengono dal REGISTRO (pesiDaEventi: eventi recenti
+    // contano di piu', il seme si attenua con l'uso, stessi eventi = stessi pesi su ogni dispositivo).
+    // Il grafo locale resta solo per l'ospite, per la scheda del profilo e se il registro non e' mai
+    // stato letto (nessuna cache e lettura fallita).
+    const dnaDalRegistro = useMemo(
+        () => (userId && registro ? pesiDaEventi(registro, onboardingSeed, oraDelCalcolo) : null),
+        [userId, registro, onboardingSeed, oraDelCalcolo],
+    );
     const weights = useMemo(() => {
-        return computeWeights(learningState.preferenceGraph, onboardingSeed);
-    }, [learningState.preferenceGraph, onboardingSeed]);
+        return dnaDalRegistro ? dnaDalRegistro.pesi : computeWeights(learningState.preferenceGraph, onboardingSeed);
+    }, [dnaDalRegistro, learningState.preferenceGraph, onboardingSeed]);
     const dnaShare = useMemo(
-        () => computeDnaShare(learningState.preferenceGraph, onboardingSeed),
-        [learningState.preferenceGraph, onboardingSeed],
+        () => (dnaDalRegistro ? dnaDalRegistro.share : computeDnaShare(learningState.preferenceGraph, onboardingSeed)),
+        [dnaDalRegistro, learningState.preferenceGraph, onboardingSeed],
     );
     const dnaWeights = useMemo(() => ({ ...weights, _share: dnaShare }), [weights, dnaShare]);
 
@@ -427,7 +452,11 @@ export function useAILearning() {
         weights, // Pesi 0.0-1.0 per categorie (P7a: non piu' normalizzati sul massimo)
         dnaWeights, // pesi + `_share` (fiducia), quello che va al motore
         dnaShare, // 0..0,45: quanto pesa il DNA nel punteggio
-        dnaEvents: dnaEventCount(learningState.preferenceGraph),
+        dnaEvents: dnaDalRegistro ? dnaDalRegistro.eventi : dnaEventCount(learningState.preferenceGraph),
+        // DNA-2 — base per B8: ritmo (lento/medio/veloce) e compagnia (solo/coppia/amici/famiglia) dagli eventi.
+        // Non entrano ancora nel motore.
+        ritmoPreferito: dnaDalRegistro ? dnaDalRegistro.ritmo : null,
+        compagniaPreferita: dnaDalRegistro ? dnaDalRegistro.compagnia : null,
         trackDnaEvent,
         // Gate SEME (L1): true se l'onboarding ha seminato almeno un gusto.
         // Serve a DashboardUser per attivare il ranking DNA dal giorno 0 (R1),

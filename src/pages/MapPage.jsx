@@ -31,6 +31,7 @@ import { haversineM, pickActiveStep } from '../lib/navGeo';
 import { avviaTracciamento } from '../lib/navTracking';
 import { salvaGiro, leggiGiro, chiudiGiro, chiaveGiro, puntoDelGiro, centroDelGiro } from '../lib/navSession';
 import { logDnaEvent } from '../lib/dnaRegistro';
+import { giroCompletato } from '../lib/giroCompletato';
 import { stopCoreCategory } from '../services/preferenceEngine';
 import GiroRipresaDialog from '../components/Map/GiroRipresaDialog';
 import { valutaPassaggio } from '../lib/navPassaggio';
@@ -1445,10 +1446,10 @@ const MapPage = () => {
 
     // NAV-1: fine del giro (tutte le tappe fatte o saltate). Stop del GPS, latch, riepilogo.
     const concludiGiro = (fatteIds) => {
-        const totalSteps = activeRoute.length;
-        // P7a — tour completato: +0,3 alle categorie vere delle tappe (solo se tutte FATTE,
-        // come prima). Una volta sola: dopo questo punto il latch ferma tutto.
-        if (!navCompletedRef.current && fatteIds.length >= totalSteps) {
+        // P7a — tour completato: +0,3 alle categorie vere delle tappe. DNA-2: completato = ultima
+        // tappa raggiunta OPPURE almeno il 60% raggiunte (decisione di Ivano; giroCompletato).
+        // Una volta sola: dopo questo punto il latch ferma tutto.
+        if (!navCompletedRef.current && giroCompletato(activeRoute, fatteIds)) {
             trackDnaEvent?.('tour_completed', tourData?.steps?.length ? tourData.steps : activeRoute, { city: tourData?.city || null, tourId: tourData?.id || tourData?.tourId || null });
         }
         navCompletedRef.current = true;

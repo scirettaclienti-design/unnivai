@@ -201,6 +201,117 @@ export function computeWeights(preferenceGraph = {}, onboardingInterests = []) {
     return weights;
 }
 
+// ─── DNA-2 — i pesi si calcolano dal registro degli eventi ────────────
+//
+// `pesiDaEventi` e' una funzione PURA: stessi eventi + stesso seme + stessa ora = stessi
+// pesi, su qualunque dispositivo. Non legge e non scrive niente (ne' localStorage ne' rete),
+// non fonde contatori con Math.max e non ha il tetto delle 30 interazioni: la fonte e' il
+// registro del server.
+
+/** Peso di ogni gesto del registro, per la sua categoria (un evento = una riga). */
+export const REGISTRO_PESI = {
+    stop_reached: 0.05,    // tappa raggiunta (un giro di tre tappe ne porta tre)
+    tour_completed: DNA_EVENT_WEIGHTS.tour_completed,
+    tour_saved: DNA_EVENT_WEIGHTS.tour_saved,
+    quiz_choice: 0.2,      // scelta esplicita nel Quiz, con la categoria
+    stop_skipped: DNA_EVENT_WEIGHTS.stop_skipped,
+};
+/** Gesti che fanno FIDUCIA: gli stessi che contava il DNA di prima (dna:events), cosi' il peso nel motore non cambia. */
+export const REGISTRO_FIDUCIA = ['tour_completed', 'tour_saved', 'stop_skipped'];
+/** Un evento vale la meta' ogni 30 giorni. */
+export const MEZZA_VITA_GIORNI = 30;
+/** Il seme vale 1/(1 + eventi/20): meta' a 20 eventi, un terzo a 40. */
+export const SEME_ATTENUA_EVENTI = 20;
+/** Una preferenza di ritmo o compagnia diventa «suggerita» con almeno 3 scelte e il 60% dello stesso valore. */
+export const PREFERENZA_MIN_SCELTE = 3;
+export const PREFERENZA_MIN_QUOTA = 0.6;
+
+const GIORNO_MS = 24 * 60 * 60 * 1000;
+const RITMO_VALORI = { rilassato: 'lento', lento: 'lento', attivo: 'medio', medio: 'medio', intenso: 'veloce', veloce: 'veloce' };
+const COMPAGNIA_VALORI = ['solo', 'coppia', 'amici', 'famiglia'];
+
+/** Quanto vale oggi un evento di `createdAt`: 1 adesso, 0,5 dopo 30 giorni, 0,25 dopo 60. */
+export function decadimento(createdAt, ora) {
+    const t = new Date(createdAt).getTime();
+    const adesso = new Date(ora).getTime();
+    if (!Number.isFinite(t) || !Number.isFinite(adesso)) return 1;
+    const giorni = Math.max(0, (adesso - t) / GIORNO_MS);
+    return Math.pow(0.5, giorni / MEZZA_VITA_GIORNI);
+}
+
+function preferenzaDa(valori, ammessi) {
+    const conteggi = {};
+    for (const v of valori) if (v) conteggi[v] = (conteggi[v] || 0) + 1;
+    const totale = valori.filter(Boolean).length;
+    let preferito = null;
+    for (const k of ammessi) if ((conteggi[k] || 0) > (conteggi[preferito] || 0)) preferito = k;
+    const quota = totale && preferito ? Math.round((conteggi[preferito] / totale) * 100) / 100 : 0;
+    return {
+        conteggi, totale, preferito, quota,
+        suggerito: totale >= PREFERENZA_MIN_SCELTE && quota >= PREFERENZA_MIN_QUOTA ? preferito : null,
+    };
+}
+
+/**
+ * I pesi del DNA dal registro degli eventi.
+ * @param {{ id?: string, kind: string, category?: string|null, value?: string|null, tour_id?: string|null, created_at: string }[]} eventi
+ * @param {string[]} seme - interessi dell'onboarding (es. ["food"])
+ * @param {Date|number|string} ora - l'«adesso» del calcolo (passato da fuori: la funzione e' pura)
+ * @returns {{ pesi: object, eventi: number, share: number, semeFattore: number, ritmo: object, compagnia: object }}
+ */
+export function pesiDaEventi(eventi = [], seme = [], ora = Date.now()) {
+    // Lo stesso evento arrivato da due dispositivi (stesso id) conta una volta; l'ordine e'
+    // fissato (data, id) cosi' la somma non dipende dall'ordine in cui arrivano le righe.
+    const visti = new Set();
+    const righe = (Array.isArray(eventi) ? eventi : [])
+        .filter(e => e && typeof e.kind === 'string')
+        .filter(e => {
+            if (!e.id) return true;
+            if (visti.has(e.id)) return false;
+            visti.add(e.id);
+            return true;
+        })
+        .sort((a, b) => (String(a.created_at).localeCompare(String(b.created_at))) || String(a.id || '').localeCompare(String(b.id || '')));
+
+    // Fiducia: i gesti che gia' contavano, un giro (stesso gesto, giro e istante) = un evento.
+    const gruppi = new Set();
+    for (const e of righe) {
+        if (!REGISTRO_FIDUCIA.includes(e.kind) || !normalizeCategory(e.category)) continue;
+        gruppi.add(`${e.kind}|${e.tour_id || ''}|${e.created_at}${e.kind === 'stop_skipped' ? `|${e.id || ''}|${normalizeCategory(e.category)}` : ''}`);
+    }
+    const nFiducia = gruppi.size;
+    const share = computeDnaShare({ 'dna:events': nFiducia }, seme);
+
+    const semeFattore = 1 / (1 + nFiducia / SEME_ATTENUA_EVENTI);
+    const grezzi = {};
+    CORE_CATEGORIES.forEach(c => { grezzi[c] = 0; });
+    (Array.isArray(seme) ? seme : []).forEach(i => {
+        const c = normalizeCategory(i);
+        if (c) grezzi[c] += SEED_WEIGHT * semeFattore;
+    });
+    for (const e of righe) {
+        const w = REGISTRO_PESI[e.kind];
+        const c = normalizeCategory(e.category);
+        if (!Number.isFinite(w) || !c) continue;
+        grezzi[c] += w * decadimento(e.created_at, ora);
+    }
+    const pesi = {};
+    for (const c of CORE_CATEGORIES) pesi[c] = Math.round(Math.max(0, Math.min(1, grezzi[c])) * 100) / 100;
+
+    const ritmo = preferenzaDa(
+        righe.filter(e => e.kind === 'pace_chosen').map(e => RITMO_VALORI[String(e.value || '').toLowerCase().trim()] || null),
+        ['lento', 'medio', 'veloce'],
+    );
+    const compagnia = preferenzaDa(
+        righe.filter(e => e.kind === 'company_chosen').map(e => {
+            const v = String(e.value || '').toLowerCase().trim();
+            return COMPAGNIA_VALORI.includes(v) ? v : null;
+        }),
+        COMPAGNIA_VALORI,
+    );
+    return { pesi, eventi: nFiducia, share, semeFattore: Math.round(semeFattore * 1000) / 1000, ritmo, compagnia };
+}
+
 /**
  * Applica un evento incrementale ai pesi (API storica, non usata dall'app).
  * @deprecated P7a: gli eventi passano da applyDnaEvent sul grafo.

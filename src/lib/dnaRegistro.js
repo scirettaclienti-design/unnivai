@@ -114,3 +114,44 @@ export function gestiDiCrea({ pace, group, city } = {}) {
 export function logDnaGesti(gesti = []) {
     for (const g of gesti) logDnaEvent(g.kind, g.campi);
 }
+
+// ─── DNA-2 — lettura del registro e cache sul telefono ───────────────────────
+
+/** Quante righe si leggono al massimo (le piu' recenti): con il decadimento le vecchie pesano quasi zero. */
+export const REGISTRO_LETTURA_MAX = 1000;
+const CACHE_PREFISSO = 'unnivai_dna_registro_v1';
+const COLONNE = 'id,kind,category,value,tour_id,created_at';
+
+/**
+ * Legge i PROPRI eventi (la RLS lascia passare solo quelli). Non rigetta mai.
+ * @returns {Promise<{ ok: boolean, rows: object[] }>}
+ */
+export async function leggiRegistro() {
+    try {
+        const res = await supabase.from('dna_events')
+            .select(COLONNE)
+            .order('created_at', { ascending: false })
+            .limit(REGISTRO_LETTURA_MAX);
+        if (!res || res.error || !Array.isArray(res.data)) return { ok: false, rows: [] };
+        return { ok: true, rows: res.data };
+    } catch {
+        return { ok: false, rows: [] };
+    }
+}
+
+/** L'ultima lettura riuscita di QUESTO utente (null se manca o e' di un altro utente). */
+export function leggiCacheRegistro(userId) {
+    if (!userId) return null;
+    try {
+        const c = JSON.parse(localStorage.getItem(CACHE_PREFISSO));
+        return c && c.userId === userId && Array.isArray(c.rows) ? c.rows : null;
+    } catch { return null; }
+}
+
+/** Salva la lettura sul telefono (best-effort: se manca spazio, resta l'ultima). */
+export function salvaCacheRegistro(userId, rows) {
+    if (!userId || !Array.isArray(rows)) return;
+    try {
+        localStorage.setItem(CACHE_PREFISSO, JSON.stringify({ userId, salvataIl: new Date().toISOString(), rows }));
+    } catch { /* quota o modalita' privata: il server resta la fonte */ }
+}

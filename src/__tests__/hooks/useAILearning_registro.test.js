@@ -4,7 +4,12 @@ import { renderHook, act } from '@testing-library/react';
 // DNA-1 — useAILearning.trackDnaEvent scrive nel registro il giro completato e il giro salvato,
 // e i pesi restano quelli di prima (nessun cambiamento di calcolo).
 vi.mock('@/context/AuthContext', () => ({ useAuth: () => ({ user: null }) }));
-vi.mock('../../lib/dnaRegistro', () => ({ logDnaEvent: vi.fn() }));
+vi.mock('../../lib/dnaRegistro', () => ({
+    logDnaEvent: vi.fn(),
+    leggiRegistro: vi.fn(async () => ({ ok: false, rows: [] })),
+    leggiCacheRegistro: vi.fn(() => null),
+    salvaCacheRegistro: vi.fn(),
+}));
 
 import { useAILearning } from '../../hooks/useAILearning';
 import { logDnaEvent } from '../../lib/dnaRegistro';

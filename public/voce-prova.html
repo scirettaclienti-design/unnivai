@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>DoveVAI · prova voce</title>
+<style>
+  :root { color-scheme: light dark; --bg:#faf8f4; --fg:#1d1b18; --mu:#6b655c; --ac:#2f5d57; --line:#ddd6ca; --card:#fff; }
+  @media (prefers-color-scheme: dark){ :root{ --bg:#14130f; --fg:#f1ede6; --mu:#a39c90; --ac:#7fc2b8; --line:#2c2a24; --card:#1d1b16; } }
+  *{box-sizing:border-box}
+  body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:16px/1.45 -apple-system,system-ui,sans-serif;max-width:640px;margin-inline:auto}
+  h1{font-size:22px;margin:8px 0 4px} h2{font-size:17px;margin:0 0 8px}
+  p{color:var(--mu);margin:4px 0 12px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:14px 0}
+  .clip{margin:10px 0} .clip b{display:block;font-size:14px;margin-bottom:2px} .clip small{color:var(--mu)}
+  audio{width:100%;height:40px}
+  button,select{font:inherit;padding:12px 16px;border-radius:12px;border:1px solid var(--ac);background:var(--ac);color:#fff;min-height:44px}
+  button.sec{background:transparent;color:var(--ac)}
+  select{background:var(--card);color:var(--fg);border-color:var(--line)}
+  label{display:flex;gap:8px;align-items:center;margin:10px 0;color:var(--mu)}
+  #stato{font-weight:600;margin:10px 0}
+  #registro{font:13px/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:80px;max-height:320px;overflow:auto}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+</style>
+</head>
+<body>
+<h1>Prova voce</h1>
+<p>Pagina di prova isolata. Voci sintetiche OpenAI (gpt-4o-mini-tts), tono «insider, calmo, caldo». Nessun login.</p>
+
+<section>
+  <h2>Simula camminata</h2>
+  <p>Dopo il tocco suona una clip ogni 20 secondi per 3 minuti (9 clip). Appena parte, blocca lo schermo e metti il telefono in tasca.</p>
+  <div class="row">
+    <select id="voceWalk" aria-label="Voce"><option value="coral">Voce coral</option><option value="ash">Voce ash</option><option value="sage">Voce sage</option></select>
+    <button id="avvia">Simula camminata</button>
+    <button id="ferma" class="sec">Ferma</button>
+  </div>
+  <label><input type="checkbox" id="silenzio"> Tieni vivo con silenzio in sottofondo (variante)</label>
+  <div id="stato">Pronto.</div>
+  <div id="registro" aria-live="polite"></div>
+  <div class="row" style="margin-top:8px"><button id="copia" class="sec">Copia registro</button></div>
+</section>
+
+<div id="elenco"></div>
+
+<script>
+const VOCI = ['coral','ash','sage'];
+const CLIPS = [
+  ['arrivo-1','Arrivo 1','Ci sei. Questa è la prima tappa: la bottega di Gino…'],
+  ['arrivo-2','Arrivo 2','Eccoci, siamo arrivati alla fontana…'],
+  ['chicca-1','Chicca 1','Guarda in alto, sopra il portone verde…'],
+  ['chicca-2','Chicca 2','Qui dietro c\'è un cortile che i turisti saltano sempre…'],
+  ['avviso','Avviso','Gira a sinistra fra cinquanta metri.'],
+  ['lunga','Frase lunga (~20 s)','Siamo in cima alla salita…']
+];
+const BASE = '/voce-prova/';
+const elenco = document.getElementById('elenco');
+for (const v of VOCI) {
+  const s = document.createElement('section');
+  s.innerHTML = '<h2>Voce ' + v + '</h2>' + CLIPS.map(([id,t,x]) =>
+    '<div class="clip"><b>' + t + '</b><audio controls preload="none" src="' + BASE + 'openai-' + v + '-' + id + '.mp3"></audio><small>' + x + '</small></div>').join('');
+  elenco.appendChild(s);
+}
+// un solo player per volta nei lettori manuali
+document.addEventListener('play', e => {
+  document.querySelectorAll('#elenco audio').forEach(a => { if (a !== e.target) a.pause(); });
+}, true);
+
+const reg = document.getElementById('registro'), stato = document.getElementById('stato');
+const hhmmss = d => d.toLocaleTimeString('it-IT');
+function log(m){ reg.textContent += hhmmss(new Date()) + '  ' + m + '\n'; reg.scrollTop = reg.scrollHeight; }
+document.getElementById('copia').onclick = () => navigator.clipboard && navigator.clipboard.writeText(reg.textContent).then(() => stato.textContent = 'Registro copiato.');
+
+// Un solo elemento audio, "sbloccato" dal tocco, riusato per tutte le clip.
+const player = new Audio(); player.preload = 'auto';
+const keep = new Audio(BASE + 'silenzio.mp3'); keep.loop = true;
+let timer = null, t0 = 0, n = 0, voce = 'coral';
+const PASSO = 20000, TOT = 9;
+
+function ms(){ const m = navigator.mediaSession; return m; }
+function meta(titolo, sub){
+  const m = ms(); if (!m || !window.MediaMetadata) return;
+  m.metadata = new MediaMetadata({ title: titolo, artist: 'DoveVAI · prova voce', album: sub });
+}
+if (ms()) {
+  ms().setActionHandler('play', () => player.play());
+  ms().setActionHandler('pause', () => player.pause());
+  ms().setActionHandler('stop', () => ferma('Fermato dal controllo di sistema'));
+}
+
+function suona(i){
+  const [id, titolo] = CLIPS[i % CLIPS.length];
+  const previsto = t0 + i * PASSO;
+  player.src = BASE + 'openai-' + voce + '-' + id + '.mp3';
+  meta('Tappa ' + (i + 1) + ' · ' + titolo, 'Voce ' + voce);
+  player.play().then(() => {
+    const ritardo = Math.round((Date.now() - previsto) / 1000);
+    log('PARTITA #' + (i + 1) + ' ' + id + '  (previsto +' + (i * 20) + ' s, ritardo ' + ritardo + ' s)');
+  }).catch(err => log('BLOCCATA #' + (i + 1) + ' ' + id + '  ' + err.name));
+}
+
+function ferma(motivo){
+  clearInterval(timer); timer = null; player.pause(); keep.pause();
+  stato.textContent = motivo || 'Fermato.'; log(motivo || 'Fermato.');
+}
+
+document.getElementById('avvia').onclick = () => {
+  if (timer) return;
+  voce = document.getElementById('voceWalk').value;
+  reg.textContent = ''; n = 0; t0 = Date.now();
+  log('AVVIO camminata, voce ' + voce + ', silenzio=' + document.getElementById('silenzio').checked);
+  log('UA ' + navigator.userAgent.replace(/\s+/g,' ').slice(0, 90));
+  if (document.getElementById('silenzio').checked) keep.play().catch(() => {});
+  suona(0); n = 1;
+  stato.textContent = 'In corso… blocca lo schermo.';
+  timer = setInterval(() => {
+    const atteso = Math.min(TOT - 1, Math.floor((Date.now() - t0) / PASSO));
+    // se il timer è stato sospeso, recupera una sola clip (la più recente non suonata)
+    if (n >= TOT) { if (Date.now() - t0 >= TOT * PASSO) ferma('FINE: 9 clip su 9 avviate'); return; }
+    if (atteso >= n) { if (atteso > n) log('SALTATE ' + (atteso - n) + ' clip (timer sospeso)'); suona(atteso); n = atteso + 1; }
+  }, 1000);
+};
+document.getElementById('ferma').onclick = () => ferma('Fermato a mano.');
+document.addEventListener('visibilitychange', () => log('pagina ' + (document.hidden ? 'IN SECONDO PIANO' : 'di nuovo visibile')));
+</script>
+</body>
+</html>

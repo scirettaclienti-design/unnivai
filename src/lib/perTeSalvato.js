@@ -37,3 +37,33 @@ export function salvaPerTe(chiave, utente, dati) {
         localStorage.setItem(PER_TE_SALVATO_KEY, JSON.stringify({ chiave: JSON.stringify(chiave), utente: utente || null, dati }));
     } catch { /* storage pieno: la prossima ricarica genera */ }
 }
+
+// DNA-4 — il tetto delle rigenerazioni dovute al DNA. Ogni generazione di Per Te e' un giro dei 10 al giorno dell'utente
+// (ai_quota_daily): le fasce orarie ne portano gia' al massimo 3, il DNA ne puo' aggiungere al massimo 2 al giorno.
+// Oltre il tetto la fascia di DNA resta quella dell'ultima generazione, e Per Te cambia solo col cambio di fascia oraria.
+// Il conto e' per utente e per giorno (quello di giornoEFasciaPerTe), sul telefono; il logout lo cancella (AuthContext).
+export const PER_TE_DNA_KEY = 'dvai_per_te_dna_v1';
+export const TETTO_RIGENERAZIONI_DNA_AL_GIORNO = 2;
+
+function leggiConto(giorno, utente) {
+    try {
+        const r = JSON.parse(localStorage.getItem(PER_TE_DNA_KEY) || 'null');
+        if (r && r.giorno === giorno && r.utente === (utente || null) && typeof r.ultima === 'string') return r;
+    } catch { /* storage illeggibile: nessun tetto, vale la fascia calcolata */ }
+    return null;
+}
+
+/** La fascia di DNA da mettere nella chiave: quella calcolata, o quella dell'ultima generazione se il tetto del giorno e' raggiunto. */
+export function fasciaDnaEffettiva(calcolata, giorno, utente) {
+    const c = leggiConto(giorno, utente);
+    return c && c.rigenerazioni >= TETTO_RIGENERAZIONI_DNA_AL_GIORNO ? c.ultima : calcolata;
+}
+
+/** Da chiamare quando Per Te e' stato generato con questa fascia: se e' diversa dall'ultima del giorno, e' una rigenerazione dovuta al DNA. */
+export function registraFasciaDna(fascia, giorno, utente) {
+    const c = leggiConto(giorno, utente);
+    const rigenerazioni = c ? c.rigenerazioni + (c.ultima !== fascia ? 1 : 0) : 0;
+    try {
+        localStorage.setItem(PER_TE_DNA_KEY, JSON.stringify({ giorno, utente: utente || null, ultima: fascia, rigenerazioni }));
+    } catch { /* storage pieno: il tetto non si applica, la fascia oraria resta il limite */ }
+}

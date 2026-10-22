@@ -16,7 +16,8 @@ import { useAILearning } from '../hooks/useAILearning';
 import { resolveFoodPrefs, foodPrefsFingerprint } from '@/lib/foodPrefs';
 import { placesDiscoveryService, PlacesSearchError } from '@/services/placesDiscoveryService';
 import { MESSAGGIO_TECNICO, TASTO_RIPROVA } from '@/lib/esitoVuoto';
-import { giornoEFasciaPerTe, leggiPerTe, salvaPerTe } from '@/lib/perTeSalvato';
+import { giornoEFasciaPerTe, leggiPerTe, salvaPerTe, fasciaDnaEffettiva, registraFasciaDna } from '@/lib/perTeSalvato';
+import { fasciaDna } from '@/lib/fasciaDna';
 
 // Gate INTERESSI-VERI — tre esiti diversi, tre testi diversi:
 //   ricerca Google fallita (rete/HTTP/eccezione) → testo di connessione
@@ -185,7 +186,10 @@ const DashboardUser = () => {
     // DOPPIO-FIX-2 — nella chiave anche la fascia del giorno (perTeSalvato), e nessuna scadenza: dentro la stessa chiave
     // rientrare non rigenera; ricaricando si riusa l'ultimo Per Te salvato sul telefono con la stessa chiave.
     const { giorno, fascia } = giornoEFasciaPerTe(new Date());
-    const chiavePerTe = ['home-experiences', city, giorno, fascia, foodPrefsFingerprint(onboardingPrefs), (interestIds || []).join('+')];
+    // DNA-4 — nella chiave anche la FASCIA DI DNA (lib/fasciaDna.js): cambia solo quando il DNA passa un gradino, mai a ogni gesto, e al
+    // massimo 2 volte al giorno (perTeSalvato). I pesi sono quelli letti all'apertura (dnaPronto): dentro la sessione non si muovono.
+    const fasciaDelDna = fasciaDnaEffettiva(fasciaDna(dnaWeights), giorno, utenteId);
+    const chiavePerTe = ['home-experiences', city, giorno, fascia, fasciaDelDna, foodPrefsFingerprint(onboardingPrefs), (interestIds || []).join('+')];
     const { data: perTe, isError: experiencesError, error: experiencesErrorObj, isPending: experiencesLoading, refetch: refetchExperiences } = useQuery({
         queryKey: chiavePerTe,
         enabled: !!city && !!dnaPronto,
@@ -401,6 +405,7 @@ const DashboardUser = () => {
             superata();
             const dati = { tours, chiusoOra };
             salvaPerTe(queryKey, utenteId, dati);
+            registraFasciaDna(fasciaDelDna, giorno, utenteId);
             return dati;
         },
         // Gate D-2: placeholderData rimosso. Prima serviva 3 tour finti con

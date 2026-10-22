@@ -1,0 +1,131 @@
+[
+ {
+  "accesso": "ok",
+  "proxyBloccatiDuranteAccesso": 1
+ },
+ {
+  "fase": "1 apertura",
+  "generazioni": 1,
+  "ricercheGoogle": 9,
+  "righeRegistroLette": 10,
+  "chiave": [
+   "home-experiences",
+   "Catania",
+   "2026-10-15",
+   "mattina",
+   "dna0",
+   "",
+   ""
+  ],
+  "conto": {
+   "ultima": "dna0",
+   "rigenerazioni": 0
+  },
+  "righeRegistro": 10,
+  "carte": {
+   "n": 3,
+   "prima": "/tour-details/home-insider-1792058703164"
+  },
+  "uscite": 1
+ },
+ {
+  "fase": "2 rientro (stesso DNA)",
+  "generazioni": 0,
+  "ricercheGoogle": 5,
+  "righeRegistroLette": 10,
+  "chiave": [
+   "home-experiences",
+   "Catania",
+   "2026-10-15",
+   "mattina",
+   "dna0",
+   "",
+   ""
+  ],
+  "conto": {
+   "ultima": "dna0",
+   "rigenerazioni": 0
+  },
+  "righeRegistro": 10,
+  "carte": {
+   "n": 3,
+   "prima": "/tour-details/home-insider-1792058703164"
+  },
+  "uscite": 3
+ },
+ {
+  "fase": "3 ricarica (stesso DNA)",
+  "generazioni": 0,
+  "ricercheGoogle": 4,
+  "righeRegistroLette": 10,
+  "chiave": [
+   "home-experiences",
+   "Catania",
+   "2026-10-15",
+   "mattina",
+   "dna0",
+   "",
+   ""
+  ],
+  "conto": {
+   "ultima": "dna0",
+   "rigenerazioni": 0
+  },
+  "righeRegistro": 10,
+  "carte": {
+   "n": 3,
+   "prima": "/tour-details/home-insider-1792058703164"
+  },
+  "uscite": 4
+ },
+ {
+  "fase": "4 rientro con 5 giri food in piu' nel registro",
+  "generazioni": 1,
+  "ricercheGoogle": 8,
+  "righeRegistroLette": 10,
+  "chiave": [
+   "home-experiences",
+   "Catania",
+   "2026-10-15",
+   "mattina",
+   "f1:food2+cultura1",
+   "",
+   ""
+  ],
+  "conto": {
+   "ultima": "f1:food2+cultura1",
+   "rigenerazioni": 1
+  },
+  "righeRegistro": 20,
+  "carte": {
+   "n": 3,
+   "prima": "/tour-details/home-insider-1792059903102"
+  },
+  "uscite": 6
+ },
+ {
+  "fase": "5 rientro (stesso DNA nuovo)",
+  "generazioni": 0,
+  "ricercheGoogle": 5,
+  "righeRegistroLette": 10,
+  "chiave": [
+   "home-experiences",
+   "Catania",
+   "2026-10-15",
+   "mattina",
+   "f1:food2+cultura1",
+   "",
+   ""
+  ],
+  "conto": {
+   "ultima": "f1:food2+cultura1",
+   "rigenerazioni": 1
+  },
+  "righeRegistro": 20,
+  "carte": {
+   "n": 3,
+   "prima": "/tour-details/home-insider-1792059903102"
+  },
+  "uscite": 8
+ }
+]

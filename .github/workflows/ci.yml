@@ -68,7 +68,9 @@ jobs:
   e2e:
     name: E2E Smoke
     runs-on: ubuntu-latest
-    needs: test  # non partiamo se lint+test falliscono
+    # CI-VELOCE — niente `needs: test`: i due job girano insieme, la corsa dura quanto il piu' lento (~2 min) e non la somma.
+    # Il blocco «CI rossa → niente deploy» non cambia: il cancello di Vercel (vercel-ignored-build-step.sh) aspetta
+    # NOMINALMENTE tutti e due i job e un rosso in uno qualunque blocca il deploy.
     timeout-minutes: 8  # DoD locked: suite sotto i 4 min
 
     steps:
@@ -84,8 +86,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Cache dei binari Chromium: chromium-headless-shell ~93 MB, evitiamo
-      # il download a ogni run. La chiave include la versione Playwright.
+      # CI-VELOCE — solo il browser che serve: `chromium-headless-shell` (e2e usa Chromium headless, un solo progetto).
+      # La cache salva i binari; la chiave include la versione di Playwright.
       - name: Get installed Playwright version
         id: playwright-version
         run: echo "version=$(npm ls @playwright/test --json | jq -r '.dependencies["@playwright/test"].version')" >> $GITHUB_OUTPUT
@@ -94,10 +96,27 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+          key: playwright-shell-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
 
-      - name: Install Playwright chromium
-        run: npx playwright install --with-deps chromium
+      # Con la cache e' un no-op; senza, scarica solo il headless shell. Un limite di tempo: un download appeso
+      # non deve consumare il budget del job (il 22/10 questo passo, con `--with-deps`, ha impiegato 8 min 24 s).
+      - name: Install Playwright chromium (solo headless shell)
+        timeout-minutes: 4
+        run: npx playwright install --only-shell chromium
+
+      # `--with-deps` faceva `apt-get update` + install a ogni corsa, anche con la cache: e' la parte che si e' appesa.
+      # Ora le librerie di sistema si installano solo se mancano davvero (ldd sul binario).
+      - name: Dipendenze di sistema di Chromium (solo se mancano)
+        timeout-minutes: 4
+        run: |
+          BIN=$(find ~/.cache/ms-playwright -type f \( -name headless_shell -o -name chrome \) | head -1)
+          echo "binario: $BIN"
+          if [ -n "$BIN" ] && ! ldd "$BIN" | grep -q "not found"; then
+            echo "Librerie di sistema gia' presenti: niente apt."
+          else
+            echo "Mancano librerie: le installo."
+            npx playwright install-deps chromium
+          fi
 
       # test:e2e = build:e2e (mode e2e → .env.e2e) && playwright test
       # Il playwright.config.ts avvia npm run preview come webServer.

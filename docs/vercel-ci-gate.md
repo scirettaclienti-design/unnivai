@@ -139,3 +139,12 @@ Se lo script rompe qualcosa (es. bug nel gate stesso):
 Zero rischi lasciando lo script attivo senza il PAT: fallisce chiuso, non
 aperto. Se hai bisogno di deployare in emergenza senza CI, il rollback vero è
 disattivare l'Ignored Build Step.
+
+---
+
+## Durata della CI e budget del cancello (CI-VELOCE, 22/10/2026)
+
+- La CI dura **circa 1,5–2,5 minuti**: `Lint & Test` 1,5–2,3 min, `E2E Smoke` 35–50 s, **in parallelo** (prima E2E aspettava i test: la somma).
+- E2E scarica solo il `chromium-headless-shell` (cache `playwright-shell-<os>-<versione>`) e installa le librerie di sistema (`apt`) **solo se `ldd` ne trova di mancanti**: prima `playwright install --with-deps` faceva `apt-get update` a ogni corsa, ed è il passo che il 22/10 si è appeso per 8 min 24 s.
+- Il blocco «CI rossa → niente deploy» è invariato: il cancello aspetta per nome i due job e un rosso in uno qualunque blocca. Il budget del cancello (fase B, 300 s) **non è stato cambiato**.
+- Quando il cancello annulla un deploy con `TIMEOUT_JOB_PENDING` e i job di GitHub sono in realtà finiti da un pezzo, la causa è la **latenza dell'API di GitHub Actions** (incidente «Actions Results» del 22/10: i job risultavano `queued` per 5 minuti dopo essere finiti). Rimedio: `vercel redeploy <url del deploy annullato>`.

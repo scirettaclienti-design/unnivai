@@ -4,7 +4,7 @@ import { dataService } from '../services/dataService';
 import { computeWeights, weightsToAIProfile, tourAffinityScore, normalizeCategory, applyDnaEvent, computeDnaShare, dnaEventCount, tourCoreCategories, pesiDaEventi } from '../services/preferenceEngine';
 import { parseSeed, seedFoodPrefs, buildSeed } from '../lib/foodPrefs';
 import { computeSeed, interestIdsFromSeed } from '../lib/interests';
-import { logDnaEvent, leggiRegistro, leggiCacheRegistro, salvaCacheRegistro } from '../lib/dnaRegistro';
+import { logDnaEvent, leggiRegistro, leggiCacheRegistro, salvaCacheRegistro, scriviCorrezione } from '../lib/dnaRegistro';
 
 // Fase 2 Gate DNA: bump chiave localStorage (v1→v2). Il "brain" v1 conteneva
 // chiavi cat: sporche (nomi-sezione, "guide"): ignorandolo, i client ripartono
@@ -293,7 +293,7 @@ export function useAILearning() {
         // DNA-1 — il registro riceve il gesto anche senza categoria (una riga con categoria nulla);
         // i pesi no: senza categorie non cambiano (DNA-2 li leggera' dal registro). Solo i gesti
         // ammessi dalla tabella (giro completato, giro salvato) vengono scritti.
-        logDnaEvent(kind, { categories, city: opts.city, tourId: opts.tourId });
+        logDnaEvent(kind, { categories, city: opts.city, tourId: opts.tourId, value: opts.value });
         if (categories.length === 0) return;
         setLearningState(prev => {
             const graph = applyDnaEvent(prev.preferenceGraph, kind, categories, opts);
@@ -447,6 +447,18 @@ export function useAILearning() {
     // modello di lancio locked = nessun paywall in V1. Il PaywallModal component
     // resta nel repo per V2/V3 ma non è più raggiungibile da nessun codepath.
 
+    // DNA-6 — «piu' di questo / meno di questo / azzera» dal Profilo. Aspetta il server: se la riga non
+    // e' scritta, i pesi non cambiano e l'interfaccia lo sa. Se e' scritta, i pesi si ricalcolano subito.
+    const correggiDna = useCallback(async (categoria, correzione) => {
+        const r = await scriviCorrezione(userId, categoria, correzione);
+        if (!r.ok) return r;
+        const base = registro ?? leggiCacheRegistro(userId) ?? [];
+        const next = [...base, r.row];
+        setRegistro(next);
+        salvaCacheRegistro(userId, next);
+        return { ok: true };
+    }, [userId, registro]);
+
     return {
         ...learningState,
         weights, // Pesi 0.0-1.0 per categorie (P7a: non piu' normalizzati sul massimo)
@@ -455,6 +467,9 @@ export function useAILearning() {
         dnaEvents: dnaDalRegistro ? dnaDalRegistro.eventi : dnaEventCount(learningState.preferenceGraph),
         // DNA-2 — base per B8: ritmo (lento/medio/veloce) e compagnia (solo/coppia/amici/famiglia) dagli eventi.
         // Non entrano ancora nel motore.
+        // DNA-6 — le righe del registro (Mete e contatori del Profilo) e la correzione del DNA.
+        righeRegistro: userId ? (registro ?? leggiCacheRegistro(userId)) : null,
+        correggiDna,
         ritmoPreferito: dnaDalRegistro ? dnaDalRegistro.ritmo : null,
         compagniaPreferita: dnaDalRegistro ? dnaDalRegistro.compagnia : null,
         trackDnaEvent,

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { VERSIONE_APP } from '@/lib/versione';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { User, Mail, MapPin, Heart, Star, Edit, ArrowLeft, Home, Share2, Facebook, Twitter, Instagram, Link as LinkIcon, Eye, ChevronRight, Award, Target, Users, Compass, Search, Map, Clock, ArrowRight, X, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import TopBar from "../components/TopBar";
@@ -10,18 +10,14 @@ import { useUserContext } from "../hooks/useUserContext";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../hooks/use-toast";
 import { useAILearning } from "../hooks/useAILearning";
-import { normalizeCategory } from "../services/preferenceEngine";
 import { supabase } from "../lib/supabase";
 import FoodPrefsEditor from "../components/FoodPrefsEditor";
 import InterestsEditor from "../components/InterestsEditor";
 import { salvaNomeProfilo } from "../lib/nomeProfilo";
-
-// Fase 2 Gate DNA: soglia minima di interazioni di gusto CATEGORIZZATE sotto la
-// quale NON si mostrano percentuali. Motivo: con pochi eventi una categoria
-// domina in modo ingannevole (3 eventi → "100% food"); ~12 dà spazio a 2-4
-// categorie perché le proporzioni siano un trend reale, non l'artefatto di 1-2
-// click. Sotto soglia: messaggio "DNA in formazione". Costante nominata.
-const DNA_MIN_CATEGORIZED = 12;
+import DnaProfilo from "../components/DnaProfilo";
+import MeteProfilo from "../components/MeteProfilo";
+import { meteDalRegistro, contatoriDalRegistro } from "../lib/dnaProfilo";
+import { leggiGiriSalvati, rimuoviGiroSalvato } from "../lib/giriSalvati";
 
 // Stati di `guide_requests`, presi dal CHECK reale sul DB (verificato il
 // 04/09/2026 su information_schema, non a memoria):
@@ -49,7 +45,11 @@ export default function ProfilePage() {
     const { userId, firstName, city } = useUserContext();
     const { user } = useAuth();
     const { toast } = useToast();
-    const { preferenceGraph, onboardingPrefs, saveFoodPrefs, interestIds, saveInterests } = useAILearning();
+    const { weights, dnaEvents, ritmoPreferito, compagniaPreferita, righeRegistro, correggiDna, onboardingPrefs, saveFoodPrefs, interestIds, saveInterests } = useAILearning();
+    // DNA-6 — Mete e contatori vengono dal registro (public.dna_events), non da testo fisso.
+    const mete = useMemo(() => meteDalRegistro(righeRegistro || []), [righeRegistro]);
+    const contatori = useMemo(() => contatoriDalRegistro(righeRegistro || []), [righeRegistro]);
+    const [giriSalvati, setGiriSalvati] = useState([]);
     const [editName, setEditName] = useState(firstName || "Viaggiatore");
     // ACCESSO-1: il nome si modifica qui e si salva (profiles.first_name + metadati dell'account).
     const [modificaNome, setModificaNome] = useState(false);
@@ -178,6 +178,19 @@ export default function ProfilePage() {
         fetchProfileData();
     }, [userId]);
 
+    useEffect(() => {
+        if (!userId) return;
+        let vivo = true;
+        leggiGiriSalvati().then(r => { if (vivo && r.ok) setGiriSalvati(r.giri); });
+        return () => { vivo = false; };
+    }, [userId]);
+
+    const rimuoviGiro = async (id) => {
+        const r = await rimuoviGiroSalvato(id);
+        if (r.ok) setGiriSalvati(g => g.filter(x => x.id !== id));
+        else toast({ title: 'Non sono riuscito a rimuovere il giro. Riprova tra poco.', type: 'warning' });
+    };
+
     const shareTour = (platform, tour) => {
         // Livello 1: testo onesto — via l'aggettivo "fantastico" (voce brand) e il
         // rating tour-level (seed non reale, regola O.4). Solo il fatto: cosa e dove.
@@ -284,73 +297,35 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    {/* Stats — Stato Vuoto Pulito */}
-                    <div className="flex justify-around pt-4 border-t border-obsidian-border">
+                    {/* Stats — contatori veri dal registro */}
+                    <div className="flex justify-around pt-4 border-t border-obsidian-border" data-testid="contatori-profilo">
                         <div className="text-center">
-                            <div className="text-lg font-medium text-obsidian-secondary/80 font-mono">—</div>
-                            <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Tour</div>
+                            <div className="text-lg font-medium text-obsidian-primary font-mono" data-testid="contatore-giri">{contatori.giri}</div>
+                            <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Giri</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-lg font-medium text-obsidian-secondary/80 font-mono">—</div>
-                            <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Guide</div>
+                            <div className="text-lg font-medium text-obsidian-primary font-mono" data-testid="contatore-citta">{contatori.citta}</div>
+                            <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Città</div>
                         </div>
                         <div className="text-center">
-                            <div className="text-lg font-medium text-obsidian-secondary/80 font-mono">—</div>
-                            <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Rating</div>
+                            <div className="text-lg font-medium text-obsidian-primary font-mono" data-testid="contatore-tappe">{contatori.tappe}</div>
+                            <div className="text-xs text-obsidian-secondary font-medium tracking-wide uppercase">Tappe</div>
                         </div>
                     </div>
-                    <p className="text-center text-xs text-obsidian-secondary/80 mt-3">Il tuo primo giro ti aspetta: completane uno e questi numeri prendono vita.</p>
+                    {contatori.giri === 0 && (
+                        <p className="text-center text-xs text-obsidian-secondary mt-3">Il tuo primo giro ti aspetta: completane uno e questi numeri crescono.</p>
+                    )}
                 </motion.div>
 
-                {/* Tour DNA — Informativo */}
-                {(() => {
-                    const catCounts = {};
-                    for (const [k, v] of Object.entries(preferenceGraph || {})) {
-                        if (!k.startsWith('cat:') || typeof v !== 'number') continue;
-                        const norm = normalizeCategory(k.slice(4));
-                        if (norm) catCounts[norm] = (catCounts[norm] || 0) + v;
-                    }
-                    const validTotal = Object.values(catCounts).reduce((s, v) => s + v, 0);
-                    const cats = Object.entries(catCounts).sort(([, a], [, b]) => b - a).slice(0, 4);
-                    const belowThreshold = validTotal < DNA_MIN_CATEGORIZED;
-                    const DNA_SHADES = ['bg-obsidian-primary', 'bg-obsidian-secondary', 'bg-obsidian-secondary/60', 'bg-obsidian-border'];
-
-                    return (
-                        <motion.div
-                            className="mb-6 bg-obsidian-card border border-obsidian-border rounded-2xl p-5 shadow-sm"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                        >
-                            <h3 className="font-bold text-obsidian-primary text-sm mb-3 flex items-center gap-2">
-                                <Compass className="w-4 h-4 text-obsidian-secondary" /> Il tuo Tour DNA
-                            </h3>
-                            {belowThreshold ? (
-                                <p className="text-sm text-obsidian-secondary italic">Il tuo DNA si sta formando: ogni tour che apri e ogni tappa che raggiungi aggiunge un pezzo.</p>
-                            ) : (
-                                <>
-                                    <div className="flex h-2.5 rounded-full overflow-hidden mb-3 bg-obsidian-raised">
-                                        {cats.map(([k, v], i) => (
-                                            <div key={k} className={`${DNA_SHADES[i]} transition-all`} style={{ width: `${(v / validTotal) * 100}%` }} />
-                                        ))}
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {cats.map(([k, v], i) => {
-                                            const pct = Math.round((v / validTotal) * 100);
-                                            return (
-                                                <span key={k} className="flex items-center gap-1.5 text-xs font-medium text-obsidian-primary bg-obsidian-raised border border-obsidian-border px-2.5 py-1 rounded-lg">
-                                                    <span className={`w-2 h-2 rounded-full ${DNA_SHADES[i]}`} />
-                                                    {k} {pct}%
-                                                </span>
-                                            );
-                                        })}
-                                    </div>
-                                    <p className="text-[10px] text-obsidian-secondary/80 mt-2">{validTotal} interazioni di gusto analizzate</p>
-                                </>
-                            )}
-                        </motion.div>
-                    );
-                })()}
+                {/* DNA-6 — Il tuo DNA: i pesi del registro, in parole semplici, con la correzione per categoria */}
+                <DnaProfilo
+                    pesi={weights}
+                    eventi={dnaEvents}
+                    ritmo={ritmoPreferito}
+                    compagnia={compagniaPreferita}
+                    puoCorreggere={!!userId}
+                    onCorreggi={correggiDna}
+                />
 
                 {/* ONB-1 — gli interessi dell'onboarding: si cambiano solo da qui */}
                 <InterestsEditor value={interestIds} onSave={saveInterests} toast={toast} />
@@ -522,9 +497,9 @@ export default function ProfilePage() {
                         >
                             <h3 className="text-base font-bold text-obsidian-primary mb-3 flex items-center">
                                 <Map className="w-4 h-4 mr-2 text-obsidian-secondary" />
-                                Esplora Zone
+                                Le tue Mete
                             </h3>
-                            <p className="text-sm text-obsidian-secondary italic">Le zone che esplori appariranno qui: ogni città che visiti lascia il segno.</p>
+                            <MeteProfilo mete={mete} giriSalvati={giriSalvati} onRimuovi={rimuoviGiro} />
                         </motion.div>
                     )}
                 </AnimatePresence>

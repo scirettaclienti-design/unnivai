@@ -7,6 +7,7 @@ import { Link, useParams, useLocation, useNavigate, useSearchParams } from "reac
 import { useState, useEffect } from "react";
 import TopBar from "../components/TopBar";
 import TourCover from "../components/TourCover";
+import SalvaGiro from "../components/SalvaGiro";
 import { isPlacesPhoto } from "@/lib/categoryPalette";
 import { formatEstimate } from "@/lib/tourTiming";
 import { typeLabelOf, categoryLabelOf } from "@/lib/italianLabels";
@@ -1345,6 +1346,10 @@ export default function TourDetailsPage() {
                                     <p className="text-center text-xs text-obsidian-secondary mt-2">
                                         {isGuideTour ? "Invierai una richiesta non vincolante alla guida." : "Navigazione GPS inclusa. Clicca per iniziare."}
                                     </p>
+                                    {/* DNA-6 — un giro generato si può salvare (Per Te, Sorprendimi): finisce nel Profilo. */}
+                                    {isAiSelfGuided && (
+                                        <SalvaGiro tour={tour} sorgente={location.state?.origine === 'sorprendimi' ? 'sorprendimi' : location.state?.origine === 'per_te' ? 'per_te' : 'altro'} className="mt-3" />
+                                    )}
                                 </>
                             )}
                         </motion.div>

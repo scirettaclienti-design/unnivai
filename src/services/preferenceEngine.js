@@ -215,6 +215,7 @@ export const REGISTRO_PESI = {
     tour_saved: DNA_EVENT_WEIGHTS.tour_saved,
     quiz_choice: 0.2,      // scelta esplicita nel Quiz, con la categoria
     stop_skipped: DNA_EVENT_WEIGHTS.stop_skipped,
+    dna_correction: 0.15,  // DNA-6: «piu' di questo» +0,15 · «meno di questo» −0,15 · «azzera» riparte da zero (vedi pesiDaEventi)
 };
 /** Gesti che fanno FIDUCIA: gli stessi che contava il DNA di prima (dna:events), cosi' il peso nel motore non cambia. */
 export const REGISTRO_FIDUCIA = ['tour_completed', 'tour_saved', 'stop_skipped'];
@@ -282,17 +283,29 @@ export function pesiDaEventi(eventi = [], seme = [], ora = Date.now()) {
     const nFiducia = gruppi.size;
     const share = computeDnaShare({ 'dna:events': nFiducia }, seme);
 
+    // DNA-6 — «azzera»: per una categoria, tutto cio' che e' successo fino a quel momento (eventi e seme)
+    // non conta piu'. Il registro resta intero (e' una storia): conta solo da dopo l'azzeramento.
+    const azzeratoA = {};
+    for (const e of righe) {
+        if (e.kind !== 'dna_correction' || e.value !== 'azzera') continue;
+        const c = normalizeCategory(e.category);
+        const t = new Date(e.created_at).getTime();
+        if (c && Number.isFinite(t)) azzeratoA[c] = Math.max(azzeratoA[c] ?? -Infinity, t);
+    }
+
     const semeFattore = 1 / (1 + nFiducia / SEME_ATTENUA_EVENTI);
     const grezzi = {};
     CORE_CATEGORIES.forEach(c => { grezzi[c] = 0; });
     (Array.isArray(seme) ? seme : []).forEach(i => {
         const c = normalizeCategory(i);
-        if (c) grezzi[c] += SEED_WEIGHT * semeFattore;
+        if (c && azzeratoA[c] === undefined) grezzi[c] += SEED_WEIGHT * semeFattore;
     });
     for (const e of righe) {
-        const w = REGISTRO_PESI[e.kind];
+        let w = REGISTRO_PESI[e.kind];
+        if (e.kind === 'dna_correction') w = e.value === 'piu' ? w : e.value === 'meno' ? -w : NaN; // 'azzera' non somma
         const c = normalizeCategory(e.category);
         if (!Number.isFinite(w) || !c) continue;
+        if (azzeratoA[c] !== undefined && !(new Date(e.created_at).getTime() > azzeratoA[c])) continue;
         grezzi[c] += w * decadimento(e.created_at, ora);
     }
     const pesi = {};

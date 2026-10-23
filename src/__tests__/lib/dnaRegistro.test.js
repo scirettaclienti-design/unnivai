@@ -23,13 +23,15 @@ beforeEach(() => {
 });
 
 describe('DNA-1 — un test per ciascun tipo di evento', () => {
-    it('i gesti ammessi sono esattamente i sette della tabella', () => {
+    it('i gesti ammessi sono esattamente gli otto della tabella (i sette di DNA-1 piu\' la correzione di DNA-6)', () => {
         expect(DNA_REGISTRO_KINDS).toEqual([
             'tour_completed', 'stop_skipped', 'tour_saved', 'quiz_choice',
-            'pace_chosen', 'company_chosen', 'stop_reached',
+            'pace_chosen', 'company_chosen', 'stop_reached', 'dna_correction',
         ]);
-        expect(ORIGINE('supabase/migrations/20261021_dna_events.sql'))
+        expect(ORIGINE('supabase/migrations/20261021152542_dna_events.sql'))
             .toContain("'tour_completed', 'stop_skipped', 'tour_saved', 'quiz_choice',\n        'pace_chosen', 'company_chosen', 'stop_reached'");
+        expect(ORIGINE('supabase/migrations/20261023140326_dna6_correzioni_e_giri_salvati.sql'))
+            .toContain("'pace_chosen', 'company_chosen', 'stop_reached', 'dna_correction'");
     });
 
     it('giro completato: una riga per categoria, con città e giro', async () => {
@@ -154,7 +156,7 @@ describe('DNA-1 — dove il registro è collegato (i gesti dell\'app)', () => {
 });
 
 describe('DNA-1 — RLS della tabella (dalla migrazione)', () => {
-    const sql = ORIGINE('supabase/migrations/20261021_dna_events.sql');
+    const sql = ORIGINE('supabase/migrations/20261021152542_dna_events.sql');
 
     it('RLS attiva, nessun accesso anonimo, solo SELECT e INSERT agli utenti', () => {
         expect(sql).toMatch(/ALTER TABLE public\.dna_events ENABLE ROW LEVEL SECURITY/);

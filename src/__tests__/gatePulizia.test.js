@@ -201,7 +201,7 @@ describe('P4 — i bottoni che portavano a una pagina inesistente', () => {
     it('SurpriseTour conserva la navigazione corretta, con id e state', () => {
         const src = read('pages/SurpriseTour.jsx');
         expect(src).toContain('navigate(`/tour-details/${mappedTour.id}`');
-        expect(src).toContain('state: { tourData: mappedTour, isAiGenerated: true }');
+        expect(src).toContain('state: { tourData: mappedTour, isAiGenerated: true');
     });
 
     it('nessun path utente punta piu\' a /tour-details senza id', () => {

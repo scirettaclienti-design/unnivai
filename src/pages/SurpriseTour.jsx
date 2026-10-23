@@ -558,7 +558,7 @@ export default function SurpriseTourPage() {
                             {/* CTAs — Una sola CTA arancione */}
                             <div className="pt-2 flex flex-col gap-3">
                                 <button
-                                    onClick={() => navigate(`/tour-details/${mappedTour.id}`, { state: { tourData: mappedTour, isAiGenerated: true } })}
+                                    onClick={() => navigate(`/tour-details/${mappedTour.id}`, { state: { tourData: mappedTour, isAiGenerated: true, origine: 'sorprendimi' } })}
                                     className="w-full bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20 transition-colors text-sm cursor-pointer"
                                 >
                                     <ArrowRight size={18} />

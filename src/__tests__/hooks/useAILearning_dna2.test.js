@@ -35,7 +35,7 @@ describe('DNA-2 — useAILearning legge il registro', () => {
         const { result } = renderHook(() => useAILearning());
         await waitFor(() => expect(result.current.dnaEvents).toBe(5));
         expect(supabase.from).toHaveBeenCalledWith('dna_events');
-        expect(chain.select).toHaveBeenCalledWith('id,kind,category,value,tour_id,created_at');
+        expect(chain.select).toHaveBeenCalledWith('id,kind,category,city,value,tour_id,created_at');
         expect(result.current.weights.food).toBeGreaterThan(0.8);
         expect(result.current.weights.cultura).toBe(0);
         expect(result.current.dnaShare).toBe(0); // 5 eventi: la curva di oggi parte da 5 (0 fino a 5 compreso)

@@ -24,6 +24,7 @@ import { extractPromptTags } from "@/lib/promptTags";
 import { useAILearning } from "../hooks/useAILearning"; // DVAI-045
 import { gestiDiCrea, logDnaGesti } from "../lib/dnaRegistro";
 import { useToast } from "../hooks/use-toast";
+import SalvaGiro from "../components/SalvaGiro";
 // Gate 2 FASE 3 — resolveCityCenter come sorgente unica del centro città.
 // Sostituisce il vecchio pattern `{ latitude: lat, longitude: lng }` che usava
 // il GPS UTENTE (buco #3 diagnosi Gate 1: il raggio inseguiva l'utente invece
@@ -875,6 +876,17 @@ export default function AIItineraryPage() {
                                 </button>
                             </Link>
                         </div>
+                        {/* DNA-6 — il giro del giorno si può salvare nel Profilo. */}
+                        {(() => {
+                            const giorno = generatedItinerary.find(d => d.day === currentDay);
+                            return giorno ? (
+                                <SalvaGiro
+                                    tour={{ title: giorno.title || 'Itinerario AI', city: tourCity, stops: giorno.stops || [] }}
+                                    sorgente="crea"
+                                    className="mt-3"
+                                />
+                            ) : null;
+                        })()}
                     </motion.div>
                 )}
 

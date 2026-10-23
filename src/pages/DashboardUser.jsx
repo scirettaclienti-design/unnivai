@@ -684,7 +684,7 @@ const DashboardUser = () => {
                         ) : (experiences && experiences.length > 0) ? experiences.map((exp) => (
                             <Link
                                 to={`/tour-details/${exp.id}`}
-                                state={{ tourData: exp }}
+                                state={{ tourData: exp, origine: 'per_te' }}
                                 key={exp.id}
                                 className="block w-[calc((100vw-60px)/2)] max-w-[170px] min-w-[150px] shrink-0 snap-start"
                             >

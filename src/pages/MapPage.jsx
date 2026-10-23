@@ -1450,7 +1450,9 @@ const MapPage = () => {
         // tappa raggiunta OPPURE almeno il 60% raggiunte (decisione di Ivano; giroCompletato).
         // Una volta sola: dopo questo punto il latch ferma tutto.
         if (!navCompletedRef.current && giroCompletato(activeRoute, fatteIds)) {
-            trackDnaEvent?.('tour_completed', tourData?.steps?.length ? tourData.steps : activeRoute, { city: tourData?.city || null, tourId: tourData?.id || tourData?.tourId || null });
+            // DNA-6: `value` = «raggiunte/totali» (es. 3/5), cosi' le Mete del Profilo dicono quante tappe su quante.
+            const raggiunte = activeRoute.filter(t => (fatteIds || []).includes(t.id)).length;
+            trackDnaEvent?.('tour_completed', tourData?.steps?.length ? tourData.steps : activeRoute, { city: tourData?.city || null, tourId: tourData?.id || tourData?.tourId || null, value: `${raggiunte}/${activeRoute.length}` });
         }
         navCompletedRef.current = true;
         navTrackerRef.current?.stop(); navTrackerRef.current = null;

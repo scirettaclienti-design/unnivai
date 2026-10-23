@@ -20,7 +20,11 @@ import { normalizeCategory } from '../services/preferenceEngine.js';
 export const DNA_REGISTRO_KINDS = [
     'tour_completed', 'stop_skipped', 'tour_saved', 'quiz_choice',
     'pace_chosen', 'company_chosen', 'stop_reached',
+    'dna_correction', // DNA-6: «piu' di questo», «meno di questo», «azzera» dal Profilo
 ];
+
+/** DNA-6 — le tre correzioni ammesse (value di 'dna_correction'). */
+export const CORREZIONI = ['piu', 'meno', 'azzera'];
 
 // Lunghezze massime = CHECK dna_events_lunghezze.
 const MAX = { category: 40, city: 80, value: 80, moment: 40, tour_id: 120 };
@@ -120,7 +124,7 @@ export function logDnaGesti(gesti = []) {
 /** Quante righe si leggono al massimo (le piu' recenti): con il decadimento le vecchie pesano quasi zero. */
 export const REGISTRO_LETTURA_MAX = 1000;
 const CACHE_PREFISSO = 'unnivai_dna_registro_v1';
-const COLONNE = 'id,kind,category,value,tour_id,created_at';
+const COLONNE = 'id,kind,category,city,value,tour_id,created_at';
 
 /**
  * Legge i PROPRI eventi (la RLS lascia passare solo quelli). Non rigetta mai.
@@ -154,4 +158,30 @@ export function salvaCacheRegistro(userId, rows) {
     try {
         localStorage.setItem(CACHE_PREFISSO, JSON.stringify({ userId, salvataIl: new Date().toISOString(), rows }));
     } catch { /* quota o modalita' privata: il server resta la fonte */ }
+}
+
+// ─── DNA-6 — la correzione del DNA dal Profilo ───────────────────────────────
+
+/**
+ * Scrive una correzione e ASPETTA l'esito (l'interfaccia mostra «salvato» solo se e' vero).
+ * Non rigetta mai. Restituisce la riga scritta, cosi' i pesi si ricalcolano subito.
+ * @param {string} userId
+ * @param {string} category - categoria di base (food, cultura…)
+ * @param {'piu'|'meno'|'azzera'} correzione
+ * @returns {Promise<{ ok: boolean, row?: object, errore?: string }>}
+ */
+export async function scriviCorrezione(userId, category, correzione) {
+    const cat = pulisci(category, MAX.category);
+    if (!userId) return { ok: false, errore: 'accesso' };
+    if (!cat || !CORREZIONI.includes(correzione)) return { ok: false, errore: 'dati' };
+    try {
+        const res = await supabase.from('dna_events')
+            .insert({ user_id: userId, kind: 'dna_correction', category: cat, value: correzione })
+            .select(COLONNE)
+            .single();
+        if (!res || res.error || !res.data) return { ok: false, errore: res?.error?.message || 'rete' };
+        return { ok: true, row: res.data };
+    } catch (e) {
+        return { ok: false, errore: String(e) };
+    }
 }

@@ -222,6 +222,6 @@ describe('DNA-2 — quando un giro è completato (regola del 60%)', () => {
 
 describe('DNA-2 — il registro pesa quanto stabilito', () => {
     it('i pesi dei gesti', () => {
-        expect(REGISTRO_PESI).toEqual({ stop_reached: 0.05, tour_completed: 0.3, tour_saved: 0.2, quiz_choice: 0.2, stop_skipped: -0.1 });
+        expect(REGISTRO_PESI).toEqual({ stop_reached: 0.05, tour_completed: 0.3, tour_saved: 0.2, quiz_choice: 0.2, stop_skipped: -0.1, dna_correction: 0.15 });
     });
 });

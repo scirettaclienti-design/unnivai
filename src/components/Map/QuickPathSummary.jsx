@@ -5,6 +5,7 @@ import { getCoverPalette } from '@/lib/categoryPalette';
 import { TourStopsByMoment, TopFadeScroll } from '@/components/TourStopsByMoment';
 import { displayedTourMinutes } from '@/lib/tourTiming';
 import { sceltaConfermata } from '@/lib/quizRiquadro';
+import SalvaGiro from '@/components/SalvaGiro';
 
 // Gate PULIZIA P1 — formatta minuti → "45 min" / "3h" / "1h 30m".
 // Il vecchio inline `(min % 60 || '')` trattava lo 0 come falsy e stampava
@@ -158,6 +159,9 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                             <span>Vedi mappa</span>
                             <ArrowRight size={18} className="text-obsidian-bg" />
                         </button>
+
+                        {/* DNA-6 — il giro del Quiz si può salvare nel Profilo. */}
+                        <SalvaGiro tour={tourData} sorgente="quiz" />
 
                         <button
                             onClick={onHome}

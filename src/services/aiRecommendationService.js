@@ -3227,8 +3227,11 @@ export const aiRecommendationService = {
                                     const trovati = [];
                                     try {
                                         const { placesDiscoveryService } = await import('./placesDiscoveryService');
-                                        const lista = await placesDiscoveryService.discoverRealPOIs(city, r.punto.latitude, r.punto.longitude, null, { customQuery: r.query, customKind: r.kind, radiusMeters: r.raggioM, maxResults: 8 });
-                                        const dentro = applyRadiusFilter(Array.isArray(lista) ? lista : [], cityCenter, city, { requireCenter: true })
+                                        const lista = await placesDiscoveryService.discoverRealPOIs(city, r.punto.latitude, r.punto.longitude, null, { customQuery: r.query, customKind: r.kind, radiusMeters: r.raggioM, maxResults: 20 });
+                                        // il raggio di Google e' solo un'indicazione di rilevanza: i 300 m veri si misurano qui, dal punto dello spazio libero
+                                        // (con maxResults 8 i posti vicini, in fondo alla pagina di Google, restavano fuori: provato dal vivo a Catania)
+                                        const entroRaggio = (c) => haversineKm(r.punto.latitude, r.punto.longitude, c.latitude ?? c.lat, c.longitude ?? c.lng) * 1000 <= r.raggioM;
+                                        const dentro = applyRadiusFilter((Array.isArray(lista) ? lista : []).filter(entroRaggio), cityCenter, city, { requireCenter: true })
                                             .filter(c => { const id = c.place_id || c.googlePlaceId; return id && !noti.has(id); });
                                         for (const c of senzaEsclusi(dentro)) { noti.add(c.place_id || c.googlePlaceId); trovati.push(c); }
                                         voce.trovati = dentro.length;

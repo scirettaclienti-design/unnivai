@@ -60,6 +60,13 @@ describe('DNA-3c — la ricerca mirata della sosta, nel motore vero', () => {
         expect(out.soste.ricerca.fatte[0]).toMatchObject({ categoria: 'food', raggioM: 300, trovati: 1, costoMassimoUsd: 0.032 });
     });
 
+    it('i 300 m sono veri: un caffè trovato dalla ricerca ma a 1,5 km dallo spazio libero non diventa una sosta', async () => {
+        const lontano = place({ id: 'k8', name: 'Caffè Lontano', km: 2.0, dx: 0, types: ['cafe', 'food'], primary: 'cafe' });
+        const out = await genera({ dnaWeights: { food: 1, _share: 0.45 }, ricerca: [lontano] });
+        expect(out.sosteDna).toHaveLength(0);
+        expect(out.soste.ricerca.fatte[0].trovati).toBe(0);
+    });
+
     it('utente nuovo: nessuna ricerca e nessuna sosta', async () => {
         const out = await genera({ dnaWeights: {} });
         expect(out.chiamate).toHaveLength(0);

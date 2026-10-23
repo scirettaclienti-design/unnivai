@@ -1,0 +1,120 @@
+{
+ "quale": "dna",
+ "richieste": {
+  "places": {
+   "findplacefromtext": 2,
+   "textsearch": 10,
+   "details": 3
+  },
+  "sosta": [
+   "https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/places-proxy?language=it&path=place/textsearch&query=caffè storico pasticceria gelateria Catania&location=37.50197695,15.084908099999998&radius=300"
+  ],
+  "openai": 6
+ },
+ "console": [
+  "[C10 CITTA] Catania: lista dal server — 16 verificati, 15 nel pool dopo i filtri, ancore: Fontana dell'Elefante (uʻ Liotru) | Basilica Cattedrale di Sant'Agata | Castello Ursino",
+  "[DNA-3c RICERCA SOSTA] Catania: food dopo \"Piazza Giuseppe Mazzini\" (34 min liberi) → 7 candidati",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-pomeriggio (buchi 156 → 96 min)",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-pomeriggio (buchi 96 → 63 min)",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-pomeriggio (buchi 63 → 0 min)"
+ ],
+ "tappe": [
+  {
+   "libero": false,
+   "righe": [
+    "12:45",
+    "Trattoria Sorano",
+    "4.7",
+    "Pranzi da Trattoria Sorano, trattoria con prezzi medi. Si comincia da qui."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "14:30",
+    "Fontana dell’Amenano",
+    "4.6",
+    "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia. Sono 2 minuti a piedi dalla tappa prima."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "15:01",
+    "Terme Achilliane",
+    "3.9",
+    "Entri a Terme Achilliane alle 15:01: il resto può aspettare. È a un minuto a piedi dalla tappa prima."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "16:01",
+    "Basilica Cattedrale di Sant'Agata",
+    "4.7",
+    "Ti prendi venti minuti dentro Basilica Cattedrale di Sant'Agata. Ci arrivi alle 16:01."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "16:22",
+    "Fontana dell'Elefante (uʻ Liotru)",
+    "4.7",
+    "Ti fermi davanti a Fontana dell'Elefante (uʻ Liotru) il tempo che serve."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "16:55",
+    "Piazza Giuseppe Mazzini",
+    "4.3",
+    "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "18:00",
+    "Bar Popolare",
+    "4.9",
+    "L'aperitivo lo prendi da Bar Popolare, bar con prezzi bassi. Il sole tramonta alle 18:12: sei qui 12 minuti prima."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "18:49",
+    "Via Etnea",
+    "4.6",
+    "La via Etnea è la strada principale del centro storico di Catania."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "20:00",
+    "Trattoria U Fucularu",
+    "4.6",
+    "La cena è da Trattoria U Fucularu, trattoria con prezzi medi. Qui la giornata si chiude."
+   ]
+  }
+ ],
+ "momenti": [
+  "PRANZO",
+  "POMERIGGIO",
+  "APERITIVO",
+  "CENA"
+ ],
+ "note": [],
+ "costoUsd": {
+  "googleAlListino": 0.429,
+  "openai": 0.0203,
+  "totale": 0.449,
+  "ricercheSosta": 1,
+  "ricercheSostaAlListino": 0.032
+ },
+ "ora": "2026-10-23T10:45:52.843Z",
+ "screenshot": "docs/prove/schermate/2026-10-23-dna-3c-dna.png"
+}

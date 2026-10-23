@@ -1,0 +1,122 @@
+{
+ "quale": "nuovo",
+ "richieste": {
+  "places": {
+   "findplacefromtext": 3,
+   "textsearch": 9,
+   "details": 3
+  },
+  "placesMiss": {},
+  "sosta": [],
+  "sostaMiss": 0,
+  "openai": 6
+ },
+ "console": [
+  "[C10 CITTA] Catania: lista dal server — 16 verificati, 15 nel pool dopo i filtri, ancore: Fontana dell'Elefante (uʻ Liotru) | Basilica Cattedrale di Sant'Agata | Castello Ursino",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-pomeriggio (buchi 156 → 96 min)",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-pomeriggio (buchi 96 → 64 min)",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-pomeriggio (buchi 64 → 0 min)"
+ ],
+ "tappe": [
+  {
+   "libero": false,
+   "righe": [
+    "12:54",
+    "Trattoria Sorano",
+    "4.7",
+    "Pranzi da Trattoria Sorano, trattoria con prezzi medi. Si comincia da qui."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "14:30",
+    "Terme Achilliane",
+    "3.9",
+    "Entri a Terme Achilliane alle 14:30: il resto può aspettare. Sono 3 minuti a piedi dalla tappa prima."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "15:30",
+    "Basilica Cattedrale di Sant'Agata",
+    "4.7",
+    "Ti prendi venti minuti dentro Basilica Cattedrale di Sant'Agata. Ci arrivi alle 15:30."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "15:51",
+    "Fontana dell'Elefante (uʻ Liotru)",
+    "4.7",
+    "Ti fermi davanti a Fontana dell'Elefante (uʻ Liotru) il tempo che serve. È a un minuto a piedi dalla tappa prima."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "16:23",
+    "Piazza Università",
+    "4.6",
+    "Piazza dell'Università si trova a Catania, lungo la via Etnea, a meno di cento metri da piazza Duomo, ed è una delle piazze più scenografiche del centro storico catanese."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "16:53",
+    "Via Etnea",
+    "4.6",
+    "La via Etnea è la strada principale del centro storico di Catania."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "18:00",
+    "Magma 2.0 Drink & Food",
+    "4.9",
+    "L'aperitivo lo prendi da Magma 2.0 Drink & Food. Il sole tramonta alle 18:12: sei qui 12 minuti prima."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "18:49",
+    "Porta Uzeda",
+    "4.5",
+    "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca."
+   ]
+  },
+  {
+   "libero": false,
+   "righe": [
+    "20:00",
+    "L’Oste Pazzo",
+    "4.6",
+    "La cena è da L’Oste Pazzo. Qui la giornata si chiude."
+   ]
+  }
+ ],
+ "momenti": [
+  "PRANZO",
+  "POMERIGGIO",
+  "APERITIVO",
+  "CENA"
+ ],
+ "note": [],
+ "costoUsd": {
+  "googleRealeMiss": 0,
+  "googleAlListino": 0.414,
+  "openai": 0.0201,
+  "totale": 0.434,
+  "ricercheSosta": 0,
+  "ricercheSostaAlListino": 0,
+  "ricercheSostaMiss": 0,
+  "totaleReale": 0.02
+ },
+ "ora": "2026-10-23T10:54:30.162Z",
+ "screenshot": "docs/prove/schermate/2026-10-23-dna-3c-nuovo.png"
+}

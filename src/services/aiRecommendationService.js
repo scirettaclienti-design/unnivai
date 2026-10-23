@@ -392,9 +392,10 @@ import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scal
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
-import { richiestaEsplicita } from '../lib/richiestaEsplicita';
+import { richiestaEsplicita, filtraEsclusi, notaEsclusioni } from '../lib/richiestaEsplicita';
+import { aggiungiSosteDna } from '../lib/sosteDna';
 import { weightsToAIProfile } from './preferenceEngine';
-import { selectScoredCandidatePool, passesQualityThreshold, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport, computeAffinityScore, dnaShareOf } from './candidateScoring';
+import { mapCandidateToCoreCategories, selectScoredCandidatePool, passesQualityThreshold, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport, computeAffinityScore, dnaShareOf } from './candidateScoring';
 import {
     resolveFoodPrefs, applyFoodConstraints, foodPrefBonus, foodPrefsFingerprint, hasFoodPrefs,
     searchFoodWithDiet, dietNoteLine, dietCriteria, hierarchyPromptBlock, priceLevelOf,
@@ -2452,6 +2453,8 @@ export const aiRecommendationService = {
             // C10c — il nucleo del quartiere chiesto: le visite e il pranzo stanno li'
             let nucleo = null;
             let scalaNote = null;
+            let sosteDnaReport = null; // DNA-3b
+            let esclusioneNote = null; // DNA-3b: «Ho tolto le chiese come chiesto: il giro è più corto.»
             let conferma = null;
             const w0 = tourWindow.windows[0];
             const minuti0 = w0 ? (w0.end.getTime() - w0.start.getTime()) / 60000 : 0;
@@ -2784,6 +2787,16 @@ export const aiRecommendationService = {
             // C10 — decisione di Ivano su P7a: le ancore (al massimo 3 essenziali per giornata intera, 1 per mezza) e i posti
             // «da locale» della lista passano davanti e FUORI dal merito (non contano nel limite dei 20 ne' nel tetto delle
             // icone); gli altri essenziali e tutto il resto restano al merito anti-ovvio di sempre.
+            // DNA-3b — LE ESCLUSIONI SONO UN FILTRO DURO: un tipo escluso («niente chiese»: testo, `escludi` del traduttore, opzioni) non
+            // entra nel pool, ne' come ancora della lista ne' da una ricerca mirata. Vale per tutti, anche per chi non ha un DNA.
+            // Senza esclusioni la lista e' la stessa di prima. Se i candidati non bastano il giro e' piu' corto e lo dice (esclusioneNote).
+            const esclusiTolti = [];
+            const senzaEsclusi = (lista) => {
+                const f = filtraEsclusi(lista, richiesta);
+                if (f.tolti.length) esclusiTolti.push(...f.tolti.map(c => c.name || c.title || c.place_id));
+                return f.tenuti;
+            };
+            candidates = senzaEsclusi(candidates);
             const conLista = poolConLista(candidates, {
                 tourWindow,
                 seleziona: (altri) => selectScoredCandidatePool(altri, { city, dnaWeights: dnaW, limit: 20 * nDays, bonus: foodBonus, borgoNatura }),
@@ -2951,7 +2964,7 @@ export const aiRecommendationService = {
                         foodPrefs: foodOn ? food : null,
                         foodAnchor, tipico: tema.tipico, area,
                     });
-                    candidates = [...candidates, ...extra];
+                    candidates = [...candidates, ...senzaEsclusi(extra)];
                     mealOnlyIds = addMealOnly(extra);
                     buckets = nelleAree(bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds, borgo: conferma?.scala === 'borgo' }));
                     if (extraThemes.includes('food')) foodGiaCercato = true;
@@ -3138,7 +3151,7 @@ export const aiRecommendationService = {
                                 console.info(`[C1b RICERCA MIRATA] ${city}: ${target.momento} da "${target.da.name}" (${theme}) → ${found.length} candidati`);
                                 if (found.length > 0) {
                                     for (const c of found) searchedIds.add(c.place_id || c.googlePlaceId);
-                                    candidates = [...candidates, ...found];
+                                    candidates = [...candidates, ...senzaEsclusi(found)];
                                     mealOnlyIds = addMealOnly(found);
                                     buckets = nelleAree(bucketCandidates(moments, candidates, { anyCategory, mealOnlyIds, borgo: conferma?.scala === 'borgo' }));
                                 }
@@ -3182,6 +3195,24 @@ export const aiRecommendationService = {
                             });
                             repaired = minimo.repaired;
                             sched = minimo.sched;
+                            // DNA-3b — LE SOSTE DEL DNA (lib/sosteDna.js): negli spazi liberi di mattina e pomeriggio, 1–2 soste brevi (15–30 min) delle
+                            // categorie piu' forti del DNA; mai se la richiesta ha categorie precise o esclude la categoria, mai di notte per la natura.
+                            // Per Te (`giornata: false`) e utenti senza fiducia nel DNA: nessuna sosta, giro identico a prima.
+                            if (opts.giornata !== false) { // Per Te (_homeDaMotore passa giornata: false) non ha soste del DNA
+                                const soste = aggiungiSosteDna({
+                                    sched, pool: [...candidates, ...candidatiGenerazione.filter(c => !candidates.includes(c))], dnaWeights: opts.dnaWeights, richiesta, categoriaTarget: catStretta || null,
+                                    passaQualita: (c) => passesQualityThreshold(c, city, { borgoNatura }),
+                                    alBuio: (when, di) => eBuio(when, sunForDay({ windowIndex: di }, di, tourWindow, cityCenter)),
+                                    daFuori: (c) => isNaturaDaFuori(c, cityCenter),
+                                    categorieDi: mapCandidateToCoreCategories,
+                                });
+                                sched = soste.sched;
+                                sosteDnaReport = soste.report;
+                                // la sosta deve stare fra i candidati: la canonicalizzazione scarta ogni tappa che non e' nel pool
+                                const sosteIds = new Set(soste.report.aggiunte.map(x => x.place_id));
+                                candidates = [...candidates, ...candidatiGenerazione.filter(c => sosteIds.has(c.place_id || c.googlePlaceId) && !candidates.includes(c))];
+                                for (const x of soste.report.aggiunte) console.info(`[DNA-3b SOSTA] ${city}: ${x.nome} (${x.categoria}, ${x.minuti} min, deviazione ${x.deviazioneM} m) in ${x.momento}`);
+                            }
                             const { report } = repaired;
                             for (const a of minimo.aggiunte) console.info(`[C8b MINIMO] ${city}: tappa in piu' in ${a.momento} (giorno ${a.dayIndex + 1}: ${a.prima} → ${a.dopo} tappe, minimo ${minPerDay.get(a.dayIndex)})`);
                             for (const a of filled.aggiunte) console.info(`[CONTINUITA'] ${city}: tappa in piu' in ${a.momento} (buchi ${a.minutiPrima} → ${a.minutiDopo} min)`);
@@ -3213,6 +3244,8 @@ export const aiRecommendationService = {
                                     motivo: 'la sera si cena: nessun ristorante aperto per tutta la sosta' }]
                                 : [];
                             report.tempoLibero = [...(report.tempoLibero || []), ...righeChiuse, ...righeBuchi, ...righeMinimo, ...righeCenaTardi];
+                            // DNA-3b — le esclusioni hanno tolto candidati e il giro e' sotto il minimo della sua finestra: lo dice, con la riga approvata
+                            if (esclusiTolti.length > 0 && sched.days.some((d, di) => d.length < (minPerDay.get(di) ?? 0))) esclusioneNote = notaEsclusioni(richiesta);
                             orariTracciato = scheduleHoursLabels(sched);
                             orariFonte = scheduleHoursSources(sched);
                             orariInfo = {
@@ -3223,7 +3256,7 @@ export const aiRecommendationService = {
                             };
                             const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, respinti: filled.respinti || [], dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })),
                                 minimo: { richiesto: Object.fromEntries(minPerDay), aggiunte: minimo.aggiunte, tentativi: minimo.tentativi, dichiarati: righeMinimo.map(x => ({ momento: x.momento, giorno: x.dayIndex + 1 })) } };
-                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
+                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, soste: sosteDnaReport, esclusioni: { tolti: esclusiTolti.slice(0, 40), nota: esclusioneNote }, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
                             logMomentReport(city, momentReport);
                             // C7 — nel tracciato (interno, mai a schermo): cosa ha voluto il tema. Il pasto del tema, l'esperienza
                             // nello spirito del tema, il momento chiesto ESPLICITAMENTE dal testo, e per "tipico" se il posto e' locale.
@@ -3419,7 +3452,8 @@ export const aiRecommendationService = {
                         if (foodOn) console.info(`[P7b VINCOLI] ${city}: dieta=${food.dieta.join('+') || '-'} (${food.dietaFonte || '-'}), budget=${food.budget || '-'} (${food.budgetFonte || '-'}), stile=${food.stile || '-'} | pasti: ${tappePasto.map(x => `${x.title} [pl=${x.price_level ?? '?'}, ${x.criterio || 'senza criterio'}]`).join(' | ') || 'nessuno'}`);
                         if (dietNote) for (const d of narratedDays) d.dietNote = dietNote;
                         // C10b — il borgo che si gira in mezza giornata: la riga approvata, sul giorno
-                        if (scalaNote && narratedDays[0]) narratedDays[0].scalaNote = scalaNote;
+                        const noteGiorno = [scalaNote, esclusioneNote].filter(Boolean).join(' ');
+                        if (noteGiorno && narratedDays[0]) narratedDays[0].scalaNote = noteGiorno;
                         // BORGO-FIX — decisione 3: natura chiesta, giro che comincia dopo il tramonto, nessuna natura nel giro → la nota di Ivano
                         // (la seconda frase solo se un posto di natura verificato, nel pool, e' aperto domattina alle 9).
                         if (naturaChiesta && narratedDays[0] && !allStops.some(st => isNaturaOPanorama(st))) {

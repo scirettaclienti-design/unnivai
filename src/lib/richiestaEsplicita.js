@@ -102,7 +102,7 @@ const unici = (a) => [...new Set(a)];
  * @param {string}      p.testo     la frase dell'utente (solo dove e' scritta da lui: Crea; per Quiz e Sorprendimi il testo e' costruito dalle opzioni e passa dal traduttore)
  * @param {object}      p.prefs     opzioni scelte (durata, ritmo, compagnia, budget, interessi)
  * @param {string}      p.pathType  'custom' (Crea) | 'quick' (Quiz) | undefined (Sorprendimi, Per Te)
- * @returns {{ chieste:string[], catsTesto:string[], tipiChiesti:string[], nomiChiesti:string[], escluse:string[], tipiEsclusi:string[], nomiEsclusi:string[], testoNomi:string,
+ * @returns {{ chieste:string[], catsTesto:string[], tipiChiesti:string[], nomiChiesti:string[], escluse:string[], tipiEsclusi:string[], nomiEsclusi:string[], vociEscluse:string[], vociFiltro:string[], tipiFiltro:string[], nomiFiltro:string[], testoNomi:string,
  *             vincoli:{ budget:?string, durata:?string, ritmo:?string, compagnia:?string, momento:?string }, vuota:boolean }}
  */
 export function richiestaEsplicita({ intent = null, testo = '', prefs = null, pathType = undefined } = {}) {
@@ -136,7 +136,20 @@ export function richiestaEsplicita({ intent = null, testo = '', prefs = null, pa
     const escluse = [];
     const tipiEsclusi = [];
     const nomiEsclusi = [];
-    const escludi = (v) => { escluse.push(...v.cats); tipiEsclusi.push(...v.types); if (v.nome) nomiEsclusi.push(v.nome.source); };
+    const vociEscluse = [];
+    // DNA-3b — il FILTRO DURO: in «Crea il tuo Percorso» (pathType 'custom') le esclusioni dell'utente — scritte nel testo o lette dal traduttore
+    // («niente chiese») — tolgono i candidati dal pool prima della scelta. Nel Quiz e in Sorprendimi le esclusioni le scrive il wizard da solo
+    // («Escludi: chiese, musei» per un umore Natura; «non aggiungere ristoranti, bar o caffe'» per Storia): restano un'istruzione per il
+    // traduttore e un'affinita' 0 per il DNA, ma non un filtro: la categoria scelta restringe gia' il pool (Gate RAGGIO-CATEGORIA) e un filtro
+    // sul cibo toglierebbe pranzo e cena. Nel report come proposta.
+    const vociFiltro = [];
+    const tipiFiltro = [];
+    const nomiFiltro = [];
+    const filtra = (v) => { vociFiltro.push(v.id); tipiFiltro.push(...v.types); if (v.nome) nomiFiltro.push(v.nome.source); };
+    const escludi = (v) => {
+        vociEscluse.push(v.id); escluse.push(...v.cats); tipiEsclusi.push(...v.types); if (v.nome) nomiEsclusi.push(v.nome.source);
+        if (pathType === 'custom') filtra(v);
+    };
     for (const e of Array.isArray(intent?.vincoli?.escludi) ? intent.vincoli.escludi : []) for (const v of voci(e)) escludi(v);
     // ... e quelle scritte nel testo con una negazione, anche se il traduttore non le ha messe in `escludi`
     for (const v of dalTesto.negate) escludi(v);
@@ -150,7 +163,7 @@ export function richiestaEsplicita({ intent = null, testo = '', prefs = null, pa
     };
     const r = {
         chieste: unici(chieste), catsTesto: unici(catsTesto), tipiChiesti: unici(tipiChiesti), nomiChiesti: unici(nomiChiesti),
-        escluse: unici(escluse), tipiEsclusi: unici(tipiEsclusi), nomiEsclusi: unici(nomiEsclusi),
+        escluse: unici(escluse), tipiEsclusi: unici(tipiEsclusi), nomiEsclusi: unici(nomiEsclusi), vociEscluse: unici(vociEscluse), vociFiltro: unici(vociFiltro), tipiFiltro: unici(tipiFiltro), nomiFiltro: unici(nomiFiltro),
         testoNomi: norm(testoUtente), vincoli, vuota: false,
     };
     // `vuota`: nessuna categoria, nessun tipo, nessuna esclusione. Il testo (per i luoghi nominati) ha il suo campo, `testoNomi`.
@@ -198,3 +211,44 @@ export function statoCandidato(c, r, categorieDi = () => new Set()) {
     if (r.chieste.length) { for (const cat of categorieDi(c)) if (r.chieste.includes(cat)) return 'chiesto'; }
     return 'libero';
 }
+
+// ─── DNA-3b — LE ESCLUSIONI SONO UN FILTRO DURO ──────────────────────────────────────────────────────────────────────────────
+// Un tipo escluso dalla richiesta (testo, `vincoli.escludi` del traduttore, opzioni) e' tolto dai candidati PRIMA della scelta, per
+// tutti (non solo per chi ha un DNA). Se i candidati non bastano, il giro e' piu' corto e lo dice (`notaEsclusioni`).
+
+/** I candidati senza quelli di un tipo escluso. `tolti` = i candidati tolti. Senza esclusioni restituisce la stessa lista. */
+export function filtraEsclusi(lista, r) {
+    const l = Array.isArray(lista) ? lista : [];
+    if (!r || (!r.tipiFiltro?.length && !r.nomiFiltro?.length)) return { tenuti: l, tolti: [] };
+    const tenuti = [];
+    const tolti = [];
+    for (const c of l) {
+        const tipi = tipiDi(c);
+        const nome = norm(c?.name || c?.title);
+        const fuori = tipi.some(t => r.tipiFiltro.includes(t)) || r.nomiFiltro.some(src => new RegExp(src).test(nome));
+        (fuori ? tolti : tenuti).push(c);
+    }
+    return tolti.length ? { tenuti, tolti } : { tenuti: l, tolti: [] };
+}
+
+// Come si chiamano, a schermo, i tipi che l'utente puo' escludere («niente chiese» → «le chiese»).
+const NOME_ESCLUSIONE = {
+    chiese: 'le chiese', musei: 'i musei', gallerie: 'le gallerie', storia: 'i luoghi storici', cibo: 'i ristoranti', bar: 'i bar',
+    notte: 'i locali notturni', natura: 'i parchi', shopping: 'i negozi', panorami: 'i panorami', avventura: 'le attività sportive',
+};
+
+/** La riga a schermo: «Ho tolto le chiese come chiesto: il giro è più corto.» (null se non si e' escluso niente). */
+export function notaEsclusioni(r) {
+    const nomi = (r?.vociFiltro || []).map(id => NOME_ESCLUSIONE[id]).filter(Boolean);
+    if (nomi.length === 0) return null;
+    const elenco = nomi.length === 1 ? nomi[0] : `${nomi.slice(0, -1).join(', ')} e ${nomi.at(-1)}`;
+    return `Ho tolto ${elenco} come chiesto: il giro è più corto.`;
+}
+
+// Una categoria del DNA e' esclusa «per intero» solo se l'utente ha escluso la voce larga che la nomina:
+// «niente chiese» non esclude la cultura (una libreria resta ammessa), «niente cibo» esclude ogni sosta di cibo.
+const VOCE_LARGA = { food: ['cibo'], natura: ['natura'], cultura: ['storia'] };
+export const categoriaEsclusa = (r, cat) => (VOCE_LARGA[cat] || []).some(id => (r?.vociEscluse || []).includes(id));
+
+/** La richiesta ha nominato qualcosa di preciso (categoria, tipo, nome)? Se si', il DNA non aggiunge soste. */
+export const haCategoriePrecise = (r) => !!r && (r.chieste.length > 0 || r.tipiChiesti.length > 0 || r.nomiChiesti.length > 0);

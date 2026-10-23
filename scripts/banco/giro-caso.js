@@ -182,6 +182,9 @@ export function registraItinerario(rec, { r, rec: extra, food }, caso, luoghi) {
     rec.motori = r._momentReport ? { tolti: r._momentReport.momentiTolti ?? null, facoltativiSenzaPosto: r._momentReport.facoltativiSenzaPosto ?? null, ricercheMirate: r._momentReport.ricercheMirate ?? null } : null;
     rec.sceltaModello = r._momentReport?.sceltaModello ?? null;
     rec.ricerche = { prima: r._momentReport?.ricercheMirate ?? null, dopo: r._momentReport?.ricercheDopo ?? null };
+    // DNA-3b — le soste del DNA e le esclusioni tolte dal pool (solo registrazione)
+    rec.sosteDna = r._momentReport?.soste ?? null;
+    rec.esclusioni = r._momentReport?.esclusioni ?? null;
     // ORARI — il messaggio "meglio domattina" al posto del giro e' un ripiego dichiarato
     rec.ripiegoDichiarato = !!(r._singleStop || r._queryDiBaseDopoVuoto || r._source === 'closed-now');
     if (r._source === 'closed-now') rec.chiusoOra = r._messaggio;

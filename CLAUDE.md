@@ -121,7 +121,9 @@ All pages are lazy-loaded via `React.lazy()`.
 
 ### Supabase Schema
 
-All migrations live in `supabase/migrations/`. Apply them in filename order. RLS base policies in `supabase/rls_policies.sql`.
+All migrations live in `supabase/migrations/`. RLS base policies in `supabase/rls_policies.sql`.
+
+**Le migrazioni si applicano dal Terminale: file con timestamp completo in supabase/migrations/, `supabase db push --dry-run` (deve mostrare solo la nuova), poi `supabase db push`. Mai execute_sql per cambiare lo schema.** Lo storico locale e quello di produzione coincidono dal 23/10/2026 (ogni file ha la versione a 14 cifre della riga remota). I vecchi file senza corrispondenza in produzione sono in `supabase/migrations_archivio/` (vedi il suo README): non si rieseguono alla cieca.
 
 **Canonical tables and their authoritative columns:**
 

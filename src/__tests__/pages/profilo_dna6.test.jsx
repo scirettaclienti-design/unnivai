@@ -15,7 +15,8 @@ const righe = [
 const correggiDna = vi.fn().mockResolvedValue({ ok: true });
 let hook;
 vi.mock('../../hooks/useAILearning', () => ({ useAILearning: () => hook }));
-vi.mock('../../hooks/useUserContext', () => ({ useUserContext: () => ({ userId: 'u1', firstName: 'Prova', city: 'Catania' }) }));
+let contesto = { userId: 'u1', firstName: 'Prova', city: 'Catania' };
+vi.mock('../../hooks/useUserContext', () => ({ useUserContext: () => contesto }));
 vi.mock('../../context/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1', email: 'p@example.com' } }) }));
 vi.mock('../../hooks/use-toast', () => ({ useToast: () => ({ toast: vi.fn() }) }));
 vi.mock('../../components/TopBar', () => ({ default: () => null }));
@@ -38,6 +39,7 @@ const LEGGI = (rel) => readFileSync(resolve(__dirname, '../..', rel), 'utf8');
 
 beforeEach(() => {
     cleanup();
+    contesto = { userId: 'u1', firstName: 'Prova', city: 'Catania' };
     hook = {
         weights: { cultura: 0.2, food: 0.5, nightlife: 0, natura: 0, avventura: 0, shopping: 0, relax: 0, arte: 0 },
         dnaEvents: 4, ritmoPreferito: null, compagniaPreferita: null,
@@ -65,6 +67,15 @@ describe('DNA-6 — Profilo', () => {
         expect(screen.getByTestId('dna-frasi').textContent).toContain('Ti fermi dove si mangia bene.');
         fireEvent.click(screen.getByLabelText('Più cibo'));
         expect(correggiDna).toHaveBeenCalledWith('food', 'piu');
+    });
+    it('senza posizione (userId di useUserContext vuoto) chi ha fatto l\'accesso corregge lo stesso il DNA e vede i giri salvati', async () => {
+        contesto = { firstName: 'Prova' };
+        apri();
+        expect(screen.queryByText(/Accedi per correggere/)).toBeNull();
+        fireEvent.click(screen.getByLabelText('Più cibo'));
+        expect(correggiDna).toHaveBeenCalledWith('food', 'piu');
+        fireEvent.click(screen.getByText('Mete'));
+        await waitFor(() => expect(screen.getByTestId('giro-salvato')).toBeTruthy());
     });
     it('Mete: il giro completato e il giro salvato', async () => {
         apri();

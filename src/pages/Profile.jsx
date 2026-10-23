@@ -44,6 +44,8 @@ const REQUEST_STATUS_LABEL = {
 export default function ProfilePage() {
     const { userId, firstName, city } = useUserContext();
     const { user } = useAuth();
+    // DNA-6 — chi ha fatto l'accesso e' `user.id`: `userId` di useUserContext arriva solo dopo che la citta' e' risolta (senza posizione resterebbe vuoto).
+    const idAccesso = user?.id ?? null;
     const { toast } = useToast();
     const { weights, dnaEvents, ritmoPreferito, compagniaPreferita, righeRegistro, correggiDna, onboardingPrefs, saveFoodPrefs, interestIds, saveInterests } = useAILearning();
     // DNA-6 — Mete e contatori vengono dal registro (public.dna_events), non da testo fisso.
@@ -179,11 +181,11 @@ export default function ProfilePage() {
     }, [userId]);
 
     useEffect(() => {
-        if (!userId) return;
+        if (!idAccesso) return;
         let vivo = true;
         leggiGiriSalvati().then(r => { if (vivo && r.ok) setGiriSalvati(r.giri); });
         return () => { vivo = false; };
-    }, [userId]);
+    }, [idAccesso]);
 
     const rimuoviGiro = async (id) => {
         const r = await rimuoviGiroSalvato(id);
@@ -323,7 +325,7 @@ export default function ProfilePage() {
                     eventi={dnaEvents}
                     ritmo={ritmoPreferito}
                     compagnia={compagniaPreferita}
-                    puoCorreggere={!!userId}
+                    puoCorreggere={!!idAccesso}
                     onCorreggi={correggiDna}
                 />
 

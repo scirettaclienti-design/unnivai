@@ -228,3 +228,61 @@ describe('DNA-3b — le esclusioni sono un filtro duro', () => {
         expect(notaEsclusioni(vuota)).toBeNull();
     });
 });
+
+// ─── DNA-3c — la ricerca mirata della sosta: solo nelle condizioni dette ─────────────────────────────────────────────────────────
+import { ricercheDellaSosta, spaziLiberi, RAGGIO_RICERCA_M, LIBERO_MIN_RICERCA_MINUTI } from '@/lib/sosteDna';
+
+describe('DNA-3c — quando si cerca (e quando no)', () => {
+    const POOL_SENZA = [MUSEO, TRATTORIA, CHIESA]; // niente caffè, giardini o librerie
+    const piano = (share, pesi = { food: 1 }, o = {}) => {
+        const s = o.sched || sched();
+        const primo = aggiungiSosteDna({ sched: s, pool: o.pool || POOL_SENZA, dnaWeights: dna(pesi, share), richiesta: o.richiesta || vuota, categoriaTarget: o.categoriaTarget || null, categorieDi: mapCandidateToCoreCategories });
+        return ricercheDellaSosta({ sched: primo.sched, dnaWeights: dna(pesi, share), richiesta: o.richiesta || vuota, categoriaTarget: o.categoriaTarget || null, primo: primo.report, pool: o.pool || POOL_SENZA });
+    };
+
+    it('fiducia media, uno spazio di 85 minuti e niente nel pool: UNA ricerca, centrata fra le due tappe, raggio 300 m', () => {
+        const p = piano(0.25);
+        expect(p.ricerche).toHaveLength(1);
+        const r = p.ricerche[0];
+        expect(r.categoria).toBe('food');
+        expect(r.raggioM).toBe(300);
+        expect(RAGGIO_RICERCA_M).toBe(300);
+        expect(r.libero).toBe(85);
+        // il punto e' a meta' strada fra il museo (0 m) e la trattoria (400 m a nord)
+        expect(Math.round((r.punto.latitude - LAT) * 111000)).toBe(200);
+    });
+    it('fiducia alta con una sola categoria e un solo spazio: ancora UNA ricerca (la stessa non si fa due volte)', () => {
+        expect(piano(0.45).ricerche).toHaveLength(1);
+    });
+    it('fiducia alta con due categorie: due ricerche, una per categoria', () => {
+        const p = piano(0.45, { food: 1, natura: 0.8 });
+        expect(p.ricerche.map(r => r.categoria).sort()).toEqual(['food', 'natura']);
+    });
+    it('fiducia poca o zero: nessuna ricerca', () => {
+        expect(piano(0.15).ricerche).toEqual([]);
+        expect(piano(0.15).motivo).toMatch(/poca/);
+        expect(piano(0).ricerche).toEqual([]);
+    });
+    it('uno spazio libero sotto i 20 minuti: nessuna ricerca', () => {
+        const stretto = sched();
+        stretto.days[0][1] = { ...stretto.days[0][1], waitMinutesBefore: 15 };
+        expect(LIBERO_MIN_RICERCA_MINUTI).toBe(20);
+        expect(spaziLiberi(stretto)).toEqual([]);
+        expect(piano(0.45, { food: 1 }, { sched: stretto }).ricerche).toEqual([]);
+    });
+    it('se nel pool c\'e\' un candidato adatto entro 300 m: nessuna ricerca (la sosta c\'e\' gia\')', () => {
+        const p = piano(0.25, { food: 1 }, { pool: [...POOL_SENZA, CAFFE] });
+        expect(p.ricerche).toEqual([]);
+        expect(p.motivo).toMatch(/gia'/);
+    });
+    it('la richiesta vince: «solo musei», un posto per nome, una categoria sola, un tipo escluso: nessuna ricerca', () => {
+        const musei = richiestaEsplicita({ intent: { categoria: 'cultura', vincoli: { escludi: [] } }, testo: 'solo musei', pathType: 'custom' });
+        expect(piano(0.45, { food: 1 }, { richiesta: musei }).ricerche).toEqual([]);
+        expect(piano(0.45, { food: 1 }, { categoriaTarget: 'natura' }).ricerche).toEqual([]);
+        const noCibo = richiestaEsplicita({ intent: { categoria: 'misto', vincoli: { escludi: [] } }, testo: 'giro in centro, senza ristoranti', pathType: 'custom' });
+        expect(piano(0.45, { food: 1 }, { richiesta: noCibo }).ricerche).toEqual([]);
+    });
+    it('utente nuovo (nessun DNA): nessuna ricerca', () => {
+        expect(piano(0, {}).ricerche).toEqual([]);
+    });
+});

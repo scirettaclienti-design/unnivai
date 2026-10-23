@@ -130,7 +130,8 @@ export function sistemazione(a, c, b) {
  * @param {(c:object)=>boolean} [p.daFuori]          la natura «da fuori» (isNaturaDaFuori)
  * @param {(c:object)=>Set<string>} [p.categorieDi]  categorie di base di un candidato
  */
-export function aggiungiSosteDna({ sched, pool, dnaWeights, richiesta, categoriaTarget = null, passaQualita = () => true, alBuio = () => false, daFuori = () => false, categorieDi = () => new Set() }) {
+export function aggiungiSosteDna({ sched, pool, dnaWeights, richiesta, categoriaTarget = null, passaQualita = () => true, alBuio = () => false, daFuori = () => false, categorieDi = () => new Set(), gia = [] }) {
+    // `gia`: le soste gia' messe ({ giorno, categoria }, secondo passaggio dopo la ricerca mirata): si completa il numero, non si rifa'
     const report = { aggiunte: [], motivo: null, numero: numeroSoste(dnaWeights?._share), categorie: [] };
     const motivo = motivoNessunaSosta({ dnaWeights, richiesta, categoriaTarget, pool });
     if (motivo) return { sched, report: { ...report, motivo } };
@@ -142,6 +143,7 @@ export function aggiungiSosteDna({ sched, pool, dnaWeights, richiesta, categoria
     days.forEach((day, di) => {
         // l'ordine delle categorie per le soste del giorno: con 2 soste una per categoria; con una sola categoria, due della stessa
         const ordine = Array.from({ length: report.numero }, (_, k) => cats[k % cats.length]);
+        for (const g of gia.filter(x => x.giorno === di + 1)) { const k = ordine.indexOf(g.categoria); if (k >= 0) ordine.splice(k, 1); }
         for (const cat of ordine) {
             const provate = [cat, ...cats.filter(x => x !== cat)];
             let fatta = false;
@@ -184,4 +186,73 @@ export function aggiungiSosteDna({ sched, pool, dnaWeights, richiesta, categoria
         }
     });
     return { sched: { ...sched, days }, report };
+}
+
+// ─── DNA-3c — LA RICERCA MIRATA DELLA SOSTA ─────────────────────────────────────────────────────────────────────────────────────
+// Nelle citta' la lista e il pool spesso non hanno il caffe', il giardino o la libreria sulla strada. Allora, e solo allora, UNA ricerca
+// vicino allo spazio libero (due con fiducia alta), dal proxy dei posti di sempre:
+//   · solo con fiducia DNA media o alta (gradino 2 o 3: la poca non spende);
+//   · solo se c'e' uno spazio libero di almeno 20 minuti (l'attesa prima della tappa dopo, in un momento di mattina o pomeriggio);
+//   · solo se nel pool non c'e' un candidato adatto: e' il primo passaggio (`aggiungiSosteDna` sul pool) a decidere, la ricerca serve
+//     alle soste che il primo passaggio non ha potuto mettere;
+//   · centrata sul punto di mezzo fra la tappa prima e la tappa dopo, raggio 300 m (`RAGGIO_RICERCA_M`); il posto trovato passa poi per
+//     tutto il resto della regola (soglia di qualita', aperto all'arrivo, deviazione, richiesta, esclusioni, buio).
+// Costo: 1 ricerca di testo (0,032 $, listino del banco) con fiducia media, al massimo 2 (0,064 $) con fiducia alta; 0 $ se la ricerca e' gia'
+// nella cache (24 ore, per citta', ricerca e punto arrotondato a 3 decimali: ~100 m) o se il pool basta.
+export const LIBERO_MIN_RICERCA_MINUTI = 20;
+export const RAGGIO_RICERCA_M = 300;
+export const RICERCA_PER_CATEGORIA = {
+    food: { query: 'caffè storico pasticceria gelateria', kind: 'FOOD' },
+    natura: { query: 'belvedere giardino parco', kind: 'NATURA' },
+    cultura: { query: 'libreria bottega storica', kind: 'CULTURA' },
+};
+
+/** Gli spazi liberi del giro: le attese di almeno `minimo` minuti prima di una tappa, dopo una tappa di mattina o pomeriggio. */
+export function spaziLiberi(sched, minimo = LIBERO_MIN_RICERCA_MINUTI) {
+    const out = [];
+    (sched?.days || []).forEach((day, di) => {
+        for (let i = 0; i < day.length - 1; i++) {
+            const a = day[i], b = day[i + 1];
+            if (!MOMENTI_AMMESSI.has(a.moment?.key) || a.moment?.key === 'passeggiata' || b.moment?.key === 'passeggiata') continue;
+            if (!(a.start instanceof Date) || !(b.start instanceof Date)) continue;
+            const libero = Number(b.waitMinutesBefore) || 0;
+            const pa = [a.candidate?.latitude ?? a.candidate?.lat, a.candidate?.longitude ?? a.candidate?.lng];
+            const pb = [b.candidate?.latitude ?? b.candidate?.lat, b.candidate?.longitude ?? b.candidate?.lng];
+            if (libero < minimo || ![...pa, ...pb].every(Number.isFinite)) continue;
+            out.push({ giorno: di + 1, i, libero, punto: { latitude: (pa[0] + pb[0]) / 2, longitude: (pa[1] + pb[1]) / 2 }, dopo: a.candidate?.name || a.candidate?.title || null });
+        }
+    });
+    return out.sort((x, y) => y.libero - x.libero);
+}
+
+/**
+ * Le ricerche da fare per le soste che il pool non ha potuto dare. `sched` e' il giro DOPO il primo passaggio, `primo` il suo report.
+ * @returns {{ ricerche: Array<{categoria, query, kind, punto, raggioM, libero, giorno, dopo}>, motivo: string|null }}
+ */
+export function ricercheDellaSosta({ sched, dnaWeights, richiesta, categoriaTarget = null, primo, pool = [], giaCercate = [] }) {
+    if (primo?.motivo) return { ricerche: [], motivo: primo.motivo };
+    const g = gradinoFiducia(dnaWeights?._share);
+    if (g < 2) return { ricerche: [], motivo: 'fiducia del DNA poca: nessuna ricerca' };
+    const mancanti = (primo?.numero || 0) - (primo?.aggiunte?.length || 0);
+    if (mancanti <= 0) return { ricerche: [], motivo: 'le soste sono gia\' tutte al loro posto' };
+    if (motivoNessunaSosta({ dnaWeights, richiesta, categoriaTarget, pool })) return { ricerche: [], motivo: 'la richiesta non lascia soste' };
+    const spazi = spaziLiberi(sched);
+    if (spazi.length === 0) return { ricerche: [], motivo: 'nessuno spazio libero di almeno 20 minuti' };
+    const cats = (primo?.categorie || []);
+    // le categorie che mancano: l'ordine voluto meno quelle gia' messe
+    const volute = Array.from({ length: primo.numero }, (_, k) => cats[k % cats.length]);
+    for (const x of primo.aggiunte) { const k = volute.indexOf(x.categoria); if (k >= 0) volute.splice(k, 1); }
+    const massimo = (g === 3 ? 2 : 1) - giaCercate.length;
+    if (massimo <= 0) return { ricerche: [], motivo: 'il tetto di ricerche del giro e\' raggiunto' };
+    const ricerche = [];
+    const usati = new Set();
+    for (const categoria of volute) {
+        if (ricerche.length >= Math.min(massimo, mancanti)) break;
+        const spazio = spazi.find(x => !usati.has(`${categoria}|${x.giorno}:${x.i}`) && ![...giaCercate, ...ricerche].some(r => r.giorno === x.giorno && r.categoria === categoria && r.dopo === x.dopo));
+        if (!spazio) continue; // la stessa ricerca (stessa categoria, stesso spazio) non si fa due volte
+        usati.add(`${categoria}|${spazio.giorno}:${spazio.i}`);
+        const q = RICERCA_PER_CATEGORIA[categoria];
+        ricerche.push({ categoria, query: q.query, kind: q.kind, punto: spazio.punto, raggioM: RAGGIO_RICERCA_M, libero: spazio.libero, giorno: spazio.giorno, dopo: spazio.dopo });
+    }
+    return { ricerche, motivo: ricerche.length ? null : 'nessuna categoria da cercare' };
 }

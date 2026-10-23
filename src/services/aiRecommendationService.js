@@ -393,7 +393,9 @@ export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './to
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
 import { richiestaEsplicita, filtraEsclusi, notaEsclusioni } from '../lib/richiestaEsplicita';
-import { aggiungiSosteDna } from '../lib/sosteDna';
+import { aggiungiSosteDna, ricercheDellaSosta } from '../lib/sosteDna';
+// DNA-3c — una ricerca di testo di Google Places (listino del banco): il costo massimo di una ricerca della sosta
+const COSTO_RICERCA_SOSTA_USD = 0.032;
 import { weightsToAIProfile } from './preferenceEngine';
 import { mapCandidateToCoreCategories, selectScoredCandidatePool, passesQualityThreshold, enforceCategoryVariety, weightsFingerprint, obviousnessReport, rankByMerit, famositaReport, computeAffinityScore, dnaShareOf } from './candidateScoring';
 import {
@@ -3199,19 +3201,53 @@ export const aiRecommendationService = {
                             // categorie piu' forti del DNA; mai se la richiesta ha categorie precise o esclude la categoria, mai di notte per la natura.
                             // Per Te (`giornata: false`) e utenti senza fiducia nel DNA: nessuna sosta, giro identico a prima.
                             if (opts.giornata !== false) { // Per Te (_homeDaMotore passa giornata: false) non ha soste del DNA
-                                const soste = aggiungiSosteDna({
-                                    sched, pool: [...candidates, ...candidatiGenerazione.filter(c => !candidates.includes(c))], dnaWeights: opts.dnaWeights, richiesta, categoriaTarget: catStretta || null,
+                                const argsSoste = {
+                                    dnaWeights: opts.dnaWeights, richiesta, categoriaTarget: catStretta || null,
                                     passaQualita: (c) => passesQualityThreshold(c, city, { borgoNatura }),
                                     alBuio: (when, di) => eBuio(when, sunForDay({ windowIndex: di }, di, tourWindow, cityCenter)),
                                     daFuori: (c) => isNaturaDaFuori(c, cityCenter),
                                     categorieDi: mapCandidateToCoreCategories,
-                                });
-                                sched = soste.sched;
-                                sosteDnaReport = soste.report;
+                                };
+                                let poolSoste = [...candidates, ...candidatiGenerazione.filter(c => !candidates.includes(c))];
+                                const primo = aggiungiSosteDna({ sched, pool: poolSoste, ...argsSoste });
+                                sched = primo.sched;
+                                sosteDnaReport = { ...primo.report, ricerca: { fatte: [], motivo: null } };
+                                // DNA-3c — la ricerca mirata della sosta: solo se il pool non ha potuto dare una sosta che il DNA voleva (fiducia media o
+                                // alta, uno spazio libero di almeno 20 minuti). Una ricerca, due con fiducia alta, raggio 300 m, dal proxy dei posti di sempre.
+                                // una ricerca alla volta: la seconda (fiducia alta) parte solo se la prima non ha bastato
+                                const giaCercate = [];
+                                const noti = new Set(poolSoste.map(c => c.place_id || c.googlePlaceId));
+                                for (let giro = 0; giro < 2; giro++) {
+                                    const piano = ricercheDellaSosta({ sched, dnaWeights: opts.dnaWeights, richiesta, categoriaTarget: catStretta || null, primo: { ...primo.report, aggiunte: sosteDnaReport.aggiunte }, pool: poolSoste, giaCercate });
+                                    sosteDnaReport.ricerca.motivo = piano.motivo;
+                                    const r = piano.ricerche[0];
+                                    if (!r) break;
+                                    giaCercate.push({ giorno: r.giorno, categoria: r.categoria, dopo: r.dopo });
+                                    const voce = { categoria: r.categoria, query: r.query, dopo: r.dopo, libero: r.libero, punto: { latitude: Number(r.punto.latitude.toFixed(5)), longitude: Number(r.punto.longitude.toFixed(5)) }, raggioM: r.raggioM, costoMassimoUsd: COSTO_RICERCA_SOSTA_USD };
+                                    const trovati = [];
+                                    try {
+                                        const { placesDiscoveryService } = await import('./placesDiscoveryService');
+                                        const lista = await placesDiscoveryService.discoverRealPOIs(city, r.punto.latitude, r.punto.longitude, null, { customQuery: r.query, customKind: r.kind, radiusMeters: r.raggioM, maxResults: 8 });
+                                        const dentro = applyRadiusFilter(Array.isArray(lista) ? lista : [], cityCenter, city, { requireCenter: true })
+                                            .filter(c => { const id = c.place_id || c.googlePlaceId; return id && !noti.has(id); });
+                                        for (const c of senzaEsclusi(dentro)) { noti.add(c.place_id || c.googlePlaceId); trovati.push(c); }
+                                        voce.trovati = dentro.length;
+                                    } catch (err) {
+                                        voce.errore = String(err?.message || err).slice(0, 120); // una ricerca che fallisce non fa cadere il giro: niente sosta
+                                    }
+                                    sosteDnaReport.ricerca.fatte.push(voce);
+                                    console.info(`[DNA-3c RICERCA SOSTA] ${city}: ${r.categoria} dopo "${r.dopo}" (${r.libero} min liberi) → ${voce.trovati ?? 'errore'} candidati`);
+                                    if (trovati.length > 0) {
+                                        poolSoste = [...poolSoste, ...trovati];
+                                        const secondo = aggiungiSosteDna({ sched, pool: poolSoste, ...argsSoste, gia: sosteDnaReport.aggiunte.map(x => ({ giorno: x.giorno, categoria: x.categoria })) });
+                                        sched = secondo.sched;
+                                        sosteDnaReport.aggiunte = [...sosteDnaReport.aggiunte, ...secondo.report.aggiunte];
+                                    }
+                                }
+                                for (const x of sosteDnaReport.aggiunte) console.info(`[DNA-3b SOSTA] ${city}: ${x.nome} (${x.categoria}, ${x.minuti} min, deviazione ${x.deviazioneM} m) in ${x.momento}`);
                                 // la sosta deve stare fra i candidati: la canonicalizzazione scarta ogni tappa che non e' nel pool
-                                const sosteIds = new Set(soste.report.aggiunte.map(x => x.place_id));
-                                candidates = [...candidates, ...candidatiGenerazione.filter(c => sosteIds.has(c.place_id || c.googlePlaceId) && !candidates.includes(c))];
-                                for (const x of soste.report.aggiunte) console.info(`[DNA-3b SOSTA] ${city}: ${x.nome} (${x.categoria}, ${x.minuti} min, deviazione ${x.deviazioneM} m) in ${x.momento}`);
+                                const sosteIds = new Set(sosteDnaReport.aggiunte.map(x => x.place_id));
+                                candidates = [...candidates, ...poolSoste.filter(c => sosteIds.has(c.place_id || c.googlePlaceId) && !candidates.includes(c))];
                             }
                             const { report } = repaired;
                             for (const a of minimo.aggiunte) console.info(`[C8b MINIMO] ${city}: tappa in piu' in ${a.momento} (giorno ${a.dayIndex + 1}: ${a.prima} → ${a.dopo} tappe, minimo ${minPerDay.get(a.dayIndex)})`);

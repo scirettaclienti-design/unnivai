@@ -1,0 +1,17 @@
+{
+ "tag": "giorno",
+ "ora": "2026-10-27T12:00:00+01:00",
+ "stati": "flusso",
+ "base": "http://localhost:5187",
+ "richieste": {
+  "directions": 11
+ },
+ "stile": "giorno",
+ "pillola": "130 m · verso Porta Uzeda",
+ "filo": "Si parte.",
+ "rito": "Sei arrivato\n\nPorta Uzeda",
+ "arrivo": "Sei arrivato · tappa 1 di 12\nPorta Uzeda\n\nmonumento · 30 min\n\nLa scheda\nRiparti · 1 min",
+ "scheda": "TAPPA 1 · MONUMENTO\n\nPorta Uzeda\n~30 min\n\nPERCHÉ SEI QUI ADESSO\n\nLa mattina è il momento giusto: c'è ancora poca gente.\n\nRiparti · 1 min al Basilica Cattedrale di Sant'Agata",
+ "fine": "GIRO COMPLETATO · 24 OTTOBRE\n\nCatania, a modo tuo.\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n\n2,3\n\nKM\n\n12\n\nTAPPE\n\n1 min\n\nORE\n\nCOSA HO IMPARATO DI TE\n\nHai saltato 10 tappe: ne terrò conto la prossima volta.\n\nNelle tue Mete\nCondividi",
+ "erroriPagina": []
+}

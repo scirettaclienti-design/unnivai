@@ -633,6 +633,7 @@ const MapPage = () => {
     const [arrivoId, setArrivoId] = useState(null);
     const [ritoId, setRitoId] = useState(null); // il rito d'arrivo (2 secondi) che precede la scheda di arrivo
     const [schedaId, setSchedaId] = useState(null);
+    const arrivoPuntoRef = useRef(null); // dove sei arrivato: la scheda di arrivo si chiude se ti allontani di 50 m o dopo 20 secondi
     
     // Mostriamo la "route" solo se c'è un tour e NON siamo appena sbarcati dall'Explore con un focus città
     const [showRoute, setShowRoute] = useState(() => {
@@ -1069,6 +1070,12 @@ const MapPage = () => {
     const onNavPosition = (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
         setLocalCenter({ latitude, longitude });
+        // NAV-3: la scheda di arrivo si chiude se ti allontani di 50 m dalla tappa
+        if (arrivoPuntoRef.current) {
+            const a = arrivoPuntoRef.current;
+            const dN = (latitude - a.lat) * 111320, dE = (longitude - a.lng) * 111320 * Math.cos(latitude * Math.PI / 180);
+            if (Math.hypot(dN, dE) >= 50) { arrivoPuntoRef.current = null; setArrivoId(null); setRitoId(null); }
+        }
         // NAV-3: la direzione di marcia (il cono del punto bianco): quella del telefono se c'e', altrimenti dagli ultimi due punti (da 4 m in su)
         if (Number.isFinite(pos.coords.heading)) setUserHeading(Math.round(pos.coords.heading));
         else {
@@ -1511,7 +1518,7 @@ const MapPage = () => {
 
             avanzaDopo(poiObj, newCompleted, skippedStepsRef.current || [], true);
             // NAV-3: la scheda di arrivo (non sull'ultima tappa: li' arriva la fine del giro)
-            if (isNavigating && (newCompleted.length + (skippedStepsRef.current || []).length) < (activeRoute?.length || 0)) setRitoId(poiObj.id);
+            if (isNavigating && (newCompleted.length + (skippedStepsRef.current || []).length) < (activeRoute?.length || 0)) { arrivoPuntoRef.current = { lat: Number(poiObj.latitude ?? poiObj.lat), lng: Number(poiObj.longitude ?? poiObj.lng) }; setRitoId(poiObj.id); }
         }
     };
 
@@ -1537,22 +1544,10 @@ const MapPage = () => {
         const gestite = fatte.length + saltate.length;
         const singola = !!navTargetStepIdRef.current;
         const rimaste = (activeRoute || []).filter(s => !fatte.includes(s.id) && !saltate.includes(s.id));
-        if (fatta) {
-            const stepNum = fatte.length;
-            window.dispatchEvent(new CustomEvent('dvai:toast', {
-                detail: {
-                    message: stepNum >= totalSteps
-                        ? `🎉 Tour completato! ${totalSteps} tappe esplorate!`
-                        : `✨ Tappa ${stepNum}/${totalSteps} completata — ${poiObj.name || poiObj.title || 'Avanti!'}`,
-                    type: stepNum >= totalSteps ? 'success' : 'info',
-                    duration: 3000,
-                }
-            }));
-        }
+        // NAV-3: niente toast «tappa completata»: l'arrivo ha la sua scheda e la fine del giro il suo riepilogo
         // Fly-to cinematico alla prossima tappa con overlay nome
         const next = singola ? null : rimaste[0];
         if (next && map && next.latitude && next.longitude) {
-            setFlyToLabel(next.name || next.title || `Tappa ${(next.index ?? 0) + 1}`);
             setTimeout(() => {
                 console.log(`[DVAI-Nav] writer#6 avanzaDopo moveCamera → prossima tappa "${next.name || next.title}", zoom 18 tilt 55`);
                 map.moveCamera({ center: { lat: next.latitude, lng: next.longitude }, zoom: 18, tilt: 55 });
@@ -1771,6 +1766,12 @@ const MapPage = () => {
         } catch { /* la cronologia e' un di piu' */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSummaryModalOpen]);
+
+    useEffect(() => {
+        if (!arrivoId || schedaId) return undefined;
+        const id = setTimeout(() => { arrivoPuntoRef.current = null; setArrivoId(null); }, 20_000);
+        return () => clearTimeout(id);
+    }, [arrivoId, schedaId]);
 
     // NAV-3: i dati di una tappa per le schede (arrivo e scheda tappa): solo cio' che il giro sa davvero
     const datiTappa = (id) => {
@@ -2196,6 +2197,7 @@ const MapPage = () => {
                     onVistaGiro={vediTuttoIlGiro}
                     onApriScheda={() => navNextStop && setSchedaId(navNextStop.id)}
                     sopra={filoGiorno}
+                    nascondi={!!(arrivo || ritoId) && !scheda}
                     inPausa={inPausa}
                     onTogglePausa={() => setInPausa(p => { if (!p) window.speechSynthesis?.cancel(); return !p; })}
                     nextStop={navNextStop}
@@ -2478,7 +2480,7 @@ const MapPage = () => {
                         });
                     }
                 }}
-                className="absolute right-4 bottom-28 md:right-[50px] md:bottom-[100px] z-50 bg-obsidian-card border border-obsidian-border text-obsidian-secondary hover:text-brand-orange hover:bg-obsidian-raised w-10 h-10 rounded-full shadow-xl flex items-center justify-center transition-colors group"
+                className={`absolute right-4 bottom-28 md:right-[50px] md:bottom-[100px] z-50 ${isNavigating ? 'hidden' : ''} bg-obsidian-card border border-obsidian-border text-obsidian-secondary hover:text-brand-orange hover:bg-obsidian-raised w-10 h-10 rounded-full shadow-xl flex items-center justify-center transition-colors group`}
             >
                 <NavIcon size={20} className="text-obsidian-secondary group-hover:text-brand-orange transition-colors" />
             </button>

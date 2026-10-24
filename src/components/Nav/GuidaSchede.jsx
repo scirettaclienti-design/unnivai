@@ -5,6 +5,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+const M = motion; // (eslint non vede `<M.x>` come uso: lo stesso difetto del resto dell'app)
 import { Check, Play, Pause, X, Share2, Clock, MapPin, ArrowRight, Repeat } from 'lucide-react';
 import { minSec, secondiDiLettura, tracciatoSvg } from '../../lib/navGuida';
 import { TappaModifica } from '../TappaModifica';
@@ -72,14 +73,14 @@ export function ArrivoTappa({ numero, totale, nome, foto, riga, chicca, racconto
         <div className="fixed inset-0 z-[75] pointer-events-none font-sans" data-testid="arrivo">
             <div className="absolute left-0 right-0 flex flex-col items-center" style={{ top: 'max(0.75rem, env(safe-area-inset-top))' }}>
                 <div className="relative w-28 h-28 flex items-center justify-center mt-2" aria-hidden="true">
-                    {[0, 1, 2].map(i => <motion.span key={i} className="absolute rounded-full border-2 border-brand-orange" initial={{ scale: 0.4, opacity: 0.8 }} animate={{ scale: 1 + i * 0.35, opacity: 0.55 - i * 0.15 }} transition={{ duration: 0.8, delay: i * 0.12 }} style={{ width: 56, height: 56 }} />)}
+                    {[0, 1, 2].map(i => <M.span key={i} className="absolute rounded-full border-2 border-brand-orange" initial={{ scale: 0.4, opacity: 0.8 }} animate={{ scale: 1 + i * 0.35, opacity: 0.55 - i * 0.15 }} transition={{ duration: 0.8, delay: i * 0.12 }} style={{ width: 56, height: 56 }} />)}
                     <span className="relative w-14 h-14 rounded-full bg-brand-orange text-obsidian-bg flex items-center justify-center shadow-xl"><Check size={30} strokeWidth={3} /></span>
                 </div>
                 <div className="pointer-events-auto mt-2 px-4 py-2.5 rounded-full bg-obsidian-card border border-obsidian-border shadow-xl text-sm font-bold text-obsidian-primary" data-testid="arrivo-pillola">
                     Sei arrivato · tappa {numero} di {totale}
                 </div>
             </div>
-            <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ type: 'spring', damping: 30, stiffness: 260 }}
+            <M.div initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ type: 'spring', damping: 30, stiffness: 260 }}
                 className="pointer-events-auto absolute left-0 right-0 bottom-0 bg-obsidian-card border-t border-obsidian-border rounded-t-[28px] shadow-[0_-18px_40px_rgb(0_0_0/0.5)] flex flex-col overflow-hidden"
                 style={{ height: '68dvh', paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
                 <div className="overflow-y-auto px-4 pt-4 flex-1">
@@ -106,7 +107,7 @@ export function ArrivoTappa({ numero, totale, nome, foto, riga, chicca, racconto
                         <span>{nomeProssima ? `Riparti${minutiAllaProssima ? ` · ${minutiAllaProssima} min` : ''}` : 'Avanti'}</span><ArrowRight size={16} aria-hidden="true" />
                     </button>
                 </div>
-            </motion.div>
+            </M.div>
         </div>
     );
 }
@@ -182,7 +183,7 @@ export function FineGiro({ data, citta, tappe = [], numeri, imparato, onMete, on
                     </svg>
                 </div>
                 <div className="grid grid-cols-3 gap-2 mt-4" data-testid="fine-numeri">
-                    {[[numeri?.km, 'km'], [numeri?.tappe, 'tappe'], [numeri?.ore, 'ore']].map(([v, l]) => (
+                    {[[numeri?.km, 'km'], [numeri?.tappe, 'tappe'], [numeri?.ore, String(numeri?.ore || '').endsWith('min') ? 'durata' : 'ore']].map(([v, l]) => (
                         <div key={l} className="rounded-2xl bg-obsidian-card border border-obsidian-border py-3 text-center">
                             <p className="text-2xl font-bold text-obsidian-primary tabular-nums">{v ?? '—'}</p>
                             <p className={`${ETICHETTA} text-obsidian-secondary mt-0.5`}>{l}</p>
@@ -222,10 +223,10 @@ export function RitoArrivo({ nome, foto, frase, onFine, parla = false }) {
             <div className="absolute inset-0 bg-obsidian-bg/80" />
             <div className="relative flex flex-col items-center px-8 text-center">
                 <div className="relative w-56 h-56 flex items-center justify-center">
-                    {[0, 1].map(i => <motion.span key={i} className="absolute rounded-full border-[3px] border-brand-orange" initial={{ scale: 0.6, opacity: 0.9 }} animate={{ scale: 1.15 + i * 0.18, opacity: 0.5 - i * 0.2 }} transition={{ duration: 1.2, delay: i * 0.15 }} style={{ width: 208, height: 208 }} aria-hidden="true" />)}
-                    <motion.div className="relative w-52 h-52 rounded-full overflow-hidden bg-obsidian-raised border-[3px] border-brand-orange" initial={{ clipPath: 'circle(0% at 50% 50%)' }} animate={{ clipPath: 'circle(72% at 50% 50%)' }} transition={{ duration: 0.8, ease: 'easeOut' }}>
+                    {[0, 1].map(i => <M.span key={i} className="absolute rounded-full border-[3px] border-brand-orange" initial={{ scale: 0.6, opacity: 0.9 }} animate={{ scale: 1.15 + i * 0.18, opacity: 0.5 - i * 0.2 }} transition={{ duration: 1.2, delay: i * 0.15 }} style={{ width: 208, height: 208 }} aria-hidden="true" />)}
+                    <M.div className="relative w-52 h-52 rounded-full overflow-hidden bg-obsidian-raised border-[3px] border-brand-orange" initial={{ clipPath: 'circle(0% at 50% 50%)' }} animate={{ clipPath: 'circle(72% at 50% 50%)' }} transition={{ duration: 0.8, ease: 'easeOut' }}>
                         {foto ? <img src={foto} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} /> : <div className="w-full h-full flex items-center justify-center"><MapPin size={44} className="text-obsidian-secondary" aria-hidden="true" /></div>}
-                    </motion.div>
+                    </M.div>
                 </div>
                 <p className="mt-4 px-4 py-2 rounded-full bg-obsidian-card border border-obsidian-border text-sm font-bold text-obsidian-primary">Sei arrivato</p>
                 <h2 data-testid="rito-nome" className="mt-3 text-2xl font-bold text-obsidian-primary leading-tight">{nome}</h2>

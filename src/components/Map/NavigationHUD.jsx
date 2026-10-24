@@ -62,6 +62,7 @@ export default function NavigationHUD({
     onTogglePausa,
     sussurro = null,
     sopra = null,
+    nascondi = false,
 }) {
     const totalSteps = activeRoute?.length || 0;
     const doneSteps = (completedSteps?.length || 0) + (skippedSteps?.length || 0);
@@ -89,7 +90,7 @@ export default function NavigationHUD({
         <AnimatePresence>
             <motion.div key="nav-hud" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="pointer-events-none font-sans" data-testid="nav-hud">
                 {/* ─── IN ALTO: il filo del giorno (se c'è), UNA pillola, gli avvisi ─────────────────────────────── */}
-                <div className="fixed left-3 right-3 z-[70] max-w-md mx-auto pointer-events-none" style={{ top: 'max(0.5rem, env(safe-area-inset-top))' }}>
+                <div className={`fixed left-3 right-3 z-[70] max-w-md mx-auto pointer-events-none transition-opacity duration-200 ${nascondi ? 'opacity-0 [&_*]:!pointer-events-none' : ''}`} style={{ top: 'max(0.5rem, env(safe-area-inset-top))' }}>
                     {sopra}
                     <div data-testid="nav-hud-barra" className="pointer-events-auto bg-obsidian-card rounded-[28px] border border-obsidian-border shadow-2xl px-3.5 py-3 flex items-center gap-3">
                         <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-obsidian-raised border border-obsidian-border text-brand-orange">
@@ -120,7 +121,7 @@ export default function NavigationHUD({
                 </div>
 
                 {/* ─── A DESTRA: due tasti tondi ───────────────────────────────────────────────────────────────── */}
-                <div className="fixed right-3 z-[65] flex flex-col gap-2.5 pointer-events-auto" style={{ top: 'calc(max(0.5rem, env(safe-area-inset-top)) + 5.5rem)' }}>
+                <div className={`fixed right-3 z-[65] flex flex-col gap-2.5 pointer-events-auto transition-opacity duration-200 ${nascondi ? 'opacity-0 [&_*]:!pointer-events-none pointer-events-none' : ''}`} style={{ top: '42%' }}>
                     <button onClick={onVistaGiro} aria-label="Vedi tutto il giro" data-testid="nav-vista-giro" className={`${TASTO} w-12 h-12 bg-obsidian-card text-obsidian-primary border-obsidian-border shadow-xl`}>
                         <MapIcon size={20} aria-hidden="true" />
                     </button>
@@ -130,7 +131,7 @@ export default function NavigationHUD({
                 </div>
 
                 {/* ─── IN BASSO: la scheda ──────────────────────────────────────────────────────────────────────── */}
-                <div className="fixed left-3 right-3 z-[70] max-w-md mx-auto pointer-events-none" style={{ bottom: 'max(0.75rem, calc(env(safe-area-inset-bottom) + 0.5rem))' }}>
+                <div className={`fixed left-3 right-3 z-[70] max-w-md mx-auto pointer-events-none transition-opacity duration-200 ${nascondi ? 'opacity-0 [&_*]:!pointer-events-none' : ''}`} style={{ bottom: 'max(0.75rem, calc(env(safe-area-inset-bottom) + 0.5rem))' }}>
                     {sussurro}
                     <div data-testid="nav-scheda" className="pointer-events-auto bg-obsidian-card rounded-[28px] border border-obsidian-border shadow-2xl p-3.5">
                         <div role={onApriScheda ? 'button' : undefined} tabIndex={onApriScheda ? 0 : undefined} aria-label={onApriScheda ? `Apri la scheda: ${currentStopName}` : undefined} onClick={onApriScheda} onKeyDown={onApriScheda ? (e) => { if (e.key === 'Enter') onApriScheda(); } : undefined} className="flex items-center gap-3 cursor-pointer">

@@ -135,7 +135,7 @@ const leggiStato = (page) => page.evaluate((avvisi) => {
     try { giro = JSON.parse(localStorage.getItem('dvai_nav_giro_v1') || 'null'); } catch { /* niente */ }
     return {
         tappa: tappa ? `${tappa[1]}/${tappa[2]}` : null,
-        completato: /Tour completato/i.test(testo),
+        completato: /(Tour|Giro) completato/i.test(testo),
         // la mappa ha le sue tessere? (dopo la ricarica era nera)
         tessere: document.querySelectorAll('.gm-style img').length,
         avvisi: Object.entries(avvisi).filter(([, t]) => testo.includes(t)).map(([k]) => k),

@@ -402,6 +402,15 @@ La chiave di Per Te (`DashboardUser.jsx`, `chiavePerTe`) contiene una **fascia d
 - **Colazione automatica**: un giro che parte **prima delle 10:30** (e dopo l'alba) comincia con una colazione vicina. Crea/Quiz/Sorprendimi: `buildDaySkeleton({ colazioneAuto })` (la mattina parte all'ora chiesta, `colazione: true`, la prima tappa è un posto da colazione aperto); lo permette il chiamante solo senza categoria/tipo/nome chiesti e senza «niente bar»/«niente cibo». Per Te (`_homeTemi`): una colazione entro 500 m dalla prima tappa, aperta, mai già in un altro tour; un tour che comincia già con un posto da colazione non ne riceve un'altra. Nei test è **spenta per difetto** (`globalThis.__COLAZIONE_AUTO_OFF__` in `src/test/setup.js`; `DV_COLAZIONE_AUTO=off` per il replay); le prove della colazione la riaccendono.
 Prova: `docs/prove/2026-10-24-giro-edit.md`.
 
+### La navigazione diventa una guida (NAV-3, stati 1·3·4·5·6·8·9)
+
+Spec approvata da Ivano (24/10): palette Ossidiana, un solo accento arancione, angoli 14–28 px, tasti ≥ 44 px, contrasto ≥ 4,5:1 (`nav3Contrasto.test.js`).
+- **1 Cammino** (`components/Map/NavigationHUD.jsx`, presenter puro): UNA pillola in alto (freccia + «120 m · a sinistra» + «in <via>», **solo le svolte principali**: `navGuida.prossimaSvolta`), a destra vista-giro e centra, in basso la scheda (miniatura, «PROSSIMA · N MIN», nome, riga insider, Pausa / Salta / Voce, barra «Tappa X di N»). «Sono arrivato» resta come azione discreta (serve senza GPS). Pausa = la voce tace (arrivo, segnale, ripresa non cambiano).
+- **3 Arrivo / 4 Scheda tappa / 5 Fine giro / 8 Rito d'arrivo / 9 Filo del giorno** (`components/Nav/GuidaSchede.jsx`, testi puri in `lib/navGuida.js`). Arrivo: rito di 2 secondi (vibrazione, cerchio sulla foto, prima frase in corsivo e in voce se la voce è accesa), poi la scheda al 68%; si chiude con «Riparti», dopo 50 m di cammino o dopo 20 s. Il lettore del racconto è pronto a ricevere un file audio (`src`, VOCE-1); oggi legge con la voce di sistema. Fine giro sostituisce `TourSummaryModal` (la cronologia sul telefono la salva MapPage).
+- **6 Mappa che cambia con l'ora** (`lib/stileMappa.js`, CSS in `index.css` `[data-stile-mappa]`): mattina (alba → +2 h), giorno (scuro), tramonto (−1 h → +30 min), notte (dal buio), alba/tramonto da `sunTimes`. **Lo stile cloud del Map ID non si cambia dal repo**: i quattro stili sono filtri CSS sul solo canvas della mappa base (marker e percorso restano nei loro colori).
+- Percorso a tratti: il tratto fatto è **tratteggiato** e attenuato (NAV-2). Punto utente bianco con centro arancione e cono di direzione (`userHeading`), prossima tappa = faro (`MapMarker`, `isCurrentStep`).
+- **Non ancora fatti**: 2 Sussurro, 7 Momento d'oro, tutorial di 5 passi, «Cambia tappa» nella scheda, costo dei percorsi (calcolo una volta, ricalcolo a 40 m). Report: `docs/prove/2026-10-24-nav-3.md`.
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

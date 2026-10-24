@@ -24,10 +24,19 @@ vi.mock('../../components/BottomNavigation', () => ({ default: () => null }));
 vi.mock('../../components/ChatModalUser', () => ({ default: () => null }));
 vi.mock('../../components/FoodPrefsEditor', () => ({ default: () => null }));
 vi.mock('../../components/InterestsEditor', () => ({ default: () => null }));
-vi.mock('../../lib/giriSalvati', () => ({
-    leggiGiriSalvati: vi.fn(async () => ({ ok: true, giri: [{ id: 's1', title: 'Catania a tavola', city: 'Catania', stops: [{}, {}], created_at: '2026-10-23T10:00:00Z' }] })),
+const STOPS_SALVATE_FN = () => STOPS_SALVATE;
+const T0 = (hhmm) => new Date(`2026-10-25T${hhmm}:00+01:00`).toISOString();
+const STOPS_SALVATE = [
+    { title: 'Caffè Puglisi', lat: 37.5, lng: 15.08, latitude: 37.5, longitude: 15.08, place_id: 'p1', moment: 'mattina', momentLabel: 'Mattina', scheduledTime: T0('09:30'), stayMinutes: 20, description: 'Si parte da Caffè Puglisi: un caffè e si comincia.', types: ['cafe'] },
+    { title: 'Basilica Cattedrale', lat: 37.502, lng: 15.087, latitude: 37.502, longitude: 15.087, place_id: 'p2', moment: 'mattina', momentLabel: 'Mattina', scheduledTime: T0('10:01'), stayMinutes: 30, description: 'Ti prendi mezz\'ora dentro la Basilica.', types: ['church'] },
+];
+vi.mock('../../lib/giriSalvati', async () => ({
+    ...(await vi.importActual('../../lib/giriSalvati')),
+    leggiGiriSalvati: vi.fn(async () => ({ ok: true, giri: [{ id: 's1', title: 'Catania a tavola', city: 'Catania', source: 'crea', stops: STOPS_SALVATE_FN(), created_at: '2026-10-23T10:00:00Z' }] })),
     rimuoviGiroSalvato: vi.fn(async () => ({ ok: true })),
 }));
+const navigaMock = vi.fn();
+vi.mock('react-router-dom', async () => ({ ...(await vi.importActual('react-router-dom')), useNavigate: () => navigaMock }));
 vi.mock('../../lib/supabase', () => {
     const chain = { select: () => chain, eq: () => chain, in: () => chain, order: () => chain, limit: async () => ({ data: [], error: null }) };
     return { supabase: { from: () => chain, auth: { getSession: vi.fn() } } };
@@ -85,11 +94,36 @@ describe('DNA-6 — Profilo', () => {
         expect(meta.textContent).toContain('2 tappe raggiunte su 3');
         await waitFor(() => expect(screen.getByTestId('giro-salvato').textContent).toContain('Catania a tavola'));
     });
+    // GIRI-SALVATI — il tocco sulla card riapre il giro com'era, con «Vedi mappa»
+    it('tocco sulla card in Profilo → il giro si apre con le tappe e gli orari salvati e «Vedi mappa»', async () => {
+        navigaMock.mockClear();
+        const fetchSpia = vi.fn();
+        vi.stubGlobal('fetch', fetchSpia);
+        apri();
+        fireEvent.click(screen.getByText('Mete'));
+        const card = await screen.findByTestId('giro-salvato-apri');
+        expect(card.textContent).toContain('2 tappe');
+        fireEvent.click(card);
+        const vedi = await screen.findByText('Vedi mappa');
+        expect(screen.getByText('Caffè Puglisi')).toBeTruthy();
+        expect(screen.getByText('Basilica Cattedrale')).toBeTruthy();
+        expect(screen.getByText('09:30')).toBeTruthy();
+        expect(screen.getByText('10:01')).toBeTruthy();
+        fireEvent.click(vedi.closest('button'));
+        expect(navigaMock).toHaveBeenCalledTimes(1);
+        const [rotta, opzioni] = navigaMock.mock.calls[0];
+        expect(rotta).toBe('/map');
+        const steps = opzioni.state.tourData.steps;
+        expect(steps.map(x => [x.title, x.scheduledTime])).toEqual(STOPS_SALVATE.map(x => [x.title, x.scheduledTime]));
+        expect(opzioni.state.isAiGenerated).toBe(true);
+        expect(fetchSpia).not.toHaveBeenCalled(); // nessuna generazione: 0 $
+        vi.unstubAllGlobals();
+    });
 });
 
 describe('DNA-6 — il tasto Salva è nelle quattro superfici', () => {
     it('Quiz (riepilogo), Crea, Per Te e Sorprendimi (dettaglio) usano SalvaGiro con la loro sorgente', () => {
-        expect(LEGGI('components/Map/QuickPathSummary.jsx')).toContain('<SalvaGiro tour={tourData} sorgente="quiz" />');
+        expect(LEGGI('components/Map/QuickPathSummary.jsx')).toContain('<SalvaGiro tour={tourData} sorgente={sorgente} />');
         expect(LEGGI('pages/AiItinerary.jsx')).toMatch(/<SalvaGiro[\s\S]*?sorgente="crea"/);
         const td = LEGGI('pages/TourDetails.jsx');
         expect(td).toContain('<SalvaGiro tour={tour}');

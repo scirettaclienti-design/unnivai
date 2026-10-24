@@ -1,0 +1,12 @@
+-- GIRI-SALVATI — un giro salvato si riapre dal Profilo com'era (tappe, orari, soste, tempo libero), senza rigenerarlo.
+--
+-- Prima: `stops` teneva solo titolo e coordinate (tetto 30 righe, 20.000 byte). Ora tiene l'ISTANTANEA di ogni riga del giro
+-- (anche le righe di «Tempo libero»), che pesa di piu': il tetto sale a 40 righe e 60.000 byte. Nessuna colonna nuova, nessuna
+-- policy cambiata. Le righe gia' salvate restano valide (sono piu' piccole).
+
+ALTER TABLE public.saved_tours DROP CONSTRAINT IF EXISTS saved_tours_tappe_valide;
+ALTER TABLE public.saved_tours ADD CONSTRAINT saved_tours_tappe_valide CHECK (
+    jsonb_typeof(stops) = 'array'
+    AND jsonb_array_length(stops) <= 40
+    AND pg_column_size(stops) <= 60000
+);

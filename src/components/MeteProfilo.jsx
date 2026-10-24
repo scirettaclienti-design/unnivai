@@ -14,7 +14,7 @@ const dataBreve = (iso) => {
         : null;
 };
 
-export default function MeteProfilo({ mete = [], giriSalvati = [], onRimuovi }) {
+export default function MeteProfilo({ mete = [], giriSalvati = [], onRimuovi, onApri }) {
     return (
         <div data-testid="mete-profilo">
             {mete.length === 0 ? (
@@ -55,12 +55,14 @@ export default function MeteProfilo({ mete = [], giriSalvati = [], onRimuovi }) 
                     <ul className="space-y-2">
                         {giriSalvati.map((g) => (
                             <li key={g.id} className="bg-obsidian-bg p-3 rounded-xl border border-obsidian-border flex items-center justify-between gap-3" data-testid="giro-salvato">
-                                <div className="min-w-0">
+                                {/* il giro si riapre com'era stato salvato: tappe, orari, modifiche (nessuna generazione, 0 $) */}
+                                <button type="button" onClick={() => onApri?.(g)} disabled={!onApri} data-testid="giro-salvato-apri" aria-label={`Apri ${g.title}`}
+                                    className="min-w-0 flex-1 text-left cursor-pointer disabled:cursor-default">
                                     <p className="text-sm font-bold text-obsidian-primary truncate">{g.title}</p>
                                     <p className="text-xs text-obsidian-secondary">
-                                        {[g.city, `${Array.isArray(g.stops) ? g.stops.length : 0} tappe`, dataBreve(g.created_at)].filter(Boolean).join(' • ')}
+                                        {[g.city, `${Array.isArray(g.stops) ? g.stops.filter(s => !s?.tempoLibero).length : 0} tappe`, dataBreve(g.created_at)].filter(Boolean).join(' • ')}
                                     </p>
-                                </div>
+                                </button>
                                 {onRimuovi && (
                                     <button
                                         type="button"

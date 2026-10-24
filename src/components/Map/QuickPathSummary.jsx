@@ -7,7 +7,7 @@ import { displayedTourMinutes, formatEstimate } from '@/lib/tourTiming';
 import { sceltaConfermata } from '@/lib/quizRiquadro';
 import SalvaGiro from '@/components/SalvaGiro';
 
-export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modifica = null }) => {
+export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modifica = null, sorgente = 'quiz' }) => {
     if (!tourData) return null;
 
     // Gate MOMENTO + DURATA VERA — la durata e' quella del tour sull'orologio
@@ -149,7 +149,7 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modific
                         </button>
 
                         {/* DNA-6 — il giro del Quiz si può salvare nel Profilo. */}
-                        <SalvaGiro tour={tourData} sorgente="quiz" />
+                        <SalvaGiro tour={tourData} sorgente={sorgente} />
 
                         <button
                             onClick={onHome}

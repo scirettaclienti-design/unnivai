@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { VERSIONE_APP } from '@/lib/versione';
 import { useState, useEffect, useMemo } from "react";
 import { User, Mail, MapPin, Heart, Star, Edit, ArrowLeft, Home, Share2, Facebook, Twitter, Instagram, Link as LinkIcon, Eye, ChevronRight, Award, Target, Users, Compass, Search, Map, Clock, ArrowRight, X, MessageCircle } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
 import ChatModalUser from "../components/ChatModalUser";
@@ -17,7 +17,9 @@ import { salvaNomeProfilo } from "../lib/nomeProfilo";
 import DnaProfilo from "../components/DnaProfilo";
 import MeteProfilo from "../components/MeteProfilo";
 import { meteDalRegistro, contatoriDalRegistro } from "../lib/dnaProfilo";
-import { leggiGiriSalvati, rimuoviGiroSalvato } from "../lib/giriSalvati";
+import { leggiGiriSalvati, rimuoviGiroSalvato, giroSalvatoComeTour } from "../lib/giriSalvati";
+import { QuickPathSummary } from "../components/Map/QuickPathSummary";
+import { useModificaGiro } from "../hooks/useModificaGiro";
 
 // Stati di `guide_requests`, presi dal CHECK reale sul DB (verificato il
 // 04/09/2026 su information_schema, non a memoria):
@@ -52,6 +54,13 @@ export default function ProfilePage() {
     const mete = useMemo(() => meteDalRegistro(righeRegistro || []), [righeRegistro]);
     const contatori = useMemo(() => contatoriDalRegistro(righeRegistro || []), [righeRegistro]);
     const [giriSalvati, setGiriSalvati] = useState([]);
+    const navigate = useNavigate();
+    // GIRI-SALVATI — il giro aperto dal Profilo: lo stesso riepilogo di quando e' stato generato, dalle tappe salvate (nessuna AI)
+    const [giroAperto, setGiroAperto] = useState(null);
+    const [tourAperto, setTourAperto] = useState(null);
+    const apriGiro = (riga) => { setGiroAperto(riga); setTourAperto(giroSalvatoComeTour(riga)); };
+    const chiudiGiro = () => { setGiroAperto(null); setTourAperto(null); };
+    const modificaGiro = useModificaGiro({ tour: tourAperto, aggiorna: setTourAperto, dnaWeights: weights || {} });
     const [editName, setEditName] = useState(firstName || "Viaggiatore");
     // ACCESSO-1: il nome si modifica qui e si salva (profiles.first_name + metadati dell'account).
     const [modificaNome, setModificaNome] = useState(false);
@@ -501,7 +510,7 @@ export default function ProfilePage() {
                                 <Map className="w-4 h-4 mr-2 text-obsidian-secondary" />
                                 Le tue Mete
                             </h3>
-                            <MeteProfilo mete={mete} giriSalvati={giriSalvati} onRimuovi={rimuoviGiro} />
+                            <MeteProfilo mete={mete} giriSalvati={giriSalvati} onRimuovi={rimuoviGiro} onApri={apriGiro} />
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -923,6 +932,21 @@ export default function ProfilePage() {
                 {/* MERGE-3 — la versione in produzione: commit e data del build */}
                 <p data-versione className="text-center text-[11px] text-obsidian-secondary/80 pt-6 pb-2">{VERSIONE_APP}</p>
             </main>
+
+            {/* GIRI-SALVATI — il giro salvato si riapre com'era (tappe e orari salvati, «Vedi mappa», «Togli»/«Cambia»): nessuna generazione */}
+            {tourAperto && (
+                <QuickPathSummary
+                    tourData={tourAperto}
+                    choices={{}}
+                    modifica={modificaGiro}
+                    sorgente={giroAperto?.source || 'altro'}
+                    onViewMap={() => {
+                        const tour = { ...tourAperto };
+                        navigate('/map', { state: { tourData: tour, isAiGenerated: true } });
+                    }}
+                    onHome={chiudiGiro}
+                />
+            )}
 
             <BottomNavigation />
         </div>

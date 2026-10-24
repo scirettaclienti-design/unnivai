@@ -26,19 +26,21 @@ function dbCon(risposte) {
 beforeEach(() => { vi.resetAllMocks(); });
 
 describe('DNA-6 — la riga del giro salvato', () => {
-    it('titolo, città, tappe con nome e coordinate; il tempo libero non è una tappa', () => {
+    it('titolo, città, tappe con nome e coordinate; il tempo libero resta una riga (GIRI-SALVATI) ma non è una tappa', () => {
         const r = giroDaSalvare(giro, 'per_te');
         expect(r).toMatchObject({ title: 'Catania a tavola', city: 'Catania', source: 'per_te' });
-        expect(r.stops).toEqual([
+        const vere = r.stops.filter(x => !x.tempoLibero);
+        expect(vere.map(({ title, lat, lng }) => ({ title, lat, lng }))).toEqual([
             { title: 'Pescheria', lat: 37.5, lng: 15.08 },
             { title: 'Trattoria Etna', lat: 37.51, lng: 15.09 },
         ]);
+        expect(r.stops.length).toBe(giro.steps.length);
     });
     it('l\'id nasce dal contenuto: lo stesso giro ha sempre lo stesso id, anche se l\'id del giro cambia', () => {
         const a = giroDaSalvare(giro, 'quiz').tour_id;
         const b = giroDaSalvare({ ...giro, id: 'altro-id-9999' }, 'quiz').tour_id;
         expect(a).toBe(b);
-        expect(a).toBe(idStabile('quiz', ['Catania a tavola', 'Catania', 'Pescheria', 'Trattoria Etna']));
+        expect(a).toBe(idStabile('quiz', ['Catania a tavola', 'Catania', 'Pescheria@', 'Trattoria Etna@']));
         expect(giroDaSalvare({ ...giro, title: 'Un altro giro' }, 'quiz').tour_id).not.toBe(a);
     });
     it('un giro senza titolo o senza tappe non si salva', () => {

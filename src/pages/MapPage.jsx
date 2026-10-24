@@ -41,6 +41,7 @@ import { prossimaSvolta, rigaTappa, percheAdesso, testoRacconto, numeriDelGiro, 
 import { typeLabelOf } from '../lib/italianLabels';
 import { travelMinutes } from '../lib/tourTiming';
 import { ArrivoTappa, SchedaTappa, FineGiro, RitoArrivo, FiloDelGiorno } from '../components/Nav/GuidaSchede';
+import { inclinazioneNav } from '../lib/mapId';
 import { romeParts } from '../lib/tourWindow';
 import NavDebugPanel from '../components/NavDebugPanel';
 import { useAILearning } from '../hooks/useAILearning';
@@ -438,7 +439,7 @@ const MapPage = () => {
         // Se riattiviamo il following, facciamo un fly-to immediato all'ultima posizione nota
         if (val && localCenter && mapRef.current) {
             console.log('[DVAI-Nav] writer#2 setFollowing(true): flyTo zoom 19 pitch 60');
-            mapRef.current.flyTo({ center: [localCenter.longitude, localCenter.latitude], zoom: 19, pitch: 60 });
+            mapRef.current.flyTo({ center: [localCenter.longitude, localCenter.latitude], zoom: 19, pitch: inclinazioneNav(60) });
         }
     }, [localCenter]);
 
@@ -1301,7 +1302,7 @@ const MapPage = () => {
         const ref = mapRef.current;
         if (ref?.flyTo) {
             console.log(`[DVAI-Nav] flyTo su utente (attempt ${attempt})`);
-            ref.flyTo({ center: [coords.longitude, coords.latitude], zoom: 18, pitch: 55, bearing: 0 });
+            ref.flyTo({ center: [coords.longitude, coords.latitude], zoom: 18, pitch: inclinazioneNav(55), bearing: 0 });
             return;
         }
         if (attempt < 3) setTimeout(() => flyToUser(coords, attempt + 1), 100);
@@ -1339,7 +1340,7 @@ const MapPage = () => {
         if (!first) return;
         setLocalCenter({ latitude: first.latitude, longitude: first.longitude });
         setLiveRoute(rimaste.map(s => ({ lat: parseFloat(s.latitude || s.lat), lng: parseFloat(s.longitude || s.lng), title: s.name || s.title })));
-        if (map) map.moveCamera({ center: { lat: first.latitude, lng: first.longitude }, zoom: 17, tilt: 45 });
+        if (map) map.moveCamera({ center: { lat: first.latitude, lng: first.longitude }, zoom: 17, tilt: inclinazioneNav(45) });
     };
 
     /**
@@ -1548,7 +1549,7 @@ const MapPage = () => {
         if (next && map && next.latitude && next.longitude) {
             setTimeout(() => {
                 console.log(`[DVAI-Nav] writer#6 avanzaDopo moveCamera → prossima tappa "${next.name || next.title}", zoom 18 tilt 55`);
-                map.moveCamera({ center: { lat: next.latitude, lng: next.longitude }, zoom: 18, tilt: 55 });
+                map.moveCamera({ center: { lat: next.latitude, lng: next.longitude }, zoom: 18, tilt: inclinazioneNav(55) });
             }, 500);
             setTimeout(() => setFlyToLabel(null), 3000);
         }

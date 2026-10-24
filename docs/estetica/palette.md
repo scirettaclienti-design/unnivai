@@ -12,7 +12,7 @@ Fuori da questa regola, per scelta documentata: le copertine per categoria (`get
 
 ## La mappa di navigazione (MAPPA-STILE)
 
-- Lo stile della mappa durante la navigazione è lo **stile Google «DoveVAI — Navigazione»** (Cloud Console), legato a un suo Map ID. Il Map ID sta **solo** in `VITE_GOOGLE_MAP_ID_NAV` (Vercel e `.env` locale), mai nel codice; senza la variabile la navigazione usa `VITE_GOOGLE_MAP_ID` come prima. I filtri CSS di NAV-3 sono tolti.
+- Lo stile della mappa durante la navigazione è lo **stile Google «Unnivai · Ossidiana Navigazione»** (Cloud Console), assegnato alla **modalità buio** del suo Map ID. Il Map ID sta **solo** in `VITE_GOOGLE_MAP_ID_NAV` (Vercel Production e Preview, `.env.example`), mai nel codice; la mappa di navigazione si crea con quel `mapId`, `colorScheme: DARK` e inclinazione 0 (vista dall'alto, anche per la camera). Senza la variabile la navigazione usa `VITE_GOOGLE_MAP_ID` come prima; la mappa di Esplora non cambia. Una sola variante (Ossidiana) a ogni ora: mattina, tramonto e notte arriveranno come Map ID separati. I filtri CSS di NAV-3 sono tolti.
 - Colori dello stile (dal canvas, schermata 1): terra `#0F0E0D`, edifici `#171513`, strade `#26231F`.
 - Il percorso sopra quello stile, tutti ≥ 3:1 su terra, edifici e strade (`navStileMappa.test.js`): **fatto** tratteggio chiaro `#A8A29E`; **prossimo** accento `#F97316` pieno e spesso; **resto** grigio caldo `#8F8880` pieno e sottile. Si distinguono anche senza colore (tratteggio / spessore).
 - Il tasto indietro ha la sua riga in alto (sopra il filo del giorno e la pillola, che partono 3,5 rem sotto).

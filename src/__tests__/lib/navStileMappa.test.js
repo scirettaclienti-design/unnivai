@@ -13,9 +13,9 @@ describe('niente più filtri CSS sulla mappa', () => {
         expect(fs.readFileSync('src/components/Map/GoogleMapContainer.jsx', 'utf8')).not.toContain('data-stile-mappa');
         expect(fs.existsSync('src/lib/stileMappa.js')).toBe(false);
     });
-    it('il Map ID della navigazione non è scritto nel codice: nel .env.example la variabile è vuota', () => {
+    it('il Map ID della navigazione sta nelle variabili d\'ambiente (.env.example), letto solo da import.meta.env', () => {
         const ex = fs.readFileSync('.env.example', 'utf8');
-        expect(ex).toMatch(/^VITE_GOOGLE_MAP_ID_NAV=\s*$/m);
+        expect(ex).toMatch(/^VITE_GOOGLE_MAP_ID_NAV=[0-9a-f]{24}$/m);
         const sorgente = fs.readFileSync('src/lib/mapId.js', 'utf8');
         expect(sorgente).toContain('import.meta.env.VITE_GOOGLE_MAP_ID_NAV');
     });
@@ -44,6 +44,37 @@ describe('quale Map ID usa la mappa', () => {
         const m = await carica('');
         expect(m.MAP_ID_NAV).toBeNull();
         expect(m.mapIdPer({ isNavigating: true })).toBe('ID_NORMALE');
+    });
+});
+
+describe('lo stile Ossidiana: modalità buio e vista dall\'alto', () => {
+    afterEach(() => { vi.unstubAllEnvs(); vi.resetModules(); });
+    const carica = async (nav) => {
+        vi.resetModules(); vi.unstubAllEnvs();
+        vi.stubEnv('VITE_GOOGLE_MAP_ID', 'ID_NORMALE'); vi.stubEnv('VITE_GOOGLE_MAP_ID_NAV', nav);
+        return import('@/lib/mapId');
+    };
+    it('in navigazione con la variabile: colorScheme DARK e inclinazione 0, camera compresa', async () => {
+        const m = await carica('ID_NAV');
+        expect(m.opzioniNavigazione({ isNavigating: true })).toEqual({ colorScheme: 'DARK', tilt: 0 });
+        expect(m.inclinazioneNav(60)).toBe(0);
+    });
+    it('fuori dalla navigazione, o con un mapId imposto, o senza variabile: niente cambia', async () => {
+        const m = await carica('ID_NAV');
+        expect(m.opzioniNavigazione({ isNavigating: false })).toEqual({});
+        expect(m.opzioniNavigazione({ isNavigating: true, mapId: 'ALTRO' })).toEqual({});
+        const senza = await carica('');
+        expect(senza.opzioniNavigazione({ isNavigating: true })).toEqual({});
+        expect(senza.inclinazioneNav(60)).toBe(60);
+    });
+    it('la mappa di Esplora (non in navigazione) resta sul Map ID di sempre', async () => {
+        const m = await carica('ID_NAV');
+        expect(m.mapIdPer({ isNavigating: false })).toBe('ID_NORMALE');
+    });
+    it('il Map ID della navigazione non è nel codice sorgente (solo in .env.example e su Vercel)', () => {
+        const giro = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => (e.isDirectory() ? giro(`${d}/${e.name}`) : [`${d}/${e.name}`]));
+        const trovati = giro('src').filter(f => /\.(jsx?|css)$/.test(f) && !f.includes('__tests__')).filter(f => fs.readFileSync(f, 'utf8').includes('28861a61c07876f889cc6572'));
+        expect(trovati).toEqual([]);
     });
 });
 

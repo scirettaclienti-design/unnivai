@@ -1,6 +1,6 @@
 import React from 'react';
 import { Map } from '@vis.gl/react-google-maps';
-import { MAP_ID, mapIdPer } from '@/lib/mapId';
+import { MAP_ID, mapIdPer, opzioniNavigazione } from '@/lib/mapId';
 
 // ─── MAP ID — SORGENTE UNICA ─────────────────────────────────────────────────
 // Lo stile della mappa NON vive in questo repo: vive nello stile cloud legato a
@@ -99,12 +99,15 @@ export default function GoogleMapContainer({
         lng: initialCenter.longitude,
     };
 
+    // Navigazione con lo stile dedicato: modalita' buio del Map ID, vista dall'alto. Senza la variabile: tutto come prima.
+    const nav = opzioniNavigazione({ isNavigating, mapId });
     return (
         <div className={`w-full h-full relative isolate ${className}`}>
             <Map
                 defaultCenter={defaultCenter}
                 defaultZoom={defaultZoom}
                 mapId={mapIdPer({ isNavigating, mapId })}
+                {...(nav.colorScheme ? { colorScheme: nav.colorScheme } : {})}
                 
                 // Vector Maps configuration for photorealistic 3D
                 renderingType="VECTOR"
@@ -112,7 +115,7 @@ export default function GoogleMapContainer({
                 
                 // CRITICAL FIX: Use default* props to stop React from forcing the camera, allowing native trackpad 60fps 3D panning.
                 defaultHeading={heading}
-                defaultTilt={tilt}
+                defaultTilt={nav.tilt ?? tilt}
                 
                 zoomControl={window.innerWidth > 768}
                 mapTypeControl={false}

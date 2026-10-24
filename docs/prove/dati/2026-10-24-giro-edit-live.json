@@ -1,0 +1,439 @@
+{
+ "richieste": {
+  "places": {
+   "findplacefromtext": 3,
+   "textsearch": 12,
+   "details": 3
+  },
+  "placesMiss": {},
+  "cambia": [
+   "https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/places-proxy?language=it&path=place/textsearch&query=giardino chiostro parco villa tranquillo Catania&location=37.5017967,15.087635899999999&radius=500"
+  ],
+  "openai": 6
+ },
+ "dna": [
+  "[{\"kind\":\"stop_skipped\",\"category\":\"cultura\",\"city\":\"Catania\",\"value\":null,\"moment\":\"mattina\",\"tour_id\":null,\"user_id\":\"cee972ab-10ed-48b8-a3e9-bfd53cf66e64\"}]",
+  "[{\"kind\":\"quiz_choice\",\"category\":\"natura\",\"city\":\"Catania\",\"value\":null,\"moment\":\"mattina\",\"tour_id\":null,\"user_id\":\"cee972ab-10ed-48b8-a3e9-bfd53cf66e64\"}]"
+ ],
+ "console": [
+  "[P3 SCHELETRO] Catania: 6 momenti — g1-mattina×3(18 cand.), g1-pranzo×1(12 cand.), g1-pomeriggio×2(17 cand.), g1-aperitivo×1(1 cand.), g1-passeggiata×1(12 cand.), g1-cena×1(10 cand.) | ricerche mirate: colazione",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-pomeriggio (buchi 266 → 235 min)",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-mattina (buchi 235 → 203 min)",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-mattina (buchi 203 → 169 min)",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-mattina (buchi 169 → 145 min)",
+  "[P3 SCHELETRO] Catania: scartata ChIJV63v_C7jExMRLThjTCcPppk (g1-mattina) — colazione chiesta: la prima tappa e' un posto da colazione",
+  "[P3 SCHELETRO] Catania: scartata ChIJP0UjWi7jExMRJytI986aC6g (g1-mattina) — colazione chiesta: la prima tappa e' un posto da colazione",
+  "[P3 SCHELETRO] Catania: scartata ChIJH_LNACbjExMR3WPlQ82DyEw (g1-mattina) — colazione chiesta: la prima tappa e' un posto da colazione",
+  "[P3 SCHELETRO] Catania: scartata ChIJL4d9TSnjExMRqXQYwLzTP5s (g1-mattina) — fuori strada: 5 min di giro verso \"Fontana dell'Elefante (uʻ Liotru)\"",
+  "[P3 SCHELETRO] Catania: g1-mattina riempito dal codice con \"Fontana dell'Elefante (uʻ Liotru)\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-mattina riempito dal codice con \"Basilica Cattedrale di Sant'Agata\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-mattina riempito dal codice con \"Fontana dell’Amenano\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-mattina riempito dal codice con \"Porta Uzeda\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-pranzo riempito dal codice con \"Osteria Antica Marina\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-pomeriggio riempito dal codice con \"Via Crociferi\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-pomeriggio riempito dal codice con \"Teatro Antico greco-romano di Catania\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-pomeriggio riempito dal codice con \"Castello Ursino\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-aperitivo riempito dal codice con \"Bar Popolare\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-passeggiata riempito dal codice con \"Via Etnea\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-cena riempito dal codice con \"La Pentolaccia\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-mattina riempito dal codice con \"Piazza del Duomo\" (merito)"
+ ],
+ "fasi": {
+  "generato": {
+   "momenti": [
+    "MATTINA",
+    "PRANZO",
+    "POMERIGGIO",
+    "APERITIVO",
+    "CENA"
+   ],
+   "tappe": [
+    {
+     "libero": false,
+     "righe": [
+      "08:30",
+      "Caffè Puglisi",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "09:00",
+      "Porta Uzeda",
+      "4.5"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "09:31",
+      "Piazza del Duomo",
+      "Piazza del Duomo di Catania è la principale piazza della città. È a un minuto a piedi dalla tappa prima."
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "10:01",
+      "Basilica Cattedrale di Sant'Agata",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "10:22",
+      "Fontana dell'Elefante (uʻ Liotru)",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "10:53",
+      "Fontana dell’Amenano",
+      "4.6"
+     ]
+    },
+    {
+     "libero": true,
+     "righe": [
+      "Tempo libero",
+      "11:23–12:29",
+      "Niente in agenda: cammina dove ti porta la strada."
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "12:30",
+      "Osteria Antica Marina",
+      "4.4"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "14:30",
+      "Castello Ursino",
+      "4.3"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "15:35",
+      "Teatro Antico greco-romano di Catania",
+      "4.5"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "16:08",
+      "Via Crociferi",
+      "4.6"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "16:42",
+      "Maravigghia Gelateria Siciliana",
+      "4.7"
+     ]
+    },
+    {
+     "libero": true,
+     "righe": [
+      "Tempo libero",
+      "17:02–17:59",
+      "Niente in agenda: cammina dove ti porta la strada."
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "18:00",
+      "Bar Popolare",
+      "4.9"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "18:49",
+      "Via Etnea",
+      "4.6"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "20:00",
+      "La Pentolaccia",
+      "4.5"
+     ]
+    }
+   ],
+   "costoSoFar": 0
+  },
+  "tolta": {
+   "tappe": [
+    {
+     "libero": false,
+     "righe": [
+      "08:30",
+      "Caffè Puglisi",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "09:00",
+      "Porta Uzeda",
+      "4.5"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "09:31",
+      "Basilica Cattedrale di Sant'Agata",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "09:52",
+      "Fontana dell'Elefante (uʻ Liotru)",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "10:23",
+      "Fontana dell’Amenano",
+      "4.6"
+     ]
+    },
+    {
+     "libero": true,
+     "righe": [
+      "Tempo libero",
+      "10:53–12:29",
+      "Niente in agenda: cammina dove ti porta la strada."
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "12:30",
+      "Osteria Antica Marina",
+      "4.4"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "14:30",
+      "Castello Ursino",
+      "4.3"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "15:35",
+      "Teatro Antico greco-romano di Catania",
+      "4.5"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "16:08",
+      "Via Crociferi",
+      "4.6"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "16:42",
+      "Maravigghia Gelateria Siciliana",
+      "4.7"
+     ]
+    },
+    {
+     "libero": true,
+     "righe": [
+      "Tempo libero",
+      "17:02–17:59",
+      "Niente in agenda: cammina dove ti porta la strada."
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "18:00",
+      "Bar Popolare",
+      "4.9"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "18:49",
+      "Via Etnea",
+      "4.6"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "20:00",
+      "La Pentolaccia",
+      "4.5"
+     ]
+    }
+   ],
+   "prima": 14
+  },
+  "cambiata": {
+   "messaggio": [],
+   "tappe": [
+    {
+     "libero": false,
+     "righe": [
+      "08:30",
+      "Caffè Puglisi",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "09:00",
+      "Giardino Pacini",
+      "4.2"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "09:32",
+      "Basilica Cattedrale di Sant'Agata",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "09:53",
+      "Fontana dell'Elefante (uʻ Liotru)",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "10:24",
+      "Fontana dell’Amenano",
+      "4.6"
+     ]
+    },
+    {
+     "libero": true,
+     "righe": [
+      "Tempo libero",
+      "10:54–12:29",
+      "Niente in agenda: cammina dove ti porta la strada."
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "12:30",
+      "Osteria Antica Marina",
+      "4.4"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "14:30",
+      "Castello Ursino",
+      "4.3"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "15:35",
+      "Teatro Antico greco-romano di Catania",
+      "4.5"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "16:08",
+      "Via Crociferi",
+      "4.6"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "16:42",
+      "Maravigghia Gelateria Siciliana",
+      "4.7"
+     ]
+    },
+    {
+     "libero": true,
+     "righe": [
+      "Tempo libero",
+      "17:02–17:59",
+      "Niente in agenda: cammina dove ti porta la strada."
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "18:00",
+      "Bar Popolare",
+      "4.9"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "18:49",
+      "Via Etnea",
+      "4.6"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "20:00",
+      "La Pentolaccia",
+      "4.5"
+     ]
+    }
+   ]
+  }
+ },
+ "costoUsd": {
+  "googleRealeMiss": 0,
+  "openai": 0.0202,
+  "totale": 0.02,
+  "ricercheCambia": 1
+ }
+}

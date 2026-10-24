@@ -4,27 +4,26 @@
  "richieste": {
   "places": {
    "findplacefromtext": 2,
-   "textsearch": 7
+   "textsearch": 7,
+   "photo": 3
   },
   "miss": {
-   "findplacefromtext": 2,
-   "textsearch": 6
+   "textsearch": 1
   }
  },
  "scheda": [
   "08:30 | Caffè Puglisi",
-  "08:56 | Castello Ursino",
-  "10:00 | Piazza Umbrella",
-  "10:32 | Fontana dell'Elefante (uʻ Liotru)",
-  "11:03 | Basilica Cattedrale di Sant'Agata",
+  "08:59 | Piazza Giuseppe Mazzini",
+  "09:32 | Fontana dell'Elefante (uʻ Liotru)",
+  "10:03 | Basilica Cattedrale di Sant'Agata",
+  "10:24 | Fontana dell’Amenano",
   "12:30 | Osteria Antica Marina",
   "14:30 | Porta Uzeda",
-  "15:01 | Fontana dell’Amenano",
-  "15:35 | Via Crociferi",
-  "16:08 | Teatro Antico greco-romano di Catania",
-  "16:39 | Maravigghia Gelateria Siciliana",
-  "18:00 | Deliziosa Café & Cocktail Bar",
-  "18:51 | Via Etnea",
+  "15:05 | Castello Ursino",
+  "16:10 | Teatro Antico greco-romano di Catania",
+  "16:43 | Via Crociferi",
+  "18:00 | Bar Popolare",
+  "18:52 | Via Etnea",
   "20:00 | La Pentolaccia"
  ],
  "anteprima": {
@@ -53,8 +52,8 @@
   "linkEsterni": [],
   "barra": null
  },
- "tappe": 14,
- "kmGiro": 2.67,
+ "tappe": 13,
+ "kmGiro": 3.22,
  "navigazione": {
   "innerHeight": 664,
   "visibile": 664,
@@ -66,7 +65,7 @@
   "banner": false,
   "apriInMappe": false,
   "linkEsterni": [],
-  "barra": "TAPPA 3/14"
+  "barra": null
  },
- "costoGoogleMissUsd": 0.226
+ "costoGoogleMissUsd": 0.032
 }

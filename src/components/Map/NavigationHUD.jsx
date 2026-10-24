@@ -15,7 +15,9 @@
  * e Tailwind v3 non ci sa applicare un'opacità): la barra era trasparente e sulla mappa chiara il nome della tappa si
  * confondeva con i nomi della mappa. Ora `bg-obsidian-card`, pieno. Stesso difetto nei tre testi secondari (istruzione,
  * «km totali», «Muto»: `text-obsidian-secondary/80|70|60`, nessun CSS, testo scuro): sul fondo scuro non si leggevano,
- * ora `text-obsidian-secondary`. «Apri in Mappe» per la tappa corrente (mappeUrl).
+ * ora `text-obsidian-secondary`.
+ *
+ * NAV-2: niente «Apri in Mappe» (l'utente resta in Unnivai); la barra sta nella zona sicura in alto, il resto della pagina in basso.
  */
 import { motion, AnimatePresence } from 'framer-motion';
 import DOMPurify from 'dompurify';
@@ -106,7 +108,6 @@ export default function NavigationHUD({
     nextStop: nextStopProp,
     skippedSteps,
     avviso,
-    mappeUrl,
     onArrived,
     onSkip,
     tappaPassata,
@@ -196,11 +197,6 @@ export default function NavigationHUD({
                             <AlertTriangle size={15} className="text-status-warning shrink-0 mt-0.5" />
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs text-obsidian-primary leading-snug">{avviso.testo}</p>
-                                {avviso.tipo === 'percorso' && mappeUrl && (
-                                    <a href={mappeUrl} target="_blank" rel="noopener noreferrer" className="inline-block mt-1.5 text-xs font-semibold text-brand-orange underline underline-offset-2">
-                                        {NAV_TESTI.APRI_MAPPE}
-                                    </a>
-                                )}
                             </div>
                         </div>
                     )}
@@ -269,18 +265,6 @@ export default function NavigationHUD({
                                     <SkipForward size={14} />
                                     <span>{NAV_TESTI.SALTA}</span>
                                 </button>
-                            )}
-                            {/* NAV-1-FIX: le indicazioni verso la tappa corrente nell'app di mappe del telefono */}
-                            {mappeUrl && (
-                                <a
-                                    href={mappeUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    data-testid="nav-apri-mappe"
-                                    className="flex items-center justify-center px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap bg-obsidian-raised text-obsidian-primary border border-obsidian-border active:scale-95 transition-transform"
-                                >
-                                    {NAV_TESTI.APRI_MAPPE}
-                                </a>
                             )}
                         </div>
                     )}

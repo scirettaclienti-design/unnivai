@@ -6,7 +6,6 @@ import { describe, it, expect } from 'vitest';
 import { valutaPassaggio, NAV_PASSAGGIO } from '@/lib/navPassaggio';
 import { valutaArrivo, NAV_ARRIVO } from '@/lib/navArrivo';
 import { centroDelGiro } from '@/lib/navSession';
-import { linkMappe, usaMappeApple } from '@/lib/navMessaggi';
 
 const sposta = (p, est, nord) => ({ lat: p.lat + nord / 111320, lng: p.lng + est / (111320 * Math.cos((p.lat * Math.PI) / 180)) });
 const R = 6371000, rad = (x) => (x * Math.PI) / 180;
@@ -65,29 +64,5 @@ describe('D3 — il centro della mappa dal giro in corso', () => {
         expect(centroDelGiro({ chiave: 'id:t', completedSteps: [], targetStepId: 'b' }, tour)).toEqual({ latitude: 3, longitude: 4 });
         expect(centroDelGiro({ chiave: 'id:altro', completedSteps: [] }, tour)).toBeNull();
         expect(centroDelGiro(null, tour)).toBeNull();
-    });
-});
-
-describe('«Apri in Mappe» — Apple su iPhone, Google altrove, solo le coordinate della tappa', () => {
-    const IPHONE = { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148', maxTouchPoints: 5 };
-    const IPAD = { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/18.0 Safari/605.1.15', maxTouchPoints: 5 };
-    const MAC = { userAgent: IPAD.userAgent, maxTouchPoints: 0 };
-    const ANDROID = { userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/128 Mobile Safari/537.36', maxTouchPoints: 5 };
-    it('la piattaforma', () => {
-        expect(usaMappeApple(IPHONE)).toBe(true);
-        expect(usaMappeApple(IPAD)).toBe(true);
-        expect(usaMappeApple(MAC)).toBe(false);
-        expect(usaMappeApple(ANDROID)).toBe(false);
-        expect(usaMappeApple(null)).toBe(false);
-    });
-    it('i link: a piedi, solo la destinazione', () => {
-        const tappa = { latitude: 37.7845, longitude: 14.5972 };
-        expect(linkMappe(tappa, 'walking', { apple: true })).toBe('https://maps.apple.com/?daddr=37.7845,14.5972&dirflg=w');
-        expect(linkMappe(tappa, 'walking', { apple: false })).toBe('https://www.google.com/maps/dir/?api=1&destination=37.7845,14.5972&travelmode=walking');
-        expect(linkMappe(tappa, 'driving', { apple: false })).toContain('travelmode=driving');
-        for (const apple of [true, false]) {
-            const u = linkMappe(tappa, 'walking', { apple });
-            expect(u).not.toMatch(/saddr|origin|user|email|id=/i);
-        }
     });
 });

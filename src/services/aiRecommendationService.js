@@ -394,6 +394,7 @@ export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './to
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
 import { richiestaEsplicita, filtraEsclusi, notaEsclusioni, categoriaEsclusa } from '../lib/richiestaEsplicita';
 import { aggiungiSosteDna, ricercheDellaSosta } from '../lib/sosteDna';
+import { riordinaPerPercorso, ordinePercorsoSpento } from '../lib/ordinePercorso';
 // DNA-3c — una ricerca di testo di Google Places (listino del banco): il costo massimo di una ricerca della sosta
 const COSTO_RICERCA_SOSTA_USD = 0.032;
 import { weightsToAIProfile } from './preferenceEngine';
@@ -2456,6 +2457,7 @@ export const aiRecommendationService = {
             let nucleo = null;
             let scalaNote = null;
             let sosteDnaReport = null; // DNA-3b
+            let ordinePercorsoReport = null; // NAV-2
             let esclusioneNote = null; // DNA-3b: «Ho tolto le chiese come chiesto: il giro è più corto.»
             let conferma = null;
             const w0 = tourWindow.windows[0];
@@ -3258,6 +3260,14 @@ export const aiRecommendationService = {
                                 const sosteIds = new Set(sosteDnaReport.aggiunte.map(x => x.place_id));
                                 candidates = [...candidates, ...poolSoste.filter(c => sosteIds.has(c.place_id || c.googlePlaceId) && !candidates.includes(c))];
                             }
+                            // NAV-2 — L'ORDINE DEL PERCORSO: ultimo passo dell'ordine. Dentro ogni momento di mattina e pomeriggio le tappe si camminano
+                            // nell'ordine che fa meno strada; pasti, aperitivo, colazione e soste del DNA restano dove sono, con i loro orari.
+                            if (!ordinePercorsoSpento()) {
+                                const ord = riordinaPerPercorso(sched);
+                                sched = ord.sched;
+                                ordinePercorsoReport = ord.report;
+                                for (const f of ord.report.file) console.info(`[NAV-2 ORDINE] ${city}: giorno ${f.giorno} ${f.momento}: ${f.kmPrima.toFixed(2)} → ${f.kmDopo.toFixed(2)} km`);
+                            }
                             const { report } = repaired;
                             for (const a of minimo.aggiunte) console.info(`[C8b MINIMO] ${city}: tappa in piu' in ${a.momento} (giorno ${a.dayIndex + 1}: ${a.prima} → ${a.dopo} tappe, minimo ${minPerDay.get(a.dayIndex)})`);
                             for (const a of filled.aggiunte) console.info(`[CONTINUITA'] ${city}: tappa in piu' in ${a.momento} (buchi ${a.minutiPrima} → ${a.minutiDopo} min)`);
@@ -3301,7 +3311,7 @@ export const aiRecommendationService = {
                             };
                             const continuita = { aggiunte: filled.aggiunte, tentativi: filled.tentativi, respinti: filled.respinti || [], dichiarati: righeBuchi.map(x => ({ momento: x.momento, minuti: x.buco, prima: x.prima })),
                                 minimo: { richiesto: Object.fromEntries(minPerDay), aggiunte: minimo.aggiunte, tentativi: minimo.tentativi, dichiarati: righeMinimo.map(x => ({ momento: x.momento, giorno: x.dayIndex + 1 })) } };
-                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, soste: sosteDnaReport, esclusioni: { tolti: esclusiTolti.slice(0, 40), nota: esclusioneNote }, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
+                            momentReport = { ...report, finestraMinuti: tourWindow.windows.map(w => Math.round((w.end.getTime() - w.start.getTime()) / 60000)), tolte: sched.tolte, ricercheMirate: extraThemes, ricercheDopo, orari: orariInfo, continuita, soste: sosteDnaReport, ordine: ordinePercorsoReport, esclusioni: { tolti: esclusiTolti.slice(0, 40), nota: esclusioneNote }, tema: { cibo: tema.tema, tipico: tema.tipico, fonte: tema.fonte, momentiEspliciti: [...tema.momenti], cucineEstereEscluse: tipicoEsclusi, zoneTolte } };
                             logMomentReport(city, momentReport);
                             // C7 — nel tracciato (interno, mai a schermo): cosa ha voluto il tema. Il pasto del tema, l'esperienza
                             // nello spirito del tema, il momento chiesto ESPLICITAMENTE dal testo, e per "tipico" se il posto e' locale.

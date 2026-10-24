@@ -7,7 +7,7 @@ import { avviaTracciamento, NAV_GPS } from '@/lib/navTracking';
 import { salvaGiro, leggiGiro, chiudiGiro, puntoDelGiro, GIRO_SCADENZA_MS, chiaveGiro } from '@/lib/navSession';
 import { valutaPassaggio, NAV_PASSAGGIO } from '@/lib/navPassaggio';
 import { creaSchermoAcceso } from '@/lib/wakeLock';
-import { avvisoNavigazione, NAV_TESTI, linkMappe } from '@/lib/navMessaggi';
+import { avvisoNavigazione, NAV_TESTI } from '@/lib/navMessaggi';
 
 function gpsFinto() {
     const watchers = new Map();
@@ -189,8 +189,7 @@ describe('navMessaggi — un avviso alla volta, i testi di Ivano', () => {
         expect(NAV_TESTI.OFFLINE).toBe('Sei offline. La mappa resta; il percorso si aggiorna quando torna la rete.');
     });
 
-    it('link a Mappe solo con coordinate vere', () => {
-        expect(linkMappe({ latitude: 37.5, longitude: 15.08 }, 'walking', { apple: true })).toBe('https://maps.apple.com/?daddr=37.5,15.08&dirflg=w');
-        expect(linkMappe({})).toBeNull();
+    it('NAV-2: nessun testo manda a un\'altra app', () => {
+        for (const t of Object.values(NAV_TESTI)) if (typeof t === 'string') expect(t).not.toMatch(/Mappe\b/);
     });
 });

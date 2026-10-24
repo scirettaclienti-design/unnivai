@@ -37,7 +37,7 @@ import GiroRipresaDialog from '../components/Map/GiroRipresaDialog';
 import { valutaPassaggio } from '../lib/navPassaggio';
 import { valutaArrivo } from '../lib/navArrivo';
 import { creaSchermoAcceso } from '../lib/wakeLock';
-import { NAV_TESTI, avvisoNavigazione, linkMappe } from '../lib/navMessaggi';
+import { NAV_TESTI, avvisoNavigazione } from '../lib/navMessaggi';
 import NavDebugPanel from '../components/NavDebugPanel';
 import { useAILearning } from '../hooks/useAILearning';
 import './MapPage.css';
@@ -1594,6 +1594,13 @@ const MapPage = () => {
         return (activeRoute || []).find(libera) || null;
     })();
 
+    // NAV-2: il tratto del percorso verso la prossima tappa (quello arancione); i tratti prima sono fatti (attenuati). Fuori dalla navigazione, o su una sola tappa, tutto neutro.
+    const tratto = (() => {
+        if (!isNavigating || navIsSingleTargetRef.current || !navNextStop) return null;
+        const i = (activeRoute || []).findIndex(s => s.id === navNextStop.id);
+        return i >= 1 ? i - 1 : null;
+    })();
+
     // ─── CUSTOM POI INTERCEPTION (Premium Google Maps Feel) ───
     const handleNativePOIClick = useCallback((e) => {
         // Support sia per l'evento RAW (e.placeId) sia per vis.gl Event (e.detail.placeId)
@@ -1694,7 +1701,7 @@ const MapPage = () => {
 
     // ─── RENDER ───────────────────────────────────────────────────────────────
     return (
-        <div className="relative w-full h-screen overflow-hidden bg-obsidian-bg">
+        <div className="relative w-full h-screen overflow-hidden bg-obsidian-bg" style={{ height: '100dvh' }} data-testid="map-root">
 
             {/* 1. MAP CONTAINER */}
             <div className="absolute inset-0 z-0">
@@ -1770,6 +1777,7 @@ const MapPage = () => {
                             transportModeOverride={pageTransportMode}
                             onRouteStats={handleRouteStats}
                             onDirectionsData={handleDirectionsData}
+                            nextLeg={tratto}
                             selectedId={selectedActivity?.id}
                             activeCity={activeCity}
                             // Gate F38 — `defaultCenter` di @vis.gl e' UNCONTROLLED: letto solo
@@ -2014,7 +2022,7 @@ const MapPage = () => {
                 Il pulsante "Avvia Navigazione" dentro il drawer è già il CTA primario:
                 serve una sola CTA in quel momento. */}
             {showRoute && !selectedActivity && !selectedPartner && tourData && !isNavigating && !isRoutePlannerOpen && (
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 w-[95%] max-w-md animate-in slide-in-from-bottom-10 pointer-events-auto">
+                <div className="absolute left-1/2 -translate-x-1/2 z-40 w-[95%] max-w-md animate-in slide-in-from-bottom-10 pointer-events-auto" style={{ bottom: 'max(1.5rem, calc(env(safe-area-inset-bottom) + 0.75rem))' }} data-testid="map-avvia-card">
                     <div className="bg-obsidian-card/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border border-obsidian-border flex items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-obsidian-primary text-lg leading-tight truncate">{tourData?.title || 'Il tuo Itinerario'}</h3>
@@ -2081,7 +2089,6 @@ const MapPage = () => {
                     nextStop={navNextStop}
                     skippedSteps={skippedSteps}
                     avviso={avvisoNavigazione({ gps: navGps, attesaVisibile: gpsAttesaVisibile, offline: isOffline, percorsoErrore: !!routeStats?.error })}
-                    mappeUrl={linkMappe(navNextStop || selectedPOI || selectedActivity, pageTransportMode)}
                     onArrived={navNextStop ? handlePOIUnlock : null}
                     onSkip={navNextStop ? handleSkipStep : null}
                     tappaPassata={tappaPassata}

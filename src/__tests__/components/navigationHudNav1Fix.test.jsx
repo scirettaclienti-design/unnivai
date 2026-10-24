@@ -43,17 +43,16 @@ describe('D4 — la barra di navigazione ha uno sfondo e testi che si leggono', 
     }, 30_000);
 });
 
-describe('«Apri in Mappe» — le indicazioni verso la tappa corrente', () => {
-    it('un tasto nella barra con il link alla tappa corrente, solo le sue coordinate', () => {
-        barra({ mappeUrl: 'https://maps.apple.com/?daddr=37.505,15.085&dirflg=w' });
-        const link = screen.getByText('Apri in Mappe').closest('a');
-        expect(link.getAttribute('href')).toBe('https://maps.apple.com/?daddr=37.505,15.085&dirflg=w');
-        expect(link.getAttribute('target')).toBe('_blank');
-        expect(link.getAttribute('rel')).toContain('noreferrer');
+describe('NAV-2 — niente «Apri in Mappe»: l\'utente resta in Unnivai', () => {
+    it('nella barra non c\'è nessun link verso un\'altra app, nemmeno con un avviso sul percorso', () => {
+        barra({ avviso: { tipo: 'percorso', testo: 'Non riesco a calcolare il percorso fin qui. Intanto segui la mappa o passa alla tappa dopo.' } });
+        expect(screen.queryByText(/Apri in Mappe/i)).toBeNull();
+        expect(document.querySelector('[data-testid="nav-apri-mappe"]')).toBeNull();
+        expect(document.querySelectorAll('a[href]').length).toBe(0);
     });
-
-    it('senza link (tappa senza coordinate) il tasto non c\'è', () => {
-        barra({ mappeUrl: null });
-        expect(screen.queryByText('Apri in Mappe')).toBeNull();
+    it('anche passando un `mappeUrl` (vecchio chiamante) il tasto non esce', () => {
+        barra({ mappeUrl: 'https://maps.apple.com/?daddr=37.505,15.085&dirflg=w' });
+        expect(screen.queryByText(/Apri in Mappe/i)).toBeNull();
+        expect(document.querySelectorAll('a[href]').length).toBe(0);
     });
 });

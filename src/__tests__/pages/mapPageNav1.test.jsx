@@ -148,7 +148,7 @@ describe('NAV-1 — comandi nella barra', () => {
         avvia();
         act(() => { routeStatsCb?.({ error: 'ZERO_RESULTS', distanceM: 0, durationSec: 0 }); });
         expect(screen.queryByText(/ZERO_RESULTS/)).toBeNull();
-        expect(screen.getByText('Non riesco a calcolare il percorso fin qui. Aprilo in Mappe o passa alla tappa dopo.')).toBeInTheDocument();
+        expect(screen.getByText('Non riesco a calcolare il percorso fin qui. Intanto segui la mappa o passa alla tappa dopo.')).toBeInTheDocument();
     });
 });
 

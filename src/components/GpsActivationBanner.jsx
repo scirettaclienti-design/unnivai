@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { MapPin, Loader, ChevronRight } from 'lucide-react';
 import { useCity } from '../context/CityContext';
+import { useGeoPermesso, serveBannerPosizione } from '../hooks/useGeoPermesso';
 
 export default function GpsActivationBanner() {
-    const { gpsActive, requestGPS } = useCity();
+    const { gpsActive, gpsCoords, requestGPS } = useCity();
+    // NAV-2: il banner compare solo se la posizione e' davvero negata o assente (con il permesso concesso o un GPS gia' letto non serve)
+    const permesso = useGeoPermesso();
     const [isLoading, setIsLoading] = useState(false);
     const [feedback, setFeedback] = useState(null); // { type: 'success'|'error', message }
 
-    if (gpsActive) return null; // GPS già attivo — nascondi banner
+    if (!serveBannerPosizione({ gpsActive, gpsCoords, permesso })) return null;
 
     const handleClick = () => {
         setIsLoading(true);

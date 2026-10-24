@@ -89,6 +89,9 @@ export const POIDetailDrawer = ({
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 28, stiffness: 240 }}
         className="absolute bottom-0 left-0 right-0 z-[1001] bg-obsidian-card rounded-t-[2rem] shadow-[0_-15px_40px_rgb(14_12_11/0.5)] border-t border-obsidian-border min-h-[38vh] max-h-[82vh] flex flex-col overflow-hidden font-quicksand"
+        // NAV-2: altezza VISIBILE vera (dvh: sopra la barra di Safari, che con vh tagliava il fondo) e zona sicura in basso; vh resta il ripiego
+        style={{ minHeight: '38dvh', maxHeight: '82dvh', paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.5rem)' }}
+        data-testid="poi-drawer"
       >
         {/* Grab Handle */}
         <div className="absolute top-0 left-0 right-0 h-4 flex justify-center items-center z-20 pointer-events-none">

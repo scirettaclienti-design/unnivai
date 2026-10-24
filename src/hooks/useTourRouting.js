@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useMapsLibrary, useMap } from '@vis.gl/react-google-maps';
 import { THEME } from '../styles/themeTokens';
 
@@ -24,7 +24,37 @@ const ROUTE_STYLES = {
     },
 };
 
-export default function useTourRouting(waypoints, travelModePreference) {
+/**
+ * NAV-2 — IL PERCORSO A TRATTI. Il percorso e' un tratto per ogni coppia di tappe consecutive (un «leg» di Directions):
+ *  · `fatto`   — gia' camminato: attenuato;
+ *  · `prossimo`— quello verso la prossima tappa: accento arancione, piu' spesso;
+ *  · `resto`   — il resto: neutro (come prima).
+ * `nextLeg` = indice del tratto che porta alla prossima tappa (null fuori dalla navigazione: tutto neutro).
+ */
+export const statoTratto = (i, nextLeg) => {
+    if (!Number.isInteger(nextLeg)) return 'resto';
+    if (i < nextLeg) return 'fatto';
+    if (i === nextLeg) return 'prossimo';
+    return 'resto';
+};
+export const ACCENTO_TRATTO = '#F97316';
+export const stileTratto = (stato, base) => {
+    if (stato === 'fatto') return { outer: null, inner: { ...base.inner, strokeOpacity: 0.28, strokeWeight: 3, icons: undefined, zIndex: 45 } };
+    if (stato === 'prossimo') {
+        return {
+            outer: { ...base.outer, strokeColor: ACCENTO_TRATTO, strokeOpacity: 0.3, strokeWeight: 12, zIndex: 41 },
+            inner: { ...base.inner, strokeColor: ACCENTO_TRATTO, strokeOpacity: 1, strokeWeight: 6, icons: undefined, zIndex: 55 },
+        };
+    }
+    return { outer: base.outer, inner: base.inner };
+};
+
+/** La firma di un percorso: i suoi waypoint validi e il mezzo (la stessa che evita di richiedere due volte la stessa rotta). */
+export const firmaPercorso = (waypoints, travelModePreference) => (Array.isArray(waypoints) ? waypoints : [])
+    .filter(wp => { const lat = Number(wp?.lat || wp?.latitude); const lng = Number(wp?.lng || wp?.longitude); return !!lat && !!lng && !isNaN(lat) && !isNaN(lng); })
+    .map(wp => `${wp.lat || wp.latitude},${wp.lng || wp.longitude}`).join('|') + `_${travelModePreference}`;
+
+export default function useTourRouting(waypoints, travelModePreference, nextLeg = null) {
     const map = useMap();
     const routesLibrary = useMapsLibrary('routes');
 
@@ -32,6 +62,12 @@ export default function useTourRouting(waypoints, travelModePreference) {
     const [directionsRendererOutline, setDirectionsRendererOutline] = useState(null);
     const [directionsRendererInner, setDirectionsRendererInner] = useState(null);
     const [routeInfo, setRouteInfo] = useState({ distanceM: 0, durationSec: 0, mode: 'WALKING' });
+    // NAV-2: i punti di ogni tratto (un tratto per coppia di tappe) per disegnarli col loro stato. Valgono solo per la firma del percorso
+    // che li ha prodotti: se i waypoint cambiano o spariscono, i tratti di prima non si disegnano piu' (nessun setState nell'effetto).
+    const [risultato, setRisultato] = useState({ firma: '', tratti: [], modo: 'WALKING' });
+    const firmaCorrente = useMemo(() => firmaPercorso(waypoints, travelModePreference), [waypoints, travelModePreference]);
+    const tratti = useMemo(() => (risultato.firma === firmaCorrente ? risultato.tratti : []), [risultato, firmaCorrente]);
+    const modo = risultato.modo;
     const lastRequestSignature = useRef('');
     const currentModeRef = useRef('WALKING');
     // L2-0: dati Directions completi (tutti i legs, maneuver, path) per le fasi L2.
@@ -57,10 +93,10 @@ export default function useTourRouting(waypoints, travelModePreference) {
         // non viene toccata dal renderer. Un solo owner camera durante nav.
         const style = ROUTE_STYLES.WALKING;
         setDirectionsRendererOutline(new routesLibrary.DirectionsRenderer({
-            map, suppressMarkers: true, preserveViewport: true, polylineOptions: style.outer
+            map, suppressMarkers: true, preserveViewport: true, polylineOptions: { ...style.outer, visible: false }
         }));
         setDirectionsRendererInner(new routesLibrary.DirectionsRenderer({
-            map, suppressMarkers: true, preserveViewport: true, polylineOptions: style.inner
+            map, suppressMarkers: true, preserveViewport: true, polylineOptions: { ...style.inner, visible: false }
         }));
     }, [routesLibrary, map]);
 
@@ -72,8 +108,8 @@ export default function useTourRouting(waypoints, travelModePreference) {
         currentModeRef.current = mode;
 
         const style = ROUTE_STYLES[mode] || ROUTE_STYLES.WALKING;
-        directionsRendererOutline.setOptions({ polylineOptions: style.outer });
-        directionsRendererInner.setOptions({ polylineOptions: style.inner });
+        directionsRendererOutline.setOptions({ polylineOptions: { ...style.outer, visible: false } });
+        directionsRendererInner.setOptions({ polylineOptions: { ...style.inner, visible: false } });
     }, [travelModePreference, directionsRendererOutline, directionsRendererInner]);
 
     // Calculate Route
@@ -96,7 +132,7 @@ export default function useTourRouting(waypoints, travelModePreference) {
             return;
         }
 
-        const signature = validWaypoints.map(wp => `${wp.lat || wp.latitude},${wp.lng || wp.longitude}`).join('|') + `_${travelModePreference}`;
+        const signature = firmaPercorso(waypoints, travelModePreference);
         if (signature === lastRequestSignature.current) return;
         lastRequestSignature.current = signature;
 
@@ -129,6 +165,7 @@ export default function useTourRouting(waypoints, travelModePreference) {
 
                 const steps = response.routes[0]?.legs?.[0]?.steps || [];
                 setRouteInfo({ distanceM: totalDistM, durationSec: totalDurSec, mode: resolveMode(travelModePreference), steps });
+                setRisultato({ firma: signature, modo: resolveMode(travelModePreference), tratti: (response.routes[0]?.legs || []).map(leg => (leg?.steps || []).flatMap(st => (Array.isArray(st?.path) ? st.path : []))) });
                 // L2-1 latest-wins (SCOPE MINIMO): guarda SOLO la data-path L2-1.
                 // setDirections/setRouteInfo sopra NON toccati (race preesistente = gate
                 // a sé nel backlog, regola #4). `signature` è il valore catturato da QUESTA
@@ -146,6 +183,21 @@ export default function useTourRouting(waypoints, travelModePreference) {
             }
         });
     }, [directionsService, directionsRendererOutline, directionsRendererInner, waypoints, routesLibrary, travelModePreference]);
+
+    // NAV-2 — il percorso a tratti: fatto attenuato, verso la prossima tappa arancione, il resto neutro
+    useEffect(() => {
+        const Polyline = typeof window !== 'undefined' ? window.google?.maps?.Polyline : null;
+        if (!map || !Polyline || tratti.length === 0) return undefined;
+        const base = ROUTE_STYLES[modo] || ROUTE_STYLES.WALKING;
+        const create = [];
+        tratti.forEach((path, i) => {
+            if (!path || path.length < 2) return;
+            const st = stileTratto(statoTratto(i, nextLeg), base);
+            if (st.outer) create.push(new Polyline({ ...st.outer, path, map, clickable: false }));
+            create.push(new Polyline({ ...st.inner, path, map, clickable: false }));
+        });
+        return () => create.forEach(p => p.setMap(null));
+    }, [map, tratti, modo, nextLeg]);
 
     // L2-0: routeInfo INVARIATO (consumato da TourRoute → onRouteStats). directionsDataRef
     // AGGIUNTO (non ancora consumato — sarà la sorgente del trasporto in L2-1).

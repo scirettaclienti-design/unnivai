@@ -1,0 +1,91 @@
+{
+ "tag": "ossidiana-live",
+ "base": "https://unnivai.vercel.app",
+ "richieste": {
+  "places": {
+   "findplacefromtext": 2,
+   "textsearch": 7,
+   "photo": 3
+  },
+  "miss": {}
+ },
+ "scheda": [
+  "08:30 | Caffè Puglisi",
+  "08:59 | Piazza Umbrella",
+  "09:31 | Porta Uzeda",
+  "10:02 | Fontana dell’Amenano",
+  "10:33 | Fontana dell'Elefante (uʻ Liotru)",
+  "11:04 | Basilica Cattedrale di Sant'Agata",
+  "12:30 | Du Mori Osteria tipica",
+  "14:30 | Giardino Bellini - Villa Bellini",
+  "15:12 | Teatro Antico greco-romano di Catania",
+  "15:47 | Castello Ursino",
+  "18:00 | Bar Popolare",
+  "18:48 | Via Crociferi",
+  "20:00 | La Pentolaccia"
+ ],
+ "anteprima": {
+  "innerHeight": 664,
+  "visibile": 664,
+  "cardAvvia": {
+   "top": 550,
+   "bottom": 640
+  },
+  "pulsanteNav": null,
+  "banner": false,
+  "apriInMappe": false,
+  "linkEsterni": [],
+  "barra": null
+ },
+ "pannelloMezzo": {
+  "innerHeight": 664,
+  "visibile": 664,
+  "cardAvvia": null,
+  "pulsanteNav": {
+   "top": 583,
+   "bottom": 639
+  },
+  "banner": false,
+  "apriInMappe": false,
+  "linkEsterni": [],
+  "barra": null
+ },
+ "tappe": 13,
+ "kmGiro": 5.54,
+ "navigazione": {
+  "innerHeight": 664,
+  "visibile": 664,
+  "cardAvvia": null,
+  "pulsanteNav": {
+   "top": 1033,
+   "bottom": 1089
+  },
+  "banner": false,
+  "apriInMappe": false,
+  "linkEsterni": [],
+  "barra": null
+ },
+ "indietro": {
+  "indietro": {
+   "x": 16,
+   "y": 8,
+   "w": 46,
+   "h": 46
+  },
+  "filo": {
+   "x": 12,
+   "y": 64,
+   "w": 366,
+   "h": 80
+  },
+  "pillola": {
+   "x": 12,
+   "y": 152,
+   "w": 366,
+   "h": 74
+  },
+  "siSovrappongono": false,
+  "elementoInCimaAlCentro": "Torna alla home"
+ },
+ "costoGoogleMissUsd": 0
+}

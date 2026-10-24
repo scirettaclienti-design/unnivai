@@ -1594,12 +1594,14 @@ const MapPage = () => {
         return (activeRoute || []).find(libera) || null;
     })();
 
-    // NAV-2: il tratto del percorso verso la prossima tappa (quello arancione); i tratti prima sono fatti (attenuati). Fuori dalla navigazione, o su una sola tappa, tutto neutro.
-    const tratto = (() => {
+    // NAV-2: dove sei nel giro, per colorare il percorso (tratti fatti attenuati, quello verso la prossima tappa arancione). Fuori dalla navigazione, o su una sola tappa, null.
+    const progressoPercorso = useMemo(() => {
         if (!isNavigating || navIsSingleTargetRef.current || !navNextStop) return null;
         const i = (activeRoute || []).findIndex(s => s.id === navNextStop.id);
-        return i >= 1 ? i - 1 : null;
-    })();
+        if (i < 0) return null;
+        return { nextIdx: i, tappe: activeRoute.map(s => ({ lat: Number(s.latitude ?? s.lat), lng: Number(s.longitude ?? s.lng) })) };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isNavigating, navNextStop?.id, activeRoute]);
 
     // ─── CUSTOM POI INTERCEPTION (Premium Google Maps Feel) ───
     const handleNativePOIClick = useCallback((e) => {
@@ -1777,7 +1779,7 @@ const MapPage = () => {
                             transportModeOverride={pageTransportMode}
                             onRouteStats={handleRouteStats}
                             onDirectionsData={handleDirectionsData}
-                            nextLeg={tratto}
+                            progress={progressoPercorso}
                             selectedId={selectedActivity?.id}
                             activeCity={activeCity}
                             // Gate F38 — `defaultCenter` di @vis.gl e' UNCONTROLLED: letto solo

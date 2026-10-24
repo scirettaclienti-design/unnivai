@@ -1,6 +1,6 @@
 // NAV-2 — il percorso a tratti (fatto attenuato, prossimo arancione, resto neutro) e il banner della posizione. 0 $.
 import { describe, it, expect } from 'vitest';
-import { statoTratto, stileTratto, ACCENTO_TRATTO } from '@/hooks/useTourRouting';
+import { statoTratto, stileTratto, ACCENTO_TRATTO, trattiDaDisegnare, chiaveTratto } from '@/hooks/useTourRouting';
 import { serveBannerPosizione } from '@/hooks/useGeoPermesso';
 
 const BASE = { outer: { strokeColor: '#5A5048', strokeWeight: 10, strokeOpacity: 0.2, zIndex: 40 }, inner: { strokeColor: '#5A5048', strokeWeight: 4, strokeOpacity: 0.9, zIndex: 50, icons: [{}] } };
@@ -43,5 +43,25 @@ describe('serveBannerPosizione — solo se la posizione è davvero negata o asse
     });
     it('negata, mai chiesta o sconosciuta, senza posizione: il banner c\'è', () => {
         for (const permesso of ['denied', 'prompt', 'unknown']) expect(serveBannerPosizione({ permesso })).toBe(true);
+    });
+});
+
+describe('trattiDaDisegnare — fatto, prossimo, resto', () => {
+    const T = [0, 1, 2, 3, 4].map(i => ({ lat: 37.5 + i * 0.001, lng: 15.08 }));
+    const path = (i) => [{ lat: T[i].lat, lng: T[i].lng }, { lat: T[i + 1]?.lat ?? 0, lng: T[i + 1]?.lng ?? 0 }];
+    const cache = new Map([0, 1, 2, 3].map(i => [chiaveTratto(T[i], T[i + 1]), path(i)]));
+    it('verso la 3ª tappa (indice 2): il tratto 0 è fatto, il tratto 1 è il prossimo, il resto (dal percorso richiesto) è neutro', () => {
+        const live = [path(2), path(3)]; // il percorso richiesto parte dalla tappa che stai raggiungendo
+        const l = trattiDaDisegnare({ live, progress: { tappe: T, nextIdx: 2 }, cache });
+        expect(l.map(x => x.stato)).toEqual(['fatto', 'prossimo', 'resto', 'resto']);
+        expect(l[1].path).toBe(cache.get(chiaveTratto(T[1], T[2])));
+    });
+    it('alla prima tappa (nextIdx 0) nessun tratto fatto o prossimo; fuori dalla navigazione tutto neutro', () => {
+        expect(trattiDaDisegnare({ live: [path(0)], progress: { tappe: T, nextIdx: 0 }, cache }).map(x => x.stato)).toEqual(['resto']);
+        expect(trattiDaDisegnare({ live: [path(0), path(1)], progress: null, cache }).map(x => x.stato)).toEqual(['resto', 'resto']);
+    });
+    it('un tratto che non abbiamo (ripresa dopo una ricarica) non si inventa: manca finché non arriva', () => {
+        const l = trattiDaDisegnare({ live: [path(3)], progress: { tappe: T, nextIdx: 3 }, cache: new Map([[chiaveTratto(T[2], T[3]), path(2)]]) });
+        expect(l.map(x => x.stato)).toEqual(['prossimo', 'resto']);
     });
 });

@@ -53,7 +53,7 @@ const NativeClusteredMarkers = ({ validActivities, onActivityClick }) => {
 };
 
 // ─── Wrapper principale ───────────────────────────────────────────────────────
-const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userLocation, onActivityClick, onRouteStats, onDirectionsData, nextLeg }) => {
+const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userLocation, onActivityClick, onRouteStats, onDirectionsData, progress }) => {
     const map = useMap();
     if (!map) return null;
 
@@ -99,7 +99,7 @@ const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userL
                     travelModePreference={suggestedTransit}
                     onRouteStats={onRouteStats}
                     onDirectionsData={onDirectionsData}
-                    nextLeg={nextLeg}
+                    progress={progress}
                 />
             )}
         </>
@@ -118,7 +118,7 @@ export default function UnnivaiMap({
     onActivityClick,
     onRouteStats,
     onDirectionsData,
-    nextLeg = null,
+    progress = null,
     ...props
 }) {
     const validActivities = useMemo(() =>
@@ -136,7 +136,7 @@ export default function UnnivaiMap({
                 onActivityClick={onActivityClick}
                 onRouteStats={onRouteStats}
                 onDirectionsData={onDirectionsData}
-                nextLeg={nextLeg}
+                progress={progress}
             />
         </GoogleMapContainer>
     );

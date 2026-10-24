@@ -115,25 +115,26 @@ afterEach(() => {
 
 
 describe('NAV-2 — il percorso a tratti segue il giro', () => {
-    it('prima tappa: tutto neutro; arrivato alla 1ª: il tratto 0 è quello verso la 2ª; alla 2ª: il tratto 1', () => {
+    it('dove sei nel giro: alla 1ª tappa l\'indice è 0; arrivato alla 1ª si va verso la 2ª (1); alla 2ª verso la 3ª (2)', () => {
         monta(CATANIA);
         avvia();
-        expect(h.mappa.nextLeg).toBeNull();
+        expect(h.mappa.progress ?? null).toMatchObject({ nextIdx: 0 });
         const s1 = [CATANIA.steps[0].lat, CATANIA.steps[0].lng];
         const s2 = [CATANIA.steps[1].lat, CATANIA.steps[1].lng];
         passo(s1); passo(s1);
         expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
-        expect(h.mappa.nextLeg).toBe(0);
+        expect(h.mappa.progress.nextIdx).toBe(1);
+        expect(h.mappa.progress.tappe).toHaveLength(3);
         // si cammina da una tappa all'altra, una posizione ogni ~60 m
         const dist = Math.hypot((s2[0] - s1[0]) * 111320, (s2[1] - s1[1]) * 111320 * Math.cos(s1[0] * Math.PI / 180));
         for (let m = 60; m < dist; m += 60) passo([s1[0] + ((s2[0] - s1[0]) * m) / dist, s1[1] + ((s2[1] - s1[1]) * m) / dist]);
         passo(s2); passo(s2);
         expect(screen.getByText('Tappa 3/3')).toBeInTheDocument();
-        expect(h.mappa.nextLeg).toBe(1);
+        expect(h.mappa.progress.nextIdx).toBe(2);
     });
     it('fuori dalla navigazione nessun tratto è «prossimo»', () => {
         monta(CATANIA);
-        expect(h.mappa.nextLeg ?? null).toBeNull();
+        expect(h.mappa.progress ?? null).toBeNull();
     });
 });
 

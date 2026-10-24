@@ -29,7 +29,10 @@ const ROUTE_STYLES = {
  *  · `fatto`   — gia' camminato: attenuato;
  *  · `prossimo`— quello verso la prossima tappa: accento arancione, piu' spesso;
  *  · `resto`   — il resto: neutro (come prima).
- * `nextLeg` = indice del tratto che porta alla prossima tappa (null fuori dalla navigazione: tutto neutro).
+ * Durante la navigazione il percorso richiesto a Directions e' quello delle tappe RIMASTE (serve alle distanze e alle manovre della barra):
+ * non contiene i tratti gia' fatti ne' quello da dove sei partito. Quei tratti si disegnano dalla memoria dei percorsi gia' calcolati
+ * (l'anteprima li ha calcolati tutti; quello che manca si chiede, uno, quando serve).
+ * `progress` = { tappe: [{ lat, lng }] (il giro intero), nextIdx } (null fuori dalla navigazione: tutto neutro).
  */
 export const statoTratto = (i, nextLeg) => {
     if (!Number.isInteger(nextLeg)) return 'resto';
@@ -48,13 +51,31 @@ export const stileTratto = (stato, base) => {
     }
     return { outer: base.outer, inner: base.inner };
 };
+/** La chiave di un tratto: da una tappa a un'altra (le coordinate a 5 decimali, ~1 m). */
+export const chiaveTratto = (a, b) => `${Number(a?.lat ?? a?.latitude).toFixed(5)},${Number(a?.lng ?? a?.longitude).toFixed(5)}>${Number(b?.lat ?? b?.latitude).toFixed(5)},${Number(b?.lng ?? b?.longitude).toFixed(5)}`;
+/**
+ * Cosa disegnare: i tratti fatti (prima), quello verso la prossima tappa, poi il resto del percorso richiesto.
+ * @param {{ live: Array<Array>, progress: { tappe: Array, nextIdx: number }|null, cache: Map<string, Array> }} p
+ * @returns {Array<{ path: Array, stato: 'fatto'|'prossimo'|'resto' }>}
+ */
+export function trattiDaDisegnare({ live = [], progress = null, cache = new Map() }) {
+    const out = [];
+    if (progress && Array.isArray(progress.tappe) && Number.isInteger(progress.nextIdx)) {
+        for (let k = 0; k < progress.nextIdx && k + 1 < progress.tappe.length; k++) {
+            const path = cache.get(chiaveTratto(progress.tappe[k], progress.tappe[k + 1]));
+            if (path?.length > 1) out.push({ path, stato: k + 1 < progress.nextIdx ? 'fatto' : 'prossimo' });
+        }
+    }
+    for (const path of live) if (path?.length > 1) out.push({ path, stato: 'resto' });
+    return out;
+}
 
 /** La firma di un percorso: i suoi waypoint validi e il mezzo (la stessa che evita di richiedere due volte la stessa rotta). */
 export const firmaPercorso = (waypoints, travelModePreference) => (Array.isArray(waypoints) ? waypoints : [])
     .filter(wp => { const lat = Number(wp?.lat || wp?.latitude); const lng = Number(wp?.lng || wp?.longitude); return !!lat && !!lng && !isNaN(lat) && !isNaN(lng); })
     .map(wp => `${wp.lat || wp.latitude},${wp.lng || wp.longitude}`).join('|') + `_${travelModePreference}`;
 
-export default function useTourRouting(waypoints, travelModePreference, nextLeg = null) {
+export default function useTourRouting(waypoints, travelModePreference, progress = null) {
     const map = useMap();
     const routesLibrary = useMapsLibrary('routes');
 
@@ -68,6 +89,10 @@ export default function useTourRouting(waypoints, travelModePreference, nextLeg 
     const firmaCorrente = useMemo(() => firmaPercorso(waypoints, travelModePreference), [waypoints, travelModePreference]);
     const tratti = useMemo(() => (risultato.firma === firmaCorrente ? risultato.tratti : []), [risultato, firmaCorrente]);
     const modo = risultato.modo;
+    // i percorsi gia' calcolati, tappa -> tappa (restano anche quando il percorso richiesto si accorcia); `versione` fa ridisegnare quando se ne aggiunge uno
+    const cacheTratti = useRef(new Map());
+    const inVolo = useRef(new Set());
+    const [versione, setVersione] = useState(0);
     const lastRequestSignature = useRef('');
     const currentModeRef = useRef('WALKING');
     // L2-0: dati Directions completi (tutti i legs, maneuver, path) per le fasi L2.
@@ -165,6 +190,10 @@ export default function useTourRouting(waypoints, travelModePreference, nextLeg 
 
                 const steps = response.routes[0]?.legs?.[0]?.steps || [];
                 setRouteInfo({ distanceM: totalDistM, durationSec: totalDurSec, mode: resolveMode(travelModePreference), steps });
+                (response.routes[0]?.legs || []).forEach((leg, li) => {
+                    const a = validWaypoints[li], b = validWaypoints[li + 1];
+                    if (a && b) cacheTratti.current.set(chiaveTratto(a, b), (leg?.steps || []).flatMap(st => (Array.isArray(st?.path) ? st.path : [])));
+                });
                 setRisultato({ firma: signature, modo: resolveMode(travelModePreference), tratti: (response.routes[0]?.legs || []).map(leg => (leg?.steps || []).flatMap(st => (Array.isArray(st?.path) ? st.path : []))) });
                 // L2-1 latest-wins (SCOPE MINIMO): guarda SOLO la data-path L2-1.
                 // setDirections/setRouteInfo sopra NON toccati (race preesistente = gate
@@ -184,20 +213,39 @@ export default function useTourRouting(waypoints, travelModePreference, nextLeg 
         });
     }, [directionsService, directionsRendererOutline, directionsRendererInner, waypoints, routesLibrary, travelModePreference]);
 
+    // NAV-2 — il tratto verso la prossima tappa, se non l'abbiamo gia' (navigazione ripresa dopo una ricarica: l'anteprima non c'e' stata): se ne chiede UNO
+    useEffect(() => {
+        if (!directionsService || !routesLibrary || !progress || !Number.isInteger(progress.nextIdx) || progress.nextIdx < 1) return;
+        const da = progress.tappe?.[progress.nextIdx - 1], a = progress.tappe?.[progress.nextIdx];
+        if (!da || !a) return;
+        const chiave = chiaveTratto(da, a);
+        if (cacheTratti.current.has(chiave) || inVolo.current.has(chiave)) return;
+        inVolo.current.add(chiave);
+        const o = { lat: Number(da.lat ?? da.latitude), lng: Number(da.lng ?? da.longitude) };
+        const d = { lat: Number(a.lat ?? a.latitude), lng: Number(a.lng ?? a.longitude) };
+        directionsService.route({ origin: o, destination: d, travelMode: resolveTravelMode(routesLibrary, travelModePreference, o, d) }, (response, status) => {
+            inVolo.current.delete(chiave);
+            if (status !== 'OK' || !response?.routes?.[0]) return;
+            cacheTratti.current.set(chiave, (response.routes[0].legs?.[0]?.steps || []).flatMap(st => (Array.isArray(st?.path) ? st.path : [])));
+            setVersione(v => v + 1);
+        });
+    }, [directionsService, routesLibrary, progress, travelModePreference]);
+
     // NAV-2 — il percorso a tratti: fatto attenuato, verso la prossima tappa arancione, il resto neutro
     useEffect(() => {
         const Polyline = typeof window !== 'undefined' ? window.google?.maps?.Polyline : null;
-        if (!map || !Polyline || tratti.length === 0) return undefined;
+        if (!map || !Polyline) return undefined;
+        const lista = trattiDaDisegnare({ live: tratti, progress, cache: cacheTratti.current });
+        if (lista.length === 0) return undefined;
         const base = ROUTE_STYLES[modo] || ROUTE_STYLES.WALKING;
         const create = [];
-        tratti.forEach((path, i) => {
-            if (!path || path.length < 2) return;
-            const st = stileTratto(statoTratto(i, nextLeg), base);
+        for (const { path, stato } of lista) {
+            const st = stileTratto(stato, base);
             if (st.outer) create.push(new Polyline({ ...st.outer, path, map, clickable: false }));
             create.push(new Polyline({ ...st.inner, path, map, clickable: false }));
-        });
+        }
         return () => create.forEach(p => p.setMap(null));
-    }, [map, tratti, modo, nextLeg]);
+    }, [map, tratti, modo, progress, versione]);
 
     // L2-0: routeInfo INVARIATO (consumato da TourRoute → onRouteStats). directionsDataRef
     // AGGIUNTO (non ancora consumato — sarà la sorgente del trasporto in L2-1).

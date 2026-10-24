@@ -1,0 +1,96 @@
+{
+ "tag": "prima",
+ "base": "http://localhost:5188",
+ "fasi": {
+  "anteprima": {
+   "innerHeight": 664,
+   "visualViewportHeight": 664,
+   "radice": {
+    "top": 0,
+    "bottom": 664,
+    "height": 664
+   },
+   "cardAvvia": {
+    "top": 550,
+    "bottom": 640,
+    "height": 90
+   },
+   "pulsanteAvviaNav": null,
+   "bannerPosizione": true,
+   "linkEsterni": [],
+   "apriInMappe": false,
+   "barra": null
+  },
+  "pannelloMezzo": {
+   "innerHeight": 664,
+   "visualViewportHeight": 664,
+   "radice": {
+    "top": 0,
+    "bottom": 664,
+    "height": 664
+   },
+   "cardAvvia": null,
+   "pulsanteAvviaNav": {
+    "top": 583,
+    "bottom": 639,
+    "height": 56
+   },
+   "bannerPosizione": false,
+   "linkEsterni": [],
+   "apriInMappe": false,
+   "barra": null
+  },
+  "navigazione1": {
+   "innerHeight": 664,
+   "visualViewportHeight": 664,
+   "radice": {
+    "top": 0,
+    "bottom": 664,
+    "height": 664
+   },
+   "cardAvvia": null,
+   "pulsanteAvviaNav": {
+    "top": 1033,
+    "bottom": 1089,
+    "height": 56
+   },
+   "bannerPosizione": false,
+   "linkEsterni": [
+    "https://maps.google.com/maps?ll=37.50128,15.0872&z=18&t=m&hl=it-IT&gl=US&mapclient=apiv3",
+    "https://www.google.com/maps/@37.50128,15.0872,18z/data=!10m1!1e1!12b1?source=apiv3&rapsrc=apiv3",
+    "https://maps.apple.com/?daddr=37.5024087,15.0877191&dirflg=w"
+   ],
+   "apriInMappe": true,
+   "barra": "TAPPA 2/12"
+  },
+  "navigazione2": {
+   "innerHeight": 664,
+   "visualViewportHeight": 664,
+   "radice": {
+    "top": 0,
+    "bottom": 664,
+    "height": 664
+   },
+   "cardAvvia": null,
+   "pulsanteAvviaNav": {
+    "top": 1033,
+    "bottom": 1089,
+    "height": 56
+   },
+   "bannerPosizione": false,
+   "linkEsterni": [
+    "https://maps.google.com/maps?ll=37.50238,15.08745&z=18&t=m&hl=it-IT&gl=US&mapclient=apiv3",
+    "https://www.google.com/maps/@37.50238,15.08745,18z/data=!10m1!1e1!12b1?source=apiv3&rapsrc=apiv3",
+    "https://maps.apple.com/?daddr=37.502516899999996,15.087099600000002&dirflg=w"
+   ],
+   "apriInMappe": true,
+   "barra": "TAPPA 3/12"
+  }
+ },
+ "tappe": 12,
+ "erroriPagina": [
+  "/ahecpiwsdhghkndncejb.supabase.co/rest/v1/nav_events due to access control checks.",
+  "/ahecpiwsdhghkndncejb.supabase.co/rest/v1/nav_events due to access control checks.",
+  "/ahecpiwsdhghkndncejb.supabase.co/rest/v1/dna_events?columns=%22kind%22%2C%22category%22%2C%22city%22%2C%22value%22%2C%22moment%22%2C%22tour_id%22%2C%22user_id%22 due to access control checks."
+ ]
+}

@@ -13,10 +13,14 @@ import { salvaGiro, giroDaSalvare } from '../lib/giriSalvati';
 export default function SalvaGiro({ tour, sorgente = 'altro', className = '' }) {
     const user = useAuth()?.user ?? null;
     const { toast } = useToast();
-    const [stato, setStato] = useState('pronto'); // pronto | salvo | salvato
+    const [statoGrezzo, setStato] = useState('pronto'); // pronto | salvo | salvato
+    const [idSalvato, setIdSalvato] = useState(null);
 
     // Un giro senza titolo o senza tappe non si salva: il tasto non compare.
-    if (!giroDaSalvare(tour, sorgente)) return null;
+    const riga = giroDaSalvare(tour, sorgente);
+    if (!riga) return null;
+    // GIRI-SALVATI — «Salvato» vale per QUESTO giro: dopo «Togli» o «Cambia» il giro e' un altro e si puo' salvare di nuovo.
+    const stato = statoGrezzo === 'salvato' && idSalvato !== riga.tour_id ? 'pronto' : statoGrezzo;
 
     const salva = async () => {
         if (stato !== 'pronto') return;
@@ -31,6 +35,7 @@ export default function SalvaGiro({ tour, sorgente = 'altro', className = '' }) 
             toast({ title: 'Non sono riuscito a salvare il giro. Riprova tra poco.', type: 'warning' });
             return;
         }
+        setIdSalvato(riga.tour_id);
         setStato('salvato');
         toast({ title: r.giaSalvato ? 'Questo giro era già nel tuo Profilo.' : 'Giro salvato nel tuo Profilo.', type: 'success' });
     };

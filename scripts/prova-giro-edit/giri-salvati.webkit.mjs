@@ -13,18 +13,26 @@ const env = { ...leggi('.env'), ...leggi('.env.local') };
 const CATANIA = { latitude: 37.5023612, longitude: 15.0873718 };
 const [, , uscita] = process.argv;
 const browser = await webkit.launch();
-const esito = { fasi: {}, richiesteDopoSalvataggio: { openai: 0, places: 0, altre: [] }, console: [] };
+const esito = { fasi: {}, richiesteDopoSalvataggio: { openai: 0, places: 0, altre: [] }, richiesteRiapertura: { openai: 0, places: 0, geminiOAltre: 0 }, console: [] };
+let contaRiapertura = false;
 const righe = async (page) => {
     const carte = page.locator('[data-stop-card]'); const n = await carte.count(); const out = [];
     for (let i = 0; i < n; i++) { const c = carte.nth(i); const libero = (await c.getAttribute('data-free-time')) !== null; out.push({ libero, righe: (await c.innerText()).split('\n').map(x => x.trim()).filter(Boolean).slice(0, 3) }); }
     return out;
 };
-const chiave = (tappe) => tappe.filter(t => !t.libero).map(t => `${t.righe[0]}|${t.righe[1]}`);
+// una tappa = l'orario e il nome, comunque la scheda li stampi (nel riepilogo c'e' anche il numero davanti)
+const chiave = (tappe) => tappe.filter(t => !t.libero).map(t => `${t.righe.find(x => /^\d{1,2}:\d{2}$/.test(x)) ?? '?'}|${t.righe.find(x => !/^\d+$/.test(x) && !/^\d{1,2}:\d{2}$/.test(x))}`);
+const liberi = (tappe) => tappe.filter(t => t.libero).map(t => t.righe.join(' '));
 try {
     const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'it-IT', timezoneId: 'Europe/Rome', geolocation: CATANIA, permissions: ['geolocation'] });
     const page = await ctx.newPage();
     let contaDopo = false;
     page.on('request', (r) => {
+        if (contaRiapertura) {
+            const u = r.url();
+            if (u.includes('/functions/v1/openai-proxy')) esito.richiesteRiapertura.openai += 1;
+            else if (u.includes('/functions/v1/places-proxy')) esito.richiesteRiapertura.places += 1;
+        }
         if (!contaDopo) return;
         const u = r.url();
         if (u.includes('/functions/v1/openai-proxy')) esito.richiesteDopoSalvataggio.openai += 1;
@@ -70,7 +78,10 @@ try {
     if (stato === 'true') { esito.fasi.nota = 'il tasto resta «Salvato» dopo Togli: il giro modificato non si ri-salva da questa scheda'; }
     else {
         await page.getByTestId('salva-giro').first().click();
-        await page.getByText(/Giro salvato nel tuo Profilo|era già nel tuo Profilo/).first().waitFor({ timeout: 15000 });
+        // si aspetta la SECONDA scrittura sul server (non il messaggio, che del primo salvataggio puo' essere ancora a schermo)
+        await page.waitForFunction(() => true);
+        for (let k = 0; k < 30 && esito.console.filter(x => x.startsWith('POST saved_tours')).length < 2; k++) await page.waitForTimeout(500);
+        esito.fasi.postSalvataggi = esito.console.filter(x => x.startsWith('POST saved_tours'));
     }
     esito.fasi.salvatoModificato = chiave(esito.fasi.modificato);
     // 3) Profilo › Mete › giri salvati
@@ -81,10 +92,12 @@ try {
     esito.fasi.carteProfilo = await page.getByTestId('giro-salvato').allInnerTexts();
     await page.screenshot({ path: 'docs/prove/schermate/2026-10-24-giri-salvati-profilo.png', fullPage: true });
     // la prima card e' il giro piu' recente (il modificato, o l'originale se il tasto non ha ri-salvato)
+    contaRiapertura = true; // dal tocco sulla card in poi: ogni richiesta ad AI o Google e' una generazione (non deve esserci)
     await page.getByTestId('giro-salvato-apri').first().click();
     await page.getByText('Vedi mappa').first().waitFor({ timeout: 15000 });
     await page.waitForTimeout(1500);
     esito.fasi.riapertoPiuRecente = await righe(page);
+    contaRiapertura = false;
     esito.fasi.vedeMappa = await page.getByText('Vedi mappa').count();
     await page.screenshot({ path: 'docs/prove/schermate/2026-10-24-giri-salvati-riaperto.png' });
     // «Vedi mappa» porta alla mappa col giro
@@ -94,10 +107,12 @@ try {
     esito.fasi.urlDopoVediMappa = new URL(page.url()).pathname;
     esito.fasi.confronto = {
         riapertoUgualeAlModificato: JSON.stringify(chiave(esito.fasi.riapertoPiuRecente)) === JSON.stringify(esito.fasi.salvatoModificato),
+        tempoLiberoUguale: JSON.stringify(liberi(esito.fasi.riapertoPiuRecente)) === JSON.stringify(liberi(esito.fasi.modificato)),
+        tappeModificato: esito.fasi.salvatoModificato.length, tappeRiaperto: chiave(esito.fasi.riapertoPiuRecente).length,
     };
     await ctx.close();
 } finally {
     await browser.close();
     if (uscita) fs.writeFileSync(uscita, JSON.stringify(esito, null, 1));
 }
-console.log(JSON.stringify({ confronto: esito.fasi.confronto, dopoSalvataggio: esito.richiesteDopoSalvataggio, vedeMappa: esito.fasi.vedeMappa, url: esito.fasi.urlDopoVediMappa, nota: esito.fasi.nota }));
+console.log(JSON.stringify({ confronto: esito.fasi.confronto, riapertura: esito.richiesteRiapertura, dopoSalvataggio: esito.richiesteDopoSalvataggio, vedeMappa: esito.fasi.vedeMappa, url: esito.fasi.urlDopoVediMappa, nota: esito.fasi.nota }));

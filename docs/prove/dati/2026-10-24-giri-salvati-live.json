@@ -1,0 +1,394 @@
+{
+ "fasi": {
+  "generato": [
+   {
+    "libero": false,
+    "righe": [
+     "09:30",
+     "Caffè Puglisi",
+     "4.7"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "10:01",
+     "Basilica Cattedrale di Sant'Agata",
+     "4.7"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "10:22",
+     "Fontana dell'Elefante (uʻ Liotru)",
+     "4.7"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "10:56",
+     "Teatro Antico greco-romano di Catania",
+     "4.5"
+    ]
+   },
+   {
+    "libero": true,
+    "righe": [
+     "Tempo libero",
+     "11:26–12:21",
+     "Niente in agenda: cammina dove ti porta la strada."
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "12:30",
+     "Trattoria L’imperiale",
+     "4.8"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "14:30",
+     "Giardino Bellini - Villa Bellini",
+     "4.4"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "15:06",
+     "Via Etnea",
+     "4.7"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "15:43",
+     "Fontana dell’Amenano",
+     "4.6"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "16:14",
+     "Piazza Umbrella",
+     "4.4"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "16:48",
+     "Castello Ursino",
+     "4.3"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "18:00",
+     "Bar Popolare",
+     "4.9"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "18:48",
+     "Porta Uzeda",
+     "4.5"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "20:00",
+     "La Quartara",
+     "4.4"
+    ]
+   }
+  ],
+  "salvatoOriginale": [
+   "09:30|Caffè Puglisi",
+   "10:01|Basilica Cattedrale di Sant'Agata",
+   "10:22|Fontana dell'Elefante (uʻ Liotru)",
+   "10:56|Teatro Antico greco-romano di Catania",
+   "12:30|Trattoria L’imperiale",
+   "14:30|Giardino Bellini - Villa Bellini",
+   "15:06|Via Etnea",
+   "15:43|Fontana dell’Amenano",
+   "16:14|Piazza Umbrella",
+   "16:48|Castello Ursino",
+   "18:00|Bar Popolare",
+   "18:48|Porta Uzeda",
+   "20:00|La Quartara"
+  ],
+  "modificato": [
+   {
+    "libero": false,
+    "righe": [
+     "09:30",
+     "Caffè Puglisi",
+     "4.7"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "10:01",
+     "Basilica Cattedrale di Sant'Agata",
+     "4.7"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "10:26",
+     "Teatro Antico greco-romano di Catania",
+     "4.5"
+    ]
+   },
+   {
+    "libero": true,
+    "righe": [
+     "Tempo libero",
+     "10:56–12:21",
+     "Niente in agenda: cammina dove ti porta la strada."
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "12:30",
+     "Trattoria L’imperiale",
+     "4.8"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "14:30",
+     "Giardino Bellini - Villa Bellini",
+     "4.4"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "15:06",
+     "Via Etnea",
+     "4.7"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "15:43",
+     "Fontana dell’Amenano",
+     "4.6"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "16:14",
+     "Piazza Umbrella",
+     "4.4"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "16:48",
+     "Castello Ursino",
+     "4.3"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "18:00",
+     "Bar Popolare",
+     "4.9"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "18:48",
+     "Porta Uzeda",
+     "4.5"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "20:00",
+     "La Quartara",
+     "4.4"
+    ]
+   }
+  ],
+  "tastoDopoTogli": "false",
+  "postSalvataggi": [
+   "POST saved_tours → 201",
+   "POST saved_tours → 201"
+  ],
+  "salvatoModificato": [
+   "09:30|Caffè Puglisi",
+   "10:01|Basilica Cattedrale di Sant'Agata",
+   "10:26|Teatro Antico greco-romano di Catania",
+   "12:30|Trattoria L’imperiale",
+   "14:30|Giardino Bellini - Villa Bellini",
+   "15:06|Via Etnea",
+   "15:43|Fontana dell’Amenano",
+   "16:14|Piazza Umbrella",
+   "16:48|Castello Ursino",
+   "18:00|Bar Popolare",
+   "18:48|Porta Uzeda",
+   "20:00|La Quartara"
+  ],
+  "carteProfilo": [
+   "Caffè e Storia di Catania\n\nCatania • 12 tappe • 24 ott 2026",
+   "Caffè e Storia di Catania\n\nCatania • 13 tappe • 24 ott 2026",
+   "Caffè e Storia di Catania\n\nCatania • 12 tappe • 24 ott 2026",
+   "Caffè e Storia di Catania\n\nCatania • 13 tappe • 24 ott 2026",
+   "Caffè e storia di Catania\n\nCatania • 11 tappe • 24 ott 2026",
+   "Tour di Catania\n\nCatania • 4 tappe • 23 ott 2026"
+  ],
+  "riapertoPiuRecente": [
+   {
+    "libero": false,
+    "righe": [
+     "1",
+     "Caffè Puglisi",
+     "09:30"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "2",
+     "Basilica Cattedrale di Sant'Agata",
+     "10:01"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "3",
+     "Teatro Antico greco-romano di Catania",
+     "10:26"
+    ]
+   },
+   {
+    "libero": true,
+    "righe": [
+     "Tempo libero",
+     "10:56–12:21",
+     "Niente in agenda: cammina dove ti porta la strada."
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "4",
+     "Trattoria L’imperiale",
+     "12:30"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "5",
+     "Giardino Bellini - Villa Bellini",
+     "14:30"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "6",
+     "Via Etnea",
+     "15:06"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "7",
+     "Fontana dell’Amenano",
+     "15:43"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "8",
+     "Piazza Umbrella",
+     "16:14"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "9",
+     "Castello Ursino",
+     "16:48"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "10",
+     "Bar Popolare",
+     "18:00"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "11",
+     "Porta Uzeda",
+     "18:48"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "12",
+     "La Quartara",
+     "20:00"
+    ]
+   }
+  ],
+  "vedeMappa": 1,
+  "urlDopoVediMappa": "/map",
+  "confronto": {
+   "riapertoUgualeAlModificato": true,
+   "tempoLiberoUguale": true,
+   "tappeModificato": 12,
+   "tappeRiaperto": 12
+  }
+ },
+ "richiesteDopoSalvataggio": {
+  "openai": 0,
+  "places": 0,
+  "altre": []
+ },
+ "richiesteRiapertura": {
+  "openai": 0,
+  "places": 0,
+  "geminiOAltre": 0
+ },
+ "console": [
+  "POST saved_tours → 201",
+  "POST saved_tours → 201"
+ ]
+}

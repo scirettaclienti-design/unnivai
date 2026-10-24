@@ -1,0 +1,72 @@
+{
+ "tag": "live",
+ "base": "https://unnivai.vercel.app",
+ "richieste": {
+  "places": {
+   "findplacefromtext": 2,
+   "textsearch": 7
+  },
+  "miss": {
+   "findplacefromtext": 2,
+   "textsearch": 6
+  }
+ },
+ "scheda": [
+  "08:30 | Caffè Puglisi",
+  "08:56 | Castello Ursino",
+  "10:00 | Piazza Umbrella",
+  "10:32 | Fontana dell'Elefante (uʻ Liotru)",
+  "11:03 | Basilica Cattedrale di Sant'Agata",
+  "12:30 | Osteria Antica Marina",
+  "14:30 | Porta Uzeda",
+  "15:01 | Fontana dell’Amenano",
+  "15:35 | Via Crociferi",
+  "16:08 | Teatro Antico greco-romano di Catania",
+  "16:39 | Maravigghia Gelateria Siciliana",
+  "18:00 | Deliziosa Café & Cocktail Bar",
+  "18:51 | Via Etnea",
+  "20:00 | La Pentolaccia"
+ ],
+ "anteprima": {
+  "innerHeight": 664,
+  "visibile": 664,
+  "cardAvvia": {
+   "top": 550,
+   "bottom": 640
+  },
+  "pulsanteNav": null,
+  "banner": false,
+  "apriInMappe": false,
+  "linkEsterni": [],
+  "barra": null
+ },
+ "pannelloMezzo": {
+  "innerHeight": 664,
+  "visibile": 664,
+  "cardAvvia": null,
+  "pulsanteNav": {
+   "top": 583,
+   "bottom": 639
+  },
+  "banner": false,
+  "apriInMappe": false,
+  "linkEsterni": [],
+  "barra": null
+ },
+ "tappe": 14,
+ "kmGiro": 2.67,
+ "navigazione": {
+  "innerHeight": 664,
+  "visibile": 664,
+  "cardAvvia": null,
+  "pulsanteNav": {
+   "top": 1033,
+   "bottom": 1089
+  },
+  "banner": false,
+  "apriInMappe": false,
+  "linkEsterni": [],
+  "barra": "TAPPA 3/14"
+ },
+ "costoGoogleMissUsd": 0.226
+}

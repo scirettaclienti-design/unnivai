@@ -90,7 +90,7 @@ try {
     await page.getByText('Mete', { exact: true }).first().click();
     await page.getByTestId('giro-salvato-apri').first().waitFor({ timeout: 20000 });
     esito.fasi.carteProfilo = await page.getByTestId('giro-salvato').allInnerTexts();
-    await page.screenshot({ path: 'docs/prove/schermate/2026-10-24-giri-salvati-profilo.png', fullPage: true });
+    await page.screenshot({ path: `docs/prove/schermate/${process.env.PROVA_SCHERMATE || '2026-10-24-giri-salvati'}-profilo.png`, fullPage: true });
     // la prima card e' il giro piu' recente (il modificato, o l'originale se il tasto non ha ri-salvato)
     contaRiapertura = true; // dal tocco sulla card in poi: ogni richiesta ad AI o Google e' una generazione (non deve esserci)
     await page.getByTestId('giro-salvato-apri').first().click();
@@ -99,7 +99,7 @@ try {
     esito.fasi.riapertoPiuRecente = await righe(page);
     contaRiapertura = false;
     esito.fasi.vedeMappa = await page.getByText('Vedi mappa').count();
-    await page.screenshot({ path: 'docs/prove/schermate/2026-10-24-giri-salvati-riaperto.png' });
+    await page.screenshot({ path: `docs/prove/schermate/${process.env.PROVA_SCHERMATE || '2026-10-24-giri-salvati'}-riaperto.png` });
     // «Vedi mappa» porta alla mappa col giro
     await page.getByText('Vedi mappa').first().click();
     await page.waitForURL(u => u.pathname.startsWith('/map'), { timeout: 15000 }).catch(() => {});

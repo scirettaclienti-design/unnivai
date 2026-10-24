@@ -435,3 +435,53 @@ export function formatOffsetLabel(minutes) {
     if (m === 0) return `+${h}h`;
     return `+${h}h ${m}`;
 }
+
+// ─── DURATE CON L'ETICHETTA (DURATE-ETICHETTE) ──────────────────────────────────────────────────────────────────────
+// Ovunque compaia una durata del giro dice COSA misura. «Giornata 9:30–21:15» e' la durata complessiva (dal primo arrivo alla fine
+// dell'ultima sosta: lo stesso conto di `tourSpanMinutes`); «1h 33 a piedi · 6,9 km» e' il cammino (i numeri di Directions). Mai due
+// numeri senza etichetta. Solo presentazione: nessun calcolo nuovo.
+const orarioRoma = (iso) => {
+    const p = new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: 'numeric', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(iso));
+    const h = p.find(x => x.type === 'hour')?.value, m = p.find(x => x.type === 'minute')?.value;
+    return h != null && m != null ? `${Number(h)}:${m}` : null;
+};
+/** Soglia oltre la quale il giro e' una «Giornata» (6 ore); sotto e' un «Giro». */
+export const GIORNATA_MINUTI = 360;
+/**
+ * La fascia del giro sull'orologio: `{ da: '9:30', a: '21:15', minuti, nome: 'Giornata' | 'Giro', testo: 'Giornata 9:30–21:15' }`, o null se le tappe
+ * non hanno gli orari (stesse condizioni di `tourSpanMinutes`).
+ */
+export function fasciaDelGiro(stops) {
+    const minuti = tourSpanMinutes(stops);
+    if (!Number.isFinite(minuti) || minuti <= 0) return null;
+    const first = stops[0], last = stops[stops.length - 1];
+    const da = orarioRoma(first.scheduledTime);
+    const a = orarioRoma(new Date(new Date(last.scheduledTime).getTime() + last.stayMinutes * 60000).toISOString());
+    if (!da || !a) return null;
+    const nome = minuti >= GIORNATA_MINUTI ? 'Giornata' : 'Giro';
+    return { da, a, minuti, nome, testo: `${nome} ${da}–${a}` };
+}
+/** «Giornata 9:30–21:15», o null senza orari. */
+export const etichettaGiornata = (stops) => fasciaDelGiro(stops)?.testo ?? null;
+
+/** Minuti nella forma del cammino: «45 min», «1h 33», «2h». */
+export function minutiBrevi(min) {
+    const m = Math.round(Number(min));
+    if (!Number.isFinite(m) || m <= 0) return null;
+    if (m < 60) return `${m} min`;
+    const h = Math.floor(m / 60), r = m % 60;
+    return r === 0 ? `${h}h` : `${h}h ${r}`;
+}
+const MEZZO = { walking: 'a piedi', bicycling: 'in bici', driving: 'in auto', transit: 'con i mezzi' };
+/** «6,9 km» (dal chilometro in su, con la virgola) o «850 m». */
+export function distanzaBreve(metri) {
+    const d = Number(metri);
+    if (!Number.isFinite(d) || d <= 0) return null;
+    return d >= 1000 ? `${(d / 1000).toFixed(1).replace('.', ',')} km` : `${Math.round(d)} m`;
+}
+/** «1h 33 a piedi · 6,9 km»: il cammino (o il percorso col mezzo scelto). Senza durata, null. */
+export function etichettaCammino({ durationMin, distanceM, mode = 'walking' } = {}) {
+    const t = minutiBrevi(durationMin);
+    if (!t) return null;
+    return [`${t} ${MEZZO[mode] || MEZZO.walking}`, distanzaBreve(distanceM)].filter(Boolean).join(' · ');
+}

@@ -39,7 +39,7 @@ import { creaSchermoAcceso } from '../lib/wakeLock';
 import { NAV_TESTI, avvisoNavigazione } from '../lib/navMessaggi';
 import { prossimaSvolta, rigaTappa, percheAdesso, testoRacconto, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo } from '../lib/navGuida';
 import { typeLabelOf } from '../lib/italianLabels';
-import { travelMinutes } from '../lib/tourTiming';
+import { travelMinutes, etichettaCammino, etichettaGiornata } from '../lib/tourTiming';
 import { ArrivoTappa, SchedaTappa, FineGiro, RitoArrivo, FiloDelGiorno } from '../components/Nav/GuidaSchede';
 import { inclinazioneNav } from '../lib/mapId';
 import { romeParts } from '../lib/tourWindow';
@@ -2044,11 +2044,8 @@ const MapPage = () => {
                                             <div className="bg-obsidian-raised p-4 rounded-xl border border-obsidian-border flex flex-col gap-0.5">
                                                 <h4 className="font-bold text-obsidian-primary text-sm">Percorso Consigliato</h4>
                                                 {routeStats && !routeStats.error && routeStats.durationSec > 0 ? (
-                                                    <div className="mt-1 flex items-baseline gap-2">
-                                                        <span className="text-2xl font-black text-brand-orange">{Math.round(routeStats.durationSec / 60)} min</span>
-                                                        <span className="text-sm font-semibold text-obsidian-secondary">
-                                                            ({routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m'})
-                                                        </span>
+                                                    <div className="mt-1" data-testid="percorso-cammino">
+                                                        <span className="text-2xl font-black text-brand-orange">{etichettaCammino({ durationMin: routeStats.durationSec / 60, distanceM: routeStats.distanceM, mode: pageTransportMode })}</span>
                                                     </div>
                                                 ) : routeStats?.error ? (
                                                     <p className="mt-1 text-sm text-status-warning font-medium">Percorso non disponibile per questo mezzo</p>
@@ -2118,12 +2115,16 @@ const MapPage = () => {
                             <h3 className="font-bold text-obsidian-primary text-lg leading-tight truncate">{tourData?.title || 'Il tuo Itinerario'}</h3>
                             <p className="text-xs text-obsidian-secondary flex items-center gap-1 mt-1 font-medium flex-wrap">
                                 <Clock size={12} className="text-brand-orange" />
-                                {routeStats && !routeStats.error && routeStats.durationSec > 0
-                                    ? `${Math.round(routeStats.durationSec / 60)} min · ${routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m'} · `
-                                    : routeStats?.error ? 'Percorso non calcolato · '
-                                    : (tourData?.duration ? `${tourData.duration} · ` : '')
-                                }
-                                {activeRoute.length} Tappe
+                                <span data-testid="avvia-etichette">
+                                {/* DURATE-ETICHETTE — ogni numero dice cosa misura: la giornata sull'orologio, il cammino, le tappe */}
+                                {[
+                                    etichettaGiornata(tourData?.steps || tourData?.stops) || (tourData?.duration ? `Durata ${tourData.duration}` : null),
+                                    routeStats && !routeStats.error && routeStats.durationSec > 0
+                                        ? etichettaCammino({ durationMin: routeStats.durationSec / 60, distanceM: routeStats.distanceM, mode: pageTransportMode })
+                                        : routeStats?.error ? 'Percorso non calcolato' : null,
+                                    `${activeRoute.length} tappe`,
+                                ].filter(Boolean).join(' · ')}
+                                </span>
                                 {businessPartners.length > 0 && (
                                     <span className="ml-1 text-brand-orange font-semibold flex items-center gap-0.5">
                                         <Store size={10} /> {businessPartners.length} partner

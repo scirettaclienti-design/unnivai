@@ -1,4 +1,4 @@
-import { displayedTourMinutes, formatEstimate } from "@/lib/tourTiming";
+import { displayedTourMinutes, formatEstimate, fasciaDelGiro } from "@/lib/tourTiming";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { MapPin, Star, ArrowLeft, Sparkles, Gift, ArrowRight, AlertCircle, Compass } from "lucide-react";
@@ -437,7 +437,10 @@ export default function SurpriseTourPage() {
         const mappedTour = generatedTour;
         const mainImage = mappedTour.imageUrl || mappedTour.image || null;
         const moodPalette = getCoverPalette(selectedFilter?.toLowerCase() || 'sorpresa', null);
-        const durationLabel = formatEstimate(mappedTour.duration_minutes);
+        // DURATE-ETICHETTE — «Giornata 9:30–21:15» sull'orologio; senza orari «Durata circa 3h»
+        const fascia = fasciaDelGiro(mappedTour.stops || mappedTour.steps);
+        const durationLabel = fascia ? `${fascia.da}–${fascia.a}` : formatEstimate(mappedTour.duration_minutes);
+        const durationEtichetta = fascia ? fascia.nome : 'Durata';
 
         return (
             <div className="min-h-screen bg-obsidian-bg font-quicksand text-obsidian-primary flex flex-col justify-between">
@@ -504,8 +507,8 @@ export default function SurpriseTourPage() {
                                     <>
                                         <div className="w-px h-10 bg-obsidian-border" />
                                         <div className="text-center">
-                                            <p className="text-3xl font-black text-obsidian-primary">{durationLabel}</p>
-                                            <p className="text-xs text-obsidian-secondary font-bold uppercase tracking-widest mt-0.5">Durata</p>
+                                            <p data-testid="durata-valore" className={`${fascia ? 'text-2xl' : 'text-3xl'} font-black text-obsidian-primary`}>{durationLabel}</p>
+                                            <p data-testid="durata-etichetta" className="text-xs text-obsidian-secondary font-bold uppercase tracking-widest mt-0.5">{durationEtichetta}</p>
                                         </div>
                                     </>
                                 )}

@@ -32,7 +32,7 @@ const experiencesErrorText = (err) => {
     return MESSAGGIO_TECNICO;
 };
 import { normalizeTour } from '@/services/tourShape';
-import { displayedTourMinutes, formatEstimate } from '@/lib/tourTiming';
+import { displayedTourMinutes, formatEstimate, etichettaGiornata } from '@/lib/tourTiming';
 import { resolveCityCenter, CityCenterUnresolvedError } from '@/services/cityCenterService';
 import TourCover from '@/components/TourCover';
 // 🧠 AI-POWERED EXPERIENCE GENERATOR (REAL POI DISCOVERY)
@@ -346,7 +346,7 @@ const DashboardUser = () => {
                         title: tour.title,
                         location: `${currentCity}, ${isInsider ? 'Tour AI Insider' : 'Esperienza Locale'}`,
                         // Gate O.2: nessun rating/reviews/price tour-level.
-                        duration: formatEstimate(durationMin),
+                        duration: etichettaGiornata(tour.stops) || (formatEstimate(durationMin) ? `Durata ${formatEstimate(durationMin)}` : null),
                         image: firstStop?.googlePhoto || null,
                         category,
                         emoji,

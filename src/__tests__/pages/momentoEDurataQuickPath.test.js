@@ -75,7 +75,7 @@ const stop = (title, hhmm, extra = {}) => ({
 });
 
 const statDurata = (container) => {
-    const label = [...container.querySelectorAll('p')].find(p => p.textContent === 'Durata');
+    const label = [...container.querySelectorAll('p')].find(p => ['Durata', 'Giro', 'Giornata'].includes(p.textContent));
     return label ? label.previousElementSibling.textContent : null;
 };
 
@@ -113,13 +113,13 @@ describe('QuickPathSummary — il campo moment vince sull\'orario', () => {
 });
 
 describe('QuickPathSummary — durata dalla prima tappa alla fine dell\'ultima', () => {
-    it('10:00 → 11:40 + sosta 30 = 12:10 → "circa 2h 10min", anche se duration_minutes dice altro', () => {
+    it('10:00 → 11:40 + sosta 30 = 12:10 → «Giro 10:00–12:10» (DURATE-ETICHETTE), anche se duration_minutes dice altro', () => {
         const tourData = normalizeTour({
             id: 'q', title: 'Roma', city: 'Roma', duration_minutes: 90,
             stops: [stop('A', '10:00'), stop('B', '11:40')],
         });
         const { container } = render(createElement(QuickPathSummary, { tourData, choices: {} }));
-        expect(statDurata(container)).toBe('circa 2h 10min');
+        expect(statDurata(container)).toBe('10:00–12:10'); // la stessa durata di prima (2h 10), detta sull'orologio e con l'etichetta «Giro»
     });
 });
 

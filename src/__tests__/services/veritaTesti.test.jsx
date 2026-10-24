@@ -39,11 +39,11 @@ describe('punto 4 — la durata è una sola', () => {
         { title: 'A', scheduledTime: new Date(t0).toISOString(), stayMinutes: 30 },
         { title: 'B', scheduledTime: new Date(t0 + 120 * 60000).toISOString(), stayMinutes: 90 },
     ];
-    it('il riepilogo scrive la stessa stringa dell’intestazione (formatEstimate sulle stesse tappe)', () => {
-        const attesa = formatEstimate(displayedTourMinutes(steps));
-        expect(attesa).toBe('circa 3h 30min');
+    it('il riepilogo scrive la stessa durata dell’intestazione: stesso conto (3h 30), detto con l\'etichetta (DURATE-ETICHETTE)', () => {
+        expect(formatEstimate(displayedTourMinutes(steps))).toBe('circa 3h 30min'); // il conto non cambia
         render(<QuickPathSummary tourData={{ title: 'Giro', city: 'Catania', steps, duration_minutes: 999 }} choices={{}} onViewMap={() => {}} onHome={() => {}} />);
-        expect(screen.getByText(attesa)).toBeInTheDocument();
+        expect(screen.getByTestId('durata-etichetta').textContent).toBe('Giro');
+        expect(screen.getByTestId('durata-valore').textContent).toBe('9:30–13:00');
         expect(screen.queryByText('3h 30m')).toBeNull();
     });
 });

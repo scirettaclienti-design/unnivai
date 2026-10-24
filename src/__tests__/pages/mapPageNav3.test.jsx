@@ -106,6 +106,25 @@ const arriva = (n) => {
     passo([s.lat, s.lng]); passo([s.lat, s.lng]);
 };
 
+describe('DURATE-ETICHETTE — la card prima di «Avvia» dice cosa misura ogni numero', () => {
+    // 13 tappe, 27/10/2026 dalle 9:30 (ora solare): la giornata finisce alle 21:15
+    const ORE13 = ['09:30', '10:05', '10:40', '11:20', '12:30', '14:30', '15:10', '15:50', '16:40', '18:00', '18:50', '19:40', '20:45'];
+    const GIRO13 = {
+        ...CATANIA, id: 'tour-13',
+        steps: ORE13.map((o, i) => ({ ...CATANIA.steps[i % 3], id: `t${i}`, title: `Tappa ${i + 1}`, lat: 37.5 + i / 1000, lng: 15.08 + i / 2000, scheduledTime: new Date(`2026-10-27T${o}:00+01:00`).toISOString(), stayMinutes: i === 12 ? 30 : 25 })),
+    };
+    it('«Giornata 9:30–21:15 · 1h 33 a piedi · 6,9 km · 13 tappe»', () => {
+        monta(GIRO13);
+        act(() => { h.mappa?.onRouteStats?.({ durationSec: 93 * 60, distanceM: 6900 }); });
+        const t = screen.getByTestId('avvia-etichette').textContent;
+        expect(t).toBe('Giornata 9:30–21:15 · 1h 33 a piedi · 6,9 km · 13 tappe');
+    });
+    it('senza il percorso calcolato non c\'e\' nessun numero di cammino: solo la giornata e le tappe', () => {
+        monta(GIRO13);
+        expect(screen.getByTestId('avvia-etichette').textContent).toBe('Giornata 9:30–21:15 · 13 tappe');
+    });
+});
+
 describe('il filo del giorno non copre il tasto indietro', () => {
     it('in navigazione il tasto indietro ha la sua riga sopra il HUD e il HUD parte sotto di lui', () => {
         monta(CATANIA);

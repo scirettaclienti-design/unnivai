@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { MapPin, Navigation, ArrowRight, Sparkles, Home } from 'lucide-react';
 import { getCoverPalette } from '@/lib/categoryPalette';
 import { TourStopsByMoment, TopFadeScroll } from '@/components/TourStopsByMoment';
-import { displayedTourMinutes, formatEstimate } from '@/lib/tourTiming';
+import { displayedTourMinutes, formatEstimate, fasciaDelGiro } from '@/lib/tourTiming';
 import { sceltaConfermata } from '@/lib/quizRiquadro';
 import SalvaGiro from '@/components/SalvaGiro';
 import DnaDelGiro from '@/components/DnaDelGiro';
@@ -16,7 +16,10 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modific
     // (prima tappa → fine dell'ultima). Senza orari, duration_minutes: la
     // durata del motore che QuickPath legge da tourWindow.js.
     // BORGO-SCHERMO — la stessa durata di tutte le schermate (displayedTourMinutes); la durata del motore solo senza tappe.
-    const durationLabel = formatEstimate(displayedTourMinutes(tourData.steps, tourData.duration_minutes));
+    // DURATE-ETICHETTE — la durata dice cosa misura: «Giornata 9:30–21:15» (sull'orologio) o, senza orari, «Durata circa 3h»
+    const fascia = fasciaDelGiro(tourData.steps);
+    const durationLabel = fascia ? `${fascia.da}–${fascia.a}` : formatEstimate(displayedTourMinutes(tourData.steps, tourData.duration_minutes));
+    const durationEtichetta = fascia ? fascia.nome : 'Durata';
     // BORGO-SCHERMO — la scelta (mood e ispirazione) si mostra solo se almeno una tappa e' di quella famiglia: a Troina alle 23
     // il riquadro diceva «Natura / Parchi e Verde» sopra un bar e una via.
     const sceltaMostrata = sceltaConfermata({ main: choices?.mainId, steps: tourData.steps });
@@ -95,8 +98,8 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modific
                             <>
                                 <div className="w-px h-10 bg-obsidian-border" />
                                 <div className="text-center">
-                                    <p className="text-3xl font-black text-obsidian-primary">{durationLabel}</p>
-                                    <p className="text-xs text-obsidian-secondary font-bold uppercase tracking-widest mt-0.5">Durata</p>
+                                    <p data-testid="durata-valore" className={`${fascia ? 'text-2xl' : 'text-3xl'} font-black text-obsidian-primary`}>{durationLabel}</p>
+                                    <p data-testid="durata-etichetta" className="text-xs text-obsidian-secondary font-bold uppercase tracking-widest mt-0.5">{durationEtichetta}</p>
                                 </div>
                             </>
                         )}

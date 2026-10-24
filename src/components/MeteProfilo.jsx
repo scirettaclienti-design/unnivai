@@ -6,6 +6,7 @@
 
 import { MapPin, Bookmark, X } from 'lucide-react';
 import { testoTappe, ETICHETTE_CATEGORIA } from '../lib/dnaProfilo';
+import { etichettaGiornata } from '../lib/tourTiming';
 
 const dataBreve = (iso) => {
     const d = new Date(iso);
@@ -60,7 +61,7 @@ export default function MeteProfilo({ mete = [], giriSalvati = [], onRimuovi, on
                                     className="min-w-0 flex-1 text-left cursor-pointer disabled:cursor-default">
                                     <p className="text-sm font-bold text-obsidian-primary truncate">{g.title}</p>
                                     <p className="text-xs text-obsidian-secondary">
-                                        {[g.city, `${Array.isArray(g.stops) ? g.stops.filter(s => !s?.tempoLibero).length : 0} tappe`, dataBreve(g.created_at)].filter(Boolean).join(' • ')}
+                                        {[g.city, `${Array.isArray(g.stops) ? g.stops.filter(s => !s?.tempoLibero).length : 0} tappe`, Array.isArray(g.stops) ? etichettaGiornata(g.stops.filter(s => !s?.tempoLibero)) : null, dataBreve(g.created_at)].filter(Boolean).join(' • ')}
                                     </p>
                                 </button>
                                 {onRimuovi && (

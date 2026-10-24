@@ -92,3 +92,13 @@ describe('sostituisciTappa', () => {
         expect(new Date(unito[iDopo].scheduledTime).getTime()).toBeGreaterThan(new Date(unito[iLibero].scheduledTime).getTime());
     });
 });
+
+describe('ricalcolo — dopo la colazione', () => {
+    it('una tappa che il motore aveva messo prima dell\'inizio della mattina (dopo la colazione) non viene ritardata', () => {
+        const prima = base();
+        const dopoColazione = prima.stops[1]; // il museo, subito dopo il caffè delle 8:00
+        const r = togliTappa(prima.stops, chiaveTappa(chiesa1));
+        const museoDopo = r.stops.find(s => s.title === dopoColazione.title);
+        expect(new Date(museoDopo.scheduledTime).getTime()).toBeLessThanOrEqual(new Date(dopoColazione.scheduledTime).getTime());
+    });
+});

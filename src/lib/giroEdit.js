@@ -68,7 +68,9 @@ export function ricalcolaGiorno(stops, { inizioMs, clampPrimo = false } = {}) {
         } else {
             const cammino = Number.isFinite(s.travelMinutesFromPrev) ? s.travelMinutesFromPrev : 0;
             const catena = fineMs + cammino * 60000;
-            arrivo = Math.max(catena, inizioDelMomento(s, catena) ?? catena);
+            // il «non prima del suo momento» non ritarda mai una tappa: il motore puo' averla messa prima dell'inizio del momento (dopo la colazione)
+            const minimo = Math.min(inizioDelMomento(s, catena) ?? catena, Number.isFinite(originale) ? originale : Infinity);
+            arrivo = Math.max(catena, minimo);
             // chiusa a quell'ora ma aperta all'orario di prima: resta com'era (mai anticipare un museo prima dell'apertura)
             if (Number.isFinite(originale) && originale > arrivo
                 && openStatus(s, new Date(arrivo), s.stayMinutes).stato !== OPEN

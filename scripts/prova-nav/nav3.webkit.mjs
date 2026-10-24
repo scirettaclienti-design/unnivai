@@ -125,6 +125,10 @@ try {
     const errori = [];
     page.on('pageerror', e => errori.push(String(e?.message || e).slice(0, 200)));
     page.on('request', r => { if (/DirectionsService/.test(r.url())) esito.richieste.directions += 1; });
+    // MAPPA-STILE — quale Map ID chiede la mappa (NAV_MAPID_CERCA: i Map ID da cercare negli indirizzi delle richieste di Google)
+    const cercati = (process.env.NAV_MAPID_CERCA || '').split(',').filter(Boolean);
+    esito.mapIdVisti = {};
+    page.on('request', r => { for (const id of cercati) if (r.url().includes(id)) esito.mapIdVisti[id] = (esito.mapIdVisti[id] || 0) + 1; });
     await caricaGiro(page, giro);
     await page.waitForTimeout(9000);
     await page.getByText('Avvia', { exact: true }).first().click();
@@ -139,6 +143,14 @@ try {
     await emit({ lat: vere[0].lat + 0.0012, lng: vere[0].lng });
     await page.waitForTimeout(1200);
     esito.stile = await stile();
+    // MAPPA-STILE — il filo del giorno non copre il tasto indietro (rettangoli sullo schermo, in px CSS)
+    esito.indietro = await page.evaluate(() => {
+        const r = (el) => { const b = el?.getBoundingClientRect(); return b ? { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height) } : null; };
+        const ind = document.querySelector('a[aria-label="Torna alla home"]'), filo = document.querySelector('[data-testid="filo"]'), pill = document.querySelector('[data-testid="nav-hud-barra"]');
+        const tocca = (a, b) => !!a && !!b && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+        const top = ind ? document.elementFromPoint(ind.getBoundingClientRect().x + ind.getBoundingClientRect().width / 2, ind.getBoundingClientRect().y + ind.getBoundingClientRect().height / 2) : null;
+        return { indietro: r(ind), filo: r(filo), pillola: r(pill), siSovrappongono: tocca(r(ind), r(filo)) || tocca(r(ind), r(pill)), elementoInCimaAlCentro: top ? (top.closest('a')?.getAttribute('aria-label') || top.tagName) : null };
+    });
     await snap('stato-1-cammino');
     esito.pillola = await page.getByTestId('nav-pillola').innerText().catch(() => null);
     esito.filo = await page.getByTestId('filo-frase').innerText().catch(() => null);

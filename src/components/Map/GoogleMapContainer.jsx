@@ -1,5 +1,6 @@
 import React from 'react';
 import { Map } from '@vis.gl/react-google-maps';
+import { MAP_ID, mapIdPer } from '@/lib/mapId';
 
 // ─── MAP ID — SORGENTE UNICA ─────────────────────────────────────────────────
 // Lo stile della mappa NON vive in questo repo: vive nello stile cloud legato a
@@ -14,7 +15,7 @@ import { Map } from '@vis.gl/react-google-maps';
 // Il mapId NON si puo' togliere: regge `renderingType="VECTOR"` (mappa
 // vettoriale e tilt 3D) e gli `AdvancedMarker` di UnnivaiMap. Toglierlo per
 // far vivere uno stile inline spegnerebbe marker e 3D.
-export const MAP_ID = import.meta.env.VITE_GOOGLE_MAP_ID || '28861a61c07876f819652d2d';
+export { MAP_ID };
 
 /*
  * ─── INTENZIONE DI DESIGN MAI APPLICATA, MIGRATA NELLO STILE CLOUD DEL MAP ID ─
@@ -85,8 +86,6 @@ export default function GoogleMapContainer({
     onRouteStats,
     completedSteps,
     transportModeOverride,
-    // NAV-3: lo stile della mappa durante la navigazione (mattina | giorno | tramonto | notte); senza, la mappa e' quella di sempre
-    stileMappa,
     ...props
 }) {
     // Fail-closed: senza centro non si monta una mappa su un posto inventato.
@@ -101,11 +100,11 @@ export default function GoogleMapContainer({
     };
 
     return (
-        <div className={`w-full h-full relative isolate ${className}`} data-stile-mappa={stileMappa || undefined}>
+        <div className={`w-full h-full relative isolate ${className}`}>
             <Map
                 defaultCenter={defaultCenter}
                 defaultZoom={defaultZoom}
-                mapId={mapId || MAP_ID}
+                mapId={mapIdPer({ isNavigating, mapId })}
                 
                 // Vector Maps configuration for photorealistic 3D
                 renderingType="VECTOR"

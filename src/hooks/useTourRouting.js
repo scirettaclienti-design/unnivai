@@ -41,15 +41,23 @@ export const statoTratto = (i, nextLeg) => {
     return 'resto';
 };
 export const ACCENTO_TRATTO = '#F97316';
-export const stileTratto = (stato, base) => {
+// Sopra lo stile Google della navigazione (terra #0F0E0D, strade #26231F) ogni tratto sta sopra 3:1 (nav3Contrasto.test.js):
+// il fatto e' un tratteggio chiaro, il prossimo l'accento, il resto un grigio caldo pieno. Fuori dalla navigazione i colori sono quelli di sempre.
+export const COLORE_FATTO_NAV = '#A8A29E';
+export const COLORE_RESTO_NAV = '#8F8880';
+export const stileTratto = (stato, base, { navigazione = false } = {}) => {
     // il fatto: tratteggiato e attenuato (la linea e' invisibile, i trattini sono le icone ripetute)
-    if (stato === 'fatto') return { outer: null, inner: { ...base.inner, strokeOpacity: 0, strokeWeight: 3, zIndex: 45, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.4, strokeColor: base.inner.strokeColor, scale: 2.5 }, offset: '0', repeat: '12px' }] } };
+    if (stato === 'fatto') {
+        const colore = navigazione ? COLORE_FATTO_NAV : base.inner.strokeColor;
+        return { outer: null, inner: { ...base.inner, strokeColor: colore, strokeOpacity: 0, strokeWeight: 3, zIndex: 45, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: navigazione ? 1 : 0.4, strokeColor: colore, scale: 2.5 }, offset: '0', repeat: '12px' }] } };
+    }
     if (stato === 'prossimo') {
         return {
             outer: { ...base.outer, strokeColor: ACCENTO_TRATTO, strokeOpacity: 0.3, strokeWeight: 12, zIndex: 41 },
             inner: { ...base.inner, strokeColor: ACCENTO_TRATTO, strokeOpacity: 1, strokeWeight: 6, icons: undefined, zIndex: 55 },
         };
     }
+    if (navigazione) return { outer: null, inner: { ...base.inner, strokeColor: COLORE_RESTO_NAV, strokeOpacity: 1, strokeWeight: 5, icons: undefined } };
     return { outer: base.outer, inner: base.inner };
 };
 /** La chiave di un tratto: da una tappa a un'altra (le coordinate a 5 decimali, ~1 m). */
@@ -241,7 +249,7 @@ export default function useTourRouting(waypoints, travelModePreference, progress
         const base = ROUTE_STYLES[modo] || ROUTE_STYLES.WALKING;
         const create = [];
         for (const { path, stato } of lista) {
-            const st = stileTratto(stato, base);
+            const st = stileTratto(stato, base, { navigazione: !!progress });
             if (st.outer) create.push(new Polyline({ ...st.outer, path, map, clickable: false }));
             create.push(new Polyline({ ...st.inner, path, map, clickable: false }));
         }

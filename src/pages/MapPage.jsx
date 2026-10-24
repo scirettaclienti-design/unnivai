@@ -41,8 +41,6 @@ import { prossimaSvolta, rigaTappa, percheAdesso, testoRacconto, numeriDelGiro, 
 import { typeLabelOf } from '../lib/italianLabels';
 import { travelMinutes } from '../lib/tourTiming';
 import { ArrivoTappa, SchedaTappa, FineGiro, RitoArrivo, FiloDelGiorno } from '../components/Nav/GuidaSchede';
-import { stileMappa as stileMappaDelMomento } from '../lib/stileMappa';
-import { sunTimes } from '../lib/sunTimes';
 import { romeParts } from '../lib/tourWindow';
 import NavDebugPanel from '../components/NavDebugPanel';
 import { useAILearning } from '../hooks/useAILearning';
@@ -1618,22 +1616,6 @@ const MapPage = () => {
         return (activeRoute || []).find(libera) || null;
     })();
 
-    // NAV-3: lo stile della mappa segue l'ora vera del posto (alba e tramonto dalla stessa regola del buio); si aggiorna ogni minuto durante la navigazione
-    const [oraMappa, setOraMappa] = useState(() => Date.now());
-    useEffect(() => {
-        if (!isNavigating) return undefined;
-        const id = setInterval(() => setOraMappa(Date.now()), 60_000);
-        return () => clearInterval(id);
-    }, [isNavigating]);
-    const stileMappaOra = (() => {
-        if (!isNavigating) return undefined;
-        const p0 = (activeRoute || [])[0];
-        const lat = Number(localCenter?.latitude ?? p0?.latitude), lng = Number(localCenter?.longitude ?? p0?.longitude);
-        const quando = new Date(oraMappa);
-        const g = romeParts(quando);
-        return stileMappaDelMomento(quando, sunTimes({ y: g.y, m: g.m, d: g.d }, lat, lng));
-    })();
-
     // NAV-3: «vista giro»: la mappa si allarga su tutte le tappe; la camera smette di seguirti finché non premi «centra su di me»
     const vediTuttoIlGiro = () => {
         const g = window.google?.maps;
@@ -1885,7 +1867,6 @@ const MapPage = () => {
                             onDirectionsData={handleDirectionsData}
                             progress={progressoPercorso}
                             userHeading={isNavigating ? userHeading : null}
-                            stileMappa={stileMappaOra}
                             selectedId={selectedActivity?.id}
                             activeCity={activeCity}
                             // Gate F38 — `defaultCenter` di @vis.gl e' UNCONTROLLED: letto solo
@@ -2103,9 +2084,9 @@ const MapPage = () => {
             </div>
 
             {/* 2. TOP CONTROLS */}
-            <div className="absolute top-4 left-4 right-4 z-40 flex justify-between pointer-events-none">
+            <div className={`absolute left-4 right-4 flex justify-between pointer-events-none ${isNavigating ? 'z-[80]' : 'top-4 z-40'}`} style={isNavigating ? { top: 'max(0.5rem, env(safe-area-inset-top))' } : undefined}>
                 {/* Back button pushed down slightly in nav mode to avoid OS status bar overlap */}
-                <Link to="/dashboard-user" className={`bg-obsidian-card/90 backdrop-blur border border-obsidian-border p-3 rounded-full shadow-xl pointer-events-auto text-obsidian-primary hover:bg-obsidian-raised transition-all ${isNavigating ? 'mt-12' : ''}`}>
+                <Link to="/dashboard-user" className={`bg-obsidian-card/90 backdrop-blur border border-obsidian-border p-3 rounded-full shadow-xl pointer-events-auto text-obsidian-primary hover:bg-obsidian-raised transition-all`} aria-label="Torna alla home">
                     <ArrowLeft size={20} />
                 </Link>
                 {showSearchHere && !isNavigating && (

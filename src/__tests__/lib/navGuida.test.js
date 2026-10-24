@@ -1,7 +1,6 @@
 // NAV-3 — i pezzi di testo della guida: distanze, svolte, via, riga insider, aperto fino alle, filo, numeri, tracciato. 0 $.
 import { describe, it, expect } from 'vitest';
 import { formatMetri, versoDa, viaDa, minutiAPiedi, rigaInsider, apertoFinoAlle, rigaTappa, testoTappa, filoDelGiorno, fraseDelFilo, dataDelGiro, numeriDelGiro, prossimaSvolta, percheAdesso, cosaHoImparato, tracciatoSvg, minSec, secondiDiLettura } from '@/lib/navGuida';
-import { stileMappa } from '@/lib/stileMappa';
 
 const ore = (da, a) => ({ periods: [0, 1, 2, 3, 4, 5, 6].map(d => ({ open: { day: d, time: da }, close: { day: d, time: a } })) });
 
@@ -105,26 +104,5 @@ describe('la fine del giro', () => {
         for (const p of punti) { expect(p.x).toBeGreaterThanOrEqual(24); expect(p.x).toBeLessThanOrEqual(296); expect(p.y).toBeGreaterThanOrEqual(24); expect(p.y).toBeLessThanOrEqual(166); }
         expect(cosaHoImparato({ fatte: [{ categoria: 'cultura' }, { categoria: 'cultura' }, { categoria: 'food' }], totale: 4, saltate: 1, dnaWeights: { cultura: 0.5 } })).toMatch(/cultura: 2 tappe su 4/);
         expect(cosaHoImparato({ fatte: [], totale: 0 })).toBeNull();
-    });
-});
-
-describe('lo stile della mappa segue il sole', () => {
-    // 27/10/2026 a Catania: alba ~06:00, tramonto ~16:50 (ora solare)
-    const sole = { sunrise: new Date('2026-10-27T05:55:00+01:00'), sunset: new Date('2026-10-27T16:50:00+01:00') };
-    const a = (hhmm) => stileMappa(new Date(`2026-10-27T${hhmm}:00+01:00`), sole);
-    it('mattina fino a 2 h dopo l\'alba; giorno; tramonto da 1 h prima a 30 min dopo; notte dal buio', () => {
-        expect(a('05:30')).toBe('notte');
-        expect(a('06:30')).toBe('mattina');
-        expect(a('07:54')).toBe('mattina');
-        expect(a('08:00')).toBe('giorno');
-        expect(a('12:00')).toBe('giorno');
-        expect(a('15:49')).toBe('giorno');
-        expect(a('15:50')).toBe('tramonto');
-        expect(a('17:10')).toBe('tramonto');
-        expect(a('17:20')).toBe('notte');
-        expect(a('22:00')).toBe('notte');
-    });
-    it('senza sole (nessun dato) lo stile scuro di giorno', () => {
-        expect(stileMappa(new Date(), { sunrise: null, sunset: null })).toBe('giorno');
     });
 });

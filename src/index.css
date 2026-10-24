@@ -291,10 +291,3 @@ body {
         transform: translateY(0);
     }
 }
-/* NAV-3 — lo stile della mappa durante la navigazione. Lo stile cloud del Map ID non si cambia dal repo: i quattro stili si ottengono
-   filtrando SOLO la base vettoriale (il canvas), cosi' i marker, il percorso e la posizione restano nei loro colori. */
-[data-stile-mappa] .gm-style canvas { transition: filter 600ms ease; }
-[data-stile-mappa="giorno"] .gm-style canvas { filter: invert(0.92) hue-rotate(180deg) saturate(0.45) brightness(0.8) contrast(0.92); }
-[data-stile-mappa="mattina"] .gm-style canvas { filter: sepia(0.2) saturate(1.15) brightness(1.04) contrast(0.98); }
-[data-stile-mappa="tramonto"] .gm-style canvas { filter: sepia(0.6) saturate(1.6) hue-rotate(-14deg) brightness(0.9) contrast(1.05); }
-[data-stile-mappa="notte"] .gm-style canvas { filter: invert(0.92) hue-rotate(205deg) saturate(1.1) brightness(0.68) contrast(1.08); }

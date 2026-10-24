@@ -106,6 +106,21 @@ const arriva = (n) => {
     passo([s.lat, s.lng]); passo([s.lat, s.lng]);
 };
 
+describe('il filo del giorno non copre il tasto indietro', () => {
+    it('in navigazione il tasto indietro ha la sua riga sopra il HUD e il HUD parte sotto di lui', () => {
+        monta(CATANIA);
+        avvia();
+        const indietro = screen.getByLabelText('Torna alla home');
+        const riga = indietro.parentElement;
+        expect(riga.className).toMatch(/z-\[80\]/);
+        expect(riga.style.top).toContain('safe-area-inset-top');
+        const hud = screen.getByTestId('nav-hud-barra').parentElement;
+        expect(hud.style.top).toContain('3.5rem');
+        // il tasto indietro sta sopra al HUD (z-[80] contro z-[70]): se mai si toccassero, il tasto vince
+        expect(hud.className).toMatch(/z-\[70\]/);
+    });
+});
+
 describe('STATO 1 — cammino', () => {
     it('una pillola in alto, due tasti tondi a destra, la scheda in basso con tre tasti e la barra «Tappa X di N»', () => {
         monta(CATANIA);

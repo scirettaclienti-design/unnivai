@@ -9,3 +9,10 @@
 7. **Avvisi ed errori**: un solo colore di avviso `status-warning` (#D9B25A) e uno di errore `status-error` (#E0817A), attenuati e distinti dall'accento; solo per stato, mai per azioni o decorazione.
 
 Fuori da questa regola, per scelta documentata: le copertine per categoria (`getCoverPalette`, tinte calde su fondo scuro) e `status-success` (regola 7 non lo riguarda).
+
+## La mappa di navigazione (MAPPA-STILE)
+
+- Lo stile della mappa durante la navigazione è lo **stile Google «DoveVAI — Navigazione»** (Cloud Console), legato a un suo Map ID. Il Map ID sta **solo** in `VITE_GOOGLE_MAP_ID_NAV` (Vercel e `.env` locale), mai nel codice; senza la variabile la navigazione usa `VITE_GOOGLE_MAP_ID` come prima. I filtri CSS di NAV-3 sono tolti.
+- Colori dello stile (dal canvas, schermata 1): terra `#0F0E0D`, edifici `#171513`, strade `#26231F`.
+- Il percorso sopra quello stile, tutti ≥ 3:1 su terra, edifici e strade (`navStileMappa.test.js`): **fatto** tratteggio chiaro `#A8A29E`; **prossimo** accento `#F97316` pieno e spesso; **resto** grigio caldo `#8F8880` pieno e sottile. Si distinguono anche senza colore (tratteggio / spessore).
+- Il tasto indietro ha la sua riga in alto (sopra il filo del giorno e la pillola, che partono 3,5 rem sotto).

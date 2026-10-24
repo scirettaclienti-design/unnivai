@@ -1,0 +1,38 @@
+{
+ "tag": "senza-id",
+ "ora": "2026-10-27T12:00:00+01:00",
+ "stati": "cammino",
+ "base": "http://localhost:5191",
+ "richieste": {
+  "directions": 1
+ },
+ "mapIdVisti": {
+  "28861a61c07876f819652d2d": 2
+ },
+ "stile": null,
+ "indietro": {
+  "indietro": {
+   "x": 16,
+   "y": 8,
+   "w": 46,
+   "h": 46
+  },
+  "filo": {
+   "x": 12,
+   "y": 64,
+   "w": 366,
+   "h": 80
+  },
+  "pillola": {
+   "x": 12,
+   "y": 152,
+   "w": 366,
+   "h": 74
+  },
+  "siSovrappongono": false,
+  "elementoInCimaAlCentro": "Torna alla home"
+ },
+ "pillola": "130 m · verso Porta Uzeda",
+ "filo": "Si parte.",
+ "erroriPagina": []
+}

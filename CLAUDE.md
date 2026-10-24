@@ -63,6 +63,7 @@ VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 VITE_GOOGLE_MAPS_API_KEY=
 VITE_GOOGLE_MAP_ID=
+VITE_GOOGLE_MAP_ID_NAV=   # opzionale: Map ID dello stile della navigazione (solo qui / su Vercel, mai nel codice)
 VITE_PLACES_PROXY_ENABLED=true
 OPENAI_API_KEY=   # SOLO server (segreto di Supabase per openai-proxy): mai con prefisso VITE_, mai nel client
 ```
@@ -407,7 +408,7 @@ Prova: `docs/prove/2026-10-24-giro-edit.md`.
 Spec approvata da Ivano (24/10): palette Ossidiana, un solo accento arancione, angoli 14–28 px, tasti ≥ 44 px, contrasto ≥ 4,5:1 (`nav3Contrasto.test.js`).
 - **1 Cammino** (`components/Map/NavigationHUD.jsx`, presenter puro): UNA pillola in alto (freccia + «120 m · a sinistra» + «in <via>», **solo le svolte principali**: `navGuida.prossimaSvolta`), a destra vista-giro e centra, in basso la scheda (miniatura, «PROSSIMA · N MIN», nome, riga insider, Pausa / Salta / Voce, barra «Tappa X di N»). «Sono arrivato» resta come azione discreta (serve senza GPS). Pausa = la voce tace (arrivo, segnale, ripresa non cambiano).
 - **3 Arrivo / 4 Scheda tappa / 5 Fine giro / 8 Rito d'arrivo / 9 Filo del giorno** (`components/Nav/GuidaSchede.jsx`, testi puri in `lib/navGuida.js`). Arrivo: rito di 2 secondi (vibrazione, cerchio sulla foto, prima frase in corsivo e in voce se la voce è accesa), poi la scheda al 68%; si chiude con «Riparti», dopo 50 m di cammino o dopo 20 s. Il lettore del racconto è pronto a ricevere un file audio (`src`, VOCE-1); oggi legge con la voce di sistema. Fine giro sostituisce `TourSummaryModal` (la cronologia sul telefono la salva MapPage).
-- **6 Mappa che cambia con l'ora** (`lib/stileMappa.js`, CSS in `index.css` `[data-stile-mappa]`): mattina (alba → +2 h), giorno (scuro), tramonto (−1 h → +30 min), notte (dal buio), alba/tramonto da `sunTimes`. **Lo stile cloud del Map ID non si cambia dal repo**: i quattro stili sono filtri CSS sul solo canvas della mappa base (marker e percorso restano nei loro colori).
+- **6 Mappa**: i quattro filtri CSS di NAV-3 sono **tolti** (MAPPA-STILE). In navigazione la mappa usa lo **stile Google «DoveVAI — Navigazione»** tramite il suo Map ID, letto solo da `VITE_GOOGLE_MAP_ID_NAV` (`GoogleMapContainer.mapIdPer`; senza la variabile resta `VITE_GOOGLE_MAP_ID`). Un solo stile: la «mattina» chiara del canvas richiederebbe un secondo Map ID, non fatto. Il tasto indietro ha la sua riga sopra il filo (`MapPage`, HUD a 3,5 rem sotto). Colori dei tratti in navigazione: fatto `#A8A29E` tratteggiato, prossimo `#F97316`, resto `#8F8880` (≥ 3:1 sullo stile, vedi `docs/estetica/palette.md`).
 - Percorso a tratti: il tratto fatto è **tratteggiato** e attenuato (NAV-2). Punto utente bianco con centro arancione e cono di direzione (`userHeading`), prossima tappa = faro (`MapMarker`, `isCurrentStep`).
 - **Non ancora fatti**: 2 Sussurro, 7 Momento d'oro, tutorial di 5 passi, «Cambia tappa» nella scheda, costo dei percorsi (calcolo una volta, ricalcolo a 40 m). Report: `docs/prove/2026-10-24-nav-3.md`.
 

@@ -90,7 +90,7 @@ export default function NavigationHUD({
         <AnimatePresence>
             <motion.div key="nav-hud" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="pointer-events-none font-sans" data-testid="nav-hud">
                 {/* ─── IN ALTO: il filo del giorno (se c'è), UNA pillola, gli avvisi ─────────────────────────────── */}
-                <div className={`fixed left-3 right-3 z-[70] max-w-md mx-auto pointer-events-none transition-opacity duration-200 ${nascondi ? 'opacity-0 [&_*]:!pointer-events-none' : ''}`} style={{ top: 'max(0.5rem, env(safe-area-inset-top))' }}>
+                <div className={`fixed left-3 right-3 z-[70] max-w-md mx-auto pointer-events-none transition-opacity duration-200 ${nascondi ? 'opacity-0 [&_*]:!pointer-events-none' : ''}`} style={{ top: 'calc(max(0.5rem, env(safe-area-inset-top)) + 3.5rem)' }}>
                     {sopra}
                     <div data-testid="nav-hud-barra" className="pointer-events-auto bg-obsidian-card rounded-[28px] border border-obsidian-border shadow-2xl px-3.5 py-3 flex items-center gap-3">
                         <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-obsidian-raised border border-obsidian-border text-brand-orange">

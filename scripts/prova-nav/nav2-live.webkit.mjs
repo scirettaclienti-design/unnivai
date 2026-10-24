@@ -112,6 +112,15 @@ try {
         await page.waitForTimeout(2500);
         await page.screenshot({ path: `${OUT}/${TAG}-03-navigazione.png` });
         esito.navigazione = await misura(page);
+        // MAPPA-STILE — il filo del giorno non copre il tasto indietro (rettangoli in px CSS)
+        esito.indietro = await page.evaluate(() => {
+            const r = (el) => { const b = el?.getBoundingClientRect(); return b ? { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height) } : null; };
+            const ind = document.querySelector('a[aria-label="Torna alla home"]'), filo = document.querySelector('[data-testid="filo"]'), pill = document.querySelector('[data-testid="nav-hud-barra"]');
+            const tocca = (a, b) => !!a && !!b && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+            const bi = ind?.getBoundingClientRect();
+            const top = bi ? document.elementFromPoint(bi.x + bi.width / 2, bi.y + bi.height / 2) : null;
+            return { indietro: r(ind), filo: r(filo), pillola: r(pill), siSovrappongono: tocca(r(ind), r(filo)) || tocca(r(ind), r(pill)), elementoInCimaAlCentro: top ? (top.closest('a')?.getAttribute('aria-label') || top.tagName) : null };
+        });
     }
     await ctx.close();
 } finally {

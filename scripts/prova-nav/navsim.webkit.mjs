@@ -128,7 +128,7 @@ const AVVISI = {
 };
 const leggiStato = (page) => page.evaluate((avvisi) => {
     const testo = document.body?.innerText || '';
-    const tappa = testo.match(/Tappa (\d+)\/(\d+)/i);   // la barra la scrive in maiuscolo (CSS)
+    const tappa = testo.match(/Tappa (\d+) di (\d+)/i);   // la barra la scrive in maiuscolo (CSS)
     const domanda = testo.match(/Sei passato da ([^?]+)\?/);
     const ripresa = testo.match(/Hai un giro in corso: tappa (\d+) di (\d+)\. Riprendi\?/);
     let giro = null;

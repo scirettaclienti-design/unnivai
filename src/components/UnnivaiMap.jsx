@@ -53,7 +53,7 @@ const NativeClusteredMarkers = ({ validActivities, onActivityClick }) => {
 };
 
 // ─── Wrapper principale ───────────────────────────────────────────────────────
-const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userLocation, onActivityClick, onRouteStats, onDirectionsData, progress }) => {
+const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userLocation, onActivityClick, onRouteStats, onDirectionsData, progress, userHeading }) => {
     const map = useMap();
     if (!map) return null;
 
@@ -61,16 +61,22 @@ const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userL
 
     return (
         <>
-            {/* Marker posizione utente (sempre visibile) */}
+            {/* Marker posizione utente (sempre visibile): punto bianco con centro arancione e, se si cammina, il cono di direzione (NAV-3) */}
             {userLocation && (
                 <AdvancedMarker
                     position={{ lat: userLocation.latitude || userLocation.lat, lng: userLocation.longitude || userLocation.lng }}
                     zIndex={9999}
                 >
-                    <div className="relative flex items-center justify-center pointer-events-none">
-                        <div className="absolute w-12 h-12 bg-blue-500/30 rounded-full animate-ping" />
+                    <div className="relative flex items-center justify-center pointer-events-none" data-testid="utente-marker">
+                        {Number.isFinite(userHeading) && (
+                            <svg data-testid="utente-cono" width="84" height="84" viewBox="-42 -42 84 84" className="absolute" style={{ transform: `rotate(${userHeading}deg)` }} aria-hidden="true">
+                                <defs><radialGradient id="cono" cx="0" cy="0" r="40" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#F97316" stopOpacity="0.55" /><stop offset="1" stopColor="#F97316" stopOpacity="0" /></radialGradient></defs>
+                                <path d="M0,0 L-17,-38 A42,42 0 0 1 17,-38 Z" fill="url(#cono)" />
+                            </svg>
+                        )}
+                        <div className="absolute w-12 h-12 bg-brand-orange/25 rounded-full animate-ping" />
                         <div className="w-5 h-5 bg-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.3)] flex items-center justify-center relative z-10">
-                            <div className="w-3.5 h-3.5 bg-blue-500 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]" />
+                            <div className="w-3.5 h-3.5 bg-brand-orange rounded-full" />
                         </div>
                     </div>
                 </AdvancedMarker>
@@ -119,6 +125,7 @@ export default function UnnivaiMap({
     onRouteStats,
     onDirectionsData,
     progress = null,
+    userHeading = null,
     ...props
 }) {
     const validActivities = useMemo(() =>
@@ -137,6 +144,7 @@ export default function UnnivaiMap({
                 onRouteStats={onRouteStats}
                 onDirectionsData={onDirectionsData}
                 progress={progress}
+                userHeading={userHeading}
             />
         </GoogleMapContainer>
     );

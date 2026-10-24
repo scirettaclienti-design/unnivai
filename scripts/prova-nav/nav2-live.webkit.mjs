@@ -66,6 +66,7 @@ try {
     page.on('response', (r) => { const u = r.url(); if (u.includes('/functions/v1/places-proxy') && (r.headers()['x-cache'] || '').toUpperCase() === 'MISS') { const k = ((decodeURIComponent(u).match(/path=([^&]+)/) || [])[1] || 'altro').replace('place/', ''); esito.richieste.miss[k] = (esito.richieste.miss[k] || 0) + 1; } });
     await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
     if (!/DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai: niente credenziali.');
+    await page.waitForTimeout(3000);
     await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
     if (!/DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai al login: niente credenziali.');
     await page.getByText('Accedi →').click();

@@ -111,7 +111,7 @@ describe('NAV-1 — tracciamento sempre attivo', () => {
         // NAV-1-FIX (D2): l'arrivo vuole due letture di fila dentro la soglia.
         act(() => { gps.emit(37.50270, 15.08710); });
         act(() => { gps.emit(37.50270, 15.08710); });
-        expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
+        expect(screen.getByText('Tappa 2 di 3')).toBeInTheDocument();
     });
 
     it('posizione negata: il messaggio dice come attivarla o segnare le tappe a mano', () => {
@@ -127,7 +127,7 @@ describe('NAV-1 — comandi nella barra', () => {
         monta();
         avvia();
         fireEvent.click(screen.getByText('Sono arrivato'));
-        expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
+        expect(screen.getByText('Tappa 2 di 3')).toBeInTheDocument();
     });
 
     it('una tappa superata senza fermarsi: «Sei passato da [nome]?» con «Vista» e «Saltala»', () => {
@@ -140,7 +140,7 @@ describe('NAV-1 — comandi nella barra', () => {
         act(() => { vi.advanceTimersByTime(1000); gps.emit(37.50400, 15.08900); });
         expect(screen.getByText('Sei passato da Fontana dell\'Elefante?')).toBeInTheDocument();
         fireEvent.click(screen.getByText('Saltala'));
-        expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
+        expect(screen.getByText('Tappa 2 di 3')).toBeInTheDocument();
     });
 
     it('percorso non calcolabile: nessun codice inglese, il messaggio italiano', () => {
@@ -161,12 +161,12 @@ describe('NAV-1 — ripresa dopo una ricarica', () => {
         act(() => { gps.emit(37.5100, 15.0800); });
         act(() => { gps.emit(37.50270, 15.08710); });
         act(() => { gps.emit(37.50270, 15.08710); });
-        expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
+        expect(screen.getByText('Tappa 2 di 3')).toBeInTheDocument();
         prima.unmount(); // la ricarica: la pagina sparisce, resta solo ciò che è salvato
         monta();
         expect(screen.getByText('Hai un giro in corso: tappa 2 di 3. Riprendi?')).toBeInTheDocument();
         fireEvent.click(screen.getByText('Riprendi'));
-        expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
+        expect(screen.getByText('Tappa 2 di 3')).toBeInTheDocument();
     });
 
     it('un giro iniziato da più di 12 ore non si propone più', () => {

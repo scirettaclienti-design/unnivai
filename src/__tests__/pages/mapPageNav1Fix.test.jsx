@@ -121,7 +121,7 @@ describe('D1 — dopo una pausa del segnale si chiede «Sei passato da…?» sol
         avvia();
         // In paese: la prima tappa (due letture sul posto).
         passo(PAESE); passo(PAESE);
-        expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
+        expect(screen.getByText('Tappa 2 di 3')).toBeInTheDocument();
         // Si sale verso il monte: 100, 200, 300 m (il monte è a 600 m).
         for (const n of [100, 200, 300]) passo(sposta(PAESE, 0, n));
         // 2 minuti senza segnale.
@@ -130,7 +130,7 @@ describe('D1 — dopo una pausa del segnale si chiede «Sei passato da…?» sol
         passo(sposta(PAESE, 0, 445));
         passo(sposta(PAESE, 0, 460));
         expect(screen.queryByText('Sei passato da Monte Muganà?')).toBeNull();
-        expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
+        expect(screen.getByText('Tappa 2 di 3')).toBeInTheDocument();
     });
 
     it('controllo: passata la tappa durante la pausa (90 m oltre, verso la dopo) la domanda c\'è ancora', () => {
@@ -140,7 +140,7 @@ describe('D1 — dopo una pausa del segnale si chiede «Sei passato da…?» sol
         const s2 = [CATANIA.steps[1].lat, CATANIA.steps[1].lng];
         const s3 = [CATANIA.steps[2].lat, CATANIA.steps[2].lng];
         passo(s1); passo(s1);
-        expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
+        expect(screen.getByText('Tappa 2 di 3')).toBeInTheDocument();
         // A 60 m da Via Crociferi, poi lo schermo si blocca 2 minuti.
         const verso = (a, b, m) => { const d = Math.hypot((b[0] - a[0]) * 111320, (b[1] - a[1]) * 111320 * Math.cos(a[0] * Math.PI / 180)); return [a[0] + ((b[0] - a[0]) * m) / d, a[1] + ((b[1] - a[1]) * m) / d]; };
         passo(verso(s2, s1, 120));
@@ -159,10 +159,10 @@ describe('D2 — niente arrivo con il GPS che tocca la soglia per una lettura so
         passo([37.5100, 15.0800]);              // lontano
         passo(sposta(s1, 0, 20));               // UNA lettura a 20 m (il rumore)
         passo(sposta(s1, 0, 45));               // di nuovo fuori, a 45 m
-        expect(screen.getByText('Tappa 1/3')).toBeInTheDocument();
+        expect(screen.getByText('Tappa 1 di 3')).toBeInTheDocument();
         passo(sposta(s1, 0, 15));
         passo(sposta(s1, 0, 8));                // due di fila dentro: arrivato
-        expect(screen.getByText('Tappa 2/3')).toBeInTheDocument();
+        expect(screen.getByText('Tappa 2 di 3')).toBeInTheDocument();
     });
 });
 

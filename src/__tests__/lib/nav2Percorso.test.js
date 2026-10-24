@@ -25,7 +25,9 @@ describe('stileTratto — la palette Ossidiana', () => {
     });
     it('il fatto è attenuato (opacità bassa, più sottile, senza alone); il resto è come prima', () => {
         const f = stileTratto('fatto', BASE);
-        expect(f.inner.strokeOpacity).toBeLessThan(0.4);
+        expect(f.inner.strokeOpacity).toBe(0); // la linea piena non c'e': solo i trattini
+        expect(f.inner.icons[0].icon.strokeOpacity).toBeLessThan(0.5);
+        expect(f.inner.icons[0].repeat).toBeTruthy();
         expect(f.inner.strokeWeight).toBeLessThan(BASE.inner.strokeWeight);
         expect(f.outer).toBeNull();
         expect(f.inner.strokeColor).toBe('#5A5048');

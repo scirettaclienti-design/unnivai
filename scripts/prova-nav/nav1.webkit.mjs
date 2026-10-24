@@ -143,7 +143,7 @@ const SCENARI = {
         await emit(page, LONTANO);
         await page.waitForTimeout(800);
         await emit(page, [TOUR.steps[0].lat, TOUR.steps[0].lng]);
-        const sbloccata = await vede(page, 'Tappa 2/4');
+        const sbloccata = await vede(page, 'Tappa 2 di 4');
         const messaggioVia = !(await testo(page, 'Cerco il segnale').isVisible().catch(() => false));
         const f2 = await shot(page, '02-gps-lento-tappa-sbloccata');
         await ctx.close();
@@ -177,7 +177,7 @@ const SCENARI = {
         const msg = await vede(page, 'Senza posizione non posso guidarti');
         const f1 = await shot(page, '06-posizione-negata');
         await page.getByText('Sono arrivato', { exact: true }).click();
-        const aMano = await vede(page, 'Tappa 2/4');
+        const aMano = await vede(page, 'Tappa 2 di 4');
         const f2 = await shot(page, '07-negata-tappa-a-mano');
         await ctx.close();
         return { ok: msg && aMano, msg, aMano, errori, schermate: [f1, f2] };
@@ -191,12 +191,12 @@ const SCENARI = {
         await emit(page, LONTANO);
         await page.waitForTimeout(500);
         await emit(page, [TOUR.steps[0].lat, TOUR.steps[0].lng]);
-        const fatta = await vede(page, 'Tappa 2/4');
+        const fatta = await vede(page, 'Tappa 2 di 4');
         await page.reload({ waitUntil: 'domcontentloaded' });
         const proposta = await vede(page, 'Hai un giro in corso: tappa 2 di 4. Riprendi?', 20000);
         const f1 = await shot(page, '08-ripresa-proposta');
         await page.getByText('Riprendi', { exact: true }).click();
-        const ripreso = await vede(page, 'Tappa 2/4');
+        const ripreso = await vede(page, 'Tappa 2 di 4');
         const f2 = await shot(page, '09-ripresa-ripreso');
         // All'apertura dell'app (cruscotto) il giro si propone di nuovo.
         await page.goto(`${BASE}/dashboard-user`, { waitUntil: 'domcontentloaded' });
@@ -267,7 +267,7 @@ const SCENARI = {
         const domanda = await vede(page, 'Sei passato da Fontana dell\'Elefante?');
         const f1 = await shot(page, '14-tappa-superata-domanda');
         await page.getByText('Vista', { exact: true }).click();
-        const vista = await vede(page, 'Tappa 2/4');
+        const vista = await vede(page, 'Tappa 2 di 4');
         const f2 = await shot(page, '15-tappa-superata-vista');
         const wakeLock = await page.evaluate(() => ({ api: 'wakeLock' in navigator }));
         await ctx.close();

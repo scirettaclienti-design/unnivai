@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 // l'accento arancione solo sul tasto di conferma. Nessuna logica qui: chi usa il componente passa cosa fare.
 export const SEGNAPOSTO_CAMBIA = 'es. qualcosa di più tranquillo';
 
-export function TappaModifica({ nome, onTogli, onCambia, puoTogliere = true, className = '' }) {
+export function TappaModifica({ nome, onTogli, onCambia, puoTogliere = true, className = '', etichettaCambia = 'Cambia' }) {
     const [aperto, setAperto] = useState(false);
     const [testo, setTesto] = useState('');
     const [lavora, setLavora] = useState(false);
@@ -38,7 +38,7 @@ export function TappaModifica({ nome, onTogli, onCambia, puoTogliere = true, cla
                     </button>
                 )}
                 <button type="button" data-tappa-cambia aria-expanded={aperto} aria-label={`Cambia ${nome || 'la tappa'}`} onClick={() => { setAperto(a => !a); setMessaggio(null); }} className={tasto}>
-                    Cambia
+                    {etichettaCambia}
                 </button>
             </div>
             {aperto && (

@@ -42,7 +42,8 @@ export const statoTratto = (i, nextLeg) => {
 };
 export const ACCENTO_TRATTO = '#F97316';
 export const stileTratto = (stato, base) => {
-    if (stato === 'fatto') return { outer: null, inner: { ...base.inner, strokeOpacity: 0.28, strokeWeight: 3, icons: undefined, zIndex: 45 } };
+    // il fatto: tratteggiato e attenuato (la linea e' invisibile, i trattini sono le icone ripetute)
+    if (stato === 'fatto') return { outer: null, inner: { ...base.inner, strokeOpacity: 0, strokeWeight: 3, zIndex: 45, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.4, strokeColor: base.inner.strokeColor, scale: 2.5 }, offset: '0', repeat: '12px' }] } };
     if (stato === 'prossimo') {
         return {
             outer: { ...base.outer, strokeColor: ACCENTO_TRATTO, strokeOpacity: 0.3, strokeWeight: 12, zIndex: 41 },

@@ -20,6 +20,21 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
     // Base z-index logic: steps should be highest priority (e.g., 100 - step) to be always on top
     const baseZIndex = isStep ? 100 - (stepNumber || 0) : (activity.type === 'monument' ? 40 : 10);
 
+    // NAV-3 — IL FARO: la prossima tappa e' un cerchio con il numero e un anello arancione (con l'alone che pulsa piano)
+    if (isStep && activity.isCurrentStep && !activity.isCompleted) {
+        return (
+            <AdvancedMarker position={{ lat, lng }} onClick={() => onClick && onClick(activity)} title={activity.name || activity.title || 'Prossima tappa'} zIndex={500}>
+                <div data-testid="faro" className="relative flex items-center justify-center" style={{ transform: 'translate(0, 0)' }}>
+                    <div className="absolute w-16 h-16 rounded-full border-2 border-brand-orange/50 animate-ping pointer-events-none" />
+                    <div className="absolute w-14 h-14 rounded-full bg-brand-orange/20 pointer-events-none" />
+                    <div className="relative w-11 h-11 rounded-full bg-obsidian-card border-[3px] border-brand-orange flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.45)]">
+                        <span className="text-obsidian-primary font-black text-base leading-none">{stepNumber}</span>
+                    </div>
+                </div>
+            </AdvancedMarker>
+        );
+    }
+
     return (
         <AdvancedMarker
             position={{ lat, lng }}

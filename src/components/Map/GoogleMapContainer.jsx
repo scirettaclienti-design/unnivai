@@ -85,6 +85,8 @@ export default function GoogleMapContainer({
     onRouteStats,
     completedSteps,
     transportModeOverride,
+    // NAV-3: lo stile della mappa durante la navigazione (mattina | giorno | tramonto | notte); senza, la mappa e' quella di sempre
+    stileMappa,
     ...props
 }) {
     // Fail-closed: senza centro non si monta una mappa su un posto inventato.
@@ -99,7 +101,7 @@ export default function GoogleMapContainer({
     };
 
     return (
-        <div className={`w-full h-full relative isolate ${className}`}>
+        <div className={`w-full h-full relative isolate ${className}`} data-stile-mappa={stileMappa || undefined}>
             <Map
                 defaultCenter={defaultCenter}
                 defaultZoom={defaultZoom}

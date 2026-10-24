@@ -13,7 +13,6 @@ import { resolveMapCenter, resolveCenterStatus } from '../lib/mapCenter';
 import UnnivaiMap from '../components/UnnivaiMap';
 import { WeatherAirBadge } from '../components/Map/WeatherAirBadge';
 import { POIDetailDrawer } from '../components/Map/POIDetailDrawer';
-import { TourSummaryModal } from '../components/Map/TourSummaryModal';
 import ReviewModal from '../components/ReviewModal';
 import GpsActivationBanner from '../components/GpsActivationBanner';
 import { CitySearchBar } from '../components/Map/CitySearchBar';
@@ -38,6 +37,13 @@ import { valutaPassaggio } from '../lib/navPassaggio';
 import { valutaArrivo } from '../lib/navArrivo';
 import { creaSchermoAcceso } from '../lib/wakeLock';
 import { NAV_TESTI, avvisoNavigazione } from '../lib/navMessaggi';
+import { prossimaSvolta, rigaTappa, percheAdesso, testoRacconto, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo } from '../lib/navGuida';
+import { typeLabelOf } from '../lib/italianLabels';
+import { travelMinutes } from '../lib/tourTiming';
+import { ArrivoTappa, SchedaTappa, FineGiro, RitoArrivo, FiloDelGiorno } from '../components/Nav/GuidaSchede';
+import { stileMappa as stileMappaDelMomento } from '../lib/stileMappa';
+import { sunTimes } from '../lib/sunTimes';
+import { romeParts } from '../lib/tourWindow';
 import NavDebugPanel from '../components/NavDebugPanel';
 import { useAILearning } from '../hooks/useAILearning';
 import './MapPage.css';
@@ -284,7 +290,7 @@ const MapPage = () => {
     const location = useLocation();
     // P7a — il DNA impara dal tour completato e dalla valutazione, con le
     // categorie vere delle tappe (tourData.steps porta i `types` Google).
-    const { trackDnaEvent } = useAILearning();
+    const { trackDnaEvent, dnaWeights } = useAILearning();
     const navigate = useNavigate();
     const { city, lat, lng, isLoading: userContextLoading } = useUserContext();
     const { isManual } = useCity();
@@ -544,7 +550,8 @@ const MapPage = () => {
     const routePointsRef = useRef([]);        // flat [{lat,lng,stepIdx}]
     const nearestPointIdxRef = useRef(0);      // cursore scan-forward monotòno
     const activeStepIdxRef = useRef(0);        // indice step monotòno (max, mai indietro)
-    const [activeManeuver, setActiveManeuver] = useState(null); // { maneuver, instructionHtml } | null
+    const [activeManeuver, setActiveManeuver] = useState(null); // { maneuver, instructionHtml, prossima?, distanzaM? } | null
+    const [inPausa, setInPausa] = useState(false); // NAV-3: la voce tace; il resto (arrivo, segnale, ripresa) non cambia
     // GATE DEBUG PANEL: ring buffer righe di calibrazione (ref, MAI state → zero
     // re-render). lastDebugMsRef per il delta-tempo tra tick. Popolati SOLO se DEBUG_NAV.
     const navDebugRef = useRef([]);
@@ -622,6 +629,10 @@ const MapPage = () => {
     const lastSurprisePos = useRef(null);
     const surpriseCount = useRef(0);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+    // NAV-3: la tappa appena raggiunta (scheda di arrivo) e quella aperta a tutto schermo (scheda tappa)
+    const [arrivoId, setArrivoId] = useState(null);
+    const [ritoId, setRitoId] = useState(null); // il rito d'arrivo (2 secondi) che precede la scheda di arrivo
+    const [schedaId, setSchedaId] = useState(null);
     
     // Mostriamo la "route" solo se c'è un tour e NON siamo appena sbarcati dall'Explore con un focus città
     const [showRoute, setShowRoute] = useState(() => {
@@ -779,7 +790,7 @@ const MapPage = () => {
     // (spokenIdentitiesRef, FIX 3): quando una tappa diventa la prossima la
     // annuncia una sola volta; micro-variazioni non ripetono nulla.
     useEffect(() => {
-        if (!voiceEnabled || !isNavigating) return;
+        if (!voiceEnabled || !isNavigating || inPausa) return;
         const nextStop = (activeRoute || []).find(s => !completedSteps.includes(s.id));
         if (!nextStop || !window.speechSynthesis) return;
         const identity = `tappa:${nextStop.id}`;
@@ -794,7 +805,7 @@ const MapPage = () => {
         utterance.pitch = 1.0;
         if (italianVoiceRef.current) utterance.voice = italianVoiceRef.current;
         window.speechSynthesis.speak(utterance);
-    }, [voiceEnabled, isNavigating, activeRoute, completedSteps]);
+    }, [voiceEnabled, isNavigating, activeRoute, completedSteps, inPausa]);
 
     // ─── PLANNER PREVIEW ROUTE (BEFORE NAVIGATING) ───────────────────────────
     const plannerPreviewRoute = useMemo(() => {
@@ -1053,9 +1064,21 @@ const MapPage = () => {
     // ora lo chiama il tracciamento (src/lib/navTracking.js) per ogni posizione,
     // anche arrivata dopo minuti. Si legge da un ref: sempre l'ultimo render.
     const navCameraRef = useRef({ last: 0, ticks: 0 });
+    const ultimaPosRef = useRef(null);
+    const [userHeading, setUserHeading] = useState(null);
     const onNavPosition = (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
         setLocalCenter({ latitude, longitude });
+        // NAV-3: la direzione di marcia (il cono del punto bianco): quella del telefono se c'e', altrimenti dagli ultimi due punti (da 4 m in su)
+        if (Number.isFinite(pos.coords.heading)) setUserHeading(Math.round(pos.coords.heading));
+        else {
+            const prec = ultimaPosRef.current;
+            if (!prec) ultimaPosRef.current = { latitude, longitude };
+            else {
+                const dN = (latitude - prec.latitude) * 111320, dE = (longitude - prec.longitude) * 111320 * Math.cos(latitude * Math.PI / 180);
+                if (Math.hypot(dN, dE) >= 4) { setUserHeading(Math.round(((Math.atan2(dE, dN) * 180) / Math.PI + 360) % 360)); ultimaPosRef.current = { latitude, longitude }; }
+            }
+        }
 
         // GATE DEBUG PANEL: riga di calibrazione per questo tick.
         // dbg=null quando DEBUG_NAV è spento → tutte le capture sotto saltano.
@@ -1185,11 +1208,14 @@ const MapPage = () => {
                 if (s && (s.maneuver || s.instructions)) {
                     maneuver = { maneuver: s.maneuver || null, instructionHtml: s.instructions || null };
                 }
+                // NAV-3 — la pillola dice la prossima svolta PRINCIPALE e a che distanza (a passi di 5 m, per non ridisegnare a ogni posizione)
+                const prossima = prossimaSvolta(steps, stepIdx, { lat: latitude, lng: longitude });
+                if (maneuver && prossima) maneuver = { ...maneuver, prossima: { maneuver: prossima.maneuver, instructionHtml: prossima.instructionHtml }, distanzaM: Math.round(prossima.distanzaM / 5) * 5 };
             }
             // hit === null (pts vuoto / coords invalide / fuori tolleranza) →
             // maneuver resta null → HUD torna a "→ Prossima tappa" (mai stale).
             setActiveManeuver(prev => {
-                if (prev?.maneuver === maneuver?.maneuver && prev?.instructionHtml === maneuver?.instructionHtml) return prev;
+                if (prev?.maneuver === maneuver?.maneuver && prev?.instructionHtml === maneuver?.instructionHtml && prev?.distanzaM === maneuver?.distanzaM && prev?.prossima?.maneuver === maneuver?.prossima?.maneuver) return prev;
                 return maneuver;
             });
             if (dbg) {
@@ -1461,6 +1487,7 @@ const MapPage = () => {
         setNextStepDistanceM(null);
         // Fase 2c-2: congela il tempo reale al momento del completamento.
         setNavElapsedMs(navStartTimeRef.current != null ? Date.now() - navStartTimeRef.current : null);
+        setArrivoId(null); setRitoId(null);
         setTimeout(() => setIsSummaryModalOpen(true), 2000);
     };
 
@@ -1483,6 +1510,8 @@ const MapPage = () => {
             logDnaEvent('stop_reached', gestoDellaTappa(poiObj)); // DNA-1: registro, mai bloccante
 
             avanzaDopo(poiObj, newCompleted, skippedStepsRef.current || [], true);
+            // NAV-3: la scheda di arrivo (non sull'ultima tappa: li' arriva la fine del giro)
+            if (isNavigating && (newCompleted.length + (skippedStepsRef.current || []).length) < (activeRoute?.length || 0)) setRitoId(poiObj.id);
         }
     };
 
@@ -1594,6 +1623,33 @@ const MapPage = () => {
         return (activeRoute || []).find(libera) || null;
     })();
 
+    // NAV-3: lo stile della mappa segue l'ora vera del posto (alba e tramonto dalla stessa regola del buio); si aggiorna ogni minuto durante la navigazione
+    const [oraMappa, setOraMappa] = useState(() => Date.now());
+    useEffect(() => {
+        if (!isNavigating) return undefined;
+        const id = setInterval(() => setOraMappa(Date.now()), 60_000);
+        return () => clearInterval(id);
+    }, [isNavigating]);
+    const stileMappaOra = (() => {
+        if (!isNavigating) return undefined;
+        const p0 = (activeRoute || [])[0];
+        const lat = Number(localCenter?.latitude ?? p0?.latitude), lng = Number(localCenter?.longitude ?? p0?.longitude);
+        const quando = new Date(oraMappa);
+        const g = romeParts(quando);
+        return stileMappaDelMomento(quando, sunTimes({ y: g.y, m: g.m, d: g.d }, lat, lng));
+    })();
+
+    // NAV-3: «vista giro»: la mappa si allarga su tutte le tappe; la camera smette di seguirti finché non premi «centra su di me»
+    const vediTuttoIlGiro = () => {
+        const g = window.google?.maps;
+        const pts = (activeRoute || []).filter(s => Number.isFinite(Number(s.latitude)) && Number.isFinite(Number(s.longitude)));
+        if (!map || !g?.LatLngBounds || pts.length === 0) return;
+        const b = new g.LatLngBounds();
+        pts.forEach(s => b.extend({ lat: Number(s.latitude), lng: Number(s.longitude) }));
+        setFollowing(false);
+        map.fitBounds(b, { top: 170, bottom: 300, left: 40, right: 40 });
+    };
+
     // NAV-2: dove sei nel giro, per colorare il percorso (tratti fatti attenuati, quello verso la prossima tappa arancione). Fuori dalla navigazione, o su una sola tappa, null.
     const progressoPercorso = useMemo(() => {
         if (!isNavigating || navIsSingleTargetRef.current || !navNextStop) return null;
@@ -1701,6 +1757,53 @@ const MapPage = () => {
         setActiveManeuver(null);
     }, []);
 
+    // NAV-3: il giro finito entra nella cronologia sul telefono (lo faceva il vecchio riepilogo)
+    useEffect(() => {
+        if (!isSummaryModalOpen) return;
+        try {
+            const history = JSON.parse(localStorage.getItem('user_tour_history') || '[]');
+            const entry = { id: Date.now(), date: new Date().toISOString(), title: tourData?.title || 'Storico Urbano', duration: formatElapsedMs(navElapsedMs), distance: null, completedCount: completedSteps.length };
+            const recent = history[0];
+            if (!recent || recent.title !== entry.title || (entry.id - recent.id > 60000)) {
+                history.unshift(entry);
+                localStorage.setItem('user_tour_history', JSON.stringify(history.slice(0, 50)));
+            }
+        } catch { /* la cronologia e' un di piu' */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSummaryModalOpen]);
+
+    // NAV-3: i dati di una tappa per le schede (arrivo e scheda tappa): solo cio' che il giro sa davvero
+    const datiTappa = (id) => {
+        const stop = (activeRoute || []).find(s => s.id === id);
+        if (!stop) return null;
+        const i = (activeRoute || []).indexOf(stop);
+        const step = tourData?.steps?.[stop.index] || tourData?.steps?.[i] || stop;
+        const quando = step?.scheduledTime ? new Date(step.scheduledTime) : null;
+        const categoria = typeLabelOf(step);
+        const prossima = (activeRoute || []).slice(i + 1).find(s => !completedSteps.includes(s.id) && !skippedSteps.includes(s.id)) || null;
+        const min = prossima ? travelMinutes(stop, prossima) : null;
+        const hhmm = quando ? `${String(romeParts(quando).h).padStart(2, '0')}:${String(romeParts(quando).mi).padStart(2, '0')}` : null;
+        return {
+            id, numero: i + 1, nome: stop.name || stop.title, foto: step?.image || stop.image || null, categoria,
+            riga: rigaTappa({ categoria, stayMinutes: step?.stayMinutes, stop: step, quando: quando || new Date() }),
+            chicca: testoRacconto(step), racconto: testoRacconto(step), perche: percheAdesso(step, quando || new Date()),
+            pillole: [hhmm, Number.isFinite(step?.stayMinutes) ? `~${step.stayMinutes} min` : null, Number(step?.price) > 0 ? `€${step.price}` : null].filter(Boolean),
+            minutiAllaProssima: min, nomeProssima: prossima ? (prossima.name || prossima.title) : null,
+            completata: completedSteps.includes(id),
+        };
+    };
+    // NAV-3 — SCHERMATA 9: il filo del giorno (sopra la pillola): i momenti, un puntino per tappa, la frase sullo stato
+    const filoGiorno = (() => {
+        const tappe = (activeRoute || []).map(t => tourData?.steps?.[t.index] || t);
+        if (tappe.length < 2) return null;
+        const indice = navNextStop ? (activeRoute || []).findIndex(s => s.id === navNextStop.id) : tappe.length;
+        const rimaste = Math.max(0, tappe.length - Math.max(0, indice));
+        const sera = tappe.some(t => ['aperitivo', 'cena', 'dopocena'].includes(t.moment));
+        return <FiloDelGiorno gruppi={filoDelGiorno(tappe, indice)} frase={fraseDelFilo(rimaste, tappe.length, { sera })} />;
+    })();
+    const arrivo = arrivoId ? datiTappa(arrivoId) : null;
+    const scheda = schedaId ? datiTappa(schedaId) : null;
+
     // ─── RENDER ───────────────────────────────────────────────────────────────
     return (
         <div className="relative w-full h-screen overflow-hidden bg-obsidian-bg" style={{ height: '100dvh' }} data-testid="map-root">
@@ -1780,6 +1883,8 @@ const MapPage = () => {
                             onRouteStats={handleRouteStats}
                             onDirectionsData={handleDirectionsData}
                             progress={progressoPercorso}
+                            userHeading={isNavigating ? userHeading : null}
+                            stileMappa={stileMappaOra}
                             selectedId={selectedActivity?.id}
                             activeCity={activeCity}
                             // Gate F38 — `defaultCenter` di @vis.gl e' UNCONTROLLED: letto solo
@@ -2088,6 +2193,11 @@ const MapPage = () => {
                     onEndNavigation={handleEndNavigation}
                     isCameraFollowing={isCameraFollowing}
                     onRecenterCamera={() => setFollowing(true)}
+                    onVistaGiro={vediTuttoIlGiro}
+                    onApriScheda={() => navNextStop && setSchedaId(navNextStop.id)}
+                    sopra={filoGiorno}
+                    inPausa={inPausa}
+                    onTogglePausa={() => setInPausa(p => { if (!p) window.speechSynthesis?.cancel(); return !p; })}
                     nextStop={navNextStop}
                     skippedSteps={skippedSteps}
                     avviso={avvisoNavigazione({ gps: navGps, attesaVisibile: gpsAttesaVisibile, offline: isOffline, percorsoErrore: !!routeStats?.error })}
@@ -2318,28 +2428,46 @@ const MapPage = () => {
 
             {/* 9. DEPRECATED DRAWER REMOVED (VehicleSelectionDrawer is now inline RoutePlanner) */}
 
-            {/* 10. TOUR SUMMARY MODAL */}
-            <TourSummaryModal
-                isOpen={isSummaryModalOpen}
-                onClose={() => setIsSummaryModalOpen(false)}
-                titleName={tourData?.title || "Storico Urbano"}
-                guideId={tourData?.guide_id || null}
-                guideName={tourData?.guide || null}
-                tourId={tourData?.id || tourData?.tourId || null}
-                onReview={({ tourId: tid, guideId: gid, guideName: gn }) => {
-                    setReviewModalData({ tourId: tid, guideId: gid, guideName: gn });
-                }}
-                cityName={tourData?.city || null}
-                totalSteps={activeRoute?.length || 0}
-                stats={{
-                    // Fase 2c-2: TEMPO REALE trascorso (start→fine), non l'ETA di
-                    // Directions. null → il modal mostra "—" (mai fake). Regola #1.
-                    duration: formatElapsedMs(navElapsedMs),
-                    // N5: distanza reale da Directions (verificata device). Se manca → null.
-                    distance: routeStats ? (routeStats.distanceM >= 1000 ? (routeStats.distanceM / 1000).toFixed(1) + ' km' : Math.round(routeStats.distanceM) + ' m') : null,
-                    completedCount: completedSteps.length
-                }}
-            />
+            {/* NAV-3 — SCHERMATA 3: l'arrivo; SCHERMATA 4: la scheda della tappa; SCHERMATA 5: la fine del giro */}
+            {isNavigating && ritoId && (() => {
+                const r = datiTappa(ritoId);
+                return r ? <RitoArrivo nome={r.nome} foto={r.foto} frase={rigaInsider({ description: r.racconto })} parla={voiceEnabled && !inPausa} onFine={() => { setRitoId(null); setArrivoId(r.id); }} /> : null;
+            })()}
+            {isNavigating && arrivo && !scheda && !ritoId && (
+                <ArrivoTappa
+                    numero={arrivo.numero} totale={activeRoute.length} nome={arrivo.nome} foto={arrivo.foto} riga={arrivo.riga}
+                    chicca={arrivo.chicca} racconto={arrivo.racconto}
+                    minutiAllaProssima={arrivo.minutiAllaProssima} nomeProssima={arrivo.nomeProssima}
+                    onApri={() => setSchedaId(arrivo.id)} onRiparti={() => setArrivoId(null)}
+                />
+            )}
+            {scheda && (
+                <SchedaTappa
+                    numero={scheda.numero} categoria={scheda.categoria} nome={scheda.nome} foto={scheda.foto} pillole={scheda.pillole}
+                    perche={scheda.perche} racconto={scheda.racconto}
+                    minutiAllaProssima={scheda.minutiAllaProssima} nomeProssima={scheda.nomeProssima}
+                    onChiudi={() => setSchedaId(null)} onRiparti={() => { setSchedaId(null); setArrivoId(null); }}
+                />
+            )}
+            {isSummaryModalOpen && (() => {
+                const fatte = (activeRoute || []).filter(t => completedSteps.includes(t.id)).map(t => tourData?.steps?.[t.index] || t);
+                const saltate = (activeRoute || []).filter(t => skippedSteps.includes(t.id)).length;
+                const tutte = (activeRoute || []).map(t => tourData?.steps?.[t.index] || t);
+                const numeri = numeriDelGiro({ tappe: tutte, elapsedMs: navElapsedMs, distanzaM: null });
+                const imparato = cosaHoImparato({ fatte: fatte.map(st => ({ categoria: stopCoreCategory(st) })), totale: activeRoute.length, saltate, dnaWeights });
+                const testoCondivisione = `Ho appena fatto un giro${tourData?.city ? ` a ${tourData.city}` : ''} con DoveVai: ${numeri.tappe} tappe${numeri.km ? `, ${numeri.km} km` : ''}.`;
+                return (
+                    <FineGiro
+                        data={dataDelGiro(new Date())} citta={tourData?.city || null} tappe={tutte} numeri={numeri} imparato={imparato}
+                        onChiudi={() => setIsSummaryModalOpen(false)}
+                        onMete={() => { setIsSummaryModalOpen(false); navigate('/profile'); }}
+                        onCondividi={() => {
+                            if (navigator.share) navigator.share({ title: 'Il mio giro', text: testoCondivisione }).catch(() => {});
+                            else navigator.clipboard?.writeText(testoCondivisione).catch(() => {});
+                        }}
+                    />
+                );
+            })()}
 
             {/* 11. NATIVE MY LOCATION BUTTON (Google Maps Style Bottom Right) */}
             <button 

@@ -7,6 +7,8 @@ import { Link, useParams, useLocation, useNavigate, useSearchParams } from "reac
 import { useState, useEffect } from "react";
 import TopBar from "../components/TopBar";
 import TourCover from "../components/TourCover";
+import DnaDelGiro from "../components/DnaDelGiro";
+import { righeDnaDelGiro } from "../lib/dnaDelGiro";
 import SalvaGiro from "../components/SalvaGiro";
 import { isPlacesPhoto } from "@/lib/categoryPalette";
 import { formatEstimate, displayedTourMinutes } from "@/lib/tourTiming";
@@ -1009,6 +1011,10 @@ export default function TourDetailsPage() {
 
                     {/* ⬇️ STANDARD SECTIONS ⬇️ */}
                     <>
+                        {/* DNA-RIQUADRO — Per Te: cosa del DNA ha guidato questo giro (nessuna richiesta; mai trattini; senza righe non compare) */}
+                        {isAiSelfGuided && (
+                            <DnaDelGiro className="mb-4" righe={righeDnaDelGiro({ pesi: dnaWeights, fiducia: dnaWeights?._share, tappe: tour.steps })} />
+                        )}
                         {/* Info Grid — Gate PULIZIA P5: anche il CONTENITORE e' sotto guardia */}
                         {(tour.location || tour.duration ||
                           (Number.isFinite(tour.participants) && Number.isFinite(tour.maxParticipants)) ||

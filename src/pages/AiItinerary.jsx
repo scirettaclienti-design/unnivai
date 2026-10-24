@@ -28,6 +28,9 @@ import { useAILearning } from "../hooks/useAILearning"; // DVAI-045
 import { gestiDiCrea, logDnaGesti } from "../lib/dnaRegistro";
 import { useToast } from "../hooks/use-toast";
 import SalvaGiro from "../components/SalvaGiro";
+import DnaDelGiro from "../components/DnaDelGiro";
+import { righeDnaDelGiro } from "../lib/dnaDelGiro";
+import { richiestaEsplicita } from "../lib/richiestaEsplicita";
 // Gate 2 FASE 3 — resolveCityCenter come sorgente unica del centro città.
 // Sostituisce il vecchio pattern `{ latitude: lat, longitude: lng }` che usava
 // il GPS UTENTE (buco #3 diagnosi Gate 1: il raggio inseguiva l'utente invece
@@ -703,6 +706,15 @@ export default function AIItineraryPage() {
                                                 </div>
                                             )}
                                         </div>
+
+                                        {/* DNA-RIQUADRO — cosa della richiesta e del DNA ha guidato questo giro (mai trattini; senza righe non compare) */}
+                                        <DnaDelGiro className="mb-4" righe={righeDnaDelGiro({
+                                            pesi: dnaWeights, fiducia: dnaShare, tappe: day.stops,
+                                            richiesta: (() => {
+                                                const r = richiestaEsplicita({ testo: userPrompt, prefs: { interests: userPreferences.find(p => p.id === 'interests')?.selected || [] }, pathType: 'custom' });
+                                                return [...r.chieste, ...r.catsTesto];
+                                            })(),
+                                        })} />
 
                                         {/* Stops Timeline */}
                                         {/* Gate TAPPE PER MOMENTO — le tappe del giorno, per momento della

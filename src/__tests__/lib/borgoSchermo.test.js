@@ -56,7 +56,8 @@ describe('BORGO-SCHERMO — il riquadro del Quiz dice il vero', () => {
         expect(qp).toContain('mainId: selectedOption');
         const qs = readFileSync(path.join(process.cwd(), 'src/components/Map/QuickPathSummary.jsx'), 'utf8');
         expect(qs).toContain('sceltaConfermata({ main: choices?.mainId, steps: tourData.steps })');
-        expect(qs).toContain('{sceltaMostrata && (');
+        // DNA-RIQUADRO: la scelta entra nel riquadro solo se confermata (`scelte: sceltaMostrata ? [...] : []`)
+        expect(qs).toContain('scelte: sceltaMostrata ? [choices?.mood, choices?.inspiration] : []');
     });
 });
 

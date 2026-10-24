@@ -1,13 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Navigation, Clock, Users, ArrowRight, Sparkles, Home } from 'lucide-react';
+import { MapPin, Navigation, ArrowRight, Sparkles, Home } from 'lucide-react';
 import { getCoverPalette } from '@/lib/categoryPalette';
 import { TourStopsByMoment, TopFadeScroll } from '@/components/TourStopsByMoment';
 import { displayedTourMinutes, formatEstimate } from '@/lib/tourTiming';
 import { sceltaConfermata } from '@/lib/quizRiquadro';
 import SalvaGiro from '@/components/SalvaGiro';
+import DnaDelGiro from '@/components/DnaDelGiro';
+import { righeDnaDelGiro } from '@/lib/dnaDelGiro';
 
-export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modifica = null, sorgente = 'quiz' }) => {
+export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modifica = null, sorgente = 'quiz', dna = null }) => {
     if (!tourData) return null;
 
     // Gate MOMENTO + DURATA VERA — la durata e' quella del tour sull'orologio
@@ -18,6 +20,12 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modific
     // BORGO-SCHERMO — la scelta (mood e ispirazione) si mostra solo se almeno una tappa e' di quella famiglia: a Troina alle 23
     // il riquadro diceva «Natura / Parchi e Verde» sopra un bar e una via.
     const sceltaMostrata = sceltaConfermata({ main: choices?.mainId, steps: tourData.steps });
+    // DNA-RIQUADRO — la scelta (se almeno una tappa e' di quella famiglia) e il DNA che guida il giro; niente di piu'
+    const righeDna = righeDnaDelGiro({
+        pesi: dna?.pesi, fiducia: dna?.fiducia,
+        scelte: sceltaMostrata ? [choices?.mood, choices?.inspiration] : [],
+        tappe: tourData.steps,
+    });
 
     // Gate VERITÀ VISIVA (F26) DIFF 4 — via lo stock Unsplash di ripiego.
     // Questa e' la copertina del tour appena generato: se non c'e' una foto
@@ -69,35 +77,8 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modific
                         <span>Itinerario cucito dall'AI</span>
                     </div>
 
-                    {/* Le tue scelte */}
-                    <div className="bg-obsidian-raised rounded-2xl p-4 border border-obsidian-border relative overflow-hidden">
-                        <h3 className="text-xs font-bold text-obsidian-secondary uppercase tracking-wider mb-3">
-                            Il tuo DNA Esplorativo
-                        </h3>
-                        
-                        <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
-                            {sceltaMostrata && (
-                                <div className="flex flex-col" data-riquadro-mood>
-                                    <span className="text-obsidian-secondary text-xs">Mood</span>
-                                    <span className="font-bold text-obsidian-primary">{choices?.mood || '—'}</span>
-                                </div>
-                            )}
-                            {sceltaMostrata && (
-                                <div className="flex flex-col" data-riquadro-ispirazione>
-                                    <span className="text-obsidian-secondary text-xs">Ispirazione</span>
-                                    <span className="font-bold text-obsidian-primary">{choices?.inspiration || '—'}</span>
-                                </div>
-                            )}
-                            <div className="flex items-center gap-2 mt-1">
-                                <Clock size={15} className="text-brand-orange" />
-                                <span className="font-bold text-obsidian-primary">{choices?.duration || '—'}</span>
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                                <Users size={15} className="text-brand-orange" />
-                                <span className="font-bold text-obsidian-primary">{choices?.group || '—'}</span>
-                            </div>
-                        </div>
-                    </div>
+                    {/* DNA-RIQUADRO — solo cio' che del DNA e della scelta ha guidato QUESTO giro (mai trattini; senza righe non compare) */}
+                    <DnaDelGiro righe={righeDna} />
 
                     {/* BORGO-FIX (decisione 3) — la natura di notte non si vede: la nota di Ivano, sotto il riquadro */}
                     {tourData.naturaNote && (

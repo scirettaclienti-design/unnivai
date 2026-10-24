@@ -1094,6 +1094,7 @@ export default function QuickPathPage() {
                                 <QuickPathSummary
                                     tourData={readyTourData}
                                     modifica={modificaGiro}
+                                    dna={{ pesi: dnaWeights, fiducia: dnaShare }}
                                     choices={{
                                         mainId: selectedOption,
                                         mood: mainOptions.find(o => o.id === selectedOption)?.title || selectedOption,

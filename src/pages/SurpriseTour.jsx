@@ -1,7 +1,7 @@
 import { displayedTourMinutes, formatEstimate } from "@/lib/tourTiming";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { MapPin, Star, Clock, Users, ArrowLeft, Sparkles, Gift, ArrowRight, AlertCircle, Compass } from "lucide-react";
+import { MapPin, Star, ArrowLeft, Sparkles, Gift, ArrowRight, AlertCircle, Compass } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
@@ -47,6 +47,8 @@ const surpriseTypes = [
 
 import { useUserContext } from "@/hooks/useUserContext";
 import { useAILearning } from "@/hooks/useAILearning";
+import DnaDelGiro from "@/components/DnaDelGiro";
+import { righeDnaDelGiro } from "@/lib/dnaDelGiro";
 import { aiRecommendationService, QUOTA_USER_MESSAGE } from "@/services/aiRecommendationService";
 import { AI_ENGINE_MESSAGE, isAiEngineError } from "@/lib/aiEngineError";
 import { esitoVuoto, MESSAGGIO_TECNICO } from "@/lib/esitoVuoto";
@@ -489,31 +491,8 @@ export default function SurpriseTourPage() {
                                 <span>Itinerario cucito dall'AI</span>
                             </div>
 
-                            {/* Il tuo DNA Esplorativo */}
-                            <div className="bg-obsidian-raised rounded-2xl p-4 border border-obsidian-border relative overflow-hidden">
-                                <h3 className="text-xs font-bold text-obsidian-secondary uppercase tracking-wider mb-3">
-                                    Il tuo DNA Esplorativo
-                                </h3>
-                                
-                                <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
-                                    <div className="flex flex-col">
-                                        <span className="text-obsidian-secondary text-xs">Categoria</span>
-                                        <span className="font-bold text-obsidian-primary">{selectedFilter || 'Sorpresa Totale'}</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-obsidian-secondary text-xs">Ritmo</span>
-                                        <span className="font-bold text-obsidian-primary">Mezza Giornata</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <Clock size={15} className="text-brand-orange" />
-                                        <span className="font-bold text-obsidian-primary">{durationLabel || '—'}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <Users size={15} className="text-brand-orange" />
-                                        <span className="font-bold text-obsidian-primary">Esperienza Unica</span>
-                                    </div>
-                                </div>
-                            </div>
+                            {/* DNA-RIQUADRO — solo cio' che della scelta e del DNA ha guidato QUESTO giro (mai trattini; senza righe non compare) */}
+                            <DnaDelGiro righe={righeDnaDelGiro({ pesi: dnaWeights, fiducia: dnaShare, scelte: selectedFilter ? [selectedFilter] : [], tappe: mappedTour.stops || mappedTour.steps })} />
 
                             {/* Statistiche */}
                             <div className="flex items-center justify-around px-2">

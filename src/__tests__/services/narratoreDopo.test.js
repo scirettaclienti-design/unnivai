@@ -182,8 +182,9 @@ describe('Gate NARRATORE-DOPO — le scelte sulle tappe finali, il testo dal cod
             expect(Array.isArray(t.ganci)).toBe(true);
             expect(t.ganci.every(g => ['tramonto', 'legame', 'distanza', 'prima', 'ultima', 'orario'].includes(g))).toBe(true);
         });
-        // La prima tappa del giorno ha "prima", l'ultima "ultima".
-        expect(giorni[0].tappe[0].ganci).toContain('prima');
+        // VERITA-TESTI — «Si comincia da qui» solo se la prima tappa e' entro 150 m dall'utente: qui la posizione non c'e', quindi no
+        // (il caso positivo e' in veritaTesti.test.jsx). L'ultima tappa ha "ultima".
+        expect(giorni[0].tappe[0].ganci).not.toContain('prima');
         // (salvo che l'apertura lo dica gia': "Chiudi la giornata a tavola…")
         const ultima = giorni[0].tappe.at(-1);
         if (!/Chiudi la giornata/.test(ultima.apertura)) expect(ultima.ganci).toContain('ultima');

@@ -1250,6 +1250,10 @@ export function polishRoute(plan, { buckets, pool, dnaWeights = {}, requestedFam
                 const dellaCategoria = !!dellaRichiesta && dellaRichiesta(s.candidate);
                 for (const c of buckets.get(e.moment.id) || []) {
                     if (giaNelGiro(c)) continue;
+                    // VERITA-TESTI — la colazione e' la prima tappa del suo momento e resta un posto da colazione: senza questa
+                    // guardia il ritocco di percorso la cambiava con una visita «sulla strada» (a Catania, 2 giri su 3: Caffè Puglisi
+                    // diventava Castello Ursino e il giro del mattino partiva senza colazione).
+                    if (e.moment.colazione && si === 0 && isBreakfastPlace(s.candidate) && !isBreakfastPlace(c)) continue;
                     // Fuori dai pasti un posto dove si mangia entra solo al
                     // posto di un altro: un locale senza famiglia "toglierebbe"
                     // una ripetizione mettendo una trattoria nel pomeriggio.

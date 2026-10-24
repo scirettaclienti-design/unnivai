@@ -9,7 +9,7 @@ import TopBar from "../components/TopBar";
 import TourCover from "../components/TourCover";
 import SalvaGiro from "../components/SalvaGiro";
 import { isPlacesPhoto } from "@/lib/categoryPalette";
-import { formatEstimate } from "@/lib/tourTiming";
+import { formatEstimate, displayedTourMinutes } from "@/lib/tourTiming";
 import { typeLabelOf, categoryLabelOf } from "@/lib/italianLabels";
 // Gate MOMENTO NEL DETTAGLIO — stesso raggruppamento di AiItinerary,
 // QuickPathSummary e SurpriseTour: momento dalla tappa (o dal suo orario),
@@ -514,6 +514,10 @@ export default function TourDetailsPage() {
     const { trackTourView, dnaWeights } = useAILearning();
     // GIRO-EDIT — «Togli» e «Cambia» sulle tappe dei giri generati (Per Te, Sorprendimi, Quiz, Crea); mai sui tour di una guida.
     const modificaGiro = useModificaGiro({ tour, aggiorna: setLocalTour, dnaWeights });
+    // VERITA-TESTI — la durata e' una sola: quella delle tappe di adesso (dopo «Togli» o «Cambia» cambia anche l'intestazione).
+    const durataGiro = tour && (tour.isAiGenerated || location.state?.origine === 'per_te') && Array.isArray(tour.steps) && tour.steps.length > 0
+        ? (formatEstimate(displayedTourMinutes(tour.steps)) || tour.duration)
+        : tour?.duration;
     const giroModificabile = !!tour && (tour.isAiGenerated || location.state?.origine === 'per_te') && Array.isArray(tour.steps) && tour.steps.length > 0;
 
     // Track tour view per il preference graph
@@ -1022,11 +1026,11 @@ export default function TourDetailsPage() {
                                     <div className="font-bold text-obsidian-primary text-sm truncate">{tour.location}</div>
                                 </div>
                             )}
-                            {tour.duration && (
+                            {durataGiro && (
                                 <div className="bg-obsidian-card border border-obsidian-border rounded-2xl p-4 text-center shadow-sm">
                                     <Clock className="w-5 h-5 text-obsidian-secondary mx-auto mb-2" />
                                     <div className="text-xs text-obsidian-secondary mb-1 font-semibold uppercase tracking-wider">Durata</div>
-                                    <div className="font-bold text-obsidian-primary text-sm">{tour.duration}</div>
+                                    <div className="font-bold text-obsidian-primary text-sm">{durataGiro}</div>
                                 </div>
                             )}
                             {Number.isFinite(tour.participants) && Number.isFinite(tour.maxParticipants) && (

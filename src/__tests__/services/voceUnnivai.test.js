@@ -176,6 +176,7 @@ describe('P3d-b — notifiche: stesso elenco, nel prompt e nel filtro', () => {
     });
     const tip = () => aiRecommendationService.generateWeatherSocialTip('Roma', 'Ivano', 'midday', {
         temperatureC: 22, condition: 'sunny', cityCenter: CC, source: 'gps', userLat: 41.8986, userLng: 12.4769,
+        now: new Date(2026, 9, 24, 12, 30), // VERITA-TESTI: l'ora finta, prima delle 15:00 di chiusura
     });
 
     let spies = [];

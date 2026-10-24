@@ -67,6 +67,8 @@ export const FRASI_GANCIO = {
     ultima: 'Qui la giornata si chiude.',
     orario: 'Ci arrivi alle {ora}.',
 };
+// «Si comincia da qui»: la prima tappa deve stare entro questa distanza dall'utente.
+export const PRIMA_TAPPA_MAX_M = 150;
 export const GANCI = Object.keys(FRASI_GANCIO).filter(g => g !== 'distanza1');
 
 // TESTI (decisione di Ivano) — il tempo libero dice sempre la stessa cosa, vera per ogni vuoto: a schermo
@@ -190,7 +192,7 @@ export function fattoDi(fatti = []) {
 // anche il type Google `bar`, ma non e' un bar da colazione.
 const TIPI_DA_TAVOLA = ['trattoria', 'osteria', 'pizzeria', 'ristorante', 'taverna', 'bistrot'];
 
-export function stopData({ stop, momento = null, orario = null, tramonto = null, minutiDaPrima = null, locale = false, priceLevel = null, fatti = [], primo = false, ultimo = false, giornata = true }) {
+export function stopData({ stop, momento = null, orario = null, tramonto = null, minutiDaPrima = null, locale = false, priceLevel = null, fatti = [], primo = false, ultimo = false, giornata = true, distanzaUtenteM = null }) {
     const nome = nomeDi(stop) || 'questa tappa';
     const types = Array.isArray(stop?.types) ? stop.types : [];
     const n = norm(nome);
@@ -234,7 +236,10 @@ export function stopData({ stop, momento = null, orario = null, tramonto = null,
         famiglia: locale ? null : famigliaFrase(stop),
         shopping: kind === 'negozio',
         fatto: locale ? null : fattoDi(fatti),
-        primo: !!primo,
+        // «Si comincia da qui» e' vero solo se l'utente e' li': la prima tappa entro PRIMA_TAPPA_MAX_M dalla sua posizione.
+        // Senza posizione nota non si dice.
+        primo: !!primo && Number.isFinite(distanzaUtenteM) && distanzaUtenteM <= PRIMA_TAPPA_MAX_M,
+        primaDelGiro: !!primo,
         ultimo: !!ultimo,
         // "Per Te" e' un giro suggerito adesso, non una giornata: niente
         // "Qui la giornata si chiude" (giornata: false).
@@ -305,7 +310,7 @@ const CI_SI_FERMA_DAVANTI = new Set(['monumento', 'porta', 'arco', 'chiesa']);
 // Una frase che dice il falso su QUESTA tappa non si usa: «Si parte da…» solo se e' la prima,
 // «Chiudi la giornata…» solo se e' l'ultima di un giro che finisce di sera.
 const frasePossibile = (tpl, d) => {
-    if (/\bsi parte\b/i.test(tpl) && !d.primo) return false;
+    if (/\bsi parte\b/i.test(tpl) && !d.primaDelGiro) return false;
     if (/\bchiudi la giornata\b/i.test(tpl) && !(d.ultimo && d.giornata && d.sera)) return false;
     // «prima della prossima tappa» non si dice sull'ultima.
     if (d.ultimo && /prossima tappa/.test(tpl) && /prima della/.test(tpl)) return false;

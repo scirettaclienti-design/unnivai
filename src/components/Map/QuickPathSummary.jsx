@@ -3,21 +3,9 @@ import { motion } from 'framer-motion';
 import { MapPin, Navigation, Clock, Users, ArrowRight, Sparkles, Home } from 'lucide-react';
 import { getCoverPalette } from '@/lib/categoryPalette';
 import { TourStopsByMoment, TopFadeScroll } from '@/components/TourStopsByMoment';
-import { displayedTourMinutes } from '@/lib/tourTiming';
+import { displayedTourMinutes, formatEstimate } from '@/lib/tourTiming';
 import { sceltaConfermata } from '@/lib/quizRiquadro';
 import SalvaGiro from '@/components/SalvaGiro';
-
-// Gate PULIZIA P1 — formatta minuti → "45 min" / "3h" / "1h 30m".
-// Il vecchio inline `(min % 60 || '')` trattava lo 0 come falsy e stampava
-// "3h m" per ogni durata multipla di 60 (medio=180, lungo=300 di QuickPath).
-// Stessa guardia `resto === 0` gia' usata in NavigationHUD.jsx:80 e MapPage.jsx:89.
-const formatMinutes = (min) => {
-    if (!Number.isFinite(min) || min <= 0) return null;
-    if (min < 60) return `${min} min`;
-    const h = Math.floor(min / 60);
-    const m = min % 60;
-    return m === 0 ? `${h}h` : `${h}h ${m}m`;
-};
 
 export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modifica = null }) => {
     if (!tourData) return null;
@@ -26,7 +14,7 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modific
     // (prima tappa → fine dell'ultima). Senza orari, duration_minutes: la
     // durata del motore che QuickPath legge da tourWindow.js.
     // BORGO-SCHERMO — la stessa durata di tutte le schermate (displayedTourMinutes); la durata del motore solo senza tappe.
-    const durationLabel = formatMinutes(displayedTourMinutes(tourData.steps, tourData.duration_minutes));
+    const durationLabel = formatEstimate(displayedTourMinutes(tourData.steps, tourData.duration_minutes));
     // BORGO-SCHERMO — la scelta (mood e ispirazione) si mostra solo se almeno una tappa e' di quella famiglia: a Troina alle 23
     // il riquadro diceva «Natura / Parchi e Verde» sopra un bar e una via.
     const sceltaMostrata = sceltaConfermata({ main: choices?.mainId, steps: tourData.steps });

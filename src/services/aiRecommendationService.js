@@ -347,6 +347,7 @@ const assertQuotaAvailable = async () => {
 // sorgenti passano dal normalizer. Qui le importiamo per uso locale (regola 15
 // del prompt + filtro raggio prima del selettore, che risparmia chiamate Google $)
 // E le re-esportiamo per non rompere aiRadius.test.js.
+import { chiusuraFutura, orariPassatiNelTesto } from '../lib/orariNotifica';
 import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } from './tourShape';
 // Gate RAGGIO DIFF 1a — stime di durata (sosta da types + spostamento haversine).
 // Va chiamato SEMPRE dopo l'ordinamento definitivo: lo spostamento e' una
@@ -2076,7 +2077,13 @@ const insertFreeTime = (days, entries) => {
 
 /** Il contesto di composizione di ogni tappa, sugli orari di adesso. */
 // BORGO-SCHERMO — `giornata: false` (il giro della sera di Per Te, il tour misto del borgo): niente «Qui la giornata si chiude».
-const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map(), giornata = true }) => {
+// «Si comincia da qui»: la distanza (m) fra la posizione dell'utente e la tappa; null se una delle due non si conosce.
+const distanzaDaUtenteM = (utente, s) => {
+    const la = utente?.latitude ?? utente?.lat, lo = utente?.longitude ?? utente?.lng;
+    const sl = s?.latitude ?? s?.lat, sg = s?.longitude ?? s?.lng;
+    return [la, lo, sl, sg].every(Number.isFinite) ? haversineKm(la, lo, sl, sg) * 1000 : null;
+};
+const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map(), giornata = true, utente = null }) => {
     const timed = refreshTourScheduledTimes(days, starts);
     return (days || []).map((day, di) => {
         const sun = sunForDay(day, di, tourWindow, cityCenter);
@@ -2102,6 +2109,7 @@ const composeContexts = (days, { starts, tourWindow, cityCenter, facts = new Map
                     priceLevel: Number.isFinite(s.priceLevel) ? s.priceLevel : null,
                     fatti,
                     primo: s === vere[0],
+                    distanzaUtenteM: s === vere[0] ? distanzaDaUtenteM(utente, s) : null,
                     ultimo: s === vere[vere.length - 1],
                     giornata,
                 });
@@ -2125,8 +2133,8 @@ const giroDopocena = (ctx, day) => {
  * interesse } dal modello (o, dalla cache, quelle salvate in _comp).
  * @returns {{ days: Array, report: Array }}
  */
-const composeDays = (days, { starts, tourWindow, cityCenter, facts, scelte = new Map(), interessi = [], voce = {} }) => {
-    const ctxs = composeContexts(days, { starts, tourWindow, cityCenter, facts });
+const composeDays = (days, { starts, tourWindow, cityCenter, facts, scelte = new Map(), interessi = [], voce = {}, utente = null }) => {
+    const ctxs = composeContexts(days, { starts, tourWindow, cityCenter, facts, utente });
     const report = [];
     // TESTI — nello stesso tour nessuna frase uguale due volte (nome e numeri mascherati, come il controllo c7).
     const usate = new Set();
@@ -3454,10 +3462,10 @@ export const aiRecommendationService = {
                             dnaWeights: opts.dnaWeights || null,
                         });
                         const voce = { richiesta: userPrompt, oggetto: intent?.oggetto_umano || '' };
-                        const ctxs = composeContexts(daysForNarration, { starts, tourWindow, cityCenter, facts, giornata: opts.giornata !== false });
+                        const ctxs = composeContexts(daysForNarration, { starts, tourWindow, cityCenter, facts, giornata: opts.giornata !== false, utente: opts.startPoint || null });
                         const scelte = await chooseStopHooks({ city, days: daysForNarration, ctxs, interessi, quotaTicket });
                         const composed = composeDays(applyDayMeta(daysForNarration, scelte.meta, city), {
-                            starts, tourWindow, cityCenter, facts, scelte: scelte.byId, interessi, voce,
+                            starts, tourWindow, cityCenter, facts, scelte: scelte.byId, interessi, voce, utente: opts.startPoint || null,
                         });
                         // C5e (O) — il tempo libero entra nel giorno dopo il racconto,
                         // al suo posto fra i momenti, con il testo del codice.
@@ -4047,7 +4055,7 @@ export const aiRecommendationService = {
                         stop: clean, momento: moment.key, minutiDaPrima: clean.travelMinutesFromPrev,
                         locale: isLocaleStop(clean),
                         priceLevel: Number.isFinite(clean.priceLevel) ? clean.priceLevel : priceLevelOf(poolById.get(clean.place_id)),
-                        fatti, primo: i === 0, ultimo: i === timedStops.length - 1, giornata: false,
+                        fatti, primo: i === 0, distanzaUtenteM: i === 0 ? distanzaDaUtenteM(opts?.startPoint || null, clean) : null, ultimo: i === timedStops.length - 1, giornata: false,
                     });
                     const r = guardComposed(d, _scelta || {}, {
                         interessi: interessiPerTe, arrival: now, sunrise: sunNow.sunrise, sunset: sunNow.sunset, fatti, fattiSu, evita: usate,
@@ -4469,6 +4477,9 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
                 top.map(p => placesDiscoveryService.fetchPlaceOpeningHours(p.place_id || p.googlePlaceId))
             );
 
+            // ORARI — l'ora di chi legge: una chiusura gia' passata non si scrive (e il posto e' chiuso).
+            const adesso = ctx.now instanceof Date ? ctx.now : new Date();
+            const adessoMin = adesso.getHours() * 60 + adesso.getMinutes();
             const enriched = top.map((p, i) => {
                 const distanceMinutes = hasGps && Number.isFinite(p.latitude) && Number.isFinite(p.longitude)
                     ? Math.round(haversineKm(ctx.userLat, ctx.userLng, p.latitude, p.longitude) * 12)
@@ -4483,7 +4494,8 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
                     user_ratings_total: p.user_ratings_total,
                     // Preferisci closingTimeTodayHH (da place/details): dato strutturale.
                     // Fallback openNow (da textsearch): istantaneo, meno affidabile.
-                    closingTimeTodayHH: oh.closingTimeTodayHH || null,
+                    closingTimeTodayHH: chiusuraFutura(oh.closingTimeTodayHH, adessoMin) ? oh.closingTimeTodayHH : null,
+                    chiusoGia: !!oh.closingTimeTodayHH && !chiusuraFutura(oh.closingTimeTodayHH, adessoMin),
                     // Gate TOUR-SENSATO (F18) — era `p.opening_hours?.open_now`,
                     // sempre undefined: buildPOIFromCandidate costruisce un
                     // oggetto nuovo e non trasportava l'oggetto annidato. La
@@ -4495,8 +4507,8 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
             });
 
             // 6. Costruisci prompt con dati verificabili.
-            const nowH = new Date().getHours();
-            const nowM = new Date().getMinutes().toString().padStart(2, '0');
+            const nowH = adesso.getHours();
+            const nowM = adesso.getMinutes().toString().padStart(2, '0');
             const tempStr = Number.isFinite(ctx.temperatureC) ? `${ctx.temperatureC}°C` : null;
             const weatherStr = ctx.condition || null;
 
@@ -4505,7 +4517,7 @@ Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri)
             // Se hai closingTime → "chiude alle 22:00". Se non hai closingTime ma
             // hai openNow → "aperto adesso" / "chiuso ora". Se nessuno dei due →
             // NESSUN claim sull'apertura.
-            const candidatesBlock = enriched.map((c, i) => {
+            const candidatesBlock = enriched.filter(c => !c.chiusoGia).map((c, i) => {
                 const bits = [`${i + 1}. ${c.name}`];
                 if (c.distanceMinutes !== null) bits.push(`${c.distanceMinutes} min a piedi da te`);
                 if (c.closingTimeTodayHH) {
@@ -4610,6 +4622,12 @@ oppure
                 console.warn(`[SmartNotif] ${city}/${slot}: message post-cleanup vuoto/troppo corto → scarto`);
                 return null;
             }
+            // ORARI — nessun orario gia' passato nel testo (nemmeno scritto dal modello): si scarta.
+            const passati = orariPassatiNelTesto(cleanMessage, adessoMin);
+            if (passati.length) {
+                console.warn(`[SmartNotif] ${city}/${slot}: orario gia' passato nel testo (${passati.join(', ')}) → scarto`);
+                return null;
+            }
             parsed.message = cleanMessage;
 
             // 7. Verifica anti-invenzione: message deve contenere almeno un nome
@@ -4624,6 +4642,7 @@ oppure
             // primo. Coerenza notifica ↔ tour ↔ CTA garantita.
             const msg = String(parsed.message).toLowerCase();
             const chosenPois = enriched
+                .filter(c => !c.chiusoGia)
                 .filter(c => msg.includes(c.name.toLowerCase()))
                 .sort((a, b) => msg.indexOf(a.name.toLowerCase()) - msg.indexOf(b.name.toLowerCase()));
             if (chosenPois.length === 0) {

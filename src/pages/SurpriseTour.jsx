@@ -1,4 +1,4 @@
-import { displayedTourMinutes } from "@/lib/tourTiming";
+import { displayedTourMinutes, formatEstimate } from "@/lib/tourTiming";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { MapPin, Star, Clock, Users, ArrowLeft, Sparkles, Gift, ArrowRight, AlertCircle, Compass } from "lucide-react";
@@ -44,13 +44,6 @@ const surpriseTypes = [
     }
 ];
 
-const formatMinutes = (min) => {
-    if (!Number.isFinite(min) || min <= 0) return null;
-    if (min < 60) return `${min} min`;
-    const h = Math.floor(min / 60);
-    const m = min % 60;
-    return m === 0 ? `${h}h` : `${h}h ${m}m`;
-};
 
 import { useUserContext } from "@/hooks/useUserContext";
 import { useAILearning } from "@/hooks/useAILearning";
@@ -442,7 +435,7 @@ export default function SurpriseTourPage() {
         const mappedTour = generatedTour;
         const mainImage = mappedTour.imageUrl || mappedTour.image || null;
         const moodPalette = getCoverPalette(selectedFilter?.toLowerCase() || 'sorpresa', null);
-        const durationLabel = formatMinutes(mappedTour.duration_minutes);
+        const durationLabel = formatEstimate(mappedTour.duration_minutes);
 
         return (
             <div className="min-h-screen bg-obsidian-bg font-quicksand text-obsidian-primary flex flex-col justify-between">

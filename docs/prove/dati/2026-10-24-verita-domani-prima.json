@@ -1,0 +1,237 @@
+{
+ "richieste": {
+  "places": {
+   "findplacefromtext": 2,
+   "textsearch": 9,
+   "details": 3
+  },
+  "placesMiss": {
+   "textsearch": 1
+  },
+  "cambia": [],
+  "openai": 9
+ },
+ "dna": [],
+ "console": [
+  "[Gate TOUR-SENSATO] scartato \"Follow The Sun Catania - Rooftop Terrace\" → non visitabile (lodging, nessun type di visita) — types=[bed_and_breakfast|lodging|point_of_interest|establishment]",
+  "[Gate TOUR-SENSATO] scartato \"Terrazza Sangiuliano\" → non visitabile (lodging, nessun type di visita) — types=[bed_and_breakfast|lodging|point_of_interest|establishment]",
+  "[Qualita] scartati 7/18 | kind=FOOD soglia=4.2/50 (large) livello=1 | i piu' alti: \"Rooftop Plaza\" (r=4.6, n=11), \"Circle Sky Bar & Lounge\" (r=4.6, n=37), \"La Terrazza Sul Mare\" (r=4.1, n=21)",
+  "[AI-radius] Scartata \"Sky Rooftop Bar & Restaurant Taormina\": 42.1 km > 10 km da Catania",
+  "[AI-radius] Scartata \"Settimo Cielo Rooftop\": 42.3 km > 10 km da Catania",
+  "[C10b SCALA] Catania: proposta città → città (proposta città)",
+  "[AI Proxy] Chiamata → https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy (autenticato)",
+  "[Qualita] scartati 3/20 | kind=CULTURA soglia=4/50 (large) livello=1 | i piu' alti: \"Palazzo Valle\" (r=4.4, n=26), \"Galleria d’Arte Moderna - Ex Convento di Santa Chiara\" (r=4.3, n=19), \"Terme Achilliane\" (r=3.9, n=243)",
+  "[Qualita] scartati 2/20 | kind=FOOD soglia=4.2/50 (large) livello=1 | i piu' alti: \"Trattoria La Terrazza Pizzeria\" (r=4.7, n=17), \"Ristorante Trattoria La terrazza del barone\" (r=4.1, n=3266)",
+  "[Gate B] merge: 24 candidati dedup, ordinati per qualityScore (nessun taglio qui)",
+  "[C10 CITTA] Catania: lista dal server — 14 verificati, 13 nel pool dopo i filtri, ancore: Fontana dell'Elefante (uʻ Liotru) | Basilica Cattedrale di Sant'Agata | Castello Ursino",
+  "[Gate MERITO] Catania: 35 candidati -> 33 ammessi (soglia qualita' + punteggio affinita'/unicita'/voto, tetto 1 icona, limite 20)",
+  "[Qualita] scartati 2/20 | kind=FOOD soglia=4.2/50 (large) livello=1 | i piu' alti: \"Un Altro Giro Mixology & Bistrot\" (r=5, n=42), \"Civita - Beats, Bites & Bottles\" (r=5, n=42)",
+  "[P3 SCHELETRO] Catania: 3 momenti — g1-aperitivo×1(5 cand.), g1-passeggiata×1(5 cand.), g1-cena×1(11 cand.) | ricerche mirate: nightlife",
+  "[AI Proxy] Chiamata → https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy (autenticato)",
+  "[SmartNotif] Catania/evening: AI non ha citato nessun candidato → scarto",
+  "[P3 SCHELETRO] Catania: scartata ChIJL4d9TSnjExMRqXQYwLzTP5s (g1-passeggiata) — oltre il numero di tappe",
+  "[C5 PERCORSO] Catania giorno 1: 3 tappe, 0.36 km, incroci 0, indice non applicato (giro corto) (libero 1.6), catene 0",
+  "[P3d-e FATTI] Catania: 1/1 luoghi con fatti (1 da cache, 2 locali esclusi) in 187 ms, errori: overpass: Load failed",
+  "[AI Proxy] Chiamata → https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy (autenticato)",
+  "[AI Proxy] Errore: nessuna risposta (network)",
+  "[P3d-j SCELTE] Catania: scelte del modello non arrivate (AI engine down (network)) → riserva del codice su tutte le tappe",
+  "[Narratore] check avviato, 3 tappe, path=narratore",
+  "[P3d-j SCELTE] Catania: \"Bar Popolare\" — riserva del codice su usaFatto",
+  "[P3d-j SCELTE] Catania: \"Fontana dell'Elefante (uʻ Liotru)\" — riserva del codice su usaFatto",
+  "[P3d-j SCELTE] Catania: \"Trattoria Sorano\" — riserva del codice su usaFatto",
+  "[P7a2 famosita'] Catania: mediana 6399 recensioni, 1/3 tappe sopra 5000",
+  "[P7a ovvieta'] Catania: 0/3 tappe nel 10% piu' recensito (35 candidati, soglia 11538 recensioni)",
+  "[SmartNotif] Catania/evening/null: no recipe → skip",
+  "[AI-radius] Scartata \"Sky Rooftop Bar & Restaurant Taormina\": 42.1 km > 10 km da Catania",
+  "[AI-radius] Scartata \"Settimo Cielo Rooftop\": 42.3 km > 10 km da Catania",
+  "[AI Proxy] Chiamata → https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy (autenticato)",
+  "[SmartNotif] Catania/evening: AI non ha citato nessun candidato → scarto",
+  "[AI Proxy] Chiamata → https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy (autenticato)",
+  "[C10b SCALA] Catania: proposta città → città (proposta città)",
+  "[Gate B] intent tradotto: queries=[\"piazza storica\",\"trattoria tipica\",\"belvedere panorama\"] categoria=misto oggetto=\"un giro insider\" source=ai",
+  "[Gate B] kind globale=CULTURA | per-query: piazza storica->CULTURA, trattoria tipica->FOOD, belvedere panorama->RELAX | 2/3 divergenti",
+  "[DVAI-060] CULTURA scale-down livello 3 (permissivo, pochi luoghi disponibili)",
+  "[DVAI-060] Catania/belvedere panorama scale-down livello 3, 1 POI",
+  "[Qualita] scartati 4/20 | kind=CULTURA soglia=4/50 (large) livello=1 | i piu' alti: \"Piazza duomo\" (r=5, n=4), \"Piazza S. Francesco d'Assisi\" (r=4.5, n=8), \"Piazza Principessa Iolanda 6\" (r=3.8, n=101)",
+  "[Gate B] merge: 25 candidati dedup, ordinati per qualityScore (nessun taglio qui)",
+  "[C10 CITTA] Catania: lista dal server — 15 verificati, 14 nel pool dopo i filtri, ancore: Fontana dell'Elefante (uʻ Liotru) | Basilica Cattedrale di Sant'Agata | Castello Ursino",
+  "[Gate MERITO] Catania: 38 candidati -> 34 ammessi (soglia qualita' + punteggio affinita'/unicita'/voto, tetto 1 icona, limite 20)",
+  "[Qualita] scartati 1/20 | kind=FOOD soglia=4.2/50 (large) livello=1 | i piu' alti: \"Laboratorio di Via Napoli\" (r=4.1, n=960)",
+  "[P3 SCHELETRO] Catania: 6 momenti — g1-mattina×3(20 cand.), g1-pranzo×1(12 cand.), g1-pomeriggio×2(18 cand.), g1-aperitivo×1(4 cand.), g1-passeggiata×1(12 cand.), g1-cena×1(12 cand.) | ricerche mirate: colazione, nightlife",
+  "[ORARI] Catania: 8 posti chiusi quando ci si arriva, tolti dai momenti — Palazzo dei Chierici @g1-mattina (chiuso all'arrivo) | 901 Café @g1-mattina (chiuso all'arrivo) | Trattoria da Mario @g1-pranzo (chiuso all'arrivo) | Mercatino delle p",
+  "[AI Proxy] Chiamata → https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy (autenticato)",
+  "[Qualita] scartati 3/10 | kind=CULTURA soglia=4/50 (large) livello=1 | i piu' alti: \"Antica Galleria Bonfirraro\" (r=5, n=35), \"Studio Il Cartofilo Di Sotera Stefano\" (r=4.8, n=17), \"Libreria dello Studente Ct via Santa Sofia Universitaria\" ",
+  "[DNA-3c RICERCA SOSTA] Catania: cultura dopo \"Teatro Antico greco-romano di Catania\" (55 min liberi) → 1 candidati",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-pomeriggio (buchi 199 → 168 min)",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-pomeriggio (buchi 168 → 135 min)",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-pomeriggio (buchi 135 → 96 min)",
+  "[CONTINUITA'] Catania: tappa in piu' in g1-mattina (buchi 96 → 55 min)",
+  "[P3 SCHELETRO] Catania: scartata ChIJV63v_C7jExMRLThjTCcPppk (g1-mattina) — colazione chiesta: la prima tappa e' un posto da colazione",
+  "[P3 SCHELETRO] Catania: scartata ChIJP0UjWi7jExMRJytI986aC6g (g1-mattina) — colazione chiesta: la prima tappa e' un posto da colazione",
+  "[P3 SCHELETRO] Catania: scartata ChIJH_LNACbjExMR3WPlQ82DyEw (g1-mattina) — colazione chiesta: la prima tappa e' un posto da colazione",
+  "[P3 SCHELETRO] Catania: scartata ChIJb7xgVi7jExMRzmkNXcVXKe0 (g1-mattina) — colazione chiesta: la prima tappa e' un posto da colazione",
+  "[P3 SCHELETRO] Catania: scartata ChIJ2WVtWQXjExMRW-K1-7ykusU (g1-mattina) — colazione chiesta: la prima tappa e' un posto da colazione",
+  "[P3 SCHELETRO] Catania: scartata ChIJ2e3QsinjExMRNmN2_vYCfp8 (g1-mattina) — colazione chiesta: la prima tappa e' un posto da colazione",
+  "[P3 SCHELETRO] Catania: scartata ChIJL4d9TSnjExMRqXQYwLzTP5s (g1-pomeriggio) — fuori strada: 8 min di giro verso \"Castello Ursino\"",
+  "[P3 SCHELETRO] Catania: scartata ChIJydglUdP8ExMRsgDnWML-5yE (g1-pomeriggio) — fuori strada: 26 min di giro verso \"Castello Ursino\"",
+  "[P3 SCHELETRO] Catania: scartata ChIJdVTSyEjjExMRmIZJkeodCY4 (g1-aperitivo) — fuori strada: 9 min di giro verso \"Porta Uzeda\"",
+  "[P3 SCHELETRO] Catania: scartata ChIJLZa9AC7jExMRQpSE-ITO9ZM (g1-passeggiata) — famiglia gia' presente nel giorno (piazza)",
+  "[P3 SCHELETRO] Catania: g1-mattina riempito dal codice con \"Caffè Puglisi\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-mattina riempito dal codice con \"Fontana dell'Elefante (uʻ Liotru)\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-mattina riempito dal codice con \"Basilica Cattedrale di Sant'Agata\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-mattina riempito dal codice con \"Teatro Antico greco-romano di Catania\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-pomeriggio riempito dal codice con \"Castello Ursino\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-pomeriggio riempito dal codice con \"Piazza Umbrella\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-pomeriggio riempito dal codice con \"Fontana dell’Amenano\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-pomeriggio riempito dal codice con \"Giardino Bellini - Villa Bellini\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-pomeriggio riempito dal codice con \"Via Etnea\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-aperitivo riempito dal codice con \"Bar Popolare\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-passeggiata riempito dal codice con \"Porta Uzeda\" (merito)",
+  "[P3 SCHELETRO] Catania: g1-pranzo riempito dal codice con \"Trattoria L’imperiale\" (merito)",
+  "[C5e TEMPO LIBERO] Catania: g1-mattina — 55 min fra \"Teatro Antico greco-romano di Catania\" e \"Trattoria L’imperiale\": nessuna tappa in piu' da aggiungere (varieta', percorso e orari)",
+  "[C5 PERCORSO] Catania: g1-pranzo \"Trattoria L’imperiale\" al posto di ChIJq3DCq4HjExMRyvmYVFTImqY (sulla strada)",
+  "[C5 PERCORSO] Catania giorno 1: 13 tappe, 4.76 km, incroci 3, indice 1 (libero 1.55), catene 0 — incrocio rimasto: toglierlo costerebbe una famiglia ripetuta",
+  "[P3d-e FATTI] Catania: 8/9 luoghi con fatti (8 da cache, 4 locali esclusi) in 1125 ms, errori: overpass: Load failed",
+  "[AI Proxy] Chiamata → https://ahecpiwsdhghkndncejb.supabase.co/functions/v1/openai-proxy (autenticato)",
+  "[Narratore] check avviato, 14 tappe, path=narratore",
+  "[Narratore] VIOLAZIONE no-orario-affermato | campo=description | POI=\"Caffè Puglisi\" | estratto=\"alle 9:30\"",
+  "[Narratore] VIOLAZIONE no-orario-affermato | campo=description | POI=\"Piazza Umbrella\" | estratto=\"alle 17:10\"",
+  "[Narratore] VIOLAZIONE no-orario-affermato | campo=description | POI=\"Bar Popolare\" | estratto=\"alle 18\"",
+  "[P3d-j SCELTE] Catania: \"Via Etnea\" — riserva del codice su gancio",
+  "[P3d-j SCELTE] Catania: \"Bar Popolare\" — riserva del codice su gancio",
+  "[P3d-j SCELTE] Catania: \"La Pentolaccia\" — riserva del codice su gancio",
+  "[P7a2 famosita'] Catania: mediana 3398 recensioni, 5/14 tappe sopra 5000",
+  "[P7a ovvieta'] Catania: 2/14 tappe nel 10% piu' recensito (38 candidati, soglia 11541 recensioni)"
+ ],
+ "fasi": {
+  "generato": {
+   "momenti": [
+    "MATTINA",
+    "PRANZO",
+    "POMERIGGIO",
+    "APERITIVO",
+    "CENA"
+   ],
+   "tappe": [
+    {
+     "libero": false,
+     "righe": [
+      "09:30",
+      "Caffè Puglisi",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "10:01",
+      "Basilica Cattedrale di Sant'Agata",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "10:22",
+      "Fontana dell'Elefante (uʻ Liotru)",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "10:56",
+      "Teatro Antico greco-romano di Catania",
+      "4.5"
+     ]
+    },
+    {
+     "libero": true,
+     "righe": [
+      "Tempo libero",
+      "11:26–12:21",
+      "Niente in agenda: cammina dove ti porta la strada."
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "12:30",
+      "Trattoria L’imperiale",
+      "4.8"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "14:30",
+      "Giardino Bellini - Villa Bellini",
+      "4.4"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "15:06",
+      "Via Etnea",
+      "4.7"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "15:43",
+      "Fontana dell’Amenano",
+      "4.6"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "16:14",
+      "Piazza Umbrella",
+      "4.4"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "16:48",
+      "Castello Ursino",
+      "4.3"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "18:00",
+      "Bar Popolare",
+      "4.9"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "18:48",
+      "Porta Uzeda",
+      "4.5"
+     ]
+    },
+    {
+     "libero": false,
+     "righe": [
+      "20:00",
+      "La Pentolaccia",
+      "4.5"
+     ]
+    }
+   ],
+   "costoSoFar": 0.032
+  }
+ },
+ "costoUsd": {
+  "googleRealeMiss": 0.032,
+  "openai": 0.0328,
+  "totale": 0.065
+ }
+}

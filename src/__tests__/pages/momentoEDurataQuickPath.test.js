@@ -113,13 +113,13 @@ describe('QuickPathSummary — il campo moment vince sull\'orario', () => {
 });
 
 describe('QuickPathSummary — durata dalla prima tappa alla fine dell\'ultima', () => {
-    it('10:00 → 11:40 + sosta 30 = 12:10 → "2h 10m", anche se duration_minutes dice altro', () => {
+    it('10:00 → 11:40 + sosta 30 = 12:10 → "circa 2h 10min", anche se duration_minutes dice altro', () => {
         const tourData = normalizeTour({
             id: 'q', title: 'Roma', city: 'Roma', duration_minutes: 90,
             stops: [stop('A', '10:00'), stop('B', '11:40')],
         });
         const { container } = render(createElement(QuickPathSummary, { tourData, choices: {} }));
-        expect(statDurata(container)).toBe('2h 10m');
+        expect(statDurata(container)).toBe('circa 2h 10min');
     });
 });
 
@@ -142,7 +142,7 @@ describe('QuickPath — senza orari la card usa la somma delle soste (BORGO-SCHE
         });
         const { container } = await percorri('Veloce');
         expect(QUICK_MINUTES.veloce).toBe(120);
-        expect(statDurata(container)).toBe('40 min');
+        expect(statDurata(container)).toBe('~40 min');
     });
 
     it('Lungo, tappe senza scheduledTime → la stessa somma (40 min), non QUICK_MINUTES.lungo', async () => {
@@ -150,6 +150,6 @@ describe('QuickPath — senza orari la card usa la somma delle soste (BORGO-SCHE
             days: [{ title: 'Roma', stops: [stop('Senza Orario', null)] }],
         });
         const { container } = await percorri('Lungo');
-        expect(statDurata(container)).toBe('40 min');
+        expect(statDurata(container)).toBe('~40 min');
     });
 });

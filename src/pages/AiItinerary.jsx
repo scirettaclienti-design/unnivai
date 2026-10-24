@@ -593,16 +593,16 @@ export default function AIItineraryPage() {
                             <span>Creazione Itinerario AI</span>
                         </div>
 
-                        <h2 className="text-xl font-bold text-obsidian-primary mb-2">Creazione Itinerario...</h2>
+                        <h2 className="text-xl font-bold text-obsidian-primary mb-2">Sto preparando il tuo giro</h2>
                         <p className="text-xs text-obsidian-secondary max-w-xs mx-auto leading-relaxed font-medium mb-8">
-                            L'IA sta consultando le guide locali e analizzando il meteo.
+                            Cerco i posti aperti agli orari del tuo giro e li metto in ordine a piedi.
                         </p>
 
                         <div className="max-w-xs mx-auto space-y-3">
                             {[
-                                { text: "Analisi preferenze" },
-                                { text: "Selezione gemme nascoste" },
-                                { text: "Ottimizzazione percorso" }
+                                { text: "Le tue preferenze" },
+                                { text: "Posti aperti all'ora giusta" },
+                                { text: "Ordine a piedi" }
                             ].map((item) => (
                                 <div
                                     key={item.text}

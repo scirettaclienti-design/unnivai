@@ -1,0 +1,47 @@
+[
+ {
+  "scenario": "quiz",
+  "pronto": true,
+  "schermata": "docs/prove/schermate/dna-riquadro/01-quiz-natura-sera.png",
+  "riquadroMood": [],
+  "riquadroIspirazione": [],
+  "dnaRighe": [
+   "Più cultura: è il tuo 100%.",
+   "Più cibo: è il tuo 100%."
+  ],
+  "dnaTrattini": false,
+  "durata": "circa 1h 20min",
+  "naturaNote": [
+   "La natura di notte non si vede. Stasera ti porto qui; domattina alle 9 si sale a Monte Muganà."
+  ],
+  "scalaNote": [],
+  "testo": "Ciao, ProvaAccesso! Troina 11°C Percorso Veloce Scopri qualcosa di speciale in pochi minuti TROINA Il tuo giro a Troina Itinerario cucito dall'AI IL TUO DNA ESPLORATIVO Più cultura: è il tuo 100%. Più cibo: è il tuo 100%. La natura di notte non si vede. Stasera ti porto qui; domattina alle 9 si sale a Monte Muganà. 2 TAPPE circa 1h 20min DURATA ITINERARIO GENERATO DOPOCENA 1 Bar Nazionale - Pasticceria, cioccolateria e Tavola Calda 23:00 Dopo cena, due passi fino a Bar Nazionale - Pasticceria, cioccolateria e Tavola Calda. Ci arrivi alle 23. Togli Cambia 2 Via Conte Ruggero 23:50 Passi da Via Conte Ruggero: guardati intorno prima di ripartire. Qui la giornata si chiude. Togli Cambia Vedi mappa Salva il giro Torna alla Home Home Esplora Foto Profilo",
+  "errori": [],
+  "uscite": [],
+  "promptDiversi": 2,
+  "servite": 4
+ },
+ {
+  "scenario": "sorprendimi",
+  "pronto": true,
+  "schermata": "docs/prove/schermate/dna-riquadro/02-sorprendimi-natura-sera.png",
+  "riquadroMood": [],
+  "riquadroIspirazione": [],
+  "dnaRighe": [
+   "Hai scelto natura.",
+   "Più cultura: è il tuo 100%.",
+   "Più cibo: è il tuo 100%."
+  ],
+  "dnaTrattini": false,
+  "durata": "circa 1h 20min",
+  "naturaNote": [
+   "La natura di notte non si vede. Stasera ti porto qui; domattina alle 9 si sale a Monte Muganà."
+  ],
+  "scalaNote": [],
+  "testo": "Ciao, ProvaAccesso! Troina 11°C Altra sorpresa ESPERIENZA CREATA TROINA Il tuo giro a Troina Itinerario cucito dall'AI IL TUO DNA ESPLORATIVO Hai scelto natura. Più cultura: è il tuo 100%. Più cibo: è il tuo 100%. 2 TAPPE circa 1h 20min DURATA La natura di notte non si vede. Stasera ti porto qui; domattina alle 9 si sale a Monte Muganà. ITINERARIO GENERATO DOPOCENA 1 Bar Nazionale - Pasticceria, cioccolateria e Tavola Calda 23:00 Dopo cena, due passi fino a Bar Nazionale - Pasticceria, cioccolateria e Tavola Calda. Ci arrivi alle 23. Togli Cambia 2 Via Conte Ruggero 23:50 Passi da Via Conte Ruggero: guardati intorno prima di ripartire. Qui la giornata si chiude. Togli Cambia Vedi Dettagli Tour Genera un'altra sorpresa Home Esplora Foto Profilo",
+  "errori": [],
+  "uscite": [],
+  "promptDiversi": 2,
+  "servite": 4
+ }
+]

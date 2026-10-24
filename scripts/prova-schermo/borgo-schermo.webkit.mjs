@@ -18,7 +18,7 @@ import { creaReteReplay } from '../banco/replay/rete.js';
 
 const BASE = process.env.PROVA_BASE || 'http://localhost:5181';
 const TRACCIATI = process.env.PROVA_TRACCIATI || 'docs/prove/dati/2026-10-16-borgo-fix-2-tracciati.json.gz';
-const OUT = path.resolve('docs/prove/schermate/borgo-schermo');
+const OUT = path.resolve(process.env.PROVA_OUT || 'docs/prove/schermate/borgo-schermo');
 const TMP = fs.mkdtempSync('/tmp/borgo-schermo-');
 const SOLO = (process.argv[2] || '').split(',').filter(Boolean);
 const ORA = '2026-10-15T23:00:00+02:00';
@@ -103,6 +103,8 @@ const leggi = async (page) => page.evaluate(() => {
     const durata = [...document.querySelectorAll('p')].find(p => /^Durata$/i.test(p.textContent.trim()))?.previousElementSibling?.textContent?.trim() || null;
     return {
         riquadroMood: t('[data-riquadro-mood]'), riquadroIspirazione: t('[data-riquadro-ispirazione]'),
+        // DNA-RIQUADRO — le righe del riquadro «Il tuo DNA esplorativo» (vuoto se il riquadro non c'e')
+        dnaRighe: Array.from(document.querySelectorAll('[data-dna-riga]')).map(e => e.textContent.trim()), dnaTrattini: /—/.test(document.querySelector('[data-testid="dna-del-giro"]')?.textContent || ''),
         durata, naturaNote: t('[data-natura-note]'), scalaNote: t('[data-scala-note]'),
         testo: document.body.innerText.replace(/\s+/g, ' ').slice(0, 4000),
     };

@@ -1,0 +1,17 @@
+{
+ "crea": {
+  "presente": true,
+  "righe": [
+   "Hai chiesto cultura e cibo."
+  ],
+  "trattini": false
+ },
+ "perTe": {
+  "presente": true,
+  "righe": [
+   "Più cultura: è il tuo 100%.",
+   "Più cibo: è il tuo 100%."
+  ],
+  "trattini": false
+ }
+}

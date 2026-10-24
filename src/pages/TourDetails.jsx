@@ -27,6 +27,8 @@ import { useQuery } from "@tanstack/react-query";
 import { dataService, createGuideRequest } from "../services/dataService";
 import { normalizeTour } from "../services/tourShape";
 import { useAILearning } from "../hooks/useAILearning";
+import { useModificaGiro } from "../hooks/useModificaGiro";
+import { TappaModifica } from "../components/TappaModifica";
 
 
 // UUID semplice: 8-4-4-4-12 caratteri esadecimali
@@ -509,7 +511,10 @@ export default function TourDetailsPage() {
     const [guideRating, setGuideRating] = useState({ avg: 0, count: 0 });
     const [reviews, setReviews] = useState([]);
     const [ctaDisabled, setCtaDisabled] = useState(false);
-    const { trackTourView } = useAILearning();
+    const { trackTourView, dnaWeights } = useAILearning();
+    // GIRO-EDIT — «Togli» e «Cambia» sulle tappe dei giri generati (Per Te, Sorprendimi, Quiz, Crea); mai sui tour di una guida.
+    const modificaGiro = useModificaGiro({ tour, aggiorna: setLocalTour, dnaWeights });
+    const giroModificabile = !!tour && (tour.isAiGenerated || location.state?.origine === 'per_te') && Array.isArray(tour.steps) && tour.steps.length > 0;
 
     // Track tour view per il preference graph
     useEffect(() => {
@@ -1172,6 +1177,15 @@ export default function TourDetailsPage() {
                                                             )}
                                                             {/* P3d-e — attribuzione dei fatti aperti usati dal racconto */}
                                                             {stepDesc && <FactSources fonti={step.fonti} />}
+                                                            {giroModificabile && !step.tempoLibero && (
+                                                                <TappaModifica
+                                                                    className="mt-1.5"
+                                                                    nome={stepTitle}
+                                                                    puoTogliere={tour.steps.length > 1}
+                                                                    onTogli={() => modificaGiro.onTogli(step)}
+                                                                    onCambia={(testo) => modificaGiro.onCambia(step, testo)}
+                                                                />
+                                                            )}
 
                                                             {/* Rating */}
                                                             {stepRating && (

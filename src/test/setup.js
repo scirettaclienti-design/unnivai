@@ -11,6 +11,9 @@ import '@testing-library/jest-dom'
 // ---------------------------------------------------------------------------
 vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co')
 vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-anon-key')
+// GIRO-EDIT — la colazione automatica (giri che partono prima delle 10:30) e' spenta per difetto nei test, come la lista della citta':
+// i test dei momenti non devono contare una tappa in piu' del mattino. Le prove della colazione la riaccendono con vi.stubEnv('VITE_COLAZIONE_AUTO', 'on').
+globalThis.__COLAZIONE_AUTO_OFF__ = true // (una proprieta' semplice: vi.unstubAllEnvs/Globals dei singoli test non la tocca)
 
 // ---------------------------------------------------------------------------
 // DVAI-060 CI fix — Global supabase mock.

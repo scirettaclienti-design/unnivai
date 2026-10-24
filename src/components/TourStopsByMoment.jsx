@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { groupStopsByDayAndMoment, withFreeTime, freeTimeRangeLabel } from '@/lib/stopMoments';
 import { FactSources } from '@/components/FactSources';
+import { TappaModifica } from '@/components/TappaModifica';
 
 // P3e — la dissolvenza in cima alla lista scorrevole (trasparente nei primi
 // 26px) copriva la PRIMA intestazione di momento, che a lista ferma sta
@@ -31,7 +32,8 @@ export function TopFadeScroll({ className, children }) {
 // Nessun testo di riempimento: senza descrizione il blocco non si monta (prima
 // c'era una frase generica, o la categoria, al posto della descrizione).
 // Senza scheduledTime nessun orario: vedi src/lib/stopMoments.js.
-export function TourStopsByMoment({ stops, freeTime = null }) {
+// GIRO-EDIT — con `modifica` ({ onTogli(stop), onCambia(stop, testo) }) ogni tappa vera ha i suoi due tasti piccoli.
+export function TourStopsByMoment({ stops, freeTime = null, modifica = null }) {
     // CONTINUITA' — il tempo libero (tenuto a parte da normalizeTour) torna al suo posto, con la sua fascia.
     const lista = withFreeTime(stops, freeTime);
     const days = groupStopsByDayAndMoment(lista);
@@ -83,6 +85,15 @@ export function TourStopsByMoment({ stops, freeTime = null }) {
                                         )}
                                         {/* P3d-e — attribuzione, solo sotto le tappe raccontate con dei fatti */}
                                         {stop.description && <FactSources fonti={stop.fonti} />}
+                                        {modifica && (
+                                            <TappaModifica
+                                                className="mt-1.5"
+                                                nome={stop.name || stop.title}
+                                                puoTogliere={lista.filter(x => !x.tempoLibero).length > 1}
+                                                onTogli={() => modifica.onTogli(stop)}
+                                                onCambia={(testo) => modifica.onCambia(stop, testo)}
+                                            />
+                                        )}
                                     </div>
                                 </div>
                             )))}

@@ -102,6 +102,10 @@ const VELOCE_DINNER_ARRIVAL_MINUTES = 85;
 /** C8b — la cena tardi: chi parte fra le 21:00 e le 22:00. Dopo la cena e la passeggiata passano ~115 minuti. */
 /** C8c — la colazione chiesta vale se il tour parte prima delle 11:00. */
 const COLAZIONE_ENTRO_MINUTES = 11 * 60;
+/** GIRO-EDIT — la colazione e' la prima tappa di ogni giro che parte prima delle 10:30, anche senza che sia chiesta (`colazioneAuto`). */
+export const COLAZIONE_AUTO_ENTRO_MINUTES = 10 * 60 + 30;
+/** GIRO-EDIT — la colazione automatica e' spenta nei test (`globalThis.__COLAZIONE_AUTO_OFF__`, src/test/setup.js) e per i confronti col replay (`DV_COLAZIONE_AUTO=off`). */
+export const colazioneAutoSpenta = () => !!globalThis.__COLAZIONE_AUTO_OFF__ || globalThis.process?.env?.DV_COLAZIONE_AUTO === 'off';
 const CENA_TARDI_DA = 21 * 60;
 const CENA_TARDI_A = 22 * 60;
 const CENA_PRIMA_DOPO_MINUTES = 115;
@@ -204,7 +208,7 @@ const capStops = (moments, cap = MAX_VISITS_PER_DAY) => {
  *   start: Date, end: Date, minutes: number, categories: string[],
  *   preferred: string[], stops: number, careful: boolean }> }> }}
  */
-export function buildDaySkeleton({ window: tw, pace, interests = [], group = '', text = '', category = null, foodTheme: foodThemeIn = false, veloce = false, cenaPrima: cenaPrimaIn = false } = {}) {
+export function buildDaySkeleton({ window: tw, pace, interests = [], group = '', text = '', category = null, foodTheme: foodThemeIn = false, veloce = false, cenaPrima: cenaPrimaIn = false, colazioneAuto = false } = {}) {
     const windows = Array.isArray(tw?.windows) && tw.windows.length > 0
         ? tw.windows
         : (tw?.start && tw?.end ? [{ date: tw.date, start: tw.start, end: tw.end }] : []);
@@ -321,7 +325,9 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
         } else {
             for (const m of MOMENTS) {
                 if (m.key === 'dopocena' && !allowDopocena) continue;
-                const colazione = m.key === 'mattina' && colazioneChiesta && startMinutes >= ALBA_MINUTES && startMinutes < COLAZIONE_ENTRO_MINUTES;
+                // GIRO-EDIT — chiesta per nome: entro le 11:00; automatica (il chiamante ha controllato richiesta ed esclusioni): entro le 10:30
+                const colazione = m.key === 'mattina' && startMinutes >= ALBA_MINUTES
+                    && ((colazioneChiesta && startMinutes < COLAZIONE_ENTRO_MINUTES) || (colazioneAuto && startMinutes < COLAZIONE_AUTO_ENTRO_MINUTES));
                 const start = colazione ? wStart : Math.max(wStart, romeDate(day, m.start).getTime());
                 const end = Math.min(wEnd, romeDate(day, m.end).getTime());
                 const minutes = Math.round((end - start) / 60000);
@@ -330,6 +336,8 @@ export function buildDaySkeleton({ window: tw, pace, interests = [], group = '',
                 const mom = build(m, start, end, m.key === 'aperitivo' ? { sostaAperitivo, bevuta: true } : {});
                 // la colazione e' una tappa in piu' nella mattina (non toglie posto alle visite)
                 if (colazione) Object.assign(mom, { colazione: true, stops: mom.stops + 1 });
+                // GIRO-EDIT — la colazione che parte da sola ammette i locali da colazione nella mattina (la chiesta per nome lo fa gia' con `esplicito`)
+                if (colazione && !esplicitiMoments.has('mattina')) mom.categories = [...new Set([...mom.categories, 'cibo', 'bar'])];
                 // C8a — un tour che parte di sera e' drink + passeggiata + cena: il drink e' un locale da bere, non un
                 // belvedere (la vista e' della passeggiata, e un belvedere all'aperitivo bloccava la ricerca dei bar).
                 // Le giornate che cominciano al mattino tengono la tabella com'e'. Una categoria chiesta per tutti i

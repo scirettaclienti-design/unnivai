@@ -18,6 +18,9 @@ import { typeLabelOf, weatherLabel, tappeProgrammate } from "@/lib/italianLabels
 // Gate TAPPE PER MOMENTO — tappe raggruppate per momento (dayMoments.js) con
 // l'orario reale di arrivo (scheduledTime). Lo scarto "+1h31" non si mostra piu'.
 import { groupStopsByDayAndMoment, stopClockLabel, freeTimeRangeLabel } from "@/lib/stopMoments";
+import { TappaModifica } from "@/components/TappaModifica";
+import { togliDalGiorno, cambiaNelGiorno } from "@/services/giroEditAzioni";
+import { chiaveTappa } from "@/lib/giroEdit";
 // Gate C2 — i tag dal prompt libero vivono in un motore solo, con test propri.
 // La vecchia riga inline cancellava ogni lettera accentata: vedi promptTags.js.
 import { extractPromptTags } from "@/lib/promptTags";
@@ -390,6 +393,25 @@ export default function AIItineraryPage() {
         } finally {
             setIsGenerating(false);
         }
+    };
+
+    // GIRO-EDIT — «Togli» e «Cambia» su una tappa: solo quella tappa cambia, il giro non si rigenera; gli orari dopo si ricalcolano.
+    const togliTappaDelGiorno = (dayNumber, chiave) => {
+        const day = generatedItinerary?.find(d => d.day === dayNumber);
+        if (!day) return;
+        const r = togliDalGiorno({ stops: day.stops, chiave, city: tourCity });
+        if (!r.ok) {
+            toast({ title: 'È l\'ultima tappa del giro: non si può togliere.', type: 'info', duration: 4000 });
+            return;
+        }
+        setGeneratedItinerary(prev => prev.map(d => (d.day === dayNumber ? { ...d, stops: r.unito } : d)));
+    };
+    const cambiaTappaDelGiorno = async (dayNumber, chiave, testo) => {
+        const day = generatedItinerary?.find(d => d.day === dayNumber);
+        if (!day) return { ok: false };
+        const r = await cambiaNelGiorno({ stops: day.stops, chiave, testo, city: tourCity, dnaWeights });
+        if (r.ok) setGeneratedItinerary(prev => prev.map(d => (d.day === dayNumber ? { ...d, stops: r.unito } : d)));
+        return r;
     };
 
     return (
@@ -788,6 +810,14 @@ export default function AIItineraryPage() {
                                                                         {stop.location}
                                                                     </p>
                                                                 )}
+
+                                                                <TappaModifica
+                                                                    className="mt-2 pt-1.5 border-t border-obsidian-border"
+                                                                    nome={stop.title}
+                                                                    puoTogliere={day.stops.filter(x => !x.tempoLibero).length > 1}
+                                                                    onTogli={() => togliTappaDelGiorno(day.day, chiaveTappa(stop))}
+                                                                    onCambia={(testo) => cambiaTappaDelGiorno(day.day, chiaveTappa(stop), testo)}
+                                                                />
                                                             </div>
                                                         </div>
                                                     </div>

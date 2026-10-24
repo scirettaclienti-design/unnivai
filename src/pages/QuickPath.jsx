@@ -29,6 +29,7 @@ import BottomNavigation from "@/components/BottomNavigation";
 import { QuickPathSummary } from "@/components/Map/QuickPathSummary";
 import { useUserContext } from "@/hooks/useUserContext";
 import { useAILearning } from "@/hooks/useAILearning";
+import { useModificaGiro } from "@/hooks/useModificaGiro";
 import { gestiDelQuiz, logDnaGesti } from "@/lib/dnaRegistro";
 import { DEMO_CITIES } from "@/data/demoData";
 // Gate E-2: import PaywallModal rimosso. Il paywall gate è morto (modello di
@@ -556,6 +557,8 @@ export default function QuickPathPage() {
     const [generationStatus, setGenerationStatus] = useState('idle');
     const [generationError, setGenerationError] = useState(null);
     const [readyTourData, setReadyTourData] = useState(null);
+    // GIRO-EDIT — «Togli» e «Cambia» sulle tappe del riepilogo
+    const modificaGiro = useModificaGiro({ tour: readyTourData, aggiorna: setReadyTourData, dnaWeights });
 
     // 🧠 MEMOIZE CONTEXT TO PREVENT INFINITE LOOPS
     const weatherContext = useMemo(() => ({
@@ -1090,6 +1093,7 @@ export default function QuickPathPage() {
                             {generationStatus === 'success' && readyTourData && (
                                 <QuickPathSummary
                                     tourData={readyTourData}
+                                    modifica={modificaGiro}
                                     choices={{
                                         mainId: selectedOption,
                                         mood: mainOptions.find(o => o.id === selectedOption)?.title || selectedOption,

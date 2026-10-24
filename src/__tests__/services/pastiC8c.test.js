@@ -4,7 +4,7 @@
 //   · «colazione» nel testo + tour prima delle 11:00 → la prima tappa e' un posto da colazione aperto e il tour parte all'ora chiesta;
 //   · al massimo un dolce/gelato/pasticceria per tour, sempre dopo un pasto, mai come prima tappa prima di pranzo.
 // Scenario: Cabras, mercoledi' 14/10/2026 (fuso di Roma esplicito: la CI gira in UTC).
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
 import { aiRecommendationService } from '../../services/aiRecommendationService';
 import { dolceProblem, isDolce, perTeMealProblem } from '../../lib/mealRules';
 import { asksBreakfast } from '../../lib/foodTheme';
@@ -67,7 +67,8 @@ const ora = (s) => { const p = romeParts(new Date(s.scheduledTime)); return `${S
 const tipo = (s) => (/^b/.test(s.place_id) ? 'bar' : /^r/.test(s.place_id) ? 'ristorante' : /^c/.test(s.place_id) ? 'caffe' : 'aperto');
 const VELOCE = { duration: 'Veloce', group: 'solo', pace: 'Rilassato', interests: [] };
 
-beforeEach(() => { vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co'); vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon-test'); });
+beforeEach(() => { vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co'); vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon-test'); globalThis.__COLAZIONE_AUTO_OFF__ = false; });
+afterAll(() => { globalThis.__COLAZIONE_AUTO_OFF__ = true; });
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.useRealTimers(); });
 
 describe('C8c — la sera si cena (Veloce / Per Te di sera)', () => {
@@ -176,11 +177,29 @@ describe('C8c — la colazione chiesta', () => {
         expect(prima.description).toBe(TESTO_NESSUN_LOCALE_APERTO);
         expect(ora(vere(r)[0])).toBe('08:00');
     });
-    it('senza la richiesta la giornata parte alle 9:30 come prima e non cerca la colazione', async () => {
+    // GIRO-EDIT — la colazione parte da sola prima delle 10:30 (prima senza la richiesta la giornata partiva alle 9:30)
+    it('GIRO-EDIT: senza la richiesta, alle 8:00 la colazione c\'e\' lo stesso: il giro parte alle 8:00 con un caffè', async () => {
+        const c = [caffe('c1', 0.3, PRESTO), { ...caffe('c2', 0.6, PRESTO), user_ratings_total: 40 }, { ...caffe('c3', 0.7, PRESTO), user_ratings_total: 900 }];
         const query = [];
-        const r = await genera(POOL_GIORNO, '08:00', { testo: 'Una giornata a Cabras', prefs: { duration: '1 Giorno', pace: 'Attivo', interests: [] }, query });
-        expect(ora(vere(r)[0])).toBe('09:30');
+        const r = await genera(POOL_GIORNO, '08:00', { testo: 'Una giornata a Cabras', prefs: { duration: '1 Giorno', pace: 'Attivo', interests: [] }, colazione: c, query });
+        const v = vere(r);
+        expect(tipo(v[0])).toBe('caffe');
+        expect(ora(v[0])).toBe('08:00');
+        expect(query.some(q => /colazione caffetteria/.test(q))).toBe(true);
+    });
+    it('GIRO-EDIT: alle 11:00 niente colazione: la giornata non cerca la colazione e non comincia con un caffè', async () => {
+        const c = [caffe('c1', 0.3, PRESTO), { ...caffe('c2', 0.6, PRESTO), user_ratings_total: 40 }, { ...caffe('c3', 0.7, PRESTO), user_ratings_total: 900 }];
+        const query = [];
+        const r = await genera(POOL_GIORNO, '11:00', { testo: 'Una giornata a Cabras', prefs: { duration: '1 Giorno', pace: 'Attivo', interests: [] }, colazione: c, query });
         expect(query.some(q => /colazione caffetteria/.test(q))).toBe(false);
+        expect(tipo(vere(r)[0])).not.toBe('caffe');
+    });
+    it('GIRO-EDIT: «niente bar» alle 8:00 → niente colazione', async () => {
+        const c = [caffe('c1', 0.3, PRESTO), { ...caffe('c2', 0.6, PRESTO), user_ratings_total: 40 }, { ...caffe('c3', 0.7, PRESTO), user_ratings_total: 900 }];
+        const query = [];
+        const r = await genera(POOL_GIORNO, '08:00', { testo: 'Una giornata a Cabras, niente bar', prefs: { duration: '1 Giorno', pace: 'Attivo', interests: [] }, colazione: c, query });
+        expect(query.some(q => /colazione caffetteria/.test(q))).toBe(false);
+        expect(vere(r).some(x => tipo(x) === 'caffe')).toBe(false);
     });
 });
 

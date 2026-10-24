@@ -19,7 +19,7 @@ const formatMinutes = (min) => {
     return m === 0 ? `${h}h` : `${h}h ${m}m`;
 };
 
-export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
+export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome, modifica = null }) => {
     if (!tourData) return null;
 
     // Gate MOMENTO + DURATA VERA — la durata e' quella del tour sull'orologio
@@ -144,7 +144,7 @@ export const QuickPathSummary = ({ tourData, choices, onViewMap, onHome }) => {
                             <h4 className="text-[10px] font-bold text-obsidian-secondary uppercase tracking-widest mb-2 px-1">Itinerario Generato</h4>
                             <TopFadeScroll className="space-y-3 max-h-[260px] overflow-y-auto pr-2 pt-2.5 pb-1 scrollbar-thin scrollbar-thumb-obsidian-border">
                                 {/* Gate TAPPE PER MOMENTO — per momento, con l'orario reale; niente testo di riempimento. */}
-                                <TourStopsByMoment stops={tourData.steps} freeTime={tourData.freeTime} />
+                                <TourStopsByMoment stops={tourData.steps} freeTime={tourData.freeTime} modifica={modifica} />
                             </TopFadeScroll>
                         </div>
                     )}

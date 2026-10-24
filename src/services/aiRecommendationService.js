@@ -364,15 +364,15 @@ import { filterBannedWords, bannedWordsPromptLines, unsupportedJudgments } from 
 import { stopData, guardComposed, apertura, ganciValidi, interessiPerTappa, userInterests, composeFreeTime, registraFrasi } from '@/lib/stopPhrases';
 import { senzaEscape, weatherLabel, weatherIconOf, isDopocenaClock } from '@/lib/italianLabels';
 import { fetchFactsForStops, isLocaleStop } from './factsService';
-import { momentAtClock, MOMENTS, MOMENT_BY_KEY } from '@/lib/dayMoments';
+import { momentAtClock, MOMENTS, MOMENT_BY_KEY, ALBA_MINUTES } from '@/lib/dayMoments';
 import { FREE_TIME_MAX_MINUTES, freeTimeStop } from '@/lib/freeTime';
 import { bandFreeTime, minStopsForWindow } from '@/lib/continuity';
 import { detectFoodTheme, isForeignCuisine, localCuisineReason, tipicoBonus } from '@/lib/foodTheme';
 import { zoneReason } from '@/lib/zone';
-import { isSitDownMeal, perTeMealProblem } from '@/lib/mealRules';
+import { isSitDownMeal, perTeMealProblem, mealFitsClock, isBreakfastPlace } from '@/lib/mealRules';
 import { AiEngineError, AI_ENGINE_KIND_BY_CODE } from '@/lib/aiEngineError';
 // P3 — lo scheletro della giornata guida la scelta dei luoghi.
-import { buildDaySkeleton, addEveningWalk, normalizePace, isSeraStart, parseExplicitCategory } from '@/lib/daySkeleton';
+import { buildDaySkeleton, addEveningWalk, normalizePace, isSeraStart, parseExplicitCategory, COLAZIONE_AUTO_ENTRO_MINUTES, colazioneAutoSpenta } from '@/lib/daySkeleton';
 import {
     flattenSkeleton, bucketCandidates, shortMomentThemes,
     repairMomentSelection, scheduleMomentPlan, isMealPlace, scheduleHoursSources,
@@ -392,7 +392,7 @@ import { poiDallaLista, uniscialPool, poolConLista, seminaAncore, declassa, scal
 export { TOP_30_CITIES, isSmallTown, haversineKm, applyRadiusFilter } from './tourShape';
 // Gate MERITO — soglia di qualita' + punteggio (affinita'/unicita'/voto) al
 // posto del ranking per qualityScore. Vedi candidateScoring.js per il razionale.
-import { richiestaEsplicita, filtraEsclusi, notaEsclusioni } from '../lib/richiestaEsplicita';
+import { richiestaEsplicita, filtraEsclusi, notaEsclusioni, categoriaEsclusa } from '../lib/richiestaEsplicita';
 import { aggiungiSosteDna, ricercheDellaSosta } from '../lib/sosteDna';
 // DNA-3c — una ricerca di testo di Google Places (listino del banco): il costo massimo di una ricerca della sosta
 const COSTO_RICERCA_SOSTA_USD = 0.032;
@@ -2905,6 +2905,11 @@ export const aiRecommendationService = {
             // C8b — CENA TARDI: il Veloce che parte fra le 21:00 e le 22:00 prova prima la cena (poi la passeggiata). Se per quell'ora
             // nessun ristorante e' aperto per tutta la sosta, si ripiega sul giro di C8a (drink + passeggiata) senza rifare la ricerca
             // del cibo: i ristoranti gia' trovati restano nel pool.
+            // GIRO-EDIT — LA COLAZIONE AUTOMATICA: un giro che parte prima delle 10:30 comincia con una colazione vicina (lo scheletro guarda l'ora).
+            // Le regole della richiesta restano: niente colazione con una sola categoria (o tipo, o nome) chiesta, o con «niente bar»/«niente cibo».
+            // (nei test e' spenta per difetto, come la lista della citta': vedi colazioneAutoSpenta; le prove della colazione la riaccendono)
+            const colazioneAutomatica = !colazioneAutoSpenta() && !catStretta && !(richiesta.tipiChiesti || []).length && !(richiesta.nomiChiesti || []).length
+                && !categoriaEsclusa(richiesta, 'food') && !(richiesta.vociEscluse || []).includes('bar');
             let cenaPrima = veloce;
             let foodGiaCercato = false;
             // C8c — la cena tardi che non c'e' (nessun ristorante aperto per tutta la sosta) non resta in silenzio: ha la sua riga.
@@ -2920,6 +2925,7 @@ export const aiRecommendationService = {
                     foodTheme: tema.tema,
                     veloce,
                     cenaPrima,
+                    colazioneAuto: colazioneAutomatica,
                 }), { veloce });
                 moments = candidates.length >= 1 ? flattenSkeleton(skeleton) : [];
                 // BORGO-FIX — decisione 3: di giorno, con la natura chiesta, la passeggiata prende per prima una natura o un panorama;
@@ -3975,14 +3981,44 @@ export const aiRecommendationService = {
                 // sostituisce col candidato del suo tema piu' vicino che sia aperto.
                 // Se non ne restano abbastanza il tour non e' servito (regola esistente).
                 const poolTema = nonEmptyPools[themeType] || [];
+                // GIRO-EDIT — LA COLAZIONE DI PER TE: un giro che parte prima delle 10:30 (e dopo l'alba) comincia con una colazione vicina
+                // alla prima tappa (entro 500 m, aperta per la sosta, mai gia' in un altro tour). Un tour che comincia gia' con un posto da
+                // colazione (il tour cibo del mattino) non ne riceve un'altra. Niente colazione adatta: il tour e' quello di prima.
+                const nowMin = nowRome.h * 60 + nowRome.mi;
+                const ordinate = sortByProximity(withinRadius);
+                let colazioneId = null;
+                let tappe = ordinate;
+                if (!colazioneAutoSpenta() && nowMin >= ALBA_MINUTES && nowMin < COLAZIONE_AUTO_ENTRO_MINUTES && ordinate.length > 0 && !isBreakfastPlace(ordinate[0])) {
+                    const primo = ordinate[0];
+                    const nelTour = new Set(ordinate.map(x => x.place_id));
+                    const scelta = [...poolById.values()]
+                        .filter(c => homePid(c) && !usati.has(homePid(c)) && !nelTour.has(homePid(c)) && isBreakfastPlace(c) && openStatus(c, now, 20).stato === 'aperto')
+                        .map(c => ({ c, km: haversineKm(Number(primo.latitude), Number(primo.longitude), Number(c.latitude ?? c.lat), Number(c.longitude ?? c.lng)) }))
+                        .filter(x => Number.isFinite(x.km) && x.km * 1000 <= 500)
+                        .sort((a, b) => a.km - b.km)[0];
+                    if (scelta) {
+                        const [col] = canonicalizeStopsFromCandidates([{ place_id: homePid(scelta.c) }], [scelta.c], { guard: false });
+                        if (col) {
+                            colazioneId = col.place_id;
+                            usati.add(colazioneId);
+                            tappe = [{ ...col, _scelta: {}, moment: 'mattina', momentLabel: 'Mattina' }, ...ordinate];
+                        }
+                    }
+                }
+                // rimette in ordine tenendo la colazione per prima (la sola tappa che non si riordina per vicinanza)
+                const riordina = (lista) => {
+                    const col = colazioneId ? lista.find(x => x.place_id === colazioneId) : null;
+                    return computeStopTimings(col ? [col, ...sortByProximity(lista.filter(x => x !== col))] : sortByProximity(lista)).stops;
+                };
                 const aperti = keepOpenStops({
                     // C8b — le stesse fasce dei pasti di Crea: un ristorante solo a pranzo e a cena, la mattina una colazione.
-                    invalidAt: (c, arrivo, altre) => perTeMealProblem(c, romeMinutes(arrivo), arrivo, altre)
+                    // GIRO-EDIT — la colazione scelta qui sopra e' un posto da colazione aperto: non passa dalla regola del dolce (una pasticceria e' la colazione).
+                    invalidAt: (c, arrivo, altre) => (colazioneId && homePid(c) === colazioneId ? (mealFitsClock(c, romeMinutes(arrivo)) ? null : 'pasto fuori fascia') : perTeMealProblem(c, romeMinutes(arrivo), arrivo, altre))
                         // BORGO-FIX — decisione 3: la natura «da fuori» dopo il tramonto non e' una tappa nemmeno in Per Te
                         // NOTTE-FIX — la terza copia della regola: «al buio» = prima dell'alba o dal tramonto (eBuio), non solo dal tramonto
                         || (arrivo instanceof Date && eBuio(arrivo, sunNow) && isNaturaDaFuori(c, cityCenter) ? 'natura da fuori al buio' : null),
-                    stops: computeStopTimings(sortByProximity(withinRadius)).stops, pool: poolTema, start: now, exclude: usati,
-                    retime: (list) => computeStopTimings(sortByProximity(list)).stops,
+                    stops: computeStopTimings(tappe).stops, pool: poolTema, start: now, exclude: usati,
+                    retime: riordina,
                     toStop: (c) => {
                         const [nuovo] = canonicalizeStopsFromCandidates([{ place_id: homePid(c) }], poolTema, { guard: false });
                         return nuovo ? { ...nuovo, _scelta: {} } : null;

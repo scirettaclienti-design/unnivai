@@ -7,6 +7,7 @@ import TopBar from "../components/TopBar";
 import BottomNavigation from "../components/BottomNavigation";
 import { getCoverPalette } from "@/lib/categoryPalette";
 import { TourStopsByMoment, TopFadeScroll } from "@/components/TourStopsByMoment";
+import { useModificaGiro } from "@/hooks/useModificaGiro";
 
 // Gate VERITÀ VISIVA (F26) DIFF 5 — rimossi CITY_IMAGES e getAdaptiveImage.
 // Senza foto reale la copertina e' null e cade nel ramo B illustrato
@@ -97,6 +98,8 @@ export default function SurpriseTourPage() {
     // Il bottone Genera si attiva quando selectedSurpriseType !== null.
     const [selectedSurpriseType, setSelectedSurpriseType] = useState(null);
     const [generatedTour, setGeneratedTour] = useState(null);
+    // GIRO-EDIT — «Togli» e «Cambia» sulle tappe della scheda
+    const modificaGiro = useModificaGiro({ tour: generatedTour, aggiorna: setGeneratedTour, dnaWeights });
     const [generationError, setGenerationError] = useState(null);
     // DVAI-061 B — Flash pulsante "Domani nuove esperienze 🌅" per 3s quando
     // quota esaurita. Feedback dove l'utente sta guardando (il pulsante), non
@@ -550,7 +553,7 @@ export default function SurpriseTourPage() {
                                     <h4 className="text-[10px] font-bold text-obsidian-secondary uppercase tracking-widest mb-2 px-1">Itinerario Generato</h4>
                                     <TopFadeScroll className="space-y-3 max-h-[240px] overflow-y-auto pr-2 pt-2.5 pb-1 scrollbar-thin scrollbar-thumb-obsidian-border">
                                         {/* Gate TAPPE PER MOMENTO — per momento, con l'orario reale; niente testo di riempimento. */}
-                                        <TourStopsByMoment stops={mappedTour.stops} />
+                                        <TourStopsByMoment stops={mappedTour.stops} freeTime={mappedTour.freeTime} modifica={modificaGiro} />
                                     </TopFadeScroll>
                                 </div>
                             )}

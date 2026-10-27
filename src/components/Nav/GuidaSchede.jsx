@@ -7,7 +7,8 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 const M = motion; // (eslint non vede `<M.x>` come uso: lo stesso difetto del resto dell'app)
 import { Check, Play, Pause, X, Share2, Clock, MapPin, ArrowRight, Repeat } from 'lucide-react';
-import { minSec, secondiDiLettura, tracciatoSvg } from '../../lib/navGuida';
+import { minSec, secondiDiLettura, tracciatoSvg, alNome } from '../../lib/navGuida';
+import { NAV_TESTI } from '../../lib/navMessaggi';
 import { parla, fermaVoce } from '../../lib/voce';
 import { TappaModifica } from '../TappaModifica';
 
@@ -61,6 +62,13 @@ export function LettoreRacconto({ testo, src = null, sec = null }) {
     );
 }
 
+/** La foto della tappa: vera o niente. Senza URL, o se non si carica, l'area non c'è (mai un segnaposto grigio). */
+function FotoTappa({ src, className, children }) {
+    const [rotta, setRotta] = useState(false);
+    if (!src || rotta) return null;
+    return <div className={className}><img src={src} alt="" className="w-full h-full object-cover" onError={() => setRotta(true)} />{children}</div>;
+}
+
 /** SCHERMATA 3 — l'arrivo: la mappa resta in alto (cerchi concentrici e spunta), la scheda sale al 68%. */
 export function ArrivoTappa({ numero, totale, nome, foto, riga, chicca, racconto, onApri, onRiparti, minutiAllaProssima, nomeProssima }) {
     return (
@@ -79,26 +87,29 @@ export function ArrivoTappa({ numero, totale, nome, foto, riga, chicca, racconto
                 style={{ height: '68dvh', paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
                 <div className="overflow-y-auto px-4 pt-4 flex-1">
                     <div className="flex items-center gap-3">
-                        <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 bg-obsidian-raised border border-obsidian-border flex items-center justify-center">
-                            {foto ? <img src={foto} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} /> : <MapPin size={28} className="text-obsidian-secondary" aria-hidden="true" />}
-                        </div>
+                        <FotoTappa src={foto} className="w-24 h-24 rounded-2xl overflow-hidden shrink-0 bg-obsidian-raised border border-obsidian-border" />
                         <div className="min-w-0">
                             <h2 className="text-xl font-bold text-obsidian-primary leading-tight">{nome}</h2>
                             {riga && <p data-testid="arrivo-riga" className="text-[13px] text-obsidian-secondary mt-1 leading-snug">{riga}</p>}
                         </div>
                     </div>
-                    {chicca && (
+                    {chicca && chicca !== racconto && (
                         <div data-testid="chicca" className="mt-4 rounded-2xl bg-obsidian-raised border border-brand-orange/40 p-3.5">
                             <p className={`${ETICHETTA} text-brand-orange`}>La chicca</p>
                             <p className="text-sm text-obsidian-primary leading-relaxed mt-1.5">{chicca}</p>
                         </div>
                     )}
-                    {racconto && <div className="mt-3"><LettoreRacconto testo={racconto} /></div>}
+                    {racconto && (
+                        <div className="mt-3" data-testid="racconto-arrivo">
+                            {(!chicca || chicca === racconto) && <p className="text-sm text-obsidian-primary leading-relaxed mb-3">{racconto}</p>}
+                            <LettoreRacconto testo={racconto} />
+                        </div>
+                    )}
                 </div>
                 <div className="px-4 pt-3 flex gap-2">
                     <button onClick={onApri} className={`${SECONDARIO} flex-1`}>La scheda</button>
                     <button onClick={onRiparti} className={`${PRIMARIO} flex-[1.4]`}>
-                        <span>{nomeProssima ? `Riparti${minutiAllaProssima ? ` · ${minutiAllaProssima} min` : ''}` : 'Avanti'}</span><ArrowRight size={16} aria-hidden="true" />
+                        <span>{nomeProssima ? `${NAV_TESTI.RIPARTI}${minutiAllaProssima ? ` · ${minutiAllaProssima} min` : ''}` : NAV_TESTI.AVANTI}</span><ArrowRight size={16} aria-hidden="true" />
                     </button>
                 </div>
             </M.div>
@@ -110,19 +121,27 @@ export function ArrivoTappa({ numero, totale, nome, foto, riga, chicca, racconto
 export function SchedaTappa({ numero, categoria, nome, foto, foti = [], pillole = [], perche, racconto, onChiudi, onRiparti, minutiAllaProssima, nomeProssima, onCambia, puoCambiare = false }) {
     const gal = (foti.length ? foti : (foto ? [foto] : [])).slice(0, 6);
     const [i, setI] = useState(0);
-    const testoRiparti = nomeProssima ? `Riparti · ${minutiAllaProssima ? `${minutiAllaProssima} min ` : ''}al ${nomeProssima}` : 'Avanti';
+    const testoRiparti = nomeProssima ? NAV_TESTI.RIPARTI_VERSO(minutiAllaProssima, alNome(nomeProssima)) : NAV_TESTI.AVANTI;
+    const [fotoRotta, setFotoRotta] = useState(false);
+    const conFoto = !!gal[i] && !fotoRotta;
     return (
         <div className="fixed inset-0 z-[90] bg-obsidian-bg flex flex-col font-sans" data-testid="scheda-tappa" role="dialog" aria-label={nome}>
             <div className="overflow-y-auto flex-1">
-                <div className="relative h-64 bg-obsidian-raised">
-                    {gal[i] ? <img src={gal[i]} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} /> : <div className="w-full h-full flex items-center justify-center"><MapPin size={40} className="text-obsidian-secondary" aria-hidden="true" /></div>}
-                    <button onClick={onChiudi} aria-label="Chiudi la scheda" className={`${TASTO} absolute right-3 w-11 h-11 bg-obsidian-card text-obsidian-primary border-obsidian-border`} style={{ top: 'max(0.75rem, env(safe-area-inset-top))' }}><X size={20} aria-hidden="true" /></button>
-                    {gal.length > 1 && (
-                        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1" data-testid="galleria-puntini">
-                            {gal.map((_, k) => <button key={k} onClick={() => setI(k)} aria-label={`Foto ${k + 1}`} className="w-6 h-6 flex items-center justify-center"><span className={`block rounded-full ${k === i ? 'w-2.5 h-2.5 bg-brand-orange' : 'w-2 h-2 bg-obsidian-primary'}`} /></button>)}
-                        </div>
-                    )}
-                </div>
+                {conFoto ? (
+                    <div className="relative h-64 bg-obsidian-raised">
+                        <img src={gal[i]} alt="" className="w-full h-full object-cover" onError={() => setFotoRotta(true)} />
+                        <button onClick={onChiudi} aria-label="Chiudi la scheda" className={`${TASTO} absolute right-3 w-11 h-11 bg-obsidian-card text-obsidian-primary border-obsidian-border`} style={{ top: 'max(0.75rem, env(safe-area-inset-top))' }}><X size={20} aria-hidden="true" /></button>
+                        {gal.length > 1 && (
+                            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1" data-testid="galleria-puntini">
+                                {gal.map((_, k) => <button key={k} onClick={() => setI(k)} aria-label={`Foto ${k + 1}`} className="w-6 h-6 flex items-center justify-center"><span className={`block rounded-full ${k === i ? 'w-2.5 h-2.5 bg-brand-orange' : 'w-2 h-2 bg-obsidian-primary'}`} /></button>)}
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="flex justify-end px-3" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+                        <button onClick={onChiudi} aria-label="Chiudi la scheda" className={`${TASTO} w-11 h-11 bg-obsidian-card text-obsidian-primary border-obsidian-border`}><X size={20} aria-hidden="true" /></button>
+                    </div>
+                )}
                 <div className="px-4 pt-4 pb-6">
                     <p data-testid="scheda-etichetta" className={`${ETICHETTA} text-brand-orange`}>Tappa {numero}{categoria ? ` · ${categoria}` : ''}</p>
                     <h1 className="text-2xl font-bold text-obsidian-primary leading-tight mt-1">{nome}</h1>
@@ -217,7 +236,7 @@ export function RitoArrivo({ nome, foto, frase, onFine, parla: voceAccesa = fals
                 <div className="relative w-40 h-40 flex items-center justify-center">
                     {[0, 1].map(i => <M.span key={i} className="absolute rounded-full border-[3px] border-brand-orange" initial={{ scale: 0.6, opacity: 0.9 }} animate={{ scale: 1.15 + i * 0.18, opacity: 0.5 - i * 0.2 }} transition={{ duration: 1.2, delay: i * 0.15 }} style={{ width: 144, height: 144 }} aria-hidden="true" />)}
                     <M.div className="relative w-36 h-36 rounded-full overflow-hidden bg-obsidian-raised border-[3px] border-brand-orange" initial={{ clipPath: 'circle(0% at 50% 50%)' }} animate={{ clipPath: 'circle(72% at 50% 50%)' }} transition={{ duration: 0.8, ease: 'easeOut' }}>
-                        {foto ? <img src={foto} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} /> : <div className="w-full h-full flex items-center justify-center"><MapPin size={44} className="text-obsidian-secondary" aria-hidden="true" /></div>}
+                        {foto ? <img src={foto} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} /> : <div className="w-full h-full flex items-center justify-center bg-brand-orange text-obsidian-bg"><Check size={56} strokeWidth={3} aria-hidden="true" /></div>}
                     </M.div>
                 </div>
                 <p className="mt-4 px-4 py-2 rounded-full bg-obsidian-card border border-obsidian-border text-sm font-bold text-obsidian-primary">Sei arrivato</p>

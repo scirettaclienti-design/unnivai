@@ -39,7 +39,7 @@ import { creaSchermoAcceso } from '../lib/wakeLock';
 import { parla, fermaVoce, sbloccaVoce, voceScelta, scegliVoce } from '../lib/voce';
 import { dire, indicazioneSvolta } from '../lib/vociTesti';
 import { NAV_TESTI, avvisoNavigazione } from '../lib/navMessaggi';
-import { prossimaSvolta, versoDa, rigaTappa, percheAdesso, testoRacconto, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo, fasciaMappa, angoloFrecciaPartenza, partenzaCompiuta } from '../lib/navGuida';
+import { prossimaSvolta, versoDa, rigaTappa, percheAdesso, testoRacconto, chiccaDistinta, fotoVera, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo, fasciaMappa, angoloFrecciaPartenza, partenzaCompiuta } from '../lib/navGuida';
 import { typeLabelOf } from '../lib/italianLabels';
 import { travelMinutes, etichettaCammino, etichettaGiornata } from '../lib/tourTiming';
 import { ArrivoTappa, SchedaTappa, FineGiro, RitoArrivo, FiloDelGiorno } from '../components/Nav/GuidaSchede';
@@ -1834,9 +1834,9 @@ const MapPage = () => {
         const min = prossima ? travelMinutes(stop, prossima) : null;
         const hhmm = quando ? `${String(romeParts(quando).h).padStart(2, '0')}:${String(romeParts(quando).mi).padStart(2, '0')}` : null;
         return {
-            id, numero: i + 1, nome: stop.name || stop.title, foto: step?.image || stop.image || null, categoria,
+            id, numero: i + 1, nome: stop.name || stop.title, foto: fotoVera(step) || fotoVera(stop), categoria,
             riga: rigaTappa({ categoria, stayMinutes: step?.stayMinutes, stop: step, quando: quando || new Date() }),
-            chicca: testoRacconto(step), racconto: testoRacconto(step), perche: percheAdesso(step, quando || new Date()),
+            chicca: chiccaDistinta(step, testoRacconto(step)), racconto: testoRacconto(step), perche: percheAdesso(step, quando || new Date(), new Date()),
             pillole: [hhmm, Number.isFinite(step?.stayMinutes) ? `~${step.stayMinutes} min` : null, Number(step?.price) > 0 ? `€${step.price}` : null].filter(Boolean),
             minutiAllaProssima: min, nomeProssima: prossima ? (prossima.name || prossima.title) : null,
             completata: completedSteps.includes(id),

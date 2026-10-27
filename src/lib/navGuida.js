@@ -170,10 +170,39 @@ const FRASE_MOMENTO = {
     pomeriggio: 'Il pomeriggio è il suo momento.', aperitivo: 'È l\'ora dell\'aperitivo.', cena: 'È ora di cena.', dopocena: 'A quest\'ora è ancora aperto.',
 };
 /** «PERCHÉ SEI QUI ADESSO»: solo cose vere sulla tappa (il momento, l'orario di apertura, la strada dalla tappa prima). */
-export function percheAdesso(stop, quando = null) {
+// le ore (a Roma) in cui la frase di un momento è vera: «la mattina…» non si dice di sera
+const ORE_MOMENTO = { colazione: [6, 11.5], mattina: [6, 13], pranzo: [11.5, 15.5], pomeriggio: [13, 19.5], aperitivo: [17, 22], cena: [18.5, 24], dopocena: [21, 30] };
+export function momentoCoerente(moment, ora) {
+    const r = ORE_MOMENTO[moment];
+    if (!r || !(ora instanceof Date) || Number.isNaN(ora.getTime())) return false;
+    const p = romeParts(ora);
+    let h = p.h + p.mi / 60;
+    if (h < 6) h += 24;
+    return h >= r[0] && h < r[1];
+}
+/** «al Bar», «alla Trattoria», «all'Osteria», «allo Stadio», «ai Quattro Canti»: la preposizione articolata giusta davanti al nome. */
+const FEMMINILI = ['trattoria', 'osteria', 'pizzeria', 'basilica', 'cattedrale', 'chiesa', 'fontana', 'piazza', 'via', 'porta', 'villa', 'torre', 'pasticceria', 'gelateria', 'enoteca', 'birreria', 'rosticceria', 'taverna', 'cappella', 'galleria', 'abbazia', 'pescheria', 'panetteria', 'libreria', 'farmacia', 'cantina', 'terrazza', 'scalinata', 'strada', 'loggia', 'rocca', 'fortezza', 'badia', 'pieve', 'torrefazione', 'friggitoria', 'salumeria', 'macelleria', 'bottega', 'sinagoga', 'moschea', 'grotta', 'spiaggia', 'riviera', 'passeggiata', 'cittadella', 'biblioteca', 'pinacoteca', 'università', 'stazione', 'banchina', 'funicolare'];
+export function alNome(nome) {
+    let n = String(nome || '').trim();
+    if (!n) return '';
+    const art = n.match(/^(il|lo|la|l'|l’|i|gli|le)\s*(?=\S)/i);
+    if (art) {
+        const a = art[1].toLowerCase().replace('’', "'");
+        const resto = n.slice(art[0].length).trim();
+        const mappa = { il: 'al', lo: 'allo', la: 'alla', "l'": "all'", i: 'ai', gli: 'agli', le: 'alle' };
+        return a === "l'" ? `all'${resto}` : `${mappa[a]} ${resto}`;
+    }
+    const prima = n.split(/\s+/)[0].replace(/[^\p{L}']/gu, '').toLowerCase();
+    if (/^[aeiouàèéìòùh]/i.test(prima) && !/^(hotel)$/.test(prima)) return `all'${n}`;
+    if (FEMMINILI.includes(prima)) return `alla ${n}`;
+    if (/^(s[^aeiou]|z|gn|ps|x|pn)/i.test(prima)) return `allo ${n}`;
+    return `al ${n}`;
+}
+export function percheAdesso(stop, quando = null, ora = null) {
     if (!stop) return null;
     const parti = [];
-    if (stop.moment && FRASE_MOMENTO[stop.moment]) parti.push(FRASE_MOMENTO[stop.moment]);
+    // il momento si dice solo se è vero all'ora vera (`ora`); senza `ora` (compat) si dice com'era
+    if (stop.moment && FRASE_MOMENTO[stop.moment] && (!ora || momentoCoerente(stop.moment, ora))) parti.push(FRASE_MOMENTO[stop.moment]);
     const aperto = quando ? apertoFinoAlle(stop, quando) : null;
     if (aperto) parti.push(`È ${aperto}.`);
     const t = Number(stop.travelMinutesFromPrev);
@@ -182,6 +211,13 @@ export function percheAdesso(stop, quando = null) {
 }
 /** Il racconto da leggere: la descrizione della tappa; null senza testo. */
 export const testoRacconto = (stop) => { const t = String(stop?.description || '').replace(/\s+/g, ' ').trim(); return t || null; };
+/** La chicca è un testo SUO (il consiglio insider della tappa); se non c'è o è uguale al racconto, non c'è: mai lo stesso testo in due sezioni. */
+export function chiccaDistinta(stop, racconto = null) {
+    const c = String(stop?.insiderTip || '').replace(/\s+/g, ' ').trim();
+    const norm = (x) => String(x || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    if (!c || norm(c) === norm(racconto) || (racconto && norm(racconto).includes(norm(c)))) return null;
+    return c;
+}
 /** La stima della lettura (150 parole al minuto), in secondi. */
 export const secondiDiLettura = (testo) => Math.max(5, Math.round((String(testo || '').trim().split(/\s+/).filter(Boolean).length / 150) * 60));
 /** 0:12 */

@@ -159,6 +159,32 @@ export function famigliaFrase(stop) {
     return 'altro';
 }
 
+/** Le abbreviazioni dopo cui il punto NON chiude la frase («tra piazza S. Francesco», «Sant. Agata», «p.za», «ecc.»). */
+const ABBREVIAZIONI = new Set(['s', 'sant', 'sta', 'sto', 'ss', 'dott', 'dr', 'prof', 'ing', 'arch', 'avv', 'on', 'sig', 'mons', 'gen', 'card', 'fr', 'fratel', 'f.lli', 'pza', 'p.za', 'p.zza', 'pzza', 'v.le', 'c.so', 'l.go', 'v', 'cfr', 'ecc', 'es', 'ca', 'circa', 'n', 'nn', 'sec', 'secc', 'pag', 'pp', 'vol', 'a.c', 'd.c', 'a', 'd', 'b', 'c', 'e.v', 'st', 'mt', 'm.te', 'corso', 'cap', 'fig', 'tav', 'art']);
+/**
+ * La prima frase COMPLETA di un testo: finisce a un punto, «!» o «?» che chiude davvero, mai a un'abbreviazione (S., Sant., p.za, ecc.),
+ * a un'iniziale o a un punto seguito da una minuscola. Senza una frase completa: null.
+ */
+export function primaFraseCompleta(testo) {
+    const t = String(testo || '').replace(/\s+/g, ' ').trim();
+    const re = /[.!?]+(?=\s|$)/g;
+    let m;
+    while ((m = re.exec(t))) {
+        const fine = m.index + m[0].length;
+        const prima = t.slice(0, m.index);
+        const parola = (prima.match(/([\p{L}][\p{L}.]*)$/u) || [''])[0].toLowerCase();
+        const dopo = t.slice(fine).trimStart();
+        if (m[0] === '.') {
+            if (ABBREVIAZIONI.has(parola) || ABBREVIAZIONI.has(parola.replace(/\./g, ''))) { if (dopo || !/^(ecc|a\.?c|d\.?c)$/.test(parola)) continue; }
+            if (/^[\p{Lu}]$/u.test(prima.slice(-1)) && /(^|[\s.(])[\p{Lu}]$/u.test(prima)) { continue; }
+            if (dopo && /^[\p{Ll}]/u.test(dopo)) continue;
+            if (/\d$/.test(prima) && /^\d/.test(dopo)) continue;
+        }
+        return t.slice(0, fine).trim();
+    }
+    return null;
+}
+
 /** Il primo fatto usabile: una frase intera da Wikipedia, al massimo 180 caratteri. */
 export const FATTO_MAX = 180;
 export function fattoDi(fatti = []) {
@@ -168,8 +194,8 @@ export function fattoDi(fatti = []) {
         if (fonte !== 'wikipedia' || !testo) continue;
         // "Nome: descrizione." e' un'etichetta, non una frase.
         if (/^[^.!?]{1,80}:\s/.test(testo)) continue;
-        const prima = (testo.match(/^.+?[.!?](?=\s|$)/) || [testo])[0].trim();
-        if (prima.length < 20 || prima.length > FATTO_MAX || !/[.!?]$/.test(prima)) return null;
+        const prima = primaFraseCompleta(testo);
+        if (!prima || prima.length < 20 || prima.length > FATTO_MAX) return null;
         return prima;
     }
     return null;

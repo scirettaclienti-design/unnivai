@@ -23,6 +23,10 @@ export const NAV_TESTI = Object.freeze({
     SALTA_TAPPA: 'Salta tappa',
     IMPOSTAZIONI: 'Impostazioni del giro',
     CHIUDI: 'Chiudi',
+    // NAV-TESTI-TAPPA
+    RIPARTI: 'Riparti',
+    AVANTI: 'Avanti',
+    RIPARTI_VERSO: (min, versoNome) => `Riparti · ${min ? `${min} min ` : ''}${versoNome}`,
     LA_MIA_POSIZIONE: 'Vai alla mia posizione',
     ESPANDI: 'Mostra i dettagli della tappa',
     COMPRIMI: 'Nascondi i dettagli della tappa',

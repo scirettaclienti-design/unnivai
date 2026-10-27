@@ -215,14 +215,15 @@ describe('STATI 8 e 3 — il rito d\'arrivo e l\'arrivo', () => {
         const arrivo = screen.getByTestId('arrivo');
         expect(screen.getByTestId('arrivo-pillola').textContent).toBe('Sei arrivato · tappa 1 di 3');
         expect(screen.getByTestId('arrivo-riga').textContent).toMatch(/^monumento · 20 min · aperto fino alle 23:00$/);
-        expect(screen.getByTestId('chicca').textContent).toContain('LA CHICCA'.toLowerCase().replace(/^./, c => c.toUpperCase()));
+        expect(screen.queryByTestId('chicca')).toBeNull(); // un solo testo: una sola sezione, il racconto
+        expect(screen.getByTestId('racconto-arrivo').textContent.length).toBeGreaterThan(10);
         expect(screen.getByTestId('lettore-tempo').textContent).toMatch(/^0:00 \/ 0:\d\d$/);
         expect(arrivo.querySelector('[style*="68dvh"]')).not.toBeNull();
     });
 });
 
 describe('STATO 4 — la scheda della tappa', () => {
-    it('etichetta «TAPPA X · CATEGORIA», nome, pillole, «perché sei qui adesso», il racconto, «Riparti · N min al <prossima>»', () => {
+    it('etichetta «TAPPA X · CATEGORIA», nome, pillole, «perché sei qui adesso», il racconto, «Riparti · N min al/alla <prossima>»', () => {
         monta(CATANIA);
         avvia();
         arriva(0);
@@ -235,7 +236,7 @@ describe('STATO 4 — la scheda della tappa', () => {
         expect(pillole).toContain('~20 min');
         expect(screen.getByTestId('perche').textContent).toMatch(/Perché sei qui adesso/);
         expect(screen.getByTestId('racconto').textContent).toContain('Il simbolo della città');
-        const riparti = screen.getByText(/^Riparti · \d+ min al Via Crociferi$/);
+        const riparti = screen.getByText(/^Riparti · \d+ min alla Via Crociferi$/);
         fireEvent.click(riparti);
         expect(screen.queryByTestId('scheda-tappa')).toBeNull();
         expect(screen.queryByTestId('arrivo')).toBeNull();

@@ -1,0 +1,5416 @@
+{
+ "tag": "p2130",
+ "ora": "2026-10-28T21:30:00+01:00",
+ "base": "https://unnivai.vercel.app",
+ "device": "iPhone 15",
+ "stati": {
+  "1 panoramica (appena aperta)": [
+   {
+    "t": 4.5,
+    "file": "p2130-01-1-panoramica-appena-aperta-.jpg",
+    "W": 393,
+    "H": 659,
+    "copertura": 27.7,
+    "mappaLibera": 72.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "div«Il tuo giro a Catania 44 min»",
+      "b": "button«Vai alla mia posizione»",
+      "px2": 1100
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "faro",
+     "map-avvia-card",
+     "avvia-etichette",
+     "cambia-mezzo",
+     "avvia-diretto"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 16,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 62
+     },
+     {
+      "n": "button«Attiva la tua posizione Per »",
+      "x": 30,
+      "y": 80,
+      "w": 334,
+      "h": 74,
+      "r": 364,
+      "b": 154
+     },
+     {
+      "n": "div«Il tuo giro a Catania 44 min»",
+      "x": 10,
+      "y": 522,
+      "w": 373,
+      "h": 113,
+      "r": 383,
+      "b": 635
+     },
+     {
+      "n": "button«Vai alla mia posizione»",
+      "x": 333,
+      "y": 503,
+      "w": 44,
+      "h": 44,
+      "r": 377,
+      "b": 547
+     }
+    ]
+   }
+  ],
+  "1 panoramica (percorso calcolato)": [
+   {
+    "t": 13.6,
+    "file": "p2130-02-1-panoramica-percorso-calcolato-.jpg",
+    "W": 393,
+    "H": 659,
+    "copertura": 27.7,
+    "mappaLibera": 72.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "div«Il tuo giro a Catania 44 min»",
+      "b": "button«Vai alla mia posizione»",
+      "px2": 1100
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "faro",
+     "map-avvia-card",
+     "avvia-etichette",
+     "cambia-mezzo",
+     "avvia-diretto"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 16,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 62
+     },
+     {
+      "n": "button«Attiva la tua posizione Per »",
+      "x": 30,
+      "y": 80,
+      "w": 334,
+      "h": 74,
+      "r": 364,
+      "b": 154
+     },
+     {
+      "n": "div«Il tuo giro a Catania 44 min»",
+      "x": 10,
+      "y": 522,
+      "w": 373,
+      "h": 113,
+      "r": 383,
+      "b": 635
+     },
+     {
+      "n": "button«Vai alla mia posizione»",
+      "x": 333,
+      "y": 503,
+      "w": 44,
+      "h": 44,
+      "r": 377,
+      "b": 547
+     }
+    ]
+   }
+  ],
+  "2 avvio e volo (+2,5 s)": [
+   {
+    "t": 16.3,
+    "file": "p2130-03-2-avvio-e-volo-2-5-s-.jpg",
+    "W": 393,
+    "H": 659,
+    "copertura": 36.1,
+    "mappaLibera": 63.9,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "faro",
+     "freccia-partenza",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "p«Parti da qui verso Porta Uze»",
+      "x": 76,
+      "y": 399,
+      "w": 241,
+      "h": 38,
+      "r": 317,
+      "b": 437
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 579,
+      "w": 369,
+      "h": 68,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   }
+  ],
+  "2 avvio e volo (+4 s)": [
+   {
+    "t": 17.9,
+    "file": "p2130-04-2-avvio-e-volo-4-s-.jpg",
+    "W": 393,
+    "H": 659,
+    "copertura": 36.1,
+    "mappaLibera": 63.9,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "faro",
+     "freccia-partenza",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "p«Parti da qui verso Porta Uze»",
+      "x": 76,
+      "y": 399,
+      "w": 241,
+      "h": 38,
+      "r": 317,
+      "b": 437
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 579,
+      "w": 369,
+      "h": 68,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   }
+  ],
+  "3 freccia di partenza": [
+   {
+    "t": 20.6,
+    "file": "p2130-05-3-freccia-di-partenza.jpg",
+    "W": 393,
+    "H": 659,
+    "copertura": 34.5,
+    "mappaLibera": 65.5,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "freccia-partenza",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "p«Parti da qui verso Porta Uze»",
+      "x": 76,
+      "y": 399,
+      "w": 241,
+      "h": 38,
+      "r": 317,
+      "b": 437
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   }
+  ],
+  "4 cammino": [
+   {
+    "t": 63.8,
+    "file": "p2130-06-4-cammino.jpg",
+    "pillola": "5 m · a sinistra",
+    "filo": null,
+    "W": 393,
+    "H": 659,
+    "copertura": 44,
+    "mappaLibera": 56,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "freccia-partenza",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-avviso",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "p«Parti da qui verso Porta Uze»",
+      "x": 76,
+      "y": 399,
+      "w": 241,
+      "h": 38,
+      "r": 317,
+      "b": 437
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-avviso]",
+      "x": 12,
+      "y": 153,
+      "w": 369,
+      "h": 44,
+      "r": 381,
+      "b": 197
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 374.9,
+    "file": "p2130-15-4-cammino.jpg",
+    "tratta": 2,
+    "W": 393,
+    "H": 659,
+    "copertura": 30.2,
+    "mappaLibera": 69.8,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 551,
+      "w": 369,
+      "h": 97,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 511.3,
+    "file": "p2130-15-4-cammino.jpg",
+    "tratta": 7,
+    "W": 393,
+    "H": 659,
+    "copertura": 27.3,
+    "mappaLibera": 72.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   }
+  ],
+  "5 svolta a 100 m": [
+   {
+    "t": 95,
+    "file": "p2130-07-5-svolta-a-100-m.jpg",
+    "distanzaReale": 99,
+    "pillola": "5 m · a sinistra",
+    "filo": null,
+    "W": 393,
+    "H": 659,
+    "copertura": 37,
+    "mappaLibera": 63,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "freccia-partenza",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "p«Parti da qui verso Porta Uze»",
+      "x": 76,
+      "y": 399,
+      "w": 241,
+      "h": 38,
+      "r": 317,
+      "b": 437
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   }
+  ],
+  "5 svolta a 50 m": [
+   {
+    "t": 162.5,
+    "file": "p2130-08-5-svolta-a-50-m.jpg",
+    "distanzaReale": 50,
+    "pillola": "55 m · a sinistra",
+    "filo": null,
+    "W": 393,
+    "H": 659,
+    "copertura": 27.3,
+    "mappaLibera": 72.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   }
+  ],
+  "6 avvicinamento (≤ 40 m)": [
+   {
+    "t": 331.4,
+    "file": "p2130-09-6-avvicinamento-40-m-.jpg",
+    "distanzaReale": 40,
+    "pillola": "15 m · leggermente a destra",
+    "W": 393,
+    "H": 659,
+    "copertura": 27.3,
+    "mappaLibera": 72.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   }
+  ],
+  "7 rito d'arrivo": [
+   {
+    "t": 345.7,
+    "file": "p2130-10-7-rito-d-arrivo.jpg",
+    "tappa": 1,
+    "daAvvicinamento": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 21.8,
+    "mappaLibera": 78.2,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 25625
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "rito-arrivo",
+     "rito-nome",
+     "rito-frase"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 116,
+      "y": 177,
+      "w": 160,
+      "h": 160,
+      "r": 277,
+      "b": 337
+     },
+     {
+      "n": "span«»",
+      "x": 109,
+      "y": 170,
+      "w": 175,
+      "h": 175,
+      "r": 284,
+      "b": 344
+     },
+     {
+      "n": "div«»",
+      "x": 125,
+      "y": 185,
+      "w": 144,
+      "h": 144,
+      "r": 269,
+      "b": 329
+     },
+     {
+      "n": "p«Sei arrivato»",
+      "x": 140,
+      "y": 353,
+      "w": 113,
+      "h": 38,
+      "r": 253,
+      "b": 391
+     }
+    ]
+   },
+   {
+    "t": 378,
+    "file": "p2130-15-7-rito-d-arrivo.jpg",
+    "tappa": 2,
+    "daAvvicinamento": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 24.4,
+    "mappaLibera": 75.6,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 25907
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "rito-arrivo",
+     "rito-nome",
+     "rito-frase"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 116,
+      "y": 161,
+      "w": 161,
+      "h": 161,
+      "r": 277,
+      "b": 322
+     },
+     {
+      "n": "span«»",
+      "x": 108,
+      "y": 154,
+      "w": 176,
+      "h": 176,
+      "r": 285,
+      "b": 330
+     },
+     {
+      "n": "div«»",
+      "x": 125,
+      "y": 170,
+      "w": 144,
+      "h": 144,
+      "r": 269,
+      "b": 314
+     },
+     {
+      "n": "p«Sei arrivato»",
+      "x": 140,
+      "y": 338,
+      "w": 113,
+      "h": 38,
+      "r": 253,
+      "b": 376
+     }
+    ]
+   },
+   {
+    "t": 395.6,
+    "file": "p2130-15-7-rito-d-arrivo.jpg",
+    "tappa": 3,
+    "W": 393,
+    "H": 659,
+    "copertura": 6.4,
+    "mappaLibera": 93.6,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 502
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 502
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 502
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 502
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 502
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 502
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "arrivo",
+     "arrivo-pillola"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 185,
+      "y": 65,
+      "w": 22,
+      "h": 22,
+      "r": 208,
+      "b": 87
+     },
+     {
+      "n": "span«»",
+      "x": 185,
+      "y": 65,
+      "w": 22,
+      "h": 22,
+      "r": 208,
+      "b": 87
+     },
+     {
+      "n": "span«»",
+      "x": 185,
+      "y": 65,
+      "w": 22,
+      "h": 22,
+      "r": 208,
+      "b": 87
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 90,
+      "y": 140,
+      "w": 212,
+      "h": 42,
+      "r": 303,
+      "b": 182
+     },
+     {
+      "n": "div«Fontana dell'Elefante (uʻ Li»",
+      "x": 0,
+      "y": 659,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 1107
+     }
+    ]
+   },
+   {
+    "t": 476.4,
+    "file": "p2130-15-7-rito-d-arrivo.jpg",
+    "tappa": 5,
+    "daAvvicinamento": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 21.9,
+    "mappaLibera": 78.1,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 25564
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "rito-arrivo",
+     "rito-nome",
+     "rito-frase"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 117,
+      "y": 177,
+      "w": 160,
+      "h": 160,
+      "r": 276,
+      "b": 337
+     },
+     {
+      "n": "span«»",
+      "x": 109,
+      "y": 170,
+      "w": 174,
+      "h": 174,
+      "r": 284,
+      "b": 344
+     },
+     {
+      "n": "div«»",
+      "x": 125,
+      "y": 185,
+      "w": 144,
+      "h": 144,
+      "r": 269,
+      "b": 329
+     },
+     {
+      "n": "p«Sei arrivato»",
+      "x": 140,
+      "y": 353,
+      "w": 113,
+      "h": 38,
+      "r": 253,
+      "b": 391
+     }
+    ]
+   },
+   {
+    "t": 486.7,
+    "file": "p2130-15-7-rito-d-arrivo.jpg",
+    "tappa": 6,
+    "daAvvicinamento": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 25.5,
+    "mappaLibera": 74.5,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 26081
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "faro",
+     "rito-arrivo",
+     "rito-nome",
+     "rito-frase"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 116,
+      "y": 166,
+      "w": 161,
+      "h": 161,
+      "r": 277,
+      "b": 327
+     },
+     {
+      "n": "span«»",
+      "x": 108,
+      "y": 158,
+      "w": 177,
+      "h": 177,
+      "r": 285,
+      "b": 335
+     },
+     {
+      "n": "div«»",
+      "x": 125,
+      "y": 175,
+      "w": 144,
+      "h": 144,
+      "r": 269,
+      "b": 319
+     },
+     {
+      "n": "p«Sei arrivato»",
+      "x": 140,
+      "y": 343,
+      "w": 113,
+      "h": 38,
+      "r": 253,
+      "b": 381
+     }
+    ]
+   },
+   {
+    "t": 526.5,
+    "file": "p2130-15-7-rito-d-arrivo.jpg",
+    "tappa": 7,
+    "daAvvicinamento": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 21.9,
+    "mappaLibera": 78.1,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 25513
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "faro",
+     "rito-arrivo",
+     "rito-nome",
+     "rito-frase"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 117,
+      "y": 177,
+      "w": 160,
+      "h": 160,
+      "r": 276,
+      "b": 337
+     },
+     {
+      "n": "span«»",
+      "x": 109,
+      "y": 170,
+      "w": 174,
+      "h": 174,
+      "r": 284,
+      "b": 344
+     },
+     {
+      "n": "div«»",
+      "x": 125,
+      "y": 185,
+      "w": 144,
+      "h": 144,
+      "r": 269,
+      "b": 329
+     },
+     {
+      "n": "p«Sei arrivato»",
+      "x": 140,
+      "y": 353,
+      "w": 113,
+      "h": 38,
+      "r": 253,
+      "b": 391
+     }
+    ]
+   },
+   {
+    "t": 579.3,
+    "file": "p2130-15-7-rito-d-arrivo.jpg",
+    "tappa": 8,
+    "daAvvicinamento": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 32.6,
+    "mappaLibera": 67.4,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 26081
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-cono",
+     "faro",
+     "rito-arrivo",
+     "rito-nome",
+     "rito-frase"
+    ],
+    "blocchi": [
+     {
+      "n": "div«🎧 I locali del posto sanno »",
+      "x": 16,
+      "y": 461,
+      "w": 361,
+      "h": 86,
+      "r": 377,
+      "b": 547
+     },
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 116,
+      "y": 176,
+      "w": 161,
+      "h": 161,
+      "r": 277,
+      "b": 338
+     },
+     {
+      "n": "span«»",
+      "x": 108,
+      "y": 168,
+      "w": 177,
+      "h": 177,
+      "r": 285,
+      "b": 346
+     },
+     {
+      "n": "div«»",
+      "x": 125,
+      "y": 185,
+      "w": 144,
+      "h": 144,
+      "r": 269,
+      "b": 329
+     },
+     {
+      "n": "p«Sei arrivato»",
+      "x": 140,
+      "y": 353,
+      "w": 113,
+      "h": 38,
+      "r": 253,
+      "b": 391
+     }
+    ]
+   },
+   {
+    "t": 604.9,
+    "file": "p2130-15-7-rito-d-arrivo.jpg",
+    "tappa": 9,
+    "daAvvicinamento": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 21.9,
+    "mappaLibera": 78.1,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 26027
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "faro",
+     "rito-arrivo",
+     "rito-nome",
+     "rito-frase"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 116,
+      "y": 176,
+      "w": 161,
+      "h": 161,
+      "r": 277,
+      "b": 338
+     },
+     {
+      "n": "span«»",
+      "x": 108,
+      "y": 168,
+      "w": 177,
+      "h": 177,
+      "r": 285,
+      "b": 345
+     },
+     {
+      "n": "div«»",
+      "x": 125,
+      "y": 185,
+      "w": 144,
+      "h": 144,
+      "r": 269,
+      "b": 329
+     },
+     {
+      "n": "p«Sei arrivato»",
+      "x": 140,
+      "y": 353,
+      "w": 113,
+      "h": 38,
+      "r": 253,
+      "b": 391
+     }
+    ]
+   },
+   {
+    "t": 647.6,
+    "file": "p2130-15-7-rito-d-arrivo.jpg",
+    "tappa": 10,
+    "daAvvicinamento": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 22.3,
+    "mappaLibera": 77.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 26228
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "faro",
+     "rito-arrivo",
+     "rito-nome",
+     "rito-frase"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 116,
+      "y": 176,
+      "w": 162,
+      "h": 162,
+      "r": 277,
+      "b": 338
+     },
+     {
+      "n": "span«»",
+      "x": 107,
+      "y": 168,
+      "w": 178,
+      "h": 178,
+      "r": 286,
+      "b": 346
+     },
+     {
+      "n": "div«»",
+      "x": 125,
+      "y": 185,
+      "w": 144,
+      "h": 144,
+      "r": 269,
+      "b": 329
+     },
+     {
+      "n": "p«Sei arrivato»",
+      "x": 140,
+      "y": 353,
+      "w": 113,
+      "h": 38,
+      "r": 253,
+      "b": 391
+     }
+    ]
+   },
+   {
+    "t": 675.1,
+    "file": "p2130-15-7-rito-d-arrivo.jpg",
+    "tappa": 11,
+    "daAvvicinamento": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 25.4,
+    "mappaLibera": 74.6,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 26072
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     },
+     {
+      "a": "span«»",
+      "b": "div«»",
+      "px2": 20736
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "faro",
+     "rito-arrivo",
+     "rito-nome",
+     "rito-frase"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 116,
+      "y": 166,
+      "w": 161,
+      "h": 161,
+      "r": 277,
+      "b": 327
+     },
+     {
+      "n": "span«»",
+      "x": 108,
+      "y": 158,
+      "w": 177,
+      "h": 177,
+      "r": 285,
+      "b": 335
+     },
+     {
+      "n": "div«»",
+      "x": 125,
+      "y": 175,
+      "w": 144,
+      "h": 144,
+      "r": 269,
+      "b": 319
+     },
+     {
+      "n": "p«Sei arrivato»",
+      "x": 140,
+      "y": 343,
+      "w": 113,
+      "h": 38,
+      "r": 253,
+      "b": 381
+     }
+    ]
+   }
+  ],
+  "8 scheda tappa (arrivo)": [
+   {
+    "t": 348.7,
+    "file": "p2130-11-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 1,
+    "daSolo": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.7,
+    "mappaLibera": 23.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 91,
+      "y": 140,
+      "w": 210,
+      "h": 42,
+      "r": 302,
+      "b": 182
+     },
+     {
+      "n": "div«Porta Uzeda monumento · 30 m»",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 381.1,
+    "file": "p2130-15-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 2,
+    "daSolo": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.7,
+    "mappaLibera": 23.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "div«🎧 Gli artisti di strada in »",
+      "b": "div«Basilica Cattedrale di Sant'»",
+      "px2": 30956
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "div«🎧 Gli artisti di strada in »",
+      "x": 16,
+      "y": 461,
+      "w": 361,
+      "h": 86,
+      "r": 377,
+      "b": 547
+     },
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 90,
+      "y": 140,
+      "w": 212,
+      "h": 42,
+      "r": 303,
+      "b": 182
+     },
+     {
+      "n": "div«Basilica Cattedrale di Sant'»",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 396.7,
+    "file": "p2130-15-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 3,
+    "daSolo": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.7,
+    "mappaLibera": 23.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 90,
+      "y": 140,
+      "w": 212,
+      "h": 42,
+      "r": 303,
+      "b": 182
+     },
+     {
+      "n": "div«Fontana dell'Elefante (uʻ Li»",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 435.1,
+    "file": "p2130-15-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 4,
+    "daSolo": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.7,
+    "mappaLibera": 23.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 90,
+      "y": 140,
+      "w": 213,
+      "h": 42,
+      "r": 303,
+      "b": 182
+     },
+     {
+      "n": "div«Teatro Antico greco-romano d»",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 479.4,
+    "file": "p2130-15-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 5,
+    "daSolo": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.7,
+    "mappaLibera": 23.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 90,
+      "y": 140,
+      "w": 212,
+      "h": 42,
+      "r": 303,
+      "b": 182
+     },
+     {
+      "n": "div«Trattoria Sorano ristorante »",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 489.8,
+    "file": "p2130-15-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 6,
+    "daSolo": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.7,
+    "mappaLibera": 23.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 90,
+      "y": 140,
+      "w": 213,
+      "h": 42,
+      "r": 303,
+      "b": 182
+     },
+     {
+      "n": "div«Piazza Giuseppe Mazzini monu»",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 529.6,
+    "file": "p2130-15-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 7,
+    "daSolo": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.7,
+    "mappaLibera": 23.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 91,
+      "y": 140,
+      "w": 211,
+      "h": 42,
+      "r": 302,
+      "b": 182
+     },
+     {
+      "n": "div«Castello Ursino museo · 1 h »",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 582.4,
+    "file": "p2130-15-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 8,
+    "daSolo": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.7,
+    "mappaLibera": 23.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 90,
+      "y": 140,
+      "w": 213,
+      "h": 42,
+      "r": 303,
+      "b": 182
+     },
+     {
+      "n": "div«Palazzo dei Chierici monumen»",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 608,
+    "file": "p2130-15-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 9,
+    "daSolo": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.7,
+    "mappaLibera": 23.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 90,
+      "y": 140,
+      "w": 213,
+      "h": 42,
+      "r": 303,
+      "b": 182
+     },
+     {
+      "n": "div«Via Etnea 30 min LA CHICCA L»",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 650.7,
+    "file": "p2130-15-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 10,
+    "daSolo": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.8,
+    "mappaLibera": 23.2,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 87,
+      "y": 140,
+      "w": 220,
+      "h": 42,
+      "r": 306,
+      "b": 182
+     },
+     {
+      "n": "div«Bar Popolare ristorante · 45»",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 678.2,
+    "file": "p2130-15-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 11,
+    "daSolo": true,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.8,
+    "mappaLibera": 23.2,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "faro",
+     "utente-marker",
+     "utente-cono",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 88,
+      "y": 140,
+      "w": 217,
+      "h": 42,
+      "r": 305,
+      "b": 182
+     },
+     {
+      "n": "div«Fontana dell’Amenano monumen»",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 743.3,
+    "file": "p2130-15-8-scheda-tappa-arrivo-.jpg",
+    "tappa": 12,
+    "daSolo": false,
+    "W": 393,
+    "H": 659,
+    "copertura": 100,
+    "mappaLibera": 0,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia",
+     "fine-giro",
+     "fine-etichetta",
+     "fine-titolo",
+     "fine-tracciato",
+     "fine-numeri",
+     "fine-imparato"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 579,
+      "w": 369,
+      "h": 68,
+      "r": 381,
+      "b": 647
+     },
+     {
+      "n": "[fine-giro]",
+      "x": 0,
+      "y": 0,
+      "w": 393,
+      "h": 659,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   }
+  ],
+  "9 racconto in lettura": [
+   {
+    "t": 352.9,
+    "file": "p2130-12-9-racconto-in-lettura.jpg",
+    "tappa": 1,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.7,
+    "mappaLibera": 23.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 91,
+      "y": 140,
+      "w": 210,
+      "h": 42,
+      "r": 302,
+      "b": 182
+     },
+     {
+      "n": "div«Porta Uzeda monumento · 30 m»",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 439.3,
+    "file": "p2130-15-9-racconto-in-lettura.jpg",
+    "tappa": 4,
+    "W": 393,
+    "H": 659,
+    "copertura": 76.7,
+    "mappaLibera": 23.3,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 5715
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     },
+     {
+      "a": "span«»",
+      "b": "span«»",
+      "px2": 3136
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "arrivo",
+     "arrivo-pillola",
+     "arrivo-riga",
+     "chicca",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "span«»",
+      "x": 159,
+      "y": 38,
+      "w": 76,
+      "h": 76,
+      "r": 234,
+      "b": 114
+     },
+     {
+      "n": "span«»",
+      "x": 149,
+      "y": 28,
+      "w": 95,
+      "h": 95,
+      "r": 244,
+      "b": 124
+     },
+     {
+      "n": "span«»",
+      "x": 169,
+      "y": 48,
+      "w": 56,
+      "h": 56,
+      "r": 225,
+      "b": 104
+     },
+     {
+      "n": "[arrivo-pillola]",
+      "x": 90,
+      "y": 140,
+      "w": 213,
+      "h": 42,
+      "r": 303,
+      "b": 182
+     },
+     {
+      "n": "div«Teatro Antico greco-romano d»",
+      "x": 0,
+      "y": 211,
+      "w": 393,
+      "h": 448,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   }
+  ],
+  "10 scheda completa della tappa": [
+   {
+    "t": 361.4,
+    "file": "p2130-13-10-scheda-completa-della-tappa.jpg",
+    "tappa": 1,
+    "W": 393,
+    "H": 659,
+    "copertura": 100,
+    "mappaLibera": 0,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia",
+     "scheda-tappa",
+     "scheda-etichetta",
+     "scheda-pillole",
+     "perche",
+     "racconto",
+     "lettore",
+     "lettore-tempo"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 551,
+      "w": 369,
+      "h": 97,
+      "r": 381,
+      "b": 647
+     },
+     {
+      "n": "[scheda-tappa]",
+      "x": 0,
+      "y": 0,
+      "w": 393,
+      "h": 659,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   },
+   {
+    "t": 447.8,
+    "file": "p2130-15-10-scheda-completa-della-tappa.jpg",
+    "tappa": 4,
+    "W": 393,
+    "H": 659,
+    "copertura": 100,
+    "mappaLibera": 0,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia",
+     "scheda-tappa",
+     "scheda-etichetta",
+     "scheda-pillole",
+     "perche",
+     "racconto",
+     "lettore"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     },
+     {
+      "n": "[scheda-tappa]",
+      "x": 0,
+      "y": 0,
+      "w": 393,
+      "h": 659,
+      "r": 393,
+      "b": 659
+     }
+    ]
+   }
+  ],
+  "11 riparti (+1 s)": [
+   {
+    "t": 369.7,
+    "file": "p2130-14-11-riparti-1-s-.jpg",
+    "tappa": 1,
+    "W": 393,
+    "H": 659,
+    "copertura": 30.2,
+    "mappaLibera": 69.8,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 551,
+      "w": 369,
+      "h": 97,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 384.3,
+    "file": "p2130-15-11-riparti-1-s-.jpg",
+    "tappa": 2,
+    "W": 393,
+    "H": 659,
+    "copertura": 30.2,
+    "mappaLibera": 69.8,
+    "piccoli": [
+     {
+      "nome": "button«Chiudi»",
+      "w": 42,
+      "h": 42
+     }
+    ],
+    "tagliati": [],
+    "sovr": [
+     {
+      "a": "div«🎧 Gli artisti di strada in »",
+      "b": "[nav-scheda]",
+      "px2": 28179
+     }
+    ],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "div«🎧 Gli artisti di strada in »",
+      "x": 25,
+      "y": 563,
+      "w": 344,
+      "h": 82,
+      "r": 368,
+      "b": 645
+     },
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 551,
+      "w": 369,
+      "h": 97,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 399.9,
+    "file": "p2130-15-11-riparti-1-s-.jpg",
+    "tappa": 3,
+    "W": 393,
+    "H": 659,
+    "copertura": 30.2,
+    "mappaLibera": 69.8,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 551,
+      "w": 369,
+      "h": 97,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 456.1,
+    "file": "p2130-15-11-riparti-1-s-.jpg",
+    "tappa": 4,
+    "W": 393,
+    "H": 659,
+    "copertura": 27.3,
+    "mappaLibera": 72.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 482.6,
+    "file": "p2130-15-11-riparti-1-s-.jpg",
+    "tappa": 5,
+    "W": 393,
+    "H": 659,
+    "copertura": 27.3,
+    "mappaLibera": 72.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "faro",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 493,
+    "file": "p2130-15-11-riparti-1-s-.jpg",
+    "tappa": 6,
+    "W": 393,
+    "H": 659,
+    "copertura": 27.3,
+    "mappaLibera": 72.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 532.8,
+    "file": "p2130-15-11-riparti-1-s-.jpg",
+    "tappa": 7,
+    "W": 393,
+    "H": 659,
+    "copertura": 27.3,
+    "mappaLibera": 72.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 585.6,
+    "file": "p2130-15-11-riparti-1-s-.jpg",
+    "tappa": 8,
+    "W": 393,
+    "H": 659,
+    "copertura": 27.3,
+    "mappaLibera": 72.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 611.2,
+    "file": "p2130-15-11-riparti-1-s-.jpg",
+    "tappa": 9,
+    "W": 393,
+    "H": 659,
+    "copertura": 27.3,
+    "mappaLibera": 72.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 653.9,
+    "file": "p2130-15-11-riparti-1-s-.jpg",
+    "tappa": 10,
+    "W": 393,
+    "H": 659,
+    "copertura": 27.3,
+    "mappaLibera": 72.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "utente-marker",
+     "utente-cono",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   },
+   {
+    "t": 681.4,
+    "file": "p2130-15-11-riparti-1-s-.jpg",
+    "tappa": 11,
+    "W": 393,
+    "H": 659,
+    "copertura": 27.3,
+    "mappaLibera": 72.7,
+    "piccoli": [],
+    "tagliati": [],
+    "sovr": [],
+    "testids": [
+     "map-root",
+     "mappa-giro",
+     "map",
+     "faro",
+     "utente-marker",
+     "utente-cono",
+     "nav-hud-barra",
+     "nav-pillola",
+     "filo",
+     "nav-vista-giro",
+     "nav-impostazioni",
+     "nav-centra",
+     "nav-scheda",
+     "nav-scheda-maniglia"
+    ],
+    "blocchi": [
+     {
+      "n": "a«Torna alla home»",
+      "x": 16,
+      "y": 8,
+      "w": 46,
+      "h": 46,
+      "r": 62,
+      "b": 54
+     },
+     {
+      "n": "[nav-hud-barra]",
+      "x": 12,
+      "y": 64,
+      "w": 369,
+      "h": 83,
+      "r": 381,
+      "b": 147
+     },
+     {
+      "n": "[nav-vista-giro]",
+      "x": 333,
+      "y": 277,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 325
+     },
+     {
+      "n": "[nav-impostazioni]",
+      "x": 333,
+      "y": 335,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 383
+     },
+     {
+      "n": "[nav-centra]",
+      "x": 333,
+      "y": 393,
+      "w": 48,
+      "h": 48,
+      "r": 381,
+      "b": 441
+     },
+     {
+      "n": "[nav-scheda]",
+      "x": 12,
+      "y": 569,
+      "w": 369,
+      "h": 78,
+      "r": 381,
+      "b": 647
+     }
+    ]
+   }
+  ]
+ },
+ "tocchi": [
+  {
+   "tocco": "Avvia",
+   "t": 13.6,
+   "rispostaDomMs": 21,
+   "statoAttesoMs": 26,
+   "suonoMs": 1,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  },
+  {
+   "tocco": "Play racconto (arrivo, tappa 1)",
+   "t": 348.7,
+   "rispostaDomMs": 4,
+   "statoAttesoMs": 6,
+   "suonoMs": 266,
+   "atteso": "[data-testid=\"lettore\"] button[aria-label^=\"Metti in pausa\"]"
+  },
+  {
+   "tocco": "Pausa racconto",
+   "t": 355.4,
+   "rispostaDomMs": 11,
+   "statoAttesoMs": 14,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"lettore\"] button[aria-label^=\"Ascolta\"]"
+  },
+  {
+   "tocco": "La scheda (tappa 1)",
+   "t": 358,
+   "rispostaDomMs": 5,
+   "statoAttesoMs": 12,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"scheda-tappa\"]"
+  },
+  {
+   "tocco": "Play racconto (scheda, tappa 1)",
+   "t": 361.4,
+   "rispostaDomMs": 2,
+   "statoAttesoMs": 6,
+   "suonoMs": 1,
+   "atteso": "[data-testid=\"lettore\"] button[aria-label^=\"Metti in pausa\"]"
+  },
+  {
+   "tocco": "Riparti (tappa 1)",
+   "t": 366.5,
+   "rispostaDomMs": 4,
+   "statoAttesoMs": 7,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  },
+  {
+   "tocco": "Riparti (tappa 2)",
+   "t": 381.1,
+   "rispostaDomMs": 3,
+   "statoAttesoMs": 5,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  },
+  {
+   "tocco": "Riparti (tappa 3)",
+   "t": 396.7,
+   "rispostaDomMs": 9,
+   "statoAttesoMs": 11,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  },
+  {
+   "tocco": "Play racconto (arrivo, tappa 4)",
+   "t": 435.1,
+   "rispostaDomMs": 1,
+   "statoAttesoMs": 8,
+   "suonoMs": 437,
+   "atteso": "[data-testid=\"lettore\"] button[aria-label^=\"Metti in pausa\"]"
+  },
+  {
+   "tocco": "Pausa racconto",
+   "t": 441.8,
+   "rispostaDomMs": 4,
+   "statoAttesoMs": 19,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"lettore\"] button[aria-label^=\"Ascolta\"]"
+  },
+  {
+   "tocco": "La scheda (tappa 4)",
+   "t": 444.4,
+   "rispostaDomMs": 4,
+   "statoAttesoMs": 8,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"scheda-tappa\"]"
+  },
+  {
+   "tocco": "Play racconto (scheda, tappa 4)",
+   "t": 447.8,
+   "rispostaDomMs": 8,
+   "statoAttesoMs": 21,
+   "suonoMs": 7,
+   "atteso": "[data-testid=\"lettore\"] button[aria-label^=\"Metti in pausa\"]"
+  },
+  {
+   "tocco": "Riparti (tappa 4)",
+   "t": 452.9,
+   "rispostaDomMs": 6,
+   "statoAttesoMs": 16,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  },
+  {
+   "tocco": "Riparti (tappa 5)",
+   "t": 479.4,
+   "rispostaDomMs": 3,
+   "statoAttesoMs": 9,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  },
+  {
+   "tocco": "Riparti (tappa 6)",
+   "t": 489.8,
+   "rispostaDomMs": 3,
+   "statoAttesoMs": 9,
+   "suonoMs": 268,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  },
+  {
+   "tocco": "Riparti (tappa 7)",
+   "t": 529.6,
+   "rispostaDomMs": 2,
+   "statoAttesoMs": 8,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  },
+  {
+   "tocco": "Riparti (tappa 8)",
+   "t": 582.4,
+   "rispostaDomMs": 3,
+   "statoAttesoMs": 5,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  },
+  {
+   "tocco": "Riparti (tappa 9)",
+   "t": 608,
+   "rispostaDomMs": 5,
+   "statoAttesoMs": 17,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  },
+  {
+   "tocco": "Riparti (tappa 10)",
+   "t": 650.7,
+   "rispostaDomMs": 4,
+   "statoAttesoMs": 12,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  },
+  {
+   "tocco": "Riparti (tappa 11)",
+   "t": 678.2,
+   "rispostaDomMs": 3,
+   "statoAttesoMs": 9,
+   "suonoMs": null,
+   "atteso": "[data-testid=\"nav-hud-barra\"]"
+  }
+ ],
+ "voce": [
+  {
+   "t": 16.3,
+   "stato": "2 avvio e volo (+2,5 s)",
+   "testo": "Si va verso Porta Uzeda.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 63.8,
+   "stato": "4 cammino",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 162.5,
+   "stato": "5 svolta a 50 m",
+   "testo": "Fra cento metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 162.5,
+   "stato": "5 svolta a 50 m",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 331.4,
+   "stato": "6 avvicinamento (≤ 40 m)",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 331.4,
+   "stato": "6 avvicinamento (≤ 40 m)",
+   "testo": "Fra cinquanta metri gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 331.4,
+   "stato": "6 avvicinamento (≤ 40 m)",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 331.4,
+   "stato": "6 avvicinamento (≤ 40 m)",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 331.4,
+   "stato": "6 avvicinamento (≤ 40 m)",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 331.4,
+   "stato": "6 avvicinamento (≤ 40 m)",
+   "testo": "Adesso gira leggermente a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 345.7,
+   "stato": "7 rito d'arrivo",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 345.7,
+   "stato": "7 rito d'arrivo",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 348.7,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Si va verso Basilica Cattedrale di Sant'Agata.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 352.9,
+   "stato": "9 racconto in lettura",
+   "testo": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca. Si comincia da qui.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 366.4,
+   "stato": "10 scheda completa della tappa",
+   "testo": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca. Si comincia da qui.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 374.9,
+   "stato": "4 cammino",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 378,
+   "stato": "7 rito d'arrivo",
+   "testo": "Ti prendi venti minuti dentro Basilica Cattedrale di Sant'Agata.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 381.1,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Gli artisti di strada in Italia devono avere un permesso comunale. Ogni esibizione che vedi è certificata.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 395.6,
+   "stato": "7 rito d'arrivo",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 395.6,
+   "stato": "7 rito d'arrivo",
+   "testo": "Si va verso Fontana dell'Elefante (uʻ Liotru).",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 395.6,
+   "stato": "7 rito d'arrivo",
+   "testo": "Ti fermi davanti a Fontana dell'Elefante (uʻ Liotru) il tempo che serve.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 435.1,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Fra cento metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 435.1,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Si va verso Teatro Antico greco-romano di Catania.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 435.1,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 435.1,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Le trattorie con i menù scritti a mano sono quasi sempre le migliori. Segui la calligrafia!",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 435.1,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra…",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 435.1,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Si va verso Trattoria Sorano.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 439.3,
+   "stato": "9 racconto in lettura",
+   "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Sono 4 minuti a piedi dalla tappa prima.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 452.8,
+   "stato": "10 scheda completa della tappa",
+   "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Sono 4 minuti a piedi dalla tappa prima.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 476.4,
+   "stato": "7 rito d'arrivo",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 476.4,
+   "stato": "7 rito d'arrivo",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 476.4,
+   "stato": "7 rito d'arrivo",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 476.4,
+   "stato": "7 rito d'arrivo",
+   "testo": "Pranzi da Trattoria Sorano, trattoria con prezzi medi.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 486.8,
+   "stato": "7 rito d'arrivo",
+   "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una…",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 489.8,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 493,
+   "stato": "11 riparti (+1 s)",
+   "testo": "Si va verso Piazza Giuseppe Mazzini.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 511.3,
+   "stato": "4 cammino",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 511.3,
+   "stato": "4 cammino",
+   "testo": "Fra cento metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 511.3,
+   "stato": "4 cammino",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 526.5,
+   "stato": "7 rito d'arrivo",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 526.5,
+   "stato": "7 rito d'arrivo",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 526.5,
+   "stato": "7 rito d'arrivo",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 526.5,
+   "stato": "7 rito d'arrivo",
+   "testo": "Il castello Ursino di Catania fu costruito dal re Federico II di Svevia nel XIII secolo.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 579.3,
+   "stato": "7 rito d'arrivo",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 579.3,
+   "stato": "7 rito d'arrivo",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 579.3,
+   "stato": "7 rito d'arrivo",
+   "testo": "Si va verso Palazzo dei Chierici.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 579.3,
+   "stato": "7 rito d'arrivo",
+   "testo": "I locali del posto sanno che il tramonto migliore non è dal punto panoramico, ma dal bar accanto.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 579.3,
+   "stato": "7 rito d'arrivo",
+   "testo": "Passi da Palazzo dei Chierici: guardati intorno prima di ripartire.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 604.9,
+   "stato": "7 rito d'arrivo",
+   "testo": "Si va verso Via Etnea.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 604.9,
+   "stato": "7 rito d'arrivo",
+   "testo": "La via Etnea è la strada principale del centro storico di Catania.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 647.6,
+   "stato": "7 rito d'arrivo",
+   "testo": "Si va verso Bar Popolare.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 647.6,
+   "stato": "7 rito d'arrivo",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 675.1,
+   "stato": "7 rito d'arrivo",
+   "testo": "Fra cinquanta metri gira leggermente a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 675.1,
+   "stato": "7 rito d'arrivo",
+   "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di…",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 678.2,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Adesso gira leggermente a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 743.3,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Fra cento metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 743.3,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 743.3,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 743.3,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Si va verso Camelot.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 743.3,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Fra cento metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 743.3,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 743.3,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 743.3,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 743.3,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 743.3,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "t": 743.3,
+   "stato": "8 scheda tappa (arrivo)",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  }
+ ],
+ "note": [
+  "1ª svolta alla traccia 120 m (rotta 55° → -14°)",
+  "tappa 12: nessun tasto «Ascolta il racconto» nella scheda d'arrivo",
+  "tappa 12: nessun tasto «La scheda»"
+ ],
+ "errori": [
+  "1s /overpass-api.de/api/interpreter?data=%0A%20%20%20%20%20%20%5Bout%3Ajson%5D%5Btimeout%3A25%5D%3B%0A%20%20%20%20%20%20area%5B%22name%22%3D%22Catania%22%5D%5B%22admin_level%22~%224%7C8%22%5D-%3E.searchA",
+  "FATALE: locator.click: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText(/^(Riparti|Avanti|Concludi|Fine|Termina)/).first()\u001b[22m\n\u001b[2m    - locator resolved to <kbd>Fine</kbd>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m "
+ ],
+ "tappe": 12,
+ "audioEventi": 11,
+ "audioEv": [
+  {
+   "t": 689605,
+   "tipo": "media.play",
+   "src": "https://ahecpiwsdhghkndncejb.supabase.co/storage/v1/object/public/voce-cache/v1/"
+  },
+  {
+   "t": 696671,
+   "tipo": "media.play",
+   "src": "https://ahecpiwsdhghkndncejb.supabase.co/storage/v1/object/public/voce-cache/v1/"
+  },
+  {
+   "t": 697677,
+   "tipo": "media.play",
+   "src": "https://ahecpiwsdhghkndncejb.supabase.co/storage/v1/object/public/voce-cache/v1/"
+  },
+  {
+   "t": 701384,
+   "tipo": "media.play",
+   "src": "https://ahecpiwsdhghkndncejb.supabase.co/storage/v1/object/public/voce-cache/v1/"
+  },
+  {
+   "t": 702719,
+   "tipo": "media.play",
+   "src": "https://ahecpiwsdhghkndncejb.supabase.co/storage/v1/object/public/voce-cache/v1/"
+  },
+  {
+   "t": 709814,
+   "tipo": "media.play",
+   "src": "https://ahecpiwsdhghkndncejb.supabase.co/storage/v1/object/public/voce-cache/v1/"
+  },
+  {
+   "t": 712830,
+   "tipo": "media.play",
+   "src": "https://ahecpiwsdhghkndncejb.supabase.co/storage/v1/object/public/voce-cache/v1/"
+  },
+  {
+   "t": 715845,
+   "tipo": "media.play",
+   "src": "https://ahecpiwsdhghkndncejb.supabase.co/storage/v1/object/public/voce-cache/v1/"
+  },
+  {
+   "t": 716859,
+   "tipo": "media.play",
+   "src": "https://ahecpiwsdhghkndncejb.supabase.co/storage/v1/object/public/voce-cache/v1/"
+  },
+  {
+   "t": 719878,
+   "tipo": "media.play",
+   "src": "https://ahecpiwsdhghkndncejb.supabase.co/storage/v1/object/public/voce-cache/v1/"
+  },
+  {
+   "t": 721902,
+   "tipo": "media.play",
+   "src": "https://ahecpiwsdhghkndncejb.supabase.co/storage/v1/object/public/voce-cache/v1/"
+  }
+ ],
+ "video": "docs/prove/video/nav-audit-p2130.webm"
+}

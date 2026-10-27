@@ -79,8 +79,8 @@ const monta = (tourData) => render(
     </QueryClientProvider>,
 );
 const avvia = () => {
+    // nav-camera: «Avvia» parte subito (il mezzo si cambia da «Cambia mezzo»)
     fireEvent.click(screen.getByText('Avvia'));
-    fireEvent.click(screen.getByText('Avvia Navigazione'));
 };
 // Una posizione al secondo.
 const passo = (p, acc) => act(() => { vi.advanceTimersByTime(1000); gps.emit(p[0], p[1], acc); });

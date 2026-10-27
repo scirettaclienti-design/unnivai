@@ -220,3 +220,71 @@ export function tracciatoSvg(tappe, larghezza = 320, altezza = 200, margine = 22
     const ox = margine + (w - (maxX - minX) * s) / 2, oy = margine + (h - (maxY - minY) * s) / 2;
     return pts.map((p, i) => ({ x: Number((ox + (xs[i] - minX) * s).toFixed(1)), y: Number((oy + (ys[i] - minY) * s).toFixed(1)) }));
 }
+
+
+// ─── LA FASCIA ORARIA DELLA MAPPA (nav-camera) ──────────────────────────────────────────────────────────────────────
+// Durante la navigazione la mappa prende il colore della fascia: `mattina` fino a 2 ore dopo l'alba vera, `tramonto` da 1 ora prima a 30
+// minuti dopo il tramonto vero, `notte` dal buio (30 minuti dopo il tramonto) all'alba, `giorno` il resto (resta Ossidiana).
+export const FASCE_MAPPA = ['mattina', 'giorno', 'tramonto', 'notte'];
+const MIN_MS = 60000;
+export const MATTINA_DOPO_ALBA_MIN = 120;
+export const TRAMONTO_PRIMA_MIN = 60;
+export const TRAMONTO_DOPO_MIN = 30;
+/** @param {Date|number} istante  @param {{ sunrise: Date|null, sunset: Date|null }} sole  @returns {'mattina'|'giorno'|'tramonto'|'notte'} */
+export function fasciaMappa(istante, sole) {
+    const t = istante instanceof Date ? istante.getTime() : istante;
+    const alba = sole?.sunrise instanceof Date ? sole.sunrise.getTime() : null;
+    const tramonto = sole?.sunset instanceof Date ? sole.sunset.getTime() : null;
+    if (!Number.isFinite(t) || alba === null || tramonto === null) return 'giorno';
+    if (t >= tramonto - TRAMONTO_PRIMA_MIN * MIN_MS && t < tramonto + TRAMONTO_DOPO_MIN * MIN_MS) return 'tramonto';
+    if (t >= tramonto + TRAMONTO_DOPO_MIN * MIN_MS || t < alba) return 'notte';
+    if (t >= alba && t < alba + MATTINA_DOPO_ALBA_MIN * MIN_MS) return 'mattina';
+    return 'giorno';
+}
+
+// ─── LA FRECCIA DI PARTENZA ─────────────────────────────────────────────────────────────────────────────────────────
+const RAD = Math.PI / 180;
+/** La direzione (gradi, 0 = nord, in senso orario) da un punto a un altro. */
+export function direzioneVerso(da, a) {
+    const la1 = Number(da?.lat ?? da?.latitude) * RAD, la2 = Number(a?.lat ?? a?.latitude) * RAD;
+    const dLo = (Number(a?.lng ?? a?.longitude) - Number(da?.lng ?? da?.longitude)) * RAD;
+    const y = Math.sin(dLo) * Math.cos(la2);
+    const x = Math.cos(la1) * Math.sin(la2) - Math.sin(la1) * Math.cos(la2) * Math.cos(dLo);
+    const g = Math.atan2(y, x) / RAD;
+    return Number.isFinite(g) ? (g + 360) % 360 : null;
+}
+/** La differenza fra due direzioni, in gradi, da -180 a 180. */
+export const scartoAngolo = (a, b) => ((((a - b) % 360) + 540) % 360) - 180;
+const R_TERRA = 6371000;
+/** La distanza in metri fra due punti. */
+export function distanzaFraM(a, b) {
+    const la1 = Number(a?.lat ?? a?.latitude) * RAD, la2 = Number(b?.lat ?? b?.latitude) * RAD;
+    const h = Math.sin((la2 - la1) / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(((Number(b?.lng ?? b?.longitude) - Number(a?.lng ?? a?.longitude)) * RAD) / 2) ** 2;
+    return 2 * R_TERRA * Math.asin(Math.sqrt(h));
+}
+export const PARTENZA_METRI = 10;
+export const PARTENZA_TOLLERANZA_GRADI = 60;
+/**
+ * La freccia di partenza: grande, al centro dello schermo, indica la direzione FISICA verso la prima tappa. L'angolo e' relativo a dove guarda la
+ * camera (la freccia e' disegnata sullo schermo: in alto = dove punta la mappa).
+ * @returns {number|null} gradi in senso orario, 0 = in alto
+ */
+export function angoloFrecciaPartenza({ utente, tappa, orientamentoCamera = 0 }) {
+    const d = direzioneVerso(utente, tappa);
+    return d === null ? null : (Math.round(scartoAngolo(d, Number(orientamentoCamera) || 0)) || 0);
+}
+/** La partenza e' compiuta: almeno 10 m dal punto di partenza, nel verso giusto verso la prima tappa (entro 60°). */
+export function partenzaCompiuta({ partenza, posizione, tappa }) {
+    if (!partenza || !posizione || !tappa) return false;
+    if (distanzaFraM(partenza, posizione) < PARTENZA_METRI) return false;
+    const mossa = direzioneVerso(partenza, posizione), giusta = direzioneVerso(partenza, tappa);
+    return mossa !== null && giusta !== null && Math.abs(scartoAngolo(mossa, giusta)) <= PARTENZA_TOLLERANZA_GRADI;
+}
+
+
+/** La foto della tappa nella scheda in basso: una foto vera di Places, oppure nessuna (mai una foto di stock, mai un segnaposto). */
+export function fotoVera(stop) {
+    const url = [stop?.googlePhoto, stop?.image].find(u => typeof u === 'string' && u.trim());
+    if (!url) return null;
+    return /unsplash\.com|placeholder|stock/i.test(url) ? null : url;
+}

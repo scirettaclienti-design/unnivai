@@ -37,11 +37,14 @@ import { valutaPassaggio } from '../lib/navPassaggio';
 import { valutaArrivo } from '../lib/navArrivo';
 import { creaSchermoAcceso } from '../lib/wakeLock';
 import { NAV_TESTI, avvisoNavigazione } from '../lib/navMessaggi';
-import { prossimaSvolta, rigaTappa, percheAdesso, testoRacconto, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo } from '../lib/navGuida';
+import { prossimaSvolta, rigaTappa, percheAdesso, testoRacconto, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo, fasciaMappa, angoloFrecciaPartenza, partenzaCompiuta } from '../lib/navGuida';
 import { typeLabelOf } from '../lib/italianLabels';
 import { travelMinutes, etichettaCammino, etichettaGiornata } from '../lib/tourTiming';
 import { ArrivoTappa, SchedaTappa, FineGiro, RitoArrivo, FiloDelGiorno } from '../components/Nav/GuidaSchede';
-import { inclinazioneNav } from '../lib/mapId';
+import { volaCamera, direzioneDiMarcia, lisciaAngolo, ZOOM_NAV, TILT_NAV } from '../lib/cameraNav';
+import { useBussola } from '../hooks/useBussola';
+import FrecciaPartenza from '../components/Nav/FrecciaPartenza';
+import { sunTimes } from '../lib/sunTimes';
 import { romeParts } from '../lib/tourWindow';
 import NavDebugPanel from '../components/NavDebugPanel';
 import { useAILearning } from '../hooks/useAILearning';
@@ -295,7 +298,18 @@ const MapPage = () => {
     const { isManual } = useCity();
     const queryClient = useQueryClient();
 
-    const map = useMap();
+    // nav-camera — nella mappa del giro la mappa da comandare la dice il contenitore (`onMapAttiva`: durante la dissolvenza una che comanda tutte e due)
+    const mapDefault = useMap();
+    const [mapAttiva, setMapAttiva] = useState(null);
+    const map = mapAttiva || mapDefault;
+    const mapCorrenteRef = useRef(null); // la mappa attiva di adesso: il volo della camera la rilegge a ogni fotogramma
+    useEffect(() => { mapCorrenteRef.current = map; }, [map]);
+    // solo sotto un browser pilotato (le prove WebKit): la camera di adesso, per misurarla
+    useEffect(() => {
+        if (typeof navigator === 'undefined' || !navigator.webdriver) return undefined;
+        window.__dvCamera = () => { const m = mapCorrenteRef.current; return m?.getZoom ? { zoom: m.getZoom(), tilt: m.getTilt(), heading: m.getHeading() } : null; };
+        return () => { delete window.__dvCamera; };
+    }, []);
     const placesLibrary = useMapsLibrary('places');
     const [placesService, setPlacesService] = useState(null);
 
@@ -370,6 +384,21 @@ const MapPage = () => {
     const [isRoutePlannerOpen, setIsRoutePlannerOpen] = useState(false);
     const [pageTransportMode, setPageTransportMode] = useState('walking');
     const [isNavigating, setIsNavigating] = useState(false);
+    // nav-camera: bussola (se c'e'), prossima tappa per la camera, fascia oraria della mappa
+    const bussolaRef = useRef(null);
+    // nav-camera: la freccia di partenza (prima del primo passo) e il punto da cui si parte
+    const [frecciaPartenza, setFrecciaPartenza] = useState(false);
+    const frecciaPartenzaRef = useRef(false);
+    const partenzaRef = useRef(null);
+    const navNextStopRef = useRef(null);
+    const { bussola, chiediPermesso } = useBussola(isNavigating);
+    useEffect(() => { bussolaRef.current = bussola; }, [bussola]);
+    const [oraMappa, setOraMappa] = useState(() => Date.now());
+    useEffect(() => {
+        if (!isNavigating) return undefined;
+        const id = setInterval(() => setOraMappa(Date.now()), 60_000);
+        return () => clearInterval(id);
+    }, [isNavigating]);
     const [isMapReady, setIsMapReady] = useState(false);
     const [localCenter, setLocalCenter] = useState(null);
     const [customOriginAddress, setCustomOriginAddress] = useState('');
@@ -436,12 +465,10 @@ const MapPage = () => {
         setIsCameraFollowing(val);
         followingRef.current = val;
 
-        // Se riattiviamo il following, facciamo un fly-to immediato all'ultima posizione nota
-        if (val && localCenter && mapRef.current) {
-            console.log('[DVAI-Nav] writer#2 setFollowing(true): flyTo zoom 19 pitch 60');
-            mapRef.current.flyTo({ center: [localCenter.longitude, localCenter.latitude], zoom: 19, pitch: inclinazioneNav(60) });
-        }
+        // Se riattiviamo il following («centra su di me»), la camera vola subito all'ultima posizione nota (~1,5 s, zoom 17–18, inclinata)
+        if (val && localCenter) volaSuDiMeRef.current?.(localCenter);
     }, [localCenter]);
+    const volaSuDiMeRef = useRef(null);
 
     // FIX: Auto-geolocate on MapPage mount if no center is provided
     useEffect(() => {
@@ -872,14 +899,16 @@ const MapPage = () => {
                 const latSpread = Math.max(...lats) - Math.min(...lats);
                 // Sanity check: se i bounds coprono > 2 gradi, qualcosa è sbagliato
                 if (lngSpread < 2 && latSpread < 2) {
+                    // nav-camera: la panoramica e' dall'alto (inclinazione 0, nord in alto) con TUTTE le tappe nell'inquadratura, sopra la card in basso
+                    map?.moveCamera?.({ tilt: 0, heading: 0 });
                     mapRef.current.fitBounds(
                         [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
-                        { padding: { top: 100, bottom: 300, left: 50, right: 50 }, duration: 1500, maxZoom: 15 }
+                        { padding: { top: 90, bottom: 250, left: 40, right: 40 }, duration: 1500, maxZoom: 16 }
                     );
                 }
             }
         } catch (e) { console.warn('fitBounds failed', e); }
-    }, [activeRoute, showRoute, liveRoute, isNavigating, isRoutePlannerOpen]);
+    }, [activeRoute, showRoute, liveRoute, isNavigating, isRoutePlannerOpen, map]);
 
     // ─── GLOBAL TOURS QUERY ──────────────────────────────────────────────────
     const { data: globalTours, isLoading: isLoadingTours, isFetching: isFetchingTours } = useQuery({
@@ -1069,6 +1098,17 @@ const MapPage = () => {
     const onNavPosition = (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
         setLocalCenter({ latitude, longitude });
+        // nav-camera: la freccia di partenza sparisce dopo 10 m nel verso giusto verso la prima tappa
+        if (frecciaPartenzaRef.current) {
+            if (!partenzaRef.current) partenzaRef.current = { lat: latitude, lng: longitude };
+            else {
+                const t0 = (activeRoute || [])[0];
+                if (t0 && partenzaCompiuta({ partenza: partenzaRef.current, posizione: { lat: latitude, lng: longitude }, tappa: { lat: Number(t0.latitude ?? t0.lat), lng: Number(t0.longitude ?? t0.lng) } })) {
+                    frecciaPartenzaRef.current = false;
+                    setFrecciaPartenza(false);
+                }
+            }
+        }
         // NAV-3: la scheda di arrivo si chiude se ti allontani di 50 m dalla tappa
         if (arrivoPuntoRef.current) {
             const a = arrivoPuntoRef.current;
@@ -1257,6 +1297,12 @@ const MapPage = () => {
             // ri-setta più heading (era lo scatto in rotazione). La
             // rotazione heading-up fluida è debito Antigravity.
             map.panTo({ lat: latitude, lng: longitude });
+            // nav-camera: l'orientamento segue la direzione di marcia senza scatti (ogni tick si avvicina di una frazione)
+            const dir = direzioneDiMarcia({
+                bussola: bussolaRef.current, posizione: { lat: latitude, lng: longitude },
+                percorso: directionsDataRef.current?.overviewPath, tappa: navNextStopRef.current ? { lat: Number(navNextStopRef.current.latitude ?? navNextStopRef.current.lat), lng: Number(navNextStopRef.current.longitude ?? navNextStopRef.current.lng) } : null,
+            });
+            if (Number.isFinite(dir)) map.moveCamera({ heading: lisciaAngolo(map.getHeading?.(), dir, 0.35) });
         }
 
         // Cultural Surprise: solo A PIEDI, ogni ~300m + audioguida
@@ -1297,16 +1343,26 @@ const MapPage = () => {
     };
     useEffect(() => { navPositionRef.current = onNavPosition; });
 
-    // NAV-1: la mappa vola sull'utente (riprova finché il wrapper della mappa non è pronto).
+    // nav-camera: la camera vola su di te (~1,5 s), poi zoom 17–18, inclinata 45–55°, orientata nella direzione di marcia
+    // (bussola; se manca la direzione del percorso davanti a te; se manca verso la prossima tappa).
+    const volaSuDiMe = (coords) => {
+        const lat = Number(coords?.latitude ?? coords?.lat), lng = Number(coords?.longitude ?? coords?.lng);
+        if (!map || !Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+        const prossima = (activeRoute || []).find(st => !completedStepsRef.current.includes(st.id) && !skippedStepsRef.current.includes(st.id));
+        const heading = direzioneDiMarcia({
+            bussola: bussolaRef.current, posizione: { lat, lng },
+            percorso: directionsDataRef.current?.overviewPath,
+            tappa: prossima ? { lat: Number(prossima.latitude ?? prossima.lat), lng: Number(prossima.longitude ?? prossima.lng) } : null,
+        });
+        console.log('[DVAI-Nav] volo della camera su di te');
+        volaCamera(() => mapCorrenteRef.current || map, { lat, lng, zoom: ZOOM_NAV, tilt: TILT_NAV, heading });
+        return true;
+    };
+    useEffect(() => { volaSuDiMeRef.current = volaSuDiMe; });
     const flyToUser = (coords, attempt = 0) => {
-        const ref = mapRef.current;
-        if (ref?.flyTo) {
-            console.log(`[DVAI-Nav] flyTo su utente (attempt ${attempt})`);
-            ref.flyTo({ center: [coords.longitude, coords.latitude], zoom: 18, pitch: inclinazioneNav(55), bearing: 0 });
-            return;
-        }
+        if (volaSuDiMe(coords)) return;
         if (attempt < 3) setTimeout(() => flyToUser(coords, attempt + 1), 100);
-        else console.warn('[DVAI-Nav] mapRef non pronto dopo 300ms: skip flyTo iniziale');
+        else console.warn('[DVAI-Nav] mappa non pronta dopo 300ms: skip il volo iniziale');
     };
 
     // NAV-1: le tappe ancora da fare (né fatte né saltate).
@@ -1340,7 +1396,7 @@ const MapPage = () => {
         if (!first) return;
         setLocalCenter({ latitude: first.latitude, longitude: first.longitude });
         setLiveRoute(rimaste.map(s => ({ lat: parseFloat(s.latitude || s.lat), lng: parseFloat(s.longitude || s.lng), title: s.name || s.title })));
-        if (map) map.moveCamera({ center: { lat: first.latitude, lng: first.longitude }, zoom: 17, tilt: inclinazioneNav(45) });
+        if (map) map.moveCamera({ center: { lat: first.latitude, lng: first.longitude }, zoom: 17, tilt: 45 });
     };
 
     /**
@@ -1349,6 +1405,11 @@ const MapPage = () => {
      */
     const handleStartNavigationReal = (ripresa = null) => {
         console.log('[DVAI-Nav] handleStartNavigationReal:', ripresa ? 'ripresa del giro' : 'click Avvia');
+        // nav-camera: la bussola si chiede dentro il tocco (iOS); la freccia di partenza solo per un giro che comincia (non per una ripresa)
+        chiediPermesso();
+        partenzaRef.current = null;
+        frecciaPartenzaRef.current = !ripresa;
+        setFrecciaPartenza(!ripresa);
         // Fase 2b: nuova sessione nav → azzera geofence, latch completamento,
         // istruzioni vocali già dette, distanza live.
         geofenceFiredRef.current = new Set(ripresa?.completedSteps || []);
@@ -1418,11 +1479,7 @@ const MapPage = () => {
             setLiveRoute([...plannerPreviewRoute]);
         }
 
-        if (!ripresa) {
-            window.dispatchEvent(new CustomEvent('dvai:toast', {
-                detail: { message: '🧭 Navigazione avviata! Segui il percorso.', type: 'success', duration: 3000 }
-            }));
-        }
+        // nav-camera: niente toast «Navigazione avviata»: l'esperienza e' continua (la camera vola, la scheda c'e' gia')
 
         // NAV-1 punto 4: lo schermo resta acceso dove il browser lo permette (altrimenti niente).
         schermoAcceso.attiva();
@@ -1549,7 +1606,7 @@ const MapPage = () => {
         if (next && map && next.latitude && next.longitude) {
             setTimeout(() => {
                 console.log(`[DVAI-Nav] writer#6 avanzaDopo moveCamera → prossima tappa "${next.name || next.title}", zoom 18 tilt 55`);
-                map.moveCamera({ center: { lat: next.latitude, lng: next.longitude }, zoom: 18, tilt: inclinazioneNav(55) });
+                map.moveCamera({ center: { lat: next.latitude, lng: next.longitude }, zoom: 18, tilt: 55 });
             }, 500);
             setTimeout(() => setFlyToLabel(null), 3000);
         }
@@ -1616,6 +1673,18 @@ const MapPage = () => {
         if (navIsSingleTargetRef.current) return null;
         return (activeRoute || []).find(libera) || null;
     })();
+    useEffect(() => { navNextStopRef.current = navNextStop; });
+    // nav-camera: la fascia oraria della mappa (alba e tramonto veri del posto); fuori dalla navigazione la mappa e' sempre Ossidiana
+    const fasciaOra = (() => {
+        if (!isNavigating) return null;
+        const p0 = (activeRoute || [])[0];
+        const lat = Number(localCenter?.latitude ?? p0?.latitude), lng = Number(localCenter?.longitude ?? p0?.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+        const quando = new Date(oraMappa);
+        const g = romeParts(quando);
+        return fasciaMappa(quando, sunTimes({ y: g.y, m: g.m, d: g.d }, lat, lng));
+    })();
+
 
     // NAV-3: «vista giro»: la mappa si allarga su tutte le tappe; la camera smette di seguirti finché non premi «centra su di me»
     const vediTuttoIlGiro = () => {
@@ -1625,6 +1694,8 @@ const MapPage = () => {
         const b = new g.LatLngBounds();
         pts.forEach(s => b.extend({ lat: Number(s.latitude), lng: Number(s.longitude) }));
         setFollowing(false);
+        // «Vista giro» = la panoramica: dall'alto, nord in alto, tutte le tappe (poi «centra» torna su di te)
+        map.moveCamera?.({ tilt: 0, heading: 0 });
         map.fitBounds(b, { top: 170, bottom: 300, left: 40, right: 40 });
     };
 
@@ -1863,6 +1934,9 @@ const MapPage = () => {
                                 }
                             }}
                             isNavigating={isNavigating}
+                            giroAttivo={(activeRoute || []).length > 0}
+                            fascia={fasciaOra}
+                            onMapAttiva={setMapAttiva}
                             transportModeOverride={pageTransportMode}
                             onRouteStats={handleRouteStats}
                             onDirectionsData={handleDirectionsData}
@@ -1895,7 +1969,7 @@ const MapPage = () => {
                             </div>
                         )}
                         {/* 1. TOP BAR - Conditionally rendered for Focus Mode */}
-                        {!isNavigating && !isRoutePlannerOpen ? (
+                        {!isNavigating && !isRoutePlannerOpen && !(activeRoute || []).length ? (
                             <>
                                 <WeatherAirBadge onClick={() => setIsGeminiOpen(true)} city={activeCity} center={activeTourData?.center || passedCenter || localCenter || (lat && lng ? { latitude: lat, longitude: lng } : null)} />
 
@@ -2113,9 +2187,9 @@ const MapPage = () => {
                     <div className="bg-obsidian-card/95 backdrop-blur-xl rounded-2xl shadow-2xl p-4 border border-obsidian-border flex items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-obsidian-primary text-lg leading-tight truncate">{tourData?.title || 'Il tuo Itinerario'}</h3>
-                            <p className="text-xs text-obsidian-secondary flex items-center gap-1 mt-1 font-medium flex-wrap">
-                                <Clock size={12} className="text-brand-orange" />
-                                <span data-testid="avvia-etichette">
+                            <p className="text-xs text-obsidian-secondary flex items-start gap-1.5 mt-1 font-medium">
+                                <Clock size={12} className="text-brand-orange shrink-0 mt-0.5" />
+                                <span data-testid="avvia-etichette" className="min-w-0 leading-snug">
                                 {/* DURATE-ETICHETTE — ogni numero dice cosa misura: la giornata sull'orologio, il cammino, le tappe */}
                                 {[
                                     etichettaGiornata(tourData?.steps || tourData?.stops) || (tourData?.duration ? `Durata ${tourData.duration}` : null),
@@ -2131,9 +2205,14 @@ const MapPage = () => {
                                     </span>
                                 )}
                             </p>
+                            <button type="button" onClick={handleStartNavigationClick} data-testid="cambia-mezzo"
+                                className="mt-0.5 py-2.5 -mb-2.5 text-[11px] font-semibold text-obsidian-secondary underline underline-offset-2 hover:text-obsidian-primary cursor-pointer">
+                                Cambia mezzo
+                            </button>
                         </div>
                         {/* Contatta Guida rimosso per mantenere il focus sulla mappa e audio */}
-                        <button onClick={handleStartNavigationClick}
+                        {/* nav-camera: «Avvia» parte subito (la camera vola su di te, senza il pannello in mezzo); il mezzo si cambia da «Mezzo» */}
+                        <button onClick={() => handleStartNavigationReal()} data-testid="avvia-diretto"
                             className="bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg px-5 py-3 rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all flex flex-col items-center justify-center leading-none gap-1 min-w-[68px]">
                             <NavIcon size={18} className="animate-pulse" />
                             <span className="text-[10px] uppercase tracking-wider">Avvia</span>
@@ -2160,6 +2239,12 @@ const MapPage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {isNavigating && frecciaPartenza && (() => {
+                const t0 = (activeRoute || [])[0];
+                const angolo = localCenter && t0 ? angoloFrecciaPartenza({ utente: { lat: localCenter.latitude, lng: localCenter.longitude }, tappa: { lat: Number(t0.latitude ?? t0.lat), lng: Number(t0.longitude ?? t0.lng) }, orientamentoCamera: map?.getHeading?.() ?? 0 }) : null;
+                return <FrecciaPartenza angolo={angolo} nome={t0?.name || t0?.title || null} />;
+            })()}
 
             {/* Layer C Fix 3 — HUD navigazione ridisegnato (arancione DoveVAI, presenter puro).
                 Il vecchio JSX inline (verde-Google, emoji 🔊/🔇, senza progress bar) è stato

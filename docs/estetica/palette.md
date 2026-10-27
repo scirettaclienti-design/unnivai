@@ -16,3 +16,11 @@ Fuori da questa regola, per scelta documentata: le copertine per categoria (`get
 - Colori dello stile (dal canvas, schermata 1): terra `#0F0E0D`, edifici `#171513`, strade `#26231F`.
 - Il percorso sopra quello stile, tutti ≥ 3:1 su terra, edifici e strade (`navStileMappa.test.js`): **fatto** tratteggio chiaro `#A8A29E`; **prossimo** accento `#F97316` pieno e spesso; **resto** grigio caldo `#8F8880` pieno e sottile. Si distinguono anche senza colore (tratteggio / spessore).
 - Il tasto indietro ha la sua riga in alto (sopra il filo del giorno e la pillola, che partono 3,5 rem sotto).
+
+### La mappa del giro come esperienza continua (nav-camera, 25/10)
+
+- **Panoramica** (prima di «Avvia»): sempre Ossidiana (`VITE_GOOGLE_MAP_ID_NAV`, `colorScheme: DARK`), dall'alto (inclinazione 0, nord in alto), **tutte le tappe nell'inquadratura**, segnaposti numerati che non si sovrappongono (`separaSegnaposti`), tracciato **arancione** pieno con l'alone, card in basso con titolo, «Giornata … · … a piedi · … km · N tappe» e «Avvia». Niente ricerca città né meteo; il tasto indietro sta nella sua riga.
+- **«Avvia»** parte subito. La camera **vola su di te in ~1,5 s** (zoom 18, inclinazione 50°, edifici 3D), poi insegue con orientamento nella direzione di marcia (bussola; se manca, il percorso davanti a te; se manca, la prossima tappa), lisciato. **«Vista giro»** torna alla panoramica; **«centra»** torna su di te.
+- **Colore per fascia** (`VITE_GOOGLE_MAP_ID_NAV_MATTINA|_TRAMONTO|_NOTTE`): la mappa della fascia si prepara sotto durante il volo e compare in dissolvenza (600 ms); la vecchia si rilascia. Una volta per fascia. Il resto del giorno e le fasce senza Map ID restano Ossidiana. L'inclinazione 0 del prompt Ossidiana vale solo per la panoramica.
+- **Partenza**: prima del primo passo una freccia grande al centro indica la direzione fisica verso la prima tappa; sparisce dopo 10 m nel verso giusto.
+- **Scheda in basso**: la miniatura è una foto vera di Places o non c'è (mai stock, mai segnaposto).

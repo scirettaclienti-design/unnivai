@@ -344,7 +344,8 @@ async function camminata(browser, statePath, nome) {
     evento('percorsi', { gambe: legs.length, metri: legs.reduce((a, l) => a + l.metri, 0) });
     await page.evaluate(() => { window.__gps.deny = true; });
     await page.getByText('Avvia', { exact: true }).click({ timeout: 30000 });
-    await page.getByText('Avvia Navigazione').click({ timeout: 15000 });
+    // nav-camera: «Avvia» parte subito; il pannello del mezzo c'e' solo da «Cambia mezzo»
+    await page.waitForTimeout(800); if (!(await page.getByTestId('nav-hud').count())) await page.getByText('Avvia Navigazione').click({ timeout: 15000 });
     evento('avvia', { tappe: N });
     const negatoVisto = await attendi(s => s.avvisi?.includes('negato'), 10000);
     schermate.negata = await shot('01-posizione-negata');

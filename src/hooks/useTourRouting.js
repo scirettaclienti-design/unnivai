@@ -45,7 +45,14 @@ export const ACCENTO_TRATTO = '#F97316';
 // il fatto e' un tratteggio chiaro, il prossimo l'accento, il resto un grigio caldo pieno. Fuori dalla navigazione i colori sono quelli di sempre.
 export const COLORE_FATTO_NAV = '#A8A29E';
 export const COLORE_RESTO_NAV = '#8F8880';
-export const stileTratto = (stato, base, { navigazione = false } = {}) => {
+export const stileTratto = (stato, base, { navigazione = false, panoramica = false } = {}) => {
+    // la panoramica del giro (mappa Ossidiana, tutte le tappe): il tracciato e' arancione, pieno, con l'alone, ben visibile sul fondo scuro
+    if (panoramica && stato === 'resto') {
+        return {
+            outer: { ...base.outer, strokeColor: ACCENTO_TRATTO, strokeOpacity: 0.3, strokeWeight: 12, zIndex: 41 },
+            inner: { ...base.inner, strokeColor: ACCENTO_TRATTO, strokeOpacity: 1, strokeWeight: 5, icons: undefined, zIndex: 55 },
+        };
+    }
     // il fatto: tratteggiato e attenuato (la linea e' invisibile, i trattini sono le icone ripetute)
     if (stato === 'fatto') {
         const colore = navigazione ? COLORE_FATTO_NAV : base.inner.strokeColor;
@@ -84,7 +91,7 @@ export const firmaPercorso = (waypoints, travelModePreference) => (Array.isArray
     .filter(wp => { const lat = Number(wp?.lat || wp?.latitude); const lng = Number(wp?.lng || wp?.longitude); return !!lat && !!lng && !isNaN(lat) && !isNaN(lng); })
     .map(wp => `${wp.lat || wp.latitude},${wp.lng || wp.longitude}`).join('|') + `_${travelModePreference}`;
 
-export default function useTourRouting(waypoints, travelModePreference, progress = null) {
+export default function useTourRouting(waypoints, travelModePreference, progress = null, panoramica = false) {
     const map = useMap();
     const routesLibrary = useMapsLibrary('routes');
 
@@ -249,12 +256,12 @@ export default function useTourRouting(waypoints, travelModePreference, progress
         const base = ROUTE_STYLES[modo] || ROUTE_STYLES.WALKING;
         const create = [];
         for (const { path, stato } of lista) {
-            const st = stileTratto(stato, base, { navigazione: !!progress });
+            const st = stileTratto(stato, base, { navigazione: !!progress, panoramica: !!panoramica && !progress });
             if (st.outer) create.push(new Polyline({ ...st.outer, path, map, clickable: false }));
             create.push(new Polyline({ ...st.inner, path, map, clickable: false }));
         }
         return () => create.forEach(p => p.setMap(null));
-    }, [map, tratti, modo, progress, versione]);
+    }, [map, tratti, modo, progress, panoramica, versione]);
 
     // L2-0: routeInfo INVARIATO (consumato da TourRoute → onRouteStats). directionsDataRef
     // AGGIUNTO (non ancora consumato — sarà la sorgente del trasporto in L2-1).

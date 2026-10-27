@@ -5,7 +5,7 @@ import { AdvancedMarker } from '@vis.gl/react-google-maps';
 import { getCategoryStyles } from '@/lib/categoryPalette';
 import { THEME } from '@/styles/themeTokens';
 
-export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
+export const MapMarker = React.memo(({ activity, onClick, sequenceNumber, offsetPx = null }) => {
     const lat = Number(activity?.latitude || activity?.lat);
     const lng = Number(activity?.longitude || activity?.lng);
 
@@ -42,7 +42,7 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
             title={activity.name || activity.title || 'Marker'}
             zIndex={baseZIndex}
         >
-            <div className={`group relative cursor-pointer ${isStep ? 'animate-in zoom-in slide-in-from-bottom-2 duration-300' : ''} ${activity.isCompleted ? 'opacity-60' : ''}`} style={{ transformOrigin: 'bottom center', transform: 'translate(0, -50%)' }}>
+            <div style={offsetPx ? { transform: `translate(${offsetPx.dx}px, ${offsetPx.dy}px)` } : undefined} data-offset={offsetPx ? `${offsetPx.dx},${offsetPx.dy}` : undefined} className={`group relative cursor-pointer ${isStep ? 'animate-in zoom-in slide-in-from-bottom-2 duration-300' : ''} ${activity.isCompleted ? 'opacity-60' : ''}`} style={{ transformOrigin: 'bottom center', transform: 'translate(0, -50%)' }}>
 
                 {/* Pulse radar — tappa corrente o utente vicino (<20m) */}
                 {activity.isCurrentStep && (
@@ -112,7 +112,8 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber }) => {
     return prevId === nextId && prevLat === nextLat && prevLng === nextLng
         && prevProps.sequenceNumber === nextProps.sequenceNumber
         && prevProps.activity?.isCurrentStep === nextProps.activity?.isCurrentStep
-        && prevProps.activity?.isCompleted === nextProps.activity?.isCompleted;
+        && prevProps.activity?.isCompleted === nextProps.activity?.isCompleted
+        && prevProps.offsetPx?.dx === nextProps.offsetPx?.dx && prevProps.offsetPx?.dy === nextProps.offsetPx?.dy;
 });
 
 export default MapMarker;

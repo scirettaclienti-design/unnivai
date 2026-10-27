@@ -54,18 +54,18 @@ describe('lo stile Ossidiana: modalità buio e vista dall\'alto', () => {
         vi.stubEnv('VITE_GOOGLE_MAP_ID', 'ID_NORMALE'); vi.stubEnv('VITE_GOOGLE_MAP_ID_NAV', nav);
         return import('@/lib/mapId');
     };
-    it('in navigazione con la variabile: colorScheme DARK e inclinazione 0, camera compresa', async () => {
+    it('con un giro aperto o in navigazione, con la variabile: colorScheme DARK (l\'inclinazione 0 del prompt Ossidiana e\' annullata: la camera si inclina a 45–55°)', async () => {
         const m = await carica('ID_NAV');
-        expect(m.opzioniNavigazione({ isNavigating: true })).toEqual({ colorScheme: 'DARK', tilt: 0 });
-        expect(m.inclinazioneNav(60)).toBe(0);
+        expect(m.opzioniNavigazione({ isNavigating: true })).toEqual({ colorScheme: 'DARK' });
+        expect(m.opzioniNavigazione({ giroAttivo: true })).toEqual({ colorScheme: 'DARK' });
+        expect(m.inclinazioneNav).toBeUndefined();
     });
     it('fuori dalla navigazione, o con un mapId imposto, o senza variabile: niente cambia', async () => {
         const m = await carica('ID_NAV');
-        expect(m.opzioniNavigazione({ isNavigating: false })).toEqual({});
+        expect(m.opzioniNavigazione({ isNavigating: false, giroAttivo: false })).toEqual({});
         expect(m.opzioniNavigazione({ isNavigating: true, mapId: 'ALTRO' })).toEqual({});
         const senza = await carica('');
         expect(senza.opzioniNavigazione({ isNavigating: true })).toEqual({});
-        expect(senza.inclinazioneNav(60)).toBe(60);
     });
     it('la mappa di Esplora (non in navigazione) resta sul Map ID di sempre', async () => {
         const m = await carica('ID_NAV');

@@ -94,8 +94,8 @@ const monta = (tourData) => render(
     </QueryClientProvider>,
 );
 const avvia = () => {
+    // nav-camera: «Avvia» parte subito (il mezzo si cambia da «Cambia mezzo»)
     fireEvent.click(screen.getByText('Avvia'));
-    fireEvent.click(screen.getByText('Avvia Navigazione'));
 };
 // Una posizione al secondo.
 const passo = (p, acc) => act(() => { vi.advanceTimersByTime(1000); gps.emit(p[0], p[1], acc); });
@@ -176,7 +176,8 @@ describe('D3 — dopo la ricarica la mappa non mostra mai «Roma»', () => {
         }));
         monta(CATANIA);
         expect(screen.getByText('Hai un giro in corso: tappa 2 di 3. Riprendi?')).toBeInTheDocument();
-        expect(screen.getByTestId('citta').textContent).toBe('Catania');
+        // nav-camera: con un giro aperto non c'e' la ricerca della citta' (ne' il meteo): la mappa e' il giro, mai «Roma»
+        expect(screen.queryByTestId('citta')).toBeNull();
         expect(screen.queryByText('Roma')).toBeNull();
         // La mappa è montata (non «Preparo la mappa») sulla tappa 2, Via Crociferi.
         expect(screen.getByTestId('mappa')).toBeInTheDocument();

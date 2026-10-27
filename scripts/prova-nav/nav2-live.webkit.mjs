@@ -103,7 +103,8 @@ try {
     esito.camminoPannello = await page.getByTestId('percorso-cammino').innerText().catch(() => null);
     await page.locator('[data-testid="percorso-cammino"]').scrollIntoViewIfNeeded().catch(() => {});
     await page.screenshot({ path: `${OUT}/${TAG}-02b-pannello-cammino.png` });
-    await page.getByText('Avvia Navigazione').click();
+    // nav-camera: «Avvia» parte subito; il pannello del mezzo c'e' solo da «Cambia mezzo»
+    await page.waitForTimeout(800); if (!(await page.getByTestId('nav-hud').count())) await page.getByText('Avvia Navigazione').click();
     await page.waitForTimeout(3000);
     // le tappe vere dal giro salvato nella sessione di navigazione
     const giro = await page.evaluate(() => { try { return JSON.parse(localStorage.getItem('dvai_nav_giro_v1') || 'null'); } catch { return null; } });

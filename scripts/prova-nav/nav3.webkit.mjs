@@ -133,7 +133,8 @@ try {
     await page.waitForTimeout(9000);
     await page.getByText('Avvia', { exact: true }).first().click();
     await page.waitForTimeout(1500);
-    await page.getByText('Avvia Navigazione').click();
+    // nav-camera: «Avvia» parte subito; il pannello del mezzo c'e' solo da «Cambia mezzo»
+    await page.waitForTimeout(800); if (!(await page.getByTestId('nav-hud').count())) await page.getByText('Avvia Navigazione').click();
     await page.waitForTimeout(2500);
     const emit = (p, acc = 8) => page.evaluate(([la, ln, a]) => window.__gps.emit(la, ln, a), [p.lat, p.lng, acc]);
     const stile = () => page.evaluate(() => document.querySelector('[data-stile-mappa]')?.getAttribute('data-stile-mappa') ?? null);

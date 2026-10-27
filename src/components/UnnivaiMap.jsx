@@ -3,12 +3,13 @@
  * Usa i MapMarker 3D personalizzati per default.
  * Attiva il clustering nativo solo con >50 POI per performance.
  */
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useMap, AdvancedMarker } from '@vis.gl/react-google-maps';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import GoogleMapContainer from './Map/GoogleMapContainer';
 import MapMarker from './Map/MapMarker';
 import TourRoute from './Map/TourRoute';
+import { separaSegnaposti } from '../lib/segnaposti';
 
 const CLUSTER_THRESHOLD = 50;
 
@@ -53,8 +54,20 @@ const NativeClusteredMarkers = ({ validActivities, onActivityClick }) => {
 };
 
 // ─── Wrapper principale ───────────────────────────────────────────────────────
-const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userLocation, onActivityClick, onRouteStats, onDirectionsData, progress, userHeading }) => {
+const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userLocation, onActivityClick, onRouteStats, onDirectionsData, progress, userHeading, panoramica }) => {
     const map = useMap();
+    // nav-camera: i segnaposti numerati non si sovrappongono (si ricalcola quando cambia lo zoom)
+    const [zoom, setZoom] = useState(null);
+    useEffect(() => {
+        if (!map) return undefined;
+        const leggi = () => setZoom(map.getZoom?.() ?? null);
+        const l = map.addListener?.('zoom_changed', leggi);
+        const primo = window.google?.maps?.event?.addListenerOnce?.(map, 'idle', leggi); // lo zoom di partenza, appena la mappa e' ferma
+        return () => { l?.remove?.(); primo?.remove?.(); };
+    }, [map]);
+    const spostamenti = useMemo(() => separaSegnaposti(
+        validActivities.map((a, i) => ({ a, i })).filter(({ a }) => a.index !== undefined).map(({ a, i }) => ({ id: a.id || `marker-${i}`, lat: Number(a.latitude ?? a.lat), lng: Number(a.longitude ?? a.lng) })), zoom,
+    ), [validActivities, zoom]);
     if (!map) return null;
 
     const useNativeClustering = validActivities.length > CLUSTER_THRESHOLD;
@@ -94,6 +107,7 @@ const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userL
                         key={act.id || `marker-${index}-${act.latitude || act.lat}-${act.longitude || act.lng}`}
                         activity={act}
                         onClick={onActivityClick}
+                        offsetPx={spostamenti.get(act.id || `marker-${index}`) || null}
                     />
                 ))
             )}
@@ -106,6 +120,7 @@ const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userL
                     onRouteStats={onRouteStats}
                     onDirectionsData={onDirectionsData}
                     progress={progress}
+                    panoramica={panoramica}
                 />
             )}
         </>
@@ -128,6 +143,8 @@ export default function UnnivaiMap({
     userHeading = null,
     ...props
 }) {
+    // nav-camera: nella mappa del giro, fuori dalla navigazione (panoramica) il tracciato e' arancione
+    const panoramica = !!props.giroAttivo && !props.isNavigating;
     const validActivities = useMemo(() =>
         activities.filter(a => a && (a.latitude || a.lat) && (a.longitude || a.lng)),
     [activities]);
@@ -145,6 +162,7 @@ export default function UnnivaiMap({
                 onDirectionsData={onDirectionsData}
                 progress={progress}
                 userHeading={userHeading}
+                panoramica={panoramica}
             />
         </GoogleMapContainer>
     );

@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import useTourRouting from '../../hooks/useTourRouting';
 
-export default function TourRoute({ waypoints, travelModePreference, onRouteStats, onDirectionsData, progress = null }) {
-    const { routeInfo, directionsDataRef } = useTourRouting(waypoints, travelModePreference, progress);
+export default function TourRoute({ waypoints, travelModePreference, onRouteStats, onDirectionsData, progress = null, panoramica = false }) {
+    const { routeInfo, directionsDataRef } = useTourRouting(waypoints, travelModePreference, progress, panoramica);
 
     useEffect(() => {
         if (routeInfo.distanceM > 0 || routeInfo.error) {

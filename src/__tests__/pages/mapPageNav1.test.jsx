@@ -81,8 +81,8 @@ const monta = (state = { tourData: TOUR }) => render(
     </QueryClientProvider>,
 );
 const avvia = () => {
+    // nav-camera: «Avvia» parte subito (il mezzo si cambia da «Cambia mezzo»)
     fireEvent.click(screen.getByText('Avvia'));
-    fireEvent.click(screen.getByText('Avvia Navigazione'));
 };
 
 beforeEach(() => {

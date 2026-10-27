@@ -1,0 +1,1781 @@
+{
+ "tag": "tramonto-1740",
+ "ora": "2026-10-24T17:40:00+02:00",
+ "base": "http://localhost:5191",
+ "richieste": {
+  "directions": 3
+ },
+ "mapIdVisti": {
+  "28861a61c07876f889cc6572": 2,
+  "DEMO_MAP_ID": 2
+ },
+ "fotogrammi": [
+  {
+   "nome": "1-panoramica",
+   "bianchi": 0.0001282051282051282,
+   "medio": 36
+  },
+  {
+   "nome": "2-volo-00",
+   "bianchi": 0,
+   "medio": 37
+  },
+  {
+   "nome": "2-volo-01",
+   "bianchi": 0,
+   "medio": 39
+  },
+  {
+   "nome": "2-volo-02",
+   "bianchi": 0,
+   "medio": 43
+  },
+  {
+   "nome": "2-volo-03",
+   "bianchi": 0,
+   "medio": 43
+  },
+  {
+   "nome": "2-volo-04",
+   "bianchi": 0,
+   "medio": 47
+  },
+  {
+   "nome": "2-volo-05",
+   "bianchi": 0,
+   "medio": 47
+  },
+  {
+   "nome": "2-volo-06",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-07",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-08",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-09",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-10",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-11",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-12",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-13",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-14",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-15",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-16",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-17",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-18",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "2-volo-19",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "3-cammino",
+   "bianchi": 0,
+   "medio": 46
+  },
+  {
+   "nome": "4-cammino-dopo-i-passi",
+   "bianchi": 0.0005128205128205128,
+   "medio": 50
+  },
+  {
+   "nome": "5-vista-giro",
+   "bianchi": 0,
+   "medio": 44
+  },
+  {
+   "nome": "6-centra",
+   "bianchi": 0.0005128205128205128,
+   "medio": 50
+  }
+ ],
+ "misure": {
+  "aperturaMappaMs": 3419,
+  "avviaAFineVoloMs": 13210
+ },
+ "panoramica": {
+  "mapIdAttivo": "28861a61c07876f889cc6572",
+  "strati": "1",
+  "barraCitta": false,
+  "meteo": false,
+  "cardTesto": "Il tuo giro a Catania\n\nGiornata 9:30–21:15 · 41 min a piedi · 3,0 km · 12 tappe\n\nCambia mezzo\nAVVIA",
+  "indietro": {
+   "x": 16,
+   "y": 16,
+   "w": 46,
+   "h": 46
+  }
+ },
+ "cameraPanoramica": {
+  "zoom": 16,
+  "tilt": 0,
+  "heading": 0
+ },
+ "cameraDopoVolo": {
+  "zoom": 18,
+  "tilt": 50,
+  "heading": 335.3849173941869
+ },
+ "freccia": {
+  "presente": true,
+  "angolo": "-164"
+ },
+ "frecciaDopo": false,
+ "tracce": [
+  {
+   "t": 53,
+   "strati": "1",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1"
+  },
+  {
+   "t": 101,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 154,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 209,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 255,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 309,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 361,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 413,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 465,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 633,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 670,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 670,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 679,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 717,
+   "strati": "2",
+   "id": "28861a61c07876f889cc6572",
+   "op": "1/1"
+  },
+  {
+   "t": 785,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 819,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 903,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 928,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 964,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1006,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1072,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1232,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1247,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1247,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1253,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1301,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1353,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1534,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1534,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1534,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1563,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1603,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1653,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1705,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1823,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1823,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1853,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1901,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 1953,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2007,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2102,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2102,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2151,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2200,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2251,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2379,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2379,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2402,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2452,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2502,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2634,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2635,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2657,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2701,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2753,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2802,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2893,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2901,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 2955,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3002,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3060,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3164,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3164,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3202,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3254,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3303,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3431,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3431,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3454,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3502,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3555,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3601,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3693,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3701,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3753,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3801,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3854,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3942,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 3953,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4003,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4053,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4176,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4176,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4201,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4253,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4303,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4440,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4440,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4453,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4502,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4554,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4608,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4701,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4701,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4754,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4801,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4939,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4939,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 4954,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5003,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5053,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5183,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5183,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5207,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5254,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5303,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5355,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5445,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5453,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5501,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5553,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5615,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5707,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5707,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5753,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5802,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5855,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5902,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 5955,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6002,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6054,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6103,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6154,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6203,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6254,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6301,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6354,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6403,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6455,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6502,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6555,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6603,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6655,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6703,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6753,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6803,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6853,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6901,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 6955,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7001,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7053,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7103,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7154,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7201,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7253,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7303,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7355,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7401,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7455,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7503,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7553,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7601,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7655,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7703,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7753,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7802,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7855,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7901,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 7953,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8002,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8053,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8102,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8155,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8201,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8253,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8302,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8383,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8494,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8494,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8501,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8551,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8601,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8652,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8701,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8751,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8801,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8853,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8902,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 8955,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9003,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9054,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9100,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9150,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9200,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9250,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9301,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9355,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9401,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9454,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9503,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9554,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9600,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9650,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9701,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9754,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9800,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9851,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9905,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 9954,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10001,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10053,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10100,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10153,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10202,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10250,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10306,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10353,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10402,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10453,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10506,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10553,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10603,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10653,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10703,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10753,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10803,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10854,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10902,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 10954,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11003,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11054,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11101,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11154,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11201,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11255,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11303,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11354,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11403,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11455,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11503,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11553,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11602,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11654,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11703,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11753,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11803,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11855,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11902,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 11955,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12001,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12054,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12101,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12154,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12201,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12253,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12301,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12353,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12401,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12454,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12501,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12554,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12601,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12654,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12701,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12753,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12802,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12854,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12901,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 12954,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 13002,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 13055,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 13103,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 13208,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 13208,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  },
+  {
+   "t": 13254,
+   "strati": "1",
+   "id": "DEMO_MAP_ID",
+   "op": "1"
+  }
+ ],
+ "camera": null,
+ "pillola": "25 m · a sinistra",
+ "foto": 0,
+ "erroriPagina": [
+  "console: Viewport argument key \"interactive-widget\" not recognized and ignored.",
+  "FALLITA: https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1 cancelled",
+  "console: Viewport argument key \"interactive-widget\" not recognized and ignored.",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i16!2i35515!3i25392!2m3!1e0!2sm!3i801566959!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i15!2i17755!3i12695!2m3!1e0!2sm!3i801566959!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i15!2i17755!3i12696!2m3!1e0!2sm!3i801566959!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i15!2i17755!3i12697!2m3!1e0!2sm!3i801566959!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i15!2i17755!3i12698!2m3!1e0!2sm!3i801566959!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i15!2i17757!3i12698!2m3!1e0!2sm!3i801566959!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i15!2i17758!3i12698!2m3!1e0!2sm!3i801566959!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i15!2i17757!3i12698!2m3!1e0!2sm!3i801566959!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i17!2i71027!3i50785!2m3!1e0!2sm!3i801566959!3m9!2sit-IT!3sUS!5e18!12m5! cancelled"
+ ],
+ "bianchi": []
+}

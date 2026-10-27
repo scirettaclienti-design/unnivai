@@ -17,7 +17,7 @@ import {
     Volume2, VolumeX, LocateFixed, X, Check, SkipForward, AlertTriangle, Pause, Play, Map as MapIcon, MapPin,
 } from 'lucide-react';
 import { NAV_TESTI } from '../../lib/navMessaggi';
-import { formatMetri, versoDa, viaDa, minutiAPiedi, rigaInsider, testoTappa } from '../../lib/navGuida';
+import { formatMetri, versoDa, viaDa, minutiAPiedi, rigaInsider, testoTappa, fotoVera } from '../../lib/navGuida';
 
 // Mapping Google Directions maneuver → lucide icon. Cade su Navigation di default.
 const maneuverIcon = (maneuver) => {
@@ -84,7 +84,7 @@ export default function NavigationHUD({
 
     const minuti = minutiAPiedi(nextStepDistanceM);
     const insider = rigaInsider(nextStop);
-    const foto = nextStop?.image || null;
+    const foto = fotoVera(nextStop);
 
     return (
         <AnimatePresence>
@@ -135,9 +135,11 @@ export default function NavigationHUD({
                     {sussurro}
                     <div data-testid="nav-scheda" className="pointer-events-auto bg-obsidian-card rounded-[28px] border border-obsidian-border shadow-2xl p-3.5">
                         <div role={onApriScheda ? 'button' : undefined} tabIndex={onApriScheda ? 0 : undefined} aria-label={onApriScheda ? `Apri la scheda: ${currentStopName}` : undefined} onClick={onApriScheda} onKeyDown={onApriScheda ? (e) => { if (e.key === 'Enter') onApriScheda(); } : undefined} className="flex items-center gap-3 cursor-pointer">
-                            <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 bg-obsidian-raised border border-obsidian-border flex items-center justify-center">
-                                {foto ? <img src={foto} alt="" className="w-full h-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} /> : <MapPin size={22} className="text-obsidian-secondary" aria-hidden="true" />}
-                            </div>
+                            {foto && (
+                                <div data-testid="nav-foto" className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 bg-obsidian-raised border border-obsidian-border">
+                                    <img src={foto} alt="" className="w-full h-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }} />
+                                </div>
+                            )}
                             <div className="flex-1 min-w-0">
                                 <p className="text-[11px] font-bold tracking-widest uppercase text-brand-orange">
                                     {allDone ? 'FINE' : `PROSSIMA${minuti ? ` · ${minuti} MIN` : ''}`}

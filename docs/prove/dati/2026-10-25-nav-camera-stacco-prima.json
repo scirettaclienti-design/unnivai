@@ -1,0 +1,79 @@
+{
+ "tag": "stacco-prima",
+ "ora": "2026-10-24T21:30:00+02:00",
+ "base": "http://localhost:5192",
+ "dueClic": true,
+ "misure": {
+  "aperturaMappaMs": 506,
+  "msSenzaMappa": 224,
+  "campioni": 306,
+  "maxMappeContemporanee": 1
+ },
+ "fotogrammi": [
+  {
+   "nome": "volo-0",
+   "bianchi": 0
+  },
+  {
+   "nome": "volo-1",
+   "bianchi": 0
+  },
+  {
+   "nome": "volo-2",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-3",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-4",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-5",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-6",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-7",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-8",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-9",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-10",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-11",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-12",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-13",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-14",
+   "bianchi": 0.0005128205128205128
+  },
+  {
+   "nome": "volo-15",
+   "bianchi": 0.0005128205128205128
+  }
+ ],
+ "bianchi": []
+}

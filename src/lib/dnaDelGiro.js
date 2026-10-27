@@ -5,7 +5,7 @@
  *
  *  · «Hai scelto natura · parchi.» — la scelta fatta nel Quiz o in Sorprendimi (le opzioni cliccate);
  *  · «Hai chiesto cibo e storia.» — le categorie che la frase o i chip di Crea chiedono davvero (richiestaEsplicita);
- *  · «Più cibo: è il tuo 40%.» — una categoria forte del DNA (la stessa percentuale del Profilo), SOLO se il DNA guida (fiducia > 0, come
+ *  · «Più cibo: è tra i tuoi gusti più forti.» — una delle prime 2 categorie del DNA presenti nel giro, senza percentuali, SOLO se il DNA guida (fiducia > 0, come
  *    nel motore) e SOLO se il giro ha almeno una tappa di quella categoria.
  */
 
@@ -13,6 +13,15 @@ import { categorieForti, ETICHETTE_CATEGORIA } from './dnaProfilo.js';
 import { tourCoreCategories } from '../services/preferenceEngine.js';
 
 export const MAX_RIGHE_DNA = 3;
+/** Quante categorie del DNA, al massimo, entrano nel riquadro. */
+export const MAX_CATEGORIE_DNA = 2;
+
+// ─── I TESTI DEL RIQUADRO (un file solo) ─────────────────────────────────────────────────────────────────────────
+export const TESTI_DNA = {
+    scelto: (valori) => `Hai scelto ${valori}.`,
+    chiesto: (valori) => `Hai chiesto ${valori}.`,
+    forte: (categoria) => `Più ${categoria}: è tra i tuoi gusti più forti.`,
+};
 
 /** Come si dice una categoria dentro una frase (minuscolo, breve). */
 const PAROLA = {
@@ -37,23 +46,23 @@ export function righeDnaDelGiro({ pesi = {}, fiducia = 0, scelte = [], richiesta
     const nominate = new Set();
 
     const sc = (Array.isArray(scelte) ? scelte : []).map(pulito).filter(Boolean);
-    if (sc.length) righe.push(`Hai scelto ${sc.map(s => s.toLowerCase()).join(' · ')}.`);
+    if (sc.length) righe.push(TESTI_DNA.scelto(sc.map(s => s.toLowerCase()).join(' · ')));
 
     const chieste = [...new Set((Array.isArray(richiesta) ? richiesta : []).filter(c => parola(c)))];
     if (chieste.length) {
         const prime = chieste.slice(0, 2);
         prime.forEach(c => nominate.add(c));
-        righe.push(`Hai chiesto ${unisci(prime.map(parola))}.`);
+        righe.push(TESTI_DNA.chiesto(unisci(prime.map(parola))));
     }
 
     if (Number(fiducia) > 0) {
         const nelGiro = new Set(tourCoreCategories((Array.isArray(tappe) ? tappe : []).filter(s => s && !s.tempoLibero)));
-        for (const { categoria, peso } of categorieForti(pesi)) {
-            if (righe.length >= MAX_RIGHE_DNA) break;
+        let dna = 0;
+        for (const { categoria } of categorieForti(pesi)) {
+            if (righe.length >= MAX_RIGHE_DNA || dna >= MAX_CATEGORIE_DNA) break;
             if (nominate.has(categoria) || !nelGiro.has(categoria) || !parola(categoria)) continue;
-            const percento = Math.round(peso * 100);
-            if (percento <= 0) continue;
-            righe.push(`Più ${parola(categoria)}: è il tuo ${percento}%.`);
+            righe.push(TESTI_DNA.forte(parola(categoria)));
+            dna += 1;
         }
     }
     return righe.slice(0, MAX_RIGHE_DNA);

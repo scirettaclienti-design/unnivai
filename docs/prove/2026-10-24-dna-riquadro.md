@@ -16,7 +16,7 @@ Un solo riquadro (`DnaDelGiro`) e una sola funzione pura (`righeDnaDelGiro`, `sr
 |---|---|
 | «Hai scelto natura · parchi e verde.» | Quiz e Sorprendimi: la scelta cliccata (nel Quiz solo se almeno una tappa è di quella famiglia: regola BORGO già esistente) |
 | «Hai chiesto cultura e cibo.» | Crea: categorie che la frase o i chip chiedono davvero (`richiestaEsplicita`, la stessa che usa il motore) |
-| «Più cibo: è il tuo 40%.» | DNA forte (stessa percentuale del Profilo), **solo se il DNA guida** (fiducia > 0, come nel motore) **e solo se il giro ha almeno una tappa di quella categoria**; mai una categoria già nominata dalla richiesta |
+| «Più cibo: è tra i tuoi gusti più forti.» | una delle **prime 2** categorie del DNA presenti nel giro, **senza percentuali** (aggiornato il 27/10), **solo se il DNA guida** (fiducia > 0, come nel motore) **e solo se il giro ha almeno una tappa di quella categoria**; mai una categoria già nominata dalla richiesta |
 
 Per Te non ha richiesta: solo righe di DNA. Palette Ossidiana (fondo sollevato, testo primario, un solo accento sull'icona).
 
@@ -61,3 +61,8 @@ b4cb674 NAV-OSSIDIANA: la mappa di navigazione si crea con il Map ID Ossidiana (
 ## Processi
 
 Vite di prova (porta 5191) chiuso; nessun altro processo mio acceso.
+
+
+## Aggiornamento 27/10 — niente percentuali
+
+Le righe del DNA non mostrano più percentuali: **«Più <categoria>: è tra i tuoi gusti più forti.»**, solo per le **prime 2** categorie del DNA presenti nel giro (le righe «Hai scelto» / «Hai chiesto» sono invariate). Risolve il «100% due volte» segnalato sopra. I testi stanno tutti in `TESTI_DNA` (`src/lib/dnaDelGiro.js`). Test aggiornati (13), nessun `%` nel riquadro.

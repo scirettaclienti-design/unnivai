@@ -17,9 +17,9 @@ const GIRO = [
 const PESI_PIENI = { food: 0.4, cultura: 0.3, natura: 0.12, nightlife: 0, avventura: 0, shopping: 0, relax: 0, arte: 0 };
 
 describe('righeDnaDelGiro', () => {
-    it('DNA pieno: le categorie forti che il giro ha davvero, con la stessa percentuale del Profilo', () => {
+    it('DNA pieno: le prime 2 categorie del DNA che il giro ha davvero, senza percentuali', () => {
         const r = righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, tappe: GIRO });
-        expect(r).toEqual(['Più cibo: è il tuo 40%.', 'Più cultura: è il tuo 30%.', 'Più natura: è il tuo 12%.']);
+        expect(r).toEqual(['Più cibo: è tra i tuoi gusti più forti.', 'Più cultura: è tra i tuoi gusti più forti.']); // solo le prime 2, nessuna percentuale
     });
     it('DNA vuoto (fiducia 0 o pesi a zero): nessuna riga, niente trattini', () => {
         expect(righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0, tappe: GIRO })).toEqual([]);
@@ -28,12 +28,12 @@ describe('righeDnaDelGiro', () => {
     });
     it('una categoria forte che il giro non ha non si nomina', () => {
         const solo = [stop('Trattoria', ['restaurant', 'food'])];
-        expect(righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, tappe: solo })).toEqual(['Più cibo: è il tuo 40%.']);
+        expect(righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, tappe: solo })).toEqual(['Più cibo: è tra i tuoi gusti più forti.']);
     });
     it('richiesta esplicita: «Hai chiesto storia» prima del DNA, senza ripetere la stessa categoria', () => {
         const r = righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, richiesta: ['cultura'], tappe: GIRO });
         expect(r[0]).toBe('Hai chiesto cultura.');
-        expect(r).toContain('Più cibo: è il tuo 40%.');
+        expect(r).toContain('Più cibo: è tra i tuoi gusti più forti.');
         expect(r.join(' ')).not.toMatch(/Più cultura/);
     });
     it('scelta del Quiz o di Sorprendimi: «Hai scelto …»', () => {
@@ -43,6 +43,11 @@ describe('righeDnaDelGiro', () => {
         const r = righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, scelte: ['Storia'], richiesta: ['food', 'natura', 'arte'], tappe: GIRO });
         expect(r.length).toBeLessThanOrEqual(3);
         for (const riga of r) { expect(riga).not.toMatch(/—|-{2,}|undefined|null|NaN/); expect(riga.trim().length).toBeGreaterThan(8); }
+    });
+    it('mai percentuali, e al massimo 2 righe di DNA anche con tre categorie forti nel giro', () => {
+        const r = righeDnaDelGiro({ pesi: PESI_PIENI, fiducia: 0.3, tappe: GIRO });
+        expect(r.join(' ')).not.toMatch(/%|\d/);
+        expect(r.filter(x => x.startsWith('Più '))).toHaveLength(2);
     });
     it('una richiesta con categorie sconosciute non lascia righe vuote', () => {
         expect(righeDnaDelGiro({ richiesta: ['boh', undefined, ''] })).toEqual([]);
@@ -55,7 +60,7 @@ describe('il riquadro', () => {
         expect(container.firstChild).toBeNull();
     });
     it('con righe: titolo e una voce per riga', () => {
-        render(<DnaDelGiro righe={['Hai chiesto storia.', 'Più cibo: è il tuo 40%.']} />);
+        render(<DnaDelGiro righe={['Hai chiesto storia.', 'Più cibo: è tra i tuoi gusti più forti.']} />);
         expect(screen.getByText('Il tuo DNA esplorativo')).toBeInTheDocument();
         expect(screen.getAllByTestId('dna-del-giro')).toHaveLength(1);
         expect(document.querySelectorAll('[data-dna-riga]')).toHaveLength(2);
@@ -69,7 +74,8 @@ describe('le 4 sorgenti: nessun trattino nel riquadro', () => {
     it('Quiz con DNA pieno e scelta: righe vere', () => {
         render(<QuickPathSummary tourData={tourData} choices={{ mainId: 'cibo', mood: 'Gusto', inspiration: 'Cucina tipica' }} dna={{ pesi: PESI_PIENI, fiducia: 0.3 }} onViewMap={() => {}} onHome={() => {}} />);
         expect(testo()).toContain('Hai scelto gusto · cucina tipica.');
-        expect(testo()).toContain('Più cibo: è il tuo 40%.');
+        expect(testo()).toContain('Più cibo: è tra i tuoi gusti più forti.');
+        expect(testo()).not.toMatch(/%/);
         expect(testo()).not.toMatch(/—/);
         cleanup();
     });

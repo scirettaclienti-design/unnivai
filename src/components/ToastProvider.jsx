@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, AlertTriangle, XCircle, Info, X } from 'lucide-react';
 import { TOAST_EVENT } from '../hooks/use-toast';
+import { NAV_TESTI } from '../lib/navMessaggi';
 
 const ICONS = {
     success: <CheckCircle className="w-5 h-5 text-status-success" />,
@@ -56,7 +57,7 @@ export default function ToastProvider() {
     }, [handleToast]);
 
     return (
-        <div className="fixed bottom-20 left-0 right-0 z-[9999] flex flex-col items-center gap-2 px-4 pointer-events-none">
+        <div className="fixed bottom-28 left-0 right-0 z-[9999] flex flex-col items-center gap-2 px-4 pointer-events-none">
             <AnimatePresence mode="popLayout">
                 {toasts.map((t) => (
                     <motion.div
@@ -73,7 +74,8 @@ export default function ToastProvider() {
                             <p className="flex-1 text-sm text-obsidian-primary font-medium leading-snug">{t.message}</p>
                             <button
                                 onClick={() => removeToast(t.id)}
-                                className="shrink-0 text-obsidian-secondary hover:text-obsidian-primary transition-colors"
+                                aria-label={NAV_TESTI.CHIUDI}
+                                className="shrink-0 -m-3 w-11 h-11 flex items-center justify-center text-obsidian-secondary hover:text-obsidian-primary transition-colors"
                             >
                                 <X className="w-4 h-4" />
                             </button>

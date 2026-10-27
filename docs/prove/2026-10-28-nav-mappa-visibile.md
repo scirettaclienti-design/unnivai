@@ -76,4 +76,11 @@ Altri materiali: video `docs/prove/video/nav-audit-p1000.mp4` e `-p2130.mp4` (do
 
 ## `git log --oneline -5 main`
 
-(vedi in fondo, aggiunto dopo il push)
+```
+4d09ff6 NAV-MAPPA: report, misure prima/dopo, affiancato al canvas, video e script
+9194d5e NAV-MAPPA: il toast delle curiosità sta sopra la scheda compatta e si chiude con un tasto da 44 px
+46a1753 NAV-MAPPA: l'avviso di navigazione occupa meno spazio
+9e3ca8d NAV-MAPPA: in cammino la mappa resta visibile (fascia unica in alto, scheda compatta a icone, selettore voce nelle impostazioni, rito attenuato, tasti da 44 px)
+9facee7 NAV-AUDIT: revisione a video della navigazione (iPhone 15, Catania, 10:00 e 21:30): report, video, provini, misure e script
+```
+Il commit del report (`4d09ff6`) ha CI verde e deploy Vercel completato; il codice è identico a `9194d5e`.

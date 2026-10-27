@@ -813,7 +813,7 @@ const MapPage = () => {
         spokenIdentitiesRef.current.add(identity);
         lastSpokenRef.current = identity;
         const name = nextStop.name || nextStop.title || 'prossima tappa';
-        parla(dire('prossimaTappa', { nome: name }), { voce: voceId });
+        parla(dire('prossimaTappa', { nome: name }), { voce: voceId, senzaInterrompere: true });
     }, [voiceEnabled, isNavigating, activeRoute, completedSteps, inPausa, voceId]);
 
     // VOCE-1 — le indicazioni di svolta: «fra cento metri…», «fra cinquanta metri…», «adesso…». Una volta sola per svolta e per soglia

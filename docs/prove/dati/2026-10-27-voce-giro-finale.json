@@ -1,0 +1,606 @@
+{
+ "etichetta": "finale",
+ "voce": "marin",
+ "giro": "Il tuo giro a Catania",
+ "tappe": 12,
+ "durataS": 351,
+ "selettoreVisibile": true,
+ "frasiDette": 53,
+ "perSorgente": {
+  "cache": 53
+ },
+ "richiesteAlServer": 24,
+ "audioNuovi": 0,
+ "dallaCache": 24,
+ "richiesteFallite": 0,
+ "costoStimatoUsd": 0,
+ "arrivi": [
+  {
+   "tappa": "Porta Uzeda",
+   "daSolo": true
+  },
+  {
+   "tappa": "Basilica Cattedrale di Sant'Agata",
+   "daSolo": true
+  },
+  {
+   "tappa": "Fontana dell'Elefante (uʻ Liotru)",
+   "daSolo": true
+  },
+  {
+   "tappa": "Teatro Antico greco-romano di Catania",
+   "daSolo": true
+  },
+  {
+   "tappa": "Trattoria Sorano",
+   "daSolo": true
+  },
+  {
+   "tappa": "Piazza Giuseppe Mazzini",
+   "daSolo": true
+  },
+  {
+   "tappa": "Castello Ursino",
+   "daSolo": true
+  },
+  {
+   "tappa": "Palazzo dei Chierici",
+   "daSolo": true
+  },
+  {
+   "tappa": "Via Etnea",
+   "daSolo": true
+  },
+  {
+   "tappa": "Bar Popolare",
+   "daSolo": true
+  },
+  {
+   "tappa": "Fontana dell’Amenano",
+   "daSolo": true
+  },
+  {
+   "tappa": "Camelot",
+   "daSolo": false
+  }
+ ],
+ "errori": [],
+ "registro": [
+  {
+   "ora": "2026-10-27T18:11:26.567Z",
+   "testo": "Si va verso Porta Uzeda.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:11:29.800Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:11:32.003Z",
+   "testo": "Fra cento metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:11:34.767Z",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:11:36.568Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:11:39.990Z",
+   "testo": "Fra cinquanta metri gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:11:40.838Z",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:11:42.600Z",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:11:45.626Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:11:48.017Z",
+   "testo": "Adesso gira leggermente a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:11:50.676Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:11:54.153Z",
+   "testo": "Si va verso Basilica Cattedrale di Sant'Agata.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:12:05.853Z",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:12:09.074Z",
+   "testo": "Gli artisti di strada in Italia devono avere un permesso comunale. Ogni esibizione che vedi è certificata.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:12:20.200Z",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:12:24.552Z",
+   "testo": "Si va verso Teatro Antico greco-romano di Catania.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:12:39.380Z",
+   "testo": "Fra cento metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:12:45.407Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:12:49.856Z",
+   "testo": "Le trattorie con i menù scritti a mano sono quasi sempre le migliori. Segui la calligrafia!",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:12:56.010Z",
+   "testo": "Si va verso Trattoria Sorano.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:04.599Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:11.639Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:15.415Z",
+   "testo": "Si va verso Piazza Giuseppe Mazzini.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:28.052Z",
+   "testo": "Si va verso Castello Ursino.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:28.810Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:40.970Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:44.988Z",
+   "testo": "Fra cento metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:50.017Z",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:52.032Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:54.031Z",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:55.041Z",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:13:56.334Z",
+   "testo": "Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:14:02.679Z",
+   "testo": "Si va verso Palazzo dei Chierici.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:14:16.259Z",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:14:17.267Z",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:14:42.111Z",
+   "testo": "I locali del posto sanno che il tramonto migliore non è dal punto panoramico, ma dal bar accanto.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:14:50.928Z",
+   "testo": "Si va verso Via Etnea.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:15:10.341Z",
+   "testo": "Si va verso Bar Popolare.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:15:45.257Z",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:09.894Z",
+   "testo": "Fra cinquanta metri gira leggermente a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:11.512Z",
+   "testo": "Adesso gira leggermente a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:22.959Z",
+   "testo": "Si va verso Camelot.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:26.698Z",
+   "testo": "Fra cento metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:31.735Z",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:32.737Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:36.764Z",
+   "testo": "Fra cento metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:41.802Z",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:43.821Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:45.845Z",
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:46.852Z",
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:48.173Z",
+   "testo": "Le botteghe artigiane nei vicoli spesso esistono da generazioni. Chiedi la loro storia, ti sorprenderanno.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:48.858Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  },
+  {
+   "ora": "2026-10-27T18:16:50.896Z",
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "sorgente": "cache"
+  }
+ ],
+ "richieste": [
+  {
+   "ora": "2026-10-27T18:11:26.604Z",
+   "status": 200,
+   "testo": "Si va verso Porta Uzeda.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:11:29.805Z",
+   "status": 200,
+   "testo": "Adesso gira a sinistra.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:11:32.015Z",
+   "status": 200,
+   "testo": "Fra cento metri gira a sinistra.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:11:34.768Z",
+   "status": 200,
+   "testo": "Fra cinquanta metri gira a sinistra.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:11:40.002Z",
+   "status": 200,
+   "testo": "Fra cinquanta metri gira a destra.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:11:40.846Z",
+   "status": 200,
+   "testo": "Adesso gira a destra.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:11:48.032Z",
+   "status": 200,
+   "testo": "Adesso gira leggermente a destra.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:11:54.162Z",
+   "status": 200,
+   "testo": "Si va verso Basilica Cattedrale di Sant'Agata.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:12:09.000Z",
+   "status": 200,
+   "testo": "Si va verso Fontana dell'Elefante (uʻ Liotru).",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:12:09.076Z",
+   "status": 200,
+   "testo": "Gli artisti di strada in Italia devono avere un permesso comunale. Ogni esibizione che vedi è certificata.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:12:24.558Z",
+   "status": 200,
+   "testo": "Si va verso Teatro Antico greco-romano di Catania.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:12:49.868Z",
+   "status": 200,
+   "testo": "Le trattorie con i menù scritti a mano sono quasi sempre le migliori. Segui la calligrafia!",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:12:56.020Z",
+   "status": 200,
+   "testo": "Si va verso Trattoria Sorano.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:13:15.424Z",
+   "status": 200,
+   "testo": "Si va verso Piazza Giuseppe Mazzini.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:13:28.056Z",
+   "status": 200,
+   "testo": "Si va verso Castello Ursino.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:13:56.345Z",
+   "status": 200,
+   "testo": "Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:14:02.687Z",
+   "status": 200,
+   "testo": "Si va verso Palazzo dei Chierici.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:14:42.123Z",
+   "status": 200,
+   "testo": "I locali del posto sanno che il tramonto migliore non è dal punto panoramico, ma dal bar accanto.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:14:50.939Z",
+   "status": 200,
+   "testo": "Si va verso Via Etnea.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:15:10.352Z",
+   "status": 200,
+   "testo": "Si va verso Bar Popolare.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:15:45.863Z",
+   "status": 200,
+   "testo": "Si va verso Fontana dell’Amenano.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:16:09.900Z",
+   "status": 200,
+   "testo": "Fra cinquanta metri gira leggermente a destra.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:16:22.974Z",
+   "status": 200,
+   "testo": "Si va verso Camelot.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  },
+  {
+   "ora": "2026-10-27T18:16:48.187Z",
+   "status": 200,
+   "testo": "Le botteghe artigiane nei vicoli spesso esistono da generazioni. Chiedi la loro storia, ti sorprenderanno.",
+   "voce": "marin",
+   "source": "cache",
+   "costoStimatoUsd": 0,
+   "code": null
+  }
+ ]
+}

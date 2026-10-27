@@ -6,9 +6,10 @@ vi.mock('@/lib/supabase', () => ({ supabase: { auth: { getSession: async () => (
 
 let voce, chiamate, risposta, parlatiBrowser, audioPlayed;
 
+const PLAY_ORIGINALE = function () { audioPlayed.push(this.src); if (!this.src.startsWith('data:')) setTimeout(() => this.onended?.(), 0); return Promise.resolve(); };
 class AudioFinto {
     constructor() { this.src = ''; this.dataset = {}; AudioFinto.ultimo = this; }
-    play() { audioPlayed.push(this.src); if (!this.src.startsWith('data:')) setTimeout(() => this.onended?.(), 0); return Promise.resolve(); }
+    play() { return PLAY_ORIGINALE.call(this); }
     pause() {}
 }
 
@@ -16,6 +17,7 @@ beforeEach(async () => {
     vi.resetModules();
     localStorage.clear();
     chiamate = []; audioPlayed = []; parlatiBrowser = [];
+    AudioFinto.prototype.play = function () { return PLAY_ORIGINALE.call(this); };
     risposta = (dv) => ({ ok: true, status: 200, json: async () => ({ url: `https://x.test/${encodeURIComponent(dv.voce + dv.testo)}.mp3`, source: 'nuova' }) });
     vi.stubEnv('VITE_SUPABASE_URL', 'http://supabase.test');
     vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon');
@@ -110,5 +112,34 @@ describe('voce — selettore e Media Session', () => {
         await voce.parla('Eccoci.', { titolo: 'Il racconto' });
         expect(navigator.mediaSession.metadata.title).toBe('Il racconto');
         expect(navigator.mediaSession.setActionHandler).toHaveBeenCalledWith('pause', expect.any(Function));
+    });
+});
+
+describe('voce — una frase, una riga di registro', () => {
+    it('audio arrivato ma riproduzione bloccata: una sola riga «browser» che ricorda cosa aveva risposto il server', async () => {
+        AudioFinto.prototype.play = function () { return Promise.reject(new Error('NotAllowedError')); };
+        await voce.parla('Eccoci qui.');
+        expect(voce.registroVoce).toHaveLength(1);
+        expect(voce.registroVoce[0]).toMatchObject({ sorgente: 'browser', server: 'nuova' });
+    });
+});
+
+describe('voce — un annuncio che non interrompe', () => {
+    it('«senzaInterrompere» aspetta la frase in corso invece di coprirla; senza il flag la copre', async () => {
+        let sblocca; const lenta = new Promise(r => { sblocca = r; });
+        let primaChiamata = true;
+        fetch.mockImplementation(async (url, init) => {
+            const dv = JSON.parse(init.body).dv; chiamate.push(dv);
+            if (primaChiamata) { primaChiamata = false; await lenta; }
+            return risposta(dv);
+        });
+        const arrivo = voce.parla('Una frase di arrivo.');
+        const prossima = voce.parla('Si va verso Piazza Duomo.', { senzaInterrompere: true });
+        await new Promise(r => setTimeout(r, 20));
+        expect(chiamate.map(c => c.testo)).toEqual(['Una frase di arrivo.']); // la seconda aspetta
+        sblocca();
+        expect(await arrivo).toBe('nuova');
+        expect(await prossima).toBe('nuova');
+        expect(voce.registroVoce.map(r => r.testo)).toEqual(['Una frase di arrivo.', 'Si va verso Piazza Duomo.']);
     });
 });

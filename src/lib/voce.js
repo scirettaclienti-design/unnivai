@@ -133,13 +133,28 @@ function paroleDelBrowser(testo) {
  * Dice `testo`. Mai lancia: se la voce umana non è disponibile parla il browser, se non c'è nemmeno quello tace.
  * @returns {Promise<'cache'|'nuova'|'browser'|'muto'>} da dove è venuta la voce
  */
-export async function parla(testo, { voce = voceScelta(), titolo = null } = {}) {
+export async function parla(testo, { voce = voceScelta(), titolo = null, senzaInterrompere = false } = {}) {
+    // un annuncio che non deve coprire una frase in corso (es. «Si va verso…» all'arrivo, quando parla anche la frase d'arrivo): aspetta che finisca, al massimo 12 s
+    for (let giri = 0; senzaInterrompere && inCorso && giri < 3; giri++) {
+        const prima = numero;
+        await Promise.race([inCorso.catch(() => {}), new Promise(r => setTimeout(r, 12_000))]);
+        if (numero === prima) break;
+    }
+    const mia = parlaOra(testo, { voce, titolo });
+    inCorso = mia;
+    try { return await mia; } finally { if (inCorso === mia) inCorso = null; }
+}
+
+let inCorso = null; // la frase che sta parlando (o che sta arrivando dal server)
+
+async function parlaOra(testo, { voce, titolo }) {
     const frase = String(testo || '').replace(/\s+/g, ' ').trim();
     if (!frase) return 'muto';
     const mio = ++numero;
     try { el?.pause?.(); } catch { /* niente */ }
     try { window.speechSynthesis?.cancel(); } catch { /* niente */ }
     const chiave = `${voce}|${frase}`;
+    let riga = null;
     try {
         let url = urlDiSessione.get(chiave);
         let sorgente = 'cache';
@@ -150,13 +165,15 @@ export async function parla(testo, { voce = voceScelta(), titolo = null } = {}) 
             urlDiSessione.set(chiave, url);
         }
         if (mio !== numero) return 'muto'; // nel frattempo è arrivata una frase più nuova (o uno stop)
-        registra({ ora: new Date().toISOString(), testo: frase, voce, sorgente });
+        riga = { ora: new Date().toISOString(), testo: frase, voce, sorgente };
+        registra(riga);
         mediaSession(titolo || frase.slice(0, 60));
         await riproduci(url);
         return sorgente;
     } catch {
         if (mio !== numero) return 'muto';
-        registra({ ora: new Date().toISOString(), testo: frase, voce, sorgente: 'browser' });
+        // una frase = una riga: se l'audio era arrivato ma non è partito (telefono che lo blocca), la riga diventa «browser» e ricorda cosa aveva risposto il server
+        if (riga) { riga.server = riga.sorgente; riga.sorgente = 'browser'; } else registra({ ora: new Date().toISOString(), testo: frase, voce, sorgente: 'browser' });
         const parlato = await paroleDelBrowser(frase);
         return parlato ? 'browser' : 'muto';
     }

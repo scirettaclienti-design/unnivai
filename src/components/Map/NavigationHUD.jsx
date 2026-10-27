@@ -114,9 +114,9 @@ export default function NavigationHUD({
                     </div>
 
                     {avviso && (
-                        <div role="status" data-testid="nav-avviso" data-tipo={avviso.tipo} className="pointer-events-auto mt-2 px-3 py-2.5 rounded-2xl bg-obsidian-card border border-obsidian-border flex items-start gap-2 shadow-xl">
+                        <div role="status" data-testid="nav-avviso" data-tipo={avviso.tipo} className="pointer-events-auto mt-1.5 px-3 py-1.5 rounded-2xl bg-obsidian-card border border-obsidian-border flex items-start gap-2 shadow-xl">
                             <AlertTriangle size={16} className="text-status-warning shrink-0 mt-0.5" />
-                            <p className="text-xs text-obsidian-primary leading-snug">{avviso.testo}</p>
+                            <p className="text-[12px] text-obsidian-primary leading-tight">{avviso.testo}</p>
                         </div>
                     )}
 

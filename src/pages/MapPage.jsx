@@ -36,8 +36,10 @@ import GiroRipresaDialog from '../components/Map/GiroRipresaDialog';
 import { valutaPassaggio } from '../lib/navPassaggio';
 import { valutaArrivo } from '../lib/navArrivo';
 import { creaSchermoAcceso } from '../lib/wakeLock';
+import { parla, fermaVoce, sbloccaVoce, voceScelta, scegliVoce } from '../lib/voce';
+import { dire, indicazioneSvolta } from '../lib/vociTesti';
 import { NAV_TESTI, avvisoNavigazione } from '../lib/navMessaggi';
-import { prossimaSvolta, rigaTappa, percheAdesso, testoRacconto, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo, fasciaMappa, angoloFrecciaPartenza, partenzaCompiuta } from '../lib/navGuida';
+import { prossimaSvolta, versoDa, rigaTappa, percheAdesso, testoRacconto, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo, fasciaMappa, angoloFrecciaPartenza, partenzaCompiuta } from '../lib/navGuida';
 import { typeLabelOf } from '../lib/italianLabels';
 import { travelMinutes, etichettaCammino, etichettaGiornata } from '../lib/tourTiming';
 import { ArrivoTappa, SchedaTappa, FineGiro, RitoArrivo, FiloDelGiorno } from '../components/Nav/GuidaSchede';
@@ -677,22 +679,8 @@ const MapPage = () => {
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
     const [isGeminiOpen, setIsGeminiOpen] = useState(false);
 
-    // Voice navigation: leggi le indicazioni stradali con voce italiana naturale
-    const italianVoiceRef = useRef(null);
-    useEffect(() => {
-        const findVoice = () => {
-            const voices = window.speechSynthesis?.getVoices() || [];
-            italianVoiceRef.current =
-                voices.find(v => v.lang === 'it-IT' && v.name.includes('Google')) ||
-                voices.find(v => v.lang === 'it-IT' && !v.localService) ||
-                voices.find(v => v.lang.startsWith('it')) ||
-                null;
-        };
-        findVoice();
-        // iOS carica le voci async
-        window.speechSynthesis?.addEventListener?.('voiceschanged', findVoice);
-        return () => window.speechSynthesis?.removeEventListener?.('voiceschanged', findVoice);
-    }, []);
+    // VOCE-1: la voce umana (OpenAI) arriva da lib/voce.js; se non c'è parla il browser. Testi in lib/vociTesti.js.
+    const [voceId, setVoceId] = useState(voceScelta);
 
     // Fase 2b-3 PART B — TTS voce onesta: definito DOPO activeRoute (sotto), che
     // ne è dipendenza (no-use-before-define).
@@ -819,20 +807,29 @@ const MapPage = () => {
     useEffect(() => {
         if (!voiceEnabled || !isNavigating || inPausa) return;
         const nextStop = (activeRoute || []).find(s => !completedSteps.includes(s.id));
-        if (!nextStop || !window.speechSynthesis) return;
+        if (!nextStop) return;
         const identity = `tappa:${nextStop.id}`;
         if (spokenIdentitiesRef.current.has(identity)) return;
         spokenIdentitiesRef.current.add(identity);
         lastSpokenRef.current = identity;
         const name = nextStop.name || nextStop.title || 'prossima tappa';
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(`Prossima tappa: ${name}`);
-        utterance.lang = 'it-IT';
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-        if (italianVoiceRef.current) utterance.voice = italianVoiceRef.current;
-        window.speechSynthesis.speak(utterance);
-    }, [voiceEnabled, isNavigating, activeRoute, completedSteps, inPausa]);
+        parla(dire('prossimaTappa', { nome: name }), { voce: voceId });
+    }, [voiceEnabled, isNavigating, activeRoute, completedSteps, inPausa, voceId]);
+
+    // VOCE-1 — le indicazioni di svolta: «fra cento metri…», «fra cinquanta metri…», «adesso…». Una volta sola per svolta e per soglia
+    // (la chiave è la svolta + la soglia); lo dice solo se la voce è accesa e il giro non è in pausa.
+    const svolteDetteRef = useRef(new Set());
+    useEffect(() => {
+        if (!voiceEnabled || !isNavigating || inPausa) return;
+        const prossima = activeManeuver?.prossima;
+        if (!prossima?.maneuver) return;
+        const soglia = indicazioneSvolta(activeManeuver.distanzaM);
+        if (!soglia) return;
+        const chiave = `${soglia}:${prossima.maneuver}:${(prossima.instructionHtml || '').slice(0, 60)}:${completedSteps.length}`;
+        if (svolteDetteRef.current.has(chiave)) return;
+        svolteDetteRef.current.add(chiave);
+        parla(dire(soglia, { verso: versoDa(prossima.maneuver) }), { voce: voceId });
+    }, [activeManeuver, voiceEnabled, isNavigating, inPausa, voceId, completedSteps.length]);
 
     // ─── PLANNER PREVIEW ROUTE (BEFORE NAVIGATING) ───────────────────────────
     const plannerPreviewRoute = useMemo(() => {
@@ -1051,8 +1048,8 @@ const MapPage = () => {
         setNavGps(null); setGpsAttesaVisibile(false); setTappaPassata(null);
         schermoAcceso.rilascia();
         chiudiGiro();
-        // Pulizia SpeechSynthesis
-        window.speechSynthesis?.cancel();
+        // Pulizia della voce
+        fermaVoce();
         lastSpokenRef.current = '';
         // Reset camera
         if (map) map.moveCamera({ tilt: 0, zoom: 14 });
@@ -1081,7 +1078,7 @@ const MapPage = () => {
     // Cleanup globale all'unmount: ferma GPS, speech, watch
     useEffect(() => {
         return () => {
-            window.speechSynthesis?.cancel();
+            fermaVoce();
             // NAV-1: il tracciamento e lo schermo acceso si fermano; il giro salvato resta (si può riprendere).
             navTrackerRef.current?.stop(); navTrackerRef.current = null;
             schermoAcceso.rilascia();
@@ -1314,28 +1311,13 @@ const MapPage = () => {
             if (d > 300) {
                 lastSurprisePos.current = { lat: latitude, lng: longitude };
                 surpriseCount.current += 1;
-                const surprises = [
-                    'Molti palazzi storici italiani hanno cortili segreti. Prova ad affacciarti dal portone più bello che vedi!',
-                    'Gli artisti di strada in Italia devono avere un permesso comunale. Ogni esibizione che vedi è certificata.',
-                    'Le trattorie con i menù scritti a mano sono quasi sempre le migliori. Segui la calligrafia!',
-                    'Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!',
-                    'I locali del posto sanno che il tramonto migliore non è dal punto panoramico, ma dal bar accanto.',
-                    'Le botteghe artigiane nei vicoli spesso esistono da generazioni. Chiedi la loro storia, ti sorprenderanno.',
-                    'In molte piazze italiane, la musica che senti non è casuale. È programmata dal comune per creare atmosfera.',
-                ];
+                const surprises = dire('curiosita');
                 const text = surprises[surpriseCount.current % surprises.length];
                 window.dispatchEvent(new CustomEvent('dvai:toast', {
                     detail: { message: `🎧 ${text}`, type: 'info', duration: 6000 }
                 }));
                 // Audioguida: leggi la curiosità ad alta voce se voce attiva
-                if (voiceEnabled && window.speechSynthesis) {
-                    window.speechSynthesis.cancel();
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'it-IT';
-                    utterance.rate = 0.9;
-                    if (italianVoiceRef.current) utterance.voice = italianVoiceRef.current;
-                    window.speechSynthesis.speak(utterance);
-                }
+                if (voiceEnabled) parla(text, { voce: voceId });
             }
         } else {
             lastSurprisePos.current = { lat: latitude, lng: longitude };
@@ -1415,6 +1397,7 @@ const MapPage = () => {
         geofenceFiredRef.current = new Set(ripresa?.completedSteps || []);
         navCompletedRef.current = false;
         spokenIdentitiesRef.current = new Set();
+        svolteDetteRef.current = new Set();
         setNextStepDistanceM(null);
         // Fase 2c-2: avvio cronometro tempo reale (in ripresa: l'ora d'inizio vera).
         navStartTimeRef.current = ripresa?.startedAt ?? Date.now();
@@ -2258,7 +2241,9 @@ const MapPage = () => {
                     nextStepDistanceM={nextStepDistanceM}
                     activeManeuver={activeManeuver}
                     voiceEnabled={voiceEnabled}
-                    onToggleVoice={() => { setVoiceEnabled(v => !v); window.speechSynthesis?.cancel(); }}
+                    onToggleVoice={() => { sbloccaVoce(); setVoiceEnabled(v => !v); fermaVoce(); }}
+                    voceId={voceId}
+                    onCambiaVoce={(id) => setVoceId(scegliVoce(id))}
                     onEndNavigation={handleEndNavigation}
                     isCameraFollowing={isCameraFollowing}
                     onRecenterCamera={() => setFollowing(true)}
@@ -2267,7 +2252,7 @@ const MapPage = () => {
                     sopra={filoGiorno}
                     nascondi={!!(arrivo || ritoId) && !scheda}
                     inPausa={inPausa}
-                    onTogglePausa={() => setInPausa(p => { if (!p) window.speechSynthesis?.cancel(); return !p; })}
+                    onTogglePausa={() => setInPausa(p => { if (!p) fermaVoce(); return !p; })}
                     nextStop={navNextStop}
                     skippedSteps={skippedSteps}
                     avviso={avvisoNavigazione({ gps: navGps, attesaVisibile: gpsAttesaVisibile, offline: isOffline, percorsoErrore: !!routeStats?.error })}
@@ -2501,7 +2486,7 @@ const MapPage = () => {
             {/* NAV-3 — SCHERMATA 3: l'arrivo; SCHERMATA 4: la scheda della tappa; SCHERMATA 5: la fine del giro */}
             {isNavigating && ritoId && (() => {
                 const r = datiTappa(ritoId);
-                return r ? <RitoArrivo nome={r.nome} foto={r.foto} frase={rigaInsider({ description: r.racconto })} parla={voiceEnabled && !inPausa} onFine={() => { setRitoId(null); setArrivoId(r.id); }} /> : null;
+                return r ? <RitoArrivo nome={r.nome} foto={r.foto} frase={rigaInsider({ description: r.racconto })} parla={voiceEnabled && !inPausa} voce={voceId} onFine={() => { setRitoId(null); setArrivoId(r.id); }} /> : null;
             })()}
             {isNavigating && arrivo && !scheda && !ritoId && (
                 <ArrivoTappa

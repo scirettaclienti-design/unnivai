@@ -17,6 +17,7 @@ import {
     Volume2, VolumeX, LocateFixed, X, Check, SkipForward, AlertTriangle, Pause, Play, Map as MapIcon, MapPin,
 } from 'lucide-react';
 import { NAV_TESTI } from '../../lib/navMessaggi';
+import { VOCI } from '../../lib/voce';
 import { formatMetri, versoDa, viaDa, minutiAPiedi, rigaInsider, testoTappa, fotoVera } from '../../lib/navGuida';
 
 // Mapping Google Directions maneuver → lucide icon. Cade su Navigation di default.
@@ -45,6 +46,8 @@ export default function NavigationHUD({
     activeManeuver,
     voiceEnabled,
     onToggleVoice,
+    voceId = 'marin',
+    onCambiaVoce,
     onEndNavigation,
     isCameraFollowing,
     onRecenterCamera,
@@ -162,6 +165,18 @@ export default function NavigationHUD({
                                 {voiceEnabled ? <Volume2 size={16} aria-hidden="true" /> : <VolumeX size={16} aria-hidden="true" />}<span>{voiceEnabled ? 'Voce' : 'Muto'}</span>
                             </button>
                         </div>
+
+                        {voiceEnabled && onCambiaVoce && (
+                            <div data-testid="voce-selettore" role="radiogroup" aria-label="Voce della guida" className="flex items-center gap-2 mt-2">
+                                <span className="text-[11px] font-semibold uppercase tracking-wider text-obsidian-secondary">Voce della guida</span>
+                                {VOCI.map(v => (
+                                    <button key={v.id} role="radio" aria-checked={voceId === v.id} onClick={() => onCambiaVoce(v.id)}
+                                        className={`min-h-[44px] px-4 rounded-full text-[13px] font-semibold border ${voceId === v.id ? 'border-brand-orange text-brand-orange' : 'border-obsidian-border text-obsidian-secondary'}`}>
+                                        {v.nome}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
                         {totalSteps > 0 && (
                             <div className="mt-3">

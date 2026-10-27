@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 const M = motion; // (eslint non vede `<M.x>` come uso: lo stesso difetto del resto dell'app)
 import { Check, Play, Pause, X, Share2, Clock, MapPin, ArrowRight, Repeat } from 'lucide-react';
 import { minSec, secondiDiLettura, tracciatoSvg } from '../../lib/navGuida';
+import { parla, fermaVoce } from '../../lib/voce';
 import { TappaModifica } from '../TappaModifica';
 
 const TASTO = 'min-h-[44px] min-w-[44px] flex items-center justify-center gap-2 rounded-full text-sm font-semibold border transition-transform active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-orange';
@@ -24,11 +25,11 @@ export function LettoreRacconto({ testo, src = null, sec = null }) {
     const timer = useRef(null);
     const ferma = () => {
         clearInterval(timer.current);
-        try { window.speechSynthesis?.cancel(); } catch { /* niente */ }
+        fermaVoce();
         audio.current?.pause?.();
         setStato('fermo');
     };
-    useEffect(() => () => { clearInterval(timer.current); try { window.speechSynthesis?.cancel(); } catch { /* niente */ } }, []);
+    useEffect(() => () => { clearInterval(timer.current); fermaVoce(); }, []);
     const avvia = () => {
         if (stato === 'in-lettura') { ferma(); return; }
         setStato('in-lettura');
@@ -39,15 +40,8 @@ export function LettoreRacconto({ testo, src = null, sec = null }) {
             setT(s);
         }, 250);
         if (src && typeof Audio !== 'undefined') { audio.current = new Audio(src); audio.current.play?.().catch(() => {}); return; }
-        try {
-            if (window.speechSynthesis && testo) {
-                window.speechSynthesis.cancel();
-                const u = new SpeechSynthesisUtterance(testo);
-                u.lang = 'it-IT'; u.rate = 0.95;
-                u.onend = () => { clearInterval(timer.current); setStato('fermo'); setT(totale); };
-                window.speechSynthesis.speak(u);
-            }
-        } catch { /* senza voce il lettore scorre lo stesso */ }
+        // VOCE-1: la voce umana (o, se non c'è, quella del browser); a fine frase il lettore si ferma da solo
+        if (testo) parla(testo, { titolo: 'Il racconto' }).then((da) => { if (da !== 'muto') { clearInterval(timer.current); setStato('fermo'); setT(totale); } });
     };
     return (
         <div data-testid="lettore" className="rounded-2xl bg-obsidian-raised border border-obsidian-border p-3 flex items-center gap-3">
@@ -207,13 +201,11 @@ export function FineGiro({ data, citta, tappe = [], numeri, imparato, onMete, on
 
 /** SCHERMATA 8 — il rito d'arrivo: 2 secondi sempre uguali. Vibrazione, la mappa si apre in un cerchio sulla foto con anelli arancioni, «Sei arrivato», il nome, la prima frase in corsivo. */
 export const DURATA_RITO_MS = 2000;
-export function RitoArrivo({ nome, foto, frase, onFine, parla = false }) {
+export function RitoArrivo({ nome, foto, frase, onFine, parla: voceAccesa = false, voce }) {
     useEffect(() => {
         try { navigator.vibrate?.([30, 40, 60]); } catch { /* niente vibrazione su questo telefono */ }
-        // la prima frase in voce (la voce di oggi), se la voce e' accesa
-        try {
-            if (parla && frase && window.speechSynthesis) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(frase); u.lang = 'it-IT'; u.rate = 0.95; window.speechSynthesis.speak(u); }
-        } catch { /* niente voce */ }
+        // la prima frase in voce, se la voce e' accesa
+        if (voceAccesa && frase) parla(frase, { voce });
         const id = setTimeout(() => onFine?.(), DURATA_RITO_MS);
         return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps

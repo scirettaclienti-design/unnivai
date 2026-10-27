@@ -53,6 +53,10 @@ import {
   MODELLO_DI_PRIMA, modelloPer, timeoutPer, corpoPer, rispostaVuota, passaggioValido, MODELLI_AMMESSI, chiamaConRipiego, usageTotale,
 } from './modelli.ts';
 
+import {
+  MODELLO_VOCE, VOCE_PREDEFINITA, BUCKET_VOCE, voceValida, testoValido, chiaveAudio, percorsoAudio, corpoVoce, tettoNuovi, costoStimatoUsd,
+} from './voce.ts';
+
 const OPENAI_BASE = 'https://api.openai.com/v1';
 
 const ALLOWED_MODELS = new Set(['gpt-4o-mini']);
@@ -399,6 +403,73 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   return risposta(salvata, { cached: false, usage, google, ms: { ai: tAi, totale: Date.now() - t0 }, modelli: modelliUsati });
 }
 
+/**
+ * VOCE-1 — `dv.purpose = 'voce'`, `dv.testo`, `dv.voce` ('marin' | 'cedar'). Restituisce { url, source: 'cache' | 'nuova' }.
+ * Il client non sceglie modello, istruzione o formato (vedi voce.ts). Una frase già in cache (Storage `voce-cache`) non chiama OpenAI
+ * e non conta nel tetto; le frasi nuove contano nel tetto giornaliero (public.voce_consuma, secret VOCE_DAILY_CAP).
+ * Non usa la quota dei percorsi: la voce non deve consumare i giri dell'utente.
+ */
+async function handleVoce(req: Request, dv: Record<string, unknown>, apiKey: string): Promise<Response> {
+  const voce = dv.voce === undefined || dv.voce === null ? VOCE_PREDEFINITA : dv.voce;
+  if (!voceValida(voce)) return json(400, { error: 'Voce non valida', code: 'VOCE_NON_VALIDA' });
+  if (!testoValido(dv.testo)) return json(400, { error: 'Testo non valido', code: 'TESTO_NON_VALIDO' });
+  const testo = dv.testo as string;
+
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!SUPABASE_URL || !SERVICE_KEY) return json(503, { error: 'Voce non disponibile', code: 'VOCE_NON_DISPONIBILE' });
+  const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  try {
+    await resolveSubject(req, sb); // solo per rifiutare un token non valido
+  } catch (err) {
+    if (err instanceof HttpError) return json(err.status, err.body);
+    return json(503, { error: 'Voce non disponibile', code: 'VOCE_NON_DISPONIBILE' });
+  }
+
+  const chiave = await chiaveAudio(testo, voce);
+  const percorso = percorsoAudio(chiave);
+  const url = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_VOCE}/${percorso}`;
+
+  try {
+    const testa = await fetch(url, { method: 'HEAD' });
+    if (testa.ok) return json(200, { url, source: 'cache', voce, chiave });
+  } catch { /* la cache non risponde: si prova a generare */ }
+
+  const { data: ammesso, error: errTetto } = await sb.rpc('voce_consuma', { p_tetto: tettoNuovi(Deno.env.get('VOCE_DAILY_CAP')) });
+  if (errTetto) {
+    console.error('[openai-proxy] voce: tetto non verificabile, OpenAI non chiamato:', scrubLogText(errTetto.message));
+    return json(503, { error: 'Voce non disponibile', code: 'VOCE_NON_DISPONIBILE' });
+  }
+  if (!ammesso) return json(429, { error: 'Tetto giornaliero della voce raggiunto', code: 'VOCE_TETTO' });
+
+  let audio: Uint8Array;
+  try {
+    const r = await fetch(`${OPENAI_BASE}/audio/speech`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify(corpoVoce(testo, voce)),
+      signal: AbortSignal.timeout(25_000),
+    });
+    if (!r.ok) {
+      console.error(`[openai-proxy] voce: OpenAI ${r.status} ${scrubLogText(await r.text().catch(() => ''))}`);
+      return json(502, { error: 'Voce non disponibile', code: 'VOCE_OPENAI' });
+    }
+    audio = new Uint8Array(await r.arrayBuffer());
+    if (audio.length < 200) throw new Error('audio vuoto');
+  } catch (err) {
+    console.error('[openai-proxy] voce: generazione fallita:', scrubLogText(err));
+    return json(502, { error: 'Voce non disponibile', code: 'VOCE_OPENAI' });
+  }
+
+  const { error: errSalva } = await sb.storage.from(BUCKET_VOCE).upload(percorso, audio, { contentType: 'audio/mpeg', upsert: true });
+  if (errSalva) {
+    console.error('[openai-proxy] voce: salvataggio in cache fallito:', scrubLogText(errSalva.message));
+    return json(502, { error: 'Voce non disponibile', code: 'VOCE_CACHE' });
+  }
+  console.log(`[openai-proxy] voce: nuova ${chiave.slice(0, 10)} ${voce} ${MODELLO_VOCE} ${testo.length} car`);
+  return json(200, { url, source: 'nuova', voce, chiave, costoStimatoUsd: costoStimatoUsd(testo) });
+}
+
 serve(async (req: Request) => {
   // Preflight
   if (req.method === 'OPTIONS') {
@@ -419,6 +490,17 @@ serve(async (req: Request) => {
     body = await req.json();
   } catch {
     return json(400, { error: 'Invalid JSON body' });
+  }
+
+  // VOCE-1 — l'audio della navigazione: modello, voce e tono li scrive il proxy, la cache evita di pagare due volte.
+  const dvVoce = body.dv as Record<string, unknown> | undefined;
+  if (dvVoce && typeof dvVoce === 'object' && dvVoce.purpose === 'voce') {
+    try {
+      return await handleVoce(req, dvVoce, OPENAI_API_KEY);
+    } catch (err) {
+      console.error('[openai-proxy] voce: errore:', scrubLogText(err));
+      return json(503, { error: 'Voce non disponibile', code: 'VOCE_NON_DISPONIBILE' });
+    }
   }
 
   // C10 — la lista della città non e' una chiamata libera a OpenAI: il prompt lo scrive il proxy.

@@ -1,0 +1,93 @@
+{
+ "tag": "live",
+ "base": "https://unnivai.vercel.app",
+ "richieste": {
+  "places": {
+   "findplacefromtext": 2,
+   "textsearch": 7,
+   "photo": 3
+  },
+  "miss": {}
+ },
+ "scheda": [
+  "08:30 | Via Crociferi",
+  "09:04 | Fontana dell'Elefante (uʻ Liotru)",
+  "09:35 | Basilica Cattedrale di Sant'Agata",
+  "09:56 | Palazzo dei Chierici",
+  "10:31 | Castello Ursino",
+  "12:30 | Osteria Antica Marina",
+  "14:30 | Porta Uzeda",
+  "15:01 | Fontana dell’Amenano",
+  "15:34 | Piazza Giuseppe Mazzini",
+  "16:06 | Teatro Antico greco-romano di Catania",
+  "18:00 | Deliziosa Café & Cocktail Bar",
+  "18:51 | Via Etnea",
+  "20:00 | mica - Ristorante calabrese & cocktail bar a Catania"
+ ],
+ "anteprima": {
+  "innerHeight": 664,
+  "visibile": 664,
+  "cardAvvia": {
+   "top": 533,
+   "bottom": 640
+  },
+  "pulsanteNav": null,
+  "banner": false,
+  "apriInMappe": false,
+  "linkEsterni": [],
+  "barra": null
+ },
+ "etichetteCard": "Giornata 8:30–21:15 · 13 tappe",
+ "pannelloMezzo": {
+  "innerHeight": 664,
+  "visibile": 664,
+  "cardAvvia": null,
+  "pulsanteNav": {
+   "top": 1011,
+   "bottom": 1067
+  },
+  "banner": false,
+  "apriInMappe": false,
+  "linkEsterni": [],
+  "barra": null
+ },
+ "camminoPannello": "47 min a piedi · 3,5 km",
+ "tappe": 13,
+ "kmGiro": 2.65,
+ "navigazione": {
+  "innerHeight": 664,
+  "visibile": 664,
+  "cardAvvia": null,
+  "pulsanteNav": {
+   "top": 1033,
+   "bottom": 1089
+  },
+  "banner": false,
+  "apriInMappe": false,
+  "linkEsterni": [],
+  "barra": null
+ },
+ "indietro": {
+  "indietro": {
+   "x": 16,
+   "y": 8,
+   "w": 46,
+   "h": 46
+  },
+  "filo": {
+   "x": 12,
+   "y": 64,
+   "w": 366,
+   "h": 80
+  },
+  "pillola": {
+   "x": 12,
+   "y": 152,
+   "w": 366,
+   "h": 74
+  },
+  "siSovrappongono": false,
+  "elementoInCimaAlCentro": "Torna alla home"
+ },
+ "costoGoogleMissUsd": 0
+}

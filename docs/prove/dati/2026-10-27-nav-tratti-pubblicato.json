@@ -1,0 +1,1229 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "etichetta": "pubblicato",
+ "momenti": {
+  "1-panoramica": {
+   "polilinee": [
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 37,
+     "da": [
+      37.49992,
+      15.08593
+     ],
+     "a": [
+      37.50179,
+      15.08762
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 37,
+     "da": [
+      37.49992,
+      15.08593
+     ],
+     "a": [
+      37.50179,
+      15.08762
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 3,
+     "da": [
+      37.50179,
+      15.08762
+     ],
+     "a": [
+      37.50238,
+      15.08745
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 3,
+     "da": [
+      37.50179,
+      15.08762
+     ],
+     "a": [
+      37.50238,
+      15.08745
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 6,
+     "da": [
+      37.50238,
+      15.08745
+     ],
+     "a": [
+      37.5024,
+      15.08687
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 6,
+     "da": [
+      37.50238,
+      15.08745
+     ],
+     "a": [
+      37.5024,
+      15.08687
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 14,
+     "da": [
+      37.5024,
+      15.08687
+     ],
+     "a": [
+      37.50244,
+      15.0839
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 14,
+     "da": [
+      37.5024,
+      15.08687
+     ],
+     "a": [
+      37.50244,
+      15.0839
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 21,
+     "da": [
+      37.50244,
+      15.0839
+     ],
+     "a": [
+      37.50187,
+      15.08539
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 21,
+     "da": [
+      37.50244,
+      15.0839
+     ],
+     "a": [
+      37.50187,
+      15.08539
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 10,
+     "da": [
+      37.50187,
+      15.08539
+     ],
+     "a": [
+      37.50176,
+      15.0849
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 10,
+     "da": [
+      37.50187,
+      15.08539
+     ],
+     "a": [
+      37.50176,
+      15.0849
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 51,
+     "da": [
+      37.50176,
+      15.0849
+     ],
+     "a": [
+      37.49918,
+      15.08451
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 51,
+     "da": [
+      37.50176,
+      15.0849
+     ],
+     "a": [
+      37.49918,
+      15.08451
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 58,
+     "da": [
+      37.49918,
+      15.08451
+     ],
+     "a": [
+      37.50222,
+      15.08719
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 58,
+     "da": [
+      37.49918,
+      15.08451
+     ],
+     "a": [
+      37.50222,
+      15.08719
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 8,
+     "da": [
+      37.50222,
+      15.08719
+     ],
+     "a": [
+      37.50389,
+      15.08712
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 8,
+     "da": [
+      37.50222,
+      15.08719
+     ],
+     "a": [
+      37.50389,
+      15.08712
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 13,
+     "da": [
+      37.50389,
+      15.08712
+     ],
+     "a": [
+      37.50218,
+      15.08486
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 13,
+     "da": [
+      37.50389,
+      15.08712
+     ],
+     "a": [
+      37.50218,
+      15.08486
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 19,
+     "da": [
+      37.50218,
+      15.08486
+     ],
+     "a": [
+      37.50203,
+      15.08698
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 19,
+     "da": [
+      37.50218,
+      15.08486
+     ],
+     "a": [
+      37.50203,
+      15.08698
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 45,
+     "da": [
+      37.50203,
+      15.08698
+     ],
+     "a": [
+      37.49971,
+      15.08397
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 45,
+     "da": [
+      37.50203,
+      15.08698
+     ],
+     "a": [
+      37.49971,
+      15.08397
+     ]
+    }
+   ],
+   "schermata": "docs/prove/schermate/nav-tratti/pubblicato-1-panoramica.png"
+  },
+  "2-inizio": {
+   "tappaVerso": "Porta Uzeda",
+   "polilinee": [
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 37,
+     "da": [
+      37.49992,
+      15.08593
+     ],
+     "a": [
+      37.50179,
+      15.08762
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 6,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 37,
+     "da": [
+      37.49992,
+      15.08593
+     ],
+     "a": [
+      37.50179,
+      15.08762
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 3,
+     "da": [
+      37.50179,
+      15.08762
+     ],
+     "a": [
+      37.50238,
+      15.08745
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 6,
+     "da": [
+      37.50238,
+      15.08745
+     ],
+     "a": [
+      37.5024,
+      15.08687
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 14,
+     "da": [
+      37.5024,
+      15.08687
+     ],
+     "a": [
+      37.50244,
+      15.0839
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 21,
+     "da": [
+      37.50244,
+      15.0839
+     ],
+     "a": [
+      37.50187,
+      15.08539
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 10,
+     "da": [
+      37.50187,
+      15.08539
+     ],
+     "a": [
+      37.50176,
+      15.0849
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 51,
+     "da": [
+      37.50176,
+      15.0849
+     ],
+     "a": [
+      37.49918,
+      15.08451
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 58,
+     "da": [
+      37.49918,
+      15.08451
+     ],
+     "a": [
+      37.50222,
+      15.08719
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 8,
+     "da": [
+      37.50222,
+      15.08719
+     ],
+     "a": [
+      37.50389,
+      15.08712
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 13,
+     "da": [
+      37.50389,
+      15.08712
+     ],
+     "a": [
+      37.50218,
+      15.08486
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 19,
+     "da": [
+      37.50218,
+      15.08486
+     ],
+     "a": [
+      37.50203,
+      15.08698
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 45,
+     "da": [
+      37.50203,
+      15.08698
+     ],
+     "a": [
+      37.49971,
+      15.08397
+     ]
+    }
+   ],
+   "schermata": "docs/prove/schermate/nav-tratti/pubblicato-2-inizio.png"
+  },
+  "3-meta-tratto": {
+   "tappaVerso": "Porta Uzeda",
+   "polilinee": [
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 37,
+     "da": [
+      37.49992,
+      15.08593
+     ],
+     "a": [
+      37.50179,
+      15.08762
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 6,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 37,
+     "da": [
+      37.49992,
+      15.08593
+     ],
+     "a": [
+      37.50179,
+      15.08762
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 3,
+     "da": [
+      37.50179,
+      15.08762
+     ],
+     "a": [
+      37.50238,
+      15.08745
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 6,
+     "da": [
+      37.50238,
+      15.08745
+     ],
+     "a": [
+      37.5024,
+      15.08687
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 14,
+     "da": [
+      37.5024,
+      15.08687
+     ],
+     "a": [
+      37.50244,
+      15.0839
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 21,
+     "da": [
+      37.50244,
+      15.0839
+     ],
+     "a": [
+      37.50187,
+      15.08539
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 10,
+     "da": [
+      37.50187,
+      15.08539
+     ],
+     "a": [
+      37.50176,
+      15.0849
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 51,
+     "da": [
+      37.50176,
+      15.0849
+     ],
+     "a": [
+      37.49918,
+      15.08451
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 58,
+     "da": [
+      37.49918,
+      15.08451
+     ],
+     "a": [
+      37.50222,
+      15.08719
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 8,
+     "da": [
+      37.50222,
+      15.08719
+     ],
+     "a": [
+      37.50389,
+      15.08712
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 13,
+     "da": [
+      37.50389,
+      15.08712
+     ],
+     "a": [
+      37.50218,
+      15.08486
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 19,
+     "da": [
+      37.50218,
+      15.08486
+     ],
+     "a": [
+      37.50203,
+      15.08698
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 45,
+     "da": [
+      37.50203,
+      15.08698
+     ],
+     "a": [
+      37.49971,
+      15.08397
+     ]
+    }
+   ],
+   "schermata": "docs/prove/schermate/nav-tratti/pubblicato-3-meta-tratto.png"
+  },
+  "4-dopo-arrivo": {
+   "tappaVerso": "Basilica Cattedrale di Sant'Agata",
+   "polilinee": [
+    {
+     "strokeColor": "#675F57",
+     "strokeOpacity": 0,
+     "strokeWeight": 3,
+     "zIndex": 45,
+     "tratteggio": true,
+     "iconColor": "#675F57",
+     "visible": true,
+     "punti": 37,
+     "da": [
+      37.49992,
+      15.08593
+     ],
+     "a": [
+      37.50179,
+      15.08762
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 3,
+     "da": [
+      37.50179,
+      15.08762
+     ],
+     "a": [
+      37.50238,
+      15.08745
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 6,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 3,
+     "da": [
+      37.50179,
+      15.08762
+     ],
+     "a": [
+      37.50238,
+      15.08745
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 6,
+     "da": [
+      37.50238,
+      15.08745
+     ],
+     "a": [
+      37.5024,
+      15.08687
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 14,
+     "da": [
+      37.5024,
+      15.08687
+     ],
+     "a": [
+      37.50244,
+      15.0839
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 21,
+     "da": [
+      37.50244,
+      15.0839
+     ],
+     "a": [
+      37.50187,
+      15.08539
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 10,
+     "da": [
+      37.50187,
+      15.08539
+     ],
+     "a": [
+      37.50176,
+      15.0849
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 51,
+     "da": [
+      37.50176,
+      15.0849
+     ],
+     "a": [
+      37.49918,
+      15.08451
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 58,
+     "da": [
+      37.49918,
+      15.08451
+     ],
+     "a": [
+      37.50222,
+      15.08719
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 8,
+     "da": [
+      37.50222,
+      15.08719
+     ],
+     "a": [
+      37.50389,
+      15.08712
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 13,
+     "da": [
+      37.50389,
+      15.08712
+     ],
+     "a": [
+      37.50218,
+      15.08486
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 19,
+     "da": [
+      37.50218,
+      15.08486
+     ],
+     "a": [
+      37.50203,
+      15.08698
+     ]
+    },
+    {
+     "strokeColor": "#7A736B",
+     "strokeOpacity": 0.95,
+     "strokeWeight": 2.5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 45,
+     "da": [
+      37.50203,
+      15.08698
+     ],
+     "a": [
+      37.49971,
+      15.08397
+     ]
+    }
+   ],
+   "schermata": "docs/prove/schermate/nav-tratti/pubblicato-4-dopo-arrivo.png"
+  }
+ },
+ "errori": [],
+ "consoleApp": [
+  "[DVAI-Nav] handleStartNavigationReal: click Avvia",
+  "[DVAI-Nav] volo della camera su di te",
+  "[DVAI-Nav] primo fix della navigazione",
+  "[DVAI-Nav] volo della camera su di te",
+  "[DVAI-Nav] writer#3 watchPosition moveCamera (tick #1, zoom 19, tilt 60)",
+  "[DVAI-Nav] writer#3 watchPosition moveCamera (tick #11, zoom 19, tilt 60)",
+  "[DVAI-Nav] writer#3 watchPosition moveCamera (tick #21, zoom 19, tilt 60)",
+  "[DVAI-Nav] writer#6 avanzaDopo moveCamera → prossima tappa \"Basilica Cattedrale di Sant'Agata\", zoom 18 tilt 55",
+  "[DVAI-Nav] writer#3 watchPosition moveCamera (tick #31, zoom 19, tilt 60)"
+ ],
+ "tappe": [
+  [
+   37.5018,
+   15.08764
+  ],
+  [
+   37.50241,
+   15.08772
+  ],
+  [
+   37.50252,
+   15.0871
+  ],
+  [
+   37.50266,
+   15.08387
+  ],
+  [
+   37.50183,
+   15.0854
+  ],
+  [
+   37.50176,
+   15.0849
+  ],
+  [
+   37.49917,
+   15.08449
+  ],
+  [
+   37.50212,
+   15.08722
+  ],
+  [
+   37.50389,
+   15.08712
+  ],
+  [
+   37.50219,
+   15.08491
+  ],
+  [
+   37.50204,
+   15.08701
+  ],
+  [
+   37.49972,
+   15.08389
+  ]
+ ],
+ "partenza": [
+  37.5,
+  15.08594
+ ]
+}

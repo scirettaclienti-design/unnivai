@@ -214,7 +214,8 @@ try {
     for (let i = 0; i < 4; i++) { await emit(vere[0]); await page.waitForTimeout(1000); }
     await page.getByText('Tappa 2 di', { exact: false }).first().waitFor({ state: 'visible', timeout: 15000 }).catch(() => log('arrivo non rilevato'));
     await page.waitForTimeout(2800);
-    await page.getByText('Riparti', { exact: true }).click({ timeout: 2000 }).catch(() => {});
+    await page.getByText(/^Riparti/).first().click({ timeout: 3000 }).catch(() => {});
+    await page.waitForTimeout(1500);
     const p1 = campiona(legs[1].punti, PASSO_M);
     for (let i = 0; i < Math.min(4, p1.length); i++) { await emit(p1[i]); await page.waitForTimeout(700); }
     await momento('4-dopo-arrivo', { tappaVerso: vere[1].title });

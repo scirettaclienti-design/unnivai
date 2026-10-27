@@ -43,4 +43,10 @@ Testi nuovi nel file unico `src/lib/navMessaggi.js` (`RIPARTI`, `AVANTI`, `RIPAR
 
 ## `git log --oneline -5 main`
 
-(aggiunto dopo il push del report)
+```
+b2fa603 NAV-TESTI-TAPPA: report e screenshot dal giro di Catania
+12f58d9 NAV-TESTI-TAPPA: frasi complete (mai spezzate a S., Sant., p.za), chicca e racconto mai uguali, «perché sei qui» coerente con l'ora, alla/al/all' davanti al nome, foto vera o niente
+0dde826 NAV-MAPPA: git log nel report
+4d09ff6 NAV-MAPPA: report, misure prima/dopo, affiancato al canvas, video e script
+9194d5e NAV-MAPPA: il toast delle curiosità sta sopra la scheda compatta e si chiude con un tasto da 44 px
+```

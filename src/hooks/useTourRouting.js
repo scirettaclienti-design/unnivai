@@ -41,10 +41,15 @@ export const statoTratto = (i, nextLeg) => {
     return 'resto';
 };
 export const ACCENTO_TRATTO = '#F97316';
-// Sopra lo stile Google della navigazione (terra #0F0E0D, strade #26231F) ogni tratto sta sopra 3:1 (nav3Contrasto.test.js):
-// il fatto e' un tratteggio chiaro, il prossimo l'accento, il resto un grigio caldo pieno. Fuori dalla navigazione i colori sono quelli di sempre.
-export const COLORE_FATTO_NAV = '#A8A29E';
-export const COLORE_RESTO_NAV = '#8F8880';
+// Sopra lo stile Google della navigazione i colori sono scelti sui pixel VERI delle 4 mappe (Ossidiana e le 3 fasce, misurati sul sito
+// pubblicato: terra ~rgb(20-28), strade ~rgb(36-44,28-36,20); docs/prove/2026-10-27-nav-tratti.md, nav3Contrasto/navTratti test).
+// Una gerarchia sola: il prossimo e' l'accento arancione (>= 5:1), il futuro e' un grigio SOTTILE (>= 3:1), il fatto e' un grigio SCURO
+// tratteggiato e attenuato (>= 2:1: si vede, ma sta dietro). Fuori dalla navigazione i colori sono quelli di sempre.
+export const COLORE_FATTO_NAV = '#675F57';
+export const COLORE_RESTO_NAV = '#7A736B';
+export const SPESSORE_RESTO_NAV = 2.5;
+/** Distanza (m) entro cui un punto del percorso «dal vivo» conta come la tappa. */
+export const VICINO_TAPPA_M = 25;
 export const stileTratto = (stato, base, { navigazione = false, panoramica = false } = {}) => {
     // la panoramica del giro (mappa Ossidiana, tutte le tappe): il tracciato e' arancione, pieno, con l'alone, ben visibile sul fondo scuro
     if (panoramica && stato === 'resto') {
@@ -56,7 +61,7 @@ export const stileTratto = (stato, base, { navigazione = false, panoramica = fal
     // il fatto: tratteggiato e attenuato (la linea e' invisibile, i trattini sono le icone ripetute)
     if (stato === 'fatto') {
         const colore = navigazione ? COLORE_FATTO_NAV : base.inner.strokeColor;
-        return { outer: null, inner: { ...base.inner, strokeColor: colore, strokeOpacity: 0, strokeWeight: 3, zIndex: 45, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: navigazione ? 1 : 0.4, strokeColor: colore, scale: 2.5 }, offset: '0', repeat: '12px' }] } };
+        return { outer: null, inner: { ...base.inner, strokeColor: colore, strokeOpacity: 0, strokeWeight: 3, zIndex: 45, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: navigazione ? 0.9 : 0.4, strokeColor: colore, scale: 2.5 }, offset: '0', repeat: '12px' }] } };
     }
     if (stato === 'prossimo') {
         return {
@@ -64,25 +69,58 @@ export const stileTratto = (stato, base, { navigazione = false, panoramica = fal
             inner: { ...base.inner, strokeColor: ACCENTO_TRATTO, strokeOpacity: 1, strokeWeight: 6, icons: undefined, zIndex: 55 },
         };
     }
-    if (navigazione) return { outer: null, inner: { ...base.inner, strokeColor: COLORE_RESTO_NAV, strokeOpacity: 1, strokeWeight: 5, icons: undefined } };
+    if (navigazione) return { outer: null, inner: { ...base.inner, strokeColor: COLORE_RESTO_NAV, strokeOpacity: 0.95, strokeWeight: SPESSORE_RESTO_NAV, icons: undefined } };
     return { outer: base.outer, inner: base.inner };
 };
 /** La chiave di un tratto: da una tappa a un'altra (le coordinate a 5 decimali, ~1 m). */
 export const chiaveTratto = (a, b) => `${Number(a?.lat ?? a?.latitude).toFixed(5)},${Number(a?.lng ?? a?.longitude).toFixed(5)}>${Number(b?.lat ?? b?.latitude).toFixed(5)},${Number(b?.lng ?? b?.longitude).toFixed(5)}`;
+const coord = (p) => {
+    const lat = typeof p?.lat === 'function' ? p.lat() : (p?.lat ?? p?.latitude);
+    const lng = typeof p?.lng === 'function' ? p.lng() : (p?.lng ?? p?.longitude);
+    return { lat: Number(lat), lng: Number(lng) };
+};
+const metri = (a, b) => {
+    if (![a.lat, a.lng, b.lat, b.lng].every(Number.isFinite)) return Infinity;
+    const rad = (x) => (x * Math.PI) / 180;
+    const d = Math.sin(rad(b.lat - a.lat) / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(rad(b.lng - a.lng) / 2) ** 2;
+    return 2 * 6371000 * Math.asin(Math.sqrt(d));
+};
+/**
+ * Il primo tratto del percorso «dal vivo» e' quello verso la prossima tappa? Succede quando il percorso parte dalla POSIZIONE dell'utente
+ * (dal primo segnale GPS: `percorsoDa` in MapPage = tu + tappe rimaste): il primo tratto finisce sulla prossima tappa e non comincia da li'.
+ * Dopo un arrivo il percorso e' solo «tappe rimaste» e il primo tratto comincia sulla prossima tappa (va oltre): allora quello verso la
+ * prossima e' il tratto «tappa prima → prossima», preso dalla memoria.
+ */
+export function primoTrattoVersoProssima(live, progress) {
+    const primo = live?.[0];
+    const prossima = progress?.tappe?.[progress?.nextIdx];
+    if (!Array.isArray(primo) || primo.length < 2 || !prossima) return false;
+    const t = coord(prossima);
+    return metri(coord(primo[primo.length - 1]), t) <= VICINO_TAPPA_M && metri(coord(primo[0]), t) > VICINO_TAPPA_M;
+}
+
 /**
  * Cosa disegnare: i tratti fatti (prima), quello verso la prossima tappa, poi il resto del percorso richiesto.
- * @param {{ live: Array<Array>, progress: { tappe: Array, nextIdx: number }|null, cache: Map<string, Array> }} p
+ *  · se il percorso dal vivo parte da te (primo segnale GPS), il suo primo tratto e' quello verso la prossima tappa: arancione; il tratto
+ *    «tappa prima → prossima» della memoria non si disegna (sarebbe lo stesso tratto, da un'altra partenza);
+ *  · altrimenti (dopo un arrivo) il tratto verso la prossima e' «tappa prima → prossima» dalla memoria, e tutto il «dal vivo» e' resto.
+ * @param {{ live: Array<Array>, progress: { tappe: Array, nextIdx: number }|null, cache: Map<string, Array>, partenza?: Array|null }} p (`partenza` = il tratto dalla tua partenza alla prima tappa, ricordato dal primo segnale GPS)
  * @returns {Array<{ path: Array, stato: 'fatto'|'prossimo'|'resto' }>}
  */
-export function trattiDaDisegnare({ live = [], progress = null, cache = new Map() }) {
+export function trattiDaDisegnare({ live = [], progress = null, cache = new Map(), partenza = null }) {
     const out = [];
+    const dalTuo = !!progress && primoTrattoVersoProssima(live, progress);
     if (progress && Array.isArray(progress.tappe) && Number.isInteger(progress.nextIdx)) {
+        // il tratto camminato dalla tua partenza alla prima tappa (non e' un tratto «tappa → tappa»): dopo il primo arrivo e' fatto
+        if (progress.nextIdx >= 1 && partenza?.length > 1) out.push({ path: partenza, stato: 'fatto' });
         for (let k = 0; k < progress.nextIdx && k + 1 < progress.tappe.length; k++) {
+            const ultimo = k + 1 === progress.nextIdx;
+            if (ultimo && dalTuo) continue;
             const path = cache.get(chiaveTratto(progress.tappe[k], progress.tappe[k + 1]));
-            if (path?.length > 1) out.push({ path, stato: k + 1 < progress.nextIdx ? 'fatto' : 'prossimo' });
+            if (path?.length > 1) out.push({ path, stato: ultimo ? 'prossimo' : 'fatto' });
         }
     }
-    for (const path of live) if (path?.length > 1) out.push({ path, stato: 'resto' });
+    live.forEach((path, i) => { if (path?.length > 1) out.push({ path, stato: dalTuo && i === 0 ? 'prossimo' : 'resto' }); });
     return out;
 }
 
@@ -108,6 +146,8 @@ export default function useTourRouting(waypoints, travelModePreference, progress
     // i percorsi gia' calcolati, tappa -> tappa (restano anche quando il percorso richiesto si accorcia); `versione` fa ridisegnare quando se ne aggiunge uno
     const cacheTratti = useRef(new Map());
     const inVolo = useRef(new Set());
+    // il tratto dalla tua partenza alla prima tappa, ricordato finche' il percorso dal vivo parte da te (poi non e' piu' nel percorso)
+    const trattoPartenza = useRef(null);
     const [versione, setVersione] = useState(0);
     const lastRequestSignature = useRef('');
     const currentModeRef = useRef('WALKING');
@@ -247,11 +287,17 @@ export default function useTourRouting(waypoints, travelModePreference, progress
         });
     }, [directionsService, routesLibrary, progress, travelModePreference]);
 
+    // NAV-TRATTI — se il percorso dal vivo parte da te e la prossima e' la prima tappa, ricorda il tuo primo tratto: dopo l'arrivo diventa «fatto»
+    useEffect(() => {
+        if (!progress) { trattoPartenza.current = null; return; }
+        if (progress.nextIdx === 0 && primoTrattoVersoProssima(tratti, progress)) trattoPartenza.current = tratti[0];
+    }, [tratti, progress]);
+
     // NAV-2 — il percorso a tratti: fatto attenuato, verso la prossima tappa arancione, il resto neutro
     useEffect(() => {
         const Polyline = typeof window !== 'undefined' ? window.google?.maps?.Polyline : null;
         if (!map || !Polyline) return undefined;
-        const lista = trattiDaDisegnare({ live: tratti, progress, cache: cacheTratti.current });
+        const lista = trattiDaDisegnare({ live: tratti, progress, cache: cacheTratti.current, partenza: trattoPartenza.current });
         if (lista.length === 0) return undefined;
         const base = ROUTE_STYLES[modo] || ROUTE_STYLES.WALKING;
         const create = [];

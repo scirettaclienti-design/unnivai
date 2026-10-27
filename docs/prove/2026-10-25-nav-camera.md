@@ -81,3 +81,6 @@ f76dbaf DURATE-ETICHETTE: ogni durata dice cosa misura — «Giornata 9:30–21:
 ## Processi
 
 Vite di prova (5191, 5192) e il replay NAV-SIM chiusi; nessun mio processo è rimasto acceso.
+
+
+> **Aggiornamento 27/10 (NAV-TRATTI):** la panoramica prima di «Avvia» ora inquadra anche la posizione dell'utente (oltre alle tappe); in navigazione arancione solo il tratto verso la prossima tappa. Vedi `docs/prove/2026-10-27-nav-tratti.md`.

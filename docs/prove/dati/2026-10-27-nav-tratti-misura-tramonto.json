@@ -1,0 +1,764 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "etichetta": "misura-tramonto",
+ "momenti": {
+  "1-panoramica": {
+   "polilinee": [
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 37,
+     "da": [
+      37.49992,
+      15.08593
+     ],
+     "a": [
+      37.50179,
+      15.08762
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 37,
+     "da": [
+      37.49992,
+      15.08593
+     ],
+     "a": [
+      37.50179,
+      15.08762
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 3,
+     "da": [
+      37.50179,
+      15.08762
+     ],
+     "a": [
+      37.50238,
+      15.08745
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 3,
+     "da": [
+      37.50179,
+      15.08762
+     ],
+     "a": [
+      37.50238,
+      15.08745
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 6,
+     "da": [
+      37.50238,
+      15.08745
+     ],
+     "a": [
+      37.5024,
+      15.08687
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 6,
+     "da": [
+      37.50238,
+      15.08745
+     ],
+     "a": [
+      37.5024,
+      15.08687
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 14,
+     "da": [
+      37.5024,
+      15.08687
+     ],
+     "a": [
+      37.50244,
+      15.0839
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 14,
+     "da": [
+      37.5024,
+      15.08687
+     ],
+     "a": [
+      37.50244,
+      15.0839
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 21,
+     "da": [
+      37.50244,
+      15.0839
+     ],
+     "a": [
+      37.50187,
+      15.08539
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 21,
+     "da": [
+      37.50244,
+      15.0839
+     ],
+     "a": [
+      37.50187,
+      15.08539
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 10,
+     "da": [
+      37.50187,
+      15.08539
+     ],
+     "a": [
+      37.50176,
+      15.0849
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 10,
+     "da": [
+      37.50187,
+      15.08539
+     ],
+     "a": [
+      37.50176,
+      15.0849
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 51,
+     "da": [
+      37.50176,
+      15.0849
+     ],
+     "a": [
+      37.49918,
+      15.08451
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 51,
+     "da": [
+      37.50176,
+      15.0849
+     ],
+     "a": [
+      37.49918,
+      15.08451
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 58,
+     "da": [
+      37.49918,
+      15.08451
+     ],
+     "a": [
+      37.50222,
+      15.08719
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 58,
+     "da": [
+      37.49918,
+      15.08451
+     ],
+     "a": [
+      37.50222,
+      15.08719
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 8,
+     "da": [
+      37.50222,
+      15.08719
+     ],
+     "a": [
+      37.50389,
+      15.08712
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 8,
+     "da": [
+      37.50222,
+      15.08719
+     ],
+     "a": [
+      37.50389,
+      15.08712
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 13,
+     "da": [
+      37.50389,
+      15.08712
+     ],
+     "a": [
+      37.50218,
+      15.08486
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 13,
+     "da": [
+      37.50389,
+      15.08712
+     ],
+     "a": [
+      37.50218,
+      15.08486
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 19,
+     "da": [
+      37.50218,
+      15.08486
+     ],
+     "a": [
+      37.50203,
+      15.08698
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 19,
+     "da": [
+      37.50218,
+      15.08486
+     ],
+     "a": [
+      37.50203,
+      15.08698
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 0.3,
+     "strokeWeight": 12,
+     "zIndex": 41,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 45,
+     "da": [
+      37.50203,
+      15.08698
+     ],
+     "a": [
+      37.49971,
+      15.08397
+     ]
+    },
+    {
+     "strokeColor": "#F97316",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 55,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 45,
+     "da": [
+      37.50203,
+      15.08698
+     ],
+     "a": [
+      37.49971,
+      15.08397
+     ]
+    }
+   ],
+   "schermata": "docs/prove/schermate/nav-tratti/misura-tramonto-1-panoramica.png"
+  },
+  "2-inizio": {
+   "tappaVerso": "Porta Uzeda",
+   "polilinee": [
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 37,
+     "da": [
+      37.49992,
+      15.08593
+     ],
+     "a": [
+      37.50179,
+      15.08762
+     ]
+    },
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 3,
+     "da": [
+      37.50179,
+      15.08762
+     ],
+     "a": [
+      37.50238,
+      15.08745
+     ]
+    },
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 6,
+     "da": [
+      37.50238,
+      15.08745
+     ],
+     "a": [
+      37.5024,
+      15.08687
+     ]
+    },
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 14,
+     "da": [
+      37.5024,
+      15.08687
+     ],
+     "a": [
+      37.50244,
+      15.0839
+     ]
+    },
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 21,
+     "da": [
+      37.50244,
+      15.0839
+     ],
+     "a": [
+      37.50187,
+      15.08539
+     ]
+    },
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 10,
+     "da": [
+      37.50187,
+      15.08539
+     ],
+     "a": [
+      37.50176,
+      15.0849
+     ]
+    },
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 51,
+     "da": [
+      37.50176,
+      15.0849
+     ],
+     "a": [
+      37.49918,
+      15.08451
+     ]
+    },
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 58,
+     "da": [
+      37.49918,
+      15.08451
+     ],
+     "a": [
+      37.50222,
+      15.08719
+     ]
+    },
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 8,
+     "da": [
+      37.50222,
+      15.08719
+     ],
+     "a": [
+      37.50389,
+      15.08712
+     ]
+    },
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 13,
+     "da": [
+      37.50389,
+      15.08712
+     ],
+     "a": [
+      37.50218,
+      15.08486
+     ]
+    },
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 19,
+     "da": [
+      37.50218,
+      15.08486
+     ],
+     "a": [
+      37.50203,
+      15.08698
+     ]
+    },
+    {
+     "strokeColor": "#8F8880",
+     "strokeOpacity": 1,
+     "strokeWeight": 5,
+     "zIndex": 50,
+     "tratteggio": false,
+     "iconColor": null,
+     "visible": true,
+     "punti": 45,
+     "da": [
+      37.50203,
+      15.08698
+     ],
+     "a": [
+      37.49971,
+      15.08397
+     ]
+    }
+   ],
+   "schermata": "docs/prove/schermate/nav-tratti/misura-tramonto-2-inizio.png"
+  }
+ },
+ "ora": "2026-10-27T17:15:00+01:00",
+ "paletta": [
+  {
+   "rgb": [
+    20,
+    20,
+    20
+   ],
+   "quota": 37
+  },
+  {
+   "rgb": [
+    28,
+    28,
+    20
+   ],
+   "quota": 35.6
+  },
+  {
+   "rgb": [
+    28,
+    20,
+    20
+   ],
+   "quota": 8.4
+  },
+  {
+   "rgb": [
+    12,
+    12,
+    12
+   ],
+   "quota": 6.2
+  },
+  {
+   "rgb": [
+    36,
+    28,
+    20
+   ],
+   "quota": 3.7
+  },
+  {
+   "rgb": [
+    20,
+    28,
+    20
+   ],
+   "quota": 1.1
+  },
+  {
+   "rgb": [
+    36,
+    36,
+    28
+   ],
+   "quota": 1
+  },
+  {
+   "rgb": [
+    20,
+    20,
+    12
+   ],
+   "quota": 0.9
+  },
+  {
+   "rgb": [
+    28,
+    28,
+    28
+   ],
+   "quota": 0.5
+  },
+  {
+   "rgb": [
+    244,
+    244,
+    244
+   ],
+   "quota": 0.4
+  },
+  {
+   "rgb": [
+    36,
+    28,
+    28
+   ],
+   "quota": 0.4
+  },
+  {
+   "rgb": [
+    252,
+    116,
+    20
+   ],
+   "quota": 0.4
+  }
+ ]
+}

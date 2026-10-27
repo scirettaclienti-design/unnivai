@@ -78,7 +78,7 @@ describe('lo stile Ossidiana: modalità buio e vista dall\'alto', () => {
     });
 });
 
-describe('i tratti si leggono sopra lo stile della navigazione (≥ 3:1)', () => {
+describe('i tratti si leggono sopra lo stile della navigazione (prossimo e resto ≥ 3:1, fatto ≥ 2:1)', () => {
     // i colori dello stile «DoveVAI — Navigazione» (canvas, schermata 1): terra, edifici, strade
     const STILE = { terra: '#0F0E0D', edifici: '#171513', strade: '#26231F' };
     const BASE = { outer: { strokeColor: '#5A5048', strokeWeight: 10, strokeOpacity: 0.2, zIndex: 40 }, inner: { strokeColor: '#5A5048', strokeWeight: 4, strokeOpacity: 0.9, zIndex: 50 } };
@@ -92,7 +92,9 @@ describe('i tratti si leggono sopra lo stile della navigazione (≥ 3:1)', () =>
     });
     for (const [stato, colore] of Object.entries(colori)) {
         for (const [fondo, hex] of Object.entries(STILE)) {
-            it(`${stato} su ${fondo}`, () => { expect(rapporto(colore, hex)).toBeGreaterThanOrEqual(3); });
+            // NAV-TRATTI: il fatto e' grigio scuro e attenuato (si vede ma sta dietro): 2:1; il prossimo e il futuro stanno sopra 3:1
+            const soglia = stato === 'fatto' ? 2 : 3;
+            it(`${stato} su ${fondo} (≥ ${soglia}:1)`, () => { expect(rapporto(colore, hex)).toBeGreaterThanOrEqual(soglia); });
         }
     }
     it('fatto (tratteggio), prossimo (pieno spesso) e resto (pieno più sottile) si distinguono anche senza colore', () => {
@@ -101,6 +103,7 @@ describe('i tratti si leggono sopra lo stile della navigazione (≥ 3:1)', () =>
         const r = stileTratto('resto', BASE, { navigazione: true }).inner;
         expect(f.strokeOpacity).toBe(0); expect(f.icons?.length).toBe(1);
         expect(p.strokeWeight).toBeGreaterThan(r.strokeWeight);
+        expect(r.strokeWeight).toBeLessThan(4); // il futuro e' sottile
         expect(r.icons).toBeUndefined();
     });
     it('fuori dalla navigazione il resto è quello di sempre', () => {

@@ -880,6 +880,11 @@ const MapPage = () => {
         setShowSearchHere(false);
     }, [mapCenter, centerSource, showRoute, selectedActivity, isMapReady, isNavigating]);
 
+    // NAV-TRATTI: dove sei, per la panoramica (ref: l'effetto sotto non deve ripartire a ogni segnale; la chiave a 3 decimali, ~100 m, lo fa ripartire una volta quando arrivi)
+    const posizioneUtenteRef = useRef(null);
+    posizioneUtenteRef.current = localCenter && Number.isFinite(Number(localCenter.latitude)) ? { lat: Number(localCenter.latitude), lng: Number(localCenter.longitude) } : null;
+    const chiavePosizioneUtente = posizioneUtenteRef.current ? `${posizioneUtenteRef.current.lat.toFixed(3)},${posizioneUtenteRef.current.lng.toFixed(3)}` : '';
+
     // ─── AUTO-FIT TO ROUTE (TOURS ONLY — NOT route planner) ────────────────────
     useEffect(() => {
         // Only fit when viewing a tour route. NOT during navigation, NOT when route planner opens.
@@ -892,6 +897,12 @@ const MapPage = () => {
             const lngs = pointsToFit.map(p => p.longitude || p.lng).filter(v => typeof v === 'number' && !isNaN(v) && Math.abs(v) > 0.1);
             const lats = pointsToFit.map(p => p.latitude || p.lat).filter(v => typeof v === 'number' && !isNaN(v) && Math.abs(v) > 0.1);
             if (lngs.length >= 2 && lats.length >= 2) {
+                // NAV-TRATTI: la panoramica comprende anche DOVE SEI (se sei vicino al giro: da un'altra città non si allarga il mondo)
+                const tu = posizioneUtenteRef.current;
+                if (tu && Number.isFinite(tu.lat) && Number.isFinite(tu.lng)
+                    && Math.abs(tu.lat - (Math.min(...lats) + Math.max(...lats)) / 2) < 0.3 && Math.abs(tu.lng - (Math.min(...lngs) + Math.max(...lngs)) / 2) < 0.3) {
+                    lngs.push(tu.lng); lats.push(tu.lat);
+                }
                 const lngSpread = Math.max(...lngs) - Math.min(...lngs);
                 const latSpread = Math.max(...lats) - Math.min(...lats);
                 // Sanity check: se i bounds coprono > 2 gradi, qualcosa è sbagliato
@@ -905,7 +916,8 @@ const MapPage = () => {
                 }
             }
         } catch (e) { console.warn('fitBounds failed', e); }
-    }, [activeRoute, showRoute, liveRoute, isNavigating, isRoutePlannerOpen, map]);
+    // la posizione dell'utente entra nell'inquadratura della panoramica (a ~100 m: non si ri-inquadra a ogni piccolo spostamento)
+    }, [activeRoute, showRoute, liveRoute, isNavigating, isRoutePlannerOpen, map, chiavePosizioneUtente]);
 
     // ─── GLOBAL TOURS QUERY ──────────────────────────────────────────────────
     const { data: globalTours, isLoading: isLoadingTours, isFetching: isFetchingTours } = useQuery({

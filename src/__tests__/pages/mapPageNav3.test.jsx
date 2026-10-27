@@ -151,41 +151,47 @@ describe('STATO 1 — cammino', () => {
         const scheda = screen.getByTestId('nav-scheda');
         expect(scheda.textContent).toMatch(/PROSSIMA/);
         expect(scheda.textContent).toContain('Fontana dell\'Elefante');
-        expect(screen.getByTestId('nav-insider').textContent).toBe('La fontana di Catania con l\'elefante di pietra lavica.');
-        expect(screen.getByText('Pausa')).toBeInTheDocument();
-        expect(screen.getByText('Salta')).toBeInTheDocument();
-        expect(screen.getByText('Voce')).toBeInTheDocument();
+        expect(screen.queryByTestId('nav-insider')).toBeNull(); // compatta: la riga insider sta nella scheda aperta
+        expect(screen.getByRole('button', { name: 'Pausa' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Salta tappa' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Disattiva voce' })).toBeInTheDocument();
         expect(screen.getByText('Tappa 1 di 3')).toBeInTheDocument();
+        fireEvent.click(screen.getByTestId('nav-scheda-maniglia'));
+        expect(screen.getByTestId('nav-insider').textContent).toBe('La fontana di Catania con l\'elefante di pietra lavica.');
     });
     it('tutti i tasti hanno almeno 44 px (classe min-h-[44px])', () => {
         monta(CATANIA);
         avvia();
-        for (const b of [screen.getByText('Pausa').closest('button'), screen.getByText('Salta').closest('button'), screen.getByText('Voce').closest('button'), screen.getByTestId('nav-vista-giro'), screen.getByTestId('nav-centra')]) {
+        for (const b of [screen.getByRole('button', { name: 'Pausa' }), screen.getByRole('button', { name: 'Salta tappa' }), screen.getByRole('button', { name: 'Disattiva voce' }), screen.getByTestId('nav-vista-giro'), screen.getByTestId('nav-centra')]) {
             expect(b.className).toContain('min-h-[44px]');
         }
     });
     it('«Voce» è pieno arancione; «Pausa» mette la pillola in pausa e il tasto diventa «Riprendi»', () => {
         monta(CATANIA);
         avvia();
-        expect(screen.getByText('Voce').closest('button').className).toContain('bg-brand-orange');
-        fireEvent.click(screen.getByText('Pausa'));
+        expect(screen.getByRole('button', { name: 'Disattiva voce' }).className).toContain('bg-brand-orange');
+        fireEvent.click(screen.getByRole('button', { name: 'Pausa' }));
         expect(screen.getByTestId('nav-pillola').textContent).toBe('In pausa');
-        expect(screen.getByText('Riprendi')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Riprendi' })).toBeInTheDocument();
     });
     it('«Salta» salta la tappa; nessun «Apri in Mappe»', () => {
         monta(CATANIA);
         avvia();
-        fireEvent.click(screen.getByText('Salta'));
+        fireEvent.click(screen.getByRole('button', { name: 'Salta tappa' }));
         expect(screen.getByText('Tappa 2 di 3')).toBeInTheDocument();
         expect(document.body.textContent).not.toMatch(/Apri in Mappe/i);
     });
 });
 
 describe('STATO 9 — il filo del giorno', () => {
-    it('i momenti, un puntino per tappa, quella attuale evidenziata, la frase', () => {
+    it('una riga sottile (un puntino per tappa); con un tocco sulla fascia i momenti e la frase', () => {
         monta(CATANIA);
         avvia();
-        const filo = screen.getByTestId('filo');
+        let filo = screen.getByTestId('filo');
+        expect(filo.textContent).not.toMatch(/Mattina/);
+        expect(screen.queryByTestId('filo-frase')).toBeNull();
+        fireEvent.click(screen.getByTestId('nav-pillola'));
+        filo = screen.getByTestId('filo');
         expect(filo.textContent).toMatch(/Mattina/);
         expect(filo.textContent).toMatch(/Pranzo/);
         expect(filo.querySelectorAll('[data-attuale="si"]')).toHaveLength(1);
@@ -240,8 +246,9 @@ describe('STATO 5 — la fine del giro', () => {
     it('«GIRO COMPLETATO · data», «Catania, a modo tuo.», tracciato, tre numeri, «Nelle tue Mete» e «Condividi»', () => {
         monta(CATANIA);
         avvia();
-        fireEvent.click(screen.getByText('Salta'));
-        fireEvent.click(screen.getByText('Salta'));
+        fireEvent.click(screen.getByRole('button', { name: 'Salta tappa' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Salta tappa' }));
+        fireEvent.click(screen.getByTestId('nav-scheda-maniglia'));
         fireEvent.click(screen.getByText('Sono arrivato'));
         act(() => { vi.advanceTimersByTime(2500); });
         const fine = screen.getByTestId('fine-giro');

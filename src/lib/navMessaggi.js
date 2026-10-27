@@ -17,6 +17,15 @@ export const NAV_TESTI = Object.freeze({
     PASSATA_SALTA: 'Saltala',
     ARRIVATO: 'Sono arrivato',
     SALTA: 'Salta',
+    // NAV-MAPPA: la scheda compatta (tasti a icona con etichetta accessibile) e le impostazioni del giro
+    PAUSA: 'Pausa',
+    RIPRENDI: 'Riprendi',
+    SALTA_TAPPA: 'Salta tappa',
+    IMPOSTAZIONI: 'Impostazioni del giro',
+    CHIUDI: 'Chiudi',
+    LA_MIA_POSIZIONE: 'Vai alla mia posizione',
+    ESPANDI: 'Mostra i dettagli della tappa',
+    COMPRIMI: 'Nascondi i dettagli della tappa',
 });
 
 /**

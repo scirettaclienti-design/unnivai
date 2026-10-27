@@ -212,11 +212,11 @@ export function RitoArrivo({ nome, foto, frase, onFine, parla: voceAccesa = fals
     }, []);
     return (
         <div className="fixed inset-0 z-[80] pointer-events-none flex items-center justify-center font-sans" data-testid="rito-arrivo" aria-live="polite">
-            <div className="absolute inset-0 bg-obsidian-bg/80" />
-            <div className="relative flex flex-col items-center px-8 text-center">
-                <div className="relative w-56 h-56 flex items-center justify-center">
-                    {[0, 1].map(i => <M.span key={i} className="absolute rounded-full border-[3px] border-brand-orange" initial={{ scale: 0.6, opacity: 0.9 }} animate={{ scale: 1.15 + i * 0.18, opacity: 0.5 - i * 0.2 }} transition={{ duration: 1.2, delay: i * 0.15 }} style={{ width: 208, height: 208 }} aria-hidden="true" />)}
-                    <M.div className="relative w-52 h-52 rounded-full overflow-hidden bg-obsidian-raised border-[3px] border-brand-orange" initial={{ clipPath: 'circle(0% at 50% 50%)' }} animate={{ clipPath: 'circle(72% at 50% 50%)' }} transition={{ duration: 0.8, ease: 'easeOut' }}>
+            <div className="absolute inset-0 bg-obsidian-bg/40" />
+            <div className="relative flex flex-col items-center mx-6 px-5 py-4 rounded-3xl bg-obsidian-bg/70 text-center">
+                <div className="relative w-40 h-40 flex items-center justify-center">
+                    {[0, 1].map(i => <M.span key={i} className="absolute rounded-full border-[3px] border-brand-orange" initial={{ scale: 0.6, opacity: 0.9 }} animate={{ scale: 1.15 + i * 0.18, opacity: 0.5 - i * 0.2 }} transition={{ duration: 1.2, delay: i * 0.15 }} style={{ width: 144, height: 144 }} aria-hidden="true" />)}
+                    <M.div className="relative w-36 h-36 rounded-full overflow-hidden bg-obsidian-raised border-[3px] border-brand-orange" initial={{ clipPath: 'circle(0% at 50% 50%)' }} animate={{ clipPath: 'circle(72% at 50% 50%)' }} transition={{ duration: 0.8, ease: 'easeOut' }}>
                         {foto ? <img src={foto} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} /> : <div className="w-full h-full flex items-center justify-center"><MapPin size={44} className="text-obsidian-secondary" aria-hidden="true" /></div>}
                     </M.div>
                 </div>
@@ -228,16 +228,17 @@ export function RitoArrivo({ nome, foto, frase, onFine, parla: voceAccesa = fals
     );
 }
 
-/** SCHERMATA 9 — il filo del giorno: i momenti dalla colazione al dopocena, un puntino per tappa, quella attuale evidenziata, e una frase. */
-export function FiloDelGiorno({ gruppi, frase }) {
+/** SCHERMATA 9 — il filo del giorno: nella fascia in alto è UNA riga sottile (un puntino per tappa, quella attuale evidenziata);
+ *  con un tocco sulla fascia (`aperto`) compaiono i momenti e la frase. Senza riquadro: sta dentro la fascia della pillola. */
+export function FiloDelGiorno({ gruppi, frase, aperto = false }) {
     if (!gruppi?.length) return null;
     return (
-        <div data-testid="filo" className="pointer-events-auto mb-2 rounded-[22px] bg-obsidian-card border border-obsidian-border shadow-xl px-3.5 pt-2.5 pb-2.5">
+        <div data-testid="filo" className="pointer-events-none pt-1 pb-0.5 border-t border-obsidian-border">
             <div className="flex items-end gap-3 overflow-x-auto no-scrollbar">
                 {gruppi.map((g, gi) => (
                     <div key={`${g.key}-${gi}`} className="flex flex-col items-start shrink-0">
-                        <span className="text-[10px] font-bold tracking-wider uppercase text-obsidian-secondary">{g.label}</span>
-                        <div className="flex items-center gap-1.5 mt-1.5 h-3">
+                        {aperto && <span className="text-[10px] font-bold tracking-wider uppercase text-obsidian-secondary">{g.label}</span>}
+                        <div className="flex items-center gap-1.5 h-3 mt-0.5">
                             {g.punti.map(p => (
                                 <span key={p.indice} data-attuale={p.attuale ? 'si' : undefined} data-fatta={p.fatta ? 'si' : undefined}
                                     className={`block rounded-full ${p.attuale ? 'w-3 h-3 bg-brand-orange ring-2 ring-brand-orange/40' : p.fatta ? 'w-2 h-2 bg-obsidian-secondary' : 'w-2 h-2 border border-obsidian-secondary'}`} />
@@ -246,7 +247,7 @@ export function FiloDelGiorno({ gruppi, frase }) {
                     </div>
                 ))}
             </div>
-            {frase && <p data-testid="filo-frase" className="mt-2 text-xs text-obsidian-primary leading-snug">{frase}</p>}
+            {aperto && frase && <p data-testid="filo-frase" className="mt-1.5 text-xs text-obsidian-primary leading-snug">{frase}</p>}
         </div>
     );
 }

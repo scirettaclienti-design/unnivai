@@ -25,8 +25,8 @@ describe('D4 — la barra di navigazione ha uno sfondo e testi che si leggono', 
         // la barra con tutte le righe: istruzione, «km totali», voce spenta
         const { container } = barra({ voiceEnabled: false, routeStats: { distanceM: 5200, durationSec: 4920 },
             activeManeuver: { maneuver: 'turn-left', instructionHtml: 'Gira a <b>sinistra</b>' } });
-        // il riquadro della barra: l'elemento con l'angolo da 28 px (Scala Ossidiana)
-        const riquadro = container.querySelector('[class*="rounded-[28px]"]');
+        // il riquadro della barra: l'elemento con l'angolo da 22 px (Scala Ossidiana)
+        const riquadro = container.querySelector('[class*="rounded-[22px]"]');
         expect(riquadro).toBeTruthy();
         const { css } = await postcss([tailwind('./tailwind.config.js')]).process('@tailwind utilities;', { from: undefined });
         const sfondi = [...riquadro.classList].filter(c => /^bg-/.test(c));

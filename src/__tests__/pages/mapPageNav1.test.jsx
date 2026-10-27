@@ -126,6 +126,7 @@ describe('NAV-1 — comandi nella barra', () => {
     it('«Sono arrivato» nella barra di navigazione segna la tappa', () => {
         monta();
         avvia();
+        fireEvent.click(screen.getByTestId('nav-scheda-maniglia'));
         fireEvent.click(screen.getByText('Sono arrivato'));
         expect(screen.getByText('Tappa 2 di 3')).toBeInTheDocument();
     });

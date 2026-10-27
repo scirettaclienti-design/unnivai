@@ -2201,7 +2201,7 @@ const MapPage = () => {
                                 )}
                             </p>
                             <button type="button" onClick={handleStartNavigationClick} data-testid="cambia-mezzo"
-                                className="mt-0.5 py-2.5 -mb-2.5 text-[11px] font-semibold text-obsidian-secondary underline underline-offset-2 hover:text-obsidian-primary cursor-pointer">
+                                className="mt-0 min-h-[44px] min-w-[44px] -mb-2 flex items-center text-[11px] font-semibold text-obsidian-secondary underline underline-offset-2 hover:text-obsidian-primary cursor-pointer">
                                 Cambia mezzo
                             </button>
                         </div>
@@ -2537,7 +2537,7 @@ const MapPage = () => {
             })()}
 
             {/* 11. NATIVE MY LOCATION BUTTON (Google Maps Style Bottom Right) */}
-            <button 
+            <button aria-label={NAV_TESTI.LA_MIA_POSIZIONE}
                 onClick={() => {
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(pos => {
@@ -2545,7 +2545,7 @@ const MapPage = () => {
                         });
                     }
                 }}
-                className={`absolute right-4 bottom-28 md:right-[50px] md:bottom-[100px] z-50 ${isNavigating ? 'hidden' : ''} bg-obsidian-card border border-obsidian-border text-obsidian-secondary hover:text-brand-orange hover:bg-obsidian-raised w-10 h-10 rounded-full shadow-xl flex items-center justify-center transition-colors group`}
+                className={`absolute right-4 bottom-28 md:right-[50px] md:bottom-[100px] z-50 ${isNavigating ? 'hidden' : ''} bg-obsidian-card border border-obsidian-border text-obsidian-secondary hover:text-brand-orange hover:bg-obsidian-raised w-11 h-11 rounded-full shadow-xl flex items-center justify-center transition-colors group`}
             >
                 <NavIcon size={20} className="text-obsidian-secondary group-hover:text-brand-orange transition-colors" />
             </button>

@@ -13,9 +13,13 @@ const barra = (props = {}) => render(
         onArrived={() => {}} onSkip={() => {}} onToggleVoice={() => {}} onEndNavigation={() => {}} {...props} />,
 );
 
-describe('selettore della voce nella barra', () => {
+const apriImpostazioni = () => fireEvent.click(screen.getByTestId('nav-impostazioni'));
+
+describe('selettore della voce nelle impostazioni del giro', () => {
     it('a voce accesa mostra Marin e Cedar, e segna la voce scelta', () => {
         barra({ voiceEnabled: true, voceId: 'cedar', onCambiaVoce: () => {} });
+        expect(screen.queryByTestId('voce-selettore')).toBeNull(); // non sta nella scheda
+        apriImpostazioni();
         expect(screen.getByTestId('voce-selettore')).toBeInTheDocument();
         expect(screen.getByRole('radio', { name: 'Cedar' })).toHaveAttribute('aria-checked', 'true');
         expect(screen.getByRole('radio', { name: 'Marin' })).toHaveAttribute('aria-checked', 'false');
@@ -23,15 +27,17 @@ describe('selettore della voce nella barra', () => {
     it('il tocco cambia la voce', () => {
         const onCambiaVoce = vi.fn();
         barra({ voiceEnabled: true, voceId: 'marin', onCambiaVoce });
+        apriImpostazioni();
         fireEvent.click(screen.getByRole('radio', { name: 'Cedar' }));
         expect(onCambiaVoce).toHaveBeenCalledWith('cedar');
     });
-    it('a voce spenta il selettore non c\'è', () => {
-        barra({ voiceEnabled: false, voceId: 'marin', onCambiaVoce: () => {} });
-        expect(screen.queryByTestId('voce-selettore')).toBeNull();
+    it('senza il tasto delle impostazioni non c\'è il selettore', () => {
+        barra({ voiceEnabled: false, voceId: 'marin' });
+        expect(screen.queryByTestId('nav-impostazioni')).toBeNull();
     });
     it('i tasti sono grandi almeno 44 px (classe min-h-[44px])', () => {
         barra({ voiceEnabled: true, voceId: 'marin', onCambiaVoce: () => {} });
+        apriImpostazioni();
         for (const r of screen.getAllByRole('radio')) expect(r.className).toContain('min-h-[44px]');
     });
 });

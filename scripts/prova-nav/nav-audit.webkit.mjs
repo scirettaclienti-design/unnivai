@@ -102,7 +102,7 @@ const MISURA = () => {
     const inMappa = (el) => !!el.closest('.gm-style, [data-testid="utente-marker"], [data-testid="utente-cono"], [data-testid="mappa"]');
     const contieneMappa = (el) => !!el.querySelector('.gm-style');
     const alfa = (c) => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return 0; const p = m[1].split(/[ ,\/]+/).filter(Boolean); return p.length > 3 ? parseFloat(p[3]) : 1; };
-    const dipinto = (el) => { const cs = getComputedStyle(el); return alfa(cs.backgroundColor) >= 0.1 || (cs.backgroundImage && cs.backgroundImage !== 'none') || (cs.backdropFilter && cs.backdropFilter !== 'none') || (parseFloat(cs.borderTopWidth) > 0 && alfa(cs.borderTopColor) >= 0.15 && alfa(cs.borderTopColor) > 0); };
+    const dipinto = (el) => { const cs = getComputedStyle(el); return alfa(cs.backgroundColor) >= 0.6 || (cs.backgroundImage && cs.backgroundImage !== 'none') || (cs.backdropFilter && cs.backdropFilter !== 'none') || (parseFloat(cs.borderTopWidth) > 0 && alfa(cs.borderTopColor) >= 0.15 && alfa(cs.borderTopColor) > 0); };
     const nome = (el) => { const t = el.getAttribute('data-testid'); const a = el.getAttribute('aria-label'); const tx = (el.innerText || '').trim().replace(/\s+/g, ' ').slice(0, 28); return t ? `[${t}]` : a ? `${el.tagName.toLowerCase()}«${a}»` : `${el.tagName.toLowerCase()}«${tx}»`; };
     const tutti = [...document.body.querySelectorAll('*')].filter(el => !['SCRIPT', 'STYLE', 'NOSCRIPT', 'PATH', 'CIRCLE', 'LINE', 'POLYLINE', 'RECT', 'G', 'DEFS'].includes(el.tagName.toUpperCase()) && !inMappa(el) && !contieneMappa(el) && el.id !== 'root' && vis(el));
     // blocchi dipinti più esterni
@@ -316,7 +316,7 @@ try {
         ritoGiaMisurato = false;
         const sc = await page.getByTestId('arrivo').waitFor({ timeout: 9000 }).then(() => true).catch(() => false);
         let daSolo = sc;
-        if (!sc) { const b = page.getByText('Sono arrivato', { exact: true }).first(); if (await b.count()) { await b.click().catch(() => {}); await page.getByTestId('arrivo').waitFor({ timeout: 6000 }).catch(() => {}); } }
+        if (!sc) { await page.getByTestId('nav-scheda-maniglia').click({ timeout: 1500 }).catch(() => {}); const b = page.getByText('Sono arrivato', { exact: true }).first(); if (await b.count()) { await b.click().catch(() => {}); await page.getByTestId('arrivo').waitFor({ timeout: 6000 }).catch(() => {}); } }
         await page.waitForTimeout(900);
         await misura('8 scheda tappa (arrivo)', { tappa: k + 1, daSolo });
         if (dettaglio) {
@@ -349,7 +349,7 @@ try {
         arrivi.push({ tappa: stop.title, rito, daSolo });
     };
     if (FINE_ONLY) {
-        for (let k = 0; k < N - 1; k++) { await page.getByText('Salta', { exact: true }).first().click({ timeout: 5000 }).catch(() => {}); await page.waitForTimeout(400); }
+        for (let k = 0; k < N - 1; k++) { await page.getByRole('button', { name: 'Salta tappa' }).first().click({ timeout: 5000 }).catch(() => {}); await page.waitForTimeout(400); }
         await arrivo(N - 1, true);
     } else await arrivo(0, true);
 

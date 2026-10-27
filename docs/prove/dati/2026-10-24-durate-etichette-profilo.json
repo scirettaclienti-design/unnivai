@@ -1,0 +1,362 @@
+{
+ "fasi": {
+  "generato": [
+   {
+    "libero": false,
+    "righe": [
+     "09:30",
+     "901 Café",
+     "4.9"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "09:56",
+     "Monastero dei Benedettini di San Nicolò l'Arena",
+     "4.8"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "11:01",
+     "Teatro Antico greco-romano di Catania",
+     "4.5"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "11:35",
+     "Fontana dell'Elefante (uʻ Liotru)",
+     "4.7"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "12:30",
+     "La Quartara",
+     "4.4"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "14:30",
+     "Via Crociferi",
+     "4.6"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "15:08",
+     "Castello Ursino",
+     "4.3"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "16:13",
+     "Fontana dell’Amenano",
+     "4.6"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "16:44",
+     "Porta Uzeda",
+     "4.5"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "18:00",
+     "Sotto Palazzo",
+     "4.9"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "18:48",
+     "Piazza Vincenzo Bellini",
+     "4.5"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "20:00",
+     "Ciauru i mari",
+     "4.8"
+    ]
+   }
+  ],
+  "salvatoOriginale": [
+   "09:30|901 Café",
+   "09:56|Monastero dei Benedettini di San Nicolò l'Arena",
+   "11:01|Teatro Antico greco-romano di Catania",
+   "11:35|Fontana dell'Elefante (uʻ Liotru)",
+   "12:30|La Quartara",
+   "14:30|Via Crociferi",
+   "15:08|Castello Ursino",
+   "16:13|Fontana dell’Amenano",
+   "16:44|Porta Uzeda",
+   "18:00|Sotto Palazzo",
+   "18:48|Piazza Vincenzo Bellini",
+   "20:00|Ciauru i mari"
+  ],
+  "modificato": [
+   {
+    "libero": false,
+    "righe": [
+     "09:30",
+     "901 Café",
+     "4.9"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "09:56",
+     "Monastero dei Benedettini di San Nicolò l'Arena",
+     "4.8"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "11:05",
+     "Fontana dell'Elefante (uʻ Liotru)",
+     "4.7"
+    ]
+   },
+   {
+    "libero": true,
+    "righe": [
+     "Tempo libero",
+     "11:35–12:27",
+     "Niente in agenda: cammina dove ti porta la strada."
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "12:30",
+     "La Quartara",
+     "4.4"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "14:30",
+     "Via Crociferi",
+     "4.6"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "15:08",
+     "Castello Ursino",
+     "4.3"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "16:13",
+     "Fontana dell’Amenano",
+     "4.6"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "16:44",
+     "Porta Uzeda",
+     "4.5"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "18:00",
+     "Sotto Palazzo",
+     "4.9"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "18:48",
+     "Piazza Vincenzo Bellini",
+     "4.5"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "20:00",
+     "Ciauru i mari",
+     "4.8"
+    ]
+   }
+  ],
+  "tastoDopoTogli": "false",
+  "postSalvataggi": [
+   "POST saved_tours → 201",
+   "POST saved_tours → 201"
+  ],
+  "salvatoModificato": [
+   "09:30|901 Café",
+   "09:56|Monastero dei Benedettini di San Nicolò l'Arena",
+   "11:05|Fontana dell'Elefante (uʻ Liotru)",
+   "12:30|La Quartara",
+   "14:30|Via Crociferi",
+   "15:08|Castello Ursino",
+   "16:13|Fontana dell’Amenano",
+   "16:44|Porta Uzeda",
+   "18:00|Sotto Palazzo",
+   "18:48|Piazza Vincenzo Bellini",
+   "20:00|Ciauru i mari"
+  ],
+  "carteProfilo": [
+   "Caffè e Storia di Catania\n\nCatania • 11 tappe • Giornata 9:30–21:15 • 27 ott 2026",
+   "Caffè e Storia di Catania\n\nCatania • 12 tappe • Giornata 9:30–21:15 • 27 ott 2026",
+   "Caffè e Storia di Catania\n\nCatania • 12 tappe • Giornata 9:30–21:15 • 24 ott 2026",
+   "Caffè e Storia di Catania\n\nCatania • 13 tappe • Giornata 9:30–21:15 • 24 ott 2026",
+   "Caffè e Storia di Catania\n\nCatania • 12 tappe • Giornata 9:30–21:15 • 24 ott 2026",
+   "Caffè e Storia di Catania\n\nCatania • 13 tappe • Giornata 9:30–21:15 • 24 ott 2026",
+   "Caffè e storia di Catania\n\nCatania • 11 tappe • Giornata 9:30–21:15 • 24 ott 2026",
+   "Tour di Catania\n\nCatania • 4 tappe • 23 ott 2026"
+  ],
+  "riapertoPiuRecente": [
+   {
+    "libero": false,
+    "righe": [
+     "1",
+     "901 Café",
+     "09:30"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "2",
+     "Monastero dei Benedettini di San Nicolò l'Arena",
+     "09:56"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "3",
+     "Fontana dell'Elefante (uʻ Liotru)",
+     "11:05"
+    ]
+   },
+   {
+    "libero": true,
+    "righe": [
+     "Tempo libero",
+     "11:35–12:27",
+     "Niente in agenda: cammina dove ti porta la strada."
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "4",
+     "La Quartara",
+     "12:30"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "5",
+     "Via Crociferi",
+     "14:30"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "6",
+     "Castello Ursino",
+     "15:08"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "7",
+     "Fontana dell’Amenano",
+     "16:13"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "8",
+     "Porta Uzeda",
+     "16:44"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "9",
+     "Sotto Palazzo",
+     "18:00"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "10",
+     "Piazza Vincenzo Bellini",
+     "18:48"
+    ]
+   },
+   {
+    "libero": false,
+    "righe": [
+     "11",
+     "Ciauru i mari",
+     "20:00"
+    ]
+   }
+  ],
+  "vedeMappa": 1,
+  "urlDopoVediMappa": "/map",
+  "confronto": {
+   "riapertoUgualeAlModificato": true,
+   "tempoLiberoUguale": true,
+   "tappeModificato": 11,
+   "tappeRiaperto": 11
+  }
+ },
+ "richiesteDopoSalvataggio": {
+  "openai": 1,
+  "places": 1,
+  "altre": []
+ },
+ "richiesteRiapertura": {
+  "openai": 0,
+  "places": 0,
+  "geminiOAltre": 0
+ },
+ "console": [
+  "POST saved_tours → 201",
+  "POST saved_tours → 201"
+ ]
+}

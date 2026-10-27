@@ -90,10 +90,19 @@ try {
     await page.waitForTimeout(10000);
     await page.screenshot({ path: `${OUT}/${TAG}-01-anteprima.png` });
     esito.anteprima = await misura(page);
+    // DURATE-ETICHETTE — dopo qualche secondo il percorso e' calcolato: la card dice la giornata, il cammino e le tappe
+    await page.waitForTimeout(15000);
+    esito.etichetteCard = await page.getByTestId('avvia-etichette').innerText().catch(() => null);
+    await page.screenshot({ path: `${OUT}/${TAG}-01b-anteprima-percorso.png` });
     await page.getByText('Avvia', { exact: true }).first().click();
     await page.waitForTimeout(1500);
     await page.screenshot({ path: `${OUT}/${TAG}-02-pannello-mezzo.png` });
     esito.pannelloMezzo = await misura(page);
+    // DURATE-ETICHETTE — nel pannello il cammino e' calcolato: «1h 33 a piedi · 6,9 km»
+    await page.waitForTimeout(12000);
+    esito.camminoPannello = await page.getByTestId('percorso-cammino').innerText().catch(() => null);
+    await page.locator('[data-testid="percorso-cammino"]').scrollIntoViewIfNeeded().catch(() => {});
+    await page.screenshot({ path: `${OUT}/${TAG}-02b-pannello-cammino.png` });
     await page.getByText('Avvia Navigazione').click();
     await page.waitForTimeout(3000);
     // le tappe vere dal giro salvato nella sessione di navigazione

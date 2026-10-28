@@ -39,6 +39,9 @@ export const CARATTERISTICHE: Record<string, { ragiona: boolean; sforzo?: string
     'gpt-4o-mini': { ragiona: false },
 };
 
+/** Il primo tentativo di un passaggio quando il fornitore non e' OpenAI: modello, tempo massimo e la chiamata (corpo di OpenAI → risposta nella forma di OpenAI). */
+export type Primo = { fornitore: string; modello: string; timeoutMs: number; invia: (payload: Record<string, any>, limiteMs: number) => Promise<any> };
+
 export const PASSAGGI = new Set<string>(Object.keys(MODELLI));
 export const passaggioValido = (p: unknown): p is Passaggio => typeof p === 'string' && PASSAGGI.has(p);
 export const MODELLI_AMMESSI = new Set<string>([MODELLO_DI_PRIMA, ...Object.values(MODELLI).map(m => m.modello)]);
@@ -74,24 +77,26 @@ export const rispostaVuota = (data: any): boolean => !String(data?.choices?.[0]?
  */
 // deno-lint-ignore no-explicit-any
 export async function chiamaConRipiego(passaggio: Passaggio, payload: Record<string, any>, invia: (corpo: Record<string, any>, limiteMs: number) => Promise<any>,
-    limiteDiPrima = 45_000) {
-    const { modello, timeoutMs } = MODELLI[passaggio];
+    limiteDiPrima = 45_000, primo?: Primo) {
+    // FORNITORE-AI — con `primo` (Claude) il primo tentativo e' il suo; se fallisce si torna a OpenAI (`invia`), sempre al modello di prima.
+    const { modello, timeoutMs } = primo ? { modello: primo.modello, timeoutMs: primo.timeoutMs } : MODELLI[passaggio];
+    const fornitore = primo ? primo.fornitore : 'openai';
     const t0 = Date.now();
     let motivo: string | null = null;
     // C10b3-bis (decisione di Ivano) — un ERRORE del modello nuovo (non il tempo scaduto, non la risposta vuota) ha UN nuovo
     // tentativo, con lo stesso tempo massimo, prima del ripiego. Il primo errore resta nel tracciato (`primoErrore`).
     let primoErrore: string | null = null;
-    if (modello !== MODELLO_DI_PRIMA) {
+    if (primo || modello !== MODELLO_DI_PRIMA) {
         for (let tentativo = 1; tentativo <= 2; tentativo++) {
             try {
-                const d = await invia(corpoPer(modello, payload), timeoutMs);
+                const d = primo ? await primo.invia(payload, timeoutMs) : await invia(corpoPer(modello, payload), timeoutMs);
                 if (rispostaVuota(d)) throw Object.assign(new Error('risposta vuota'), { vuota: true });
-                return { data: d, info: { passaggio, chiesto: modello, usato: modello, ripiego: false, ms: Date.now() - t0, usage: d?.usage ?? null,
+                return { data: d, info: { passaggio, chiesto: modello, usato: modello, fornitore, ripiego: false, ms: Date.now() - t0, usage: d?.usage ?? null,
                     ...(primoErrore ? { tentativi: 2, primoErrore } : {}) } };
             } catch (err) {
                 const scaduto = (err as Error)?.name === 'AbortError';
                 motivo = scaduto ? `oltre il tempo massimo (${timeoutMs / 1000} s)` : String((err as Error)?.message ?? err).slice(0, 80);
-                if (scaduto || (err as { vuota?: boolean })?.vuota || tentativo === 2) break;
+                if (scaduto || (err as { vuota?: boolean })?.vuota || tentativo === 2 || (err as { codice?: string })?.codice === 'OPENAI_CREDIT_EXHAUSTED') break;
                 primoErrore = motivo;
             }
         }
@@ -100,7 +105,7 @@ export async function chiamaConRipiego(passaggio: Passaggio, payload: Record<str
     const d = await invia(corpoPer(MODELLO_DI_PRIMA, payload), limiteDiPrima);
     return {
         data: d,
-        info: { passaggio, chiesto: modello, usato: MODELLO_DI_PRIMA, ripiego: modello !== MODELLO_DI_PRIMA, ...(motivo ? { motivo, msChiesto: t1 - t0 } : {}),
+        info: { passaggio, chiesto: modello, usato: MODELLO_DI_PRIMA, fornitore: 'openai', ripiego: !!primo || modello !== MODELLO_DI_PRIMA, ...(fornitore !== 'openai' ? { fornitoreChiesto: fornitore } : {}), ...(motivo ? { motivo, msChiesto: t1 - t0 } : {}),
             ...(primoErrore ? { tentativi: 2, primoErrore } : {}), ms: Date.now() - t1, usage: d?.usage ?? null },
     };
 }

@@ -50,8 +50,10 @@ import {
   provinciaDa, queryVerifica, raggioVerificaKm,
 } from './cityKnowledge.ts';
 import {
-  MODELLO_DI_PRIMA, modelloPer, timeoutPer, corpoPer, rispostaVuota, passaggioValido, MODELLI_AMMESSI, chiamaConRipiego, usageTotale,
+  MODELLO_DI_PRIMA, MODELLI, modelloPer, timeoutPer, corpoPer, rispostaVuota, passaggioValido, MODELLI_AMMESSI, chiamaConRipiego, usageTotale,
+  type Passaggio, type Primo,
 } from './modelli.ts';
+import { fornitoreScelto, modelloAnthropicPer, chiamaAnthropic, ErroreAnthropic } from './anthropic.ts';
 
 import {
   MODELLO_VOCE, VOCE_PREDEFINITA, BUCKET_VOCE, voceValida, testoValido, chiaveAudio, percorsoAudio, corpoVoce, tettoNuovi, costoStimatoUsd,
@@ -188,6 +190,27 @@ export function scrubLogText(text: unknown): string {
     .slice(0, 160);
 }
 
+/**
+ * FORNITORE-AI — con `AI_PROVIDER=anthropic` (e la chiave sul server) il primo tentativo di ogni testo e' Claude; senza, o se Claude
+ * fallisce, OpenAI come prima. Letto a ogni richiesta: il secret decide, non il codice deployato.
+ */
+const envLetto = (k: string) => Deno.env.get(k);
+function anthropicAttivo(): string | null {
+  if (fornitoreScelto(envLetto) !== 'anthropic') return null;
+  return Deno.env.get('ANTHROPIC_API_KEY')?.trim() || null;
+}
+function primoAnthropic(passaggio: Passaggio, chiave: string): Primo {
+  const modello = modelloAnthropicPer(passaggio, envLetto);
+  return { fornitore: 'anthropic', modello, timeoutMs: MODELLI[passaggio].timeoutMs, invia: (p, limite) => chiamaAnthropic(chiave, modello, p, limite) };
+}
+/** Il codice del guasto dal motivo scritto da `invia` (HTTP <status> <code> <type> <msg>): lo stesso vocabolario del client. */
+function codiceDaMotivo(err: unknown): EngineCode {
+  const m = String((err as Error)?.message ?? err);
+  if (/insufficient_quota|billing_hard_limit_reached|credit balance/i.test(m)) return 'OPENAI_CREDIT_EXHAUSTED';
+  if (/HTTP 429/.test(m)) return 'OPENAI_RATE_LIMITED';
+  return 'OPENAI_ERROR';
+}
+
 const plain = (v: unknown) => (typeof v === 'string' && v ? scrubLogText(v).slice(0, 60) : '-');
 
 function parseMeta(dv: unknown): Meta {
@@ -273,6 +296,7 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   }
 
   const t0 = Date.now();
+  const chiaveAnthropic = anthropicAttivo();
   // C10b2 — il modello del passaggio (modelli.ts), e se non risponde o va oltre il suo tempo il modello di prima.
   const modelliUsati: Array<Record<string, unknown>> = [];
   // deno-lint-ignore no-explicit-any
@@ -297,7 +321,8 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   // deno-lint-ignore no-explicit-any
   const chiama = async (cosa: string, messages: any[], max_tokens: number, temperature: number): Promise<any> => {
     const { data, info } = await chiamaConRipiego(passaggioLista,
-      { model: MODELLO_DI_PRIMA, temperature, max_tokens, response_format: { type: 'json_object' }, messages }, invia, CITY_LIST_TIMEOUT_MS);
+      { model: MODELLO_DI_PRIMA, temperature, max_tokens, response_format: { type: 'json_object' }, messages }, invia, CITY_LIST_TIMEOUT_MS,
+      chiaveAnthropic ? primoAnthropic(passaggioLista, chiaveAnthropic) : undefined);
     if (info.ripiego) console.warn(`[openai-proxy] ${passaggioLista} (${cosa}): ${info.chiesto} → ripiego su ${info.usato} (${info.motivo})`);
     modelliUsati.push({ cosa, ...info });
     return data;
@@ -327,7 +352,8 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
     }
   } catch (err) {
     console.error('[openai-proxy] lista città: OpenAI non risponde o rifiuta:', scrubLogText(err));
-    return json(502, { error: MSG_ENGINE_DOWN, code: 'OPENAI_ERROR', source: 'openai' });
+    // chiude I1: anche con tutti e due i fornitori giu' il client riceve il messaggio onesto e il codice (credito, troppe richieste, errore)
+    return json(502, { error: MSG_ENGINE_DOWN, code: codiceDaMotivo(err), source: 'openai' });
   }
   const tAi = Date.now() - t0;
   // la scala decide quanti posti si leggono e come si verificano (un borgo: «nome, comune, provincia»)
@@ -620,7 +646,38 @@ serve(async (req: Request) => {
   // deno-lint-ignore no-explicit-any
   let infoModello: Record<string, any> | null = passaggioValido(passaggio)
     ? { passaggio, chiesto: modelloPassaggio, usato: chiesto, ripiego: false } : null;
-  if (passaggioValido(passaggio) && !isStreaming && modelloPassaggio !== chiesto && MODELLI_AMMESSI.has(modelloPassaggio)) {
+  // FORNITORE-AI — Claude per ogni testo non in streaming (traduttore, selettore, narratore, contorno, notifiche). Due tentativi se sbaglia
+  // (non se scade il tempo, non se il credito e' finito), poi si ripiega su OpenAI al modello che il client ha chiesto (quello di prima).
+  const chiaveAnthropic = isStreaming ? null : anthropicAttivo();
+  if (chiaveAnthropic) {
+    const nome = passaggioValido(passaggio) ? passaggio : null;
+    const modelloA = modelloAnthropicPer(passaggio, envLetto);
+    const limite = nome ? timeoutPer(nome, UPSTREAM_TIMEOUT_MS) : UPSTREAM_TIMEOUT_MS;
+    const t0 = Date.now();
+    let motivo = '';
+    let primoErrore: string | null = null;
+    for (let tentativo = 1; tentativo <= 2; tentativo++) {
+      let ripeti = false;
+      try {
+        const d = await chiamaAnthropic(chiaveAnthropic, modelloA, openAiPayload, limite);
+        if (!rispostaVuota(d)) {
+          return json(200, { ...d, _modello: { passaggio: nome, fornitore: 'anthropic', chiesto: modelloA, usato: modelloA, ripiego: false, ms: Date.now() - t0,
+            ...(primoErrore ? { tentativi: 2, primoErrore } : {}) } }, quotaHeaders);
+        }
+        motivo = 'risposta vuota';
+      } catch (err) {
+        const scaduto = (err as Error)?.name === 'AbortError';
+        const credito = err instanceof ErroreAnthropic && err.codice === 'OPENAI_CREDIT_EXHAUSTED';
+        motivo = scaduto ? `oltre il tempo massimo (${limite / 1000} s)` : (err instanceof ErroreAnthropic ? err.message : `rete (${scrubLogText(err).slice(0, 40)})`);
+        ripeti = !scaduto && !credito;
+      }
+      if (!ripeti || tentativo === 2) break;
+      primoErrore = motivo;
+    }
+    infoModello = { passaggio: nome, fornitore: 'openai', fornitoreChiesto: 'anthropic', chiesto: modelloA, usato: chiesto, ripiego: true, motivo,
+      ...(primoErrore ? { tentativi: 2, primoErrore } : {}), ms: Date.now() - t0 };
+    console.warn(`[openai-proxy] ${nome ?? 'contorno'}: ${modelloA} → ripiego su OpenAI ${chiesto} (${scrubLogText(motivo)})`);
+  } else if (passaggioValido(passaggio) && !isStreaming && modelloPassaggio !== chiesto && MODELLI_AMMESSI.has(modelloPassaggio)) {
     const t0 = Date.now();
     const limite = timeoutPer(passaggio, UPSTREAM_TIMEOUT_MS);
     let motivo = '';

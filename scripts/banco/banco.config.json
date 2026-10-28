@@ -39,7 +39,8 @@
   "prezziUsd": {
     "_fonte": "listini pubblici al 10/2026, da ricontrollare: gpt-4o-mini per milione di token; Google Places (API legacy) per chiamata",
     "_openaiPerModello": "C10b2 — prezzo per milione di token di ogni modello (listino ufficiale https://developers.openai.com/api/docs/pricing, letto il 14/10/2026, tariffa Standard). I token di un modello che ragiona contano anche il ragionamento (sono fatturati in uscita).",
-    "openaiPerModello": { "gpt-4o-mini": { "input": 0.15, "output": 0.6 }, "gpt-6.1-sol": { "input": 2.0, "output": 10.0 } },
+    "openaiPerModello": { "gpt-4o-mini": { "input": 0.15, "output": 0.6 }, "gpt-6.1-sol": { "input": 2.0, "output": 10.0 }, "claude-haiku-4-5": { "input": 1.0, "output": 5.0 }, "claude-sonnet-5-5": { "input": 2.0, "output": 10.0 } },
+    "_claude": "FORNITORE-AI — listino Anthropic (skill claude-api, tabella modelli del 25/09/2026, da ricontrollare in Console): claude-haiku-4-5 1 $/5 $, claude-sonnet-5-5 2 $/10 $ per milione di token",
     "openaiInputPerMilione": 0.15,
     "openaiOutputPerMilione": 0.6,
     "google": {

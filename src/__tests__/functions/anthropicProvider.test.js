@@ -38,6 +38,12 @@ describe('anthropic.ts — formato della chiamata e della risposta', () => {
     expect(c.thinking).toEqual({ type: 'between_tools' });
   });
 
+  it('Haiku 5.5 rifiuta temperature (400 visto dal vivo): non si manda; Haiku 4.5 la riceve', () => {
+    const p = { temperature: 0.2, max_tokens: 100, messages: [{ role: 'user', content: 'x' }] };
+    expect(corpoAnthropic('claude-haiku-5-5', p).temperature).toBeUndefined();
+    expect(corpoAnthropic('claude-haiku-4-5', p).temperature).toBe(0.2);
+  });
+
   it('un\'immagine data: diventa base64, un URL resta URL (analisi dei locali)', () => {
     const c = corpoAnthropic('claude-haiku-4-5', {
       max_tokens: 100,

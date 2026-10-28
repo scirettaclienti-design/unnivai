@@ -43,6 +43,8 @@ export function modelliAnthropicPer(passaggio: unknown, env: Env): string[] {
 
 /** Sonnet 5.5 rifiuta temperature diverse da quella di difetto (400) e ragiona di suo: lo si tiene senza ragionamento. */
 const eSonnet5 = (modello: string) => /^claude-sonnet-5/.test(modello);
+/** I modelli della famiglia 5 rifiutano `temperature` (400: «`temperature` is deprecated for this model», visto dal vivo su claude-haiku-5-5). */
+const rifiutaTemperature = (modello: string) => /^claude-[a-z]+-5/.test(modello);
 
 // deno-lint-ignore no-explicit-any
 type Corpo = Record<string, any>;
@@ -96,7 +98,7 @@ export function corpoAnthropic(modello: string, payload: Corpo): Corpo {
     };
     if (sistema.length) corpo.system = sistema.join('\n\n');
     if (eSonnet5(modello)) corpo.thinking = { type: 'between_tools' };
-    else if (Number.isFinite(Number(payload.temperature)) && payload.temperature !== undefined) corpo.temperature = Math.min(1, Math.max(0, Number(payload.temperature)));
+    if (!rifiutaTemperature(modello) && Number.isFinite(Number(payload.temperature)) && payload.temperature !== undefined) corpo.temperature = Math.min(1, Math.max(0, Number(payload.temperature)));
     return corpo;
 }
 

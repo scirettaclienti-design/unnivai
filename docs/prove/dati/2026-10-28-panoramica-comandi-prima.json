@@ -1,0 +1,156 @@
+{
+ "tag": "prima",
+ "ora": "2026-10-28T10:00:00+01:00",
+ "base": "http://localhost:5294",
+ "richieste": {
+  "directions": 13
+ },
+ "mapIdVisti": {},
+ "fotogrammi": [],
+ "misure": {
+  "aperturaMappaMs": 3537
+ },
+ "panoramica": {
+  "mapIdAttivo": null,
+  "strati": null,
+  "barraCitta": false,
+  "meteo": false,
+  "cardTesto": "Il tuo giro a Catania\n\nGiornata 9:30–21:15 · 41 min a piedi · 3,0 km · 12 tappe\n\nCambia mezzo\nAVVIA",
+  "indietro": {
+   "x": 16,
+   "y": 16,
+   "w": 46,
+   "h": 46
+  }
+ },
+ "cameraPanoramica": {
+  "zoom": 16,
+  "tilt": 45,
+  "heading": 0
+ },
+ "panoramicaMisure": {
+  "nome": "1-panoramica",
+  "visibili": 12,
+  "rette": [
+   "1@255,223",
+   "2@257,178 off 39,-25",
+   "3@230,174 off -51,-42",
+   "4@89,169 off -18,-6",
+   "5@155,200 off 17,11",
+   "6@133,203 off -29,19",
+   "7@111,309 off 8,9",
+   "8@236,189 off -1,40",
+   "9@229,126 off 1,-1",
+   "10@130,186 off -1,-19",
+   "11@223,192 off 7,-31",
+   "12@79,285 off -8,-9"
+  ],
+  "sovrapposti": [
+   "1/8",
+   "1/11",
+   "2/3",
+   "2/8",
+   "2/11",
+   "3/8",
+   "3/11",
+   "5/6",
+   "5/10",
+   "6/10",
+   "7/12",
+   "8/11"
+  ],
+  "fuoriSchermo": [],
+  "banner": true,
+  "utenteMarker": true
+ },
+ "salti": [
+  {
+   "k": 1,
+   "url": "/map",
+   "pillola": "130 m · verso Basilica Cattedrale di Sant'Agata"
+  },
+  {
+   "k": 2,
+   "url": "/map",
+   "pillola": "130 m · verso Fontana dell'Elefante (uʻ Liotru)"
+  },
+  {
+   "k": 3,
+   "url": "/map",
+   "pillola": "130 m · verso Teatro Antico greco-romano di Catania"
+  },
+  {
+   "k": 4,
+   "url": "/map",
+   "pillola": "130 m · verso Trattoria Sorano"
+  },
+  {
+   "k": 5,
+   "url": "/map",
+   "pillola": "130 m · verso Piazza Giuseppe Mazzini"
+  },
+  {
+   "k": 6,
+   "url": "/map",
+   "pillola": "130 m · verso Castello Ursino"
+  },
+  {
+   "k": 7,
+   "url": "/map",
+   "pillola": "130 m · verso Palazzo dei Chierici"
+  },
+  {
+   "k": 8,
+   "url": "/map",
+   "pillola": "130 m · verso Via Etnea"
+  },
+  {
+   "k": 9,
+   "url": "/map",
+   "pillola": "130 m · verso Bar Popolare"
+  },
+  {
+   "k": 10,
+   "url": "/map",
+   "pillola": "130 m · verso Fontana dell’Amenano"
+  },
+  {
+   "k": 11,
+   "url": "/map",
+   "pillola": "130 m · verso Camelot"
+  },
+  {
+   "k": 12,
+   "url": "/map",
+   "pillola": "Giro completato"
+  },
+  {
+   "k": 13,
+   "bottone": false,
+   "url": "/map"
+  }
+ ],
+ "fine": {
+  "url": "/map",
+  "fineGiro": true,
+  "titolo": "Catania, a modo tuo.",
+  "etichetta": "GIRO COMPLETATO · 28 OTTOBRE",
+  "numeri": "2,3\n\nKM\n\n12\n\nTAPPE\n\n1 min\n\nDURATA",
+  "testoPagina": "3\n4\n5\n6\n8\n10\n11\n7\n12\nScorciatoie da tastiera\nDati mappa ©2026 Google\nTermini\nIl tuo giro a Catania\nAUTO\nPIEDI\n7 min\nBICI\nPercorso Consigliato\n7 min a piedi · 45"
+ },
+ "giroSalvato": "assente",
+ "erroriPagina": [
+  "console: Viewport argument key \"interactive-widget\" not recognized and ignored.",
+  "FALLITA: https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1 cancelled",
+  "console: Viewport argument key \"interactive-widget\" not recognized and ignored.",
+  "console: Failed to load resource: the server responded with a status of 502 ()",
+  "console: 🚨 [poiService] Errore: Error: OSM Fetch failed",
+  "console: Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i16!2i35512!3i25392!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i16!2i35512!3i25393!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i17!2i71028!3i50789!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i17!2i71029!3i50789!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i17!2i71027!3i50787!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i17!2i71030!3i50788!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled"
+ ]
+}

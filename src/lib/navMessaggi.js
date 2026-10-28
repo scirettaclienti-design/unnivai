@@ -16,6 +16,8 @@ export const NAV_TESTI = Object.freeze({
     PASSATA: (nome) => `Sei passato da ${nome}?`,
     PASSATA_VISTA: 'Vista',
     PASSATA_SALTA: 'Saltala',
+    // fine giro dopo «Salta»: i numeri sono quelli di dove sei arrivato davvero
+    FINE_FIN_DOVE: (n, tot) => (n === 0 ? 'Hai saltato tutte le tappe: il giro finisce qui.' : `Sei arrivato a ${n} ${n === 1 ? 'tappa' : 'tappe'} su ${tot}.`),
     ARRIVATO: 'Sono arrivato',
     SALTA: 'Salta',
     // NAV-MAPPA: la scheda compatta (tasti a icona con etichetta accessibile) e le impostazioni del giro

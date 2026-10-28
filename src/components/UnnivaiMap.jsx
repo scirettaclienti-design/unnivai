@@ -57,17 +57,22 @@ const NativeClusteredMarkers = ({ validActivities, onActivityClick }) => {
 const MarkersAndRoute = ({ validActivities, routePoints, suggestedTransit, userLocation, onActivityClick, onRouteStats, onDirectionsData, progress, userHeading, panoramica }) => {
     const map = useMap();
     // nav-camera: i segnaposti numerati non si sovrappongono (si ricalcola quando cambia lo zoom)
-    const [zoom, setZoom] = useState(null);
+    const [vista, setVista] = useState({ zoom: null, inclinazione: 0 });
     useEffect(() => {
         if (!map) return undefined;
-        const leggi = () => setZoom(map.getZoom?.() ?? null);
-        const l = map.addListener?.('zoom_changed', leggi);
-        const primo = window.google?.maps?.event?.addListenerOnce?.(map, 'idle', leggi); // lo zoom di partenza, appena la mappa e' ferma
-        return () => { l?.remove?.(); primo?.remove?.(); };
+        // zoom e inclinazione a gradini (inclinazione a 5°): il giro non ricalcola a ogni frame
+        const leggi = () => setVista(v => {
+            const zoom = map.getZoom?.() ?? null, inclinazione = Math.round((map.getTilt?.() ?? 0) / 5) * 5;
+            return v.zoom === zoom && v.inclinazione === inclinazione ? v : { zoom, inclinazione };
+        });
+        leggi(); // quello che la mappa ha gia' adesso
+        const ascolti = ['zoom_changed', 'tilt_changed'].map(ev => map.addListener?.(ev, leggi));
+        const primo = window.google?.maps?.event?.addListenerOnce?.(map, 'idle', leggi); // e quello di quando si ferma
+        return () => { ascolti.forEach(l => l?.remove?.()); primo?.remove?.(); };
     }, [map]);
     const spostamenti = useMemo(() => separaSegnaposti(
-        validActivities.map((a, i) => ({ a, i })).filter(({ a }) => a.index !== undefined).map(({ a, i }) => ({ id: a.id || `marker-${i}`, lat: Number(a.latitude ?? a.lat), lng: Number(a.longitude ?? a.lng) })), zoom,
-    ), [validActivities, zoom]);
+        validActivities.map((a, i) => ({ a, i })).filter(({ a }) => a.index !== undefined).map(({ a, i }) => ({ id: a.id || `marker-${i}`, lat: Number(a.latitude ?? a.lat), lng: Number(a.longitude ?? a.lng) })), vista.zoom, { inclinazione: vista.inclinazione },
+    ), [validActivities, vista]);
     if (!map) return null;
 
     const useNativeClustering = validActivities.length > CLUSTER_THRESHOLD;

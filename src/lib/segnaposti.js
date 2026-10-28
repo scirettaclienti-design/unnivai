@@ -1,10 +1,11 @@
 /**
  * SEGNAPOSTI CHE NON SI SOVRAPPONGONO (panoramica del giro). Due segnaposti numerati piu' vicini del loro diametro, allo zoom attuale, si
  * allontanano in linea retta (a coppie, qualche passo di rilassamento) fino a non toccarsi; mai piu' di `MAX_SPOSTAMENTO_PX`. Funzione pura:
- * i punti si proiettano sul piano del mondo (256 px a zoom 0, il doppio a ogni zoom), nessuna chiamata alla mappa.
+ * i punti si proiettano sul piano del mondo (256 px a zoom 0, il doppio a ogni zoom), nessuna chiamata alla mappa. Con la mappa inclinata (`inclinazione`,
+ * gradi) le distanze in verticale si accorciano di cos(inclinazione): le si misura come le vede l'occhio, sullo schermo.
  */
-export const DIAMETRO_SEGNAPOSTO_PX = 66;
-export const MAX_SPOSTAMENTO_PX = 70;
+export const DIAMETRO_SEGNAPOSTO_PX = 56; // il badge e' 44 px + il respiro: due numeri a questa distanza non si toccano
+export const MAX_SPOSTAMENTO_PX = 140; // un mucchio di cinque ha bisogno di un raggio largo; oltre, il numero starebbe lontano dal suo posto
 
 const mondo = (lat, lng, zoom) => {
     const scala = 256 * 2 ** zoom;
@@ -15,12 +16,14 @@ const mondo = (lat, lng, zoom) => {
 /**
  * @param {Array<{ id: string|number, lat: number, lng: number }>} punti
  * @param {number} zoom lo zoom attuale della mappa
+ * @param {{ inclinazione?: number }} opzioni `inclinazione` della mappa in gradi (0 = vista dall'alto)
  * @returns {Map<string|number, { dx: number, dy: number }>} lo spostamento in pixel (solo per chi si sposta)
  */
-export function separaSegnaposti(punti, zoom, { diametro = DIAMETRO_SEGNAPOSTO_PX, max = MAX_SPOSTAMENTO_PX, passi = 12 } = {}) {
+export function separaSegnaposti(punti, zoom, { diametro = DIAMETRO_SEGNAPOSTO_PX, max = MAX_SPOSTAMENTO_PX, passi = 80, inclinazione = 0 } = {}) {
     const out = new Map();
     if (!Number.isFinite(zoom) || !Array.isArray(punti) || punti.length < 2) return out;
-    const P = punti.filter(p => Number.isFinite(p?.lat) && Number.isFinite(p?.lng)).map(p => ({ id: p.id, ...mondo(p.lat, p.lng, zoom), dx: 0, dy: 0 }));
+    const scorcio = Math.max(0.35, Math.cos(((Number(inclinazione) || 0) * Math.PI) / 180)); // mai meno di 0,35: oltre, la mappa e' quasi di taglio
+    const P = punti.filter(p => Number.isFinite(p?.lat) && Number.isFinite(p?.lng)).map(p => { const w = mondo(p.lat, p.lng, zoom); return { id: p.id, x: w.x, y: w.y * scorcio, dx: 0, dy: 0 }; });
     for (let k = 0; k < passi; k++) {
         let mosso = false;
         for (let i = 0; i < P.length; i++) {

@@ -2175,7 +2175,7 @@ const MapPage = () => {
             {/* GPS Activation Banner (se non attivo) */}
             {!isNavigating && !isRoutePlannerOpen && (
                 <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 w-[85%] max-w-sm pointer-events-auto">
-                    <GpsActivationBanner />
+                    <GpsActivationBanner posizioneNota={!!localCenter} />
                 </div>
             )}
 
@@ -2528,12 +2528,14 @@ const MapPage = () => {
                 const fatte = (activeRoute || []).filter(t => completedSteps.includes(t.id)).map(t => tourData?.steps?.[t.index] || t);
                 const saltate = (activeRoute || []).filter(t => skippedSteps.includes(t.id)).length;
                 const tutte = (activeRoute || []).map(t => tourData?.steps?.[t.index] || t);
-                const numeri = numeriDelGiro({ tappe: tutte, elapsedMs: navElapsedMs, distanzaM: null });
+                // i numeri sono quelli di dove sei arrivato davvero: con «Salta» fino in fondo non si contano tappe mai raggiunte
+                const numeri = numeriDelGiro({ tappe: saltate > 0 ? fatte : tutte, elapsedMs: navElapsedMs, distanzaM: null });
                 const imparato = cosaHoImparato({ fatte: fatte.map(st => ({ categoria: stopCoreCategory(st) })), totale: activeRoute.length, saltate, dnaWeights });
                 const testoCondivisione = `Ho appena fatto un giro${tourData?.city ? ` a ${tourData.city}` : ''} con DoveVai: ${numeri.tappe} tappe${numeri.km ? `, ${numeri.km} km` : ''}.`;
                 return (
                     <FineGiro
                         data={dataDelGiro(new Date())} citta={tourData?.city || null} tappe={tutte} numeri={numeri} imparato={imparato}
+                        nota={saltate > 0 ? NAV_TESTI.FINE_FIN_DOVE(fatte.length, activeRoute.length) : null}
                         onChiudi={() => setIsSummaryModalOpen(false)}
                         onMete={() => { setIsSummaryModalOpen(false); navigate('/profile'); }}
                         onCondividi={() => {

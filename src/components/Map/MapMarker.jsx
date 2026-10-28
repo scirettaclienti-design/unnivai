@@ -24,7 +24,7 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber, offset
     if (isStep && activity.isCurrentStep && !activity.isCompleted) {
         return (
             <AdvancedMarker position={{ lat, lng }} onClick={() => onClick && onClick(activity)} title={activity.name || activity.title || 'Prossima tappa'} zIndex={500}>
-                <div data-testid="faro" className="relative flex items-center justify-center" style={{ transform: 'translate(0, 0)' }}>
+                <div data-testid="faro" data-offset={offsetPx ? `${offsetPx.dx},${offsetPx.dy}` : undefined} className="relative flex items-center justify-center" style={{ transform: offsetPx ? `translate(${offsetPx.dx}px, ${offsetPx.dy}px)` : 'translate(0, 0)' }}>
                     <div className="absolute w-16 h-16 rounded-full border-2 border-brand-orange/50 animate-ping pointer-events-none" />
                     <div className="absolute w-14 h-14 rounded-full bg-brand-orange/20 pointer-events-none" />
                     <div className="relative w-11 h-11 rounded-full bg-obsidian-card border-[3px] border-brand-orange flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.45)]">
@@ -42,7 +42,7 @@ export const MapMarker = React.memo(({ activity, onClick, sequenceNumber, offset
             title={activity.name || activity.title || 'Marker'}
             zIndex={baseZIndex}
         >
-            <div style={offsetPx ? { transform: `translate(${offsetPx.dx}px, ${offsetPx.dy}px)` } : undefined} data-offset={offsetPx ? `${offsetPx.dx},${offsetPx.dy}` : undefined} className={`group relative cursor-pointer ${isStep ? 'animate-in zoom-in slide-in-from-bottom-2 duration-300' : ''} ${activity.isCompleted ? 'opacity-60' : ''}`} style={{ transformOrigin: 'bottom center', transform: 'translate(0, -50%)' }}>
+            <div data-offset={offsetPx ? `${offsetPx.dx},${offsetPx.dy}` : undefined} className={`group relative cursor-pointer ${isStep ? 'animate-in zoom-in slide-in-from-bottom-2 duration-300' : ''} ${activity.isCompleted ? 'opacity-60' : ''}`} style={{ transformOrigin: 'bottom center', transform: `${offsetPx ? `translate(${offsetPx.dx}px, ${offsetPx.dy}px) ` : ''}translate(0, -50%)` }}>
 
                 {/* Pulse radar — tappa corrente o utente vicino (<20m) */}
                 {activity.isCurrentStep && (

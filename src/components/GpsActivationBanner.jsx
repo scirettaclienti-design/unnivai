@@ -1,16 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapPin, Loader, ChevronRight } from 'lucide-react';
 import { useCity } from '../context/CityContext';
-import { useGeoPermesso, serveBannerPosizione } from '../hooks/useGeoPermesso';
+import { useGeoPermesso, serveBannerPosizione, bannerNegatoGiaMostrato, ricordaBannerNegato, dimenticaBannerNegato } from '../hooks/useGeoPermesso';
 
-export default function GpsActivationBanner() {
+export default function GpsActivationBanner({ posizioneNota = false }) {
     const { gpsActive, gpsCoords, requestGPS } = useCity();
     // NAV-2: il banner compare solo se la posizione e' davvero negata o assente (con il permesso concesso o un GPS gia' letto non serve)
     const permesso = useGeoPermesso();
     const [isLoading, setIsLoading] = useState(false);
     const [feedback, setFeedback] = useState(null); // { type: 'success'|'error', message }
 
-    if (!serveBannerPosizione({ gpsActive, gpsCoords, permesso })) return null;
+    // un permesso negato lo diciamo una volta sola per telefono (letto al primo render: quello che c'era prima di questa apertura)
+    const [giaMostrato] = useState(bannerNegatoGiaMostrato);
+    const serve = serveBannerPosizione({ gpsActive, gpsCoords, permesso, posizioneNota, giaMostrato });
+    useEffect(() => {
+        if (permesso === 'granted') dimenticaBannerNegato();
+        else if (serve && permesso === 'denied') ricordaBannerNegato();
+    }, [permesso, serve]);
+    if (!serve) return null;
 
     const handleClick = () => {
         setIsLoading(true);

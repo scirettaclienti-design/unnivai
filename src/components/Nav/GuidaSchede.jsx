@@ -176,17 +176,21 @@ export function SchedaTappa({ numero, categoria, nome, foto, foti = [], pillole 
 }
 
 /** SCHERMATA 5 — il giro è finito: «<Città>, a modo tuo.», il tracciato, tre numeri, cosa ho imparato di te. */
-export function FineGiro({ data, citta, tappe = [], numeri, imparato, onMete, onCondividi, onChiudi }) {
+export function FineGiro({ data, citta, tappe = [], numeri, imparato, nota = null, onMete, onCondividi, onChiudi }) {
+    // i tocchi ripetuti di «Salta» non devono cadere sui tasti della schermata che si apre dopo: per mezzo secondo non risponde ai tocchi
+    const [pronta, setPronta] = useState(false);
+    useEffect(() => { const id = setTimeout(() => setPronta(true), 600); return () => clearTimeout(id); }, []);
     const punti = tracciatoSvg(tappe, 320, 190, 24);
     const linea = punti.map(p => `${p.x},${p.y}`).join(' ');
     return (
-        <div className="fixed inset-0 z-[95] bg-obsidian-bg flex flex-col font-sans" data-testid="fine-giro" role="dialog" aria-label="Giro completato">
+        <div className="fixed inset-0 z-[95] bg-obsidian-bg flex flex-col font-sans" data-testid="fine-giro" data-pronta={pronta ? 'si' : 'no'} style={pronta ? undefined : { pointerEvents: 'none' }} role="dialog" aria-label="Giro completato">
             <div className="overflow-y-auto flex-1 px-4" style={{ paddingTop: 'max(1.25rem, env(safe-area-inset-top))' }}>
                 <div className="flex items-center justify-between">
                     <p data-testid="fine-etichetta" className={`${ETICHETTA} text-brand-orange`}>Giro completato · {data}</p>
                     <button onClick={onChiudi} aria-label="Chiudi" className={`${TASTO} w-11 h-11 bg-obsidian-card text-obsidian-primary border-obsidian-border`}><X size={18} aria-hidden="true" /></button>
                 </div>
                 <h1 data-testid="fine-titolo" className="text-[34px] leading-[1.05] font-bold text-obsidian-primary mt-2">{citta ? `${citta}, a modo tuo.` : 'A modo tuo.'}</h1>
+                {nota && <p data-testid="fine-nota" className="text-sm text-obsidian-secondary mt-2">{nota}</p>}
                 <div className="mt-5 rounded-[24px] bg-obsidian-card border border-obsidian-border p-2" data-testid="fine-tracciato">
                     <svg viewBox="0 0 320 190" className="w-full h-auto" role="img" aria-label="Il tracciato del giro">
                         {punti.length > 1 && <polyline points={linea} fill="none" stroke="var(--brand-orange)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" opacity="0.9" />}

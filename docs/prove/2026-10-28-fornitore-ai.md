@@ -67,3 +67,16 @@ Dopo il report Ivano ha portato traduttore, selettore e notifiche su `claude-hai
 
 Lettura: 4.5 è 2–3 volte più veloce e costa meno di metà; 5.5 sul traduttore/selettore scrive molto di più (circa tre volte i token) ed è più lento. Sulla qualità, in questo caso la scelta di 5.5 è più coerente con «giro insider» (siti storici); quella di 4.5 mette un panificio fra le tappe del mattino. Un solo campione: non basta per promuovere o retrocedere nessun compito. Tempi totali non confrontabili (il primo giro include la lista nuova da 7 s).
 Spesa cumulata della sessione ≈ 1,55 $ (listino; la cache Google riduce la spesa vera).
+
+## Addendum 2 — selettore su Sonnet 5.5 contro Haiku 4.5 (Troina e Catania, 29/10, liste e ricerche in cache)
+Configurazione provata (secret): traduttore Haiku 4.5, selettore **Sonnet 5.5**, notifiche Haiku 4.5, narratore e liste Sonnet 5.5. Un solo giro per caso: indicativo.
+
+| Giro | Selettore | Tempo selettore | Tempo giro* | Costo AI del giro | Tappe |
+|---|---|---|---|---|---|
+| Troina | Haiku 4.5 | 2,7 s | 22,9 s | 0,014 $ | Via Conte Ruggero, Torre Capitania, Chiesa Madre, panificio, pizzeria |
+| Troina | Sonnet 5.5 | 2,0 s | 15,6 s | 0,021 $ | **le stesse 5 tappe** |
+| Catania | Haiku 4.5 | 5,3 s | 21,1 s | 0,027 $ | 901 Café, via dei Crociferi, Palazzo dei Chierici, Terme Achilliane, Cattedrale, … |
+| Catania | Sonnet 5.5 | 3,1 s | 17,5 s | 0,041 $ | Cassatelle e Caffè, via dei Crociferi, **Piazza del Duomo**, Terme Achilliane, Cattedrale, … **Via Etnea** |
+*I tempi dei giri non sono confrontabili con precisione: i secondi giri trovano la cache Google più calda.
+
+Lettura: Sonnet non è più lento sul selettore (2,0 s e 3,1 s) e costa 0,007–0,014 $ in più a giro. La qualità delle tappe non cambia in modo visibile: a Troina scelte identiche, a Catania poche sostituzioni equivalenti (una piazza al posto di un palazzo). Con la regola «si promuove solo se la qualità migliora in modo visibile» il selettore resta su Haiku; la scelta è di Ivano.

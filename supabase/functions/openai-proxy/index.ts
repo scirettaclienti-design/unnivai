@@ -667,7 +667,7 @@ serve(async (req: Request) => {
           return json(200, { ...d, _modello: { passaggio: nome, compito, fornitore: 'anthropic', chiesto: modelliA[0], usato: modelloA, ripiego: false, ms: Date.now() - t0,
             ...(primoErrore ? { tentativi: 2, primoErrore } : {}) } }, quotaHeaders);
         }
-        motivo = 'risposta vuota';
+        motivo = `risposta vuota${d?._stop ? ` (${d._stop.stop_reason}; ${d._stop.blocchi.join('+') || 'nessun blocco'})` : ''}`;
       } catch (err) {
         const scaduto = (err as Error)?.name === 'AbortError';
         const credito = err instanceof ErroreAnthropic && err.codice === 'OPENAI_CREDIT_EXHAUSTED';

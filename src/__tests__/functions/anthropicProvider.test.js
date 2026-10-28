@@ -44,6 +44,32 @@ describe('anthropic.ts — formato della chiamata e della risposta', () => {
     expect(corpoAnthropic('claude-haiku-4-5', p).temperature).toBe(0.2);
   });
 
+  it('famiglia 5: ragionamento spento (altrimenti un testo breve esce vuoto); Haiku 4.5 no', () => {
+    const p = { max_tokens: 100, messages: [{ role: 'user', content: 'x' }] };
+    expect(corpoAnthropic('claude-haiku-5-5', p).thinking).toEqual({ type: 'between_tools' });
+    expect(corpoAnthropic('claude-haiku-4-5', p).thinking).toBeUndefined();
+  });
+
+  it('se il modello rifiuta il parametro del ragionamento (400), si riprova senza, con piu\' token', async () => {
+    const corpi = [];
+    const invia = vi.fn(async (_u, init) => {
+      const b = JSON.parse(init.body); corpi.push(b);
+      if (b.thinking) return new Response(JSON.stringify({ error: { type: 'invalid_request_error', message: 'thinking.type: between_tools is not supported' } }), { status: 400 });
+      return new Response(JSON.stringify({ stop_reason: 'end_turn', content: [{ type: 'text', text: '{"a":1}' }], usage: { input_tokens: 1, output_tokens: 1 } }), { status: 200 });
+    });
+    const r = await chiamaAnthropic('k', 'claude-haiku-5-5', { max_tokens: 200, messages: [{ role: 'user', content: 'x' }] }, 1000, invia);
+    expect(r.choices[0].message.content).toBe('{"a":1}');
+    expect(corpi[0].thinking).toBeDefined();
+    expect(corpi[1].thinking).toBeUndefined();
+    expect(corpi[1].max_tokens).toBe(1700);
+  });
+
+  it('una risposta vuota dice perche\' (stop e blocchi) per i log', () => {
+    const r = rispostaComeOpenAi({ stop_reason: 'max_tokens', content: [{ type: 'thinking', thinking: '' }], usage: { input_tokens: 5, output_tokens: 300 } }, true);
+    expect(r.choices[0].message.content).toBe('');
+    expect(r._stop).toEqual({ stop_reason: 'max_tokens', blocchi: ['thinking'] });
+  });
+
   it('un\'immagine data: diventa base64, un URL resta URL (analisi dei locali)', () => {
     const c = corpoAnthropic('claude-haiku-4-5', {
       max_tokens: 100,

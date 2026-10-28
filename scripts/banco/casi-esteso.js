@@ -105,6 +105,9 @@ export const CASI_ESTESI = [
     perte('perte-firenze-1100-veg', 'Firenze', '11:00', VEG),
     // C8a — la sera di Per Te: non cambia (tour tematici senza momenti), si misura.
     perte('perte-catania-1900', 'Catania', '19:00'),
+    // FORNITORE-AI — i tre giri del confronto Claude (liste nuove: si lancia con BANCO_GIORNO nel futuro)
+    crea('crea-roma-2000', 'Roma', '20:00', 'Una serata a Roma', { duration: 'Mezza Giornata', pace: 'Attivo' }),
+    crea('crea-troina-1000', 'Troina', '10:00', 'Una mattina a Troina', { duration: 'Mezza Giornata' }),
     // C8b — Per Te nelle sue ore: la colazione al mattino presto.
     perte('perte-catania-0830', 'Catania', '08:30'),
 ];

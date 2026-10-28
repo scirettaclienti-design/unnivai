@@ -91,7 +91,7 @@ export async function chiamaConRipiego(passaggio: Passaggio, payload: Record<str
         for (let tentativo = 1; tentativo <= 2; tentativo++) {
             try {
                 const d = primo ? await primo.invia(payload, timeoutMs) : await invia(corpoPer(modello, payload), timeoutMs);
-                if (rispostaVuota(d)) throw Object.assign(new Error('risposta vuota'), { vuota: true });
+                if (rispostaVuota(d)) throw Object.assign(new Error(`risposta vuota${d?._stop ? ` (${d._stop.stop_reason}; ${d._stop.blocchi.join('+') || 'nessun blocco'})` : ''}`), { vuota: true });
                 return { data: d, info: { passaggio, chiesto: modello, usato: primo ? String(d?.model || modello) : modello, fornitore, ripiego: false, ms: Date.now() - t0, usage: d?.usage ?? null,
                     ...(primoErrore ? { tentativi: 2, primoErrore } : {}) } };
             } catch (err) {

@@ -97,7 +97,8 @@ export function corpoAnthropic(modello: string, payload: Corpo): Corpo {
         messages: messaggi,
     };
     if (sistema.length) corpo.system = sistema.join('\n\n');
-    if (eSonnet5(modello)) corpo.thinking = { type: 'between_tools' };
+    // la famiglia 5 ragiona di suo e i token del ragionamento si pagano dal tetto di uscita: senza spegnerlo un testo breve puo' uscire vuoto
+    if (eSonnet5(modello) || rifiutaTemperature(modello)) corpo.thinking = { type: 'between_tools' };
     if (!rifiutaTemperature(modello) && Number.isFinite(Number(payload.temperature)) && payload.temperature !== undefined) corpo.temperature = Math.min(1, Math.max(0, Number(payload.temperature)));
     return corpo;
 }
@@ -136,6 +137,8 @@ export function rispostaComeOpenAi(d: Corpo, voleJson: boolean): Corpo {
         model: d?.model ?? null,
         choices: [{ index: 0, message: { role: 'assistant', content: rifiuto ? '' : (voleJson ? estraiJson(testo) : testo) }, finish_reason: d?.stop_reason === 'max_tokens' ? 'length' : 'stop' }],
         usage: { prompt_tokens: input, completion_tokens: Number(u.output_tokens) || 0, total_tokens: input + (Number(u.output_tokens) || 0) },
+        // per i log quando il testo e' vuoto: perche' Anthropic si e' fermato e che blocchi ha mandato
+        _stop: { stop_reason: d?.stop_reason ?? null, blocchi: (Array.isArray(d?.content) ? d.content : []).map((b: Corpo) => String(b?.type)) },
     };
 }
 
@@ -166,13 +169,29 @@ export class ErroreAnthropic extends Error {
 export async function chiamaAnthropic(apiKey: string, modello: string, payload: Corpo, limiteMs: number,
     // deno-lint-ignore no-explicit-any
     invia: (url: string, init: any) => Promise<Response> = fetch): Promise<Corpo> {
+    try {
+        return await chiamaAnthropicUna(apiKey, modello, payload, limiteMs, invia, false);
+    } catch (err) {
+        // un modello che non conosce il parametro del ragionamento (400 che lo nomina): si riprova senza, con margine di token per un eventuale ragionamento
+        if (err instanceof ErroreAnthropic && err.status === 400 && /thinking|between_tools/i.test(err.message)) {
+            return await chiamaAnthropicUna(apiKey, modello, payload, limiteMs, invia, true);
+        }
+        throw err;
+    }
+}
+
+async function chiamaAnthropicUna(apiKey: string, modello: string, payload: Corpo, limiteMs: number,
+    // deno-lint-ignore no-explicit-any
+    invia: (url: string, init: any) => Promise<Response>, senzaRagionamento: boolean): Promise<Corpo> {
     const c = new AbortController();
     const t = setTimeout(() => c.abort(), limiteMs);
     try {
         const r = await invia(ANTHROPIC_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
-            body: JSON.stringify(corpoAnthropic(modello, payload)),
+            body: JSON.stringify(senzaRagionamento
+                ? (({ thinking: _t, ...resto }) => ({ ...resto, max_tokens: Math.min(resto.max_tokens + 1500, 8000) }))(corpoAnthropic(modello, payload))
+                : corpoAnthropic(modello, payload)),
             signal: c.signal,
         });
         const d = await r.json().catch(() => null);

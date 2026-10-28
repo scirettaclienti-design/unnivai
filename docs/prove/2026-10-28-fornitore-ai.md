@@ -24,7 +24,7 @@ Assegnazione decisa da Ivano. Tempi = durata della chiamata al fornitore misurat
 |---|---|---|---|---|---|
 | traduttore | `claude-haiku-5-5` | 4,8 s | 2,1 s | Haiku, i due compiti insieme: 0,012 $ (Troina), 0,026 $ (Catania) | veloce ed economico. Prima `gpt-6.1-sol`: 2,7–3,9 s (stesso caso Troina): ora uguale o un poco più lento |
 | selettore | `claude-haiku-5-5` | 4,7 s | 9,2 s | (incluso sopra) | prima 2,8–14,8 s: nello stesso intervallo |
-| lista città (abitanti + lista) | `claude-sonnet-5-5` | 1,1 s + 6,2 s (8 nomi, 8 verificati) | 0,7 s + 11,1 s (18 proposti, 16 verificati, 2 scartati) | 0,0095 $ (Troina) / 0,0154 $ (Catania) per la sola lista | **molto più veloce**: prima `gpt-6.1-sol` 21–34 s per la lista di Troina |
+| lista città (abitanti + lista) | `claude-sonnet-5-5` | 1,1 s + 6,2 s (8 nomi, 8 verificati) | 0,7 s + 11,1 s (18 proposti, 16 verificati, 2 scartati) | 0,010 $ (Troina) / 0,020 $ (Catania) per la sola lista | **molto più veloce**: prima `gpt-6.1-sol` 21–34 s per la lista di Troina |
 | narratore | `claude-sonnet-5-5` | (tempo non isolato) | (tempo non isolato) | ≈ 0,007 $ / 0,014 $ | frasi chiuse: nessuna frase tolta dalle guardie in entrambi i giri (`frasiTolte` vuoto) |
 | notifiche | `claude-haiku-5-5` | non provate | non provate | — | assegnate; il client le etichetta, finché non esce il frontend vanno sul contorno (Sonnet) |
 | contorno, lista quartiere | `claude-sonnet-5-5` | non provati | non provati | — | assegnati |

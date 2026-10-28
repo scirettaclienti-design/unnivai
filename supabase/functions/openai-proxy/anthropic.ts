@@ -16,7 +16,9 @@
 export type Fornitore = 'anthropic' | 'openai';
 
 export const FORNITORE_DI_PRIMA: Fornitore = 'openai';
-export const MODELLO_VELOCE = 'claude-haiku-5-5,claude-sonnet-5-5';   // Haiku 5.5; se fallisce, Sonnet 5.5; poi OpenAI (decisione di Ivano: solo modelli 5.5)
+// Catena dei compiti veloci: Haiku 4.5 (misurato ~1,5 s, ~66 token) → Haiku 5.5 → Sonnet 5.5 → OpenAI. Haiku 5.5 diventa il primo solo se, con il
+// ragionamento fissato sotto, misura <= 1,8 s e token comparabili sugli stessi casi (scripts/prova-reale/ragionamento-haiku55.mjs).
+export const MODELLO_VELOCE = 'claude-haiku-4-5,claude-haiku-5-5,claude-sonnet-5-5';
 export const MODELLO_NARRATORE = 'claude-sonnet-5-5';
 export type Compito = 'traduttore' | 'selettore' | 'notifiche' | 'narratore' | 'lista' | 'quartiere' | 'contorno';
 /** Compito → modelli di difetto. `contorno` = ogni chiamata senza passaggio (chat, monumenti, meteo, business). */
@@ -72,19 +74,21 @@ function bloccoDa(p: any): Corpo | null {
 }
 
 /**
- * Come si ferma il ragionamento dei modelli 5.x (che ragionano di suo, e i token del ragionamento si pagano dal tetto di uscita).
- * Non si sa a priori cosa accetti ogni modello: si prova in ordine e si ricorda la prima variante accettata (per modello, finche' l'istanza
- * vive). Le ultime due lasciano il ragionamento acceso: per quelle il tetto di uscita sale di `margine` token (fino a 8000).
+ * Il ragionamento dei modelli 5.x, FISSATO per modello (nessun tentativo in produzione). I modelli 5.x ragionano di suo e i token del
+ * ragionamento contano dentro `max_tokens` (documentazione Anthropic: «a small limit can stop after a thinking block and before any text»).
+ *  - claude-haiku-5-5: `thinking: {type:'disabled'}` e' ammesso «at high effort or below» (l'effort di difetto e' medium) — platform.claude.com/docs/en/models/haiku-5-5/whats-new-haiku-5-5.
+ *    `between_tools` NON e' nella documentazione di Haiku 5.5 (e' di Sonnet 5.5). La variante resta confermata o cambiata da scripts/prova-reale/ragionamento-haiku55.mjs.
+ *  - claude-sonnet-5-5: `thinking: disabled` da' 400; per spegnerlo la documentazione indica `between_tools` (accettato a effort high o sotto).
+ * Un modello che rifiuta il parametro risponde 400: la catena passa al modello dopo, poi OpenAI. Con `margine` > 0 il tetto di uscita sale (max 8000).
  */
-export type Variante = { nome: string; parti: Corpo; margine: number };
-export const VARIANTI_RAGIONAMENTO: Variante[] = [
-    { nome: 'disabled', parti: { thinking: { type: 'disabled' } }, margine: 0 },
-    { nome: 'between_tools', parti: { thinking: { type: 'between_tools' } }, margine: 0 },
-    { nome: 'effort-low', parti: { output_config: { effort: 'low' } }, margine: 1500 },
-    { nome: 'nessuna', parti: {}, margine: 1500 },
-];
-const variantePerModello = new Map<string, number>();
-const RAGIONAMENTO_RIFIUTATO = /thinking|between_tools|disabled|effort|output_config/i;
+export type Ragionamento = { nome: string; parti: Corpo; margine: number };
+export const RAGIONAMENTO_PER_MODELLO: Record<string, Ragionamento> = {
+    'claude-haiku-5-5': { nome: 'disabled', parti: { thinking: { type: 'disabled' } }, margine: 0 },
+    'claude-sonnet-5-5': { nome: 'between_tools', parti: { thinking: { type: 'between_tools' } }, margine: 0 },
+};
+/** Un altro modello 5.x non elencato: come Haiku 5.5 (e' la forma documentata per spegnere il ragionamento). */
+export const ragionamentoPer = (modello: string): Ragionamento | null =>
+    RAGIONAMENTO_PER_MODELLO[modello] ?? (rifiutaTemperature(modello) ? RAGIONAMENTO_PER_MODELLO['claude-haiku-5-5'] : null);
 
 const CHIEDE_JSON = 'Rispondi solo con un oggetto JSON valido, senza testo prima o dopo e senza blocchi di codice.';
 
@@ -92,7 +96,7 @@ const CHIEDE_JSON = 'Rispondi solo con un oggetto JSON valido, senza testo prima
  * Il corpo di OpenAI → il corpo di Anthropic. Stessi messaggi, stesso tetto di token; i messaggi `system` diventano `system`;
  * `response_format: json_object` (che Anthropic non ha) diventa una riga in coda al system (e la risposta si ripulisce, vedi `estraiJson`).
  */
-export function corpoAnthropic(modello: string, payload: Corpo, variante?: Variante): Corpo {
+export function corpoAnthropic(modello: string, payload: Corpo, ragionamento: Ragionamento | null = ragionamentoPer(modello)): Corpo {
     const sistema: string[] = [];
     const messaggi: Array<{ role: 'user' | 'assistant'; content: Corpo[] | string }> = [];
     for (const m of Array.isArray(payload.messages) ? payload.messages : []) {
@@ -112,7 +116,7 @@ export function corpoAnthropic(modello: string, payload: Corpo, variante?: Varia
         max_tokens: Number.isFinite(chiesti) && chiesti > 0 ? Math.floor(chiesti) : 2000,
         messages: messaggi,
     };
-    const v = rifiutaTemperature(modello) ? (variante ?? VARIANTI_RAGIONAMENTO[0]) : null;
+    const v = ragionamento;
     if (v?.margine) corpo.max_tokens = Math.min(corpo.max_tokens + v.margine, 8000);
     if (sistema.length) corpo.system = sistema.join('\n\n');
     if (v) Object.assign(corpo, v.parti);
@@ -187,41 +191,20 @@ export class ErroreAnthropic extends Error {
 export async function chiamaAnthropic(apiKey: string, modello: string, payload: Corpo, limiteMs: number,
     // deno-lint-ignore no-explicit-any
     invia: (url: string, init: any) => Promise<Response> = fetch): Promise<Corpo> {
-    if (!rifiutaTemperature(modello)) return await chiamaAnthropicUna(apiKey, modello, payload, limiteMs, invia, undefined);
-    let i = variantePerModello.get(modello) ?? 0;
-    for (;;) {
-        try {
-            const r = await chiamaAnthropicUna(apiKey, modello, payload, limiteMs, invia, VARIANTI_RAGIONAMENTO[i]);
-            variantePerModello.set(modello, i);
-            return r;
-        } catch (err) {
-            // un 400 che nomina il ragionamento: il modello non accetta questa variante, si passa alla successiva
-            if (err instanceof ErroreAnthropic && err.status === 400 && RAGIONAMENTO_RIFIUTATO.test(`${err.message} ${err.dettaglio}`) && i < VARIANTI_RAGIONAMENTO.length - 1) {
-                console.warn(`[openai-proxy] ${modello}: ragionamento «${VARIANTI_RAGIONAMENTO[i].nome}» rifiutato (${pulito(err.dettaglio)})`);
-                i += 1;
-                continue;
-            }
-            throw err;
-        }
-    }
-}
-
-async function chiamaAnthropicUna(apiKey: string, modello: string, payload: Corpo, limiteMs: number,
-    // deno-lint-ignore no-explicit-any
-    invia: (url: string, init: any) => Promise<Response>, variante: Variante | undefined): Promise<Corpo> {
     const c = new AbortController();
     const t = setTimeout(() => c.abort(), limiteMs);
+    const ragionamento = ragionamentoPer(modello);
     try {
         const r = await invia(ANTHROPIC_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': ANTHROPIC_VERSION },
-            body: JSON.stringify(corpoAnthropic(modello, payload, variante)),
+            body: JSON.stringify(corpoAnthropic(modello, payload, ragionamento)),
             signal: c.signal,
         });
         const d = await r.json().catch(() => null);
         if (!r.ok) throw new ErroreAnthropic(r.status, d?.error?.type, d?.error?.message);
         // il modello chiesto (la sigla del listino), non l'alias datato che Anthropic restituisce
-        return { ...rispostaComeOpenAi(d, payload.response_format?.type === 'json_object'), model: modello, ...(variante ? { _variante: variante.nome } : {}) };
+        return { ...rispostaComeOpenAi(d, payload.response_format?.type === 'json_object'), model: modello, ...(ragionamento ? { _variante: ragionamento.nome } : {}) };
     } finally {
         clearTimeout(t);
     }
@@ -261,12 +244,12 @@ export async function chiamaAnthropicElenco(apiKey: string, modelli: string[], p
     throw ultimoErrore;
 }
 
-/** Per i test: dimentica i modelli inesistenti e le varianti di ragionamento ricordate. */
-export const dimenticaInesistenti = () => { inesistenti.clear(); variantePerModello.clear(); };
+/** Per i test: dimentica i modelli segnati come inesistenti. */
+export const dimenticaInesistenti = () => { inesistenti.clear(); };
 
 /** Costo stimato in dollari di una chiamata Claude dai token (listino in banco.config.json). */
 export const PREZZI_ANTHROPIC_USD_PER_MILIONE: Record<string, { input: number; output: number }> = {
     'claude-haiku-4-5': { input: 1.0, output: 5.0 },
-    'claude-haiku-5-5': { input: 1.0, output: 5.0 },   // da verificare sul listino se esiste
+    'claude-haiku-5-5': { input: 0.1, output: 0.5 },   // platform.claude.com/docs/en/models/haiku-5-5/overview (prompt fino a 100.000 token); stesso testo = ~30 % di token in piu' di Haiku 4.5
     'claude-sonnet-5-5': { input: 2.0, output: 10.0 },
 };

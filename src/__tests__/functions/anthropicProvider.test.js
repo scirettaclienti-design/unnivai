@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   corpoAnthropic, rispostaComeOpenAi, estraiJson, classificaErroreAnthropic, fornitoreScelto, modelliAnthropicPer,
-  chiamaAnthropic, chiamaAnthropicElenco, dimenticaInesistenti, compitoDi, VARIANTI_RAGIONAMENTO,
+  chiamaAnthropic, chiamaAnthropicElenco, dimenticaInesistenti, compitoDi, ragionamentoPer, RAGIONAMENTO_PER_MODELLO,
 } from '../../../supabase/functions/openai-proxy/anthropic.ts';
 import { chiamaConRipiego } from '../../../supabase/functions/openai-proxy/modelli.ts';
 
@@ -32,10 +32,10 @@ describe('anthropic.ts — formato della chiamata e della risposta', () => {
     expect(c.response_format).toBeUndefined();
   });
 
-  it('Sonnet 5.5: niente temperature (400 sul server) e ragionamento da spegnere (prima variante: disabled)', () => {
+  it('Sonnet 5.5: niente temperature (400 sul server) e ragionamento spento con between_tools (disabled dà 400)', () => {
     const c = corpoAnthropic('claude-sonnet-5-5', { temperature: 0.7, max_tokens: 800, messages: [{ role: 'user', content: 'ciao' }] });
     expect(c.temperature).toBeUndefined();
-    expect(c.thinking).toEqual({ type: 'disabled' });
+    expect(c.thinking).toEqual({ type: 'between_tools' });
     expect(c.max_tokens).toBe(800);
   });
 
@@ -45,42 +45,30 @@ describe('anthropic.ts — formato della chiamata e della risposta', () => {
     expect(corpoAnthropic('claude-haiku-4-5', p).temperature).toBe(0.2);
   });
 
-  it('famiglia 5: si prova a spegnere il ragionamento; Haiku 4.5 no. Le varianti che lo lasciano acceso alzano il tetto di uscita', () => {
+  it('ragionamento FISSATO per modello (nessun tentativo): Haiku 5.5 disabled, Sonnet 5.5 between_tools, altri 5.x come Haiku 5.5, Haiku 4.5 nessuno', () => {
     const p = { max_tokens: 200, messages: [{ role: 'user', content: 'x' }] };
     expect(corpoAnthropic('claude-haiku-5-5', p).thinking).toEqual({ type: 'disabled' });
+    expect(corpoAnthropic('claude-sonnet-5-5', p).thinking).toEqual({ type: 'between_tools' });
+    expect(corpoAnthropic('claude-haiku-5-9', p).thinking).toEqual({ type: 'disabled' });
     expect(corpoAnthropic('claude-haiku-4-5', p).thinking).toBeUndefined();
-    const [, bt, effort, nessuna] = VARIANTI_RAGIONAMENTO;
-    expect(corpoAnthropic('claude-haiku-5-5', p, bt)).toMatchObject({ thinking: { type: 'between_tools' }, max_tokens: 200 });
-    expect(corpoAnthropic('claude-haiku-5-5', p, effort)).toMatchObject({ output_config: { effort: 'low' }, max_tokens: 1700 });
-    expect(corpoAnthropic('claude-haiku-5-5', p, nessuna).max_tokens).toBe(1700);
-    expect(corpoAnthropic('claude-haiku-5-5', { ...p, max_tokens: 7000 }, nessuna).max_tokens).toBe(8000);   // tetto
+    expect(ragionamentoPer('claude-haiku-4-5')).toBeNull();
+    expect(corpoAnthropic('claude-haiku-5-5', p).max_tokens).toBe(200);   // niente margine: il ragionamento e' spento
+    expect(RAGIONAMENTO_PER_MODELLO['claude-haiku-5-5'].margine).toBe(0);
+    // un margine, se una variante lascia il ragionamento acceso, alza il tetto fino a 8000
+    const conMargine = { nome: 'x', parti: { output_config: { effort: 'low' } }, margine: 1500 };
+    expect(corpoAnthropic('claude-haiku-5-5', p, conMargine)).toMatchObject({ output_config: { effort: 'low' }, max_tokens: 1700 });
+    expect(corpoAnthropic('claude-haiku-5-5', { ...p, max_tokens: 7000 }, conMargine).max_tokens).toBe(8000);
   });
 
-  it('scala del ragionamento: ogni 400 che lo nomina passa alla variante dopo, la prima accettata si ricorda per modello', async () => {
+  it('nessun tentativo in produzione: un 400 sul ragionamento e\' UNA richiesta e un errore (la catena passa al modello dopo)', async () => {
     dimenticaInesistenti();
-    const visti = [];
-    const invia = vi.fn(async (_u, init) => {
-      const b = JSON.parse(init.body); visti.push({ t: b.thinking?.type ?? null, e: b.output_config?.effort ?? null, mt: b.max_tokens });
-      if (b.thinking?.type === 'disabled') return new Response(JSON.stringify({ error: { type: 'invalid_request_error', message: 'thinking.type=disabled is not supported for this model' } }), { status: 400 });
-      if (b.thinking?.type === 'between_tools') return new Response(JSON.stringify({ error: { type: 'invalid_request_error', message: 'thinking.type: between_tools is not supported' } }), { status: 400 });
-      return new Response(JSON.stringify({ stop_reason: 'end_turn', content: [{ type: 'text', text: '{"a":1}' }], usage: { input_tokens: 1, output_tokens: 1 } }), { status: 200 });
-    });
-    const p = { max_tokens: 200, messages: [{ role: 'user', content: 'x' }] };
-    const r = await chiamaAnthropic('k', 'claude-haiku-5-5', p, 1000, invia);
-    expect(r.choices[0].message.content).toBe('{"a":1}');
-    expect(r._variante).toBe('effort-low');
-    expect(visti).toEqual([{ t: 'disabled', e: null, mt: 200 }, { t: 'between_tools', e: null, mt: 200 }, { t: null, e: 'low', mt: 1700 }]);
-    visti.length = 0;
-    await chiamaAnthropic('k', 'claude-haiku-5-5', p, 1000, invia);   // ricordata: una sola richiesta
-    expect(visti).toEqual([{ t: null, e: 'low', mt: 1700 }]);
-    dimenticaInesistenti();
-  });
-
-  it('un 400 che NON riguarda il ragionamento non fa scorrere la scala', async () => {
-    dimenticaInesistenti();
-    const invia = vi.fn(async () => new Response(JSON.stringify({ error: { type: 'invalid_request_error', message: 'max_tokens too large' } }), { status: 400 }));
+    const invia = vi.fn(async () => new Response(JSON.stringify({ error: { type: 'invalid_request_error', message: 'thinking.type: disabled is not supported' } }), { status: 400 }));
     await expect(chiamaAnthropic('k', 'claude-haiku-5-5', { max_tokens: 5, messages: [{ role: 'user', content: 'x' }] }, 1000, invia)).rejects.toMatchObject({ status: 400 });
     expect(invia).toHaveBeenCalledTimes(1);
+    const r = await chiamaAnthropicElenco('k', [HAIKU_5, SONNET], { max_tokens: 5, messages: [{ role: 'user', content: 'x' }] }, 1000, vi.fn(async (_u, init) => (JSON.parse(init.body).model === HAIKU_5
+      ? new Response(JSON.stringify({ error: { type: 'invalid_request_error', message: 'thinking not supported' } }), { status: 400 })
+      : new Response(JSON.stringify({ stop_reason: 'end_turn', content: [{ type: 'text', text: '{}' }], usage: { input_tokens: 1, output_tokens: 1 } }), { status: 200 }))));
+    expect(r.model).toBe(SONNET);
     dimenticaInesistenti();
   });
 
@@ -168,15 +156,15 @@ describe('anthropic.ts — formato della chiamata e della risposta', () => {
     expect(fornitoreScelto((k) => (k === 'AI_PROVIDER' ? ' Anthropic ' : undefined))).toBe('anthropic');
   });
 
-  it('un modello per compito: Haiku 5.5 (poi Sonnet 5.5) per traduttore, selettore, notifiche; Sonnet per narratore, liste, contorno; mai Opus, mai 4.5', () => {
+  it('un modello per compito: catena Haiku 4.5 → Haiku 5.5 → Sonnet 5.5 per traduttore, selettore, notifiche; Sonnet per narratore, liste, contorno; mai Opus', () => {
     const nessuno = () => undefined;
-    for (const c of ['traduttore', 'selettore', 'notifiche']) expect(modelliAnthropicPer(c, nessuno)).toEqual([HAIKU_5, SONNET]);
+    for (const c of ['traduttore', 'selettore', 'notifiche']) expect(modelliAnthropicPer(c, nessuno)).toEqual([HAIKU_4, HAIKU_5, SONNET]);
     for (const c of ['narratore', 'lista', 'quartiere']) expect(modelliAnthropicPer(c, nessuno)).toEqual([SONNET]);
     expect(modelliAnthropicPer(undefined, nessuno)).toEqual([SONNET]);   // contorno
     expect(modelliAnthropicPer('boh', nessuno)).toEqual([SONNET]);
     expect(compitoDi('boh')).toBe('contorno');
     for (const c of ['traduttore', 'selettore', 'notifiche', 'narratore', 'lista', 'quartiere', 'contorno']) {
-      expect(modelliAnthropicPer(c, nessuno).join()).not.toMatch(/opus|4-5/i);
+      expect(modelliAnthropicPer(c, nessuno).join()).not.toMatch(/opus/i);
     }
   });
 
@@ -185,7 +173,7 @@ describe('anthropic.ts — formato della chiamata e della risposta', () => {
     expect(modelliAnthropicPer('narratore', env)).toEqual([HAIKU_4]);
     expect(modelliAnthropicPer('lista', env)).toEqual(['claude-x', 'claude-y']);
     expect(modelliAnthropicPer('quartiere', env)).toEqual([SONNET]);
-    expect(modelliAnthropicPer('selettore', env)).toEqual([HAIKU_5, SONNET]);
+    expect(modelliAnthropicPer('selettore', env)).toEqual([HAIKU_4, HAIKU_5, SONNET]);
   });
 
   it('elenco: un 404 passa al modello dopo e quello inesistente non si richiede piu\'; ogni altro errore si propaga', async () => {
@@ -297,48 +285,48 @@ describe('openai-proxy con AI_PROVIDER', () => {
       expect(res.status).toBe(200);
       expect(JSON.parse(j.choices[0].message.content)).toEqual({ da: 'claude' });
       expect(j.usage).toMatchObject({ prompt_tokens: 11, completion_tokens: 7 });
-      expect(j._modello).toMatchObject({ passaggio: p, fornitore: 'anthropic', usato: HAIKU_5, ripiego: false });
+      expect(j._modello).toMatchObject({ passaggio: p, fornitore: 'anthropic', usato: HAIKU_4, ripiego: false });
     }
     await call('notifiche');
     await call('narratore');
     await call(null);
     expect(chiamate.map((c) => [c.fornitore, c.body.model])).toEqual([
-      ['anthropic', HAIKU_5], ['anthropic', HAIKU_5], ['anthropic', HAIKU_5], ['anthropic', SONNET], ['anthropic', SONNET],
+      ['anthropic', HAIKU_4], ['anthropic', HAIKU_4], ['anthropic', HAIKU_4], ['anthropic', SONNET], ['anthropic', SONNET],
     ]);
     expect(chiamate[0].headers['x-api-key']).toBe('sk-ant-test');
     expect(chiamate.some((c) => c.fornitore === 'openai')).toBe(false);
   });
 
-  it('claude-haiku-5-5 non esiste (404): si passa a Sonnet 5.5, senza ripiego su OpenAI, e il 5.5 non si richiede piu\'', async () => {
+  it('claude-haiku-4-5 ritirato (404): si passa a Haiku 5.5 senza ripiego su OpenAI, e il 4.5 non si richiede piu\'', async () => {
     const era = rispAnthropic;
     rispAnthropic = null;
     fetch.mockImplementation(async (url, init) => {
       const body = JSON.parse(init.body);
       if (String(url) !== ANTHROPIC_URL) throw new Error('fetch inatteso');
       chiamate.push({ fornitore: 'anthropic', body });
-      return body.model === HAIKU_5
+      return body.model === HAIKU_4
         ? new Response(JSON.stringify({ error: { type: 'not_found_error', message: 'model' } }), { status: 404 })
         : era();
     });
     const a = await call('selettore'); const b = await call('traduttore');
-    expect((await a.json())._modello).toMatchObject({ fornitore: 'anthropic', usato: SONNET, chiesto: HAIKU_5, ripiego: false });
-    expect((await b.json())._modello.usato).toBe(SONNET);
-    expect(chiamate.map((c) => c.body.model)).toEqual([HAIKU_5, SONNET, SONNET]);
+    expect((await a.json())._modello).toMatchObject({ fornitore: 'anthropic', usato: HAIKU_5, chiesto: HAIKU_4, ripiego: false });
+    expect((await b.json())._modello.usato).toBe(HAIKU_5);
+    expect(chiamate.map((c) => c.body.model)).toEqual([HAIKU_4, HAIKU_5, HAIKU_5]);
   });
 
-  it('Haiku 5.5 giù (500): il proxy passa a Sonnet 5.5 prima di OpenAI (che resta l\'ultima spiaggia)', async () => {
+  it('Haiku 4.5 e 5.5 giù (500): il proxy passa a Sonnet 5.5 prima di OpenAI (che resta l\'ultima spiaggia)', async () => {
     const era = rispAnthropic;
     fetch.mockImplementation(async (url, init) => {
       const body = JSON.parse(init.body);
       if (String(url) !== ANTHROPIC_URL) throw new Error('OpenAI non doveva essere chiamato');
       chiamate.push({ fornitore: 'anthropic', body });
-      return body.model === HAIKU_5 ? new Response(JSON.stringify({ error: { type: 'api_error', message: 'boom' } }), { status: 500 }) : era();
+      return body.model !== SONNET ? new Response(JSON.stringify({ error: { type: 'api_error', message: 'boom' } }), { status: 500 }) : era();
     });
     const res = await call('selettore');
     const j = await res.json();
     expect(res.status).toBe(200);
-    expect(j._modello).toMatchObject({ fornitore: 'anthropic', chiesto: HAIKU_5, usato: SONNET, ripiego: false });
-    expect(chiamate.map((c) => c.body.model)).toEqual([HAIKU_5, SONNET]);
+    expect(j._modello).toMatchObject({ fornitore: 'anthropic', chiesto: HAIKU_4, usato: SONNET, ripiego: false });
+    expect(chiamate.map((c) => c.body.model)).toEqual([HAIKU_4, HAIKU_5, SONNET]);
   });
 
   it('un secret cambia il modello di un compito senza deploy (la lista su Haiku, per esempio)', async () => {

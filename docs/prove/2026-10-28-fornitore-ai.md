@@ -51,3 +51,19 @@ Spesa cumulata della sessione: ≈ 1,35 $ (tetto 2 $).
 5. Per cambiare modello a un compito: `supabase secrets set ANTHROPIC_MODEL_SELETTORE=claude-sonnet-5-5 --project-ref ahecpiwsdhghkndncejb` (nessun deploy).
 
 Tracciati e grezzi dei due giri: `docs/prove/dati/2026-10-28-fornitore-ai-{troina,catania}[-tracciati].json.gz`.
+
+## Addendum — Haiku 4.5 contro Haiku 5.5 sullo stesso caso (Troina, 29/10)
+Dopo il report Ivano ha portato traduttore, selettore e notifiche su `claude-haiku-4-5` (secret `ANTHROPIC_MODEL_TRADUTTORE/SELETTORE/NOTIFICHE`, nessun deploy). Rigiro dello stesso caso con liste e ricerche Google già pronte (una sola prova per modello: indicativa, non statistica).
+
+| | Haiku 5.5 | Haiku 4.5 |
+|---|---|---|
+| traduttore | 4,8 s | 1,5 s |
+| selettore | 4,7 s | 2,7 s |
+| token di uscita (traduttore + selettore) | 1.062 | 330 |
+| costo AI di Haiku nel giro | 0,012 $ | 0,0047 $ |
+| query del traduttore | piazza storica, trattoria tipica, belvedere panorama | piazza storica, chiesa, belvedere panorama |
+| tappe | ruderi del monastero, piazza Matteotti, Torre Capitania, Chiesa Madre, pranzo da A'Pescheria | via Conte Ruggero, Torre Capitania, Chiesa Madre, **un panificio come tappa**, pranzo da Pizze&Delizie |
+| titolo | «Ruderi, torri e piazze di Troina» | «Torri, pane e pizza di Troina» |
+
+Lettura: 4.5 è 2–3 volte più veloce e costa meno di metà; 5.5 sul traduttore/selettore scrive molto di più (circa tre volte i token) ed è più lento. Sulla qualità, in questo caso la scelta di 5.5 è più coerente con «giro insider» (siti storici); quella di 4.5 mette un panificio fra le tappe del mattino. Un solo campione: non basta per promuovere o retrocedere nessun compito. Tempi totali non confrontabili (il primo giro include la lista nuova da 7 s).
+Spesa cumulata della sessione ≈ 1,55 $ (listino; la cache Google riduce la spesa vera).

@@ -201,7 +201,7 @@ function anthropicAttivo(): string | null {
 }
 function primoAnthropic(passaggio: Passaggio, chiave: string): Primo {
   const modelli = modelliAnthropicPer(passaggio, envLetto);
-  return { fornitore: 'anthropic', modello: modelli[0], timeoutMs: MODELLI[passaggio].timeoutMs, invia: (p, limite) => chiamaAnthropicElenco(chiave, modelli, p, limite) };
+  return { fornitore: 'anthropic', modello: modelli[0], timeoutMs: MODELLI[passaggio].timeoutMs, tentativi: modelli.length > 1 ? 1 : 2, invia: (p, limite) => chiamaAnthropicElenco(chiave, modelli, p, limite) };
 }
 /** Il codice del guasto dal motivo scritto da `invia` (HTTP <status> <code> <type> <msg>): lo stesso vocabolario del client. */
 function codiceDaMotivo(err: unknown): EngineCode {
@@ -658,13 +658,15 @@ serve(async (req: Request) => {
     const t0 = Date.now();
     let motivo = '';
     let primoErrore: string | null = null;
-    for (let tentativo = 1; tentativo <= 2; tentativo++) {
+    // con piu' modelli in elenco la catena (es. Haiku → Sonnet) e' gia' il nuovo tentativo; con uno solo se ne fanno due
+    const tentativiMax = modelliA.length > 1 ? 1 : 2;
+    for (let tentativo = 1; tentativo <= tentativiMax; tentativo++) {
       let ripeti = false;
       try {
         const d = await chiamaAnthropicElenco(chiaveAnthropic, modelliA, openAiPayload, limite);
         modelloA = String(d?.model || modelloA);
         if (!rispostaVuota(d)) {
-          return json(200, { ...d, _modello: { passaggio: nome, compito, fornitore: 'anthropic', chiesto: modelliA[0], usato: modelloA, ripiego: false, ms: Date.now() - t0,
+          return json(200, { ...d, _modello: { passaggio: nome, compito, fornitore: 'anthropic', chiesto: modelliA[0], usato: modelloA, ripiego: false, ms: Date.now() - t0, ...(d?._variante ? { ragionamento: d._variante } : {}),
             ...(primoErrore ? { tentativi: 2, primoErrore } : {}) } }, quotaHeaders);
         }
         motivo = `risposta vuota${d?._stop ? ` (${d._stop.stop_reason}; ${d._stop.blocchi.join('+') || 'nessun blocco'})` : ''}`;
@@ -674,7 +676,7 @@ serve(async (req: Request) => {
         motivo = scaduto ? `oltre il tempo massimo (${limite / 1000} s)` : (err instanceof ErroreAnthropic ? err.message : `rete (${scrubLogText(err).slice(0, 40)})`);
         ripeti = !scaduto && !credito;
       }
-      if (!ripeti || tentativo === 2) break;
+      if (!ripeti || tentativo === tentativiMax) break;
       primoErrore = motivo;
     }
     infoModello = { passaggio: nome, compito, fornitore: 'openai', fornitoreChiesto: 'anthropic', chiesto: modelliA[0], usato: chiesto, ripiego: true, motivo,

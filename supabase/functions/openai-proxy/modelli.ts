@@ -41,7 +41,7 @@ export const CARATTERISTICHE: Record<string, { ragiona: boolean; sforzo?: string
 };
 
 /** Il primo tentativo di un passaggio quando il fornitore non e' OpenAI: modello, tempo massimo e la chiamata (corpo di OpenAI → risposta nella forma di OpenAI). */
-export type Primo = { fornitore: string; modello: string; timeoutMs: number; invia: (payload: Record<string, any>, limiteMs: number) => Promise<any> };
+export type Primo = { fornitore: string; modello: string; timeoutMs: number; tentativi?: number; invia: (payload: Record<string, any>, limiteMs: number) => Promise<any> };
 
 export const PASSAGGI = new Set<string>(Object.keys(MODELLI));
 export const passaggioValido = (p: unknown): p is Passaggio => typeof p === 'string' && PASSAGGI.has(p);
@@ -88,16 +88,16 @@ export async function chiamaConRipiego(passaggio: Passaggio, payload: Record<str
     // tentativo, con lo stesso tempo massimo, prima del ripiego. Il primo errore resta nel tracciato (`primoErrore`).
     let primoErrore: string | null = null;
     if (primo || modello !== MODELLO_DI_PRIMA) {
-        for (let tentativo = 1; tentativo <= 2; tentativo++) {
+        for (let tentativo = 1; tentativo <= (primo?.tentativi ?? 2); tentativo++) {
             try {
                 const d = primo ? await primo.invia(payload, timeoutMs) : await invia(corpoPer(modello, payload), timeoutMs);
                 if (rispostaVuota(d)) throw Object.assign(new Error(`risposta vuota${d?._stop ? ` (${d._stop.stop_reason}; ${d._stop.blocchi.join('+') || 'nessun blocco'})` : ''}`), { vuota: true });
-                return { data: d, info: { passaggio, chiesto: modello, usato: primo ? String(d?.model || modello) : modello, fornitore, ripiego: false, ms: Date.now() - t0, usage: d?.usage ?? null,
+                return { data: d, info: { passaggio, chiesto: modello, usato: primo ? String(d?.model || modello) : modello, fornitore, ...(d?._variante ? { ragionamento: d._variante } : {}), ripiego: false, ms: Date.now() - t0, usage: d?.usage ?? null,
                     ...(primoErrore ? { tentativi: 2, primoErrore } : {}) } };
             } catch (err) {
                 const scaduto = (err as Error)?.name === 'AbortError';
                 motivo = scaduto ? `oltre il tempo massimo (${timeoutMs / 1000} s)` : String((err as Error)?.message ?? err).slice(0, 80);
-                if (scaduto || (err as { vuota?: boolean })?.vuota || tentativo === 2 || (err as { codice?: string })?.codice === 'OPENAI_CREDIT_EXHAUSTED') break;
+                if (scaduto || (err as { vuota?: boolean })?.vuota || tentativo === (primo?.tentativi ?? 2) || (err as { codice?: string })?.codice === 'OPENAI_CREDIT_EXHAUSTED') break;
                 primoErrore = motivo;
             }
         }

@@ -13,7 +13,7 @@
 
 export const MODELLO_DI_PRIMA = 'gpt-4o-mini';
 
-export type Passaggio = 'lista' | 'quartiere' | 'traduttore' | 'selettore' | 'narratore';
+export type Passaggio = 'lista' | 'quartiere' | 'traduttore' | 'selettore' | 'narratore' | 'notifiche';
 
 /**
  * Il modello e il tempo massimo di ogni passaggio. Tempi scelti perche' il ripiego stia dentro l'attesa del client:
@@ -27,6 +27,7 @@ export const MODELLI: Record<Passaggio, { modello: string; timeoutMs: number }> 
     traduttore: { modello: 'gpt-6.1-sol', timeoutMs: 15_000 },
     selettore: { modello: 'gpt-6.1-sol', timeoutMs: 22_000 },
     narratore: { modello: MODELLO_DI_PRIMA, timeoutMs: 25_000 },
+    notifiche: { modello: MODELLO_DI_PRIMA, timeoutMs: 25_000 },   // FORNITORE-AI: la nota breve; con OpenAI resta com'era (gpt-4o-mini)
 };
 
 /**
@@ -91,7 +92,7 @@ export async function chiamaConRipiego(passaggio: Passaggio, payload: Record<str
             try {
                 const d = primo ? await primo.invia(payload, timeoutMs) : await invia(corpoPer(modello, payload), timeoutMs);
                 if (rispostaVuota(d)) throw Object.assign(new Error('risposta vuota'), { vuota: true });
-                return { data: d, info: { passaggio, chiesto: modello, usato: modello, fornitore, ripiego: false, ms: Date.now() - t0, usage: d?.usage ?? null,
+                return { data: d, info: { passaggio, chiesto: modello, usato: primo ? String(d?.model || modello) : modello, fornitore, ripiego: false, ms: Date.now() - t0, usage: d?.usage ?? null,
                     ...(primoErrore ? { tentativi: 2, primoErrore } : {}) } };
             } catch (err) {
                 const scaduto = (err as Error)?.name === 'AbortError';

@@ -53,7 +53,7 @@ import {
   MODELLO_DI_PRIMA, MODELLI, modelloPer, timeoutPer, corpoPer, rispostaVuota, passaggioValido, MODELLI_AMMESSI, chiamaConRipiego, usageTotale,
   type Passaggio, type Primo,
 } from './modelli.ts';
-import { fornitoreScelto, modelloAnthropicPer, chiamaAnthropic, ErroreAnthropic } from './anthropic.ts';
+import { fornitoreScelto, modelliAnthropicPer, chiamaAnthropicElenco, ErroreAnthropic, compitoDi } from './anthropic.ts';
 
 import {
   MODELLO_VOCE, VOCE_PREDEFINITA, BUCKET_VOCE, voceValida, testoValido, chiaveAudio, percorsoAudio, corpoVoce, tettoNuovi, costoStimatoUsd,
@@ -200,8 +200,8 @@ function anthropicAttivo(): string | null {
   return Deno.env.get('ANTHROPIC_API_KEY')?.trim() || null;
 }
 function primoAnthropic(passaggio: Passaggio, chiave: string): Primo {
-  const modello = modelloAnthropicPer(passaggio, envLetto);
-  return { fornitore: 'anthropic', modello, timeoutMs: MODELLI[passaggio].timeoutMs, invia: (p, limite) => chiamaAnthropic(chiave, modello, p, limite) };
+  const modelli = modelliAnthropicPer(passaggio, envLetto);
+  return { fornitore: 'anthropic', modello: modelli[0], timeoutMs: MODELLI[passaggio].timeoutMs, invia: (p, limite) => chiamaAnthropicElenco(chiave, modelli, p, limite) };
 }
 /** Il codice del guasto dal motivo scritto da `invia` (HTTP <status> <code> <type> <msg>): lo stesso vocabolario del client. */
 function codiceDaMotivo(err: unknown): EngineCode {
@@ -651,7 +651,9 @@ serve(async (req: Request) => {
   const chiaveAnthropic = isStreaming ? null : anthropicAttivo();
   if (chiaveAnthropic) {
     const nome = passaggioValido(passaggio) ? passaggio : null;
-    const modelloA = modelloAnthropicPer(passaggio, envLetto);
+    const compito = compitoDi(passaggio);
+    const modelliA = modelliAnthropicPer(passaggio, envLetto);
+    let modelloA = modelliA[0];
     const limite = nome ? timeoutPer(nome, UPSTREAM_TIMEOUT_MS) : UPSTREAM_TIMEOUT_MS;
     const t0 = Date.now();
     let motivo = '';
@@ -659,9 +661,10 @@ serve(async (req: Request) => {
     for (let tentativo = 1; tentativo <= 2; tentativo++) {
       let ripeti = false;
       try {
-        const d = await chiamaAnthropic(chiaveAnthropic, modelloA, openAiPayload, limite);
+        const d = await chiamaAnthropicElenco(chiaveAnthropic, modelliA, openAiPayload, limite);
+        modelloA = String(d?.model || modelloA);
         if (!rispostaVuota(d)) {
-          return json(200, { ...d, _modello: { passaggio: nome, fornitore: 'anthropic', chiesto: modelloA, usato: modelloA, ripiego: false, ms: Date.now() - t0,
+          return json(200, { ...d, _modello: { passaggio: nome, compito, fornitore: 'anthropic', chiesto: modelliA[0], usato: modelloA, ripiego: false, ms: Date.now() - t0,
             ...(primoErrore ? { tentativi: 2, primoErrore } : {}) } }, quotaHeaders);
         }
         motivo = 'risposta vuota';
@@ -674,7 +677,7 @@ serve(async (req: Request) => {
       if (!ripeti || tentativo === 2) break;
       primoErrore = motivo;
     }
-    infoModello = { passaggio: nome, fornitore: 'openai', fornitoreChiesto: 'anthropic', chiesto: modelloA, usato: chiesto, ripiego: true, motivo,
+    infoModello = { passaggio: nome, compito, fornitore: 'openai', fornitoreChiesto: 'anthropic', chiesto: modelliA[0], usato: chiesto, ripiego: true, motivo,
       ...(primoErrore ? { tentativi: 2, primoErrore } : {}), ms: Date.now() - t0 };
     console.warn(`[openai-proxy] ${nome ?? 'contorno'}: ${modelloA} → ripiego su OpenAI ${chiesto} (${scrubLogText(motivo)})`);
   } else if (passaggioValido(passaggio) && !isStreaming && modelloPassaggio !== chiesto && MODELLI_AMMESSI.has(modelloPassaggio)) {

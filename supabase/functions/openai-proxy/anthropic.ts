@@ -6,8 +6,9 @@
  * Il fornitore lo sceglie il secret `AI_PROVIDER` (`anthropic` | `openai`; assente o diverso = `openai`, come prima).
  * La voce (`gpt-4o-mini-tts`) non passa da qui.
  *
- * Modelli (secret, senza deploy): `ANTHROPIC_MODEL_VELOCE` (traduttore, selettore, liste, chiamate di contorno)
- * e `ANTHROPIC_MODEL_NARRATORE` (narratore). Difetti sotto.
+ * Modelli: uno per compito, ognuno cambiabile con un secret senza deploy (`ANTHROPIC_MODEL_<COMPITO>`, es. `ANTHROPIC_MODEL_LISTA`).
+ * Il valore e' un elenco separato da virgole: si prova il primo; se Anthropic non lo conosce (404) si passa al successivo, e un modello
+ * che non esiste non si richiede piu' fino al prossimo avvio. Difetti sotto (decisione di Ivano). Opus non si usa nella generazione dei giri.
  *
  * Modulo PURO (nessun import, `fetch` passato da fuori): lo usa openai-proxy (Deno) e lo prova la suite (vitest).
  */
@@ -15,9 +16,14 @@
 export type Fornitore = 'anthropic' | 'openai';
 
 export const FORNITORE_DI_PRIMA: Fornitore = 'openai';
-// «claude-haiku-5-5» non esiste: l'ultimo Haiku e' 4.5. Il difetto si cambia con il secret ANTHROPIC_MODEL_VELOCE.
-export const MODELLO_VELOCE = 'claude-haiku-4-5';
+export const MODELLO_VELOCE = 'claude-haiku-5-5,claude-haiku-4-5';   // il 5.5 se risponde, altrimenti il 4.5
 export const MODELLO_NARRATORE = 'claude-sonnet-5-5';
+export type Compito = 'traduttore' | 'selettore' | 'notifiche' | 'narratore' | 'lista' | 'quartiere' | 'contorno';
+/** Compito → modelli di difetto. `contorno` = ogni chiamata senza passaggio (chat, monumenti, meteo, business). */
+export const MODELLI_ANTHROPIC_DIFETTO: Record<Compito, string> = {
+    traduttore: MODELLO_VELOCE, selettore: MODELLO_VELOCE, notifiche: MODELLO_VELOCE,
+    narratore: MODELLO_NARRATORE, lista: MODELLO_NARRATORE, quartiere: MODELLO_NARRATORE, contorno: MODELLO_NARRATORE,
+};
 export const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 export const ANTHROPIC_VERSION = '2023-06-01';
 
@@ -25,11 +31,14 @@ type Env = (nome: string) => string | undefined;
 
 export const fornitoreScelto = (env: Env): Fornitore => (String(env('AI_PROVIDER') ?? '').trim().toLowerCase() === 'anthropic' ? 'anthropic' : FORNITORE_DI_PRIMA);
 
-/** Il modello Claude di un passaggio (il narratore e' l'unico sul modello grande; senza passaggio: quello veloce). */
-export function modelloAnthropicPer(passaggio: unknown, env: Env): string {
-    const veloce = String(env('ANTHROPIC_MODEL_VELOCE') ?? '').trim() || MODELLO_VELOCE;
-    const narratore = String(env('ANTHROPIC_MODEL_NARRATORE') ?? '').trim() || MODELLO_NARRATORE;
-    return passaggio === 'narratore' ? narratore : veloce;
+export const compitoDi = (passaggio: unknown): Compito =>
+    (typeof passaggio === 'string' && passaggio in MODELLI_ANTHROPIC_DIFETTO && passaggio !== 'contorno' ? passaggio : 'contorno') as Compito;
+
+/** I modelli Claude di un compito, in ordine di preferenza: il secret `ANTHROPIC_MODEL_<COMPITO>` (elenco con virgole) o il difetto. */
+export function modelliAnthropicPer(passaggio: unknown, env: Env): string[] {
+    const c = compitoDi(passaggio);
+    const voce = String(env(`ANTHROPIC_MODEL_${c.toUpperCase()}`) ?? '').trim() || MODELLI_ANTHROPIC_DIFETTO[c];
+    return voce.split(',').map((m) => m.trim()).filter(Boolean);
 }
 
 /** Sonnet 5.5 rifiuta temperature diverse da quella di difetto (400) e ragiona di suo: lo si tiene senza ragionamento. */
@@ -166,14 +175,42 @@ export async function chiamaAnthropic(apiKey: string, modello: string, payload: 
         });
         const d = await r.json().catch(() => null);
         if (!r.ok) throw new ErroreAnthropic(r.status, d?.error?.type, d?.error?.message);
-        return rispostaComeOpenAi(d, payload.response_format?.type === 'json_object');
+        // il modello chiesto (la sigla del listino), non l'alias datato che Anthropic restituisce
+        return { ...rispostaComeOpenAi(d, payload.response_format?.type === 'json_object'), model: modello };
     } finally {
         clearTimeout(t);
     }
 }
 
+/** Modelli che Anthropic ha dichiarato inesistenti (404): non si richiedono piu' finche' l'istanza vive. */
+const inesistenti = new Set<string>();
+
+/**
+ * Come `chiamaAnthropic`, con l'elenco dei modelli del compito: il primo che esiste. Solo un 404 («model not found») fa passare al
+ * successivo; ogni altro errore (credito, tempo, 5xx) lo lancia, e decide il chiamante (nuovo tentativo, poi OpenAI).
+ */
+export async function chiamaAnthropicElenco(apiKey: string, modelli: string[], payload: Corpo, limiteMs: number,
+    // deno-lint-ignore no-explicit-any
+    invia: (url: string, init: any) => Promise<Response> = fetch): Promise<Corpo> {
+    const candidati = modelli.filter((m) => !inesistenti.has(m));
+    let ultimo: unknown = new ErroreAnthropic(404, 'not_found_error', 'nessun modello disponibile');
+    for (const m of candidati.length ? candidati : modelli.slice(-1)) {
+        try {
+            return await chiamaAnthropic(apiKey, m, payload, limiteMs, invia);
+        } catch (err) {
+            if (err instanceof ErroreAnthropic && err.status === 404) { inesistenti.add(m); ultimo = err; continue; }
+            throw err;
+        }
+    }
+    throw ultimo;
+}
+
+/** Per i test: dimentica i modelli segnati come inesistenti. */
+export const dimenticaInesistenti = () => inesistenti.clear();
+
 /** Costo stimato in dollari di una chiamata Claude dai token (listino in banco.config.json). */
 export const PREZZI_ANTHROPIC_USD_PER_MILIONE: Record<string, { input: number; output: number }> = {
     'claude-haiku-4-5': { input: 1.0, output: 5.0 },
+    'claude-haiku-5-5': { input: 1.0, output: 5.0 },   // da verificare sul listino se esiste
     'claude-sonnet-5-5': { input: 2.0, output: 10.0 },
 };

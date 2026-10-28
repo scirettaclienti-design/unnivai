@@ -4588,7 +4588,7 @@ oppure
                 response_format: { type: 'json_object' },
                 temperature: 0.4, // determinismo maggiore per voce coerente
                 max_tokens: 200,
-            });
+            }, undefined, undefined, 'notifiche'); // FORNITORE-AI: il proxy sa che e' una notifica
 
             if (!data.choices?.[0]) throw new Error('No AI response');
             const parsed = JSON.parse(data.choices[0].message.content);

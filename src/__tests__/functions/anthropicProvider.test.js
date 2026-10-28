@@ -5,13 +5,16 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
-  corpoAnthropic, rispostaComeOpenAi, estraiJson, classificaErroreAnthropic, fornitoreScelto, modelloAnthropicPer,
-  MODELLO_VELOCE, MODELLO_NARRATORE, chiamaAnthropic,
+  corpoAnthropic, rispostaComeOpenAi, estraiJson, classificaErroreAnthropic, fornitoreScelto, modelliAnthropicPer,
+  chiamaAnthropic, chiamaAnthropicElenco, dimenticaInesistenti, compitoDi,
 } from '../../../supabase/functions/openai-proxy/anthropic.ts';
 import { chiamaConRipiego } from '../../../supabase/functions/openai-proxy/modelli.ts';
 
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+const HAIKU_5 = 'claude-haiku-5-5';
+const HAIKU_4 = 'claude-haiku-4-5';
+const SONNET = 'claude-sonnet-5-5';
 const MSG_ENGINE = 'Il motore si è fermato un attimo. Riprova tra qualche minuto.';
 
 describe('anthropic.ts — formato della chiamata e della risposta', () => {
@@ -76,14 +79,48 @@ describe('anthropic.ts — formato della chiamata e della risposta', () => {
     expect(classificaErroreAnthropic(500, 'api_error', 'boom')).toBe('OPENAI_ERROR');
   });
 
-  it('il fornitore lo sceglie il secret: assente o strano = OpenAI; modelli dai secret con difetti', () => {
+  it('il fornitore lo sceglie il secret: assente o strano = OpenAI', () => {
     expect(fornitoreScelto(() => undefined)).toBe('openai');
     expect(fornitoreScelto(() => 'boh')).toBe('openai');
     expect(fornitoreScelto((k) => (k === 'AI_PROVIDER' ? ' Anthropic ' : undefined))).toBe('anthropic');
-    expect(modelloAnthropicPer('traduttore', () => undefined)).toBe(MODELLO_VELOCE);
-    expect(modelloAnthropicPer(undefined, () => undefined)).toBe(MODELLO_VELOCE);
-    expect(modelloAnthropicPer('narratore', () => undefined)).toBe(MODELLO_NARRATORE);
-    expect(modelloAnthropicPer('selettore', (k) => (k === 'ANTHROPIC_MODEL_VELOCE' ? 'claude-x' : undefined))).toBe('claude-x');
+  });
+
+  it('un modello per compito: Haiku (5.5 poi 4.5) per traduttore, selettore, notifiche; Sonnet per narratore, liste, contorno; mai Opus', () => {
+    const nessuno = () => undefined;
+    for (const c of ['traduttore', 'selettore', 'notifiche']) expect(modelliAnthropicPer(c, nessuno)).toEqual([HAIKU_5, HAIKU_4]);
+    for (const c of ['narratore', 'lista', 'quartiere']) expect(modelliAnthropicPer(c, nessuno)).toEqual([SONNET]);
+    expect(modelliAnthropicPer(undefined, nessuno)).toEqual([SONNET]);   // contorno
+    expect(modelliAnthropicPer('boh', nessuno)).toEqual([SONNET]);
+    expect(compitoDi('boh')).toBe('contorno');
+    for (const c of ['traduttore', 'selettore', 'notifiche', 'narratore', 'lista', 'quartiere', 'contorno']) {
+      expect(modelliAnthropicPer(c, nessuno).join()).not.toMatch(/opus/i);
+    }
+  });
+
+  it('ogni compito si cambia con il suo secret (anche un elenco), senza toccare gli altri', () => {
+    const env = (k) => ({ ANTHROPIC_MODEL_NARRATORE: ' claude-haiku-4-5 ', ANTHROPIC_MODEL_LISTA: 'claude-x, claude-y' })[k];
+    expect(modelliAnthropicPer('narratore', env)).toEqual([HAIKU_4]);
+    expect(modelliAnthropicPer('lista', env)).toEqual(['claude-x', 'claude-y']);
+    expect(modelliAnthropicPer('quartiere', env)).toEqual([SONNET]);
+    expect(modelliAnthropicPer('selettore', env)).toEqual([HAIKU_5, HAIKU_4]);
+  });
+
+  it('elenco: un 404 passa al modello dopo e quello inesistente non si richiede piu\'; ogni altro errore si propaga', async () => {
+    dimenticaInesistenti();
+    const visti = [];
+    const invia = vi.fn(async (_u, init) => {
+      const m = JSON.parse(init.body).model; visti.push(m);
+      if (m === HAIKU_5) return new Response(JSON.stringify({ error: { type: 'not_found_error', message: 'model: claude-haiku-5-5' } }), { status: 404 });
+      return new Response(JSON.stringify({ stop_reason: 'end_turn', content: [{ type: 'text', text: '{}' }], usage: { input_tokens: 1, output_tokens: 1 } }), { status: 200 });
+    });
+    const p = { max_tokens: 5, messages: [{ role: 'user', content: 'x' }] };
+    const r1 = await chiamaAnthropicElenco('k', [HAIKU_5, HAIKU_4], p, 1000, invia);
+    expect(r1.model).toBe(HAIKU_4);
+    await chiamaAnthropicElenco('k', [HAIKU_5, HAIKU_4], p, 1000, invia);
+    expect(visti).toEqual([HAIKU_5, HAIKU_4, HAIKU_4]);
+    const giu = vi.fn(async () => new Response(JSON.stringify({ error: { type: 'api_error', message: 'boom' } }), { status: 500 }));
+    await expect(chiamaAnthropicElenco('k', [HAIKU_4], p, 1000, giu)).rejects.toMatchObject({ status: 500 });
+    dimenticaInesistenti();
   });
 
   it('chiamaAnthropic: chiave e versione nelle intestazioni; un HTTP non ok lancia con il codice', async () => {
@@ -170,22 +207,46 @@ describe('openai-proxy con AI_PROVIDER', () => {
       ...(passaggio ? { dv: { purpose: 'aux', passaggio } } : {}), ...extra }),
   }));
 
-  it('traduttore e selettore: Haiku; narratore: Sonnet; contorno senza passaggio: Haiku; risposta nel formato di OpenAI', async () => {
+  it('traduttore e selettore: Haiku; notifiche: Haiku; narratore e contorno: Sonnet; risposta nel formato di OpenAI', async () => {
     for (const p of ['traduttore', 'selettore']) {
       const res = await call(p);
       const j = await res.json();
       expect(res.status).toBe(200);
       expect(JSON.parse(j.choices[0].message.content)).toEqual({ da: 'claude' });
       expect(j.usage).toMatchObject({ prompt_tokens: 11, completion_tokens: 7 });
-      expect(j._modello).toMatchObject({ passaggio: p, fornitore: 'anthropic', usato: MODELLO_VELOCE, ripiego: false });
+      expect(j._modello).toMatchObject({ passaggio: p, fornitore: 'anthropic', usato: HAIKU_5, ripiego: false });
     }
+    await call('notifiche');
     await call('narratore');
     await call(null);
     expect(chiamate.map((c) => [c.fornitore, c.body.model])).toEqual([
-      ['anthropic', MODELLO_VELOCE], ['anthropic', MODELLO_VELOCE], ['anthropic', MODELLO_NARRATORE], ['anthropic', MODELLO_VELOCE],
+      ['anthropic', HAIKU_5], ['anthropic', HAIKU_5], ['anthropic', HAIKU_5], ['anthropic', SONNET], ['anthropic', SONNET],
     ]);
     expect(chiamate[0].headers['x-api-key']).toBe('sk-ant-test');
     expect(chiamate.some((c) => c.fornitore === 'openai')).toBe(false);
+  });
+
+  it('claude-haiku-5-5 non risponde (404): si usa il 4.5, senza ripiego su OpenAI, e il 5.5 non si richiede piu\'', async () => {
+    const era = rispAnthropic;
+    rispAnthropic = null;
+    fetch.mockImplementation(async (url, init) => {
+      const body = JSON.parse(init.body);
+      if (String(url) !== ANTHROPIC_URL) throw new Error('fetch inatteso');
+      chiamate.push({ fornitore: 'anthropic', body });
+      return body.model === HAIKU_5
+        ? new Response(JSON.stringify({ error: { type: 'not_found_error', message: 'model' } }), { status: 404 })
+        : era();
+    });
+    const a = await call('selettore'); const b = await call('traduttore');
+    expect((await a.json())._modello).toMatchObject({ fornitore: 'anthropic', usato: HAIKU_4, chiesto: HAIKU_5, ripiego: false });
+    expect((await b.json())._modello.usato).toBe(HAIKU_4);
+    expect(chiamate.map((c) => c.body.model)).toEqual([HAIKU_5, HAIKU_4, HAIKU_4]);
+  });
+
+  it('un secret cambia il modello di un compito senza deploy (la lista su Haiku, per esempio)', async () => {
+    env.ANTHROPIC_MODEL_NARRATORE = HAIKU_4;
+    await call('narratore');
+    expect(chiamate.at(-1).body.model).toBe(HAIKU_4);
   });
 
   it('senza AI_PROVIDER (o con openai) il comportamento è quello di prima: nessuna chiamata a Anthropic', async () => {

@@ -80,3 +80,35 @@ Configurazione provata (secret): traduttore Haiku 4.5, selettore **Sonnet 5.5**,
 *I tempi dei giri non sono confrontabili con precisione: i secondi giri trovano la cache Google più calda.
 
 Lettura: Sonnet non è più lento sul selettore (2,0 s e 3,1 s) e costa 0,007–0,014 $ in più a giro. La qualità delle tappe non cambia in modo visibile: a Troina scelte identiche, a Catania poche sostituzioni equivalenti (una piazza al posto di un palazzo). Con la regola «si promuove solo se la qualità migliora in modo visibile» il selettore resta su Haiku; la scelta è di Ivano.
+
+## Configurazione definitiva (decisa da Ivano, 28/10/2026) e verifica sul sito pubblicato
+`openai-proxy` v35 = codice di `main` (`dfcf6ce`, CI verde, 5 file identici alla funzione attiva). Catena di ripiego dei compiti veloci: **Haiku 4.5 → Haiku 5.5 → Sonnet 5.5 → OpenAI**. Ragionamento fissato per modello da documentazione (Haiku 5.5 `thinking: disabled`, Sonnet 5.5 `between_tools`), nessun tentativo in produzione.
+
+| Compito | Modello (secret) | Tempo misurato sul sito | Costo AI (listino) |
+|---|---|---|---|
+| traduttore | `claude-haiku-4-5` | 1,5 s | 0,003 $ |
+| selettore | `claude-sonnet-5-5` (`between_tools`) | 2,7 s | 0,025 $ |
+| narratore | `claude-sonnet-5-5` | 4,1 s | 0,012 $ |
+| lista città | `claude-sonnet-5-5` | già in cache (0,5 s) | 0 $ (nuova: ≈0,01–0,02 $ AI) |
+| notifiche | `claude-haiku-4-5` | 1,1 s | 0,0015 $ |
+| contorno, lista quartiere | `claude-sonnet-5-5` (difetto) | non provati | — |
+
+**Giro Catania dal sito pubblicato** (https://unnivai.vercel.app/ai-itinerary, account di prova, testo «Domani una giornata a Catania», 28/10/2026 ≈ 17:58):
+- 16,2 s dal clic alla risposta del narratore; titolo «Barocco e pietra lavica di Catania», «Tour a Catania (dal tuo testo)», 11 tappe, la giornata parte alle 09:30.
+- Nessun ripiego, nessun errore sul testo: tutte le 5 chiamate AI (`notifiche`, `traduttore`, `city_list` in cache, `selettore`, `narratore`) HTTP 200, fornitore Anthropic.
+- Costo: AI ≈ 0,041 $; Google 2 ricerche non in cache (≈ 0,07 $), le altre dalla cache. **Giro ≈ 0,11 $.**
+- Console del browser: errori di CORS di `overpass-api.de` (fatti OSM, esterni e preesistenti, non AI) e **un 502 del percorso voce**.
+
+## Cosa NON è risolto
+1. **OpenAI non ha credito** (`credit_balance_exhausted`): il ripiego su `gpt-4o-mini` non funziona. **La voce umana di navigazione (`gpt-4o-mini-tts`) risponde 502** (log: «voce: OpenAI 429 You have no credits remaining»): il client ripiega sulla voce del browser. Serve ricaricare OpenAI, oppure decidere la voce su un altro fornitore (altro incarico).
+2. **Haiku 5.5**: la variante del ragionamento è fissata da documentazione ma **non verificata con una chiamata diretta** (Ivano ha escluso la prova con la chiave). Haiku 5.5 è secondo nella catena e non è mai primo finché non misura ≤ 1,8 s e token comparabili. Costa 0,10 $ / 0,50 $ per milione di token.
+3. **Haiku 4.5**: «Active», ritiro «not sooner than October 15, 2026» (platform.claude.com/docs/en/about-claude/model-deprecations, 28/10/2026), preavviso promesso ≥ 60 giorni; se risponde 404 la catena passa da sola al 5.5.
+4. **Protezioni del proxy**: le chiamate di contorno non hanno un tetto globale giornaliero, CORS è `*`, non serve nessuna intestazione `apikey`, nessun limite alla dimensione del corpo. Correzione minima proposta (non applicata): contatore globale per il contorno nella funzione SQL (`AI_GLOBAL_DAILY_CAP_CONTORNO`) e corpo massimo 60 KB (413).
+5. Confronto Haiku/Sonnet per ogni compito: solo selettore (stesse tappe a Troina, differenze equivalenti a Catania) e Haiku 4.5/5.5 sul traduttore; narratore, notifiche e contorno non confrontati. Roma sera costa ≈ 1 $ di Google e non è stata ripetuta con la configurazione finale; la guardia dal vivo sui 12 flussi non è stata fatta (vale il replay 12/12).
+6. I racconti da insider di tappa sono un incarico separato.
+
+## Prova di 10 minuti per Ivano
+1. Sito pubblicato → «Crea il tuo percorso» → «Domani una giornata a Catania»: deve uscire un giro di 8–11 tappe in meno di 40 s.
+2. Console Anthropic → Usage: devono comparire `claude-haiku-4-5` e `claude-sonnet-5-5`.
+3. Voce: in navigazione la frase deve parlare con la voce del browser finché OpenAI è senza credito.
+4. Cambio modello a un compito: `supabase secrets set ANTHROPIC_MODEL_<COMPITO>=… --project-ref ahecpiwsdhghkndncejb` (nessun deploy).

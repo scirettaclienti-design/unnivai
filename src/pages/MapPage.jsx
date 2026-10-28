@@ -39,7 +39,7 @@ import { creaSchermoAcceso } from '../lib/wakeLock';
 import { parla, fermaVoce, sbloccaVoce, voceScelta, scegliVoce } from '../lib/voce';
 import { dire, indicazioneSvolta } from '../lib/vociTesti';
 import { NAV_TESTI, avvisoNavigazione } from '../lib/navMessaggi';
-import { prossimaSvolta, versoDa, rigaTappa, percheAdesso, testoRacconto, chiccaDistinta, fotoVera, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo, fasciaMappa, angoloFrecciaPartenza, partenzaCompiuta } from '../lib/navGuida';
+import { prossimaSvolta, versoDa, rigaTappa, percheAdesso, testoRacconto, chiccaDistinta, fotoVera, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo, fasciaMappa, angoloFrecciaPartenza, partenzaCompiuta, frecciaDaSpegnere, tappaDellaFreccia } from '../lib/navGuida';
 import { typeLabelOf } from '../lib/italianLabels';
 import { travelMinutes, etichettaCammino, etichettaGiornata } from '../lib/tourTiming';
 import { ArrivoTappa, SchedaTappa, FineGiro, RitoArrivo, FiloDelGiorno } from '../components/Nav/GuidaSchede';
@@ -1111,7 +1111,7 @@ const MapPage = () => {
         if (frecciaPartenzaRef.current) {
             if (!partenzaRef.current) partenzaRef.current = { lat: latitude, lng: longitude };
             else {
-                const t0 = (activeRoute || [])[0];
+                const t0 = tappaDellaFreccia(activeRoute, completedStepsRef.current || [], skippedStepsRef.current || []);
                 if (t0 && partenzaCompiuta({ partenza: partenzaRef.current, posizione: { lat: latitude, lng: longitude }, tappa: { lat: Number(t0.latitude ?? t0.lat), lng: Number(t0.longitude ?? t0.lng) } })) {
                     frecciaPartenzaRef.current = false;
                     setFrecciaPartenza(false);
@@ -1358,6 +1358,14 @@ const MapPage = () => {
         if (attempt < 3) setTimeout(() => flyToUser(coords, attempt + 1), 100);
         else console.warn('[DVAI-Nav] mappa non pronta dopo 300ms: skip il volo iniziale');
     };
+
+    // La freccia di partenza e' un lampo solo all'avvio: tappa fatta o saltata, arrivo o segnale perso la spengono per sempre (si riaccende solo da un nuovo «Avvia»).
+    useEffect(() => {
+        if (frecciaPartenzaRef.current && frecciaDaSpegnere({ fatte: completedSteps, saltate: skippedSteps, arrivoId, gps: navGps })) {
+            frecciaPartenzaRef.current = false;
+            setFrecciaPartenza(false);
+        }
+    }, [completedSteps, skippedSteps, arrivoId, navGps]);
 
     // NAV-1: le tappe ancora da fare (né fatte né saltate).
     const tappeRimaste = (done = completedStepsRef.current || [], skipped = skippedStepsRef.current || []) =>
@@ -2236,7 +2244,7 @@ const MapPage = () => {
             </AnimatePresence>
 
             {isNavigating && frecciaPartenza && (() => {
-                const t0 = (activeRoute || [])[0];
+                const t0 = tappaDellaFreccia(activeRoute, completedSteps, skippedSteps);
                 const angolo = localCenter && t0 ? angoloFrecciaPartenza({ utente: { lat: localCenter.latitude, lng: localCenter.longitude }, tappa: { lat: Number(t0.latitude ?? t0.lat), lng: Number(t0.longitude ?? t0.lng) }, orientamentoCamera: map?.getHeading?.() ?? 0 }) : null;
                 return <FrecciaPartenza angolo={angolo} nome={t0?.name || t0?.title || null} />;
             })()}

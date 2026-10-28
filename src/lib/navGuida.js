@@ -318,6 +318,20 @@ export function partenzaCompiuta({ partenza, posizione, tappa }) {
 }
 
 
+/**
+ * La freccia di partenza e' un lampo solo all'avvio: resta accesa SOLO finche' nessuna tappa e' stata fatta o saltata, nessuna scheda di arrivo e'
+ * aperta e il GPS non ha mai perso il segnale. Una volta spenta non si riaccende (lo decide il chiamante con un chiavistello).
+ * @returns {boolean} true = la freccia va spenta adesso
+ */
+export function frecciaDaSpegnere({ fatte = [], saltate = [], arrivoId = null, gps = null } = {}) {
+    return (fatte?.length || 0) > 0 || (saltate?.length || 0) > 0 || arrivoId != null || gps === 'perso';
+}
+/** La tappa che la freccia nomina: la prima ancora da fare (mai la prima del giro se e' gia' passata). */
+export function tappaDellaFreccia(tappe = [], fatte = [], saltate = []) {
+    return (tappe || []).find(s => !fatte.includes(s.id) && !saltate.includes(s.id)) || null;
+}
+
+
 /** La foto della tappa nella scheda in basso: una foto vera di Places, oppure nessuna (mai una foto di stock, mai un segnaposto). */
 export function fotoVera(stop) {
     const url = [stop?.googlePhoto, stop?.image].find(u => typeof u === 'string' && u.trim());

@@ -1,0 +1,173 @@
+{
+ "tag": "freccia",
+ "ora": "2026-10-28T10:00:00+01:00",
+ "base": "http://localhost:5291",
+ "richieste": {
+  "directions": 4
+ },
+ "mapIdVisti": {},
+ "fotogrammi": [
+  {
+   "nome": "1-panoramica",
+   "bianchi": 0.10512820512820513,
+   "medio": 191
+  },
+  {
+   "nome": "2-volo-00",
+   "bianchi": 0.06474358974358975,
+   "medio": 160
+  },
+  {
+   "nome": "2-volo-01",
+   "bianchi": 0.09282051282051282,
+   "medio": 157
+  },
+  {
+   "nome": "2-volo-02",
+   "bianchi": 0.3606410256410256,
+   "medio": 160
+  },
+  {
+   "nome": "2-volo-03",
+   "bianchi": 0.11166666666666666,
+   "medio": 154
+  },
+  {
+   "nome": "2-volo-04",
+   "bianchi": 0.05923076923076923,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-05",
+   "bianchi": 0.05641025641025641,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-06",
+   "bianchi": 0.05730769230769231,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-07",
+   "bianchi": 0.05692307692307692,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-08",
+   "bianchi": 0.05641025641025641,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-09",
+   "bianchi": 0.05653846153846154,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-10",
+   "bianchi": 0.05730769230769231,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-11",
+   "bianchi": 0.05615384615384615,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-12",
+   "bianchi": 0.05641025641025641,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-13",
+   "bianchi": 0.05730769230769231,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-14",
+   "bianchi": 0.05730769230769231,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-15",
+   "bianchi": 0.056025641025641025,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-16",
+   "bianchi": 0.056025641025641025,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-17",
+   "bianchi": 0.05730769230769231,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-18",
+   "bianchi": 0.057179487179487176,
+   "medio": 151
+  },
+  {
+   "nome": "2-volo-19",
+   "bianchi": 0.056282051282051285,
+   "medio": 151
+  },
+  {
+   "nome": "3-avvio-con-freccia",
+   "bianchi": 0.05653846153846154,
+   "medio": 151
+  },
+  {
+   "nome": "4-tappa-2",
+   "bianchi": 0.13346153846153846,
+   "medio": 164
+  }
+ ],
+ "misure": {
+  "aperturaMappaMs": 3426
+ },
+ "panoramica": {
+  "mapIdAttivo": null,
+  "strati": null,
+  "barraCitta": false,
+  "meteo": false,
+  "cardTesto": "Il tuo giro a Catania\n\nGiornata 9:30–21:15 · 41 min a piedi · 3,0 km · 12 tappe\n\nCambia mezzo\nAVVIA",
+  "indietro": {
+   "x": 16,
+   "y": 16,
+   "w": 46,
+   "h": 46
+  }
+ },
+ "cameraPanoramica": {
+  "zoom": 16,
+  "tilt": 45,
+  "heading": 0
+ },
+ "cameraDopoVolo": {
+  "zoom": 18,
+  "tilt": 50,
+  "heading": 335.3849173941869
+ },
+ "freccia": {
+  "presente": true,
+  "angolo": "-164"
+ },
+ "testoAvvio": "Parti da qui verso Porta Uzeda",
+ "frecciaAllArrivo": false,
+ "frecciaTappa2": false,
+ "testoTappa2": null,
+ "pillola": "60 m · verso Basilica Cattedrale di Sant'Agata",
+ "nomiTappe": [
+  "Porta Uzeda",
+  "Basilica Cattedrale di Sant'Agata"
+ ],
+ "erroriPagina": [
+  "console: Viewport argument key \"interactive-widget\" not recognized and ignored.",
+  "FALLITA: https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1 cancelled",
+  "console: Viewport argument key \"interactive-widget\" not recognized and ignored.",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i16!2i35512!3i25392!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i17!2i71028!3i50784!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i17!2i71030!3i50789!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled"
+ ]
+}

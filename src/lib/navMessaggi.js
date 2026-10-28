@@ -4,6 +4,7 @@
  */
 export const NAV_TESTI = Object.freeze({
     GPS_ATTESA: 'Cerco il segnale. Intanto segui la mappa: le tappe si sbloccano appena ti trovo.',
+    PARTENZA_VERSO: (nome) => (nome ? `Parti da qui verso ${nome}` : 'Parti da qui, nella direzione della freccia'),
     GPS_PERSO: 'Ho perso il segnale. Continua pure: quando torna, riparto da dove sei.',
     POSIZIONE_NEGATA: 'Senza posizione non posso guidarti. Attivala in Impostazioni › Safari › Posizione, oppure segna le tappe a mano.',
     OFFLINE: 'Sei offline. La mappa resta; il percorso si aggiorna quando torna la rete.',

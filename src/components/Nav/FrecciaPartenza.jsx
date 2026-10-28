@@ -4,6 +4,7 @@
  * @param {{ angolo: number|null, nome?: string }} p `angolo` in gradi, in senso orario, 0 = in alto
  */
 import { Navigation2 } from 'lucide-react';
+import { NAV_TESTI } from '../../lib/navMessaggi';
 
 export default function FrecciaPartenza({ angolo, nome = null }) {
     if (!Number.isFinite(angolo)) return null;
@@ -13,7 +14,7 @@ export default function FrecciaPartenza({ angolo, nome = null }) {
                 <Navigation2 size={84} strokeWidth={1.6} className="text-brand-orange fill-brand-orange/25" aria-hidden="true" />
             </div>
             <p className="mt-4 px-4 py-2 rounded-2xl bg-obsidian-card/90 border border-obsidian-border text-obsidian-primary text-sm font-bold text-center max-w-[80%]">
-                {nome ? `Parti da qui verso ${nome}` : 'Parti da qui, nella direzione della freccia'}
+                {NAV_TESTI.PARTENZA_VERSO(nome)}
             </p>
         </div>
     );

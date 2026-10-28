@@ -1,0 +1,198 @@
+// RACCONTO DI TAPPA — il controllo automatico, le fonti, il prompt. 0 $, nessuna rete.
+import { describe, it, expect, vi } from 'vitest';
+import fs from 'node:fs';
+import {
+    controllaRacconto, messaggiRacconto, haFonti, ripulisciRacconto, impronta, fontiPulite, LIMITI, RISPOSTA_NIENTE, SYSTEM_RACCONTO, VERSIONE_RACCONTO,
+} from '../../../supabase/functions/openai-proxy/racconto.ts';
+import { trovaWikipedia, cercaWikipedia, descrizioneGoogleDa, RAGGIO_MAX_M } from '../../../supabase/functions/openai-proxy/raccontoFonti.ts';
+
+const ELEFANTE = {
+    nome: "Fontana dell'Elefante (uʻ Liotru)", citta: 'Catania',
+    wikipedia: { titolo: "Fontana dell'Elefante", testo: "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana." },
+    google: { testo: 'Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.' },
+};
+const BUONO = "Guarda l'elefante nero al centro della piazza: è scolpito nel basalto, e qui lo chiamano U Liotru. Per i catanesi è il simbolo della città, quello che trovi ovunque. È un'opera romana, ma la fontana che la regge l'ha disegnata Vaccarini, tra il 1735 e il 1737.";
+
+describe('controllo: un racconto fedele alle fonti passa', () => {
+    it('il racconto di prova della Fontana dell\'Elefante passa', () => {
+        const c = controllaRacconto(BUONO, ELEFANTE);
+        expect(c.motivi).toEqual([]);
+        expect(c.ok).toBe(true);
+        expect(c.stats.frasi).toBe(3);
+    });
+    it('«Sei nella piazza…» non è il numero sei; «nel Duecento» vale «XIII secolo»; «San» non è un nome da cercare', () => {
+        const castello = { nome: 'Castello Ursino', citta: 'Catania', wikipedia: { titolo: 'Castello Ursino', testo: 'Il castello Ursino di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero fu sede del parlamento siciliano e oggi è sede del Museo Civico, formato dalle collezioni della famiglia Biscari. ' + 'x'.repeat(0) }, google: null };
+        expect(controllaRacconto('Sei davanti al maniero: lo fece costruire Federico II di Svevia nel Duecento. Oggi dentro c\'è il Museo Civico, con le collezioni della famiglia Biscari.', castello).motivi).toEqual([]);
+        const teatro = { nome: 'Teatro', citta: 'Catania', wikipedia: { titolo: 'Teatro', testo: 'Il teatro è situato tra piazza S. Francesco e via Timeo, risale al II secolo.' }, google: null };
+        expect(controllaRacconto('Fermati qui: il teatro sta tra piazza San Francesco e via Timeo. Risale al II secolo.', teatro).motivi).toEqual([]);
+    });
+});
+
+describe('controllo: ogni data, numero, nome e fatto deve stare nelle fonti', () => {
+    it('una data sbagliata si scarta', () => {
+        const c = controllaRacconto(BUONO.replace('1735', '1745'), ELEFANTE);
+        expect(c.ok).toBe(false);
+        expect(c.fuoriFonti.numeri).toContain('1745');
+    });
+    it('un nome proprio inventato si scarta', () => {
+        const c = controllaRacconto(BUONO.replace('Vaccarini', 'Bernini'), ELEFANTE);
+        expect(c.ok).toBe(false);
+        expect(c.fuoriFonti.nomi).toContain('Bernini');
+    });
+    it('un numero scritto in lettere che le fonti non hanno si scarta', () => {
+        const c = controllaRacconto("Guarda l'elefante nero: è scolpito nel basalto. La fontana è di Vaccarini e ha sette secoli di storia.", ELEFANTE);
+        expect(c.ok).toBe(false);
+        expect(c.fuoriFonti.numeri).toContain('sette');
+    });
+    it('una cifra romana inventata si scarta, una presente nelle fonti passa', () => {
+        const f = { nome: 'Duomo', citta: 'Catania', wikipedia: { titolo: 'Duomo', testo: 'La cattedrale fu ricostruita nel XVIII secolo dopo il terremoto del 1693 e guarda la piazza.' }, google: null };
+        expect(controllaRacconto('Guarda la cattedrale: è del XVIII secolo. La ricostruirono dopo il terremoto del 1693.', f).motivi).toEqual([]);
+        expect(controllaRacconto('Guarda la cattedrale: è del XII secolo. La ricostruirono dopo il terremoto del 1693.', f).fuoriFonti.romani).toContain('XII');
+    });
+    it('un fatto che non c\'è (troppe parole fuori dalle fonti) si scarta', () => {
+        const c = controllaRacconto("Guarda l'elefante: nella notte i pescatori lo accarezzavano portando fortuna ai naviganti. Si racconta che sotto la statua riposino antichi tesori nascosti dai monaci benedettini.", ELEFANTE);
+        expect(c.ok).toBe(false);
+        expect(c.motivi.join(' ')).toMatch(/parole fuori dalle fonti/);
+    });
+});
+
+describe('controllo: voce e forma', () => {
+    const ok = (t) => controllaRacconto(t, ELEFANTE);
+    it('«Benvenuti», superlativi, tono da brochure e «voi» si scartano', () => {
+        expect(ok("Benvenuti alla fontana. Guarda l'elefante di basalto, il simbolo della città.").motivi.join()).toMatch(/benvenuti/);
+        expect(ok("Guarda l'elefante di basalto: è un simbolo meraviglioso della città. È del 1735.").motivi.join()).toMatch(/aggettivo vuoto/);
+        expect(ok("Guarda l'elefante di basalto, il simbolo più bellissimo della città. È del 1735.").motivi.join()).toMatch(/superlativo/);
+        expect(ok("Potete ammirare l'elefante di basalto, simbolo della città. Vi invito a guardarlo.").motivi.length).toBeGreaterThan(0);
+    });
+    it('meno di 2 o più di 4 frasi, o troppo lungo, si scarta', () => {
+        expect(ok("Guarda l'elefante di basalto, simbolo della città.").motivi.join()).toMatch(/meno di 2 frasi/);
+        expect(ok("Guarda l'elefante. È di basalto. È il simbolo della città. È del 1735. È di Vaccarini.").motivi.join()).toMatch(/più di 4 frasi/);
+    });
+    it('un secolo detto all\'italiana vale la cifra romana delle fonti anche tra le parole-fatto', () => {
+        const f = { nome: 'Teatro', citta: 'Catania', wikipedia: { titolo: 'Teatro', testo: 'Il teatro è stato messo in luce a partire dalla fine del XIX secolo, tra piazza S. Francesco e via Timeo, nel centro storico della città.' }, google: null };
+        expect(controllaRacconto('Questo teatro è tornato alla luce dalla fine dell\'Ottocento. Sta nel centro storico, tra piazza Francesco e via Timeo.', f).motivi.join()).not.toMatch(/ottocento/);
+    });
+    it('NIENTE (le fonti non bastano) e il vuoto si scartano senza essere un errore', () => {
+        expect(ok(RISPOSTA_NIENTE).ok).toBe(false);
+        expect(ok(RISPOSTA_NIENTE).motivi[0]).toMatch(/fonti non bastano/);
+        expect(ok('').motivi).toEqual(['vuoto']);
+    });
+    it('emoji e indirizzi web si scartano', () => {
+        expect(ok("Guarda l'elefante 🐘 di basalto. È del 1735, simbolo della città.").motivi.join()).toMatch(/emoji/);
+        expect(ok("Guarda l'elefante di basalto, simbolo della città. Leggi su https://it.wikipedia.org tutto.").motivi.join()).toMatch(/indirizzo web|fonti/);
+    });
+});
+
+describe('fonti e prompt', () => {
+    it('senza fonti vere non si scrive: una riga di Google da sola non basta', () => {
+        expect(haFonti({ nome: 'X', citta: 'Y', wikipedia: null, google: { testo: 'Rovine di un anfiteatro del II secolo d.C. con gradinata e orchestra.' } })).toBe(false);
+        expect(haFonti({ nome: 'X', citta: 'Y', wikipedia: null, google: null })).toBe(false);
+        expect(haFonti(ELEFANTE)).toBe(true);
+        expect(LIMITI.fonteMin).toBeGreaterThanOrEqual(150);
+    });
+    it('il prompt porta le fonti, la voce e la regola «solo fatti delle fonti»', () => {
+        const m = messaggiRacconto(ELEFANTE);
+        expect(m[0].role).toBe('system'); expect(m[0].content).toBe(SYSTEM_RACCONTO);
+        expect(SYSTEM_RACCONTO).toMatch(/SOLO fatti presenti nelle FONTI/);
+        expect(SYSTEM_RACCONTO).toMatch(/Benvenuti/);
+        expect(SYSTEM_RACCONTO).toMatch(/NIENTE/);
+        expect(m[1].content).toContain("Fontana dell'Elefante (uʻ Liotru) (Catania)");
+        expect(m[1].content).toContain('Vaccarini');
+        expect(m[1].content).toContain('statua romana');
+    });
+    it('le fonti si tagliano a frase intera e non superano i limiti', () => {
+        const lunga = { nome: 'A', citta: 'B', wikipedia: { testo: `${'Una frase completa. '.repeat(200)}` }, google: { testo: 'g'.repeat(900) } };
+        const p = fontiPulite(lunga);
+        expect(p.wikipedia.length).toBeLessThanOrEqual(LIMITI.wikipediaMax);
+        expect(p.wikipedia.endsWith('.')).toBe(true);
+        expect(p.google.length).toBeLessThanOrEqual(LIMITI.googleMax);
+    });
+    it('l\'impronta cambia se cambia una fonte e include la versione', async () => {
+        const a = await impronta(ELEFANTE);
+        expect(a).toHaveLength(32);
+        expect(await impronta(ELEFANTE)).toBe(a);
+        expect(await impronta({ ...ELEFANTE, google: { testo: 'altro' } })).not.toBe(a);
+        expect(VERSIONE_RACCONTO).toMatch(/^r\d+$/);
+    });
+    it('ripulisce virgolette, markdown e a capo', () => {
+        expect(ripulisciRacconto('«Guarda **qui**.\n\nÈ _bello_.»')).toBe('Guarda qui. È bello.');
+    });
+});
+
+describe('Wikipedia della tappa (aggancio per nome e coordinate)', () => {
+    const pagina = (over = {}) => ({ pageid: 1, title: "Fontana dell'Elefante", index: 1, extract: ELEFANTE.wikipedia.testo, coordinates: [{ lat: 37.50241, lon: 15.08772 }], ...over });
+    const fetchCon = (pagine, { occupatoPrima = 0 } = {}) => {
+        let n = 0;
+        return vi.fn(async () => {
+            n += 1;
+            if (n <= occupatoPrima) return { ok: false, status: 200, json: async () => ({ error: { code: 'cirrussearch-too-busy-error' } }) };
+            return { ok: true, status: 200, json: async () => ({ query: { pages: pagine } }) };
+        });
+    };
+    const tappa = { nome: "Fontana dell'Elefante (uʻ Liotru)", citta: 'Catania', lat: 37.50241, lng: 15.08772 };
+    it('aggancia la voce giusta: nome compatibile e dentro il raggio', async () => {
+        const w = await trovaWikipedia(tappa, fetchCon([pagina()]));
+        expect(w.titolo).toBe("Fontana dell'Elefante");
+        expect(w.url).toBe("https://it.wikipedia.org/wiki/Fontana_dell'Elefante".replace("'", '%27').replace('%27', "'")); // encodeURIComponent lascia l'apostrofo
+        expect(w.distanzaM).toBeLessThanOrEqual(RAGGIO_MAX_M);
+    });
+    it('scarta una voce lontana, una disambiguazione, un altro posto e una voce vuota', async () => {
+        expect(await trovaWikipedia(tappa, fetchCon([pagina({ coordinates: [{ lat: 38.1, lon: 15.6 }] })]))).toBeNull();
+        expect(await trovaWikipedia(tappa, fetchCon([pagina({ pageprops: { disambiguation: '' } })]))).toBeNull();
+        expect(await trovaWikipedia(tappa, fetchCon([pagina({ title: 'Teatro Massimo Bellini' })]))).toBeNull();
+        expect(await trovaWikipedia(tappa, fetchCon([pagina({ extract: '  ' })]))).toBeNull();
+    });
+    it('senza coordinate vale solo a nome identico', async () => {
+        const senzaCoord = { coordinates: undefined };
+        const compatibile = await trovaWikipedia({ ...tappa, nome: 'Elefante di basalto' }, fetchCon([pagina({ ...senzaCoord, title: 'Statua di elefante di basalto' })]));
+        expect(compatibile).toBeNull(); // nome compatibile ma non identico e niente coordinate: scartata
+        const uguale = await trovaWikipedia(tappa, fetchCon([pagina(senzaCoord)])); // stesso nome una volta tolte le parentesi
+        expect(uguale?.titolo).toBe("Fontana dell'Elefante");
+    });
+    it('riprova quando Wikipedia dice «too busy»', async () => {
+        const f = fetchCon([pagina()], { occupatoPrima: 1 });
+        const w = await trovaWikipedia(tappa, f);
+        expect(w?.titolo).toBe("Fontana dell'Elefante");
+        expect(f).toHaveBeenCalledTimes(2);
+    });
+    it('se Wikipedia non risponde non inventa: null, e lo dice (errore) invece di far credere che non ci sia la voce', async () => {
+        const f = vi.fn(async () => { throw new Error('rete'); });
+        expect(await trovaWikipedia(tappa, f)).toBeNull();
+        expect(await cercaWikipedia(tappa, f)).toEqual({ fonte: null, errore: true });
+        expect(await cercaWikipedia(tappa, fetchCon([]))).toEqual({ fonte: null, errore: false }); // risposta vera, nessuna voce
+    });
+    it('«too busy» tre volte di fila = errore, non «nessuna voce»', async () => {
+        const f = fetchCon([pagina()], { occupatoPrima: 5 });
+        expect((await cercaWikipedia(tappa, f)).errore).toBe(true);
+    });
+    it('la descrizione Google si legge da editorial_summary, vuota se manca', () => {
+        expect(descrizioneGoogleDa({ result: { editorial_summary: { overview: ' Imponente cattedrale barocca. ' } } })).toBe('Imponente cattedrale barocca.');
+        expect(descrizioneGoogleDa({ result: { name: 'Chiesa Madre' }, status: 'OK' })).toBe('');
+        expect(descrizioneGoogleDa(null)).toBe('');
+    });
+});
+
+describe('proxy: il racconto è un percorso suo, fonti e controllo sul server', () => {
+    const src = fs.readFileSync('supabase/functions/openai-proxy/index.ts', 'utf8');
+    it('dispatch su dv.purpose = racconto, tetto giornaliero, narratore (Sonnet) con ripiego e salvataggio per place_id', () => {
+        expect(src).toMatch(/purpose === 'racconto'/);
+        expect(src).toMatch(/racconto_consuma/);
+        expect(src).toMatch(/chiamaConRipiego\('narratore'/);
+        expect(src).toMatch(/primoAnthropic\('narratore'/);
+        expect(src).toMatch(/from\('place_racconti'\)/);
+        expect(src).toMatch(/controllaRacconto\(testo, fonti\)/);
+    });
+    it('il client non manda le fonti: il proxy le prende da solo (Wikipedia + places-proxy)', () => {
+        expect(src).toMatch(/cercaWikipedia\(\{ nome, citta, lat, lng \}/);
+        expect(src).toMatch(/RACCONTO_FONTI/); // Wikipedia che non risponde non diventa un «senza fonti» memorizzato
+        expect(src).toMatch(/placesCall\(\{ path: 'place\/details', place_id: placeId, fields: 'editorial_summary' \}\)/);
+        expect(src).not.toMatch(/dv\.wikipedia|dv\.fonti|dv\.testo_fonte/);
+    });
+    it('la migrazione chiude la tabella ad anon e authenticated', () => {
+        const sql = fs.readFileSync('supabase/migrations/20261028190000_place_racconti.sql', 'utf8');
+        expect(sql).toMatch(/ENABLE ROW LEVEL SECURITY/);
+        expect(sql).toMatch(/REVOKE ALL ON public\.place_racconti FROM anon, authenticated/);
+        expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.racconto_consuma\(integer\) TO service_role/);
+        expect(sql).not.toMatch(/GRANT .* TO (anon|authenticated)/);
+    });
+});

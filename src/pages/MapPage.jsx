@@ -36,7 +36,9 @@ import GiroRipresaDialog from '../components/Map/GiroRipresaDialog';
 import { valutaPassaggio } from '../lib/navPassaggio';
 import { valutaArrivo } from '../lib/navArrivo';
 import { creaSchermoAcceso } from '../lib/wakeLock';
-import { parla, fermaVoce, sbloccaVoce, voceScelta, scegliVoce } from '../lib/voce';
+import { parla, fermaVoce, sbloccaVoce, voceScelta, scegliVoce, preparaVoce } from '../lib/voce';
+import { richiediRacconto } from '../services/raccontoService';
+import { cosaPreparare } from '../lib/raccontoTappa';
 import { dire, indicazioneSvolta } from '../lib/vociTesti';
 import { NAV_TESTI, avvisoNavigazione } from '../lib/navMessaggi';
 import { prossimaSvolta, versoDa, rigaTappa, percheAdesso, testoRacconto, chiccaDistinta, fotoVera, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo, fasciaMappa, angoloFrecciaPartenza, partenzaCompiuta, frecciaDaSpegnere, tappaDellaFreccia } from '../lib/navGuida';
@@ -1677,6 +1679,39 @@ const MapPage = () => {
         return (activeRoute || []).find(libera) || null;
     })();
     useEffect(() => { navNextStopRef.current = navNextStop; });
+
+    // RACCONTO DI TAPPA — il racconto da insider della PROSSIMA tappa (testo + audio) si prepara mentre cammini: appena la tappa diventa la prossima
+    // e, se non fosse pronto, di nuovo a ~300 m. Così all'arrivo il Play parte subito. Senza fonti (o scartato) resta la frase breve di sempre.
+    const [racconti, setRacconti] = useState({}); // stop.id → testo del racconto
+    const raccontoRef = useRef({}); // stop.id → { testo, richiesta, audio, inCorso }
+    const preparaRacconto = (stop, distanzaM = null) => {
+        if (!stop) return;
+        const i = (activeRoute || []).findIndex(t => t.id === stop.id);
+        const step = tourData?.steps?.[stop.index] || tourData?.steps?.[i] || stop;
+        const st = raccontoRef.current[stop.id] || (raccontoRef.current[stop.id] = { testo: null, richiesta: false, audio: false, inCorso: false });
+        const azione = cosaPreparare({ distanzaM, testoPronto: !!st.testo, audioPronto: st.audio || !voiceEnabled, richiestaFatta: st.richiesta });
+        if (azione === 'niente' || st.inCorso) return;
+        st.inCorso = true;
+        (async () => {
+            try {
+                if (!st.testo) {
+                    const r = await richiediRacconto({ ...stop, ...step, id: stop.id }, tourData?.city || activeCity || '');
+                    st.richiesta = !!r; // r null = il server non ha risposto: a 300 m si riprova
+                    if (r?.testo) { st.testo = r.testo; setRacconti(prev => ({ ...prev, [stop.id]: r.testo })); }
+                }
+                if (st.testo && voiceEnabled && !st.audio) st.audio = (await preparaVoce(st.testo, { voce: voceScelta() })) === 'pronta';
+            } finally { st.inCorso = false; }
+        })();
+    };
+    const entro300 = isNavigating && Number.isFinite(nextStepDistanceM) && nextStepDistanceM <= 300;
+    useEffect(() => {
+        if (isNavigating && navNextStop) preparaRacconto(navNextStop, null);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isNavigating, navNextStop?.id, voiceEnabled]);
+    useEffect(() => {
+        if (entro300 && navNextStop) preparaRacconto(navNextStop, nextStepDistanceM);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [entro300, navNextStop?.id]);
     // nav-camera: la fascia oraria della mappa (alba e tramonto veri del posto); fuori dalla navigazione la mappa e' sempre Ossidiana
     const fasciaOra = (() => {
         if (!isNavigating) return null;
@@ -1844,7 +1879,8 @@ const MapPage = () => {
         return {
             id, numero: i + 1, nome: stop.name || stop.title, foto: fotoVera(step) || fotoVera(stop), categoria,
             riga: rigaTappa({ categoria, stayMinutes: step?.stayMinutes, stop: step, quando: quando || new Date() }),
-            chicca: chiccaDistinta(step, testoRacconto(step)), racconto: testoRacconto(step), perche: percheAdesso(step, quando || new Date(), new Date()),
+            // il racconto da insider (fonti verificate) sostituisce la frase breve; senza, restano la frase breve e il «perché adesso»
+            chicca: racconti[stop.id] ? null : chiccaDistinta(step, testoRacconto(step)), racconto: racconti[stop.id] || testoRacconto(step), perche: percheAdesso(step, quando || new Date(), new Date()),
             pillole: [hhmm, Number.isFinite(step?.stayMinutes) ? `~${step.stayMinutes} min` : null, Number(step?.price) > 0 ? `€${step.price}` : null].filter(Boolean),
             minutiAllaProssima: min, nomeProssima: prossima ? (prossima.name || prossima.title) : null,
             completata: completedSteps.includes(id),

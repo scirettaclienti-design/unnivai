@@ -6,7 +6,8 @@
  * senza errori a schermo. La chiave OpenAI non è mai qui.
  *
  * Ogni frase detta lascia una riga nel registro (`registroVoce`, anche in `window.__voceRegistro`): ora, testo, voce, sorgente
- * ('cache' | 'nuova' | 'browser'). Serve alla prova e al conto del costo.
+ * ('cache' | 'nuova' | 'browser'), `preparata` (l'audio era già pronto prima del Play) e `avvioMs` (dal Play al primo suono). Serve alla prova e al conto del costo.
+ * `preparaVoce` prepara l'audio in anticipo (il racconto della prossima tappa): il Play, all'arrivo, parte subito.
  */
 import { supabase } from '@/lib/supabase';
 
@@ -102,16 +103,17 @@ async function chiediAlServer(testo, voce) {
     }
 }
 
-function riproduci(url) {
+function riproduci(url, { suPartito = null } = {}) {
     return new Promise((resolve, reject) => {
         const a = audio();
         if (!a) { reject(new Error('niente audio')); return; }
-        const fine = () => { a.onended = null; a.onerror = null; resolve(); };
-        a.onended = fine;
-        a.onerror = () => { a.onended = null; a.onerror = null; reject(new Error('riproduzione')); };
+        const pulisci = () => { a.onended = null; a.onerror = null; a.onplaying = null; };
+        a.onended = () => { pulisci(); resolve(); };
+        a.onerror = () => { pulisci(); reject(new Error('riproduzione')); };
+        a.onplaying = () => { a.onplaying = null; try { suPartito?.(); } catch { /* niente */ } }; // il primo suono: da qui si misura il Play
         a.src = url;
         const p = a.play();
-        p?.catch?.((e) => { a.onended = null; a.onerror = null; reject(e); });
+        p?.catch?.((e) => { pulisci(); reject(e); });
     });
 }
 
@@ -147,6 +149,43 @@ export async function parla(testo, { voce = voceScelta(), titolo = null, senzaIn
 
 let inCorso = null; // la frase che sta parlando (o che sta arrivando dal server)
 
+const nowMs = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+const inPreparazione = new Map(); // `${voce}|${testo}` → promessa dell'audio che sta arrivando
+const preparate = new Set(); // le frasi il cui audio era già pronto prima del Play
+const riscaldate = new Map(); // gli elementi Audio che hanno già scaricato il file (restano in cache del browser)
+
+/**
+ * Prepara l'audio di `testo` PRIMA che serva (il racconto della prossima tappa, mentre si cammina): chiede l'url al server (se il file non c'è
+ * lo genera e lo salva in cache), lo ricorda per la sessione e fa scaricare il file al browser. Il Play, all'arrivo, parte subito.
+ * Non parla, non lancia mai, non fa niente se la voce umana non risponde (nessun credito, tetto, rete): all'arrivo parlerà il browser.
+ * @returns {Promise<'pronta'|'fallita'>}
+ */
+export function preparaVoce(testo, { voce = voceScelta() } = {}) {
+    const frase = String(testo || '').replace(/\s+/g, ' ').trim();
+    if (!frase) return Promise.resolve('fallita');
+    const chiave = `${voce}|${frase}`;
+    if (urlDiSessione.has(chiave)) { preparate.add(chiave); return Promise.resolve('pronta'); }
+    if (inPreparazione.has(chiave)) return inPreparazione.get(chiave);
+    const p = (async () => {
+        try {
+            const r = await chiediAlServer(frase, voce);
+            urlDiSessione.set(chiave, r.url);
+            preparate.add(chiave);
+            try { // il browser scarica il file adesso, così al Play non c'è attesa di rete
+                if (typeof Audio !== 'undefined') { const a = new Audio(); a.preload = 'auto'; a.src = r.url; a.load?.(); riscaldate.set(chiave, a); }
+            } catch { /* niente: il Play lo scaricherà */ }
+            registra({ ora: new Date().toISOString(), testo: frase, voce, sorgente: r.source === 'nuova' ? 'nuova' : 'cache', preparazione: true });
+            return 'pronta';
+        } catch {
+            return 'fallita';
+        } finally {
+            inPreparazione.delete(chiave);
+        }
+    })();
+    inPreparazione.set(chiave, p);
+    return p;
+}
+
 async function parlaOra(testo, { voce, titolo }) {
     const frase = String(testo || '').replace(/\s+/g, ' ').trim();
     if (!frase) return 'muto';
@@ -155,8 +194,12 @@ async function parlaOra(testo, { voce, titolo }) {
     try { window.speechSynthesis?.cancel(); } catch { /* niente */ }
     const chiave = `${voce}|${frase}`;
     let riga = null;
+    const t0 = nowMs();
     try {
+        // se l'audio è in preparazione (il racconto della prossima tappa, mentre cammini) lo si aspetta: è già in viaggio
+        if (!urlDiSessione.get(chiave) && inPreparazione.has(chiave)) await inPreparazione.get(chiave);
         let url = urlDiSessione.get(chiave);
+        const preparata = !!url && preparate.has(chiave);
         let sorgente = 'cache';
         if (!url) {
             const r = await chiediAlServer(frase, voce);
@@ -165,10 +208,10 @@ async function parlaOra(testo, { voce, titolo }) {
             urlDiSessione.set(chiave, url);
         }
         if (mio !== numero) return 'muto'; // nel frattempo è arrivata una frase più nuova (o uno stop)
-        riga = { ora: new Date().toISOString(), testo: frase, voce, sorgente };
+        riga = { ora: new Date().toISOString(), testo: frase, voce, sorgente, preparata };
         registra(riga);
         mediaSession(titolo || frase.slice(0, 60));
-        await riproduci(url);
+        await riproduci(url, { suPartito: () => { riga.avvioMs = Math.round(nowMs() - t0); } });
         return sorgente;
     } catch {
         if (mio !== numero) return 'muto';

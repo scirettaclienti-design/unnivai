@@ -53,8 +53,12 @@ import {
   MODELLO_DI_PRIMA, MODELLI, modelloPer, timeoutPer, corpoPer, rispostaVuota, passaggioValido, MODELLI_AMMESSI, chiamaConRipiego, usageTotale,
   type Passaggio, type Primo,
 } from './modelli.ts';
-import { fornitoreScelto, modelliAnthropicPer, chiamaAnthropicElenco, ErroreAnthropic, compitoDi } from './anthropic.ts';
+import { fornitoreScelto, modelliAnthropicPer, chiamaAnthropicElenco, ErroreAnthropic, compitoDi, PREZZI_ANTHROPIC_USD_PER_MILIONE } from './anthropic.ts';
 
+import {
+  VERSIONE_RACCONTO, TTL_RACCONTO_GIORNI, TTL_SCARTATO_GIORNI, haFonti, messaggiRacconto, controllaRacconto, ripulisciRacconto, impronta as improntaRacconto,
+} from './racconto.ts';
+import { cercaWikipedia, descrizioneGoogleDa } from './raccontoFonti.ts';
 import {
   MODELLO_VOCE, VOCE_PREDEFINITA, BUCKET_VOCE, voceValida, testoValido, chiaveAudio, percorsoAudio, corpoVoce, tettoNuovi, costoStimatoUsd,
 } from './voce.ts';
@@ -496,6 +500,116 @@ async function handleVoce(req: Request, dv: Record<string, unknown>, apiKey: str
   return json(200, { url, source: 'nuova', voce, chiave, costoStimatoUsd: costoStimatoUsd(testo) });
 }
 
+/**
+ * RACCONTO DI TAPPA — `dv.purpose = 'racconto'`, con `dv.place_id`, `dv.nome`, `dv.citta`, `dv.lat`, `dv.lng`. Restituisce
+ * { racconto: { esito: 'passato' | 'scartato' | 'senza-fonti', testo | null, motivi, fonti, cached } }.
+ * Il server prende le fonti da solo (Wikipedia della tappa, descrizione Google via places-proxy): il client non le manda, quindi non può
+ * far «verificare» un testo inventato. Claude (narratore, Sonnet 5.5; catena e ripiego come ogni altro compito) scrive, il controllo
+ * automatico (racconto.ts) scarta ciò che non sta nelle fonti. Una riga per tappa in public.place_racconti: un posto già raccontato costa 0.
+ * I racconti nuovi contano nel tetto giornaliero (public.racconto_consuma, secret RACCONTO_DAILY_CAP, difetto 300); non usano la quota dei giri.
+ */
+async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Response> {
+  const placeId = typeof dv.place_id === 'string' ? dv.place_id : '';
+  const nome = typeof dv.nome === 'string' ? dv.nome.trim() : '';
+  const citta = typeof dv.citta === 'string' ? dv.citta.trim() : '';
+  const lat = Number(dv.lat), lng = Number(dv.lng);
+  if (!/^[A-Za-z0-9_-]{10,300}$/.test(placeId) || !nome || nome.length > 120 || citta.length > 80 || !Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+    return json(400, { error: 'Tappa non valida', code: 'RACCONTO_NON_VALIDO' });
+  }
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+  if (!SUPABASE_URL || !SERVICE_KEY || !OPENAI_API_KEY) return json(503, { error: 'Racconto non disponibile', code: 'RACCONTO_NON_DISPONIBILE' });
+  const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  try {
+    await resolveSubject(req, sb); // solo per rifiutare un token non valido
+  } catch (err) {
+    if (err instanceof HttpError) return json(err.status, err.body);
+    return json(503, { error: 'Racconto non disponibile', code: 'RACCONTO_NON_DISPONIBILE' });
+  }
+
+  // deno-lint-ignore no-explicit-any
+  const risposta = (riga: any, extra: Record<string, unknown> = {}) => json(200, {
+    racconto: { esito: riga.esito, testo: riga.esito === 'passato' ? riga.testo : null, motivi: riga.motivi ?? [], fonti: riga.fonti ?? [], ...extra },
+  });
+
+  const { data: gia } = await sb.from('place_racconti').select('esito, testo, motivi, fonti, versione, created_at').eq('place_id', placeId).maybeSingle();
+  if (gia && gia.versione === VERSIONE_RACCONTO) {
+    const giorni = (Date.now() - new Date(gia.created_at).getTime()) / 86_400_000;
+    if (giorni < (gia.esito === 'passato' ? TTL_RACCONTO_GIORNI : TTL_SCARTATO_GIORNI)) return risposta(gia, { cached: true });
+  }
+
+  const { data: ammesso, error: errTetto } = await sb.rpc('racconto_consuma', { p_tetto: tettoNuovi(Deno.env.get('RACCONTO_DAILY_CAP') ?? '300') });
+  if (errTetto) {
+    console.error('[openai-proxy] racconto: tetto non verificabile:', scrubLogText(errTetto.message));
+    return json(503, { error: 'Racconto non disponibile', code: 'RACCONTO_NON_DISPONIBILE' });
+  }
+  if (!ammesso) return json(429, { error: 'Tetto giornaliero dei racconti raggiunto', code: 'RACCONTO_TETTO' });
+
+  const t0 = Date.now();
+  const [wikiRes, google] = await Promise.all([
+    cercaWikipedia({ nome, citta, lat, lng }, (u, init) => fetch(u, init as RequestInit)).catch(() => ({ fonte: null, errore: true })),
+    placesCall({ path: 'place/details', place_id: placeId, fields: 'editorial_summary' }).then(({ body }) => descrizioneGoogleDa(body)).catch(() => ''),
+  ]);
+  const wiki = wikiRes.fonte;
+  const fonti = { nome, citta, wikipedia: wiki ? { titolo: wiki.titolo, testo: wiki.testo } : null, google: google ? { testo: google } : null };
+  const fontiUsate = wiki ? [{ fonte: 'wikipedia', titolo: wiki.titolo, url: wiki.url }, ...(google ? [{ fonte: 'google' }] : [])] : (google ? [{ fonte: 'google' }] : []);
+  const salva = async (riga: Record<string, unknown>) => {
+    const { error } = await sb.from('place_racconti').upsert({ place_id: placeId, versione: VERSIONE_RACCONTO, created_at: new Date().toISOString(), ...riga }, { onConflict: 'place_id' });
+    if (error) console.error('[openai-proxy] racconto: salvataggio fallito:', scrubLogText(error.message));
+  };
+  const imp = await improntaRacconto(fonti);
+
+  if (!haFonti(fonti) && wikiRes.errore) {
+    // Wikipedia non ha risposto (occupata): «nessuna voce» non è una risposta, quindi non si memorizza; il client riprova più tardi
+    console.warn(`[openai-proxy] racconto: Wikipedia non risponde ${placeId.slice(0, 10)}`);
+    return json(503, { error: 'Fonti non disponibili', code: 'RACCONTO_FONTI' });
+  }
+  if (!haFonti(fonti)) {
+    const riga = { impronta: imp, esito: 'senza-fonti', testo: null, motivi: ['fonti insufficienti'], fonti: fontiUsate, ms: Date.now() - t0 };
+    await salva(riga);
+    console.log(`[openai-proxy] racconto: senza-fonti ${placeId.slice(0, 10)}`);
+    return risposta(riga, { cached: false });
+  }
+
+  const chiaveAnthropic = anthropicAttivo();
+  // deno-lint-ignore no-explicit-any
+  const invia = async (corpo: Record<string, any>, limite: number): Promise<any> => {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), limite);
+    try {
+      const upstream = await fetch(`${OPENAI_BASE}/chat/completions`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` }, body: JSON.stringify(corpo), signal: c.signal,
+      });
+      const body = await upstream.json().catch(() => null);
+      if (!upstream.ok) throw new Error(`HTTP ${upstream.status} ${plain(body?.error?.code)} ${plain(body?.error?.type)} ${plain(body?.error?.message)}`.slice(0, 120));
+      return body;
+    } finally { clearTimeout(t); }
+  };
+  // deno-lint-ignore no-explicit-any
+  let data: any, info: any;
+  try {
+    ({ data, info } = await chiamaConRipiego('narratore',
+      { model: MODELLO_DI_PRIMA, temperature: 0.6, max_tokens: 1500, messages: messaggiRacconto(fonti) }, invia, 30_000,
+      chiaveAnthropic ? primoAnthropic('narratore', chiaveAnthropic) : undefined));
+  } catch (err) {
+    // nessun motore ha risposto: non si salva niente (si riprova alla prossima richiesta), la tappa resta con la frase breve
+    console.error('[openai-proxy] racconto: motore non disponibile:', scrubLogText(err));
+    return json(502, { error: 'Racconto non disponibile', code: 'RACCONTO_MOTORE' });
+  }
+  const testo = ripulisciRacconto(data?.choices?.[0]?.message?.content);
+  const controllo = controllaRacconto(testo, fonti);
+  const prezzo = PREZZI_ANTHROPIC_USD_PER_MILIONE[info?.usato as string];
+  const costoUsd = prezzo && data?.usage ? +(((data.usage.prompt_tokens || 0) * prezzo.input + (data.usage.completion_tokens || 0) * prezzo.output) / 1e6).toFixed(5) : null;
+  const riga = {
+    impronta: imp, esito: controllo.ok ? 'passato' : 'scartato', testo: controllo.ok ? testo : null, motivi: controllo.motivi, fonti: fontiUsate,
+    modello: info?.usato ?? null, costo_usd: costoUsd, ms: Date.now() - t0,
+  };
+  await salva(riga);
+  console.log(`[openai-proxy] racconto: ${riga.esito} ${placeId.slice(0, 10)} ${info?.usato} ${riga.ms} ms ${costoUsd ?? '?'} $${controllo.ok ? '' : ` · ${controllo.motivi.join(' ; ').slice(0, 160)}`}`);
+  return risposta(riga, { cached: false, modello: info?.usato ?? null, costoUsd });
+}
+
 serve(async (req: Request) => {
   // Preflight
   if (req.method === 'OPTIONS') {
@@ -526,6 +640,16 @@ serve(async (req: Request) => {
     } catch (err) {
       console.error('[openai-proxy] voce: errore:', scrubLogText(err));
       return json(503, { error: 'Voce non disponibile', code: 'VOCE_NON_DISPONIBILE' });
+    }
+  }
+
+  // RACCONTO DI TAPPA — il prompt, le fonti e il controllo li scrive il proxy; il client dice solo quale tappa.
+  if (dvVoce && typeof dvVoce === 'object' && dvVoce.purpose === 'racconto') {
+    try {
+      return await handleRacconto(req, dvVoce as Record<string, any>);
+    } catch (err) {
+      console.error('[openai-proxy] racconto: errore:', scrubLogText(err));
+      return json(503, { error: 'Racconto non disponibile', code: 'RACCONTO_NON_DISPONIBILE' });
     }
   }
 

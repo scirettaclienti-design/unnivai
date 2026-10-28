@@ -1,0 +1,223 @@
+/**
+ * RACCONTO DI TAPPA — il racconto da insider (2–4 frasi) di un posto, scritto da Claude (narratore) SOLO con le fonti verificate:
+ * il testo di Wikipedia della tappa e la descrizione Google del posto. Modulo puro (nessuna rete, nessun Deno): lo usano il proxy
+ * (`dv.purpose = 'racconto'`), i test e la prova con le tappe vere.
+ *
+ * Il modello scrive; poi un CONTROLLO AUTOMATICO verifica che ogni data, numero, nome proprio e parola-fatto del racconto compaia nelle
+ * fonti. Se no il racconto è scartato e la tappa resta con la frase breve di oggi. Tutti i testi (prompt, parole vietate) stanno qui.
+ */
+
+export const LIMITI = Object.freeze({ frasiMin: 2, frasiMax: 4, carMax: 600, wikipediaMax: 1500, googleMax: 500, fonteMin: 200 });
+export const RISPOSTA_NIENTE = 'NIENTE';
+/** Versione del prompt e del controllo: se cambia, i racconti in cache si riscrivono. */
+export const VERSIONE_RACCONTO = 'r2';
+export const TTL_RACCONTO_GIORNI = 30; // come place_facts: il testo di Google non si tiene oltre
+export const TTL_SCARTATO_GIORNI = 7; // un racconto scartato non si riprova a ogni giro (costa), ma dopo una settimana sì
+
+export const SYSTEM_RACCONTO = [
+    'Sei la voce di Unnivai: un amico del posto che cammina con te e ti mostra una tappa.',
+    'Scrivi il racconto di UNA tappa: da 2 a 4 frasi brevi, in italiano, in seconda persona singolare («tu»), dette ad alta voce a chi sta arrivando.',
+    '',
+    'REGOLE (valgono tutte, senza eccezioni):',
+    '1. Usa SOLO fatti presenti nelle FONTI qui sotto. Ogni data, numero, nome proprio e fatto deve stare nelle fonti. Niente di tuo, niente «si dice», niente da memoria.',
+    '   Anche ciò che sai vero NON si dice se non è scritto nelle fonti: niente titoli o qualifiche aggiunti (principe, duca, famoso), niente spiegazioni, niente colori, aspetto o rumori che le fonti non dicono. Meglio un racconto corto e fedele che uno ricco e inventato.',
+    '2. Scegli il fatto più sorprendente o più concreto delle fonti e parti da quello: un dettaglio che si vede o si può fare lì, non una definizione.',
+    '3. Frasi brevi, dirette, concrete. Come parla un insider: «Guarda…», «Qui…», «Fermati…». Una immagine per frase, mai un elenco di date.',
+    '4. Mai «Benvenuti», mai il tono da guida turistica o da brochure, mai superlativi o aggettivi vuoti (imperdibile, meraviglioso, spettacolare, unico, splendido, incantevole).',
+    '5. Mai «vi», mai «voi»: parli a una persona sola. Niente emoji, niente virgolette decorative, niente titoli, niente elenchi.',
+    '6. Non ripetere il nome del luogo più di una volta. Non dire che sei un\'intelligenza artificiale e non nominare le fonti.',
+    `7. Se le fonti non bastano per almeno due frasi vere e concrete, rispondi esattamente: ${RISPOSTA_NIENTE}`,
+    '',
+    'Rispondi solo con il testo del racconto (o con la parola indicata sopra), niente altro.',
+].join('\n');
+
+export type FontiRacconto = {
+    nome: string;
+    citta?: string | null;
+    wikipedia?: { titolo?: string | null; testo?: string | null } | null;
+    google?: { testo?: string | null } | null;
+};
+
+const pulisci = (s: unknown, max: number): string => {
+    const t = String(s ?? '').replace(/\s+/g, ' ').trim();
+    if (t.length <= max) return t;
+    const taglio = t.slice(0, max);
+    const fine = Math.max(taglio.lastIndexOf('. '), taglio.lastIndexOf('! '), taglio.lastIndexOf('? '));
+    return fine > max * 0.5 ? taglio.slice(0, fine + 1) : taglio;
+};
+
+/** Le fonti come le vede il modello (e il controllo): testi puliti e tagliati a frase intera. */
+export function fontiPulite(f: FontiRacconto): { nome: string; citta: string; wikipedia: string; google: string } {
+    return {
+        nome: pulisci(f.nome, 120),
+        citta: pulisci(f.citta, 80),
+        wikipedia: pulisci(f.wikipedia?.testo, LIMITI.wikipediaMax),
+        google: pulisci(f.google?.testo, LIMITI.googleMax),
+    };
+}
+
+/** Il racconto ha qualcosa da cui partire? Una riga di Google da sola (≈ 80 caratteri) non basta: senza fonti vere non si scrive niente e resta «Perché sei qui adesso». */
+export function haFonti(f: FontiRacconto): boolean {
+    const p = fontiPulite(f);
+    return p.wikipedia.length + p.google.length >= LIMITI.fonteMin;
+}
+
+export function messaggiRacconto(f: FontiRacconto): Array<{ role: 'system' | 'user'; content: string }> {
+    const p = fontiPulite(f);
+    const blocchi = [`TAPPA: ${p.nome}${p.citta ? ` (${p.citta})` : ''}`, ''];
+    blocchi.push(p.wikipedia ? `FONTE 1 — Wikipedia:\n«${p.wikipedia}»` : 'FONTE 1 — Wikipedia: nessun testo.');
+    blocchi.push('');
+    blocchi.push(p.google ? `FONTE 2 — Descrizione Google del posto:\n«${p.google}»` : 'FONTE 2 — Descrizione Google del posto: nessuna.');
+    blocchi.push('', 'Scrivi il racconto.');
+    return [{ role: 'system', content: SYSTEM_RACCONTO }, { role: 'user', content: blocchi.join('\n') }];
+}
+
+/** Impronta delle fonti (con la versione): se cambiano, il racconto in cache non vale più. */
+export async function impronta(f: FontiRacconto): Promise<string> {
+    const p = fontiPulite(f);
+    const dati = new TextEncoder().encode(`${VERSIONE_RACCONTO}\n${p.nome}\n${p.citta}\n${p.wikipedia}\n${p.google}`);
+    const h = await crypto.subtle.digest('SHA-256', dati);
+    return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+}
+
+// ─── il controllo ────────────────────────────────────────────────────────────────────────────────────────────────────
+const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’`´]/g, "'");
+const PAROLE = /[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu;
+
+const NUMERI_PAROLA: Record<string, number> = {
+    due: 2, tre: 3, quattro: 4, cinque: 5, sei: 6, sette: 7, otto: 8, nove: 9, dieci: 10, undici: 11, dodici: 12, tredici: 13, quattordici: 14,
+    quindici: 15, sedici: 16, diciassette: 17, diciotto: 18, diciannove: 19, venti: 20, trenta: 30, quaranta: 40, cinquanta: 50, sessanta: 60,
+    settanta: 70, ottanta: 80, novanta: 90, cento: 100, duecento: 200, trecento: 300, quattrocento: 400, cinquecento: 500, seicento: 600,
+    settecento: 700, ottocento: 800, novecento: 900, mille: 1000, duemila: 2000, milione: 1000000, milioni: 1000000, centinaia: 100, migliaia: 1000,
+    decine: 10, doppio: 2, triplo: 3,
+};
+// «sei» (anche voce del verbo essere: «Sei nella piazza») e «metà» non si contano come numeri: troppi falsi allarmi
+const NON_NUMERI = new Set(['sei', 'meta']);
+// I secoli detti all'italiana valgono la cifra romana delle fonti: «nel Duecento» = «XIII secolo»
+const SECOLI: Record<string, string> = {
+    duecento: 'xiii', trecento: 'xiv', quattrocento: 'xv', cinquecento: 'xvi', seicento: 'xvii', settecento: 'xviii', ottocento: 'xix', novecento: 'xx',
+};
+const SANTI = new Set(['san', 'santa', 'santo', 'sant', 'ss', 'beato']);
+
+const VIETATE: Array<[RegExp, string]> = [
+    [/benvenut/i, 'dice «benvenuti»'],
+    [/\b(imperdibil\w*|meraviglios\w*|spettacolar\w*|incantevol\w*|splendid\w*|straordinari\w*|favolos\w*|magnific\w*|stupend\w*|affascinant\w*|suggestiv\w*|unico nel suo genere|da non perdere|gioiello|must[- ]see)\b/i, 'aggettivo vuoto o tono da brochure'],
+    [/\b\w{4,}issim[oaie]\b/i, 'superlativo'],
+    [/\b(ammirar\w+|scoprirete|scoprirai|vi invito|vi consiglio|vi invitiamo|visitatori)\b/i, 'tono da guida turistica'],
+    [/\b(vi|voi)\b/i, 'parla a più persone'],
+    [/\p{Extended_Pictographic}/u, 'emoji'],
+    [/https?:|www\./i, 'indirizzo web'],
+    [/\b(intelligenza artificiale|wikipedia|google)\b/i, 'nomina le fonti o l\'AI'],
+];
+
+// Le parole della voce da insider (imperativi, avverbi di luogo, connettivi): non sono fatti, non si cercano nelle fonti.
+const PAROLE_DI_VOCE = new Set((
+    'guarda guardala guardalo fermati fermiamoci cerca cercala alza alzalo entra entrarci sali scendi voltati girati siediti resta restaci prova provaci ' +
+    'nota notala immagina pensa ricorda lascia lasciati avvicinati allontanati aspetta aspettati concediti ' +
+    'davanti dietro accanto intorno attorno dentro fuori sopra sotto vicino lontano adesso ancora sempre quando mentre quindi perche anche allora ' +
+    'proprio soltanto appena subito tutto tutti tutta tutte nessuno nessuna ognuno ognuna qualcosa momento attimo istante ' +
+    'cammini cammina camminare passo passi'
+).split(/\s+/).filter(Boolean).map((w) => w.slice(0, 5)));
+const frasiDi = (t: string): string[] => t.split(/(?<=[.!?…])\s+/).map((x) => x.trim()).filter(Boolean);
+const maiuscola = (w: string) => /^\p{Lu}/u.test(w);
+
+export type EsitoControllo = {
+    ok: boolean;
+    motivi: string[];
+    /** Cosa non compare nelle fonti, diviso per tipo (vuoto se passa). */
+    fuoriFonti: { numeri: string[]; nomi: string[]; parole: string[]; romani: string[] };
+    stats: { frasi: number; caratteri: number; parolePiene: number; estranee: number };
+};
+
+/**
+ * Ogni data, numero, nome proprio e fatto del racconto deve comparire nelle fonti (o nel nome della tappa e della città).
+ *  · numeri: cifre, numeri scritti in lettere («dodici», «settecento») e cifre romane (XVIII);
+ *  · nomi propri: ogni parola con la maiuscola che non sta a inizio frase (a inizio frase se è seguita da un'altra maiuscola);
+ *  · fatti: le parole piene (7 lettere o più) devono avere la radice (5 lettere) nelle fonti; oltre una quota di estranee il racconto cade.
+ * Più le regole di voce (niente «benvenuti», superlativi, tono da brochure) e la lunghezza (2–4 frasi, al massimo 600 caratteri).
+ */
+export function controllaRacconto(testo: unknown, fonti: FontiRacconto, { sogliaEstranee = 0.34, minEstranee = 3 } = {}): EsitoControllo {
+    const t = String(testo ?? '').replace(/\s+/g, ' ').trim();
+    const motivi: string[] = [];
+    const fuori = { numeri: [] as string[], nomi: [] as string[], parole: [] as string[], romani: [] as string[] };
+    const p = fontiPulite(fonti);
+    const corpoFonti = norm(`${p.wikipedia} ${p.google}`);
+    const corpoNomi = norm(`${p.nome} ${p.citta}`);
+    const tutto = `${corpoFonti} ${corpoNomi}`;
+    const paroleFonti = new Set((tutto.match(/[\p{L}\p{N}]+/gu) || []));
+    const radiciFonti = new Set([...paroleFonti].map((w) => w.slice(0, 5)));
+    const cifreFonti = new Set((tutto.replace(/(\d)[.,](\d{3})(?!\d)/g, '$1$2').match(/\d+/g) || []));
+    const haParola = (w: string) => paroleFonti.has(w) || [...paroleFonti].some((x) => x.length >= 4 && w.length >= 4 && (x.startsWith(w.slice(0, Math.max(4, w.length - 2))) || w.startsWith(x.slice(0, Math.max(4, x.length - 2)))));
+
+    if (!t) return { ok: false, motivi: ['vuoto'], fuoriFonti: fuori, stats: { frasi: 0, caratteri: 0, parolePiene: 0, estranee: 0 } };
+    if (t.toUpperCase().replace(/[^A-Z]/g, '') === RISPOSTA_NIENTE) return { ok: false, motivi: ['il modello dice che le fonti non bastano'], fuoriFonti: fuori, stats: { frasi: 0, caratteri: t.length, parolePiene: 0, estranee: 0 } };
+
+    // forma
+    const frasi = frasiDi(t);
+    if (frasi.length < LIMITI.frasiMin) motivi.push(`meno di ${LIMITI.frasiMin} frasi`);
+    if (frasi.length > LIMITI.frasiMax) motivi.push(`più di ${LIMITI.frasiMax} frasi`);
+    if (t.length > LIMITI.carMax) motivi.push(`più di ${LIMITI.carMax} caratteri`);
+    for (const [re, perche] of VIETATE) if (re.test(t)) motivi.push(perche);
+
+    // numeri, cifre romane, nomi propri
+    const nomiVisti = new Set<string>();
+    frasi.forEach((fr) => {
+        const parole = fr.match(PAROLE) || [];
+        parole.forEach((w, i) => {
+            if (/^\d+$/.test(w)) {
+                if (!cifreFonti.has(w.replace(/^0+/, '') || '0') && !cifreFonti.has(w) && !fuori.numeri.includes(w)) fuori.numeri.push(w);
+                return;
+            }
+            if (/^[IVXLCDM]{2,}$/.test(w)) {
+                if (!paroleFonti.has(w.toLowerCase()) && !fuori.romani.includes(w)) fuori.romani.push(w);
+                return;
+            }
+            const n = norm(w);
+            if (n in SECOLI) {
+                if (!paroleFonti.has(n) && !paroleFonti.has(SECOLI[n]) && !fuori.numeri.includes(w)) fuori.numeri.push(w);
+                return;
+            }
+            if (n in NUMERI_PAROLA && !NON_NUMERI.has(n)) {
+                const valore = NUMERI_PAROLA[n];
+                // «sei» e «meta» sono anche altro: si controlla solo se il numero è scritto con la minuscola dopo un nome o un articolo? Meglio severo: serve la parola o la cifra nelle fonti
+                if (!paroleFonti.has(n) && !cifreFonti.has(String(valore)) && !fuori.numeri.includes(w)) fuori.numeri.push(w);
+                return;
+            }
+            const prossima = parole[i + 1];
+            const propria = maiuscola(w) && (i > 0 || (prossima && maiuscola(prossima)));
+            if (!propria) return;
+            for (const pezzo of norm(w).split("'")) {
+                if (pezzo.length < 3 || nomiVisti.has(pezzo) || SANTI.has(pezzo)) continue;
+                nomiVisti.add(pezzo);
+                if (!haParola(pezzo) && !fuori.nomi.includes(w)) fuori.nomi.push(w);
+            }
+        });
+    });
+    if (fuori.numeri.length) motivi.push(`numeri non nelle fonti: ${fuori.numeri.join(', ')}`);
+    if (fuori.romani.length) motivi.push(`cifre romane non nelle fonti: ${fuori.romani.join(', ')}`);
+    if (fuori.nomi.length) motivi.push(`nomi non nelle fonti: ${fuori.nomi.join(', ')}`);
+
+    // parole-fatto
+    const piene = (norm(t).match(/[\p{L}]+/gu) || []).filter((w) => w.length >= 7);
+    // un secolo detto all'italiana («Ottocento») non è fuori dalle fonti se le fonti hanno la sua cifra romana (XIX)
+    const secoloNelleFonti = (w: string) => w in SECOLI && paroleFonti.has(SECOLI[w]);
+    const estranee = piene.filter((w) => !radiciFonti.has(w.slice(0, 5)) && !PAROLE_DI_VOCE.has(w.slice(0, 5)) && !secoloNelleFonti(w));
+    const quota = piene.length ? estranee.length / piene.length : 0;
+    if (estranee.length >= minEstranee && quota > sogliaEstranee) {
+        for (const w of estranee) if (!fuori.parole.includes(w)) fuori.parole.push(w);
+        motivi.push(`troppe parole fuori dalle fonti (${estranee.length} su ${piene.length}): ${fuori.parole.slice(0, 6).join(', ')}`);
+    }
+
+    return { ok: motivi.length === 0, motivi, fuoriFonti: fuori, stats: { frasi: frasi.length, caratteri: t.length, parolePiene: piene.length, estranee: estranee.length } };
+}
+
+/** Il testo del modello pronto per il controllo: via virgolette di contorno e markdown, spazi in ordine. */
+export function ripulisciRacconto(grezzo: unknown): string {
+    return String(grezzo ?? '')
+        .replace(/^```[a-z]*\n?|```$/gim, '')
+        .replace(/^[«"“”'\s]+|[»"“”'\s]+$/g, '')
+        .replace(/[*_#>`]/g, '')
+        .replace(/\s*\n+\s*/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}

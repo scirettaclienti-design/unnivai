@@ -440,6 +440,14 @@ Un secret sceglie il fornitore del testo di `openai-proxy`, senza toccare l'app:
 - Streaming e voce (`dv.purpose = 'voce'`) restano su OpenAI. Il tetto di spesa giornaliero (`AI_GLOBAL_DAILY_CAP`, quota per utente) non cambia: si applica prima del fornitore.
 - Cambiare fornitore: `supabase secrets set AI_PROVIDER=anthropic|openai --project-ref ahecpiwsdhghkndncejb` (vale dalla richiesta dopo). Test: `src/__tests__/functions/anthropicProvider.test.js`. Il listino Claude per il costo del banco è in `banco.config.json` (`prezziUsd.openaiPerModello`, voci `claude-*`).
 
+### Il racconto da insider di ogni tappa (NAV-TESTI-TAPPA)
+
+Ogni tappa con fonti ha un racconto di 2–4 frasi scritto da Claude **solo con le fonti**: il testo dell'introduzione di Wikipedia della tappa e la descrizione Google del posto (`editorial_summary`). Report: `docs/prove/2026-10-28-nav-testi-tappa.md`.
+- **Sul server** (`openai-proxy`, `dv.purpose = 'racconto'`; `racconto.ts` puro: prompt `SYSTEM_RACCONTO`, controllo `controllaRacconto`, versione `VERSIONE_RACCONTO`; `raccontoFonti.ts`: Wikipedia per nome + città e coordinate entro 700 m, Google via places-proxy `place/details&fields=editorial_summary`). Il client manda solo place_id, nome, città, coordinate: le fonti le prende il server. Il narratore è Sonnet 5.5 (`ANTHROPIC_MODEL_NARRATORE`, catena e ripiego di sempre).
+- **Controllo dopo la scrittura**: ogni data, numero (anche in lettere), cifra romana e nome proprio deve stare nelle fonti; i secoli all'italiana valgono la cifra romana; le parole-fatto fuori dalle fonti oltre una quota scartano; regole di voce (niente «benvenuti», superlativi, tono da brochure); 2–4 frasi. Scartato o `NIENTE` → resta la frase breve; senza fonti (meno di 200 caratteri) → solo «Perché sei qui adesso». **Non vede gli abbellimenti piccoli** (nessun numero né nome): nel giro di prova la lettura umana ne ha trovati due su 7.
+- **Una volta per tappa**: `public.place_racconti` (solo il server; passato 30 giorni, scartato e senza fonti 7), tetto dei racconti nuovi `racconto_consuma` (secret `RACCONTO_DAILY_CAP`, difetto 300; non usa la quota dei giri). Se Wikipedia non risponde si risponde 503 e non si memorizza. Quanti passano: `select esito, count(*) from public.place_racconti group by 1;`. Migrazione `20261028190000_place_racconti.sql`.
+- **Audio pronto prima dell'arrivo**: `MapPage` chiede il racconto della prossima tappa appena è la prossima e, con la voce accesa, `voce.preparaVoce` prepara l'audio; a ~300 m ricontrolla (`raccontoTappa.cosaPreparare`). All'arrivo il Play non chiede il server (`registroVoce`: `preparata`, `avvioMs`). Con server finto: 40–96 ms contro 2575 ms; con la voce umana vera si misura dopo la ricarica di OpenAI.
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

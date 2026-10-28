@@ -1,0 +1,74 @@
+{
+ "tag": "preparato-3",
+ "ora": "2026-10-28T10:00:00+01:00",
+ "base": "http://localhost:5295",
+ "richieste": {
+  "directions": 4
+ },
+ "mapIdVisti": {},
+ "fotogrammi": [],
+ "misure": {
+  "aperturaMappaMs": 3436
+ },
+ "server": {
+  "racconto": 2,
+  "voce": 5,
+  "finale": {
+   "racconto": 2,
+   "voce": 5
+  }
+ },
+ "panoramica": {
+  "mapIdAttivo": null,
+  "strati": null,
+  "barraCitta": false,
+  "meteo": false,
+  "cardTesto": "Il tuo giro a Catania\n\nGiornata 9:30–21:15 · 41 min a piedi · 3,0 km · 12 tappe\n\nCambia mezzo\nAVVIA",
+  "indietro": {
+   "x": 16,
+   "y": 16,
+   "w": 46,
+   "h": 46
+  }
+ },
+ "cameraPanoramica": {
+  "zoom": 16,
+  "tilt": 45,
+  "heading": 0
+ },
+ "preparati": 1,
+ "prima": {
+  "racconto": 2,
+  "voce": 4
+ },
+ "testoArrivo": "Guarda l'elefante nero al centro della piazza: è scolpito nel basalto, e qui lo chiamano U Liotru. Per i catanesi è il simbolo della città. La fontana è di Vaccarini, tra il 1735 e il 1737.\n\nIl racconto\n0:00 / 0:14",
+ "attesaTotaleMs": 125,
+ "riga": {
+  "ora": "2026-10-28T09:00:25.893Z",
+  "testo": "Guarda l'elefante nero al centro della piazza: è scolpito nel basalto, e qui lo chiamano U Liotru. Per i catanesi è il simbolo della città. La fontana è di Vaccarini, tra il 1735 e il 1737.",
+  "voce": "marin",
+  "sorgente": "cache",
+  "preparata": true,
+  "avvioMs": 96
+ },
+ "erroriPagina": [
+  "console: Viewport argument key \"interactive-widget\" not recognized and ignored.",
+  "FALLITA: https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1 cancelled",
+  "console: Viewport argument key \"interactive-widget\" not recognized and ignored.",
+  "console: Failed to load resource: Could not connect to the server.",
+  "console: 🚨 [poiService] Errore: TypeError: Load failed",
+  "console: Failed to load resource: The operation couldn’t be completed. (WebKitBlobResource error 1.)",
+  "console: Failed to load resource: The operation couldn’t be completed. (WebKitBlobResource error 1.)",
+  "console: Failed to load resource: The operation couldn’t be completed. (WebKitBlobResource error 1.)",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i16!2i35512!3i25392!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i16!2i35512!3i25393!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i17!2i71026!3i50785!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i17!2i71026!3i50786!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i17!2i71028!3i50789!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i17!2i71027!3i50787!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i15!2i17755!3i12695!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i15!2i17755!3i12696!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i15!2i17755!3i12697!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled",
+  "FALLITA: https://maps.googleapis.com/maps/vt/pb=!1m4!1m3!1i15!2i17755!3i12698!2m3!1e0!2sm!3i801567103!3m9!2sit-IT!3sUS!5e18!12m5! cancelled"
+ ]
+}

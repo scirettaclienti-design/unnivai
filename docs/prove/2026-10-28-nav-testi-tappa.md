@@ -50,3 +50,176 @@ b2fa603 NAV-TESTI-TAPPA: report e screenshot dal giro di Catania
 4d09ff6 NAV-MAPPA: report, misure prima/dopo, affiancato al canvas, video e script
 9194d5e NAV-MAPPA: il toast delle curiosità sta sopra la scheda compatta e si chiude con un tasto da 44 px
 ```
+
+
+---
+
+# NAV-TESTI-TAPPA, seconda parte — il racconto da insider di ogni tappa, vero e pronto prima dell'arrivo (28/10/2026)
+
+## Cosa è stato fatto
+
+- **Il racconto** (2–4 frasi) lo scrive Claude (**narratore = Sonnet 5.5**, `ANTHROPIC_MODEL_NARRATORE`, catena e ripiego di sempre) **solo con le fonti**: il testo dell'introduzione di Wikipedia della tappa e la descrizione Google del posto (`editorial_summary`). Voce Unnivai: diretta, da insider, frasi brevi; mai «Benvenuti», mai da guida turistica, niente superlativi. Prompt e regole di voce: `supabase/functions/openai-proxy/racconto.ts` (un file solo, `SYSTEM_RACCONTO`; versione `r2`).
+- **Tutto sul server** (`openai-proxy`, `dv.purpose = 'racconto'`): il client dice solo quale tappa (place_id, nome, città, coordinate). Il **server** prende le fonti (`raccontoFonti.ts`: Wikipedia agganciata per nome + città e confermata da nome compatibile e coordinate entro 700 m, mai una disambiguazione; Google via `places-proxy place/details&fields=editorial_summary`, **senza toccare places-proxy**) — così nessuno può far «verificare» un testo inventato.
+- **Controllo automatico dopo la scrittura** (`controllaRacconto`): ogni **data, numero (anche in lettere), cifra romana, nome proprio** deve stare nelle fonti (o nel nome della tappa e della città); i **secoli** detti all'italiana valgono la cifra romana («Duecento» = «XIII secolo»); le **parole-fatto** (7+ lettere, escluse le parole della voce da insider) devono avere la radice nelle fonti, oltre una quota il racconto cade; più le regole di voce (niente «benvenuti», superlativi, aggettivi vuoti, tono da brochure, «voi», emoji, indirizzi, nomi delle fonti) e la forma (2–4 frasi, al massimo 600 caratteri). Se il modello risponde `NIENTE` (fonti insufficienti) o il controllo scarta, **resta la frase breve di oggi**.
+- **Si scrive una volta per tappa** (`public.place_racconti`, una riga per place_id con esito, motivi, fonti, modello, costo; **solo il server legge e scrive**). Un racconto passato vale 30 giorni (come `place_facts`: il testo Google non si tiene oltre), uno scartato o senza fonti 7 giorni. Un posto già raccontato costa **0**. Se Wikipedia non risponde («too busy») non si memorizza un «senza fonti»: il server risponde 503 e il client riprova a 300 m.
+- **Quanti passano e quanti vengono scartati**: `select esito, count(*) from public.place_racconti group by 1;` (e una riga di log per racconto: esito, modello, tempo, costo, motivi). Tetto giornaliero dei racconti nuovi: `racconto_consuma` (secret `RACCONTO_DAILY_CAP`, difetto 300); i racconti **non** consumano la quota dei giri.
+- **Se la tappa non ha fonti**: niente racconto inventato, resta solo «Perché sei qui adesso» (e la frase breve). I locali (ristoranti, bar) non hanno racconto di fatti (decisione G, invariata).
+- **Audio pronto prima dell'arrivo** (`src/lib/voce.js` `preparaVoce`, `src/services/raccontoService.js`, `MapPage`): appena una tappa diventa la prossima (avvio del tratto) si chiede il racconto e, con la voce accesa, si prepara l'audio (url dal server, file scaricato dal browser); a ~300 m, se non fosse pronto, si ricontrolla. All'arrivo il Play usa l'audio già pronto. Se la voce umana non risponde (oggi OpenAI senza credito) la preparazione fallisce in silenzio e all'arrivo parla la voce del browser, come prima.
+- **Testi in un file unico**: prompt e parole vietate in `racconto.ts`; nessun testo nuovo a schermo (il lettore e le schede restano quelli di NAV-3).
+
+## I racconti di 13 tappe vere (Catania e Troina), con le fonti e l'esito del controllo
+
+Giro del 28/10/2026 sul codice finale, account di prova, narratore = Sonnet 5.5 (`claude-sonnet-5-5`), fonti prese dal vivo. **7 passati, 1 scartato, 5 senza fonti** su 13 tappe; 8 chiamate al modello, **0.0276 $ in tutto, 0.0034 $ per racconto scritto**, 2.1–5.8 s a racconto. Grezzo: `docs/prove/dati/2026-10-28-racconti-tappa.json`. Script: `scripts/prova-reale/racconti.live.js`.
+
+### Catania — Porta Uzeda
+
+- **Esito: SENZA-FONTI**
+- **Fonte Wikipedia**: «Porta Uzeda» (94 car., a 7 m dalla tappa) — La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca.
+- **Fonte Google**: nessuna descrizione
+- **Niente racconto**: la voce Wikipedia agganciata ha solo 94 caratteri e Google non ha una descrizione: sotto la soglia di 200 caratteri non si scrive. Resta «Perché sei qui adesso».
+
+### Catania — Basilica Cattedrale di Sant'Agata
+
+- **Esito: PASSATO** · 2207 ms · 0.00365 $ · claude-sonnet-5-5
+- **Fonte Wikipedia**: «Cattedrale di Sant'Agata» (574 car., a 98 m dalla tappa) — Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia. La cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere ("Duomo di Catania" o "Terme Achilliane-Piano di San Filippo"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico.
+- **Fonte Google**: Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.
+- **Racconto scritto**: Sei nel punto in cui Catania tiene il suo centro: la cattedrale sta sul lato sud-est della piazza, e per i catanesi è la chiesa madre. Alza gli occhi alla facciata a colonne e poi alla cupola. Qui dentro vive Agata, vergine e martire, patrona della città. Stili diversi in un solo edificio: dal Normanno al Barocco, fino al Neoclassico.
+- **Controllo**: passato (4 frasi, 336 car., parole piene 13, fuori fonti 2)
+- **Lettura mia: «Sei nel punto in cui Catania tiene il suo centro» e «Qui dentro vive Agata» sono abbellimenti che le fonti non dicono; il resto è nelle fonti. Il controllo non li vede (nessun numero, nome o parola-fatto nuova).**
+
+### Catania — Fontana dell'Elefante (uʻ Liotru)
+
+- **Esito: PASSATO** · 5843 ms · 0.00324 $ · claude-sonnet-5-5
+- **Fonte Wikipedia**: «Fontana dell'Elefante» (369 car., a None m dalla tappa) — La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana.
+- **Fonte Google**: Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.
+- **Racconto scritto**: Alza lo sguardo: l'elefante che hai davanti è di basalto nero, e qui lo chiamano U Liotru. Sta al centro della piazza, ed è il simbolo di Catania. La fontana l'ha costruita Giovanni Battista Vaccarini tra il 1735 e il 1737. Ma la statua è molto più vecchia: è romana.
+- **Controllo**: passato (4 frasi, 267 car., parole piene 13, fuori fonti 4)
+- **Lettura mia: fedele alle fonti.**
+
+### Catania — Teatro Antico greco-romano di Catania
+
+- **Esito: SCARTATO** · 2608 ms · 0.00327 $ · claude-sonnet-5-5
+- **Fonte Wikipedia**: «Teatro greco-romano di Catania» (302 car., a 190 m dalla tappa) — Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città
+- **Fonte Google**: Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra.
+- **Racconto scritto**: Fermati: sotto il tuo naso c'è un teatro del II secolo, con la gradinata e l'orchestra ancora lì, all'aperto, in mezzo al centro storico. Per secoli è rimasto sepolto, e solo dalla fine dell'Ottocento hanno cominciato a portarlo alla luce. Guarda a est: lì accanto c'è l'odeon della città.
+- **Controllo**: SCARTATO — troppe parole fuori dalle fonti (4 su 10): rimasto, sepolto, cominciato, portarlo (3 frasi, 289 car., parole piene 10, fuori fonti 4)
+- **Scartato bene: «rimasto sepolto» e «hanno cominciato a portarlo alla luce» vanno oltre «messo in luce a partire dalla fine del XIX secolo».**
+
+### Catania — Castello Ursino
+
+- **Esito: PASSATO** · 3175 ms · 0.00367 $ · claude-sonnet-5-5
+- **Fonte Wikipedia**: «Castello Ursino» (466 car., a 24 m dalla tappa) — Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini.
+- **Fonte Google**: Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti.
+- **Racconto scritto**: Guarda questo castello: lo fece costruire Federico II di Svevia nel Duecento, e durante i Vespri siciliani ci si riuniva il parlamento siciliano. Poi ci vissero i re aragonesi di Sicilia, Federico III compreso. Entra e fermati davanti ai carri dipinti: oggi qui dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e quelle del Monastero dei Benedettini.
+- **Controllo**: passato (3 frasi, 370 car., parole piene 22, fuori fonti 4)
+- **Lettura mia: fedele alle fonti.**
+
+### Catania — Fontana dell’Amenano
+
+- **Esito: PASSATO** · 2296 ms · 0.00264 $ · claude-sonnet-5-5
+- **Fonte Wikipedia**: «Fontana dell'Amenano» (131 car., a 4 m dalla tappa) — La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia.
+- **Fonte Google**: Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino.
+- **Racconto scritto**: Sei sul lato sud di piazza del Duomo, davanti a una fontana del 1867. Guarda bene i personaggi mitologici: sono opera di Tito Angelini. Cerca poi lo stemma della città, inciso proprio qui.
+- **Controllo**: passato (3 frasi, 188 car., parole piene 6, fuori fonti 0)
+- **Lettura mia: fedele alle fonti.**
+
+### Catania — Piazza Giuseppe Mazzini
+
+- **Esito: PASSATO** · 2063 ms · 0.00452 $ · claude-sonnet-5-5
+- **Fonte Wikipedia**: «Piazza Mazzini (Catania)» (3417 car., a 205 m dalla tappa) — Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo. Dopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che…
+- **Fonte Google**: nessuna descrizione
+- **Racconto scritto**: Guarda i quattro angoli: sono identici, ognuno con un loggiato di 8 colonne in marmo bianco. Dopo il terremoto del 1693 qui doveva nascere un mercato, e per questo i palazzi attorno furono pensati tutti con la stessa forma. Lo spazio è venuto fuori dall'incrocio di due strade, così la piazza ha il disegno di una croce greca. Prima di diventare piazza Mazzini si chiamava Piano di San Filippo.
+- **Controllo**: passato (4 frasi, 394 car., parole piene 16, fuori fonti 2)
+- **Lettura mia: fedele alle fonti.**
+
+### Catania — Palazzo dei Chierici
+
+- **Esito: PASSATO** · 2798 ms · 0.00351 $ · claude-sonnet-5-5
+- **Fonte Wikipedia**: «Palazzo del Seminario dei Chierici» (380 car., a 213 m dalla tappa) — Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante.
+- **Fonte Google**: nessuna descrizione
+- **Racconto scritto**: Sei sul lato sud della piazza del Duomo, e questo edificio è un municipio. Sì, proprio come quello che hai davanti dall'altra parte: il Palazzo degli Elefanti fa lo stesso lavoro. Girati e guarda in mezzo alla piazza, tra i due palazzi: c'è la Fontana dell'Elefante. Alla tua sinistra, accanto a te, hai la Cattedrale di Sant'Agata.
+- **Controllo**: passato (4 frasi, 332 car., parole piene 12, fuori fonti 1)
+- **Lettura mia: «Alla tua sinistra» è una direzione che le fonti non dicono (dicono «accanto»). Il controllo non la vede.**
+
+### Catania — Via Etnea
+
+- **Esito: PASSATO** · 2342 ms · 0.0031 $ · claude-sonnet-5-5
+- **Fonte Wikipedia**: «Via Etnea» (200 car., a 190 m dalla tappa) — La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni.
+- **Fonte Google**: Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna.
+- **Racconto scritto**: Guarda in fondo: questa strada non fa nemmeno una curva. Parte da Piazza del Duomo e va dritta verso nord per circa 3 chilometri, fino al Tondo Gioeni. Alzati gli occhi lungo il rettilineo: in fondo c'è l'Etna, e intorno a te bar, negozi e monumenti barocchi.
+- **Controllo**: passato (3 frasi, 259 car., parole piene 6, fuori fonti 1)
+- **Lettura mia: «e intorno a te bar, negozi e monumenti barocchi» viene dalla riga Google; fedele.**
+
+### Troina — Chiesa Madre di Maria Santissima Assunta
+
+- **Esito: SENZA-FONTI**
+- **Fonte Wikipedia**: nessuna voce agganciata
+- **Fonte Google**: nessuna descrizione
+- **Niente racconto**: nessuna voce di Wikipedia propria (cercata: la ricerca porta a «Troina», che è il paese, non la tappa: un aggancio dubbio si scarta) e Google non ha una descrizione. Resta «Perché sei qui adesso».
+
+### Troina — Torre Capitania
+
+- **Esito: SENZA-FONTI**
+- **Fonte Wikipedia**: nessuna voce agganciata
+- **Fonte Google**: nessuna descrizione
+- **Niente racconto**: nessuna voce di Wikipedia propria (cercata: la ricerca porta a «Troina», che è il paese, non la tappa: un aggancio dubbio si scarta) e Google non ha una descrizione. Resta «Perché sei qui adesso».
+
+### Troina — Piazza Conte Ruggero
+
+- **Esito: SENZA-FONTI**
+- **Fonte Wikipedia**: nessuna voce agganciata
+- **Fonte Google**: nessuna descrizione
+- **Niente racconto**: nessuna voce di Wikipedia propria (cercata: la ricerca porta a «Troina», che è il paese, non la tappa: un aggancio dubbio si scarta) e Google non ha una descrizione. Resta «Perché sei qui adesso».
+
+### Troina — Monte Muganà
+
+- **Esito: SENZA-FONTI**
+- **Fonte Wikipedia**: nessuna voce agganciata
+- **Fonte Google**: nessuna descrizione
+- **Niente racconto**: nessuna voce di Wikipedia propria (cercata: la ricerca porta a «Troina», che è il paese, non la tappa: un aggancio dubbio si scarta) e Google non ha una descrizione. Resta «Perché sei qui adesso».
+
+### Che cosa dice il controllo, e che cosa NON dice
+
+Il controllo è una rete, non una prova: ferma date, numeri, nomi e cifre romane che le fonti non hanno e i racconti con troppe parole nuove (nei test: data sbagliata, nome inventato, numero in lettere, cifra romana, tre parole nuove su sei). **Non vede gli abbellimenti piccoli** senza numeri né nomi: nei 7 racconti passati ne ho letti due («Sei nel punto in cui Catania tiene il suo centro», «Alla tua sinistra») più «Qui dentro vive Agata». Sono nel report sopra, tappa per tappa. Strumento in più, se Ivano lo vuole (non fatto: non richiesto): una seconda passata di Haiku «ogni frase è nelle fonti?» (circa 0,001 $ a racconto); un racconto passato sarebbe così anche **riletto**, non solo contato.
+
+## Dal Play al primo suono
+
+Prova WebKit (iPhone 13, giro Catania, GPS finto, `scripts/prova-nav/racconto-play.webkit.mjs`). **Il server è finto**, con i ritardi di oggi: il racconto arriva dopo 3,0 s, l'audio nuovo dopo 2,5 s (la generazione vera misurata in VOCE-1/nav-audit: ≥ 2,5 s). La **voce umana vera non è misurata**: OpenAI è senza credito, la misura con la voce vera si fa dopo la ricarica. Qui si misura la logica del client (preparare prima, usare all'arrivo).
+
+| Caso | Play → primo suono | Audio preparato | Richieste voce al Play |
+|---|---|---|---|
+| Oggi, senza preparazione (audio da generare al Play) | **2575 ms** | no | 1 (attesa del server) |
+| Con preparazione durante il cammino, prova 1 | **40 ms** | sì | 0 |
+| Con preparazione durante il cammino, prova 2 | **96 ms** | sì | 0 |
+| Con preparazione durante il cammino, prova 3 | **91 ms** | sì | 0 |
+
+Sotto 1 s in tutte e tre le prove con l'audio preparato (massimo 96 ms), contro 2575 ms senza.
+
+## Costo per tappa
+
+- **Racconto**: 0.0034 $ a racconto scritto (Sonnet 5.5: ≈ 1030 token in ingresso e ≈ 140 in uscita in media; misurato su 8 chiamate), **0 $ per un posto già raccontato** (30 giorni). Le tappe senza fonti costano solo una ricerca Wikipedia (gratis) e, per Google `editorial_summary`, una place/details (Atmosphere, **≈ 0,005 $ a chiamata al listino Google: da verificare in fattura**, la place/details passa dalla cache di 24 ore di places-proxy).
+- **Audio**: dipende dalla voce umana (non misurata oggi); una frase di ~300 caratteri è un audio nuovo da generare **una volta** per tutti e poi sta nella cache `voce-cache` (0 $).
+
+## Cosa NON risolve
+
+- **La voce umana non è verificata dal vivo**: OpenAI è senza credito (la preparazione fallisce in silenzio e all'arrivo parla la voce del browser). Il «Play in meno di 1 s» è provato sulla logica con server finto; con la voce umana vera si misura dopo la ricarica.
+- **Troina: 0 racconti su 4.** Né Wikipedia né Google hanno una voce propria per Chiesa Madre, Torre Capitania, Piazza Conte Ruggero e Monte Muganà: per regola non si inventa, resta la frase breve. Un borgo ha poche fonti: è il limite onesto di «solo fatti verificati».
+- **Porta Uzeda** ha una voce Wikipedia di 94 caratteri: sotto la soglia di 200, nessun racconto. La soglia è una scelta (si può abbassare, con più rischio).
+- Il controllo non vede gli abbellimenti piccoli (vedi sopra); la lettura umana ne ha trovati due nei 7 racconti.
+- **Google**: la descrizione Google è usata come fonte; i termini di Google Maps Platform limitano il caching dei suoi contenuti (30 giorni qui, come `place_facts`), e `editorial_summary` ha un costo per chiamata; la regola precedente «mai contenuti Google» di `factsService` valeva per i fatti, non per il racconto, su richiesta di Ivano.
+- **Il racconto di un posto non dipende dall'ora né dall'utente**: è lo stesso per tutti (è il suo vantaggio: costa una volta).
+- Wikipedia a volte risponde «too busy» alle raffiche: il server riprova tre volte e poi non memorizza niente.
+
+## Cosa serve da Ivano (non l'ho fatto: migrazione e deploy)
+1. `supabase db push --dry-run` (deve mostrare solo `20261028190000_place_racconti.sql`), poi `supabase db push`.
+2. `supabase functions deploy openai-proxy --project-ref ahecpiwsdhghkndncejb --no-verify-jwt --use-api` **dal codice su main**.
+3. Nessun secret nuovo (facoltativo: `RACCONTO_DAILY_CAP`, difetto 300 racconti nuovi al giorno).
+Finché la funzione non è pubblicata il client chiede il racconto e la vecchia funzione risponde 400 prima di toccare la quota: la tappa resta con la frase breve, nessun errore a schermo.
+
+## Prova di 10 minuti a piedi per Ivano (dopo migrazione e deploy)
+1. Carica un giro a Catania in centro (Porta Uzeda, Cattedrale, Fontana dell'Elefante, Castello Ursino) e premi «Avvia» con la voce accesa.
+2. Cammina verso la prima tappa: dopo qualche secondo non cambia niente a schermo (il racconto si prepara da solo).
+3. Arriva: nella scheda d'arrivo c'è il racconto (2–4 frasi, da insider, con i fatti della tappa); premi Play: parte in meno di 1 s (con la voce del browser finché OpenAI è senza credito).
+4. Ripeti per due tappe: le frasi non devono contenere date o nomi che non conosci della tappa.
+5. Su una tappa senza fonti (un belvedere minore, un ristorante) c'è solo «Perché sei qui adesso».
+6. Controlla in SQL: `select esito, count(*) from public.place_racconti group by 1;` e che `costo_usd` sia di pochi millesimi.

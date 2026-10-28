@@ -1,0 +1,537 @@
+{
+ "limiti": {
+  "frasiMin": 2,
+  "frasiMax": 4,
+  "carMax": 600,
+  "wikipediaMax": 1500,
+  "googleMax": 500,
+  "fonteMin": 200
+ },
+ "esiti": [
+  {
+   "citta": "Catania",
+   "nome": "Porta Uzeda",
+   "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Porta Uzeda",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Porta_Uzeda",
+   "wikipediaDistanzaM": 7,
+   "wikipediaCar": 94,
+   "googleStato": "OK",
+   "googleCar": 0,
+   "fonti": {
+    "nome": "Porta Uzeda",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Porta Uzeda",
+     "testo": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca."
+    },
+    "google": null
+   },
+   "esito": "senza-fonti"
+  },
+  {
+   "citta": "Catania",
+   "nome": "Basilica Cattedrale di Sant'Agata",
+   "place_id": "ChIJP0UjWi7jExMRJytI986aC6g",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Cattedrale di Sant'Agata",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata",
+   "wikipediaDistanzaM": 98,
+   "wikipediaCar": 574,
+   "googleStato": "OK",
+   "googleCar": 81,
+   "fonti": {
+    "nome": "Basilica Cattedrale di Sant'Agata",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Cattedrale di Sant'Agata",
+     "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+    },
+    "google": {
+     "testo": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti."
+    }
+   },
+   "ms": 2207,
+   "http": 200,
+   "modello": "claude-sonnet-5-5",
+   "fornitore": "anthropic",
+   "errore": null,
+   "usage": {
+    "prompt_tokens": 1083,
+    "completion_tokens": 148,
+    "total_tokens": 1231
+   },
+   "costoUsd": 0.00365,
+   "grezzo": "Sei nel punto in cui Catania tiene il suo centro: la cattedrale sta sul lato sud-est della piazza, e per i catanesi è la chiesa madre. Alza gli occhi alla facciata a colonne e poi alla cupola. Qui dentro vive Agata, vergine e martire, patrona della città. Stili diversi in un solo edificio: dal Normanno al Barocco, fino al Neoclassico.",
+   "racconto": "Sei nel punto in cui Catania tiene il suo centro: la cattedrale sta sul lato sud-est della piazza, e per i catanesi è la chiesa madre. Alza gli occhi alla facciata a colonne e poi alla cupola. Qui dentro vive Agata, vergine e martire, patrona della città. Stili diversi in un solo edificio: dal Normanno al Barocco, fino al Neoclassico.",
+   "controllo": {
+    "ok": true,
+    "motivi": [],
+    "fuoriFonti": {
+     "numeri": [],
+     "nomi": [],
+     "parole": [],
+     "romani": []
+    },
+    "stats": {
+     "frasi": 4,
+     "caratteri": 336,
+     "parolePiene": 13,
+     "estranee": 2
+    }
+   },
+   "esito": "passato"
+  },
+  {
+   "citta": "Catania",
+   "nome": "Fontana dell'Elefante (uʻ Liotru)",
+   "place_id": "ChIJV63v_C7jExMRLThjTCcPppk",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Fontana dell'Elefante",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante",
+   "wikipediaDistanzaM": null,
+   "wikipediaCar": 369,
+   "googleStato": "OK",
+   "googleCar": 91,
+   "fonti": {
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Elefante",
+     "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+    },
+    "google": {
+     "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+    }
+   },
+   "ms": 5843,
+   "http": 200,
+   "modello": "claude-sonnet-5-5",
+   "fornitore": "anthropic",
+   "errore": null,
+   "usage": {
+    "prompt_tokens": 987,
+    "completion_tokens": 127,
+    "total_tokens": 1114
+   },
+   "costoUsd": 0.00324,
+   "grezzo": "Alza lo sguardo: l'elefante che hai davanti è di basalto nero, e qui lo chiamano U Liotru. Sta al centro della piazza, ed è il simbolo di Catania. La fontana l'ha costruita Giovanni Battista Vaccarini tra il 1735 e il 1737. Ma la statua è molto più vecchia: è romana.",
+   "racconto": "Alza lo sguardo: l'elefante che hai davanti è di basalto nero, e qui lo chiamano U Liotru. Sta al centro della piazza, ed è il simbolo di Catania. La fontana l'ha costruita Giovanni Battista Vaccarini tra il 1735 e il 1737. Ma la statua è molto più vecchia: è romana.",
+   "controllo": {
+    "ok": true,
+    "motivi": [],
+    "fuoriFonti": {
+     "numeri": [],
+     "nomi": [],
+     "parole": [],
+     "romani": []
+    },
+    "stats": {
+     "frasi": 4,
+     "caratteri": 267,
+     "parolePiene": 13,
+     "estranee": 4
+    }
+   },
+   "esito": "passato"
+  },
+  {
+   "citta": "Catania",
+   "nome": "Teatro Antico greco-romano di Catania",
+   "place_id": "ChIJ2e3QsinjExMRNmN2_vYCfp8",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Teatro greco-romano di Catania",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Teatro_greco-romano_di_Catania",
+   "wikipediaDistanzaM": 190,
+   "wikipediaCar": 302,
+   "googleStato": "OK",
+   "googleCar": 80,
+   "fonti": {
+    "nome": "Teatro Antico greco-romano di Catania",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Teatro greco-romano di Catania",
+     "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+    },
+    "google": {
+     "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+    }
+   },
+   "ms": 2608,
+   "http": 200,
+   "modello": "claude-sonnet-5-5",
+   "fornitore": "anthropic",
+   "errore": null,
+   "usage": {
+    "prompt_tokens": 955,
+    "completion_tokens": 136,
+    "total_tokens": 1091
+   },
+   "costoUsd": 0.00327,
+   "grezzo": "Fermati: sotto il tuo naso c'è un teatro del II secolo, con la gradinata e l'orchestra ancora lì, all'aperto, in mezzo al centro storico. Per secoli è rimasto sepolto, e solo dalla fine dell'Ottocento hanno cominciato a portarlo alla luce. Guarda a est: lì accanto c'è l'odeon della città.",
+   "racconto": "Fermati: sotto il tuo naso c'è un teatro del II secolo, con la gradinata e l'orchestra ancora lì, all'aperto, in mezzo al centro storico. Per secoli è rimasto sepolto, e solo dalla fine dell'Ottocento hanno cominciato a portarlo alla luce. Guarda a est: lì accanto c'è l'odeon della città.",
+   "controllo": {
+    "ok": false,
+    "motivi": [
+     "troppe parole fuori dalle fonti (4 su 10): rimasto, sepolto, cominciato, portarlo"
+    ],
+    "fuoriFonti": {
+     "numeri": [],
+     "nomi": [],
+     "parole": [
+      "rimasto",
+      "sepolto",
+      "cominciato",
+      "portarlo"
+     ],
+     "romani": []
+    },
+    "stats": {
+     "frasi": 3,
+     "caratteri": 289,
+     "parolePiene": 10,
+     "estranee": 4
+    }
+   },
+   "esito": "scartato"
+  },
+  {
+   "citta": "Catania",
+   "nome": "Castello Ursino",
+   "place_id": "ChIJH_LNACbjExMR3WPlQ82DyEw",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Castello Ursino",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Castello_Ursino",
+   "wikipediaDistanzaM": 24,
+   "wikipediaCar": 466,
+   "googleStato": "OK",
+   "googleCar": 110,
+   "fonti": {
+    "nome": "Castello Ursino",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Castello Ursino",
+     "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+    },
+    "google": {
+     "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+    }
+   },
+   "ms": 3175,
+   "http": 200,
+   "modello": "claude-sonnet-5-5",
+   "fornitore": "anthropic",
+   "errore": null,
+   "usage": {
+    "prompt_tokens": 1022,
+    "completion_tokens": 163,
+    "total_tokens": 1185
+   },
+   "costoUsd": 0.00367,
+   "grezzo": "Guarda questo castello: lo fece costruire Federico II di Svevia nel Duecento, e durante i Vespri siciliani ci si riuniva il parlamento siciliano. Poi ci vissero i re aragonesi di Sicilia, Federico III compreso. Entra e fermati davanti ai carri dipinti: oggi qui dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e quelle del Monastero dei Benedettini.",
+   "racconto": "Guarda questo castello: lo fece costruire Federico II di Svevia nel Duecento, e durante i Vespri siciliani ci si riuniva il parlamento siciliano. Poi ci vissero i re aragonesi di Sicilia, Federico III compreso. Entra e fermati davanti ai carri dipinti: oggi qui dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e quelle del Monastero dei Benedettini.",
+   "controllo": {
+    "ok": true,
+    "motivi": [],
+    "fuoriFonti": {
+     "numeri": [],
+     "nomi": [],
+     "parole": [],
+     "romani": []
+    },
+    "stats": {
+     "frasi": 3,
+     "caratteri": 370,
+     "parolePiene": 22,
+     "estranee": 4
+    }
+   },
+   "esito": "passato"
+  },
+  {
+   "citta": "Catania",
+   "nome": "Fontana dell’Amenano",
+   "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Fontana dell'Amenano",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Fontana_dell'Amenano",
+   "wikipediaDistanzaM": 4,
+   "wikipediaCar": 131,
+   "googleStato": "OK",
+   "googleCar": 102,
+   "fonti": {
+    "nome": "Fontana dell’Amenano",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Amenano",
+     "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+    },
+    "google": {
+     "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+    }
+   },
+   "ms": 2296,
+   "http": 200,
+   "modello": "claude-sonnet-5-5",
+   "fornitore": "anthropic",
+   "errore": null,
+   "usage": {
+    "prompt_tokens": 892,
+    "completion_tokens": 86,
+    "total_tokens": 978
+   },
+   "costoUsd": 0.00264,
+   "grezzo": "Sei sul lato sud di piazza del Duomo, davanti a una fontana del 1867. Guarda bene i personaggi mitologici: sono opera di Tito Angelini. Cerca poi lo stemma della città, inciso proprio qui.",
+   "racconto": "Sei sul lato sud di piazza del Duomo, davanti a una fontana del 1867. Guarda bene i personaggi mitologici: sono opera di Tito Angelini. Cerca poi lo stemma della città, inciso proprio qui.",
+   "controllo": {
+    "ok": true,
+    "motivi": [],
+    "fuoriFonti": {
+     "numeri": [],
+     "nomi": [],
+     "parole": [],
+     "romani": []
+    },
+    "stats": {
+     "frasi": 3,
+     "caratteri": 188,
+     "parolePiene": 6,
+     "estranee": 0
+    }
+   },
+   "esito": "passato"
+  },
+  {
+   "citta": "Catania",
+   "nome": "Piazza Giuseppe Mazzini",
+   "place_id": "ChIJaUl7zSjjExMRoCTWa8ahogs",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Piazza Mazzini (Catania)",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Piazza_Mazzini_(Catania)",
+   "wikipediaDistanzaM": 205,
+   "wikipediaCar": 3417,
+   "googleStato": "OK",
+   "googleCar": 0,
+   "fonti": {
+    "nome": "Piazza Giuseppe Mazzini",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Piazza Mazzini (Catania)",
+     "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+    },
+    "google": null
+   },
+   "ms": 2063,
+   "http": 200,
+   "modello": "claude-sonnet-5-5",
+   "fornitore": "anthropic",
+   "errore": null,
+   "usage": {
+    "prompt_tokens": 1398,
+    "completion_tokens": 172,
+    "total_tokens": 1570
+   },
+   "costoUsd": 0.00452,
+   "grezzo": "Guarda i quattro angoli: sono identici, ognuno con un loggiato di 8 colonne in marmo bianco. Dopo il terremoto del 1693 qui doveva nascere un mercato, e per questo i palazzi attorno furono pensati tutti con la stessa forma. Lo spazio è venuto fuori dall'incrocio di due strade, così la piazza ha il disegno di una croce greca. Prima di diventare piazza Mazzini si chiamava Piano di San Filippo.",
+   "racconto": "Guarda i quattro angoli: sono identici, ognuno con un loggiato di 8 colonne in marmo bianco. Dopo il terremoto del 1693 qui doveva nascere un mercato, e per questo i palazzi attorno furono pensati tutti con la stessa forma. Lo spazio è venuto fuori dall'incrocio di due strade, così la piazza ha il disegno di una croce greca. Prima di diventare piazza Mazzini si chiamava Piano di San Filippo.",
+   "controllo": {
+    "ok": true,
+    "motivi": [],
+    "fuoriFonti": {
+     "numeri": [],
+     "nomi": [],
+     "parole": [],
+     "romani": []
+    },
+    "stats": {
+     "frasi": 4,
+     "caratteri": 394,
+     "parolePiene": 16,
+     "estranee": 2
+    }
+   },
+   "esito": "passato"
+  },
+  {
+   "citta": "Catania",
+   "nome": "Palazzo dei Chierici",
+   "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Palazzo del Seminario dei Chierici",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Palazzo_del_Seminario_dei_Chierici",
+   "wikipediaDistanzaM": 213,
+   "wikipediaCar": 380,
+   "googleStato": "OK",
+   "googleCar": 0,
+   "fonti": {
+    "nome": "Palazzo dei Chierici",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Palazzo del Seminario dei Chierici",
+     "testo": "Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante."
+    },
+    "google": null
+   },
+   "ms": 2798,
+   "http": 200,
+   "modello": "claude-sonnet-5-5",
+   "fornitore": "anthropic",
+   "errore": null,
+   "usage": {
+    "prompt_tokens": 954,
+    "completion_tokens": 160,
+    "total_tokens": 1114
+   },
+   "costoUsd": 0.00351,
+   "grezzo": "Sei sul lato sud della piazza del Duomo, e questo edificio è un municipio. Sì, proprio come quello che hai davanti dall'altra parte: il Palazzo degli Elefanti fa lo stesso lavoro.\n\nGirati e guarda in mezzo alla piazza, tra i due palazzi: c'è la Fontana dell'Elefante. Alla tua sinistra, accanto a te, hai la Cattedrale di Sant'Agata.",
+   "racconto": "Sei sul lato sud della piazza del Duomo, e questo edificio è un municipio. Sì, proprio come quello che hai davanti dall'altra parte: il Palazzo degli Elefanti fa lo stesso lavoro. Girati e guarda in mezzo alla piazza, tra i due palazzi: c'è la Fontana dell'Elefante. Alla tua sinistra, accanto a te, hai la Cattedrale di Sant'Agata.",
+   "controllo": {
+    "ok": true,
+    "motivi": [],
+    "fuoriFonti": {
+     "numeri": [],
+     "nomi": [],
+     "parole": [],
+     "romani": []
+    },
+    "stats": {
+     "frasi": 4,
+     "caratteri": 332,
+     "parolePiene": 12,
+     "estranee": 1
+    }
+   },
+   "esito": "passato"
+  },
+  {
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "place_id": "ChIJY0P1DNT8ExMR9QiL54XqybI",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Via Etnea",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Via_Etnea",
+   "wikipediaDistanzaM": 190,
+   "wikipediaCar": 200,
+   "googleStato": "OK",
+   "googleCar": 95,
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "ms": 2342,
+   "http": 200,
+   "modello": "claude-sonnet-5-5",
+   "fornitore": "anthropic",
+   "errore": null,
+   "usage": {
+    "prompt_tokens": 915,
+    "completion_tokens": 127,
+    "total_tokens": 1042
+   },
+   "costoUsd": 0.0031,
+   "grezzo": "Guarda in fondo: questa strada non fa nemmeno una curva. Parte da Piazza del Duomo e va dritta verso nord per circa 3 chilometri, fino al Tondo Gioeni. Alzati gli occhi lungo il rettilineo: in fondo c'è l'Etna, e intorno a te bar, negozi e monumenti barocchi.",
+   "racconto": "Guarda in fondo: questa strada non fa nemmeno una curva. Parte da Piazza del Duomo e va dritta verso nord per circa 3 chilometri, fino al Tondo Gioeni. Alzati gli occhi lungo il rettilineo: in fondo c'è l'Etna, e intorno a te bar, negozi e monumenti barocchi.",
+   "controllo": {
+    "ok": true,
+    "motivi": [],
+    "fuoriFonti": {
+     "numeri": [],
+     "nomi": [],
+     "parole": [],
+     "romani": []
+    },
+    "stats": {
+     "frasi": 3,
+     "caratteri": 259,
+     "parolePiene": 6,
+     "estranee": 1
+    }
+   },
+   "esito": "passato"
+  },
+  {
+   "citta": "Troina",
+   "nome": "Chiesa Madre di Maria Santissima Assunta",
+   "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": null,
+   "wikipediaUrl": null,
+   "wikipediaDistanzaM": null,
+   "wikipediaCar": 0,
+   "googleStato": "OK",
+   "googleCar": 0,
+   "fonti": {
+    "nome": "Chiesa Madre di Maria Santissima Assunta",
+    "citta": "Troina",
+    "wikipedia": null,
+    "google": null
+   },
+   "esito": "senza-fonti"
+  },
+  {
+   "citta": "Troina",
+   "nome": "Torre Capitania",
+   "place_id": "ChIJSdi3PqbLFhMRevZmDu4FnbQ",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": null,
+   "wikipediaUrl": null,
+   "wikipediaDistanzaM": null,
+   "wikipediaCar": 0,
+   "googleStato": "OK",
+   "googleCar": 0,
+   "fonti": {
+    "nome": "Torre Capitania",
+    "citta": "Troina",
+    "wikipedia": null,
+    "google": null
+   },
+   "esito": "senza-fonti"
+  },
+  {
+   "citta": "Troina",
+   "nome": "Piazza Conte Ruggero",
+   "place_id": "ChIJkSKaqKjLFhMROMP-9DO305o",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": null,
+   "wikipediaUrl": null,
+   "wikipediaDistanzaM": null,
+   "wikipediaCar": 0,
+   "googleStato": "OK",
+   "googleCar": 0,
+   "fonti": {
+    "nome": "Piazza Conte Ruggero",
+    "citta": "Troina",
+    "wikipedia": null,
+    "google": null
+   },
+   "esito": "senza-fonti"
+  },
+  {
+   "citta": "Troina",
+   "nome": "Monte Muganà",
+   "place_id": "ChIJDVVKWWLLFhMRpl06lDqV2mI",
+   "wikipediaErrore": false,
+   "wikipediaTitolo": null,
+   "wikipediaUrl": null,
+   "wikipediaDistanzaM": null,
+   "wikipediaCar": 0,
+   "googleStato": "OK",
+   "googleCar": 0,
+   "fonti": {
+    "nome": "Monte Muganà",
+    "citta": "Troina",
+    "wikipedia": null,
+    "google": null
+   },
+   "esito": "senza-fonti"
+  }
+ ]
+}

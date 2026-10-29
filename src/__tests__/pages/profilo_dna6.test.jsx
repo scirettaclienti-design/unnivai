@@ -133,7 +133,7 @@ describe('DNA-6 — il tasto Salva è nelle quattro superfici', () => {
         expect(LEGGI('pages/SurpriseTour.jsx')).toContain("origine: 'sorprendimi'");
     });
     it('il giro completato scrive «raggiunte/totali» e il motore dei giri non è toccato', () => {
-        expect(LEGGI('pages/MapPage.jsx')).toContain('value: `${raggiunte}/${activeRoute.length}`');
+        expect(LEGGI('pages/MapPage.jsx')).toContain('value: `${raggiunte.length}/${activeRoute.length}`');
         expect(LEGGI('hooks/useAILearning.js')).toContain('value: opts.value');
     });
 });

@@ -1082,6 +1082,10 @@ const MapPage = () => {
             logNavEvent('nav_abandon', { tour_id: endTourId, step_index: completedSteps.length });
         }
 
+        // «Fine» chiude il giro a meta': si registra con le tappe davvero raggiunte (regola DNA invariata; 0 raggiunte = niente).
+        registraGiroCompletato(completedSteps, { soloRaggiunte: true });
+        navCompletedRef.current = true;
+
         if (completedSteps.length > 0) {
             // Fase 2c-2: congela il tempo reale al momento della fine.
             setNavElapsedMs(navStartTimeRef.current != null ? Date.now() - navStartTimeRef.current : null);
@@ -1538,16 +1542,25 @@ const MapPage = () => {
         });
     };
 
+    // Registra il giro completato (una volta sola: poi il latch ferma tutto). P7a — +0,3 alle categorie vere delle tappe.
+    // DNA-2: completato = ultima tappa raggiunta OPPURE almeno il 60% raggiunte (decisione di Ivano; giroCompletato).
+    // Un giro con 0 tappe raggiunte non e' mai completato e non tocca il DNA. `soloRaggiunte`: («Fine») le categorie
+    // vengono dalle tappe davvero raggiunte, non da quelle che non hai fatto.
+    const registraGiroCompletato = (fatteIds, { soloRaggiunte = false } = {}) => {
+        if (navCompletedRef.current) return false;
+        const raggiunteIds = (fatteIds || []);
+        const raggiunte = activeRoute.filter(t => raggiunteIds.includes(t.id));
+        if (raggiunte.length === 0 || !giroCompletato(activeRoute, raggiunteIds)) return false;
+        const tappeDelGiro = tourData?.steps?.length ? tourData.steps : activeRoute;
+        const tappe = soloRaggiunte ? raggiunte.map(t => tourData?.steps?.[t.index] || t) : tappeDelGiro;
+        // DNA-6: `value` = «raggiunte/totali» (es. 3/5), cosi' le Mete del Profilo dicono quante tappe su quante.
+        trackDnaEvent?.('tour_completed', tappe, { city: tourData?.city || null, tourId: tourData?.id || tourData?.tourId || null, value: `${raggiunte.length}/${activeRoute.length}` });
+        return true;
+    };
+
     // NAV-1: fine del giro (tutte le tappe fatte o saltate). Stop del GPS, latch, riepilogo.
     const concludiGiro = (fatteIds) => {
-        // P7a — tour completato: +0,3 alle categorie vere delle tappe. DNA-2: completato = ultima
-        // tappa raggiunta OPPURE almeno il 60% raggiunte (decisione di Ivano; giroCompletato).
-        // Una volta sola: dopo questo punto il latch ferma tutto.
-        if (!navCompletedRef.current && giroCompletato(activeRoute, fatteIds)) {
-            // DNA-6: `value` = «raggiunte/totali» (es. 3/5), cosi' le Mete del Profilo dicono quante tappe su quante.
-            const raggiunte = activeRoute.filter(t => (fatteIds || []).includes(t.id)).length;
-            trackDnaEvent?.('tour_completed', tourData?.steps?.length ? tourData.steps : activeRoute, { city: tourData?.city || null, tourId: tourData?.id || tourData?.tourId || null, value: `${raggiunte}/${activeRoute.length}` });
-        }
+        registraGiroCompletato(fatteIds);
         navCompletedRef.current = true;
         navTrackerRef.current?.stop(); navTrackerRef.current = null;
         setNavGps(null); setGpsAttesaVisibile(false); setTappaPassata(null);
@@ -2565,13 +2578,14 @@ const MapPage = () => {
                 const saltate = (activeRoute || []).filter(t => skippedSteps.includes(t.id)).length;
                 const tutte = (activeRoute || []).map(t => tourData?.steps?.[t.index] || t);
                 // i numeri sono quelli di dove sei arrivato davvero: con «Salta» fino in fondo non si contano tappe mai raggiunte
-                const numeri = numeriDelGiro({ tappe: saltate > 0 ? fatte : tutte, elapsedMs: navElapsedMs, distanzaM: null });
+                const chiusoPrima = saltate > 0 || fatte.length < activeRoute.length; // «Salta» o «Fine» prima dell'ultima tappa
+                const numeri = numeriDelGiro({ tappe: chiusoPrima ? fatte : tutte, elapsedMs: navElapsedMs, distanzaM: null });
                 const imparato = cosaHoImparato({ fatte: fatte.map(st => ({ categoria: stopCoreCategory(st) })), totale: activeRoute.length, saltate, dnaWeights });
                 const testoCondivisione = `Ho appena fatto un giro${tourData?.city ? ` a ${tourData.city}` : ''} con DoveVai: ${numeri.tappe} tappe${numeri.km ? `, ${numeri.km} km` : ''}.`;
                 return (
                     <FineGiro
                         data={dataDelGiro(new Date())} citta={tourData?.city || null} tappe={tutte} numeri={numeri} imparato={imparato}
-                        nota={saltate > 0 ? NAV_TESTI.FINE_FIN_DOVE(fatte.length, activeRoute.length) : null}
+                        nota={chiusoPrima ? NAV_TESTI.FINE_FIN_DOVE(fatte.length, activeRoute.length) : null}
                         onChiudi={() => setIsSummaryModalOpen(false)}
                         onMete={() => { setIsSummaryModalOpen(false); navigate('/profile'); }}
                         onCondividi={() => {

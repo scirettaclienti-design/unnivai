@@ -21,6 +21,7 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
       'e2e/**',
+      'e2e-webkit/**',
     ],
 
     // Isolate module state between test files (prevents singleton contamination)

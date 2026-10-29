@@ -215,7 +215,9 @@ describe('DNA-2 — quando un giro è completato (regola del 60%)', () => {
         const fs = await import('node:fs');
         const src = fs.readFileSync('src/pages/MapPage.jsx', 'utf8');
         expect(src).toMatch(/import \{ giroCompletato \} from '..\/lib\/giroCompletato'/);
-        expect(src).toMatch(/!navCompletedRef\.current && giroCompletato\(activeRoute, fatteIds\)/);
+        expect(src).toMatch(/navCompletedRef\.current\) return false;[\s\S]{0,300}giroCompletato\(activeRoute, raggiunteIds\)/);
+        expect(src).toMatch(/registraGiroCompletato\(fatteIds\)/); // chiusura automatica
+        expect(src).toMatch(/registraGiroCompletato\(completedSteps, \{ soloRaggiunte: true \}\)/); // «Fine»
         expect(src).not.toMatch(/fatteIds\.length >= totalSteps/);
     });
 });

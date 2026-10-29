@@ -19,6 +19,7 @@
     "build:e2e": "vite build --mode e2e",
     "test:e2e": "npm run build:e2e && playwright test",
     "test:e2e:ui": "npm run build:e2e && playwright test --ui",
+    "test:e2e:webkit": "npm run build:e2e && playwright test -c playwright.webkit.config.ts",
     "test:e2e:headed": "npm run build:e2e && playwright test --headed"
   },
   "dependencies": {

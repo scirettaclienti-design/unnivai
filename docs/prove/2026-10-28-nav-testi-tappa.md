@@ -223,3 +223,65 @@ Finché la funzione non è pubblicata il client chiede il racconto e la vecchia 
 4. Ripeti per due tappe: le frasi non devono contenere date o nomi che non conosci della tappa.
 5. Su una tappa senza fonti (un belvedere minore, un ristorante) c'è solo «Perché sei qui adesso».
 6. Controlla in SQL: `select esito, count(*) from public.place_racconti group by 1;` e che `costo_usd` sia di pochi millesimi.
+
+---
+
+# Seconda parte, seguito (2026-10-29) — NAV-RACCONTO-VERIFICA: secondo controllo frase per frase e niente direzioni
+
+## Cosa è cambiato
+- **Secondo controllo.** Dopo il controllo automatico, un altro modello (**Haiku 4.5**, modello suo: `MODELLO_REVISORE`, secret facoltativo `ANTHROPIC_MODEL_REVISORE`) riceve le fonti e il racconto con le frasi numerate e risponde per ogni frase `nelle_fonti` sì/no (`messaggiVerifica`, `leggiVerifica` in `racconto.ts`). **Basta una frase «no» per scartare il racconto** e resta la frase breve di oggi. Una risposta illeggibile, o che salta una frase, vale «no». Se il revisore non risponde, il proxy risponde 502 e non salva niente: si riprova alla richiesta dopo, il racconto non esce senza controllo.
+- **Direzioni vietate.** Nel prompt (regola 6) e nel controllo automatico: sinistra, destra, davanti, dietro, spalle, «di fronte a te», «girati», «voltati», «volgi lo sguardo», «dall'altra parte», «dall'altro lato». Un racconto con una di queste parole è scartato (`indicazione di direzione`).
+- **Versione `r3`.** I racconti salvati con `r2` non valgono più: alla prima richiesta di quella tappa si riscrivono (e passano dai due controlli). Resta la regola dei 30 giorni (passato) e 7 giorni (scartato).
+- **Migrazione `20261029090000_place_racconti_verifica.sql`**: due colonne facoltative (`modello_verifica`, `verifica`) per vedere cosa ha risposto il revisore per ogni frase. La migrazione `20261028190000_place_racconti.sql` non è cambiata.
+- Costo e tempo del racconto nuovo: scrittura (Sonnet 5.5) + verifica (Haiku 4.5, una chiamata in più, ~2 s).
+
+## Le tre frasi
+| Frase | Racconto r2 | Con i controlli nuovi | Perché |
+|---|---|---|---|
+| «Sei nel punto in cui Catania tiene il suo centro» | Cattedrale | **scartato** | revisore: «immagine non scritta nelle fonti» |
+| «Qui dentro vive Agata» | Cattedrale | **scartato** | revisore: «interpretazione poetica, le fonti dicono solo che è dedicata a Sant'Agata» |
+| «Alla tua sinistra, accanto a te, hai la Cattedrale» | Palazzo dei Chierici | **scartato** | controllo automatico: indicazione di direzione |
+
+Riscritti col prompt r3, i racconti di Cattedrale e Palazzo dei Chierici non contengono più quelle frasi. Ma nuove invenzioni di tono sono comparse e il revisore le ha prese: «il centro della vita religiosa dei catanesi», «la fontana tiene d'occhio entrambi» (Palazzo dei Chierici). La Cattedrale è scartata anche dal controllo automatico (più di 4 frasi, «tre» non è nelle fonti).
+
+## Passati e scartati: prima e dopo (13 tappe, fonti identiche a quelle del report precedente)
+| | Passati | Scartati | Senza fonti |
+|---|---|---|---|
+| **r2 com'erano pubblicati** (controllo automatico) | 7 | 1 | 5 |
+| **Gli stessi 7 testi r2 sotto i controlli nuovi** | 1 | 7 | 5 |
+| **r3 riscritti dal narratore, sotto i controlli nuovi** | 2 | 6 | 5 |
+
+Dei 7 testi r2, 5 cadono per direzioni («che hai davanti», «davanti a una fontana», «alla tua sinistra», «girati», «dall'altra parte») e 2 dal revisore (Cattedrale, Via Etnea). Passa solo Piazza Mazzini.
+
+Nel giro r3 passano **Castello Ursino** e **Piazza Giuseppe Mazzini**. Scartati: Cattedrale (automatico: 5 frasi e «tre»), Fontana dell'Elefante («statua romana»: la fonte 1 non lo dice), Teatro Antico («l'orchestra era il posto dove si svolgeva lo spettacolo»), Fontana dell'Amenano («perché Catania ha voluto firmarla così»), Palazzo dei Chierici («tiene d'occhio entrambi»), Via Etnea («in fondo alla strada c'è l'Etna»). I 5 senza fonti sono gli stessi di prima (Porta Uzeda, le 4 di Troina).
+
+Il giro è ripetibile ma non deterministico: nel giro precedente (stesso codice, prima di aggiungere «dall'altra parte» al divieto) i passati erano 4 su 13, con un racconto del Palazzo dei Chierici che diceva «dall'altra parte c'è il Palazzo degli Elefanti». Il dato che conta è che **ogni racconto passato è stato riletto a mano sulle fonti** (vedi sotto), non il numero.
+
+## Lettura a mano dei racconti passati (fonti accanto)
+- **Piazza Mazzini**: ogni fatto è nella fonte (Piano di San Filippo, incrocio di due strade, 1693, mercato, croce greca, quattro loggiati, 8 colonne in marmo bianco, cornice, quattro aperture). «nei primi decenni del Settecento» = «primi decenni del XVIII secolo». Unica sfumatura: «la ricostruzione di Catania decise» (la fonte dice che il piano lo decise Giuseppe Lanza, duca di Camastra). Nessuna invenzione.
+- **Castello Ursino**: Federico II, XIII secolo, Vespri, parlamento, re aragonesi, Federico III, Museo Civico, Biscari, Benedettini, carri dipinti: tutto nelle fonti. Due frasi deboli sono passate: «i carri dipinti stanno accanto ai reperti archeologici» (Google li elenca insieme, non dice che stanno accanto) e «sono tra le cose più concrete che trovi» (nessun fatto, solo voce). Sono i dettagli piccoli che neanche il revisore ferma.
+
+## Costo (13 tappe, giro finale)
+| | Totale | Per racconto scritto (8 tappe con fonti) |
+|---|---|---|
+| Scrittura (Sonnet 5.5) | 0,0305 $ | 0,0038 $ |
+| Verifica (Haiku 4.5, 7 racconti verificati) | 0,0110 $ | 0,0016 $ a verifica |
+| **Totale** | **0,0415 $** | **0,0052 $** (era 0,0034 $ senza verifica) |
+
+Un racconto scartato costa comunque la scrittura (e la verifica se arriva al secondo controllo): per ogni racconto **passato** la spesa è 0,0208 $ in questo giro (2 passati su 8 scritti). Una volta salvato (passato 30 giorni, scartato 7), un posto costa 0. Verifica: ~2,2 s in più, ma il racconto si prepara durante il cammino, non all'arrivo.
+
+## Cosa NON risolve
+- **La resa scende.** Con questi controlli passano pochi racconti (2–4 su 8 con fonti, secondo il giro), e le tappe senza racconto restano con la frase breve. È il prezzo di «nessuna frase non sostenuta»: il narratore (Sonnet 5.5) aggiunge una frase di colore a quasi ogni racconto e il revisore la ferma.
+- **Il revisore è un modello, non una prova.** Haiku 4.5 ha fermato tutte le invenzioni che ho trovato io, e ha lasciato passare due frasi deboli (Castello Ursino). Non ho una misura dei falsi «sì».
+- **Possibile miglioramento, non fatto perché non chiesto**: riscrivere una volta il racconto scartato dandogli le frasi «no» del revisore («toglile») e riverificare: costerebbe un'altra scrittura e un'altra verifica (~0,005 $) per tappa e alzerebbe la resa. Oggi lo scarto è definitivo (7 giorni).
+- **«Girati / dall'altra parte / a est»**: «a est», «a nord» e «sul lato sud» restano ammessi perché sono fatti geografici delle fonti, non indicazioni rispetto all'utente (se il revisore o la lettura trovano un caso sbagliato, si aggiunge al divieto).
+- Il proxy pubblicato è ancora quello vecchio: **la prova è stata fatta riproducendo scrittura e revisione con i modelli veri tramite il proxy attuale** (narratore = Sonnet 5.5; revisore = passaggio `traduttore`, che risponde Haiku 4.5, verificato con una sonda). Il percorso `racconto` completo (fonti prese dal server, cache, salvataggio) non è stato provato dal vivo perché richiede migrazione e deploy, che spettano a Ivano. Un primo giro con il passaggio `selettore` ha usato per errore Sonnet 5.5 come revisore (il secret `ANTHROPIC_MODEL_SELETTORE` punta a Sonnet): per questo il revisore ora ha un modello suo.
+- Troina 0/4 e Porta Uzeda: invariati.
+
+## Da lanciare (Ivano)
+1. `supabase db push --dry-run` (devono comparire `20261028190000_place_racconti.sql` se non l'hai ancora applicata e `20261029090000_place_racconti_verifica.sql`), poi `supabase db push`. **Prima la migrazione, poi il deploy**: con la funzione nuova e la tabella vecchia il salvataggio fallisce (si vede nel log, la tappa non ha il racconto).
+2. `supabase functions deploy openai-proxy --project-ref ahecpiwsdhghkndncejb --no-verify-jwt --use-api`, dal codice su main.
+3. Nessun secret obbligatorio. Facoltativo: `ANTHROPIC_MODEL_REVISORE` per cambiare il revisore senza deploy.
+4. Dopo: `select esito, count(*) from public.place_racconti group by 1;` e `select versione, count(*) from public.place_racconti group by 1;` (le righe `r2` si riscrivono da sole alla prima richiesta).
+
+Dati grezzi: `docs/prove/dati/2026-10-29-racconti-verifica.json` (testo, fonti, esito di ogni frase, costi). Script: `scripts/prova-reale/racconti-verifica.live.js`.

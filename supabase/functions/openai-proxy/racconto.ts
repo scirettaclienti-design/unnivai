@@ -10,7 +10,9 @@
 export const LIMITI = Object.freeze({ frasiMin: 2, frasiMax: 4, carMax: 600, wikipediaMax: 1500, googleMax: 500, fonteMin: 200 });
 export const RISPOSTA_NIENTE = 'NIENTE';
 /** Versione del prompt e del controllo: se cambia, i racconti in cache si riscrivono. */
-export const VERSIONE_RACCONTO = 'r2';
+export const VERSIONE_RACCONTO = 'r3'; // r3: divieto di direzione + secondo controllo frase per frase (Haiku)
+/** Il revisore (secondo controllo) è Haiku 4.5: veloce ed economico. Cambiabile con il secret ANTHROPIC_MODEL_REVISORE (elenco con virgole) senza deploy. */
+export const MODELLO_REVISORE = 'claude-haiku-4-5';
 export const TTL_RACCONTO_GIORNI = 30; // come place_facts: il testo di Google non si tiene oltre
 export const TTL_SCARTATO_GIORNI = 7; // un racconto scartato non si riprova a ogni giro (costa), ma dopo una settimana sì
 
@@ -25,8 +27,9 @@ export const SYSTEM_RACCONTO = [
     '3. Frasi brevi, dirette, concrete. Come parla un insider: «Guarda…», «Qui…», «Fermati…». Una immagine per frase, mai un elenco di date.',
     '4. Mai «Benvenuti», mai il tono da guida turistica o da brochure, mai superlativi o aggettivi vuoti (imperdibile, meraviglioso, spettacolare, unico, splendido, incantevole).',
     '5. Mai «vi», mai «voi»: parli a una persona sola. Niente emoji, niente virgolette decorative, niente titoli, niente elenchi.',
-    '6. Non ripetere il nome del luogo più di una volta. Non dire che sei un\'intelligenza artificiale e non nominare le fonti.',
-    `7. Se le fonti non bastano per almeno due frasi vere e concrete, rispondi esattamente: ${RISPOSTA_NIENTE}`,
+    '6. Mai indicazioni di direzione o di posizione rispetto a chi ascolta: niente «a sinistra», «a destra», «davanti a te», «dietro di te», «alle tue spalle», «di fronte a te», «girati», «dall\'altra parte». L\'app non sa da che lato arrivi.',
+    '   Non ripetere il nome del luogo più di una volta. Non dire che sei un\'intelligenza artificiale e non nominare le fonti.',
+    `8. Se le fonti non bastano per almeno due frasi vere e concrete, rispondi esattamente: ${RISPOSTA_NIENTE}`,
     '',
     'Rispondi solo con il testo del racconto (o con la parola indicata sopra), niente altro.',
 ].join('\n');
@@ -105,6 +108,7 @@ const VIETATE: Array<[RegExp, string]> = [
     [/\b\w{4,}issim[oaie]\b/i, 'superlativo'],
     [/\b(ammirar\w+|scoprirete|scoprirai|vi invito|vi consiglio|vi invitiamo|visitatori)\b/i, 'tono da guida turistica'],
     [/\b(vi|voi)\b/i, 'parla a più persone'],
+    [/(?<![\p{L}])(sinistr[aeio]|destr[aeio]|davanti|dietro|spalle|di fronte a te|di fronte a ti|girati|voltati|volgi lo sguardo|dall'altra parte|dall'altro lato)(?![\p{L}])/iu, 'indicazione di direzione'],
     [/\p{Extended_Pictographic}/u, 'emoji'],
     [/https?:|www\./i, 'indirizzo web'],
     [/\b(intelligenza artificiale|wikipedia|google)\b/i, 'nomina le fonti o l\'AI'],
@@ -220,4 +224,54 @@ export function ripulisciRacconto(grezzo: unknown): string {
         .replace(/\s*\n+\s*/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
+}
+
+
+// ─── il secondo controllo: frase per frase, con un altro modello ─────────────────────────────────────────────────────
+export const SYSTEM_VERIFICA = [
+    'Sei un revisore severo. Ricevi delle FONTI e un RACCONTO diviso in frasi numerate.',
+    'Per OGNI frase decidi se tutto ciò che afferma è scritto nelle FONTI (anche con altre parole): fatti, date, numeri, nomi, titoli, qualità, colori, aspetto, rumori, luoghi, relazioni tra le cose.',
+    'Rispondi «sì» solo se la frase non aggiunge niente che le fonti non dicano. Basta un dettaglio in più (un titolo, un colore, una qualifica, un luogo, un\'immagine inventata, una conclusione non scritta) per rispondere «no».',
+    'Non conta se il dettaglio è vero nella realtà: conta solo se è scritto nelle FONTI. Le frasi di voce («Guarda…», «Fermati…») senza fatti nuovi sono «sì».',
+    '',
+    'Rispondi SOLO con un oggetto JSON, nessun altro testo:',
+    '{"frasi":[{"n":1,"nelle_fonti":true,"motivo":""},{"n":2,"nelle_fonti":false,"motivo":"cosa non c\'è nelle fonti"}]}',
+    'Una voce per ogni frase, nello stesso ordine; «motivo» vuoto se nelle_fonti è true.',
+].join('\n');
+
+export function messaggiVerifica(testo: string, f: FontiRacconto): Array<{ role: 'system' | 'user'; content: string }> {
+    const p = fontiPulite(f);
+    const frasi = frasiDi(testo);
+    const blocchi = [`TAPPA: ${p.nome}${p.citta ? ` (${p.citta})` : ''}`, ''];
+    blocchi.push(p.wikipedia ? `FONTE 1 — Wikipedia:\n«${p.wikipedia}»` : 'FONTE 1 — Wikipedia: nessun testo.');
+    blocchi.push('', p.google ? `FONTE 2 — Descrizione Google del posto:\n«${p.google}»` : 'FONTE 2 — Descrizione Google del posto: nessuna.');
+    blocchi.push('', 'RACCONTO:', ...frasi.map((fr, i) => `${i + 1}. ${fr}`), '', 'Rispondi con il JSON.');
+    return [{ role: 'system', content: SYSTEM_VERIFICA }, { role: 'user', content: blocchi.join('\n') }];
+}
+
+export type EsitoVerifica = { ok: boolean; motivi: string[]; frasi: Array<{ n: number; nelleFonti: boolean; motivo: string }> };
+
+/**
+ * La risposta del revisore → esito. Passa SOLO se ogni frase del racconto ha la sua voce con nelle_fonti === true.
+ * Una risposta che non si legge, o che salta una frase, vale «no»: nel dubbio il racconto non esce.
+ */
+export function leggiVerifica(risposta: unknown, testo: string): EsitoVerifica {
+    const frasi = frasiDi(testo);
+    const grezzo = String(risposta ?? '');
+    const m = grezzo.match(/\{[\s\S]*\}/);
+    let j: any = null;
+    try { j = m ? JSON.parse(m[0]) : null; } catch { j = null; }
+    const voci: any[] = Array.isArray(j?.frasi) ? j.frasi : [];
+    if (!voci.length) return { ok: false, motivi: ['verifica: risposta del revisore non leggibile'], frasi: [] };
+    const out: EsitoVerifica['frasi'] = [];
+    const motivi: string[] = [];
+    frasi.forEach((fr, i) => {
+        const v = voci.find((x) => Number(x?.n) === i + 1);
+        const si = v?.nelle_fonti === true;
+        const motivo = String(v?.motivo ?? '').replace(/\s+/g, ' ').trim().slice(0, 140);
+        out.push({ n: i + 1, nelleFonti: si, motivo });
+        if (!v) motivi.push(`verifica: frase ${i + 1} senza risposta`);
+        else if (!si) motivi.push(`verifica: frase ${i + 1} non è nelle fonti${motivo ? ` (${motivo})` : ''}`);
+    });
+    return { ok: motivi.length === 0 && out.length > 0, motivi, frasi: out };
 }

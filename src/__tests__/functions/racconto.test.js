@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import {
     controllaRacconto, messaggiRacconto, haFonti, ripulisciRacconto, impronta, fontiPulite, LIMITI, RISPOSTA_NIENTE, SYSTEM_RACCONTO, VERSIONE_RACCONTO,
+    messaggiVerifica, leggiVerifica, SYSTEM_VERIFICA, MODELLO_REVISORE,
 } from '../../../supabase/functions/openai-proxy/racconto.ts';
 import { trovaWikipedia, cercaWikipedia, descrizioneGoogleDa, RAGGIO_MAX_M } from '../../../supabase/functions/openai-proxy/raccontoFonti.ts';
 
@@ -22,7 +23,7 @@ describe('controllo: un racconto fedele alle fonti passa', () => {
     });
     it('«Sei nella piazza…» non è il numero sei; «nel Duecento» vale «XIII secolo»; «San» non è un nome da cercare', () => {
         const castello = { nome: 'Castello Ursino', citta: 'Catania', wikipedia: { titolo: 'Castello Ursino', testo: 'Il castello Ursino di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero fu sede del parlamento siciliano e oggi è sede del Museo Civico, formato dalle collezioni della famiglia Biscari. ' + 'x'.repeat(0) }, google: null };
-        expect(controllaRacconto('Sei davanti al maniero: lo fece costruire Federico II di Svevia nel Duecento. Oggi dentro c\'è il Museo Civico, con le collezioni della famiglia Biscari.', castello).motivi).toEqual([]);
+        expect(controllaRacconto('Sei nel maniero: lo fece costruire Federico II di Svevia nel Duecento. Oggi dentro c\'è il Museo Civico, con le collezioni della famiglia Biscari.', castello).motivi).toEqual([]);
         const teatro = { nome: 'Teatro', citta: 'Catania', wikipedia: { titolo: 'Teatro', testo: 'Il teatro è situato tra piazza S. Francesco e via Timeo, risale al II secolo.' }, google: null };
         expect(controllaRacconto('Fermati qui: il teatro sta tra piazza San Francesco e via Timeo. Risale al II secolo.', teatro).motivi).toEqual([]);
     });
@@ -194,5 +195,81 @@ describe('proxy: il racconto è un percorso suo, fonti e controllo sul server', 
         expect(sql).toMatch(/REVOKE ALL ON public\.place_racconti FROM anon, authenticated/);
         expect(sql).toMatch(/GRANT EXECUTE ON FUNCTION public\.racconto_consuma\(integer\) TO service_role/);
         expect(sql).not.toMatch(/GRANT .* TO (anon|authenticated)/);
+    });
+});
+
+describe('direzioni: l\'app non sa da che lato arrivi, quindi il racconto non le dice', () => {
+    const base = "Guarda l'elefante nero al centro della piazza: è scolpito nel basalto, e qui lo chiamano U Liotru. Per i catanesi è il simbolo della città.";
+    it.each([
+        'Alla tua sinistra c\'è la fontana.', 'A destra trovi l\'elefante.', 'Davanti a te sta il basalto.', 'Dietro di te c\'è la piazza.',
+        'Alle tue spalle sta il simbolo della città.', 'Dall\'altra parte c\'è la statua.', 'Girati e guarda il basalto.', 'Di fronte a te c\'è la statua.',
+    ])('«%s» fa scartare un racconto per il resto fedele', (frase) => {
+        const c = controllaRacconto(`${base} ${frase}`, ELEFANTE);
+        expect(c.ok).toBe(false);
+        expect(c.motivi).toContain('indicazione di direzione');
+    });
+    it('il racconto senza direzioni passa; il prompt le vieta (r3)', () => {
+        expect(controllaRacconto(BUONO, ELEFANTE).ok).toBe(true);
+        expect(SYSTEM_RACCONTO).toMatch(/Mai indicazioni di direzione/);
+        expect(SYSTEM_RACCONTO).toMatch(/alle tue spalle/);
+        expect(VERSIONE_RACCONTO).toBe('r3');
+    });
+});
+
+describe('secondo controllo: frase per frase, basta un «no»', () => {
+    const T = "Guarda l'elefante nero al centro della piazza. Per i catanesi è il simbolo della città. Qui dentro vive Agata.";
+    const ok = (n) => ({ n, nelle_fonti: true, motivo: '' });
+    it('la richiesta numera le frasi e porta fonti e racconto', () => {
+        const m = messaggiVerifica(T, ELEFANTE);
+        expect(m[0]).toEqual({ role: 'system', content: SYSTEM_VERIFICA });
+        expect(m[1].content).toMatch(/1\. Guarda l'elefante nero/);
+        expect(m[1].content).toMatch(/3\. Qui dentro vive Agata\./);
+        expect(m[1].content).toMatch(/FONTE 1 — Wikipedia/);
+        expect(SYSTEM_VERIFICA).toMatch(/nelle_fonti/);
+    });
+    it('tutte «sì» → passa', () => {
+        const r = leggiVerifica(JSON.stringify({ frasi: [ok(1), ok(2), ok(3)] }), T);
+        expect(r.ok).toBe(true);
+        expect(r.motivi).toEqual([]);
+    });
+    it('una sola «no» → scarta e dice quale frase e perché', () => {
+        const r = leggiVerifica(JSON.stringify({ frasi: [ok(1), ok(2), { n: 3, nelle_fonti: false, motivo: 'Agata non è nelle fonti' }] }), T);
+        expect(r.ok).toBe(false);
+        expect(r.motivi).toEqual(['verifica: frase 3 non è nelle fonti (Agata non è nelle fonti)']);
+    });
+    it('risposta in mezzo a testo o a ```json: si legge lo stesso', () => {
+        const r = leggiVerifica('```json\n' + JSON.stringify({ frasi: [ok(1), ok(2), ok(3)] }) + '\n```', T);
+        expect(r.ok).toBe(true);
+    });
+    it('nel dubbio non esce: risposta illeggibile, frase saltata, «sì» non booleano → scarta', () => {
+        expect(leggiVerifica('non so', T).ok).toBe(false);
+        expect(leggiVerifica('', T).ok).toBe(false);
+        expect(leggiVerifica(JSON.stringify({ frasi: [ok(1), ok(2)] }), T).motivi).toEqual(['verifica: frase 3 senza risposta']);
+        expect(leggiVerifica(JSON.stringify({ frasi: [ok(1), ok(2), { n: 3, nelle_fonti: 'true' }] }), T).ok).toBe(false);
+    });
+});
+
+describe('proxy: il secondo controllo e la versione', () => {
+    const src = fs.readFileSync('supabase/functions/openai-proxy/index.ts', 'utf8');
+    it('dopo il controllo automatico chiama Haiku (passaggio selettore) e scarta con una sola frase «no»', () => {
+        expect(src).toMatch(/chiamaConRipiego\('selettore'/);
+        expect(src).toMatch(/primoRevisore\(chiaveAnthropic\)/);
+        expect(MODELLO_REVISORE).toBe('claude-haiku-4-5'); // un modello suo: non segue il secret del selettore (in produzione è Sonnet)
+        expect(src).toMatch(/ANTHROPIC_MODEL_REVISORE/);
+        expect(src).toMatch(/leggiVerifica\(/);
+        expect(src).toMatch(/if \(ok\) \{/);
+    });
+    it('un revisore che non risponde non salva niente (si riprova), non lascia passare il racconto', () => {
+        expect(src).toMatch(/revisore non disponibile[\s\S]{0,120}RACCONTO_MOTORE/);
+    });
+    it('i racconti con la versione vecchia si riscrivono: la cache vale solo se la versione coincide', () => {
+        expect(src).toMatch(/gia\.versione === VERSIONE_RACCONTO/);
+        expect(VERSIONE_RACCONTO).not.toBe('r2');
+    });
+    it('la migrazione aggiunge solo colonne facoltative (modello_verifica, verifica)', () => {
+        const sql = fs.readFileSync('supabase/migrations/20261029090000_place_racconti_verifica.sql', 'utf8');
+        expect(sql).toMatch(/ADD COLUMN IF NOT EXISTS modello_verifica text/);
+        expect(sql).toMatch(/ADD COLUMN IF NOT EXISTS verifica jsonb/);
+        expect(sql).not.toMatch(/DROP|DELETE|NOT NULL/i);
     });
 });

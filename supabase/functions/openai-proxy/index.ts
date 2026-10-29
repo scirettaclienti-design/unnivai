@@ -56,7 +56,7 @@ import {
 import { fornitoreScelto, modelliAnthropicPer, chiamaAnthropicElenco, ErroreAnthropic, compitoDi, PREZZI_ANTHROPIC_USD_PER_MILIONE } from './anthropic.ts';
 
 import {
-  VERSIONE_RACCONTO, TTL_RACCONTO_GIORNI, TTL_SCARTATO_GIORNI, haFonti, messaggiRacconto, controllaRacconto, ripulisciRacconto, impronta as improntaRacconto,
+  VERSIONE_RACCONTO, MODELLO_REVISORE, messaggiVerifica, leggiVerifica, TTL_RACCONTO_GIORNI, TTL_SCARTATO_GIORNI, haFonti, messaggiRacconto, controllaRacconto, ripulisciRacconto, impronta as improntaRacconto,
 } from './racconto.ts';
 import { cercaWikipedia, descrizioneGoogleDa } from './raccontoFonti.ts';
 import {
@@ -206,6 +206,11 @@ function anthropicAttivo(): string | null {
 function primoAnthropic(passaggio: Passaggio, chiave: string): Primo {
   const modelli = modelliAnthropicPer(passaggio, envLetto);
   return { fornitore: 'anthropic', modello: modelli[0], timeoutMs: MODELLI[passaggio].timeoutMs, tentativi: modelli.length > 1 ? 1 : 2, invia: (p, limite) => chiamaAnthropicElenco(chiave, modelli, p, limite) };
+}
+/** Il revisore dei racconti ha il suo modello (Haiku 4.5), indipendente dal secret del selettore; se Claude non c'è o fallisce, OpenAI come ogni compito. */
+function primoRevisore(chiave: string): Primo {
+  const modelli = (String(Deno.env.get('ANTHROPIC_MODEL_REVISORE') ?? '').trim() || MODELLO_REVISORE).split(',').map((m) => m.trim()).filter(Boolean);
+  return { fornitore: 'anthropic', modello: modelli[0], timeoutMs: 20_000, tentativi: modelli.length > 1 ? 1 : 2, invia: (p, limite) => chiamaAnthropicElenco(chiave, modelli, p, limite) };
 }
 /** Il codice del guasto dal motivo scritto da `invia` (HTTP <status> <code> <type> <msg>): lo stesso vocabolario del client. */
 function codiceDaMotivo(err: unknown): EngineCode {
@@ -599,15 +604,40 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
   }
   const testo = ripulisciRacconto(data?.choices?.[0]?.message?.content);
   const controllo = controllaRacconto(testo, fonti);
-  const prezzo = PREZZI_ANTHROPIC_USD_PER_MILIONE[info?.usato as string];
-  const costoUsd = prezzo && data?.usage ? +(((data.usage.prompt_tokens || 0) * prezzo.input + (data.usage.completion_tokens || 0) * prezzo.output) / 1e6).toFixed(5) : null;
+  const costoDi = (i: any, d: any): number => {
+    const pr = PREZZI_ANTHROPIC_USD_PER_MILIONE[i?.usato as string];
+    return pr && d?.usage ? ((d.usage.prompt_tokens || 0) * pr.input + (d.usage.completion_tokens || 0) * pr.output) / 1e6 : 0;
+  };
+  let costoTot = costoDi(info, data);
+  let motivi: string[] = [...controllo.motivi];
+  let ok = controllo.ok;
+  let modelloVerifica: string | null = null;
+  let verifica: unknown = null;
+  if (ok) {
+    // SECONDO CONTROLLO — un altro modello (Haiku 4.5, passaggio `selettore`) legge fonti e racconto e risponde frase per frase «nelle fonti sì/no».
+    // Basta una frase «no» (o una risposta che non si legge) per scartare il racconto. Se il revisore non risponde, non si salva niente: si riprova.
+    try {
+      const v = await chiamaConRipiego('selettore',
+        { model: MODELLO_DI_PRIMA, temperature: 0, max_tokens: 700, messages: messaggiVerifica(testo, fonti) }, invia, 20_000,
+        chiaveAnthropic ? primoRevisore(chiaveAnthropic) : undefined);
+      costoTot += costoDi(v.info, v.data);
+      modelloVerifica = v.info?.usato ?? null;
+      const esitoV = leggiVerifica(v.data?.choices?.[0]?.message?.content, testo);
+      verifica = esitoV.frasi;
+      if (!esitoV.ok) { ok = false; motivi = [...motivi, ...esitoV.motivi]; }
+    } catch (err) {
+      console.error('[openai-proxy] racconto: revisore non disponibile:', scrubLogText(err));
+      return json(502, { error: 'Racconto non disponibile', code: 'RACCONTO_MOTORE' });
+    }
+  }
+  const costoUsd = costoTot ? +costoTot.toFixed(5) : null;
   const riga = {
-    impronta: imp, esito: controllo.ok ? 'passato' : 'scartato', testo: controllo.ok ? testo : null, motivi: controllo.motivi, fonti: fontiUsate,
-    modello: info?.usato ?? null, costo_usd: costoUsd, ms: Date.now() - t0,
+    impronta: imp, esito: ok ? 'passato' : 'scartato', testo: ok ? testo : null, motivi, fonti: fontiUsate,
+    modello: info?.usato ?? null, modello_verifica: modelloVerifica, verifica, costo_usd: costoUsd, ms: Date.now() - t0,
   };
   await salva(riga);
-  console.log(`[openai-proxy] racconto: ${riga.esito} ${placeId.slice(0, 10)} ${info?.usato} ${riga.ms} ms ${costoUsd ?? '?'} $${controllo.ok ? '' : ` · ${controllo.motivi.join(' ; ').slice(0, 160)}`}`);
-  return risposta(riga, { cached: false, modello: info?.usato ?? null, costoUsd });
+  console.log(`[openai-proxy] racconto: ${riga.esito} ${placeId.slice(0, 10)} ${info?.usato}+${modelloVerifica ?? '-'} ${riga.ms} ms ${costoUsd ?? '?'} $${ok ? '' : ` · ${motivi.join(' ; ').slice(0, 160)}`}`);
+  return risposta(riga, { cached: false, modello: info?.usato ?? null, modelloVerifica, costoUsd });
 }
 
 serve(async (req: Request) => {

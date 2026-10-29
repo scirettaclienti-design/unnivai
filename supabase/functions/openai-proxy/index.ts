@@ -79,6 +79,11 @@ const LIMITS = {
   guest: { generation: 5,  aux: 15 },
 } as const;
 const GLOBAL_CAP_DEFAULT = 1000;
+// Tetto globale giornaliero sulle chiamate di contorno (tutti gli ospiti e gli utenti insieme): impedisce che molti sconosciuti, ognuno
+// sotto il proprio limite, facciano salire i costi. Secret AI_GLOBAL_DAILY_CAP_CONTORNO.
+const GLOBAL_CAP_CONTORNO_DEFAULT = 2000;
+// Corpo della richiesta: oltre questo il proxy risponde 413 senza leggere altro.
+const MAX_BODY_BYTES = 60 * 1024;
 
 const TICKET_KINDS = new Set(['itinerary', 'home_tours']);
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -86,6 +91,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // Testi decisi da Ivano: non modificarli senza di lui.
 const MSG_USER_LIMIT   = 'Per oggi hai usato tutti i tuoi percorsi. Domani se ne aprono altri.';
 const MSG_GLOBAL_LIMIT = 'Oggi Unnivai ha raggiunto il limite di percorsi. Domani se ne aprono altri.';
+const MSG_GLOBAL_CONTORNO = 'Oggi Unnivai ha raggiunto il limite di richieste. Domani riparte tutto.';
+const MSG_BODY_TOO_LARGE = 'La richiesta è troppo grande.';
 // Gate P8b — guasto di OpenAI (credito, troppe richieste, errore, nessuna risposta).
 const MSG_ENGINE_DOWN  = 'Il motore si è fermato un attimo. Riprova tra qualche minuto.';
 
@@ -113,6 +120,48 @@ function globalCap(): number {
   if (Number.isInteger(n) && n >= 0) return n;
   console.warn(`[openai-proxy] AI_GLOBAL_DAILY_CAP non valido (${raw}), uso ${GLOBAL_CAP_DEFAULT}`);
   return GLOBAL_CAP_DEFAULT;
+}
+
+/** Letto a ogni richiesta: tetto globale giornaliero delle chiamate di contorno. */
+function globalCapContorno(): number {
+  const raw = Deno.env.get('AI_GLOBAL_DAILY_CAP_CONTORNO');
+  if (raw === undefined || raw === '') return GLOBAL_CAP_CONTORNO_DEFAULT;
+  const n = Number(raw);
+  if (Number.isInteger(n) && n >= 0) return n;
+  console.warn(`[openai-proxy] AI_GLOBAL_DAILY_CAP_CONTORNO non valido (${raw}), uso ${GLOBAL_CAP_CONTORNO_DEFAULT}`);
+  return GLOBAL_CAP_CONTORNO_DEFAULT;
+}
+
+/**
+ * Gli account senza nessun limite: id utente (verificato dal JWT) separati da virgola nel secret AI_UNLIMITED_USER_IDS.
+ * Esenti da tutte le quote e i tetti, compreso RACCONTO_DAILY_CAP; non da controlli di sicurezza (corpo max 60 KB, token valido).
+ * Un ospite non e' mai esente. Letto a ogni richiesta.
+ */
+function esenteDaiTetti(subject: Subject): boolean {
+  if (subject.kind !== 'user') return false;
+  const ids = (Deno.env.get('AI_UNLIMITED_USER_IDS') ?? '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+  return ids.includes(subject.id.toLowerCase());
+}
+
+/** Il corpo come testo, o null se supera `max` byte (controllo sull'intestazione e poi mentre si legge: non si bufferizza oltre il limite). */
+async function leggiCorpoLimitato(req: Request, max: number): Promise<string | null> {
+  const dichiarata = Number(req.headers.get('content-length'));
+  if (Number.isFinite(dichiarata) && dichiarata > max) return null;
+  if (!req.body) return '';
+  const reader = req.body.getReader();
+  const pezzi: Uint8Array[] = [];
+  let totale = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    totale += value.byteLength;
+    if (totale > max) { await reader.cancel().catch(() => {}); return null; }
+    pezzi.push(value);
+  }
+  const tutto = new Uint8Array(totale);
+  let off = 0;
+  for (const p of pezzi) { tutto.set(p, off); off += p.byteLength; }
+  return new TextDecoder().decode(tutto);
 }
 
 /**
@@ -292,12 +341,17 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   // Prima lista del giorno per questa città: quota di contorno (fail-closed, come le altre chiamate).
   try {
     const subject = await resolveSubject(req, sb);
-    const { data, error } = await sb.rpc('ai_quota_consume', {
-      p_subject_kind: subject.kind, p_subject: subject.id, p_purpose: 'aux', p_ticket: null, p_ticket_kind: null,
-      p_limit: LIMITS[subject.kind].aux, p_global_cap: globalCap(),
-    });
-    if (error) throw new Error(`ai_quota_consume: ${error.message ?? error}`);
-    if (!data?.allowed) return json(429, { error: MSG_USER_LIMIT, code: 'QUOTA_EXCEEDED' });
+    if (!esenteDaiTetti(subject)) {
+      const { data, error } = await sb.rpc('ai_quota_consume', {
+        p_subject_kind: subject.kind, p_subject: subject.id, p_purpose: 'aux', p_ticket: null, p_ticket_kind: null,
+        p_limit: LIMITS[subject.kind].aux, p_global_cap: globalCap(), p_aux_global_cap: globalCapContorno(),
+      });
+      if (error) throw new Error(`ai_quota_consume: ${error.message ?? error}`);
+      if (!data?.allowed) {
+        if (data?.reason === 'global_aux') return json(429, { error: MSG_GLOBAL_CONTORNO, code: 'GLOBAL_AUX_QUOTA_EXCEEDED' });
+        return json(429, { error: MSG_USER_LIMIT, code: 'QUOTA_EXCEEDED' });
+      }
+    }
   } catch (err) {
     if (err instanceof HttpError) return json(err.status, err.body);
     console.error('[openai-proxy] lista città: controllo quota fallito:', scrubLogText(err));
@@ -526,8 +580,9 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
   const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
   if (!SUPABASE_URL || !SERVICE_KEY || !OPENAI_API_KEY) return json(503, { error: 'Racconto non disponibile', code: 'RACCONTO_NON_DISPONIBILE' });
   const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  let esente = false;
   try {
-    await resolveSubject(req, sb); // solo per rifiutare un token non valido
+    esente = esenteDaiTetti(await resolveSubject(req, sb)); // rifiuta un token non valido; l'account senza limiti salta il tetto
   } catch (err) {
     if (err instanceof HttpError) return json(err.status, err.body);
     return json(503, { error: 'Racconto non disponibile', code: 'RACCONTO_NON_DISPONIBILE' });
@@ -544,12 +599,14 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
     if (giorni < (gia.esito === 'passato' ? TTL_RACCONTO_GIORNI : TTL_SCARTATO_GIORNI)) return risposta(gia, { cached: true });
   }
 
-  const { data: ammesso, error: errTetto } = await sb.rpc('racconto_consuma', { p_tetto: tettoNuovi(Deno.env.get('RACCONTO_DAILY_CAP') ?? '300') });
-  if (errTetto) {
-    console.error('[openai-proxy] racconto: tetto non verificabile:', scrubLogText(errTetto.message));
-    return json(503, { error: 'Racconto non disponibile', code: 'RACCONTO_NON_DISPONIBILE' });
+  if (!esente) {
+    const { data: ammesso, error: errTetto } = await sb.rpc('racconto_consuma', { p_tetto: tettoNuovi(Deno.env.get('RACCONTO_DAILY_CAP') ?? '300') });
+    if (errTetto) {
+      console.error('[openai-proxy] racconto: tetto non verificabile:', scrubLogText(errTetto.message));
+      return json(503, { error: 'Racconto non disponibile', code: 'RACCONTO_NON_DISPONIBILE' });
+    }
+    if (!ammesso) return json(429, { error: 'Tetto giornaliero dei racconti raggiunto', code: 'RACCONTO_TETTO' });
   }
-  if (!ammesso) return json(429, { error: 'Tetto giornaliero dei racconti raggiunto', code: 'RACCONTO_TETTO' });
 
   const t0 = Date.now();
   const [wikiRes, google] = await Promise.all([
@@ -650,6 +707,11 @@ serve(async (req: Request) => {
     return json(405, { error: 'Method not allowed' });
   }
 
+  const testoCorpo = await leggiCorpoLimitato(req, MAX_BODY_BYTES).catch(() => '');
+  if (testoCorpo === null) {
+    return json(413, { error: MSG_BODY_TOO_LARGE, code: 'BODY_TOO_LARGE' });
+  }
+
   const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
   if (!OPENAI_API_KEY) {
     return json(500, { error: 'OpenAI API key not configured on server.' });
@@ -657,7 +719,7 @@ serve(async (req: Request) => {
 
   let body: Record<string, unknown>;
   try {
-    body = await req.json();
+    body = JSON.parse(testoCorpo);
   } catch {
     return json(400, { error: 'Invalid JSON body' });
   }
@@ -728,18 +790,23 @@ serve(async (req: Request) => {
     });
 
     subject = await resolveSubject(req, sb);
-    const { data, error } = await sb.rpc('ai_quota_consume', {
-      p_subject_kind: subject.kind,
-      p_subject: subject.id,
-      p_purpose: meta.purpose,
-      p_ticket: meta.purpose === 'generation' ? meta.ticket : null,
-      p_ticket_kind: meta.purpose === 'generation' ? meta.kind : null,
-      p_limit: LIMITS[subject.kind][meta.purpose],
-      p_global_cap: globalCap(),
-    });
-    if (error) throw new Error(`ai_quota_consume: ${error.message ?? error}`);
-    if (!data || typeof data.allowed !== 'boolean') throw new Error('ai_quota_consume: risposta non valida');
-    quota = data;
+    if (esenteDaiTetti(subject)) {
+      quota = { allowed: true, reason: 'unlimited_env' };
+    } else {
+      const { data, error } = await sb.rpc('ai_quota_consume', {
+        p_subject_kind: subject.kind,
+        p_subject: subject.id,
+        p_purpose: meta.purpose,
+        p_ticket: meta.purpose === 'generation' ? meta.ticket : null,
+        p_ticket_kind: meta.purpose === 'generation' ? meta.kind : null,
+        p_limit: LIMITS[subject.kind][meta.purpose],
+        p_global_cap: globalCap(),
+        p_aux_global_cap: globalCapContorno(),
+      });
+      if (error) throw new Error(`ai_quota_consume: ${error.message ?? error}`);
+      if (!data || typeof data.allowed !== 'boolean') throw new Error('ai_quota_consume: risposta non valida');
+      quota = data;
+    }
   } catch (err) {
     if (err instanceof HttpError) return json(err.status, err.body);
     console.error('[openai-proxy] controllo quota fallito, OpenAI non chiamato:', String(err));
@@ -749,6 +816,9 @@ serve(async (req: Request) => {
   if (!quota.allowed) {
     if (quota.reason === 'global') {
       return json(429, { error: MSG_GLOBAL_LIMIT, code: 'GLOBAL_QUOTA_EXCEEDED' });
+    }
+    if (quota.reason === 'global_aux') {
+      return json(429, { error: MSG_GLOBAL_CONTORNO, code: 'GLOBAL_AUX_QUOTA_EXCEEDED' });
     }
     if (quota.reason === 'ticket') {
       return json(403, { error: 'Biglietto di generazione esaurito o non tuo', code: 'TICKET_INVALID' });

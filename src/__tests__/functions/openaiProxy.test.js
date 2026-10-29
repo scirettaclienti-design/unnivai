@@ -360,7 +360,7 @@ describe('openai-proxy — quota applicata dal server', () => {
     expect(r.status).toBe(429);
     expect((await r.json()).error).toBe(USER_TEXT);
     for (const p of seen) {
-      expect(Object.keys(p).sort()).toEqual(['p_global_cap', 'p_limit', 'p_purpose', 'p_subject', 'p_subject_kind', 'p_ticket', 'p_ticket_kind']);
+      expect(Object.keys(p).sort()).toEqual(['p_aux_global_cap', 'p_global_cap', 'p_limit', 'p_purpose', 'p_subject', 'p_subject_kind', 'p_ticket', 'p_ticket_kind']);
       expect(p.p_subject).toBe('user-anna');
     }
   });

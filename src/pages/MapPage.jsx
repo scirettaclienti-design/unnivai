@@ -39,7 +39,7 @@ import { creaSchermoAcceso } from '../lib/wakeLock';
 import { parla, fermaVoce, sbloccaVoce, voceScelta, scegliVoce, preparaVoce } from '../lib/voce';
 import { richiediRacconto } from '../services/raccontoService';
 import { cosaPreparare } from '../lib/raccontoTappa';
-import { dire, indicazioneSvolta } from '../lib/vociTesti';
+import { dire, indicazioneSvolta, curiositaDellaCitta } from '../lib/vociTesti';
 import { NAV_TESTI, avvisoNavigazione } from '../lib/navMessaggi';
 import { prossimaSvolta, versoDa, rigaTappa, percheAdesso, testoRacconto, chiccaDistinta, fotoVera, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo, fasciaMappa, angoloFrecciaPartenza, partenzaCompiuta, frecciaDaSpegnere, tappaDellaFreccia } from '../lib/navGuida';
 import { typeLabelOf } from '../lib/italianLabels';
@@ -1329,13 +1329,16 @@ const MapPage = () => {
             if (d > 300) {
                 lastSurprisePos.current = { lat: latitude, lng: longitude };
                 surpriseCount.current += 1;
-                const surprises = dire('curiosita');
-                const text = surprises[surpriseCount.current % surprises.length];
-                window.dispatchEvent(new CustomEvent('dvai:toast', {
-                    detail: { message: `🎧 ${text}`, type: 'info', duration: 6000 }
-                }));
-                // Audioguida: leggi la curiosità ad alta voce se voce attiva
-                if (voiceEnabled) parla(text, { voce: voceId });
+                // Solo curiosità della città del giro (vociTesti.CURIOSITA): senza città nota o senza curiosità giusta, silenzio
+                const surprises = curiositaDellaCitta(tourData?.city);
+                if (surprises.length > 0) {
+                    const text = surprises[surpriseCount.current % surprises.length];
+                    window.dispatchEvent(new CustomEvent('dvai:toast', {
+                        detail: { message: `🎧 ${text}`, type: 'info', duration: 6000 }
+                    }));
+                    // Audioguida: leggi la curiosità ad alta voce se voce attiva
+                    if (voiceEnabled) parla(text, { voce: voceId });
+                }
             }
         } else {
             lastSurprisePos.current = { lat: latitude, lng: longitude };

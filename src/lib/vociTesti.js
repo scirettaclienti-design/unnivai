@@ -29,17 +29,26 @@ const TESTI = {
         svolta100: ({ verso }) => `Fra cento metri ${azioneIt(verso)}.`,
         svolta50: ({ verso }) => `Fra cinquanta metri ${azioneIt(verso)}.`,
         svoltaOra: ({ verso }) => `Adesso ${azioneIt(verso)}.`,
-        curiosita: [
-            'Molti palazzi storici italiani hanno cortili segreti. Prova ad affacciarti dal portone più bello che vedi!',
-            'Gli artisti di strada in Italia devono avere un permesso comunale. Ogni esibizione che vedi è certificata.',
-            'Le trattorie con i menù scritti a mano sono quasi sempre le migliori. Segui la calligrafia!',
-            'Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!',
-            'I locali del posto sanno che il tramonto migliore non è dal punto panoramico, ma dal bar accanto.',
-            'Le botteghe artigiane nei vicoli spesso esistono da generazioni. Chiedi la loro storia, ti sorprenderanno.',
-            'In molte piazze italiane, la musica che senti non è casuale. È programmata dal comune per creare atmosfera.',
-        ],
     },
 };
+
+/**
+ * Le curiosità del cammino. Ognuna porta la SUA città: una curiosità senza città, o di una città diversa da quella del giro, non si dice
+ * e non si mostra mai (meglio nessuna curiosità che una falsa: a Catania usciva «Roma ha più di duemila fontanelle»).
+ * Aggiungerne una vuol dire scrivere la città e poterla verificare.
+ */
+export const CURIOSITA = [
+    { citta: 'Roma', testo: 'Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!' },
+];
+
+const norma = (c) => String(c ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+/** I testi delle curiosità che appartengono alla città del giro. Città del giro mancante → nessuna. */
+export function curiositaDellaCitta(cittaDelGiro) {
+    const c = norma(cittaDelGiro);
+    if (!c) return [];
+    return CURIOSITA.filter(x => norma(x.citta) && norma(x.citta) === c).map(x => x.testo);
+}
 
 /** `dire('svolta50', { verso: 'a sinistra' })` → «Fra cinquanta metri gira a sinistra.» */
 export function dire(chiave, parametri = {}, lingua = LINGUA_PREDEFINITA) {

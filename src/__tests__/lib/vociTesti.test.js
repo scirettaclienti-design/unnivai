@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dire, indicazioneSvolta, SOGLIE_SVOLTA } from '../../lib/vociTesti.js';
+import { dire, indicazioneSvolta, SOGLIE_SVOLTA, CURIOSITA } from '../../lib/vociTesti.js';
 
 describe('vociTesti — tutti i testi della voce in un file', () => {
     it('le indicazioni di svolta sono frasi naturali e ricorrenti', () => {
@@ -22,5 +22,5 @@ describe('vociTesti — tutti i testi della voce in un file', () => {
     it('le finestre non si sovrappongono', () => {
         for (let m = 0; m <= 200; m += 5) expect(SOGLIE_SVOLTA.filter(s => m <= s.finoAM && m >= s.daM).length).toBeLessThanOrEqual(1);
     });
-    it('sette curiosità, nessuna vuota', () => { const c = dire('curiosita'); expect(c).toHaveLength(7); expect(c.every(x => x.length > 20)).toBe(true); });
+    it('le curiosità portano la loro città (niente curiosità senza città) e nessuna è vuota', () => { expect(dire('curiosita')).toBeUndefined(); expect(CURIOSITA.length).toBeGreaterThan(0); for (const c of CURIOSITA) { expect(c.citta).toBeTruthy(); expect(c.testo.length).toBeGreaterThan(10); } });
 });

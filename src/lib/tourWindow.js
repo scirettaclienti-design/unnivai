@@ -17,7 +17,10 @@
  *   · Percorso Veloce ('quick'): parte SEMPRE da adesso. Il testo non conta —
  *     e' costruito dal wizard, non scritto dall'utente.
  *   · Crea il tuo Percorso ('custom'):
- *       - nessuna indicazione di tempo           → da adesso;
+ *       - nessuna indicazione di tempo           → da adesso (in città, GIRO-LONTANO: più il
+ *                                                 cammino fino alla tappa 1, vedi il servizio);
+ *       - nessuna indicazione e utente lontano
+ *         (oltre 20 km o senza posizione)       → domani, giornata intera dalle 9:30 (`lontano`);
  *       - un giorno futuro ("domani", "sabato",
  *         "il 15 ottobre", "fra 3 giorni"…)      → giornata intera 9:30–22:30;
  *       - giorno + fascia ("sabato pomeriggio") → dall'inizio della fascia
@@ -260,7 +263,7 @@ const minDate = (a, b) => (a.getTime() <= b.getTime() ? a : b);
  *            shiftedToNextDay: boolean, anchored: boolean, reason: string,
  *            windows: Array<{ date: string, start: Date, end: Date }> }}
  */
-export function resolveTourWindow({ text = '', requestTime, pathType = 'quick', duration = '' } = {}) {
+export function resolveTourWindow({ text = '', requestTime, pathType = 'quick', duration = '', lontano = false } = {}) {
     const now = requestTime instanceof Date && !Number.isNaN(requestTime.getTime()) ? requestTime : new Date();
     const nowParts = romeParts(now);
     const today = { y: nowParts.y, m: nowParts.m, d: nowParts.d };
@@ -318,6 +321,12 @@ export function resolveTourWindow({ text = '', requestTime, pathType = 'quick', 
         defaultEnd = romeDate(day, f.end);
     } else if (namedDay && !sameDay(namedDay, today)) {
         reason = 'day';
+        start = romeDate(day, DAY_START);
+    } else if (!namedDay && lontano) {
+        // GIRO-LONTANO — nessun orario scritto e sei lontano dalla città del giro (o senza posizione): non «da adesso» a centinaia
+        // di km, ma domani dalle 9:30 (la giornata intera, come un giorno nominato). A schermo: «Domani · 9:30 · cambia».
+        reason = 'lontano';
+        day = addDays(today, 1);
         start = romeDate(day, DAY_START);
     } else {
         reason = namedDay ? 'today' : 'now';

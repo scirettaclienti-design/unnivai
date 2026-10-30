@@ -1,0 +1,64 @@
+{
+ "tag": "dopo",
+ "fase": "mappa",
+ "ora": "2026-10-30T15:00:00+01:00",
+ "base": "http://localhost:5191",
+ "casi": [
+  {
+   "nome": "roma",
+   "posizione": {
+    "lat": 41.9009,
+    "lng": 12.4833
+   },
+   "directions": 1,
+   "errori": [],
+   "card": "Il tuo giro a Catania Giornata 9:30–21:15 · 39 min a piedi · 2,9 km · 12 tappe Cambia mezzo AVVIA",
+   "panoramica": {
+    "neri": 0,
+    "medio": 208,
+    "contrasto": 55
+   },
+   "dopoAvvia": {
+    "neri": 0,
+    "medio": 208,
+    "contrasto": 55
+   },
+   "navigazione": false,
+   "distanze": [
+    "537 km",
+    "39 min",
+    "2,9 km"
+   ],
+   "messaggio": "Sei a 537 km da Catania: la guida parte quando sei lì.",
+   "cardDopo": "Il tuo giro a Catania Giornata 9:30–21:15 · 39 min a piedi · 2,9 km · 12 tappe Sei a 537 km da Catania: la guida parte quando sei lì. Cambia mezzo AVVIA"
+  },
+  {
+   "nome": "catania",
+   "posizione": {
+    "lat": 37.5047967,
+    "lng": 15.087635899999999
+   },
+   "directions": 3,
+   "errori": [],
+   "card": "Il tuo giro a Catania Giornata 9:30–21:15 · 44 min a piedi · 3,2 km · 12 tappe Cambia mezzo AVVIA",
+   "panoramica": {
+    "neri": 0,
+    "medio": 205,
+    "contrasto": 55
+   },
+   "dopoAvvia": {
+    "neri": 0,
+    "medio": 175,
+    "contrasto": 76
+   },
+   "navigazione": true,
+   "distanze": [
+    "44 min",
+    "3,2 km",
+    "4 MIN"
+   ],
+   "messaggio": null,
+   "cardDopo": null
+  }
+ ]
+}

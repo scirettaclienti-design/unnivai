@@ -41,6 +41,7 @@ import { richiediRacconto } from '../services/raccontoService';
 import { cosaPreparare } from '../lib/raccontoTappa';
 import { dire, indicazioneSvolta, curiositaDellaCitta } from '../lib/vociTesti';
 import { NAV_TESTI, avvisoNavigazione } from '../lib/navMessaggi';
+import { distanzaDalGiro, primaTappa, kmDetti } from '../lib/giroLontano';
 import { prossimaSvolta, versoDa, rigaTappa, percheAdesso, testoRacconto, chiccaDistinta, fotoVera, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo, fasciaMappa, angoloFrecciaPartenza, partenzaCompiuta, frecciaDaSpegnere, tappaDellaFreccia } from '../lib/navGuida';
 import { typeLabelOf } from '../lib/italianLabels';
 import { travelMinutes, etichettaCammino, etichettaGiornata } from '../lib/tourTiming';
@@ -392,6 +393,8 @@ const MapPage = () => {
     const bussolaRef = useRef(null);
     // nav-camera: la freccia di partenza (prima del primo passo) e il punto da cui si parte
     const [frecciaPartenza, setFrecciaPartenza] = useState(false);
+    // GIRO-LONTANO — il messaggio di «Avvia» da lontano («Sei a 535 km da Catania: la guida parte quando sei lì.»), nella card della panoramica
+    const [avvisoLontano, setAvvisoLontano] = useState(null);
     const frecciaPartenzaRef = useRef(false);
     const partenzaRef = useRef(null);
     const navNextStopRef = useRef(null);
@@ -886,6 +889,10 @@ const MapPage = () => {
     const posizioneUtenteRef = useRef(null);
     posizioneUtenteRef.current = localCenter && Number.isFinite(Number(localCenter.latitude)) ? { lat: Number(localCenter.latitude), lng: Number(localCenter.longitude) } : null;
     const chiavePosizioneUtente = posizioneUtenteRef.current ? `${posizioneUtenteRef.current.lat.toFixed(3)},${posizioneUtenteRef.current.lng.toFixed(3)}` : '';
+    // GIRO-LONTANO — oltre 20 km dalla tappa 1 (o senza posizione) la panoramica non calcola il cammino da te e non ti mette nell'inquadratura
+    const vicinanzaGiro = useMemo(() => distanzaDalGiro(localCenter, primaTappa(activeRoute)), [localCenter, activeRoute]);
+    const lontanoRef = useRef(true);
+    lontanoRef.current = vicinanzaGiro.lontano;
 
     // ─── AUTO-FIT TO ROUTE (TOURS ONLY — NOT route planner) ────────────────────
     useEffect(() => {
@@ -901,7 +908,7 @@ const MapPage = () => {
             if (lngs.length >= 2 && lats.length >= 2) {
                 // NAV-TRATTI: la panoramica comprende anche DOVE SEI (se sei vicino al giro: da un'altra città non si allarga il mondo)
                 const tu = posizioneUtenteRef.current;
-                if (tu && Number.isFinite(tu.lat) && Number.isFinite(tu.lng)
+                if (tu && !lontanoRef.current && Number.isFinite(tu.lat) && Number.isFinite(tu.lng)
                     && Math.abs(tu.lat - (Math.min(...lats) + Math.max(...lats)) / 2) < 0.3 && Math.abs(tu.lng - (Math.min(...lngs) + Math.max(...lngs)) / 2) < 0.3) {
                     lngs.push(tu.lng); lats.push(tu.lat);
                 }
@@ -1410,12 +1417,39 @@ const MapPage = () => {
         if (map) map.moveCamera({ center: { lat: first.latitude, lng: first.longitude }, zoom: 17, tilt: 45 });
     };
 
+    // GIRO-LONTANO — il messaggio onesto (card della panoramica + toast) e, se la navigazione era già partita, lo stop senza perdere il giro salvato.
+    const mostraLontano = (km) => {
+        const testo = NAV_TESTI.LONTANO_AVVIA(kmDetti(km), tourData?.city || activeCity);
+        setAvvisoLontano(testo);
+        window.dispatchEvent(new CustomEvent('dvai:toast', { detail: { message: testo, type: 'info' } }));
+    };
+    const interrompiDaLontano = (km, { ripresa = false } = {}) => {
+        navTrackerRef.current?.stop(); navTrackerRef.current = null;
+        setIsNavigating(false);
+        setFollowing(false);
+        setLiveRoute(null);
+        setNavGps(null); setGpsAttesaVisibile(false);
+        schermoAcceso.rilascia();
+        frecciaPartenzaRef.current = false; setFrecciaPartenza(false);
+        if (!ripresa) chiudiGiro(); // un giro appena avviato non resta «in corso»; uno ripreso resta salvato per quando sei lì
+        mostraLontano(km);
+    };
+
     /**
      * NAV-1: avvio della navigazione. `ripresa` = un giro salvato (dopo una ricarica o una
      * chiusura di iOS): tappe fatte, saltate, bersaglio e ora d'inizio tornano come erano.
      */
     const handleStartNavigationReal = (ripresa = null) => {
         console.log('[DVAI-Nav] handleStartNavigationReal:', ripresa ? 'ripresa del giro' : 'click Avvia');
+        // GIRO-LONTANO — da più di 20 km dalla prossima tappa niente navigazione verso un punto a centinaia di km: lo si dice e la panoramica resta.
+        // Senza posizione si parte come sempre (NAV-1: si segnano le tappe a mano); se il primo segnale arriva da lontano, ci si ferma lì (sotto).
+        const prossimaAllAvvio = primaTappa((activeRoute || []).filter(s => !(ripresa?.completedSteps || []).includes(s.id) && !(ripresa?.skippedSteps || []).includes(s.id))) || primaTappa(activeRoute);
+        const daQui = distanzaDalGiro(localCenter, prossimaAllAvvio);
+        if (!daQui.senzaPosizione && daQui.lontano) {
+            mostraLontano(daQui.km);
+            return;
+        }
+        setAvvisoLontano(null);
         // nav-camera: la bussola si chiede dentro il tocco (iOS); la freccia di partenza solo per un giro che comincia (non per una ripresa)
         chiediPermesso();
         partenzaRef.current = null;
@@ -1533,6 +1567,13 @@ const MapPage = () => {
             onPosizione: (pos, { primo }) => {
                 if (primo) {
                     const { coords } = pos;
+                    // GIRO-LONTANO — il primo segnale arriva da oltre 20 km dalla prossima tappa: niente volo su di te, niente percorso da te, si torna alla panoramica
+                    const daQuiFix = distanzaDalGiro(coords, primaTappa(tappeRimaste()) || primaTappa(activeRoute));
+                    if (daQuiFix.lontano && !daQuiFix.senzaPosizione) {
+                        console.log('[DVAI-Nav] primo fix lontano dal giro: navigazione fermata');
+                        interrompiDaLontano(daQuiFix.km, { ripresa: !!ripresa });
+                        return;
+                    }
                     console.log('[DVAI-Nav] primo fix della navigazione');
                     logStart(false);
                     setGpsAttesaVisibile(false);
@@ -1975,8 +2016,9 @@ const MapPage = () => {
                                 // (marker blu separato in UnnivaiMap:66-78).
                                 ? (isNavigating
                                     ? (liveRoute || activeRoute)
-                                    : (localCenter && !customOriginAddress
-                                        // Preview pre-nav: percorso parte da posizione utente
+                                    : (localCenter && !customOriginAddress && !vicinanzaGiro.lontano
+                                        // Preview pre-nav: percorso parte da posizione utente (GIRO-LONTANO: solo se sei entro 20 km dalla tappa 1;
+                                        // da più lontano durata e km contano solo il cammino fra le tappe)
                                         ? [{ lat: localCenter.latitude, lng: localCenter.longitude, title: 'Tu' }, ...(liveRoute || activeRoute || [])]
                                         : (liveRoute || activeRoute)))
                                 : (isRoutePlannerOpen && plannerPreviewRoute ? plannerPreviewRoute : [])
@@ -2260,6 +2302,9 @@ const MapPage = () => {
                                     </span>
                                 )}
                             </p>
+                            {avvisoLontano && (
+                                <p data-testid="avviso-lontano" role="status" className="text-xs text-obsidian-primary font-semibold mt-1.5 leading-snug">{avvisoLontano}</p>
+                            )}
                             <button type="button" onClick={handleStartNavigationClick} data-testid="cambia-mezzo"
                                 className="mt-0 min-h-[44px] min-w-[44px] -mb-2 flex items-center text-[11px] font-semibold text-obsidian-secondary underline underline-offset-2 hover:text-obsidian-primary cursor-pointer">
                                 Cambia mezzo

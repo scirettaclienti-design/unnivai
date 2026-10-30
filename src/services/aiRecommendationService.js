@@ -355,6 +355,7 @@ import { isSmallTown, applyRadiusFilter, haversineKm, normalizeStepCategory } fr
 import { computeStopTimings, totalTourMinutes, refreshTourScheduledTimes, APERITIVO_STAY_MINUTES } from '@/lib/tourTiming';
 // Gate FINESTRA TEMPORALE (G3) — quando parte il tour lo decide il codice, non il modello.
 import { resolveTourWindow, romeParts, romeDate } from '@/lib/tourWindow';
+import { distanzaDalGiro, minutiFinoAllaTappa, primaTappaDelGiro } from '@/lib/giroLontano';
 import { DESTINATION_UNSURE_NOTE, destinationNote, extractCityCandidate, isStreetMention, sameCity } from '@/lib/textDestination';
 // Gate NARRATORE-DOPO — alba/tramonto nel codice, controllo luce/ora, fascia dalla tabella.
 import { sunTimes, eBuio } from '@/lib/sunTimes';
@@ -2301,21 +2302,55 @@ export const aiRecommendationService = {
         // Un biglietto solo: il traduttore chiamato qui, il selettore dopo e il
         // secondo tentativo (T1b) sono la stessa generazione.
         const quotaTicket = opts.quotaTicket || newGenerationTicket('itinerary');
-        if (opts.pathType !== 'custom' || !String(userPrompt || '').trim()) {
-            const args = [city, prefs, userPrompt, weather, aiProfile, cityCenter, { ...opts, quotaTicket }];
-            return this._neverEmpty(await this._generateItinerary(...args), args);
+        // GIRO-LONTANO — in Crea (solo lì: gli altri percorsi partono da dove sei) la posizione dell'utente (`opts.posizioneUtente`,
+        // null se non c'e') decide la partenza quando il testo non dice un orario: lontano dal centro della citta' del giro (oltre
+        // 20 km) o senza posizione → domani alle 9:30; in citta' → da adesso piu' il cammino fino alla tappa 1 (_partenzaDalCammino).
+        // La posizione non entra mai nella scelta delle tappe (il centro resta quello della citta').
+        // Vale solo se chi chiama passa `posizioneUtente` (AiItinerary la passa sempre, null se non c'e'): banco, replay e rigenerazione
+        // del giorno, che non la passano, restano com'erano.
+        const crea = opts.pathType === 'custom';
+        const conPosizione = crea && Object.prototype.hasOwnProperty.call(opts, 'posizioneUtente');
+        const conPartenza = (centro, o) => (conPosizione ? { ...o, lontano: distanzaDalGiro(opts.posizioneUtente, centro).lontano } : o);
+        const partenza = (result, args) => (conPosizione ? this._partenzaDalCammino(result, args) : result);
+        if (!crea || !String(userPrompt || '').trim()) {
+            const args = [city, prefs, userPrompt, weather, aiProfile, cityCenter, conPartenza(cityCenter, { ...opts, quotaTicket })];
+            return partenza(await this._neverEmpty(await this._generateItinerary(...args), args), args);
         }
         const dest = await resolveTextDestination(userPrompt, city, quotaTicket);
+        const centroGiro = dest.fromText ? dest.cityCenter : cityCenter;
         const args = [
-            dest.city, prefs, userPrompt, weather, aiProfile, dest.fromText ? dest.cityCenter : cityCenter,
-            { ...opts, quotaTicket, presetIntent: dest.intent },
+            dest.city, prefs, userPrompt, weather, aiProfile, centroGiro,
+            conPartenza(centroGiro, { ...opts, quotaTicket, presetIntent: dest.intent }),
         ];
-        const result = await this._neverEmpty(await this._generateItinerary(...args), args);
+        const result = await partenza(await this._neverEmpty(await this._generateItinerary(...args), args), args);
         // T1b — un tour sulle query di base al posto di quello chiesto lo dice.
         const baseNote = result?._queryDiBaseDopoVuoto ? baseQueriesNote(result._oggettoChiesto, dest.city) : null;
         const note = [dest.note, baseNote].filter(Boolean).join(' · ') || null;
         const destination = { city: dest.city, fromText: dest.fromText, note, cityCenter: dest.fromText ? dest.cityCenter : cityCenter };
         return result && typeof result === 'object' && !Array.isArray(result) ? { ...result, destination } : result;
+    },
+
+    // GIRO-LONTANO — in citta' e senza orario scritto il giro non parte «adesso» alla tappa 1: parte adesso piu' il cammino fino a li'.
+    // La tappa 1 si conosce solo dopo la scelta: gli orari si spostano con lo stesso ricalcolo della cache (G1.1: la finestra di chi
+    // legge + gli offset salvati, frasi ricomposte), mai con una seconda generazione (`soloCache`: se il giro non e' in cache resta
+    // com'e'). Da lontano la finestra e' gia' domani alle 9:30 e il risultato lo dice in `_partenza`.
+    async _partenzaDalCammino(result, args) {
+        const opts = args[6] || {};
+        if (!result || typeof result !== 'object' || Array.isArray(result) || countStops(result) === 0) return result;
+        if (opts.lontano) return result.tourWindow?.reason === 'lontano' ? { ...result, _partenza: { domani: true } } : result;
+        if (result.tourWindow?.reason !== 'now') return result;
+        const minuti = minutiFinoAllaTappa(opts.posizioneUtente, primaTappaDelGiro(result));
+        if (!Number.isFinite(minuti) || minuti < 1) return result;
+        let spostato = null;
+        try {
+            spostato = await this._generateItinerary(...args.slice(0, 6), {
+                ...opts, ritardoMinuti: minuti, soloCache: true, skipUserQuota: true, baseQueries: !!result._queryDiBaseDopoVuoto || !!opts.baseQueries,
+            });
+        } catch (err) {
+            console.warn('[GIRO-LONTANO] ricalcolo della partenza non riuscito, orari di prima:', err?.message || err);
+        }
+        if (!spostato || countStops(spostato) === 0) return result;
+        return { ...result, ...spostato, _partenza: { daAdesso: true, camminoMinuti: minuti } };
     },
 
     // T1b — mai un tour vuoto a schermo. Se una generazione arriva a 0 tappe
@@ -2366,7 +2401,7 @@ export const aiRecommendationService = {
         // assente o 'quick' = da adesso, il comportamento di prima.
         const requestTime = requestNow(opts);
         const tourWindow = resolveTourWindow({
-            text: userPrompt, requestTime, pathType: opts.pathType, duration: prefs?.duration,
+            text: userPrompt, requestTime, pathType: opts.pathType, duration: prefs?.duration, lontano: !!opts.lontano,
         });
         // Gate NARRATORE-DOPO — il primo momento della finestra, letto dalla
         // tabella dei momenti (dayMoments.js). Serve al timeContext e alla
@@ -2391,7 +2426,14 @@ export const aiRecommendationService = {
             tourWindow,
         };
 
+        // GIRO-LONTANO — la partenza spostata del cammino fino alla tappa 1: la chiave di cache resta quella della finestra «da adesso»
+        // (stesso giro), cambiano solo l'inizio e quindi gli orari ricalcolati qui sotto.
+        if (Number.isFinite(opts.ritardoMinuti) && opts.ritardoMinuti > 0) {
+            tourWindow.start = new Date(tourWindow.start.getTime() + opts.ritardoMinuti * 60000);
+            if (tourWindow.windows?.[0]) tourWindow.windows[0] = { ...tourWindow.windows[0], start: tourWindow.start };
+        }
         const cached = loadInsiderFromCache(cacheKey);
+        if (!cached && opts.soloCache) return null;
         if (cached) {
             // G1.1 — un tour da cache non porta con sé l'orario calcolato alla
             // generazione: si ricalcola SEMPRE dalla finestra di CHI STA

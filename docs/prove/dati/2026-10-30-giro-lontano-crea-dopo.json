@@ -1,0 +1,93 @@
+{
+ "tag": "dopo",
+ "fase": "crea",
+ "ora": "2026-10-30T15:00:00+01:00",
+ "base": "http://localhost:5191",
+ "casi": [
+  {
+   "nome": "roma",
+   "posizione": {
+    "lat": 41.9009,
+    "lng": 12.4833
+   },
+   "errori": [],
+   "pannello": "Ciao, ProvaAccesso! Roma 20°C Dove ti trovi? Cambia la tua posizione attuale SUGGERITI Roma Milano Venezia Firenze Napoli Conferma Posizione",
+   "generazioneMs": 35042,
+   "partenza": "Domani · 9:30 · cambia",
+   "orari": [
+    "9:30",
+    "09:30",
+    "09:55",
+    "10:27",
+    "10:50",
+    "11:11",
+    "11:41",
+    "12:28",
+    "12:30",
+    "14:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "17:00",
+    "17:59",
+    "18:00"
+   ],
+   "card": "Barocco e pietra lavica di Catania Giornata 9:30–21:15 · 24 min a piedi · 1,7 km · 12 tappe Cambia mezzo AVVIA",
+   "panoramica": {
+    "neri": 0,
+    "medio": 210,
+    "contrasto": 52
+   },
+   "dopoAvvia": {
+    "neri": 0,
+    "medio": 210,
+    "contrasto": 52
+   },
+   "navigazione": false,
+   "avvisoLontano": "Sei a 537 km da Catania: la guida parte quando sei lì.",
+   "distanze": [
+    "537 km",
+    "24 min",
+    "1,7 km"
+   ]
+  },
+  {
+   "nome": "catania",
+   "posizione": {
+    "lat": 37.5047,
+    "lng": 15.0871
+   },
+   "errori": [],
+   "pannello": "Ciao, ProvaAccesso! Catania 20°C Dove ti trovi? Cambia la tua posizione attuale SUGGERITI Roma Milano Venezia Firenze Napoli Conferma Posizione",
+   "generazioneMs": 31126,
+   "partenza": null,
+   "orari": [
+    "15:03",
+    "15:34",
+    "15:54",
+    "16:54",
+    "17:04",
+    "18:03",
+    "18:49",
+    "20:03"
+   ],
+   "card": "Il tuo giro a Catania Giornata 15:03–21:18 · 10 min a piedi · 752 m · 7 tappe Cambia mezzo AVVIA",
+   "panoramica": {
+    "neri": 0,
+    "medio": 219,
+    "contrasto": 48
+   },
+   "dopoAvvia": {
+    "neri": 0,
+    "medio": 171,
+    "contrasto": 79
+   },
+   "navigazione": true,
+   "avvisoLontano": null,
+   "distanze": [
+    "10 min",
+    "3 MIN"
+   ]
+  }
+ ]
+}

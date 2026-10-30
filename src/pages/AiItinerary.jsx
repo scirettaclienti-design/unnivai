@@ -24,6 +24,8 @@ import { chiaveTappa } from "@/lib/giroEdit";
 // Gate C2 — i tag dal prompt libero vivono in un motore solo, con test propri.
 // La vecchia riga inline cancellava ogni lettera accentata: vedi promptTags.js.
 import { extractPromptTags } from "@/lib/promptTags";
+import { leggiPosizione } from "@/lib/giroLontano";
+import { NAV_TESTI } from "@/lib/navMessaggi";
 import { useAILearning } from "../hooks/useAILearning"; // DVAI-045
 import { gestiDiCrea, logDnaGesti } from "../lib/dnaRegistro";
 import { useToast } from "../hooks/use-toast";
@@ -123,6 +125,16 @@ export default function AIItineraryPage() {
     // l'ha confermata, altrimenti la posizione. Mappa, messaggi e "Rigenera
     // giorno" usano questa, non la posizione. `note` e' la riga in testa al tour.
     const [tourDestination, setTourDestination] = useState(null);
+    // GIRO-LONTANO — dove sei, letto una volta all'apertura (in sottofondo): alla generazione decide la partenza quando il testo non dice
+    // un orario (lontano o senza posizione → domani alle 9:30; in città → da adesso più il cammino fino alla tappa 1). Mai la scelta delle tappe.
+    const posizioneRef = useRef(null);
+    const richiestaRef = useRef(null);
+    const [partenza, setPartenza] = useState(null);
+    useEffect(() => {
+        let vivo = true;
+        leggiPosizione().then((p) => { if (vivo) posizioneRef.current = p; });
+        return () => { vivo = false; };
+    }, []);
     // TROINA-FIX — un giro non completato per un servizio che non ha risposto: il messaggio tecnico col tasto «Riprova»
     const [erroreTecnico, setErroreTecnico] = useState(false);
     const tourCity = tourDestination?.city || activeCity;
@@ -139,6 +151,7 @@ export default function AIItineraryPage() {
         setIsGenerating(true);
         setGeneratedItinerary(null);
         setTourDestination(null);
+        setPartenza(null);
         setErroreTecnico(false);
 
         const prefsObject = userPreferences.reduce((acc, pref) => {
@@ -225,7 +238,7 @@ export default function AIItineraryPage() {
                 // G3 — 'custom': la finestra temporale legge "domani", "sabato pomeriggio"…
                 // P7b — dieta, budget e stile del primo accesso. Il budget del
                 // wizard (prefsObject.budget) vince: la gerarchia la applica il motore.
-                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'custom', onboardingPrefs },
+                { dnaWeights: hasPreferences ? dnaWeights : {}, pathType: 'custom', onboardingPrefs, posizioneUtente: posizioneRef.current },
             );
             // T1 — la citta' scritta nel testo puo' aver preso il posto della posizione.
             const resultCity = result?.destination?.city || activeCity;
@@ -297,6 +310,7 @@ export default function AIItineraryPage() {
             // difficile"). Nessun fallback silente qui.
             setGeneratedItinerary(itineraryDays);
             setTourDestination(result?.destination || null);
+            setPartenza(result?._partenza || null);
             setCurrentStep(2);
 
             // DVAI-045: traccia le preferenze usate per l'apprendimento futuro
@@ -495,6 +509,7 @@ export default function AIItineraryPage() {
 
                                 <div className="relative">
                                     <textarea
+                                        ref={richiestaRef}
                                         value={userPrompt}
                                         onChange={(e) => setUserPrompt(e.target.value)}
                                         placeholder="Es: 'Voglio perdermi tra i vicoli di Trastevere, mangiare la carbonara migliore e finire la serata in un jazz club nascosto...'"
@@ -630,6 +645,26 @@ export default function AIItineraryPage() {
                             la citta' del testo non si e' potuta riconoscere). */}
                         {tourDestination?.note && (
                             <p data-destination-note className="text-obsidian-secondary text-xs mb-3">{tourDestination.note}</p>
+                        )}
+                        {/* GIRO-LONTANO — da lontano il giro parte domani alle 9:30; «cambia» riporta alla richiesta, dove il momento si sceglie
+                            scrivendolo («sabato alle 10»): è la scelta dell'orario che Crea ha già (tourWindow). */}
+                        {partenza?.domani && (
+                            <p data-partenza className="text-obsidian-primary text-xs font-bold mb-3 flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5 text-brand-orange" aria-hidden="true" />
+                                <span>{NAV_TESTI.PARTENZA_DOMANI} · </span>
+                                <button
+                                    type="button"
+                                    data-partenza-cambia
+                                    aria-label={NAV_TESTI.PARTENZA_CAMBIA_ETICHETTA}
+                                    onClick={() => {
+                                        setCurrentStep(0);
+                                        setTimeout(() => richiestaRef.current?.focus(), 50);
+                                    }}
+                                    className="text-brand-orange underline underline-offset-2 min-h-[44px] px-1 cursor-pointer"
+                                >
+                                    {NAV_TESTI.PARTENZA_CAMBIA}
+                                </button>
+                            </p>
                         )}
 
                         {/* Day Navigator — il numero del giorno solo in un tour di piu' giorni */}

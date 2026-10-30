@@ -450,6 +450,14 @@ Ogni tappa con fonti ha un racconto di 2–4 frasi scritto da Claude **solo con 
 - **Versione `r4` (RACCONTO-R4)**: prompt «ogni frase poggia su un fatto delle fonti; la voce nasce da scelta, ordine e frasi brevi, non da frasi di colore; meglio 2 frasi vere che 4 con un abbellimento». **Una sola riscrittura**: se il revisore segna frasi «no», il narratore le riceve con il motivo e riscrive una volta, poi ripassa da entrambi i controlli (`scriviERivedi`, `messaggiRiscrittura` in `racconto.ts`); se cade il controllo automatico non si riscrive. In cache vale un r4 o un r3 non scartato (`versioneValida`). Catania 7/6/7 su 8 in 3 lanci (prima 2/4/3). Report: `docs/prove/2026-10-30-racconto-r4.md`.
 - **Audio pronto prima dell'arrivo**: `MapPage` chiede il racconto della prossima tappa appena è la prossima e, con la voce accesa, `voce.preparaVoce` prepara l'audio; a ~300 m ricontrolla (`raccontoTappa.cosaPreparare`). All'arrivo il Play non chiede il server (`registroVoce`: `preparata`, `avvioMs`). Con server finto: 40–96 ms contro 2575 ms; con la voce umana vera si misura dopo la ricarica di OpenAI.
 
+### Un giro guardato da lontano (GIRO-LONTANO)
+
+«Lontano» = oltre 20 km dalla tappa 1 (sulla mappa) o dal centro della città del giro (alla generazione), oppure posizione non disponibile (`src/lib/giroLontano.js`, `SOGLIA_LONTANO_KM`).
+- **Panoramica** (`MapPage`): da lontano il percorso dell'anteprima non parte da te, quindi durata e km contano solo il cammino fra le tappe; l'inquadratura ti include solo da vicino.
+- **«Avvia» da lontano**: niente navigazione né tracciamento, nella card «Sei a 537 km da Catania: la guida parte quando sei lì.» (`NAV_TESTI.LONTANO_AVVIA`). Senza posizione «Avvia» parte come sempre (NAV-1); se il primo segnale arriva da lontano la guida si ferma prima del volo della camera (era la «mappa nera»: camera su di te a 500 km, nessuna tappa né tratto).
+- **Orari di Crea** (`AiItinerary` passa `posizioneUtente`, null se manca; senza questa opzione nulla cambia: banco, replay, rigenerazione). Senza orario scritto: lontano → domani dalle 9:30 (`resolveTourWindow({ lontano })`, reason `lontano`, etichetta «Domani · 9:30 · cambia», «cambia» riporta alla richiesta); in città → da adesso più il cammino fino alla tappa 1 (`_partenzaDalCammino`: ricalcolo dalla cache con `ritardoMinuti` e `soloCache`, mai una seconda generazione).
+Report: `docs/prove/2026-10-30-giro-lontano.md`.
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

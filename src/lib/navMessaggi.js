@@ -31,6 +31,13 @@ export const NAV_TESTI = Object.freeze({
     AVANTI: 'Avanti',
     RIPARTI_VERSO: (min, versoNome) => `Riparti · ${min ? `${min} min ` : ''}${versoNome}`,
     LA_MIA_POSIZIONE: 'Vai alla mia posizione',
+    // GIRO-LONTANO: da più di 20 km dalla tappa 1 la guida non parte (niente navigazione verso un punto a centinaia di km)
+    LONTANO_AVVIA: (km, citta) => `Sei a ${km} km da ${citta || 'questo giro'}: la guida parte quando sei lì.`,
+    LONTANO_CAMMINO: 'Il cammino conta solo fra le tappe.',
+    // la partenza di un giro di Crea guardato da lontano (domani alle 9:30) e il tasto per scegliere un altro momento
+    PARTENZA_DOMANI: 'Domani · 9:30',
+    PARTENZA_CAMBIA: 'cambia',
+    PARTENZA_CAMBIA_ETICHETTA: 'Cambia quando parti: scrivilo nella richiesta (per esempio «sabato alle 10»)',
     ESPANDI: 'Mostra i dettagli della tappa',
     COMPRIMI: 'Nascondi i dettagli della tappa',
 });

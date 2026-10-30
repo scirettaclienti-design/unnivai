@@ -110,3 +110,23 @@ describe('TESTI — la schermata del tour', () => {
         expect(libero.textContent).toContain('Niente in agenda: cammina dove ti porta la strada.');
     });
 });
+
+describe('GIRO-LONTANO — la partenza del giro in Crea', () => {
+    it('da lontano: «Domani · 9:30 · cambia»; «cambia» riporta alla richiesta con il testo già scritto', async () => {
+        generateItinerary.mockResolvedValue({ days: [{ day: 1, title: 'Il tuo giro a Catania', stops: [stop('Villa Bellini', { type: 'park', primaryType: 'park', scheduledTime: at('09:30') })] }], _partenza: { domani: true } });
+        const view = render(createElement(AiItinerary));
+        fireEvent.change(view.container.querySelector('textarea'), { target: { value: 'un giro a Catania' } });
+        fireEvent.click(screen.getByText('Genera Viaggio').closest('button'));
+        await waitFor(() => expect(view.container.querySelector('[data-partenza]')).not.toBeNull());
+        expect(view.container.querySelector('[data-partenza]').textContent.replace(/\s+/g, ' ').trim()).toBe('Domani · 9:30 · cambia');
+        // la posizione passa sempre (null se non c'è: qui il GPS dei test non risponde)
+        expect(generateItinerary.mock.calls[0][6]).toHaveProperty('posizioneUtente', null);
+        fireEvent.click(view.container.querySelector('[data-partenza-cambia]'));
+        await waitFor(() => expect(view.container.querySelector('textarea')).not.toBeNull());
+        expect(view.container.querySelector('textarea').value).toBe('un giro a Catania');
+    });
+    it('in città (o con un orario scritto) nessuna etichetta di partenza', async () => {
+        const { container } = await mount([{ day: 1, title: 'Il tuo giro a Catania', stops: [stop('Villa Bellini', { type: 'park', primaryType: 'park', scheduledTime: at('15:04') })] }]);
+        expect(container.querySelector('[data-partenza]')).toBeNull();
+    });
+});

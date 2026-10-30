@@ -10,8 +10,14 @@
 export const LIMITI = Object.freeze({ frasiMin: 2, frasiMax: 4, carMax: 600, wikipediaMax: 1500, googleMax: 500, fonteMin: 200 });
 export const RISPOSTA_NIENTE = 'NIENTE';
 /** Versione del prompt e del controllo: se cambia, i racconti in cache si riscrivono. */
-export const VERSIONE_RACCONTO = 'r3'; // r3: divieto di direzione + secondo controllo frase per frase (Haiku)
-/** Il revisore (secondo controllo) è Haiku 4.5: veloce ed economico. Cambiabile con il secret ANTHROPIC_MODEL_REVISORE (elenco con virgole) senza deploy. */
+export const VERSIONE_RACCONTO = 'r4'; // r4: ogni frase su un fatto delle fonti (niente frasi di colore) + una sola riscrittura dopo il «no» del revisore
+/**
+ * Le versioni precedenti che valgono ancora: r4 cambia come si scrive, non i controlli. Un racconto r3 PASSATO ha superato gli stessi due
+ * controlli di oggi e resta valido (fino al suo TTL); si riscrive con r4 solo uno scartato. Un «senza fonti» r3 non dipende dal prompt e vale anch'esso.
+ */
+export const VERSIONI_ANCORA_VALIDE = Object.freeze(['r3']);
+export const versioneValida = (riga: { versione?: string | null; esito?: string | null } | null | undefined): boolean =>
+    !!riga && (riga.versione === VERSIONE_RACCONTO || (VERSIONI_ANCORA_VALIDE.includes(String(riga.versione)) && riga.esito !== 'scartato'));
 export const MODELLO_REVISORE = 'claude-haiku-4-5';
 export const TTL_RACCONTO_GIORNI = 30; // come place_facts: il testo di Google non si tiene oltre
 export const TTL_SCARTATO_GIORNI = 7; // un racconto scartato non si riprova a ogni giro (costa), ma dopo una settimana sì
@@ -20,14 +26,21 @@ export const SYSTEM_RACCONTO = [
     'Sei la voce di Unnivai: un amico del posto che cammina con te e ti mostra una tappa.',
     'Scrivi il racconto di UNA tappa: da 2 a 4 frasi brevi, in italiano, in seconda persona singolare («tu»), dette ad alta voce a chi sta arrivando.',
     '',
+    'COME SI SCRIVE:',
+    '- Ogni frase poggia su un fatto scritto nelle FONTI. Prima scegli i fatti, poi scrivi: una frase, un fatto.',
+    '- La voce da insider nasce da tre cose sole: QUALE fatto scegli (il più concreto, quello che si vede o si può fare lì), in che ORDINE li metti, e frasi BREVI. Non nasce da frasi di colore.',
+    '- Frase di colore = una frase, o un pezzo di frase, che le fonti non dicono: un\'immagine, un paragone, un sentimento, un giudizio, una spiegazione, un perché, una conseguenza, una conclusione, una cosa che fa una cosa («è il cuore della città», «la fontana tiene d\'occhio la piazza», «qui la storia si sente», «è il posto dove si svolgeva lo spettacolo»). Non scriverne nessuna.',
+    '- Meglio 2 frasi vere che 4 con un abbellimento. Quando i fatti concreti sono finiti, fermati.',
+    '',
     'REGOLE (valgono tutte, senza eccezioni):',
     '1. Usa SOLO fatti presenti nelle FONTI qui sotto. Ogni data, numero, nome proprio e fatto deve stare nelle fonti. Niente di tuo, niente «si dice», niente da memoria.',
     '   Anche ciò che sai vero NON si dice se non è scritto nelle fonti: niente titoli o qualifiche aggiunti (principe, duca, famoso), niente spiegazioni, niente colori, aspetto o rumori che le fonti non dicono. Meglio un racconto corto e fedele che uno ricco e inventato.',
-    '2. Scegli il fatto più sorprendente o più concreto delle fonti e parti da quello: un dettaglio che si vede o si può fare lì, non una definizione.',
-    '3. Frasi brevi, dirette, concrete. Come parla un insider: «Guarda…», «Qui…», «Fermati…». Una immagine per frase, mai un elenco di date.',
-    '4. Mai «Benvenuti», mai il tono da guida turistica o da brochure, mai superlativi o aggettivi vuoti (imperdibile, meraviglioso, spettacolare, unico, splendido, incantevole).',
-    '5. Mai «vi», mai «voi»: parli a una persona sola. Niente emoji, niente virgolette decorative, niente titoli, niente elenchi.',
-    '6. Mai indicazioni di direzione o di posizione rispetto a chi ascolta: niente «a sinistra», «a destra», «davanti a te», «dietro di te», «alle tue spalle», «di fronte a te», «girati», «dall\'altra parte». L\'app non sa da che lato arrivi.',
+    '2. Dì i fatti con le parole delle fonti, o con parole che dicono esattamente la stessa cosa: non allargare («la statua» non diventa «tutta la fontana»), non spiegare a cosa serve una cosa, non dire perché è stata fatta se le fonti non lo dicono, non dare vita alle cose (una fontana non guarda, una piazza non respira).',
+    '3. Numeri solo se sono nelle fonti: non contare tu («tre stili», «due palazzi») se le fonti non scrivono quel numero.',
+    '4. Come parla un insider: puoi aprire una frase con «Guarda…», «Qui…», «Fermati…», ma poi la frase dice un fatto delle fonti. Una sola cosa per frase, mai un elenco di date.',
+    '5. Mai «Benvenuti», mai il tono da guida turistica o da brochure, mai superlativi o aggettivi vuoti (imperdibile, meraviglioso, spettacolare, unico, splendido, incantevole).',
+    '6. Mai «vi», mai «voi»: parli a una persona sola. Niente emoji, niente virgolette decorative, niente titoli, niente elenchi.',
+    '7. Mai indicazioni di direzione o di posizione rispetto a chi ascolta: niente «a sinistra», «a destra», «davanti a te», «dietro di te», «alle tue spalle», «di fronte a te», «girati», «dall\'altra parte». L\'app non sa da che lato arrivi.',
     '   Non ripetere il nome del luogo più di una volta. Non dire che sei un\'intelligenza artificiale e non nominare le fonti.',
     `8. Se le fonti non bastano per almeno due frasi vere e concrete, rispondi esattamente: ${RISPOSTA_NIENTE}`,
     '',
@@ -274,4 +287,88 @@ export function leggiVerifica(risposta: unknown, testo: string): EsitoVerifica {
         else if (!si) motivi.push(`verifica: frase ${i + 1} non è nelle fonti${motivo ? ` (${motivo})` : ''}`);
     });
     return { ok: motivi.length === 0 && out.length > 0, motivi, frasi: out };
+}
+
+
+// ─── una sola riscrittura: il modello riceve le frasi «no» del revisore, riscrive una volta, si riverifica ─────────────
+/**
+ * La richiesta di riscrittura: la stessa conversazione della prima stesura (fonti, racconto scritto) più le frasi che il revisore ha
+ * segnato «no», ognuna con il suo motivo. Il modello toglie o corregge quelle frasi e non aggiunge niente che le fonti non dicano.
+ */
+export function messaggiRiscrittura(f: FontiRacconto, testo: string, no: Array<{ n: number; motivo: string }>): Array<{ role: 'system' | 'user' | 'assistant'; content: string }> {
+    const frasi = frasiDi(testo);
+    const righe = no.map(({ n, motivo }) => `- frase ${n}: «${frasi[n - 1] ?? ''}»${motivo ? ` — ${motivo}` : ''}`);
+    return [
+        ...messaggiRacconto(f),
+        { role: 'assistant', content: testo },
+        {
+            role: 'user', content: [
+                'Un revisore ha confrontato ogni frase con le FONTI. Queste frasi dicono qualcosa che le fonti non dicono:',
+                ...righe,
+                '',
+                'Riscrivi il racconto una volta: togli quelle frasi, oppure riscrivile dicendo solo ciò che le fonti dicono. Le altre frasi tienile come sono.',
+                'Non aggiungere niente che non sia nelle fonti. Valgono tutte le regole di prima (da 2 a 4 frasi, nessuna frase di colore, nessuna direzione).',
+                `Se togliendo quelle frasi ne restano meno di due, aggiungi un altro fatto concreto preso dalle fonti; se non ce ne sono, rispondi esattamente: ${RISPOSTA_NIENTE}`,
+                'Rispondi solo con il nuovo testo del racconto.',
+            ].join('\n'),
+        },
+    ];
+}
+
+type Messaggi = Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
+/** Una chiamata al modello: testo grezzo, modello usato, costo. Se non risponde lancia un errore (il proxy non salva niente e si riprova). */
+export type ChiamataModello = (messaggi: Messaggi) => Promise<{ testo: string; modello?: string | null; costoUsd?: number }>;
+
+export type EsitoRacconto = {
+    ok: boolean;
+    testo: string;
+    motivi: string[];
+    /** Le risposte del revisore frase per frase sull'ultimo testo controllato (null se il controllo automatico l'ha fermato prima). */
+    verifica: EsitoVerifica['frasi'] | null;
+    modello: string | null;
+    modelloVerifica: string | null;
+    costoUsd: number;
+    riscritto: boolean;
+    /** La prima stesura, se è stata riscritta: testo e motivi del revisore. */
+    prima: { testo: string; motivi: string[] } | null;
+};
+
+/**
+ * Scrive e controlla il racconto, con UNA sola riscrittura:
+ *  1. il narratore scrive; 2. controllo automatico (se cade: scartato, nessuna riscrittura); 3. il revisore legge frase per frase;
+ *  4. se il revisore segna delle frasi «no», il narratore le riceve con il motivo e riscrive una volta; 5. il nuovo testo ripassa da
+ *  ENTRAMBI i controlli; se cade ancora, il racconto è scartato e la tappa resta con la frase breve di oggi.
+ * Una risposta del revisore che non si legge non ha frasi «no» da correggere: scartato senza riscrittura.
+ */
+export async function scriviERivedi(f: FontiRacconto, scrivi: ChiamataModello, rivedi: ChiamataModello): Promise<EsitoRacconto> {
+    let costoUsd = 0;
+    let modello: string | null = null;
+    let modelloVerifica: string | null = null;
+    const controlla = async (testo: string) => {
+        const controllo = controllaRacconto(testo, f);
+        if (!controllo.ok) return { ok: false, motivi: controllo.motivi, verifica: null as EsitoVerifica | null };
+        const v = await rivedi(messaggiVerifica(testo, f));
+        costoUsd += v.costoUsd || 0;
+        modelloVerifica = v.modello ?? modelloVerifica;
+        const verifica = leggiVerifica(v.testo, testo);
+        return { ok: verifica.ok, motivi: verifica.motivi, verifica };
+    };
+    const w1 = await scrivi(messaggiRacconto(f));
+    costoUsd += w1.costoUsd || 0;
+    modello = w1.modello ?? null;
+    const t1 = ripulisciRacconto(w1.testo);
+    const c1 = await controlla(t1);
+    const fine = (ok: boolean, testo: string, c: typeof c1, riscritto: boolean, prima: EsitoRacconto['prima']): EsitoRacconto => ({
+        ok, testo, motivi: c.motivi, verifica: c.verifica?.frasi ?? null, modello, modelloVerifica, costoUsd: +costoUsd.toFixed(6), riscritto, prima,
+    });
+    if (c1.ok) return fine(true, t1, c1, false, null);
+    const no = (c1.verifica?.frasi ?? []).filter((x) => !x.nelleFonti).map(({ n, motivo }) => ({ n, motivo }));
+    if (!no.length) return fine(false, t1, c1, false, null);
+
+    const w2 = await scrivi(messaggiRiscrittura(f, t1, no));
+    costoUsd += w2.costoUsd || 0;
+    modello = w2.modello ?? modello;
+    const t2 = ripulisciRacconto(w2.testo);
+    const c2 = await controlla(t2);
+    return fine(c2.ok, t2, c2, true, { testo: t1, motivi: c1.motivi });
 }

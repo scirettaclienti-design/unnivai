@@ -56,7 +56,7 @@ import {
 import { fornitoreScelto, modelliAnthropicPer, chiamaAnthropicElenco, ErroreAnthropic, compitoDi, PREZZI_ANTHROPIC_USD_PER_MILIONE } from './anthropic.ts';
 
 import {
-  VERSIONE_RACCONTO, MODELLO_REVISORE, messaggiVerifica, leggiVerifica, TTL_RACCONTO_GIORNI, TTL_SCARTATO_GIORNI, haFonti, messaggiRacconto, controllaRacconto, ripulisciRacconto, impronta as improntaRacconto,
+  VERSIONE_RACCONTO, versioneValida, MODELLO_REVISORE, TTL_RACCONTO_GIORNI, TTL_SCARTATO_GIORNI, haFonti, scriviERivedi, impronta as improntaRacconto,
 } from './racconto.ts';
 import { cercaWikipedia, descrizioneGoogleDa } from './raccontoFonti.ts';
 import {
@@ -594,7 +594,7 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
   });
 
   const { data: gia } = await sb.from('place_racconti').select('esito, testo, motivi, fonti, versione, created_at').eq('place_id', placeId).maybeSingle();
-  if (gia && gia.versione === VERSIONE_RACCONTO) {
+  if (gia && versioneValida(gia)) { // la versione di oggi, o un r3 non scartato (r4 cambia come si scrive, non i controlli)
     const giorni = (Date.now() - new Date(gia.created_at).getTime()) / 86_400_000;
     if (giorni < (gia.esito === 'passato' ? TTL_RACCONTO_GIORNI : TTL_SCARTATO_GIORNI)) return risposta(gia, { cached: true });
   }
@@ -649,52 +649,48 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
     } finally { clearTimeout(t); }
   };
   // deno-lint-ignore no-explicit-any
-  let data: any, info: any;
-  try {
-    ({ data, info } = await chiamaConRipiego('narratore',
-      { model: MODELLO_DI_PRIMA, temperature: 0.6, max_tokens: 1500, messages: messaggiRacconto(fonti) }, invia, 30_000,
-      chiaveAnthropic ? primoAnthropic('narratore', chiaveAnthropic) : undefined));
-  } catch (err) {
-    // nessun motore ha risposto: non si salva niente (si riprova alla prossima richiesta), la tappa resta con la frase breve
-    console.error('[openai-proxy] racconto: motore non disponibile:', scrubLogText(err));
-    return json(502, { error: 'Racconto non disponibile', code: 'RACCONTO_MOTORE' });
-  }
-  const testo = ripulisciRacconto(data?.choices?.[0]?.message?.content);
-  const controllo = controllaRacconto(testo, fonti);
   const costoDi = (i: any, d: any): number => {
     const pr = PREZZI_ANTHROPIC_USD_PER_MILIONE[i?.usato as string];
     return pr && d?.usage ? ((d.usage.prompt_tokens || 0) * pr.input + (d.usage.completion_tokens || 0) * pr.output) / 1e6 : 0;
   };
-  let costoTot = costoDi(info, data);
-  let motivi: string[] = [...controllo.motivi];
-  let ok = controllo.ok;
-  let modelloVerifica: string | null = null;
-  let verifica: unknown = null;
-  if (ok) {
-    // SECONDO CONTROLLO — un altro modello (Haiku 4.5, passaggio `selettore`) legge fonti e racconto e risponde frase per frase «nelle fonti sì/no».
-    // Basta una frase «no» (o una risposta che non si legge) per scartare il racconto. Se il revisore non risponde, non si salva niente: si riprova.
-    try {
-      const v = await chiamaConRipiego('selettore',
-        { model: MODELLO_DI_PRIMA, temperature: 0, max_tokens: 700, messages: messaggiVerifica(testo, fonti) }, invia, 20_000,
-        chiaveAnthropic ? primoRevisore(chiaveAnthropic) : undefined);
-      costoTot += costoDi(v.info, v.data);
-      modelloVerifica = v.info?.usato ?? null;
-      const esitoV = leggiVerifica(v.data?.choices?.[0]?.message?.content, testo);
-      verifica = esitoV.frasi;
-      if (!esitoV.ok) { ok = false; motivi = [...motivi, ...esitoV.motivi]; }
-    } catch (err) {
-      console.error('[openai-proxy] racconto: revisore non disponibile:', scrubLogText(err));
-      return json(502, { error: 'Racconto non disponibile', code: 'RACCONTO_MOTORE' });
-    }
+  // Il narratore (Sonnet 5.5, passaggio `narratore`, catena e ripiego di sempre) scrive; il controllo automatico e il revisore (Haiku 4.5,
+  // passaggio `selettore` con il modello suo) leggono; se il revisore segna frasi «no», il narratore riscrive UNA volta e si riverifica (racconto.ts).
+  // Se il narratore o il revisore non rispondono non si salva niente: si riprova alla richiesta dopo, il racconto non esce senza controllo.
+  let chi = 'motore';
+  // deno-lint-ignore no-explicit-any
+  const scrivi = async (messages: any[]) => {
+    chi = 'motore';
+    const { data, info } = await chiamaConRipiego('narratore',
+      { model: MODELLO_DI_PRIMA, temperature: 0.6, max_tokens: 1500, messages }, invia, 30_000,
+      chiaveAnthropic ? primoAnthropic('narratore', chiaveAnthropic) : undefined);
+    return { testo: String(data?.choices?.[0]?.message?.content ?? ''), modello: info?.usato ?? null, costoUsd: costoDi(info, data) };
+  };
+  // deno-lint-ignore no-explicit-any
+  const rivedi = async (messages: any[]) => {
+    chi = 'revisore';
+    const { data, info } = await chiamaConRipiego('selettore',
+      { model: MODELLO_DI_PRIMA, temperature: 0, max_tokens: 700, messages }, invia, 20_000,
+      chiaveAnthropic ? primoRevisore(chiaveAnthropic) : undefined);
+    return { testo: String(data?.choices?.[0]?.message?.content ?? ''), modello: info?.usato ?? null, costoUsd: costoDi(info, data) };
+  };
+  let esito: Awaited<ReturnType<typeof scriviERivedi>>;
+  try {
+    esito = await scriviERivedi(fonti, scrivi, rivedi);
+  } catch (err) {
+    console.error(`[openai-proxy] racconto: ${chi} non disponibile:`, scrubLogText(err));
+    return json(502, { error: 'Racconto non disponibile', code: 'RACCONTO_MOTORE' });
   }
+  const { ok, testo, modello, modelloVerifica, verifica } = esito;
+  const motivi = esito.prima ? [...esito.motivi, ...esito.prima.motivi.map((m) => `prima stesura (riscritta): ${m}`)] : esito.motivi;
+  const costoTot = esito.costoUsd;
   const costoUsd = costoTot ? +costoTot.toFixed(5) : null;
   const riga = {
     impronta: imp, esito: ok ? 'passato' : 'scartato', testo: ok ? testo : null, motivi, fonti: fontiUsate,
-    modello: info?.usato ?? null, modello_verifica: modelloVerifica, verifica, costo_usd: costoUsd, ms: Date.now() - t0,
+    modello, modello_verifica: modelloVerifica, verifica, costo_usd: costoUsd, ms: Date.now() - t0,
   };
   await salva(riga);
-  console.log(`[openai-proxy] racconto: ${riga.esito} ${placeId.slice(0, 10)} ${info?.usato}+${modelloVerifica ?? '-'} ${riga.ms} ms ${costoUsd ?? '?'} $${ok ? '' : ` · ${motivi.join(' ; ').slice(0, 160)}`}`);
-  return risposta(riga, { cached: false, modello: info?.usato ?? null, modelloVerifica, costoUsd });
+  console.log(`[openai-proxy] racconto: ${riga.esito}${esito.riscritto ? ' (riscritto)' : ''} ${placeId.slice(0, 10)} ${modello}+${modelloVerifica ?? '-'} ${riga.ms} ms ${costoUsd ?? '?'} $${ok ? '' : ` · ${motivi.join(' ; ').slice(0, 160)}`}`);
+  return risposta(riga, { cached: false, modello, modelloVerifica, costoUsd, riscritto: esito.riscritto });
 }
 
 serve(async (req: Request) => {

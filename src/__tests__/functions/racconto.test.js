@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import {
     controllaRacconto, messaggiRacconto, haFonti, ripulisciRacconto, impronta, fontiPulite, LIMITI, RISPOSTA_NIENTE, SYSTEM_RACCONTO, VERSIONE_RACCONTO,
-    messaggiVerifica, leggiVerifica, SYSTEM_VERIFICA, MODELLO_REVISORE,
+    messaggiVerifica, leggiVerifica, SYSTEM_VERIFICA, MODELLO_REVISORE, versioneValida, messaggiRiscrittura, scriviERivedi,
 } from '../../../supabase/functions/openai-proxy/racconto.ts';
 import { trovaWikipedia, cercaWikipedia, descrizioneGoogleDa, RAGGIO_MAX_M } from '../../../supabase/functions/openai-proxy/raccontoFonti.ts';
 
@@ -181,7 +181,7 @@ describe('proxy: il racconto è un percorso suo, fonti e controllo sul server', 
         expect(src).toMatch(/chiamaConRipiego\('narratore'/);
         expect(src).toMatch(/primoAnthropic\('narratore'/);
         expect(src).toMatch(/from\('place_racconti'\)/);
-        expect(src).toMatch(/controllaRacconto\(testo, fonti\)/);
+        expect(src).toMatch(/scriviERivedi\(fonti, scrivi, rivedi\)/); // scrittura, controllo automatico, revisore e riscrittura: racconto.ts
     });
     it('il client non manda le fonti: il proxy le prende da solo (Wikipedia + places-proxy)', () => {
         expect(src).toMatch(/cercaWikipedia\(\{ nome, citta, lat, lng \}/);
@@ -208,11 +208,12 @@ describe('direzioni: l\'app non sa da che lato arrivi, quindi il racconto non le
         expect(c.ok).toBe(false);
         expect(c.motivi).toContain('indicazione di direzione');
     });
-    it('il racconto senza direzioni passa; il prompt le vieta (r3)', () => {
+    it('il racconto senza direzioni passa; il prompt le vieta (anche in r4)', () => {
         expect(controllaRacconto(BUONO, ELEFANTE).ok).toBe(true);
         expect(SYSTEM_RACCONTO).toMatch(/Mai indicazioni di direzione/);
         expect(SYSTEM_RACCONTO).toMatch(/alle tue spalle/);
-        expect(VERSIONE_RACCONTO).toBe('r3');
+        expect(SYSTEM_RACCONTO).toMatch(/«girati», «dall'altra parte»\. L'app non sa da che lato arrivi\./);
+        expect(VERSIONE_RACCONTO).toBe('r4');
     });
 });
 
@@ -256,20 +257,110 @@ describe('proxy: il secondo controllo e la versione', () => {
         expect(src).toMatch(/primoRevisore\(chiaveAnthropic\)/);
         expect(MODELLO_REVISORE).toBe('claude-haiku-4-5'); // un modello suo: non segue il secret del selettore (in produzione è Sonnet)
         expect(src).toMatch(/ANTHROPIC_MODEL_REVISORE/);
-        expect(src).toMatch(/leggiVerifica\(/);
-        expect(src).toMatch(/if \(ok\) \{/);
+        expect(src).toMatch(/messages: messaggiVerifica\(|messages \}, invia, 20_000/);
     });
-    it('un revisore che non risponde non salva niente (si riprova), non lascia passare il racconto', () => {
-        expect(src).toMatch(/revisore non disponibile[\s\S]{0,120}RACCONTO_MOTORE/);
+    it('un narratore o un revisore che non risponde non salva niente (si riprova), non lascia passare il racconto', () => {
+        expect(src).toMatch(/chi = 'revisore'/);
+        expect(src).toMatch(/\$\{chi\} non disponibile[\s\S]{0,120}RACCONTO_MOTORE/);
     });
-    it('i racconti con la versione vecchia si riscrivono: la cache vale solo se la versione coincide', () => {
-        expect(src).toMatch(/gia\.versione === VERSIONE_RACCONTO/);
-        expect(VERSIONE_RACCONTO).not.toBe('r2');
+    it('la cache vale per la versione di oggi e per un r3 non scartato: si riscrive con r4 solo lo scartato', () => {
+        expect(src).toMatch(/gia && versioneValida\(gia\)/);
+        expect(VERSIONE_RACCONTO).toBe('r4');
+        expect(versioneValida({ versione: 'r4', esito: 'passato' })).toBe(true);
+        expect(versioneValida({ versione: 'r4', esito: 'scartato' })).toBe(true); // TTL di 7 giorni, come prima
+        expect(versioneValida({ versione: 'r3', esito: 'passato' })).toBe(true);
+        expect(versioneValida({ versione: 'r3', esito: 'senza-fonti' })).toBe(true);
+        expect(versioneValida({ versione: 'r3', esito: 'scartato' })).toBe(false);
+        expect(versioneValida({ versione: 'r2', esito: 'passato' })).toBe(false);
+        expect(versioneValida(null)).toBe(false);
     });
     it('la migrazione aggiunge solo colonne facoltative (modello_verifica, verifica)', () => {
         const sql = fs.readFileSync('supabase/migrations/20261029090000_place_racconti_verifica.sql', 'utf8');
         expect(sql).toMatch(/ADD COLUMN IF NOT EXISTS modello_verifica text/);
         expect(sql).toMatch(/ADD COLUMN IF NOT EXISTS verifica jsonb/);
         expect(sql).not.toMatch(/DROP|DELETE|NOT NULL/i);
+    });
+});
+
+describe('r4: ogni frase su un fatto delle fonti, e una sola riscrittura', () => {
+    const T1 = "Guarda l'elefante nero al centro della piazza. Per i catanesi è il simbolo della città. La fontana tiene d'occhio la piazza.";
+    const T2 = "Guarda l'elefante nero al centro della piazza. Per i catanesi è il simbolo della città.";
+    const si = (n) => ({ n, nelle_fonti: true, motivo: '' });
+    const no = (n, motivo) => ({ n, nelle_fonti: false, motivo });
+    const voti = (...v) => JSON.stringify({ frasi: v });
+    const finto = (risposte) => { const f = vi.fn(async () => ({ ...risposte.shift(), modello: 'm', costoUsd: 0.001 })); return f; };
+
+    it('il prompt: ogni frase poggia su un fatto, la voce nasce da scelta, ordine e frasi brevi, meglio 2 frasi vere', () => {
+        expect(SYSTEM_RACCONTO).toMatch(/Ogni frase poggia su un fatto scritto nelle FONTI/);
+        expect(SYSTEM_RACCONTO).toMatch(/QUALE fatto scegli[\s\S]*ORDINE[\s\S]*BREVI\. Non nasce da frasi di colore/);
+        expect(SYSTEM_RACCONTO).toMatch(/Meglio 2 frasi vere che 4 con un abbellimento/);
+        expect(SYSTEM_RACCONTO).toMatch(new RegExp(`rispondi esattamente: ${RISPOSTA_NIENTE}`));
+    });
+    it('la riscrittura porta la prima stesura e le frasi «no» con il loro motivo', () => {
+        const m = messaggiRiscrittura(ELEFANTE, T1, [{ n: 3, motivo: 'immagine non scritta nelle fonti' }]);
+        expect(m.slice(0, 2)).toEqual(messaggiRacconto(ELEFANTE));
+        expect(m[2]).toEqual({ role: 'assistant', content: T1 });
+        expect(m[3].role).toBe('user');
+        expect(m[3].content).toMatch(/- frase 3: «La fontana tiene d'occhio la piazza\.» — immagine non scritta nelle fonti/);
+        expect(m[3].content).not.toMatch(/frase 1:/);
+    });
+    it('passa al primo colpo: una scrittura, una verifica, nessuna riscrittura', async () => {
+        const scrivi = finto([{ testo: T1 }]);
+        const rivedi = finto([{ testo: voti(si(1), si(2), si(3)) }]);
+        const e = await scriviERivedi(ELEFANTE, scrivi, rivedi);
+        expect(e).toMatchObject({ ok: true, testo: T1, riscritto: false, prima: null, motivi: [] });
+        expect(scrivi).toHaveBeenCalledTimes(1);
+        expect(rivedi).toHaveBeenCalledTimes(1);
+        expect(e.costoUsd).toBeCloseTo(0.002, 6);
+    });
+    it('il revisore dice «no»: si riscrive UNA volta con le frasi «no», si riverifica, passa', async () => {
+        const scrivi = finto([{ testo: T1 }, { testo: T2 }]);
+        const rivedi = finto([{ testo: voti(si(1), si(2), no(3, 'immagine non scritta nelle fonti')) }, { testo: voti(si(1), si(2)) }]);
+        const e = await scriviERivedi(ELEFANTE, scrivi, rivedi);
+        expect(e).toMatchObject({ ok: true, testo: T2, riscritto: true });
+        expect(e.prima.testo).toBe(T1);
+        expect(e.prima.motivi).toEqual(['verifica: frase 3 non è nelle fonti (immagine non scritta nelle fonti)']);
+        expect(scrivi.mock.calls[1][0]).toEqual(messaggiRiscrittura(ELEFANTE, T1, [{ n: 3, motivo: 'immagine non scritta nelle fonti' }]));
+        expect(rivedi.mock.calls[1][0]).toEqual(messaggiVerifica(T2, ELEFANTE));
+        expect(e.costoUsd).toBeCloseTo(0.004, 6);
+    });
+    it('cade anche la riscrittura: scartato, mai una seconda riscrittura', async () => {
+        const scrivi = finto([{ testo: T1 }, { testo: T1 }, { testo: T2 }]);
+        const rivedi = finto([{ testo: voti(si(1), si(2), no(3, 'x')) }, { testo: voti(si(1), si(2), no(3, 'ancora')) }, { testo: voti(si(1), si(2)) }]);
+        const e = await scriviERivedi(ELEFANTE, scrivi, rivedi);
+        expect(e).toMatchObject({ ok: false, riscritto: true });
+        expect(e.motivi).toEqual(['verifica: frase 3 non è nelle fonti (ancora)']);
+        expect(scrivi).toHaveBeenCalledTimes(2);
+        expect(rivedi).toHaveBeenCalledTimes(2);
+    });
+    it('la riscrittura ripassa anche dal controllo automatico: una direzione la fa cadere senza chiamare il revisore', async () => {
+        const scrivi = finto([{ testo: T1 }, { testo: `${T2} Girati e guarda il basalto.` }]);
+        const rivedi = finto([{ testo: voti(si(1), si(2), no(3, 'x')) }]);
+        const e = await scriviERivedi(ELEFANTE, scrivi, rivedi);
+        expect(e).toMatchObject({ ok: false, riscritto: true, verifica: null });
+        expect(e.motivi).toContain('indicazione di direzione');
+        expect(rivedi).toHaveBeenCalledTimes(1);
+    });
+    it('se cade il controllo automatico non si riscrive e il revisore non si chiama', async () => {
+        const scrivi = finto([{ testo: `${T2} Alla tua sinistra c'è la fontana.` }]);
+        const rivedi = finto([]);
+        const e = await scriviERivedi(ELEFANTE, scrivi, rivedi);
+        expect(e).toMatchObject({ ok: false, riscritto: false });
+        expect(scrivi).toHaveBeenCalledTimes(1);
+        expect(rivedi).not.toHaveBeenCalled();
+    });
+    it('NIENTE dalla riscrittura = scartato; revisore illeggibile = scartato senza riscrittura', async () => {
+        const a = await scriviERivedi(ELEFANTE, finto([{ testo: T1 }, { testo: RISPOSTA_NIENTE }]), finto([{ testo: voti(si(1), si(2), no(3, 'x')) }]));
+        expect(a).toMatchObject({ ok: false, riscritto: true });
+        const scrivi = finto([{ testo: T1 }]);
+        const b = await scriviERivedi(ELEFANTE, scrivi, finto([{ testo: 'non so' }]));
+        expect(b).toMatchObject({ ok: false, riscritto: false });
+        expect(scrivi).toHaveBeenCalledTimes(1);
+    });
+    it('un revisore o un narratore che non risponde fa fallire tutto (il proxy non salva e riprova)', async () => {
+        const giu = vi.fn(async () => { throw new Error('HTTP 529'); });
+        await expect(scriviERivedi(ELEFANTE, finto([{ testo: T1 }]), giu)).rejects.toThrow('HTTP 529');
+        await expect(scriviERivedi(ELEFANTE, finto([{ testo: T1 }]).mockImplementationOnce(async () => ({ testo: T1, modello: 'm', costoUsd: 0 })).mockImplementationOnce(giu),
+            finto([{ testo: voti(si(1), si(2), no(3, 'x')) }]))).rejects.toThrow('HTTP 529');
     });
 });

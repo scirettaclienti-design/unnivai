@@ -285,3 +285,17 @@ Un racconto scartato costa comunque la scrittura (e la verifica se arriva al sec
 4. Dopo: `select esito, count(*) from public.place_racconti group by 1;` e `select versione, count(*) from public.place_racconti group by 1;` (le righe `r2` si riscrivono da sole alla prima richiesta).
 
 Dati grezzi: `docs/prove/dati/2026-10-29-racconti-verifica.json` (testo, fonti, esito di ogni frase, costi). Script: `scripts/prova-reale/racconti-verifica.live.js`.
+
+---
+
+# Seguito (2026-10-30) — RACCONTO-R4: prompt «ogni frase su un fatto» e una sola riscrittura
+
+Report completo: `docs/prove/2026-10-30-racconto-r4.md`.
+- Catania, 8 tappe con fonti: **7, 6, 7 passati** su 3 lanci (prima, con r3: 2, 4, 3).
+- Roma, 6 con fonti: 3, 3, 4 (prima: 2, 1, 0).
+- Stessi controlli: il revisore e i divieti non sono cambiati.
+- Riscrittura: 14 in 3 lanci, 12 passate.
+- Costo per racconto passato: 0,0113 $ (prima: 0,0174 $).
+- Lettura a mano dei 30 passati: 2 frasi con un fatto in più («sopra», «da cui entri»).
+
+Versione `r4`. Un r3 passato resta valido; si riscrivono solo gli scartati.

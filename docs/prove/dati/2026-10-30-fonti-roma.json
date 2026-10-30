@@ -1,0 +1,242 @@
+{
+ "presoIl": "2026-10-30T11:25:25.856Z",
+ "tappe": [
+  {
+   "cercato": "Giardino di Sant'Alessio",
+   "nome": "Giardino di Sant'Alessio",
+   "place_id": "ChIJq0_-ojNgLxMRCX5PdvWKCwU",
+   "lat": 41.8840901,
+   "lng": 12.4788047,
+   "wikipediaErrore": false,
+   "wikipediaTitolo": null,
+   "wikipediaUrl": null,
+   "wikipediaDistanzaM": null,
+   "wikipediaCar": 0,
+   "googleCar": 0,
+   "haFonti": false,
+   "fonti": {
+    "nome": "Giardino di Sant'Alessio",
+    "citta": "Roma",
+    "wikipedia": null,
+    "google": null
+   }
+  },
+  {
+   "cercato": "Roseto comunale",
+   "nome": "Roseto comunale",
+   "place_id": "ChIJNfNn9aRhLxMR6MpGiVo_9pA",
+   "lat": 41.8851711,
+   "lng": 12.4833837,
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Roseto di Roma",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Roseto_di_Roma",
+   "wikipediaDistanzaM": 6,
+   "wikipediaCar": 119,
+   "googleCar": 0,
+   "haFonti": false,
+   "fonti": {
+    "nome": "Roseto comunale",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Roseto di Roma",
+     "testo": "Il Roseto di Roma è un giardino situato sulle pendici dell'Aventino, nei pressi del Circo Massimo, nella città di Roma."
+    },
+    "google": null
+   }
+  },
+  {
+   "cercato": "Villa Sciarra",
+   "nome": "Villa Sciarra",
+   "place_id": "ChIJ4ya6TTxgLxMR8atV3UYz5ZA",
+   "lat": 41.8834801,
+   "lng": 12.464695899999999,
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Villa Sciarra (Roma)",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Villa_Sciarra_(Roma)",
+   "wikipediaDistanzaM": 17,
+   "wikipediaCar": 574,
+   "googleCar": 104,
+   "haFonti": true,
+   "fonti": {
+    "nome": "Villa Sciarra",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Villa Sciarra (Roma)",
+     "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+    },
+    "google": {
+     "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+    }
+   }
+  },
+  {
+   "cercato": "Orto Botanico di Roma",
+   "nome": "Orto Botanico di Roma",
+   "place_id": "ChIJa-FrY0BgLxMRDN1UR07SMIE",
+   "lat": 41.8918051,
+   "lng": 12.463038800000001,
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Orto botanico di Roma",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Orto_botanico_di_Roma",
+   "wikipediaDistanzaM": 239,
+   "wikipediaCar": 239,
+   "googleCar": 99,
+   "haFonti": true,
+   "fonti": {
+    "nome": "Orto Botanico di Roma",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Orto botanico di Roma",
+     "testo": "L'Orto botanico di Roma è situato alle pendici del Gianicolo, nell'antico parco di villa Corsini, un tempo residenza di Cristina di Svezia. La struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\"."
+    },
+    "google": {
+     "testo": "7.000 specie di piante da tutto il mondo, fontane, boschetto di bambù e giardino del tè giapponese."
+    }
+   }
+  },
+  {
+   "cercato": "Palazzo dei Conservatori",
+   "nome": "Il Palazzo dei Conservatori",
+   "place_id": "ChIJo6a_XktgLxMRmpblS064lu8",
+   "lat": 41.8932176,
+   "lng": 12.482627299999999,
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Palazzo dei Conservatori",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Palazzo_dei_Conservatori",
+   "wikipediaDistanzaM": 20,
+   "wikipediaCar": 321,
+   "googleCar": 92,
+   "haFonti": true,
+   "fonti": {
+    "nome": "Il Palazzo dei Conservatori",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo dei Conservatori",
+     "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Il palazzo dei Conservatori e il Palazzo Nuovo, insieme al Tabularium, costituiscono attualmente la sede espositiva dei Musei Capitolini, tra i musei romani più rappresentativi e visitati."
+    },
+    "google": {
+     "testo": "Imponente struttura del XV secolo nei Musei Capitolini con statue, opere d'arte e affreschi."
+    }
+   }
+  },
+  {
+   "cercato": "Palazzo Massimo alle Colonne",
+   "nome": "Palazzo Massimo alle Colonne",
+   "place_id": "ChIJn7lmdk9gLxMR-uB8_zP3zPE",
+   "lat": 41.8967291,
+   "lng": 12.4735541,
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Palazzo Massimo alle Colonne",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Palazzo_Massimo_alle_Colonne",
+   "wikipediaDistanzaM": 6,
+   "wikipediaCar": 108,
+   "googleCar": 103,
+   "haFonti": true,
+   "fonti": {
+    "nome": "Palazzo Massimo alle Colonne",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo Massimo alle Colonne",
+     "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+    },
+    "google": {
+     "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+    }
+   }
+  },
+  {
+   "cercato": "Terrazza delle Quadrighe",
+   "nome": "Terrazza delle Quadrighe",
+   "place_id": "ChIJsQeLTbNhLxMRj2ZP6qu4fd0",
+   "lat": 41.8943466,
+   "lng": 12.4831966,
+   "wikipediaErrore": false,
+   "wikipediaTitolo": null,
+   "wikipediaUrl": null,
+   "wikipediaDistanzaM": null,
+   "wikipediaCar": 0,
+   "googleCar": 96,
+   "haFonti": false,
+   "fonti": {
+    "nome": "Terrazza delle Quadrighe",
+    "citta": "Roma",
+    "wikipedia": null,
+    "google": {
+     "testo": "Terrazza panoramica in cima al Complesso museale del Vittoriano, con vista completa sulla città."
+    }
+   }
+  },
+  {
+   "cercato": "Galleria Colonna",
+   "nome": "Galleria Colonna",
+   "place_id": "ChIJoZRZT01gLxMR0C1IBGiGv1c",
+   "lat": 41.8975648,
+   "lng": 12.484738799999999,
+   "wikipediaErrore": false,
+   "wikipediaTitolo": null,
+   "wikipediaUrl": null,
+   "wikipediaDistanzaM": null,
+   "wikipediaCar": 0,
+   "googleCar": 102,
+   "haFonti": false,
+   "fonti": {
+    "nome": "Galleria Colonna",
+    "citta": "Roma",
+    "wikipedia": null,
+    "google": {
+     "testo": "Palazzo privato barocco del XIV secolo con ingresso affrescato e collezione d'arte di antichi maestri."
+    }
+   }
+  },
+  {
+   "cercato": "Parco del Gianicolo",
+   "nome": "Parco del Gianicolo",
+   "place_id": "ChIJOwPcv0FgLxMRALWOCzn7gbU",
+   "lat": 41.8923774,
+   "lng": 12.462208299999999,
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Gianicolo",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Gianicolo",
+   "wikipediaDistanzaM": 120,
+   "wikipediaCar": 861,
+   "googleCar": 98,
+   "haFonti": true,
+   "fonti": {
+    "nome": "Parco del Gianicolo",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Gianicolo",
+     "testo": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini)."
+    },
+    "google": {
+     "testo": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino."
+    }
+   }
+  },
+  {
+   "cercato": "Piazza del Campidoglio",
+   "nome": "Piazza del Campidoglio",
+   "place_id": "ChIJOclom0xgLxMRURy9OLL7Hg4",
+   "lat": 41.8933592,
+   "lng": 12.482801799999999,
+   "wikipediaErrore": false,
+   "wikipediaTitolo": "Piazza del Campidoglio",
+   "wikipediaUrl": "https://it.wikipedia.org/wiki/Piazza_del_Campidoglio",
+   "wikipediaDistanzaM": 10,
+   "wikipediaCar": 995,
+   "googleCar": 89,
+   "haFonti": true,
+   "fonti": {
+    "nome": "Piazza del Campidoglio",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Piazza del Campidoglio",
+     "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+    },
+    "google": {
+     "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+    }
+   }
+  }
+ ]
+}

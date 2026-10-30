@@ -1,0 +1,131 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-10-30T15:42:40.807Z",
+ "commitSito": null,
+ "punti": {
+  "4": {
+   "nome": "curiosità: Roma sì (schermo + voce), Catania no",
+   "roma": {
+    "metri": 715,
+    "toast": [
+     "🎧 Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!",
+     "🎧 Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!"
+    ],
+    "voceNasoni": [
+     {
+      "testo": "Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!"
+     }
+    ],
+    "voceTutte": 2,
+    "foto": "docs/prove/schermate/collaudo-sito/4-roma.png",
+    "errori": []
+   },
+   "catania": {
+    "metri": 723,
+    "toast": [],
+    "voceNasoni": [],
+    "voceTutte": 1,
+    "foto": "docs/prove/schermate/collaudo-sito/4-catania.png",
+    "errori": [
+     "/ahecpiwsdhghkndncejb.supabase.co/rest/v1/error_logs due to access control checks."
+    ]
+   },
+   "ok": true,
+   "romaOk": true,
+   "cataniaOk": true,
+   "secondi": 33
+  },
+  "5": {
+   "nome": "schede: racconto o frase breve; riga in place_racconti",
+   "schede": [
+    {
+     "tappa": "Orto Botanico di Roma",
+     "place_id": "ChIJa-FrY0BgLxMRDN1UR07SMIE",
+     "racconto": "IL RACCONTO Tappa del collaudo. Il racconto 0:00 / 0:05",
+     "perche": null,
+     "server": {
+      "nome": "Orto Botanico di Roma",
+      "place_id": "ChIJa-FrY0BgLxMRDN1UR07SMIE",
+      "stato": 400,
+      "esito": null,
+      "errore": "Model not allowed",
+      "testo": null
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-roma-1.png"
+    },
+    {
+     "tappa": "Villa Sciarra",
+     "place_id": "ChIJ4ya6TTxgLxMR8atV3UYz5ZA",
+     "racconto": "IL RACCONTO Tappa del collaudo. Il racconto 0:00 / 0:05",
+     "perche": null,
+     "server": {
+      "nome": "Villa Sciarra",
+      "place_id": "ChIJ4ya6TTxgLxMR8atV3UYz5ZA",
+      "stato": 400,
+      "esito": null,
+      "errore": "Model not allowed",
+      "testo": null
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-roma-2.png"
+    },
+    {
+     "tappa": "Basilica Cattedrale di Sant'Agata",
+     "place_id": "ChIJP0UjWi7jExMRJytI986aC6g",
+     "racconto": "IL RACCONTO Ti prendi venti minuti dentro Basilica Cattedrale di Sant'Agata. È a un minuto a piedi dalla tappa prima. Il racconto 0:00 / 0:07",
+     "perche": null,
+     "server": {
+      "nome": "Basilica Cattedrale di Sant'Agata",
+      "place_id": "ChIJP0UjWi7jExMRJytI986aC6g",
+      "stato": 400,
+      "esito": null,
+      "errore": "Model not allowed",
+      "testo": null
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-catania-1.png"
+    },
+    {
+     "tappa": "Fontana dell'Elefante (uʻ Liotru)",
+     "place_id": "ChIJV63v_C7jExMRLThjTCcPppk",
+     "racconto": "IL RACCONTO Ti fermi davanti a Fontana dell'Elefante (uʻ Liotru) il tempo che serve. Ci arrivi alle 10:22. Il racconto 0:00 / 0:06",
+     "perche": null,
+     "server": {
+      "nome": "Fontana dell'Elefante (uʻ Liotru)",
+      "place_id": "ChIJV63v_C7jExMRLThjTCcPppk",
+      "stato": 400,
+      "esito": null,
+      "errore": "Model not allowed",
+      "testo": null
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-catania-2.png"
+    }
+   ],
+   "schedeOk": true,
+   "ok": null,
+   "secondi": 26
+  },
+  "7": {
+   "nome": "«Salta» fino in fondo + 3 tocchi",
+   "ospite": {
+    "ospite": true,
+    "riprendi": false,
+    "errore": "locator.click: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Riprendi' }).first()"
+   },
+   "account": {
+    "ospite": false,
+    "url": "/map",
+    "fineGiro": true,
+    "nota": "Hai saltato tutte le tappe: il giro finisce qui.",
+    "login": false,
+    "testo": "1 2 3 4 Scorciatoie da tastiera Dati mappa ©2026 Google Termini Il tuo giro a Catania AUTO PIEDI 4 min BICI Percorso Consigliato 4 min a piedi · 282 m Avvia Navigazione In pausa Giro completato FINE T",
+    "ok": true,
+    "foto": "docs/prove/schermate/collaudo-sito/7-account.png",
+    "errori": [
+     "/ahecpiwsdhghkndncejb.supabase.co/rest/v1/error_logs due to access control checks."
+    ]
+   },
+   "ok": true,
+   "secondi": 33
+  }
+ },
+ "finito": "2026-10-30T15:44:18.962Z"
+}

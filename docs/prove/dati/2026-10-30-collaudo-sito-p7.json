@@ -1,0 +1,14 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-10-30T15:44:42.697Z",
+ "commitSito": null,
+ "punti": {
+  "7": {
+   "nome": "«Salta» fino in fondo + 3 tocchi",
+   "ok": false,
+   "errore": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"map-avvia-card\"]') to be visible\u001b[22m\n",
+   "secondi": 51
+  }
+ },
+ "finito": "2026-10-30T15:45:39.779Z"
+}

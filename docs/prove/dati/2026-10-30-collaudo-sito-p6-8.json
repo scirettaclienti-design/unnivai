@@ -1,0 +1,113 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-10-30T15:46:08.557Z",
+ "commitSito": null,
+ "punti": {
+  "6": {
+   "nome": "«Fine» a 2/3: nota, Profilo +1, nessun doppione",
+   "prima": 14,
+   "arrivo1": {
+    "rito": true,
+    "riparti": true
+   },
+   "arrivo2": {
+    "rito": true,
+    "riparti": true
+   },
+   "salvato": {
+    "fatte": [
+     "s1",
+     "s2"
+    ],
+    "saltate": []
+   },
+   "nota": "Sei arrivato a 2 tappe su 3.",
+   "fotoFine": "docs/prove/schermate/collaudo-sito/6-fine.png",
+   "dopo": 15,
+   "dopoRicarica": 15,
+   "proposteRipresa": 0,
+   "dopoHome": 15,
+   "tourId": "collaudo-fine-1793375174822",
+   "ok": true,
+   "errori": [],
+   "secondi": 49
+  },
+  "8": {
+   "nome": "GPS a Roma, Crea «un giro a Catania»: «Domani · 9:30 · cambia»",
+   "ok": true,
+   "partenza": "Domani · 9:30 · cambia",
+   "orari": [
+    "9:30",
+    "09:30",
+    "10:00",
+    "10:25",
+    "10:58",
+    "11:28",
+    "12:26",
+    "12:30",
+    "14:30",
+    "15:01",
+    "15:34",
+    "15:57"
+   ],
+   "foto": "docs/prove/schermate/collaudo-sito/8-crea.png"
+  },
+  "9": {
+   "nome": "panoramica con pochi km fra le tappe",
+   "ok": true,
+   "card": "Barocco e piazze di Catania Giornata 9:30–21:15 · 1h 9 a piedi · 5,0 km · 13 tappe Cambia mezzo AVVIA",
+   "km": 5,
+   "foto": "docs/prove/schermate/collaudo-sito/9-panoramica.png"
+  },
+  "10": {
+   "nome": "«Avvia» da lontano: «Sei a … km», mappa non nera",
+   "ok": true,
+   "avviso": "Sei a 536 km da Catania: la guida parte quando sei lì.",
+   "navigazione": false,
+   "camDopo": {
+    "zoom": 14,
+    "tilt": 0,
+    "heading": 0
+   },
+   "segnaposti": 0,
+   "foto": "docs/prove/schermate/collaudo-sito/10-avvia.png"
+  }
+ },
+ "crea": {
+  "generazioneS": 20,
+  "partenza": "Domani · 9:30 · cambia",
+  "orari": [
+   "9:30",
+   "09:30",
+   "10:00",
+   "10:25",
+   "10:58",
+   "11:28",
+   "12:26",
+   "12:30",
+   "14:30",
+   "15:01",
+   "15:34",
+   "15:57"
+  ],
+  "fotoGiro": "docs/prove/schermate/collaudo-sito/8-crea.png",
+  "card": "Barocco e piazze di Catania Giornata 9:30–21:15 · 1h 9 a piedi · 5,0 km · 13 tappe Cambia mezzo AVVIA",
+  "camPanoramica": {
+   "zoom": 14,
+   "tilt": 0,
+   "heading": 0
+  },
+  "fotoPanoramica": "docs/prove/schermate/collaudo-sito/9-panoramica.png",
+  "avviso": "Sei a 536 km da Catania: la guida parte quando sei lì.",
+  "navigazione": false,
+  "camDopo": {
+   "zoom": 14,
+   "tilt": 0,
+   "heading": 0
+  },
+  "segnaposti": 0,
+  "fotoAvvia": "docs/prove/schermate/collaudo-sito/10-avvia.png",
+  "errori": []
+ },
+ "finito": "2026-10-30T15:47:42.726Z"
+}

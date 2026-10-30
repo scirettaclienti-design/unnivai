@@ -1,0 +1,42 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-10-30T15:40:30.034Z",
+ "commitSito": null,
+ "punti": {
+  "1": {
+   "nome": "freccia sparisce dopo 10 m",
+   "allAvvio": "Parti da qui verso Porta Uzeda",
+   "fotoAvvio": "docs/prove/schermate/collaudo-sito/1-avvio.png",
+   "a5m": "Parti da qui verso Porta Uzeda",
+   "a15m": null,
+   "ok": true,
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/1-dopo-15m.png",
+   "errori": [],
+   "secondi": 17
+  },
+  "2": {
+   "nome": "tappa 2 dopo «Salta»: niente freccia",
+   "allAvvio": "Parti da qui verso Porta Uzeda",
+   "tappa2": null,
+   "pillola": "55 m · verso Basilica Cattedrale di Sant'Agata",
+   "ok": true,
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/2-tappa-2.png",
+   "errori": [],
+   "secondi": 17
+  },
+  "3": {
+   "nome": "GPS muto 60 s e ripresa: niente freccia",
+   "allAvvio": "Parti da qui verso Porta Uzeda",
+   "avvisoDuranteSilenzio": "Ho perso il segnale. Continua pure: quando torna, riparto da dove sei.",
+   "frecciaDuranteSilenzio": null,
+   "fotoSilenzio": "docs/prove/schermate/collaudo-sito/3-silenzio.png",
+   "dopoRipresa": null,
+   "avvisoDopo": null,
+   "ok": true,
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/3-ripresa.png",
+   "errori": [],
+   "secondi": 79
+  }
+ },
+ "finito": "2026-10-30T15:42:32.034Z"
+}

@@ -35,7 +35,7 @@ Riprodotta in WebKit (iPhone 13) con il GPS finto in piazza di Spagna e il giro 
   - oltre 20 km dalla tappa 1 (o senza posizione) il percorso dell'anteprima **non parte da te**: durata e km della card e del pannello del mezzo contano solo il cammino fra le tappe;
   - l'inquadratura ti include solo se non sei lontano.
 - **«Avvia» da lontano**:
-  - se la posizione è nota ed è oltre 20 km dalla prossima tappa: niente navigazione, niente tracciamento. Nella card resta «**Sei a 537 km da Catania: la guida parte quando sei lì.**» (anche come toast) e la panoramica si può consultare.
+  - se la posizione è nota ed è oltre 20 km dalla prossima tappa: niente navigazione, niente tracciamento. Nella card resta «**Sei a 537 km da Catania: la guida parte quando sei lì.**» e la panoramica si può consultare. Il primo rilascio lo ripeteva anche in un toast, che sul sito pubblicato copriva il testo della card e il tasto «Avvia»: tolto.
   - Se «Avvia» parte senza posizione (NAV-1: tappe segnate a mano) e il **primo segnale** arriva da lontano: la guida si ferma prima del volo della camera e torna la panoramica con lo stesso messaggio.
   - Un giro appena avviato non resta «in corso»; uno ripreso resta salvato, per quando sei lì.
 - **Orari di Crea**:
@@ -102,5 +102,10 @@ Due giri veri con l'account di prova (nessun contatore). Sul sito pubblicato, do
 - **La rigenerazione del giorno in Crea** («Rigenera») non passa la posizione: resta com'era.
 - **Prova solo in WebKit, non su un iPhone vero** (GPS vero, bussola, stili scuri a zoom 18).
 
-## `git log --oneline -5 main`
-(in fondo, dopo il merge)
+## Dopo il deploy (sito pubblicato, stili veri della navigazione)
+
+Commit `207ada7`: CI verde, deploy di Vercel completato. `giro-lontano-prod.webkit.mjs … avvia`, GPS a Roma, ore 19:30 (stile notte):
+- **prima** (`prod-prima-avvia-6000.png`): card «93h 14 a piedi · 671,0 km»; dopo «Avvia», camera su Roma a zoom 18 inclinata, «537,4 km · verso Porta Uzeda», «7166 MIN», nessuna tappa né tratto a schermo (la «mappa nera»);
+- **dopo** (`prod-dopo-avvia-6000.png`): card «Giornata 9:30–21:15 · 39 min a piedi · 2,9 km · 12 tappe»; dopo «Avvia» la panoramica resta sulle 12 tappe di Catania con i tratti fra le tappe (camera zoom 16, inclinazione 0), e nella card «Sei a 537 km da Catania: la guida parte quando sei lì.». Nessun nero.
+
+In quella prova il toast copriva metà della card: tolto nel commit dopo.

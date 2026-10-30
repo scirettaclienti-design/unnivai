@@ -139,7 +139,7 @@ describe('GIRO-LONTANO — sulla mappa il cammino da te conta solo se sei vicino
         avvia();
         expect(inNavigazione()).toBe(false);
         expect(screen.getByTestId('avviso-lontano').textContent).toMatch(MESSAGGIO);
-        expect(toast.some(m => MESSAGGIO.test(m))).toBe(true);
+        expect(toast.filter(m => /^Sei a /.test(m))).toEqual([]); // nessun toast sopra la card: il messaggio sta nella card
         expect(gps.watchPosition.mock.calls.length).toBe(watchPrima); // «Avvia» non apre il tracciamento verso un punto a 500 km
         expect(localStorage.getItem(GIRO_KEY)).toBeNull();
     });

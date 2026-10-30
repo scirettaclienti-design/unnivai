@@ -1417,12 +1417,9 @@ const MapPage = () => {
         if (map) map.moveCamera({ center: { lat: first.latitude, lng: first.longitude }, zoom: 17, tilt: 45 });
     };
 
-    // GIRO-LONTANO — il messaggio onesto (card della panoramica + toast) e, se la navigazione era già partita, lo stop senza perdere il giro salvato.
-    const mostraLontano = (km) => {
-        const testo = NAV_TESTI.LONTANO_AVVIA(kmDetti(km), tourData?.city || activeCity);
-        setAvvisoLontano(testo);
-        window.dispatchEvent(new CustomEvent('dvai:toast', { detail: { message: testo, type: 'info' } }));
-    };
+    // GIRO-LONTANO — il messaggio onesto nella card della panoramica (un toast lo ripeteva sopra la card e copriva «Avvia») e, se la navigazione era
+    // già partita, lo stop senza perdere il giro salvato.
+    const mostraLontano = (km) => setAvvisoLontano(NAV_TESTI.LONTANO_AVVIA(kmDetti(km), tourData?.city || activeCity));
     const interrompiDaLontano = (km, { ripresa = false } = {}) => {
         navTrackerRef.current?.stop(); navTrackerRef.current = null;
         setIsNavigating(false);

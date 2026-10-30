@@ -101,6 +101,7 @@ Due giri veri con l'account di prova (nessun contatore). Sul sito pubblicato, do
 - **Percorso Veloce, Per Te, Quiz e Sorprendimi non cambiano**: partono da dove sei, da adesso (regola di Ivano in `tourWindow`).
 - **La rigenerazione del giorno in Crea** («Rigenera») non passa la posizione: resta com'era.
 - **Prova solo in WebKit, non su un iPhone vero** (GPS vero, bussola, stili scuri a zoom 18).
+- **Il tasto tondo «Vai alla mia posizione» tocca l'angolo in alto a destra di «Avvia»**: succedeva già prima (`prod-prima-avvia-0-panoramica.png`); con la riga del messaggio la card è più alta e lo copre un po' di più. Non toccato (fuori incarico): proposta, ancorarlo sopra la card.
 
 ## Dopo il deploy (sito pubblicato, stili veri della navigazione)
 
@@ -108,4 +109,15 @@ Commit `207ada7`: CI verde, deploy di Vercel completato. `giro-lontano-prod.webk
 - **prima** (`prod-prima-avvia-6000.png`): card «93h 14 a piedi · 671,0 km»; dopo «Avvia», camera su Roma a zoom 18 inclinata, «537,4 km · verso Porta Uzeda», «7166 MIN», nessuna tappa né tratto a schermo (la «mappa nera»);
 - **dopo** (`prod-dopo-avvia-6000.png`): card «Giornata 9:30–21:15 · 39 min a piedi · 2,9 km · 12 tappe»; dopo «Avvia» la panoramica resta sulle 12 tappe di Catania con i tratti fra le tappe (camera zoom 16, inclinazione 0), e nella card «Sei a 537 km da Catania: la guida parte quando sei lì.». Nessun nero.
 
-In quella prova il toast copriva metà della card: tolto nel commit dopo.
+In quella prova il toast copriva metà della card: tolto nel commit `114d436` (CI verde, deploy completato). Rifatta la prova (`prod-dopo2-avvia-3000.png`): card «… 39 min a piedi · 2,9 km · 12 tappe», sotto «Sei a 537 km da Catania: la guida parte quando sei lì.», panoramica delle tappe, nessun toast sopra.
+
+## `git log --oneline -5 main`
+
+```
+114d436 GIRO-LONTANO: il messaggio «Sei a … km» resta solo nella card (il toast lo ripeteva e copriva «Avvia» sul sito pubblicato); report con la prova dopo il deploy
+207ada7 GIRO-LONTANO: da più di 20 km dalla tappa 1 (o senza posizione) la panoramica conta solo il cammino fra le tappe, «Avvia» non guida verso un punto a 500 km e lo dice (niente più mappa nera); Crea senza orario parte domani alle 9:30 da lontano («Domani · 9:30 · cambia») e da adesso più il cammino fino alla tappa 1 in città; prove WebKit e report in docs/prove
+975463d MIGRAZIONI-STORIA: nel repo la migrazione 20261028164601_unnivai_waitlist_and_city_interest identica a quella applicata in produzione (md5 uguale); db push --dry-run elenca solo place_racconti, place_racconti_verifica, ai_quota_tetto_contorno; diagnosi e comandi di rilascio nel report RACCONTO-R4
+ad81a9b RACCONTO-R4: prompt «ogni frase su un fatto delle fonti» e una sola riscrittura dopo il «no» del revisore (stessi controlli, stessi divieti); versione r4 solo per gli scartati, r3 passati validi; Catania 7/6/7 su 8 in 3 lanci (prima 2/4/3), report in docs/prove
+0aed80d CURIOSITA-CITTA: ogni curiosità porta la sua città; a schermo e a voce solo quelle della città del giro (a Catania non esce più Roma), prova WebKit su Catania, diagnosi in docs/prove
+```
+(prima del commit di questo report)

@@ -1,0 +1,5347 @@
+{
+ "commitR4": "fc4c4aa",
+ "versione": "r5",
+ "lanci": [
+  [
+   {
+    "lancio": 1,
+    "citta": "Catania",
+    "nome": "Porta Uzeda",
+    "wikipediaTitolo": "Porta Uzeda",
+    "fonti": {
+     "nome": "Porta Uzeda",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Porta Uzeda",
+      "testo": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca."
+     },
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Catania",
+    "nome": "Basilica Cattedrale di Sant'Agata",
+    "wikipediaTitolo": "Cattedrale di Sant'Agata",
+    "fonti": {
+     "nome": "Basilica Cattedrale di Sant'Agata",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Cattedrale di Sant'Agata",
+      "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+     },
+     "google": {
+      "testo": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti."
+     }
+    },
+    "prima": {
+     "ok": false,
+     "testo": "Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. Sta nel lato sud-est di piazza del Duomo. La facciata barocca ha le colonne, e dentro trovi la cupola, gli affreschi e i dipinti. Qui convivono stili diversi: dal Normanno al Barocco, fino al Neoclassico.",
+     "motivi": [
+      "più di 4 frasi"
+     ],
+     "verifica": null,
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": null,
+     "costoUsd": 0.004992,
+     "riscritto": false,
+     "prima": null,
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2262,
+       "costoUsd": 0.004992
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questa è la chiesa madre di Catania, dedicata a Sant'Agata, vergine e martire. È la patrona della città. La cattedrale sta sul lato sud-est di piazza del Duomo, nel centro storico. Dentro convivono stili diversi: il Normanno, il Barocco, il Neoclassico.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.011765,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: questa è la chiesa madre di Catania, dedicata a Sant'Agata, vergine e martire. È la patrona della città. La cattedrale sta sul lato sud-est di piazza del Duomo, nel centro storico. Dentro convivono stili diversi: il Normanno, il Barocco, il Neoclassico. Guarda la facciata a colonne e la cupola. All'interno ci sono affreschi e dipinti.",
+      "motivi": [
+       "più di 4 frasi"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2129,
+       "costoUsd": 0.004902
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1631,
+       "costoUsd": 0.005432
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1574,
+       "costoUsd": 0.001431
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Catania",
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "wikipediaTitolo": "Fontana dell'Elefante",
+    "fonti": {
+     "nome": "Fontana dell'Elefante (uʻ Liotru)",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Fontana dell'Elefante",
+      "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+     },
+     "google": {
+      "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+     }
+    },
+    "prima": {
+     "ok": false,
+     "testo": "Fermati: qui al centro della piazza c'è un elefante di basalto nero. I catanesi lo chiamano u Liotru. La statua è romana. Giovanni Battista Vaccarini ha costruito la fontana attorno a lei tra il 1735 e il 1737. Oggi quell'elefante è l'emblema di Catania.",
+     "motivi": [
+      "più di 4 frasi"
+     ],
+     "verifica": null,
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": null,
+     "costoUsd": 0.00436,
+     "riscritto": false,
+     "prima": null,
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1859,
+       "costoUsd": 0.00436
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. Sta al centro di piazza del Duomo ed è l'emblema della città. La fontana l'ha costruita Giovanni Battista Vaccarini tra il 1735 e il 1737.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.012842,
+     "riscritto": true,
+     "prima": {
+      "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. Sta al centro di piazza del Duomo ed è l'emblema della città. La fontana l'ha costruita Giovanni Battista Vaccarini tra il 1735 e il 1737. La statua dell'elefante, invece, è romana.",
+      "motivi": [
+       "verifica: frase 4 non è nelle fonti (La fonte 1 dice che la fontana è 'un'opera monumentale, realizzata tra il 1735 e il 1737' da Vaccarini, senza specificare che la statua dell)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2002,
+       "costoUsd": 0.00433
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 3245,
+       "costoUsd": 0.002203
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1650,
+       "costoUsd": 0.005108
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1362,
+       "costoUsd": 0.001201
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Catania",
+    "nome": "Teatro Antico greco-romano di Catania",
+    "wikipediaTitolo": "Teatro greco-romano di Catania",
+    "fonti": {
+     "nome": "Teatro Antico greco-romano di Catania",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Teatro greco-romano di Catania",
+      "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+     },
+     "google": {
+      "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: siamo in pieno centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi oggi risale al II secolo. È tornato alla luce a partire dalla fine dell'Ottocento. A est confina con l'odeon della città.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005575,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1934,
+       "costoUsd": 0.004256
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1632,
+       "costoUsd": 0.001319
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: siamo nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi oggi risale al II secolo. È venuto alla luce a partire dalla fine dell'Ottocento. A est confina con l'odeon della città.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005553,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2143,
+       "costoUsd": 0.004236
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1695,
+       "costoUsd": 0.001317
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Catania",
+    "nome": "Castello Ursino",
+    "wikipediaTitolo": "Castello Ursino",
+    "fonti": {
+     "nome": "Castello Ursino",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Castello Ursino",
+      "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+     },
+     "google": {
+      "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: questo castello lo fece costruire Federico II di Svevia, nel Duecento. Durante i Vespri siciliani ha ospitato il parlamento siciliano, poi è stato residenza dei re aragonesi, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini. Cerca anche i carri dipinti.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006156,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2106,
+       "costoUsd": 0.00477
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1631,
+       "costoUsd": 0.001386
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questo castello lo ha costruito Federico II di Svevia, nel XIII secolo. Durante i Vespri siciliani qui si riuniva il parlamento siciliano. Dopo ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Entra: oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006174,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2322,
+       "costoUsd": 0.00479
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1712,
+       "costoUsd": 0.001384
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Catania",
+    "nome": "Fontana dell’Amenano",
+    "wikipediaTitolo": "Fontana dell'Amenano",
+    "fonti": {
+     "nome": "Fontana dell’Amenano",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Fontana dell'Amenano",
+      "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+     },
+     "google": {
+      "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati qui, sul lato sud di piazza del Duomo. Questa fontana è del 1867. Sopra ci sono personaggi mitologici, opera di Tito Angelini. Guarda anche lo stemma della città: è inciso lì.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005106,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1800,
+       "costoUsd": 0.00384
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1792,
+       "costoUsd": 0.001266
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati qui, sul lato sud di piazza del Duomo. Questa fontana è del 1867. È una fontana barocca con personaggi mitologici, opera di Tito Angelini. C'è anche lo stemma della città, inciso.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.011341,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati qui, sul lato sud di piazza del Duomo. Questa fontana è del 1867. Sopra c'è un'opera di Tito Angelini, con personaggi mitologici, e incisa c'è anche lo stemma della città.",
+      "motivi": [
+       "verifica: frase 3 non è nelle fonti (La frase dice 'Sopra c'è un'opera' ma le fonti non specificano che l'opera di Tito Angelini sia 'sopra' la fontana. Inoltre, 'Sopra c'è' agg)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1896,
+       "costoUsd": 0.00382
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2288,
+       "costoUsd": 0.001469
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1854,
+       "costoUsd": 0.004786
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1688,
+       "costoUsd": 0.001266
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Catania",
+    "nome": "Piazza Giuseppe Mazzini",
+    "wikipediaTitolo": "Piazza Mazzini (Catania)",
+    "fonti": {
+     "nome": "Piazza Giuseppe Mazzini",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Piazza Mazzini (Catania)",
+      "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+     },
+     "google": null
+    },
+    "prima": {
+     "ok": false,
+     "testo": "Qui prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693, il nuovo impianto urbano voluto da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione, prevedeva questa piazza come mercato. Nasce dall'incrocio di due strade, e per questo ha il disegno a croce greca. Negli angoli, nei primi decenni del Settecento, sono sorsi quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+     "motivi": [
+      "verifica: frase 4 non è nelle fonti (La fonte dice che i loggiati sorsero 'lungo i perimetri del luogo' e 'negli angoli' si scelse di erigere edifici dotati di terrazzini loggia)"
+     ],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": false,
+       "motivo": "La fonte dice che i loggiati sorsero 'lungo i perimetri del luogo' e 'negli angoli' si scelse di erigere edifici dotati di terrazzini loggia"
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.016999,
+     "riscritto": true,
+     "prima": {
+      "testo": "Qui prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693, il duca di Camastra, che guidava la ricostruzione, la pensò come mercato. Nasce dall'incrocio di due strade, e per questo ha il disegno a croce greca. Negli angoli, nei primi decenni del Settecento, sono sorsi quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (La fonte dice che il duca di Camastra era 'coordinatore e finanziatore della ricostruzione', non che 'guidava' la ricostruzione. Inoltre, la)"
+      ]
+     },
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1812,
+       "costoUsd": 0.005532
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2356,
+       "costoUsd": 0.002026
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2166,
+       "costoUsd": 0.006974
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 3327,
+       "costoUsd": 0.002467
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questa piazza prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693, il duca di Camastra, che coordinava e finanziava la ricostruzione, la pensò come mercato. Nasce dall'incrocio di due strade, e ha il disegno a croce greca. Nei primi decenni del Settecento sono sorti quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.007206,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1796,
+       "costoUsd": 0.005542
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1595,
+       "costoUsd": 0.001664
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Catania",
+    "nome": "Palazzo dei Chierici",
+    "wikipediaTitolo": "Palazzo del Seminario dei Chierici",
+    "fonti": {
+     "nome": "Palazzo dei Chierici",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Palazzo del Seminario dei Chierici",
+      "testo": "Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante."
+     },
+     "google": null
+    },
+    "prima": {
+     "ok": false,
+     "testo": "Qui sei davanti al Palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud della piazza del Duomo, con la Cattedrale di Sant'Agata accanto. Guarda la piazza: al centro c'è la Fontana dell'Elefante, e il Palazzo degli Elefanti, anche lui municipio, sta sul lato opposto.",
+     "motivi": [
+      "indicazione di direzione"
+     ],
+     "verifica": null,
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": null,
+     "costoUsd": 0.004494,
+     "riscritto": false,
+     "prima": null,
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2212,
+       "costoUsd": 0.004494
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questo è il palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud della piazza del Duomo, con la Cattedrale di Sant'Agata accanto. Anche il Palazzo degli Elefanti, qui in piazza, è un municipio. In mezzo ai due palazzi c'è la Fontana dell'Elefante.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005798,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2180,
+       "costoUsd": 0.004454
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1676,
+       "costoUsd": 0.001344
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Catania",
+    "nome": "Via Etnea",
+    "wikipediaTitolo": "Via Etnea",
+    "fonti": {
+     "nome": "Via Etnea",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Via Etnea",
+      "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+     },
+     "google": {
+      "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+     }
+    },
+    "prima": {
+     "ok": false,
+     "testo": "Fermati: sei sulla via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 3 chilometri, da Piazza del Duomo al Tondo Gioeni. Lungo la strada ci sono bar, negozi e monumenti barocchi, con vista sull'Etna.",
+     "motivi": [
+      "verifica: frase 3 non è nelle fonti (La fonte 2 menziona 'bar' e 'monumenti barocchi' e 'vista sull'Etna', ma non cita esplicitamente 'negozi'. Inoltre, la frase aggiunge 'negoz)"
+     ],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": false,
+       "motivo": "La fonte 2 menziona 'bar' e 'monumenti barocchi' e 'vista sull'Etna', ma non cita esplicitamente 'negozi'. Inoltre, la frase aggiunge 'negoz"
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.012335,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: sei sulla via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 3 chilometri, da Piazza del Duomo al Tondo Gioeni. Lungo il percorso trovi bar, negozi e monumenti barocchi, e alzando gli occhi vedi l'Etna.",
+      "motivi": [
+       "verifica: frase 3 non è nelle fonti (L'espressione 'alzando gli occhi' e la descrizione dell'azione di guardare l'Etna aggiungono un'immagine e un'esperienza sensoriale non pres)"
+      ]
+     },
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2490,
+       "costoUsd": 0.004216
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2256,
+       "costoUsd": 0.001491
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1903,
+       "costoUsd": 0.005144
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2209,
+       "costoUsd": 0.001484
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Guarda: questa è la strada principale del centro storico, e parte da Piazza del Duomo. Va dritta verso nord, senza una curva, per circa 3 chilometri, fino al Tondo Gioeni. Lungo la strada trovi bar e monumenti barocchi, e c'è la vista sull'Etna.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.012063,
+     "riscritto": true,
+     "prima": {
+      "testo": "Guarda: questa è la strada principale del centro storico, e parte da Piazza del Duomo. Va dritta verso nord, senza una curva, per circa 3 chilometri, fino al Tondo Gioeni. Lungo il percorso trovi bar, negozi e monumenti barocchi, e da qui si vede l'Etna.",
+      "motivi": [
+       "verifica: frase 3 non è nelle fonti (La fonte 2 menziona 'bar, monumenti barocchi e vista sull'Etna', ma non specifica 'negozi'. Inoltre, la fonte 1 non menziona bar, negozi o v)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2122,
+       "costoUsd": 0.004176
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2374,
+       "costoUsd": 0.0016
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2191,
+       "costoUsd": 0.005146
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1569,
+       "costoUsd": 0.001141
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Troina",
+    "nome": "Chiesa Madre di Maria Santissima Assunta",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Chiesa Madre di Maria Santissima Assunta",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Troina",
+    "nome": "Torre Capitania",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Torre Capitania",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Troina",
+    "nome": "Piazza Conte Ruggero",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Piazza Conte Ruggero",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Troina",
+    "nome": "Monte Muganà",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Monte Muganà",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Roma",
+    "nome": "Giardino di Sant'Alessio",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Giardino di Sant'Alessio",
+     "citta": "Roma",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Roma",
+    "nome": "Roseto comunale",
+    "wikipediaTitolo": "Roseto di Roma",
+    "fonti": {
+     "nome": "Roseto comunale",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Roseto di Roma",
+      "testo": "Il Roseto di Roma è un giardino situato sulle pendici dell'Aventino, nei pressi del Circo Massimo, nella città di Roma."
+     },
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Roma",
+    "nome": "Villa Sciarra",
+    "wikipediaTitolo": "Villa Sciarra (Roma)",
+    "fonti": {
+     "nome": "Villa Sciarra",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Villa Sciarra (Roma)",
+      "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+     },
+     "google": {
+      "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Siamo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, in sette ettari e mezzo di verde. Qui il giardino ha la disposizione che gli ha dato George Washington Wurts, l'ultimo proprietario, e a lui si deve anche la collocazione dei monumenti. Uno dei due ingressi è su piazzale Wurts, progettato da Pio Piacentini, e il piazzale prende il nome proprio da lui. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.014728,
+     "riscritto": true,
+     "prima": {
+      "testo": "Siamo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, in sette ettari e mezzo di verde. Qui il giardino ha la disposizione che gli ha dato George Washington Wurts, l'ultimo proprietario, e a lui si deve anche la collocazione dei monumenti. Il piazzale da cui entri porta il suo nome. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.",
+      "motivi": [
+       "verifica: frase 3 non è nelle fonti (La fonte dice che il piazzale è 'progettato da Pio Piacentini' e 'prende il nome' da Wurts, ma non afferma esplicitamente che 'entri' da lì )"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2386,
+       "costoUsd": 0.005042
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2339,
+       "costoUsd": 0.001782
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2429,
+       "costoUsd": 0.006438
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1757,
+       "costoUsd": 0.001466
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questa è una delle ville urbane di Roma, sette ettari e mezzo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio. Il nome viene dalla famiglia nobile pontificia degli Sciarra. Il giardino e i monumenti che ci trovi li ha disposti George Washington Wurts, l'ultimo proprietario, e il suo nome ce l'ha anche il piazzale dove sei. Dentro cammini tra piccoli giardini, sculture e fontane.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00665,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2691,
+       "costoUsd": 0.005202
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1583,
+       "costoUsd": 0.001448
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Roma",
+    "nome": "Orto Botanico di Roma",
+    "wikipediaTitolo": "Orto botanico di Roma",
+    "fonti": {
+     "nome": "Orto Botanico di Roma",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Orto botanico di Roma",
+      "testo": "L'Orto botanico di Roma è situato alle pendici del Gianicolo, nell'antico parco di villa Corsini, un tempo residenza di Cristina di Svezia. La struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\"."
+     },
+     "google": {
+      "testo": "7.000 specie di piante da tutto il mondo, fontane, boschetto di bambù e giardino del tè giapponese."
+     }
+    },
+    "prima": {
+     "ok": false,
+     "testo": "Siamo alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia. Oggi l'Orto dipende dal Dipartimento di Biologia Ambientale della Sapienza. Dentro ci sono 7.000 specie di piante da tutto il mondo, fontane, un boschetto di bambù e il giardino del tè giapponese.",
+     "motivi": [
+      "numeri non nelle fonti: 7, 000"
+     ],
+     "verifica": null,
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": null,
+     "costoUsd": 0.004516,
+     "riscritto": false,
+     "prima": null,
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1588,
+       "costoUsd": 0.004516
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: siamo alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia. Oggi qui crescono 7.000 specie di piante da tutto il mondo. Ci sono le fontane, un boschetto di bambù e il giardino del tè giapponese.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.011146,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: siamo alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia. Oggi qui crescono 7.000 specie di piante da tutto il mondo. Ci sono le fontane, un boschetto di bambù e il giardino del tè giapponese. La struttura dipende dal Dipartimento di Biologia Ambientale dell'Università La Sapienza.",
+      "motivi": [
+       "più di 4 frasi"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1664,
+       "costoUsd": 0.004646
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1449,
+       "costoUsd": 0.005174
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1705,
+       "costoUsd": 0.001326
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Roma",
+    "nome": "Il Palazzo dei Conservatori",
+    "wikipediaTitolo": "Palazzo dei Conservatori",
+    "fonti": {
+     "nome": "Il Palazzo dei Conservatori",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Palazzo dei Conservatori",
+      "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Il palazzo dei Conservatori e il Palazzo Nuovo, insieme al Tabularium, costituiscono attualmente la sede espositiva dei Musei Capitolini, tra i musei romani più rappresentativi e visitati."
+     },
+     "google": {
+      "testo": "Imponente struttura del XV secolo nei Musei Capitolini con statue, opere d'arte e affreschi."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: questo è il Palazzo dei Conservatori, in piazza del Campidoglio. Sta accanto al Palazzo Senatorio. Insieme al Palazzo Nuovo e al Tabularium, oggi ospita i Musei Capitolini. La struttura è del XV secolo, e dentro trovi statue, opere d'arte e affreschi.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005751,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1779,
+       "costoUsd": 0.004424
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1694,
+       "costoUsd": 0.001327
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: sei in piazza del Campidoglio, e questo è il Palazzo dei Conservatori. Sta a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. È una struttura del XV secolo. Insieme al Palazzo Nuovo e al Tabularium forma la sede espositiva dei Musei Capitolini, e dentro trovi statue, opere d'arte e affreschi.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.011585,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: sei in piazza del Campidoglio, e questo è il Palazzo dei Conservatori. Sta a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. È una struttura del XV secolo. Insieme al Palazzo Nuovo e al Tabularium forma la sede espositiva dei Musei Capitolini. Dentro trovi statue, opere d'arte e affreschi.",
+      "motivi": [
+       "più di 4 frasi"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2110,
+       "costoUsd": 0.004684
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2112,
+       "costoUsd": 0.00556
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1576,
+       "costoUsd": 0.001341
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Roma",
+    "nome": "Palazzo Massimo alle Colonne",
+    "wikipediaTitolo": "Palazzo Massimo alle Colonne",
+    "fonti": {
+     "nome": "Palazzo Massimo alle Colonne",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Palazzo Massimo alle Colonne",
+      "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+     },
+     "google": {
+      "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. C'è una cappella associata a un presunto miracolo del XVI secolo. È aperta solo il 16 marzo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01197,
+     "riscritto": true,
+     "prima": {
+      "testo": "Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella associata a un presunto miracolo del XVI secolo. Aperta solo il 16 marzo: se capiti in un altro giorno, la trovi chiusa.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (La fonte dice che la cappella è 'associata' al miracolo, non che sia 'dentro' il palazzo. Inoltre aggiunge il dettaglio 'dentro' che non è e)",
+       "verifica: frase 3 non è nelle fonti (Aggiunge l'immagine narrativa 'se capiti in un altro giorno, la trovi chiusa' che non è scritta nelle fonti, le quali dicono solo che è 'ape)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1654,
+       "costoUsd": 0.004146
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2557,
+       "costoUsd": 0.001639
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1368,
+       "costoUsd": 0.005098
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1404,
+       "costoUsd": 0.001087
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. È aperto solo il 16 marzo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.011407,
+     "riscritto": true,
+     "prima": {
+      "testo": "Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Aprono solo il 16 marzo: se capiti quel giorno, entra.",
+      "motivi": [
+       "verifica: frase 3 non è nelle fonti (La fonte dice 'aperto solo il 16 marzo' ma non specifica che bisogna 'capitare quel giorno per entrare': è un'interpretazione aggiunta, non )"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1550,
+       "costoUsd": 0.004066
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2101,
+       "costoUsd": 0.00136
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1379,
+       "costoUsd": 0.004892
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1340,
+       "costoUsd": 0.001089
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Roma",
+    "nome": "Terrazza delle Quadrighe",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Terrazza delle Quadrighe",
+     "citta": "Roma",
+     "wikipedia": null,
+     "google": {
+      "testo": "Terrazza panoramica in cima al Complesso museale del Vittoriano, con vista completa sulla città."
+     }
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Roma",
+    "nome": "Galleria Colonna",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Galleria Colonna",
+     "citta": "Roma",
+     "wikipedia": null,
+     "google": {
+      "testo": "Palazzo privato barocco del XIV secolo con ingresso affrescato e collezione d'arte di antichi maestri."
+     }
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Roma",
+    "nome": "Parco del Gianicolo",
+    "wikipediaTitolo": "Gianicolo",
+    "fonti": {
+     "nome": "Parco del Gianicolo",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Gianicolo",
+      "testo": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini)."
+     },
+     "google": {
+      "testo": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Questo colle non è tra i sette colli tradizionali di Roma. Arriva a 88 metri: più su di qui non si va. Da quassù la vista corre verso est, sul centro storico e sui monumenti, fino ai Colli Albani e alle cime dell'Appennino come il Terminillo e il Velino. Sotto di te, sul versante verso il fiume, c'è Trastevere.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006473,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2129,
+       "costoUsd": 0.004948
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1575,
+       "costoUsd": 0.001525
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati un attimo: sei su un colle alto 88 metri, ma non è uno dei sette colli tradizionali di Roma. Qui sotto, dove il colle scende verso il fiume, c'è Trastevere. Da qui la vista arriva sul centro storico, fino ai Colli Albani e alle cime dell'Appennino centrale, il Terminillo e il Velino.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006267,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2552,
+       "costoUsd": 0.004908
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1379,
+       "costoUsd": 0.001359
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 1,
+    "citta": "Roma",
+    "nome": "Piazza del Campidoglio",
+    "wikipediaTitolo": "Piazza del Campidoglio",
+    "fonti": {
+     "nome": "Piazza del Campidoglio",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Piazza del Campidoglio",
+      "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+     },
+     "google": {
+      "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: la piazza è in cima al colle Campidoglio, e a progettarla fu Michelangelo. Già nel XII secolo il Tabularium era stato scelto come sede del Comune. Fu Paolo III a commissionare il rifacimento a Michelangelo, per la visita a Roma dell'imperatore Carlo V. Al centro della piazza c'è la statua di Marco Aurelio, e ci sono anche quelle del Tevere e del Nilo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.015304,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: la piazza è in cima al colle Campidoglio, e a progettarla fu Michelangelo. Qui sotto c'è il Tabularium, che dal XII secolo era la sede del Comune. Fu Paolo III a commissionare il rifacimento a Michelangelo, per la visita a Roma dell'imperatore Carlo V. Al centro della piazza c'è la statua di Marco Aurelio, e ci sono anche quelle del Tevere e del Nilo.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (La fonte dice che il Tabularium era stato scelto come sede del Comune nel XII secolo, ma non specifica che si trova 'qui sotto' la piazza o )"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1842,
+       "costoUsd": 0.005388
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2441,
+       "costoUsd": 0.001918
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1612,
+       "costoUsd": 0.006422
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1734,
+       "costoUsd": 0.001576
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: sei sulla cima del colle Campidoglio, e questa piazza l'ha ridisegnata Michelangelo. Fu Paolo III a commissionargli il rifacimento, per la visita a Roma dell'imperatore Carlo V. Sotto i tuoi piedi c'è il Tabularium, che si vede dal Foro Romano, e già nel XII secolo era stato scelto come sede del Comune. Al centro della piazza c'è la statua di Marco Aurelio, e ci sono anche quelle del Tevere e del Nilo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.013925,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: sei sulla cima del colle Campidoglio, e questa piazza l'ha ridisegnata Michelangelo. Fu Paolo III a commissionargli il rifacimento, per la visita a Roma dell'imperatore Carlo V. Sotto i tuoi piedi c'è il Tabularium, che si vede dal Foro Romano. Già nel XII secolo l'avevano scelto come sede del Comune. Al centro della piazza c'è la statua di Marco Aurelio. Poi ci sono quelle del Tevere e del Nilo.",
+      "motivi": [
+       "più di 4 frasi"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1977,
+       "costoUsd": 0.005688
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1544,
+       "costoUsd": 0.006644
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1197,
+       "costoUsd": 0.001593
+      }
+     ]
+    }
+   }
+  ],
+  [
+   {
+    "lancio": 2,
+    "citta": "Catania",
+    "nome": "Porta Uzeda",
+    "wikipediaTitolo": "Porta Uzeda",
+    "fonti": {
+     "nome": "Porta Uzeda",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Porta Uzeda",
+      "testo": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca."
+     },
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Catania",
+    "nome": "Basilica Cattedrale di Sant'Agata",
+    "wikipediaTitolo": "Cattedrale di Sant'Agata",
+    "fonti": {
+     "nome": "Basilica Cattedrale di Sant'Agata",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Cattedrale di Sant'Agata",
+      "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+     },
+     "google": {
+      "testo": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. La facciata ha le colonne, e dentro ci sono affreschi e dipinti. Nella cattedrale convivono stili diversi: dal Normanno al Barocco, fino al Neoclassico.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006179,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2070,
+       "costoUsd": 0.004732
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1761,
+       "costoUsd": 0.001447
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati qui: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. La facciata è barocca, a colonne, e sopra sale la cupola. La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.011972,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati qui: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. La facciata è barocca, a colonne, e sopra sale la cupola. Dentro ci sono affreschi e dipinti. La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico.",
+      "motivi": [
+       "più di 4 frasi"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2157,
+       "costoUsd": 0.004912
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1889,
+       "costoUsd": 0.005612
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1665,
+       "costoUsd": 0.001448
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Catania",
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "wikipediaTitolo": "Fontana dell'Elefante",
+    "fonti": {
+     "nome": "Fontana dell'Elefante (uʻ Liotru)",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Fontana dell'Elefante",
+      "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+     },
+     "google": {
+      "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+     }
+    },
+    "prima": {
+     "ok": false,
+     "testo": "Fermati: l'elefante di basalto nero che hai davanti è u Liotru, come lo chiamano qui. È l'emblema di Catania. La fontana l'ha costruita Giovanni Battista Vaccarini tra il 1735 e il 1737, al centro di piazza del Duomo. La statua è romana, scolpita nel basalto.",
+     "motivi": [
+      "indicazione di direzione"
+     ],
+     "verifica": null,
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": null,
+     "costoUsd": 0.00437,
+     "riscritto": false,
+     "prima": null,
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2123,
+       "costoUsd": 0.00437
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Guarda l'elefante di basalto nero: lo chiamano U Liotru. La fontana l'ha costruita Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi l'elefante è l'emblema di Catania.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.011949,
+     "riscritto": true,
+     "prima": {
+      "testo": "Guarda l'elefante di basalto nero: lo chiamano U Liotru. È una statua romana. La fontana l'ha costruita Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi l'elefante è l'emblema di Catania.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (La fonte 2 dice 'statua romana' ma la fonte 1 non specifica l'epoca della statua, parla solo della fontana realizzata nel 1735-1737. L'attri)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1685,
+       "costoUsd": 0.00413
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2463,
+       "costoUsd": 0.001674
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1961,
+       "costoUsd": 0.00495
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1546,
+       "costoUsd": 0.001195
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Catania",
+    "nome": "Teatro Antico greco-romano di Catania",
+    "wikipediaTitolo": "Teatro greco-romano di Catania",
+    "fonti": {
+     "nome": "Teatro Antico greco-romano di Catania",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Teatro greco-romano di Catania",
+      "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+     },
+     "google": {
+      "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Sei nel centro storico, tra piazza San Francesco e via Vittorio Emanuele. Il suo aspetto attuale risale al II secolo, e ci sono la gradinata e l'orchestra. È stato riportato alla luce a partire dalla fine dell'Ottocento. Accanto, a est, c'è l'odeon della città.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01278,
+     "riscritto": true,
+     "prima": {
+      "testo": "Sei nel centro storico, tra piazza San Francesco e via Vittorio Emanuele. Quello che vedi è il teatro com'era nel II secolo, con la gradinata e l'orchestra. È stato riportato alla luce a partire dalla fine dell'Ottocento. Accanto, a est, c'è l'odeon della città.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (La frase afferma che quello che vedi è il teatro 'com'era nel II secolo', suggerendo che l'aspetto attuale corrisponda all'aspetto originale)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2109,
+       "costoUsd": 0.004276
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2910,
+       "costoUsd": 0.001917
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1796,
+       "costoUsd": 0.005266
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1679,
+       "costoUsd": 0.001321
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: qui sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi è del II secolo. Lo hanno riportato alla luce a partire dalla fine dell'Ottocento. Ci sono la gradinata e l'orchestra.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.012862,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: qui sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi è del II secolo. Lo hanno riportato alla luce a partire dalla fine dell'Ottocento. Resta la gradinata, resta l'orchestra, e accanto c'è l'odeon della città.",
+      "motivi": [
+       "verifica: frase 4 non è nelle fonti (La frase dice 'accanto c'è l'odeon della città', ma la fonte dice che l'odeon 'confina a est', non genericamente 'accanto'. Inoltre, la font)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2295,
+       "costoUsd": 0.004456
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2702,
+       "costoUsd": 0.001765
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2019,
+       "costoUsd": 0.005324
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1857,
+       "costoUsd": 0.001317
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Catania",
+    "nome": "Castello Ursino",
+    "wikipediaTitolo": "Castello Ursino",
+    "fonti": {
+     "nome": "Castello Ursino",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Castello Ursino",
+      "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+     },
+     "google": {
+      "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: questo castello lo ha costruito il re Federico II di Svevia, nel Duecento. Ai tempi dei Vespri siciliani è stato sede del parlamento siciliano. Poi ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.013687,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: questo castello lo ha costruito il re Federico II di Svevia, nel Duecento. Durante i Vespri siciliani qui ha riunito il parlamento siciliano. Poi ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (La fonte dice che il castello 'ebbe una certa visibilità' come 'sede del parlamento siciliano' durante i Vespri, ma non afferma che qui ha ')"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2296,
+       "costoUsd": 0.00475
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2390,
+       "costoUsd": 0.001745
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2090,
+       "costoUsd": 0.005806
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1602,
+       "costoUsd": 0.001386
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questo castello lo ha costruito Federico II di Svevia, nel Duecento. Durante i Vespri siciliani qui sedeva il parlamento siciliano. Poi ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006101,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2239,
+       "costoUsd": 0.00472
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1730,
+       "costoUsd": 0.001381
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Catania",
+    "nome": "Fontana dell’Amenano",
+    "wikipediaTitolo": "Fontana dell'Amenano",
+    "fonti": {
+     "nome": "Fontana dell’Amenano",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Fontana dell'Amenano",
+      "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+     },
+     "google": {
+      "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: questa fontana è del 1867. Sta sul lato sud di piazza del Duomo. È a opera di Tito Angelini, e ci trovi dei personaggi mitologici. Cerca anche lo stemma della città, inciso sulla fontana.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.011592,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: questa fontana è del 1867. Sta sul lato sud di piazza del Duomo. Il progetto è di Tito Angelini, e ci trovi dei personaggi mitologici. Cerca anche lo stemma della città, inciso sulla fontana.",
+      "motivi": [
+       "verifica: frase 3 non è nelle fonti (La fonte 2 dice che la fontana è 'a opera di Tito Angelini', non che il progetto è di Angelini. Inoltre, attribuire il progetto a Angelini v)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1977,
+       "costoUsd": 0.00392
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2342,
+       "costoUsd": 0.001583
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1624,
+       "costoUsd": 0.004822
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1762,
+       "costoUsd": 0.001267
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questa è la fontana dell'Amenano, del 1867. Sta sul lato sud di piazza del Duomo. Le statue sono personaggi mitologici, opera di Tito Angelini. Cerca lo stemma della città: è inciso lì.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005159,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2012,
+       "costoUsd": 0.00389
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1805,
+       "costoUsd": 0.001269
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Catania",
+    "nome": "Piazza Giuseppe Mazzini",
+    "wikipediaTitolo": "Piazza Mazzini (Catania)",
+    "fonti": {
+     "nome": "Piazza Giuseppe Mazzini",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Piazza Mazzini (Catania)",
+      "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+     },
+     "google": null
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Qui una volta si chiamava Piano di San Filippo. Dopo il terremoto del 1693 la ricostruzione fu coordinata dal duca di Camastra, e questa piazza fu pensata come mercato. Lo spazio nasce dall'incrocio fra due strade, perciò ha il disegno a croce greca. Nei primi decenni del Settecento sono sorsi quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.007264,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1816,
+       "costoUsd": 0.005602
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1646,
+       "costoUsd": 0.001662
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questa piazza si chiamava Piano di San Filippo. Dopo il terremoto del 1693 il duca di Camastra, che coordinava e finanziava la ricostruzione, la pensò come mercato. Nasce dall'incrocio di due strade e ha il disegno di una croce greca. Nei primi decenni del Settecento sorsero quattro loggiati identici, ciascuno con 8 colonne di marmo bianco.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.007185,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1692,
+       "costoUsd": 0.005522
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1779,
+       "costoUsd": 0.001663
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Catania",
+    "nome": "Palazzo dei Chierici",
+    "wikipediaTitolo": "Palazzo del Seminario dei Chierici",
+    "fonti": {
+     "nome": "Palazzo dei Chierici",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Palazzo del Seminario dei Chierici",
+      "testo": "Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante."
+     },
+     "google": null
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Guarda: questo è il palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud della piazza del Duomo, con la Cattedrale di Sant'Agata proprio accanto. Di fronte c'è il Palazzo degli Elefanti, che fa da municipio anche lui. In mezzo alla piazza trovi la Fontana dell'Elefante.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005848,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2397,
+       "costoUsd": 0.004504
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1758,
+       "costoUsd": 0.001344
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questo è il palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud della piazza del Duomo. Accanto ha la Cattedrale di Sant'Agata. Di fronte c'è il Palazzo degli Elefanti, che è municipio anche lui.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005538,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2043,
+       "costoUsd": 0.004214
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1600,
+       "costoUsd": 0.001324
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Catania",
+    "nome": "Via Etnea",
+    "wikipediaTitolo": "Via Etnea",
+    "fonti": {
+     "nome": "Via Etnea",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Via Etnea",
+      "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+     },
+     "google": {
+      "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Parti da Piazza del Duomo e vai verso nord, in linea retta fino al Tondo Gioeni. Sono circa 3 chilometri, tutti dritti. Lungo la strada trovi bar e monumenti barocchi. Guarda in fondo: da qui si vede l'Etna.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01211,
+     "riscritto": true,
+     "prima": {
+      "testo": "Parti da Piazza del Duomo e vai verso nord, in linea retta fino al Tondo Gioeni. Sono circa 3 chilometri, tutti dritti. Lungo la strada trovi bar, negozi e monumenti barocchi. Guarda in fondo: da qui si vede l'Etna.",
+      "motivi": [
+       "verifica: frase 3 non è nelle fonti (Le fonti menzionano bar, monumenti barocchi e negozi (shopping), ma il racconto aggiunge 'negozi' come elemento specifico non esplicitamente)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2081,
+       "costoUsd": 0.004106
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2674,
+       "costoUsd": 0.0017
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1741,
+       "costoUsd": 0.005012
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1601,
+       "costoUsd": 0.001292
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Questa è la via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 3 chilometri. Parte da Piazza del Duomo e arriva al Tondo Gioeni. Lungo la strada ci sono bar e monumenti barocchi.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.012157,
+     "riscritto": true,
+     "prima": {
+      "testo": "Questa è la via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 3 chilometri. Parte da Piazza del Duomo e arriva al Tondo Gioeni. Lungo il percorso trovi negozi, bar e monumenti barocchi, con l'Etna in vista.",
+      "motivi": [
+       "verifica: frase 4 non è nelle fonti (La frase aggiunge 'negozi' che non è menzionato nelle fonti (fonte 2 dice 'bar' e 'monumenti barocchi' ma non 'negozi'). Inoltre 'con l'Etna)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2068,
+       "costoUsd": 0.004156
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2316,
+       "costoUsd": 0.001687
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1763,
+       "costoUsd": 0.005026
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1713,
+       "costoUsd": 0.001288
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Troina",
+    "nome": "Chiesa Madre di Maria Santissima Assunta",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Chiesa Madre di Maria Santissima Assunta",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Troina",
+    "nome": "Torre Capitania",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Torre Capitania",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Troina",
+    "nome": "Piazza Conte Ruggero",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Piazza Conte Ruggero",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Troina",
+    "nome": "Monte Muganà",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Monte Muganà",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Roma",
+    "nome": "Giardino di Sant'Alessio",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Giardino di Sant'Alessio",
+     "citta": "Roma",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Roma",
+    "nome": "Roseto comunale",
+    "wikipediaTitolo": "Roseto di Roma",
+    "fonti": {
+     "nome": "Roseto comunale",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Roseto di Roma",
+      "testo": "Il Roseto di Roma è un giardino situato sulle pendici dell'Aventino, nei pressi del Circo Massimo, nella città di Roma."
+     },
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Roma",
+    "nome": "Villa Sciarra",
+    "wikipediaTitolo": "Villa Sciarra (Roma)",
+    "fonti": {
+     "nome": "Villa Sciarra",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Villa Sciarra (Roma)",
+      "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+     },
+     "google": {
+      "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Siamo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, con le Mura gianicolensi proprio a ridosso del parco. Sono sette ettari e mezzo, e puoi entrare da due parti: da piazzale Wurts o da largo Filippo Minutilli. Piazzale Wurts porta il nome di George Washington Wurts, l'ultimo proprietario: a lui si deve la disposizione del giardino e dei monumenti che vedrai passeggiando. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006956,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2475,
+       "costoUsd": 0.005482
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1704,
+       "costoUsd": 0.001474
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Qui sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, addossato alle Mura gianicolensi. Sono sette ettari e mezzo di parco, con piccoli giardini, sculture, fontane e un'antica villa. Il giardino e i monumenti che trovi li ha disposti George Washington Wurts, l'ultimo proprietario, e da lui prende il nome il piazzale d'ingresso. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006732,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2413,
+       "costoUsd": 0.005272
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1624,
+       "costoUsd": 0.00146
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Roma",
+    "nome": "Orto Botanico di Roma",
+    "wikipediaTitolo": "Orto botanico di Roma",
+    "fonti": {
+     "nome": "Orto Botanico di Roma",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Orto botanico di Roma",
+      "testo": "L'Orto botanico di Roma è situato alle pendici del Gianicolo, nell'antico parco di villa Corsini, un tempo residenza di Cristina di Svezia. La struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\"."
+     },
+     "google": {
+      "testo": "7.000 specie di piante da tutto il mondo, fontane, boschetto di bambù e giardino del tè giapponese."
+     }
+    },
+    "prima": {
+     "ok": false,
+     "testo": "Fermati: sei alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia. Oggi la struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\". Dentro ci sono 7.000 specie di piante da tutto il mondo, fontane, un boschetto di bambù e il giardino del tè giapponese.",
+     "motivi": [
+      "numeri non nelle fonti: 7, 000"
+     ],
+     "verifica": null,
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": null,
+     "costoUsd": 0.004636,
+     "riscritto": false,
+     "prima": null,
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1663,
+       "costoUsd": 0.004636
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: sei alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia. Oggi l'Orto dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\". Dentro trovi 7.000 specie di piante da tutto il mondo, fontane, un boschetto di bambù e il giardino del tè giapponese.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00599,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1490,
+       "costoUsd": 0.004636
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1549,
+       "costoUsd": 0.001354
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Roma",
+    "nome": "Il Palazzo dei Conservatori",
+    "wikipediaTitolo": "Palazzo dei Conservatori",
+    "fonti": {
+     "nome": "Il Palazzo dei Conservatori",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Palazzo dei Conservatori",
+      "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Il palazzo dei Conservatori e il Palazzo Nuovo, insieme al Tabularium, costituiscono attualmente la sede espositiva dei Musei Capitolini, tra i musei romani più rappresentativi e visitati."
+     },
+     "google": {
+      "testo": "Imponente struttura del XV secolo nei Musei Capitolini con statue, opere d'arte e affreschi."
+     }
+    },
+    "prima": {
+     "ok": false,
+     "testo": "Fermati: sei in piazza del Campidoglio, e questo è il Palazzo dei Conservatori. Sta accanto al Palazzo Senatorio ed è di fronte al Palazzo Nuovo. È una struttura del XV secolo. Insieme al Palazzo Nuovo e al Tabularium oggi ospita i Musei Capitolini. Dentro trovi statue, opere d'arte e affreschi.",
+     "motivi": [
+      "più di 4 frasi"
+     ],
+     "verifica": null,
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": null,
+     "costoUsd": 0.004644,
+     "riscritto": false,
+     "prima": null,
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1888,
+       "costoUsd": 0.004644
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: siamo in piazza del Campidoglio, e questo è il Palazzo dei Conservatori. Sta a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Insieme al Palazzo Nuovo e al Tabularium forma la sede espositiva dei Musei Capitolini. È una struttura del XV secolo, con statue, opere d'arte e affreschi.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005943,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1958,
+       "costoUsd": 0.004604
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1713,
+       "costoUsd": 0.001339
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Roma",
+    "nome": "Palazzo Massimo alle Colonne",
+    "wikipediaTitolo": "Palazzo Massimo alle Colonne",
+    "fonti": {
+     "nome": "Palazzo Massimo alle Colonne",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Palazzo Massimo alle Colonne",
+      "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+     },
+     "google": {
+      "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Aperta solo il 16 marzo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005068,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1388,
+       "costoUsd": 0.003976
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1404,
+       "costoUsd": 0.001092
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Guarda: questo è il Palazzo Massimo alle Colonne, un palazzo rinascimentale di Roma, e si affaccia su corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Il palazzo è aperto solo il 16 marzo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01156,
+     "riscritto": true,
+     "prima": {
+      "testo": "Guarda: questo è il Palazzo Massimo alle Colonne, un palazzo rinascimentale di Roma, e si affaccia su corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. La cappella si apre solo il 16 marzo.",
+      "motivi": [
+       "verifica: frase 3 non è nelle fonti (La fonte dice che il palazzo è 'aperto solo il 16 marzo', non che la cappella si apre solo quel giorno. È un'interpretazione non esplicita n)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1400,
+       "costoUsd": 0.004086
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1903,
+       "costoUsd": 0.001326
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1427,
+       "costoUsd": 0.005048
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1392,
+       "costoUsd": 0.0011
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Roma",
+    "nome": "Terrazza delle Quadrighe",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Terrazza delle Quadrighe",
+     "citta": "Roma",
+     "wikipedia": null,
+     "google": {
+      "testo": "Terrazza panoramica in cima al Complesso museale del Vittoriano, con vista completa sulla città."
+     }
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Roma",
+    "nome": "Galleria Colonna",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Galleria Colonna",
+     "citta": "Roma",
+     "wikipedia": null,
+     "google": {
+      "testo": "Palazzo privato barocco del XIV secolo con ingresso affrescato e collezione d'arte di antichi maestri."
+     }
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Roma",
+    "nome": "Parco del Gianicolo",
+    "wikipediaTitolo": "Gianicolo",
+    "fonti": {
+     "nome": "Parco del Gianicolo",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Gianicolo",
+      "testo": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini)."
+     },
+     "google": {
+      "testo": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Sei sul Gianicolo: un colle alto 88 metri che non fa parte dei sette colli tradizionali di Roma. Giù, sul versante verso il fiume, c'è Trastevere. Da qui la vista va fino al centro storico e ai suoi monumenti, e più lontano ai Colli Albani e alle cime dell'Appennino centrale, come il Terminillo e il Velino.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006313,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2166,
+       "costoUsd": 0.004948
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1390,
+       "costoUsd": 0.001365
+      }
+     ]
+    },
+    "dopo": {
+     "ok": false,
+     "testo": "Questo colle non è uno dei sette colli tradizionali di Roma. Sotto di te, sul versante verso il fiume, c'è Trastevere. Da quassù guardi i quartieri vicini e il centro storico coi suoi monumenti. Nelle giornate limpide la vista arriva ai Colli Albani e fino al Terminillo e al Velino.",
+     "motivi": [
+      "verifica: frase 4 non è nelle fonti (La fonte non specifica che la vista ai Colli Albani e al Terminillo/Velino sia visibile solo 'nelle giornate limpide'. Aggiunge una condizio)"
+     ],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": false,
+       "motivo": "La fonte non specifica che la vista ai Colli Albani e al Terminillo/Velino sia visibile solo 'nelle giornate limpide'. Aggiunge una condizio"
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.012998,
+     "riscritto": true,
+     "prima": {
+      "testo": "Questo colle non è uno dei sette colli tradizionali di Roma. Sotto di te, sul versante verso il fiume, c'è Trastevere. Da quassù guardi i quartieri vicini e il centro storico coi suoi monumenti. Nelle giornate limpide la vista arriva ai Colli Albani e fino al Terminillo e al Velino. Alle spalle del colle, a sud-ovest, c'è Villa Doria Pamphili. Sul versante verso il fiume trovi l'Orto botanico.",
+      "motivi": [
+       "più di 4 frasi",
+       "indicazione di direzione"
+      ]
+     },
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2607,
+       "costoUsd": 0.005398
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1905,
+       "costoUsd": 0.005818
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2505,
+       "costoUsd": 0.001782
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 2,
+    "citta": "Roma",
+    "nome": "Piazza del Campidoglio",
+    "wikipediaTitolo": "Piazza del Campidoglio",
+    "fonti": {
+     "nome": "Piazza del Campidoglio",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Piazza del Campidoglio",
+      "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+     },
+     "google": {
+      "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+     }
+    },
+    "prima": {
+     "ok": false,
+     "testo": "Sei sulla cima del colle Campidoglio, in una piazza che sorge sull'Asylum, la depressione tra l'Arx e il Capitolium. Sotto i tuoi piedi c'è il Tabularium, quello che si vede dal Foro Romano. Già nel XII secolo il Tabularium era stato scelto come sede del Comune. La piazza di oggi è del XVI secolo: Paolo III la fece rifare da Michelangelo Buonarroti, per la visita a Roma dell'imperatore Carlo V. Al centro c'è la statua di Marco Aurelio. Cerca anche quelle del Tevere e del Nilo.",
+     "motivi": [
+      "più di 4 frasi"
+     ],
+     "verifica": null,
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": null,
+     "costoUsd": 0.005998,
+     "riscritto": false,
+     "prima": null,
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2825,
+       "costoUsd": 0.005998
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: sei sulla cima del colle Campidoglio, e sotto i tuoi piedi c'è il Tabularium, quello che vedi dal Foro Romano. Già nel XII secolo era la sede del Comune. La piazza come la vedi oggi è del XVI secolo: Paolo III ne commissionò a Michelangelo il totale rifacimento, per la visita a Roma dell'imperatore Carlo V. Al centro c'è la statua di Marco Aurelio, e ci sono anche quelle del Tevere e del Nilo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.007206,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2591,
+       "costoUsd": 0.005618
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1745,
+       "costoUsd": 0.001588
+      }
+     ]
+    }
+   }
+  ],
+  [
+   {
+    "lancio": 3,
+    "citta": "Catania",
+    "nome": "Porta Uzeda",
+    "wikipediaTitolo": "Porta Uzeda",
+    "fonti": {
+     "nome": "Porta Uzeda",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Porta Uzeda",
+      "testo": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca."
+     },
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Catania",
+    "nome": "Basilica Cattedrale di Sant'Agata",
+    "wikipediaTitolo": "Cattedrale di Sant'Agata",
+    "fonti": {
+     "nome": "Basilica Cattedrale di Sant'Agata",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Cattedrale di Sant'Agata",
+      "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+     },
+     "google": {
+      "testo": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. La facciata ha le colonne, e dentro trovi la cupola, gli affreschi e i dipinti. Nello stesso edificio convivono stili diversi: il Normanno, il Barocco, il Neoclassico.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006246,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2220,
+       "costoUsd": 0.004792
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1553,
+       "costoUsd": 0.001454
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questa è la chiesa madre di Catania, dedicata a Sant'Agata, vergine e martire, patrona della città. Sorge sul lato sud-est di piazza del Duomo. Dentro conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005686,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1730,
+       "costoUsd": 0.004422
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1419,
+       "costoUsd": 0.001264
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Catania",
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "wikipediaTitolo": "Fontana dell'Elefante",
+    "fonti": {
+     "nome": "Fontana dell'Elefante (uʻ Liotru)",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Fontana dell'Elefante",
+      "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+     },
+     "google": {
+      "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Guarda l'elefante: è una statua di basalto nero, e qui lo chiamano U Liotru. La fontana è di Giovanni Battista Vaccarini, costruita tra il 1735 e il 1737 al centro di piazza del Duomo. Oggi l'elefante è l'emblema di Catania.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.012731,
+     "riscritto": true,
+     "prima": {
+      "testo": "Guarda l'elefante: è una statua di basalto nero, e qui lo chiamano U Liotru. La statua è romana, scolpita nel basalto. La fontana è di Giovanni Battista Vaccarini, costruita tra il 1735 e il 1737 al centro di piazza del Duomo. Oggi l'elefante è l'emblema di Catania.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (La fonte 1 dice che la statua raffigura un elefante ed è di basalto nero, ma non specifica che sia 'romana'. La fonte 2 dice 'statua romana')"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2071,
+       "costoUsd": 0.00442
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2811,
+       "costoUsd": 0.001884
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1685,
+       "costoUsd": 0.005216
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1443,
+       "costoUsd": 0.001211
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. Per tutti è l'emblema della città. La fontana l'ha fatta Giovanni Battista Vaccarini, tra il 1735 e il 1737, qui al centro di piazza del Duomo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.012373,
+     "riscritto": true,
+     "prima": {
+      "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. È una statua romana, e oggi è il simbolo della città. La fontana l'ha fatta Giovanni Battista Vaccarini, tra il 1735 e il 1737, qui al centro di piazza del Duomo.",
+      "motivi": [
+       "verifica: frase 2 non è nelle fonti (La fonte 1 dice che l'elefante è una 'statua di basalto nero' e non specifica che sia 'romana'. La fonte 2 menziona 'statua romana' ma non è)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1935,
+       "costoUsd": 0.00426
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2662,
+       "costoUsd": 0.001768
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1730,
+       "costoUsd": 0.005142
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1391,
+       "costoUsd": 0.001203
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Catania",
+    "nome": "Teatro Antico greco-romano di Catania",
+    "wikipediaTitolo": "Teatro greco-romano di Catania",
+    "fonti": {
+     "nome": "Teatro Antico greco-romano di Catania",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Teatro greco-romano di Catania",
+      "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+     },
+     "google": {
+      "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Quello che vedi risale al II secolo. È stato messo in luce solo dalla fine dell'Ottocento. Cerca la gradinata e l'orchestra: sono ancora lì.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005549,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1853,
+       "costoUsd": 0.004236
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1717,
+       "costoUsd": 0.001313
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi oggi risale al II secolo. È venuto alla luce a partire dalla fine dell'Ottocento. Qui restano la gradinata e l'orchestra.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.012721,
+     "riscritto": true,
+     "prima": {
+      "testo": "Sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi oggi risale al II secolo. È venuto alla luce a partire dalla fine dell'Ottocento. Cerca la gradinata e l'orchestra, e accanto, a est, c'è l'odeon della città.",
+      "motivi": [
+       "verifica: frase 4 non è nelle fonti (La frase aggiunge l'imperativo 'Cerca' e l'istruzione 'accanto, a est' che non sono nelle fonti. Inoltre, descrive gradinata e orchestra com)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2065,
+       "costoUsd": 0.004416
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2481,
+       "costoUsd": 0.001729
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1954,
+       "costoUsd": 0.005262
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1549,
+       "costoUsd": 0.001314
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Catania",
+    "nome": "Castello Ursino",
+    "wikipediaTitolo": "Castello Ursino",
+    "fonti": {
+     "nome": "Castello Ursino",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Castello Ursino",
+      "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+     },
+     "google": {
+      "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: questo castello l'ha costruito Federico II di Svevia nel XIII secolo. Durante i Vespri siciliani è stato la sede del parlamento siciliano, e dopo è diventato la residenza dei re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini. Cerca anche i carri dipinti.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006283,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2289,
+       "costoUsd": 0.00489
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1791,
+       "costoUsd": 0.001393
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questo castello lo ha fatto costruire Federico II di Svevia, nel Duecento. Durante i Vespri siciliani è stato sede del parlamento siciliano. Poi ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01176,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: questo castello lo ha fatto costruire Federico II di Svevia, nel Duecento. Nei Vespri siciliani ha ospitato il parlamento siciliano. Poi ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+      "motivi": [
+       "nomi non nelle fonti: Nei"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2102,
+       "costoUsd": 0.00474
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1949,
+       "costoUsd": 0.005638
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1552,
+       "costoUsd": 0.001382
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Catania",
+    "nome": "Fontana dell’Amenano",
+    "wikipediaTitolo": "Fontana dell'Amenano",
+    "fonti": {
+     "nome": "Fontana dell’Amenano",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Fontana dell'Amenano",
+      "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+     },
+     "google": {
+      "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Guarda, siamo sul lato sud di piazza del Duomo. Questa fontana è del 1867. L'ha fatta Tito Angelini, con personaggi mitologici e lo stemma della città inciso.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00482,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1734,
+       "costoUsd": 0.00372
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1387,
+       "costoUsd": 0.0011
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questa fontana è del 1867. Sta sul lato sud di piazza del Duomo. È una fontana barocca, con personaggi mitologici. L'ha fatta Tito Angelini, e c'è anche lo stemma della città inciso.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00514,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1941,
+       "costoUsd": 0.00387
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1690,
+       "costoUsd": 0.00127
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Catania",
+    "nome": "Piazza Giuseppe Mazzini",
+    "wikipediaTitolo": "Piazza Mazzini (Catania)",
+    "fonti": {
+     "nome": "Piazza Giuseppe Mazzini",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Piazza Mazzini (Catania)",
+      "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+     },
+     "google": null
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Qui prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693 il duca di Camastra, che coordinò e finanziò la ricostruzione, la pensò come mercato. Guarda come è fatta: nasce dall'incrocio di due strade, e ha il disegno di una croce greca. Nei primi decenni del Settecento ci hanno messo quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.00727,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1922,
+       "costoUsd": 0.005602
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1505,
+       "costoUsd": 0.001668
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questa piazza all'inizio si chiamava Piano di San Filippo. Dopo il terremoto del 1693 il duca di Camastra, che coordinava e finanziava la ricostruzione, la pensò come mercato. Nasce dall'incrocio di due strade e ha un disegno a croce greca. Nei primi decenni del Settecento sono sorsi quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.007238,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1768,
+       "costoUsd": 0.005572
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1549,
+       "costoUsd": 0.001666
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Catania",
+    "nome": "Palazzo dei Chierici",
+    "wikipediaTitolo": "Palazzo del Seminario dei Chierici",
+    "fonti": {
+     "nome": "Palazzo dei Chierici",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Palazzo del Seminario dei Chierici",
+      "testo": "Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante."
+     },
+     "google": null
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: questo è il palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud della piazza del Duomo. Accanto ha la Cattedrale di Sant'Agata. Anche il Palazzo degli Elefanti, di fronte, fa da municipio.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005506,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2058,
+       "costoUsd": 0.004184
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1707,
+       "costoUsd": 0.001322
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questo è il palazzo del Seminario dei Chierici, un edificio storico di Catania. Oggi fa da municipio. Sta sul lato sud di piazza del Duomo, con la Cattedrale di Sant'Agata accanto. Al centro della piazza c'è la Fontana dell'Elefante.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005554,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2261,
+       "costoUsd": 0.004224
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1824,
+       "costoUsd": 0.00133
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Catania",
+    "nome": "Via Etnea",
+    "wikipediaTitolo": "Via Etnea",
+    "fonti": {
+     "nome": "Via Etnea",
+     "citta": "Catania",
+     "wikipedia": {
+      "titolo": "Via Etnea",
+      "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+     },
+     "google": {
+      "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Parti da Piazza del Duomo: da lì la via Etnea va dritta verso nord, senza una curva. Sono circa 3 chilometri, fino al Tondo Gioeni. Lungo la strada trovi bar, negozi e monumenti barocchi. Guarda in fondo alla strada: da qui si vede l'Etna.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.0055,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2142,
+       "costoUsd": 0.004196
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1733,
+       "costoUsd": 0.001304
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Questa è la via Etnea, la strada principale del centro storico. Parte da Piazza del Duomo e corre dritta verso nord, per circa 3 chilometri, fino al Tondo Gioeni. Qui trovi bar e monumenti barocchi, con la vista sull'Etna.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.01189,
+     "riscritto": true,
+     "prima": {
+      "testo": "Questa è la via Etnea, la strada principale del centro storico. Parte da Piazza del Duomo e corre dritta verso nord, per circa 3 chilometri, fino al Tondo Gioeni. Lungo la strada trovi negozi, bar e monumenti barocchi, e in fondo si vede l'Etna.",
+      "motivi": [
+       "verifica: frase 3 non è nelle fonti (La frase aggiunge 'negozi' che non è menzionato nelle fonti (fonte 2 cita 'bar, monumenti barocchi e vista sull'Etna', ma non negozi). Inolt)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1926,
+       "costoUsd": 0.004146
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2335,
+       "costoUsd": 0.001572
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1889,
+       "costoUsd": 0.005038
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1367,
+       "costoUsd": 0.001134
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Troina",
+    "nome": "Chiesa Madre di Maria Santissima Assunta",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Chiesa Madre di Maria Santissima Assunta",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Troina",
+    "nome": "Torre Capitania",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Torre Capitania",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Troina",
+    "nome": "Piazza Conte Ruggero",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Piazza Conte Ruggero",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Troina",
+    "nome": "Monte Muganà",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Monte Muganà",
+     "citta": "Troina",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Roma",
+    "nome": "Giardino di Sant'Alessio",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Giardino di Sant'Alessio",
+     "citta": "Roma",
+     "wikipedia": null,
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Roma",
+    "nome": "Roseto comunale",
+    "wikipediaTitolo": "Roseto di Roma",
+    "fonti": {
+     "nome": "Roseto comunale",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Roseto di Roma",
+      "testo": "Il Roseto di Roma è un giardino situato sulle pendici dell'Aventino, nei pressi del Circo Massimo, nella città di Roma."
+     },
+     "google": null
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Roma",
+    "nome": "Villa Sciarra",
+    "wikipediaTitolo": "Villa Sciarra (Roma)",
+    "fonti": {
+     "nome": "Villa Sciarra",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Villa Sciarra (Roma)",
+      "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+     },
+     "google": {
+      "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, con le Mura gianicolensi lì accanto. Sono sette ettari e mezzo di parco, con piccoli giardini, sculture, fontane e un'antica villa. Il nome viene dalla famiglia nobile pontificia degli Sciarra. Ma la disposizione del giardino e dei monumenti si deve all'ultimo proprietario, George Washington Wurts, e il piazzale da cui entri porta il suo nome.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006645,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2450,
+       "costoUsd": 0.005192
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1637,
+       "costoUsd": 0.001453
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Qui sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, addossato alle Mura gianicolensi. Sono sette ettari e mezzo di giardini piccoli, con sculture, fontane e un'antica villa. Il nome viene dalla famiglia nobile pontificia degli Sciarra. Ma la disposizione del giardino e dei monumenti si deve all'ultimo proprietario, George Washington Wurts, e a lui è intitolato il piazzale d'ingresso.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006634,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2564,
+       "costoUsd": 0.005182
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1570,
+       "costoUsd": 0.001452
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Roma",
+    "nome": "Orto Botanico di Roma",
+    "wikipediaTitolo": "Orto botanico di Roma",
+    "fonti": {
+     "nome": "Orto Botanico di Roma",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Orto botanico di Roma",
+      "testo": "L'Orto botanico di Roma è situato alle pendici del Gianicolo, nell'antico parco di villa Corsini, un tempo residenza di Cristina di Svezia. La struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\"."
+     },
+     "google": {
+      "testo": "7.000 specie di piante da tutto il mondo, fontane, boschetto di bambù e giardino del tè giapponese."
+     }
+    },
+    "prima": {
+     "ok": false,
+     "testo": "Sei alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia. Oggi l'Orto botanico dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\". Dentro ci sono 7.000 specie di piante da tutto il mondo, e poi fontane, un boschetto di bambù e il giardino del tè giapponese.",
+     "motivi": [
+      "numeri non nelle fonti: 7, 000"
+     ],
+     "verifica": null,
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": null,
+     "costoUsd": 0.004686,
+     "riscritto": false,
+     "prima": null,
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1571,
+       "costoUsd": 0.004686
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: sei alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia. Oggi la struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\". Dentro trovi 7.000 specie di piante da tutto il mondo, fontane, un boschetto di bambù e il giardino del tè giapponese.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005978,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1621,
+       "costoUsd": 0.004626
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1704,
+       "costoUsd": 0.001352
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Roma",
+    "nome": "Il Palazzo dei Conservatori",
+    "wikipediaTitolo": "Palazzo dei Conservatori",
+    "fonti": {
+     "nome": "Il Palazzo dei Conservatori",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Palazzo dei Conservatori",
+      "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Il palazzo dei Conservatori e il Palazzo Nuovo, insieme al Tabularium, costituiscono attualmente la sede espositiva dei Musei Capitolini, tra i musei romani più rappresentativi e visitati."
+     },
+     "google": {
+      "testo": "Imponente struttura del XV secolo nei Musei Capitolini con statue, opere d'arte e affreschi."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Guarda: il Palazzo dei Conservatori sta in piazza del Campidoglio. Ha il Palazzo Senatorio accanto e il Palazzo Nuovo di fronte. Insieme al Palazzo Nuovo e al Tabularium, oggi è la sede espositiva dei Musei Capitolini. Dentro trovi statue, opere d'arte e affreschi, in una struttura del XV secolo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005961,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1799,
+       "costoUsd": 0.004624
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1629,
+       "costoUsd": 0.001337
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Fermati: questo è il Palazzo dei Conservatori, in piazza del Campidoglio. Sta a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Insieme al Palazzo Nuovo e al Tabularium forma la sede espositiva dei Musei Capitolini. Dentro trovi statue, opere d'arte e affreschi.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.005835,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1784,
+       "costoUsd": 0.004504
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1654,
+       "costoUsd": 0.001331
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Roma",
+    "nome": "Palazzo Massimo alle Colonne",
+    "wikipediaTitolo": "Palazzo Massimo alle Colonne",
+    "fonti": {
+     "nome": "Palazzo Massimo alle Colonne",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Palazzo Massimo alle Colonne",
+      "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+     },
+     "google": {
+      "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Il palazzo è aperto solo il 16 marzo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.0116,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Aperta solo il 16 marzo, quindi guarda bene da fuori.",
+      "motivi": [
+       "verifica: frase 3 non è nelle fonti (La frase aggiunge l'interpretazione 'quindi guarda bene da fuori' che non è nelle fonti. Le fonti dicono solo che è aperto il 16 marzo, non )"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1610,
+       "costoUsd": 0.004106
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2023,
+       "costoUsd": 0.001396
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1530,
+       "costoUsd": 0.005004
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1408,
+       "costoUsd": 0.001094
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Guarda: questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. La puoi visitare solo il 16 marzo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.0051,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1397,
+       "costoUsd": 0.004006
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1493,
+       "costoUsd": 0.001094
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Roma",
+    "nome": "Terrazza delle Quadrighe",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Terrazza delle Quadrighe",
+     "citta": "Roma",
+     "wikipedia": null,
+     "google": {
+      "testo": "Terrazza panoramica in cima al Complesso museale del Vittoriano, con vista completa sulla città."
+     }
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Roma",
+    "nome": "Galleria Colonna",
+    "wikipediaTitolo": null,
+    "fonti": {
+     "nome": "Galleria Colonna",
+     "citta": "Roma",
+     "wikipedia": null,
+     "google": {
+      "testo": "Palazzo privato barocco del XIV secolo con ingresso affrescato e collezione d'arte di antichi maestri."
+     }
+    },
+    "prima": {
+     "esito": "senza-fonti"
+    },
+    "dopo": {
+     "esito": "senza-fonti"
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Roma",
+    "nome": "Parco del Gianicolo",
+    "wikipediaTitolo": "Gianicolo",
+    "fonti": {
+     "nome": "Parco del Gianicolo",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Gianicolo",
+      "testo": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini)."
+     },
+     "google": {
+      "testo": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Sei sul Gianicolo, un colle alto 88 metri che non fa parte dei sette colli tradizionali di Roma. Sotto di te, sul versante verso il fiume, c'è Trastevere. Da qui la vista arriva al centro storico e ai suoi monumenti, poi ai Colli Albani e fino a Terminillo, Velino e Monti Simbruini.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006266,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2286,
+       "costoUsd": 0.004908
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1483,
+       "costoUsd": 0.001358
+      }
+     ]
+    },
+    "dopo": {
+     "ok": true,
+     "testo": "Sei sul Gianicolo, un colle alto 88 metri che non fa parte dei sette colli tradizionali di Roma. Ai suoi piedi, sul versante verso il fiume, c'è Trastevere. Da qui la vista arriva sul centro storico e sui maggiori monumenti della città, e più lontano fino ai Colli Albani e al Terminillo.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.006212,
+     "riscritto": false,
+     "prima": null,
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2287,
+       "costoUsd": 0.004858
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1533,
+       "costoUsd": 0.001354
+      }
+     ]
+    }
+   },
+   {
+    "lancio": 3,
+    "citta": "Roma",
+    "nome": "Piazza del Campidoglio",
+    "wikipediaTitolo": "Piazza del Campidoglio",
+    "fonti": {
+     "nome": "Piazza del Campidoglio",
+     "citta": "Roma",
+     "wikipedia": {
+      "titolo": "Piazza del Campidoglio",
+      "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+     },
+     "google": {
+      "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+     }
+    },
+    "prima": {
+     "ok": true,
+     "testo": "Fermati: sei sulla cima del colle Campidoglio, e questa piazza l'ha progettata Michelangelo. Paolo III gliela commissionò per la visita a Roma dell'imperatore Carlo V. Sotto la piazza si trova il Tabularium, visibile dal Foro Romano. Al centro della piazza c'è la statua di Marco Aurelio.",
+     "motivi": [],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.014529,
+     "riscritto": true,
+     "prima": {
+      "testo": "Fermati: sei sulla cima del colle Campidoglio, e questa piazza l'ha progettata Michelangelo. Paolo III gliela commissionò per la visita a Roma dell'imperatore Carlo V. Sotto i tuoi piedi c'è il Tabularium, che dal Foro Romano si vede bene. Al centro della piazza c'è la statua di Marco Aurelio.",
+      "motivi": [
+       "verifica: frase 3 non è nelle fonti (La fonte dice che il Tabularium è 'visibile dal Foro Romano', non che 'dal Foro Romano si vede bene' - è un'interpretazione aggiunta sulla q)"
+      ]
+     },
+     "esito": "passato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1796,
+       "costoUsd": 0.005098
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2223,
+       "costoUsd": 0.001817
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1577,
+       "costoUsd": 0.006064
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 1679,
+       "costoUsd": 0.00155
+      }
+     ]
+    },
+    "dopo": {
+     "ok": false,
+     "testo": "Sei sulla cima del colle Campidoglio, in una piazza che sorge sull'Asylum, la depressione tra l'Arx e il Capitolium. Sotto i tuoi piedi c'è il Tabularium, e lo vedi dal Foro Romano. Nel XII secolo l'avevano scelto come sede del Comune. La piazza di oggi è del XVI secolo: Paolo III ne affidò il rifacimento a Michelangelo, per la visita a Roma di Carlo V.",
+     "motivi": [
+      "verifica: frase 2 non è nelle fonti (La fonte dice che il Tabularium è 'visibile dal Foro Romano', non che lo vedi dal Foro Romano. Inoltre, la frase afferma che il Tabularium è)"
+     ],
+     "verifica": [
+      {
+       "n": 1,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 2,
+       "nelleFonti": false,
+       "motivo": "La fonte dice che il Tabularium è 'visibile dal Foro Romano', non che lo vedi dal Foro Romano. Inoltre, la frase afferma che il Tabularium è"
+      },
+      {
+       "n": 3,
+       "nelleFonti": true,
+       "motivo": ""
+      },
+      {
+       "n": 4,
+       "nelleFonti": true,
+       "motivo": ""
+      }
+     ],
+     "modello": "claude-sonnet-5-5",
+     "modelloVerifica": "claude-haiku-4-5",
+     "costoUsd": 0.014054,
+     "riscritto": true,
+     "prima": {
+      "testo": "Sei sulla cima del colle Campidoglio, in una piazza che sorge sull'Asylum, la depressione tra l'Arx e il Capitolium. Sotto i tuoi piedi c'è il Tabularium, e lo vedi dal Foro Romano. Nel XII secolo l'avevano scelto come sede del Comune. La piazza di oggi è del XVI secolo: Paolo III ne affidò il rifacimento a Michelangelo, per la visita a Roma di Carlo V. Al centro c'è la statua di Marco Aurelio.",
+      "motivi": [
+       "più di 4 frasi"
+      ]
+     },
+     "esito": "scartato",
+     "chiamate": [
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 2128,
+       "costoUsd": 0.005648
+      },
+      {
+       "passaggio": "narratore",
+       "modello": "claude-sonnet-5-5",
+       "ms": 1663,
+       "costoUsd": 0.00644
+      },
+      {
+       "passaggio": "traduttore",
+       "modello": "claude-haiku-4-5",
+       "ms": 2514,
+       "costoUsd": 0.001966
+      }
+     ]
+    }
+   }
+  ]
+ ]
+}

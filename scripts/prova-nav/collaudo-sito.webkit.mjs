@@ -262,7 +262,8 @@ try {
         return r;
     });
 
-    // 5) schede: Orto Botanico di Roma, Villa Sciarra, due tappe di Catania
+    // 5) schede: Orto Botanico di Roma e Villa Sciarra (scartati r4 in produzione, si riscrivono con r5), Palazzo Massimo alle Colonne e
+    //    Piazza del Campidoglio (Roma, passati nelle prove r4), due tappe di Catania
     await punto(5, 'schede: racconto o frase breve; riga in place_racconti', async () => {
         const schede = async (tour, nome) => {
             const s1 = pt(tour.steps[0]);
@@ -290,9 +291,14 @@ try {
             T('Villa Sciarra', 41.8834801, 12.4646959, 'ChIJ4ya6TTxgLxMR8atV3UYz5ZA'),
             T('Parco del Gianicolo', 41.8923774, 12.4622083, 'ChIJOwPcv0FgLxMRALWOCzn7gbU'),
         ]);
+        const roma2 = giro('collaudo-schede-roma-2', 'Roma', [
+            T('Palazzo Massimo alle Colonne', 41.8967291, 12.4735541, 'ChIJn7lmdk9gLxMR-uB8_zP3zPE'),
+            T('Piazza del Campidoglio', 41.8933592, 12.4828018, 'ChIJOclom0xgLxMRURy9OLL7Hg4'),
+            T('Il Palazzo dei Conservatori', 41.8932176, 12.4826273, 'ChIJo6a_XktgLxMRmpblS064lu8'),
+        ]);
         const scelte = ['Cattedrale', 'Elefante'].map(k => CATANIA.find(s => s.title.includes(k)));
         const catania = giro('collaudo-schede-catania', 'Catania', [...scelte, CATANIA.find(s => /Bellini|Ursino/.test(s.title)) || CATANIA[5]]);
-        const r = { schede: [...await schede(roma, 'roma'), ...await schede(catania, 'catania')] };
+        const r = { schede: [...await schede(roma, 'roma'), ...await schede(roma2, 'roma-2'), ...await schede(catania, 'catania')] };
         // ok della scheda: un racconto o la frase breve a schermo (mai vuota); la riga in place_racconti la controlla il report (SQL, sola lettura)
         r.schedeOk = r.schede.every(s => !!(s.racconto || s.perche));
         r.ok = null; // si decide con la lettura di place_racconti

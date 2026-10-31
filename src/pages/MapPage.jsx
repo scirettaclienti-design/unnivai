@@ -719,8 +719,8 @@ const MapPage = () => {
             if (needsEnrichment && city) {
                 try {
                     const enrichedData = await aiRecommendationService.enrichMonuments([{
+                        ...selectedPOI,
                         name: selectedPOI.title || selectedPOI.name || 'Punto di interesse',
-                        type: selectedPOI.type
                     }], city);
 
                     if (isCurrent && enrichedData && enrichedData[0]) {
@@ -732,7 +732,7 @@ const MapPage = () => {
                                 newPoi.description = enrichedData[0].description;
                             }
                             newPoi.historicalNotes = enrichedData[0].historical_notes || enrichedData[0].historicalNotes || '';
-                            newPoi.funFacts = enrichedData[0].fun_facts || enrichedData[0].funFacts || [];
+                            newPoi.funFacts = []; // VERITA-SCHEDE: nessuna curiosità senza fonti
                             return newPoi;
                         });
                     }

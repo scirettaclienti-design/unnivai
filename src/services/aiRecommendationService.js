@@ -9,10 +9,7 @@ import { supabase } from '../lib/supabase';
 // Gate NARRATORE ANCORATO DIFF 4 — invarianti sull'output del narratore.
 // Funzione pura, nessuna I/O: qui viene solo LETTA, il log lo fa il chiamante.
 import { findTourViolations } from '../lib/narratorGuards';
-
-const DOVEVAI_NARRATOR_PROMPT = `Sei la voce di DoveVai. Scrivi curiosità storiche ironiche e colte.
-Evita i cliché come 'storia millenaria'. Focus su aneddoti bizzarri.
-Max 150 car per la nota, 80 car per il fun fact.`;
+import { richiediRacconto } from './raccontoService';
 
 // DVAI-049 / DVAI-050 — Places proxy URL.
 // In dev: middleware Vite su /__dev/places-proxy (sempre attivo).
@@ -4413,27 +4410,18 @@ export const aiRecommendationService = {
     },
 
     // ─── MONUMENT ENRICHMENT ─────────────────────────────────────────────────
+    // VERITA-SCHEDE — la scheda di un luogo (cenni, curiosità, testo letto a voce) mostra SOLO fatti delle fonti della tappa.
+    // Prima qui gpt-4o-mini scriveva «curiosità ironiche» dal solo nome del luogo, senza fonti (a una tappa di Catania poteva uscire
+    // un fatto di Roma). Ora il testo viene dal racconto del server (Wikipedia + descrizione Google, controllo automatico e revisore,
+    // `openai-proxy` purpose 'racconto'): se non passa, o la tappa non ha fonti, non c'è testo e la scheda non mostra niente.
+    // Le curiosità (`funFacts`) non le scrive più nessuno: restano sempre vuote.
     async enrichMonuments(pois, city) {
-        try {
-            const data = await callOpenAIProxy({
-                model: 'gpt-4o-mini',  // DVAI-020
-                messages: [
-                    { role: 'system', content: DOVEVAI_NARRATOR_PROMPT },
-                    { role: 'user', content: `Arricchisci questi POI di ${city || 'questa città'}: ${pois.map(p => p.name || p.title || 'Punto di interesse').join(', ')}` },
-                ],
-                response_format: { type: 'json_object' },
-            });
-            const enriched = JSON.parse(data.choices[0].message.content).data;
-
-            return pois.map(p => {
-                const targetName = p.name || p.title;
-                const item = enriched?.find(d => d.name === targetName || (d.name && targetName && d.name.includes(targetName)));
-                return { ...p, historicalNotes: item?.note || p.historicalNotes, funFacts: [item?.fun_fact] };
-            });
-        } catch (e) {
-            console.warn('[AI] enrichMonuments failed:', e.message);
-            return pois;
-        }
+        return Promise.all((pois || []).map(async (p) => {
+            let r = null;
+            try { r = await richiediRacconto({ ...p, name: p.name || p.title }, city); } catch { r = null; }
+            const testo = r && r.esito === 'passato' && typeof r.testo === 'string' && r.testo.trim() ? r.testo.trim() : null;
+            return testo ? { ...p, historicalNotes: testo, funFacts: [] } : { ...p, funFacts: [] };
+        }));
     },
 
     // ─── GEMINI / AI CHAT GUIDE ──────────────────────────────────────────────

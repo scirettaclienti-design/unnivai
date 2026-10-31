@@ -637,8 +637,10 @@ class DataService {
                 tags:            curr.vibe_tags || curr.tags || [],
                 description:     curr.description || '',
                 // Monument-specific fields (null when not populated)
-                historicalNotes: curr.historical_notes || null,
-                funFacts:        curr.fun_facts || [],
+                // VERITA-SCHEDE: cenni e curiosità scritti a mano nel database non hanno una fonte verificabile: non si mostrano né si leggono.
+                // Il testo di una scheda viene dal racconto con le fonti (aiRecommendationService.enrichMonuments).
+                historicalNotes: null,
+                funFacts:        [],
                 openingHours:    curr.opening_hours || null,
                 websiteUrl:      curr.website_url || null,
                 imageUrl:        curr.image_url || null,

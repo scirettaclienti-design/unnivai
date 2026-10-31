@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Navigation, Globe, PhoneCall, CalendarCheck, Volume2, Square, BookOpen, Lightbulb, Loader2, Star } from 'lucide-react';
+import { X, MapPin, Navigation, Globe, PhoneCall, CalendarCheck, Volume2, Square, BookOpen, Loader2, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { resolvePoiPhoto } from '../../lib/poiPhoto';
 import { getCoverPalette, isPlacesPhoto } from '../../lib/categoryPalette';
@@ -241,18 +241,6 @@ export const POIDetailDrawer = ({
               <div className="bg-obsidian-raised p-4 rounded-2xl border border-obsidian-border">
                 <p className="text-obsidian-primary text-xs sm:text-sm leading-relaxed font-medium">
                   "{poi.description}"
-                </p>
-              </div>
-            )}
-
-            {poi.funFacts?.length > 0 && (
-              <div className="bg-obsidian-raised p-4 rounded-2xl border border-obsidian-border">
-                <div className="flex items-center gap-1.5 mb-1.5 text-obsidian-primary font-bold text-[11px] uppercase tracking-wider">
-                  <Lightbulb size={13} className="text-brand-orange" />
-                  <span>Dettaglio</span>
-                </div>
-                <p className="text-obsidian-primary text-xs leading-relaxed font-medium">
-                  {poi.funFacts[0]}
                 </p>
               </div>
             )}

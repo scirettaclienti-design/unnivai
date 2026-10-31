@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2, Award, Crosshair, WifiOff, MessageSquare, Tag } from 'lucide-react';
 import { aiRecommendationService, buildInsiderPool } from '@/services/aiRecommendationService';
 import { isSeraStart } from '@/lib/daySkeleton';
+import { riferimentoPerDopo } from '@/lib/perTeProposte';
 import { AI_ENGINE_MESSAGE, isAiEngineError } from '@/lib/aiEngineError';
 import { useUserContext } from '../hooks/useUserContext';
 import GpsActivationBanner from '../components/GpsActivationBanner';
@@ -15,7 +16,7 @@ import { dataService, createGuideRequest } from "@/services/dataService";
 import { useAILearning } from '../hooks/useAILearning';
 import { resolveFoodPrefs, foodPrefsFingerprint } from '@/lib/foodPrefs';
 import { placesDiscoveryService, PlacesSearchError } from '@/services/placesDiscoveryService';
-import { MESSAGGIO_TECNICO, TASTO_RIPROVA } from '@/lib/esitoVuoto';
+import { MESSAGGIO_TECNICO, TASTO_RIPROVA, PER_TE_TESTI } from '@/lib/esitoVuoto';
 import { giornoEFasciaPerTe, leggiPerTe, salvaPerTe, fasciaDnaEffettiva, registraFasciaDna } from '@/lib/perTeSalvato';
 import { fasciaDna } from '@/lib/fasciaDna';
 
@@ -250,16 +251,16 @@ const DashboardUser = () => {
                 let themedPools = {};
                 // C8b — di sera (dalle 18:00 all'alba) "Per Te" e' il giro della sera del motore dei momenti (drink +
                 // passeggiata + cena): i temi non si cercano, nessuna ricerca in piu'. Di giorno il tema cibo segue le fasce.
+                // PER-TE-PROPOSTE — i temi si cercano ANCHE di sera: servono alle proposte «per domattina» (almeno 4, a qualsiasi ora).
+                // Di sera il cibo si cerca all'ora della prima proposta per dopo (le 10:00), non a quella di adesso.
                 const sera = isSeraStart(new Date());
                 superata();
                 try {
                     // P7b — con una dieta il tema food cerca col criterio dentro.
-                    if (!sera) {
-                        themedPools = await placesDiscoveryService.discoverAllThemes(
-                            currentCity, cityCenter.latitude, cityCenter.longitude,
-                            { foodPrefs: resolveFoodPrefs({ onboarding: onboardingPrefs }), ora: new Date() },
-                        );
-                    }
+                    themedPools = await placesDiscoveryService.discoverAllThemes(
+                        currentCity, cityCenter.latitude, cityCenter.longitude,
+                        { foodPrefs: resolveFoodPrefs({ onboarding: onboardingPrefs }), ora: sera ? riferimentoPerDopo(new Date()).data : new Date() },
+                    );
                 } catch (e) {
                     // Gate INTERESSI-VERI — nessun tema ha luoghi E almeno una ricerca
                     // e' fallita: non si puo' dire "non trovo". Errore visibile.
@@ -369,7 +370,7 @@ const DashboardUser = () => {
                         cityFallback: currentCity,
                         cityCenter: { latitude: cityCenter.latitude, longitude: cityCenter.longitude },
                     });
-                });
+                }).map((t, i) => ({ ...t, perDopo: homeToursResult.tours[i]?.perDopo || null }));
 
                 // Insider sempre in cima (badge "✨ Insider AI"). Se il narratore
                 // non ha prodotto insider, l'ordine resta come tornato dall'AI.
@@ -387,6 +388,8 @@ const DashboardUser = () => {
                         .sort((a, b) => getTourAffinity(b) - getTourAffinity(a));
                     finalTours = [...head, ...tail];
                 }
+                // PER-TE-PROPOSTE — quelle che si fanno adesso restano in testa; quelle «per domattina» seguono (ordine stabile).
+                finalTours = [...finalTours.filter(t => !t.perDopo), ...finalTours.filter(t => t.perDopo)];
             }
 
             // Gate VERITÀ VISIVA (F26) DIFF 4 — via anche il secondo `cityFallbackImg`
@@ -398,9 +401,11 @@ const DashboardUser = () => {
                 ...t,
                 image: t.image || t.imageUrl || null,
                 images: (t.images?.length > 0) ? t.images : [t.image || t.imageUrl].filter(Boolean),
-                category: hasPreferences && i === 0
-                    ? 'Scelto per te'
-                    : (t.category || (hasPreferences ? 'Basato sui tuoi gusti' : 'Popolare a ' + currentCity)),
+                category: t.perDopo
+                    ? t.perDopo.badge
+                    : hasPreferences && i === 0
+                        ? 'Scelto per te'
+                        : (t.category || (hasPreferences ? 'Basato sui tuoi gusti' : 'Popolare a ' + currentCity)),
             }));
             superata();
             const dati = { tours, chiusoOra };
@@ -416,6 +421,9 @@ const DashboardUser = () => {
     const experiences = perTe?.tours;
     // ORARI — a quest'ora i posti chiusi hanno tolto tutti i tour: lo stato vuoto dice "meglio domattina".
     const chiusoOra = perTe?.chiusoOra ?? null;
+    // PER-TE-PROPOSTE — se una parte delle card non è per adesso, la riga lo dice.
+    const nDopo = (experiences || []).filter(e => e.perDopo).length;
+    const rigaProposte = nDopo === 0 ? null : (nDopo === (experiences || []).length ? PER_TE_TESTI.rigaTuttePerDopo : PER_TE_TESTI.rigaPerDopoMista);
 
     const [tourHistory, setTourHistory] = useState([]);
     useEffect(() => {
@@ -658,6 +666,7 @@ const DashboardUser = () => {
                         </Link>
                     </div>
 
+                    {rigaProposte && <p className="text-obsidian-secondary text-xs mb-2">{rigaProposte}</p>}
                     <div className="flex overflow-x-auto gap-3 pb-6 -mx-6 px-6 scrollbar-hide snap-x">
                         {experiencesError ? (
                             <div className="flex flex-col items-center justify-center py-8 w-full text-center">

@@ -85,7 +85,7 @@ const TYPE_TO_CORE = {
     // relax
     spa: 'relax', wellness_center: 'relax', beauty_salon: 'relax', viewpoint: 'relax',
     // vita notturna (dopo il cibo: un ristorante-bar e' cibo)
-    bar: 'nightlife', night_club: 'nightlife', casino: 'nightlife',
+    bar: 'nightlife', wine_bar: 'nightlife', cocktail_bar: 'nightlife', pub: 'nightlife', night_club: 'nightlife', casino: 'nightlife',
     // generici, in fondo: un'attrazione o un "luogo" (piazza, belvedere,
     // monumento senza tipo preciso) e' cultura; `food` da solo e' cibo.
     tourist_attraction: 'cultura', food: 'food', place: 'cultura',

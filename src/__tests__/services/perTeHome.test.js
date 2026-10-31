@@ -127,7 +127,9 @@ describe('Per Te — risposta tagliata a meta\'', () => {
         vi.stubGlobal('fetch', proxyFetch(full.slice(0, 60), { finish_reason: 'length', completion_tokens: 4000 }));
         const res = await home(POOLS);
         expect(res._source).not.toBe('error');
-        expect(res.tours).toEqual([]);
+        // PER-TE-PROPOSTE — nessun giro dall'AI per adesso; restano le proposte per dopo, composte dal codice, e dicono di esserlo
+        expect(res.tours.filter(t => !t.perDopo)).toEqual([]);
+        expect(res.tours.every(t => t.perDopo)).toBe(true);
     });
 });
 

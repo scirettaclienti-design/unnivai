@@ -387,6 +387,8 @@ import { messaggioChiuso, TESTO_NESSUN_LOCALE_APERTO, romeMinutes, openStatus } 
 import { keepOpenStops } from '../lib/openStops';
 import { routeMetrics } from '../lib/routeShape';
 import { requestNow } from '../lib/simulatedNow';
+import { PER_TE_TESTI } from '../lib/esitoVuoto';
+import { PROPOSTE_MINIME, riferimentoPerDopo, placeIdDeiGiri, unisciProposte } from '../lib/perTeProposte';
 // C10 — la lista della città: l'AI propone (sul server, una per città e giorno), Google verifica, le regole compongono.
 import { fetchCityKnowledge, fetchQuartiereKnowledge } from './cityKnowledgeService';
 import { NATURA_BORGO_KM, isNaturaOPanorama, isLuogoStorico, nelComuneIndirizzo, isOrganizzazione, isNaturaDaFuori, NOTA_NATURA_NOTTE, chiedeGiornata } from '../lib/borgoConfini';
@@ -1469,6 +1471,20 @@ export const buildInsiderPool = (themedPools, cityCenter, city, size = HOME_INSI
         city, dnaWeights, limit: size, maxIcons: 1,
     });
 };
+
+// PER-TE-PROPOSTE — i tour «per dopo» senza AI: per ogni tema il codice prende i primi posti del pool (gia' ordinato per merito
+// e DNA da prepareHomePools). Il titolo e' il dato nudo del tema (testi: PER_TE_TESTI).
+// PER-TE-PROPOSTE — l'ora di una proposta «per dopo» e' esplicita (anche in produzione, dove simulatedNow e' ignorato).
+const oraDiPerTe = (opts) => (opts?.oraRiferimento instanceof Date && !Number.isNaN(opts.oraRiferimento.getTime()) ? opts.oraRiferimento : requestNow(opts));
+const TEMI_PER_DOPO = ['insider', 'food', 'cultura', 'romance', 'nature'];
+const tourDaiPool = (pools, city) => TEMI_PER_DOPO
+    .filter(t => Array.isArray(pools[t]) && pools[t].length > 0)
+    .map(t => ({
+        themeType: t,
+        title: PER_TE_TESTI.titoloTema(t, city),
+        stops: pools[t].slice(0, 4).map(c => ({ place_id: homePid(c) })).filter(st => st.place_id),
+    }));
+
 
 /**
  * Gate PER TE — i candidati che arrivano al modello.
@@ -3787,13 +3803,53 @@ export const aiRecommendationService = {
     // @param {object} params.opts { skipUserQuota? }
     // @returns {Promise<{ tours: Array, _source: string }>}
     async generateHomeTours(args = {}) {
+        const base = await this._homeTemiOBorgo(args);
+        return this._conProposteMinime(base, args);
+    },
+
+    /**
+     * PER-TE-PROPOSTE — almeno PROPOSTE_MINIME proposte, a qualsiasi ora. Se i giri per adesso sono meno, le altre si compongono per
+     * il prossimo mattino (10:00 di Roma) dagli stessi pool, SENZA chiamate AI (nessuna quota, 0 $), e dicono `perDopo`.
+     */
+    async _conProposteMinime(r, args = {}) {
+        if (!r || r._source === 'error') return r;
+        const { city, cityCenter, themedCandidates, opts = {} } = args;
+        const adesso = r.tours || [];
+        const riporto = (extra) => ({ ...r, _report: { ...(r._report || {}), proposte: { minime: PROPOSTE_MINIME, adesso: adesso.length, ...extra } } });
+        if (adesso.length >= PROPOSTE_MINIME) return riporto({ perDopo: 0, raggiunte: true });
+        const pool = themedCandidates && Object.values(themedCandidates).some(a => Array.isArray(a) && a.length > 0);
+        if (!pool) return riporto({ perDopo: 0, raggiunte: false, motivo: 'nessun pool dei temi' });
+        const rif = riferimentoPerDopo(oraDiPerTe(opts));
+        const sera = isSeraStart(oraDiPerTe(opts));
+        const dopo = await this._homeTemi({
+            ...args,
+            opts: {
+                ...opts, oraRiferimento: rif.data, senzaAI: true,
+                // di giorno un tema gia' servito adesso non si ripropone; il giro della sera (themeType 'insider') non occupa nessun tema
+                escludiTemi: sera ? [] : adesso.map(t => t.themeType).filter(t => t !== 'insider'),
+                escludiPlaceIds: placeIdDeiGiri(adesso),
+            },
+        });
+        const tours = unisciProposte(adesso, dopo?.tours || [], rif.quando);
+        console.info(`[PER-TE-PROPOSTE] ${city}: ${adesso.length} per adesso + ${tours.length - adesso.length} per ${rif.quando} = ${tours.length} (minime ${PROPOSTE_MINIME})`);
+        if (tours.length === adesso.length) return riporto({ perDopo: 0, raggiunte: false, motivo: `nessuna proposta per ${rif.quando} (${dopo?._source || '?'})` });
+        return {
+            ...r,
+            tours,
+            _source: 'unified-home',
+            _messaggio: undefined,
+            _report: { ...(r._report || {}), proposte: { minime: PROPOSTE_MINIME, adesso: adesso.length, perDopo: tours.length - adesso.length, quando: rif.quando, raggiunte: tours.length >= PROPOSTE_MINIME, daAdesso: r._source === 'closed-now' ? 'chiuso' : 'aperto', cityCenterUsato: !!cityCenter } },
+        };
+    },
+
+    async _homeTemiOBorgo(args = {}) {
         const r = await this._homeTemi(args);
         // TROINA-FIX — nei borghi "Per Te" non resta vuoto se ci sono posti veri: quando i temi non danno nessun tour (tutti sotto
         // le 3 tappe aperte, o nessun pool), un tour misto dal motore dei momenti. Un errore (motore AI, quota) resta un errore.
         const { city, cityCenter, opts = {} } = args;
         const borgo = cityCenter?.isSmallTown ?? isSmallTown(city);
         const vuoto = (r?.tours || []).length === 0 && ['closed-now', 'no-pools', 'unified-home'].includes(r?._source);
-        if (!borgo || !vuoto || isSeraStart(requestNow(opts))) return r;
+        if (!borgo || !vuoto || isSeraStart(oraDiPerTe(opts))) return r;
         console.info(`[TROINA-FIX] Per Te ${city}: nessun tour dai temi (${r._source}) → un tour misto del borgo dal motore dei momenti`);
         const m = await this._homeBorgo(args);
         if ((m.tours || []).length > 0) return { ...m, _report: { ...m._report, temi: { source: r._source, report: r._report ?? null } } };
@@ -3805,7 +3861,7 @@ export const aiRecommendationService = {
         // quell'ora, musei chiusi) non hanno senso: la sera ha una forma sola — drink + passeggiata + cena, con la cena
         // tardi se parti fra le 21:00 e le 22:00 — ed e' quella del motore dei momenti (come il Percorso Veloce). Per Te la
         // chiede a lui e la serve come UN tour; i temi non si cercano nemmeno (vedi DashboardUser: nessuna ricerca in piu').
-        if (isSeraStart(requestNow(opts))) {
+        if (isSeraStart(oraDiPerTe(opts))) {
             return this._homeSera({ city, cityCenter, prefs, aiProfile, weather, opts });
         }
         // Gate PER TE — distanza e doppioni si decidono QUI, prima del prompt
@@ -3816,7 +3872,18 @@ export const aiRecommendationService = {
         // P7b — "Per Te" non ha testo ne' wizard: vale il primo accesso.
         const food = resolveFoodPrefs({ onboarding: opts.onboardingPrefs });
         const nonEmptyPools = prepareHomePools(themedCandidates, cityCenter, city, { dnaWeights, foodPrefs: food });
-        if (Object.keys(nonEmptyPools).length === 0) {
+        // PER-TE-PROPOSTE — le proposte «per dopo» (opts.senzaAI): nessun tema già servito, nessun posto già in un altro tour.
+        if (opts.senzaAI) {
+            const fuoriTemi = new Set(opts.escludiTemi || []);
+            const fuoriPosti = new Set(opts.escludiPlaceIds || []);
+            for (const tema of Object.keys(nonEmptyPools)) {
+                if (tema === 'ceduti') continue;
+                if (fuoriTemi.has(tema)) { delete nonEmptyPools[tema]; continue; }
+                const resto = (nonEmptyPools[tema] || []).filter(c => !fuoriPosti.has(homePid(c)));
+                if (resto.length === 0) delete nonEmptyPools[tema]; else nonEmptyPools[tema] = resto;
+            }
+        }
+        if (Object.keys(nonEmptyPools).filter(k => k !== 'ceduti').length === 0) {
             return { tours: [], _source: 'no-pools' };
         }
 
@@ -3824,7 +3891,7 @@ export const aiRecommendationService = {
         // tabella dei momenti (dayMoments.js). Prima qui c'erano cinque soglie
         // scritte a mano (6/11/14/18/22) sull'ora del TELEFONO: una seconda
         // tabella, divergente da quella che usa il resto dell'app.
-        const now = requestNow(opts);
+        const now = oraDiPerTe(opts);
         const nowRome = romeParts(now);
         const moment = momentAtClock(nowRome.h, nowRome.mi);
         const romeDay = `${nowRome.y}-${String(nowRome.m).padStart(2, '0')}-${String(nowRome.d).padStart(2, '0')}`;
@@ -3847,21 +3914,22 @@ export const aiRecommendationService = {
             + (hasFoodPrefs(food) ? `|cibo:${foodPrefsFingerprint(food)}` : '');
         // P3d-j — v2: le voci v1 avevano testo libero del modello.
         const cacheKey = `hometours_v2_${city.replace(/\s+/g, '_')}_${centerFingerprint}_${romeDay}_${moment.key}_${hashStr(poolStr + dnaKey)}`;
-        const cached = loadInsiderFromCache(cacheKey);
+        const cached = opts.senzaAI ? null : loadInsiderFromCache(cacheKey);
         // Gate PAROLE VIETATE (P3d) — anche la lettura dalla cache passa dal filtro.
         if (cached) return scrubHomeTours(cached, city);
 
         // Quota: 1 call = 1 generazione (biglietto home_tours: il server concede
         // 4000 max_tokens solo a questo tipo). skipUserQuota salta solo il preflight.
-        if (!opts.skipUserQuota) {
+        // PER-TE-PROPOSTE — senzaAI: nessuna chiamata, nessuna quota.
+        if (!opts.skipUserQuota && !opts.senzaAI) {
             await assertQuotaAvailable();
         }
-        const quotaTicket = newGenerationTicket('home_tours');
+        const quotaTicket = opts.senzaAI ? null : newGenerationTicket('home_tours');
 
         // P3d-j — gli interessi dell'utente per il gancio "legame": in "Per Te"
         // non c'e' testo ne' wizard, vale il DNA sopra la soglia di fiducia.
         const interessiPerTe = userInterests({ dnaWeights });
-        const prompt = buildUnifiedHomeToursPrompt({
+        const prompt = opts.senzaAI ? '' : buildUnifiedHomeToursPrompt({
             city, timeContext, weather,
             prefs, aiProfile, themedCandidates: nonEmptyPools, interessi: interessiPerTe,
         });
@@ -3872,6 +3940,13 @@ export const aiRecommendationService = {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 45_000);
         try {
+            let rawTours; let truncated = false; let finishReason = null; let tokenRisposta = null;
+            if (opts.senzaAI) {
+                // PER-TE-PROPOSTE — nessuna chiamata AI: i tour li compone il codice dai pool (ordinati per merito e DNA), le frasi
+                // sono quelle di riserva di sempre. Serve per le proposte «per dopo» (domattina): costo 0, nessuna quota.
+                clearTimeout(timeoutId);
+                rawTours = tourDaiPool(nonEmptyPools, city);
+            } else {
             const data = await callOpenAIProxy({
                 model: 'gpt-4o-mini',
                 messages: [
@@ -3886,15 +3961,17 @@ export const aiRecommendationService = {
 
             const raw = data.choices?.[0]?.message?.content;
             if (!raw) throw new Error('Empty AI response (generateHomeTours)');
-            const finishReason = data.choices?.[0]?.finish_reason ?? null;
-            const tokenRisposta = Number.isFinite(data.usage?.completion_tokens) ? data.usage.completion_tokens : null;
+            finishReason = data.choices?.[0]?.finish_reason ?? null;
+            tokenRisposta = Number.isFinite(data.usage?.completion_tokens) ? data.usage.completion_tokens : null;
             // Gate PER TE — risposta tagliata (max_tokens): si servono i tour
             // completi, mai un errore per questo.
-            const { tours: rawTours, truncated } = parseHomeToursResponse(raw);
+            const parsed = parseHomeToursResponse(raw);
+            rawTours = parsed.tours; truncated = parsed.truncated;
             if (truncated) {
                 console.warn(`[Per Te] ${city}: risposta tagliata (finish_reason=${finishReason}, ${tokenRisposta ?? '?'}/${MAX_TOKENS} token) → ${rawTours.length} tour completi recuperati`);
             }
             if (!Array.isArray(rawTours) || (rawTours.length === 0 && !truncated)) throw new Error('AI returned no tours (generateHomeTours)');
+            }
 
             // Dedup cross-tour: primo tour che usa un place_id lo tiene, i tour
             // successivi che lo referenziano lo perdono. Ordine tipico: insider
@@ -3980,7 +4057,7 @@ export const aiRecommendationService = {
             for (const arr of Object.values(nonEmptyPools)) for (const c of (Array.isArray(arr) ? arr : [])) if (homePid(c)) poolById.set(homePid(c), c);
             for (const c of ceduti.values()) if (homePid(c?.poi)) poolById.set(homePid(c.poi), c.poi);
             const sceltePerTe = prepared.flatMap(pt => pt?.canonized || []);
-            const factsRes = await fetchFactsForStops(sceltePerTe.map(st => ({
+            const factsRes = opts.senzaAI ? { byId: new Map(), report: { senzaAI: true } } : await fetchFactsForStops(sceltePerTe.map(st => ({
                 place_id: st.place_id, name: st.title, lat: Number(st.latitude), lng: Number(st.longitude), types: st.types,
             })), { city });
             const facts = factsRes.byId;
@@ -4197,7 +4274,7 @@ export const aiRecommendationService = {
                 return { tours: [], _source: 'closed-now', _messaggio: messaggioChiuso(now), _report: report };
             }
             const result = { tours: finalTours, _source: 'unified-home', _report: report };
-            saveInsiderToCache(cacheKey, { tours: finalTours, _source: 'unified-home' });
+            if (!opts.senzaAI) saveInsiderToCache(cacheKey, { tours: finalTours, _source: 'unified-home' });
             return result;
         } catch (err) {
             clearTimeout(timeoutId);

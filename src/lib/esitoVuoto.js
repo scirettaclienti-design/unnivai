@@ -40,3 +40,22 @@ export function esitoVuoto(result, citta) {
 
 /** Un risultato del motore e' vuoto (nessuna tappa vera)? */
 export const giroVuoto = (result) => !(result?.days || []).some(d => (d?.stops || []).some(s => s && !s.tempoLibero));
+
+// PER-TE-PROPOSTE — i testi di Per Te: le proposte che non partono adesso lo dicono. Voce Unnivai: diretta, frasi brevi, il dato nudo.
+export const PER_TE_TESTI = {
+    /** Il badge di una card che non si fa adesso (i posti aprono dopo). */
+    badgePerDomattina: 'Per domattina',
+    badgePerStamattina: 'Per stamattina',
+    /** Una riga sopra le card quando solo una parte è per adesso. */
+    rigaPerDopoMista: 'Adesso è aperto poco. Le altre sono per domattina.',
+    /** Una riga sopra le card quando nessuna è per adesso. */
+    rigaTuttePerDopo: 'A quest’ora è quasi tutto chiuso. Sono giri per domattina, dalle 10.',
+    /** Il titolo di un giro per tema: il dato nudo. */
+    titoloTema: (tema, citta) => ({
+        insider: `Da insider a ${citta}`,
+        food: `Dove si mangia a ${citta}`,
+        cultura: `Cultura a ${citta}`,
+        romance: `Panorami a ${citta}`,
+        nature: `Verde a ${citta}`,
+    }[tema] || `Un giro a ${citta}`),
+};

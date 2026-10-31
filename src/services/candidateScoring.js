@@ -70,14 +70,33 @@ export const mapCandidateToCoreCategories = (candidate) => {
 // riconosciuto o con tutti i pesi a zero ottiene affinita' 0 — questo e' anche
 // il comportamento per un utente nuovo senza seme (regola UTENTE NUOVO): il
 // termine DNA si azzera da solo, non serve un caso speciale qui.
+// PER-TE-PROPOSTE — il DNA pesa anche su drink e passeggiata. Un locale da drink (tipo principale bar, wine bar, cocktail bar, pub,
+// locale notturno) non ha quasi mai un peso «Serate» nel DNA: la sua affinita' era 0, e il solo contributo del DNA era un
+// accidente (un wine bar porta anche i tipi ristorante e cibo). Ora un drink prende l'affinita' piu' alta fra Serate e l'80% di Cibo
+// (si beve dove si mangia bene); una passeggiata (parco, giardino, belvedere, lungomare, spiaggia) l'80% di Natura o Cultura (si
+// cammina in un parco o in un centro storico). Il tipo principale e' il primo dei tipi di Google. Con tutti i pesi a zero resta 0.
+const TIPI_DRINK = new Set(['bar', 'wine_bar', 'cocktail_bar', 'pub', 'night_club', 'bar_and_grill', 'brewery', 'lounge_bar']);
+const TIPI_PASSEGGIATA = new Set(['park', 'garden', 'viewpoint', 'natural_feature', 'beach', 'hiking_area', 'national_park', 'plaza', 'city_park']);
+const RIDUZIONE_RUOLO = 0.8;
+export const ruoloSerale = (candidate) => {
+    const types = Array.isArray(candidate?.types) ? candidate.types.map(t => String(t).toLowerCase()) : [];
+    const primo = types.find(t => t !== 'point_of_interest' && t !== 'establishment');
+    if (!primo) return null;
+    if (TIPI_DRINK.has(primo)) return 'drink';
+    if (TIPI_PASSEGGIATA.has(primo)) return 'passeggiata';
+    return null;
+};
 export const computeAffinityScore = (candidate, dnaWeights = {}) => {
     const cats = mapCandidateToCoreCategories(candidate);
-    if (cats.size === 0) return 0;
     let best = 0;
     for (const cat of cats) {
         const w = Number(dnaWeights?.[cat]) || 0;
         if (w > best) best = w;
     }
+    const w = (cat) => Number(dnaWeights?.[cat]) || 0;
+    const ruolo = ruoloSerale(candidate);
+    if (ruolo === 'drink') best = Math.max(best, w('nightlife'), RIDUZIONE_RUOLO * w('food'));
+    else if (ruolo === 'passeggiata') best = Math.max(best, RIDUZIONE_RUOLO * w('natura'), RIDUZIONE_RUOLO * w('cultura'), RIDUZIONE_RUOLO * w('relax'));
     return Math.max(0, Math.min(1, best));
 };
 

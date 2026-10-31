@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import {
     controllaRacconto, messaggiRacconto, haFonti, ripulisciRacconto, impronta, fontiPulite, LIMITI, RISPOSTA_NIENTE, SYSTEM_RACCONTO, VERSIONE_RACCONTO,
     messaggiVerifica, leggiVerifica, SYSTEM_VERIFICA, MODELLO_REVISORE, versioneValida, messaggiRiscrittura, scriviERivedi,
+    messaggiRiscritturaControllo, numeroInLettere, unisciNumeri,
 } from '../../../supabase/functions/openai-proxy/racconto.ts';
 import { trovaWikipedia, cercaWikipedia, descrizioneGoogleDa, RAGGIO_MAX_M } from '../../../supabase/functions/openai-proxy/raccontoFonti.ts';
 
@@ -208,12 +209,12 @@ describe('direzioni: l\'app non sa da che lato arrivi, quindi il racconto non le
         expect(c.ok).toBe(false);
         expect(c.motivi).toContain('indicazione di direzione');
     });
-    it('il racconto senza direzioni passa; il prompt le vieta (anche in r4)', () => {
+    it('il racconto senza direzioni passa; il prompt le vieta (anche in r4 e r5)', () => {
         expect(controllaRacconto(BUONO, ELEFANTE).ok).toBe(true);
         expect(SYSTEM_RACCONTO).toMatch(/Mai indicazioni di direzione/);
         expect(SYSTEM_RACCONTO).toMatch(/alle tue spalle/);
         expect(SYSTEM_RACCONTO).toMatch(/«girati», «dall'altra parte»\. L'app non sa da che lato arrivi\./);
-        expect(VERSIONE_RACCONTO).toBe('r4');
+        expect(VERSIONE_RACCONTO).toBe('r5');
     });
 });
 
@@ -263,11 +264,15 @@ describe('proxy: il secondo controllo e la versione', () => {
         expect(src).toMatch(/chi = 'revisore'/);
         expect(src).toMatch(/\$\{chi\} non disponibile[\s\S]{0,120}RACCONTO_MOTORE/);
     });
-    it('la cache vale per la versione di oggi e per un r3 non scartato: si riscrive con r4 solo lo scartato', () => {
+    it('la cache vale per la versione di oggi e per un r3/r4 passato o senza fonti: uno scartato r3/r4 si riscrive subito con r5', () => {
         expect(src).toMatch(/gia && versioneValida\(gia\)/);
-        expect(VERSIONE_RACCONTO).toBe('r4');
+        expect(VERSIONE_RACCONTO).toBe('r5');
+        expect(versioneValida({ versione: 'r5', esito: 'passato' })).toBe(true);
+        expect(versioneValida({ versione: 'r5', esito: 'scartato' })).toBe(true); // TTL di 7 giorni, come prima
         expect(versioneValida({ versione: 'r4', esito: 'passato' })).toBe(true);
-        expect(versioneValida({ versione: 'r4', esito: 'scartato' })).toBe(true); // TTL di 7 giorni, come prima
+        expect(versioneValida({ versione: 'r4', esito: 'senza-fonti' })).toBe(true);
+        expect(versioneValida({ versione: 'r4', esito: 'scartato' })).toBe(false); // Elefante, Orto Botanico, Villa Sciarra in produzione
+        expect(versioneValida({ versione: 'r4', esito: null })).toBe(false);
         expect(versioneValida({ versione: 'r3', esito: 'passato' })).toBe(true);
         expect(versioneValida({ versione: 'r3', esito: 'senza-fonti' })).toBe(true);
         expect(versioneValida({ versione: 'r3', esito: 'scartato' })).toBe(false);
@@ -341,13 +346,15 @@ describe('r4: ogni frase su un fatto delle fonti, e una sola riscrittura', () =>
         expect(e.motivi).toContain('indicazione di direzione');
         expect(rivedi).toHaveBeenCalledTimes(1);
     });
-    it('se cade il controllo automatico non si riscrive e il revisore non si chiama', async () => {
-        const scrivi = finto([{ testo: `${T2} Alla tua sinistra c'è la fontana.` }]);
-        const rivedi = finto([]);
-        const e = await scriviERivedi(ELEFANTE, scrivi, rivedi);
-        expect(e).toMatchObject({ ok: false, riscritto: false });
-        expect(scrivi).toHaveBeenCalledTimes(1);
-        expect(rivedi).not.toHaveBeenCalled();
+    it('NIENTE o una risposta vuota al primo colpo: niente da correggere, nessuna riscrittura, il revisore non si chiama', async () => {
+        for (const testo of [RISPOSTA_NIENTE, '']) {
+            const scrivi = finto([{ testo }]);
+            const rivedi = finto([]);
+            const e = await scriviERivedi(ELEFANTE, scrivi, rivedi);
+            expect(e).toMatchObject({ ok: false, riscritto: false });
+            expect(scrivi).toHaveBeenCalledTimes(1);
+            expect(rivedi).not.toHaveBeenCalled();
+        }
     });
     it('NIENTE dalla riscrittura = scartato; revisore illeggibile = scartato senza riscrittura', async () => {
         const a = await scriviERivedi(ELEFANTE, finto([{ testo: T1 }, { testo: RISPOSTA_NIENTE }]), finto([{ testo: voti(si(1), si(2), no(3, 'x')) }]));
@@ -362,5 +369,89 @@ describe('r4: ogni frase su un fatto delle fonti, e una sola riscrittura', () =>
         await expect(scriviERivedi(ELEFANTE, finto([{ testo: T1 }]), giu)).rejects.toThrow('HTTP 529');
         await expect(scriviERivedi(ELEFANTE, finto([{ testo: T1 }]).mockImplementationOnce(async () => ({ testo: T1, modello: 'm', costoUsd: 0 })).mockImplementationOnce(giu),
             finto([{ testo: voti(si(1), si(2), no(3, 'x')) }]))).rejects.toThrow('HTTP 529');
+    });
+});
+
+describe('r5: «7.000» è un numero, e la riscrittura scatta anche sugli scarti del controllo automatico', () => {
+    // le fonti vere dell'Orto Botanico di Roma (Google scrive «7.000»): in r4 cadeva 3 volte su 3 su «7» e «000»
+    const ORTO = JSON.parse(fs.readFileSync('docs/prove/dati/2026-10-30-fonti-roma.json', 'utf8')).tappe.find((t) => t.nome === 'Orto Botanico di Roma').fonti;
+    const PIANTE = (n) => `Guarda: questo orto ha più di ${n} specie di piante. Ci sono anche serre e un giardino giapponese.`;
+    const si = (n) => ({ n, nelle_fonti: true, motivo: '' });
+    const voti = (...v) => JSON.stringify({ frasi: v });
+    const finto = (risposte) => vi.fn(async () => ({ ...risposte.shift(), modello: 'm', costoUsd: 0.001 }));
+
+    it('caso 1 — Orto Botanico: «7.000», «7 000», «7000», «7 mila» e «settemila» passano come nelle fonti', () => {
+        expect(`${ORTO.google.testo}`).toMatch(/7\.000/);
+        for (const n of ['7.000', '7 000', '7\u202f000', '7000', '7 mila', 'settemila']) {
+            const c = controllaRacconto(PIANTE(n), ORTO);
+            expect(c.fuoriFonti.numeri, n).toEqual([]);
+            expect(c.motivi.filter((m) => /numeri/.test(m)), n).toEqual([]);
+        }
+    });
+    it('caso 1 — nessun numero che le fonti non hanno passa: «8.000», «70.000», «7.500», «ottomila», «7» da solo', () => {
+        for (const [n, fuori] of [['8.000', '8000'], ['70.000', '70000'], ['7.500', '7500'], ['ottomila', 'ottomila'], ['7', '7'], ['7,000', '7']]) {
+            const c = controllaRacconto(PIANTE(n), ORTO);
+            expect(c.ok, n).toBe(false);
+            expect(c.fuoriFonti.numeri, n).toContain(fuori);
+        }
+    });
+    it('cifre e lettere sono lo stesso numero nei due versi; le parole comuni non sono numeri', () => {
+        expect(unisciNumeri('7.000 e 1.000.000, 7 mila, 1,5 milioni, 2,5 km, nel 1867 650 metri. Sono 3.000.')).toBe('7000 e 1000000, 7000, 1500000, 2,5 km, nel 1867 650 metri. Sono 3000.');
+        expect([['settemila', 7000], ['duecentocinquanta', 250], ['ventotto', 28], ['centottanta', 180], ['milleduecento', 1200], ['ventisei', 26]]
+            .map(([w]) => numeroInLettere(w))).toEqual([7000, 250, 28, 180, 1200, 26]);
+        for (const w of ['settembre', 'centrale', 'treno', 'dove', 'una', 'uno', 'sei', 'mila', 'vent', 'novecentesco']) expect(numeroInLettere(w), w).toBeNull();
+        const scritte = { ...ELEFANTE, wikipedia: { ...ELEFANTE.wikipedia, testo: `${ELEFANTE.wikipedia.testo} Ha dodici zampilli.` } };
+        expect(controllaRacconto("Guarda l'elefante di basalto nero: è l'emblema della città. Ha 12 zampilli.", scritte).fuoriFonti.numeri).toEqual([]);
+        expect(controllaRacconto("Guarda l'elefante di basalto nero: è l'emblema della città. Ha 13 zampilli.", scritte).fuoriFonti.numeri).toEqual(['13']);
+    });
+
+    it('caso 2 — più di 4 frasi: si riscrive una volta con il motivo, il nuovo testo ripassa da entrambi i controlli', async () => {
+        const lungo = "Guarda l'elefante. È di basalto nero. Lo chiamano U Liotru. Sta al centro della piazza. È l'emblema della città.";
+        const corto = "Guarda l'elefante di basalto nero: lo chiamano U Liotru. Sta al centro di piazza del Duomo ed è l'emblema della città.";
+        const scrivi = finto([{ testo: lungo }, { testo: corto }]);
+        const rivedi = finto([{ testo: voti(si(1), si(2)) }]);
+        const e = await scriviERivedi(ELEFANTE, scrivi, rivedi);
+        expect(e).toMatchObject({ ok: true, testo: corto, riscritto: true });
+        expect(e.prima).toEqual({ testo: lungo, motivi: ['più di 4 frasi'] });
+        expect(scrivi.mock.calls[1][0]).toEqual(messaggiRiscritturaControllo(ELEFANTE, lungo, ['più di 4 frasi']));
+        expect(scrivi.mock.calls[1][0][3].content).toMatch(/- più di 4 frasi: ne hai scritte 5/);
+        expect(rivedi).toHaveBeenCalledTimes(1); // la prima stesura non arriva al revisore; la riscritta sì
+        expect(rivedi.mock.calls[0][0]).toEqual(messaggiVerifica(corto, ELEFANTE));
+    });
+    it('caso 2 — una direzione: il motivo porta la parola che l\'ha fatto cadere; se la riscritta cade ancora, scartato senza seconda riscrittura', async () => {
+        const T = "Guarda l'elefante di basalto nero: lo chiamano U Liotru. Alla tua sinistra c'è la fontana di Vaccarini.";
+        const m = messaggiRiscritturaControllo(ELEFANTE, T, ['indicazione di direzione']);
+        expect(m.slice(0, 3)).toEqual([...messaggiRacconto(ELEFANTE), { role: 'assistant', content: T }]);
+        expect(m[3].content).toMatch(/Un controllo automatico[\s\S]*- indicazione di direzione: «sinistra»/);
+        expect(m[3].content).toMatch(/nessuna direzione/);
+        const scrivi = finto([{ testo: T }, { testo: `${T} Davanti c'è la piazza.` }, { testo: 'mai' }]);
+        const rivedi = finto([]);
+        const e = await scriviERivedi(ELEFANTE, scrivi, rivedi);
+        expect(e).toMatchObject({ ok: false, riscritto: true, verifica: null });
+        expect(e.motivi).toContain('indicazione di direzione');
+        expect(scrivi).toHaveBeenCalledTimes(2);
+        expect(rivedi).not.toHaveBeenCalled();
+    });
+    it('caso 2 — un numero che le fonti non hanno: si riscrive col motivo; la riscritta passa dall\'automatico ma il revisore dice «no»: scartato', async () => {
+        const T = "Guarda l'elefante di basalto nero: lo chiamano U Liotru. La fontana è di Vaccarini, del 1736.";
+        const T2 = "Guarda l'elefante di basalto nero: lo chiamano U Liotru. La fontana è di Vaccarini, tra il 1735 e il 1737.";
+        const scrivi = finto([{ testo: T }, { testo: T2 }, { testo: 'mai' }]);
+        const rivedi = finto([{ testo: voti(si(1), { n: 2, nelle_fonti: false, motivo: 'x' }) }]);
+        const e = await scriviERivedi(ELEFANTE, scrivi, rivedi);
+        expect(scrivi.mock.calls[1][0][3].content).toMatch(/- numeri non nelle fonti: 1736/);
+        expect(e).toMatchObject({ ok: false, riscritto: true, testo: T2 });
+        expect(e.motivi).toEqual(['verifica: frase 2 non è nelle fonti (x)']);
+        expect(e.prima.motivi).toEqual(['numeri non nelle fonti: 1736']);
+        expect(scrivi).toHaveBeenCalledTimes(2);
+    });
+
+    it('caso 3 — gli scartati r4 in produzione (Elefante, Orto Botanico, Villa Sciarra) si riscrivono subito, i passati r4 restano', () => {
+        const scartati = [
+            { place_id: 'elefante', versione: 'r4', esito: 'scartato', created_at: '2026-10-31T00:06:00Z' },
+            { place_id: 'orto', versione: 'r4', esito: 'scartato', created_at: '2026-10-31T00:06:00Z' },
+            { place_id: 'sciarra', versione: 'r4', esito: 'scartato', created_at: '2026-10-31T00:06:00Z' },
+        ];
+        for (const r of scartati) expect(versioneValida(r), r.place_id).toBe(false); // il TTL di 7 giorni non li tiene più
+        expect(versioneValida({ place_id: 'cattedrale', versione: 'r4', esito: 'passato', created_at: '2026-10-31T00:06:00Z' })).toBe(true);
     });
 });

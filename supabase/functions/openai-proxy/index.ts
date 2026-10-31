@@ -594,7 +594,7 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
   });
 
   const { data: gia } = await sb.from('place_racconti').select('esito, testo, motivi, fonti, versione, created_at').eq('place_id', placeId).maybeSingle();
-  if (gia && versioneValida(gia)) { // la versione di oggi, o un r3 non scartato (r4 cambia come si scrive, non i controlli)
+  if (gia && versioneValida(gia)) { // la versione di oggi, o un r3/r4 passato o senza fonti: uno scartato r3/r4 si riscrive subito con r5
     const giorni = (Date.now() - new Date(gia.created_at).getTime()) / 86_400_000;
     if (giorni < (gia.esito === 'passato' ? TTL_RACCONTO_GIORNI : TTL_SCARTATO_GIORNI)) return risposta(gia, { cached: true });
   }
@@ -654,7 +654,8 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
     return pr && d?.usage ? ((d.usage.prompt_tokens || 0) * pr.input + (d.usage.completion_tokens || 0) * pr.output) / 1e6 : 0;
   };
   // Il narratore (Sonnet 5.5, passaggio `narratore`, catena e ripiego di sempre) scrive; il controllo automatico e il revisore (Haiku 4.5,
-  // passaggio `selettore` con il modello suo) leggono; se il revisore segna frasi «no», il narratore riscrive UNA volta e si riverifica (racconto.ts).
+  // passaggio `selettore` con il modello suo) leggono; se il controllo automatico ferma il testo o il revisore segna frasi «no», il narratore
+  // riceve il motivo, riscrive UNA volta e il nuovo testo ripassa da entrambi (racconto.ts).
   // Se il narratore o il revisore non rispondono non si salva niente: si riprova alla richiesta dopo, il racconto non esce senza controllo.
   let chi = 'motore';
   // deno-lint-ignore no-explicit-any

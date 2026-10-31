@@ -4,6 +4,7 @@
 // scelte; ogni descrizione e' composta dal codice. "Per Te": una chiamata sola.
 // (7) Niente meteo di riserva; nessun "null"/"undefined"/vuoto a schermo.
 
+import { titoloDaTappe } from '../../lib/titoliGiro';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { aiRecommendationService } from '../../services/aiRecommendationService';
 import { testoPulito } from '../../lib/stopPhrases';
@@ -122,7 +123,9 @@ describe('P3d-j — itinerario composto', () => {
         const { fn } = routeFetch((t) => ({ place_id: t.place_id, usaFatto: false, gancio: null, interesse: null }), { title: 'La Roma magica dei romani' });
         vi.stubGlobal('fetch', fn);
         const r = await genera();
-        expect(r.days[0].title).toBe('Il tuo giro a Roma'); // un tour di un giorno non ha il numero del giorno
+        // TESTI-SCHEDE: il titolo viene dalle tappe vere, mai da quello del modello (né dal numero del giorno)
+        expect(r.days[0].title).toBe(titoloDaTappe(r.days[0].stops, 'Roma'));
+        expect(r.days[0].title).not.toMatch(/magica|giorno/i);
     });
 
     it('(7) il titolo non nomina meteo o momento (prova reale: "Soleggiato percorso di Roma")', async () => {
@@ -131,7 +134,8 @@ describe('P3d-j — itinerario composto', () => {
             const { fn } = routeFetch((t) => ({ place_id: t.place_id, usaFatto: false, gancio: null, interesse: null }), { title });
             vi.stubGlobal('fetch', fn);
             const r = await genera();
-            expect(r.days[0].title, title).toBe('Il tuo giro a Roma');
+            expect(r.days[0].title, title).toBe(titoloDaTappe(r.days[0].stops, 'Roma'));
+            expect(r.days[0].title, title).not.toMatch(/soleggiat|mattina|tramonto|elegante/i);
         }
     });
 
@@ -145,10 +149,11 @@ describe('P3d-j — itinerario composto', () => {
         };
         const tardi = await gira('21:45', 'Vivace aperitivo di Roma');
         expect(tardi.days?.length, JSON.stringify(tardi._source)).toBeGreaterThan(0);
-        expect(tardi.days[0].title).toBe('Il tuo giro a Roma');
+        expect(tardi.days[0].title).toBe(titoloDaTappe(tardi.days[0].stops, 'Roma'));
+        expect(tardi.days[0].title).not.toMatch(/aperitiv/i);
         const presto = await gira('18:30', 'Vivace aperitivo di Roma');
         expect(presto.days?.length, JSON.stringify(presto._source)).toBeGreaterThan(0);
-        expect(presto.days[0].title).toBe('Vivace aperitivo di Roma');
+        expect(presto.days[0].title).toBe(titoloDaTappe(presto.days[0].stops, 'Roma')); // il titolo del modello («Vivace aperitivo di Roma») non si usa più
     });
 
     it('chiamate: traduttore, selettore, scelte — nessuna riscrittura', async () => {

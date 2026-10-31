@@ -347,7 +347,8 @@ const DashboardUser = () => {
                         id: `home-${tour.themeType}-${Date.now()}`,
                         type: isInsider ? 'ai-insider' : 'ai-memory',
                         title: tour.title,
-                        location: `${currentCity}, ${isInsider ? 'Tour AI Insider' : 'Esperienza Locale'}`,
+                        // TESTI-SCHEDE — a schermo solo la citta': «Tour AI Insider» e «Esperienza Locale» erano etichette interne
+                        location: currentCity,
                         // Gate O.2: nessun rating/reviews/price tour-level.
                         duration: etichettaGiornata(tour.stops) || (formatEstimate(durationMin) ? `Durata ${formatEstimate(durationMin)}` : null),
                         image: firstStop?.googlePhoto || null,

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { stopData, apertura, composeStop, maschera, FRASI_LUOGO } from '../../lib/stopPhrases';
+import { stopData, apertura, composeStop, maschera, conPreposizioni, FRASI_LUOGO, FRASI_LUOGO_EXTRA } from '../../lib/stopPhrases';
 import { c13, giroSerale } from '../../../scripts/banco/controlli.js';
 import { ESEMPI, validaControlli } from '../../../scripts/banco/validazione.js';
 
@@ -53,7 +53,7 @@ describe('VERITÀ 4 — Per Te: il museo ha la sua famiglia', () => {
 // ─── VERITÀ 5 — frasi prestate: mai «Attraversi…» a una chiesa, mai un verbo che col luogo non sta ──────────────────
 describe('VERITÀ 5 — frasi prestate', () => {
     // la frase della propria famiglia gia' detta nel tour: si passa alle frasi prestate
-    const giaDette = (d) => new Set([...(FRASI_LUOGO[d.famiglia] || [])].map(t => maschera(t.replace('{nome}', d.nome).replace('{durata}', d.durata || ''), d.nome)));
+    const giaDette = (d) => { const v = conPreposizioni(d); return new Set([...(FRASI_LUOGO[d.famiglia] || []), ...(FRASI_LUOGO_EXTRA[d.famiglia] || [])].map(t => maschera(t.replace(/\{(\w+)\}/g, (_, k) => v[k] ?? ''), d.nome))); };
     const tutte = (stop, extra = {}) => {
         const d = stopData({ stop, momento: 'pomeriggio', minutiDaPrima: 3, ...extra });
         return { d, frase: apertura(d, { evita: giaDette(d) }) };
@@ -62,7 +62,7 @@ describe('VERITÀ 5 — frasi prestate', () => {
         const { d, frase } = tutte({ place_id: 'badia', title: "Badia di Sant'Agata", types: ['tourist_attraction', 'point_of_interest'], primaryType: 'tourist_attraction' });
         expect(d.famiglia).toBe('monumento');
         expect(frase).not.toMatch(/^Attraversi\b/);
-        expect(frase).toBe("Passi da Badia di Sant'Agata: guardati intorno prima di ripartire.");
+        expect(frase).toBe("Passi dalla Badia di Sant'Agata: guardati intorno prima di ripartire.");
     });
     it('una chiesa vera non prende mai «Attraversi…», nemmeno finite le sue frasi', () => {
         const { frase } = tutte({ place_id: 'cattedrale', title: "Basilica Cattedrale di Sant'Agata", types: ['church', 'place_of_worship'], primaryType: 'church', stayMinutes: 20 });
@@ -90,12 +90,12 @@ describe('VERITÀ 5 — frasi prestate', () => {
     it('i prestiti che stanno in piedi restano: una porta si attraversa, davanti a un monumento ci si ferma', () => {
         const porta = tutte({ place_id: 'uzeda', title: 'Porta Uzeda', types: ['landmark'], primaryType: 'landmark' });
         expect(porta.d.famiglia).toBe('porta');
-        expect(['Ti fermi davanti a Porta Uzeda il tempo che serve.', 'Attraversi Porta Uzeda piano, senza fretta.']).toContain(porta.frase);
+        expect(['Ti fermi davanti alla Porta Uzeda il tempo che serve.', 'Attraversi la Porta Uzeda piano, senza fretta.']).toContain(porta.frase);
         const chiesa = tutte({ place_id: 'sannicolo', title: 'Chiesa di San Nicolò', types: ['church'], primaryType: 'church', stayMinutes: 20 });
-        expect(chiesa.frase).toBe('Ti fermi davanti a Chiesa di San Nicolò il tempo che serve.');
+        expect(chiesa.frase).toBe('Ti fermi davanti alla Chiesa di San Nicolò il tempo che serve.');
     });
     it('nessuna frase nuova: ogni apertura composta è una frase approvata', () => {
-        const approvate = Object.values(FRASI_LUOGO).flat().map(t => new RegExp('^' + t.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{\w+\}/g, '.+') + '$'));
+        const approvate = [...Object.values(FRASI_LUOGO).flat(), ...Object.values(FRASI_LUOGO_EXTRA).flat()].map(t => new RegExp('^' + t.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{\w+\}/g, '.+') + '$'));
         const d = stopData({ stop: { place_id: 'x', title: 'Palazzo degli Elefanti', types: ['government_office'] }, momento: 'pomeriggio', minutiDaPrima: 3 });
         const { text } = composeStop(d, {}, [], { evita: giaDette(d) });
         expect(approvate.some(re => re.test(text.split(/(?<=[.!?])\s+/)[0]))).toBe(true);

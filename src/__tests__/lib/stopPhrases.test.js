@@ -70,8 +70,8 @@ describe('P3d-j — le frasi sono esattamente quelle approvate', () => {
     it('elenco e conteggio', () => {
         expect(GANCI).toEqual(['tramonto', 'legame', 'distanza', 'prima', 'ultima', 'orario']);
         expect(FRASI_GANCIO.tramonto).toBe('Il sole tramonta alle {tramonto}: sei qui {deltaTesto} prima.');
-        expect(FRASI_LUOGO.panorama).toEqual(['Ti fermi a {nome}: qui si guarda, non si corre.', '{nome} è il punto in cui la giornata rallenta.']);
-        expect(FRASI_LOCALE.pranzo[1]).toBe('A {minuti} a piedi ti siedi da {nome}, {tipo} con {fascia}.');
+        expect(FRASI_LUOGO.panorama).toEqual(['Ti fermi {aNome}: qui si guarda, non si corre.', '{nome} è il punto in cui la giornata rallenta.']);
+        expect(FRASI_LOCALE.pranzo[1]).toBe('A {minuti} a piedi ti siedi {daNome}, {tipo} con {fascia}.');
         expect(Object.values(FRASI_LUOGO).flat()).toHaveLength(15);
         expect(Object.values(FRASI_LOCALE).flat()).toHaveLength(8); // + «Il drink lo prendi da…» (dalle 21:30)
     });
@@ -170,12 +170,12 @@ describe('P3d-j — scelte fuori elenco → riserva del codice', () => {
         const museo = { stop: { title: 'Museo Barracco', types: ['museum'] }, momento: 'mattina', orario: '10:00', minutiDaPrima: 7 };
         const id = conIdPerVariante(museo.stop, museo, 2).find(x => apertura(stopData({ ...museo, stop: { ...museo.stop, place_id: x } })).includes('alle 10'));
         const d = stopData({ ...museo, stop: { ...museo.stop, place_id: id } });
-        expect(apertura(d)).toBe('Entri a Museo Barracco alle 10: il resto può aspettare.');
+        expect(apertura(d)).toBe('Entri nel Museo Barracco alle 10: il resto può aspettare.');
         expect(composeStop(d, { gancio: 'orario' }).gancio).not.toBe('orario');
         const pranzo = { stop: { title: 'Trattoria Uno', types: ['restaurant'] }, momento: 'pranzo', minutiDaPrima: 9, locale: true, priceLevel: 2 };
         const idp = conIdPerVariante(pranzo.stop, pranzo, 2).find(x => apertura(stopData({ ...pranzo, stop: { ...pranzo.stop, place_id: x } })).startsWith('A 9 minuti'));
         const dp = stopData({ ...pranzo, stop: { ...pranzo.stop, place_id: idp } });
-        expect(apertura(dp)).toBe('A 9 minuti a piedi ti siedi da Trattoria Uno, trattoria con prezzi medi.');
+        expect(apertura(dp)).toBe('A 9 minuti a piedi ti siedi dalla Trattoria Uno, trattoria con prezzi medi.');
         expect(composeStop(dp, { gancio: 'distanza' }).gancio).not.toBe('distanza');
     });
 
@@ -293,7 +293,7 @@ describe('P3d-j (chiusura) — i ✗ della prova reale', () => {
     it('"prima della prossima tappa" mai sull\'ultima tappa', () => {
         for (let i = 0; i < 20; i++) {
             const d = stopData({ stop: { title: 'Parco delle Valli', place_id: `pv${i}`, types: ['park'] }, momento: 'pomeriggio', ultimo: true });
-            expect(apertura(d)).toBe('Ti prendi una pausa a Parco delle Valli.');
+            expect(apertura(d)).toBe('Ti prendi una pausa al Parco delle Valli.');
         }
     });
 
@@ -304,7 +304,7 @@ describe('P3d-j (chiusura) — i ✗ della prova reale', () => {
 
     it('una passeggiata si attraversa, non ci si ferma "davanti a" lei', () => {
         const d = stopData({ stop: { title: 'Passeggiata del Gianicolo', place_id: 'pg', types: ['tourist_attraction'] }, momento: 'pomeriggio' });
-        expect(apertura(d)).toMatch(/^(Attraversi Passeggiata del Gianicolo piano, senza fretta\.|Passi da Passeggiata del Gianicolo: guardati intorno prima di ripartire\.)$/);
+        expect(apertura(d)).toMatch(/^(Attraversi la Passeggiata del Gianicolo piano, senza fretta\.|Passi dalla Passeggiata del Gianicolo: guardati intorno prima di ripartire\.)$/);
     });
 
     it('"Per Te" non e\' una giornata: niente "Qui la giornata si chiude"', () => {

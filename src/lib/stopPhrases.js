@@ -24,6 +24,7 @@
 
 import { candidateFamily, isMealPlace } from '../services/momentSelection';
 import { placeKind } from './placeKind';
+import { conPrep } from './preposizioni';
 import { stayOf } from './tourTiming';
 import { MOMENT_BY_KEY } from './dayMoments';
 import { minutiTesto, minutiInParole, isDopocenaClock, ALBA_MINUTI } from './italianLabels';
@@ -36,28 +37,55 @@ const seme = (s) => { let h = 2166136261; for (const ch of String(s || '')) { h 
 
 // ─── Le frasi approvate ─────────────────────────────────────────────────────
 // {nome} {ora} {min} {tipo} {fascia} {tramonto} {delta} {interesse}
+// TESTI-SCHEDE — le preposizioni articolate le mette il codice (`preposizioni.js`), mai a mano nella frase:
+// {aNome} «al Parco…», {daNome} «dalla Passeggiata…», {nelNome} «nella Basilica…», {davantiNome} «davanti alla Galleria…»,
+// {sottoNome} «sotto l'Arco…», {dentroNome} «dentro il Duomo», {ilNome} «il Colosseo», {intornoANome}, {finoANome}.
+// {nome} resta il nome com'è, solo a inizio frase o dopo i due punti.
 export const FRASI_LUOGO = {
-    panorama: ['Ti fermi a {nome}: qui si guarda, non si corre.', '{nome} è il punto in cui la giornata rallenta.'],
+    panorama: ['Ti fermi {aNome}: qui si guarda, non si corre.', '{nome} è il punto in cui la giornata rallenta.'],
     // {durata}: la sosta vera della tappa, in lettere (stessa durata della scheda).
-    chiesa: ['{nome} è sulla tua strada: entri, guardi, riparti.', 'Ti prendi {durata} dentro {nome}.'],
-    museo: ['Entri a {nome} alle {ora}: il resto può aspettare.', '{nome} è la tappa da fare con calma.'],
-    piazza: ['Attraversi {nome} piano, senza fretta.', 'Passi da {nome}: guardati intorno prima di ripartire.'],
-    verde: ['{nome}: rallenti qui, prima della prossima tappa.', 'Ti prendi una pausa a {nome}.'],
+    chiesa: ['{nome} è sulla tua strada: entri, guardi, riparti.', 'Ti prendi {durata} {dentroNome}.'],
+    museo: ['Entri {nelNome} alle {ora}: il resto può aspettare.', '{nome} è la tappa da fare con calma.'],
+    piazza: ['Attraversi {ilNome} piano, senza fretta.', 'Passi {daNome}: guardati intorno prima di ripartire.'],
+    verde: ['{nome}: rallenti qui, prima della prossima tappa.', 'Ti prendi una pausa {aNome}.'],
     // "la guardi" e' detto di una porta; un arco e' maschile ("lo guardi").
-    porta: ["Passi sotto {nome}, poi ti giri e la guardi dall'altra parte."],
-    arco: ["Passi sotto {nome}, poi ti giri e lo guardi dall'altra parte."],
-    monumento: ['Ti fermi davanti a {nome} il tempo che serve.'],
-    altro: ['Alle {ora} sei a {nome}: è qui che ti porta la giornata.', '{nome} è la prossima tappa del tuo giro.'],
+    porta: ["Passi {sottoNome}, poi ti giri e la guardi dall'altra parte."],
+    arco: ["Passi {sottoNome}, poi ti giri e lo guardi dall'altra parte."],
+    monumento: ['Ti fermi {davantiNome} il tempo che serve.'],
+    altro: ['Alle {ora} sei {aNome}: è qui che ti porta la giornata.', '{nome} è la prossima tappa del tuo giro.'],
 };
 export const FRASI_LOCALE = {
-    colazione: ['Si parte da {nome}: un caffè e si comincia.'],
-    pranzo: ['Pranzi da {nome}, {tipo} con {fascia}.', 'A {minuti} a piedi ti siedi da {nome}, {tipo} con {fascia}.'],
-    aperitivo: ["L'aperitivo lo prendi da {nome}, {tipo} con {fascia}."],
+    colazione: ['Si parte {daNome}: un caffè e si comincia.'],
+    pranzo: ['Pranzi {daNome}, {tipo} con {fascia}.', 'A {minuti} a piedi ti siedi {daNome}, {tipo} con {fascia}.'],
+    aperitivo: ["L'aperitivo lo prendi {daNome}, {tipo} con {fascia}."],
     // Dalle 21:30 la sezione si chiama «Dopocena»: il drink non e' piu' un aperitivo.
-    drinkTardi: ['Il drink lo prendi da {nome}, {tipo} con {fascia}.'],
-    cena: ['La cena è da {nome}, {tipo} con {fascia}.', 'Chiudi la giornata a tavola da {nome}, {tipo} con {fascia}.'],
-    dopocena: ['Dopo cena, due passi fino a {nome}.'],
+    drinkTardi: ['Il drink lo prendi {daNome}, {tipo} con {fascia}.'],
+    cena: ['La cena è {daNome}, {tipo} con {fascia}.', 'Chiudi la giornata a tavola {daNome}, {tipo} con {fascia}.'],
+    dopocena: ['Dopo cena, due passi fino {finoANome}.'],
 };
+// TESTI-SCHEDE — varianti di scorta: una lista di Per Te ha 10–15 tappe e le frasi di una famiglia erano 1–2, quindi le stesse
+// frasi tornavano su più schede. Le varianti stanno DOPO le frasi di sempre (la scelta della prima non cambia: il seme gira
+// solo sulle frasi di sempre) e si usano quando quelle sono già dette nella lista. Voce Unnivai: dirette, brevi, senza giudizi.
+export const FRASI_LUOGO_EXTRA = {
+    panorama: ['Fai una sosta {aNome}: guardi, poi riparti.', '{nome}: fermati, guarda, poi riparti.'],
+    chiesa: ['Entri {nelNome} e ti fermi {durata}.', 'Fermati {durata} {aNome}, poi si va avanti.'],
+    museo: ['Dedichi {durata} {aNome}.', 'Ti prendi {durata} {dentroNome}, senza correre.'],
+    piazza: ['Cammini {nelNome} senza fretta.', 'Rallenti {aNome} e guardi dove sei.'],
+    verde: ["Ti siedi {aNome}, senza fare niente per un po'.", 'Cammini {nelNome} senza meta per {durata}.'],
+    porta: ["Ti fermi {davantiNome}, poi passi dall'altra parte."],
+    arco: ["Ti fermi {davantiNome}, poi passi dall'altra parte."],
+    monumento: ['Guardi {ilNome} da vicino, poi riparti.', 'Ti avvicini {aNome}: {durata} e si riparte.', 'Giri {intornoANome} prima di andare avanti.'],
+    altro: ['Poi tocca {aNome}.', 'Il giro passa {daNome}.', 'Ti fermi {aNome} per {durata}.'],
+};
+export const FRASI_LOCALE_EXTRA = {
+    colazione: ['Cominci {daNome}, con un caffè.'],
+    pranzo: ['Ti fermi a pranzo {daNome}: {tipo} con {fascia}.'],
+    aperitivo: ['Aperitivo {daNome}: {tipo} con {fascia}.'],
+    drinkTardi: ['Un drink {daNome}: {tipo} con {fascia}.'],
+    cena: ['Ti siedi a cena {daNome}: {tipo} con {fascia}.'],
+    dopocena: ['Dopo cena ti fermi ancora {aNome}.'],
+};
+const conExtra = (base, extra, k) => [...(base[k] || []), ...(extra[k] || [])];
 export const FRASI_GANCIO = {
     tramonto: 'Il sole tramonta alle {tramonto}: sei qui {deltaTesto} prima.',
     legame: 'È qui perché cerchi {interesse}.',
@@ -276,6 +304,22 @@ export function stopData({ stop, momento = null, orario = null, tramonto = null,
 // ─── Composizione ───────────────────────────────────────────────────────────
 // "da Da Tonino" → "da Tonino": i locali romani si chiamano cosi' ("Da Enzo
 // al 29"), e la preposizione della frase li assorbe.
+const PREP_DEL_PLACEHOLDER = { aNome: 'a', daNome: 'da', nelNome: 'in', davantiNome: 'davanti a', sottoNome: 'sotto', dentroNome: 'dentro', ilNome: '', intornoANome: 'intorno a', finoANome: 'fino a' };
+/**
+ * TESTI-SCHEDE — i segnaposto con la preposizione articolata, ricavati dal nome della tappa: «al Parco del Gianicolo»,
+ * «alla Galleria del Cardinale Colonna», «dalla Passeggiata del Gianicolo». Un locale che non si riconosce («Roscioli»)
+ * resta senza articolo («da Roscioli»); il nome segnaposto «questa tappa» non si articola.
+ */
+export function conPreposizioni(d) {
+    const nome = d?.nome;
+    if (!nome) return d;
+    const opz = d.locale ? { fallback: 'nessuno' } : {};
+    const out = { ...d };
+    for (const [k, prep] of Object.entries(PREP_DEL_PLACEHOLDER)) {
+        out[k] = nome === 'questa tappa' ? [prep, nome].filter(Boolean).join(' ') : conPrep(prep, nome, opz);
+    }
+    return out;
+}
 const riempi = (tpl, v) => tpl.replace(/\{(\w+)\}/g, (_, k) => v[k]).replace(/\b(da|Da) [Dd]a (?=\S)/g, '$1 ');
 const servono = (tpl) => [...tpl.matchAll(/\{(\w+)\}/g)].map(m => m[1]);
 const haTutto = (tpl, v) => servono(tpl).every(k => v[k] != null && String(v[k]).trim() !== '');
@@ -292,8 +336,12 @@ const accorcia = (tpl, v) => {
 /** La frase senza nome e senza numeri: due frasi uguali a meno di questo sono la stessa frase (come il controllo c7 del banco). */
 export const maschera = (frase, nome) => {
     const n = norm(nome || '');
-    const t = norm(frase);
-    return (n ? t.split(n).join('<nome>') : t).replace(/\d+/g, '<n>');
+    // «Il Duomo» in frase diventa «al Duomo»: si maschera anche il nome senza l'articolo che porta
+    const senzaArt = n.replace(/^(il|lo|la|i|gli|le)\s+/, '').replace(/^l'/, '');
+    let t = norm(frase);
+    if (n) t = t.split(n).join('<nome>');
+    if (senzaArt && senzaArt !== n) t = t.split(senzaArt).join('<nome>');
+    return t.replace(/\d+/g, '<n>');
 };
 const frasiDi = (testo) => String(testo || '').split(/(?<=[.!?])\s+/).map(f => f.trim()).filter(Boolean);
 /** Le frasi di un testo, mascherate, nel set delle frasi gia' usate nel tour. */
@@ -302,22 +350,31 @@ export function registraFrasi(usate, testo, nome) {
     for (const f of frasiDi(testo)) usate.add(maschera(f, nome));
 }
 
+/** Le frasi gia' dette in una lista di tour (mascherate col nome della loro tappa): il punto di partenza per comporre altri tour della stessa lista. */
+export function frasiUsateDa(tours) {
+    const usate = new Set();
+    for (const t of tours || []) for (const st of t?.stops || []) registraFrasi(usate, st?.description, st?.title);
+    return usate;
+}
+
 /** Le frasi d'apertura possibili per la tappa, nell'ordine fisso della tappa. */
 function aperture(d) {
-    let lista;
+    let chiave, base, extra;
     if (d.locale) {
         const m = d.momento;
-        if (m === 'mattina' && d.bar) lista = FRASI_LOCALE.colazione;
-        else if (m === 'pranzo' && d.pasto) lista = FRASI_LOCALE.pranzo;
-        else if (m === 'aperitivo' && d.bar) lista = d.tardi ? FRASI_LOCALE.drinkTardi : FRASI_LOCALE.aperitivo;
-        else if (m === 'cena' && d.pasto) lista = FRASI_LOCALE.cena;
-        else if (m === 'dopocena' && (d.bar || d.gelateria)) lista = FRASI_LOCALE.dopocena;
-        else lista = FRASI_LUOGO.altro;
+        if (m === 'mattina' && d.bar) chiave = 'colazione';
+        else if (m === 'pranzo' && d.pasto) chiave = 'pranzo';
+        else if (m === 'aperitivo' && d.bar) chiave = d.tardi ? 'drinkTardi' : 'aperitivo';
+        else if (m === 'cena' && d.pasto) chiave = 'cena';
+        else if (m === 'dopocena' && (d.bar || d.gelateria)) chiave = 'dopocena';
+        if (chiave) { base = FRASI_LOCALE[chiave]; extra = FRASI_LOCALE_EXTRA[chiave] || []; }
+        else { base = FRASI_LUOGO.altro; extra = FRASI_LUOGO_EXTRA.altro; }
     } else {
-        lista = FRASI_LUOGO[d.famiglia] || FRASI_LUOGO.altro;
+        const f = FRASI_LUOGO[d.famiglia] ? d.famiglia : 'altro';
+        base = FRASI_LUOGO[f]; extra = FRASI_LUOGO_EXTRA[f] || [];
     }
-    const start = seme(d.id) % lista.length;
-    return [...lista.slice(start), ...lista.slice(0, start)];
+    const start = seme(d.id) % base.length;
+    return [...base.slice(start), ...base.slice(0, start), ...extra];
 }
 
 // TESTI — nello stesso tour nessuna frase uguale due volte: quando le frasi di una famiglia sono finite se ne usa una gia' approvata
@@ -330,7 +387,7 @@ const SORELLE = {
 };
 // VERITÀ-PRE-GIRO — «Attraversi…» solo dove si attraversa (una piazza, una passeggiata, una porta, un arco): mai una chiesa, una statua,
 // un palazzo, un luogo qualunque. «Ti fermi davanti a…» solo davanti a qualcosa: un monumento, una porta, un arco, una chiesa.
-const SI_ATTRAVERSA = new Set(['piazza', 'porta', 'arco']);
+const SI_ATTRAVERSA = new Set(['piazza', 'porta', 'arco', 'verde']);
 const CI_SI_FERMA_DAVANTI = new Set(['monumento', 'porta', 'arco', 'chiesa']);
 
 // Una frase che dice il falso su QUESTA tappa non si usa: «Si parte da…» solo se e' la prima,
@@ -340,8 +397,8 @@ const frasePossibile = (tpl, d) => {
     if (/\bchiudi la giornata\b/i.test(tpl) && !(d.ultimo && d.giornata && d.sera)) return false;
     // «prima della prossima tappa» non si dice sull'ultima.
     if (d.ultimo && /prossima tappa/.test(tpl) && /prima della/.test(tpl)) return false;
-    if (/^Attraversi\b/.test(tpl) && !SI_ATTRAVERSA.has(d.famiglia)) return false;
-    if (/^Ti fermi davanti\b/.test(tpl) && !CI_SI_FERMA_DAVANTI.has(d.famiglia)) return false;
+    if (/^(Attraversi|Cammini)\b/.test(tpl) && !SI_ATTRAVERSA.has(d.famiglia)) return false;
+    if (/\{davantiNome\}/.test(tpl) && !CI_SI_FERMA_DAVANTI.has(d.famiglia)) return false;
     return true;
 };
 
@@ -351,11 +408,11 @@ const frasePossibile = (tpl, d) => {
  * famiglia, poi le generiche; se sono tutte usate tiene la prima valida.
  */
 export function apertura(d, { evita = null } = {}) {
-    const v = { ...d };
+    const v = conPreposizioni(d);
     // Dopo le frasi della famiglia: quelle delle famiglie sorelle (stesse frasi approvate, valide anche per luoghi simili), poi le generiche.
     const propri = aperture(d);
-    const sorelle = d.locale ? [] : (SORELLE[d.famiglia] || []).flatMap(f => FRASI_LUOGO[f]);
-    const candidate = [...new Set([...propri, ...sorelle, ...FRASI_LUOGO.altro])];
+    const sorelle = d.locale ? [] : (SORELLE[d.famiglia] || []).flatMap(f => conExtra(FRASI_LUOGO, FRASI_LUOGO_EXTRA, f));
+    const candidate = [...new Set([...propri, ...sorelle, ...conExtra(FRASI_LUOGO, FRASI_LUOGO_EXTRA, 'altro')])];
     const valide = [];
     for (const tpl of candidate) {
         if (!frasePossibile(tpl, d)) continue;
@@ -381,7 +438,7 @@ export function apertura(d, { evita = null } = {}) {
 export function ganciValidi(d, { aperturaTesto = '', interesse = null } = {}) {
     const out = new Map();
     const ap = norm(aperturaTesto);
-    const v = { ...d, interesse: interesse ? INTERESSE_BY_KEY.get(interesse)?.forma : null };
+    const v = { ...conPreposizioni(d), interesse: interesse ? INTERESSE_BY_KEY.get(interesse)?.forma : null };
     if (d.delta !== null && d.ora && d.tramonto) out.set('tramonto', riempi(FRASI_GANCIO.tramonto, v));
     if (v.interesse) out.set('legame', riempi(FRASI_GANCIO.legame, v));
     // (4) niente doppioni: minuti gia' detti → niente "distanza"; orario gia'

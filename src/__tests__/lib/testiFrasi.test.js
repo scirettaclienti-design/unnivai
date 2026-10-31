@@ -46,7 +46,7 @@ describe('TESTI 4 — frasi che contraddicono il tour', () => {
             const d = stopData({ stop: { title: 'Chiesa del Gesù', place_id: `c${i}`, types: ['church'], primaryType: 'church', stayMinutes: 20 }, momento: 'mattina', orario: '10:00' });
             if (/Ti prendi/.test(apertura(d))) vista = apertura(d);
         }
-        expect(vista).toBe('Ti prendi venti minuti dentro Chiesa del Gesù.');
+        expect(vista).toBe('Ti prendi venti minuti dentro la Chiesa del Gesù.');
         const museoChiesa = stopData({ stop: { title: 'Abbazia', place_id: 'ab', types: ['church', 'museum'], primaryType: 'church', stayMinutes: 60 }, momento: 'mattina', orario: '10:00' });
         expect(museoChiesa.durata).toBe('sessanta minuti');
         for (let i = 0; i < 60; i++) {
@@ -64,7 +64,7 @@ describe('TESTI 4 — frasi che contraddicono il tour', () => {
             const d = stopData({ stop: { title: 'Trattoria Uno', place_id: `t${i}`, types: ['restaurant'] }, momento: 'pranzo', locale: true, priceLevel: 2, minutiDaPrima: 1 });
             if (/a piedi ti siedi/.test(apertura(d))) pranzo1 = apertura(d);
         }
-        expect(pranzo1).toBe('A un minuto a piedi ti siedi da Trattoria Uno, trattoria con prezzi medi.');
+        expect(pranzo1).toBe('A un minuto a piedi ti siedi dalla Trattoria Uno, trattoria con prezzi medi.');
         // anche l'anticipo sul tramonto
         const sole = stopData({ stop: { title: 'Belvedere', place_id: 'bv', types: ['tourist_attraction'] }, momento: 'aperitivo', orario: '18:29', tramonto: '18:30' });
         expect(ganciValidi(sole).get('tramonto')).toBe('Il sole tramonta alle 18:30: sei qui un minuto prima.');
@@ -97,12 +97,12 @@ describe('TESTI 5 — dalle 21:30 la sezione è «Dopocena», mai «Aperitivo»'
 describe('TESTI 6 — i prezzi a parole', () => {
     it('«fascia €» → prezzi bassi, «fascia €€» → prezzi medi, «fascia €€€» → prezzi alti', () => {
         const frase = (priceLevel) => apertura(stopData({ stop: { title: 'Osteria Navona', place_id: 'on', types: ['restaurant'] }, momento: 'cena', orario: '20:30', locale: true, priceLevel }));
-        expect(frase(1)).toBe('La cena è da Osteria Navona, osteria con prezzi bassi.');
-        expect(frase(2)).toBe('La cena è da Osteria Navona, osteria con prezzi medi.');
-        expect(frase(3)).toBe('La cena è da Osteria Navona, osteria con prezzi alti.');
+        expect(frase(1)).toBe('La cena è dall\'Osteria Navona, osteria con prezzi bassi.');
+        expect(frase(2)).toBe('La cena è dall\'Osteria Navona, osteria con prezzi medi.');
+        expect(frase(3)).toBe('La cena è dall\'Osteria Navona, osteria con prezzi alti.');
         for (const l of [1, 2, 3, 4]) expect(frase(l)).not.toMatch(/fascia|€/);
         // senza il livello di prezzo: nessun buco
-        expect(frase(null)).toBe('La cena è da Osteria Navona, osteria.');
+        expect(frase(null)).toBe('La cena è dall\'Osteria Navona, osteria.');
     });
 });
 

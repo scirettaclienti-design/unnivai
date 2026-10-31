@@ -5,6 +5,8 @@
 import { openStatus } from './openingHours';
 import { romeParts } from './tourWindow';
 
+import { alNome } from './preposizioni';
+
 /** 120 m · 1,2 km. Sotto i 100 m a passi di 5, fino a 1 km a passi di 10. */
 export function formatMetri(m) {
     if (!Number.isFinite(m) || m <= 0) return null;
@@ -180,24 +182,8 @@ export function momentoCoerente(moment, ora) {
     if (h < 6) h += 24;
     return h >= r[0] && h < r[1];
 }
-/** «al Bar», «alla Trattoria», «all'Osteria», «allo Stadio», «ai Quattro Canti»: la preposizione articolata giusta davanti al nome. */
-const FEMMINILI = ['trattoria', 'osteria', 'pizzeria', 'basilica', 'cattedrale', 'chiesa', 'fontana', 'piazza', 'via', 'porta', 'villa', 'torre', 'pasticceria', 'gelateria', 'enoteca', 'birreria', 'rosticceria', 'taverna', 'cappella', 'galleria', 'abbazia', 'pescheria', 'panetteria', 'libreria', 'farmacia', 'cantina', 'terrazza', 'scalinata', 'strada', 'loggia', 'rocca', 'fortezza', 'badia', 'pieve', 'torrefazione', 'friggitoria', 'salumeria', 'macelleria', 'bottega', 'sinagoga', 'moschea', 'grotta', 'spiaggia', 'riviera', 'passeggiata', 'cittadella', 'biblioteca', 'pinacoteca', 'università', 'stazione', 'banchina', 'funicolare'];
-export function alNome(nome) {
-    let n = String(nome || '').trim();
-    if (!n) return '';
-    const art = n.match(/^(il|lo|la|l'|l’|i|gli|le)\s*(?=\S)/i);
-    if (art) {
-        const a = art[1].toLowerCase().replace('’', "'");
-        const resto = n.slice(art[0].length).trim();
-        const mappa = { il: 'al', lo: 'allo', la: 'alla', "l'": "all'", i: 'ai', gli: 'agli', le: 'alle' };
-        return a === "l'" ? `all'${resto}` : `${mappa[a]} ${resto}`;
-    }
-    const prima = n.split(/\s+/)[0].replace(/[^\p{L}']/gu, '').toLowerCase();
-    if (/^[aeiouàèéìòùh]/i.test(prima) && !/^(hotel)$/.test(prima)) return `all'${n}`;
-    if (FEMMINILI.includes(prima)) return `alla ${n}`;
-    if (/^(s[^aeiou]|z|gn|ps|x|pn)/i.test(prima)) return `allo ${n}`;
-    return `al ${n}`;
-}
+// La preposizione articolata davanti al nome (alNome, conPrep) vive in preposizioni.js: una sola, per la guida e per i testi delle schede.
+export { alNome };
 export function percheAdesso(stop, quando = null, ora = null) {
     if (!stop) return null;
     const parti = [];

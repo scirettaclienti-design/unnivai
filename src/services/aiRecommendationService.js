@@ -3809,7 +3809,7 @@ export const aiRecommendationService = {
 
     /**
      * PER-TE-PROPOSTE — almeno PROPOSTE_MINIME proposte, a qualsiasi ora. Se i giri per adesso sono meno, le altre si compongono per
-     * il prossimo mattino (10:00 di Roma) dagli stessi pool, SENZA chiamate AI (nessuna quota, 0 $), e dicono `perDopo`.
+     * il prossimo mattino (9:30 di Roma) dagli stessi pool, SENZA chiamate AI (nessuna quota, 0 $), e dicono `perDopo`.
      */
     async _conProposteMinime(r, args = {}) {
         if (!r || r._source === 'error') return r;

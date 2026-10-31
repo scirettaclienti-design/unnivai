@@ -1,15 +1,15 @@
 // PER-TE-PROPOSTE — Per Te mostra sempre almeno 4 proposte, a qualsiasi ora.
 //
 // Il motore dà i giri che si possono fare ADESSO (di sera: il giro della sera; di giorno: i temi con posti aperti). Se sono meno
-// di PROPOSTE_MINIME, le altre si compongono per il PROSSIMO MATTINO (le 10:00 a Roma): stessi pool, stesse regole degli orari, ma
+// di PROPOSTE_MINIME, le altre si compongono per il PROSSIMO MATTINO (le 9:30 a Roma, come GIRO-LONTANO): stessi pool, stesse regole degli orari, ma
 // misurate sull'ora in cui si parte davvero. Ogni proposta che non parte adesso lo dice (`perDopo`): mai un posto chiuso
 // presentato come «adesso». Funzioni pure: le usano generateHomeTours e la Home.
-import { romeParts, romeDate } from './tourWindow';
+import { romeParts, romeDate, DAY_START } from './tourWindow';
 import { PER_TE_TESTI } from './esitoVuoto';
 
 export const PROPOSTE_MINIME = 4;
-/** A che ora si parte «per dopo» (ora di Roma). */
-export const ORA_PER_DOPO = { h: 10, m: 0 };
+/** A che ora si parte «per dopo» (ora di Roma): l'inizio della mattina, le 9:30, come «Domani · 9:30» di GIRO-LONTANO (decisione di Ivano). */
+export const ORA_PER_DOPO = DAY_START;
 
 const giornoSuccessivo = ({ y, m, d }) => {
     const t = new Date(Date.UTC(y, m - 1, d + 1));
@@ -17,7 +17,7 @@ const giornoSuccessivo = ({ y, m, d }) => {
 };
 
 /**
- * Il prossimo mattino, alle 10:00 di Roma. Prima delle 10:00 di oggi vale oggi («stamattina»: all'1:20 si dice così), altrimenti domani.
+ * Il prossimo mattino, alle 9:30 di Roma. Prima delle 9:30 di oggi vale oggi («stamattina»: all'1:20 si dice così), altrimenti domani.
  * @param {Date} adesso
  * @returns {{ data: Date, quando: 'stamattina'|'domattina' }}
  */
@@ -28,6 +28,12 @@ export function riferimentoPerDopo(adesso) {
     if (minuti < ORA_PER_DOPO.h * 60 + ORA_PER_DOPO.m && oggi.getTime() > adesso.getTime()) return { data: oggi, quando: 'stamattina' };
     return { data: romeDate(giornoSuccessivo(p), ORA_PER_DOPO), quando: 'domattina' };
 }
+
+/** «stamattina» | «domattina» → le parole a schermo. */
+const parolaQuando = (quando) => (quando === 'stamattina' ? 'stamattina' : 'domattina');
+
+/** La riga sopra le card: una parte è per dopo (mista) o tutte. */
+export const rigaPerDopo = (quando, tutte) => (tutte ? PER_TE_TESTI.rigaTuttePerDopo(parolaQuando(quando)) : PER_TE_TESTI.rigaPerDopoMista(parolaQuando(quando)));
 
 /** Il badge di una proposta per dopo. */
 export const badgePerDopo = (quando) => (quando === 'stamattina' ? PER_TE_TESTI.badgePerStamattina : PER_TE_TESTI.badgePerDomattina);

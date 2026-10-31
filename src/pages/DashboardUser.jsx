@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Users, Brain, Zap, MapPin, ThermometerSun, Compass, Clock, Star, ChevronRight, Gamepad2, Gift, X, CloudRain, Sun, Snowflake, CheckCircle, Loader2, Award, Crosshair, WifiOff, MessageSquare, Tag } from 'lucide-react';
 import { aiRecommendationService, buildInsiderPool } from '@/services/aiRecommendationService';
 import { isSeraStart } from '@/lib/daySkeleton';
-import { riferimentoPerDopo } from '@/lib/perTeProposte';
+import { riferimentoPerDopo, rigaPerDopo } from '@/lib/perTeProposte';
 import { AI_ENGINE_MESSAGE, isAiEngineError } from '@/lib/aiEngineError';
 import { useUserContext } from '../hooks/useUserContext';
 import GpsActivationBanner from '../components/GpsActivationBanner';
@@ -16,7 +16,7 @@ import { dataService, createGuideRequest } from "@/services/dataService";
 import { useAILearning } from '../hooks/useAILearning';
 import { resolveFoodPrefs, foodPrefsFingerprint } from '@/lib/foodPrefs';
 import { placesDiscoveryService, PlacesSearchError } from '@/services/placesDiscoveryService';
-import { MESSAGGIO_TECNICO, TASTO_RIPROVA, PER_TE_TESTI } from '@/lib/esitoVuoto';
+import { MESSAGGIO_TECNICO, TASTO_RIPROVA } from '@/lib/esitoVuoto';
 import { giornoEFasciaPerTe, leggiPerTe, salvaPerTe, fasciaDnaEffettiva, registraFasciaDna } from '@/lib/perTeSalvato';
 import { fasciaDna } from '@/lib/fasciaDna';
 
@@ -252,7 +252,9 @@ const DashboardUser = () => {
                 // C8b — di sera (dalle 18:00 all'alba) "Per Te" e' il giro della sera del motore dei momenti (drink +
                 // passeggiata + cena): i temi non si cercano, nessuna ricerca in piu'. Di giorno il tema cibo segue le fasce.
                 // PER-TE-PROPOSTE — i temi si cercano ANCHE di sera: servono alle proposte «per domattina» (almeno 4, a qualsiasi ora).
-                // Di sera il cibo si cerca all'ora della prima proposta per dopo (le 10:00), non a quella di adesso.
+                // Di sera il cibo si cerca all'ora della prima proposta per dopo (le 9:30), non a quella di adesso.
+                // Le ricerche passano da places-proxy: la cache del server (places_cache, 24 ore) è per città (centro) e query, condivisa
+                // fra gli utenti; la query del cibo cambia con la fascia, gli altri temi sono gli stessi a ogni ora (perTeCacheSerale.test.js).
                 const sera = isSeraStart(new Date());
                 superata();
                 try {
@@ -423,7 +425,7 @@ const DashboardUser = () => {
     const chiusoOra = perTe?.chiusoOra ?? null;
     // PER-TE-PROPOSTE — se una parte delle card non è per adesso, la riga lo dice.
     const nDopo = (experiences || []).filter(e => e.perDopo).length;
-    const rigaProposte = nDopo === 0 ? null : (nDopo === (experiences || []).length ? PER_TE_TESTI.rigaTuttePerDopo : PER_TE_TESTI.rigaPerDopoMista);
+    const rigaProposte = nDopo === 0 ? null : rigaPerDopo((experiences || []).find(e => e.perDopo).perDopo.quando, nDopo === (experiences || []).length);
 
     const [tourHistory, setTourHistory] = useState([]);
     useEffect(() => {

@@ -5,7 +5,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // fetch finto, il motore della sera è finto (restituisce il giro della sera), le proposte «per dopo» non chiamano nessuna AI.
 
 import { aiRecommendationService } from '../../services/aiRecommendationService';
-import { riferimentoPerDopo, unisciProposte, PROPOSTE_MINIME } from '../../lib/perTeProposte';
+import { riferimentoPerDopo, unisciProposte, PROPOSTE_MINIME, rigaPerDopo, ORA_PER_DOPO } from '../../lib/perTeProposte';
+import { DAY_START } from '../../lib/tourWindow';
 import { computeAffinityScore, ruoloSerale } from '../../services/candidateScoring';
 import { PER_TE_TESTI } from '../../lib/esitoVuoto';
 
@@ -83,14 +84,21 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals(); spiaMotore?.mockRestore(); vi.useRealTimers(); });
 
 describe('riferimentoPerDopo — dove cade il «per dopo»', () => {
-    it('all’una di notte è questa mattina alle 10:00, di sera e di pomeriggio è domani alle 10:00 (ora di Roma)', () => {
-        expect(riferimentoPerDopo(new Date('2026-10-31T01:20:00+01:00'))).toMatchObject({ quando: 'stamattina', data: new Date('2026-10-31T10:00:00+01:00') });
-        expect(riferimentoPerDopo(new Date('2026-10-31T13:00:00+01:00'))).toMatchObject({ quando: 'domattina', data: new Date('2026-11-01T10:00:00+01:00') });
-        expect(riferimentoPerDopo(new Date('2026-10-31T20:06:00+01:00'))).toMatchObject({ quando: 'domattina', data: new Date('2026-11-01T10:00:00+01:00') });
+    it('all’una di notte è questa mattina alle 9:30, di sera e di pomeriggio è domani alle 9:30 (ora di Roma, come GIRO-LONTANO)', () => {
+        expect(riferimentoPerDopo(new Date('2026-10-31T01:20:00+01:00'))).toMatchObject({ quando: 'stamattina', data: new Date('2026-10-31T09:30:00+01:00') });
+        expect(riferimentoPerDopo(new Date('2026-10-31T13:00:00+01:00'))).toMatchObject({ quando: 'domattina', data: new Date('2026-11-01T09:30:00+01:00') });
+        expect(riferimentoPerDopo(new Date('2026-10-31T20:06:00+01:00'))).toMatchObject({ quando: 'domattina', data: new Date('2026-11-01T09:30:00+01:00') });
     });
 });
 
 describe('Per Te dà almeno 4 proposte a qualsiasi ora (Roma, dati finti)', () => {
+    it('la riga sopra le card dice «stamattina» o «domattina» e l’ora vera (9:30)', () => {
+        expect(rigaPerDopo('stamattina', true)).toBe('A quest’ora è quasi tutto chiuso. Sono giri per stamattina, dalle 9:30.');
+        expect(rigaPerDopo('domattina', true)).toBe('A quest’ora è quasi tutto chiuso. Sono giri per domattina, dalle 9:30.');
+        expect(rigaPerDopo('domattina', false)).toBe('Adesso è aperto poco. Le altre sono per domattina.');
+        expect(ORA_PER_DOPO).toEqual(DAY_START);
+    });
+
     it('01:00 — il giro della sera è per adesso, le altre sono per stamattina; nessuna chiamata AI', async () => {
         alle('2026-10-31T01:00:00+01:00');
         const fn = fetchDueTour(); vi.stubGlobal('fetch', fn);

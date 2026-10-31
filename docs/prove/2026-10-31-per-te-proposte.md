@@ -4,8 +4,8 @@ Data: 31/10/2026. Ramo `notte/per-te-proposte` da `origin/main` (`a564ffe`). Fon
 
 ## Cosa cambia per Ivano
 
-- **Per Te ha sempre almeno 4 card**, se i posti ci sono. Quelle che si fanno adesso stanno in testa. Le altre sono composte per il prossimo mattino (le 10:00 di Roma) e lo dicono: badge **«Per domattina»** (all'una di notte: **«Per stamattina»**) e, sopra le card, una riga: «Adesso è aperto poco. Le altre sono per domattina.» oppure, se nessuna è per adesso, «A quest'ora è quasi tutto chiuso. Sono giri per domattina, dalle 10.»
-- **Mai un posto chiuso presentato come «adesso»**: le proposte per dopo usano gli stessi controlli degli orari, misurati alle 10:00 di domattina. Di notte il tema cibo cade da solo (i ristoranti aprono a pranzo): restano insider, cultura, panorami, verde.
+- **Per Te ha sempre almeno 4 card**, se i posti ci sono. Quelle che si fanno adesso stanno in testa. Le altre sono composte per il prossimo mattino (le 9:30 di Roma) e lo dicono: badge **«Per domattina»** (all'una di notte: **«Per stamattina»**) e, sopra le card, una riga: «Adesso è aperto poco. Le altre sono per domattina.» oppure, se nessuna è per adesso, «A quest’ora è quasi tutto chiuso. Sono giri per domattina, dalle 9:30.» (all’una di notte «stamattina»)
+- **Mai un posto chiuso presentato come «adesso»**: le proposte per dopo usano gli stessi controlli degli orari, misurati alle 9:30 di domattina. Di notte il tema cibo cade da solo (i ristoranti aprono a pranzo): restano insider, cultura, panorami, verde.
 - **Di sera Per Te cerca anche i temi** (prima no). Sono le stesse ricerche di Places di ogni giorno (cache 24 ore), il cibo cercato all'ora di domattina. Le proposte per dopo **non chiamano nessuna AI**: niente quota, 0 $, frasi di riserva composte dal codice (le stesse delle tappe aggiunte «in codice»). Il giro della sera resta l'unica chiamata AI di notte.
 - **Il DNA pesa anche su drink e passeggiata**: un locale da drink (tipo principale bar, wine bar, cocktail bar, pub, locale notturno) prende l'affinità più alta fra Serate e l'80% di Cibo; una passeggiata (parco, giardino, belvedere, spiaggia, piazza) l'80% di Natura, Cultura o Relax. Prima un bar semplice aveva affinità 0 e il wine bar vinceva per caso, perché Google gli dà anche i tipi ristorante e cibo. `wine_bar`, `cocktail_bar`, `pub` ora sono «vita notturna» nel DNA. Utente nuovo (pesi a zero) o fiducia 0: nessun cambiamento.
 - Testi: `PER_TE_TESTI` in `src/lib/esitoVuoto.js` (il file dei messaggi di Per Te e degli esiti vuoti; non esiste un altro file di testi per la Home).
@@ -43,7 +43,7 @@ Ora: **di notte (tra le 00:00 e le 05:00) e una seconda volta tra le 18:00 e le 
 1. Apri Per Te dalla Home con il sito dell'anteprima di questo ramo.
 2. Guarda: ci sono almeno 4 card? La prima è il giro della sera e non ha il badge? Le altre hanno «Per domattina» (o «Per stamattina» di notte)?
 3. Guarda la riga sopra le card: dice che adesso è aperto poco.
-4. Apri una card «per domattina»: nessuna tappa deve essere un ristorante; il primo orario deve essere alle 10 del mattino.
+4. Apri una card «per domattina»: nessuna tappa deve essere un ristorante; il primo orario deve essere alle 9:30.
 5. Di giorno (13:00): le card per adesso hanno posti aperti; solo le mancanti hanno il badge.
 6. Controlla che l'elenco non si rigeneri a ogni apertura (resta una generazione per fascia).
 7. DNA: se il tuo DNA ha Cibo alto, i drink della sera devono essere enoteche/wine bar; con Natura alta le passeggiate parchi o belvedere.
@@ -56,7 +56,13 @@ Ora: **di notte (tra le 00:00 e le 05:00) e una seconda volta tra le 18:00 e le 
 - Il banner posizione e il tasto «Fine» (correzioni 1, 2, 5 della diagnosi) restano fuori da questo task.
 - Un giro della sera resta uno solo (il motore serale è drink + passeggiata + cena per costruzione): le altre sono per domattina, non altre serate.
 
-## Punti aperti per Ivano
+## Decisioni di Ivano (31/10, applicate prima del merge)
+
+1. **Ricerche serali: sì, con una cache per città e fascia condivisa fra gli utenti.** C'era già, sul server: places-proxy salva ogni risposta in `public.places_cache` per 24 ore, con la chiave = path + parametri ordinati (centro della città, query, raggio, lingua; mai la chiave, mai dati dell'utente). Il centro viene da `resolveCityCenter`, uguale per tutti. La query del cibo cambia con la fascia (di sera è quella della colazione, perché si cerca per le 9:30); gli altri temi hanno la stessa query a ogni ora, quindi di sera servono quasi sempre le risposte già salvate di giorno. Nessun codice nuovo di cache: un test (`perTeCacheSerale.test.js`) fissa che alle 20:00, alle 21:30 e all'1:00, da due telefoni diversi, le richieste sono identiche.
+2. **Le frasi delle schede «per dopo» le scrive il codice, non l'AI**: era già così (`senzaAI`, nessuna chiamata, 0 $); resta.
+3. **L'ora «per dopo» è le 9:30**, come «Domani · 9:30» di GIRO-LONTANO (`ORA_PER_DOPO = DAY_START` di `tourWindow`). La riga sopra le card dice «stamattina» o «domattina» e «dalle 9:30».
+
+## Punti aperti per Ivano (prima delle decisioni)
 
 1. Costo: di sera Per Te fa le 4 ricerche dei temi (prima nessuna; ~0,03 $ l'una se non in cache). Accettabile?
 2. Le proposte per dopo con testo di riserva o con una chiamata AI in più?

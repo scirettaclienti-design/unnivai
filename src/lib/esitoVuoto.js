@@ -47,9 +47,9 @@ export const PER_TE_TESTI = {
     badgePerDomattina: 'Per domattina',
     badgePerStamattina: 'Per stamattina',
     /** Una riga sopra le card quando solo una parte è per adesso. */
-    rigaPerDopoMista: 'Adesso è aperto poco. Le altre sono per domattina.',
+    rigaPerDopoMista: (quando) => `Adesso è aperto poco. Le altre sono per ${quando}.`,
     /** Una riga sopra le card quando nessuna è per adesso. */
-    rigaTuttePerDopo: 'A quest’ora è quasi tutto chiuso. Sono giri per domattina, dalle 10.',
+    rigaTuttePerDopo: (quando) => `A quest’ora è quasi tutto chiuso. Sono giri per ${quando}, dalle 9:30.`,
     /** Il titolo di un giro per tema: il dato nudo. */
     titoloTema: (tema, citta) => ({
         insider: `Da insider a ${citta}`,

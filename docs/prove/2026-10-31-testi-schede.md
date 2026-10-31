@@ -8,18 +8,33 @@ Tocca `aiRecommendationService.js` e `DashboardUser.jsx`, gli stessi file di #3/
 1. **Preposizioni giuste.** «Ti prendi una pausa al Parco del Gianicolo», «Ti fermi davanti alla Galleria del Cardinale Colonna», «Passi dalla Passeggiata del Gianicolo». La regola è una sola, in `src/lib/preposizioni.js` (`conPrep`): è la stessa `alNome` dei testi d'arrivo, spostata lì ed estesa (a, da, in, davanti a, sotto, dentro, intorno a, fino a; plurali, iniziale vocale, «Isola» non è più letta come l'articolo «i»). Le frasi usano i segnaposto `{aNome}`, `{daNome}`, `{nelNome}`, `{davantiNome}`, `{sottoNome}`, `{dentroNome}`, `{ilNome}`. Un locale che non si riconosce resta senza articolo («da Roscioli», «da Enzo al 29», «dal Convivio»).
 2. **Etichette interne tolte.** La card mostrava «Roma, Tour AI Insider» / «Roma, Esperienza Locale»: ora solo «Roma» (`DashboardUser.jsx`). Il badge «Insider AI» è un'altra cosa e non cambia.
 3. **Frasi riempitivo non ripetute.** Due cause: (a) le frasi approvate di una famiglia erano 1–2 e una lista di Per Te ha 10–15 tappe; (b) le schede «per domattina» di #3 si compongono in una seconda chiamata che ripartiva da zero e ripeteva le frasi delle schede «per adesso». Ora ogni famiglia ha varianti di scorta (`FRASI_LUOGO_EXTRA`, `FRASI_LOCALE_EXTRA`, voce Unnivai, senza giudizi) che stanno DOPO quelle di sempre (la scelta della prima frase non cambia), e la seconda chiamata parte dalle frasi già dette (`frasiUsateDa`, `opts.frasiGiaUsate`). La maschera delle frasi riconosce anche il nome senza articolo («Il Duomo» → «al Duomo»).
-4. **Titoli dalle tappe vere.** Il titolo del modello («Tour di Roma», «Tesori di Catania», «Gustoso pranzo a Troina», «Roma vista dal colle del Gianicolo» con Piazza del Campidoglio dentro) non si usa più per Per Te, per il giro della sera/del borgo e per i giri di un giorno: il titolo lo scrive il codice, «Da A a B» con la prima e l'ultima visita (i locali non reggono il titolo se ci sono visite, il tempo libero non conta; una tappa sola: «Intorno a…»; nei titoli piazze, vie, ville e porte senza articolo: «Da Piazza Navona a Villa Borghese»). Titolo troppo lungo (oltre 90 caratteri): «N tappe, da…». I giri di più giorni restano com'erano («Giorno N a X» o titolo del modello pulito): non li ho toccati.
+4. **Titoli dalle tappe vere** (versione della notte, corretta il 31/10: ora il titolo del motore resta se è fondato sulle tappe e «Da A a B» è solo la riserva; vedi «Decisioni di Ivano»). Il titolo del modello («Tour di Roma», «Tesori di Catania», «Gustoso pranzo a Troina», «Roma vista dal colle del Gianicolo» con Piazza del Campidoglio dentro) non si usa più per Per Te, per il giro della sera/del borgo e per i giri di un giorno: il titolo lo scrive il codice, «Da A a B» con la prima e l'ultima visita (i locali non reggono il titolo se ci sono visite, il tempo libero non conta; una tappa sola: «Intorno a…»; nei titoli piazze, vie, ville e porte senza articolo: «Da Piazza Navona a Villa Borghese»). Titolo troppo lungo (oltre 90 caratteri): «N tappe, da…». I giri di più giorni restano com'erano («Giorno N a X» o titolo del modello pulito): non li ho toccati.
+
+## Decisioni di Ivano (31/10, applicate prima del merge)
+
+1. **Preposizioni articolate nei titoli: «Dal Lungomare», «Dal Corso», «Dal Viale».** Senza articolo restano solo piazze, vie, vicoli, largo, ville, porte, campo, borgo, contrada («Da Piazza Navona», «Da Via Etnea»). Corso, viale, lungomare, lungotevere, lungarno, piazzale, ponte e salita prendono l'articolo (`TOPONIMI` in `preposizioni.js`).
+2. **Il titolo del motore resta se ogni suo elemento trova riscontro nelle tappe** (`titoloFondato`, `titoloGiro` in `titoliGiro.js`). Un elemento è:
+   - un nome di luogo: deve stare nei nomi o negli indirizzi delle tappe;
+   - un tipo di posto (panorami/vista/dall'alto, fontane, piazze, chiese, mercati, musei/arte, verde/giardini, mare, a tavola/sapori, dolci, aperitivo, teatri/rovine, palazzi, castelli): almeno una tappa deve essere di quel tipo, per nome o per tipo di Google.
+
+   Le parole di atmosfera e di epoca non contano. Quelle che il codice non sa verificare («Riflessi», «Rifugi», «Romanticismo») rendono il titolo non fondato: meglio la riserva che un titolo falso. **«Da A a B» è solo la riserva**: si usa quando il titolo è generico (nessun elemento: «Tour di Roma», «Tesori di Catania», «Il tuo giro a Roma») o falso (un elemento senza riscontro: «Catania dall'alto» senza un panorama). Sui 136 giri registrati (54 titoli diversi): 33 titoli restano, 21 passano alla riserva.
 
 ## Prima / dopo dei titoli (giri registrati nel banco, `docs/prove/dati/`)
 
-| Prima | Tappe | Dopo |
-|---|---|---|
-| Tour di Roma | Albero Monumentale Pioppo Nero / Belvedere Tarpeo / Il Palazzo dei Conservatori | Dall'Albero Monumentale Pioppo Nero al Palazzo dei Conservatori |
-| Panorami Romantici di Roma | Gianicolo Belvedere / Giardino degli Aranci / Piazza del Campidoglio | Dal Gianicolo Belvedere a Piazza del Campidoglio |
-| Tour di Catania | Chiesa di San Francesco Borgia / Palazzo della Cultura Catania / Museo degli Antichi Strumenti di Scrittura | Dalla Chiesa di San Francesco Borgia al Palazzo della Cultura Catania |
-| Vista mare a Catania | Lungomare di Acicastello / Chiesa della Badia di Sant'Agata / Fontana dell'Amenano | Da Lungomare di Acicastello alla Fontana dell'Amenano |
-| Gustoso pranzo a Troina | Black & White / Piazza Conte Ruggero / Convento di Sant'Agostino | Da Piazza Conte Ruggero al Convento di Sant'Agostino |
-| Da insider a Catania | Palazzo dei Chierici / Palazzo degli Elefanti / Lungomare Ognina / La Scogliera | Dal Palazzo dei Chierici alla Scogliera |
+| Titolo del motore (prima) | Tappe | Dopo | Perché |
+|---|---|---|---|
+| Tour di Roma | Albero Monumentale Pioppo Nero · Belvedere Tarpeo · Il Palazzo dei Conservatori | Dall'Albero Monumentale Pioppo Nero al Palazzo dei Conservatori | generico |
+| Tesori di Catania | Monastero dei Benedettini · Basilica Cattedrale di Sant'Agata · Palazzo Platamone | Dalla Basilica Cattedrale di Sant'Agata al Palazzo Platamone | generico |
+| Il tuo giro a Catania | Palazzo dei Chierici · Piazza Umbrella · Trattoria Sorano · Fontana dell'Amenano · … · Porta Uzeda | Dal Palazzo dei Chierici a Porta Uzeda | generico |
+| Catania dall'alto | Piazza Università · Fontana dell'Amenano · Porta Uzeda | Da Piazza Università a Porta Uzeda | falso: nessun panorama fra le tappe |
+| Riflessi d'Amore a Catania | Chiesa della Badia di Sant'Agata · Piazza Università · Lungomare di Acicastello | Dalla Chiesa della Badia di Sant'Agata al Lungomare di Acicastello | non verificabile («riflessi», «amore») |
+| Roma dall'alto | Gianicolo Belvedere · Giardino degli Aranci · Terrazza delle Quadrighe | Roma dall'alto | resta: tre panorami |
+| Panorami Romantici di Roma | Gianicolo Belvedere · Giardino degli Aranci · Piazza del Campidoglio | Panorami Romantici di Roma | resta: Belvedere e Giardino degli Aranci |
+| Vista mare a Catania | Lungomare di Acicastello · porto di Catania · Piazza Università | Vista mare a Catania | resta: lungomare e porto |
+| A tavola a Catania | Trattoria Sorano · A Putia dell'Ostello · Trattoria del Cavaliere | A tavola a Catania | resta: trattorie |
+| Relax Verde a Roma | Ingresso di Villa Pamphili · Villa Doria Pamphili · Villa Sciarra | Relax Verde a Roma | resta: ville |
+
+Esempi del test (casi di Ivano): «Roma vista dal colle del Gianicolo» resta se fra le tappe c'è il Gianicolo; con Piazza del Campidoglio e Palazzo dei Conservatori diventa «Da Piazza del Campidoglio al Palazzo dei Conservatori». La riserva su un lungomare e un corso: «Dal Lungomare di Catania al Corso Italia».
 
 ## Prove
 
@@ -37,8 +52,8 @@ Tocca `aiRecommendationService.js` e `DashboardUser.jsx`, gli stessi file di #3/
 
 ## Cosa NON risolve / decisioni di Ivano
 
-- **Piazza, via, villa nelle frasi**: nei testi d'arrivo c'era già «alla Via Etnea» e l'ho mantenuto («Attraversi la Piazza del Campidoglio», «alla Villa Borghese»); nei titoli invece sono senza articolo («Da Piazza Navona…»). Se preferisci «a Piazza Navona» anche nelle frasi, è una riga in `articoloDi` (opzione `toponimi`).
-- I titoli non hanno più immagini o aggettivi (niente «Roma dall'alto»): è il «dato nudo» della voce Unnivai; se vuoi titoli più evocativi servono regole sul tipo di tappe (panorami, mercati…), non l'AI.
+- **Piazza, via, villa nelle frasi**: nei testi d'arrivo c'era già «alla Via Etnea» e l'ho mantenuto («Attraversi la Piazza del Campidoglio», «alla Villa Borghese»); nei titoli sono senza articolo («Da Piazza Navona…»), mentre corso, viale e lungomare lo prendono («Dal Lungomare…», decisione del 31/10).
+- I titoli evocativi del motore restano solo se fondati sulle tappe (decisione del 31/10); il vocabolario delle parole verificabili è in `titoliGiro.js` (`CATEGORIE`, `VUOTE`): una parola nuova del motore che il codice non conosce manda il titolo alla riserva.
 - Giri di più giorni: titoli invariati. `PER_TE_TESTI.titoloTema` di #3 ora è solo un ripiego (vale se un giro non ha tappe con nome).
 - Le frasi di scorta sono nuove e vanno lette da te (le ho scritte nella voce Unnivai, senza giudizi): elenco in `FRASI_LUOGO_EXTRA` / `FRASI_LOCALE_EXTRA`.
 - Finite anche le varianti di scorta, una frase può ancora ripetersi (resta la regola di prima: mai una frase fuori elenco).

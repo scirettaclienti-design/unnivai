@@ -17,8 +17,9 @@ const MASCHILI_PLUR = ['giardini', 'musei', 'fori', 'mercati', 'navigli', 'basti
 // Nomi di luogo che non vogliono l'articolo («a San Pietro», «a Trastevere»): santi e rioni.
 const SENZA_ARTICOLO = /^(san|santa|sant|santo|santi|ss|trastevere|testaccio|monti|ostia|prati|ostiense|garbatella|ortigia)$/i;
 
-// Piazze, vie, ville, porte, ponti: «Da Piazza Navona a Villa Borghese» (opzione `toponimi`, usata dai titoli).
-const TOPONIMI = /^(piazza|piazzale|piazzetta|largo|via|viale|vicolo|corso|villa|porta|ponte|campo|borgo|contrada|salita|lungotevere|lungarno|lungomare)$/i;
+// Piazze, vie, ville, porte: «Da Piazza Navona a Villa Borghese» (opzione `toponimi`, usata dai titoli). Decisione di Ivano (31/10):
+// corsi, viali, lungomari, lungotevere, piazzali, ponti e salite vogliono l'articolo anche nei titoli: «Dal Lungomare», «Dal Corso», «Dal Viale».
+const TOPONIMI = /^(piazza|piazzetta|largo|via|vicolo|villa|porta|campo|borgo|contrada)$/i;
 
 const ARTICOLI = {
     il: { a: 'al', da: 'dal', di: 'del', in: 'nel', su: 'sul' },

@@ -65,6 +65,18 @@ describe('TESTI-SCHEDE — la preposizione articolata davanti al nome', () => {
         expect(conPrep('da', 'Piazza Navona', { toponimi: true })).toBe('da Piazza Navona');
         expect(conPrep('a', 'Villa Borghese', { toponimi: true })).toBe('a Villa Borghese');
         expect(conPrep('a', 'Parco del Gianicolo', { toponimi: true })).toBe('al Parco del Gianicolo');
+        expect(conPrep('da', 'Via Etnea', { toponimi: true })).toBe('da Via Etnea');
+    });
+    it('nei titoli corsi, viali, lungomari, lungotevere, piazzali e ponti vogliono l\'articolo (decisione di Ivano, 31/10)', () => {
+        const T = { toponimi: true };
+        expect(conPrep('da', 'Lungomare di Acicastello', T)).toBe('dal Lungomare di Acicastello');
+        expect(conPrep('da', 'Corso Vittorio Emanuele II', T)).toBe('dal Corso Vittorio Emanuele II');
+        expect(conPrep('da', 'Viale Trastevere', T)).toBe('dal Viale Trastevere');
+        expect(conPrep('da', 'Lungotevere dei Mellini', T)).toBe('dal Lungotevere dei Mellini');
+        expect(conPrep('a', 'Lungomare di Catania', T)).toBe('al Lungomare di Catania');
+        expect(conPrep('a', 'Corso Italia', T)).toBe('al Corso Italia');
+        expect(conPrep('da', 'Piazzale Michelangelo', T)).toBe('dal Piazzale Michelangelo');
+        expect(conPrep('a', 'Ponte Sisto', T)).toBe('al Ponte Sisto');
     });
     it('un locale che non si riconosce resta senza articolo: «da Roscioli», «da Enzo al 29», «dal Convivio»', () => {
         expect(conPrep('da', 'Roscioli', { fallback: 'nessuno' })).toBe('da Roscioli');

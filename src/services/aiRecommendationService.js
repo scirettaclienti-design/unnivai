@@ -361,7 +361,7 @@ import { filterBannedWords, bannedWordsPromptLines, unsupportedJudgments } from 
 // P3d-e — fatti aperti sulle tappe finali, controllo anti-invenzione, frase sicura.
 // P3d-j — il modello sceglie, il codice scrive: le frasi approvate e la rete.
 import { stopData, guardComposed, apertura, ganciValidi, interessiPerTappa, userInterests, composeFreeTime, registraFrasi, frasiUsateDa } from '@/lib/stopPhrases';
-import { titoloDaTappe } from '@/lib/titoliGiro';
+import { titoloGiro } from '@/lib/titoliGiro';
 import { senzaEscape, weatherLabel, weatherIconOf, isDopocenaClock } from '@/lib/italianLabels';
 import { fetchFactsForStops, isLocaleStop } from './factsService';
 import { momentAtClock, MOMENTS, MOMENT_BY_KEY, ALBA_MINUTES } from '@/lib/dayMoments';
@@ -2287,12 +2287,12 @@ const applyDayMeta = (days, meta, city) => days.map((day, di) => {
     const m = meta[di] || {};
     return {
         ...day,
-        // TESTI-SCHEDE — un giro di un giorno si intitola dalle sue tappe vere (titoliGiro), non dal titolo del modello
-        // («Tour di Roma», «Roma vista dal colle del Gianicolo» con Piazza del Campidoglio dentro). Più giorni: come prima.
-        title: (days.length <= 1 && titoloDaTappe(day.stops, city))
+        // TESTI-SCHEDE — un giro di un giorno tiene il titolo del motore se ogni suo elemento sta nelle tappe (titoliGiro.titoloGiro);
+        // se è generico («Tour di Roma») o falso (un luogo che nel giro non c'è) si intitola «Da A a B» dalle tappe vere. Più giorni: come prima.
+        title: (days.length <= 1 && titoloGiro(dayTitle(m.title, '', { unGiorno: true }), day.stops, city))
             || dayTitle(m.title, day.title || giornoTitle(di, city, days.length), { unGiorno: days.length <= 1 }),
         // il titolo del codice: composeDays lo rimette se il giro comincia dopo le 21:30 e il titolo dice «aperitivo»
-        titoloCodice: (days.length <= 1 && titoloDaTappe(day.stops, city)) || day.title || giornoTitle(di, city, days.length),
+        titoloCodice: (days.length <= 1 && titoloGiro(null, day.stops, city)) || day.title || giornoTitle(di, city, days.length),
         suggestedTransit: VALID_TRANSIT.has(m.suggestedTransit) ? m.suggestedTransit : (day.suggestedTransit || 'walking'),
         mapMood: VALID_MOODS.has(m.mapMood) ? m.mapMood : (day.mapMood || 'default'),
     };
@@ -4211,8 +4211,8 @@ export const aiRecommendationService = {
                     && Array.isArray(byIdPool.get(st.place_id)?._dietaCercata) && byIdPool.get(st.place_id)._dietaCercata.length > 0);
                 return {
                     themeType,
-                    // TESTI-SCHEDE — il titolo viene dalle tappe vere del giro (titoliGiro); quello del modello solo se non ce ne sono
-                    title: titoloDaTappe(ordered, city) || dayTitle(tour.title, `Tour di ${city}`),
+                    // TESTI-SCHEDE — il titolo del modello se è fondato sulle tappe, altrimenti «Da A a B» dalle tappe vere (titoliGiro)
+                    title: titoloGiro(dayTitle(tour.title, ''), ordered, city) || dayTitle(tour.title, `Tour di ${city}`),
                     mapMood: VALID_MOODS.has(tour.mapMood) ? tour.mapMood : 'default',
                     suggestedTransit: VALID_TRANSIT.has(tour.suggestedTransit) ? tour.suggestedTransit : 'walking',
                     stops: ordered,
@@ -4332,7 +4332,7 @@ export const aiRecommendationService = {
         if (!day) return { tours: [], _source: r._source || 'no-results', _report: report };
         const tour = {
             themeType: 'insider',
-            title: titoloDaTappe(day.stops, city) || dayTitle(day.title, `Tour di ${city}`),
+            title: titoloGiro(dayTitle(day.title, ''), day.stops, city) || dayTitle(day.title, `Tour di ${city}`),
             mapMood: VALID_MOODS.has(day.mapMood) ? day.mapMood : 'default',
             suggestedTransit: VALID_TRANSIT.has(day.suggestedTransit) ? day.suggestedTransit : 'walking',
             stops: day.stops,

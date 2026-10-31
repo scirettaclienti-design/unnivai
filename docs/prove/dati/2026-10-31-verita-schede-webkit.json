@@ -1,0 +1,29 @@
+{
+ "base": "http://localhost:5291",
+ "iniziato": "2026-10-31T12:20:54.152Z",
+ "commitSito": null,
+ "punti": {
+  "12": {
+   "nome": "scheda monumento: si apre subito, i cenni arrivano dopo",
+   "ok": true,
+   "ritardoMs": 8000,
+   "aperturaMs": 85,
+   "durante": {
+    "spinner": 0,
+    "cenni": false,
+    "titolo": true
+   },
+   "rispostaPaginaMs": 1,
+   "fotoDurante": "docs/prove/schermate/collaudo-sito/12-scheda-durante.png",
+   "cenniMs": 8656,
+   "cenni": "\"Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Una cappella associata a un presunto miracolo del XVI secolo è aperta solo il 16 marzo.\"",
+   "richiesteRacconto": 1,
+   "esitoRacconto": "passato",
+   "fotoDopo": "docs/prove/schermate/collaudo-sito/12-scheda-dopo.png",
+   "errori": [],
+   "console": [],
+   "secondi": 17
+  }
+ },
+ "finito": "2026-10-31T12:21:17.855Z"
+}

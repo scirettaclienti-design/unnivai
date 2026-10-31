@@ -23,6 +23,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMap, useMapsLibrary, InfoWindow } from '@vis.gl/react-google-maps';
 import { dataService } from '../services/dataService';
 import { poiService } from '../services/poiService';
+// VERITA-SCHEDE — mancava: la scheda chiamava enrichMonuments su un nome non importato (ReferenceError silenzioso), i cenni non arrivavano mai.
+import { aiRecommendationService } from '../services/aiRecommendationService';
 import { POIPopupCard } from '../components/Map/POIPopupCard';
 import { supabase } from '../lib/supabase';
 import { logNavEvent } from '../lib/navTelemetry';
@@ -705,11 +707,14 @@ const MapPage = () => {
     const [backgroundMonuments, setBackgroundMonuments] = useState([]);
 
     // ─── AI ENRICHMENT ON CLICK ──────────────────────────────────────────────
+    // VERITA-SCHEDE — la scheda si apre subito; i cenni (il racconto r5 passato) arrivano dopo, quando sono pronti. Una sola richiesta per
+    // luogo: senza racconto i cenni restano vuoti e l'effetto, che ripartirebbe a ogni setSelectedPOI, non richiede di nuovo (era un giro infinito).
+    const cenniChiestiRef = useRef(new Set());
     useEffect(() => {
-        let isCurrent = true;
-
         const enrich = async () => {
             if (!selectedPOI) return;
+            const chiaveCenni = selectedPOI.googlePlaceId || selectedPOI.place_id || selectedPOI.id || selectedPOI.title || selectedPOI.name;
+            if (cenniChiestiRef.current.has(chiaveCenni)) return;
             
             // Check if we actually need enrichment (missing historical notes)
             // also consider description might be empty or a placeholder
@@ -717,14 +722,16 @@ const MapPage = () => {
             const needsEnrichment = !selectedPOI.historicalNotes && (!hasGoodDescription || !selectedPOI.funFacts);
 
             if (needsEnrichment && city) {
+                cenniChiestiRef.current.add(chiaveCenni);
                 try {
                     const enrichedData = await aiRecommendationService.enrichMonuments([{
                         ...selectedPOI,
                         name: selectedPOI.title || selectedPOI.name || 'Punto di interesse',
                     }], city);
 
-                    if (isCurrent && enrichedData && enrichedData[0]) {
-                        // Update the selected POI with the new data
+                    // La richiesta è una sola per luogo: il risultato si applica anche se nel frattempo l'oggetto è cambiato, purché la
+                    // scheda aperta sia ancora quella del luogo (controllo qui sotto); a scheda chiusa o su un altro luogo non cambia niente.
+                    if (enrichedData && enrichedData[0]) {
                         setSelectedPOI(prev => {
                             if (!prev || (prev.title !== selectedPOI.title && prev.name !== selectedPOI.name)) return prev;
                             const newPoi = { ...prev };
@@ -743,10 +750,6 @@ const MapPage = () => {
         };
 
         enrich();
-
-        return () => {
-            isCurrent = false;
-        };
     }, [selectedPOI, city]);
 
     const tourData = activeTourData || location.state?.tourData;
@@ -782,6 +785,10 @@ const MapPage = () => {
                     // NON mostrato ancora da nessuna parte: il surfacing e' la Fase 3.
                     // P3d-j (chiusura) — insiderTip/bestTime non si propagano: testi del modello.
                     city: s.city || tourData.city || city || '',
+                    // VERITA-SCHEDE — la scheda di una tappa chiede i cenni (il racconto r5) per place_id: senza, non arrivavano mai.
+                    place_id: s.place_id || s.googlePlaceId || null,
+                    googlePlaceId: s.googlePlaceId || s.place_id || null,
+                    types: s.types,
                     index: i,
                 }));
             }

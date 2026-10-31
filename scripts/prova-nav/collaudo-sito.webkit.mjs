@@ -1,6 +1,8 @@
 /**
  * COLLAUDO-SITO — collaudo automatico sul sito pubblicato dei lavori del 28–30/10 (solo prova: nessuna modifica all'app).
- *   node scripts/prova-nav/collaudo-sito.webkit.mjs [punti, es. 1,2,3]     (difetto: tutti)
+ *   node scripts/prova-nav/collaudo-sito.webkit.mjs [punti, es. 1,2,3]     (difetto: tutti; il punto 8 fa anche 9 e 10)
+ * Punti 11–13 (TRENO-MERGE, 31/10): Per Te a Roma alle 01:00 e alle 20:00 (orologio della pagina spostato), almeno 4 schede; la scheda di
+ * un monumento si apre subito e i cenni arrivano dopo (racconto ritardato di COLLAUDO_RITARDO_RACCONTO_MS, difetto 8000); i titoli dei giri.
  * WebKit, profilo iPhone 14, GPS finto che si muove lungo il percorso (una posizione per volta, come un telefono).
  * Prima delle credenziali: titolo «DoveVai» verificato (CLAUDE.md). Credenziali da .env.local, mai stampate; la sessione salvata sta
  * nella cartella temporanea e si cancella a fine prova. Esiti in docs/prove/dati/2026-10-30-collaudo-sito.json, schermate in
@@ -12,7 +14,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 const BASE = process.env.COLLAUDO_BASE || 'https://unnivai.vercel.app';
-const PUNTI = (process.argv[2] || '1,2,3,4,5,6,7,8').split(',').map(Number);
+const PUNTI = (process.argv[2] || '1,2,3,4,5,6,7,8,11,12,13').split(',').map(Number);
 const OUT = path.resolve('docs/prove/schermate/collaudo-sito');
 const ESITI = path.resolve(process.env.COLLAUDO_ESITI || 'docs/prove/dati/2026-10-30-collaudo-sito.json');
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'collaudo-'));
@@ -83,8 +85,9 @@ async function nuovo(inizio, { ospite = false } = {}) {
     const ctx = await browser.newContext({ ...IPHONE, ...(ospite ? {} : { storageState: statePath }), locale: 'it-IT', timezoneId: 'Europe/Rome', permissions: ['geolocation'], geolocation: { latitude: inizio.lat, longitude: inizio.lng } });
     await ctx.addInitScript(GPS_FINTO, inizio);
     const page = await ctx.newPage();
-    const reg = { voce: [], racconto: [], errori: [] };
+    const reg = { voce: [], racconto: [], errori: [], console: [] };
     page.on('pageerror', e => reg.errori.push(String(e?.message || e).slice(0, 160)));
+    page.on('console', m => { if (reg.console.length < 200) reg.console.push(`${m.type()}: ${m.text()}`.slice(0, 200)); });
     page.on('request', r => {
         if (!/functions\/v1\/openai-proxy/.test(r.url()) || r.method() !== 'POST') return;
         const dv = (() => { try { return r.postDataJSON()?.dv; } catch { return null; } })();
@@ -370,6 +373,118 @@ try {
         r.account = await prova(false);
         r.ok = [r.ospite, r.account].filter(x => x.riprendi !== false).every(x => x.ok) && [r.ospite, r.account].some(x => x.riprendi !== false);
         return r;
+    });
+
+    // 11) Per Te a Roma alle 01:00 e alle 20:00: almeno 4 schede, quelle non per adesso lo dicono. L'orologio della pagina va indietro
+    // (ieri sera, stanotte): la sessione resta valida e le ore sono quelle vere di Roma. 13) i titoli dei giri si leggono qui e a Catania.
+    const ROMA_PT = { lat: 41.9009, lng: 12.4833 };
+    const CATANIA_PT = { lat: 37.5027, lng: 15.0873 };
+    const titoliGiri = [];
+    async function perTeAlle(nome, centro, oraIso) {
+        const { ctx, page, reg } = await nuovo(centro);
+        const r = { ora: oraIso };
+        try {
+            if (oraIso) { await page.clock.install({ time: new Date(oraIso) }); await page.clock.resume(); }
+            await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+            if (nome === 'catania') {
+                // la città della Home segue il GPS; se resta Roma la si sceglie a mano dalla barra in alto
+                await page.waitForTimeout(4000);
+            }
+            const t0 = Date.now();
+            await page.waitForFunction(() => document.querySelectorAll('a[href^="/tour-details/"] h4').length > 0 || /Riprova|non troviamo|Non sono riuscito/i.test(document.body.innerText), null, { timeout: 240000 });
+            await page.waitForTimeout(2500);
+            r.secondi = Math.round((Date.now() - t0) / 1000);
+            r.schede = await page.evaluate(() => [...document.querySelectorAll('a[href^="/tour-details/"]')].map(a => ({ titolo: a.querySelector('h4')?.innerText?.trim() || null, badge: a.querySelector('span')?.innerText?.trim() || null })).filter(x => x.titolo));
+            r.riga = await page.evaluate(() => [...document.querySelectorAll('section p')].map(p => p.innerText.trim()).find(t => /domattina|stamattina|quasi tutto chiuso/.test(t)) || null);
+            r.citta = await page.evaluate(() => (document.body.innerText.match(/\b(Roma|Catania)\b/) || [])[1] || null);
+            // tappe vere dei giri, dalla copia salvata sul telefono (perTeSalvato)
+            r.giri = await page.evaluate(() => {
+                const out = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (!/per_te/i.test(k)) continue;
+                    try {
+                        const v = JSON.parse(localStorage.getItem(k));
+                        const tours = v?.dati?.tours || v?.tours || v?.data?.tours || [];
+                        for (const t of tours) out.push({ titolo: t.title, perDopo: !!t.perDopo, tappe: (t.steps || t.stops || []).map(s => s.title || s.name).filter(Boolean) });
+                    } catch { /* non è una voce di Per Te */ }
+                }
+                return out;
+            });
+            r.foto = await foto(page, `11-per-te-${nome}`);
+            r.errori = reg.errori.slice(0, 5);
+        } catch (e) { r.errore = String(e?.message || e).slice(0, 300); r.foto = await foto(page, `11-per-te-${nome}-errore`).catch(() => null); }
+        await ctx.close();
+        for (const g of r.giri || []) titoliGiri.push({ dove: nome, ...g });
+        return r;
+    }
+    await punto(11, 'Per Te a Roma alle 01:00 e alle 20:00: almeno 4 schede, quelle non per adesso lo dicono', async () => {
+        const notte = await perTeAlle('roma-0100', ROMA_PT, '2026-10-31T01:00:00+01:00');
+        const sera = await perTeAlle('roma-2000', ROMA_PT, '2026-10-30T20:00:00+01:00');
+        // almeno 4 schede; ogni scheda non per adesso dice la parola giusta («Per stamattina» all'1:00, «Per domattina» alle 20:00)
+        const okDi = (r, parola) => (r.schede || []).length >= 4 && (r.schede || []).filter(x => /^Per (domattina|stamattina)$/.test(x.badge || '')).every(x => x.badge === `Per ${parola}`);
+        return { ok: okDi(notte, 'stamattina') && okDi(sera, 'domattina'), notte, sera };
+    });
+
+    // 12) La scheda di un monumento si apre subito; i cenni (racconto r5) arrivano dopo, senza bloccare niente e senza spinner sopra il contenuto.
+    await punto(12, 'scheda monumento: si apre subito, i cenni arrivano dopo', async () => {
+        const RITARDO = Number(process.env.COLLAUDO_RITARDO_RACCONTO_MS ?? 8000);
+        const TAPPE = [
+            { title: 'Palazzo Massimo alle Colonne', lat: 41.8967291, lng: 12.4735541, place_id: 'ChIJn7lmdk9gLxMR-uB8_zP3zPE' },
+            { title: 'Piazza del Campidoglio', lat: 41.8933592, lng: 12.4828018, place_id: 'ChIJOclom0xgLxMRURy9OLL7Hg4' },
+        ].map(t => ({ ...t, moment: 'mattina', types: ['tourist_attraction'], stayMinutes: 20, description: '' }));
+        const tour = giro('collaudo-scheda', 'Roma', TAPPE);
+        const { ctx, page, reg } = await nuovo({ lat: 41.8975, lng: 12.4745 });
+        const r = { ritardoMs: RITARDO };
+        try {
+            await page.route(/functions\/v1\/openai-proxy/, async (route) => {
+                let dv = null; try { dv = route.request().postDataJSON()?.dv; } catch { /* */ }
+                if (route.request().method() === 'POST' && dv?.purpose === 'racconto' && RITARDO > 0) await new Promise(res => setTimeout(res, RITARDO));
+                await route.continue();
+            });
+            await page.goto(`${BASE}/map`, { waitUntil: 'domcontentloaded' });
+            await page.evaluate((tour) => {
+                const route = tour.steps.map((s, i) => ({ latitude: s.lat, longitude: s.lng, label: s.title, title: s.title, name: s.title, description: '', category: 'Punto Mappa', image: null, index: i + 1, type: 'waypoint', place_id: s.place_id, googlePlaceId: s.place_id }));
+                window.history.replaceState({ usr: { route, tourData: tour }, key: 'collaudo', idx: 0 }, '', '/map');
+            }, tour);
+            await page.reload({ waitUntil: 'domcontentloaded' });
+            await page.locator('[data-testid="map-avvia-card"]').waitFor({ timeout: 30000 });
+            await page.waitForTimeout(4000);
+            const segnaposto = page.locator(`[title="${TAPPE[0].title}"]`).first();
+            await segnaposto.waitFor({ timeout: 20000 });
+            const t0 = Date.now();
+            await segnaposto.click();
+            await page.locator('h2', { hasText: TAPPE[0].title }).first().waitFor({ timeout: 10000 });
+            r.aperturaMs = Date.now() - t0;
+            await page.waitForTimeout(1200);
+            r.durante = await page.evaluate(() => ({
+                spinner: document.querySelectorAll('.animate-spin').length,
+                cenni: /cenni e contesto/i.test(document.body.innerText),
+                titolo: !!document.querySelector('h2'),
+            }));
+            // la pagina risponde mentre aspetta il racconto
+            const tEval = Date.now(); await page.evaluate(() => 1); r.rispostaPaginaMs = Date.now() - tEval;
+            r.fotoDurante = await foto(page, '12-scheda-durante');
+            await page.waitForFunction(() => /cenni e contesto/i.test(document.body.innerText), null, { timeout: RITARDO + 60000 }).catch(() => null);
+            r.cenniMs = /cenni e contesto/i.test(await page.evaluate(() => document.body.innerText)) ? Date.now() - t0 : null;
+            await page.waitForTimeout(3000);
+            r.cenni = await page.evaluate(() => { const h = [...document.querySelectorAll('span')].find(x => x.innerText.trim().toLowerCase() === 'cenni e contesto'); return h ? h.closest('div.rounded-2xl')?.querySelector('p')?.innerText?.trim()?.slice(0, 300) : null; });
+            r.richiesteRacconto = reg.racconto.filter(q => q.place_id === TAPPE[0].place_id).length;
+            r.esitoRacconto = reg.racconto.find(q => q.place_id === TAPPE[0].place_id)?.esito ?? null;
+            r.fotoDopo = await foto(page, '12-scheda-dopo');
+            r.errori = reg.errori.slice(0, 5);
+            r.console = reg.console.filter(x => /racconto|enrich|cenni|VERITA/i.test(x)).slice(0, 10);
+        } catch (e) { r.errore = String(e?.message || e).slice(0, 300); r.fotoErrore = await foto(page, '12-errore').catch(() => null); }
+        await ctx.close();
+        const cenniGiusti = r.esitoRacconto === 'passato' ? !!r.cenni : !r.cenni;
+        return { ok: !r.errore && r.aperturaMs < 2000 && r.durante?.spinner === 0 && !r.durante?.cenni && r.richiesteRacconto === 1 && cenniGiusti, ...r };
+    });
+
+    // 13) I titoli dei giri generati (Per Te a Roma dal punto 11, Per Te a Catania adesso): letti nel report, con le tappe vere.
+    await punto(13, 'titoli dei giri generati a Roma e Catania, con le tappe', async () => {
+        const catania = await perTeAlle('catania', CATANIA_PT, null);
+        const giri = titoliGiri.filter(g => g.titolo);
+        return { ok: giri.filter(g => g.dove.startsWith('roma')).length >= 2 && giri.filter(g => g.dove === 'catania').length >= 2, giri, catania: { schede: catania.schede, citta: catania.citta, errore: catania.errore, foto: catania.foto } };
     });
 
     // 8, 9, 10) GPS a Roma, Crea «un giro a Catania»: «Domani · 9:30 · cambia»; panoramica con pochi km; «Avvia» da lontano

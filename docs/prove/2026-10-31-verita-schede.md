@@ -31,6 +31,28 @@ Aprire la scheda di un luogo a Catania e a Roma: cenni = racconto (o niente), vo
 
 ## Cosa NON risolve
 - La chat libera con la guida può ancora dire fatti non verificati.
-- La curiosità del cammino di Roma («più di duemila fontanelle») è legata alla città, non a fonti di una tappa: decide Ivano se tenerla.
+- La curiosità del cammino di Roma («più di duemila fontanelle») resta (decisione di Ivano, 31/10): è legata alla città, non alle fonti di una tappa.
 - Chiavi/seed delle `activities` restano nel database, solo non si leggono.
 - I luoghi senza Wikipedia/Google (o locali) restano senza cenni: è voluto.
+
+## Verifica in WebKit prima del merge (31/10, TRENO-MERGE)
+
+Richiesta di Ivano: la scheda si apre subito e i cenni arrivano dopo, senza bloccare niente, durante l'attesa del racconto.
+Prova: punto 12 di `scripts/prova-nav/collaudo-sito.webkit.mjs` (WebKit, iPhone 14, account di prova) sul ramo servito in locale. Tappa: Palazzo Massimo alle Colonne. La risposta del racconto è ritardata di 8 s (`COLLAUDO_RITARDO_RACCONTO_MS`), per simulare la prima scrittura. Esito in `docs/prove/dati/2026-10-31-verita-schede-webkit.json`.
+
+La prima prova ha trovato **due difetti, già su main da prima**: con loro i cenni sulla mappa non arrivavano mai.
+1. **`MapPage` non importava `aiRecommendationService`.** La chiamata a `enrichMonuments` cadeva con un ReferenceError, finito nel `catch` come «Auto-enrichment failed». Ora l'import c'è.
+2. **Le tappe del giro sulla mappa (`activeRoute`) perdevano `place_id` e `types`.** Senza `place_id` il racconto non si può chiedere. Ora la tappa li porta con sé.
+
+Ho tolto anche un rischio di giro infinito: se il racconto non arriva, i cenni restano vuoti, l'effetto ripartiva a ogni `setSelectedPOI` e richiedeva di nuovo. Ora c'è una sola richiesta per luogo (`cenniChiestiRef`). Il risultato si applica solo se la scheda aperta è ancora quella del luogo.
+
+| Misura | Valore |
+|---|---|
+| Apertura della scheda dal tocco | 85 ms |
+| Spinner durante l'attesa | 0 |
+| La pagina risponde durante l'attesa | sì (1 ms) |
+| Cenni dopo il tocco | 8,7 s (ritardo 8 s + racconto già in cache) |
+| Richieste del racconto per il luogo | 1 |
+| Esito | passato, cenni mostrati |
+
+Nessuna correzione al contenuto della scheda è servita: non si blocca e non c'è uno spinner sopra il contenuto. Schermate: `docs/prove/schermate/collaudo-sito/12-scheda-durante.png` e `12-scheda-dopo.png`.

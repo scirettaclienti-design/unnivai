@@ -369,7 +369,8 @@ try {
             await ctx.close();
             return out;
         };
-        r.ospite = await prova(true);
+        // da ospite /map porta al login (collaudo del 30/10): il tentativo si registra come non raggiungibile, non fa cadere il punto
+        r.ospite = await prova(true).catch(e => ({ ospite: true, riprendi: false, errore: String(e?.message || e).slice(0, 200) }));
         r.account = await prova(false);
         r.ok = [r.ospite, r.account].filter(x => x.riprendi !== false).every(x => x.ok) && [r.ospite, r.account].some(x => x.riprendi !== false);
         return r;

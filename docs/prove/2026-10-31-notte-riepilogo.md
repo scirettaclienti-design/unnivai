@@ -40,3 +40,23 @@ T3: nel replay le frasi ripetute nelle liste Per Te passano da 7 a 0. Il test su
 - **T1: «almeno 4» vale solo se i pool hanno abbastanza posti.** Con pool sottili, come Troina, ne escono meno: 2 nel replay.
 - **T1: restano aperte le correzioni 1, 2 e 5 di `2026-10-28-per-te-diagnosi.md`** (tasto «Fine», conteggio dei giri, banner della posizione).
 - **Dopo ogni merge che tocca Per Te o le schede:** ripetere i punti di `scripts/prova-nav/collaudo-sito.webkit.mjs` che riguardano quel task (regola nuova di CLAUDE.md, PR #2). Va fatto dal Mac con le credenziali di prova, che stanotte non c'erano.
+
+## Esito del 31/10 (TRENO-MERGE)
+
+Tutte le PR della notte sono unite su main, nell'ordine #2 → #3 → #4 → #5 → #6. Per ognuna, prima del merge: rebase sulla precedente, suite verde, lint con 0 errori, build ok, `banco:guardia` 12/12, CI verde. Dopo ogni merge, Vercel `success`. Report completo: `docs/prove/2026-10-31-treno-merge.md`.
+
+| PR | Decisioni di Ivano applicate prima del merge |
+|---|---|
+| #2 | unita così com'è |
+| #3 | ricerche serali sulla cache del server, condivisa per città e fascia (c'era già; test che lo fissa); frasi «per dopo» dal codice; «per dopo» alle 9:30 come GIRO-LONTANO |
+| #4 | verifica WebKit: scheda in 85 ms, cenni dopo l'attesa, nessuno spinner. Corretti due difetti già su main per cui i cenni non arrivavano mai: import mancante in `MapPage`, `place_id` perso dalle tappe. Curiosità delle fontanelle tenuta |
+| #5 | «Dal Lungomare», «Dal Corso», «Dal Viale» nei titoli; il titolo del motore resta se è fondato sulle tappe, «Da A a B» solo come riserva (33 titoli tenuti, 21 sostituiti sui giri registrati) |
+
+**Collaudo del sito pubblicato** (main `75737a9`): punti 1–10 **10/10**, punti nuovi 11–13 **3/3**:
+- 11: Per Te a Roma con 5 schede all'1:00 («Per stamattina») e alle 20:00 («Per domattina»);
+- 12: la scheda di un monumento si apre in 84 ms;
+- 13: titoli dei giri di Roma e Catania letti nel report.
+
+Il punto 7 è passato al secondo lancio, dopo una correzione dello script del collaudo che è in questa PR.
+
+**Da sapere:** il credito OpenAI è finito, quindi la voce umana della navigazione ripiega sulla voce del telefono. Spesa AI della giornata misurata: 0,83 $ (al massimo ~1,29 $ con la stima dei giri dell'account di prova).

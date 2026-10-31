@@ -1,0 +1,106 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-10-31T00:58:50.245Z",
+ "commitSito": null,
+ "punti": {
+  "5": {
+   "nome": "schede: racconto o frase breve; riga in place_racconti",
+   "schede": [
+    {
+     "tappa": "Orto Botanico di Roma",
+     "place_id": "ChIJa-FrY0BgLxMRDN1UR07SMIE",
+     "racconto": "IL RACCONTO Fermati: sei alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo qui abitava Cristina di Svezia. Oggi l'Orto dipende dall'Università di Roma \"La Sapienza\", dal Dipartimento di Biologia Ambientale. Dentro trovi 7.000 specie di piante da tutto il mondo, fontane, un boschetto di bambù e un giardino del tè giapponese. Il racconto 0:00 / 0:21",
+     "perche": null,
+     "server": {
+      "nome": "Orto Botanico di Roma",
+      "place_id": "ChIJa-FrY0BgLxMRDN1UR07SMIE",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Fermati: sei alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo qui abitava Cristina di Svezia. Oggi l'Orto dipende dall'Università di Roma \"La Sapienza\", dal Dipartimento di Biologia Ambientale. Dentro trovi 7.000 specie di piante da tutto il mondo, fontane, un boschetto di ba"
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-roma-1-r5.png"
+    },
+    {
+     "tappa": "Villa Sciarra",
+     "place_id": "ChIJ4ya6TTxgLxMR8atV3UYz5ZA",
+     "racconto": "IL RACCONTO Qui sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, con le Mura gianicolensi proprio a ridosso della villa. Sono sette ettari e mezzo di piccoli giardini, sculture e fontane. Uno dei due ingressi è su piazzale Wurts, progettato da Pio Piacentini, e prende il nome dall'ultimo proprietario, George Washington Wurts: a lui si deve la disposizione del giardino e dei monumenti. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra. Il racconto 0:00 / 0:30",
+     "perche": null,
+     "server": {
+      "nome": "Villa Sciarra",
+      "place_id": "ChIJ4ya6TTxgLxMR8atV3UYz5ZA",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Qui sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, con le Mura gianicolensi proprio a ridosso della villa. Sono sette ettari e mezzo di piccoli giardini, sculture e fontane. Uno dei due ingressi è su piazzale Wurts, progettato da Pio Piacentini, e prende il nome dall'ultimo pr"
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-roma-2-r5.png"
+    },
+    {
+     "tappa": "Palazzo Massimo alle Colonne",
+     "place_id": "ChIJn7lmdk9gLxMR-uB8_zP3zPE",
+     "racconto": "IL RACCONTO Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Una cappella associata a un presunto miracolo del XVI secolo è aperta solo il 16 marzo. Il racconto 0:00 / 0:13",
+     "perche": null,
+     "server": {
+      "nome": "Palazzo Massimo alle Colonne",
+      "place_id": "ChIJn7lmdk9gLxMR-uB8_zP3zPE",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Una cappella associata a un presunto miracolo del XVI secolo è aperta solo il 16 marzo."
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-roma-2-1-r5.png"
+    },
+    {
+     "tappa": "Piazza del Campidoglio",
+     "place_id": "ChIJOclom0xgLxMRURy9OLL7Hg4",
+     "racconto": "IL RACCONTO Tappa del collaudo. Il racconto 0:00 / 0:05",
+     "perche": null,
+     "server": {
+      "nome": "Piazza del Campidoglio",
+      "place_id": "ChIJOclom0xgLxMRURy9OLL7Hg4",
+      "stato": 200,
+      "esito": "scartato",
+      "errore": null,
+      "testo": null
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-roma-2-2-r5.png"
+    },
+    {
+     "tappa": "Basilica Cattedrale di Sant'Agata",
+     "place_id": "ChIJP0UjWi7jExMRJytI986aC6g",
+     "racconto": "IL RACCONTO Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. Sta sul lato sud-est di piazza del Duomo. Dentro conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico. Il racconto 0:00 / 0:18",
+     "perche": null,
+     "server": {
+      "nome": "Basilica Cattedrale di Sant'Agata",
+      "place_id": "ChIJP0UjWi7jExMRJytI986aC6g",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. Sta sul lato sud-est di piazza del Duomo. Dentro conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-catania-1-r5.png"
+    },
+    {
+     "tappa": "Fontana dell'Elefante (uʻ Liotru)",
+     "place_id": "ChIJV63v_C7jExMRLThjTCcPppk",
+     "racconto": "IL RACCONTO Guarda l'elefante di basalto nero: i catanesi lo chiamano U Liotru. Sopra la fontana l'ha messa Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi quell'elefante è l'emblema di Catania. Il racconto 0:00 / 0:12",
+     "perche": null,
+     "server": {
+      "nome": "Fontana dell'Elefante (uʻ Liotru)",
+      "place_id": "ChIJV63v_C7jExMRLThjTCcPppk",
+      "stato": 200,
+      "esito": "passato",
+      "errore": null,
+      "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano U Liotru. Sopra la fontana l'ha messa Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi quell'elefante è l'emblema di Catania."
+     },
+     "foto": "docs/prove/schermate/collaudo-sito/5-catania-2-r5.png"
+    }
+   ],
+   "schedeOk": true,
+   "ok": null,
+   "secondi": 68
+  }
+ },
+ "finito": "2026-10-31T01:00:06.197Z"
+}

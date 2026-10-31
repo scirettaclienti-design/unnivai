@@ -57,11 +57,29 @@ Solo prova: il codice dell'app non è stato toccato.
 - **Fontana dell'Elefante:** nelle prove r4 era «passato», qui è «scartato». La verifica ha bocciato una frase sull'epoca dell'elefante che non si trova nelle fonti. Il filtro si è comportato come previsto; con questa versione resta quindi la frase breve.
 - **Costo** delle 4 generazioni: 0,027 $ in tutto. Le righe restano in cache, quindi la prossima apertura di queste schede non spende.
 
+## Ripetizione del punto 5 dopo r5 (31/10, RACCONTO-RIFINITURE)
+**Rilascio** con il «sì» di Ivano, dal codice di main `482733a`: `openai-proxy` **versione 38**, il 31/10 alle 00:58 UTC (nessuna migrazione, nessun secret).
+**Prova:** `COLLAUDO_ESITI=docs/prove/dati/2026-10-31-collaudo-sito-p5-r5.json node scripts/prova-nav/collaudo-sito.webkit.mjs 5`, il 31/10 dalle 00:59 alle 01:00 UTC. Il punto 5 ha ora un secondo giro di Roma: Palazzo Massimo alle Colonne e Piazza del Campidoglio. Prima della prova `place_racconti` aveva 4 righe r4 (1 passato, 3 scartati).
+
+| Tappa | Proxy | Riga in `place_racconti` | Scheda |
+|---|---|---|---|
+| Orto Botanico di Roma | 200 `passato` | **r5 passato** (era r4 scartato per «7, 000») | racconto, «Dentro trovi 7.000 specie…», lettore 0:21 (`5-roma-1-r5.png`) |
+| Villa Sciarra | 200 `passato` | **r5 passato** (era r4 scartato per una direzione) | racconto (`5-roma-2-r5.png`) |
+| Palazzo Massimo alle Colonne | 200 `passato` | **r5 passato** | racconto (`5-roma-2-1-r5.png`) |
+| Piazza del Campidoglio | 200 `scartato` | r5 scartato dal revisore dopo la riscrittura | frase breve («Tappa del collaudo.», `5-roma-2-2-r5.png`) |
+| Basilica Cattedrale di Sant'Agata | 200 `passato` | **r4 passato, invariato** (cache) | racconto (`5-catania-1-r5.png`) |
+| Fontana dell'Elefante | 200 `passato` | **r5 passato** (era r4 scartato) | racconto (`5-catania-2-r5.png`) |
+
+**Conteggio:** `select versione, esito, count(*) from public.place_racconti group by 1,2` → r4 passato 1, r5 passato 4, r5 scartato 1.
+**Esito:** ok. 3 tappe di Roma hanno il racconto passato in `place_racconti`. Ogni scheda ha un racconto o la frase breve, nessun errore a schermo. Costo dei 5 racconti nuovi: 0,061 $.
+- **Fontana dell'Elefante:** passa con «Sopra la fontana l'ha messa Giovanni Battista Vaccarini», una frase che le fonti non dicono e che il revisore ha lasciato passare (vedi «Cosa NON risolve» di RACCONTO-RIFINITURE).
+
 ## Cosa la prova ha scritto in produzione
 - **Un `tour_completed` dell'account di prova** (punto 6), tour `collaudo-fine-…`, `value` «2/3». L'account di prova ora conta 65 giri; la riga resta.
 - **Una generazione da Crea** con l'account di prova (punto 8): `label = 'test'`, nessun contatore.
 - **Richieste di voce e di racconto.** La voce della curiosità era già in cache o è un audio solo. Il 30/10 i racconti hanno ricevuto 400, quindi niente salvato e niente speso.
-- **31/10, ripetizione del punto 5:** 4 righe in `place_racconti` (1 «passato», 3 «scartato»), per 0,027 $. L'account di prova ha poi aperto un'altra sessione; nessun nuovo `tour_completed`.
+- **31/10, ripetizione del punto 5:** 4 righe in `place_racconti` (1 «passato», 3 «scartato»), per 0,027 $.
+- **31/10, ripetizione del punto 5 dopo r5:** 5 righe nuove o riscritte in `place_racconti` (3 r4 scartate diventate r5 passate, 2 nuove: Palazzo Massimo passato, Campidoglio scartato), per 0,061 $. L'account di prova ha poi aperto un'altra sessione; nessun nuovo `tour_completed`.
 
 ## Solo iPhone vero (non verificabile in WebKit simulato)
 - **Voce di iOS.** La voce umana (marin/cedar) che esce davvero dall'altoparlante, la ricaduta sulla voce di sistema di Safari e il volume con il telefono in mano o in tasca. Qui si vede solo che la richiesta parte.

@@ -2,7 +2,7 @@
 
 Quattro lavori, ognuno fatto da un sotto-agente nuovo (Sonnet) su un ramo `notte/…`. Ognuno ha la sua pull request verso main: tutte pronte, nessuna unita, nessuna in bozza. Stanotte nessun deploy, nessuna migrazione, nessun secret e nessuna chiamata a pagamento. Le prove sono test, il replay del banco e simulazioni locali.
 
-Ogni ramo è passato da suite verde, lint con 0 errori, build ok e `npm run banco:guardia` 12/12, tutto in locale. Su GitHub la CI (Lint & Test, E2E Smoke) è verde per #2, #3 e #4; quando ho scritto questo file era ancora in corso per #5.
+Ogni ramo è passato da suite verde, lint con 0 errori, build ok e `npm run banco:guardia` 12/12, tutto in locale. Su GitHub la CI (Lint & Test, E2E Smoke) è verde su tutte e quattro le PR.
 
 ## Tabella
 

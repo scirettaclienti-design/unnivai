@@ -18,9 +18,9 @@ export type ViaFonte = 'nome' | 'voce-intera' | 'vicina' | 'menzioni';
 const senzaParentesi = (s: string) => String(s || '').replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
 const norm = (s: string) => senzaParentesi(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’`ʻ]/g, "'").replace(/[^a-z0-9' ]/g, ' ').replace(/\s+/g, ' ').trim();
 
-type Fetch = (url: string, init?: Record<string, unknown>) => Promise<{ ok: boolean; status: number; json: () => Promise<any> }>; // deno-lint-ignore no-explicit-any
+export type Fetch = (url: string, init?: Record<string, unknown>) => Promise<{ ok: boolean; status: number; json: () => Promise<any> }>; // deno-lint-ignore no-explicit-any
 
-async function wikiCall(params: Record<string, string>, fetchImpl: Fetch): Promise<any | 'errore'> { // deno-lint-ignore no-explicit-any
+export async function wikiCall(params: Record<string, string>, fetchImpl: Fetch): Promise<any | 'errore'> { // deno-lint-ignore no-explicit-any
     const qs = new URLSearchParams({ format: 'json', formatversion: '2', origin: '*', ...params }).toString();
     for (let tentativo = 0; tentativo < 3; tentativo++) {
         try {
@@ -207,7 +207,7 @@ const distanzaMDa = (t: TappaDaRaccontare, coords: unknown): number | null => {
 };
 
 /** Il testo intero di una voce (explaintext, tutte le sezioni). Una voce per richiesta: Wikipedia non ne dà di più col testo intero. */
-async function testoIntero(titolo: string, fetchImpl: Fetch): Promise<string | 'errore'> {
+export async function testoIntero(titolo: string, fetchImpl: Fetch): Promise<string | 'errore'> {
     const j = await wikiCall({ action: 'query', prop: 'extracts', explaintext: '1', titles: titolo, redirects: '1' }, fetchImpl);
     if (j === 'errore') return 'errore';
     return String(j?.query?.pages?.[0]?.extract ?? '');

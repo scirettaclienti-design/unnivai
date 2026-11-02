@@ -32,23 +32,11 @@ const TESTI = {
     },
 };
 
-/**
- * Le curiosità del cammino. Ognuna porta la SUA città: una curiosità senza città, o di una città diversa da quella del giro, non si dice
- * e non si mostra mai (meglio nessuna curiosità che una falsa: a Catania usciva «Roma ha più di duemila fontanelle»).
- * Aggiungerne una vuol dire scrivere la città e poterla verificare.
+/*
+ * Le curiosità del cammino non stanno più qui (CURIOSITA-QUARTIERI, 02/11/2026): le scrive il server per la via o il quartiere dove cammini,
+ * con la voce di Wikipedia del luogo (services/curiositaService.js, lib/curiositaCammino.js). La frase fissa delle fontanelle di Roma è tolta:
+ * a Roma ora escono quelle dei rioni e delle vie.
  */
-export const CURIOSITA = [
-    { citta: 'Roma', testo: 'Roma ha più di duemila fontanelle pubbliche, tutte potabili. Cerca i nasoni!' },
-];
-
-const norma = (c) => String(c ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
-
-/** I testi delle curiosità che appartengono alla città del giro. Città del giro mancante → nessuna. */
-export function curiositaDellaCitta(cittaDelGiro) {
-    const c = norma(cittaDelGiro);
-    if (!c) return [];
-    return CURIOSITA.filter(x => norma(x.citta) && norma(x.citta) === c).map(x => x.testo);
-}
 
 /** `dire('svolta50', { verso: 'a sinistra' })` → «Fra cinquanta metri gira a sinistra.» */
 export function dire(chiave, parametri = {}, lingua = LINGUA_PREDEFINITA) {

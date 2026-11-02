@@ -182,7 +182,7 @@ describe('proxy: il racconto è un percorso suo, fonti e controllo sul server', 
         expect(src).toMatch(/chiamaConRipiego\('narratore'/);
         expect(src).toMatch(/primoAnthropic\('narratore'/);
         expect(src).toMatch(/from\('place_racconti'\)/);
-        expect(src).toMatch(/scriviERivedi\(fonti, scrivi, rivedi\)/); // scrittura, controllo automatico, revisore e riscrittura: racconto.ts
+        expect(src).toMatch(/scriviERivedi\(fonti, motore\.scrivi, motore\.rivedi\)/); // scrittura, controllo automatico, revisore e riscrittura: racconto.ts
     });
     it('il client non manda le fonti: il proxy le prende da solo (Wikipedia + places-proxy)', () => {
         expect(src).toMatch(/cercaWikipedia\(\{ nome, citta, lat, lng \}/);
@@ -262,7 +262,7 @@ describe('proxy: il secondo controllo e la versione', () => {
     });
     it('un narratore o un revisore che non risponde non salva niente (si riprova), non lascia passare il racconto', () => {
         expect(src).toMatch(/chi = 'revisore'/);
-        expect(src).toMatch(/\$\{chi\} non disponibile[\s\S]{0,120}RACCONTO_MOTORE/);
+        expect(src).toMatch(/\$\{motore\.chi\(\)\} non disponibile[\s\S]{0,120}RACCONTO_MOTORE/);
     });
     it('la cache vale per la versione di oggi, per un r5 passato o scartato e per un r3/r4 passato: scartati r3/r4 e «senza fonti» di prima si rifanno', () => {
         expect(src).toMatch(/gia && versioneValida\(gia\)/);

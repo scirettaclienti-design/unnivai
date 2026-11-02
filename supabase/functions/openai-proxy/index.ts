@@ -59,6 +59,8 @@ import {
   VERSIONE_RACCONTO, versioneValida, MODELLO_REVISORE, TTL_RACCONTO_GIORNI, TTL_SCARTATO_GIORNI, haFonti, scriviERivedi, impronta as improntaRacconto,
 } from './racconto.ts';
 import { cercaWikipedia, allargaWikipedia, descrizioneGoogleDa } from './raccontoFonti.ts';
+import { VERSIONE_CURIOSITA, messaggiCuriosita, curiositaInCacheValida, eChiaveCuriosita } from './curiosita.ts';
+import { indirizzoDi, luoghiVicini, testoDelLuogo, eUnaTappa, type Luogo } from './curiositaFonti.ts';
 import {
   MODELLO_VOCE, VOCE_PREDEFINITA, BUCKET_VOCE, voceValida, testoValido, chiaveAudio, percorsoAudio, corpoVoce, tettoNuovi, costoStimatoUsd,
 } from './voce.ts';
@@ -560,6 +562,54 @@ async function handleVoce(req: Request, dv: Record<string, unknown>, apiKey: str
 }
 
 /**
+ * Il narratore e il revisore dei racconti (e delle curiosità del cammino): il narratore (Sonnet 5.5, passaggio `narratore`, catena e ripiego di
+ * sempre) scrive; il revisore (Haiku 4.5, passaggio `selettore` con il modello suo) legge. `chi()` dice chi non ha risposto, per il log.
+ */
+function motoreRacconti(OPENAI_API_KEY: string) {
+  const chiaveAnthropic = anthropicAttivo();
+  // deno-lint-ignore no-explicit-any
+  const invia = async (corpo: Record<string, any>, limite: number): Promise<any> => {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), limite);
+    try {
+      const upstream = await fetch(`${OPENAI_BASE}/chat/completions`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` }, body: JSON.stringify(corpo), signal: c.signal,
+      });
+      const body = await upstream.json().catch(() => null);
+      if (!upstream.ok) throw new Error(`HTTP ${upstream.status} ${plain(body?.error?.code)} ${plain(body?.error?.type)} ${plain(body?.error?.message)}`.slice(0, 120));
+      return body;
+    } finally { clearTimeout(t); }
+  };
+  // deno-lint-ignore no-explicit-any
+  const costoDi = (i: any, d: any): number => {
+    const pr = PREZZI_ANTHROPIC_USD_PER_MILIONE[i?.usato as string];
+    return pr && d?.usage ? ((d.usage.prompt_tokens || 0) * pr.input + (d.usage.completion_tokens || 0) * pr.output) / 1e6 : 0;
+  };
+  // Il narratore (Sonnet 5.5, passaggio `narratore`, catena e ripiego di sempre) scrive; il controllo automatico e il revisore (Haiku 4.5,
+  // passaggio `selettore` con il modello suo) leggono; se il controllo automatico ferma il testo o il revisore segna frasi «no», il narratore
+  // riceve il motivo, riscrive UNA volta e il nuovo testo ripassa da entrambi (racconto.ts).
+  // Se il narratore o il revisore non rispondono non si salva niente: si riprova alla richiesta dopo, il racconto non esce senza controllo.
+  let chi = 'motore';
+  // deno-lint-ignore no-explicit-any
+  const scrivi = async (messages: any[]) => {
+    chi = 'motore';
+    const { data, info } = await chiamaConRipiego('narratore',
+      { model: MODELLO_DI_PRIMA, temperature: 0.6, max_tokens: 1500, messages }, invia, 30_000,
+      chiaveAnthropic ? primoAnthropic('narratore', chiaveAnthropic) : undefined);
+    return { testo: String(data?.choices?.[0]?.message?.content ?? ''), modello: info?.usato ?? null, costoUsd: costoDi(info, data) };
+  };
+  // deno-lint-ignore no-explicit-any
+  const rivedi = async (messages: any[]) => {
+    chi = 'revisore';
+    const { data, info } = await chiamaConRipiego('selettore',
+      { model: MODELLO_DI_PRIMA, temperature: 0, max_tokens: 700, messages }, invia, 20_000,
+      chiaveAnthropic ? primoRevisore(chiaveAnthropic) : undefined);
+    return { testo: String(data?.choices?.[0]?.message?.content ?? ''), modello: info?.usato ?? null, costoUsd: costoDi(info, data) };
+  };
+  return { scrivi, rivedi, chi: () => chi };
+}
+
+/**
  * RACCONTO DI TAPPA — `dv.purpose = 'racconto'`, con `dv.place_id`, `dv.nome`, `dv.citta`, `dv.lat`, `dv.lng`. Restituisce
  * { racconto: { esito: 'passato' | 'scartato' | 'senza-fonti', testo | null, motivi, fonti, cached } }.
  * Il server prende le fonti da solo (Wikipedia della tappa, descrizione Google via places-proxy): il client non le manda, quindi non può
@@ -572,7 +622,7 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
   const nome = typeof dv.nome === 'string' ? dv.nome.trim() : '';
   const citta = typeof dv.citta === 'string' ? dv.citta.trim() : '';
   const lat = Number(dv.lat), lng = Number(dv.lng);
-  if (!/^[A-Za-z0-9_-]{10,300}$/.test(placeId) || !nome || nome.length > 120 || citta.length > 80 || !Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+  if (!/^[A-Za-z0-9_-]{10,300}$/.test(placeId) || placeId.startsWith('curiosita-') || !nome || nome.length > 120 || citta.length > 80 || !Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
     return json(400, { error: 'Tappa non valida', code: 'RACCONTO_NON_VALIDO' });
   }
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -643,51 +693,12 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
     return risposta(riga, { cached: false });
   }
 
-  const chiaveAnthropic = anthropicAttivo();
-  // deno-lint-ignore no-explicit-any
-  const invia = async (corpo: Record<string, any>, limite: number): Promise<any> => {
-    const c = new AbortController();
-    const t = setTimeout(() => c.abort(), limite);
-    try {
-      const upstream = await fetch(`${OPENAI_BASE}/chat/completions`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` }, body: JSON.stringify(corpo), signal: c.signal,
-      });
-      const body = await upstream.json().catch(() => null);
-      if (!upstream.ok) throw new Error(`HTTP ${upstream.status} ${plain(body?.error?.code)} ${plain(body?.error?.type)} ${plain(body?.error?.message)}`.slice(0, 120));
-      return body;
-    } finally { clearTimeout(t); }
-  };
-  // deno-lint-ignore no-explicit-any
-  const costoDi = (i: any, d: any): number => {
-    const pr = PREZZI_ANTHROPIC_USD_PER_MILIONE[i?.usato as string];
-    return pr && d?.usage ? ((d.usage.prompt_tokens || 0) * pr.input + (d.usage.completion_tokens || 0) * pr.output) / 1e6 : 0;
-  };
-  // Il narratore (Sonnet 5.5, passaggio `narratore`, catena e ripiego di sempre) scrive; il controllo automatico e il revisore (Haiku 4.5,
-  // passaggio `selettore` con il modello suo) leggono; se il controllo automatico ferma il testo o il revisore segna frasi «no», il narratore
-  // riceve il motivo, riscrive UNA volta e il nuovo testo ripassa da entrambi (racconto.ts).
-  // Se il narratore o il revisore non rispondono non si salva niente: si riprova alla richiesta dopo, il racconto non esce senza controllo.
-  let chi = 'motore';
-  // deno-lint-ignore no-explicit-any
-  const scrivi = async (messages: any[]) => {
-    chi = 'motore';
-    const { data, info } = await chiamaConRipiego('narratore',
-      { model: MODELLO_DI_PRIMA, temperature: 0.6, max_tokens: 1500, messages }, invia, 30_000,
-      chiaveAnthropic ? primoAnthropic('narratore', chiaveAnthropic) : undefined);
-    return { testo: String(data?.choices?.[0]?.message?.content ?? ''), modello: info?.usato ?? null, costoUsd: costoDi(info, data) };
-  };
-  // deno-lint-ignore no-explicit-any
-  const rivedi = async (messages: any[]) => {
-    chi = 'revisore';
-    const { data, info } = await chiamaConRipiego('selettore',
-      { model: MODELLO_DI_PRIMA, temperature: 0, max_tokens: 700, messages }, invia, 20_000,
-      chiaveAnthropic ? primoRevisore(chiaveAnthropic) : undefined);
-    return { testo: String(data?.choices?.[0]?.message?.content ?? ''), modello: info?.usato ?? null, costoUsd: costoDi(info, data) };
-  };
+  const motore = motoreRacconti(OPENAI_API_KEY);
   let esito: Awaited<ReturnType<typeof scriviERivedi>>;
   try {
-    esito = await scriviERivedi(fonti, scrivi, rivedi);
+    esito = await scriviERivedi(fonti, motore.scrivi, motore.rivedi);
   } catch (err) {
-    console.error(`[openai-proxy] racconto: ${chi} non disponibile:`, scrubLogText(err));
+    console.error(`[openai-proxy] racconto: ${motore.chi()} non disponibile:`, scrubLogText(err));
     return json(502, { error: 'Racconto non disponibile', code: 'RACCONTO_MOTORE' });
   }
   const { ok, testo, modello, modelloVerifica, verifica } = esito;
@@ -701,6 +712,114 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
   await salva(riga);
   console.log(`[openai-proxy] racconto: ${riga.esito}${esito.riscritto ? ' (riscritto)' : ''} ${placeId.slice(0, 10)} ${modello}+${modelloVerifica ?? '-'} ${riga.ms} ms ${costoUsd ?? '?'} $${ok ? '' : ` · ${motivi.join(' ; ').slice(0, 160)}`}`);
   return risposta(riga, { cached: false, modello, modelloVerifica, costoUsd, riscritto: esito.riscritto });
+}
+
+/**
+ * CURIOSITÀ DEL CAMMINO — `dv.purpose = 'curiosita'`, con `dv.lat`, `dv.lng`, `dv.citta`, `dv.escludi` (le chiavi già dette in questo giro) e
+ * `dv.tappe` (i nomi delle tappe del giro: una tappa ha il suo racconto, non è una curiosità). Restituisce
+ * { curiosita: { esito: 'passata', testo, chiave, luogo, tipo, fonte: { titolo, url }, cached } } oppure { curiosita: { esito: 'nessuna', motivo } }.
+ * Le fonti le prende il server: la via e il quartiere da OpenStreetMap, la voce di Wikipedia verificata per nome e coordinate (curiositaFonti.ts).
+ * Il testo passa dalla macchina dei racconti (racconto.ts: controllo automatico, revisore, una riscrittura) con la prima richiesta di curiosita.ts.
+ * Una curiosità per luogo in public.place_racconti (chiave `curiosita-itwiki-<pageid>`, versione `c1`): un luogo già raccontato costa 0.
+ * Al più UNA curiosità nuova per richiesta; le nuove contano nel tetto dei racconti (racconto_consuma). Senza voce verificata: nessuna.
+ */
+async function handleCuriosita(req: Request, dv: Record<string, any>): Promise<Response> {
+  const lat = Number(dv.lat), lng = Number(dv.lng);
+  const citta = typeof dv.citta === 'string' ? dv.citta.trim() : '';
+  const escludi = Array.isArray(dv.escludi) ? dv.escludi.filter(eChiaveCuriosita).slice(0, 60) : [];
+  const tappe = Array.isArray(dv.tappe) ? dv.tappe.filter((t: unknown) => typeof t === 'string' && t.trim() && t.length <= 120).slice(0, 30) as string[] : [];
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180 || citta.length > 80) {
+    return json(400, { error: 'Posizione non valida', code: 'CURIOSITA_NON_VALIDA' });
+  }
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+  if (!SUPABASE_URL || !SERVICE_KEY || !OPENAI_API_KEY) return json(503, { error: 'Curiosità non disponibile', code: 'CURIOSITA_NON_DISPONIBILE' });
+  const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  let esente = false;
+  try {
+    esente = esenteDaiTetti(await resolveSubject(req, sb));
+  } catch (err) {
+    if (err instanceof HttpError) return json(err.status, err.body);
+    return json(503, { error: 'Curiosità non disponibile', code: 'CURIOSITA_NON_DISPONIBILE' });
+  }
+  const t0 = Date.now();
+  const fetchW = (u: string, init?: Record<string, unknown>) => fetch(u, init as RequestInit);
+  const nessuna = (motivo: string, extra: Record<string, unknown> = {}) => json(200, { curiosita: { esito: 'nessuna', motivo, ...extra } });
+
+  const ind = await indirizzoDi(lat, lng, fetchW);
+  if (ind === 'errore') return json(503, { error: 'Fonti non disponibili', code: 'CURIOSITA_FONTI' });
+  const cittaUsata = citta || ind.citta || '';
+  const { luoghi, errore } = await luoghiVicini({ lat, lng, citta: cittaUsata }, ind, fetchW);
+  const candidati = luoghi.filter((l) => !escludi.includes(l.chiave) && !eUnaTappa(l, tappe, cittaUsata));
+  const elenco = (extra: Record<string, unknown> = {}) => ({ via: ind.via, quartieri: ind.quartieri, luoghi: luoghi.map((l) => `${l.tipo}:${l.titolo}`), ...extra });
+  if (!candidati.length) {
+    if (errore) return json(503, { error: 'Fonti non disponibili', code: 'CURIOSITA_FONTI' });
+    return nessuna(luoghi.length ? 'già dette' : 'nessuna voce verificata', elenco());
+  }
+
+  const { data: righe } = await sb.from('place_racconti').select('place_id, esito, testo, fonti, versione, created_at').in('place_id', candidati.map((c) => c.chiave));
+  // deno-lint-ignore no-explicit-any
+  const inCache = new Map<string, any>((righe || []).map((r: any) => [r.place_id, r]));
+  const risposta = (l: Luogo, testo: string, extra: Record<string, unknown> = {}) => json(200, {
+    curiosita: { esito: 'passata', testo, chiave: l.chiave, luogo: l.titolo, tipo: l.tipo, fonte: { titolo: l.titolo, url: l.url }, distanzaM: l.distanzaM, ...extra },
+  });
+  const salva = async (l: Luogo, riga: Record<string, unknown>) => {
+    const { error: e } = await sb.from('place_racconti').upsert({ place_id: l.chiave, versione: VERSIONE_CURIOSITA, created_at: new Date().toISOString(),
+      modello: null, modello_verifica: null, verifica: null, costo_usd: null, ...riga }, { onConflict: 'place_id' });
+    if (e) console.error('[openai-proxy] curiosità: salvataggio fallito:', scrubLogText(e.message));
+  };
+
+  let tentata = false;
+  let costoScartata: number | null = null;
+  const esiti: string[] = [];
+  for (const l of candidati) {
+    const gia = inCache.get(l.chiave);
+    if (gia && curiositaInCacheValida(gia)) {
+      if (gia.esito === 'passato' && gia.testo) return risposta(l, gia.testo, { cached: true });
+      esiti.push(`${l.titolo}: ${gia.esito} (cache)`);
+      continue;
+    }
+    if (tentata) continue; // al più una curiosità nuova per richiesta: le altre alla prossima
+    tentata = true;
+    if (!esente) {
+      const { data: ammesso, error: errTetto } = await sb.rpc('racconto_consuma', { p_tetto: tettoNuovi(Deno.env.get('RACCONTO_DAILY_CAP') ?? '300') });
+      if (errTetto) {
+        console.error('[openai-proxy] curiosità: tetto non verificabile:', scrubLogText(errTetto.message));
+        return json(503, { error: 'Curiosità non disponibile', code: 'CURIOSITA_NON_DISPONIBILE' });
+      }
+      if (!ammesso) return json(429, { error: 'Tetto giornaliero dei racconti raggiunto', code: 'RACCONTO_TETTO' });
+    }
+    const testoFonte = await testoDelLuogo(l, fetchW);
+    if (testoFonte === 'errore') { esiti.push(`${l.titolo}: Wikipedia non risponde`); continue; } // non si memorizza: si riprova
+    const fonti = { nome: l.titolo, citta: cittaUsata, wikipedia: { titolo: l.titolo, testo: testoFonte }, google: null };
+    const fontiUsate = [{ fonte: 'wikipedia', titolo: l.titolo, url: l.url, via: `curiosita-${l.tipo}-${l.trovata}` }];
+    const imp = await improntaRacconto(fonti);
+    if (!haFonti(fonti)) {
+      await salva(l, { impronta: imp, esito: 'senza-fonti', testo: null, motivi: ['fonti insufficienti'], fonti: fontiUsate, ms: Date.now() - t0 });
+      esiti.push(`${l.titolo}: senza fonti`);
+      continue;
+    }
+    const motore = motoreRacconti(OPENAI_API_KEY);
+    let esito: Awaited<ReturnType<typeof scriviERivedi>>;
+    try {
+      esito = await scriviERivedi(fonti, motore.scrivi, motore.rivedi, { prima: (f) => messaggiCuriosita(f, l.tipo) });
+    } catch (err) {
+      console.error(`[openai-proxy] curiosità: ${motore.chi()} non disponibile:`, scrubLogText(err));
+      return json(502, { error: 'Curiosità non disponibile', code: 'CURIOSITA_MOTORE' });
+    }
+    const motivi = esito.prima ? [...esito.motivi, ...esito.prima.motivi.map((m) => `prima stesura (riscritta): ${m}`)] : esito.motivi;
+    const costoUsd = esito.costoUsd ? +esito.costoUsd.toFixed(5) : null;
+    await salva(l, {
+      impronta: imp, esito: esito.ok ? 'passato' : 'scartato', testo: esito.ok ? esito.testo : null, motivi, fonti: fontiUsate,
+      modello: esito.modello, modello_verifica: esito.modelloVerifica, verifica: esito.verifica, costo_usd: costoUsd, ms: Date.now() - t0,
+    });
+    console.log(`[openai-proxy] curiosità: ${esito.ok ? 'passata' : 'scartata'}${esito.riscritto ? ' (riscritta)' : ''} ${l.chiave} ${esito.modello}+${esito.modelloVerifica ?? '-'} ${Date.now() - t0} ms ${costoUsd ?? '?'} $`);
+    if (esito.ok) return risposta(l, esito.testo, { cached: false, costoUsd, riscritta: esito.riscritto, modello: esito.modello, modelloVerifica: esito.modelloVerifica });
+    esiti.push(`${l.titolo}: scartata (${motivi.slice(0, 2).join(' ; ').slice(0, 160)})`);
+    costoScartata = costoUsd; // le altre si guardano solo in cache
+  }
+  return nessuna(esiti.length ? 'nessuna passata' : 'nessuna voce verificata', elenco({ esiti, ...(costoScartata != null ? { costoUsd: costoScartata } : {}) }));
 }
 
 serve(async (req: Request) => {
@@ -748,6 +867,16 @@ serve(async (req: Request) => {
     } catch (err) {
       console.error('[openai-proxy] racconto: errore:', scrubLogText(err));
       return json(503, { error: 'Racconto non disponibile', code: 'RACCONTO_NON_DISPONIBILE' });
+    }
+  }
+
+  // CURIOSITÀ DEL CAMMINO — fonti, prompt e controllo li scrive il proxy; il client dice solo dove sei.
+  if (dvVoce && typeof dvVoce === 'object' && dvVoce.purpose === 'curiosita') {
+    try {
+      return await handleCuriosita(req, dvVoce as Record<string, any>);
+    } catch (err) {
+      console.error('[openai-proxy] curiosità: errore:', scrubLogText(err));
+      return json(503, { error: 'Curiosità non disponibile', code: 'CURIOSITA_NON_DISPONIBILE' });
     }
   }
 

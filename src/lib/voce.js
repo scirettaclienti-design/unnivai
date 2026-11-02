@@ -135,19 +135,27 @@ function paroleDelBrowser(testo) {
  * Dice `testo`. Mai lancia: se la voce umana non è disponibile parla il browser, se non c'è nemmeno quello tace.
  * @returns {Promise<'cache'|'nuova'|'browser'|'muto'>} da dove è venuta la voce
  */
-export async function parla(testo, { voce = voceScelta(), titolo = null, senzaInterrompere = false } = {}) {
+export async function parla(testo, { voce = voceScelta(), titolo = null, senzaInterrompere = false, tipo = null } = {}) {
     // un annuncio che non deve coprire una frase in corso (es. «Si va verso…» all'arrivo, quando parla anche la frase d'arrivo): aspetta che finisca, al massimo 12 s
     for (let giri = 0; senzaInterrompere && inCorso && giri < 3; giri++) {
         const prima = numero;
         await Promise.race([inCorso.catch(() => {}), new Promise(r => setTimeout(r, 12_000))]);
         if (numero === prima) break;
     }
-    const mia = parlaOra(testo, { voce, titolo });
+    const mia = parlaOra(testo, { voce, titolo, tipo });
     inCorso = mia;
+    inCorsoDa = nowMs();
     try { return await mia; } finally { if (inCorso === mia) inCorso = null; }
 }
 
 let inCorso = null; // la frase che sta parlando (o che sta arrivando dal server)
+let inCorsoDa = 0;
+let rigaInCorso = null; // la riga del registro della frase che sta parlando: se ne parte un'altra, questa è interrotta
+const OCCUPATA_MAX_MS = 60_000; // una frase che non dice mai «finito» (voce del sistema muta) non tiene occupata la voce per sempre
+
+/** La voce sta parlando (o sta per parlare)? La curiosità del cammino aspetta: non copre una svolta, un arrivo, il lettore. */
+export const voceOccupata = () => !!inCorso && nowMs() - inCorsoDa < OCCUPATA_MAX_MS;
+const oraIso = () => new Date().toISOString();
 
 const nowMs = () => (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
 const inPreparazione = new Map(); // `${voce}|${testo}` → promessa dell'audio che sta arrivando
@@ -186,10 +194,12 @@ export function preparaVoce(testo, { voce = voceScelta() } = {}) {
     return p;
 }
 
-async function parlaOra(testo, { voce, titolo }) {
+async function parlaOra(testo, { voce, titolo, tipo = null }) {
     const frase = String(testo || '').replace(/\s+/g, ' ').trim();
     if (!frase) return 'muto';
     const mio = ++numero;
+    if (rigaInCorso && !rigaInCorso.fine) { rigaInCorso.fine = oraIso(); rigaInCorso.interrotta = true; }
+    rigaInCorso = null;
     try { el?.pause?.(); } catch { /* niente */ }
     try { window.speechSynthesis?.cancel(); } catch { /* niente */ }
     const chiave = `${voce}|${frase}`;
@@ -208,16 +218,20 @@ async function parlaOra(testo, { voce, titolo }) {
             urlDiSessione.set(chiave, url);
         }
         if (mio !== numero) return 'muto'; // nel frattempo è arrivata una frase più nuova (o uno stop)
-        riga = { ora: new Date().toISOString(), testo: frase, voce, sorgente, preparata };
+        riga = { ora: new Date().toISOString(), testo: frase, voce, sorgente, preparata, ...(tipo ? { tipo } : {}) };
         registra(riga);
+        rigaInCorso = riga;
         mediaSession(titolo || frase.slice(0, 60));
         await riproduci(url, { suPartito: () => { riga.avvioMs = Math.round(nowMs() - t0); } });
+        if (!riga.fine) riga.fine = oraIso();
         return sorgente;
     } catch {
         if (mio !== numero) return 'muto';
         // una frase = una riga: se l'audio era arrivato ma non è partito (telefono che lo blocca), la riga diventa «browser» e ricorda cosa aveva risposto il server
-        if (riga) { riga.server = riga.sorgente; riga.sorgente = 'browser'; } else registra({ ora: new Date().toISOString(), testo: frase, voce, sorgente: 'browser' });
+        if (riga) { riga.server = riga.sorgente; riga.sorgente = 'browser'; delete riga.fine; } else { riga = { ora: new Date().toISOString(), testo: frase, voce, sorgente: 'browser', ...(tipo ? { tipo } : {}) }; registra(riga); }
+        rigaInCorso = riga;
         const parlato = await paroleDelBrowser(frase);
+        if (!riga.fine && mio === numero) riga.fine = oraIso();
         return parlato ? 'browser' : 'muto';
     }
 }

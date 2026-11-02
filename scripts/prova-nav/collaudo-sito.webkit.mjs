@@ -85,7 +85,7 @@ async function nuovo(inizio, { ospite = false } = {}) {
     const ctx = await browser.newContext({ ...IPHONE, ...(ospite ? {} : { storageState: statePath }), locale: 'it-IT', timezoneId: 'Europe/Rome', permissions: ['geolocation'], geolocation: { latitude: inizio.lat, longitude: inizio.lng } });
     await ctx.addInitScript(GPS_FINTO, inizio);
     const page = await ctx.newPage();
-    const reg = { voce: [], racconto: [], errori: [], console: [] };
+    const reg = { voce: [], racconto: [], curiosita: [], errori: [], console: [] };
     page.on('pageerror', e => reg.errori.push(String(e?.message || e).slice(0, 160)));
     page.on('console', m => { if (reg.console.length < 200) reg.console.push(`${m.type()}: ${m.text()}`.slice(0, 200)); });
     page.on('request', r => {
@@ -93,10 +93,12 @@ async function nuovo(inizio, { ospite = false } = {}) {
         const dv = (() => { try { return r.postDataJSON()?.dv; } catch { return null; } })();
         if (dv?.purpose === 'voce') reg.voce.push({ testo: String(dv.testo || '').slice(0, 160) });
         if (dv?.purpose === 'racconto') reg.racconto.push({ nome: dv.nome, place_id: dv.place_id });
+        if (dv?.purpose === 'curiosita') reg.curiosita.push({ lat: dv.lat, lng: dv.lng, stato: null });
     });
     page.on('response', async r => {
         if (!/functions\/v1\/openai-proxy/.test(r.url()) || r.request().method() !== 'POST') return;
         let dv = null; try { dv = r.request().postDataJSON()?.dv; } catch { /* */ }
+        if (dv?.purpose === 'curiosita') { const q = reg.curiosita.find(x => x.stato == null); if (q) q.stato = r.status(); return; }
         if (dv?.purpose !== 'racconto') return;
         const corpo = await r.json().catch(() => null);
         const x = reg.racconto.find(q => q.place_id === dv.place_id && q.stato == null);
@@ -238,28 +240,50 @@ try {
         return r;
     });
 
-    // 4) Roma: 700 m camminati → curiosità dei nasoni a schermo e richiesta di voce; Catania: nessuna curiosità
-    await punto(4, 'curiosità: Roma sì (schermo + voce), Catania no', async () => {
+    // 4) CURIOSITÀ-QUARTIERI (02/11): a piedi, a 1,25 m/s sull'orologio finto della pagina, la curiosità del server della via o del quartiere.
+    //    Roma (Trastevere, verso Santa Cecilia): almeno una curiosità a schermo e a voce, con una fonte di Roma; mai le fontanelle.
+    //    Catania (via Etnea verso nord): una curiosità di Catania o silenzio, mai Roma. La voce umana risponde 503 (come senza credito): si
+    //    registra la richiesta di curiosità e la frase passata alla voce del browser (window.__voceRegistro, tipo «curiosita»).
+    await punto(4, 'curiosità del cammino: Roma con fonte di Roma, Catania mai Roma, niente fontanelle', async () => {
         const camminata = async (tour, a, b, nome) => {
             const { ctx, page, reg } = await nuovo(a);
+            await page.clock.install({ time: new Date() });
+            const risposte = [];
+            page.on('response', async r => {
+                if (!/functions\/v1\/openai-proxy/.test(r.url()) || r.request().method() !== 'POST') return;
+                let dv = null; try { dv = r.request().postDataJSON()?.dv; } catch { /* */ }
+                if (dv?.purpose === 'curiosita') risposte.push((await r.json().catch(() => null))?.curiosita ?? { stato: r.status() });
+            });
+            await page.route('**/functions/v1/openai-proxy', async (route) => {
+                let dv = null; try { dv = route.request().postDataJSON()?.dv; } catch { /* */ }
+                if (dv?.purpose === 'voce') return route.fulfill({ status: 503, contentType: 'application/json', body: '{"code":"VOCE_NON_DISPONIBILE"}' });
+                return route.continue();
+            });
             await riprendi(page, tour);
-            await emit(page, a); await page.waitForTimeout(800);
-            await cammina(page, a, b, 50, 700);
-            await page.waitForTimeout(2500);
+            const n = Math.round(dist(a, b) / 25);
+            for (let k = 0; k <= n; k++) {
+                await emit(page, { lat: a.lat + (b.lat - a.lat) * k / n, lng: a.lng + (b.lng - a.lng) * k / n });
+                for (let w = 0; w < 300 && reg.curiosita.some(q => q.stato == null); w++) await page.waitForTimeout(100);
+                await page.clock.runFor(20_000);
+                await page.waitForTimeout(80);
+            }
+            await page.clock.runFor(10_000);
             const toast = (await page.evaluate(() => window.__toast)).filter(m => m.startsWith('🎧'));
+            const voceCuriosita = (await page.evaluate(() => window.__voceRegistro || [])).filter(v => v.tipo === 'curiosita').map(v => v.testo);
             const voceNasoni = reg.voce.filter(v => /fontanelle|nasoni/i.test(v.testo));
-            const out = { metri: Math.round(dist(a, b)), toast, voceNasoni, voceTutte: reg.voce.length, foto: await foto(page, `4-${nome}`), errori: reg.errori.slice(0, 5) };
+            const out = { metri: Math.round(dist(a, b)), toast, voceCuriosita, voceNasoni, curiosita: risposte.map(c => ({ esito: c.esito, luogo: c.luogo, fonte: c.fonte?.url, motivo: c.motivo })), foto: await foto(page, `4-${nome}`), errori: reg.errori.slice(0, 5) };
             await ctx.close();
             return out;
         };
-        // Roma: da piazza Venezia verso nord lungo via del Corso; le tappe stanno a sud-est (Colosseo), mai raggiunte
-        const roma = giro('collaudo-curiosita-roma', 'Roma', [T('Colosseo', 41.8902, 12.4922, null), T('Arco di Costantino', 41.8898, 12.4906, null)]);
-        const ra = { lat: 41.8962, lng: 12.4823 }, rb = { lat: 41.9025, lng: 12.4806 };
-        const catania = giro('collaudo-curiosita-catania', 'Catania', CATANIA.slice(0, 3));
+        // Roma: da piazza Santa Maria in Trastevere verso est (Santa Cecilia); le tappe del giro stanno lontane (Colosseo), mai raggiunte
+        const roma = giro(`collaudo-curiosita-roma-${Date.now()}`, 'Roma', [T('Colosseo', 41.8902, 12.4922, null), T('Arco di Costantino', 41.8898, 12.4906, null)]);
+        const ra = { lat: 41.8894, lng: 12.4706 }, rb = { lat: 41.8880, lng: 12.4770 };
+        const catania = giro(`collaudo-curiosita-catania-${Date.now()}`, 'Catania', CATANIA.slice(0, 3));
         const ca = { lat: 37.5027 + 0.002, lng: 15.0871 }, cb = { lat: 37.5027 + 0.0085, lng: 15.0871 }; // via Etnea verso nord
         const r = { roma: await camminata(roma, ra, rb, 'roma'), catania: await camminata(catania, ca, cb, 'catania') };
-        const romaOk = r.roma.toast.some(m => /fontanelle|nasoni/i.test(m)) && r.roma.voceNasoni.length > 0;
-        const cataniaOk = r.catania.toast.length === 0 && r.catania.voceNasoni.length === 0;
+        const diRoma = (c) => c.esito !== 'passata' || /wikipedia\.org/.test(c.fonte || '');
+        const romaOk = r.roma.toast.length > 0 && r.roma.voceCuriosita.length > 0 && r.roma.curiosita.some(c => c.esito === 'passata') && r.roma.voceNasoni.length === 0 && r.roma.curiosita.every(diRoma);
+        const cataniaOk = r.catania.voceNasoni.length === 0 && r.catania.toast.every(m => !/Roma|fontanelle|nasoni/i.test(m));
         r.ok = romaOk && cataniaOk;
         r.romaOk = romaOk; r.cataniaOk = cataniaOk;
         return r;

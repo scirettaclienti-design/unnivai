@@ -1,5 +1,7 @@
 /**
- * CURIOSITA-CITTA — a piedi, ogni ~300 m: solo curiosità della città del giro, a schermo e a voce. Catania non sente Roma. 0 $.
+ * CURIOSITÀ-QUARTIERI — a piedi, la curiosità della via o del quartiere che dà il server (curiositaService finto), a schermo e a voce;
+ * al massimo una ogni 10 minuti, mai due volte nello stesso giro; senza curiosità dal server, silenzio (le fontanelle di Roma non ci sono più).
+ * Erede di CURIOSITA-CITTA (Catania non sente Roma). 0 $.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
@@ -10,6 +12,7 @@ const h = vi.hoisted(() => ({
     contesto: { city: 'Catania', lat: 37.5, lng: 15.08, isLoading: false },
     mappa: null,
     parla: vi.fn(),
+    richiedi: vi.fn(),
 }));
 const fakeMap = { moveCamera: vi.fn(), panTo: vi.fn(), getBounds: () => null, fitBounds: vi.fn() };
 vi.mock('@vis.gl/react-google-maps', () => ({
@@ -37,7 +40,8 @@ vi.mock('@/lib/supabase', () => ({
     supabase: { from: () => ({ select: () => ({ eq: () => ({ data: [], error: null }), ilike: () => ({ data: [], error: null }) }) }) },
 }));
 
-vi.mock('@/lib/voce', async (orig) => ({ ...(await orig()), parla: (...a) => h.parla(...a) }));
+vi.mock('@/lib/voce', async (orig) => ({ ...(await orig()), parla: (...a) => h.parla(...a), preparaVoce: async () => 'pronta', voceOccupata: () => false }));
+vi.mock('@/services/curiositaService', () => ({ richiediCuriosita: (...a) => h.richiedi(...a) }));
 
 import MapPage from '@/pages/MapPage';
 const GIRO_KEY = 'dvai_nav_giro_v1';
@@ -96,6 +100,8 @@ beforeEach(() => {
     h.contesto = { city: 'Catania', lat: 37.5, lng: 15.08, isLoading: false };
     h.mappa = null;
     h.parla.mockClear();
+    h.richiedi.mockReset();
+    h.richiedi.mockResolvedValue(null);
 });
 afterEach(() => {
     cleanup();
@@ -116,40 +122,70 @@ const ascolta = (e) => toast.push(e.detail.message);
 beforeEach(() => { toast.length = 0; window.addEventListener('dvai:toast', ascolta); });
 afterEach(() => { window.removeEventListener('dvai:toast', ascolta); });
 
-// Cammina: una posizione, poi 400 m più a nord (oltre i 300 m della sorpresa).
-const cammina = () => {
-    const p0 = [CATANIA.steps[0].lat, CATANIA.steps[0].lng];
-    passo(p0); passo(p0);
-    const p1 = sposta(p0, 0, 400);
-    passo(p1); passo(p1);
-    const p2 = sposta(p1, 0, 400);
-    passo(p2); passo(p2);
+// Arriva alla tappa 1, poi cammina verso sud (lontano dalle altre tappe) a 1,25 m/s: una posizione ogni 20 s, 25 m più in là.
+const p0 = () => [CATANIA.steps[0].lat, CATANIA.steps[0].lng];
+let qui;
+const parti = () => { qui = p0(); passo(qui); passo(qui); };
+const camminaPer = async (secondi) => {
+    for (let k = 0; k < secondi / 20; k++) {
+        qui = sposta(qui, 0, -25);
+        await act(async () => { vi.advanceTimersByTime(20_000); gps.emit(qui[0], qui[1], 8); });
+        await act(async () => { await Promise.resolve(); });
+    }
 };
 const curiosita = () => toast.filter(m => m.startsWith('🎧'));
+const C1 = { testo: 'Via Etnea è lunga circa 3 km. Collega piazza del Duomo al Tondo Gioeni.', chiave: 'curiosita-itwiki-1', luogo: 'Via Etnea', tipo: 'via', fonte: { titolo: 'Via Etnea', url: 'https://it.wikipedia.org/wiki/Via_Etnea' } };
+const C2 = { testo: 'Il Centro storico di Catania è patrimonio UNESCO. Fu ricostruito dopo il terremoto del 1693.', chiave: 'curiosita-itwiki-2', luogo: 'Centro Storico (Catania)', tipo: 'quartiere', fonte: { titolo: 'Centro Storico (Catania)', url: 'u' } };
 
-describe('CURIOSITA-CITTA — nessuna curiosità della città sbagliata', () => {
-    it('giro a Catania: nessuna curiosità (né Roma né generiche), né a schermo né a voce', () => {
+describe('CURIOSITÀ-QUARTIERI — la curiosità del luogo, dal server, con le regole del cammino', () => {
+    it('giro a Catania: dopo 300 m a piedi la curiosità del server esce a schermo e a voce (tipo «curiosita»), con città, tappe e niente da escludere', async () => {
+        h.richiedi.mockResolvedValue(C1);
         monta({ ...CATANIA, city: 'Catania' });
         avvia();
-        cammina();
-        expect(curiosita()).toEqual([]);
-        expect(h.parla.mock.calls.filter(c => /fontanelle|nasoni|Roma/i.test(c[0]))).toEqual([]);
+        parti();
+        await camminaPer(320);
+        expect(h.richiedi).toHaveBeenCalled();
+        const arg = h.richiedi.mock.calls[0][0];
+        expect(arg).toMatchObject({ citta: 'Catania', escludi: [] });
+        expect(arg.tappe).toEqual(CATANIA.steps.map(s => s.title));
+        expect(curiosita()).toEqual([`🎧 ${C1.testo}`]);
+        expect(h.parla.mock.calls.filter(c => c[0] === C1.testo).map(c => c[1].tipo)).toEqual(['curiosita']);
+        expect(h.parla.mock.calls.filter(c => /fontanelle|nasoni/i.test(c[0]))).toEqual([]);
     });
 
-    it('giro a Roma: la curiosità di Roma esce a schermo e a voce', () => {
+    it('al massimo una ogni 10 minuti, e mai la stessa: la seconda richiesta esclude la prima', async () => {
+        h.richiedi.mockResolvedValueOnce(C1).mockResolvedValue(C2);
+        monta({ ...CATANIA, city: 'Catania' });
+        avvia();
+        parti();
+        await camminaPer(320);
+        expect(curiosita()).toHaveLength(1);
+        await camminaPer(8 * 60);       // ~9 minuti dalla prima: niente
+        expect(curiosita()).toHaveLength(1);
+        await camminaPer(2 * 60);       // oltre i 10 minuti
+        expect(curiosita()).toEqual([`🎧 ${C1.testo}`, `🎧 ${C2.testo}`]);
+        const seconda = h.richiedi.mock.calls.find(c => c[0].escludi.length > 0)?.[0];
+        expect(seconda.escludi).toEqual([C1.chiave]);
+        expect(JSON.parse(localStorage.getItem('dvai_curiosita_giro_v1')).dette).toEqual([C1.chiave, C2.chiave]);
+    });
+
+    it('il server non ha una curiosità: silenzio, né a schermo né a voce (anche a Roma: niente fontanelle)', async () => {
         monta({ ...CATANIA, city: 'Roma' });
         avvia();
-        cammina();
-        expect(curiosita().length).toBeGreaterThan(0);
-        expect(curiosita().every(m => /Roma ha più di duemila fontanelle/.test(m))).toBe(true);
-        expect(h.parla.mock.calls.some(c => /nasoni/.test(c[0]))).toBe(true);
+        parti();
+        await camminaPer(400);
+        expect(h.richiedi).toHaveBeenCalled();
+        expect(curiosita()).toEqual([]);
+        expect(h.parla.mock.calls.filter(c => /fontanelle|nasoni/i.test(c[0]))).toEqual([]);
     });
 
-    it('giro senza città nota: nessuna curiosità', () => {
-        const { city, ...senzaCitta } = CATANIA; // eslint-disable-line no-unused-vars
-        monta(senzaCitta);
+    it('fermo sul posto: nessuna richiesta, nessuna curiosità', async () => {
+        h.richiedi.mockResolvedValue(C1);
+        monta({ ...CATANIA, city: 'Catania' });
         avvia();
-        cammina();
+        parti();
+        for (let k = 0; k < 20; k++) await act(async () => { vi.advanceTimersByTime(20_000); gps.emit(qui[0], qui[1], 8); });
+        expect(h.richiedi).not.toHaveBeenCalled();
         expect(curiosita()).toEqual([]);
     });
 });

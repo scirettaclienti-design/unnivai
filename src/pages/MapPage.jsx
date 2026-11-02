@@ -38,10 +38,24 @@ import GiroRipresaDialog from '../components/Map/GiroRipresaDialog';
 import { valutaPassaggio } from '../lib/navPassaggio';
 import { valutaArrivo } from '../lib/navArrivo';
 import { creaSchermoAcceso } from '../lib/wakeLock';
-import { parla, fermaVoce, sbloccaVoce, voceScelta, scegliVoce, preparaVoce } from '../lib/voce';
+import { parla, fermaVoce, sbloccaVoce, voceScelta, scegliVoce, preparaVoce, voceOccupata } from '../lib/voce';
 import { richiediRacconto } from '../services/raccontoService';
 import { cosaPreparare } from '../lib/raccontoTappa';
-import { dire, indicazioneSvolta, curiositaDellaCitta } from '../lib/vociTesti';
+import { dire, indicazioneSvolta } from '../lib/vociTesti';
+import { richiediCuriosita } from '../services/curiositaService';
+import {
+    statoIniziale as curiositaIniziale, aggiornaCammino, staCamminando, devoChiedere, richiestaPartita, rispostaArrivata, prontaScaduta,
+    possoDire, segnaDetta, leggiGiro as leggiCuriositaGiro, salvaGiro as salvaCuriositaGiro, secondiParlando,
+} from '../lib/curiositaCammino';
+
+/** CURIOSITÀ-QUARTIERI — il registro di ogni passo della curiosità del cammino (richiesta, arrivata, attesa col motivo, detta), per la prova. */
+function registraCuriosita(riga) {
+    try {
+        const r = (window.__curiositaRegistro ||= []);
+        r.push({ ora: new Date().toISOString(), ...riga });
+        if (r.length > 300) r.shift();
+    } catch { /* niente */ }
+}
 import { NAV_TESTI, avvisoNavigazione } from '../lib/navMessaggi';
 import { distanzaDalGiro, primaTappa, kmDetti } from '../lib/giroLontano';
 import { prossimaSvolta, versoDa, rigaTappa, percheAdesso, testoRacconto, chiccaDistinta, fotoVera, numeriDelGiro, cosaHoImparato, dataDelGiro, rigaInsider, filoDelGiorno, fraseDelFilo, fasciaMappa, angoloFrecciaPartenza, partenzaCompiuta, frecciaDaSpegnere, tappaDellaFreccia } from '../lib/navGuida';
@@ -661,8 +675,10 @@ const MapPage = () => {
     // nav. Ogni identità si dice UNA volta → micro-rotazioni/re-render non ripetono
     // il TTS in loop. Reset all'avvio nav.
     const spokenIdentitiesRef = useRef(new Set());
-    const lastSurprisePos = useRef(null);
-    const surpriseCount = useRef(0);
+    // CURIOSITÀ-QUARTIERI: lo stato della curiosità del cammino (lib/curiositaCammino.js) e il registro di ogni passo, per la prova
+    const curiositaRef = useRef(null);
+    const curiositaGiroRef = useRef(null);
+    const curiositaMotivoRef = useRef(null);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
     // NAV-3: la tappa appena raggiunta (scheda di arrivo) e quella aperta a tutto schermo (scheda tappa)
     const [arrivoId, setArrivoId] = useState(null);
@@ -753,6 +769,13 @@ const MapPage = () => {
     }, [selectedPOI, city]);
 
     const tourData = activeTourData || location.state?.tourData;
+    // CURIOSITÀ-QUARTIERI: lo stato parte con la navigazione del giro (le curiosità già dette e l'ora dell'ultima restano sul telefono per il giro)
+    const chiaveGiroCuriosita = tourData ? String(tourData.id ?? tourData.title ?? '') : '';
+    useEffect(() => {
+        if (!isNavigating || !chiaveGiroCuriosita) { curiositaRef.current = null; return; }
+        curiositaGiroRef.current = chiaveGiroCuriosita;
+        curiositaRef.current = curiositaIniziale(leggiCuriositaGiro(chiaveGiroCuriosita));
+    }, [isNavigating, chiaveGiroCuriosita]);
 
     // DNA-1 — i campi del registro per una tappa del giro: categoria vera (dai `types` della
     // tappa in tourData.steps, che activeRoute non porta), citta', momento e giro.
@@ -825,7 +848,7 @@ const MapPage = () => {
         spokenIdentitiesRef.current.add(identity);
         lastSpokenRef.current = identity;
         const name = nextStop.name || nextStop.title || 'prossima tappa';
-        parla(dire('prossimaTappa', { nome: name }), { voce: voceId, senzaInterrompere: true });
+        parla(dire('prossimaTappa', { nome: name }), { voce: voceId, senzaInterrompere: true, tipo: 'prossimaTappa' });
     }, [voiceEnabled, isNavigating, activeRoute, completedSteps, inPausa, voceId]);
 
     // VOCE-1 — le indicazioni di svolta: «fra cento metri…», «fra cinquanta metri…», «adesso…». Una volta sola per svolta e per soglia
@@ -840,7 +863,7 @@ const MapPage = () => {
         const chiave = `${soglia}:${prossima.maneuver}:${(prossima.instructionHtml || '').slice(0, 60)}:${completedSteps.length}`;
         if (svolteDetteRef.current.has(chiave)) return;
         svolteDetteRef.current.add(chiave);
-        parla(dire(soglia, { verso: versoDa(prossima.maneuver) }), { voce: voceId });
+        parla(dire(soglia, { verso: versoDa(prossima.maneuver) }), { voce: voceId, tipo: 'svolta' });
     }, [activeManeuver, voiceEnabled, isNavigating, inPausa, voceId, completedSteps.length]);
 
     // ─── PLANNER PREVIEW ROUTE (BEFORE NAVIGATING) ───────────────────────────
@@ -1126,6 +1149,8 @@ const MapPage = () => {
     const [userHeading, setUserHeading] = useState(null);
     const onNavPosition = (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
+        let distanzaTappaM = null; // CURIOSITÀ-QUARTIERI: la prossima tappa e la prossima svolta di questo tick
+        let distanzaSvoltaM = null;
         setLocalCenter({ latitude, longitude });
         // nav-camera: la freccia di partenza sparisce dopo 10 m nel verso giusto verso la prima tappa
         if (frecciaPartenzaRef.current) {
@@ -1196,6 +1221,7 @@ const MapPage = () => {
             }
             if (nextStep && Number.isFinite(nextStep.latitude) && Number.isFinite(nextStep.longitude)) {
                 const distM = haversineM(latitude, longitude, nextStep.latitude, nextStep.longitude);
+                distanzaTappaM = distM;
                 // FIX 2: distanza live alla prossima tappa (scende camminando).
                 setNextStepDistanceM(Math.round(distM));
                 if (dbg) { dbg.nextTappaDistM = Math.round(distM); dbg.nextTappaName = nextStep.name || nextStep.title; }
@@ -1286,6 +1312,7 @@ const MapPage = () => {
                 // NAV-3 — la pillola dice la prossima svolta PRINCIPALE e a che distanza (a passi di 5 m, per non ridisegnare a ogni posizione)
                 const prossima = prossimaSvolta(steps, stepIdx, { lat: latitude, lng: longitude });
                 if (maneuver && prossima) maneuver = { ...maneuver, prossima: { maneuver: prossima.maneuver, instructionHtml: prossima.instructionHtml }, distanzaM: Math.round(prossima.distanzaM / 5) * 5 };
+                if (maneuver && prossima) distanzaSvoltaM = maneuver.distanzaM;
             }
             // hit === null (pts vuoto / coords invalide / fuori tolleranza) →
             // maneuver resta null → HUD torna a "→ Prossima tappa" (mai stale).
@@ -1334,28 +1361,47 @@ const MapPage = () => {
             if (Number.isFinite(dir)) map.moveCamera({ heading: lisciaAngolo(map.getHeading?.(), dir, 0.35) });
         }
 
-        // Cultural Surprise: solo A PIEDI, ogni ~300m + audioguida
-        if (isWalking && lastSurprisePos.current) {
-            const d = Math.hypot(
-                (latitude - lastSurprisePos.current.lat) * 111320,
-                (longitude - lastSurprisePos.current.lng) * 111320 * Math.cos(latitude * Math.PI / 180)
-            );
-            if (d > 300) {
-                lastSurprisePos.current = { lat: latitude, lng: longitude };
-                surpriseCount.current += 1;
-                // Solo curiosità della città del giro (vociTesti.CURIOSITA): senza città nota o senza curiosità giusta, silenzio
-                const surprises = curiositaDellaCitta(tourData?.city);
-                if (surprises.length > 0) {
-                    const text = surprises[surpriseCount.current % surprises.length];
-                    window.dispatchEvent(new CustomEvent('dvai:toast', {
-                        detail: { message: `🎧 ${text}`, type: 'info', duration: 6000 }
-                    }));
-                    // Audioguida: leggi la curiosità ad alta voce se voce attiva
-                    if (voiceEnabled) parla(text, { voce: voceId });
-                }
+        // CURIOSITÀ-QUARTIERI — fra una tappa e l'altra, una curiosità vera della via o del quartiere (fonte: Wikipedia, verificata dal server).
+        // Al massimo una ogni 10 minuti, solo a piedi e camminando, mai sopra un'indicazione (aspetta), mai due volte nello stesso giro.
+        if (curiositaRef.current) {
+            const pos2 = { lat: latitude, lng: longitude };
+            let st = aggiornaCammino(curiositaRef.current, { ...pos2, oraMs: now });
+            const attivo = pageTransportMode === 'walking' && !inPausa && !navCompletedRef.current;
+            const camminando = staCamminando(st, now);
+            if (st.pronta && prontaScaduta(st.pronta, { oraMs: now, pos: pos2 })) {
+                registraCuriosita({ evento: 'scaduta', chiave: st.pronta.chiave, luogo: st.pronta.luogo });
+                st = { ...st, pronta: null };
             }
-        } else {
-            lastSurprisePos.current = { lat: latitude, lng: longitude };
+            if (devoChiedere(st, { oraMs: now, attivo, camminando })) {
+                st = richiestaPartita(st, { oraMs: now });
+                registraCuriosita({ evento: 'richiesta', pos: pos2 });
+                const tappe = (activeRoute || []).map(x => x.name || x.title).filter(Boolean);
+                richiediCuriosita({ ...pos2, citta: tourData?.city || '', escludi: st.dette, tappe }).then((c) => {
+                    if (!curiositaRef.current) return; // il giro è finito nel frattempo
+                    curiositaRef.current = rispostaArrivata(curiositaRef.current, c, { oraMs: Date.now() });
+                    registraCuriosita(c ? { evento: 'arrivata', chiave: c.chiave, luogo: c.luogo, tipo: c.tipo, fonte: c.fonte, testo: c.testo } : { evento: 'nessuna' });
+                    if (c && voiceEnabled) preparaVoce(c.testo, { voce: voceId });
+                });
+            }
+            const dec = possoDire(st, {
+                oraMs: now, attivo, camminando, distanzaSvoltaM, distanzaTappaM,
+                voceOccupata: voiceEnabled && voceOccupata(), schedaAperta: !!(ritoId || arrivoId || schedaId),
+            });
+            if (dec.si) {
+                const c = st.pronta;
+                registraCuriosita({ evento: 'detta', chiave: c.chiave, luogo: c.luogo, tipo: c.tipo, fonte: c.fonte, testo: c.testo, distanzaSvoltaM, distanzaTappaM: distanzaTappaM == null ? null : Math.round(distanzaTappaM) });
+                window.dispatchEvent(new CustomEvent('dvai:toast', {
+                    detail: { message: `🎧 ${c.testo}`, type: 'info', duration: Math.min(20_000, Math.max(6000, secondiParlando(c.testo) * 1000 + 2000)) }
+                }));
+                if (voiceEnabled) parla(c.testo, { voce: voceId, tipo: 'curiosita' });
+                st = segnaDetta(st, { oraMs: now });
+                salvaCuriositaGiro(curiositaGiroRef.current, st);
+                curiositaMotivoRef.current = null;
+            } else if (st.pronta && dec.motivo !== curiositaMotivoRef.current) {
+                curiositaMotivoRef.current = dec.motivo;
+                registraCuriosita({ evento: 'attesa', chiave: st.pronta.chiave, motivo: dec.motivo, distanzaSvoltaM, distanzaTappaM: distanzaTappaM == null ? null : Math.round(distanzaTappaM) });
+            }
+            curiositaRef.current = st;
         }
     };
     useEffect(() => { navPositionRef.current = onNavPosition; });

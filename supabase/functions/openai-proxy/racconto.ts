@@ -35,10 +35,11 @@ export const MODELLO_REVISORE = 'claude-haiku-4-5';
 export const TTL_RACCONTO_GIORNI = 30; // come place_facts: il testo di Google non si tiene oltre
 export const TTL_SCARTATO_GIORNI = 7; // un racconto scartato non si riprova a ogni giro (costa), ma dopo una settimana sì
 
-export const SYSTEM_RACCONTO = [
-    'Sei la voce di Unnivai: un amico del posto che cammina con te e ti mostra una tappa.',
-    'Scrivi il racconto di UNA tappa: da 2 a 4 frasi brevi, in italiano, in seconda persona singolare («tu»), dette ad alta voce a chi sta arrivando.',
-    '',
+/**
+ * Come si scrive e le regole: le stesse per il racconto di una tappa e per la curiosità del cammino (curiosita.ts). Cambiarle vuol dire
+ * cambiare la versione di tutti e due.
+ */
+export const REGOLE_VOCE = Object.freeze([
     'COME SI SCRIVE:',
     '- Ogni frase poggia su un fatto scritto nelle FONTI. Prima scegli i fatti, poi scrivi: una frase, un fatto.',
     '- La voce da insider nasce da tre cose sole: QUALE fatto scegli (il più concreto, quello che si vede o si può fare lì), in che ORDINE li metti, e frasi BREVI. Non nasce da frasi di colore.',
@@ -56,6 +57,13 @@ export const SYSTEM_RACCONTO = [
     '7. Mai indicazioni di direzione o di posizione rispetto a chi ascolta: niente «a sinistra», «a destra», «davanti a te», «dietro di te», «alle tue spalle», «di fronte a te», «girati», «dall\'altra parte». L\'app non sa da che lato arrivi.',
     '   Non ripetere il nome del luogo più di una volta. Non dire che sei un\'intelligenza artificiale e non nominare le fonti.',
     `8. Se le fonti non bastano per almeno due frasi vere e concrete, rispondi esattamente: ${RISPOSTA_NIENTE}`,
+]);
+
+export const SYSTEM_RACCONTO = [
+    'Sei la voce di Unnivai: un amico del posto che cammina con te e ti mostra una tappa.',
+    'Scrivi il racconto di UNA tappa: da 2 a 4 frasi brevi, in italiano, in seconda persona singolare («tu»), dette ad alta voce a chi sta arrivando.',
+    '',
+    ...REGOLE_VOCE,
     '',
     'Rispondi solo con il testo del racconto (o con la parola indicata sopra), niente altro.',
 ].join('\n');
@@ -360,6 +368,8 @@ export function leggiVerifica(risposta: unknown, testo: string): EsitoVerifica {
 
 
 type Messaggi = Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
+/** Chi scrive la prima richiesta al narratore: il racconto di una tappa (difetto) o la curiosità del cammino (curiosita.ts). */
+export type MessaggiPrimaStesura = (f: FontiRacconto) => Array<{ role: 'system' | 'user'; content: string }>;
 
 // ─── una sola riscrittura: il modello riceve il perché dello scarto (revisore o controllo automatico), riscrive una volta, si riverifica ──
 const CHIUSURA_RISCRITTURA = [
@@ -367,8 +377,8 @@ const CHIUSURA_RISCRITTURA = [
     `Se togliendo quelle frasi ne restano meno di due, aggiungi un altro fatto concreto preso dalle fonti; se non ce ne sono, rispondi esattamente: ${RISPOSTA_NIENTE}`,
     'Rispondi solo con il nuovo testo del racconto.',
 ];
-const conversazioneRiscrittura = (f: FontiRacconto, testo: string, richiesta: string[]): Messaggi => [
-    ...messaggiRacconto(f),
+const conversazioneRiscrittura = (f: FontiRacconto, testo: string, richiesta: string[], prima: MessaggiPrimaStesura = messaggiRacconto): Messaggi => [
+    ...prima(f),
     { role: 'assistant', content: testo },
     { role: 'user', content: [...richiesta, ...CHIUSURA_RISCRITTURA].join('\n') },
 ];
@@ -377,7 +387,7 @@ const conversazioneRiscrittura = (f: FontiRacconto, testo: string, richiesta: st
  * La richiesta di riscrittura dopo il revisore: la stessa conversazione della prima stesura (fonti, racconto scritto) più le frasi che il
  * revisore ha segnato «no», ognuna con il suo motivo. Il modello toglie o corregge quelle frasi e non aggiunge niente che le fonti non dicano.
  */
-export function messaggiRiscrittura(f: FontiRacconto, testo: string, no: Array<{ n: number; motivo: string }>): Messaggi {
+export function messaggiRiscrittura(f: FontiRacconto, testo: string, no: Array<{ n: number; motivo: string }>, prima: MessaggiPrimaStesura = messaggiRacconto): Messaggi {
     const frasi = frasiDi(testo);
     const righe = no.map(({ n, motivo }) => `- frase ${n}: «${frasi[n - 1] ?? ''}»${motivo ? ` — ${motivo}` : ''}`);
     return conversazioneRiscrittura(f, testo, [
@@ -385,14 +395,14 @@ export function messaggiRiscrittura(f: FontiRacconto, testo: string, no: Array<{
         ...righe,
         '',
         'Riscrivi il racconto una volta: togli quelle frasi, oppure riscrivile dicendo solo ciò che le fonti dicono. Le altre frasi tienile come sono.',
-    ]);
+    ], prima);
 }
 
 /**
  * La richiesta di riscrittura dopo il controllo automatico (troppe frasi, una direzione, un numero o un nome che le fonti non hanno…): i motivi
  * del controllo, e per un divieto la parola che l'ha fatto scattare. Il controllo e i divieti restano quelli: qui si dice solo dove il testo cade.
  */
-export function messaggiRiscritturaControllo(f: FontiRacconto, testo: string, motivi: string[]): Messaggi {
+export function messaggiRiscritturaControllo(f: FontiRacconto, testo: string, motivi: string[], prima: MessaggiPrimaStesura = messaggiRacconto): Messaggi {
     const quante = frasiDi(testo).length;
     const righe = motivi.map((m) => {
         if (/^(più|meno) di \d+ frasi$/.test(m)) return `- ${m}: ne hai scritte ${quante}`;
@@ -405,7 +415,7 @@ export function messaggiRiscritturaControllo(f: FontiRacconto, testo: string, mo
         ...righe,
         '',
         'Riscrivi il racconto una volta correggendo solo questo: togli le frasi o le parole che lo fanno cadere, oppure riscrivile dicendo solo ciò che le fonti dicono. Le altre frasi tienile come sono.',
-    ]);
+    ], prima);
 }
 
 /** Una chiamata al modello: testo grezzo, modello usato, costo. Se non risponde lancia un errore (il proxy non salva niente e si riprova). */
@@ -433,7 +443,7 @@ export type EsitoRacconto = {
  * Non si riscrive quando non c'è niente da correggere: il modello ha risposto NIENTE (le fonti non bastano) o niente del tutto, oppure la
  * risposta del revisore non si legge.
  */
-export async function scriviERivedi(f: FontiRacconto, scrivi: ChiamataModello, rivedi: ChiamataModello): Promise<EsitoRacconto> {
+export async function scriviERivedi(f: FontiRacconto, scrivi: ChiamataModello, rivedi: ChiamataModello, { prima = messaggiRacconto }: { prima?: MessaggiPrimaStesura } = {}): Promise<EsitoRacconto> {
     let costoUsd = 0;
     let modello: string | null = null;
     let modelloVerifica: string | null = null;
@@ -446,7 +456,7 @@ export async function scriviERivedi(f: FontiRacconto, scrivi: ChiamataModello, r
         const verifica = leggiVerifica(v.testo, testo);
         return { ok: verifica.ok, motivi: verifica.motivi, verifica };
     };
-    const w1 = await scrivi(messaggiRacconto(f));
+    const w1 = await scrivi(prima(f));
     costoUsd += w1.costoUsd || 0;
     modello = w1.modello ?? null;
     const t1 = ripulisciRacconto(w1.testo);
@@ -458,9 +468,9 @@ export async function scriviERivedi(f: FontiRacconto, scrivi: ChiamataModello, r
     let richiesta: Messaggi | null = null;
     if (c1.verifica) {
         const no = c1.verifica.frasi.filter((x) => !x.nelleFonti).map(({ n, motivo }) => ({ n, motivo }));
-        if (no.length) richiesta = messaggiRiscrittura(f, t1, no);
+        if (no.length) richiesta = messaggiRiscrittura(f, t1, no, prima);
     } else if (t1 && t1.toUpperCase().replace(/[^A-Z]/g, '') !== RISPOSTA_NIENTE) {
-        richiesta = messaggiRiscritturaControllo(f, t1, c1.motivi);
+        richiesta = messaggiRiscritturaControllo(f, t1, c1.motivi, prima);
     }
     if (!richiesta) return fine(false, t1, c1, false, null);
 

@@ -1,0 +1,39 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-02T18:52:41.337Z",
+ "domanda": "Cosa c'è in piazza del Duomo?",
+ "titolo": "DoveVai | Esplora l'Italia Autentica",
+ "conGiro": {
+  "avviaCard": true,
+  "badgeMeteo": false,
+  "foto": "docs/prove/schermate/chat-verita/1-mappa-con-giro.png"
+ },
+ "senzaGiro": {
+  "benvenuto": "Assistente DoveVai\n\nAI GUIDE\n\nDOVEVAI AI\nChiedimi del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nL'assistente AI può commettere errori. Verifica le info sensibili.",
+  "fotoAperta": "docs/prove/schermate/chat-verita/2-chat-aperta.png",
+  "attesa": true,
+  "fotoAttesa": "docs/prove/schermate/chat-verita/3-controllo-le-fonti.png",
+  "msSchermo": 3907,
+  "fonti": "Fonti lette: Piazza del Duomo (Catania)",
+  "testoChat": "Assistente DoveVai\n\nAI GUIDE\n\nDOVEVAI AI\nChiedimi del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nCosa c'è in piazza del Duomo?\nDOVEVAI AI\nÈ la piazza principale della città. Qui arrivano tre strade: la via Etnea, la storica asse cittadina, la via Garibaldi e la via Vittorio Emanuele II, che la attraversa da est a ovest. Il Duomo sta sul lato orientale ed è dedicato alla patrona, festeggiata il 5 febbraio.\nFonti lette: Piazza del Duomo (Catania)\nL'assistente AI può commettere errori. Verifica le info sensibili.",
+  "fotoRisposta": "docs/prove/schermate/chat-verita/4-risposta.png",
+  "richieste": [
+   {
+    "luoghi": [],
+    "prossima": null,
+    "citta": "Catania",
+    "centro": {
+     "lat": 37.5025,
+     "lng": 15.0871
+    },
+    "stato": 200,
+    "ms": 3794,
+    "esito": "verificata",
+    "msServer": 3409,
+    "versione": "c1"
+   }
+  ]
+ },
+ "ok": true,
+ "finito": "2026-11-02T18:53:01.754Z"
+}

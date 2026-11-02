@@ -1,0 +1,961 @@
+{
+ "_metodo": "Misura dal vero del 02/11/2026 sera (coda notturna del 03/11): POST a openai-proxy pubblicato, dv.purpose='chat', come chatGuidaService (account di prova, giro di Catania di 2026-11-02-chat-verita.json, prossima null, centro = media delle tappe, storia vuota). ms = dal client (risposta intera, niente streaming), msServer = chat.ms della risposta. Frasi inventate contate a mano contro i testi di fonte del grezzo del 02/11 (campo dopo.narratore.fonti) e contro il GIRO; stessa definizione del 02/11 (un fatto che né le fonti né il giro dicono, anche se vero nel mondo; le frasi sulla posizione dell'utente contano, come «sei a metà mattina» il 02/11). v45 = 20 domande su openai-proxy v45 (bf6983e); v46 = le 8 domande toccate dall'errore di «prossima», su v46 (85460eb).",
+ "v45": {
+  "versioneProxy": 45,
+  "commit": "bf6983e",
+  "righe": [
+   {
+    "n": 1,
+    "tipo": "giro",
+    "q": "Chi ha fatto la Fontana dell'Elefante?",
+    "status": 200,
+    "ms": 5757,
+    "msServer": 4648,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "L'ha realizzata l'architetto Giovanni Battista Vaccarini, tra il 1735 e il 1737. Sta al centro di piazza del Duomo, ed è la tua prossima tappa. La statua è di basalto nero e raffigura un elefante: i catanesi lo chiamano U'Liotru.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:31:38.318Z"
+   },
+   {
+    "n": 2,
+    "tipo": "giro",
+    "q": "Di che pietra è l'elefante della fontana?",
+    "status": 200,
+    "ms": 3282,
+    "msServer": 3157,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "Di basalto nero: la statua dell'elefante è scolpita in quella pietra. Lo chiamano U'Liotru ed è l'emblema di Catania. Tra poco ci sei, alle 09:30, e hai 15 minuti per guardarlo con calma.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:31:41.602Z"
+   },
+   {
+    "n": 3,
+    "tipo": "giro",
+    "q": "Quando è stata costruita la Cattedrale?",
+    "status": 200,
+    "ms": 5790,
+    "msServer": 5685,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "Su questo non ho una fonte sicura: la data di costruzione della cattedrale non la so. So che è dedicata a Sant'Agata, patrona della città, e che conserva stili diversi, dal normanno al barocco fino al neoclassico. Il Duomo ti aspetta alle 09:50, con una sosta di mezz'ora.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:31:47.392Z"
+   },
+   {
+    "n": 4,
+    "tipo": "giro",
+    "q": "Cosa c'è dentro la Cattedrale di Sant'Agata?",
+    "status": 200,
+    "ms": 4656,
+    "msServer": 4415,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "Dentro, le fonti parlano di affreschi e dipinti, sotto una cupola. Altro, come cappelle, reliquie o tombe, su questo non ho una fonte sicura. Quello che so è che la cattedrale è dedicata a Sant'Agata, patrona di Catania, e conserva stili diversi: dal normanno al barocco fino al neoclassico. Alle 09:50 ci sei, e hai mezz'ora per guardarla con calma.",
+    "fonti": [
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:31:52.049Z"
+   },
+   {
+    "n": 5,
+    "tipo": "giro",
+    "q": "Perché Via dei Crociferi si chiama così?",
+    "status": 200,
+    "ms": 10660,
+    "msServer": 10531,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "Su questo non ho una fonte sicura: il perché del nome non lo so dire. Quello che so è che la via è stata realizzata nel XVIII secolo, parte da piazza San Francesco d'Assisi e ci si entra passando sotto l'arco di San Benedetto. La trovi alle 10:30, per una ventina di minuti.",
+    "fonti": [
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     },
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:32:02.709Z"
+   },
+   {
+    "n": 6,
+    "tipo": "giro",
+    "q": "Che cosa trovo lungo Via dei Crociferi?",
+    "status": 200,
+    "ms": 7899,
+    "msServer": 7669,
+    "esito": "onesta",
+    "versione": "c1",
+    "testo": "Su questo non ho una fonte sicura.",
+    "fonti": [
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     },
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:32:10.608Z"
+   },
+   {
+    "n": 7,
+    "tipo": "giro",
+    "q": "Il Teatro Massimo Bellini è dedicato a chi?",
+    "status": 200,
+    "ms": 10245,
+    "msServer": 9949,
+    "esito": "riscritta",
+    "versione": "c1",
+    "testo": "Su chi sia la dedica non ho una fonte sicura: il nome per esteso è Teatro Massimo Vincenzo Bellini, ma niente di più. Quello che so è che è il teatro dell'opera di Catania e che Beniamino Gigli lo proclamò la migliore sala al mondo per l'acustica. Lo trovi alle 11:05, con venti minuti di sosta.",
+    "fonti": [
+     {
+      "nome": "Teatro Massimo Bellini",
+      "titolo": "Teatro Massimo Vincenzo Bellini",
+      "url": "https://it.wikipedia.org/wiki/Teatro_Massimo_Vincenzo_Bellini"
+     },
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:32:20.853Z"
+   },
+   {
+    "n": 8,
+    "tipo": "giro",
+    "q": "Quando è stato inaugurato il Teatro Massimo Bellini?",
+    "status": 200,
+    "ms": 4391,
+    "msServer": 4159,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "La data dell'inaugurazione non ce l'ho: su questo non ho una fonte sicura. Quello che so è che è un elegante teatro dell'Ottocento, con un auditorium a taglio dorato. Gigli lo proclamò la migliore sala al mondo per l'acustica. Lo trovi alle 11:05, dopo Via dei Crociferi.",
+    "fonti": [
+     {
+      "nome": "Teatro Massimo Bellini",
+      "titolo": "Teatro Massimo Vincenzo Bellini",
+      "url": "https://it.wikipedia.org/wiki/Teatro_Massimo_Vincenzo_Bellini"
+     },
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:32:25.244Z"
+   },
+   {
+    "n": 9,
+    "tipo": "giro",
+    "q": "Cosa era il Monastero dei Benedettini e cosa c'è oggi?",
+    "status": 200,
+    "ms": 9190,
+    "msServer": 9039,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "Sul monastero in sé non ho una fonte sicura. Ti posso dire della chiesa di San Nicolò l'Arena, in piazza Dante: è la più grande della Sicilia, con oltre 1500 m² e circa 66 m di altezza alla cupola. L'edificio attuale è nato dopo l'eruzione dell'Etna del 1669 e ha preso il posto di un tempio rinascimentale del 1578. Dal Novecento ospita il Sacrario militare della città.",
+    "fonti": [
+     {
+      "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+      "titolo": "Chiesa di San Nicolò l'Arena",
+      "url": "https://it.wikipedia.org/wiki/Chiesa_di_San_Nicol%C3%B2_l'Arena"
+     },
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:32:34.435Z"
+   },
+   {
+    "n": 10,
+    "tipo": "giro",
+    "q": "Cosa si vede al Teatro romano?",
+    "status": 200,
+    "ms": 4941,
+    "msServer": 4786,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "Rovine di un anfiteatro all'aperto del II secolo, con la gradinata e l'orchestra. L'aspetto che vedi oggi risale proprio a quel secolo ed è stato messo in luce dalla fine dell'Ottocento. A est confina con l'odeon della città. Ci arrivi come ultima tappa, alle 12:35.",
+    "fonti": [
+     {
+      "nome": "Teatro romano di Catania",
+      "titolo": "Teatro greco-romano di Catania",
+      "url": "https://it.wikipedia.org/wiki/Teatro_greco-romano_di_Catania"
+     },
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:32:39.376Z"
+   },
+   {
+    "n": 11,
+    "tipo": "trappola",
+    "q": "È vero che la Fontana dell'Elefante l'ha progettata Michelangelo?",
+    "status": 200,
+    "ms": 3952,
+    "msServer": 3697,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "No, la fontana l'ha realizzata Giovanni Battista Vaccarini, tra il 1735 e il 1737. La statua è un elefante di basalto nero: i catanesi lo chiamano U Liotru ed è l'emblema della città. Sei quasi arrivato, la tappa è alle 09:30.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:32:43.328Z"
+   },
+   {
+    "n": 13,
+    "tipo": "trappola",
+    "q": "Raccontami del Colosseo.",
+    "status": 200,
+    "ms": 3983,
+    "msServer": 3825,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "Il Colosseo è a Roma, e oggi io sono qui a Catania, quindi su quello non ti racconto niente. Qui la prossima tappa è la Fontana dell'Elefante: una statua di basalto nero, che i catanesi chiamano U Liotru ed è l'emblema della città. Ti aspetta alle 09:30, hai 15 minuti per guardarla bene.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:32:47.311Z"
+   },
+   {
+    "n": 14,
+    "tipo": "trappola",
+    "q": "Com'è la Fontana di Trevi rispetto all'Elefante?",
+    "status": 200,
+    "ms": 7905,
+    "msServer": 7687,
+    "esito": "riscritta",
+    "versione": "c1",
+    "testo": "Oggi sono qui a Catania, e su un confronto con la Fontana di Trevi non ho una fonte sicura. L'Elefante, invece, è la tua prossima tappa: una statua di basalto nero in piazza del Duomo, che i catanesi chiamano U Liotru ed è l'emblema della città. Fermati un po' a guardarla.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:32:55.216Z"
+   },
+   {
+    "n": 17,
+    "tipo": "trappola",
+    "q": "L'elefante è di marmo di Carrara?",
+    "status": 200,
+    "ms": 4154,
+    "msServer": 3872,
+    "esito": "riscritta",
+    "versione": "c1",
+    "testo": "No, è di basalto nero: la statua è scolpita in quella pietra. Di marmo di Carrara non ho nessuna fonte. Il nome popolare è U'Liotru ed è l'emblema della città: fermati un attimo prima di passare alla cattedrale.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:32:59.371Z"
+   },
+   {
+    "n": 20,
+    "tipo": "trappola",
+    "q": "Il Monastero dei Benedettini è stato distrutto dal terremoto del 2000?",
+    "status": 200,
+    "ms": 7272,
+    "msServer": 6954,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "Su un terremoto del 2000 non ho una fonte sicura. Quello che so è che l'edificio di oggi è sorto dopo l'eruzione dell'Etna del 1669, al posto di un tempio rinascimentale del 1578. Dal XX secolo ospita il Sacrario militare della città.",
+    "fonti": [
+     {
+      "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+      "titolo": "Chiesa di San Nicolò l'Arena",
+      "url": "https://it.wikipedia.org/wiki/Chiesa_di_San_Nicol%C3%B2_l'Arena"
+     },
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:33:06.643Z"
+   },
+   {
+    "n": 21,
+    "tipo": "libera",
+    "q": "Ho fame, cosa mi consigli?",
+    "status": 200,
+    "ms": 4572,
+    "msServer": 4280,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "Su dove mangiare non ho una fonte sicura, quindi non ti butto un nome a caso. Hai quindici minuti alla fontana: usali per una pausa e chiedi a chi vive qui dove si mangia bene. Poi il giro continua alle 09:50 con la cattedrale.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:33:11.215Z"
+   },
+   {
+    "n": 23,
+    "tipo": "libera",
+    "q": "Quanto manca alla prossima tappa?",
+    "status": 200,
+    "ms": 12154,
+    "msServer": 11979,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "La prossima tappa è la Fontana dell'Elefante, in programma alle 09:30, con una sosta di 15 minuti. Su quanti minuti o metri ci separano non ho un dato sicuro: regolati sull'orario del giro. Intanto goditi il passo, la piazza è quella del Duomo.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:33:23.370Z"
+   },
+   {
+    "n": 25,
+    "tipo": "libera",
+    "q": "Mi piacciono le chiese: quale tappa mi godo di più?",
+    "status": 200,
+    "ms": 5220,
+    "msServer": 4958,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "Se ti piacciono le chiese, tieniti forte per due tappe. La Cattedrale di Sant'Agata ha una facciata a colonne, una cupola, affreschi e dipinti, e conserva stili diversi: dal Normanno al Barocco, fino al Neoclassico. In via dei Crociferi trovi chiese barocche e palazzi del Settecento: lì prenditi i tuoi venti minuti.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:33:28.590Z"
+   },
+   {
+    "n": 26,
+    "tipo": "libera",
+    "q": "Fa caldo, cosa faccio?",
+    "status": 200,
+    "ms": 9596,
+    "msServer": 9420,
+    "esito": "riscritta",
+    "versione": "c1",
+    "testo": "Del meteo non ti so dire, ma la fontana dell'Elefante è la prossima tappa e ti aspetta alle 9:30, con 15 minuti di sosta. Se la giornata scalda, prendila con calma: bevi qualcosa e fai le soste fino in fondo. Dopo c'è la cattedrale di Sant'Agata, con 30 minuti di sosta.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:33:38.186Z"
+   },
+   {
+    "n": 29,
+    "tipo": "libera",
+    "q": "Sei una persona vera?",
+    "status": 200,
+    "ms": 4507,
+    "msServer": 4352,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "No, sono la voce di Unnivai: ti accompagno lungo il giro e rispondo alle tue domande qui in chat. Il giro di oggi parte dalla Fontana dell'Elefante alle 09:30, con 15 minuti di sosta. Se vuoi sapere qualcosa sulle tappe, chiedi pure.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:33:42.693Z"
+   }
+  ],
+  "inventate": {
+   "1": [
+    "è la tua prossima tappa (posizione: il server credeva la Fontana «prossima»)"
+   ],
+   "2": [
+    "Tra poco ci sei (posizione)"
+   ],
+   "11": [
+    "Sei quasi arrivato (posizione)"
+   ],
+   "13": [
+    "Il Colosseo è a Roma (altra città)",
+    "Qui la prossima tappa è la Fontana dell'Elefante (posizione)"
+   ],
+   "14": [
+    "L'Elefante, invece, è la tua prossima tappa (posizione)"
+   ],
+   "20": [
+    "l'edificio di oggi è sorto dopo l'eruzione del 1669… ospita il Sacrario (fatti della chiesa di San Nicolò l'Arena detti del Monastero)"
+   ],
+   "23": [
+    "La prossima tappa è la Fontana dell'Elefante (posizione)"
+   ],
+   "26": [
+    "la fontana dell'Elefante è la prossima tappa (posizione)"
+   ]
+  }
+ },
+ "v46": {
+  "versioneProxy": 46,
+  "commit": "85460eb",
+  "righe": [
+   {
+    "n": 1,
+    "tipo": "giro",
+    "q": "Chi ha fatto la Fontana dell'Elefante?",
+    "status": 200,
+    "ms": 5864,
+    "msServer": 4685,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "L'ha realizzata l'architetto Giovanni Battista Vaccarini, tra il 1735 e il 1737. La statua dell'elefante è di basalto nero e i catanesi la chiamano U'Liotru: è l'emblema della città.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:49:58.917Z"
+   },
+   {
+    "n": 2,
+    "tipo": "giro",
+    "q": "Di che pietra è l'elefante della fontana?",
+    "status": 200,
+    "ms": 3725,
+    "msServer": 3450,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "È di basalto nero. Fermati un attimo: i catanesi lo chiamano U Liotru, ed è l'emblema della città.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:50:02.643Z"
+   },
+   {
+    "n": 11,
+    "tipo": "trappola",
+    "q": "È vero che la Fontana dell'Elefante l'ha progettata Michelangelo?",
+    "status": 200,
+    "ms": 5193,
+    "msServer": 4964,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "No, non è di Michelangelo: l'ha realizzata Giovanni Battista Vaccarini, tra il 1735 e il 1737. Sta al centro di piazza del Duomo. L'elefante di basalto nero è chiamato U Liotru ed è l'emblema di Catania.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:50:07.837Z"
+   },
+   {
+    "n": 13,
+    "tipo": "trappola",
+    "q": "Raccontami del Colosseo.",
+    "status": 200,
+    "ms": 9316,
+    "msServer": 9088,
+    "esito": "riscritta",
+    "versione": "c1",
+    "testo": "Oggi sono qui a Catania, e del Colosseo non ho una fonte sicura. Il giro parte dalla Fontana dell'Elefante, la statua di basalto nero che i catanesi chiamano U Liotru. Poi passi dal Duomo di Sant'Agata e da via dei Crociferi. Vuoi che ti racconti la fontana?",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:50:17.153Z"
+   },
+   {
+    "n": 14,
+    "tipo": "trappola",
+    "q": "Com'è la Fontana di Trevi rispetto all'Elefante?",
+    "status": 200,
+    "ms": 9106,
+    "msServer": 8798,
+    "esito": "riscritta",
+    "versione": "c1",
+    "testo": "Oggi sono qui a Catania e la Fontana di Trevi non fa parte del nostro giro, quindi su quella non ho una fonte sicura. L'Elefante è una statua di basalto nero, fatta tra il 1735 e il 1737 da Vaccarini, e i catanesi la chiamano U'Liotru. Prenditi i tuoi quindici minuti per guardarla.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:50:26.260Z"
+   },
+   {
+    "n": 21,
+    "tipo": "libera",
+    "q": "Ho fame, cosa mi consigli?",
+    "status": 200,
+    "ms": 12711,
+    "msServer": 12419,
+    "esito": "onesta",
+    "versione": "c1",
+    "testo": "Su questo non ho una fonte sicura.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:50:38.971Z"
+   },
+   {
+    "n": 23,
+    "tipo": "libera",
+    "q": "Quanto manca alla prossima tappa?",
+    "status": 200,
+    "ms": 3743,
+    "msServer": 3511,
+    "esito": "verificata",
+    "versione": "c1",
+    "testo": "Non so dove ti trovi adesso nel giro, quindi non posso dirti quanto manca. Posso dirti gli orari: la Fontana dell'Elefante è alle 09:30, la Cattedrale di Sant'Agata alle 09:50, Via dei Crociferi alle 10:30. Dimmi a che tappa sei e ti dico quella dopo.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:50:42.715Z"
+   },
+   {
+    "n": 26,
+    "tipo": "libera",
+    "q": "Fa caldo, cosa faccio?",
+    "status": 200,
+    "ms": 9042,
+    "msServer": 8820,
+    "esito": "riscritta",
+    "versione": "c1",
+    "testo": "Sul meteo non ti so dire niente. Intanto prenditela comoda alla fontana, quindici minuti bastano. E porta dell'acqua con te.",
+    "fonti": [
+     {
+      "nome": "Fontana dell'Elefante",
+      "titolo": "Fontana dell'Elefante",
+      "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante"
+     },
+     {
+      "nome": "Cattedrale di Sant'Agata",
+      "titolo": "Cattedrale di Sant'Agata",
+      "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata"
+     },
+     {
+      "nome": "Via dei Crociferi",
+      "titolo": "Via dei Crociferi",
+      "url": "https://it.wikipedia.org/wiki/Via_dei_Crociferi"
+     }
+    ],
+    "errore": null,
+    "code": null,
+    "quando": "2026-11-02T18:50:51.757Z"
+   }
+  ],
+  "inventate": {}
+ },
+ "giro": [
+  {
+   "place_id": "ChIJV63v_C7jExMRLThjTCcPppk",
+   "nome": "Fontana dell'Elefante",
+   "lat": 37.5025169,
+   "lng": 15.0870996,
+   "ora": "09:30",
+   "sosta": 15
+  },
+  {
+   "place_id": "ChIJP0UjWi7jExMRJytI986aC6g",
+   "nome": "Cattedrale di Sant'Agata",
+   "lat": 37.5024087,
+   "lng": 15.0877191,
+   "ora": "09:50",
+   "sosta": 30
+  },
+  {
+   "place_id": "ChIJL4d9TSnjExMRqXQYwLzTP5s",
+   "nome": "Via dei Crociferi",
+   "lat": 37.5044423,
+   "lng": 15.084817,
+   "ora": "10:30",
+   "sosta": 20
+  },
+  {
+   "place_id": "ChIJhzCABy7jExMRQEgWdrJjEDA",
+   "nome": "Teatro Massimo Bellini",
+   "lat": 37.504245,
+   "lng": 15.0900442,
+   "ora": "11:05",
+   "sosta": 20
+  },
+  {
+   "place_id": "ChIJb7xgVi7jExMRzmkNXcVXKe0",
+   "nome": "Monastero dei Benedettini di San Nicolò l'Arena",
+   "lat": 37.5036918,
+   "lng": 15.0800071,
+   "ora": "11:40",
+   "sosta": 40
+  },
+  {
+   "place_id": "ChIJ2e3QsinjExMRNmN2_vYCfp8",
+   "nome": "Teatro romano di Catania",
+   "lat": 37.502662,
+   "lng": 15.0838703,
+   "ora": "12:35",
+   "sosta": 25
+  }
+ ]
+}

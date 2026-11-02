@@ -1,0 +1,39 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-02T18:51:19.760Z",
+ "domanda": "Chi ha fatto la Fontana dell'Elefante?",
+ "titolo": "DoveVai | Esplora l'Italia Autentica",
+ "conGiro": {
+  "avviaCard": true,
+  "badgeMeteo": false,
+  "foto": "docs/prove/schermate/chat-verita/1-mappa-con-giro.png"
+ },
+ "senzaGiro": {
+  "benvenuto": "Assistente DoveVai\n\nAI GUIDE\n\nDOVEVAI AI\nChiedimi del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nL'assistente AI può commettere errori. Verifica le info sensibili.",
+  "fotoAperta": "docs/prove/schermate/chat-verita/2-chat-aperta.png",
+  "attesa": true,
+  "fotoAttesa": "docs/prove/schermate/chat-verita/3-controllo-le-fonti.png",
+  "msSchermo": 5424,
+  "fonti": null,
+  "testoChat": "Assistente DoveVai\n\nAI GUIDE\n\nDOVEVAI AI\nChiedimi del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.\nChi ha fatto la Fontana dell'Elefante?\nDOVEVAI AI\nSu questo non ho una fonte sicura.\nL'assistente AI può commettere errori. Verifica le info sensibili.",
+  "fotoRisposta": "docs/prove/schermate/chat-verita/4-risposta.png",
+  "richieste": [
+   {
+    "luoghi": [],
+    "prossima": null,
+    "citta": "Catania",
+    "centro": {
+     "lat": 37.5025,
+     "lng": 15.0871
+    },
+    "stato": 200,
+    "ms": 5356,
+    "esito": "onesta",
+    "msServer": 4955,
+    "versione": "c1"
+   }
+  ]
+ },
+ "ok": false,
+ "finito": "2026-11-02T18:52:11.818Z"
+}

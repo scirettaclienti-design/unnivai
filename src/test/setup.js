@@ -92,3 +92,15 @@ vi.mock('@/services/cityKnowledgeService', () => ({
     fetchQuartiereKnowledge: vi.fn(async () => ({ stato: 'spenta', verificati: [] })),
     CITY_LIST_TIMEOUT_MS: 110_000,
 }));
+
+// ACCOUNT-PRIVACY — il consenso ai servizi AI di terzi: nei test c'è già, così i test dei servizi non devono darlo.
+// Le prove del consenso (src/__tests__/lib/consensoAi.test.js, consensoAiServizi.test.js) usano l'originale / lo negano.
+vi.mock('@/lib/consensoAi', async (importOriginal) => {
+    const reale = await importOriginal();
+    return {
+        ...reale,
+        consensoAiDato: vi.fn(async () => true),
+        assicuraConsensoAi: vi.fn(async () => true),
+        richiediConsensoAi: vi.fn(async () => {}),
+    };
+});

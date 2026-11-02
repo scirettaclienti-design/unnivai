@@ -16,7 +16,7 @@ const builder = (tabella) => {
     return b;
 };
 
-const sessione = { access_token: 'replay', token_type: 'bearer', user: { id: '00000000-0000-0000-0000-00000000replay', user_metadata: {} } };
+const sessione = { access_token: 'replay', token_type: 'bearer', user: { id: '00000000-0000-0000-0000-00000000replay', user_metadata: { consenso_ai: { v: 1, at: 'replay' } } } }; // ACCOUNT-PRIVACY: l'utente finto ha già dato il consenso ai servizi AI
 
 export const supabase = {
     auth: {

@@ -50,6 +50,17 @@ const GPS_FINTO = (inizio) => {
     window.addEventListener('dvai:toast', (e) => window.__toast.push(String(e?.detail?.message || '')));
 };
 
+/** ACCOUNT-PRIVACY — il consenso ai servizi AI di terzi: lo dà come un utente, se la schermata c'è (una volta per account). */
+async function consensoAi(page, attesa = 8000) {
+    const ok = page.getByTestId('consenso-ai-ok');
+    try {
+        await ok.waitFor({ timeout: attesa });
+        await ok.click();
+        await page.getByTestId('consenso-ai').waitFor({ state: 'detached', timeout: 8000 });
+        return true;
+    } catch { return false; }
+}
+
 const esito = { base: BASE, iniziato: new Date().toISOString(), commitSito: null, punti: {} };
 const browser = await webkit.launch();
 let statePath = null;
@@ -73,6 +84,7 @@ async function accedi() {
     await p.getByPlaceholder('Password').fill(env.TEST_ACCOUNT_PASSWORD);
     await p.getByText('Accedi Ora').click();
     await p.waitForURL(u => !u.pathname.startsWith('/login'), { timeout: 30000 });
+    await consensoAi(p); // sul sito con la schermata del consenso: il «Va bene» resta sull'account di prova
     await p.waitForTimeout(2500);
     const file = path.join(TMP, 'sessione.json');
     await ctx.storageState({ path: file });
@@ -400,6 +412,7 @@ try {
                 await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
                 await page.getByTestId('prova-senza-account').click({ timeout: 20000 });
                 await page.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 20000 });
+                await consensoAi(page);
                 via = 'prova senza account → avvia';
                 await avvia(page, tour);
             } else {

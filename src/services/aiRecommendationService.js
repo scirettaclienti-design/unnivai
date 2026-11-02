@@ -6,6 +6,7 @@
 // DVAI-020 — Modello aggiornato da gpt-3.5-turbo a gpt-4o-mini.
 
 import { supabase } from '../lib/supabase';
+import { richiediConsensoAi } from '../lib/consensoAi';
 // Gate NARRATORE ANCORATO DIFF 4 — invarianti sull'output del narratore.
 // Funzione pura, nessuna I/O: qui viene solo LETTA, il log lo fa il chiamante.
 import { findTourViolations } from '../lib/narratorGuards';
@@ -54,6 +55,8 @@ export const buildPlacesProxyUrl = (params) => {
 // C10b2 — `passaggio` (lista, traduttore, selettore, narratore…): il modello lo sceglie il proxy (openai-proxy/modelli.ts),
 // il client manda il modello di prima, che e' anche il ripiego. La risposta dice quale ha usato (`_modello`).
 const callOpenAIProxy = async (payload, signal, quota, passaggio = null) => {
+  // ACCOUNT-PRIVACY — senza il consenso ai servizi AI di terzi non parte nessuna richiesta (e la schermata si riapre).
+  await richiediConsensoAi();
   const { data: { session } } = await supabase.auth.getSession();
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;

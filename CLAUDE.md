@@ -501,6 +501,13 @@ Capacitor 8.5.3 (`capacitor.config.json`: `it.unnivai.app`, «Unnivai», `webDir
 - **Quota**: una chiamata di contorno. Niente si salva. Opzioni nuove di `racconto.ts` (`forma`, `paroleFatto`, `numeroMin`, `ammessi`, `verifica`, `controllo`, `chiusura`, `limiti`) hanno come difetto il comportamento di prima.
 - Banco: `scripts/prova-reale/chat-verita.live.js` (30 domande: 10 sul giro, 10 trappole, 10 libere; prima/dopo; `SCRITTORE=narratore|traduttore`). Test: `chat.test.js`, `chatGuida.test.jsx`.
 
+### Account e privacy (ACCOUNT-PRIVACY)
+
+Testi in un file solo: `src/lib/testiAccount.js` (Elimina account, consenso AI, pagine `/privacy` e `/termini`, segnaposto `[DA COMPILARE: …]` mai inventati). Report: `docs/prove/2026-11-03-account-privacy.md`.
+- **Elimina account** (Profilo, `components/EliminaAccount.jsx`, `lib/eliminaAccount.js`): parola «elimina» → Edge Function `elimina-account` (JWT → solo se stessi; dati con `public.elimina_dati_utente`, file di Storage, poi `auth.admin.deleteUser`) → esci → home col messaggio. Senza funzione o migrazione dice «non ho cancellato niente», mai un falso «fatto». Prove: `bash scripts/test-elimina-account-sql.sh` (Docker, FK reali), `src/__tests__/functions/eliminaAccount.test.js`. **Una tabella nuova con colonna utente e FK senza ON DELETE CASCADE va aggiunta a `elimina_dati_utente`** (e al test SQL).
+- **Consenso AI di terzi** (`lib/consensoAi.js`, `components/ConsensoAi.jsx`): `user_metadata.consenso_ai` + copia sul telefono legata all'id (senza utente: solo telefono). Ogni servizio che manda dati a openai-proxy passa dal cancello (`richiediConsensoAi` / `assicuraConsensoAi` / `consensoAiDato`). Nei test il cancello è mockato in `src/test/setup.js`; gli script con account anonimo devono cliccare «Va bene» (`consensoAi()` nel collaudo).
+- Se si aggiunge un servizio che riceve dati dell'utente: aggiornare la privacy e alzare `VERSIONE_CONSENSO`.
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

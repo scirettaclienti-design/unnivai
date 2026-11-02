@@ -7,6 +7,7 @@
  * e il rapporto lo dice (`stato: 'assente'`).
  */
 import { supabase } from '@/lib/supabase';
+import { consensoAiDato } from '@/lib/consensoAi';
 
 // C10b2 — 110 s: il proxy da' al modello della lista 60 s, poi il ripiego e la verifica su Google.
 export const CITY_LIST_TIMEOUT_MS = 110_000;
@@ -35,6 +36,7 @@ async function chiediLista(dv) {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !anonKey || !citta || !giorno) return { stato: 'assente', verificati: [], errore: 'configurazione o parametri mancanti' };
+    if (!(await consensoAiDato())) return { stato: 'assente', verificati: [], errore: 'consenso AI mancante', ms: Date.now() - t0 };
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), CITY_LIST_TIMEOUT_MS);
     try {

@@ -61,6 +61,16 @@ const idUtente = () => page.evaluate(() => {
     const k = Object.keys(localStorage).find((x) => /^sb-.*-auth-token$/.test(x));
     try { const s = JSON.parse(localStorage.getItem(k)); return { id: s?.user?.id || null, anonimo: s?.user?.is_anonymous ?? null }; } catch { return null; }
 });
+/** ACCOUNT-PRIVACY — il consenso ai servizi AI di terzi: lo dà come un utente, se la schermata c'è (una volta per account). */
+async function consensoAi(page, attesa = 8000) {
+    const ok = page.getByTestId('consenso-ai-ok');
+    try {
+        await ok.waitFor({ timeout: attesa });
+        await ok.click();
+        await page.getByTestId('consenso-ai').waitFor({ state: 'detached', timeout: 8000 });
+        return true;
+    } catch { return false; }
+}
 async function passo(nome, fn) {
     const t0 = Date.now();
     try { esito.passi[nome] = { ...(await fn()), secondi: Math.round((Date.now() - t0) / 1000) }; }
@@ -87,6 +97,7 @@ try {
     await passo('1-ospite', async () => {
         await page.getByTestId('prova-senza-account').click({ timeout: 20000 });
         await page.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 30000 });
+        await consensoAi(page);
         if (/\/onboarding/.test(page.url())) {
             await page.getByText('Salta per ora').click({ timeout: 20000 });
             await page.waitForURL((u) => /\/dashboard-user/.test(u.pathname), { timeout: 30000 });

@@ -335,7 +335,7 @@ export default function SurpriseTourPage() {
                 });
             } else if (isAiEngineError(error)) {
                 // Gate P8b — OpenAI ha rifiutato o non ha risposto: testo fisso.
-                setGenerationError({ title: AI_ENGINE_MESSAGE, description: '' });
+                setGenerationError({ title: error.userMessage || AI_ENGINE_MESSAGE, description: '' });
             } else {
                 // DVAI-051: NON cadere più su mock numerico. Toast in-app coerente.
                 // TROINA-FIX — rete, timeout, risposta vuota: il messaggio tecnico, mai «non troviamo».

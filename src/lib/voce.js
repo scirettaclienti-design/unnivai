@@ -10,6 +10,7 @@
  * `preparaVoce` prepara l'audio in anticipo (il racconto della prossima tappa): il Play, all'arrivo, parte subito.
  */
 import { supabase } from '@/lib/supabase';
+import { consensoAiDato } from '@/lib/consensoAi';
 
 export const VOCI = [
     { id: 'marin', nome: 'Marin' },
@@ -85,6 +86,8 @@ async function chiediAlServer(testo, voce) {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !anonKey) throw new Error('configurazione mancante');
+    // ACCOUNT-PRIVACY — la voce umana manda la frase a OpenAI: senza consenso parla la voce del telefono (nessuna richiesta di rete).
+    if (!(await consensoAiDato())) throw new Error('consenso AI mancante');
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_VOCE_MS);
     try {

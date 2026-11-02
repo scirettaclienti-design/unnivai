@@ -11,6 +11,7 @@ import ToastProvider from './components/ToastProvider';
 import GiroInCorso from './components/GiroInCorso';
 // OSPITE-GIRO: l'invito a creare l'account (fine giro, secondo giro, salvataggio), uno solo per tutta l'app
 import RegistrazioneOspite from './components/RegistrazioneOspite';
+import ConsensoAi from './components/ConsensoAi';
 // Gate K — Guard che redirige rotte V2/V3 (Guide/Business/BecomeGuide) a
 // /dashboard-user con toast onesto "Disponibile prossimamente."
 import V1LockedGuard from './components/V1LockedGuard';
@@ -42,6 +43,8 @@ const Trending       = lazy(() => import('./pages/Trending'));
 const Photos         = lazy(() => import('./pages/Photos'));
 const Onboarding     = lazy(() => import('./pages/Onboarding'));
 const NotFound       = lazy(() => import('./pages/NotFound'));
+const Privacy        = lazy(() => import('./pages/Privacy'));
+const Termini        = lazy(() => import('./pages/Termini'));
 // Gate W — Schermate "Prossimamente" per V2 Guide, V3 Attivita', Foto.
 // Sostituiscono redirect+toast di V1LockedGuard con contenuto onesto.
 const Prossimamente  = lazy(() => import('./pages/Prossimamente'));
@@ -136,6 +139,9 @@ function AnimatedAppRoutes() {
 
         {/* PUBLIC */}
         <Route path="/login"           element={<Login />} />
+        {/* ACCOUNT-PRIVACY: pagine pubbliche, senza login */}
+        <Route path="/privacy"         element={<Privacy />} />
+        <Route path="/termini"         element={<Termini />} />
         <Route path="/onboarding"      element={<Onboarding />} />
         <Route path="/update-password" element={<UpdatePassword />} />
         <Route path="/explore"         element={<Explore />} />
@@ -209,6 +215,8 @@ function App() {
               {/* NAV-1: un giro in corso si propone all'apertura dell'app */}
               <GiroInCorso />
               <RegistrazioneOspite />
+              {/* ACCOUNT-PRIVACY: il consenso ai servizi AI di terzi, una volta sola */}
+              <ConsensoAi />
             </ErrorBoundary>
           </Router>
         </CityProvider>

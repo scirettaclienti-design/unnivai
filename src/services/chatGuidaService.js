@@ -5,6 +5,8 @@
  */
 import { supabase } from '../lib/supabase';
 import { AI_ENGINE_MESSAGE } from '../lib/aiEngineError';
+import { assicuraConsensoAi } from '../lib/consensoAi';
+import { CONSENSO_AI } from '../lib/testiAccount';
 
 export const TIMEOUT_CHAT_MS = 30_000;
 export const MSG_CHAT_RETE = 'Non riesco a raggiungere la guida. Riprova tra poco.';
@@ -45,6 +47,8 @@ export async function chiediAllaGuida({ domanda, storia = [], citta = '', tappe 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !anonKey) return { testo: MSG_CHAT_RETE, fonti: [], esito: null };
+    // ACCOUNT-PRIVACY — la chat manda domanda e tappe a un servizio AI di terzi: prima serve il consenso.
+    if (!(await assicuraConsensoAi())) return { testo: CONSENSO_AI.BLOCCATO, fonti: [], esito: null };
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_CHAT_MS);
     try {

@@ -88,6 +88,18 @@ describe('la richiesta dal telefono', () => {
         expect(leggiRichiestaChat({ domanda: 'x'.repeat(501) })).toBeNull();
         expect(leggiRichiestaChat({ domanda: 'ok', luoghi: GIRO, prossima: 9 }).prossima).toBeNull();
     });
+
+    it('prossima null (fuori dalla navigazione, come la manda il telefono) non diventa la prima tappa', () => {
+        for (const prossima of [null, undefined, '', false]) {
+            const r = leggiRichiestaChat({ domanda: 'Quanto manca?', luoghi: GIRO, prossima });
+            expect(r.prossima).toBeNull();
+            expect(testoGiro(r.luoghi, r.prossima)).not.toContain('la prossima tappa');
+            expect(testoGiro(r.luoghi, r.prossima)).toContain('non si sa');
+        }
+        expect(leggiRichiestaChat({ domanda: 'ok', luoghi: GIRO, prossima: 0 }).prossima).toBe(0);
+        const senzaSosta = leggiRichiestaChat({ domanda: 'ok', luoghi: [{ ...GIRO[0], sosta: null }] });
+        expect(senzaSosta.luoghi[0].sosta).toBeNull();
+    });
 });
 
 describe('il controllo automatico della chat', () => {

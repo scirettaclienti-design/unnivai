@@ -76,7 +76,8 @@ export function leggiRichiestaChat(dv: Record<string, any>): { domanda: string; 
   const domanda = typeof dv.domanda === 'string' ? dv.domanda.trim() : '';
   const citta = typeof dv.citta === 'string' ? dv.citta.trim() : '';
   if (!domanda || domanda.length > LIMITI_CHAT.domandaMax || citta.length > 80) return null;
-  const numero = (x: unknown, max: number) => { const n = Number(x); return Number.isFinite(n) && Math.abs(n) <= max ? n : null; };
+  // null, '' e false non sono 0: Number(null) = 0 faceva della prima tappa «la prossima» quando il telefono non la sa (misura del 03/11)
+  const numero = (x: unknown, max: number) => { const n = x == null || x === '' || typeof x === 'boolean' ? NaN : Number(x); return Number.isFinite(n) && Math.abs(n) <= max ? n : null; };
   // deno-lint-ignore no-explicit-any
   const storia: Turno[] = (Array.isArray(dv.storia) ? dv.storia : []).slice(-LIMITI_CHAT.turni).filter((t: any) => t && typeof t.testo === 'string' && t.testo.trim())
     // deno-lint-ignore no-explicit-any
@@ -92,8 +93,8 @@ export function leggiRichiestaChat(dv: Record<string, any>): { domanda: string; 
   const valido = (l: LuogoChat) => !!l.nome && l.lat != null && l.lng != null;
   const luoghi: LuogoChat[] = (Array.isArray(dv.luoghi) ? dv.luoghi : []).slice(0, LIMITI_CHAT.luoghi).map(luogo).filter(valido);
   const aperto = dv.aperto && typeof dv.aperto === 'object' ? luogo(dv.aperto) : null;
-  const p = Number(dv.prossima);
-  const prossima = Number.isInteger(p) && p >= 0 && p < luoghi.length ? p : null;
+  const p = numero(dv.prossima, LIMITI_CHAT.luoghi);
+  const prossima = p != null && Number.isInteger(p) && p >= 0 && p < luoghi.length ? p : null;
   const cLat = numero(dv.centro?.lat, 90), cLng = numero(dv.centro?.lng, 180);
   const centro = cLat != null && cLng != null ? { lat: cLat, lng: cLng }
     : luoghi.length ? { lat: luoghi.reduce((s, l) => s + l.lat, 0) / luoghi.length, lng: luoghi.reduce((s, l) => s + l.lng, 0) / luoghi.length } : null;

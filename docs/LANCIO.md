@@ -1,6 +1,6 @@
 # LANCIO del 1/12/2026
 
-**5 su 21 fatte** · aggiornato il 02/11/2026 · fonte dello stato: `docs/prove/` e `git log` di `main` (`5d60498`)
+**6 su 21 fatte** · aggiornato il 03/11/2026 · fonte dello stato: `docs/prove/` e `git log` di `main` (`85460eb`)
 
 L'elenco è chiuso: una voce si aggiunge solo se lo decide Ivano.
 Ogni task aggiorna la sua riga **prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio in cima.
@@ -29,7 +29,7 @@ Stati: **fatto** (su main, con prova) · **in corso** (ramo o PR aperti) · **da
 | P6 | GEOCODING-LANCIO (via da Nominatim) | da fare | — | oggi il telefono chiede via e quartiere a Nominatim a ogni richiesta; dal server Nominatim risponde 403 (`eda9b67`) |
 | P7 | TITOLI-RIFINITURA | da fare | — | precedente: TESTI-SCHEDE `75737a9` |
 | P8 | DNA-5 | da fare | — | in `docs/prove/` ci sono DNA-1, 2, 3, 3b, 3c, 4, 6; DNA-5 no |
-| P9 | CHAT-VERITA | in corso | codice `bf6983e` (`docs/prove/2026-11-02-chat-verita.md`); openai-proxy v45 pubblicata il 02/11 alle 18:31 UTC da `bf6983e` (file uguali al repo), collaudo come il 31/10; dal vero 20 domande: la chat risponde, ma con «prossima» null dal telefono il server prendeva la prima tappa come prossima (7 frasi su posizioni inventate) e senza giro il telefono non mandava il centro | correzione di `chat.ts` e `MapPage` su main, nuovo deploy, misura ripetuta, report `docs/prove/2026-11-03-chat-verita.md`; la chat non si apre con un giro sulla mappa (badge del meteo nascosto): decisione di Ivano |
+| P9 | CHAT-VERITA | fatto | codice `bf6983e` + correzioni `85460eb` (PR #16: `prossima` null, centro della mappa); openai-proxy **v46** da `85460eb` (file uguali al repo); dal vero 20 domande: 1 frase inventata su 59 (v45, prima della correzione: 9 su 62), prima parola 5,8 s di mediana dal telefono (p90 10,2 s), 0,014 $ a risposta; WebKit: «Controllo le fonti…», risposta verificata, «Fonti lette:»; collaudo come il 31/10, il 7 da ospite atteso (accessi anonimi spenti) (`docs/prove/2026-11-03-chat-verita.md`) | con un giro sulla mappa la chat non si apre (il badge del meteo sparisce): ingresso da decidere (Ivano); luoghi senza coordinate su it.wikipedia (Fontana dell'Elefante) senza fonti; tempo sopra i 4 s |
 | P10 | OSPITE-GIRO | aspetta Ivano | codice su main con la PR di OSPITE-GIRO (`docs/prove/2026-11-02-ospite-giro.md`): account anonimo, 1 giro per account, tetto per IP e per tutti gli ospiti, registrazione sullo stesso account; SQL 41/41, test proxy 14/14 e client 22/22 | passi § 6 del report (prima EMAIL-LANCIO, poi migrazione, deploy di openai-proxy, modello email, accessi anonimi e collegamento manuale); poi collaudo 7 e prova § 7 sul sito pubblicato |
 
 ## Lancio

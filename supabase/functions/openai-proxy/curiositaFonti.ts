@@ -5,13 +5,15 @@
  *  2. le vie e le piazze a pochi passi: geosearch di Wikipedia entro RAGGIO_VICINA_M, solo titoli che sono una strada o una piazza;
  *  3. il quartiere: i nomi del quartiere da OpenStreetMap (neighbourhood, quarter, suburb; mai un municipio) → la voce con lo stesso nome,
  *     con le coordinate entro RAGGIO_QUARTIERE_KM.
- * Senza una voce verificata: nessuna curiosità. Niente Deno qui dentro: `fetch` si passa dal chiamante (così si prova senza rete).
+ * I nomi vengono da Nominatim; se non risponde, da Photon (komoot, stessi dati OpenStreetMap); se nessuno dei due risponde restano le vie e
+ * le piazze a pochi passi (geosearch, verificate per coordinate). Senza una voce verificata: nessuna curiosità. Niente Deno qui dentro: `fetch` si passa dal chiamante (così si prova senza rete).
  */
 import { kmFra } from './cityKnowledge.ts';
 import { wikiCall, testoIntero, testoVoceIntera, type Fetch } from './raccontoFonti.ts';
 import { chiaveCuriosita, type TipoLuogo } from './curiosita.ts';
 
 const NOMINATIM = 'https://nominatim.openstreetmap.org/reverse';
+const PHOTON = 'https://photon.komoot.io/reverse';
 export const UA_CURIOSITA = 'Unnivai/1.0 (https://unnivai.vercel.app; curiosita del cammino)';
 export const RAGGIO_VICINA_M = 120;
 export const RAGGIO_VIA_KM = 1.5;      // una via lunga: la sua voce ha un punto solo (via Etnea: 3 km)
@@ -61,16 +63,34 @@ export function leggiIndirizzo(a: any): Indirizzo {
     return { via: typeof via === 'string' && via.trim() ? via.trim() : null, quartieri, citta };
 }
 
-/** Dove sei, da OpenStreetMap. `errore` = Nominatim non ha risposto. */
-export async function indirizzoDi(lat: number, lng: number, fetchImpl: Fetch): Promise<Indirizzo | 'errore'> {
+/** I nomi di Photon (komoot, dati OpenStreetMap): la strada e la località/il distretto. Stesse regole di `leggiIndirizzo`. */
+// deno-lint-ignore no-explicit-any
+export function leggiPhoton(p: any): Indirizzo {
+    const pr = p && typeof p === 'object' ? p : {};
+    const via = pr.type === 'street' ? pr.name : pr.street;
+    return leggiIndirizzo({ road: via, neighbourhood: pr.locality, suburb: pr.district, city: pr.city });
+}
+
+/**
+ * Dove sei, da OpenStreetMap: Nominatim, e se non risponde Photon (stessi dati). `errore` = nessuno dei due ha risposto; `motivo` dice
+ * perché (stato HTTP), per il log e per la risposta al client: mai la posizione.
+ */
+export async function indirizzoDi(lat: number, lng: number, fetchImpl: Fetch, diagnosi: string[] = []): Promise<Indirizzo | 'errore'> {
     const qs = new URLSearchParams({ format: 'jsonv2', lat: String(lat), lon: String(lng), zoom: '17', addressdetails: '1', 'accept-language': 'it' }).toString();
     try {
         const r = await fetchImpl(`${NOMINATIM}?${qs}`, { headers: { 'User-Agent': UA_CURIOSITA, Referer: 'https://unnivai.vercel.app' } });
-        if (!r.ok) return 'errore';
-        const j = await r.json().catch(() => null);
-        if (!j || j.error) return 'errore';
-        return leggiIndirizzo(j.address);
-    } catch { return 'errore'; }
+        const j = r.ok ? await r.json().catch(() => null) : null;
+        if (j && !j.error && j.address) return leggiIndirizzo(j.address);
+        diagnosi.push(`nominatim ${r.status}${j?.error ? ' errore' : ''}`);
+    } catch (e) { diagnosi.push(`nominatim rete ${String((e as Error)?.name || '')}`.trim()); }
+    try {
+        const r = await fetchImpl(`${PHOTON}?${new URLSearchParams({ lat: String(lat), lon: String(lng), limit: '1' }).toString()}`, { headers: { 'User-Agent': UA_CURIOSITA } });
+        const j = r.ok ? await r.json().catch(() => null) : null;
+        const f = Array.isArray(j?.features) ? j.features[0] : null;
+        if (f?.properties) return leggiPhoton(f.properties);
+        diagnosi.push(`photon ${r.status}${j && !f ? ' vuoto' : ''}`);
+    } catch (e) { diagnosi.push(`photon rete ${String((e as Error)?.name || '')}`.trim()); }
+    return 'errore';
 }
 
 const distanzaM = (lat: number, lng: number, coords: unknown): number | null => {

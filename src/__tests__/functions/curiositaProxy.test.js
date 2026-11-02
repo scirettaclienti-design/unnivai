@@ -8,13 +8,13 @@ const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 const CROCIFERI = "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto.\n== Descrizione ==\nLa strada, contornata da chiese, monasteri e poche abitazioni civili, è un esempio di unità dell'architettura barocca. Nel breve spazio di circa 410 metri sono presenti ben quattro chiese.";
 const GIUSTA = "Via dei Crociferi fu realizzata nel XVIII secolo. Nei suoi 410 metri ci sono quattro chiese.";
 
-let env, handler, righe, rpcLog, scritture, narratore, revisore, rete;
+let env, handler, righe, rpcLog, scritture, narratore, revisore, rete, osmGiu;
 
 beforeEach(async () => {
     vi.resetAllMocks();
     env = { OPENAI_API_KEY: 'sk-test', SUPABASE_URL: 'http://supabase.test', SUPABASE_SERVICE_ROLE_KEY: 'service-role-test', SUPABASE_ANON_KEY: 'anon-test', AI_QUOTA_IP_SALT: 'sale' };
     vi.stubGlobal('Deno', { env: { get: (k) => env[k] } });
-    righe = new Map(); rpcLog = []; scritture = []; narratore = [GIUSTA]; revisore = 'sì'; rete = [];
+    righe = new Map(); rpcLog = []; scritture = []; narratore = [GIUSTA]; revisore = 'sì'; rete = []; osmGiu = false;
     globalThis.__edgeSupabaseFactory = () => ({
         auth: { getUser: async () => ({ data: { user: null }, error: { status: 401 } }) },
         rpc: async (name) => { rpcLog.push(name); return name === 'racconto_consuma' ? { data: true, error: null } : { data: null, error: { message: 'x' } }; },
@@ -39,6 +39,7 @@ beforeEach(async () => {
                 : (narratore.shift() ?? GIUSTA);
             return ok({ choices: [{ message: { content: testo } }], usage: { prompt_tokens: 10, completion_tokens: 10 } });
         }
+        if (osmGiu && /nominatim|photon/.test(u.hostname)) return new Response('{}', { status: 403 });
         if (u.hostname === 'nominatim.openstreetmap.org') return ok({ address: { road: 'Via Crociferi', neighbourhood: 'Giudecca', suburb: 'Centro storico', city: 'Catania' } });
         if (p.list === 'geosearch') return ok({ query: { geosearch: [{ pageid: 443726, title: 'Via dei Crociferi', dist: 4 }] } });
         if (p.generator === 'search') {
@@ -109,6 +110,14 @@ describe('curiosità del cammino sul proxy', () => {
         const { curiosita } = await (await chiedi()).json(); // la via è scartata in cache: si guarda il quartiere, una sola generazione
         expect(curiosita.esito).toBe('nessuna');
         expect(openai() - n).toBe(0); // il quartiere non ha testo: senza fonti, nessuna chiamata
+    });
+    it('Nominatim e Photon non rispondono: restano le vie a pochi passi (geosearch), il motivo nella risposta', async () => {
+        osmGiu = true;
+        const { curiosita } = await (await chiedi()).json();
+        expect(curiosita).toMatchObject({ esito: 'passata', chiave: 'curiosita-itwiki-443726' });
+        const r2 = await (await chiedi({ escludi: ['curiosita-itwiki-443726'] })).json();
+        expect(r2.code).toBe('CURIOSITA_FONTI');
+        expect(r2.diagnosi).toEqual(['nominatim 403', 'photon 403']);
     });
     it('posizione non valida: 400; un racconto non può usare una chiave di curiosità', async () => {
         expect((await chiedi({ lat: 'x' })).status).toBe(400);

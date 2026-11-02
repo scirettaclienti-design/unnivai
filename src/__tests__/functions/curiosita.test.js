@@ -3,7 +3,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createHash } from 'node:crypto';
 import {
-    leggiIndirizzo, indirizzoDi, luoghiVicini, stessoLuogo, paroleProprie, eUnaTappa, testoDelLuogo, STRADA, RAGGIO_VIA_KM, RAGGIO_QUARTIERE_KM, UA_CURIOSITA,
+    leggiIndirizzo, leggiPhoton, indirizzoDi, luoghiVicini, stessoLuogo, paroleProprie, eUnaTappa, testoDelLuogo, STRADA, RAGGIO_VIA_KM, RAGGIO_QUARTIERE_KM, UA_CURIOSITA,
 } from '../../../supabase/functions/openai-proxy/curiositaFonti.ts';
 import {
     SYSTEM_CURIOSITA, messaggiCuriosita, VERSIONE_CURIOSITA, chiaveCuriosita, eChiaveCuriosita, curiositaInCacheValida,
@@ -47,8 +47,23 @@ describe('i nomi di OpenStreetMap', () => {
         expect(leggiIndirizzo({ suburb: 'Roma', city: 'Roma' }).quartieri).toEqual([]);
         expect(leggiIndirizzo(null)).toEqual({ via: null, quartieri: [], citta: null });
     });
-    it('Nominatim giù: «errore», non «nessun posto»', async () => {
-        expect(await indirizzoDi(37.5, 15.08, rete({ falliscono: ['nominatim'] }))).toBe('errore');
+    it('Nominatim e Photon giù: «errore», non «nessun posto»; il motivo è lo stato HTTP', async () => {
+        const diagnosi = [];
+        expect(await indirizzoDi(37.5, 15.08, rete({ falliscono: ['nominatim'] }), diagnosi)).toBe('errore');
+        expect(diagnosi[0]).toBe('nominatim 503');
+        expect(diagnosi[1]).toMatch(/^photon/);
+    });
+    it('Nominatim giù: i nomi da Photon (stessi dati OpenStreetMap)', async () => {
+        const f = vi.fn(async (url) => {
+            const u = new URL(String(url));
+            if (u.hostname === 'nominatim.openstreetmap.org') return { ok: false, status: 403, json: async () => ({}) };
+            expect(u.hostname).toBe('photon.komoot.io');
+            return { ok: true, status: 200, json: async () => ({ features: [{ properties: { type: 'street', name: "Vicolo di Sant'Agata", locality: 'Trastevere', district: 'Municipio Roma I', city: 'Roma' } }] }) };
+        });
+        const diagnosi = [];
+        expect(await indirizzoDi(41.8899, 12.4735, f, diagnosi)).toEqual({ via: "Vicolo di Sant'Agata", quartieri: ['Trastevere'], citta: 'Roma' });
+        expect(diagnosi).toEqual(['nominatim 403']);
+        expect(leggiPhoton({ type: 'house', street: 'Via Etnea', locality: 'San Berillo', city: 'Catania' })).toEqual({ via: 'Via Etnea', quartieri: ['San Berillo'], citta: 'Catania' });
     });
 });
 

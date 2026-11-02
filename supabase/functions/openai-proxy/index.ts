@@ -747,14 +747,17 @@ async function handleCuriosita(req: Request, dv: Record<string, any>): Promise<R
   const fetchW = (u: string, init?: Record<string, unknown>) => fetch(u, init as RequestInit);
   const nessuna = (motivo: string, extra: Record<string, unknown> = {}) => json(200, { curiosita: { esito: 'nessuna', motivo, ...extra } });
 
-  const ind = await indirizzoDi(lat, lng, fetchW);
-  if (ind === 'errore') return json(503, { error: 'Fonti non disponibili', code: 'CURIOSITA_FONTI' });
+  // i nomi della via e del quartiere (Nominatim, poi Photon); senza, restano le vie e piazze a pochi passi (geosearch)
+  const diagnosi: string[] = [];
+  const trovato = await indirizzoDi(lat, lng, fetchW, diagnosi);
+  if (diagnosi.length) console.warn(`[openai-proxy] curiosità: indirizzo ${diagnosi.join(' ; ')}`);
+  const ind = trovato === 'errore' ? { via: null, quartieri: [], citta: null } : trovato;
   const cittaUsata = citta || ind.citta || '';
   const { luoghi, errore } = await luoghiVicini({ lat, lng, citta: cittaUsata }, ind, fetchW);
   const candidati = luoghi.filter((l) => !escludi.includes(l.chiave) && !eUnaTappa(l, tappe, cittaUsata));
-  const elenco = (extra: Record<string, unknown> = {}) => ({ via: ind.via, quartieri: ind.quartieri, luoghi: luoghi.map((l) => `${l.tipo}:${l.titolo}`), ...extra });
+  const elenco = (extra: Record<string, unknown> = {}) => ({ via: ind.via, quartieri: ind.quartieri, luoghi: luoghi.map((l) => `${l.tipo}:${l.titolo}`), ...(diagnosi.length ? { diagnosi } : {}), ...extra });
   if (!candidati.length) {
-    if (errore) return json(503, { error: 'Fonti non disponibili', code: 'CURIOSITA_FONTI' });
+    if (errore || trovato === 'errore') return json(503, { error: 'Fonti non disponibili', code: 'CURIOSITA_FONTI', diagnosi: [...diagnosi, ...(errore ? ['wikipedia'] : [])] });
     return nessuna(luoghi.length ? 'già dette' : 'nessuna voce verificata', elenco());
   }
 

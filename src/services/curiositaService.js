@@ -2,7 +2,7 @@
  * CURIOSITÀ DEL CAMMINO — la curiosità vera della via o del quartiere dove stai camminando, scritta dal server con la voce di Wikipedia del
  * luogo (verificata per nome e coordinate) e controllata come i racconti di tappa. Il client dice solo dove sei, la città, le curiosità già
  * dette in questo giro e i nomi delle tappe (`dv.purpose = 'curiosita'`): la via e il quartiere li trova il SERVER (Google, con una memoria per
- * zona condivisa); fonti, prompt e controllo non passano da qui. Solo se il server dice «fonti non disponibili» (Google e le riserve giù) il
+ * zona condivisa); fonti, prompt e controllo non passano da qui. Solo se il server dice «fonti non disponibili» perché non ha trovato via e quartiere (Google e le riserve giù) il
  * telefono prova UNA volta a chiedere via e quartiere a Nominatim e rimanda la richiesta con quei nomi (riserva, mai la strada normale).
  * `richiediCuriosita` non lancia mai: senza curiosità (nessuna fonte, scartata, rete, tetto) restituisce null e il cammino resta in silenzio.
  */
@@ -66,7 +66,7 @@ export async function richiediCuriosita({ lat, lng, citta = '', escludi = [], ta
         if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
         const base = { lat, lng, citta, escludi, tappe, headers, controller, supabaseUrl };
         let r = await chiediAlServer(base);
-        if (r.stato === 503 && r.corpo?.code === 'CURIOSITA_FONTI') { // riserva: il server non ha trovato via e quartiere; li chiede il telefono a Nominatim
+        if (r.stato === 503 && r.corpo?.code === 'CURIOSITA_FONTI' && r.corpo?.senzaNomi) { // riserva: il server non ha trovato via e quartiere (Google e le sue riserve giù; non se è solo Wikipedia a non rispondere); li chiede il telefono a Nominatim
             const indirizzo = await indirizzoDalTelefono(lat, lng);
             if (indirizzo) r = await chiediAlServer({ ...base, indirizzo });
         }

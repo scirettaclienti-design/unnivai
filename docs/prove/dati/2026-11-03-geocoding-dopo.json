@@ -1,0 +1,1378 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-02T20:45:10.706Z",
+ "passoM": 25,
+ "passoS": 20,
+ "giri": {
+  "trastevere": {
+   "misure": {
+    "curiositaDette": 2,
+    "testi": [
+     {
+      "ora": "2026-11-02T20:55:23.198Z",
+      "minuto": 9.9,
+      "luogo": "Trastevere",
+      "tipo": "quartiere",
+      "fonte": "https://it.wikipedia.org/wiki/Trastevere",
+      "testo": "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 241
+     },
+     {
+      "ora": "2026-11-02T21:11:37.343Z",
+      "minuto": 26.1,
+      "luogo": "Piazza di Santa Maria in Trastevere",
+      "tipo": "via",
+      "fonte": "https://it.wikipedia.org/wiki/Piazza_di_Santa_Maria_in_Trastevere",
+      "testo": "Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 465
+     }
+    ],
+    "intervalliMin": [
+     16.2
+    ],
+    "dieciMinutiRispettati": true,
+    "ripetizioni": 0,
+    "frasiNavigazione": 21,
+    "svolte": 13,
+    "curiositaInterrotte": 0,
+    "sovrapposizioni": [],
+    "attese": [
+     [
+      "svolta vicina",
+      2
+     ],
+     [
+      "tappa vicina",
+      1
+     ]
+    ],
+    "esterne": {
+     "google": 7,
+     "photon": 0,
+     "nominatim": 1,
+     "wikipedia": 31
+    },
+    "dallaMemoriaDiZona": 0,
+    "richieste": 8,
+    "richiesteSenza": 5,
+    "spesaUsd": 0
+   },
+   "grezzo": {
+    "citta": "Roma",
+    "tappe": [
+     "Piazza Trilussa",
+     "Villa Farnesina",
+     "Basilica di Santa Maria in Trastevere",
+     "Basilica di Santa Cecilia in Trastevere",
+     "Chiesa di San Francesco a Ripa"
+    ],
+    "metri": 3134,
+    "minutiCammino": 49,
+    "inizio": "2026-11-02T20:45:32.080Z",
+    "arrivi": [
+     {
+      "tappa": "Piazza Trilussa",
+      "ora": "2026-11-02T20:54:17.791Z"
+     },
+     {
+      "tappa": "Villa Farnesina",
+      "ora": "2026-11-02T21:00:44.316Z"
+     },
+     {
+      "tappa": "Basilica di Santa Maria in Trastevere",
+      "ora": "2026-11-02T21:10:31.101Z"
+     },
+     {
+      "tappa": "Basilica di Santa Cecilia in Trastevere",
+      "ora": "2026-11-02T21:24:22.591Z"
+     },
+     {
+      "tappa": "Chiesa di San Francesco a Ripa",
+      "ora": "2026-11-02T21:34:08.267Z"
+     }
+    ],
+    "voce": [
+     {
+      "ora": "2026-11-02T20:45:23.867Z",
+      "testo": "Si va verso Piazza Trilussa.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T20:45:25.867Z"
+     },
+     {
+      "ora": "2026-11-02T20:45:27.990Z",
+      "testo": "Fra cento metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T20:45:30.990Z"
+     },
+     {
+      "ora": "2026-11-02T20:46:12.278Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T20:46:15.278Z"
+     },
+     {
+      "ora": "2026-11-02T20:46:32.326Z",
+      "testo": "Adesso gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T20:46:34.326Z"
+     },
+     {
+      "ora": "2026-11-02T20:50:57.142Z",
+      "testo": "Fra cento metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T20:51:00.142Z"
+     },
+     {
+      "ora": "2026-11-02T20:51:57.334Z",
+      "testo": "Fra cinquanta metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T20:52:00.334Z"
+     },
+     {
+      "ora": "2026-11-02T20:52:17.430Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T20:52:19.430Z"
+     },
+     {
+      "ora": "2026-11-02T20:53:37.718Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T20:53:39.718Z"
+     },
+     {
+      "ora": "2026-11-02T20:53:39.718Z",
+      "testo": "Si va verso Villa Farnesina.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T20:53:41.718Z"
+     },
+     {
+      "ora": "2026-11-02T20:55:23.222Z",
+      "testo": "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T20:55:53.222Z"
+     },
+     {
+      "ora": "2026-11-02T20:59:24.055Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T20:59:26.055Z"
+     },
+     {
+      "ora": "2026-11-02T20:59:26.055Z",
+      "testo": "Si va verso Basilica di Santa Maria in Trastevere.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T20:59:30.055Z"
+     },
+     {
+      "ora": "2026-11-02T21:09:10.854Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T21:09:13.854Z"
+     },
+     {
+      "ora": "2026-11-02T21:09:30.903Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T21:09:33.903Z"
+     },
+     {
+      "ora": "2026-11-02T21:09:33.903Z",
+      "testo": "Si va verso Basilica di Santa Cecilia in Trastevere.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T21:09:37.903Z"
+     },
+     {
+      "ora": "2026-11-02T21:11:37.359Z",
+      "testo": "Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T21:12:00.359Z"
+     },
+     {
+      "ora": "2026-11-02T21:17:58.694Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T21:18:00.694Z"
+     },
+     {
+      "ora": "2026-11-02T21:23:22.391Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T21:23:24.391Z"
+     },
+     {
+      "ora": "2026-11-02T21:23:24.391Z",
+      "testo": "Si va verso Chiesa di San Francesco a Ripa.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T21:23:28.391Z"
+     },
+     {
+      "ora": "2026-11-02T21:29:47.446Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T21:29:49.446Z"
+     },
+     {
+      "ora": "2026-11-02T21:30:27.542Z",
+      "testo": "Fra cinquanta metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T21:30:30.542Z"
+     },
+     {
+      "ora": "2026-11-02T21:31:07.702Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T21:31:09.702Z"
+     },
+     {
+      "ora": "2026-11-02T21:31:47.830Z",
+      "testo": "Adesso gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T21:31:49.830Z"
+     }
+    ],
+    "curiosita": [
+     {
+      "ora": "2026-11-02T20:49:32.924Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.89097458677206,
+       "lng": 12.471948533069854
+      }
+     },
+     {
+      "ora": "2026-11-02T20:49:56.869Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-3132373",
+      "luogo": "Lungotevere Raffaello Sanzio",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Lungotevere Raffaello Sanzio",
+       "url": "https://it.wikipedia.org/wiki/Lungotevere_Raffaello_Sanzio"
+      },
+      "testo": "Il Lungotevere Raffaello Sanzio è il tratto che collega piazza Trilussa a piazza Giuseppe Gioachino Belli, nel rione Trastevere. Il nome è quello dell'artista di Urbino, autore di varie opere a Roma. La delibera del consiglio comunale che lo ha istituito porta la data del 24 gennaio 1956."
+     },
+     {
+      "ora": "2026-11-02T20:50:16.947Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-3132373",
+      "motivo": "svolta vicina",
+      "distanzaSvoltaM": 160,
+      "distanzaTappaM": 158
+     },
+     {
+      "ora": "2026-11-02T20:52:37.431Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-3132373",
+      "motivo": "tappa vicina",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 39
+     },
+     {
+      "ora": "2026-11-02T20:53:37.640Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-3132373",
+      "motivo": "svolta vicina",
+      "distanzaSvoltaM": 60,
+      "distanzaTappaM": 0
+     },
+     {
+      "ora": "2026-11-02T20:53:57.724Z",
+      "evento": "scaduta",
+      "chiave": "curiosita-itwiki-3132373",
+      "luogo": "Lungotevere Raffaello Sanzio"
+     },
+     {
+      "ora": "2026-11-02T20:54:38.925Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.89191005747693,
+       "lng": 12.4693482756923
+      }
+     },
+     {
+      "ora": "2026-11-02T20:55:03.084Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-135480",
+      "luogo": "Trastevere",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Trastevere",
+       "url": "https://it.wikipedia.org/wiki/Trastevere"
+      },
+      "testo": "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno."
+     },
+     {
+      "ora": "2026-11-02T20:55:23.198Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-135480",
+      "luogo": "Trastevere",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Trastevere",
+       "url": "https://it.wikipedia.org/wiki/Trastevere"
+      },
+      "testo": "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 241
+     },
+     {
+      "ora": "2026-11-02T21:04:26.155Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.89163641815761,
+       "lng": 12.467881193947466
+      }
+     },
+     {
+      "ora": "2026-11-02T21:04:47.816Z",
+      "evento": "nessuna"
+     },
+     {
+      "ora": "2026-11-02T21:06:48.236Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.890232532210405,
+       "lng": 12.468798650736922
+      }
+     },
+     {
+      "ora": "2026-11-02T21:07:10.367Z",
+      "evento": "nessuna"
+     },
+     {
+      "ora": "2026-11-02T21:10:52.241Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.88938391504521,
+       "lng": 12.470374293779521
+      }
+     },
+     {
+      "ora": "2026-11-02T21:11:17.201Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-4004325",
+      "luogo": "Piazza di Santa Maria in Trastevere",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Piazza di Santa Maria in Trastevere",
+       "url": "https://it.wikipedia.org/wiki/Piazza_di_Santa_Maria_in_Trastevere"
+      },
+      "testo": "Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento."
+     },
+     {
+      "ora": "2026-11-02T21:11:37.343Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-4004325",
+      "luogo": "Piazza di Santa Maria in Trastevere",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Piazza di Santa Maria in Trastevere",
+       "url": "https://it.wikipedia.org/wiki/Piazza_di_Santa_Maria_in_Trastevere"
+      },
+      "testo": "Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 465
+     },
+     {
+      "ora": "2026-11-02T21:20:39.213Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.88659758732675,
+       "lng": 12.47468992614943
+      }
+     },
+     {
+      "ora": "2026-11-02T21:21:01.873Z",
+      "evento": "nessuna"
+     },
+     {
+      "ora": "2026-11-02T21:29:04.611Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.88555918669548,
+       "lng": 12.473404012415937
+      }
+     },
+     {
+      "ora": "2026-11-02T21:29:27.230Z",
+      "evento": "nessuna"
+     }
+    ],
+    "toast": [
+     {
+      "ora": "2026-11-02T20:55:23.198Z",
+      "testo": "🎧 Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno."
+     },
+     {
+      "ora": "2026-11-02T21:11:37.343Z",
+      "testo": "🎧 Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento."
+     }
+    ],
+    "ora": "2026-11-02T21:34:39.331Z",
+    "proxy": [
+     {
+      "stato": 200,
+      "ms": 4016,
+      "lat": 41.89097458677206,
+      "lng": 12.471948533069854,
+      "escludi": [],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Il Lungotevere Raffaello Sanzio è il tratto che collega piazza Trilussa a piazza Giuseppe Gioachino Belli, nel rione Trastevere. Il nome è quello dell'artista di Urbino, autore di varie opere a Roma. La delibera del consiglio comunale che lo ha istituito porta la data del 24 gennaio 1956.",
+       "chiave": "curiosita-itwiki-3132373",
+       "luogo": "Lungotevere Raffaello Sanzio",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Lungotevere Raffaello Sanzio",
+        "url": "https://it.wikipedia.org/wiki/Lungotevere_Raffaello_Sanzio"
+       },
+       "distanzaM": 51,
+       "richieste": {
+        "google": 1,
+        "photon": 0,
+        "nominatim": 0,
+        "wikipedia": 3
+       },
+       "cached": true
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 4253,
+      "lat": 41.89191005747693,
+      "lng": 12.4693482756923,
+      "escludi": [],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno.",
+       "chiave": "curiosita-itwiki-135480",
+       "luogo": "Trastevere",
+       "tipo": "quartiere",
+       "fonte": {
+        "titolo": "Trastevere",
+        "url": "https://it.wikipedia.org/wiki/Trastevere"
+       },
+       "distanzaM": 571,
+       "richieste": {
+        "google": 1,
+        "photon": 0,
+        "nominatim": 0,
+        "wikipedia": 5
+       },
+       "cached": true
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 1731,
+      "lat": 41.89163641815761,
+      "lng": 12.467881193947466,
+      "escludi": [
+       "curiosita-itwiki-135480"
+      ],
+      "corpo": {
+       "esito": "nessuna",
+       "motivo": "già dette",
+       "via": "Via della Scala",
+       "quartieri": [
+        "Trastevere"
+       ],
+       "luoghi": [
+        "quartiere:Trastevere"
+       ],
+       "richieste": {
+        "google": 1,
+        "photon": 0,
+        "nominatim": 0,
+        "wikipedia": 3
+       }
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 2210,
+      "lat": 41.890232532210405,
+      "lng": 12.468798650736922,
+      "escludi": [
+       "curiosita-itwiki-135480"
+      ],
+      "corpo": {
+       "esito": "nessuna",
+       "motivo": "già dette",
+       "via": "Via della Pelliccia",
+       "quartieri": [
+        "Trastevere"
+       ],
+       "luoghi": [
+        "quartiere:Trastevere"
+       ],
+       "richieste": {
+        "google": 1,
+        "photon": 0,
+        "nominatim": 0,
+        "wikipedia": 3
+       }
+      }
+     },
+     {
+      "stato": 503,
+      "ms": 2268,
+      "lat": 41.88938391504521,
+      "lng": 12.470374293779521,
+      "escludi": [
+       "curiosita-itwiki-135480"
+      ],
+      "corpo": {
+       "error": "Fonti non disponibili",
+       "code": "CURIOSITA_FONTI",
+       "richieste": {
+        "google": 1,
+        "photon": 0,
+        "nominatim": 0,
+        "wikipedia": 5
+       },
+       "diagnosi": [
+        "wikipedia"
+       ]
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 2438,
+      "lat": 41.88938391504521,
+      "lng": 12.470374293779521,
+      "escludi": [
+       "curiosita-itwiki-135480"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento.",
+       "chiave": "curiosita-itwiki-4004325",
+       "luogo": "Piazza di Santa Maria in Trastevere",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Piazza di Santa Maria in Trastevere",
+        "url": "https://it.wikipedia.org/wiki/Piazza_di_Santa_Maria_in_Trastevere"
+       },
+       "distanzaM": 14,
+       "richieste": {
+        "google": 0,
+        "photon": 0,
+        "nominatim": 0,
+        "wikipedia": 5
+       },
+       "cached": true
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 2745,
+      "lat": 41.88659758732675,
+      "lng": 12.47468992614943,
+      "escludi": [
+       "curiosita-itwiki-135480",
+       "curiosita-itwiki-4004325"
+      ],
+      "corpo": {
+       "esito": "nessuna",
+       "motivo": "già dette",
+       "via": "Via Anicia",
+       "quartieri": [
+        "Trastevere"
+       ],
+       "luoghi": [
+        "quartiere:Trastevere"
+       ],
+       "richieste": {
+        "google": 1,
+        "photon": 0,
+        "nominatim": 0,
+        "wikipedia": 4
+       }
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 2682,
+      "lat": 41.88555918669548,
+      "lng": 12.473404012415937,
+      "escludi": [
+       "curiosita-itwiki-135480",
+       "curiosita-itwiki-4004325"
+      ],
+      "corpo": {
+       "esito": "nessuna",
+       "motivo": "già dette",
+       "via": "Via Anicia",
+       "quartieri": [
+        "Trastevere"
+       ],
+       "luoghi": [
+        "quartiere:Trastevere"
+       ],
+       "richieste": {
+        "google": 1,
+        "photon": 0,
+        "nominatim": 0,
+        "wikipedia": 3
+       }
+      }
+     }
+    ],
+    "nominatimTelefono": 1,
+    "errori": []
+   },
+   "secondiVeri": 78
+  },
+  "catania": {
+   "misure": {
+    "curiositaDette": 5,
+    "testi": [
+     {
+      "ora": "2026-11-02T20:55:37.572Z",
+      "minuto": 8.8,
+      "luogo": "Giudecca di Catania",
+      "tipo": "quartiere",
+      "fonte": "https://it.wikipedia.org/wiki/Giudecca_di_Catania",
+      "testo": "Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 523
+     },
+     {
+      "ora": "2026-11-02T21:06:23.947Z",
+      "minuto": 19.6,
+      "luogo": "Piazza del Duomo (Catania)",
+      "tipo": "via",
+      "fonte": "https://it.wikipedia.org/wiki/Piazza_del_Duomo_(Catania)",
+      "testo": "Piazza del Duomo, a Catania: al centro c'è una statua in pietra lavica che raffigura un elefante, con sopra un obelisco, e la gente la chiama \"u Liotru\". Sotto la piazza, a 4-5 metri di profondità, ci sono le terme Achilliane, datate al IV secolo: ci si arriva con una breve gradinata fra il Duomo e il Palazzo dei Chierici. Più giù scorre il fiume Amenano, che risale in superficie nella fontana detta popolarmente Acqua o' Linzolu.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 244
+     },
+     {
+      "ora": "2026-11-02T21:16:31.590Z",
+      "minuto": 29.7,
+      "luogo": "Via Etnea",
+      "tipo": "via",
+      "fonte": "https://it.wikipedia.org/wiki/Via_Etnea",
+      "testo": "Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 248
+     },
+     {
+      "ora": "2026-11-02T21:26:37.461Z",
+      "minuto": 39.8,
+      "luogo": "Piazza dell'Università",
+      "tipo": "via",
+      "fonte": "https://it.wikipedia.org/wiki/Piazza_dell'Universit%C3%A0",
+      "testo": "Piazza dell'Università ha quattro candelabri in bronzo, fatti nel 1957 dagli scultori catanesi Mimì Maria Lazzaro e Domenico Tudisco. Ognuno rappresenta un'antica leggenda di Catania: Gammazita, i fratelli Pii Anapia e Anfinomo, il Paladino Uzeda e Colapesce. Il palazzo dell'Università è del 1696, costruito dopo il terremoto del 1693.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 891
+     },
+     {
+      "ora": "2026-11-02T21:36:43.498Z",
+      "minuto": 49.9,
+      "luogo": "Via Sant'Euplio",
+      "tipo": "via",
+      "fonte": "https://it.wikipedia.org/wiki/Via_Sant'Euplio",
+      "testo": "Via Sant'Euplio un tempo si chiamava Strada delle Fosse, o semplicemente Fosse, per le tante tombe di epoca antica che c'erano lì. All'inizio della via restano i resti della chiesa di Sant'Euplio, distrutta da un bombardamento degli Alleati l'8 luglio 1943 e mai ricostruita nello stesso posto. Fino al 1932 la strada finiva all'altezza delle Poste, in un ampio slargo dove c'era un teatro all'aperto chiamato Arena Pacini, demolito nel 1936.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 144
+     }
+    ],
+    "intervalliMin": [
+     10.8,
+     10.1,
+     10.1,
+     10.1
+    ],
+    "dieciMinutiRispettati": true,
+    "ripetizioni": 0,
+    "frasiNavigazione": 16,
+    "svolte": 8,
+    "curiositaInterrotte": 0,
+    "sovrapposizioni": [],
+    "attese": [
+     [
+      "svolta vicina",
+      1
+     ],
+     [
+      "tappa vicina",
+      1
+     ],
+     [
+      "scheda aperta",
+      1
+     ],
+     [
+      "non stai camminando",
+      1
+     ],
+     [
+      "meno di 10 minuti dall'ultima",
+      3
+     ]
+    ],
+    "esterne": {
+     "google": 5,
+     "photon": 5,
+     "nominatim": 0,
+     "wikipedia": 29
+    },
+    "dallaMemoriaDiZona": 0,
+    "richieste": 5,
+    "richiesteSenza": 0,
+    "spesaUsd": 0
+   },
+   "grezzo": {
+    "citta": "Catania",
+    "tappe": [
+     "Castello Ursino",
+     "Fontana dell'Elefante",
+     "Chiesa di San Benedetto",
+     "Teatro Massimo Bellini",
+     "Villa Bellini"
+    ],
+    "metri": 3510,
+    "minutiCammino": 53,
+    "inizio": "2026-11-02T20:46:50.462Z",
+    "arrivi": [
+     {
+      "tappa": "Castello Ursino",
+      "ora": "2026-11-02T20:55:16.438Z"
+     },
+     {
+      "tappa": "Fontana dell'Elefante",
+      "ora": "2026-11-02T21:05:19.590Z"
+     },
+     {
+      "tappa": "Chiesa di San Benedetto",
+      "ora": "2026-11-02T21:11:45.063Z"
+     },
+     {
+      "tappa": "Teatro Massimo Bellini",
+      "ora": "2026-11-02T21:21:12.570Z"
+     },
+     {
+      "tappa": "Villa Bellini",
+      "ora": "2026-11-02T21:39:44.132Z"
+     }
+    ],
+    "voce": [
+     {
+      "ora": "2026-11-02T20:46:42.238Z",
+      "testo": "Si va verso Castello Ursino.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T20:46:44.238Z"
+     },
+     {
+      "ora": "2026-11-02T20:46:50.524Z",
+      "testo": "Adesso gira leggermente a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T20:46:53.524Z"
+     },
+     {
+      "ora": "2026-11-02T20:50:51.388Z",
+      "testo": "Fra cento metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T20:50:54.388Z"
+     },
+     {
+      "ora": "2026-11-02T20:51:31.498Z",
+      "testo": "Fra cinquanta metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T20:51:34.500Z"
+     },
+     {
+      "ora": "2026-11-02T20:52:15.836Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T20:52:17.836Z"
+     },
+     {
+      "ora": "2026-11-02T20:52:35.916Z",
+      "testo": "Adesso gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T20:52:37.916Z"
+     },
+     {
+      "ora": "2026-11-02T20:54:16.284Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T20:54:18.284Z"
+     },
+     {
+      "ora": "2026-11-02T20:54:18.284Z",
+      "testo": "Si va verso Fontana dell'Elefante.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T20:54:21.284Z"
+     },
+     {
+      "ora": "2026-11-02T20:55:37.585Z",
+      "testo": "Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T20:56:08.585Z"
+     },
+     {
+      "ora": "2026-11-02T21:03:59.340Z",
+      "testo": "Fra cento metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T21:04:02.340Z"
+     },
+     {
+      "ora": "2026-11-02T21:04:19.390Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T21:04:21.390Z"
+     },
+     {
+      "ora": "2026-11-02T21:04:21.390Z",
+      "testo": "Si va verso Chiesa di San Benedetto.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T21:04:24.390Z"
+     },
+     {
+      "ora": "2026-11-02T21:06:23.964Z",
+      "testo": "Piazza del Duomo, a Catania: al centro c'è una statua in pietra lavica che raffigura un elefante, con sopra un obelisco, e la gente la chiama \"u Liotru\". Sotto la piazza, a 4-5 metri di profondità, ci sono le terme Achilliane, datate al IV secolo: ci si arriva con una breve gradinata fra il Duomo e il Palazzo dei Chierici. Più giù scorre il fiume Amenano, che risale in superficie nella fontana detta popolarmente Acqua o' Linzolu.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T21:06:54.964Z"
+     },
+     {
+      "ora": "2026-11-02T21:10:24.892Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T21:10:27.892Z"
+     },
+     {
+      "ora": "2026-11-02T21:10:44.854Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T21:10:47.854Z"
+     },
+     {
+      "ora": "2026-11-02T21:10:47.854Z",
+      "testo": "Si va verso Teatro Massimo Bellini.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T21:10:50.854Z"
+     },
+     {
+      "ora": "2026-11-02T21:16:31.602Z",
+      "testo": "Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T21:17:06.602Z"
+     },
+     {
+      "ora": "2026-11-02T21:20:32.437Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T21:20:34.437Z"
+     },
+     {
+      "ora": "2026-11-02T21:20:34.437Z",
+      "testo": "Si va verso Villa Bellini.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T21:20:36.437Z"
+     },
+     {
+      "ora": "2026-11-02T21:26:37.473Z",
+      "testo": "Piazza dell'Università ha quattro candelabri in bronzo, fatti nel 1957 dagli scultori catanesi Mimì Maria Lazzaro e Domenico Tudisco. Ognuno rappresenta un'antica leggenda di Catania: Gammazita, i fratelli Pii Anapia e Anfinomo, il Paladino Uzeda e Colapesce. Il palazzo dell'Università è del 1696, costruito dopo il terremoto del 1693.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T21:27:01.473Z"
+     },
+     {
+      "ora": "2026-11-02T21:36:43.507Z",
+      "testo": "Via Sant'Euplio un tempo si chiamava Strada delle Fosse, o semplicemente Fosse, per le tante tombe di epoca antica che c'erano lì. All'inizio della via restano i resti della chiesa di Sant'Euplio, distrutta da un bombardamento degli Alleati l'8 luglio 1943 e mai ricostruita nello stesso posto. Fino al 1932 la strada finiva all'altezza delle Poste, in un ampio slargo dove c'era un teatro all'aperto chiamato Arena Pacini, demolito nel 1936.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T21:37:15.507Z"
+     }
+    ],
+    "curiosita": [
+     {
+      "ora": "2026-11-02T20:51:11.414Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 37.500527967938375,
+       "lng": 15.083868496873867
+      }
+     },
+     {
+      "ora": "2026-11-02T20:51:35.613Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-3486154",
+      "luogo": "Giudecca di Catania",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Giudecca di Catania",
+       "url": "https://it.wikipedia.org/wiki/Giudecca_di_Catania"
+      },
+      "testo": "Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo."
+     },
+     {
+      "ora": "2026-11-02T20:51:55.715Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-3486154",
+      "motivo": "svolta vicina",
+      "distanzaSvoltaM": 30,
+      "distanzaTappaM": 145
+     },
+     {
+      "ora": "2026-11-02T20:52:55.931Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-3486154",
+      "motivo": "tappa vicina",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 93
+     },
+     {
+      "ora": "2026-11-02T20:54:36.305Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-3486154",
+      "motivo": "scheda aperta",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 536
+     },
+     {
+      "ora": "2026-11-02T20:54:56.374Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-3486154",
+      "motivo": "non stai camminando",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 536
+     },
+     {
+      "ora": "2026-11-02T20:55:37.572Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-3486154",
+      "luogo": "Giudecca di Catania",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Giudecca di Catania",
+       "url": "https://it.wikipedia.org/wiki/Giudecca_di_Catania"
+      },
+      "testo": "Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 523
+     },
+     {
+      "ora": "2026-11-02T21:05:40.723Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 37.502711531975464,
+       "lng": 15.086808878257665
+      }
+     },
+     {
+      "ora": "2026-11-02T21:06:03.852Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-526112",
+      "luogo": "Piazza del Duomo (Catania)",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Piazza del Duomo (Catania)",
+       "url": "https://it.wikipedia.org/wiki/Piazza_del_Duomo_(Catania)"
+      },
+      "testo": "Piazza del Duomo, a Catania: al centro c'è una statua in pietra lavica che raffigura un elefante, con sopra un obelisco, e la gente la chiama \"u Liotru\". Sotto la piazza, a 4-5 metri di profondità, ci sono le terme Achilliane, datate al IV secolo: ci si arriva con una breve gradinata fra il Duomo e il Palazzo dei Chierici. Più giù scorre il fiume Amenano, che risale in superficie nella fontana detta popolarmente Acqua o' Linzolu."
+     },
+     {
+      "ora": "2026-11-02T21:06:23.947Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-526112",
+      "luogo": "Piazza del Duomo (Catania)",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Piazza del Duomo (Catania)",
+       "url": "https://it.wikipedia.org/wiki/Piazza_del_Duomo_(Catania)"
+      },
+      "testo": "Piazza del Duomo, a Catania: al centro c'è una statua in pietra lavica che raffigura un elefante, con sopra un obelisco, e la gente la chiama \"u Liotru\". Sotto la piazza, a 4-5 metri di profondità, ci sono le terme Achilliane, datate al IV secolo: ci si arriva con una breve gradinata fra il Duomo e il Palazzo dei Chierici. Più giù scorre il fiume Amenano, che risale in superficie nella fontana detta popolarmente Acqua o' Linzolu.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 244
+     },
+     {
+      "ora": "2026-11-02T21:15:26.903Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 37.50501773533051,
+       "lng": 15.087506780266995
+      }
+     },
+     {
+      "ora": "2026-11-02T21:15:51.454Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-1503423",
+      "luogo": "Via Etnea",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Via Etnea",
+       "url": "https://it.wikipedia.org/wiki/Via_Etnea"
+      },
+      "testo": "Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città."
+     },
+     {
+      "ora": "2026-11-02T21:16:11.520Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-1503423",
+      "motivo": "meno di 10 minuti dall'ultima",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 256
+     },
+     {
+      "ora": "2026-11-02T21:16:31.590Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-1503423",
+      "luogo": "Via Etnea",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Via Etnea",
+       "url": "https://it.wikipedia.org/wiki/Via_Etnea"
+      },
+      "testo": "Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 248
+     },
+     {
+      "ora": "2026-11-02T21:25:34.549Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 37.504178777679925,
+       "lng": 15.087038049577322
+      }
+     },
+     {
+      "ora": "2026-11-02T21:25:57.274Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-4160617",
+      "luogo": "Piazza dell'Università",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Piazza dell'Università",
+       "url": "https://it.wikipedia.org/wiki/Piazza_dell'Universit%C3%A0"
+      },
+      "testo": "Piazza dell'Università ha quattro candelabri in bronzo, fatti nel 1957 dagli scultori catanesi Mimì Maria Lazzaro e Domenico Tudisco. Ognuno rappresenta un'antica leggenda di Catania: Gammazita, i fratelli Pii Anapia e Anfinomo, il Paladino Uzeda e Colapesce. Il palazzo dell'Università è del 1696, costruito dopo il terremoto del 1693."
+     },
+     {
+      "ora": "2026-11-02T21:26:17.384Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-4160617",
+      "motivo": "meno di 10 minuti dall'ultima",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 916
+     },
+     {
+      "ora": "2026-11-02T21:26:37.461Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-4160617",
+      "luogo": "Piazza dell'Università",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Piazza dell'Università",
+       "url": "https://it.wikipedia.org/wiki/Piazza_dell'Universit%C3%A0"
+      },
+      "testo": "Piazza dell'Università ha quattro candelabri in bronzo, fatti nel 1957 dagli scultori catanesi Mimì Maria Lazzaro e Domenico Tudisco. Ognuno rappresenta un'antica leggenda di Catania: Gammazita, i fratelli Pii Anapia e Anfinomo, il Paladino Uzeda e Colapesce. Il palazzo dell'Università è del 1696, costruito dopo il terremoto del 1693.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 891
+     },
+     {
+      "ora": "2026-11-02T21:35:39.427Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 37.51078959647489,
+       "lng": 15.08547201027197
+      }
+     },
+     {
+      "ora": "2026-11-02T21:36:03.280Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-1349272",
+      "luogo": "Via Sant'Euplio",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Via Sant'Euplio",
+       "url": "https://it.wikipedia.org/wiki/Via_Sant'Euplio"
+      },
+      "testo": "Via Sant'Euplio un tempo si chiamava Strada delle Fosse, o semplicemente Fosse, per le tante tombe di epoca antica che c'erano lì. All'inizio della via restano i resti della chiesa di Sant'Euplio, distrutta da un bombardamento degli Alleati l'8 luglio 1943 e mai ricostruita nello stesso posto. Fino al 1932 la strada finiva all'altezza delle Poste, in un ampio slargo dove c'era un teatro all'aperto chiamato Arena Pacini, demolito nel 1936."
+     },
+     {
+      "ora": "2026-11-02T21:36:23.430Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-1349272",
+      "motivo": "meno di 10 minuti dall'ultima",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 169
+     },
+     {
+      "ora": "2026-11-02T21:36:43.498Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-1349272",
+      "luogo": "Via Sant'Euplio",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Via Sant'Euplio",
+       "url": "https://it.wikipedia.org/wiki/Via_Sant'Euplio"
+      },
+      "testo": "Via Sant'Euplio un tempo si chiamava Strada delle Fosse, o semplicemente Fosse, per le tante tombe di epoca antica che c'erano lì. All'inizio della via restano i resti della chiesa di Sant'Euplio, distrutta da un bombardamento degli Alleati l'8 luglio 1943 e mai ricostruita nello stesso posto. Fino al 1932 la strada finiva all'altezza delle Poste, in un ampio slargo dove c'era un teatro all'aperto chiamato Arena Pacini, demolito nel 1936.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 144
+     }
+    ],
+    "toast": [
+     {
+      "ora": "2026-11-02T20:55:37.572Z",
+      "testo": "🎧 Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo."
+     },
+     {
+      "ora": "2026-11-02T21:06:23.947Z",
+      "testo": "🎧 Piazza del Duomo, a Catania: al centro c'è una statua in pietra lavica che raffigura un elefante, con sopra un obelisco, e la gente la chiama \"u Liotru\". Sotto la piazza, a 4-5 metri di profondità, ci sono le terme Achilliane, datate al IV secolo: ci si arriva con una breve gradinata fra il Duomo e il Palazzo dei Chierici. Più giù scorre il fiume Amenano, che risale in superficie nella fontana detta popolarmente Acqua o' Linzolu."
+     },
+     {
+      "ora": "2026-11-02T21:16:31.590Z",
+      "testo": "🎧 Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città."
+     },
+     {
+      "ora": "2026-11-02T21:26:37.461Z",
+      "testo": "🎧 Piazza dell'Università ha quattro candelabri in bronzo, fatti nel 1957 dagli scultori catanesi Mimì Maria Lazzaro e Domenico Tudisco. Ognuno rappresenta un'antica leggenda di Catania: Gammazita, i fratelli Pii Anapia e Anfinomo, il Paladino Uzeda e Colapesce. Il palazzo dell'Università è del 1696, costruito dopo il terremoto del 1693."
+     },
+     {
+      "ora": "2026-11-02T21:36:43.498Z",
+      "testo": "🎧 Via Sant'Euplio un tempo si chiamava Strada delle Fosse, o semplicemente Fosse, per le tante tombe di epoca antica che c'erano lì. All'inizio della via restano i resti della chiesa di Sant'Euplio, distrutta da un bombardamento degli Alleati l'8 luglio 1943 e mai ricostruita nello stesso posto. Fino al 1932 la strada finiva all'altezza delle Poste, in un ampio slargo dove c'era un teatro all'aperto chiamato Arena Pacini, demolito nel 1936."
+     }
+    ],
+    "ora": "2026-11-02T21:40:15.197Z",
+    "proxy": [
+     {
+      "stato": 200,
+      "ms": 4250,
+      "lat": 37.500527967938375,
+      "lng": 15.083868496873867,
+      "escludi": [],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo.",
+       "chiave": "curiosita-itwiki-3486154",
+       "luogo": "Giudecca di Catania",
+       "tipo": "quartiere",
+       "fonte": {
+        "titolo": "Giudecca di Catania",
+        "url": "https://it.wikipedia.org/wiki/Giudecca_di_Catania"
+       },
+       "distanzaM": 541,
+       "richieste": {
+        "google": 1,
+        "photon": 1,
+        "nominatim": 0,
+        "wikipedia": 7
+       },
+       "cached": true
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 3215,
+      "lat": 37.502711531975464,
+      "lng": 15.086808878257665,
+      "escludi": [
+       "curiosita-itwiki-3486154"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Piazza del Duomo, a Catania: al centro c'è una statua in pietra lavica che raffigura un elefante, con sopra un obelisco, e la gente la chiama \"u Liotru\". Sotto la piazza, a 4-5 metri di profondità, ci sono le terme Achilliane, datate al IV secolo: ci si arriva con una breve gradinata fra il Duomo e il Palazzo dei Chierici. Più giù scorre il fiume Amenano, che risale in superficie nella fontana detta popolarmente Acqua o' Linzolu.",
+       "chiave": "curiosita-itwiki-526112",
+       "luogo": "Piazza del Duomo (Catania)",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Piazza del Duomo (Catania)",
+        "url": "https://it.wikipedia.org/wiki/Piazza_del_Duomo_(Catania)"
+       },
+       "distanzaM": 52,
+       "richieste": {
+        "google": 1,
+        "photon": 1,
+        "nominatim": 0,
+        "wikipedia": 5
+       },
+       "cached": true
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 4637,
+      "lat": 37.50501773533051,
+      "lng": 15.087506780266995,
+      "escludi": [
+       "curiosita-itwiki-3486154",
+       "curiosita-itwiki-526112"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città.",
+       "chiave": "curiosita-itwiki-1503423",
+       "luogo": "Via Etnea",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Via Etnea",
+        "url": "https://it.wikipedia.org/wiki/Via_Etnea"
+       },
+       "distanzaM": 106,
+       "richieste": {
+        "google": 1,
+        "photon": 1,
+        "nominatim": 0,
+        "wikipedia": 7
+       },
+       "cached": true
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 2880,
+      "lat": 37.504178777679925,
+      "lng": 15.087038049577322,
+      "escludi": [
+       "curiosita-itwiki-3486154",
+       "curiosita-itwiki-526112",
+       "curiosita-itwiki-1503423"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Piazza dell'Università ha quattro candelabri in bronzo, fatti nel 1957 dagli scultori catanesi Mimì Maria Lazzaro e Domenico Tudisco. Ognuno rappresenta un'antica leggenda di Catania: Gammazita, i fratelli Pii Anapia e Anfinomo, il Paladino Uzeda e Colapesce. Il palazzo dell'Università è del 1696, costruito dopo il terremoto del 1693.",
+       "chiave": "curiosita-itwiki-4160617",
+       "luogo": "Piazza dell'Università",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Piazza dell'Università",
+        "url": "https://it.wikipedia.org/wiki/Piazza_dell'Universit%C3%A0"
+       },
+       "distanzaM": 113,
+       "richieste": {
+        "google": 1,
+        "photon": 1,
+        "nominatim": 0,
+        "wikipedia": 5
+       },
+       "cached": true
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 3937,
+      "lat": 37.51078959647489,
+      "lng": 15.08547201027197,
+      "escludi": [
+       "curiosita-itwiki-3486154",
+       "curiosita-itwiki-526112",
+       "curiosita-itwiki-1503423",
+       "curiosita-itwiki-4160617"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Via Sant'Euplio un tempo si chiamava Strada delle Fosse, o semplicemente Fosse, per le tante tombe di epoca antica che c'erano lì. All'inizio della via restano i resti della chiesa di Sant'Euplio, distrutta da un bombardamento degli Alleati l'8 luglio 1943 e mai ricostruita nello stesso posto. Fino al 1932 la strada finiva all'altezza delle Poste, in un ampio slargo dove c'era un teatro all'aperto chiamato Arena Pacini, demolito nel 1936.",
+       "chiave": "curiosita-itwiki-1349272",
+       "luogo": "Via Sant'Euplio",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Via Sant'Euplio",
+        "url": "https://it.wikipedia.org/wiki/Via_Sant'Euplio"
+       },
+       "distanzaM": 68,
+       "richieste": {
+        "google": 1,
+        "photon": 1,
+        "nominatim": 0,
+        "wikipedia": 5
+       },
+       "cached": true
+      }
+     }
+    ],
+    "nominatimTelefono": 0,
+    "errori": []
+   },
+   "secondiVeri": 108
+  }
+ },
+ "finito": "2026-11-02T20:48:23.096Z"
+}

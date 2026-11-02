@@ -34,7 +34,7 @@ describe('curiositaService', () => {
         vi.stubGlobal('fetch', vi.fn(async (url, init) => {
             if (String(url).startsWith('https://nominatim.openstreetmap.org/reverse')) return { ok: true, json: async () => ({ address: { road: 'Via Crociferi', suburb: 'Centro storico', city: 'Catania', house_number: '7', postcode: '95124' } }) };
             corpi.push(JSON.parse(init.body)); n += 1;
-            return n === 1 ? { ok: false, status: 503, json: async () => ({ code: 'CURIOSITA_FONTI' }) } : { ok: true, status: 200, json: async () => ({ curiosita: C }) };
+            return n === 1 ? { ok: false, status: 503, json: async () => ({ code: 'CURIOSITA_FONTI', senzaNomi: true }) } : { ok: true, status: 200, json: async () => ({ curiosita: C }) };
         }));
         expect(await richiediCuriosita({ lat: 37.6, lng: 15.1, citta: 'Catania' })).toMatchObject({ chiave: C.chiave });
         expect(corpi).toHaveLength(2);
@@ -43,10 +43,16 @@ describe('curiositaService', () => {
         expect(Object.keys(corpi[1].dv.indirizzo).every(k => CAMPI_INDIRIZZO.includes(k))).toBe(true);
     });
     it('riserva senza Nominatim: nessun secondo invio, null', async () => {
-        rete({ nominatim: null, stato: 503, proxy: { code: 'CURIOSITA_FONTI' } });
+        rete({ nominatim: null, stato: 503, proxy: { code: 'CURIOSITA_FONTI', senzaNomi: true } });
         expect(await indirizzoDalTelefono(41.1, 12.1)).toBeNull();
         expect(await richiediCuriosita({ lat: 41.2, lng: 12.2, citta: 'Roma' })).toBeNull();
         expect(corpi).toHaveLength(1);
+    });
+    it('è solo Wikipedia a non rispondere (i nomi ci sono): niente riserva Nominatim, null', async () => {
+        rete({ stato: 503, proxy: { code: 'CURIOSITA_FONTI', senzaNomi: false, diagnosi: ['wikipedia'] } });
+        expect(await richiediCuriosita({ lat: 41.6, lng: 12.6, citta: 'Roma' })).toBeNull();
+        expect(corpi).toHaveLength(1);
+        expect(fetch.mock.calls.some(([u]) => /nominatim/.test(String(u)))).toBe(false);
     });
     it('nessuna curiosità, errore o rete giù: null, mai un errore', async () => {
         rete({ proxy: { curiosita: { esito: 'nessuna', motivo: 'nessuna voce verificata' } } });

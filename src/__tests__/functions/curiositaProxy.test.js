@@ -133,6 +133,7 @@ describe('curiosità del cammino sul proxy', () => {
         expect(curiosita).toMatchObject({ esito: 'passata', chiave: 'curiosita-itwiki-443726' });
         const r2 = await (await chiedi({ escludi: ['curiosita-itwiki-443726'] })).json();
         expect(r2.code).toBe('CURIOSITA_FONTI');
+        expect(r2.senzaNomi).toBe(true); // i nomi mancano: il telefono può provare la riserva
         expect(r2.diagnosi).toEqual(['google 200 REQUEST_DENIED', 'photon 403', 'nominatim 403']);
         expect(JSON.stringify(r2)).not.toContain('AIza'); // la chiave non esce mai
     });

@@ -948,7 +948,7 @@ async function handleCuriosita(req: Request, dv: Record<string, any>): Promise<R
   const candidati = luoghi.filter((l) => !escludi.includes(l.chiave) && !eUnaTappa(l, tappe, cittaUsata));
   const elenco = (extra: Record<string, unknown> = {}) => ({ via: ind.via, quartieri: ind.quartieri, luoghi: luoghi.map((l) => `${l.tipo}:${l.titolo}`), richieste, ...(daMemoria ? { memoria: 'zona' } : {}), ...(diagnosi.length ? { diagnosi } : {}), ...extra });
   if (!candidati.length) {
-    if (errore || trovatoErrore) return json(503, { error: 'Fonti non disponibili', code: 'CURIOSITA_FONTI', richieste, diagnosi: [...diagnosi, ...(errore ? ['wikipedia'] : [])] });
+    if (errore || trovatoErrore) return json(503, { error: 'Fonti non disponibili', code: 'CURIOSITA_FONTI', senzaNomi: trovatoErrore, richieste, diagnosi: [...diagnosi, ...(errore ? ['wikipedia'] : [])] });
     return nessuna(luoghi.length ? 'già dette' : 'nessuna voce verificata', elenco());
   }
 

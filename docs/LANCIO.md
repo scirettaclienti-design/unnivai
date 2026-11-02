@@ -1,6 +1,6 @@
 # LANCIO del 1/12/2026
 
-**6 su 21 fatte** · aggiornato il 03/11/2026 · fonte dello stato: `docs/prove/` e `git log` di `main` (`85460eb`)
+**7 su 21 fatte** · aggiornato il 03/11/2026 · fonte dello stato: `docs/prove/` e `git log` di `main` (`85460eb`)
 
 L'elenco è chiuso: una voce si aggiunge solo se lo decide Ivano.
 Ogni task aggiorna la sua riga **prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio in cima.
@@ -26,7 +26,7 @@ Stati: **fatto** (su main, con prova) · **in corso** (ramo o PR aperti) · **da
 | P3 | Curiosità del cammino | fatto | `89415a4` (`2026-11-02-curiosita-quartieri.md`): openai-proxy v43, 10 curiosità a Trastevere, Monti, Catania, 0 ripetute, 0 fatti fuori fonte su 10 letti | controllo «vi» che scarta 2 curiosità vere: decisione di Ivano (report T6) |
 | P4 | Revisore Sonnet (secret `ANTHROPIC_MODEL_REVISORE`) | aspetta Ivano | `b8b859b` (`2026-11-02-revisore-forte.md`): falsi «sì» 4/21 contro 12/21 di Haiku 4.5, +21% sul costo del racconto | `supabase secrets set ANTHROPIC_MODEL_REVISORE=claude-sonnet-5-5 --project-ref ahecpiwsdhghkndncejb`, poi verifica su un racconto vero nel log |
 | P5 | Voce umana (credito OpenAI) | aspetta Ivano | `375b5d7` (VOCE-1, `2026-10-27-voce-1.md`); al 02/11 il credito è finito e parla la voce del telefono (`2026-11-02-coda-riepilogo.md`) | ricarica del credito OpenAI, oppure una voce di un altro fornitore |
-| P6 | GEOCODING-LANCIO (via da Nominatim) | in corso | codice in PR `notte/geocoding-lancio` (Google + memoria per zona, nessuna migrazione); report `2026-11-03-geocoding-lancio.md` | deploy di openai-proxy e prova sul sito pubblicato |
+| P6 | GEOCODING-LANCIO (via da Nominatim) | fatto | `9a69457`, `81cacb8` (`2026-11-03-geocoding-lancio.md`): via e quartiere da Google con memoria per zona, Nominatim 18 → 0 richieste, curiosità 2/5 prima e dopo, openai-proxy v48, collaudo ok | `CityContext` e la ricerca indirizzi usano ancora Nominatim (proposta nel report); decisione di Ivano sulla memoria condivisa |
 | P7 | TITOLI-RIFINITURA | da fare | — | precedente: TESTI-SCHEDE `75737a9` |
 | P8 | DNA-5 | da fare | — | in `docs/prove/` ci sono DNA-1, 2, 3, 3b, 3c, 4, 6; DNA-5 no |
 | P9 | CHAT-VERITA | fatto | codice `bf6983e` + correzioni `85460eb` (PR #16: `prossima` null, centro della mappa); openai-proxy **v46** da `85460eb` (file uguali al repo); collaudo come il 31/10 (il 7 da ospite atteso: accessi anonimi spenti); la chat del sito risponde: prima parola 5,5 s di mediana dal telefono (p90 10,2 s), 0,014 $ a risposta; WebKit: «Controllo le fonti…», risposta verificata, «Fonti lette:» (`docs/prove/2026-11-02-chat-verita.md` § 9) | con un giro sulla mappa la chat non si apre (il badge del meteo sparisce): ingresso da decidere (Ivano); tempo sopra i 4 s |

@@ -1,6 +1,6 @@
 # LANCIO del 1/12/2026
 
-**7 su 21 fatte** · aggiornato il 03/11/2026 (APP-NATIVA) · fonte dello stato: `docs/prove/` e `git log` di `main` (`85460eb`)
+**8 su 21 fatte** · aggiornato il 03/11/2026 (CODA-RIEPILOGO T7–T11) · fonte dello stato: `docs/prove/` e `git log` di `main` (`b1cb3d0`)
 
 L'elenco è chiuso: una voce si aggiunge solo se lo decide Ivano.
 Ogni task aggiorna la sua riga **prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio in cima.
@@ -24,7 +24,7 @@ Stati: **fatto** (su main, con prova) · **in corso** (ramo o PR aperti) · **da
 | P1 | Navigazione: freccia, percorso, giro lontano, fine giro | fatto | freccia `a918f78` (NAV-MAPPA-VISIBILE); percorso `d381eb3` (NAV-TRATTI), `9e3ca8d` (NAV-MAPPA); giro lontano `207ada7`, `92c24d1` (`2026-10-30-giro-lontano.md`); fine giro `62a9bae` (`2026-10-29-fine-giro.md`); collaudo 10/10 `fc4c4aa` | GPS reale e voce in tasca: righe L2 (voce A) e L9 |
 | P2 | Racconti con fonti e revisore | fatto | `5d14ed5` (`2026-11-02-racconto-fonti.md`): 21/23 tappe con fonti, 19 racconti passati, openai-proxy v40, collaudo punto 5 10/10 | 3 tappe senza racconto (Giardino di Sant'Alessio, Monte Muganà, Galleria del Cardinale Colonna) |
 | P3 | Curiosità del cammino | fatto | `89415a4` (`2026-11-02-curiosita-quartieri.md`): openai-proxy v43, 10 curiosità a Trastevere, Monti, Catania, 0 ripetute, 0 fatti fuori fonte su 10 letti | controllo «vi» che scarta 2 curiosità vere: decisione di Ivano (report T6) |
-| P4 | Revisore Sonnet (secret `ANTHROPIC_MODEL_REVISORE`) | aspetta Ivano | `b8b859b` (`2026-11-02-revisore-forte.md`): falsi «sì» 4/21 contro 12/21 di Haiku 4.5, +21% sul costo del racconto | `supabase secrets set ANTHROPIC_MODEL_REVISORE=claude-sonnet-5-5 --project-ref ahecpiwsdhghkndncejb`, poi verifica su un racconto vero nel log |
+| P4 | Revisore Sonnet (secret `ANTHROPIC_MODEL_REVISORE`) | fatto | `b8b859b` (`2026-11-02-revisore-forte.md`); `supabase secrets list` (03/11): `ANTHROPIC_MODEL_REVISORE` impostato il 02/11 alle 10:33, impronta uguale a `ANTHROPIC_MODEL_SELETTORE` (= `claude-sonnet-5-5`); la chat dal vero lo usa come revisore (§ 9 di `2026-11-02-chat-verita.md`) | — |
 | P5 | Voce umana (credito OpenAI) | aspetta Ivano | `375b5d7` (VOCE-1, `2026-10-27-voce-1.md`); al 02/11 il credito è finito e parla la voce del telefono (`2026-11-02-coda-riepilogo.md`) | ricarica del credito OpenAI, oppure una voce di un altro fornitore |
 | P6 | GEOCODING-LANCIO (via da Nominatim) | fatto | `9a69457`, `81cacb8` (`2026-11-03-geocoding-lancio.md`): via e quartiere da Google con memoria per zona, Nominatim 18 → 0 richieste, curiosità 2/5 prima e dopo, openai-proxy v48, collaudo ok | `CityContext` e la ricerca indirizzi usano ancora Nominatim (proposta nel report); decisione di Ivano sulla memoria condivisa |
 | P7 | TITOLI-RIFINITURA | da fare | — | precedente: TESTI-SCHEDE `75737a9` |

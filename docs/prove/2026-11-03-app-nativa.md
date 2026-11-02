@@ -175,9 +175,19 @@ Stesso metodo del 02/11: `new Date()` fissato al 2026-11-03T12:00:00Z (precarica
 
 Nessun file in `supabase/`. Nessuna migrazione, nessun secret, nessun deploy di funzioni.
 
+## Dopo il merge (`31c9c75`)
+
+- CI su `main` verde (run 41530989585); Vercel «Deployment has completed». Il sito serve `<title>Unnivai | …`. Il pezzo `MapPage-*.js` pubblicato contiene `PosizioneGiro` e `VoceNativa`.
+- `node scripts/prova-nav/collaudo-sito.webkit.mjs 1,2,3,7` (WebKit iPhone 14, account di prova, sul sito pubblicato), cioè i punti della navigazione toccata da questo task:
+  - **1, 2, 3 ok** (freccia dopo 10 m, tappa 2 dopo «Salta», GPS muto 60 s e ripresa);
+  - **7 ok con l'account**;
+  - **7 da ospite non passa**: gli accessi anonimi sono spenti nel pannello Supabase. È atteso, come nei collaudi del 02 e 03/11.
+- Esiti in `docs/prove/dati/2026-10-30-collaudo-sito.json`, schermate in `docs/prove/schermate/collaudo-sito/`.
+- `.env.local` copiato da `~/unnivai-1b` solo per il collaudo e cancellato subito dopo.
+
 ## Costo AI
 
-**0 $.** Nessuna chiamata ad Anthropic né a OpenAI. Le letture del database sono solo SELECT (Supabase MCP) per scegliere tappe con racconto in cache. Le ricerche web sono state fatte con Firecrawl (crediti di ricerca, non costo AI del progetto).
+**0 $ per il lavoro del task.** Nessuna chiamata ad Anthropic né a OpenAI durante il lavoro. Il collaudo dopo il merge ha fatto le generazioni solite dei punti 1, 2, 3 e 7 con l'account di prova (nessun contatore). Le letture del database sono solo SELECT (Supabase MCP) per scegliere tappe con racconto in cache. Le ricerche web sono state fatte con Firecrawl (crediti di ricerca, non costo AI del progetto).
 
 Per il revisore:
 - i racconti delle 5 tappe sono in cache: 0 $;

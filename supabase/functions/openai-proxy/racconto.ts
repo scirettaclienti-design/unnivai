@@ -73,6 +73,8 @@ export type FontiRacconto = {
     citta?: string | null;
     wikipedia?: { titolo?: string | null; testo?: string | null } | null;
     google?: { testo?: string | null } | null;
+    /** CHAT-VERITA: le fonti di più luoghi insieme sono più lunghe di quelle di una tappa (difetto: LIMITI). */
+    limiti?: { wikipediaMax?: number; googleMax?: number } | null;
 };
 
 const pulisci = (s: unknown, max: number): string => {
@@ -88,8 +90,8 @@ export function fontiPulite(f: FontiRacconto): { nome: string; citta: string; wi
     return {
         nome: pulisci(f.nome, 120),
         citta: pulisci(f.citta, 80),
-        wikipedia: pulisci(f.wikipedia?.testo, LIMITI.wikipediaMax),
-        google: pulisci(f.google?.testo, LIMITI.googleMax),
+        wikipedia: pulisci(f.wikipedia?.testo, f.limiti?.wikipediaMax ?? LIMITI.wikipediaMax),
+        google: pulisci(f.google?.testo, f.limiti?.googleMax ?? LIMITI.googleMax),
     };
 }
 
@@ -209,7 +211,7 @@ const PAROLE_DI_VOCE = new Set((
     'proprio soltanto appena subito tutto tutti tutta tutte nessuno nessuna ognuno ognuna qualcosa momento attimo istante ' +
     'cammini cammina camminare passo passi'
 ).split(/\s+/).filter(Boolean).map((w) => w.slice(0, 5)));
-const frasiDi = (t: string): string[] => t.split(/(?<=[.!?…])\s+/).map((x) => x.trim()).filter(Boolean);
+export const frasiDi = (t: string): string[] => t.split(/(?<=[.!?…])\s+/).map((x) => x.trim()).filter(Boolean);
 const maiuscola = (w: string) => /^\p{Lu}/u.test(w);
 
 export type EsitoControllo = {
@@ -227,13 +229,19 @@ export type EsitoControllo = {
  *  · fatti: le parole piene (7 lettere o più) devono avere la radice (5 lettere) nelle fonti; oltre una quota di estranee il racconto cade.
  * Più le regole di voce (niente «benvenuti», superlativi, tono da brochure) e la lunghezza (2–4 frasi, al massimo 600 caratteri).
  */
-export function controllaRacconto(testo: unknown, fonti: FontiRacconto, { sogliaEstranee = 0.34, minEstranee = 3 } = {}): EsitoControllo {
+export function controllaRacconto(
+    testo: unknown, fonti: FontiRacconto,
+    // CHAT-VERITA: la chat usa solo numeri, cifre romane, nomi e divieti (`forma` e `paroleFatto` spenti; `numeroMin`: i numeri piccoli —
+    // «dieci minuti» — sono consigli, non fatti, e li legge il revisore). Per racconti e curiosità i difetti di sempre.
+    // `ammessi`: altro testo i cui nomi e numeri non fanno cadere il controllo (la chat: la domanda, il giro, le sue frasi fisse).
+    { sogliaEstranee = 0.34, minEstranee = 3, forma = true, paroleFatto = true, numeroMin = 0, ammessi = '' } = {},
+): EsitoControllo {
     const t = String(testo ?? '').replace(/\s+/g, ' ').trim();
     const motivi: string[] = [];
     const fuori = { numeri: [] as string[], nomi: [] as string[], parole: [] as string[], romani: [] as string[] };
     const p = fontiPulite(fonti);
     const corpoFonti = norm(`${p.wikipedia} ${p.google}`);
-    const corpoNomi = norm(`${p.nome} ${p.citta}`);
+    const corpoNomi = norm(`${p.nome} ${p.citta} ${ammessi}`);
     const tutto = `${corpoFonti} ${corpoNomi}`;
     const paroleFonti = new Set((tutto.match(/[\p{L}\p{N}]+/gu) || []));
     const radiciFonti = new Set([...paroleFonti].map((w) => w.slice(0, 5)));
@@ -247,9 +255,9 @@ export function controllaRacconto(testo: unknown, fonti: FontiRacconto, { soglia
 
     // forma
     const frasi = frasiDi(t);
-    if (frasi.length < LIMITI.frasiMin) motivi.push(`meno di ${LIMITI.frasiMin} frasi`);
-    if (frasi.length > LIMITI.frasiMax) motivi.push(`più di ${LIMITI.frasiMax} frasi`);
-    if (t.length > LIMITI.carMax) motivi.push(`più di ${LIMITI.carMax} caratteri`);
+    if (forma && frasi.length < LIMITI.frasiMin) motivi.push(`meno di ${LIMITI.frasiMin} frasi`);
+    if (forma && frasi.length > LIMITI.frasiMax) motivi.push(`più di ${LIMITI.frasiMax} frasi`);
+    if (forma && t.length > LIMITI.carMax) motivi.push(`più di ${LIMITI.carMax} caratteri`);
     for (const [re, perche] of VIETATE) if (re.test(t)) motivi.push(perche);
 
     // numeri, cifre romane, nomi propri
@@ -258,6 +266,7 @@ export function controllaRacconto(testo: unknown, fonti: FontiRacconto, { soglia
         const parole = unisciNumeri(fr).match(PAROLE) || [];
         parole.forEach((w, i) => {
             if (/^\d+$/.test(w)) {
+                if (Number(w) < numeroMin) return;
                 if (!cifreFonti.has(w.replace(/^0+/, '') || '0') && !cifreFonti.has(w) && !fuori.numeri.includes(w)) fuori.numeri.push(w);
                 return;
             }
@@ -271,6 +280,7 @@ export function controllaRacconto(testo: unknown, fonti: FontiRacconto, { soglia
                 return;
             }
             const valore = valoreParola(n);
+            if (valore != null && valore < numeroMin) return;
             if (valore != null) {
                 // serve la parola o lo stesso numero nelle fonti («settemila» = «7.000»); «sei» e «metà» non si contano (NON_NUMERI)
                 if (!paroleFonti.has(n) && !cifreFonti.has(String(valore)) && !fuori.numeri.includes(w)) fuori.numeri.push(w);
@@ -297,7 +307,7 @@ export function controllaRacconto(testo: unknown, fonti: FontiRacconto, { soglia
     const secoloNelleFonti = (w: string) => w in SECOLI && paroleFonti.has(SECOLI[w]);
     const estranee = piene.filter((w) => !radiciFonti.has(w.slice(0, 5)) && !PAROLE_DI_VOCE.has(w.slice(0, 5)) && !secoloNelleFonti(w));
     const quota = piene.length ? estranee.length / piene.length : 0;
-    if (estranee.length >= minEstranee && quota > sogliaEstranee) {
+    if (paroleFatto && estranee.length >= minEstranee && quota > sogliaEstranee) {
         for (const w of estranee) if (!fuori.parole.includes(w)) fuori.parole.push(w);
         motivi.push(`troppe parole fuori dalle fonti (${estranee.length} su ${piene.length}): ${fuori.parole.slice(0, 6).join(', ')}`);
     }
@@ -367,27 +377,27 @@ export function leggiVerifica(risposta: unknown, testo: string): EsitoVerifica {
 }
 
 
-type Messaggi = Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
+export type Messaggi = Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
 /** Chi scrive la prima richiesta al narratore: il racconto di una tappa (difetto) o la curiosità del cammino (curiosita.ts). */
 export type MessaggiPrimaStesura = (f: FontiRacconto) => Array<{ role: 'system' | 'user'; content: string }>;
 
 // ─── una sola riscrittura: il modello riceve il perché dello scarto (revisore o controllo automatico), riscrive una volta, si riverifica ──
-const CHIUSURA_RISCRITTURA = [
+export const CHIUSURA_RISCRITTURA = [
     'Non aggiungere niente che non sia nelle fonti. Valgono tutte le regole di prima (da 2 a 4 frasi, nessuna frase di colore, nessuna direzione).',
     `Se togliendo quelle frasi ne restano meno di due, aggiungi un altro fatto concreto preso dalle fonti; se non ce ne sono, rispondi esattamente: ${RISPOSTA_NIENTE}`,
     'Rispondi solo con il nuovo testo del racconto.',
 ];
-const conversazioneRiscrittura = (f: FontiRacconto, testo: string, richiesta: string[], prima: MessaggiPrimaStesura = messaggiRacconto): Messaggi => [
+const conversazioneRiscrittura = (f: FontiRacconto, testo: string, richiesta: string[], prima: MessaggiPrimaStesura = messaggiRacconto, chiusura: readonly string[] = CHIUSURA_RISCRITTURA): Messaggi => [
     ...prima(f),
     { role: 'assistant', content: testo },
-    { role: 'user', content: [...richiesta, ...CHIUSURA_RISCRITTURA].join('\n') },
+    { role: 'user', content: [...richiesta, ...chiusura].join('\n') },
 ];
 
 /**
  * La richiesta di riscrittura dopo il revisore: la stessa conversazione della prima stesura (fonti, racconto scritto) più le frasi che il
  * revisore ha segnato «no», ognuna con il suo motivo. Il modello toglie o corregge quelle frasi e non aggiunge niente che le fonti non dicano.
  */
-export function messaggiRiscrittura(f: FontiRacconto, testo: string, no: Array<{ n: number; motivo: string }>, prima: MessaggiPrimaStesura = messaggiRacconto): Messaggi {
+export function messaggiRiscrittura(f: FontiRacconto, testo: string, no: Array<{ n: number; motivo: string }>, prima: MessaggiPrimaStesura = messaggiRacconto, chiusura: readonly string[] = CHIUSURA_RISCRITTURA): Messaggi {
     const frasi = frasiDi(testo);
     const righe = no.map(({ n, motivo }) => `- frase ${n}: «${frasi[n - 1] ?? ''}»${motivo ? ` — ${motivo}` : ''}`);
     return conversazioneRiscrittura(f, testo, [
@@ -395,14 +405,14 @@ export function messaggiRiscrittura(f: FontiRacconto, testo: string, no: Array<{
         ...righe,
         '',
         'Riscrivi il racconto una volta: togli quelle frasi, oppure riscrivile dicendo solo ciò che le fonti dicono. Le altre frasi tienile come sono.',
-    ], prima);
+    ], prima, chiusura);
 }
 
 /**
  * La richiesta di riscrittura dopo il controllo automatico (troppe frasi, una direzione, un numero o un nome che le fonti non hanno…): i motivi
  * del controllo, e per un divieto la parola che l'ha fatto scattare. Il controllo e i divieti restano quelli: qui si dice solo dove il testo cade.
  */
-export function messaggiRiscritturaControllo(f: FontiRacconto, testo: string, motivi: string[], prima: MessaggiPrimaStesura = messaggiRacconto): Messaggi {
+export function messaggiRiscritturaControllo(f: FontiRacconto, testo: string, motivi: string[], prima: MessaggiPrimaStesura = messaggiRacconto, chiusura: readonly string[] = CHIUSURA_RISCRITTURA): Messaggi {
     const quante = frasiDi(testo).length;
     const righe = motivi.map((m) => {
         if (/^(più|meno) di \d+ frasi$/.test(m)) return `- ${m}: ne hai scritte ${quante}`;
@@ -415,7 +425,7 @@ export function messaggiRiscritturaControllo(f: FontiRacconto, testo: string, mo
         ...righe,
         '',
         'Riscrivi il racconto una volta correggendo solo questo: togli le frasi o le parole che lo fanno cadere, oppure riscrivile dicendo solo ciò che le fonti dicono. Le altre frasi tienile come sono.',
-    ], prima);
+    ], prima, chiusura);
 }
 
 /** Una chiamata al modello: testo grezzo, modello usato, costo. Se non risponde lancia un errore (il proxy non salva niente e si riprova). */
@@ -443,18 +453,30 @@ export type EsitoRacconto = {
  * Non si riscrive quando non c'è niente da correggere: il modello ha risposto NIENTE (le fonti non bastano) o niente del tutto, oppure la
  * risposta del revisore non si legge.
  */
-export async function scriviERivedi(f: FontiRacconto, scrivi: ChiamataModello, rivedi: ChiamataModello, { prima = messaggiRacconto }: { prima?: MessaggiPrimaStesura } = {}): Promise<EsitoRacconto> {
+/**
+ * CHAT-VERITA: la stessa macchina serve la chat con la guida, con la sua prima richiesta, il suo revisore (stesso modello, domanda diversa:
+ * le frasi senza fatti sono «sì»), il suo controllo automatico e la sua chiusura della riscrittura. Senza opzioni: racconto di tappa, come prima.
+ */
+export type OpzioniScrittura = {
+    prima?: MessaggiPrimaStesura;
+    verifica?: (testo: string, f: FontiRacconto) => Messaggi;
+    controllo?: (testo: string, f: FontiRacconto) => EsitoControllo;
+    chiusura?: readonly string[];
+};
+export async function scriviERivedi(f: FontiRacconto, scrivi: ChiamataModello, rivedi: ChiamataModello, {
+    prima = messaggiRacconto, verifica = messaggiVerifica, controllo = controllaRacconto, chiusura = CHIUSURA_RISCRITTURA,
+}: OpzioniScrittura = {}): Promise<EsitoRacconto> {
     let costoUsd = 0;
     let modello: string | null = null;
     let modelloVerifica: string | null = null;
     const controlla = async (testo: string) => {
-        const controllo = controllaRacconto(testo, f);
-        if (!controllo.ok) return { ok: false, motivi: controllo.motivi, verifica: null as EsitoVerifica | null };
-        const v = await rivedi(messaggiVerifica(testo, f));
+        const auto = controllo(testo, f);
+        if (!auto.ok) return { ok: false, motivi: auto.motivi, verifica: null as EsitoVerifica | null };
+        const v = await rivedi(verifica(testo, f));
         costoUsd += v.costoUsd || 0;
         modelloVerifica = v.modello ?? modelloVerifica;
-        const verifica = leggiVerifica(v.testo, testo);
-        return { ok: verifica.ok, motivi: verifica.motivi, verifica };
+        const letta = leggiVerifica(v.testo, testo);
+        return { ok: letta.ok, motivi: letta.motivi, verifica: letta };
     };
     const w1 = await scrivi(prima(f));
     costoUsd += w1.costoUsd || 0;
@@ -468,9 +490,9 @@ export async function scriviERivedi(f: FontiRacconto, scrivi: ChiamataModello, r
     let richiesta: Messaggi | null = null;
     if (c1.verifica) {
         const no = c1.verifica.frasi.filter((x) => !x.nelleFonti).map(({ n, motivo }) => ({ n, motivo }));
-        if (no.length) richiesta = messaggiRiscrittura(f, t1, no, prima);
+        if (no.length) richiesta = messaggiRiscrittura(f, t1, no, prima, chiusura);
     } else if (t1 && t1.toUpperCase().replace(/[^A-Z]/g, '') !== RISPOSTA_NIENTE) {
-        richiesta = messaggiRiscritturaControllo(f, t1, c1.motivi, prima);
+        richiesta = messaggiRiscritturaControllo(f, t1, c1.motivi, prima, chiusura);
     }
     if (!richiesta) return fine(false, t1, c1, false, null);
 

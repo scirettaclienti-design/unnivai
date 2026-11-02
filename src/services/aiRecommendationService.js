@@ -4450,40 +4450,6 @@ export const aiRecommendationService = {
     },
 
     // ─── GEMINI / AI CHAT GUIDE ──────────────────────────────────────────────
-    async chatWithGuide(messages, contextPayload) {
-        const fallbackResponse = "Sono una versione limitata offline. Il proxy AI non è raggiungibile.";
-
-        const { city, poiName } = contextPayload;
-        const contextStr = poiName ? `${poiName} a ${city}` : `${city}`;
-
-        const systemPrompt = `Sei l'Assistente AI integrato nella mappa 3D premium di DoveVai.
-Il tuo compito è fare da guida turistica esperta, ironica e sintetica per l'utente, che sta esplorando in questo momento: ${contextStr}.
-Non dare risposte enciclopediche lunghissime (massimo 3-4 frasi o 450 caratteri). Fai emergere verità storiche nascoste, aneddoti divertenti o consigli unici. Se ti chiedono indicazioni stradali complesse, ricordagli gentilmente di seguire la scia arancione sulla mappa.`;
-
-        const openAiMessages = [
-            { role: 'system', content: systemPrompt },
-            ...messages.filter(m => m.role === 'user' || m.role === 'assistant')
-        ];
-
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 12000);
-
-            const data = await callOpenAIProxy({
-                model: 'gpt-4o-mini',  // DVAI-020
-                messages: openAiMessages,
-                temperature: 0.7,
-                max_tokens: 350
-            }, controller.signal);
-
-            clearTimeout(timeoutId);
-
-            return data.choices?.[0]?.message?.content || fallbackResponse;
-        } catch (e) {
-            console.warn('[AI] chatWithGuide failed:', e.message);
-            return fallbackResponse;
-        }
-    },
 
     // ─── DYNAMIC WEATHER & SOCIAL TIP (Blocco 2.1 FASE 1) ─────────────────────
     //

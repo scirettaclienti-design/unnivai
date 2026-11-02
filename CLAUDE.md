@@ -492,6 +492,15 @@ Capacitor 8.5.3 (`capacitor.config.json`: `it.unnivai.app`, «Unnivai», `webDir
 - **Un ospite non scrive dove lo leggono gli altri**: policy RESTRICTIVE su `is_anonymous` (recensioni, tour, profili di guida e attività, foto, prenotazioni, richieste alle guide, notifiche ad altri). Migrazione `20261102200000_ospite_giro.sql`, prova `bash scripts/test-ospite-giro-sql.sh` (Docker).
 - Prove: collaudo punto 7 da ospite (fino alla fine giro), `scripts/prova-nav/ospite-giro.webkit.mjs` (giro completo, secondo giro, registrazione, Profilo). Spegnere: accessi anonimi off nel pannello (il tasto lo dice).
 
+### La chat con la guida non inventa (CHAT-VERITA)
+
+`AIDrawer` (dal badge del meteo sulla mappa) → `src/services/chatGuidaService.js` → `openai-proxy` con `dv.purpose = 'chat'` (`handleChat`). Pezzi puri in `chat.ts` e `chatFonti.ts`. Report: `docs/prove/2026-11-02-chat-verita.md`.
+- **Fonti dal server, le stesse dei racconti** (`fontiDiTappa`: Wikipedia per nome e coordinate, allargata, più la descrizione Google). Al più 3 tappe (nominate nella domanda, poi luogo aperto, prossima, altre) e 2 luoghi nominati nella domanda **entro 10 km dal giro** (`luoghiNominati`: niente fatti di altre città). In memoria nell'istanza per un'ora. Il telefono manda solo domanda, ultimi 6 turni, tappe nell'ordine del giro (nome, coordinate, ora, sosta), luogo aperto, indice della prossima (solo in navigazione), centro.
+- **Prompt** `SYSTEM_CHAT`: frasi di FATTO solo dalle FONTI o dal GIRO, frasi LIBERE (consigli, ritmo, gusti) libere; senza fonte «Su questo non ho una fonte sicura»; un fatto della domanda non si conferma; un'altra città non si racconta; `REGOLE_VOCE` dei racconti.
+- **Controllo = macchina dei racconti** (`scriviERivedi` con opzioni): `controllaChat` (numeri da 100 in su, romani, nomi, divieti; i nomi della domanda e del giro ammessi con `ammessi`), revisore dei racconti con `SYSTEM_VERIFICA_CHAT` (una frase senza fatti è «sì»), UNA riscrittura; se cade: le frasi passate + «Sul resto non ho una fonte sicura.», oppure solo «Su questo non ho una fonte sicura.». Scrittore = narratore dei racconti (Sonnet 5.5): Haiku 4.5 è più veloce ma inventa di più (banco: 12 frasi contro 5).
+- **Quota**: una chiamata di contorno. Niente si salva. Opzioni nuove di `racconto.ts` (`forma`, `paroleFatto`, `numeroMin`, `ammessi`, `verifica`, `controllo`, `chiusura`, `limiti`) hanno come difetto il comportamento di prima.
+- Banco: `scripts/prova-reale/chat-verita.live.js` (30 domande: 10 sul giro, 10 trappole, 10 libere; prima/dopo; `SCRITTORE=narratore|traduttore`). Test: `chat.test.js`, `chatGuida.test.jsx`.
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

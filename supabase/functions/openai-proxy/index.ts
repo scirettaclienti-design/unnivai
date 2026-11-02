@@ -64,6 +64,8 @@ import {
   VERSIONE_RACCONTO, versioneValida, MODELLO_REVISORE, TTL_RACCONTO_GIORNI, TTL_SCARTATO_GIORNI, haFonti, scriviERivedi, impronta as improntaRacconto,
 } from './racconto.ts';
 import { cercaWikipedia, allargaWikipedia, descrizioneGoogleDa } from './raccontoFonti.ts';
+import { fontiChat, luoghiDaCercare, rispondiInChat, leggiRichiestaChat, VERSIONE_CHAT, type FonteLuogo } from './chat.ts';
+import { fontiDiTappa, luoghiNominati } from './chatFonti.ts';
 import { VERSIONE_CURIOSITA, messaggiCuriosita, curiositaInCacheValida, eChiaveCuriosita } from './curiosita.ts';
 import { indirizzoDi, indirizzoDaClient, luoghiVicini, testoDelLuogo, eUnaTappa, type Luogo } from './curiositaFonti.ts';
 import {
@@ -787,6 +789,79 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
   return risposta(riga, { cached: false, modello, modelloVerifica, costoUsd, riscritto: esito.riscritto });
 }
 
+// CHAT-VERITA — le fonti di una tappa restano in memoria per un'ora in questa istanza: le domande di seguito sullo stesso giro non le riprendono.
+const FONTI_CHAT_TTL_MS = 3_600_000;
+const fontiChatMemo = new Map<string, { t: number; fonte: FonteLuogo }>();
+function fontiInMemoria(chiave: string): FonteLuogo | null {
+  const v = fontiChatMemo.get(chiave);
+  if (!v || Date.now() - v.t > FONTI_CHAT_TTL_MS) { fontiChatMemo.delete(chiave); return null; }
+  return v.fonte;
+}
+function ricordaFonti(chiave: string, fonte: FonteLuogo) {
+  if (fontiChatMemo.size > 300) fontiChatMemo.delete(fontiChatMemo.keys().next().value as string);
+  fontiChatMemo.set(chiave, { t: Date.now(), fonte });
+}
+
+/**
+ * CHAT CON LA GUIDA — `dv.purpose = 'chat'`, con `dv.domanda`, `dv.citta`, `dv.storia` (gli ultimi turni), `dv.luoghi` (le tappe del giro
+ * nell'ordine del giro: place_id, nome, coordinate, ora, sosta), `dv.aperto` (il luogo aperto sulla mappa), `dv.prossima` (indice) e `dv.centro`. Restituisce
+ * { chat: { testo, esito, fonti: [{ nome, titolo, url }], ms } }.
+ * Le fonti le prende il server (quelle dei racconti: Wikipedia per nome e coordinate, descrizione Google) per al più 3 tappe (prima quelle nominate
+ * nella domanda) e per al più 2 luoghi nominati nella domanda entro 10 km dal giro (niente fatti di altre città). Scrive il narratore dei racconti
+ * (Sonnet 5.5), controllano il controllo automatico e il revisore dei racconti (chat.ts), UNA riscrittura; se cade ancora, restano le frasi passate
+ * più la frase onesta. Quota: una chiamata di contorno (come la chat di prima). Niente si salva.
+ */
+async function handleChat(req: Request, dv: Record<string, any>): Promise<Response> {
+  const richiesta = leggiRichiestaChat(dv);
+  if (!richiesta) return json(400, { error: 'Domanda non valida', code: 'CHAT_NON_VALIDA' });
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+  const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+  if (!SUPABASE_URL || !SERVICE_KEY || !OPENAI_API_KEY) return json(503, { error: 'Chat non disponibile', code: 'CHAT_NON_DISPONIBILE' });
+  const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  try {
+    const subject = await resolveSubject(req, sb);
+    const quota = await consumaQuota(sb, subject, { purpose: 'aux' });
+    if (!quota.allowed) return rifiutoQuota(quota);
+  } catch (err) {
+    if (err instanceof HttpError) return json(err.status, err.body);
+    console.error('[openai-proxy] chat: controllo quota fallito:', scrubLogText(err));
+    return json(503, { error: 'Controllo quota non disponibile, riprova tra poco.', code: 'QUOTA_CHECK_FAILED' });
+  }
+
+  const t0 = Date.now();
+  const { domanda, citta, storia, luoghi, aperto, prossima, centro } = richiesta;
+  const fetchW = (u: string, init?: Record<string, unknown>) => fetch(u, init as RequestInit);
+  const google = (placeId: string) => placesCall({ path: 'place/details', place_id: placeId, fields: 'editorial_summary' }).then(({ body }) => descrizioneGoogleDa(body));
+  const [tappe, nominati] = await Promise.all([
+    Promise.all(luoghiDaCercare(luoghi, domanda, storia, aperto, prossima).map(async (l) => {
+      const chiave = l.place_id || `${l.nome}|${l.lat.toFixed(4)},${l.lng.toFixed(4)}`;
+      const gia = fontiInMemoria(chiave);
+      if (gia) return gia;
+      const f = await fontiDiTappa(l, citta, fetchW, google);
+      if (!f.errore) ricordaFonti(chiave, { nome: f.nome, wikipedia: f.wikipedia, google: f.google });
+      return f;
+    })),
+    luoghiNominati(domanda, citta, centro, [...luoghi, ...(aperto ? [aperto] : [])].map((l) => l.nome), fetchW).catch(() => ({ luoghi: [], scartati: [], errore: true })),
+  ]);
+  const msFonti = Date.now() - t0;
+  const conFonti = [...tappe, ...nominati.luoghi];
+  const f = fontiChat({ citta, domanda, storia, luoghi, prossima, luoghiFonti: conFonti });
+
+  const motore = motoreRacconti(OPENAI_API_KEY);
+  let esito: Awaited<ReturnType<typeof rispondiInChat>>;
+  try {
+    esito = await rispondiInChat(f, motore.scrivi, motore.rivedi);
+  } catch (err) {
+    console.error(`[openai-proxy] chat: ${motore.chi()} non disponibile:`, scrubLogText(err));
+    return json(502, { error: MSG_ENGINE_DOWN, code: 'CHAT_MOTORE' });
+  }
+  const ms = Date.now() - t0;
+  const fonti = conFonti.filter((l) => l.wikipedia?.url).map((l) => ({ nome: l.nome, titolo: l.wikipedia!.titolo, url: l.wikipedia!.url }));
+  console.log(`[openai-proxy] chat ${VERSIONE_CHAT}: ${esito.esito} ${esito.modello}+${esito.modelloVerifica ?? '-'} fonti ${msFonti} ms, tutto ${ms} ms, ${esito.costoUsd.toFixed(5)} $${nominati.scartati.length ? ` · scartati ${nominati.scartati.join(', ').slice(0, 120)}` : ''}${esito.esito === 'ridotta' || esito.esito === 'onesta' ? ` · ${esito.motivi.join(' ; ').slice(0, 160)}` : ''}`);
+  return json(200, { chat: { testo: esito.testo, esito: esito.esito, fonti, ms, versione: VERSIONE_CHAT } });
+}
+
 /**
  * CURIOSITÀ DEL CAMMINO — `dv.purpose = 'curiosita'`, con `dv.lat`, `dv.lng`, `dv.citta`, `dv.escludi` (le chiavi già dette in questo giro) e
  * `dv.tappe` (i nomi delle tappe del giro: una tappa ha il suo racconto, non è una curiosità). Restituisce
@@ -950,6 +1025,14 @@ serve(async (req: Request) => {
   }
 
   // CURIOSITÀ DEL CAMMINO — fonti, prompt e controllo li scrive il proxy; il client dice solo dove sei.
+  if (dvVoce && typeof dvVoce === 'object' && dvVoce.purpose === 'chat') {
+    try {
+      return await handleChat(req, dvVoce as Record<string, any>);
+    } catch (err) {
+      console.error('[openai-proxy] chat: errore:', scrubLogText(err));
+      return json(503, { error: 'Chat non disponibile', code: 'CHAT_NON_DISPONIBILE' });
+    }
+  }
   if (dvVoce && typeof dvVoce === 'object' && dvVoce.purpose === 'curiosita') {
     try {
       return await handleCuriosita(req, dvVoce as Record<string, any>);

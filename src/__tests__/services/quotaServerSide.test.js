@@ -16,6 +16,7 @@ import {
     QUOTA_GLOBAL_MESSAGE,
 } from '../../services/aiRecommendationService';
 import { supabase } from '../../lib/supabase';
+import { chiediAllaGuida } from '../../services/chatGuidaService';
 
 const CABRAS = { latitude: 39.9297, longitude: 8.5297, isSmallTown: true, radiusKm: 5 };
 const aKm = (km) => CABRAS.latitude + (km / 111);
@@ -184,10 +185,11 @@ describe('Gate QUOTA-SERVER — client', () => {
         expect(proxyBodies[0].dv).toEqual({ purpose: 'generation', ticket: expect.stringMatching(UUID_RE), kind: 'home_tours' });
     });
 
-    it('le chiamate di contorno (chat) non portano biglietto', async () => {
-        vi.stubGlobal('fetch', routeFetch(() => ai({ reply: 'ciao' })));
-        await aiRecommendationService.chatWithGuide([{ role: 'user', content: 'ciao' }], {}).catch(() => {});
+    it('la chat con la guida (CHAT-VERITA) non porta biglietto: è contorno, sul suo percorso', async () => {
+        vi.stubGlobal('fetch', routeFetch(() => ({ ok: true, status: 200, json: async () => ({ chat: { testo: 'Ciao.', fonti: [], esito: 'verificata' } }) })));
+        await chiediAllaGuida({ domanda: 'ciao', citta: 'Cabras' });
         expect(proxyBodies).toHaveLength(1);
-        expect(proxyBodies[0].dv).toBeUndefined();
+        expect(proxyBodies[0].dv.purpose).toBe('chat');
+        expect(proxyBodies[0].dv.ticket).toBeUndefined();
     });
 });

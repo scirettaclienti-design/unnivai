@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, MessageSquare, ArrowUp, X, MapPin } from 'lucide-react';
-import { aiRecommendationService } from '../../services/aiRecommendationService';
+import { chiediAllaGuida } from '../../services/chatGuidaService';
 import { useToast } from '../../hooks/use-toast';
 
-export const AIDrawer = ({ isOpen, onClose, selectedPOI, activeCity }) => {
+// CHAT-VERITA — sui luoghi la guida dice solo fatti con una fonte, e quando non ce l'ha lo dice; sul resto (consigli, ritmo, gusti) parla libera.
+export const BENVENUTO_CHAT = (luogo) => `Chiedimi ${luogo ? `di ${luogo} o ` : ''}del giro. Sui fatti ti dico solo quello che ha una fonte; se non lo so, te lo dico.`;
+export const TESTO_ATTESA_CHAT = 'Controllo le fonti…';
+
+export const AIDrawer = ({ isOpen, onClose, selectedPOI, activeCity, tappe = [], prossima = null, centro = null }) => {
     const [query, setQuery] = useState('');
     const [messages, setMessages] = useState([
-        { role: 'assistant', content: `Ciao! Sono l'assistente di DoveVai. Chiedimi curiosità, storie nascoste o consigli su ${selectedPOI?.name || selectedPOI?.title || activeCity}!` }
+        { role: 'assistant', content: BENVENUTO_CHAT(selectedPOI?.name || selectedPOI?.title || null), benvenuto: true }
     ]);
     const [isTyping, setIsTyping] = useState(false);
     const { toast } = useToast();
@@ -26,17 +30,15 @@ export const AIDrawer = ({ isOpen, onClose, selectedPOI, activeCity }) => {
         setQuery('');
         setIsTyping(true);
 
-        try {
-            const aiReply = await aiRecommendationService.chatWithGuide(
-                currentMessages,
-                { city: activeCity, poiName: selectedPOI?.name || selectedPOI?.title }
-            );
-            setMessages(prev => [...prev, { role: 'assistant', content: aiReply }]);
-        } catch (error) {
-            setMessages(prev => [...prev, { role: 'assistant', content: "C'è stato un errore di rete. Potresti ripetere?" }]);
-        } finally {
-            setIsTyping(false);
-        }
+        // chiediAllaGuida non lancia: un guasto torna come testo onesto
+        const risposta = await chiediAllaGuida({
+            domanda: newMsg.content,
+            storia: currentMessages.slice(0, -1).filter((m) => !m.benvenuto),
+            citta: activeCity,
+            tappe, aperto: selectedPOI || null, prossima, centro,
+        });
+        setMessages(prev => [...prev, { role: 'assistant', content: risposta.testo, fonti: risposta.fonti }]);
+        setIsTyping(false);
     };
 
     return (
@@ -104,12 +106,20 @@ export const AIDrawer = ({ isOpen, onClose, selectedPOI, activeCity }) => {
                                             </div>
                                         )}
                                         {msg.content}
+                                        {msg.role === 'assistant' && msg.fonti?.length > 0 && (
+                                            <div className="mt-2 text-[11px] text-gray-500" data-testid="chat-fonti">
+                                                Fonti lette: {msg.fonti.slice(0, 3).map((f, i) => (
+                                                    <span key={f.url}>{i > 0 ? ' · ' : ''}<a href={f.url} target="_blank" rel="noreferrer" className="underline">{f.titolo}</a></span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
                             {isTyping && (
-                                <div className="flex justify-start">
-                                    <div className="max-w-[85%] rounded-2xl px-4 py-4 bg-indigo-50/80 text-gray-800 rounded-bl-sm flex gap-1">
+                                <div className="flex justify-start" aria-live="polite">
+                                    <div className="max-w-[85%] rounded-2xl px-4 py-3 bg-indigo-50/80 text-gray-800 rounded-bl-sm flex items-center gap-1">
+                                        <span className="text-xs text-gray-600 mr-1" data-testid="chat-attesa">{TESTO_ATTESA_CHAT}</span>
                                         <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" />
                                         <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
                                         <div className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />

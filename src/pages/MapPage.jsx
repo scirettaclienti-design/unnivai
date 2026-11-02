@@ -2731,6 +2731,10 @@ const MapPage = () => {
                 onClose={() => setIsGeminiOpen(false)} 
                 selectedPOI={selectedPOI} 
                 activeCity={activeCity} 
+                // CHAT-VERITA — la guida riceve le tappe del giro (con ora e sosta) e, in navigazione, la prossima: le fonti le prende il server
+                tappe={(activeRoute || []).map((r) => ({ ...r, scheduledTime: tourData?.steps?.[r.index]?.scheduledTime, stayMinutes: tourData?.steps?.[r.index]?.stayMinutes }))}
+                prossima={isNavigating ? (activeRoute || []).find((r) => !completedSteps.includes(r.id) && !skippedSteps.includes(r.id)) || null : null}
+                centro={activeTourData?.center || passedCenter || null}
             />
             {reviewModalData && (
                 <ReviewModal

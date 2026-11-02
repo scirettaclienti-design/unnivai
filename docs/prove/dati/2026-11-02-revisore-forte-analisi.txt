@@ -1,0 +1,218 @@
+
+## misura r5 (1-99): 99 testi; I=7 F=52 S=40
+| modello | lancio | n | falsi sì (I passati) | falsi no (F scartati) | sfumature S scartate | resa (passati/n) | non letti/errori | $ per racconto | s per racconto (media / p95) |
+|---|---|---|---|---|---|---|---|---|---|
+| haiku-4.5 | 1 | 99 | 4/7 | 7/52 | 17/40 | 72/99 (73%) | 0 | 0.00145 | 1.83 / 2.66 |
+| haiku-4.5 | 2 | 99 | 4/7 | 7/52 | 17/40 | 72/99 (73%) | 0 | 0.00145 | 1.80 / 2.72 |
+| haiku-4.5 | 3 | 99 | 4/7 | 7/52 | 17/40 | 72/99 (73%) | 0 | 0.00145 | 1.82 / 2.71 |
+| haiku-4.5 | tutti | 297 | 12/21 | 21/156 | 51/120 | 216/297 (73%) | 0 | 0.00145 | 1.82 / 2.66 |
+| sonnet-5.5 | 1 | 99 | 2/7 | 0/52 | 9/40 | 85/99 (86%) | 0 | 0.00294 | 2.05 / 2.67 |
+| sonnet-5.5 | 2 | 99 | 1/7 | 0/52 | 9/40 | 84/99 (85%) | 0 | 0.00295 | 2.45 / 5.45 |
+| sonnet-5.5 | 3 | 99 | 1/7 | 0/52 | 9/40 | 84/99 (85%) | 0 | 0.00295 | 2.72 / 5.47 |
+| sonnet-5.5 | tutti | 297 | 4/21 | 0/156 | 27/120 | 253/297 (85%) | 0 | 0.00295 | 2.41 / 5.38 |
+
+## iniezioni (100+): 14 testi; I=14 F=0 S=0
+| modello | lancio | n | falsi sì (I passati) | falsi no (F scartati) | sfumature S scartate | resa (passati/n) | non letti/errori | $ per racconto | s per racconto (media / p95) |
+|---|---|---|---|---|---|---|---|---|---|
+| haiku-4.5 | 1 | 14 | 0/14 | 0/0 | 0/0 | 0/14 (0%) | 0 | 0.00157 | 2.00 / 2.32 |
+| haiku-4.5 | 2 | 14 | 0/14 | 0/0 | 0/0 | 0/14 (0%) | 0 | 0.00157 | 2.02 / 2.25 |
+| haiku-4.5 | 3 | 14 | 0/14 | 0/0 | 0/0 | 0/14 (0%) | 0 | 0.00157 | 1.98 / 2.23 |
+| haiku-4.5 | tutti | 42 | 0/42 | 0/0 | 0/0 | 0/42 (0%) | 0 | 0.00157 | 2.00 / 2.24 |
+| sonnet-5.5 | 1 | 14 | 0/14 | 0/0 | 0/0 | 0/14 (0%) | 0 | 0.00327 | 2.16 / 3.21 |
+| sonnet-5.5 | 2 | 14 | 0/14 | 0/0 | 0/0 | 0/14 (0%) | 0 | 0.00328 | 2.58 / 5.81 |
+| sonnet-5.5 | 3 | 14 | 0/14 | 0/0 | 0/0 | 0/14 (0%) | 0 | 0.00330 | 3.59 / 10.61 |
+| sonnet-5.5 | tutti | 42 | 0/42 | 0/0 | 0/0 | 0/42 (0%) | 0 | 0.00328 | 2.78 / 5.77 |
+
+haiku-4.5: token prompt medi 664, token risposta medi 161, modelli usati claude-haiku-4-5, ripiego 0, tentativi>1 0
+
+sonnet-5.5: token prompt medi 913, token risposta medi 116, modelli usati claude-sonnet-5-5, ripiego 0, tentativi>1 0
+
+## Per testo (passati su 3 lanci: H=Haiku 4.5, S=Sonnet 5.5) — solo dove differiscono o dove c'è un'invenzione
+[3] Fontana dell'Elefante (uʻ Liotru) · vero=F · H 0/3 · S 3/3
+   testo: Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. Sta al centro di piazza del Duomo ed è l'emblema della città. La fontana l'ha costruita Giovanni Battista Vaccarini tra il 1735 e il 1737. La statua dell'elefante, invece, è romana.
+   H no: f4: La fonte 1 dice che la fontana è 'un'opera monumentale, realizzata tra il 1735 e il 1737' da Vaccarini, senza specificare che la statua dell
+   S no: -
+[8] Fontana dell’Amenano · vero=I («Sopra ci sono personaggi mitologici»: «sopra» non c'è) · H 3/3 · S 3/3
+   testo: Fermati qui, sul lato sud di piazza del Duomo. Questa fontana è del 1867. Sopra ci sono personaggi mitologici, opera di Tito Angelini. Guarda anche lo stemma della città: è inciso lì.
+   H no: -
+   S no: -
+[10] Fontana dell’Amenano · vero=I («Sopra c'è un'opera di Tito Angelini»: «sopra» non c'è) · H 0/3 · S 0/3
+   testo: Fermati qui, sul lato sud di piazza del Duomo. Questa fontana è del 1867. Sopra c'è un'opera di Tito Angelini, con personaggi mitologici, e incisa c'è anche lo stemma della città.
+   H no: f3: La frase dice 'Sopra c'è un'opera' ma le fonti non specificano che l'opera di Tito Angelini sia 'sopra' la fontana. Inoltre, 'Sopra c'è' agg
+   S no: f3: Le fonti dicono che la fontana è barocca con personaggi mitologici, opera di Tito Angelini, con incisione dello stemma cittadino; non dicono | f3: Le fonti non dicono che l'opera di Tito Angelini si trovi 'sopra' la fontana: la posizione è un dettaglio aggiunto. | f3: Le fonti dicono che la fontana è un'opera di Tito Angelini con personaggi mitologici e incisione dello stemma cittadino, ma non dicono che q
+[11] Piazza Giuseppe Mazzini · vero=F · H 0/3 · S 3/3
+   testo: Qui prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693, il nuovo impianto urbano voluto da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione, prevedeva questa piazza come mercato. Nasce dall'incrocio di due strade, e per questo ha il disegno a croce greca. Negli angoli, nei primi decenni del Settecento, sono sorsi quattro loggiati identici, ognuno con 8 colonne in marmo bianco.
+   H no: f4: La fonte dice che i loggiati sorsero 'lungo i perimetri del luogo' e 'negli angoli' si scelse di erigere edifici dotati di terrazzini loggia
+   S no: -
+[12] Piazza Giuseppe Mazzini · vero=S («guidava la ricostruzione» (le fonti: coordinatore e finanziatore)) · H 0/3 · S 3/3
+   testo: Qui prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693, il duca di Camastra, che guidava la ricostruzione, la pensò come mercato. Nasce dall'incrocio di due strade, e per questo ha il disegno a croce greca. Negli angoli, nei primi decenni del Settecento, sono sorsi quattro loggiati identici, ognuno con 8 colonne in marmo bianco.
+   H no: f2: La fonte dice che il duca di Camastra era 'coordinatore e finanziatore della ricostruzione', non che 'guidava' la ricostruzione. Inoltre, la
+   S no: -
+[15] Via Etnea · vero=S («negozi» (Google: strada dello shopping)) · H 0/3 · S 3/3
+   testo: Fermati: sei sulla via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 3 chilometri, da Piazza del Duomo al Tondo Gioeni. Lungo la strada ci sono bar, negozi e monumenti barocchi, con vista sull'Etna.
+   H no: f3: La fonte 2 menziona 'bar' e 'monumenti barocchi' e 'vista sull'Etna', ma non cita esplicitamente 'negozi'. Inoltre, la frase aggiunge 'negoz
+   S no: -
+[16] Via Etnea · vero=S («negozi», «alzando gli occhi vedi l'Etna») · H 0/3 · S 3/3
+   testo: Fermati: sei sulla via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 3 chilometri, da Piazza del Duomo al Tondo Gioeni. Lungo il percorso trovi bar, negozi e monumenti barocchi, e alzando gli occhi vedi l'Etna.
+   H no: f3: L'espressione 'alzando gli occhi' e la descrizione dell'azione di guardare l'Etna aggiungono un'immagine e un'esperienza sensoriale non pres
+   S no: -
+[18] Via Etnea · vero=S («negozi») · H 0/3 · S 3/3
+   testo: Guarda: questa è la strada principale del centro storico, e parte da Piazza del Duomo. Va dritta verso nord, senza una curva, per circa 3 chilometri, fino al Tondo Gioeni. Lungo il percorso trovi bar, negozi e monumenti barocchi, e da qui si vede l'Etna.
+   H no: f3: La fonte 2 menziona 'bar, monumenti barocchi e vista sull'Etna', ma non specifica 'negozi'. Inoltre, la fonte 1 non menziona bar, negozi o v
+   S no: -
+[20] Villa Sciarra · vero=I («il piazzale da cui entri»: le fonti dànno due ingressi) · H 0/3 · S 0/3
+   testo: Siamo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, in sette ettari e mezzo di verde. Qui il giardino ha la disposizione che gli ha dato George Washington Wurts, l'ultimo proprietario, e a lui si deve anche la collocazione dei monumenti. Il piazzale da cui entri porta il suo nome. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.
+   H no: f3: La fonte dice che il piazzale è 'progettato da Pio Piacentini' e 'prende il nome' da Wurts, ma non afferma esplicitamente che 'entri' da lì 
+   S no: f3: Le fonti dicono che uno dei due ingressi è su piazzale Wurts, che prende il nome da Wurts, ma non che sia il piazzale da cui si entra qui (c | f3: Le fonti dicono che esistono due ingressi, uno su piazzale Wurts e uno su largo Filippo Minutilli; non è scritto che da lì si entri, e il «d | f3: Le fonti dicono che uno dei due ingressi è su piazzale Wurts, non che sia il piazzale da cui il visitatore entra; esiste anche un secondo in
+[21] Villa Sciarra · vero=I («il piazzale dove sei»: le fonti dànno due ingressi) · H 3/3 · S 0/3
+   testo: Fermati: questa è una delle ville urbane di Roma, sette ettari e mezzo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio. Il nome viene dalla famiglia nobile pontificia degli Sciarra. Il giardino e i monumenti che ci trovi li ha disposti George Washington Wurts, l'ultimo proprietario, e il suo nome ce l'ha anche il piazzale dove sei. Dentro cammini tra piccoli giardini, sculture e fontane.
+   H no: -
+   S no: f3: Le fonti dicono che il piazzale Wurts è uno dei due ingressi e prende il nome da Wurts, ma non dicono che il visitatore si trovi proprio lì: | f3: Le fonti dicono che il piazzale Wurts è uno dei due ingressi e prende il nome da Wurts, ma non dicono che il visitatore si trovi proprio lì  | f3: Le fonti non dicono che l'ascoltatore si trovi proprio su piazzale Wurts: indicano solo che è uno dei due ingressi. Il resto (Wurts ultimo p
+[26] Palazzo Massimo alle Colonne · vero=S (cappella aperta solo il 16 marzo + «la trovi chiusa») · H 0/3 · S 2/3
+   testo: Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella associata a un presunto miracolo del XVI secolo. Aperta solo il 16 marzo: se capiti in un altro giorno, la trovi chiusa.
+   H no: f2: La fonte dice che la cappella è 'associata' al miracolo, non che sia 'dentro' il palazzo. Inoltre aggiunge il dettaglio 'dentro' che non è e | f3: Aggiunge l'immagine narrativa 'se capiti in un altro giorno, la trovi chiusa' che non è scritta nelle fonti, le quali dicono solo che è 'ape
+   S no: f2: La fonte parla di un palazzo con cappella associata a un presunto miracolo, ma non dice che la cappella sia 'dentro' il palazzo (solo 'con c | f3: Le fonti dicono che è aperto solo il 16 marzo, ma non specificano che sia la cappella a essere aperta solo quel giorno né che negli altri gi
+[28] Palazzo Massimo alle Colonne · vero=S («Aprono solo il 16 marzo») · H 0/3 · S 1/3
+   testo: Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Aprono solo il 16 marzo: se capiti quel giorno, entra.
+   H no: f3: La fonte dice 'aperto solo il 16 marzo' ma non specifica che bisogna 'capitare quel giorno per entrare': è un'interpretazione aggiunta, non 
+   S no: f2: Le fonti parlano di una cappella «associata» a un presunto miracolo, ma non dicono che si trovi «dentro» il palazzo: la collocazione interna | f2: Le fonti parlano di una cappella «associata» a un presunto miracolo, ma non dicono che si trovi «dentro» il palazzo: la collocazione è un'ag
+[32] Piazza del Campidoglio · vero=S («dal XII secolo era la sede» (le fonti: già nel XII secolo era stato scelto)) · H 0/3 · S 3/3
+   testo: Fermati: la piazza è in cima al colle Campidoglio, e a progettarla fu Michelangelo. Qui sotto c'è il Tabularium, che dal XII secolo era la sede del Comune. Fu Paolo III a commissionare il rifacimento a Michelangelo, per la visita a Roma dell'imperatore Carlo V. Al centro della piazza c'è la statua di Marco Aurelio, e ci sono anche quelle del Tevere e del Nilo.
+   H no: f2: La fonte dice che il Tabularium era stato scelto come sede del Comune nel XII secolo, ma non specifica che si trova 'qui sotto' la piazza o 
+   S no: -
+[37] Fontana dell'Elefante (uʻ Liotru) · vero=F · H 0/3 · S 3/3
+   testo: Guarda l'elefante di basalto nero: lo chiamano U Liotru. È una statua romana. La fontana l'ha costruita Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi l'elefante è l'emblema di Catania.
+   H no: f2: La fonte 2 dice 'statua romana' ma la fonte 1 non specifica l'epoca della statua, parla solo della fontana realizzata nel 1735-1737. L'attri
+   S no: -
+[39] Teatro Antico greco-romano di Catania · vero=S («com'era nel II secolo») · H 0/3 · S 3/3
+   testo: Sei nel centro storico, tra piazza San Francesco e via Vittorio Emanuele. Quello che vedi è il teatro com'era nel II secolo, con la gradinata e l'orchestra. È stato riportato alla luce a partire dalla fine dell'Ottocento. Accanto, a est, c'è l'odeon della città.
+   H no: f2: La frase afferma che quello che vedi è il teatro 'com'era nel II secolo', suggerendo che l'aspetto attuale corrisponda all'aspetto originale
+   S no: -
+[41] Teatro Antico greco-romano di Catania · vero=S («Resta la gradinata, resta l'orchestra») · H 0/3 · S 3/3
+   testo: Fermati: qui sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi è del II secolo. Lo hanno riportato alla luce a partire dalla fine dell'Ottocento. Resta la gradinata, resta l'orchestra, e accanto c'è l'odeon della città.
+   H no: f4: La frase dice 'accanto c'è l'odeon della città', ma la fonte dice che l'odeon 'confina a est', non genericamente 'accanto'. Inoltre, la font
+   S no: -
+[46] Fontana dell’Amenano · vero=S («Il progetto è di» invece di «a opera di») · H 0/3 · S 3/3
+   testo: Fermati: questa fontana è del 1867. Sta sul lato sud di piazza del Duomo. Il progetto è di Tito Angelini, e ci trovi dei personaggi mitologici. Cerca anche lo stemma della città, inciso sulla fontana.
+   H no: f3: La fonte 2 dice che la fontana è 'a opera di Tito Angelini', non che il progetto è di Angelini. Inoltre, attribuire il progetto a Angelini v
+   S no: -
+[47] Fontana dell’Amenano · vero=S («Le statue sono personaggi mitologici»: «statue» non c'è) · H 3/3 · S 0/3
+   testo: Fermati: questa è la fontana dell'Amenano, del 1867. Sta sul lato sud di piazza del Duomo. Le statue sono personaggi mitologici, opera di Tito Angelini. Cerca lo stemma della città: è inciso lì.
+   H no: -
+   S no: f3: Le fonti dicono che la fontana ha personaggi mitologici, opera di Tito Angelini, ma non dicono che siano 'statue'. | f3: Le fonti dicono che la fontana ha personaggi mitologici, opera di Tito Angelini, ma non parlano di 'statue': è un dettaglio aggiunto. | f3: Le fonti dicono che la fontana ha personaggi mitologici ed è opera di Tito Angelini, ma non specificano che si tratti di 'statue'.
+[53] Via Etnea · vero=S («negozi», «in fondo») · H 0/3 · S 3/3
+   testo: Parti da Piazza del Duomo e vai verso nord, in linea retta fino al Tondo Gioeni. Sono circa 3 chilometri, tutti dritti. Lungo la strada trovi bar, negozi e monumenti barocchi. Guarda in fondo: da qui si vede l'Etna.
+   H no: f3: Le fonti menzionano bar, monumenti barocchi e negozi (shopping), ma il racconto aggiunge 'negozi' come elemento specifico non esplicitamente
+   S no: -
+[55] Via Etnea · vero=S («negozi», «con l'Etna in vista») · H 0/3 · S 3/3
+   testo: Questa è la via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 3 chilometri. Parte da Piazza del Duomo e arriva al Tondo Gioeni. Lungo il percorso trovi negozi, bar e monumenti barocchi, con l'Etna in vista.
+   H no: f4: La frase aggiunge 'negozi' che non è menzionato nelle fonti (fonte 2 dice 'bar' e 'monumenti barocchi' ma non 'negozi'). Inoltre 'con l'Etna
+   S no: -
+[60] Palazzo Massimo alle Colonne · vero=S (cappella «aperta solo il 16 marzo») · H 3/3 · S 0/3
+   testo: Fermati: questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Aperta solo il 16 marzo.
+   H no: -
+   S no: f2: Le fonti dicono che il palazzo è 'con cappella associata a un presunto miracolo del XVI secolo', ma non dicono che la cappella sia 'dentro'  | f2: Le fonti dicono che il palazzo ha una cappella associata a un presunto miracolo, ma non che si trovi 'dentro' il palazzo (collocazione inter | f2: Le fonti parlano di una cappella associata al palazzo, non dicono che sia «dentro» il palazzo.
+[61] Palazzo Massimo alle Colonne · vero=S («Dentro c'è una cappella» (le fonti: palazzo con cappella; «dentro» è una deduzione) — F nella prima lettura, riletta come S dopo aver visto il motivo di Sonnet) · H 3/3 · S 0/3
+   testo: Guarda: questo è il Palazzo Massimo alle Colonne, un palazzo rinascimentale di Roma, e si affaccia su corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Il palazzo è aperto solo il 16 marzo.
+   H no: -
+   S no: f2: Le fonti dicono che il palazzo ha una cappella 'associata' a un presunto miracolo, ma non che si trovi 'dentro' il palazzo (collocazione non | f2: Le fonti dicono che il palazzo ha una cappella associata a un presunto miracolo del XVI secolo, ma non che si trovi «dentro» il palazzo. | f2: Le fonti dicono che il palazzo ha una cappella associata a un presunto miracolo del XVI secolo, ma non che si trovi «dentro» il palazzo (pos
+[64] Parco del Gianicolo · vero=I («Nelle giornate limpide»: non c'è) · H 0/3 · S 0/3
+   testo: Questo colle non è uno dei sette colli tradizionali di Roma. Sotto di te, sul versante verso il fiume, c'è Trastevere. Da quassù guardi i quartieri vicini e il centro storico coi suoi monumenti. Nelle giornate limpide la vista arriva ai Colli Albani e fino al Terminillo e al Velino.
+   H no: f4: La fonte non specifica che la vista ai Colli Albani e al Terminillo/Velino sia visibile solo 'nelle giornate limpide'. Aggiunge una condizio
+   S no: f4: Le fonti citano Colli Albani, Terminillo e Velino tra le vette visibili, ma non dicono che la vista arrivi fin lì solo 'nelle giornate limpi | f4: Le fonti citano i Colli Albani, il Terminillo e il Velino come visibili, ma non dicono che ciò accada «nelle giornate limpide»: la condizion | f4: Le fonti citano i Colli Albani, il Terminillo e il Velino come visibili dal colle, ma non dicono che la vista arrivi fin lì 'nelle giornate 
+[67] Basilica Cattedrale di Sant'Agata · vero=S («Dentro conserva stili differenti» (le fonti: la cattedrale conserva stili) — F nella prima lettura, riletta come S dopo aver visto il motivo di Sonnet) · H 3/3 · S 0/3
+   testo: Fermati: questa è la chiesa madre di Catania, dedicata a Sant'Agata, vergine e martire, patrona della città. Sorge sul lato sud-est di piazza del Duomo. Dentro conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico.
+   H no: -
+   S no: f3: Le fonti dicono che la cattedrale conserva stili differenti, ma non specificano che si trovino 'dentro': la frase colloca gli stili all'inte | f3: Le fonti dicono che la cattedrale conserva stili differenti, ma non specificano che si trovino 'dentro': l'ubicazione interna è un dettaglio | f3: Le fonti dicono che la cattedrale conserva stili differenti, ma non specificano che si trovino 'dentro'; la frase colloca gli stili all'inte
+[69] Fontana dell'Elefante (uʻ Liotru) · vero=F · H 0/3 · S 3/3
+   testo: Guarda l'elefante: è una statua di basalto nero, e qui lo chiamano U Liotru. La statua è romana, scolpita nel basalto. La fontana è di Giovanni Battista Vaccarini, costruita tra il 1735 e il 1737 al centro di piazza del Duomo. Oggi l'elefante è l'emblema di Catania.
+   H no: f2: La fonte 1 dice che la statua raffigura un elefante ed è di basalto nero, ma non specifica che sia 'romana'. La fonte 2 dice 'statua romana'
+   S no: -
+[71] Fontana dell'Elefante (uʻ Liotru) · vero=F · H 0/3 · S 3/3
+   testo: Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. È una statua romana, e oggi è il simbolo della città. La fontana l'ha fatta Giovanni Battista Vaccarini, tra il 1735 e il 1737, qui al centro di piazza del Duomo.
+   H no: f2: La fonte 1 dice che l'elefante è una 'statua di basalto nero' e non specifica che sia 'romana'. La fonte 2 menziona 'statua romana' ma non è
+   S no: -
+[74] Teatro Antico greco-romano di Catania · vero=F · H 0/3 · S 3/3
+   testo: Sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi oggi risale al II secolo. È venuto alla luce a partire dalla fine dell'Ottocento. Cerca la gradinata e l'orchestra, e accanto, a est, c'è l'odeon della città.
+   H no: f4: La frase aggiunge l'imperativo 'Cerca' e l'istruzione 'accanto, a est' che non sono nelle fonti. Inoltre, descrive gradinata e orchestra com
+   S no: -
+[86] Villa Sciarra · vero=I («il piazzale da cui entri»: le fonti dànno due ingressi) · H 3/3 · S 0/3
+   testo: Sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, con le Mura gianicolensi lì accanto. Sono sette ettari e mezzo di parco, con piccoli giardini, sculture, fontane e un'antica villa. Il nome viene dalla famiglia nobile pontificia degli Sciarra. Ma la disposizione del giardino e dei monumenti si deve all'ultimo proprietario, George Washington Wurts, e il piazzale da cui entri porta il suo nome.
+   H no: -
+   S no: f4: Le fonti dicono che esistono due ingressi (piazzale Wurts e largo Filippo Minutilli); non c'è scritto che il visitatore entri da piazzale Wu | f4: Le fonti dicono che esistono due ingressi (piazzale Wurts e largo Minutilli), ma non che il lettore entri da piazzale Wurts: «il piazzale da | f4: Le fonti dicono che esistono due ingressi, uno su piazzale Wurts e uno su largo Filippo Minutilli; non è scritto che il visitatore entri da 
+[91] Palazzo Massimo alle Colonne · vero=S («Dentro c'è una cappella» (le fonti: palazzo con cappella; «dentro» è una deduzione) — F nella prima lettura, riletta come S dopo aver visto il motivo di Sonnet) · H 3/3 · S 0/3
+   testo: Fermati: questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Il palazzo è aperto solo il 16 marzo.
+   H no: -
+   S no: f2: Le fonti dicono che il palazzo ha una cappella associata a un presunto miracolo, ma non che la cappella sia «dentro» il palazzo; la collocaz | f3: Le fonti dicono che è aperto solo il 16 marzo in relazione alla cappella/descrizione del posto, ma la frase attribuisce l'apertura limitata  | f2: Le fonti dicono che il palazzo ha una cappella associata a un presunto miracolo, ma non che si trovi 'dentro' il palazzo (la posizione è un  | f3: Le fonti dicono 'palazzo con cappella ... aperto solo il 16 marzo', non è chiaro che l'apertura riguardi l'intero palazzo: il racconto esten
+[92] Palazzo Massimo alle Colonne · vero=S (cappella aperta + «guarda bene da fuori») · H 0/3 · S 3/3
+   testo: Fermati: questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Aperta solo il 16 marzo, quindi guarda bene da fuori.
+   H no: f3: La frase aggiunge l'interpretazione 'quindi guarda bene da fuori' che non è nelle fonti. Le fonti dicono solo che è aperto il 16 marzo, non 
+   S no: -
+[97] Piazza del Campidoglio · vero=S («sotto i tuoi piedi», «si vede bene») · H 0/3 · S 3/3
+   testo: Fermati: sei sulla cima del colle Campidoglio, e questa piazza l'ha progettata Michelangelo. Paolo III gliela commissionò per la visita a Roma dell'imperatore Carlo V. Sotto i tuoi piedi c'è il Tabularium, che dal Foro Romano si vede bene. Al centro della piazza c'è la statua di Marco Aurelio.
+   H no: f3: La fonte dice che il Tabularium è 'visibile dal Foro Romano', non che 'dal Foro Romano si vede bene' - è un'interpretazione aggiunta sulla q
+   S no: -
+[98] Piazza del Campidoglio · vero=F · H 0/3 · S 3/3
+   testo: Sei sulla cima del colle Campidoglio, in una piazza che sorge sull'Asylum, la depressione tra l'Arx e il Capitolium. Sotto i tuoi piedi c'è il Tabularium, e lo vedi dal Foro Romano. Nel XII secolo l'avevano scelto come sede del Comune. La piazza di oggi è del XVI secolo: Paolo III ne affidò il rifacimento a Michelangelo, per la visita a Roma di Carlo V.
+   H no: f2: La fonte dice che il Tabularium è 'visibile dal Foro Romano', non che lo vedi dal Foro Romano. Inoltre, la frase afferma che il Tabularium è
+   S no: -
+[99] Fontana dell'Elefante (uʻ Liotru) · vero=I («Sopra la fontana l'ha messa Vaccarini»: le fonti dicono che realizzò la fontana) · H 3/3 · S 1/3
+   testo: Guarda l'elefante di basalto nero: i catanesi lo chiamano U Liotru. Sopra la fontana l'ha messa Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi quell'elefante è l'emblema di Catania.
+   H no: -
+   S no: f2: Le fonti dicono che Vaccarini ha realizzato la fontana tra il 1735 e il 1737, ma non che abbia messo l'elefante «sopra» la fontana; il detta | f2: Le fonti dicono che Vaccarini realizzò la fontana tra il 1735 e il 1737, ma non che mise la statua dell'elefante sopra la fontana; anzi, la 
+[100] Fontana dell'Elefante (uʻ Liotru) · vero=I (iniezione: davanti al municipio) · H 0/3 · S 0/3
+   testo: Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. Sta al centro di piazza del Duomo, davanti al municipio ed è l'emblema della città. La fontana l'ha costruita Giovanni Battista Vaccarini tra il 1735 e il 1737.
+   H no: f2: L'aggiunta 'davanti al municipio' non è scritta nelle fonti. Le fonti dicono solo che è 'al centro di piazza del Duomo'.
+   S no: f2: Le fonti non dicono che la fontana sta davanti al municipio. | f2: Le fonti non dicono che la fontana si trovi davanti al municipio.
+[101] Piazza Giuseppe Mazzini · vero=I (iniezione: colonne prese dal teatro romano) · H 0/3 · S 0/3
+   testo: Fermati: questa piazza prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693, il duca di Camastra, che coordinava e finanziava la ricostruzione, la pensò come mercato. Nasce dall'incrocio di due strade, e ha il disegno a croce greca. Nei primi decenni del Settecento sono sorti quattro loggiati identici, ognuno con 8 colonne in marmo bianco, prese dal teatro romano.
+   H no: f4: L'aggiunta 'prese dal teatro romano' non è scritta nelle fonti. Le fonti dicono solo che i loggiati hanno 8 colonne in marmo bianco, senza s
+   S no: f4: Le fonti non dicono che le colonne siano state prese dal teatro romano. | f4: Le fonti non dicono che le colonne provengano dal teatro romano.
+[102] Castello Ursino · vero=I (iniezione: dalle mura si vede il mare) · H 0/3 · S 0/3
+   testo: Fermati: questo castello lo fece costruire Federico II di Svevia, nel Duecento. Durante i Vespri siciliani ha ospitato il parlamento siciliano, poi è stato residenza dei re aragonesi, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini. Cerca anche i carri dipinti. Dalle mura si vede il mare.
+   H no: f5: La vista del mare dalle mura non è menzionata nelle fonti
+   S no: f5: Le fonti non dicono che dalle mura si veda il mare.
+[103] Palazzo dei Chierici · vero=I (iniezione: stemma di marmo sul portone) · H 0/3 · S 0/3
+   testo: Fermati: questo è il palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud della piazza del Duomo, con la Cattedrale di Sant'Agata accanto. Anche il Palazzo degli Elefanti, qui in piazza, è un municipio. In mezzo ai due palazzi c'è la Fontana dell'Elefante, e sul portone c'è uno stemma di marmo.
+   H no: f4: Il dettaglio dello stemma di marmo sul portone non è scritto nelle fonti
+   S no: f4: La fontana tra i due palazzi è nelle fonti, ma lo stemma di marmo sul portone non è menzionato. | f4: La fontana tra i due palazzi è nelle fonti, ma lo stemma di marmo sul portone è un dettaglio inventato, non scritto da nessuna parte.
+[104] Orto Botanico di Roma · vero=I (iniezione: biblioteca di Cristina di Svezia) · H 0/3 · S 0/3
+   testo: Fermati: siamo alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia, che qui teneva la sua biblioteca. Oggi qui crescono 7.000 specie di piante da tutto il mondo. Ci sono le fontane, un boschetto di bambù e il giardino del tè giapponese.
+   H no: f2: La fonte dice che villa Corsini era 'residenza di Cristina di Svezia', ma non menziona che lei vi tenesse la sua biblioteca
+   S no: f2: Le fonti dicono che villa Corsini era residenza di Cristina di Svezia, ma non che qui tenesse la sua biblioteca. | f2: Le fonti dicono che villa Corsini fu residenza di Cristina di Svezia, ma non che qui tenesse la sua biblioteca.
+[105] Il Palazzo dei Conservatori · vero=I (iniezione: la Lupa capitolina) · H 0/3 · S 0/3
+   testo: Fermati: questo è il Palazzo dei Conservatori, in piazza del Campidoglio. Sta accanto al Palazzo Senatorio. Insieme al Palazzo Nuovo e al Tabularium, oggi ospita i Musei Capitolini. La struttura è del XV secolo, e dentro trovi statue, opere d'arte, affreschi e la Lupa capitolina.
+   H no: f4: La Lupa capitolina non è menzionata nelle fonti fornite
+   S no: f4: La Lupa capitolina non è menzionata nelle fonti (le fonti parlano solo di statue, opere d'arte e affreschi). | f4: La Lupa capitolina non è menzionata nelle fonti (che citano solo statue, opere d'arte e affreschi). | f4: La Lupa capitolina non è menzionata nelle fonti; le fonti parlano solo di statue, opere d'arte e affreschi.
+[106] Parco del Gianicolo · vero=I (iniezione: cannone a mezzogiorno (vero nella realtà, non nelle fonti)) · H 0/3 · S 0/3
+   testo: Sei sul Gianicolo, un colle alto 88 metri che non fa parte dei sette colli tradizionali di Roma. Sotto di te, sul versante verso il fiume, c'è Trastevere. Da qui la vista arriva al centro storico e ai suoi monumenti, poi ai Colli Albani e fino a Terminillo, Velino e Monti Simbruini. A mezzogiorno qui spara il cannone.
+   H no: f4: Il cannone a mezzogiorno non è menzionato nelle fonti fornite
+   S no: f4: Il cannone che spara a mezzogiorno non è menzionato in nessuna fonte. | f4: Il cannone che spara a mezzogiorno non è menzionato in nessuna delle fonti.
+[107] Fontana dell’Amenano · vero=I (iniezione: rifatta dopo il terremoto) · H 0/3 · S 0/3
+   testo: Fermati qui, sul lato sud di piazza del Duomo. Questa fontana è del 1867, rifatta dopo il terremoto. È una fontana barocca con personaggi mitologici, opera di Tito Angelini. C'è anche lo stemma della città, inciso.
+   H no: f2: Le fonti dicono che la fontana è del 1867, ma non menzionano che sia stata 'rifatta dopo il terremoto'. Questo dettaglio non è scritto nelle
+   S no: f2: Le fonti dicono solo che la fontana è del 1867; non dicono che sia stata rifatta dopo il terremoto. | f2: Le fonti indicano solo che la fontana è del 1867; non dicono che sia stata rifatta dopo il terremoto. | f2: Le fonti dicono solo che la fontana è del 1867; non scrivono che sia stata rifatta dopo il terremoto.
+[108] Teatro Antico greco-romano di Catania · vero=I (iniezione: dopo secoli sotto le case) · H 0/3 · S 0/3
+   testo: Fermati: siamo in pieno centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi oggi risale al II secolo. È tornato alla luce a partire dalla fine dell'Ottocento, dopo secoli sotto le case. A est confina con l'odeon della città.
+   H no: f3: La frase aggiunge il dettaglio 'dopo secoli sotto le case' che non è scritto nelle fonti. Le fonti dicono solo che è stato 'messo in luce a 
+   S no: f3: «dopo secoli sotto le case» non è scritto nelle fonti: queste dicono solo che è stato messo in luce dalla fine del XIX secolo | f3: «dopo secoli sotto le case» non è scritto nelle fonti, che dicono solo che è stato messo in luce dalla fine del XIX secolo | f3: Le fonti dicono che è stato messo in luce dalla fine del XIX secolo, ma non che fosse rimasto per secoli sotto le case: è un dettaglio inven
+[109] Basilica Cattedrale di Sant'Agata · vero=I (iniezione: colonne bianche) · H 0/3 · S 0/3
+   testo: Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. La facciata ha le colonne bianche, e dentro ci sono affreschi e dipinti. Nella cattedrale convivono stili diversi: dal Normanno al Barocco, fino al Neoclassico.
+   H no: f3: Il colore 'bianche' delle colonne non è specificato nelle fonti. Fonte 2 menziona 'facciata a colonne' ma non il colore.
+   S no: f3: Le fonti parlano di facciata a colonne, ma non dicono che le colonne siano bianche (colore inventato). | f3: Le fonti parlano di facciata a colonne, ma non dicono che le colonne siano bianche.
+[110] Piazza del Campidoglio · vero=I (iniezione: statua equestre (vero nella realtà, non nelle fonti)) · H 0/3 · S 0/3
+   testo: Fermati: la piazza è in cima al colle Campidoglio, e a progettarla fu Michelangelo. Già nel XII secolo il Tabularium era stato scelto come sede del Comune. Fu Paolo III a commissionare il rifacimento a Michelangelo, per la visita a Roma dell'imperatore Carlo V. Al centro della piazza c'è la statua equestre di Marco Aurelio, e ci sono anche quelle del Tevere e del Nilo.
+   H no: f4: La frase aggiunge il dettaglio 'equestre' (statua equestre) che non è presente nelle fonti, le quali dicono solo 'quella di Marco Aurelio'
+   S no: f4: le fonti parlano della statua di Marco Aurelio, ma non dicono che sia «equestre» | f4: Le fonti parlano della statua di Marco Aurelio al centro della piazza, ma non dicono che sia «equestre». | f4: Le fonti parlano della statua di Marco Aurelio al centro della piazza, ma non dicono che sia 'equestre'.
+[111] Villa Sciarra · vero=I (iniezione: un americano) · H 0/3 · S 0/3
+   testo: Siamo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, in sette ettari e mezzo di verde. Qui il giardino ha la disposizione che gli ha dato George Washington Wurts, l'ultimo proprietario, un americano, e a lui si deve anche la collocazione dei monumenti. Uno dei due ingressi è su piazzale Wurts, progettato da Pio Piacentini, e il piazzale prende il nome proprio da lui. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.
+   H no: f2: La fonte non specifica che George Washington Wurts fosse americano
+   S no: f2: Le fonti non dicono che Wurts fosse americano.
+[112] Via Etnea · vero=I (iniezione: 5 km invece di 3) · H 0/3 · S 0/3
+   testo: Questa è la via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 5 chilometri. Parte da Piazza del Duomo e arriva al Tondo Gioeni. Lungo la strada ci sono bar e monumenti barocchi.
+   H no: f2: La lunghezza è di circa 3 chilometri secondo le fonti, non 5 chilometri
+   S no: f2: le fonti dicono circa 3 chilometri, non 5 | f2: Le fonti dicono che è lunga circa 3 chilometri, non 5
+[113] Fontana dell’Amenano · vero=I (iniezione: scultore catanese) · H 0/3 · S 0/3
+   testo: Guarda, siamo sul lato sud di piazza del Duomo. Questa fontana è del 1867. L'ha fatta Tito Angelini, scultore catanese, con personaggi mitologici e lo stemma della città inciso.
+   H no: f3: La qualifica 'scultore catanese' non è nelle fonti, che indicano solo 'Tito Angelini' come autore senza specificare che sia catanese
+   S no: f3: Le fonti non dicono che Tito Angelini fosse uno scultore né che fosse catanese: la qualifica e l'origine sono aggiunte. | f3: Le fonti non dicono che Tito Angelini fosse uno «scultore catanese»: si limitano a indicarlo come autore dell'opera, senza qualifica né orig | f3: Le fonti non dicono che Tito Angelini fosse uno scultore né che fosse catanese; indicano solo che è l'autore dell'opera.

@@ -1,0 +1,2576 @@
+{
+ "fonte": "docs/prove/dati/2026-10-31-racconti-r5.json",
+ "testi": [
+  {
+   "id": 1,
+   "citta": "Catania",
+   "nome": "Basilica Cattedrale di Sant'Agata",
+   "fonti": {
+    "nome": "Basilica Cattedrale di Sant'Agata",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Cattedrale di Sant'Agata",
+     "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+    },
+    "google": {
+     "testo": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti."
+    }
+   },
+   "testo": "Fermati: questa è la chiesa madre di Catania, dedicata a Sant'Agata, vergine e martire. È la patrona della città. La cattedrale sta sul lato sud-est di piazza del Duomo, nel centro storico. Dentro convivono stili diversi: il Normanno, il Barocco, il Neoclassico.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 2,
+   "citta": "Catania",
+   "nome": "Fontana dell'Elefante (uʻ Liotru)",
+   "fonti": {
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Elefante",
+     "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+    },
+    "google": {
+     "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+    }
+   },
+   "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. Sta al centro di piazza del Duomo ed è l'emblema della città. La fontana l'ha costruita Giovanni Battista Vaccarini tra il 1735 e il 1737.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 3,
+   "citta": "Catania",
+   "nome": "Fontana dell'Elefante (uʻ Liotru)",
+   "fonti": {
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Elefante",
+     "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+    },
+    "google": {
+     "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+    }
+   },
+   "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. Sta al centro di piazza del Duomo ed è l'emblema della città. La fontana l'ha costruita Giovanni Battista Vaccarini tra il 1735 e il 1737. La statua dell'elefante, invece, è romana.",
+   "origini": [
+    "dopo-prima-stesura L1"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 4,
+   "citta": "Catania",
+   "nome": "Teatro Antico greco-romano di Catania",
+   "fonti": {
+    "nome": "Teatro Antico greco-romano di Catania",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Teatro greco-romano di Catania",
+     "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+    },
+    "google": {
+     "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+    }
+   },
+   "testo": "Fermati: siamo in pieno centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi oggi risale al II secolo. È tornato alla luce a partire dalla fine dell'Ottocento. A est confina con l'odeon della città.",
+   "origini": [
+    "prima L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 5,
+   "citta": "Catania",
+   "nome": "Teatro Antico greco-romano di Catania",
+   "fonti": {
+    "nome": "Teatro Antico greco-romano di Catania",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Teatro greco-romano di Catania",
+     "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+    },
+    "google": {
+     "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+    }
+   },
+   "testo": "Fermati: siamo nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi oggi risale al II secolo. È venuto alla luce a partire dalla fine dell'Ottocento. A est confina con l'odeon della città.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 6,
+   "citta": "Catania",
+   "nome": "Castello Ursino",
+   "fonti": {
+    "nome": "Castello Ursino",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Castello Ursino",
+     "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+    },
+    "google": {
+     "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+    }
+   },
+   "testo": "Fermati: questo castello lo fece costruire Federico II di Svevia, nel Duecento. Durante i Vespri siciliani ha ospitato il parlamento siciliano, poi è stato residenza dei re aragonesi, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini. Cerca anche i carri dipinti.",
+   "origini": [
+    "prima L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 7,
+   "citta": "Catania",
+   "nome": "Castello Ursino",
+   "fonti": {
+    "nome": "Castello Ursino",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Castello Ursino",
+     "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+    },
+    "google": {
+     "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+    }
+   },
+   "testo": "Fermati: questo castello lo ha costruito Federico II di Svevia, nel XIII secolo. Durante i Vespri siciliani qui si riuniva il parlamento siciliano. Dopo ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Entra: oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 8,
+   "citta": "Catania",
+   "nome": "Fontana dell’Amenano",
+   "fonti": {
+    "nome": "Fontana dell’Amenano",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Amenano",
+     "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+    },
+    "google": {
+     "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+    }
+   },
+   "testo": "Fermati qui, sul lato sud di piazza del Duomo. Questa fontana è del 1867. Sopra ci sono personaggi mitologici, opera di Tito Angelini. Guarda anche lo stemma della città: è inciso lì.",
+   "origini": [
+    "prima L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 9,
+   "citta": "Catania",
+   "nome": "Fontana dell’Amenano",
+   "fonti": {
+    "nome": "Fontana dell’Amenano",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Amenano",
+     "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+    },
+    "google": {
+     "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+    }
+   },
+   "testo": "Fermati qui, sul lato sud di piazza del Duomo. Questa fontana è del 1867. È una fontana barocca con personaggi mitologici, opera di Tito Angelini. C'è anche lo stemma della città, inciso.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 10,
+   "citta": "Catania",
+   "nome": "Fontana dell’Amenano",
+   "fonti": {
+    "nome": "Fontana dell’Amenano",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Amenano",
+     "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+    },
+    "google": {
+     "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+    }
+   },
+   "testo": "Fermati qui, sul lato sud di piazza del Duomo. Questa fontana è del 1867. Sopra c'è un'opera di Tito Angelini, con personaggi mitologici, e incisa c'è anche lo stemma della città.",
+   "origini": [
+    "dopo-prima-stesura L1"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 11,
+   "citta": "Catania",
+   "nome": "Piazza Giuseppe Mazzini",
+   "fonti": {
+    "nome": "Piazza Giuseppe Mazzini",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Piazza Mazzini (Catania)",
+     "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+    },
+    "google": null
+   },
+   "testo": "Qui prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693, il nuovo impianto urbano voluto da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione, prevedeva questa piazza come mercato. Nasce dall'incrocio di due strade, e per questo ha il disegno a croce greca. Negli angoli, nei primi decenni del Settecento, sono sorsi quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+   "origini": [
+    "prima L1"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 12,
+   "citta": "Catania",
+   "nome": "Piazza Giuseppe Mazzini",
+   "fonti": {
+    "nome": "Piazza Giuseppe Mazzini",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Piazza Mazzini (Catania)",
+     "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+    },
+    "google": null
+   },
+   "testo": "Qui prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693, il duca di Camastra, che guidava la ricostruzione, la pensò come mercato. Nasce dall'incrocio di due strade, e per questo ha il disegno a croce greca. Negli angoli, nei primi decenni del Settecento, sono sorsi quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+   "origini": [
+    "prima-prima-stesura L1"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 13,
+   "citta": "Catania",
+   "nome": "Piazza Giuseppe Mazzini",
+   "fonti": {
+    "nome": "Piazza Giuseppe Mazzini",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Piazza Mazzini (Catania)",
+     "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+    },
+    "google": null
+   },
+   "testo": "Fermati: questa piazza prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693, il duca di Camastra, che coordinava e finanziava la ricostruzione, la pensò come mercato. Nasce dall'incrocio di due strade, e ha il disegno a croce greca. Nei primi decenni del Settecento sono sorti quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 14,
+   "citta": "Catania",
+   "nome": "Palazzo dei Chierici",
+   "fonti": {
+    "nome": "Palazzo dei Chierici",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Palazzo del Seminario dei Chierici",
+     "testo": "Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante."
+    },
+    "google": null
+   },
+   "testo": "Fermati: questo è il palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud della piazza del Duomo, con la Cattedrale di Sant'Agata accanto. Anche il Palazzo degli Elefanti, qui in piazza, è un municipio. In mezzo ai due palazzi c'è la Fontana dell'Elefante.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 15,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Fermati: sei sulla via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 3 chilometri, da Piazza del Duomo al Tondo Gioeni. Lungo la strada ci sono bar, negozi e monumenti barocchi, con vista sull'Etna.",
+   "origini": [
+    "prima L1"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 16,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Fermati: sei sulla via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 3 chilometri, da Piazza del Duomo al Tondo Gioeni. Lungo il percorso trovi bar, negozi e monumenti barocchi, e alzando gli occhi vedi l'Etna.",
+   "origini": [
+    "prima-prima-stesura L1"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 17,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Guarda: questa è la strada principale del centro storico, e parte da Piazza del Duomo. Va dritta verso nord, senza una curva, per circa 3 chilometri, fino al Tondo Gioeni. Lungo la strada trovi bar e monumenti barocchi, e c'è la vista sull'Etna.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 18,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Guarda: questa è la strada principale del centro storico, e parte da Piazza del Duomo. Va dritta verso nord, senza una curva, per circa 3 chilometri, fino al Tondo Gioeni. Lungo il percorso trovi bar, negozi e monumenti barocchi, e da qui si vede l'Etna.",
+   "origini": [
+    "dopo-prima-stesura L1"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 19,
+   "citta": "Roma",
+   "nome": "Villa Sciarra",
+   "fonti": {
+    "nome": "Villa Sciarra",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Villa Sciarra (Roma)",
+     "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+    },
+    "google": {
+     "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+    }
+   },
+   "testo": "Siamo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, in sette ettari e mezzo di verde. Qui il giardino ha la disposizione che gli ha dato George Washington Wurts, l'ultimo proprietario, e a lui si deve anche la collocazione dei monumenti. Uno dei due ingressi è su piazzale Wurts, progettato da Pio Piacentini, e il piazzale prende il nome proprio da lui. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.",
+   "origini": [
+    "prima L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 20,
+   "citta": "Roma",
+   "nome": "Villa Sciarra",
+   "fonti": {
+    "nome": "Villa Sciarra",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Villa Sciarra (Roma)",
+     "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+    },
+    "google": {
+     "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+    }
+   },
+   "testo": "Siamo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, in sette ettari e mezzo di verde. Qui il giardino ha la disposizione che gli ha dato George Washington Wurts, l'ultimo proprietario, e a lui si deve anche la collocazione dei monumenti. Il piazzale da cui entri porta il suo nome. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.",
+   "origini": [
+    "prima-prima-stesura L1"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 21,
+   "citta": "Roma",
+   "nome": "Villa Sciarra",
+   "fonti": {
+    "nome": "Villa Sciarra",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Villa Sciarra (Roma)",
+     "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+    },
+    "google": {
+     "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+    }
+   },
+   "testo": "Fermati: questa è una delle ville urbane di Roma, sette ettari e mezzo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio. Il nome viene dalla famiglia nobile pontificia degli Sciarra. Il giardino e i monumenti che ci trovi li ha disposti George Washington Wurts, l'ultimo proprietario, e il suo nome ce l'ha anche il piazzale dove sei. Dentro cammini tra piccoli giardini, sculture e fontane.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 22,
+   "citta": "Roma",
+   "nome": "Orto Botanico di Roma",
+   "fonti": {
+    "nome": "Orto Botanico di Roma",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Orto botanico di Roma",
+     "testo": "L'Orto botanico di Roma è situato alle pendici del Gianicolo, nell'antico parco di villa Corsini, un tempo residenza di Cristina di Svezia. La struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\"."
+    },
+    "google": {
+     "testo": "7.000 specie di piante da tutto il mondo, fontane, boschetto di bambù e giardino del tè giapponese."
+    }
+   },
+   "testo": "Fermati: siamo alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia. Oggi qui crescono 7.000 specie di piante da tutto il mondo. Ci sono le fontane, un boschetto di bambù e il giardino del tè giapponese.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 23,
+   "citta": "Roma",
+   "nome": "Il Palazzo dei Conservatori",
+   "fonti": {
+    "nome": "Il Palazzo dei Conservatori",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo dei Conservatori",
+     "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Il palazzo dei Conservatori e il Palazzo Nuovo, insieme al Tabularium, costituiscono attualmente la sede espositiva dei Musei Capitolini, tra i musei romani più rappresentativi e visitati."
+    },
+    "google": {
+     "testo": "Imponente struttura del XV secolo nei Musei Capitolini con statue, opere d'arte e affreschi."
+    }
+   },
+   "testo": "Fermati: questo è il Palazzo dei Conservatori, in piazza del Campidoglio. Sta accanto al Palazzo Senatorio. Insieme al Palazzo Nuovo e al Tabularium, oggi ospita i Musei Capitolini. La struttura è del XV secolo, e dentro trovi statue, opere d'arte e affreschi.",
+   "origini": [
+    "prima L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 24,
+   "citta": "Roma",
+   "nome": "Il Palazzo dei Conservatori",
+   "fonti": {
+    "nome": "Il Palazzo dei Conservatori",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo dei Conservatori",
+     "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Il palazzo dei Conservatori e il Palazzo Nuovo, insieme al Tabularium, costituiscono attualmente la sede espositiva dei Musei Capitolini, tra i musei romani più rappresentativi e visitati."
+    },
+    "google": {
+     "testo": "Imponente struttura del XV secolo nei Musei Capitolini con statue, opere d'arte e affreschi."
+    }
+   },
+   "testo": "Fermati: sei in piazza del Campidoglio, e questo è il Palazzo dei Conservatori. Sta a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. È una struttura del XV secolo. Insieme al Palazzo Nuovo e al Tabularium forma la sede espositiva dei Musei Capitolini, e dentro trovi statue, opere d'arte e affreschi.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 25,
+   "citta": "Roma",
+   "nome": "Palazzo Massimo alle Colonne",
+   "fonti": {
+    "nome": "Palazzo Massimo alle Colonne",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo Massimo alle Colonne",
+     "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+    },
+    "google": {
+     "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+    }
+   },
+   "testo": "Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. C'è una cappella associata a un presunto miracolo del XVI secolo. È aperta solo il 16 marzo.",
+   "origini": [
+    "prima L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 26,
+   "citta": "Roma",
+   "nome": "Palazzo Massimo alle Colonne",
+   "fonti": {
+    "nome": "Palazzo Massimo alle Colonne",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo Massimo alle Colonne",
+     "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+    },
+    "google": {
+     "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+    }
+   },
+   "testo": "Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella associata a un presunto miracolo del XVI secolo. Aperta solo il 16 marzo: se capiti in un altro giorno, la trovi chiusa.",
+   "origini": [
+    "prima-prima-stesura L1"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 27,
+   "citta": "Roma",
+   "nome": "Palazzo Massimo alle Colonne",
+   "fonti": {
+    "nome": "Palazzo Massimo alle Colonne",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo Massimo alle Colonne",
+     "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+    },
+    "google": {
+     "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+    }
+   },
+   "testo": "Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. È aperto solo il 16 marzo.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 28,
+   "citta": "Roma",
+   "nome": "Palazzo Massimo alle Colonne",
+   "fonti": {
+    "nome": "Palazzo Massimo alle Colonne",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo Massimo alle Colonne",
+     "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+    },
+    "google": {
+     "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+    }
+   },
+   "testo": "Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Aprono solo il 16 marzo: se capiti quel giorno, entra.",
+   "origini": [
+    "dopo-prima-stesura L1"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 29,
+   "citta": "Roma",
+   "nome": "Parco del Gianicolo",
+   "fonti": {
+    "nome": "Parco del Gianicolo",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Gianicolo",
+     "testo": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini)."
+    },
+    "google": {
+     "testo": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino."
+    }
+   },
+   "testo": "Questo colle non è tra i sette colli tradizionali di Roma. Arriva a 88 metri: più su di qui non si va. Da quassù la vista corre verso est, sul centro storico e sui monumenti, fino ai Colli Albani e alle cime dell'Appennino come il Terminillo e il Velino. Sotto di te, sul versante verso il fiume, c'è Trastevere.",
+   "origini": [
+    "prima L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 30,
+   "citta": "Roma",
+   "nome": "Parco del Gianicolo",
+   "fonti": {
+    "nome": "Parco del Gianicolo",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Gianicolo",
+     "testo": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini)."
+    },
+    "google": {
+     "testo": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino."
+    }
+   },
+   "testo": "Fermati un attimo: sei su un colle alto 88 metri, ma non è uno dei sette colli tradizionali di Roma. Qui sotto, dove il colle scende verso il fiume, c'è Trastevere. Da qui la vista arriva sul centro storico, fino ai Colli Albani e alle cime dell'Appennino centrale, il Terminillo e il Velino.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 31,
+   "citta": "Roma",
+   "nome": "Piazza del Campidoglio",
+   "fonti": {
+    "nome": "Piazza del Campidoglio",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Piazza del Campidoglio",
+     "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+    },
+    "google": {
+     "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+    }
+   },
+   "testo": "Fermati: la piazza è in cima al colle Campidoglio, e a progettarla fu Michelangelo. Già nel XII secolo il Tabularium era stato scelto come sede del Comune. Fu Paolo III a commissionare il rifacimento a Michelangelo, per la visita a Roma dell'imperatore Carlo V. Al centro della piazza c'è la statua di Marco Aurelio, e ci sono anche quelle del Tevere e del Nilo.",
+   "origini": [
+    "prima L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 32,
+   "citta": "Roma",
+   "nome": "Piazza del Campidoglio",
+   "fonti": {
+    "nome": "Piazza del Campidoglio",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Piazza del Campidoglio",
+     "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+    },
+    "google": {
+     "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+    }
+   },
+   "testo": "Fermati: la piazza è in cima al colle Campidoglio, e a progettarla fu Michelangelo. Qui sotto c'è il Tabularium, che dal XII secolo era la sede del Comune. Fu Paolo III a commissionare il rifacimento a Michelangelo, per la visita a Roma dell'imperatore Carlo V. Al centro della piazza c'è la statua di Marco Aurelio, e ci sono anche quelle del Tevere e del Nilo.",
+   "origini": [
+    "prima-prima-stesura L1"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 33,
+   "citta": "Roma",
+   "nome": "Piazza del Campidoglio",
+   "fonti": {
+    "nome": "Piazza del Campidoglio",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Piazza del Campidoglio",
+     "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+    },
+    "google": {
+     "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+    }
+   },
+   "testo": "Fermati: sei sulla cima del colle Campidoglio, e questa piazza l'ha ridisegnata Michelangelo. Fu Paolo III a commissionargli il rifacimento, per la visita a Roma dell'imperatore Carlo V. Sotto i tuoi piedi c'è il Tabularium, che si vede dal Foro Romano, e già nel XII secolo era stato scelto come sede del Comune. Al centro della piazza c'è la statua di Marco Aurelio, e ci sono anche quelle del Tevere e del Nilo.",
+   "origini": [
+    "dopo L1"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 34,
+   "citta": "Catania",
+   "nome": "Basilica Cattedrale di Sant'Agata",
+   "fonti": {
+    "nome": "Basilica Cattedrale di Sant'Agata",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Cattedrale di Sant'Agata",
+     "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+    },
+    "google": {
+     "testo": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti."
+    }
+   },
+   "testo": "Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. La facciata ha le colonne, e dentro ci sono affreschi e dipinti. Nella cattedrale convivono stili diversi: dal Normanno al Barocco, fino al Neoclassico.",
+   "origini": [
+    "prima L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 35,
+   "citta": "Catania",
+   "nome": "Basilica Cattedrale di Sant'Agata",
+   "fonti": {
+    "nome": "Basilica Cattedrale di Sant'Agata",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Cattedrale di Sant'Agata",
+     "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+    },
+    "google": {
+     "testo": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti."
+    }
+   },
+   "testo": "Fermati qui: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. La facciata è barocca, a colonne, e sopra sale la cupola. La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 36,
+   "citta": "Catania",
+   "nome": "Fontana dell'Elefante (uʻ Liotru)",
+   "fonti": {
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Elefante",
+     "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+    },
+    "google": {
+     "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+    }
+   },
+   "testo": "Guarda l'elefante di basalto nero: lo chiamano U Liotru. La fontana l'ha costruita Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi l'elefante è l'emblema di Catania.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 37,
+   "citta": "Catania",
+   "nome": "Fontana dell'Elefante (uʻ Liotru)",
+   "fonti": {
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Elefante",
+     "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+    },
+    "google": {
+     "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+    }
+   },
+   "testo": "Guarda l'elefante di basalto nero: lo chiamano U Liotru. È una statua romana. La fontana l'ha costruita Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi l'elefante è l'emblema di Catania.",
+   "origini": [
+    "dopo-prima-stesura L2"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 38,
+   "citta": "Catania",
+   "nome": "Teatro Antico greco-romano di Catania",
+   "fonti": {
+    "nome": "Teatro Antico greco-romano di Catania",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Teatro greco-romano di Catania",
+     "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+    },
+    "google": {
+     "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+    }
+   },
+   "testo": "Sei nel centro storico, tra piazza San Francesco e via Vittorio Emanuele. Il suo aspetto attuale risale al II secolo, e ci sono la gradinata e l'orchestra. È stato riportato alla luce a partire dalla fine dell'Ottocento. Accanto, a est, c'è l'odeon della città.",
+   "origini": [
+    "prima L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 39,
+   "citta": "Catania",
+   "nome": "Teatro Antico greco-romano di Catania",
+   "fonti": {
+    "nome": "Teatro Antico greco-romano di Catania",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Teatro greco-romano di Catania",
+     "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+    },
+    "google": {
+     "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+    }
+   },
+   "testo": "Sei nel centro storico, tra piazza San Francesco e via Vittorio Emanuele. Quello che vedi è il teatro com'era nel II secolo, con la gradinata e l'orchestra. È stato riportato alla luce a partire dalla fine dell'Ottocento. Accanto, a est, c'è l'odeon della città.",
+   "origini": [
+    "prima-prima-stesura L2"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 40,
+   "citta": "Catania",
+   "nome": "Teatro Antico greco-romano di Catania",
+   "fonti": {
+    "nome": "Teatro Antico greco-romano di Catania",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Teatro greco-romano di Catania",
+     "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+    },
+    "google": {
+     "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+    }
+   },
+   "testo": "Fermati: qui sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi è del II secolo. Lo hanno riportato alla luce a partire dalla fine dell'Ottocento. Ci sono la gradinata e l'orchestra.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 41,
+   "citta": "Catania",
+   "nome": "Teatro Antico greco-romano di Catania",
+   "fonti": {
+    "nome": "Teatro Antico greco-romano di Catania",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Teatro greco-romano di Catania",
+     "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+    },
+    "google": {
+     "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+    }
+   },
+   "testo": "Fermati: qui sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi è del II secolo. Lo hanno riportato alla luce a partire dalla fine dell'Ottocento. Resta la gradinata, resta l'orchestra, e accanto c'è l'odeon della città.",
+   "origini": [
+    "dopo-prima-stesura L2"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 42,
+   "citta": "Catania",
+   "nome": "Castello Ursino",
+   "fonti": {
+    "nome": "Castello Ursino",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Castello Ursino",
+     "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+    },
+    "google": {
+     "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+    }
+   },
+   "testo": "Fermati: questo castello lo ha costruito il re Federico II di Svevia, nel Duecento. Ai tempi dei Vespri siciliani è stato sede del parlamento siciliano. Poi ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+   "origini": [
+    "prima L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 43,
+   "citta": "Catania",
+   "nome": "Castello Ursino",
+   "fonti": {
+    "nome": "Castello Ursino",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Castello Ursino",
+     "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+    },
+    "google": {
+     "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+    }
+   },
+   "testo": "Fermati: questo castello lo ha costruito il re Federico II di Svevia, nel Duecento. Durante i Vespri siciliani qui ha riunito il parlamento siciliano. Poi ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+   "origini": [
+    "prima-prima-stesura L2"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 44,
+   "citta": "Catania",
+   "nome": "Castello Ursino",
+   "fonti": {
+    "nome": "Castello Ursino",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Castello Ursino",
+     "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+    },
+    "google": {
+     "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+    }
+   },
+   "testo": "Fermati: questo castello lo ha costruito Federico II di Svevia, nel Duecento. Durante i Vespri siciliani qui sedeva il parlamento siciliano. Poi ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 45,
+   "citta": "Catania",
+   "nome": "Fontana dell’Amenano",
+   "fonti": {
+    "nome": "Fontana dell’Amenano",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Amenano",
+     "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+    },
+    "google": {
+     "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+    }
+   },
+   "testo": "Fermati: questa fontana è del 1867. Sta sul lato sud di piazza del Duomo. È a opera di Tito Angelini, e ci trovi dei personaggi mitologici. Cerca anche lo stemma della città, inciso sulla fontana.",
+   "origini": [
+    "prima L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 46,
+   "citta": "Catania",
+   "nome": "Fontana dell’Amenano",
+   "fonti": {
+    "nome": "Fontana dell’Amenano",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Amenano",
+     "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+    },
+    "google": {
+     "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+    }
+   },
+   "testo": "Fermati: questa fontana è del 1867. Sta sul lato sud di piazza del Duomo. Il progetto è di Tito Angelini, e ci trovi dei personaggi mitologici. Cerca anche lo stemma della città, inciso sulla fontana.",
+   "origini": [
+    "prima-prima-stesura L2"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 47,
+   "citta": "Catania",
+   "nome": "Fontana dell’Amenano",
+   "fonti": {
+    "nome": "Fontana dell’Amenano",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Amenano",
+     "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+    },
+    "google": {
+     "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+    }
+   },
+   "testo": "Fermati: questa è la fontana dell'Amenano, del 1867. Sta sul lato sud di piazza del Duomo. Le statue sono personaggi mitologici, opera di Tito Angelini. Cerca lo stemma della città: è inciso lì.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 48,
+   "citta": "Catania",
+   "nome": "Piazza Giuseppe Mazzini",
+   "fonti": {
+    "nome": "Piazza Giuseppe Mazzini",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Piazza Mazzini (Catania)",
+     "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+    },
+    "google": null
+   },
+   "testo": "Qui una volta si chiamava Piano di San Filippo. Dopo il terremoto del 1693 la ricostruzione fu coordinata dal duca di Camastra, e questa piazza fu pensata come mercato. Lo spazio nasce dall'incrocio fra due strade, perciò ha il disegno a croce greca. Nei primi decenni del Settecento sono sorsi quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+   "origini": [
+    "prima L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 49,
+   "citta": "Catania",
+   "nome": "Piazza Giuseppe Mazzini",
+   "fonti": {
+    "nome": "Piazza Giuseppe Mazzini",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Piazza Mazzini (Catania)",
+     "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+    },
+    "google": null
+   },
+   "testo": "Fermati: questa piazza si chiamava Piano di San Filippo. Dopo il terremoto del 1693 il duca di Camastra, che coordinava e finanziava la ricostruzione, la pensò come mercato. Nasce dall'incrocio di due strade e ha il disegno di una croce greca. Nei primi decenni del Settecento sorsero quattro loggiati identici, ciascuno con 8 colonne di marmo bianco.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 50,
+   "citta": "Catania",
+   "nome": "Palazzo dei Chierici",
+   "fonti": {
+    "nome": "Palazzo dei Chierici",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Palazzo del Seminario dei Chierici",
+     "testo": "Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante."
+    },
+    "google": null
+   },
+   "testo": "Guarda: questo è il palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud della piazza del Duomo, con la Cattedrale di Sant'Agata proprio accanto. Di fronte c'è il Palazzo degli Elefanti, che fa da municipio anche lui. In mezzo alla piazza trovi la Fontana dell'Elefante.",
+   "origini": [
+    "prima L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 51,
+   "citta": "Catania",
+   "nome": "Palazzo dei Chierici",
+   "fonti": {
+    "nome": "Palazzo dei Chierici",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Palazzo del Seminario dei Chierici",
+     "testo": "Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante."
+    },
+    "google": null
+   },
+   "testo": "Fermati: questo è il palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud della piazza del Duomo. Accanto ha la Cattedrale di Sant'Agata. Di fronte c'è il Palazzo degli Elefanti, che è municipio anche lui.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 52,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Parti da Piazza del Duomo e vai verso nord, in linea retta fino al Tondo Gioeni. Sono circa 3 chilometri, tutti dritti. Lungo la strada trovi bar e monumenti barocchi. Guarda in fondo: da qui si vede l'Etna.",
+   "origini": [
+    "prima L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 53,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Parti da Piazza del Duomo e vai verso nord, in linea retta fino al Tondo Gioeni. Sono circa 3 chilometri, tutti dritti. Lungo la strada trovi bar, negozi e monumenti barocchi. Guarda in fondo: da qui si vede l'Etna.",
+   "origini": [
+    "prima-prima-stesura L2"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 54,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Questa è la via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 3 chilometri. Parte da Piazza del Duomo e arriva al Tondo Gioeni. Lungo la strada ci sono bar e monumenti barocchi.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 55,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Questa è la via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 3 chilometri. Parte da Piazza del Duomo e arriva al Tondo Gioeni. Lungo il percorso trovi negozi, bar e monumenti barocchi, con l'Etna in vista.",
+   "origini": [
+    "dopo-prima-stesura L2"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 56,
+   "citta": "Roma",
+   "nome": "Villa Sciarra",
+   "fonti": {
+    "nome": "Villa Sciarra",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Villa Sciarra (Roma)",
+     "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+    },
+    "google": {
+     "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+    }
+   },
+   "testo": "Siamo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, con le Mura gianicolensi proprio a ridosso del parco. Sono sette ettari e mezzo, e puoi entrare da due parti: da piazzale Wurts o da largo Filippo Minutilli. Piazzale Wurts porta il nome di George Washington Wurts, l'ultimo proprietario: a lui si deve la disposizione del giardino e dei monumenti che vedrai passeggiando. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.",
+   "origini": [
+    "prima L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 57,
+   "citta": "Roma",
+   "nome": "Villa Sciarra",
+   "fonti": {
+    "nome": "Villa Sciarra",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Villa Sciarra (Roma)",
+     "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+    },
+    "google": {
+     "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+    }
+   },
+   "testo": "Qui sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, addossato alle Mura gianicolensi. Sono sette ettari e mezzo di parco, con piccoli giardini, sculture, fontane e un'antica villa. Il giardino e i monumenti che trovi li ha disposti George Washington Wurts, l'ultimo proprietario, e da lui prende il nome il piazzale d'ingresso. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 58,
+   "citta": "Roma",
+   "nome": "Orto Botanico di Roma",
+   "fonti": {
+    "nome": "Orto Botanico di Roma",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Orto botanico di Roma",
+     "testo": "L'Orto botanico di Roma è situato alle pendici del Gianicolo, nell'antico parco di villa Corsini, un tempo residenza di Cristina di Svezia. La struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\"."
+    },
+    "google": {
+     "testo": "7.000 specie di piante da tutto il mondo, fontane, boschetto di bambù e giardino del tè giapponese."
+    }
+   },
+   "testo": "Fermati: sei alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia. Oggi l'Orto dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\". Dentro trovi 7.000 specie di piante da tutto il mondo, fontane, un boschetto di bambù e il giardino del tè giapponese.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 59,
+   "citta": "Roma",
+   "nome": "Il Palazzo dei Conservatori",
+   "fonti": {
+    "nome": "Il Palazzo dei Conservatori",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo dei Conservatori",
+     "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Il palazzo dei Conservatori e il Palazzo Nuovo, insieme al Tabularium, costituiscono attualmente la sede espositiva dei Musei Capitolini, tra i musei romani più rappresentativi e visitati."
+    },
+    "google": {
+     "testo": "Imponente struttura del XV secolo nei Musei Capitolini con statue, opere d'arte e affreschi."
+    }
+   },
+   "testo": "Fermati: siamo in piazza del Campidoglio, e questo è il Palazzo dei Conservatori. Sta a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Insieme al Palazzo Nuovo e al Tabularium forma la sede espositiva dei Musei Capitolini. È una struttura del XV secolo, con statue, opere d'arte e affreschi.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 60,
+   "citta": "Roma",
+   "nome": "Palazzo Massimo alle Colonne",
+   "fonti": {
+    "nome": "Palazzo Massimo alle Colonne",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo Massimo alle Colonne",
+     "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+    },
+    "google": {
+     "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+    }
+   },
+   "testo": "Fermati: questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Aperta solo il 16 marzo.",
+   "origini": [
+    "prima L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 61,
+   "citta": "Roma",
+   "nome": "Palazzo Massimo alle Colonne",
+   "fonti": {
+    "nome": "Palazzo Massimo alle Colonne",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo Massimo alle Colonne",
+     "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+    },
+    "google": {
+     "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+    }
+   },
+   "testo": "Guarda: questo è il Palazzo Massimo alle Colonne, un palazzo rinascimentale di Roma, e si affaccia su corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Il palazzo è aperto solo il 16 marzo.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 62,
+   "citta": "Roma",
+   "nome": "Palazzo Massimo alle Colonne",
+   "fonti": {
+    "nome": "Palazzo Massimo alle Colonne",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo Massimo alle Colonne",
+     "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+    },
+    "google": {
+     "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+    }
+   },
+   "testo": "Guarda: questo è il Palazzo Massimo alle Colonne, un palazzo rinascimentale di Roma, e si affaccia su corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. La cappella si apre solo il 16 marzo.",
+   "origini": [
+    "dopo-prima-stesura L2"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 63,
+   "citta": "Roma",
+   "nome": "Parco del Gianicolo",
+   "fonti": {
+    "nome": "Parco del Gianicolo",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Gianicolo",
+     "testo": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini)."
+    },
+    "google": {
+     "testo": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino."
+    }
+   },
+   "testo": "Sei sul Gianicolo: un colle alto 88 metri che non fa parte dei sette colli tradizionali di Roma. Giù, sul versante verso il fiume, c'è Trastevere. Da qui la vista va fino al centro storico e ai suoi monumenti, e più lontano ai Colli Albani e alle cime dell'Appennino centrale, come il Terminillo e il Velino.",
+   "origini": [
+    "prima L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 64,
+   "citta": "Roma",
+   "nome": "Parco del Gianicolo",
+   "fonti": {
+    "nome": "Parco del Gianicolo",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Gianicolo",
+     "testo": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini)."
+    },
+    "google": {
+     "testo": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino."
+    }
+   },
+   "testo": "Questo colle non è uno dei sette colli tradizionali di Roma. Sotto di te, sul versante verso il fiume, c'è Trastevere. Da quassù guardi i quartieri vicini e il centro storico coi suoi monumenti. Nelle giornate limpide la vista arriva ai Colli Albani e fino al Terminillo e al Velino.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 65,
+   "citta": "Roma",
+   "nome": "Piazza del Campidoglio",
+   "fonti": {
+    "nome": "Piazza del Campidoglio",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Piazza del Campidoglio",
+     "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+    },
+    "google": {
+     "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+    }
+   },
+   "testo": "Fermati: sei sulla cima del colle Campidoglio, e sotto i tuoi piedi c'è il Tabularium, quello che vedi dal Foro Romano. Già nel XII secolo era la sede del Comune. La piazza come la vedi oggi è del XVI secolo: Paolo III ne commissionò a Michelangelo il totale rifacimento, per la visita a Roma dell'imperatore Carlo V. Al centro c'è la statua di Marco Aurelio, e ci sono anche quelle del Tevere e del Nilo.",
+   "origini": [
+    "dopo L2"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 66,
+   "citta": "Catania",
+   "nome": "Basilica Cattedrale di Sant'Agata",
+   "fonti": {
+    "nome": "Basilica Cattedrale di Sant'Agata",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Cattedrale di Sant'Agata",
+     "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+    },
+    "google": {
+     "testo": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti."
+    }
+   },
+   "testo": "Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. La facciata ha le colonne, e dentro trovi la cupola, gli affreschi e i dipinti. Nello stesso edificio convivono stili diversi: il Normanno, il Barocco, il Neoclassico.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 67,
+   "citta": "Catania",
+   "nome": "Basilica Cattedrale di Sant'Agata",
+   "fonti": {
+    "nome": "Basilica Cattedrale di Sant'Agata",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Cattedrale di Sant'Agata",
+     "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+    },
+    "google": {
+     "testo": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti."
+    }
+   },
+   "testo": "Fermati: questa è la chiesa madre di Catania, dedicata a Sant'Agata, vergine e martire, patrona della città. Sorge sul lato sud-est di piazza del Duomo. Dentro conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 68,
+   "citta": "Catania",
+   "nome": "Fontana dell'Elefante (uʻ Liotru)",
+   "fonti": {
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Elefante",
+     "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+    },
+    "google": {
+     "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+    }
+   },
+   "testo": "Guarda l'elefante: è una statua di basalto nero, e qui lo chiamano U Liotru. La fontana è di Giovanni Battista Vaccarini, costruita tra il 1735 e il 1737 al centro di piazza del Duomo. Oggi l'elefante è l'emblema di Catania.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 69,
+   "citta": "Catania",
+   "nome": "Fontana dell'Elefante (uʻ Liotru)",
+   "fonti": {
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Elefante",
+     "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+    },
+    "google": {
+     "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+    }
+   },
+   "testo": "Guarda l'elefante: è una statua di basalto nero, e qui lo chiamano U Liotru. La statua è romana, scolpita nel basalto. La fontana è di Giovanni Battista Vaccarini, costruita tra il 1735 e il 1737 al centro di piazza del Duomo. Oggi l'elefante è l'emblema di Catania.",
+   "origini": [
+    "prima-prima-stesura L3"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 70,
+   "citta": "Catania",
+   "nome": "Fontana dell'Elefante (uʻ Liotru)",
+   "fonti": {
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Elefante",
+     "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+    },
+    "google": {
+     "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+    }
+   },
+   "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. Per tutti è l'emblema della città. La fontana l'ha fatta Giovanni Battista Vaccarini, tra il 1735 e il 1737, qui al centro di piazza del Duomo.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 71,
+   "citta": "Catania",
+   "nome": "Fontana dell'Elefante (uʻ Liotru)",
+   "fonti": {
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Elefante",
+     "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+    },
+    "google": {
+     "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+    }
+   },
+   "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. È una statua romana, e oggi è il simbolo della città. La fontana l'ha fatta Giovanni Battista Vaccarini, tra il 1735 e il 1737, qui al centro di piazza del Duomo.",
+   "origini": [
+    "dopo-prima-stesura L3"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 72,
+   "citta": "Catania",
+   "nome": "Teatro Antico greco-romano di Catania",
+   "fonti": {
+    "nome": "Teatro Antico greco-romano di Catania",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Teatro greco-romano di Catania",
+     "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+    },
+    "google": {
+     "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+    }
+   },
+   "testo": "Sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Quello che vedi risale al II secolo. È stato messo in luce solo dalla fine dell'Ottocento. Cerca la gradinata e l'orchestra: sono ancora lì.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 73,
+   "citta": "Catania",
+   "nome": "Teatro Antico greco-romano di Catania",
+   "fonti": {
+    "nome": "Teatro Antico greco-romano di Catania",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Teatro greco-romano di Catania",
+     "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+    },
+    "google": {
+     "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+    }
+   },
+   "testo": "Sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi oggi risale al II secolo. È venuto alla luce a partire dalla fine dell'Ottocento. Qui restano la gradinata e l'orchestra.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 74,
+   "citta": "Catania",
+   "nome": "Teatro Antico greco-romano di Catania",
+   "fonti": {
+    "nome": "Teatro Antico greco-romano di Catania",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Teatro greco-romano di Catania",
+     "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+    },
+    "google": {
+     "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+    }
+   },
+   "testo": "Sei nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi oggi risale al II secolo. È venuto alla luce a partire dalla fine dell'Ottocento. Cerca la gradinata e l'orchestra, e accanto, a est, c'è l'odeon della città.",
+   "origini": [
+    "dopo-prima-stesura L3"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 75,
+   "citta": "Catania",
+   "nome": "Castello Ursino",
+   "fonti": {
+    "nome": "Castello Ursino",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Castello Ursino",
+     "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+    },
+    "google": {
+     "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+    }
+   },
+   "testo": "Fermati: questo castello l'ha costruito Federico II di Svevia nel XIII secolo. Durante i Vespri siciliani è stato la sede del parlamento siciliano, e dopo è diventato la residenza dei re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini. Cerca anche i carri dipinti.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 76,
+   "citta": "Catania",
+   "nome": "Castello Ursino",
+   "fonti": {
+    "nome": "Castello Ursino",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Castello Ursino",
+     "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+    },
+    "google": {
+     "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+    }
+   },
+   "testo": "Fermati: questo castello lo ha fatto costruire Federico II di Svevia, nel Duecento. Durante i Vespri siciliani è stato sede del parlamento siciliano. Poi ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 77,
+   "citta": "Catania",
+   "nome": "Fontana dell’Amenano",
+   "fonti": {
+    "nome": "Fontana dell’Amenano",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Amenano",
+     "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+    },
+    "google": {
+     "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+    }
+   },
+   "testo": "Guarda, siamo sul lato sud di piazza del Duomo. Questa fontana è del 1867. L'ha fatta Tito Angelini, con personaggi mitologici e lo stemma della città inciso.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 78,
+   "citta": "Catania",
+   "nome": "Fontana dell’Amenano",
+   "fonti": {
+    "nome": "Fontana dell’Amenano",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Amenano",
+     "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+    },
+    "google": {
+     "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+    }
+   },
+   "testo": "Fermati: questa fontana è del 1867. Sta sul lato sud di piazza del Duomo. È una fontana barocca, con personaggi mitologici. L'ha fatta Tito Angelini, e c'è anche lo stemma della città inciso.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 79,
+   "citta": "Catania",
+   "nome": "Piazza Giuseppe Mazzini",
+   "fonti": {
+    "nome": "Piazza Giuseppe Mazzini",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Piazza Mazzini (Catania)",
+     "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+    },
+    "google": null
+   },
+   "testo": "Qui prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693 il duca di Camastra, che coordinò e finanziò la ricostruzione, la pensò come mercato. Guarda come è fatta: nasce dall'incrocio di due strade, e ha il disegno di una croce greca. Nei primi decenni del Settecento ci hanno messo quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 80,
+   "citta": "Catania",
+   "nome": "Piazza Giuseppe Mazzini",
+   "fonti": {
+    "nome": "Piazza Giuseppe Mazzini",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Piazza Mazzini (Catania)",
+     "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+    },
+    "google": null
+   },
+   "testo": "Fermati: questa piazza all'inizio si chiamava Piano di San Filippo. Dopo il terremoto del 1693 il duca di Camastra, che coordinava e finanziava la ricostruzione, la pensò come mercato. Nasce dall'incrocio di due strade e ha un disegno a croce greca. Nei primi decenni del Settecento sono sorsi quattro loggiati identici, ognuno con 8 colonne in marmo bianco.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 81,
+   "citta": "Catania",
+   "nome": "Palazzo dei Chierici",
+   "fonti": {
+    "nome": "Palazzo dei Chierici",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Palazzo del Seminario dei Chierici",
+     "testo": "Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante."
+    },
+    "google": null
+   },
+   "testo": "Fermati: questo è il palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud della piazza del Duomo. Accanto ha la Cattedrale di Sant'Agata. Anche il Palazzo degli Elefanti, di fronte, fa da municipio.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 82,
+   "citta": "Catania",
+   "nome": "Palazzo dei Chierici",
+   "fonti": {
+    "nome": "Palazzo dei Chierici",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Palazzo del Seminario dei Chierici",
+     "testo": "Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante."
+    },
+    "google": null
+   },
+   "testo": "Fermati: questo è il palazzo del Seminario dei Chierici, un edificio storico di Catania. Oggi fa da municipio. Sta sul lato sud di piazza del Duomo, con la Cattedrale di Sant'Agata accanto. Al centro della piazza c'è la Fontana dell'Elefante.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 83,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Parti da Piazza del Duomo: da lì la via Etnea va dritta verso nord, senza una curva. Sono circa 3 chilometri, fino al Tondo Gioeni. Lungo la strada trovi bar, negozi e monumenti barocchi. Guarda in fondo alla strada: da qui si vede l'Etna.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 84,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Questa è la via Etnea, la strada principale del centro storico. Parte da Piazza del Duomo e corre dritta verso nord, per circa 3 chilometri, fino al Tondo Gioeni. Qui trovi bar e monumenti barocchi, con la vista sull'Etna.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 85,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Questa è la via Etnea, la strada principale del centro storico. Parte da Piazza del Duomo e corre dritta verso nord, per circa 3 chilometri, fino al Tondo Gioeni. Lungo la strada trovi negozi, bar e monumenti barocchi, e in fondo si vede l'Etna.",
+   "origini": [
+    "dopo-prima-stesura L3"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 86,
+   "citta": "Roma",
+   "nome": "Villa Sciarra",
+   "fonti": {
+    "nome": "Villa Sciarra",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Villa Sciarra (Roma)",
+     "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+    },
+    "google": {
+     "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+    }
+   },
+   "testo": "Sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, con le Mura gianicolensi lì accanto. Sono sette ettari e mezzo di parco, con piccoli giardini, sculture, fontane e un'antica villa. Il nome viene dalla famiglia nobile pontificia degli Sciarra. Ma la disposizione del giardino e dei monumenti si deve all'ultimo proprietario, George Washington Wurts, e il piazzale da cui entri porta il suo nome.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 87,
+   "citta": "Roma",
+   "nome": "Villa Sciarra",
+   "fonti": {
+    "nome": "Villa Sciarra",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Villa Sciarra (Roma)",
+     "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+    },
+    "google": {
+     "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+    }
+   },
+   "testo": "Qui sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, addossato alle Mura gianicolensi. Sono sette ettari e mezzo di giardini piccoli, con sculture, fontane e un'antica villa. Il nome viene dalla famiglia nobile pontificia degli Sciarra. Ma la disposizione del giardino e dei monumenti si deve all'ultimo proprietario, George Washington Wurts, e a lui è intitolato il piazzale d'ingresso.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 88,
+   "citta": "Roma",
+   "nome": "Orto Botanico di Roma",
+   "fonti": {
+    "nome": "Orto Botanico di Roma",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Orto botanico di Roma",
+     "testo": "L'Orto botanico di Roma è situato alle pendici del Gianicolo, nell'antico parco di villa Corsini, un tempo residenza di Cristina di Svezia. La struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\"."
+    },
+    "google": {
+     "testo": "7.000 specie di piante da tutto il mondo, fontane, boschetto di bambù e giardino del tè giapponese."
+    }
+   },
+   "testo": "Fermati: sei alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia. Oggi la struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\". Dentro trovi 7.000 specie di piante da tutto il mondo, fontane, un boschetto di bambù e il giardino del tè giapponese.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 89,
+   "citta": "Roma",
+   "nome": "Il Palazzo dei Conservatori",
+   "fonti": {
+    "nome": "Il Palazzo dei Conservatori",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo dei Conservatori",
+     "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Il palazzo dei Conservatori e il Palazzo Nuovo, insieme al Tabularium, costituiscono attualmente la sede espositiva dei Musei Capitolini, tra i musei romani più rappresentativi e visitati."
+    },
+    "google": {
+     "testo": "Imponente struttura del XV secolo nei Musei Capitolini con statue, opere d'arte e affreschi."
+    }
+   },
+   "testo": "Guarda: il Palazzo dei Conservatori sta in piazza del Campidoglio. Ha il Palazzo Senatorio accanto e il Palazzo Nuovo di fronte. Insieme al Palazzo Nuovo e al Tabularium, oggi è la sede espositiva dei Musei Capitolini. Dentro trovi statue, opere d'arte e affreschi, in una struttura del XV secolo.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 90,
+   "citta": "Roma",
+   "nome": "Il Palazzo dei Conservatori",
+   "fonti": {
+    "nome": "Il Palazzo dei Conservatori",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo dei Conservatori",
+     "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Il palazzo dei Conservatori e il Palazzo Nuovo, insieme al Tabularium, costituiscono attualmente la sede espositiva dei Musei Capitolini, tra i musei romani più rappresentativi e visitati."
+    },
+    "google": {
+     "testo": "Imponente struttura del XV secolo nei Musei Capitolini con statue, opere d'arte e affreschi."
+    }
+   },
+   "testo": "Fermati: questo è il Palazzo dei Conservatori, in piazza del Campidoglio. Sta a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Insieme al Palazzo Nuovo e al Tabularium forma la sede espositiva dei Musei Capitolini. Dentro trovi statue, opere d'arte e affreschi.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 91,
+   "citta": "Roma",
+   "nome": "Palazzo Massimo alle Colonne",
+   "fonti": {
+    "nome": "Palazzo Massimo alle Colonne",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo Massimo alle Colonne",
+     "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+    },
+    "google": {
+     "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+    }
+   },
+   "testo": "Fermati: questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Il palazzo è aperto solo il 16 marzo.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 92,
+   "citta": "Roma",
+   "nome": "Palazzo Massimo alle Colonne",
+   "fonti": {
+    "nome": "Palazzo Massimo alle Colonne",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo Massimo alle Colonne",
+     "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+    },
+    "google": {
+     "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+    }
+   },
+   "testo": "Fermati: questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. Aperta solo il 16 marzo, quindi guarda bene da fuori.",
+   "origini": [
+    "prima-prima-stesura L3"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 93,
+   "citta": "Roma",
+   "nome": "Palazzo Massimo alle Colonne",
+   "fonti": {
+    "nome": "Palazzo Massimo alle Colonne",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo Massimo alle Colonne",
+     "testo": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II."
+    },
+    "google": {
+     "testo": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo."
+    }
+   },
+   "testo": "Guarda: questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Dentro c'è una cappella legata a un presunto miracolo del XVI secolo. La puoi visitare solo il 16 marzo.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 94,
+   "citta": "Roma",
+   "nome": "Parco del Gianicolo",
+   "fonti": {
+    "nome": "Parco del Gianicolo",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Gianicolo",
+     "testo": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini)."
+    },
+    "google": {
+     "testo": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino."
+    }
+   },
+   "testo": "Sei sul Gianicolo, un colle alto 88 metri che non fa parte dei sette colli tradizionali di Roma. Sotto di te, sul versante verso il fiume, c'è Trastevere. Da qui la vista arriva al centro storico e ai suoi monumenti, poi ai Colli Albani e fino a Terminillo, Velino e Monti Simbruini.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 95,
+   "citta": "Roma",
+   "nome": "Parco del Gianicolo",
+   "fonti": {
+    "nome": "Parco del Gianicolo",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Gianicolo",
+     "testo": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini)."
+    },
+    "google": {
+     "testo": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino."
+    }
+   },
+   "testo": "Sei sul Gianicolo, un colle alto 88 metri che non fa parte dei sette colli tradizionali di Roma. Ai suoi piedi, sul versante verso il fiume, c'è Trastevere. Da qui la vista arriva sul centro storico e sui maggiori monumenti della città, e più lontano fino ai Colli Albani e al Terminillo.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 96,
+   "citta": "Roma",
+   "nome": "Piazza del Campidoglio",
+   "fonti": {
+    "nome": "Piazza del Campidoglio",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Piazza del Campidoglio",
+     "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+    },
+    "google": {
+     "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+    }
+   },
+   "testo": "Fermati: sei sulla cima del colle Campidoglio, e questa piazza l'ha progettata Michelangelo. Paolo III gliela commissionò per la visita a Roma dell'imperatore Carlo V. Sotto la piazza si trova il Tabularium, visibile dal Foro Romano. Al centro della piazza c'è la statua di Marco Aurelio.",
+   "origini": [
+    "prima L3"
+   ],
+   "giudizioProd": [
+    "passato"
+   ]
+  },
+  {
+   "id": 97,
+   "citta": "Roma",
+   "nome": "Piazza del Campidoglio",
+   "fonti": {
+    "nome": "Piazza del Campidoglio",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Piazza del Campidoglio",
+     "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+    },
+    "google": {
+     "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+    }
+   },
+   "testo": "Fermati: sei sulla cima del colle Campidoglio, e questa piazza l'ha progettata Michelangelo. Paolo III gliela commissionò per la visita a Roma dell'imperatore Carlo V. Sotto i tuoi piedi c'è il Tabularium, che dal Foro Romano si vede bene. Al centro della piazza c'è la statua di Marco Aurelio.",
+   "origini": [
+    "prima-prima-stesura L3"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 98,
+   "citta": "Roma",
+   "nome": "Piazza del Campidoglio",
+   "fonti": {
+    "nome": "Piazza del Campidoglio",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Piazza del Campidoglio",
+     "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+    },
+    "google": {
+     "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+    }
+   },
+   "testo": "Sei sulla cima del colle Campidoglio, in una piazza che sorge sull'Asylum, la depressione tra l'Arx e il Capitolium. Sotto i tuoi piedi c'è il Tabularium, e lo vedi dal Foro Romano. Nel XII secolo l'avevano scelto come sede del Comune. La piazza di oggi è del XVI secolo: Paolo III ne affidò il rifacimento a Michelangelo, per la visita a Roma di Carlo V.",
+   "origini": [
+    "dopo L3"
+   ],
+   "giudizioProd": [
+    "scartato"
+   ]
+  },
+  {
+   "id": 99,
+   "citta": "Catania",
+   "nome": "Fontana dell'Elefante (uʻ Liotru)",
+   "fonti": {
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Elefante",
+     "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+    },
+    "google": {
+     "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+    }
+   },
+   "origini": [
+    "caso noto produzione (collaudo-sito-p5-r5)"
+   ],
+   "giudizioProd": [
+    "passato"
+   ],
+   "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano U Liotru. Sopra la fontana l'ha messa Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi quell'elefante è l'emblema di Catania."
+  },
+  {
+   "id": 100,
+   "citta": "Catania",
+   "nome": "Fontana dell'Elefante (uʻ Liotru)",
+   "fonti": {
+    "nome": "Fontana dell'Elefante (uʻ Liotru)",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Elefante",
+     "testo": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana."
+    },
+    "google": {
+     "testo": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città."
+    }
+   },
+   "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano u Liotru. Sta al centro di piazza del Duomo, davanti al municipio ed è l'emblema della città. La fontana l'ha costruita Giovanni Battista Vaccarini tra il 1735 e il 1737.",
+   "origini": [
+    "iniezione su 2"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 2
+  },
+  {
+   "id": 101,
+   "citta": "Catania",
+   "nome": "Piazza Giuseppe Mazzini",
+   "fonti": {
+    "nome": "Piazza Giuseppe Mazzini",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Piazza Mazzini (Catania)",
+     "testo": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo.\nDopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati.\nCosì, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali. Tali colonne furono recuperate da delle rovine di epoca romana, in particolare dai resti di una Basilica, sita ai tempi nei pressi dell'odierna Chiesa di Sant'Agostino, al quale fu poi annesso un Convento, e del Cortile San Pantaleone, dove si trovava il Foro romano di Catania. Esse furono messe in opera su eleganti plinti cubici in pietra lavica e su di queste furono sviluppate arcate a tutto sesto che, a loro volta, reggono i terrazzi dei palazzi nobiliari. \nQuesti edifici (Palazzo Scammacca della Bruca a nord-est, Palazzo Asmundo di Gisira a sud-est, Palazzo Peratoner a sud-ovest e Palazzo Gagliani a nord-ovest) avrebbero dovuto tutti adeguarsi stilisticamente alle carte progettuali del XVIII secolo, e invece, a partire dal XIX secolo, tre dei quattro palazzi subirono modifiche ai secondi piani, dotati di finestre balconate quando avrebbero dovuto essere semplici cornici quadre, e agli intonaci, che passarono dal grigio catanese al rosa. Solo Palazzo Scammacca della Bruca, il primo dei quattro ad essere stato realizzato, rimase del tutto fedele all'originario disegno e si presenta così ancora oggi. \nBisogna precisare che detti cambiamenti furono abbastanza marginali guardando all'aspetto complessivo della sistemazione della piazza, in quanto essa appare ancora oggi estremamente omogenea e simmetrica nelle sue parti. Resta il fatto che i mercati storici di Catania sono ubicati altrove: a parte quello storico della \"Fèra o Lùni\" in Piazza Carlo Alberto, a nord-est di Piazza Stesicoro, vi è quello principale della Pescheria in Piazza Alonzo Di Benedetto, a sud-ovest di Piazza del Duomo, relativamente vicina a piazza Mazzini, la quale, molto probabilmente a causa dello sviluppo progressivo della città etnea e della crescita della sua popolazione, divenne troppo piccola per l'esercizio del suo stesso mercato, ovvero la \"Fiera dei Morti\", oggi tenuta invece in piazza Mercato Ortofrutticolo, nel quartiere San Giuseppe la Rena."
+    },
+    "google": null
+   },
+   "testo": "Fermati: questa piazza prima si chiamava Piano di San Filippo. Dopo il terremoto del 1693, il duca di Camastra, che coordinava e finanziava la ricostruzione, la pensò come mercato. Nasce dall'incrocio di due strade, e ha il disegno a croce greca. Nei primi decenni del Settecento sono sorti quattro loggiati identici, ognuno con 8 colonne in marmo bianco, prese dal teatro romano.",
+   "origini": [
+    "iniezione su 13"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 13
+  },
+  {
+   "id": 102,
+   "citta": "Catania",
+   "nome": "Castello Ursino",
+   "fonti": {
+    "nome": "Castello Ursino",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Castello Ursino",
+     "testo": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini."
+    },
+    "google": {
+     "testo": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti."
+    }
+   },
+   "testo": "Fermati: questo castello lo fece costruire Federico II di Svevia, nel Duecento. Durante i Vespri siciliani ha ospitato il parlamento siciliano, poi è stato residenza dei re aragonesi, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini. Cerca anche i carri dipinti. Dalle mura si vede il mare.",
+   "origini": [
+    "iniezione su 6"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 6
+  },
+  {
+   "id": 103,
+   "citta": "Catania",
+   "nome": "Palazzo dei Chierici",
+   "fonti": {
+    "nome": "Palazzo dei Chierici",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Palazzo del Seminario dei Chierici",
+     "testo": "Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante."
+    },
+    "google": null
+   },
+   "testo": "Fermati: questo è il palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud della piazza del Duomo, con la Cattedrale di Sant'Agata accanto. Anche il Palazzo degli Elefanti, qui in piazza, è un municipio. In mezzo ai due palazzi c'è la Fontana dell'Elefante, e sul portone c'è uno stemma di marmo.",
+   "origini": [
+    "iniezione su 14"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 14
+  },
+  {
+   "id": 104,
+   "citta": "Roma",
+   "nome": "Orto Botanico di Roma",
+   "fonti": {
+    "nome": "Orto Botanico di Roma",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Orto botanico di Roma",
+     "testo": "L'Orto botanico di Roma è situato alle pendici del Gianicolo, nell'antico parco di villa Corsini, un tempo residenza di Cristina di Svezia. La struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\"."
+    },
+    "google": {
+     "testo": "7.000 specie di piante da tutto il mondo, fontane, boschetto di bambù e giardino del tè giapponese."
+    }
+   },
+   "testo": "Fermati: siamo alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo era la residenza di Cristina di Svezia, che qui teneva la sua biblioteca. Oggi qui crescono 7.000 specie di piante da tutto il mondo. Ci sono le fontane, un boschetto di bambù e il giardino del tè giapponese.",
+   "origini": [
+    "iniezione su 22"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 22
+  },
+  {
+   "id": 105,
+   "citta": "Roma",
+   "nome": "Il Palazzo dei Conservatori",
+   "fonti": {
+    "nome": "Il Palazzo dei Conservatori",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Palazzo dei Conservatori",
+     "testo": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Il palazzo dei Conservatori e il Palazzo Nuovo, insieme al Tabularium, costituiscono attualmente la sede espositiva dei Musei Capitolini, tra i musei romani più rappresentativi e visitati."
+    },
+    "google": {
+     "testo": "Imponente struttura del XV secolo nei Musei Capitolini con statue, opere d'arte e affreschi."
+    }
+   },
+   "testo": "Fermati: questo è il Palazzo dei Conservatori, in piazza del Campidoglio. Sta accanto al Palazzo Senatorio. Insieme al Palazzo Nuovo e al Tabularium, oggi ospita i Musei Capitolini. La struttura è del XV secolo, e dentro trovi statue, opere d'arte, affreschi e la Lupa capitolina.",
+   "origini": [
+    "iniezione su 23"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 23
+  },
+  {
+   "id": 106,
+   "citta": "Roma",
+   "nome": "Parco del Gianicolo",
+   "fonti": {
+    "nome": "Parco del Gianicolo",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Gianicolo",
+     "testo": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini)."
+    },
+    "google": {
+     "testo": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino."
+    }
+   },
+   "testo": "Sei sul Gianicolo, un colle alto 88 metri che non fa parte dei sette colli tradizionali di Roma. Sotto di te, sul versante verso il fiume, c'è Trastevere. Da qui la vista arriva al centro storico e ai suoi monumenti, poi ai Colli Albani e fino a Terminillo, Velino e Monti Simbruini. A mezzogiorno qui spara il cannone.",
+   "origini": [
+    "iniezione su 94"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 94
+  },
+  {
+   "id": 107,
+   "citta": "Catania",
+   "nome": "Fontana dell’Amenano",
+   "fonti": {
+    "nome": "Fontana dell’Amenano",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Amenano",
+     "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+    },
+    "google": {
+     "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+    }
+   },
+   "testo": "Fermati qui, sul lato sud di piazza del Duomo. Questa fontana è del 1867, rifatta dopo il terremoto. È una fontana barocca con personaggi mitologici, opera di Tito Angelini. C'è anche lo stemma della città, inciso.",
+   "origini": [
+    "iniezione su 9"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 9
+  },
+  {
+   "id": 108,
+   "citta": "Catania",
+   "nome": "Teatro Antico greco-romano di Catania",
+   "fonti": {
+    "nome": "Teatro Antico greco-romano di Catania",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Teatro greco-romano di Catania",
+     "testo": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città"
+    },
+    "google": {
+     "testo": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra."
+    }
+   },
+   "testo": "Fermati: siamo in pieno centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi oggi risale al II secolo. È tornato alla luce a partire dalla fine dell'Ottocento, dopo secoli sotto le case. A est confina con l'odeon della città.",
+   "origini": [
+    "iniezione su 4"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 4
+  },
+  {
+   "id": 109,
+   "citta": "Catania",
+   "nome": "Basilica Cattedrale di Sant'Agata",
+   "fonti": {
+    "nome": "Basilica Cattedrale di Sant'Agata",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Cattedrale di Sant'Agata",
+     "testo": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia.\nLa cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico."
+    },
+    "google": {
+     "testo": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti."
+    }
+   },
+   "testo": "Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. La facciata ha le colonne bianche, e dentro ci sono affreschi e dipinti. Nella cattedrale convivono stili diversi: dal Normanno al Barocco, fino al Neoclassico.",
+   "origini": [
+    "iniezione su 34"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 34
+  },
+  {
+   "id": 110,
+   "citta": "Roma",
+   "nome": "Piazza del Campidoglio",
+   "fonti": {
+    "nome": "Piazza del Campidoglio",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Piazza del Campidoglio",
+     "testo": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo."
+    },
+    "google": {
+     "testo": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano."
+    }
+   },
+   "testo": "Fermati: la piazza è in cima al colle Campidoglio, e a progettarla fu Michelangelo. Già nel XII secolo il Tabularium era stato scelto come sede del Comune. Fu Paolo III a commissionare il rifacimento a Michelangelo, per la visita a Roma dell'imperatore Carlo V. Al centro della piazza c'è la statua equestre di Marco Aurelio, e ci sono anche quelle del Tevere e del Nilo.",
+   "origini": [
+    "iniezione su 31"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 31
+  },
+  {
+   "id": 111,
+   "citta": "Roma",
+   "nome": "Villa Sciarra",
+   "fonti": {
+    "nome": "Villa Sciarra",
+    "citta": "Roma",
+    "wikipedia": {
+     "titolo": "Villa Sciarra (Roma)",
+     "testo": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra."
+    },
+    "google": {
+     "testo": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa."
+    }
+   },
+   "testo": "Siamo sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, in sette ettari e mezzo di verde. Qui il giardino ha la disposizione che gli ha dato George Washington Wurts, l'ultimo proprietario, un americano, e a lui si deve anche la collocazione dei monumenti. Uno dei due ingressi è su piazzale Wurts, progettato da Pio Piacentini, e il piazzale prende il nome proprio da lui. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.",
+   "origini": [
+    "iniezione su 19"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 19
+  },
+  {
+   "id": 112,
+   "citta": "Catania",
+   "nome": "Via Etnea",
+   "fonti": {
+    "nome": "Via Etnea",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Via Etnea",
+     "testo": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni."
+    },
+    "google": {
+     "testo": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna."
+    }
+   },
+   "testo": "Questa è la via Etnea, la strada principale del centro storico. Corre dritta da sud a nord, per circa 5 chilometri. Parte da Piazza del Duomo e arriva al Tondo Gioeni. Lungo la strada ci sono bar e monumenti barocchi.",
+   "origini": [
+    "iniezione su 54"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 54
+  },
+  {
+   "id": 113,
+   "citta": "Catania",
+   "nome": "Fontana dell’Amenano",
+   "fonti": {
+    "nome": "Fontana dell’Amenano",
+    "citta": "Catania",
+    "wikipedia": {
+     "titolo": "Fontana dell'Amenano",
+     "testo": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia."
+    },
+    "google": {
+     "testo": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino."
+    }
+   },
+   "testo": "Guarda, siamo sul lato sud di piazza del Duomo. Questa fontana è del 1867. L'ha fatta Tito Angelini, scultore catanese, con personaggi mitologici e lo stemma della città inciso.",
+   "origini": [
+    "iniezione su 77"
+   ],
+   "giudizioProd": [],
+   "sintetico": true,
+   "base": 77
+  }
+ ]
+}

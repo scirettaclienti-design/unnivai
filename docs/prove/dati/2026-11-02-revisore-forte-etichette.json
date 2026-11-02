@@ -1,0 +1,405 @@
+{
+ "nota": "Etichette lette a mano da Claude sul testo e sulle fonti: F fedele, S sfumatura senza fatto nuovo, I invenzione (un fatto che le fonti non dicono). Criterio: conta solo cosa è scritto nelle fonti (come il revisore). Le etichette sono state scritte prima di vedere i verdetti; tre (61, 91, 67) sono state riclassificate da F a S dopo aver letto il motivo di Sonnet, e la nota lo dice.",
+ "etichette": {
+  "1": {
+   "v": "S",
+   "nota": "«chiesa madre di Catania»: le fonti dicono chiesa madre dell'arcidiocesi"
+  },
+  "2": {
+   "v": "F"
+  },
+  "3": {
+   "v": "F"
+  },
+  "4": {
+   "v": "F"
+  },
+  "5": {
+   "v": "F"
+  },
+  "6": {
+   "v": "F"
+  },
+  "7": {
+   "v": "F"
+  },
+  "8": {
+   "v": "I",
+   "nota": "«Sopra ci sono personaggi mitologici»: «sopra» non c'è"
+  },
+  "9": {
+   "v": "F"
+  },
+  "10": {
+   "v": "I",
+   "nota": "«Sopra c'è un'opera di Tito Angelini»: «sopra» non c'è"
+  },
+  "11": {
+   "v": "F"
+  },
+  "12": {
+   "v": "S",
+   "nota": "«guidava la ricostruzione» (le fonti: coordinatore e finanziatore)"
+  },
+  "13": {
+   "v": "F"
+  },
+  "14": {
+   "v": "F"
+  },
+  "15": {
+   "v": "S",
+   "nota": "«negozi» (Google: strada dello shopping)"
+  },
+  "16": {
+   "v": "S",
+   "nota": "«negozi», «alzando gli occhi vedi l'Etna»"
+  },
+  "17": {
+   "v": "S",
+   "nota": "«senza una curva»"
+  },
+  "18": {
+   "v": "S",
+   "nota": "«negozi»"
+  },
+  "19": {
+   "v": "F"
+  },
+  "20": {
+   "v": "I",
+   "nota": "«il piazzale da cui entri»: le fonti dànno due ingressi"
+  },
+  "21": {
+   "v": "I",
+   "nota": "«il piazzale dove sei»: le fonti dànno due ingressi"
+  },
+  "22": {
+   "v": "F"
+  },
+  "23": {
+   "v": "F"
+  },
+  "24": {
+   "v": "F"
+  },
+  "25": {
+   "v": "S",
+   "nota": "la cappella «è aperta» (Google: il palazzo è aperto solo il 16 marzo)"
+  },
+  "26": {
+   "v": "S",
+   "nota": "cappella aperta solo il 16 marzo + «la trovi chiusa»"
+  },
+  "27": {
+   "v": "S",
+   "nota": "«È aperto» dopo la cappella: soggetto ambiguo"
+  },
+  "28": {
+   "v": "S",
+   "nota": "«Aprono solo il 16 marzo»"
+  },
+  "29": {
+   "v": "S",
+   "nota": "«più su di qui non si va»: le fonti dànno 88 m come massimo, non dicono che si è in cima"
+  },
+  "30": {
+   "v": "S",
+   "nota": "«sei su un colle alto 88 metri» (altezza massima)"
+  },
+  "31": {
+   "v": "F"
+  },
+  "32": {
+   "v": "S",
+   "nota": "«dal XII secolo era la sede» (le fonti: già nel XII secolo era stato scelto)"
+  },
+  "33": {
+   "v": "S",
+   "nota": "«sotto i tuoi piedi»"
+  },
+  "34": {
+   "v": "F"
+  },
+  "35": {
+   "v": "S",
+   "nota": "«sopra sale la cupola»: Google dice solo «cupola»"
+  },
+  "36": {
+   "v": "F"
+  },
+  "37": {
+   "v": "F"
+  },
+  "38": {
+   "v": "F"
+  },
+  "39": {
+   "v": "S",
+   "nota": "«com'era nel II secolo»"
+  },
+  "40": {
+   "v": "F"
+  },
+  "41": {
+   "v": "S",
+   "nota": "«Resta la gradinata, resta l'orchestra»"
+  },
+  "42": {
+   "v": "F"
+  },
+  "43": {
+   "v": "S",
+   "nota": "«qui ha riunito il parlamento» (le fonti: sede)"
+  },
+  "44": {
+   "v": "F"
+  },
+  "45": {
+   "v": "F"
+  },
+  "46": {
+   "v": "S",
+   "nota": "«Il progetto è di» invece di «a opera di»"
+  },
+  "47": {
+   "v": "S",
+   "nota": "«Le statue sono personaggi mitologici»: «statue» non c'è"
+  },
+  "48": {
+   "v": "F"
+  },
+  "49": {
+   "v": "F"
+  },
+  "50": {
+   "v": "F"
+  },
+  "51": {
+   "v": "F"
+  },
+  "52": {
+   "v": "S",
+   "nota": "«tutti dritti», «in fondo»"
+  },
+  "53": {
+   "v": "S",
+   "nota": "«negozi», «in fondo»"
+  },
+  "54": {
+   "v": "F"
+  },
+  "55": {
+   "v": "S",
+   "nota": "«negozi», «con l'Etna in vista»"
+  },
+  "56": {
+   "v": "F"
+  },
+  "57": {
+   "v": "S",
+   "nota": "«il piazzale d'ingresso» (uno dei due ingressi)"
+  },
+  "58": {
+   "v": "F"
+  },
+  "59": {
+   "v": "F"
+  },
+  "60": {
+   "v": "S",
+   "nota": "cappella «aperta solo il 16 marzo»"
+  },
+  "61": {
+   "v": "S",
+   "nota": "«Dentro c'è una cappella» (le fonti: palazzo con cappella; «dentro» è una deduzione) — F nella prima lettura, riletta come S dopo aver visto il motivo di Sonnet"
+  },
+  "62": {
+   "v": "S",
+   "nota": "«La cappella si apre solo il 16 marzo»"
+  },
+  "63": {
+   "v": "F"
+  },
+  "64": {
+   "v": "I",
+   "nota": "«Nelle giornate limpide»: non c'è"
+  },
+  "65": {
+   "v": "S",
+   "nota": "«sotto i tuoi piedi»"
+  },
+  "66": {
+   "v": "F"
+  },
+  "67": {
+   "v": "S",
+   "nota": "«Dentro conserva stili differenti» (le fonti: la cattedrale conserva stili) — F nella prima lettura, riletta come S dopo aver visto il motivo di Sonnet"
+  },
+  "68": {
+   "v": "F"
+  },
+  "69": {
+   "v": "F"
+  },
+  "70": {
+   "v": "S",
+   "nota": "«Per tutti è l'emblema»"
+  },
+  "71": {
+   "v": "F"
+  },
+  "72": {
+   "v": "S",
+   "nota": "«solo dalla fine dell'Ottocento»"
+  },
+  "73": {
+   "v": "S",
+   "nota": "«Qui restano»"
+  },
+  "74": {
+   "v": "F"
+  },
+  "75": {
+   "v": "F"
+  },
+  "76": {
+   "v": "F"
+  },
+  "77": {
+   "v": "F"
+  },
+  "78": {
+   "v": "F"
+  },
+  "79": {
+   "v": "S",
+   "nota": "«ci hanno messo quattro loggiati»"
+  },
+  "80": {
+   "v": "F"
+  },
+  "81": {
+   "v": "F"
+  },
+  "82": {
+   "v": "F"
+  },
+  "83": {
+   "v": "S",
+   "nota": "«senza una curva», «in fondo alla strada»"
+  },
+  "84": {
+   "v": "F"
+  },
+  "85": {
+   "v": "S",
+   "nota": "«negozi», «in fondo si vede l'Etna»"
+  },
+  "86": {
+   "v": "I",
+   "nota": "«il piazzale da cui entri»: le fonti dànno due ingressi"
+  },
+  "87": {
+   "v": "S",
+   "nota": "«il piazzale d'ingresso» (uno dei due)"
+  },
+  "88": {
+   "v": "F"
+  },
+  "89": {
+   "v": "F"
+  },
+  "90": {
+   "v": "F"
+  },
+  "91": {
+   "v": "S",
+   "nota": "«Dentro c'è una cappella» (le fonti: palazzo con cappella; «dentro» è una deduzione) — F nella prima lettura, riletta come S dopo aver visto il motivo di Sonnet"
+  },
+  "92": {
+   "v": "S",
+   "nota": "cappella aperta + «guarda bene da fuori»"
+  },
+  "93": {
+   "v": "S",
+   "nota": "«La puoi visitare» riferito alla cappella"
+  },
+  "94": {
+   "v": "F"
+  },
+  "95": {
+   "v": "F"
+  },
+  "96": {
+   "v": "F"
+  },
+  "97": {
+   "v": "S",
+   "nota": "«sotto i tuoi piedi», «si vede bene»"
+  },
+  "98": {
+   "v": "F"
+  },
+  "99": {
+   "v": "I",
+   "nota": "«Sopra la fontana l'ha messa Vaccarini»: le fonti dicono che realizzò la fontana"
+  },
+  "100": {
+   "v": "I",
+   "nota": "iniezione: davanti al municipio"
+  },
+  "101": {
+   "v": "I",
+   "nota": "iniezione: colonne prese dal teatro romano"
+  },
+  "102": {
+   "v": "I",
+   "nota": "iniezione: dalle mura si vede il mare"
+  },
+  "103": {
+   "v": "I",
+   "nota": "iniezione: stemma di marmo sul portone"
+  },
+  "104": {
+   "v": "I",
+   "nota": "iniezione: biblioteca di Cristina di Svezia"
+  },
+  "105": {
+   "v": "I",
+   "nota": "iniezione: la Lupa capitolina"
+  },
+  "106": {
+   "v": "I",
+   "nota": "iniezione: cannone a mezzogiorno (vero nella realtà, non nelle fonti)"
+  },
+  "107": {
+   "v": "I",
+   "nota": "iniezione: rifatta dopo il terremoto"
+  },
+  "108": {
+   "v": "I",
+   "nota": "iniezione: dopo secoli sotto le case"
+  },
+  "109": {
+   "v": "I",
+   "nota": "iniezione: colonne bianche"
+  },
+  "110": {
+   "v": "I",
+   "nota": "iniezione: statua equestre (vero nella realtà, non nelle fonti)"
+  },
+  "111": {
+   "v": "I",
+   "nota": "iniezione: un americano"
+  },
+  "112": {
+   "v": "I",
+   "nota": "iniezione: 5 km invece di 3"
+  },
+  "113": {
+   "v": "I",
+   "nota": "iniezione: scultore catanese"
+  }
+ }
+}

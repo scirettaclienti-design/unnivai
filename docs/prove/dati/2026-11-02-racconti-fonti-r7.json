@@ -1,0 +1,835 @@
+{
+  "presoIl": "2026-11-02T01:35:51.230Z",
+  "funzione": "openai-proxy v40",
+  "spesaUsd": 0.03757,
+  "esiti": [
+    {
+      "citta": "Catania",
+      "place_id": "ChIJ246EAS_jExMR__mpdyI1ULw",
+      "nome": "Porta Uzeda",
+      "lat": 37.5018,
+      "lng": 15.08764,
+      "risposta": {
+        "http": 200,
+        "ms": 1274,
+        "esito": "passato",
+        "testo": "Questa porta si apre nelle mura cinquecentesche di Carlo V. Porta il nome del viceré spagnolo Giovanni Francesco Paceco, duca di Uceda. Da piazza del Duomo è l'uscita verso sud: da qui si passa a via Dusmet. Guarda la facciata: si rifà a quella del seminario dei chierici.",
+        "motivi": [],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Porta_Uzeda",
+            "via": "voce-intera",
+            "fonte": "wikipedia",
+            "titolo": "Porta Uzeda"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Porta Uzeda",
+        "via": "voce-intera",
+        "distanzaM": 7,
+        "wikipedia": "La porta Uzeda collega la piazza Duomo alla via Dusmet, nel cuore della Catania settecentesca. Per chi viene da via Etnea, la porta Uzeda costituisce l'uscita verso sud dalla piazza del Duomo e collega il seminario dei chierici con il palazzo arcivescovile e la cattedrale di Sant'Agata. La porta si apre nelle cinquecentesche mura di Carlo V ed è intitolata al viceré spagnolo Giovanni Francesco Paceco, duca di Uceda. La facciata della porta si rifà a quella del seminario dei chierici e costituisce un fondale scenografico che unisce tutti i gioielli architettonici che si affacciano sulla piazza Duomo.",
+        "google": "",
+        "caratteri": 606,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Catania",
+      "place_id": "ChIJP0UjWi7jExMRJytI986aC6g",
+      "nome": "Basilica Cattedrale di Sant'Agata",
+      "lat": 37.50252,
+      "lng": 15.0871,
+      "risposta": {
+        "http": 200,
+        "ms": 392,
+        "esito": "passato",
+        "testo": "Fermati: questo è il Duomo di Sant'Agata, il principale luogo di culto cattolico di Catania. È dedicato a Sant'Agata, vergine e martire, patrona della città. Sta sul lato sud-est di piazza del Duomo. Dentro conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico.",
+        "motivi": [],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Cattedrale_di_Sant'Agata",
+            "fonte": "wikipedia",
+            "titolo": "Cattedrale di Sant'Agata"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Cattedrale di Sant'Agata",
+        "via": "nome",
+        "distanzaM": 98,
+        "wikipedia": "Il Duomo di Sant’Agata, pure noto come Basilica Cattedrale metropolitana di Sant'Agata, è il principale luogo di culto cattolico di Catania, chiesa madre dell'omonima arcidiocesi metropolitana e sede dell'omonima parrocchia. La cattedrale è dedicata alla vergine e martire Sant'Agata, patrona della città di Catania, ed è situata nel centro storico della città, nel lato sud-est di piazza del Duomo, nello stesso quartiere (\"Duomo di Catania\" o \"Terme Achilliane-Piano di San Filippo\"). La cattedrale conserva stili differenti: dal Normanno, al Barocco, fino al Neoclassico.",
+        "google": "Imponente cattedrale barocca con facciata a colonne, cupola, affreschi e dipinti.",
+        "caratteri": 655,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Catania",
+      "place_id": "ChIJV63v_C7jExMRLThjTCcPppk",
+      "nome": "Fontana dell'Elefante (uʻ Liotru)",
+      "lat": 37.50241,
+      "lng": 15.08772,
+      "risposta": {
+        "http": 200,
+        "ms": 456,
+        "esito": "passato",
+        "testo": "Guarda l'elefante di basalto nero: i catanesi lo chiamano U Liotru. Sopra la fontana l'ha messa Giovanni Battista Vaccarini, tra il 1735 e il 1737. Oggi quell'elefante è l'emblema di Catania.",
+        "motivi": [
+          "prima stesura (riscritta): verifica: frase 2 non è nelle fonti (Le fonti non specificano che la statua sia romana. Fonte 1 dice che è un'opera realizzata nel 1735-1737, Fonte 2 dice 'statua romana' ma que)"
+        ],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Fontana_dell'Elefante",
+            "fonte": "wikipedia",
+            "titolo": "Fontana dell'Elefante"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Fontana dell'Elefante",
+        "via": "nome",
+        "distanzaM": null,
+        "wikipedia": "La fontana dell'Elefante (in siciliano u Liotru) è un'opera monumentale, realizzata tra il 1735 e il 1737 dall'architetto Giovanni Battista Vaccarini, collocata al centro di piazza del Duomo a Catania. Il suo elemento principale è una statua di basalto nero che raffigura un elefante, detto popolarmente U’Liotru, il quale è considerato l'emblema della città siciliana.",
+        "google": "Fontana con una statua romana di un elefante scolpito nel basalto, ora simbolo della città.",
+        "caratteri": 460,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Catania",
+      "place_id": "ChIJ2e3QsinjExMRNmN2_vYCfp8",
+      "nome": "Teatro Antico greco-romano di Catania",
+      "lat": 37.50183,
+      "lng": 15.0854,
+      "risposta": {
+        "http": 200,
+        "ms": 408,
+        "esito": "passato",
+        "testo": "Fermati qui, nel centro storico, tra piazza San Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. L'aspetto che vedi risale al II secolo. È venuto alla luce a partire dalla fine dell'Ottocento. Qui ci sono la gradinata e l'orchestra.",
+        "motivi": [
+          "prima stesura (riscritta): verifica: frase 4 non è nelle fonti (La frase dice 'accanto c'è l'odeon della città', ma la fonte dice che l'odeon 'confina a est', non genericamente 'accanto'. Inoltre, la font)"
+        ],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Teatro_greco-romano_di_Catania",
+            "fonte": "wikipedia",
+            "titolo": "Teatro greco-romano di Catania"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Teatro greco-romano di Catania",
+        "via": "nome",
+        "distanzaM": 190,
+        "wikipedia": "Il teatro greco-romano di Catania è situato nel centro storico della città etnea, tra piazza S. Francesco, via Vittorio Emanuele, via Timeo e via Teatro greco. Il suo aspetto attuale risale al II secolo ed è stato messo in luce a partire dalla fine del XIX secolo. A est confina con l’odeon della città",
+        "google": "Rovine di un anfiteatro all'aperto del II secolo d.C. con gradinata e orchestra.",
+        "caratteri": 382,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Catania",
+      "place_id": "ChIJH_LNACbjExMR3WPlQ82DyEw",
+      "nome": "Castello Ursino",
+      "lat": 37.49917,
+      "lng": 15.08449,
+      "risposta": {
+        "http": 200,
+        "ms": 237,
+        "esito": "passato",
+        "testo": "Fermati: questo castello lo ha costruito Federico II di Svevia, nel XIII secolo. Durante i Vespri siciliani ha ospitato il parlamento siciliano. Poi ci hanno abitato i re di Sicilia della dinastia aragonese, tra cui Federico III. Oggi dentro c'è il Museo Civico, con le collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+        "motivi": [],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Castello_Ursino",
+            "fonte": "wikipedia",
+            "titolo": "Castello Ursino"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Castello Ursino",
+        "via": "nome",
+        "distanzaM": 24,
+        "wikipedia": "Il castello Ursino (in siciliano casteḍḍu Ursinu) di Catania fu costruito dal re Federico II di Svevia nel XIII secolo. Il maniero ebbe una certa visibilità nel corso dei Vespri siciliani come sede del parlamento siciliano e, in seguito, come residenza dei re di Sicilia della dinastia aragonese, fra i quali Federico III. Oggi è sede del Museo Civico della città etnea, formato principalmente dalle collezioni della famiglia Biscari e del Monastero dei Benedettini.",
+        "google": "Castello del XIII secolo con collezione archeologica reale, reperti provenienti dal monastero e carri dipinti.",
+        "caratteri": 576,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Catania",
+      "place_id": "ChIJjfE4n-jjExMR0gwbhCQ0rk4",
+      "nome": "Fontana dell’Amenano",
+      "lat": 37.50204,
+      "lng": 15.08701,
+      "risposta": {
+        "http": 200,
+        "ms": 326,
+        "esito": "passato",
+        "testo": "Fermati: questa è la fontana dell'Amenano, del 1867. Sta sul lato sud di piazza del Duomo. È una fontana barocca con personaggi mitologici, opera di Tito Angelini. C'è anche l'incisione dello stemma cittadino.",
+        "motivi": [
+          "prima stesura (riscritta): verifica: frase 4 non è nelle fonti (La fonte dice 'incisione dello stemma cittadino', non 'sopra c'è incisa'. Inoltre 'stemma' è femminile, non 'la stemma' come potrebbe intend)"
+        ],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Fontana_dell'Amenano",
+            "fonte": "wikipedia",
+            "titolo": "Fontana dell'Amenano"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Fontana dell'Amenano",
+        "via": "nome",
+        "distanzaM": 4,
+        "wikipedia": "La fontana dell'Amenano è una fontana monumentale del 1867 ubicata sul lato sud di piazza del Duomo, a Catania, in Sicilia, Italia.",
+        "google": "Fontana barocca con personaggi mitologici a opera di Tito Angelini e incisione dello stemma cittadino.",
+        "caratteri": 233,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Catania",
+      "place_id": "ChIJaUl7zSjjExMRoCTWa8ahogs",
+      "nome": "Piazza Giuseppe Mazzini",
+      "lat": 37.50212,
+      "lng": 15.08722,
+      "risposta": {
+        "http": 200,
+        "ms": 389,
+        "esito": "passato",
+        "testo": "Prima si chiamava Piano di San Filippo. Dopo il terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, prevedeva questa piazza come mercato. Nei primi decenni del Settecento sono sorsi quattro loggiati identici, ognuno con otto colonne di marmo bianco. La piazza ha la forma di una croce greca, perché nasce dall'incrocio di due strade.",
+        "motivi": [
+          "prima stesura (riscritta): verifica: frase 2 non è nelle fonti (La fonte dice che il terremoto era del Val di Noto del 1693, non che 'aveva raso al suolo Catania'. Inoltre, la fonte attribuisce la decisio)"
+        ],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Piazza_Mazzini_(Catania)",
+            "fonte": "wikipedia",
+            "titolo": "Piazza Mazzini (Catania)"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Piazza Mazzini (Catania)",
+        "via": "nome",
+        "distanzaM": 205,
+        "wikipedia": "Piazza Giuseppe Mazzini, originariamente nota col nome di Piano di San Filippo, è una piazza monumentale del centro storico di Catania, la cui progettazione risale al XVIII secolo. Dopo il disastroso terremoto del Val di Noto del 1693, il nuovo impianto urbano deciso da Giuseppe Lanza, duca di Camastra, coordinatore e finanziatore della ricostruzione in accordo con le autorità cittadine, prevedeva lo sfruttamento di questa piazza come mercato e per tale motivo fu stabilita anche la conformazione strutturale degli edifici che dovevano affacciarvisi. Giacché lo spazio venne ricavato dall'incrocio fra due strade, l'attuale via Giuseppe Garibaldi (un tempo chiamata via San Filippo e, successivamente, via Ferdinandea a causa della Porta Ferdinandea, che si trova alla sua fine e che rappresentava anticamente l'ingresso della città dal lato sud-ovest) e via Santa Maria della Lettera a nord che cambia nome in via Auteri a sud, la piazza assunse un disegno a croce greca con uguale spartizione degli spazi ad angolo nei quali si scelse di erigere edifici dotati di terrazzini loggiati. Così, nei primi decenni del XVIII secolo, non è sicuro per mano di quali architetti, in quella che sarebbe dovuta divenire una delle principali piazze del mercato catanese, sorsero quattro identici loggiati, ciascuno composto da 8 colonne in marmo bianco, che formarono una cornice quadrangolare lungo i perimetri del luogo ad eccezione delle quattro aperture stradali.",
+        "google": "",
+        "caratteri": 1460,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Catania",
+      "place_id": "ChIJiS624y7jExMREIKeZ58jDjg",
+      "nome": "Palazzo dei Chierici",
+      "lat": 37.50219,
+      "lng": 15.08491,
+      "risposta": {
+        "http": 200,
+        "ms": 280,
+        "esito": "passato",
+        "testo": "Fermati: questo è il palazzo del Seminario dei Chierici, e oggi fa da municipio. Sta sul lato sud di piazza del Duomo, con la Cattedrale di Sant'Agata accanto. Il municipio ce l'ha anche il Palazzo degli Elefanti, e in mezzo alla piazza, fra i due palazzi, c'è la Fontana dell'Elefante.",
+        "motivi": [],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Palazzo_del_Seminario_dei_Chierici",
+            "fonte": "wikipedia",
+            "titolo": "Palazzo del Seminario dei Chierici"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Palazzo del Seminario dei Chierici",
+        "via": "nome",
+        "distanzaM": 213,
+        "wikipedia": "Il palazzo del Seminario dei Chierici è un edificio storico di Catania, di cui svolge la funzione di municipio: esso è situato sul lato sud della scenografica piazza del Duomo, ha accanto la Cattedrale di Sant'Agata e di fronte il Palazzo degli Elefanti, anch’esso svolgente la funzione di municipio. Al centro della piazza, fra i due palazzi, vi è anche la Fontana dell'Elefante.",
+        "google": "",
+        "caratteri": 380,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Catania",
+      "place_id": "ChIJY0P1DNT8ExMR9QiL54XqybI",
+      "nome": "Via Etnea",
+      "lat": 37.50389,
+      "lng": 15.08712,
+      "risposta": {
+        "http": 200,
+        "ms": 175,
+        "esito": "passato",
+        "testo": "Guarda lungo la strada: la via Etnea corre dritta per circa 3 chilometri, da Piazza del Duomo fino al Tondo Gioeni. Qui trovi bar, negozi e monumenti barocchi. In fondo, la vista è sull'Etna.",
+        "motivi": [],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Via_Etnea",
+            "fonte": "wikipedia",
+            "titolo": "Via Etnea"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Via Etnea",
+        "via": "nome",
+        "distanzaM": 190,
+        "wikipedia": "La via Etnea è la strada principale del centro storico di Catania. Si snoda nella direttrice sud-nord, ha un andamento rettilineo ed è lunga circa 3 chilometri. Va da Piazza del Duomo al Tondo Gioeni.",
+        "google": "Vivace strada centrale dello shopping a Catania, con bar, monumenti barocchi e vista sull'Etna.",
+        "caratteri": 295,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Troina",
+      "place_id": "ChIJwTstqajLFhMRnwdcVrWeGsY",
+      "nome": "Chiesa Madre di Maria Santissima Assunta",
+      "lat": 37.78542,
+      "lng": 14.60089,
+      "risposta": {
+        "http": 200,
+        "ms": 333,
+        "esito": "passato",
+        "testo": "Fermati: questa è la chiesa madre di Troina, il principale luogo di culto della città. Nel 1082 fu elevata a cattedrale, e fu la prima cattedrale normanna della Sicilia. La volle Ruggero I per ringraziare l'Assunta dopo la vittoria sugli arabi, quando conquistò la città liberandola dal dominio saraceno. Nel 1088 qui arrivò papa Urbano II, che celebrò messa e consacrò la sede.",
+        "motivi": [],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Ex_cattedrale_di_Maria_Santissima_Assunta_(Troina)",
+            "via": "vicina",
+            "fonte": "wikipedia",
+            "titolo": "Ex cattedrale di Maria Santissima Assunta (Troina)"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Ex cattedrale di Maria Santissima Assunta (Troina)",
+        "via": "vicina",
+        "distanzaM": 12,
+        "wikipedia": "L'ex cattedrale di Maria Santissima Assunta è il principale luogo di culto della città di Troina, già sede dell'antica diocesi di Troina. Dopo la sua costruzione, nel 1082 la chiesa madre fu elevata a cattedrale fino a quando la sede vescovile venne spostata a Messina. La chiesa \"primogenita e prediletta del gran conte\", nonché prima cattedrale normanna della Sicilia e chiesa palatina, dopo il dominio arabo, fu voluta da Ruggero I, per ringraziare l'Assunta in seguito alla vittoria contro gli arabi, per avere conquistato la città liberandola dal dominio saraceno. Nel 1088 ospitò papa Urbano II, per gettare le basi con Ruggero I d'Altavilla, dell'Apostolica Legazia di Sicilia, e inoltre celebrò messa e consacrò la sede. Nonostante la chiesa madre non sia più sede vescovile, mantiene comunque, formalmente, il titolo di cattedrale.",
+        "google": "",
+        "caratteri": 840,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Troina",
+      "place_id": "ChIJSdi3PqbLFhMRevZmDu4FnbQ",
+      "nome": "Torre Capitania",
+      "lat": 37.78433,
+      "lng": 14.5992,
+      "risposta": {
+        "http": 200,
+        "ms": 11134,
+        "esito": "passato",
+        "testo": "Guarda: la Torre Capitania ha un impianto del XII secolo. Nel tempo è stata torre difensiva, capitanato di giustizia, carcere e cineteatro. Oggi dentro c'è un museo civico: un Antiquarium Archeologico, un Lapidarium architettonico, una mostra del Libro Antico e una Pinacoteca d'arte Moderna.",
+        "motivi": [
+          "prima stesura (riscritta): verifica: frase 2 non è nelle fonti (La fonte dice che la Torre Capitania si trova nel centro storico che si sviluppa lungo via Conte Ruggero, ma non afferma che la Torre sorge )"
+        ],
+        "fonti": [
+          {
+            "fonte": "wikipedia",
+            "titolo": "Troina",
+            "url": "https://it.wikipedia.org/wiki/Troina",
+            "via": "menzioni"
+          }
+        ],
+        "cached": false,
+        "modello": "claude-sonnet-5-5",
+        "modelloVerifica": "claude-haiku-4-5",
+        "costoUsd": 0.0145,
+        "riscritto": true
+      },
+      "fontiLocali": {
+        "titolo": "Troina",
+        "via": "menzioni",
+        "distanzaM": 131,
+        "wikipedia": "Torre Capitania, impianto XII secolo. Il centro storico di Troina si sviluppa lungo la via Conte Ruggero, il cui percorso ha inizio dalla piazza omonima e termina a sud nel quartiere Santa Lucia, e vi si trovano la Torre Capitania, la Chiesa e convento di San Francesco. A Troina ha sede il Sistema Museale Troinese (Si.Mu.T.), rete espositiva dislocata su più poli: il museo della Fotografia di Robert Capa, inaugurato nell'ottobre 2021 nei locali denominati \"Pretura\", sulla piazza principale del paese, il complesso espositivo \"Torre Capitania\", che si configura come un museo civico multidisciplinare, ed il Palazzo Municipale. Il complesso della Torre Capitania ospita invece: un Antiquarium Archeologico, un Lapidarium architettonico, una mostra del Libro Antico, ed una Pinacoteca d'arte Moderna. Inoltre, la Torre Capitania permette di raccontare l'evoluzione storica dell'edificio e le sue funzioni assunte negli anni: torre difensiva, capitanato di giustizia, carcere e cineteatro.",
+        "google": "",
+        "caratteri": 991,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Troina",
+      "place_id": "ChIJkSKaqKjLFhMROMP-9DO305o",
+      "nome": "Piazza Conte Ruggero",
+      "lat": 37.78525,
+      "lng": 14.60076,
+      "risposta": {
+        "http": 200,
+        "ms": 10419,
+        "esito": "passato",
+        "testo": "Sei nella piazza principale di Troina. Sta nella parte più alta del centro storico. Da qui riesci a vedere l'Etna, la costa del Mar Jonio e il monte San Pantheon. Un bus navetta collega la piazza con il piazzale Sant'Agostino.",
+        "motivi": [
+          "prima stesura (riscritta): verifica: frase 4 non è nelle fonti (La fonte dice che il bus navetta 'collega' la piazza con il piazzale, non che 'parte' dalla piazza o che serve per 'scendere'. L'interpretaz)"
+        ],
+        "fonti": [
+          {
+            "fonte": "wikipedia",
+            "titolo": "Troina",
+            "url": "https://it.wikipedia.org/wiki/Troina",
+            "via": "menzioni"
+          }
+        ],
+        "cached": false,
+        "modello": "claude-sonnet-5-5",
+        "modelloVerifica": "claude-haiku-4-5",
+        "costoUsd": 0.01218,
+        "riscritto": true
+      },
+      "fontiLocali": {
+        "titolo": "Troina",
+        "via": "menzioni",
+        "distanzaM": 223,
+        "wikipedia": "Principale piazza di Troina è la Piazza Conte Ruggero, situata nella parte più alta del centro storico, da dove è possibile osservare l'Etna, la costa del Mar Jonio e il monte San Pantheon. A Troina è attivo un servizio di trasporto pubblico locale espletato dai bus navetta, che collega piazza Conte Ruggero con il piazzale Sant'Agostino.",
+        "google": "",
+        "caratteri": 339,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Troina",
+      "place_id": "ChIJDVVKWWLLFhMRpl06lDqV2mI",
+      "nome": "Monte Muganà",
+      "lat": 37.7876,
+      "lng": 14.61054,
+      "risposta": {
+        "http": 200,
+        "ms": 2687,
+        "esito": "senza-fonti",
+        "testo": null,
+        "motivi": [
+          "fonti insufficienti"
+        ],
+        "fonti": [
+          {
+            "fonte": "wikipedia",
+            "titolo": "Troina",
+            "url": "https://it.wikipedia.org/wiki/Troina",
+            "via": "menzioni"
+          }
+        ],
+        "cached": false
+      },
+      "fontiLocali": {
+        "titolo": "Troina",
+        "via": "menzioni",
+        "distanzaM": 1041,
+        "wikipedia": "e la necropoli ancora visitabile e sita sul monte Muganà. Cinta muraria e Necropoli Monte Muganà.",
+        "google": "",
+        "caratteri": 97,
+        "haFonti": false
+      }
+    },
+    {
+      "citta": "Roma",
+      "place_id": "ChIJq0_-ojNgLxMRCX5PdvWKCwU",
+      "nome": "Giardino di Sant'Alessio",
+      "lat": 41.8840901,
+      "lng": 12.4788047,
+      "risposta": {
+        "http": 200,
+        "ms": 242,
+        "esito": "senza-fonti",
+        "testo": null,
+        "motivi": [
+          "fonti insufficienti"
+        ],
+        "fonti": [],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": null,
+        "via": null,
+        "distanzaM": null,
+        "wikipedia": "",
+        "google": "",
+        "caratteri": 0,
+        "haFonti": false
+      }
+    },
+    {
+      "citta": "Roma",
+      "place_id": "ChIJNfNn9aRhLxMR6MpGiVo_9pA",
+      "nome": "Roseto comunale",
+      "lat": 41.8851711,
+      "lng": 12.4833837,
+      "risposta": {
+        "http": 200,
+        "ms": 293,
+        "esito": "scartato",
+        "testo": null,
+        "motivi": [
+          "più di 4 frasi",
+          "prima stesura (riscritta): più di 4 frasi"
+        ],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Roseto_di_Roma",
+            "via": "voce-intera",
+            "fonte": "wikipedia",
+            "titolo": "Roseto di Roma"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Roseto di Roma",
+        "via": "voce-intera",
+        "distanzaM": 6,
+        "wikipedia": "Il Roseto di Roma è un giardino situato sulle pendici dell'Aventino, nei pressi del Circo Massimo, nella città di Roma. Il roseto di Roma fu istituito nel 1931, su decisione del governatore, il principe Francesco Boncompagni Ludovisi, sollecitato dalla contessa Mary Gayley Senni. L'originaria collocazione era sul colle Oppio, presso il Colosseo. Il giardino era costituito da circa trecento piante, compresa una raccolta di rose provenienti dal Vivaio del Governatorato. Nel maggio 1933 fu istituito il Premio Roma per le Nuove Varietà di Rose, il concorso più antico del mondo dedicato a questi fiori dopo quello di Bagatelle, vicino a Parigi, istituito nel 1907. La contessa Mary Gayley Senni fu la curatrice delle varie edizioni e fece parte della giuria fino al 1954, in rappresentanza dell'American Rose Society. Il roseto sul Celio andò distrutto durante la seconda guerra mondiale e fu ricostituito nella Valle Murcia - un'area agricola che, dal III secolo a.C., era stata sede di un tempio dedicato a Flora. Nel 1645 vi era stato collocato il cimitero ebraico: il sito era per ciò detto \"Ortaccio degli Ebrei\". Il cimitero ebraico fu spostato nel 1934 in un settore del cimitero del Verano, e la zona fu occupata da \"orti di guerra\", per poi rimanere incolta. Nel 1950 il Comune, con l'accordo della comunità ebraica, decise di ricreare il roseto nell'area attuale.",
+        "google": "",
+        "caratteri": 1375,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Roma",
+      "place_id": "ChIJ4ya6TTxgLxMR8atV3UYz5ZA",
+      "nome": "Villa Sciarra",
+      "lat": 41.8834801,
+      "lng": 12.464695899999999,
+      "risposta": {
+        "http": 200,
+        "ms": 318,
+        "esito": "passato",
+        "testo": "Qui sei sulle pendici del Gianicolo, tra Trastevere e Monteverde Vecchio, con le Mura gianicolensi proprio a ridosso della villa. Sono sette ettari e mezzo di piccoli giardini, sculture e fontane. Uno dei due ingressi è su piazzale Wurts, progettato da Pio Piacentini, e prende il nome dall'ultimo proprietario, George Washington Wurts: a lui si deve la disposizione del giardino e dei monumenti. Il nome della villa, invece, viene dalla famiglia nobile pontificia degli Sciarra.",
+        "motivi": [
+          "prima stesura (riscritta): verifica: frase 3 non è nelle fonti (La fonte dice che il piazzale è 'progettato da Pio Piacentini' e 'prende il nome dall'ultimo proprietario', ma non dice che il piazzale 'da )"
+        ],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Villa_Sciarra_(Roma)",
+            "fonte": "wikipedia",
+            "titolo": "Villa Sciarra (Roma)"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Villa Sciarra (Roma)",
+        "via": "nome",
+        "distanzaM": 17,
+        "wikipedia": "Villa Sciarra è una delle ville urbane di Roma, con un'estensione di sette ettari e mezzo e situata sulle pendici del colle Gianicolo tra i quartieri di Trastevere e Monteverde Vecchio, addossata alle Mura gianicolensi, cui si accede da due possibili ingressi: il primo su piazzale Wurts, progettato da Pio Piacentini, che prende il nome dall'ultimo proprietario, George Washington Wurts, al quale si deve la disposizione del giardino e dei monumenti in esso contenuti, ed il secondo su largo Filippo Minutilli. Prende il nome dalla famiglia nobile pontificia degli Sciarra.",
+        "google": "Parco per passeggiate tranquille in mezzo a piccoli giardini, varie sculture, fontane e un'antica villa.",
+        "caratteri": 678,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Roma",
+      "place_id": "ChIJa-FrY0BgLxMRDN1UR07SMIE",
+      "nome": "Orto Botanico di Roma",
+      "lat": 41.8918051,
+      "lng": 12.463038800000001,
+      "risposta": {
+        "http": 200,
+        "ms": 265,
+        "esito": "passato",
+        "testo": "Fermati: sei alle pendici del Gianicolo, nell'antico parco di villa Corsini. Un tempo qui abitava Cristina di Svezia. Oggi l'Orto dipende dall'Università di Roma \"La Sapienza\", dal Dipartimento di Biologia Ambientale. Dentro trovi 7.000 specie di piante da tutto il mondo, fontane, un boschetto di bambù e un giardino del tè giapponese.",
+        "motivi": [],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Orto_botanico_di_Roma",
+            "fonte": "wikipedia",
+            "titolo": "Orto botanico di Roma"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Orto botanico di Roma",
+        "via": "nome",
+        "distanzaM": 239,
+        "wikipedia": "L'Orto botanico di Roma è situato alle pendici del Gianicolo, nell'antico parco di villa Corsini, un tempo residenza di Cristina di Svezia. La struttura dipende dal Dipartimento di Biologia Ambientale dell'Università di Roma \"La Sapienza\".",
+        "google": "7.000 specie di piante da tutto il mondo, fontane, boschetto di bambù e giardino del tè giapponese.",
+        "caratteri": 338,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Roma",
+      "place_id": "ChIJo6a_XktgLxMRmpblS064lu8",
+      "nome": "Il Palazzo dei Conservatori",
+      "lat": 41.8932176,
+      "lng": 12.482627299999999,
+      "risposta": {
+        "http": 200,
+        "ms": 281,
+        "esito": "passato",
+        "testo": "Fermati: sei in piazza del Campidoglio, al Palazzo dei Conservatori. Sta a fianco del Palazzo Senatorio ed è del XV secolo. Oggi, insieme al Palazzo Nuovo e al Tabularium, è la sede espositiva dei Musei Capitolini. Dentro trovi statue, opere d'arte e affreschi.",
+        "motivi": [
+          "prima stesura (riscritta): indicazione di direzione"
+        ],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Palazzo_dei_Conservatori",
+            "fonte": "wikipedia",
+            "titolo": "Palazzo dei Conservatori"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Palazzo dei Conservatori",
+        "via": "nome",
+        "distanzaM": 20,
+        "wikipedia": "Il Palazzo dei Conservatori è situato in piazza del Campidoglio a Roma, a fianco del Palazzo Senatorio e di fronte al Palazzo Nuovo. Il palazzo dei Conservatori e il Palazzo Nuovo, insieme al Tabularium, costituiscono attualmente la sede espositiva dei Musei Capitolini, tra i musei romani più rappresentativi e visitati.",
+        "google": "Imponente struttura del XV secolo nei Musei Capitolini con statue, opere d'arte e affreschi.",
+        "caratteri": 413,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Roma",
+      "place_id": "ChIJn7lmdk9gLxMR-uB8_zP3zPE",
+      "nome": "Palazzo Massimo alle Colonne",
+      "lat": 41.8967291,
+      "lng": 12.4735541,
+      "risposta": {
+        "http": 200,
+        "ms": 187,
+        "esito": "passato",
+        "testo": "Questo è Palazzo Massimo alle Colonne, un palazzo rinascimentale che sorge in corso Vittorio Emanuele II. Una cappella associata a un presunto miracolo del XVI secolo è aperta solo il 16 marzo.",
+        "motivi": [
+          "prima stesura (riscritta): verifica: frase 2 non è nelle fonti (La fonte dice che la cappella è 'associata' a un presunto miracolo, non che sia 'dentro' il palazzo. Inoltre aggiunge 'dentro' che non è esp)"
+        ],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Palazzo_Massimo_alle_Colonne",
+            "fonte": "wikipedia",
+            "titolo": "Palazzo Massimo alle Colonne"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Palazzo Massimo alle Colonne",
+        "via": "nome",
+        "distanzaM": 6,
+        "wikipedia": "Il Palazzo Massimo alle Colonne è un palazzo rinascimentale di Roma che sorge in corso Vittorio Emanuele II.",
+        "google": "Elegante palazzo con cappella associata a un presunto miracolo del XVI secolo, aperto solo il 16 marzo.",
+        "caratteri": 211,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Roma",
+      "place_id": "ChIJsQeLTbNhLxMRj2ZP6qu4fd0",
+      "nome": "Terrazza delle Quadrighe",
+      "lat": 41.8943466,
+      "lng": 12.4831966,
+      "risposta": {
+        "http": 200,
+        "ms": 7925,
+        "esito": "passato",
+        "testo": "Sei in cima al Vittoriano: questa è la terrazza più alta del monumento. Dal giugno 2007 ci sali con l'ascensore. Se preferisci i gradini, sono 196 e partono dal sommoportico. Da qui la vista sulla città è completa.",
+        "motivi": [],
+        "fonti": [
+          {
+            "fonte": "wikipedia",
+            "titolo": "Vittoriano",
+            "url": "https://it.wikipedia.org/wiki/Vittoriano",
+            "via": "menzioni"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": false,
+        "modello": "claude-sonnet-5-5",
+        "modelloVerifica": "claude-haiku-4-5",
+        "costoUsd": 0.00527,
+        "riscritto": false
+      },
+      "fontiLocali": {
+        "titolo": "Vittoriano",
+        "via": "menzioni",
+        "distanzaM": 29,
+        "wikipedia": "Dal giugno 2007 è possibile salire alla terrazza delle quadrighe usufruendo di un ascensore: questa terrazza, che è la più alta del monumento, è anche raggiungibile tramite 196 scalini che partono dal sommoportico.",
+        "google": "Terrazza panoramica in cima al Complesso museale del Vittoriano, con vista completa sulla città.",
+        "caratteri": 310,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Roma",
+      "place_id": "ChIJoZRZT01gLxMR0C1IBGiGv1c",
+      "nome": "Galleria Colonna",
+      "lat": 41.8975648,
+      "lng": 12.484738799999999,
+      "risposta": {
+        "http": 200,
+        "ms": 7106,
+        "esito": "passato",
+        "testo": "Guarda, è l'ala più famosa del palazzo. Antonio Del Grande la inizia nel 1654, Girolamo Fontana la riprende nel 1693. Il connestabile Filippo II la inaugura nel 1703. Dentro c'è la collezione di famiglia, cominciata da Filippo I.",
+        "motivi": [],
+        "fonti": [
+          {
+            "fonte": "wikipedia",
+            "titolo": "Palazzo Colonna",
+            "url": "https://it.wikipedia.org/wiki/Palazzo_Colonna",
+            "via": "menzioni"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": false,
+        "modello": "claude-sonnet-5-5",
+        "modelloVerifica": "claude-haiku-4-5",
+        "costoUsd": 0.00562,
+        "riscritto": false
+      },
+      "fontiLocali": {
+        "titolo": "Palazzo Colonna",
+        "via": "menzioni",
+        "distanzaM": 145,
+        "wikipedia": "Girolamo Colonna fece inoltre costruire l'ala più famosa del palazzo, la Galleria Colonna, iniziata sempre da Antonio Del Grande nel 1654, ripresa da Girolamo Fontana nel 1693 e inaugurata dal connestabile Filippo II nel 1703, destinata ad ospitare la ricca collezione di famiglia cominciata da Filippo I, che specialmente nei dipinti sarà una delle più importanti nella città.",
+        "google": "Palazzo privato barocco del XIV secolo con ingresso affrescato e collezione d'arte di antichi maestri.",
+        "caratteri": 479,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Roma",
+      "place_id": "ChIJOwPcv0FgLxMRALWOCzn7gbU",
+      "nome": "Parco del Gianicolo",
+      "lat": 41.8923774,
+      "lng": 12.462208299999999,
+      "risposta": {
+        "http": 200,
+        "ms": 307,
+        "esito": "passato",
+        "testo": "Questo colle è alto 88 metri, ma non è uno dei sette colli tradizionali di Roma. Sotto, sul versante verso il fiume, c'è Trastevere. Guarda verso est: da qui si vede il centro storico con i suoi monumenti, e più lontano i Colli Albani e le cime dell'Appennino, come il Terminillo e il Velino.",
+        "motivi": [],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Gianicolo",
+            "fonte": "wikipedia",
+            "titolo": "Gianicolo"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Gianicolo",
+        "via": "nome",
+        "distanzaM": 120,
+        "wikipedia": "Il Gianicolo è un colle romano, prospiciente la riva destra del Tevere, la cui altezza massima è 88 metri, non rientrante nel novero dei sette colli tradizionali. La pendice orientale digrada verso il fiume e alla base si trova il rione storico di Trastevere, mentre quella occidentale, meno ripida, costituisce la parte più vecchia del moderno quartiere di Monteverde; a sud-ovest del colle è situata Villa Doria Pamphili, mentre sulle sue pendici orientali sono posti l'Orto botanico di Roma e il carcere di Regina Coeli. Assieme a Monte Mario e al Pincio è uno dei luoghi più panoramici della città con vista a est dei quartieri limitrofi e del centro storico con i maggiori monumenti architettonici della città fino ai Colli Albani, ai Monti Tiburtini, Prenestini e le maggiori cime dell'Appennino centrale occidentale (Terminillo, Velino, Monti Simbruini).",
+        "google": "Parco pubblico sulla riva sinistra del Tevere che offre un po' di tranquillità nel caos cittadino.",
+        "caratteri": 959,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Roma",
+      "place_id": "ChIJOclom0xgLxMRURy9OLL7Hg4",
+      "nome": "Piazza del Campidoglio",
+      "lat": 41.8933592,
+      "lng": 12.482801799999999,
+      "risposta": {
+        "http": 200,
+        "ms": 180,
+        "esito": "scartato",
+        "testo": null,
+        "motivi": [
+          "verifica: frase 1 non è nelle fonti (La frase afferma che il Tabularium è 'sotto' la piazza e che 'lo vedi dal Foro Romano'. Le fonti dicono che il Tabularium è 'sotto' la piazz)",
+          "prima stesura (riscritta): verifica: frase 3 non è nelle fonti (La frase dice 'La piazza ha l'aspetto che vedi oggi nel XVI secolo' - ma la piazza ha l'aspetto attuale (odierno), non l'aspetto del XVI sec)"
+        ],
+        "fonti": [
+          {
+            "url": "https://it.wikipedia.org/wiki/Piazza_del_Campidoglio",
+            "fonte": "wikipedia",
+            "titolo": "Piazza del Campidoglio"
+          },
+          {
+            "fonte": "google"
+          }
+        ],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": "Piazza del Campidoglio",
+        "via": "nome",
+        "distanzaM": 10,
+        "wikipedia": "Piazza del Campidoglio è una piazza monumentale posta sulla cima del colle Campidoglio a Roma. Sorge sull'Asylum – la depressione situata tra l'Arx e il Capitolium, le due sommità del Campidoglio – e sotto di essa si trova il Tabularium, visibile dal Foro Romano. Nonostante un iniziale abbandono nel primo Medioevo, il Tabularium, già nel XII secolo, era stato scelto come sede del Comune. Importanti lavori furono eseguiti durante il pontificato di Niccolò V, ma la piazza assunse l'attuale assetto nel XVI secolo, quando Paolo III ne commissionò a Michelangelo Buonarroti il totale rifacimento in occasione della visita a Roma dell'imperatore Carlo V. Il progetto previde il rifacimento delle facciate del Palazzo Senatorio, costruito pochi anni prima sui ruderi del Tabularium, e del Palazzo dei Conservatori, la costruzione del Palazzo Nuovo e l'aggiunta di diverse sculture e statue, tra cui quella di Marco Aurelio, posta al centro della piazza, e quelle raffiguranti il Tevere e il Nilo.",
+        "google": "Piazza in cima al colle progettata da Michelangelo, con un museo e vista sul Foro Romano.",
+        "caratteri": 1084,
+        "haFonti": true
+      }
+    },
+    {
+      "citta": "Roma",
+      "place_id": "ChIJI2zkpLJhLxMRHoL_R8vaBNI",
+      "nome": "Galleria del Cardinale Colonna",
+      "lat": 41.8974878,
+      "lng": 12.4848434,
+      "risposta": {
+        "http": 200,
+        "ms": 309,
+        "esito": "senza-fonti",
+        "testo": null,
+        "motivi": [
+          "fonti insufficienti"
+        ],
+        "fonti": [],
+        "cached": true
+      },
+      "fontiLocali": {
+        "titolo": null,
+        "via": null,
+        "distanzaM": null,
+        "wikipedia": "",
+        "google": "",
+        "caratteri": 0,
+        "haFonti": false
+      }
+    }
+  ]
+}

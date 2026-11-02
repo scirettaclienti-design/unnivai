@@ -2,7 +2,7 @@
 // PUBBLICATA (`dv.purpose = 'racconto'`, account di prova): fonti dal server, cache, scrittura, controlli, salvataggio come nell'app.
 //   npx vitest run -c scripts/prova-reale/vitest.prova.config.js scripts/prova-reale/racconti-fonti.live.js
 // Accanto, le fonti ricostruite in locale con lo stesso codice (cercaWikipedia + allargaWikipedia), per leggere a mano ogni racconto.
-// Scrive docs/prove/dati/2026-11-02-racconti-fonti.json. Le credenziali dell'account di prova non si stampano.
+// Scrive docs/prove/dati/2026-11-02-racconti-fonti-r7.json. Le credenziali dell'account di prova non si stampano.
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import { supabase } from '@/lib/supabase';
@@ -70,7 +70,7 @@ describe('RACCONTO-FONTI: le 24 tappe sulla funzione pubblicata', () => {
             await pausa(1500);
         }
         const spesa = esiti.reduce((s, e) => s + (Number(e.risposta.costoUsd) || 0), 0);
-        fs.writeFileSync('docs/prove/dati/2026-11-02-racconti-fonti.json', JSON.stringify({ presoIl: new Date().toISOString(), funzione: 'openai-proxy v39', spesaUsd: +spesa.toFixed(5), esiti }, null, 2));
+        fs.writeFileSync('docs/prove/dati/2026-11-02-racconti-fonti-r7.json', JSON.stringify({ presoIl: new Date().toISOString(), funzione: process.env.FUNZIONE || 'openai-proxy', spesaUsd: +spesa.toFixed(5), esiti }, null, 2));
         console.log(`spesa ${spesa.toFixed(5)} $`);
     }, 900000);
 });

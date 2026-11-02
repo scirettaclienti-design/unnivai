@@ -301,7 +301,20 @@ try {
         ]);
         const scelte = ['Cattedrale', 'Elefante'].map(k => CATANIA.find(s => s.title.includes(k)));
         const catania = giro('collaudo-schede-catania', 'Catania', [...scelte, CATANIA.find(s => /Bellini|Ursino/.test(s.title)) || CATANIA[5]]);
-        const r = { schede: [...await schede(roma, 'roma'), ...await schede(roma2, 'roma-2'), ...await schede(catania, 'catania')] };
+        // RACCONTO-FONTI (02/11): tappe che erano senza fonti per colpa della ricerca per nome (Vittoriano, Palazzo Colonna, voce di Troina)
+        const fontiRoma = giro('collaudo-schede-fonti-roma', 'Roma', [
+            T('Terrazza delle Quadrighe', 41.8943466, 12.4831966, 'ChIJsQeLTbNhLxMRj2ZP6qu4fd0'),
+            T('Galleria Colonna', 41.8975648, 12.4847388, 'ChIJoZRZT01gLxMR0C1IBGiGv1c'),
+            T('Piazza del Campidoglio', 41.8933592, 12.4828018, 'ChIJOclom0xgLxMRURy9OLL7Hg4'),
+        ]);
+        const fontiTroina = giro('collaudo-schede-fonti-troina', 'Troina', [
+            T('Torre Capitania', 37.78433, 14.5992, 'ChIJSdi3PqbLFhMRevZmDu4FnbQ'),
+            T('Chiesa Madre di Maria Santissima Assunta', 37.78542, 14.60089, 'ChIJwTstqajLFhMRnwdcVrWeGsY'),
+            T('Piazza Conte Ruggero', 37.78525, 14.60076, 'ChIJkSKaqKjLFhMROMP-9DO305o'),
+        ]);
+        const conFonti = process.env.COLLAUDO_P5_FONTI !== '0';
+        const r = { schede: [...await schede(roma, 'roma'), ...await schede(roma2, 'roma-2'), ...await schede(catania, 'catania'),
+            ...(conFonti ? [...await schede(fontiRoma, 'fonti-roma'), ...await schede(fontiTroina, 'fonti-troina')] : [])] };
         // ok della scheda: un racconto o la frase breve a schermo (mai vuota); la riga in place_racconti la controlla il report (SQL, sola lettura)
         r.schedeOk = r.schede.every(s => !!(s.racconto || s.perche));
         r.ok = null; // si decide con la lettura di place_racconti

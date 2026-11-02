@@ -19,8 +19,8 @@ Richieste esterne per le stesse 18 richieste di curiosità dei tre giri del 02/1
 | | Nominatim | Photon | Google | Wikipedia |
 |---|---|---|---|---|
 | PRIMA (v43, telefono + server) | **18** | 0 | 0 | 71 |
-| DOPO, primo utente (memoria vuota) | 0 | 4 (solo Catania) | 17 | 65 |
-| DOPO, secondo utente (stessi giri) | 0 | 1 | 4 | 18 |
+| DOPO, primo utente (memoria vuota) | 0 | 4 (solo Catania) | 17 | 74 |
+| DOPO, secondo utente (stessi giri) | 0 | 1 | 3 | 14 |
 
 Prova WebKit sul sito pubblicato (`curiosita-quartieri.webkit.mjs`, GPS finto, giri Trastevere e Catania; il conteggio lo dà il server nella risposta, campo `richieste`):
 
@@ -37,7 +37,7 @@ Le curiosità **non calano** (2 e 5 prima e dopo; ieri 3 e 4: la differenza è d
 ## Costo per 1.000 giri
 Un giro medio (~50 minuti) fa circa 6 richieste di curiosità (18 su 3 giri). Listino sopra.
 - **A freddo** (nessuna zona nota): ~5.700 richieste Google = **0 $ se restano nei 10.000 gratuiti del mese** (circa 1.750 giri al mese), altrimenti 5 $ ogni 1.000 richieste, cioè **~28 $ ogni 1.000 giri**.
-- **Con la memoria**: ogni zona costa una volta per 7 giorni. Misurato sul secondo passaggio degli stessi giri: 4 richieste Google su 18 (–78%), cioè ~6 $ ogni 1.000 giri oltre la quota gratuita. In città piene (Roma centro, Catania) i percorsi si ripetono molto; la percentuale vera la darà l'uso (conteggio nel log: riga `curiosità: fonti memoria-zona|nuove richieste google=…`).
+- **Con la memoria**: ogni zona costa una volta per 7 giorni. Misurato sul secondo passaggio degli stessi giri: 3 richieste Google su 18 (–83%), cioè ~5 $ ogni 1.000 giri oltre la quota gratuita. In città piene (Roma centro, Catania) i percorsi si ripetono molto; la percentuale vera la darà l'uso (conteggio nel log: riga `curiosità: fonti memoria-zona|nuove richieste google=…`).
 - Prima: ~6.000 richieste Nominatim ogni 1.000 giri, che il limite di 1 al secondo (e il divieto di uso pesante) non regge. Photon (solo Catania e riserva) e Wikipedia (~4 per richiesta, ma 0 con la zona nota) restano gratuiti.
 - **Costo AI del task**: 0,0475 $ (3 curiosità nuove scritte nella prova «prima»; `place_racconti.costo_usd`); le prove dopo hanno riusato la cache. Tetto 0,50 $ rispettato.
 

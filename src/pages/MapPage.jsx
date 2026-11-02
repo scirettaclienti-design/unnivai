@@ -2734,7 +2734,8 @@ const MapPage = () => {
                 // CHAT-VERITA — la guida riceve le tappe del giro (con ora e sosta) e, in navigazione, la prossima: le fonti le prende il server
                 tappe={(activeRoute || []).map((r) => ({ ...r, scheduledTime: tourData?.steps?.[r.index]?.scheduledTime, stayMinutes: tourData?.steps?.[r.index]?.stayMinutes }))}
                 prossima={isNavigating ? (activeRoute || []).find((r) => !completedSteps.includes(r.id) && !skippedSteps.includes(r.id)) || null : null}
-                centro={activeTourData?.center || passedCenter || null}
+                // senza giro il centro è quello della mappa (come il badge del meteo): senza, il server non cerca i luoghi nominati nella domanda (misura del 03/11)
+                centro={activeTourData?.center || passedCenter || localCenter || (lat && lng ? { latitude: lat, longitude: lng } : null)}
             />
             {reviewModalData && (
                 <ReviewModal

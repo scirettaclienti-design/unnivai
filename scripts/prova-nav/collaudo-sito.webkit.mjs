@@ -287,7 +287,8 @@ try {
         const r = { roma: await camminata(roma, ra, rb, 'roma'), catania: await camminata(catania, ca, cb, 'catania') };
         const diRoma = (c) => c.esito !== 'passata' || /wikipedia\.org/.test(c.fonte || '');
         const romaOk = r.roma.toast.length > 0 && r.roma.voceCuriosita.length > 0 && r.roma.curiosita.some(c => c.esito === 'passata') && r.roma.voceNasoni.length === 0 && r.roma.curiosita.every(diRoma);
-        const cataniaOk = r.catania.voceNasoni.length === 0 && r.catania.toast.every(m => !/Roma|fontanelle|nasoni/i.test(m));
+        // «Roma» come parola (non «Romano»: l'Anfiteatro Romano di Catania è di Catania); la fonte non è una voce di Roma
+        const cataniaOk = r.catania.voceNasoni.length === 0 && r.catania.toast.every(m => !/\bRoma\b|fontanelle|nasoni/i.test(m)) && r.catania.curiosita.every(c => !/\(Roma\)|_Roma\b|rione_di_Roma/.test(c.fonte || ''));
         r.ok = romaOk && cataniaOk;
         r.romaOk = romaOk; r.cataniaOk = cataniaOk;
         return r;

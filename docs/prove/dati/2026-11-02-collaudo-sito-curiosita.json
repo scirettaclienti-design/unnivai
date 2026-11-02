@@ -1,6 +1,6 @@
 {
  "base": "https://unnivai.vercel.app",
- "iniziato": "2026-11-02T02:40:50.944Z",
+ "iniziato": "2026-11-02T02:57:32.675Z",
  "commitSito": null,
  "punti": {
   "1": {
@@ -22,7 +22,7 @@
    "ok": true,
    "fotoDopo": "docs/prove/schermate/collaudo-sito/2-tappa-2.png",
    "errori": [],
-   "secondi": 17
+   "secondi": 18
   },
   "3": {
    "nome": "GPS muto 60 s e ripresa: niente freccia",
@@ -35,31 +35,44 @@
    "ok": true,
    "fotoDopo": "docs/prove/schermate/collaudo-sito/3-ripresa.png",
    "errori": [],
-   "secondi": 80
+   "secondi": 79
   },
   "4": {
    "nome": "curiosità del cammino: Roma con fonte di Roma, Catania mai Roma, niente fontanelle",
    "roma": {
     "metri": 552,
-    "toast": [],
-    "voceCuriosita": [],
+    "toast": [
+     "🎧 Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno."
+    ],
+    "voceCuriosita": [
+     "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno."
+    ],
     "voceNasoni": [],
     "curiosita": [
-     {},
-     {}
+     {
+      "esito": "passata",
+      "luogo": "Trastevere",
+      "fonte": "https://it.wikipedia.org/wiki/Trastevere"
+     }
     ],
     "foto": "docs/prove/schermate/collaudo-sito/4-roma.png",
     "errori": []
    },
    "catania": {
     "metri": 723,
-    "toast": [],
-    "voceCuriosita": [],
+    "toast": [
+     "🎧 Piazza Stesicoro ha un pezzo di Anfiteatro Romano a circa dieci metri sotto il livello della strada: è stato riportato alla luce nel 1903 e aperto al pubblico nel 1907. Il Palazzo della Borsa, inaugurato nel 1933, era la sede dei fasci e delle corporazioni, e oggi ospita la Camera di Commercio. Il Corso Sicilia, largo più di venti metri, è nato dallo Sventramento di San Berillo, la demolizione parziale del quartiere tra il maggio 1956 e il 1958."
+    ],
+    "voceCuriosita": [
+     "Piazza Stesicoro ha un pezzo di Anfiteatro Romano a circa dieci metri sotto il livello della strada: è stato riportato alla luce nel 1903 e aperto al pubblico nel 1907. Il Palazzo della Borsa, inaugurato nel 1933, era la sede dei fasci e delle corporazioni, e oggi ospita la Camera di Commercio. Il Corso Sicilia, largo più di venti metri, è nato dallo Sventramento di San Berillo, la demolizione parziale del quartiere tra il maggio 1956 e il 1958."
+    ],
     "voceNasoni": [],
     "curiosita": [
-     {},
-     {},
-     {}
+     {
+      "esito": "passata",
+      "luogo": "Piazza Stesicoro",
+      "fonte": "https://it.wikipedia.org/wiki/Piazza_Stesicoro"
+     }
     ],
     "foto": "docs/prove/schermate/collaudo-sito/4-catania.png",
     "errori": [
@@ -67,9 +80,9 @@
     ]
    },
    "ok": false,
-   "romaOk": false,
-   "cataniaOk": true,
-   "secondi": 25
+   "romaOk": true,
+   "cataniaOk": false,
+   "secondi": 50
   },
   "5": {
    "nome": "schede: racconto o frase breve; riga in place_racconti",
@@ -227,8 +240,8 @@
    ],
    "schedeOk": true,
    "ok": null,
-   "secondi": 63
+   "secondi": 64
   }
  },
- "finito": "2026-11-02T02:44:20.991Z"
+ "finito": "2026-11-02T03:01:28.335Z"
 }

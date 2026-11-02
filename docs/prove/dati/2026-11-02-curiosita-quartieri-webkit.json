@@ -1,0 +1,2102 @@
+{
+ "base": "https://unnivai.vercel.app",
+ "iniziato": "2026-11-02T03:02:58.321Z",
+ "passoM": 25,
+ "passoS": 20,
+ "giri": {
+  "trastevere": {
+   "misure": {
+    "curiositaDette": 3,
+    "testi": [
+     {
+      "ora": "2026-11-02T03:07:45.184Z",
+      "minuto": 4.5,
+      "luogo": "Lungotevere Raffaello Sanzio",
+      "tipo": "via",
+      "fonte": "https://it.wikipedia.org/wiki/Lungotevere_Raffaello_Sanzio",
+      "testo": "Il Lungotevere Raffaello Sanzio è il tratto che collega piazza Trilussa a piazza Giuseppe Gioachino Belli, nel rione Trastevere. Il nome è quello dell'artista di Urbino, autore di varie opere a Roma. La delibera del consiglio comunale che lo ha istituito porta la data del 24 gennaio 1956.",
+      "distanzaSvoltaM": 185,
+      "distanzaTappaM": 183
+     },
+     {
+      "ora": "2026-11-02T03:17:55.946Z",
+      "minuto": 14.6,
+      "luogo": "Trastevere",
+      "tipo": "quartiere",
+      "fonte": "https://it.wikipedia.org/wiki/Trastevere",
+      "testo": "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 531
+     },
+     {
+      "ora": "2026-11-02T03:28:42.100Z",
+      "minuto": 25.4,
+      "luogo": "Piazza di Santa Maria in Trastevere",
+      "tipo": "via",
+      "fonte": "https://it.wikipedia.org/wiki/Piazza_di_Santa_Maria_in_Trastevere",
+      "testo": "Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 488
+     }
+    ],
+    "intervalliMin": [
+     10.2,
+     10.8
+    ],
+    "dieciMinutiRispettati": true,
+    "ripetizioni": 0,
+    "frasiNavigazione": 21,
+    "svolte": 13,
+    "curiositaInterrotte": 0,
+    "sovrapposizioni": [],
+    "attese": [
+     [
+      "meno di 10 minuti dall'ultima",
+      2
+     ],
+     [
+      "non stai camminando",
+      1
+     ]
+    ],
+    "richieste": 7,
+    "richiesteSenza": 4,
+    "spesaUsd": 0.00602
+   },
+   "grezzo": {
+    "citta": "Roma",
+    "tappe": [
+     "Piazza Trilussa",
+     "Villa Farnesina",
+     "Basilica di Santa Maria in Trastevere",
+     "Basilica di Santa Cecilia in Trastevere",
+     "Chiesa di San Francesco a Ripa"
+    ],
+    "metri": 3134,
+    "minutiCammino": 49,
+    "inizio": "2026-11-02T03:03:18.138Z",
+    "arrivi": [
+     {
+      "tappa": "Piazza Trilussa",
+      "ora": "2026-11-02T03:12:06.129Z"
+     },
+     {
+      "tappa": "Villa Farnesina",
+      "ora": "2026-11-02T03:18:36.086Z"
+     },
+     {
+      "tappa": "Basilica di Santa Maria in Trastevere",
+      "ora": "2026-11-02T03:28:20.963Z"
+     },
+     {
+      "tappa": "Basilica di Santa Cecilia in Trastevere",
+      "ora": "2026-11-02T03:42:11.247Z"
+     },
+     {
+      "tappa": "Chiesa di San Francesco a Ripa",
+      "ora": "2026-11-02T03:51:59.692Z"
+     }
+    ],
+    "voce": [
+     {
+      "ora": "2026-11-02T03:03:09.917Z",
+      "testo": "Si va verso Piazza Trilussa.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:03:11.917Z"
+     },
+     {
+      "ora": "2026-11-02T03:03:14.012Z",
+      "testo": "Fra cento metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:03:17.012Z"
+     },
+     {
+      "ora": "2026-11-02T03:03:58.316Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:04:01.316Z"
+     },
+     {
+      "ora": "2026-11-02T03:04:18.365Z",
+      "testo": "Adesso gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:04:20.365Z"
+     },
+     {
+      "ora": "2026-11-02T03:07:45.197Z",
+      "testo": "Il Lungotevere Raffaello Sanzio è il tratto che collega piazza Trilussa a piazza Giuseppe Gioachino Belli, nel rione Trastevere. Il nome è quello dell'artista di Urbino, autore di varie opere a Roma. La delibera del consiglio comunale che lo ha istituito porta la data del 24 gennaio 1956.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T03:08:06.197Z"
+     },
+     {
+      "ora": "2026-11-02T03:08:45.422Z",
+      "testo": "Fra cento metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:08:48.422Z"
+     },
+     {
+      "ora": "2026-11-02T03:09:45.644Z",
+      "testo": "Fra cinquanta metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:09:48.644Z"
+     },
+     {
+      "ora": "2026-11-02T03:10:05.708Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:10:07.708Z"
+     },
+     {
+      "ora": "2026-11-02T03:11:26.028Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T03:11:28.028Z"
+     },
+     {
+      "ora": "2026-11-02T03:11:28.028Z",
+      "testo": "Si va verso Villa Farnesina.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:11:30.028Z"
+     },
+     {
+      "ora": "2026-11-02T03:17:15.812Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T03:17:17.812Z"
+     },
+     {
+      "ora": "2026-11-02T03:17:17.812Z",
+      "testo": "Si va verso Basilica di Santa Maria in Trastevere.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:17:21.812Z"
+     },
+     {
+      "ora": "2026-11-02T03:17:55.952Z",
+      "testo": "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T03:18:25.952Z"
+     },
+     {
+      "ora": "2026-11-02T03:26:58.890Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:27:01.890Z"
+     },
+     {
+      "ora": "2026-11-02T03:27:20.768Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:27:23.768Z"
+     },
+     {
+      "ora": "2026-11-02T03:27:23.768Z",
+      "testo": "Si va verso Basilica di Santa Cecilia in Trastevere.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:27:27.768Z"
+     },
+     {
+      "ora": "2026-11-02T03:28:42.109Z",
+      "testo": "Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T03:29:05.109Z"
+     },
+     {
+      "ora": "2026-11-02T03:35:43.580Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:35:45.580Z"
+     },
+     {
+      "ora": "2026-11-02T03:41:11.040Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T03:41:13.040Z"
+     },
+     {
+      "ora": "2026-11-02T03:41:13.040Z",
+      "testo": "Si va verso Chiesa di San Francesco a Ripa.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:41:17.040Z"
+     },
+     {
+      "ora": "2026-11-02T03:47:36.172Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:47:38.172Z"
+     },
+     {
+      "ora": "2026-11-02T03:48:18.942Z",
+      "testo": "Fra cinquanta metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:48:21.942Z"
+     },
+     {
+      "ora": "2026-11-02T03:48:59.148Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:49:01.148Z"
+     },
+     {
+      "ora": "2026-11-02T03:49:39.228Z",
+      "testo": "Adesso gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:49:41.228Z"
+     }
+    ],
+    "curiosita": [
+     {
+      "ora": "2026-11-02T03:07:18.987Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.89097458677206,
+       "lng": 12.471948533069854
+      }
+     },
+     {
+      "ora": "2026-11-02T03:07:25.119Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-3132373",
+      "luogo": "Lungotevere Raffaello Sanzio",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Lungotevere Raffaello Sanzio",
+       "url": "https://it.wikipedia.org/wiki/Lungotevere_Raffaello_Sanzio"
+      },
+      "testo": "Il Lungotevere Raffaello Sanzio è il tratto che collega piazza Trilussa a piazza Giuseppe Gioachino Belli, nel rione Trastevere. Il nome è quello dell'artista di Urbino, autore di varie opere a Roma. La delibera del consiglio comunale che lo ha istituito porta la data del 24 gennaio 1956."
+     },
+     {
+      "ora": "2026-11-02T03:07:45.184Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-3132373",
+      "luogo": "Lungotevere Raffaello Sanzio",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Lungotevere Raffaello Sanzio",
+       "url": "https://it.wikipedia.org/wiki/Lungotevere_Raffaello_Sanzio"
+      },
+      "testo": "Il Lungotevere Raffaello Sanzio è il tratto che collega piazza Trilussa a piazza Giuseppe Gioachino Belli, nel rione Trastevere. Il nome è quello dell'artista di Urbino, autore di varie opere a Roma. La delibera del consiglio comunale che lo ha istituito porta la data del 24 gennaio 1956.",
+      "distanzaSvoltaM": 185,
+      "distanzaTappaM": 183
+     },
+     {
+      "ora": "2026-11-02T03:16:48.173Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.8935255054934,
+       "lng": 12.467084323987086
+      }
+     },
+     {
+      "ora": "2026-11-02T03:16:55.678Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-135480",
+      "luogo": "Trastevere",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Trastevere",
+       "url": "https://it.wikipedia.org/wiki/Trastevere"
+      },
+      "testo": "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno."
+     },
+     {
+      "ora": "2026-11-02T03:17:15.799Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-135480",
+      "motivo": "meno di 10 minuti dall'ultima",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 16
+     },
+     {
+      "ora": "2026-11-02T03:17:55.946Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-135480",
+      "luogo": "Trastevere",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Trastevere",
+       "url": "https://it.wikipedia.org/wiki/Trastevere"
+      },
+      "testo": "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 531
+     },
+     {
+      "ora": "2026-11-02T03:26:58.874Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.889472754041144,
+       "lng": 12.47007362297943
+      }
+     },
+     {
+      "ora": "2026-11-02T03:27:00.690Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-4004325",
+      "luogo": "Piazza di Santa Maria in Trastevere",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Piazza di Santa Maria in Trastevere",
+       "url": "https://it.wikipedia.org/wiki/Piazza_di_Santa_Maria_in_Trastevere"
+      },
+      "testo": "Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento."
+     },
+     {
+      "ora": "2026-11-02T03:27:20.756Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-4004325",
+      "motivo": "meno di 10 minuti dall'ultima",
+      "distanzaSvoltaM": 35,
+      "distanzaTappaM": 9
+     },
+     {
+      "ora": "2026-11-02T03:27:40.832Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-4004325",
+      "motivo": "non stai camminando",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 517
+     },
+     {
+      "ora": "2026-11-02T03:28:42.100Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-4004325",
+      "luogo": "Piazza di Santa Maria in Trastevere",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Piazza di Santa Maria in Trastevere",
+       "url": "https://it.wikipedia.org/wiki/Piazza_di_Santa_Maria_in_Trastevere"
+      },
+      "testo": "Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 488
+     },
+     {
+      "ora": "2026-11-02T03:37:43.969Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.8862667396172,
+       "lng": 12.474280878072166
+      }
+     },
+     {
+      "ora": "2026-11-02T03:37:47.187Z",
+      "evento": "nessuna"
+     },
+     {
+      "ora": "2026-11-02T03:40:27.739Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.887149485426896,
+       "lng": 12.475828518403173
+      }
+     },
+     {
+      "ora": "2026-11-02T03:40:30.899Z",
+      "evento": "nessuna"
+     },
+     {
+      "ora": "2026-11-02T03:45:33.001Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.886216667687016,
+       "lng": 12.474228149395232
+      }
+     },
+     {
+      "ora": "2026-11-02T03:45:35.710Z",
+      "evento": "nessuna"
+     },
+     {
+      "ora": "2026-11-02T03:47:56.219Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.88533547389651,
+       "lng": 12.472834014190772
+      }
+     },
+     {
+      "ora": "2026-11-02T03:47:58.789Z",
+      "evento": "nessuna"
+     }
+    ],
+    "toast": [
+     {
+      "ora": "2026-11-02T03:07:45.184Z",
+      "testo": "🎧 Il Lungotevere Raffaello Sanzio è il tratto che collega piazza Trilussa a piazza Giuseppe Gioachino Belli, nel rione Trastevere. Il nome è quello dell'artista di Urbino, autore di varie opere a Roma. La delibera del consiglio comunale che lo ha istituito porta la data del 24 gennaio 1956."
+     },
+     {
+      "ora": "2026-11-02T03:17:55.946Z",
+      "testo": "🎧 Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno."
+     },
+     {
+      "ora": "2026-11-02T03:28:42.100Z",
+      "testo": "🎧 Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento."
+     }
+    ],
+    "ora": "2026-11-02T03:52:30.757Z",
+    "proxy": [
+     {
+      "stato": 200,
+      "ms": 5835,
+      "lat": 41.89097458677206,
+      "lng": 12.471948533069854,
+      "escludi": [],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Il Lungotevere Raffaello Sanzio è il tratto che collega piazza Trilussa a piazza Giuseppe Gioachino Belli, nel rione Trastevere. Il nome è quello dell'artista di Urbino, autore di varie opere a Roma. La delibera del consiglio comunale che lo ha istituito porta la data del 24 gennaio 1956.",
+       "chiave": "curiosita-itwiki-3132373",
+       "luogo": "Lungotevere Raffaello Sanzio",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Lungotevere Raffaello Sanzio",
+        "url": "https://it.wikipedia.org/wiki/Lungotevere_Raffaello_Sanzio"
+       },
+       "distanzaM": 10,
+       "cached": false,
+       "costoUsd": 0.00602,
+       "riscritta": false,
+       "modello": "claude-sonnet-5-5",
+       "modelloVerifica": "claude-haiku-4-5"
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 6808,
+      "lat": 41.8935255054934,
+      "lng": 12.467084323987086,
+      "escludi": [
+       "curiosita-itwiki-3132373"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Trastevere viene dal latino «trans Tiberim», che vuol dire «al di là del Tevere»: la città nacque sull'altra sponda. Ai tempi della fondazione di Roma questa zona apparteneva agli Etruschi di Veio, ed era contesa perché serviva a controllare il fiume e il guado dell'isola Tiberina. Poi un ponte, il pons Sublicius, la collegò al resto della città, e da lì partiva la via Campana verso le saline sul Tirreno.",
+       "chiave": "curiosita-itwiki-135480",
+       "luogo": "Trastevere",
+       "tipo": "quartiere",
+       "fonte": {
+        "titolo": "Trastevere",
+        "url": "https://it.wikipedia.org/wiki/Trastevere"
+       },
+       "distanzaM": 712,
+       "cached": true
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 1631,
+      "lat": 41.889472754041144,
+      "lng": 12.47007362297943,
+      "escludi": [
+       "curiosita-itwiki-3132373",
+       "curiosita-itwiki-135480"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Piazza di Santa Maria in Trastevere prende il nome dalla basilica, fondata nel III secolo da papa Callisto I. Nel XII secolo la basilica fu rinnovata per volere di papa Innocenzo II. La fontana al centro è una delle più antiche di Roma, e l'ultimo restauro è dell'architetto Carlo Fontana, verso la fine del Seicento.",
+       "chiave": "curiosita-itwiki-4004325",
+       "luogo": "Piazza di Santa Maria in Trastevere",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Piazza di Santa Maria in Trastevere",
+        "url": "https://it.wikipedia.org/wiki/Piazza_di_Santa_Maria_in_Trastevere"
+       },
+       "distanzaM": 19,
+       "cached": true
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 3014,
+      "lat": 41.8862667396172,
+      "lng": 12.474280878072166,
+      "escludi": [
+       "curiosita-itwiki-3132373",
+       "curiosita-itwiki-135480",
+       "curiosita-itwiki-4004325"
+      ],
+      "corpo": {
+       "esito": "nessuna",
+       "motivo": "già dette",
+       "via": "Via Anicia",
+       "quartieri": [
+        "Trastevere"
+       ],
+       "luoghi": [
+        "quartiere:Trastevere"
+       ]
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 2888,
+      "lat": 41.887149485426896,
+      "lng": 12.475828518403173,
+      "escludi": [
+       "curiosita-itwiki-3132373",
+       "curiosita-itwiki-135480",
+       "curiosita-itwiki-4004325"
+      ],
+      "corpo": {
+       "esito": "nessuna",
+       "motivo": "già dette",
+       "via": "Via Anicia",
+       "quartieri": [
+        "Trastevere"
+       ],
+       "luoghi": [
+        "quartiere:Trastevere"
+       ]
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 2460,
+      "lat": 41.886216667687016,
+      "lng": 12.474228149395232,
+      "escludi": [
+       "curiosita-itwiki-3132373",
+       "curiosita-itwiki-135480",
+       "curiosita-itwiki-4004325"
+      ],
+      "corpo": {
+       "esito": "nessuna",
+       "motivo": "già dette",
+       "via": "Via Anicia",
+       "quartieri": [
+        "Trastevere"
+       ],
+       "luoghi": [
+        "quartiere:Trastevere"
+       ]
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 1664,
+      "lat": 41.88533547389651,
+      "lng": 12.472834014190772,
+      "escludi": [
+       "curiosita-itwiki-3132373",
+       "curiosita-itwiki-135480",
+       "curiosita-itwiki-4004325"
+      ],
+      "corpo": {
+       "esito": "nessuna",
+       "motivo": "già dette",
+       "via": "Piazza San Francesco d'Assisi",
+       "quartieri": [
+        "Trastevere"
+       ],
+       "luoghi": [
+        "quartiere:Trastevere"
+       ]
+      }
+     }
+    ],
+    "errori": []
+   },
+   "secondiVeri": 93
+  },
+  "monti": {
+   "misure": {
+    "curiositaDette": 3,
+    "testi": [
+     {
+      "ora": "2026-11-02T03:19:02.830Z",
+      "minuto": 14.2,
+      "luogo": "Largo Magnanapoli",
+      "tipo": "via",
+      "fonte": "https://it.wikipedia.org/wiki/Largo_Magnanapoli",
+      "testo": "Largo Magnanapoli: sul nome nessuno è sicuro, ne hanno proposti tre. Potrebbe venire da balnea Pauli, perché nel medioevo i vicini mercati di Traiano erano creduti resti di terme volute da papa Paolo I. Oppure da magnus Neapolitani regni connestabilis, gran conestabile del Regno di Napoli, una carica tenuta sul finire del medioevo da membri della famiglia Colonna, che in quest'area possedevano varie casetorri.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 214
+     },
+     {
+      "ora": "2026-11-02T03:31:16.181Z",
+      "minuto": 26.4,
+      "luogo": "Via Cavour (Roma)",
+      "tipo": "via",
+      "fonte": "https://it.wikipedia.org/wiki/Via_Cavour_(Roma)",
+      "testo": "Via Cavour parte da Piazza dei Cinquecento e arriva fino a largo Corrado Ricci, e nel suo percorso attraversa i rioni di Castro Pretorio e Monti. Il via libera alla strada fu dato in una seduta consiliare nel maggio 1880, e i lavori andarono avanti fino agli anni 1910. Sui portoni di molti palazzi si leggono ancora oggi le date degli anni di costruzione.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 601
+     },
+     {
+      "ora": "2026-11-02T03:41:31.506Z",
+      "minuto": 36.7,
+      "luogo": "Piazza dell'Esquilino",
+      "tipo": "via",
+      "fonte": "https://it.wikipedia.org/wiki/Piazza_dell'Esquilino",
+      "testo": "Piazza dell'Esquilino sta a 340 metri dalla Stazione Termini. Ospita l'obelisco che porta il suo nome e la parte absidale della basilica di Santa Maria Maggiore.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 701
+     }
+    ],
+    "intervalliMin": [
+     12.2,
+     10.3
+    ],
+    "dieciMinutiRispettati": true,
+    "ripetizioni": 0,
+    "frasiNavigazione": 32,
+    "svolte": 24,
+    "curiositaInterrotte": 0,
+    "sovrapposizioni": [],
+    "attese": [
+     [
+      "svolta vicina",
+      2
+     ],
+     [
+      "meno di 10 minuti dall'ultima",
+      3
+     ],
+     [
+      "tappa vicina",
+      2
+     ],
+     [
+      "scheda aperta",
+      1
+     ],
+     [
+      "giro fermo o in pausa",
+      1
+     ]
+    ],
+    "richieste": 6,
+    "richiesteSenza": 1,
+    "spesaUsd": 0.07424
+   },
+   "grezzo": {
+    "citta": "Roma",
+    "tappe": [
+     "Mercati di Traiano",
+     "Piazza della Madonna dei Monti",
+     "Basilica di San Pietro in Vincoli",
+     "Basilica di Santa Maria Maggiore",
+     "Palazzo delle Esposizioni"
+    ],
+    "metri": 3250,
+    "minutiCammino": 50,
+    "inizio": "2026-11-02T03:04:50.745Z",
+    "arrivi": [
+     {
+      "tappa": "Mercati di Traiano",
+      "ora": "2026-11-02T03:16:10.735Z"
+     },
+     {
+      "tappa": "Piazza della Madonna dei Monti",
+      "ora": "2026-11-02T03:25:04.100Z"
+     },
+     {
+      "tappa": "Basilica di San Pietro in Vincoli",
+      "ora": "2026-11-02T03:31:15.115Z"
+     },
+     {
+      "tappa": "Basilica di Santa Maria Maggiore",
+      "ora": "2026-11-02T03:41:27.435Z"
+     },
+     {
+      "tappa": "Palazzo delle Esposizioni",
+      "ora": "2026-11-02T03:54:01.125Z"
+     }
+    ],
+    "voce": [
+     {
+      "ora": "2026-11-02T03:04:42.532Z",
+      "testo": "Si va verso Mercati di Traiano.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:04:45.532Z"
+     },
+     {
+      "ora": "2026-11-02T03:04:46.620Z",
+      "testo": "Adesso gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:04:48.622Z"
+     },
+     {
+      "ora": "2026-11-02T03:05:10.829Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:05:12.829Z"
+     },
+     {
+      "ora": "2026-11-02T03:06:31.118Z",
+      "testo": "Fra cento metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:06:34.118Z"
+     },
+     {
+      "ora": "2026-11-02T03:07:11.260Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:07:14.260Z"
+     },
+     {
+      "ora": "2026-11-02T03:07:31.325Z",
+      "testo": "Adesso gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:07:33.325Z"
+     },
+     {
+      "ora": "2026-11-02T03:07:51.389Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:07:53.389Z"
+     },
+     {
+      "ora": "2026-11-02T03:09:40.191Z",
+      "testo": "Fra cento metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:09:43.191Z"
+     },
+     {
+      "ora": "2026-11-02T03:10:20.334Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:10:23.334Z"
+     },
+     {
+      "ora": "2026-11-02T03:10:40.428Z",
+      "testo": "Adesso gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:10:42.428Z"
+     },
+     {
+      "ora": "2026-11-02T03:11:40.621Z",
+      "testo": "Fra cento metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:11:43.621Z"
+     },
+     {
+      "ora": "2026-11-02T03:12:20.766Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:12:23.766Z"
+     },
+     {
+      "ora": "2026-11-02T03:12:40.845Z",
+      "testo": "Adesso gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:12:42.845Z"
+     },
+     {
+      "ora": "2026-11-02T03:13:00.910Z",
+      "testo": "Fra cinquanta metri gira leggermente a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:13:04.910Z"
+     },
+     {
+      "ora": "2026-11-02T03:13:20.981Z",
+      "testo": "Adesso gira leggermente a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:13:23.982Z"
+     },
+     {
+      "ora": "2026-11-02T03:14:30.396Z",
+      "testo": "Fra cinquanta metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:14:33.396Z"
+     },
+     {
+      "ora": "2026-11-02T03:14:50.446Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:14:53.446Z"
+     },
+     {
+      "ora": "2026-11-02T03:15:10.556Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:15:13.556Z"
+     },
+     {
+      "ora": "2026-11-02T03:15:13.556Z",
+      "testo": "Si va verso Piazza della Madonna dei Monti.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:15:17.556Z"
+     },
+     {
+      "ora": "2026-11-02T03:19:02.843Z",
+      "testo": "Largo Magnanapoli: sul nome nessuno è sicuro, ne hanno proposti tre. Potrebbe venire da balnea Pauli, perché nel medioevo i vicini mercati di Traiano erano creduti resti di terme volute da papa Paolo I. Oppure da magnus Neapolitani regni connestabilis, gran conestabile del Regno di Napoli, una carica tenuta sul finire del medioevo da membri della famiglia Colonna, che in quest'area possedevano varie casetorri.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T03:19:32.843Z"
+     },
+     {
+      "ora": "2026-11-02T03:23:23.757Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:23:25.757Z"
+     },
+     {
+      "ora": "2026-11-02T03:24:44.035Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T03:24:46.035Z"
+     },
+     {
+      "ora": "2026-11-02T03:24:46.035Z",
+      "testo": "Si va verso Basilica di San Pietro in Vincoli.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:24:50.035Z"
+     },
+     {
+      "ora": "2026-11-02T03:29:54.845Z",
+      "testo": "Fra cento metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:29:57.845Z"
+     },
+     {
+      "ora": "2026-11-02T03:30:34.982Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T03:30:36.982Z"
+     },
+     {
+      "ora": "2026-11-02T03:30:36.982Z",
+      "testo": "Si va verso Basilica di Santa Maria Maggiore.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:30:40.982Z"
+     },
+     {
+      "ora": "2026-11-02T03:31:16.188Z",
+      "testo": "Via Cavour parte da Piazza dei Cinquecento e arriva fino a largo Corrado Ricci, e nel suo percorso attraversa i rioni di Castro Pretorio e Monti. Il via libera alla strada fu dato in una seduta consiliare nel maggio 1880, e i lavori andarono avanti fino agli anni 1910. Sui portoni di molti palazzi si leggono ancora oggi le date degli anni di costruzione.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T03:31:42.188Z"
+     },
+     {
+      "ora": "2026-11-02T03:37:57.597Z",
+      "testo": "Adesso gira leggermente a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:38:00.597Z"
+     },
+     {
+      "ora": "2026-11-02T03:41:07.373Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T03:41:09.373Z"
+     },
+     {
+      "ora": "2026-11-02T03:41:09.373Z",
+      "testo": "Si va verso Palazzo delle Esposizioni.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:41:12.373Z"
+     },
+     {
+      "ora": "2026-11-02T03:41:31.516Z",
+      "testo": "Piazza dell'Esquilino sta a 340 metri dalla Stazione Termini. Ospita l'obelisco che porta il suo nome e la parte absidale della basilica di Santa Maria Maggiore.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T03:41:43.516Z"
+     },
+     {
+      "ora": "2026-11-02T03:43:52.014Z",
+      "testo": "Adesso gira leggermente a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:43:55.014Z"
+     },
+     {
+      "ora": "2026-11-02T03:46:12.508Z",
+      "testo": "Fra cento metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:46:15.508Z"
+     },
+     {
+      "ora": "2026-11-02T03:46:52.636Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:46:55.636Z"
+     },
+     {
+      "ora": "2026-11-02T03:47:32.796Z",
+      "testo": "Adesso gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:47:34.796Z"
+     }
+    ],
+    "curiosita": [
+     {
+      "ora": "2026-11-02T03:09:11.664Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.894286301359216,
+       "lng": 12.48569895966415
+      }
+     },
+     {
+      "ora": "2026-11-02T03:09:20.050Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-2065200",
+      "luogo": "Via Alessandrina",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Via Alessandrina",
+       "url": "https://it.wikipedia.org/wiki/Via_Alessandrina"
+      },
+      "testo": "Via Alessandrina l'ha fatta tracciare attorno al 1570 il cardinale Michele Bonelli, nipote di papa Pio V e nato presso Alessandria in Piemonte: da lì il nome della via e del quartiere. Era lunga 400 metri e collegava il Foro di Traiano con la basilica di Massenzio. Il quartiere Alessandrino fu demolito negli anni 1930 per aprire via dell'Impero, l'odierna via dei Fori Imperiali, e questa è l'unica strada rimasta."
+     },
+     {
+      "ora": "2026-11-02T03:09:40.186Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-2065200",
+      "motivo": "svolta vicina",
+      "distanzaSvoltaM": 90,
+      "distanzaTappaM": 155
+     },
+     {
+      "ora": "2026-11-02T03:13:20.968Z",
+      "evento": "scaduta",
+      "chiave": "curiosita-itwiki-2065200",
+      "luogo": "Via Alessandrina"
+     },
+     {
+      "ora": "2026-11-02T03:13:20.968Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.89611306597879,
+       "lng": 12.4852862923703
+      }
+     },
+     {
+      "ora": "2026-11-02T03:13:30.158Z",
+      "evento": "nessuna"
+     },
+     {
+      "ora": "2026-11-02T03:18:32.297Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.89607192755807,
+       "lng": 12.487319760640291
+      }
+     },
+     {
+      "ora": "2026-11-02T03:18:42.765Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-9826948",
+      "luogo": "Largo Magnanapoli",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Largo Magnanapoli",
+       "url": "https://it.wikipedia.org/wiki/Largo_Magnanapoli"
+      },
+      "testo": "Largo Magnanapoli: sul nome nessuno è sicuro, ne hanno proposti tre. Potrebbe venire da balnea Pauli, perché nel medioevo i vicini mercati di Traiano erano creduti resti di terme volute da papa Paolo I. Oppure da magnus Neapolitani regni connestabilis, gran conestabile del Regno di Napoli, una carica tenuta sul finire del medioevo da membri della famiglia Colonna, che in quest'area possedevano varie casetorri."
+     },
+     {
+      "ora": "2026-11-02T03:19:02.830Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-9826948",
+      "luogo": "Largo Magnanapoli",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Largo Magnanapoli",
+       "url": "https://it.wikipedia.org/wiki/Largo_Magnanapoli"
+      },
+      "testo": "Largo Magnanapoli: sul nome nessuno è sicuro, ne hanno proposti tre. Potrebbe venire da balnea Pauli, perché nel medioevo i vicini mercati di Traiano erano creduti resti di terme volute da papa Paolo I. Oppure da magnus Neapolitani regni connestabilis, gran conestabile del Regno di Napoli, una carica tenuta sul finire del medioevo da membri della famiglia Colonna, che in quest'area possedevano varie casetorri.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 214
+     },
+     {
+      "ora": "2026-11-02T03:28:08.796Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.89441616644894,
+       "lng": 12.49186530472094
+      }
+     },
+     {
+      "ora": "2026-11-02T03:28:14.423Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-5911105",
+      "luogo": "Via Cavour (Roma)",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Via Cavour (Roma)",
+       "url": "https://it.wikipedia.org/wiki/Via_Cavour_(Roma)"
+      },
+      "testo": "Via Cavour parte da Piazza dei Cinquecento e arriva fino a largo Corrado Ricci, e nel suo percorso attraversa i rioni di Castro Pretorio e Monti. Il via libera alla strada fu dato in una seduta consiliare nel maggio 1880, e i lavori andarono avanti fino agli anni 1910. Sui portoni di molti palazzi si leggono ancora oggi le date degli anni di costruzione."
+     },
+     {
+      "ora": "2026-11-02T03:28:34.560Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-5911105",
+      "motivo": "meno di 10 minuti dall'ultima",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 108
+     },
+     {
+      "ora": "2026-11-02T03:29:14.697Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-5911105",
+      "motivo": "tappa vicina",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 70
+     },
+     {
+      "ora": "2026-11-02T03:29:54.833Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-5911105",
+      "motivo": "svolta vicina",
+      "distanzaSvoltaM": 95,
+      "distanzaTappaM": 34
+     },
+     {
+      "ora": "2026-11-02T03:30:55.047Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-5911105",
+      "motivo": "scheda aperta",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 609
+     },
+     {
+      "ora": "2026-11-02T03:31:16.181Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-5911105",
+      "luogo": "Via Cavour (Roma)",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Via Cavour (Roma)",
+       "url": "https://it.wikipedia.org/wiki/Via_Cavour_(Roma)"
+      },
+      "testo": "Via Cavour parte da Piazza dei Cinquecento e arriva fino a largo Corrado Ricci, e nel suo percorso attraversa i rioni di Castro Pretorio e Monti. Il via libera alla strada fu dato in una seduta consiliare nel maggio 1880, e i lavori andarono avanti fino agli anni 1910. Sui portoni di molti palazzi si leggono ancora oggi le date degli anni di costruzione.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 601
+     },
+     {
+      "ora": "2026-11-02T03:40:18.087Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.89743,
+       "lng": 12.497860000000001
+      }
+     },
+     {
+      "ora": "2026-11-02T03:40:27.228Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-8888460",
+      "luogo": "Piazza dell'Esquilino",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Piazza dell'Esquilino",
+       "url": "https://it.wikipedia.org/wiki/Piazza_dell'Esquilino"
+      },
+      "testo": "Piazza dell'Esquilino sta a 340 metri dalla Stazione Termini. Ospita l'obelisco che porta il suo nome e la parte absidale della basilica di Santa Maria Maggiore."
+     },
+     {
+      "ora": "2026-11-02T03:40:47.294Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-8888460",
+      "motivo": "meno di 10 minuti dall'ultima",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 0
+     },
+     {
+      "ora": "2026-11-02T03:41:31.506Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-8888460",
+      "luogo": "Piazza dell'Esquilino",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Piazza dell'Esquilino",
+       "url": "https://it.wikipedia.org/wiki/Piazza_dell'Esquilino"
+      },
+      "testo": "Piazza dell'Esquilino sta a 340 metri dalla Stazione Termini. Ospita l'obelisco che porta il suo nome e la parte absidale della basilica di Santa Maria Maggiore.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 701
+     },
+     {
+      "ora": "2026-11-02T03:50:33.397Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 41.89830619847558,
+       "lng": 12.491101735365898
+      }
+     },
+     {
+      "ora": "2026-11-02T03:50:40.438Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-162533",
+      "luogo": "Monti (rione di Roma)",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Monti (rione di Roma)",
+       "url": "https://it.wikipedia.org/wiki/Monti_(rione_di_Roma)"
+      },
+      "testo": "Monti è il primo rione di Roma. Il nome viene dal Medioevo: li monti era la vasta zona poco abitata che comprendeva l'Esquilino, il Viminale e parte del Quirinale. La parte bassa, la Suburra, era fitta di lupanari e locande malfamate, e sorgeva intorno all'Argiletum, che deve il nome all'argilla e al fango portati dalle acque piovane dei colli."
+     },
+     {
+      "ora": "2026-11-02T03:51:00.502Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-162533",
+      "motivo": "meno di 10 minuti dall'ultima",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 136
+     },
+     {
+      "ora": "2026-11-02T03:51:40.642Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-162533",
+      "motivo": "tappa vicina",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 86
+     },
+     {
+      "ora": "2026-11-02T03:53:20.989Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-162533",
+      "motivo": "giro fermo o in pausa",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 0
+     }
+    ],
+    "toast": [
+     {
+      "ora": "2026-11-02T03:19:02.830Z",
+      "testo": "🎧 Largo Magnanapoli: sul nome nessuno è sicuro, ne hanno proposti tre. Potrebbe venire da balnea Pauli, perché nel medioevo i vicini mercati di Traiano erano creduti resti di terme volute da papa Paolo I. Oppure da magnus Neapolitani regni connestabilis, gran conestabile del Regno di Napoli, una carica tenuta sul finire del medioevo da membri della famiglia Colonna, che in quest'area possedevano varie casetorri."
+     },
+     {
+      "ora": "2026-11-02T03:31:16.181Z",
+      "testo": "🎧 Via Cavour parte da Piazza dei Cinquecento e arriva fino a largo Corrado Ricci, e nel suo percorso attraversa i rioni di Castro Pretorio e Monti. Il via libera alla strada fu dato in una seduta consiliare nel maggio 1880, e i lavori andarono avanti fino agli anni 1910. Sui portoni di molti palazzi si leggono ancora oggi le date degli anni di costruzione."
+     },
+     {
+      "ora": "2026-11-02T03:41:31.506Z",
+      "testo": "🎧 Piazza dell'Esquilino sta a 340 metri dalla Stazione Termini. Ospita l'obelisco che porta il suo nome e la parte absidale della basilica di Santa Maria Maggiore."
+     }
+    ],
+    "ora": "2026-11-02T03:54:32.188Z",
+    "proxy": [
+     {
+      "stato": 200,
+      "ms": 7679,
+      "lat": 41.894286301359216,
+      "lng": 12.48569895966415,
+      "escludi": [],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Via Alessandrina l'ha fatta tracciare attorno al 1570 il cardinale Michele Bonelli, nipote di papa Pio V e nato presso Alessandria in Piemonte: da lì il nome della via e del quartiere. Era lunga 400 metri e collegava il Foro di Traiano con la basilica di Massenzio. Il quartiere Alessandrino fu demolito negli anni 1930 per aprire via dell'Impero, l'odierna via dei Fori Imperiali, e questa è l'unica strada rimasta.",
+       "chiave": "curiosita-itwiki-2065200",
+       "luogo": "Via Alessandrina",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Via Alessandrina",
+        "url": "https://it.wikipedia.org/wiki/Via_Alessandrina"
+       },
+       "distanzaM": 44,
+       "cached": false,
+       "costoUsd": 0.01505,
+       "riscritta": true,
+       "modello": "claude-sonnet-5-5",
+       "modelloVerifica": "claude-haiku-4-5"
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 8924,
+      "lat": 41.89611306597879,
+      "lng": 12.4852862923703,
+      "escludi": [],
+      "corpo": {
+       "esito": "nessuna",
+       "motivo": "nessuna passata",
+       "via": "Via Magnanapoli",
+       "quartieri": [
+        "Monti"
+       ],
+       "luoghi": [
+        "via:Via Quattro Novembre",
+        "quartiere:Monti (rione di Roma)"
+       ],
+       "esiti": [
+        "Via Quattro Novembre: scartata (numeri non nelle fonti: 2 ; prima stesura (riscritta): verifica: frase 1 non è nelle fonti (La fonte dice che il 4 novembre è la data di promulgazione del Bolle)"
+       ],
+       "costoUsd": 0.01645
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 10245,
+      "lat": 41.89607192755807,
+      "lng": 12.487319760640291,
+      "escludi": [],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Largo Magnanapoli: sul nome nessuno è sicuro, ne hanno proposti tre. Potrebbe venire da balnea Pauli, perché nel medioevo i vicini mercati di Traiano erano creduti resti di terme volute da papa Paolo I. Oppure da magnus Neapolitani regni connestabilis, gran conestabile del Regno di Napoli, una carica tenuta sul finire del medioevo da membri della famiglia Colonna, che in quest'area possedevano varie casetorri.",
+       "chiave": "curiosita-itwiki-9826948",
+       "luogo": "Largo Magnanapoli",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Largo Magnanapoli",
+        "url": "https://it.wikipedia.org/wiki/Largo_Magnanapoli"
+       },
+       "distanzaM": 51,
+       "cached": false,
+       "costoUsd": 0.01662,
+       "riscritta": true,
+       "modello": "claude-sonnet-5-5",
+       "modelloVerifica": "claude-haiku-4-5"
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 5412,
+      "lat": 41.89441616644894,
+      "lng": 12.49186530472094,
+      "escludi": [
+       "curiosita-itwiki-9826948"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Via Cavour parte da Piazza dei Cinquecento e arriva fino a largo Corrado Ricci, e nel suo percorso attraversa i rioni di Castro Pretorio e Monti. Il via libera alla strada fu dato in una seduta consiliare nel maggio 1880, e i lavori andarono avanti fino agli anni 1910. Sui portoni di molti palazzi si leggono ancora oggi le date degli anni di costruzione.",
+       "chiave": "curiosita-itwiki-5911105",
+       "luogo": "Via Cavour (Roma)",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Via Cavour (Roma)",
+        "url": "https://it.wikipedia.org/wiki/Via_Cavour_(Roma)"
+       },
+       "distanzaM": 324,
+       "cached": false,
+       "costoUsd": 0.0072,
+       "riscritta": false,
+       "modello": "claude-sonnet-5-5",
+       "modelloVerifica": "claude-haiku-4-5"
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 8904,
+      "lat": 41.89743,
+      "lng": 12.497860000000001,
+      "escludi": [
+       "curiosita-itwiki-9826948",
+       "curiosita-itwiki-5911105"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Piazza dell'Esquilino sta a 340 metri dalla Stazione Termini. Ospita l'obelisco che porta il suo nome e la parte absidale della basilica di Santa Maria Maggiore.",
+       "chiave": "curiosita-itwiki-8888460",
+       "luogo": "Piazza dell'Esquilino",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Piazza dell'Esquilino",
+        "url": "https://it.wikipedia.org/wiki/Piazza_dell'Esquilino"
+       },
+       "distanzaM": 88,
+       "cached": false,
+       "costoUsd": 0.01152,
+       "riscritta": true,
+       "modello": "claude-sonnet-5-5",
+       "modelloVerifica": "claude-haiku-4-5"
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 6840,
+      "lat": 41.89830619847558,
+      "lng": 12.491101735365898,
+      "escludi": [
+       "curiosita-itwiki-9826948",
+       "curiosita-itwiki-5911105",
+       "curiosita-itwiki-8888460"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Monti è il primo rione di Roma. Il nome viene dal Medioevo: li monti era la vasta zona poco abitata che comprendeva l'Esquilino, il Viminale e parte del Quirinale. La parte bassa, la Suburra, era fitta di lupanari e locande malfamate, e sorgeva intorno all'Argiletum, che deve il nome all'argilla e al fango portati dalle acque piovane dei colli.",
+       "chiave": "curiosita-itwiki-162533",
+       "luogo": "Monti (rione di Roma)",
+       "tipo": "quartiere",
+       "fonte": {
+        "titolo": "Monti (rione di Roma)",
+        "url": "https://it.wikipedia.org/wiki/Monti_(rione_di_Roma)"
+       },
+       "distanzaM": 403,
+       "cached": false,
+       "costoUsd": 0.0074,
+       "riscritta": false,
+       "modello": "claude-sonnet-5-5",
+       "modelloVerifica": "claude-haiku-4-5"
+      }
+     }
+    ],
+    "errori": []
+   },
+   "secondiVeri": 119
+  },
+  "catania": {
+   "misure": {
+    "curiositaDette": 4,
+    "testi": [
+     {
+      "ora": "2026-11-02T03:15:39.024Z",
+      "minuto": 8.8,
+      "luogo": "Giudecca di Catania",
+      "tipo": "quartiere",
+      "fonte": "https://it.wikipedia.org/wiki/Giudecca_di_Catania",
+      "testo": "Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 523
+     },
+     {
+      "ora": "2026-11-02T03:32:23.301Z",
+      "minuto": 25.6,
+      "luogo": "Centro Storico (Catania)",
+      "tipo": "quartiere",
+      "fonte": "https://it.wikipedia.org/wiki/Centro_Storico_(Catania)",
+      "testo": "Il Centro Storico di Catania è il I Municipio e comprende i rioni dell'area antica della città. Tra questi c'è Monte Pidocchio, c'è La Mecca, c'è Murorotto o Pozzo di Gammazìta. Dentro ci stanno anche San Berillo, la Civita e la Giudecca. E tra i nomi dei rioni compaiono il Teatro e Odeon Romani, l'Anfiteatro Romano e il Mausoleo Circolare.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 497
+     },
+     {
+      "ora": "2026-11-02T03:42:32.412Z",
+      "minuto": 35.7,
+      "luogo": "Civita (Catania)",
+      "tipo": "quartiere",
+      "fonte": "https://it.wikipedia.org/wiki/Civita_(Catania)",
+      "testo": "La Civita: il nome verrebbe dal latino civitas, \"cittadella\". In età antica era uno dei 4 nuclei della città dove abitavano i patrizi. Nel XVI secolo la zona fu una delle più fortificate di Catania, con le mura fatte erigere da Carlo V d'Asburgo, re di Sicilia.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 1081
+     },
+     {
+      "ora": "2026-11-02T03:52:43.146Z",
+      "minuto": 45.9,
+      "luogo": "Via Etnea",
+      "tipo": "via",
+      "fonte": "https://it.wikipedia.org/wiki/Via_Etnea",
+      "testo": "Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 466
+     }
+    ],
+    "intervalliMin": [
+     16.7,
+     10.2,
+     10.2
+    ],
+    "dieciMinutiRispettati": true,
+    "ripetizioni": 0,
+    "frasiNavigazione": 16,
+    "svolte": 8,
+    "curiositaInterrotte": 0,
+    "sovrapposizioni": [],
+    "attese": [
+     [
+      "svolta vicina",
+      2
+     ],
+     [
+      "tappa vicina",
+      2
+     ],
+     [
+      "scheda aperta",
+      2
+     ],
+     [
+      "non stai camminando",
+      2
+     ],
+     [
+      "meno di 10 minuti dall'ultima",
+      2
+     ]
+    ],
+    "richieste": 5,
+    "richiesteSenza": 1,
+    "spesaUsd": 0.05344
+   },
+   "grezzo": {
+    "citta": "Catania",
+    "tappe": [
+     "Castello Ursino",
+     "Fontana dell'Elefante",
+     "Chiesa di San Benedetto",
+     "Teatro Massimo Bellini",
+     "Villa Bellini"
+    ],
+    "metri": 3510,
+    "minutiCammino": 54,
+    "inizio": "2026-11-02T03:06:50.093Z",
+    "arrivi": [
+     {
+      "tappa": "Castello Ursino",
+      "ora": "2026-11-02T03:15:17.887Z"
+     },
+     {
+      "tappa": "Fontana dell'Elefante",
+      "ora": "2026-11-02T03:25:21.069Z"
+     },
+     {
+      "tappa": "Chiesa di San Benedetto",
+      "ora": "2026-11-02T03:32:02.165Z"
+     },
+     {
+      "tappa": "Teatro Massimo Bellini",
+      "ora": "2026-11-02T03:41:25.179Z"
+     },
+     {
+      "tappa": "Villa Bellini",
+      "ora": "2026-11-02T04:00:04.676Z"
+     }
+    ],
+    "voce": [
+     {
+      "ora": "2026-11-02T03:06:41.887Z",
+      "testo": "Si va verso Castello Ursino.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:06:43.887Z"
+     },
+     {
+      "ora": "2026-11-02T03:06:45.985Z",
+      "testo": "Adesso gira leggermente a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:06:48.985Z"
+     },
+     {
+      "ora": "2026-11-02T03:10:50.962Z",
+      "testo": "Fra cento metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:10:53.962Z"
+     },
+     {
+      "ora": "2026-11-02T03:11:37.121Z",
+      "testo": "Fra cinquanta metri gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:11:40.121Z"
+     },
+     {
+      "ora": "2026-11-02T03:12:17.250Z",
+      "testo": "Adesso gira a sinistra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:12:19.250Z"
+     },
+     {
+      "ora": "2026-11-02T03:12:37.345Z",
+      "testo": "Adesso gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:12:39.345Z"
+     },
+     {
+      "ora": "2026-11-02T03:14:17.729Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T03:14:19.729Z"
+     },
+     {
+      "ora": "2026-11-02T03:14:19.729Z",
+      "testo": "Si va verso Fontana dell'Elefante.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:14:22.729Z"
+     },
+     {
+      "ora": "2026-11-02T03:15:39.038Z",
+      "testo": "Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T03:16:10.038Z"
+     },
+     {
+      "ora": "2026-11-02T03:24:00.801Z",
+      "testo": "Fra cento metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:24:03.801Z"
+     },
+     {
+      "ora": "2026-11-02T03:24:20.866Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T03:24:22.866Z"
+     },
+     {
+      "ora": "2026-11-02T03:24:22.866Z",
+      "testo": "Si va verso Chiesa di San Benedetto.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:24:25.866Z"
+     },
+     {
+      "ora": "2026-11-02T03:30:41.905Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:30:44.905Z"
+     },
+     {
+      "ora": "2026-11-02T03:31:01.961Z",
+      "testo": "Fra cinquanta metri gira a destra.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "svolta",
+      "fine": "2026-11-02T03:31:04.961Z"
+     },
+     {
+      "ora": "2026-11-02T03:31:04.961Z",
+      "testo": "Si va verso Teatro Massimo Bellini.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:31:07.961Z"
+     },
+     {
+      "ora": "2026-11-02T03:32:23.309Z",
+      "testo": "Il Centro Storico di Catania è il I Municipio e comprende i rioni dell'area antica della città. Tra questi c'è Monte Pidocchio, c'è La Mecca, c'è Murorotto o Pozzo di Gammazìta. Dentro ci stanno anche San Berillo, la Civita e la Giudecca. E tra i nomi dei rioni compaiono il Teatro e Odeon Romani, l'Anfiteatro Romano e il Mausoleo Circolare.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T03:32:48.309Z"
+     },
+     {
+      "ora": "2026-11-02T03:40:45.046Z",
+      "testo": "Tappa della prova.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "fine": "2026-11-02T03:40:47.046Z"
+     },
+     {
+      "ora": "2026-11-02T03:40:47.046Z",
+      "testo": "Si va verso Villa Bellini.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "prossimaTappa",
+      "fine": "2026-11-02T03:40:49.046Z"
+     },
+     {
+      "ora": "2026-11-02T03:42:32.421Z",
+      "testo": "La Civita: il nome verrebbe dal latino civitas, \"cittadella\". In età antica era uno dei 4 nuclei della città dove abitavano i patrizi. Nel XVI secolo la zona fu una delle più fortificate di Catania, con le mura fatte erigere da Carlo V d'Asburgo, re di Sicilia.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T03:42:51.421Z"
+     },
+     {
+      "ora": "2026-11-02T03:52:43.154Z",
+      "testo": "Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città.",
+      "voce": "marin",
+      "sorgente": "browser",
+      "tipo": "curiosita",
+      "fine": "2026-11-02T03:53:18.154Z"
+     }
+    ],
+    "curiosita": [
+     {
+      "ora": "2026-11-02T03:11:11.027Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 37.500527967938375,
+       "lng": 15.083868496873867
+      }
+     },
+     {
+      "ora": "2026-11-02T03:11:17.032Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-3486154",
+      "luogo": "Giudecca di Catania",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Giudecca di Catania",
+       "url": "https://it.wikipedia.org/wiki/Giudecca_di_Catania"
+      },
+      "testo": "Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo."
+     },
+     {
+      "ora": "2026-11-02T03:11:37.100Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-3486154",
+      "motivo": "svolta vicina",
+      "distanzaSvoltaM": 55,
+      "distanzaTappaM": 161
+     },
+     {
+      "ora": "2026-11-02T03:12:57.383Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-3486154",
+      "motivo": "tappa vicina",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 93
+     },
+     {
+      "ora": "2026-11-02T03:14:37.752Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-3486154",
+      "motivo": "scheda aperta",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 536
+     },
+     {
+      "ora": "2026-11-02T03:14:57.822Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-3486154",
+      "motivo": "non stai camminando",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 536
+     },
+     {
+      "ora": "2026-11-02T03:15:39.024Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-3486154",
+      "luogo": "Giudecca di Catania",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Giudecca di Catania",
+       "url": "https://it.wikipedia.org/wiki/Giudecca_di_Catania"
+      },
+      "testo": "Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 523
+     },
+     {
+      "ora": "2026-11-02T03:25:42.203Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 37.502711531975464,
+       "lng": 15.086808878257665
+      }
+     },
+     {
+      "ora": "2026-11-02T03:25:49.201Z",
+      "evento": "nessuna"
+     },
+     {
+      "ora": "2026-11-02T03:28:29.753Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 37.50381258820792,
+       "lng": 15.085712128597976
+      }
+     },
+     {
+      "ora": "2026-11-02T03:28:41.418Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-9197168",
+      "luogo": "Centro Storico (Catania)",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Centro Storico (Catania)",
+       "url": "https://it.wikipedia.org/wiki/Centro_Storico_(Catania)"
+      },
+      "testo": "Il Centro Storico di Catania è il I Municipio e comprende i rioni dell'area antica della città. Tra questi c'è Monte Pidocchio, c'è La Mecca, c'è Murorotto o Pozzo di Gammazìta. Dentro ci stanno anche San Berillo, la Civita e la Giudecca. E tra i nomi dei rioni compaiono il Teatro e Odeon Romani, l'Anfiteatro Romano e il Mausoleo Circolare."
+     },
+     {
+      "ora": "2026-11-02T03:29:01.526Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-9197168",
+      "motivo": "tappa vicina",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 97
+     },
+     {
+      "ora": "2026-11-02T03:30:41.878Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-9197168",
+      "motivo": "svolta vicina",
+      "distanzaSvoltaM": 55,
+      "distanzaTappaM": 20
+     },
+     {
+      "ora": "2026-11-02T03:31:22.026Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-9197168",
+      "motivo": "scheda aperta",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 485
+     },
+     {
+      "ora": "2026-11-02T03:31:42.096Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-9197168",
+      "motivo": "non stai camminando",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 485
+     },
+     {
+      "ora": "2026-11-02T03:32:23.301Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-9197168",
+      "luogo": "Centro Storico (Catania)",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Centro Storico (Catania)",
+       "url": "https://it.wikipedia.org/wiki/Centro_Storico_(Catania)"
+      },
+      "testo": "Il Centro Storico di Catania è il I Municipio e comprende i rioni dell'area antica della città. Tra questi c'è Monte Pidocchio, c'è La Mecca, c'è Murorotto o Pozzo di Gammazìta. Dentro ci stanno anche San Berillo, la Civita e la Giudecca. E tra i nomi dei rioni compaiono il Teatro e Odeon Romani, l'Anfiteatro Romano e il Mausoleo Circolare.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 497
+     },
+     {
+      "ora": "2026-11-02T03:41:26.245Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 37.50367,
+       "lng": 15.09008
+      }
+     },
+     {
+      "ora": "2026-11-02T03:41:32.204Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-7622641",
+      "luogo": "Civita (Catania)",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Civita (Catania)",
+       "url": "https://it.wikipedia.org/wiki/Civita_(Catania)"
+      },
+      "testo": "La Civita: il nome verrebbe dal latino civitas, \"cittadella\". In età antica era uno dei 4 nuclei della città dove abitavano i patrizi. Nel XVI secolo la zona fu una delle più fortificate di Catania, con le mura fatte erigere da Carlo V d'Asburgo, re di Sicilia."
+     },
+     {
+      "ora": "2026-11-02T03:41:52.271Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-7622641",
+      "motivo": "meno di 10 minuti dall'ultima",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 1095
+     },
+     {
+      "ora": "2026-11-02T03:42:32.412Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-7622641",
+      "luogo": "Civita (Catania)",
+      "tipo": "quartiere",
+      "fonte": {
+       "titolo": "Civita (Catania)",
+       "url": "https://it.wikipedia.org/wiki/Civita_(Catania)"
+      },
+      "testo": "La Civita: il nome verrebbe dal latino civitas, \"cittadella\". In età antica era uno dei 4 nuclei della città dove abitavano i patrizi. Nel XVI secolo la zona fu una delle più fortificate di Catania, con le mura fatte erigere da Carlo V d'Asburgo, re di Sicilia.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 1081
+     },
+     {
+      "ora": "2026-11-02T03:51:34.296Z",
+      "evento": "richiesta",
+      "pos": {
+       "lat": 37.5079273046377,
+       "lng": 15.086101195089897
+      }
+     },
+     {
+      "ora": "2026-11-02T03:51:42.940Z",
+      "evento": "arrivata",
+      "chiave": "curiosita-itwiki-1503423",
+      "luogo": "Via Etnea",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Via Etnea",
+       "url": "https://it.wikipedia.org/wiki/Via_Etnea"
+      },
+      "testo": "Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città."
+     },
+     {
+      "ora": "2026-11-02T03:52:03.006Z",
+      "evento": "attesa",
+      "chiave": "curiosita-itwiki-1503423",
+      "motivo": "meno di 10 minuti dall'ultima",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 516
+     },
+     {
+      "ora": "2026-11-02T03:52:43.146Z",
+      "evento": "detta",
+      "chiave": "curiosita-itwiki-1503423",
+      "luogo": "Via Etnea",
+      "tipo": "via",
+      "fonte": {
+       "titolo": "Via Etnea",
+       "url": "https://it.wikipedia.org/wiki/Via_Etnea"
+      },
+      "testo": "Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città.",
+      "distanzaSvoltaM": null,
+      "distanzaTappaM": 466
+     }
+    ],
+    "toast": [
+     {
+      "ora": "2026-11-02T03:15:39.024Z",
+      "testo": "🎧 Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo."
+     },
+     {
+      "ora": "2026-11-02T03:32:23.301Z",
+      "testo": "🎧 Il Centro Storico di Catania è il I Municipio e comprende i rioni dell'area antica della città. Tra questi c'è Monte Pidocchio, c'è La Mecca, c'è Murorotto o Pozzo di Gammazìta. Dentro ci stanno anche San Berillo, la Civita e la Giudecca. E tra i nomi dei rioni compaiono il Teatro e Odeon Romani, l'Anfiteatro Romano e il Mausoleo Circolare."
+     },
+     {
+      "ora": "2026-11-02T03:42:32.412Z",
+      "testo": "🎧 La Civita: il nome verrebbe dal latino civitas, \"cittadella\". In età antica era uno dei 4 nuclei della città dove abitavano i patrizi. Nel XVI secolo la zona fu una delle più fortificate di Catania, con le mura fatte erigere da Carlo V d'Asburgo, re di Sicilia."
+     },
+     {
+      "ora": "2026-11-02T03:52:43.146Z",
+      "testo": "🎧 Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città."
+     }
+    ],
+    "ora": "2026-11-02T04:00:35.738Z",
+    "proxy": [
+     {
+      "stato": 200,
+      "ms": 5510,
+      "lat": 37.500527967938375,
+      "lng": 15.083868496873867,
+      "escludi": [],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Giudecca di Catania: la chiamavano Judeka in dialetto giudaico-catanese, ed era l'antico quartiere ebraico. Chiamarlo ghetto non è giusto: la comunità ebraica non era chiusa in un quartiere, era sparsa in diverse zone della parte occidentale e meridionale della città. Nel 1929, mentre posavano cavi telefonici vicino alla chiesa di Santa Teresa, hanno trovato una lapide funebre ebraica che risalirebbe alla fine del IV secolo.",
+       "chiave": "curiosita-itwiki-3486154",
+       "luogo": "Giudecca di Catania",
+       "tipo": "quartiere",
+       "fonte": {
+        "titolo": "Giudecca di Catania",
+        "url": "https://it.wikipedia.org/wiki/Giudecca_di_Catania"
+       },
+       "distanzaM": 522,
+       "cached": false,
+       "costoUsd": 0.00763,
+       "riscritta": false,
+       "modello": "claude-sonnet-5-5",
+       "modelloVerifica": "claude-haiku-4-5"
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 6736,
+      "lat": 37.502711531975464,
+      "lng": 15.086808878257665,
+      "escludi": [
+       "curiosita-itwiki-3486154"
+      ],
+      "corpo": {
+       "esito": "nessuna",
+       "motivo": "nessuna passata",
+       "via": "Via Vittorio Emanuele Secondo",
+       "quartieri": [
+        "Giudecca",
+        "Centro storico"
+       ],
+       "luoghi": [
+        "via:Via Vittorio Emanuele II (Catania)",
+        "via:Piazza del Duomo (Catania)",
+        "via:Piazza dell'Università",
+        "quartiere:Giudecca di Catania",
+        "quartiere:Centro Storico (Catania)"
+       ],
+       "esiti": [
+        "Via Vittorio Emanuele II (Catania): scartata (parla a più persone ; prima stesura (riscritta): parla a più persone)"
+       ],
+       "costoUsd": 0.01263
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 10934,
+      "lat": 37.50381258820792,
+      "lng": 15.085712128597976,
+      "escludi": [
+       "curiosita-itwiki-3486154"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Il Centro Storico di Catania è il I Municipio e comprende i rioni dell'area antica della città. Tra questi c'è Monte Pidocchio, c'è La Mecca, c'è Murorotto o Pozzo di Gammazìta. Dentro ci stanno anche San Berillo, la Civita e la Giudecca. E tra i nomi dei rioni compaiono il Teatro e Odeon Romani, l'Anfiteatro Romano e il Mausoleo Circolare.",
+       "chiave": "curiosita-itwiki-9197168",
+       "luogo": "Centro Storico (Catania)",
+       "tipo": "quartiere",
+       "fonte": {
+        "titolo": "Centro Storico (Catania)",
+        "url": "https://it.wikipedia.org/wiki/Centro_Storico_(Catania)"
+       },
+       "distanzaM": 463,
+       "cached": false,
+       "costoUsd": 0.018,
+       "riscritta": true,
+       "modello": "claude-sonnet-5-5",
+       "modelloVerifica": "claude-haiku-4-5"
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 4871,
+      "lat": 37.50367,
+      "lng": 15.09008,
+      "escludi": [
+       "curiosita-itwiki-3486154",
+       "curiosita-itwiki-9197168"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "La Civita: il nome verrebbe dal latino civitas, \"cittadella\". In età antica era uno dei 4 nuclei della città dove abitavano i patrizi. Nel XVI secolo la zona fu una delle più fortificate di Catania, con le mura fatte erigere da Carlo V d'Asburgo, re di Sicilia.",
+       "chiave": "curiosita-itwiki-7622641",
+       "luogo": "Civita (Catania)",
+       "tipo": "quartiere",
+       "fonte": {
+        "titolo": "Civita (Catania)",
+        "url": "https://it.wikipedia.org/wiki/Civita_(Catania)"
+       },
+       "distanzaM": 273,
+       "cached": false,
+       "costoUsd": 0.00711,
+       "riscritta": false,
+       "modello": "claude-sonnet-5-5",
+       "modelloVerifica": "claude-haiku-4-5"
+      }
+     },
+     {
+      "stato": 200,
+      "ms": 8324,
+      "lat": 37.5079273046377,
+      "lng": 15.086101195089897,
+      "escludi": [
+       "curiosita-itwiki-3486154",
+       "curiosita-itwiki-9197168",
+       "curiosita-itwiki-7622641"
+      ],
+      "corpo": {
+       "esito": "passata",
+       "testo": "Via Etnea nasce dopo il terremoto dell'11 gennaio 1693, che rase quasi al suolo Catania: sotto le macerie morirono circa due terzi degli abitanti. Il duca di Camastra, mandato a dirigere la ricostruzione, tracciò le strade ad angolo retto e partì dal duomo, uno dei pochi edifici rimasti in piedi. All'inizio si chiamava via duca di Uzeda, come il viceré di allora, ed era lunga circa settecento metri: finiva dove oggi c'è piazza Stesicoro, che allora era una porta della città.",
+       "chiave": "curiosita-itwiki-1503423",
+       "luogo": "Via Etnea",
+       "tipo": "via",
+       "fonte": {
+        "titolo": "Via Etnea",
+        "url": "https://it.wikipedia.org/wiki/Via_Etnea"
+       },
+       "distanzaM": 268,
+       "cached": false,
+       "costoUsd": 0.00807,
+       "riscritta": false,
+       "modello": "claude-sonnet-5-5",
+       "modelloVerifica": "claude-haiku-4-5"
+      }
+     }
+    ],
+    "errori": []
+   },
+   "secondiVeri": 118
+  }
+ },
+ "finito": "2026-11-02T03:08:32.947Z"
+}

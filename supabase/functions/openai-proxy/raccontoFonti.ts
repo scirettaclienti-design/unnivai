@@ -139,6 +139,18 @@ const nomePreciso = (nome: string) => norm(nome).split(' ').filter(w => w.length
 const contieneNome = (frase: string, nome: string) => ` ${norm(frase)} `.includes(` ${norm(nome)} `);
 
 /**
+ * Di una frase lunga fatta di pezzi staccati da un trattino o da un punto e virgola, solo i pezzi che nominano la tappa. Nella voce di Troina
+ * «Il sito … fu abitato … al Neolitico — una fattoria del 6000 a. C. — e la necropoli … sita sul monte Muganà» la fattoria non è sul
+ * Muganà: il racconto del monte la metteva «sotto i tuoi piedi» (RACCONTO-FONTI, prima misura). Resta «e la necropoli … sul monte Muganà».
+ */
+export function pezzoColNome(frase: string, nome: string): string {
+    const pezzi = frase.split(/\s[—–]\s|;\s/);
+    if (pezzi.length < 2) return frase;
+    const tenuti = pezzi.filter(p => contieneNome(p, nome)).map(p => p.trim().replace(/[.!?…]+$/, ''));
+    return tenuti.length ? `${tenuti.join('; ')}.` : frase;
+}
+
+/**
  * Le frasi di una voce che nominano la tappa, e le sezioni intitolate col suo nome per intero. Solo queste: una voce sul Vittoriano parla
  * di tante cose, e il racconto della Terrazza delle Quadrighe deve partire solo da ciò che la voce dice della terrazza.
  */
@@ -149,7 +161,10 @@ export function menzioniIn(testo: string, nome: string): string[] {
     for (const sz of sezioniDi(testo)) {
         if (sz.titolo && sezioneFuori(sz.titolo)) continue;
         const tutta = sz.titolo && contieneNome(sz.titolo, n);
-        for (const f of frasiDi(sz.testo)) if (tutta || contieneNome(f, n)) out.push(f);
+        for (const f of frasiDi(sz.testo)) {
+            if (tutta) out.push(f);
+            else if (contieneNome(f, n)) out.push(pezzoColNome(f, n));
+        }
     }
     return out;
 }

@@ -10,19 +10,24 @@
 export const LIMITI = Object.freeze({ frasiMin: 2, frasiMax: 4, carMax: 600, wikipediaMax: 1500, googleMax: 500, fonteMin: 200 });
 export const RISPOSTA_NIENTE = 'NIENTE';
 /** Versione del prompt e del controllo: se cambia, i racconti in cache si riscrivono. */
-export const VERSIONE_RACCONTO = 'r6'; // r6 (RACCONTO-FONTI): prompt e controlli di r5; cambia solo come si cercano le fonti di una tappa che ne resta senza
+export const VERSIONE_RACCONTO = 'r7'; // r7 (RACCONTO-FONTI): prompt e controlli di r5; fonti cercate anche per coordinate e nelle voci vicine (r6), menzioni ristrette al pezzo di frase col nome
 /**
  * Le versioni precedenti che valgono ancora.
- * - r5: stesso prompt e stessi controlli di r6, e per una tappa che le aveva le stesse fonti: valgono passato e scartato (fino al loro TTL).
- *   Un r5 «senza fonti» no: in r6 le fonti si cercano anche per coordinate e dentro le voci vicine, quindi si ricerca alla prossima richiesta.
+ * - r6: valgono tutte le righe salvo quelle con fonti trovate per menzioni (`via: 'menzioni'`), prese prima che la frase si restringesse al pezzo
+ *   col nome (Monte Muganà: una fattoria del Neolitico messa sul monte). Si riscrivono alla prossima richiesta.
+ * - r5: stesso prompt e stessi controlli, e per una tappa che le aveva le stesse fonti: valgono passato e scartato (fino al loro TTL).
+ *   Un r5 «senza fonti» no: da r6 le fonti si cercano anche per coordinate e dentro le voci vicine, quindi si ricerca alla prossima richiesta.
  * - r3, r4: solo un PASSATO (ha superato due controlli severi almeno quanto quelli di oggi). Scartato o senza fonti si rifanno.
  */
+export const VERSIONI_STESSE_FONTI = Object.freeze(['r6']);
 export const VERSIONI_STESSI_CONTROLLI = Object.freeze(['r5']);
 export const VERSIONI_ANCORA_VALIDE = Object.freeze(['r3', 'r4']);
-export const versioneValida = (riga: { versione?: string | null; esito?: string | null } | null | undefined): boolean => {
+const daMenzioni = (fonti: unknown): boolean => Array.isArray(fonti) && fonti.some((f) => (f as { via?: string } | null)?.via === 'menzioni');
+export const versioneValida = (riga: { versione?: string | null; esito?: string | null; fonti?: unknown } | null | undefined): boolean => {
     if (!riga) return false;
     const v = String(riga.versione);
     if (v === VERSIONE_RACCONTO) return true;
+    if (VERSIONI_STESSE_FONTI.includes(v)) return !daMenzioni(riga.fonti);
     if (VERSIONI_STESSI_CONTROLLI.includes(v)) return riga.esito === 'passato' || riga.esito === 'scartato';
     return VERSIONI_ANCORA_VALIDE.includes(v) && riga.esito === 'passato';
 };

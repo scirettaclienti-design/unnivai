@@ -3,7 +3,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import {
-    allargaWikipedia, cercaWikipedia, frasiDi, sezioniDi, testoVoceIntera, menzioniIn, stessoNomeProprio, nomeDaCercare,
+    allargaWikipedia, cercaWikipedia, pezzoColNome, frasiDi, sezioniDi, testoVoceIntera, menzioniIn, stessoNomeProprio, nomeDaCercare,
     RAGGIO_VICINA_M, RAGGIO_CONTENITORE_M, TESTO_MAX, UA_WIKIPEDIA,
 } from '../../../supabase/functions/openai-proxy/raccontoFonti.ts';
 import { versioneValida, VERSIONE_RACCONTO, haFonti, LIMITI } from '../../../supabase/functions/openai-proxy/racconto.ts';
@@ -80,9 +80,16 @@ describe('menzioni: solo le frasi che nominano la tappa', () => {
         ]);
     });
     it('il nome si trova senza maiuscole e senza accenti, a parola intera', () => {
-        expect(menzioniIn(TROINA, 'Monte Muganà')).toHaveLength(2);
+        expect(menzioniIn(TROINA, 'Monte Muganà')).toEqual(['e la necropoli ancora visitabile e sita sul monte Muganà.', 'Cinta muraria e Necropoli Monte Muganà.']);
         expect(menzioniIn(VITTORIANO, 'Terrazza delle Quadrighe')).toEqual([expect.stringMatching(/^Dal giugno 2007 è possibile salire alla terrazza delle quadrighe/)]);
         expect(menzioniIn('La Porta Uzedana è un\'altra cosa.', 'Porta Uzeda')).toEqual([]);
+    });
+    it('di una frase a pezzi (trattini, punto e virgola) resta solo il pezzo col nome: la fattoria del Neolitico non è sul Muganà', () => {
+        const f = "Il sito fu abitato fin dai tempi più antichi — una fattoria del 6000 a. C. — e la necropoli ancora visitabile e sita sul monte Muganà.";
+        expect(pezzoColNome(f, 'Monte Muganà')).toBe('e la necropoli ancora visitabile e sita sul monte Muganà.');
+        expect(pezzoColNome('Dal giugno 2007 si sale alla terrazza delle quadrighe: è la più alta del monumento.', 'Terrazza delle Quadrighe'))
+            .toBe('Dal giugno 2007 si sale alla terrazza delle quadrighe: è la più alta del monumento.'); // i due punti non spezzano
+        expect(pezzoColNome('La piazza ha tre chiese; la Torre Capitania è del XII secolo; il municipio è accanto.', 'Torre Capitania')).toBe('la Torre Capitania è del XII secolo.');
     });
     it('una sezione intitolata col nome vale per intero', () => {
         const t = 'Intro.\n== Terrazza delle Quadrighe ==\nSi sale con un ascensore. Da qui si vede tutta la città.';
@@ -145,12 +152,13 @@ describe('allargaWikipedia: le tre strade, ognuna col posto verificato', () => {
         expect((await allargaWikipedia(galleria, null, g)).fonte).toBeNull();
         expect(RAGGIO_CONTENITORE_M).toBeLessThan(600);
     });
-    it('3. menzioni: la voce della città vale fino a 5 km (Monte Muganà, 1 km dal centro di Troina); la voce di un\'altra città no', async () => {
+    it('3. menzioni: la voce della città vale fino a 5 km (Monte Muganà, 1 km dal centro di Troina), ma solo il pezzo col nome; la voce di un\'altra città no', async () => {
         const mugana = { nome: 'Monte Muganà', citta: 'Troina', lat: 37.7876, lng: 14.61054 };
         const f = wikiFinta({ conFrase: { 'Monte Muganà': [{ title: 'Troina', coordinates: [{ lat: 37.7845, lon: 14.5980 }] }] }, voci: { Troina: TROINA } });
         const { fonte } = await allargaWikipedia(mugana, null, f);
         expect(fonte).toMatchObject({ titolo: 'Troina', via: 'menzioni' });
-        expect(fonte.testo).toMatch(/necropoli ancora visitabile e sita sul monte Muganà\. Cinta muraria e Necropoli Monte Muganà\.$/);
+        expect(fonte.testo).toBe('e la necropoli ancora visitabile e sita sul monte Muganà. Cinta muraria e Necropoli Monte Muganà.');
+        expect(haFonti({ nome: 'Monte Muganà', wikipedia: { testo: fonte.testo } })).toBe(false); // troppo poco: resta senza racconto
         const g = wikiFinta({ conFrase: { 'Monte Muganà': [{ title: 'Cerami', coordinates: [{ lat: 37.80, lon: 14.55 }] }] }, voci: { Cerami: TROINA } });
         expect((await allargaWikipedia(mugana, null, g)).fonte).toBeNull();
     });
@@ -181,9 +189,12 @@ describe('proxy: si allarga solo una tappa che resterebbe senza fonti; la soglia
         expect(src).toMatch(/else if \(largo\.errore\) wikiRes\.errore = true/);
         expect(LIMITI.fonteMin).toBe(200);
     });
-    it('cache: r6 vale; r5 passato e scartato valgono (stesse fonti, stessi controlli); un «senza fonti» di prima si ricerca', () => {
-        expect(VERSIONE_RACCONTO).toBe('r6');
-        expect(versioneValida({ versione: 'r6', esito: 'senza-fonti' })).toBe(true);
+    it('cache: r7 vale; r6 vale salvo le fonti da menzioni (prese prima del pezzo col nome); r5 passato e scartato valgono; un «senza fonti» di prima si ricerca', () => {
+        expect(VERSIONE_RACCONTO).toBe('r7');
+        expect(versioneValida({ versione: 'r7', esito: 'senza-fonti' })).toBe(true);
+        expect(versioneValida({ versione: 'r6', esito: 'passato', fonti: [{ fonte: 'wikipedia', titolo: 'Ex cattedrale', via: 'vicina' }] })).toBe(true);
+        expect(versioneValida({ versione: 'r6', esito: 'senza-fonti', fonti: [] })).toBe(true);
+        expect(versioneValida({ versione: 'r6', esito: 'passato', fonti: [{ fonte: 'wikipedia', titolo: 'Troina', via: 'menzioni' }] })).toBe(false); // Monte Muganà
         expect(versioneValida({ versione: 'r5', esito: 'passato' })).toBe(true);
         expect(versioneValida({ versione: 'r5', esito: 'scartato' })).toBe(true);
         expect(versioneValida({ versione: 'r5', esito: 'senza-fonti' })).toBe(false);

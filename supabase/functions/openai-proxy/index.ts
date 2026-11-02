@@ -594,7 +594,7 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
   });
 
   const { data: gia } = await sb.from('place_racconti').select('esito, testo, motivi, fonti, versione, created_at').eq('place_id', placeId).maybeSingle();
-  if (gia && versioneValida(gia)) { // la versione di oggi, un r5 passato o scartato, un r3/r4 passato: un «senza fonti» di prima si ricerca con r6
+  if (gia && versioneValida(gia)) { // la versione di oggi, un r6 non da menzioni, un r5 passato o scartato, un r3/r4 passato: un «senza fonti» di prima si ricerca
     const giorni = (Date.now() - new Date(gia.created_at).getTime()) / 86_400_000;
     if (giorni < (gia.esito === 'passato' ? TTL_RACCONTO_GIORNI : TTL_SCARTATO_GIORNI)) return risposta(gia, { cached: true });
   }

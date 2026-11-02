@@ -479,6 +479,10 @@ Fonte unica dei testi e dell'HTML: `supabase/functions/_shared/emailUnnivai.ts`.
 
 Test di voce e struttura: `src/__tests__/email/modelliEmail.test.js`. Diagnosi, passi di Ivano e prova: `docs/prove/2026-11-02-email-lancio.md`.
 
+### L'app iPhone (APP-IPHONE-PROVA)
+
+Capacitor 8.5.3 (`capacitor.config.json`: `it.unnivai.app`, «Unnivai», `webDir: dist`, pagine impacchettate, mai `server.url`); progetto in `ios/` (SPM, solo iPhone, solo verticale). `Info.plist`: posizione «Durante l'uso», fotocamera, `UIBackgroundModes = audio` (`location` solo insieme al plugin di background), `ITSAppUsesNonExemptEncryption = false`; `AppDelegate`: `AVAudioSession` `.playback`/`.voicePrompt`; `PrivacyInfo.xcprivacy` (bozza). Dopo una build web: `npx cap sync ios`. Prova sul simulatore in un colpo solo (serve Xcode): `bash scripts/ios/prova-simulatore.sh` (controlla bundle id e titolo prima di mettere le credenziali negli appunti del simulatore). Firma, TestFlight e App Store Connect solo da Ivano. Stato, mancanze e passi: `docs/prove/2026-11-02-app-iphone-prova.md`.
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

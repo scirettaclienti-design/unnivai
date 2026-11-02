@@ -5,6 +5,12 @@
 #   SIM_NOME="iPhone 17" bash scripts/ios/prova-simulatore.sh
 #   bash scripts/ios/prova-simulatore.sh --solo-build
 #
+# APP-NATIVA (03/11): prima della build controlla Swift (scripts/ios/controlla-swift.sh) e icona (genera-icona --controlla);
+# dopo la build controlla nel pacchetto `location` in UIBackgroundModes e l'assenza di chiavi «Always»; nella prova
+# la posizione arriva dal plugin nativo PosizioneGiro (la conferma: righe «posizione nativa in background» nel registro
+# mentre l'app è in secondo piano); se .env.local ha DEMO_EMAIL e DEMO_PASSWORD prova anche l'account demo del revisore
+# dal «telefono a Cupertino» (giro di Catania con «Simula il cammino» fino alla fine giro).
+#
 # Serve Xcode completo (non i soli Command Line Tools) e `sudo xcode-select -s /Applications/Xcode.app`.
 # Nessuna firma: build per simulatore con CODE_SIGNING_ALLOWED=NO. Nessun account Apple.
 #
@@ -43,6 +49,10 @@ RIEPILOGO="$OUT/riepilogo.txt"
 : > "$RIEPILOGO"
 nota() { echo "$*" | tee -a "$RIEPILOGO"; }
 nota "Xcode: $(xcodebuild -version | tr '\n' ' ')"
+
+# --- 0b. APP-NATIVA: Swift e icona prima di tutto ------------------------------------------------------
+bash scripts/ios/controlla-swift.sh 2>&1 | grep -E "^(sintassi|tipi)" | tee -a "$RIEPILOGO"
+node scripts/ios/genera-icona.mjs --controlla | tee -a "$RIEPILOGO"
 
 # --- 1. File d'ambiente: copiati solo per la prova, cancellati all'uscita ---------------------------
 COPIATI=()
@@ -97,6 +107,10 @@ APP="$DERIVATI/Build/Products/Debug-iphonesimulator/App.app"
 nota "Build: $APP"
 plutil -p "$APP/Info.plist" | grep -E "CFBundleIdentifier|UIBackgroundModes|NSLocation|ITSAppUses" -A2 >> "$RIEPILOGO" || true
 [ -f "$APP/PrivacyInfo.xcprivacy" ] && nota "PrivacyInfo.xcprivacy: presente nel pacchetto" || nota "PrivacyInfo.xcprivacy: ASSENTE nel pacchetto"
+# APP-NATIVA: posizione in background con il solo «Durante l'uso»
+plutil -extract UIBackgroundModes json -o - "$APP/Info.plist" | grep -q '"location"' && nota "UIBackgroundModes: location presente" || { nota "UIBackgroundModes: location ASSENTE"; exit 5; }
+if plutil -p "$APP/Info.plist" | grep -q "NSLocationAlways"; then nota "Chiave Always nel pacchetto: NON deve esserci"; exit 5; fi
+[ -f "$APP/Assets.car" ] && nota "Assets.car: presente (icona e avvio compilati)" || nota "Assets.car: ASSENTE"
 [ "$SOLO_BUILD" = 1 ] && { nota "Solo build: fine."; exit 0; }
 
 # --- 5. Installazione, permesso posizione, avvio -----------------------------------------------------
@@ -110,7 +124,9 @@ xcrun simctl spawn "$UDID" log stream --style compact --level debug \
 PID_LOG=$!
 LANCIO="$(xcrun simctl launch "$UDID" "$BUNDLE_ID")"
 nota "Avvio: $LANCIO"
-sleep 6
+sleep 1
+xcrun simctl io "$UDID" screenshot "$OUT/00-schermata-di-avvio.png"
+sleep 5
 xcrun simctl io "$UDID" screenshot "$OUT/01-avvio.png"
 
 # Controllo prima delle credenziali: l'app in esecuzione è Unnivai e la sua pagina è DoveVai.
@@ -142,7 +158,7 @@ passo "Vai in «Crea il tuo Percorso», scrivi «un giro a piedi di due ore nel 
 scatta "03-crea-risultato"
 passo "Apri il giro sulla mappa (panoramica)."
 scatta "04-mappa"
-passo "Premi «Avvia» e accendi la voce. Al tuo Invio parte il cammino simulato (1,4 m/s)."
+passo "Premi «Avvia» e accendi la voce. Al primo «Avvia» l'app chiede la posizione «Durante l'uso» se non l'ha già: concedila. Al tuo Invio parte il cammino simulato (1,4 m/s)."
 xcrun simctl location "$UDID" start --speed=1.4 --interval=1 \
   41.8992,12.4731 41.8986,12.4747 41.8979,12.4762 41.8987,12.4768 41.8996,12.4766 \
   41.9009,12.4767 41.9018,12.4770 41.9009,12.4783 41.8990,12.4797 41.8975,12.4818
@@ -150,16 +166,47 @@ sleep 20; scatta "05-navigazione-cammino"
 sleep 40; scatta "06-navigazione-dopo-un-minuto"
 
 # --- 8. App in secondo piano: l'audio e la posizione continuano? ---------------------------------------
-nota "Secondo piano: apro Impostazioni sopra l'app per 90 s (equivale a lasciare l'app)"
+nota "Secondo piano: apro Impostazioni sopra l'app per 90 s (equivale a lasciare l'app), il cammino simulato continua"
 INIZIO_BG="$(date '+%Y-%m-%d %H:%M:%S')"
+RIGHE_PRIMA="$(grep -c "posizione nativa in background" "$OUT/registro-simulatore.log" || true)"
 xcrun simctl launch "$UDID" com.apple.Preferences >/dev/null
-sleep 90
+sleep 30; scatta "06b-secondo-piano-indicatore-blu"
+sleep 60
+RIGHE_DOPO="$(grep -c "posizione nativa in background" "$OUT/registro-simulatore.log" || true)"
+nota "Posizioni arrivate al JavaScript in secondo piano (righe di registro, 1 ogni 10): $((RIGHE_DOPO - RIGHE_PRIMA))"
 xcrun simctl launch "$UDID" "$BUNDLE_ID" >/dev/null
 sleep 4; scatta "07-ritorno-dal-secondo-piano"
 nota "Ascolta: la voce si è sentita mentre l'app era in secondo piano? (annotalo nel report)"
 passo "Apri il racconto di una tappa (lettore) e premi Play: deve parlare con la voce umana."
 scatta "08-racconto"
 xcrun simctl location "$UDID" clear || true
+
+# --- 9. APP-NATIVA: l'account demo del revisore Apple, «dal telefono a Cupertino» -----------------------
+set -a; . "$RADICE/.env.local"; set +a
+if [ -n "${DEMO_EMAIL:-}" ] && [ -n "${DEMO_PASSWORD:-}" ]; then
+  xcrun simctl location "$UDID" set 37.3349,-122.0090
+  passo "Esci dall'account di prova (Profilo → Esci) e apri «Accedi»; tocca il campo email."
+  printf '%s' "$DEMO_EMAIL" | xcrun simctl pbcopy "$UDID"
+  passo "Incolla l'email del demo, poi tocca il campo password."
+  printf '%s' "$DEMO_PASSWORD" | xcrun simctl pbcopy "$UDID"
+  passo "Incolla la password e premi Accedi."
+  printf '' | xcrun simctl pbcopy "$UDID"
+  unset DEMO_EMAIL DEMO_PASSWORD
+  sleep 3; scatta "09-demo-home-scheda-giro-di-prova"
+  passo "Tocca «Giro di prova per la revisione», poi «Avvia» e accendi la voce."
+  scatta "10-demo-avviato"
+  passo "Tocca «Simula il cammino». Al tuo Invio aspetto 2 minuti (prima tappa)."
+  sleep 120; scatta "11-demo-arrivo-prima-tappa"
+  passo "Ascolta il racconto (Play) e chiudi la scheda. Al tuo Invio aspetto 8 minuti (fine giro)."
+  sleep 480; scatta "12-demo-fine-giro"
+  xcrun simctl location "$UDID" clear || true
+else
+  nota "DEMO_EMAIL / DEMO_PASSWORD assenti in .env.local: prova dell'account demo saltata"
+fi
+
+# --- 10. Icona sulla schermata Home ---------------------------------------------------------------------
+xcrun simctl terminate "$UDID" "$BUNDLE_ID" || true
+sleep 2; scatta "13-home-icona"
 
 kill "$PID_LOG" 2>/dev/null || true; PID_LOG=""
 nota "Righe del registro dopo l'uscita in secondo piano ($INIZIO_BG):"

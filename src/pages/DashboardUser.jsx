@@ -37,6 +37,7 @@ import { displayedTourMinutes, formatEstimate, etichettaGiornata } from '@/lib/t
 import { resolveCityCenter, CityCenterUnresolvedError } from '@/services/cityCenterService';
 import TourCover from '@/components/TourCover';
 import { isAppNativa } from '../lib/appNativa';
+import CardGiroDemo from '../components/CardGiroDemo';
 // 🧠 AI-POWERED EXPERIENCE GENERATOR (REAL POI DISCOVERY)
 
 // Theme-aware fallback images (city-neutral, topic-relevant).
@@ -605,6 +606,9 @@ const DashboardUser = () => {
                             </div>
                         </motion.div>
                     </Link>
+
+                    {/* APP-NATIVA — solo per l'account demo del revisore Apple */}
+                    <CardGiroDemo />
 
                     {/* Button 3: Quick Quiz (Azione Secondaria — Scala Ossidiana) */}
                     <div className="relative">

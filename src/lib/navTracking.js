@@ -16,6 +16,25 @@
  *     chi ha attivato la posizione in Impostazioni e torna su Safari riparte senza ricaricare.
  * Le dipendenze (geolocation, orologio, timer, document) si passano: il modulo si prova senza browser.
  */
+import { geolocationNativa, posizioneNativaDisponibile } from './posizioneNativa';
+
+/**
+ * APP-NATIVA — da dove arriva la posizione della navigazione.
+ * Nell'app iOS con il plugin `PosizioneGiro`: Core Location con gli aggiornamenti in background (permesso «Durante
+ * l'uso», indicatore blu), vestito come navigator.geolocation. Sul web (e in un'app senza il plugin): il
+ * `navigator.geolocation` di sempre, invariato.
+ */
+export function geolocationDellaNavigazione({
+    nativa = posizioneNativaDisponibile,
+    geoNativa = geolocationNativa,
+    web = typeof navigator !== 'undefined' ? navigator.geolocation : null,
+} = {}) {
+    try {
+        if (nativa()) return geoNativa();
+    } catch { /* si resta sul web */ }
+    return web;
+}
+
 export const NAV_GPS = Object.freeze({ PRIMO_FIX_MS: 5000, PERSO_MS: 30000, RIPROVA_MS: 5000, CONTROLLO_MS: 5000 });
 const OPZIONI_WATCH = { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 };
 

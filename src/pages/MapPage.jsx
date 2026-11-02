@@ -31,7 +31,10 @@ import { POIPopupCard } from '../components/Map/POIPopupCard';
 import { supabase } from '../lib/supabase';
 import { logNavEvent } from '../lib/navTelemetry';
 import { haversineM, pickActiveStep } from '../lib/navGeo';
-import { avviaTracciamento } from '../lib/navTracking';
+import { avviaTracciamento, geolocationDellaNavigazione } from '../lib/navTracking';
+import { giroDemoAttivo } from '../lib/demoRevisore';
+import { creaCamminoSimulato } from '../lib/camminoSimulato';
+import SimulaCammino from '../components/Nav/SimulaCammino';
 import { salvaGiro, leggiGiro, chiudiGiro, chiaveGiro, puntoDelGiro, centroDelGiro } from '../lib/navSession';
 import { logDnaEvent } from '../lib/dnaRegistro';
 import { giroCompletato } from '../lib/giroCompletato';
@@ -393,6 +396,15 @@ const MapPage = () => {
         : null;
 
     const [activeTourData] = useState(() => location.state?.tourData || null);
+    // APP-NATIVA — l'account demo del revisore Apple con il giro dimostrativo: la posizione è simulata (parte da
+    // via Etnea, cammina col tasto «Simula il cammino»). Per ogni altro utente e giro: il GPS di sempre.
+    const demoAttivo = giroDemoAttivo(utente, activeTourData);
+    const camminoDemoRef = useRef(null);
+    if (demoAttivo && !camminoDemoRef.current) {
+        camminoDemoRef.current = creaCamminoSimulato({ percorso: activeTourData.percorsoDemo, tappe: activeTourData.steps });
+    }
+    const geoMappa = () => (demoAttivo && camminoDemoRef.current) || navigator.geolocation;
+    useEffect(() => () => camminoDemoRef.current?.chiudi(), []);
     // NAV-1-FIX (D3, NAV-SIM): dopo una ricarica la città dell'utente non è ancora risolta (GPS in corso) e la barra
     // diceva «Roma» (DEFAULT_CITY) con un giro in corso a Troina o a Catania. Con un tour aperto vale la sua città.
     const activeCity = city || activeTourData?.city || DEFAULT_CITY;
@@ -500,7 +512,8 @@ const MapPage = () => {
 
     // FIX: Auto-geolocate on MapPage mount if no center is provided
     useEffect(() => {
-        if (!navigator.geolocation) {
+        const geo = geoMappa();
+        if (!geo) {
             setIsLocating(false);
             return;
         }
@@ -515,7 +528,7 @@ const MapPage = () => {
             console.warn('[Gate F38] GPS non ha risposto entro 8s → passo alla citta geocodata');
             setIsLocating(false);
         }, 8000);
-        navigator.geolocation.getCurrentPosition(
+        geo.getCurrentPosition(
             (pos) => {
                 clearTimeout(hardTimeout);
                 setLocalCenter({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
@@ -538,7 +551,7 @@ const MapPage = () => {
         );
 
         // watchPosition continuo per pallino blu sempre aggiornato
-        const bgWatchId = navigator.geolocation.watchPosition(
+        const bgWatchId = geo.watchPosition(
             (pos) => {
                 setLocalCenter({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
             },
@@ -547,9 +560,10 @@ const MapPage = () => {
         );
         return () => {
             clearTimeout(hardTimeout);
-            navigator.geolocation.clearWatch(bgWatchId);
+            geo.clearWatch(bgWatchId);
         };
-    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [demoAttivo]);
 
     // NEW STATES: Tour Completion Tracking
     const [completedSteps, setCompletedSteps] = useState([]);
@@ -1619,7 +1633,8 @@ const MapPage = () => {
             return;
         }
         navTrackerRef.current = avviaTracciamento({
-            geolocation: navigator.geolocation,
+            // APP-NATIVA: nell'app iOS Core Location anche a schermo bloccato; sul web navigator.geolocation; per l'account demo la posizione simulata
+            geolocation: (demoAttivo && camminoDemoRef.current) || geolocationDellaNavigazione(),
             onStato: (s) => {
                 setNavGps(s);
                 if (s === 'negato') { logStart(true); partiDallaTappa(); }
@@ -2445,6 +2460,8 @@ const MapPage = () => {
                     onPassataSalta={() => tappaPassata && handleSkipStep(tappaPassata)}
                 />
             )}
+
+            {isNavigating && demoAttivo && <SimulaCammino cammino={camminoDemoRef.current} />}
 
             {/* NAV-1 punto 2: un giro in corso dopo una ricarica o una chiusura di iOS */}
             {giroDaRiprendere && !isNavigating && (

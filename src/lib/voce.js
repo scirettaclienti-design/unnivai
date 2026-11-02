@@ -11,6 +11,7 @@
  */
 import { supabase } from '@/lib/supabase';
 import { consensoAiDato } from '@/lib/consensoAi';
+import { voceNativaDisponibile, parlaNativa, fermaVoceNativa } from '@/lib/voceNativa';
 
 export const VOCI = [
     { id: 'marin', nome: 'Marin' },
@@ -69,6 +70,7 @@ export function fermaVoce() {
     numero += 1;
     try { el?.pause?.(); } catch { /* niente */ }
     try { window.speechSynthesis?.cancel(); } catch { /* niente */ }
+    fermaVoceNativa();
     try { if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'; } catch { /* niente */ }
 }
 
@@ -121,6 +123,9 @@ function riproduci(url, { suPartito = null } = {}) {
 }
 
 function paroleDelBrowser(testo) {
+    // APP-NATIVA — nell'app iOS la voce del telefono la dice l'app (AVSpeechSynthesizer), non la pagina: a schermo
+    // bloccato il processo della pagina può essere sospeso a metà frase, quello dell'app no (posizione in background).
+    if (voceNativaDisponibile()) return parlaNativa(testo, { lingua: 'it-IT', velocita: 0.95 });
     return new Promise((resolve) => {
         try {
             if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') { resolve(false); return; }
@@ -205,6 +210,7 @@ async function parlaOra(testo, { voce, titolo, tipo = null }) {
     rigaInCorso = null;
     try { el?.pause?.(); } catch { /* niente */ }
     try { window.speechSynthesis?.cancel(); } catch { /* niente */ }
+    fermaVoceNativa();
     const chiave = `${voce}|${frase}`;
     let riga = null;
     const t0 = nowMs();

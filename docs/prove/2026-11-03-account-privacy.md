@@ -40,3 +40,6 @@ Cartella `~/unnivai-notte-account-privacy` (verificata con `pwd`), ramo `notte/a
 3. Prova con un account usa e getta (anche «Prova senza account»): Profilo → Elimina account; controllare poi che l'utente non esista più in Auth.
 4. Compilare i segnaposto in `src/lib/testiAccount.js` (`SEGNAPOSTO`) e far rivedere privacy e termini a un legale.
 5. Sull'iPhone: prima apertura con un account nuovo (schermata del consenso), `/privacy` dal Profilo.
+
+## Collaudo sul sito pubblicato (dopo il merge `1d48507`, CI verde, Vercel READY)
+`node scripts/prova-nav/collaudo-sito.webkit.mjs` (punti 1–8, 11–13), WebKit iPhone 14, account di prova: **punti 2, 3, 4, 6, 8, 9, 10, 11, 12, 13 passati; 5 (racconti) con schede lette; 1 fallito alla prima corsa (attesa di `map-avvia-card` subito dopo il login) e passato alla seconda (17 s); 7 con l'account passato, da ospite non passa: accessi anonimi spenti nel pannello, atteso (come nel collaudo del 02/11, LANCIO P9/P10).** `/privacy` e `/termini` rispondono 200 sul sito. Il costo AI di questo collaudo è quello solito del collaudo (generazioni vere dell'account di prova, senza contatori); il lavoro del task in sé è 0 $.

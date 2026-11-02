@@ -387,15 +387,24 @@ try {
         return r;
     });
 
-    // 7) «Salta» fino in fondo + 3 tocchi: fine giro, mai login né «Nelle tue Mete» (da ospite: come il caso originale)
-    await punto(7, '«Salta» fino in fondo + 3 tocchi', async () => {
+    // 7) «Salta» fino in fondo + 3 tocchi: fine giro, mai login né «Nelle tue Mete».
+    // OSPITE-GIRO: da ospite si entra con «Prova un giro, senza account» (account anonimo) e si arriva alla fine giro,
+    // che propone «Salva questo giro» (prima del 02/11 /map portava al login).
+    await punto(7, '«Salta» fino in fondo + 3 tocchi (anche da ospite, fino alla fine giro)', async () => {
         const tour = giro('collaudo-salta', 'Catania', CATANIA.slice(0, 4));
         const r = {};
         const prova = async (ospite) => {
             const { ctx, page, reg } = await nuovo(partenza, { ospite });
             let via = 'riprendi';
-            // da ospite la home non propone «Riprendi»: il giro parte da «Avvia» sulla panoramica
-            try { await riprendi(page, tour); } catch { via = 'avvia'; await avvia(page, tour); }
+            if (ospite) {
+                await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
+                await page.getByTestId('prova-senza-account').click({ timeout: 20000 });
+                await page.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 20000 });
+                via = 'prova senza account → avvia';
+                await avvia(page, tour);
+            } else {
+                try { await riprendi(page, tour); } catch { via = 'avvia'; await avvia(page, tour); }
+            }
             await emit(page, partenza); await page.waitForTimeout(800);
             await page.getByLabel('Salta tappa').first().waitFor({ timeout: 15000 });
             let box = null;
@@ -405,16 +414,16 @@ try {
             await page.waitForTimeout(2500);
             const out = { ospite, via, url: new URL(page.url()).pathname, fineGiro: await page.getByTestId('fine-giro').count() > 0, nota: await testo(page, '[data-testid="fine-nota"]'),
                 login: /\/login/.test(page.url()) || (await page.getByPlaceholder('Password').count()) > 0, testo: (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ').slice(0, 200) };
-            out.ok = out.fineGiro && out.url === '/map' && !out.login;
+            out.salvaOspite = await page.getByTestId('fine-salva-ospite').count() > 0;
+            out.ok = out.fineGiro && out.url === '/map' && !out.login && out.salvaOspite === ospite;
             out.foto = await foto(page, `7-${ospite ? 'ospite' : 'account'}${out.ok ? '' : '-no'}`);
             out.errori = reg.errori.slice(0, 5);
             await ctx.close();
             return out;
         };
-        // da ospite /map porta al login (collaudo del 30/10): il tentativo si registra come non raggiungibile, non fa cadere il punto
-        r.ospite = await prova(true).catch(e => ({ ospite: true, riprendi: false, errore: String(e?.message || e).slice(0, 200) }));
+        r.ospite = await prova(true).catch(e => ({ ospite: true, ok: false, errore: String(e?.message || e).slice(0, 200) }));
         r.account = await prova(false);
-        r.ok = [r.ospite, r.account].filter(x => x.riprendi !== false).every(x => x.ok) && [r.ospite, r.account].some(x => x.riprendi !== false);
+        r.ok = r.ospite.ok && r.account.ok;
         return r;
     });
 

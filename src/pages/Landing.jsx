@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import ProvaSenzaAccount from '../components/ProvaSenzaAccount';
 import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Globe, Compass, Users, MapPin, Star, Play, X, ChevronRight, ChevronLeft, Search, Brain, MessageCircle, CheckCircle, Clock, Navigation, Sparkles, Wifi, Battery, Signal } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -673,6 +674,10 @@ const Landing = () => {
                                 </div>
                                 Guarda come funziona
                             </motion.button>
+                        </motion.div>
+                        {/* OSPITE-GIRO: un giro completo senza account */}
+                        <motion.div variants={stagger.item} className="w-full max-w-xs -mt-4 mb-8 sm:mb-12">
+                            <ProvaSenzaAccount />
                         </motion.div>
                         {/* Gate EE — Rimosso social proof fake:
                             - conteggio utenti soddisfatti (numero inventato, al lancio

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// EMAIL-LANCIO — carica in Supabase Auth i tre modelli del repo (conferma, link di accesso, reset della password)
-// con la Management API: PATCH /v1/projects/{ref}/config/auth. Tocca SOLO i 6 campi dei tre modelli
+// EMAIL-LANCIO — carica in Supabase Auth i quattro modelli del repo (conferma, link di accesso, reset della password, codice di OSPITE-GIRO)
+// con la Management API: PATCH /v1/projects/{ref}/config/auth. Tocca SOLO gli 8 campi dei quattro modelli
 // (mailer_subjects_* e mailer_templates_*_content): SMTP, Site URL, redirect e rate limit restano come sono.
 //
 //   node scripts/email/carica-modelli.mjs            prova: mostra cosa cambierebbe rispetto a produzione (nessuna scrittura)
-//   node scripts/email/carica-modelli.mjs --invia    scrive, poi rilegge e controlla che i 6 campi siano uguali ai file
+//   node scripts/email/carica-modelli.mjs --invia    scrive, poi rilegge e controlla che gli 8 campi siano uguali ai file
 //
 // Serve SUPABASE_ACCESS_TOKEN nell'ambiente (token personale da supabase.com/dashboard/account/tokens).
 // Il token non si stampa mai. Progetto: SUPABASE_PROJECT_REF, di difetto ahecpiwsdhghkndncejb.

@@ -30,7 +30,7 @@ Stati: **fatto** (su main, con prova) · **in corso** (ramo o PR aperti) · **da
 | P7 | TITOLI-RIFINITURA | da fare | — | precedente: TESTI-SCHEDE `75737a9` |
 | P8 | DNA-5 | da fare | — | in `docs/prove/` ci sono DNA-1, 2, 3, 3b, 3c, 4, 6; DNA-5 no |
 | P9 | CHAT-VERITA | da fare | — | nessun commit né report |
-| P10 | OSPITE-GIRO | da fare | — | al collaudo del 30/10, da ospite `/map` porta al login (`0568815`) |
+| P10 | OSPITE-GIRO | aspetta Ivano | codice su main con la PR di OSPITE-GIRO (`docs/prove/2026-11-02-ospite-giro.md`): account anonimo, 1 giro per account, tetto per IP e per tutti gli ospiti, registrazione sullo stesso account; SQL 41/41, test proxy 14/14 e client 22/22 | passi § 6 del report (prima EMAIL-LANCIO, poi migrazione, deploy di openai-proxy, modello email, accessi anonimi e collegamento manuale); poi collaudo 7 e prova § 7 sul sito pubblicato |
 
 ## Lancio
 

@@ -32,6 +32,15 @@ export function leggiPerTe(chiave, utente) {
     return undefined;
 }
 
+/** OSPITE-GIRO — l'ultimo Per Te salvato per questo utente, qualunque chiave (l'ospite ha finito i suoi Per Te: resta quello). */
+export function ultimoPerTe(utente) {
+    try {
+        const r = JSON.parse(localStorage.getItem(PER_TE_SALVATO_KEY) || 'null');
+        if (r && r.utente === (utente || null) && r.dati) return r.dati;
+    } catch { /* storage illeggibile */ }
+    return undefined;
+}
+
 export function salvaPerTe(chiave, utente, dati) {
     try {
         localStorage.setItem(PER_TE_SALVATO_KEY, JSON.stringify({ chiave: JSON.stringify(chiave), utente: utente || null, dati }));

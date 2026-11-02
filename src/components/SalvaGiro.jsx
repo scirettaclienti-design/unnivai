@@ -2,6 +2,7 @@
  * DNA-6 — il tasto «Salva» dei giri generati (Per Te, Quiz, Crea, Sorprendimi).
  * Salva il giro per l'utente (public.saved_tours) e registra `tour_saved`. Si mostra «Salvato»
  * solo se il server ha risposto bene. Gli ospiti non hanno un posto dove salvare: il tasto lo dice.
+ * OSPITE-GIRO: l'ospite del giro di prova (account anonimo) riceve l'invito a creare l'account.
  */
 
 import { useState } from 'react';
@@ -9,6 +10,7 @@ import { Bookmark, Loader } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../hooks/use-toast';
 import { salvaGiro, giroDaSalvare } from '../lib/giriSalvati';
+import { isOspite, chiediRegistrazione } from '../lib/ospite';
 
 export default function SalvaGiro({ tour, sorgente = 'altro', className = '' }) {
     const user = useAuth()?.user ?? null;
@@ -26,6 +28,10 @@ export default function SalvaGiro({ tour, sorgente = 'altro', className = '' }) 
         if (stato !== 'pronto') return;
         if (!user?.id) {
             toast({ title: 'Accedi per salvare i giri nel tuo Profilo.', type: 'info' });
+            return;
+        }
+        if (isOspite(user)) {
+            chiediRegistrazione('salva');
             return;
         }
         setStato('salvo');

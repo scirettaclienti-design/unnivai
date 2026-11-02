@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase';
 // Funzione pura, nessuna I/O: qui viene solo LETTA, il log lo fa il chiamante.
 import { findTourViolations } from '../lib/narratorGuards';
 import { richiediRacconto } from './raccontoService';
+import { CODICI_OSPITE, chiediRegistrazione, ospiteDaFermare } from '../lib/ospite';
 
 // DVAI-049 / DVAI-050 — Places proxy URL.
 // In dev: middleware Vite su /__dev/places-proxy (sempre attivo).
@@ -94,6 +95,12 @@ const callOpenAIProxy = async (payload, signal, quota, passaggio = null) => {
     const errBody = await response.json().catch(() => ({}));
     const code = typeof errBody?.code === 'string' ? errBody.code : null;
     // Gate QUOTA-SERVER — il limite lo decide il server; il testo arriva da lì.
+    // OSPITE-GIRO — i limiti del giro di prova: il testo del server, e l'invito a creare l'account dove serve.
+    if (response.status === 429 && Object.prototype.hasOwnProperty.call(CODICI_OSPITE, code)) {
+        const message = typeof errBody.error === 'string' ? errBody.error : undefined;
+        if (CODICI_OSPITE[code]) chiediRegistrazione(CODICI_OSPITE[code], message);
+        throw new AiQuotaExceededError(0, { scope: 'ospite', message, codiceServer: code });
+    }
     if (response.status === 429 && (code === 'QUOTA_EXCEEDED' || code === 'GLOBAL_QUOTA_EXCEEDED')) {
       throw new AiQuotaExceededError(0, {
         scope: code === 'GLOBAL_QUOTA_EXCEEDED' ? 'global' : 'user',
@@ -235,6 +242,8 @@ const DAILY_QUOTA = 10;
 
 // Testi decisi da Ivano, identici a quelli del server (openai-proxy/index.ts).
 export const QUOTA_USER_MESSAGE = 'Per oggi hai usato tutti i tuoi percorsi. Domani se ne aprono altri.';
+// OSPITE-GIRO — lo stesso testo del server (openai-proxy, MSG_OSPITE_GIRO).
+export const MSG_OSPITE_SECONDO = "Il giro di prova l'hai fatto. Il prossimo parte dal tuo account.";
 export const QUOTA_GLOBAL_MESSAGE = 'Oggi Unnivai ha raggiunto il limite di percorsi. Domani se ne aprono altri.';
 
 // Gate P8b — guasto del motore: classe e testo in src/lib/aiEngineError.js.
@@ -244,11 +253,12 @@ export { AI_ENGINE_MESSAGE, AiEngineError } from '@/lib/aiEngineError';
 const mustReachUi = (err) => err instanceof AiQuotaExceededError || err instanceof AiEngineError;
 
 export class AiQuotaExceededError extends Error {
-    constructor(remaining = 0, { scope = 'user', message } = {}) {
+    constructor(remaining = 0, { scope = 'user', message, codiceServer = null } = {}) {
         super('AI daily quota exceeded');
         this.code = 'QUOTA_EXCEEDED';
         this.remaining = remaining;
         this.scope = scope;
+        this.codiceServer = codiceServer;
         this.userMessage = message || (scope === 'global' ? QUOTA_GLOBAL_MESSAGE : QUOTA_USER_MESSAGE);
     }
 }
@@ -2316,6 +2326,12 @@ export const aiRecommendationService = {
     // { city, fromText, note } — la pagina mostra la nota in testa al tour e
     // usa quella citta' per mappa, messaggi e rigenerazione.
     async generateItinerary(city, prefs = {}, userPrompt = '', weather = {}, aiProfile = '', cityCenter = null, opts = {}) {
+        // OSPITE-GIRO — l'ospite che ha finito il giro di prova chiede un altro giro: l'invito, nessuna chiamata.
+        // Solo per una generazione nuova (senza biglietto): Per Te di sera passa il suo e non si ferma qui.
+        if (!opts.quotaTicket && await ospiteDaFermare()) {
+            chiediRegistrazione('secondo');
+            throw new AiQuotaExceededError(0, { scope: 'ospite', message: MSG_OSPITE_SECONDO, codiceServer: 'OSPITE_GIRO_USATO' });
+        }
         // Un biglietto solo: il traduttore chiamato qui, il selettore dopo e il
         // secondo tentativo (T1b) sono la stessa generazione.
         const quotaTicket = opts.quotaTicket || newGenerationTicket('itinerary');

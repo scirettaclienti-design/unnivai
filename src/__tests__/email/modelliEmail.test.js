@@ -69,7 +69,8 @@ describe('la voce di Unnivai', () => {
 });
 
 describe('i modelli di Supabase Auth', () => {
-    it.each(Object.entries(MODELLI_AUTH))('%s ha le variabili giuste', (_k, m) => {
+    const CON_LINK = Object.entries(MODELLI_AUTH).filter(([k]) => k !== 'email_change');
+    it.each(CON_LINK)('%s ha le variabili giuste', (_k, m) => {
         expect(m.html.match(/\{\{ \.ConfirmationURL \}\}/g)).toHaveLength(3); // pulsante, link scritto, testo del link
         expect(m.html).toContain('{{ .SiteURL }}');
         expect(m.html).toContain('{{ .Email }}');
@@ -77,19 +78,28 @@ describe('i modelli di Supabase Auth', () => {
         const variabili = [...m.html.matchAll(/\{\{([^}]*)\}\}/g)].map((x) => x[1].trim());
         for (const v of variabili) expect(['.ConfirmationURL', '.SiteURL', '.Email']).toContain(v);
     });
+    it('email_change (OSPITE-GIRO): il codice di 6 cifre, nessun link da toccare', () => {
+        const m = MODELLI_AUTH.email_change;
+        expect(m.html.match(/\{\{ \.Token \}\}/g)).toHaveLength(1);
+        expect(m.html).toContain('{{ .NewEmail }}');
+        expect(m.html).not.toContain('{{ .ConfirmationURL }}');
+        const variabili = [...m.html.matchAll(/\{\{([^}]*)\}\}/g)].map((x) => x[1].trim());
+        for (const v of variabili) expect(['.Token', '.NewEmail', '.SiteURL']).toContain(v);
+    });
     it('i file del repo sono quelli generati da emailUnnivai.ts (genera-modelli.mjs)', () => {
         const soggetti = JSON.parse(fs.readFileSync(path.join(DIR, 'soggetti.json'), 'utf8'));
-        expect(Object.keys(soggetti).sort()).toEqual(['confirmation', 'magic_link', 'recovery']);
+        expect(Object.keys(soggetti).sort()).toEqual(['confirmation', 'email_change', 'magic_link', 'recovery']);
         for (const [k, m] of Object.entries(MODELLI_AUTH)) {
             expect(fs.readFileSync(path.join(DIR, m.file), 'utf8'), m.file).toBe(m.html);
             expect(soggetti[k]).toEqual({ file: m.file, oggetto: m.oggetto });
         }
     });
-    it('il caricamento tocca solo i 6 campi dei tre modelli', () => {
+    it('il caricamento tocca solo gli 8 campi dei quattro modelli', () => {
         const corpo = corpoPatch(DIR);
         expect(Object.keys(corpo).sort()).toEqual([
-            'mailer_subjects_confirmation', 'mailer_subjects_magic_link', 'mailer_subjects_recovery',
-            'mailer_templates_confirmation_content', 'mailer_templates_magic_link_content', 'mailer_templates_recovery_content',
+            'mailer_subjects_confirmation', 'mailer_subjects_email_change', 'mailer_subjects_magic_link', 'mailer_subjects_recovery',
+            'mailer_templates_confirmation_content', 'mailer_templates_email_change_content', 'mailer_templates_magic_link_content',
+            'mailer_templates_recovery_content',
         ]);
         expect(corpo.mailer_templates_recovery_content).toBe(MODELLI_AUTH.recovery.html);
     });

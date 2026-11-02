@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 const M = motion; // (eslint non vede `<M.x>` come uso: lo stesso difetto del resto dell'app)
-import { Check, Play, Pause, X, Share2, Clock, MapPin, ArrowRight, Repeat } from 'lucide-react';
+import { Check, Play, Pause, X, Share2, Clock, MapPin, ArrowRight, Repeat, Bookmark } from 'lucide-react';
 import { minSec, secondiDiLettura, tracciatoSvg, alNome } from '../../lib/navGuida';
 import { NAV_TESTI } from '../../lib/navMessaggi';
 import { parla, fermaVoce } from '../../lib/voce';
@@ -176,7 +176,7 @@ export function SchedaTappa({ numero, categoria, nome, foto, foti = [], pillole 
 }
 
 /** SCHERMATA 5 — il giro è finito: «<Città>, a modo tuo.», il tracciato, tre numeri, cosa ho imparato di te. */
-export function FineGiro({ data, citta, tappe = [], numeri, imparato, nota = null, onMete, onCondividi, onChiudi }) {
+export function FineGiro({ data, citta, tappe = [], numeri, imparato, nota = null, onMete, onCondividi, onChiudi, ospite = false, onSalva }) {
     // i tocchi ripetuti di «Salta» non devono cadere sui tasti della schermata che si apre dopo: per mezzo secondo non risponde ai tocchi
     const [pronta, setPronta] = useState(false);
     useEffect(() => { const id = setTimeout(() => setPronta(true), 600); return () => clearTimeout(id); }, []);
@@ -215,7 +215,10 @@ export function FineGiro({ data, citta, tappe = [], numeri, imparato, nota = nul
                 )}
             </div>
             <div className="px-4 pt-3 flex gap-2 border-t border-obsidian-border" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
-                <button onClick={onMete} className={`${PRIMARIO} flex-1`}><Repeat size={16} aria-hidden="true" /><span>Nelle tue Mete</span></button>
+                {/* OSPITE-GIRO: senza account il giro non ha ancora un Profilo dove stare: «Salva questo giro» apre la registrazione */}
+                {ospite
+                    ? <button onClick={onSalva} data-testid="fine-salva-ospite" className={`${PRIMARIO} flex-1`}><Bookmark size={16} aria-hidden="true" /><span>Salva questo giro</span></button>
+                    : <button onClick={onMete} className={`${PRIMARIO} flex-1`}><Repeat size={16} aria-hidden="true" /><span>Nelle tue Mete</span></button>}
                 <button onClick={onCondividi} className={`${SECONDARIO} flex-1`}><Share2 size={16} aria-hidden="true" /><span>Condividi</span></button>
             </div>
         </div>

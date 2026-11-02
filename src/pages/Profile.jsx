@@ -20,6 +20,7 @@ import { meteDalRegistro, contatoriDalRegistro } from "../lib/dnaProfilo";
 import { leggiGiriSalvati, rimuoviGiroSalvato, giroSalvatoComeTour } from "../lib/giriSalvati";
 import { QuickPathSummary } from "../components/Map/QuickPathSummary";
 import { useModificaGiro } from "../hooks/useModificaGiro";
+import { isOspite, TESTI_OSPITE } from "../lib/ospite";
 
 // Stati di `guide_requests`, presi dal CHECK reale sul DB (verificato il
 // 04/09/2026 su information_schema, non a memoria):
@@ -299,7 +300,7 @@ export default function ProfilePage() {
                             )}
                             <p className="text-obsidian-secondary flex items-center text-sm mb-1">
                                 <Mail className="w-3 h-3 mr-1.5 text-obsidian-secondary" />
-                                {user?.email || 'Email non verificata'}
+                                {user?.email || (isOspite(user) ? TESTI_OSPITE.PROFILO_OSPITE : 'Email non verificata')}
                             </p>
                             <p className="text-obsidian-secondary flex items-center text-sm">
                                 <MapPin className="w-3 h-3 mr-1.5 text-obsidian-secondary" />

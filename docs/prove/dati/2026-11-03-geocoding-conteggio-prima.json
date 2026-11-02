@@ -1,0 +1,118 @@
+{
+ "modo": "prima",
+ "quando": "2026-11-02T20:29:49.069Z",
+ "giri": {
+  "trastevere": {
+   "richiesteAlProxy": 7,
+   "esterne": {
+    "google": 0,
+    "photon": 0,
+    "nominatim": 7,
+    "wikipedia": 25
+   },
+   "totale": 32,
+   "luoghi": [
+    [
+     "via:Lungotevere Raffaello Sanzio",
+     "via:Lungotevere dei Vallati",
+     "quartiere:Trastevere"
+    ],
+    [
+     "via:Via della Lungara",
+     "via:Lungotevere della Farnesina",
+     "quartiere:Trastevere"
+    ],
+    [
+     "via:Piazza di Santa Maria in Trastevere",
+     "quartiere:Trastevere"
+    ],
+    [
+     "quartiere:Trastevere"
+    ],
+    [
+     "quartiere:Trastevere",
+     "ERRORE"
+    ],
+    [
+     "quartiere:Trastevere"
+    ],
+    [
+     "quartiere:Trastevere"
+    ]
+   ]
+  },
+  "monti": {
+   "richiesteAlProxy": 6,
+   "esterne": {
+    "google": 0,
+    "photon": 0,
+    "nominatim": 6,
+    "wikipedia": 22
+   },
+   "totale": 28,
+   "luoghi": [
+    [
+     "via:Via Alessandrina",
+     "quartiere:Monti (rione di Roma)"
+    ],
+    [
+     "via:Via Quattro Novembre",
+     "quartiere:Monti (rione di Roma)"
+    ],
+    [
+     "quartiere:Monti (rione di Roma)",
+     "ERRORE"
+    ],
+    [
+     "via:Via Cavour (Roma)",
+     "quartiere:Monti (rione di Roma)"
+    ],
+    [
+     "via:Piazza dell'Esquilino",
+     "via:Piazza di Santa Maria Maggiore (Roma)",
+     "quartiere:Monti (rione di Roma)"
+    ],
+    [
+     "quartiere:Monti (rione di Roma)"
+    ]
+   ]
+  },
+  "catania": {
+   "richiesteAlProxy": 5,
+   "esterne": {
+    "google": 0,
+    "photon": 0,
+    "nominatim": 5,
+    "wikipedia": 24
+   },
+   "totale": 29,
+   "luoghi": [
+    [
+     "quartiere:Giudecca di Catania",
+     "quartiere:Centro Storico (Catania)"
+    ],
+    [
+     "via:Via Vittorio Emanuele II (Catania)",
+     "via:Piazza del Duomo (Catania)",
+     "via:Piazza dell'Università",
+     "quartiere:Giudecca di Catania",
+     "quartiere:Centro Storico (Catania)"
+    ],
+    [
+     "quartiere:Giudecca di Catania",
+     "quartiere:Centro Storico (Catania)"
+    ],
+    [
+     "quartiere:Civita (Catania)",
+     "quartiere:Centro Storico (Catania)"
+    ],
+    [
+     "via:Via Etnea",
+     "via:Piazza Stesicoro",
+     "quartiere:San Berillo (Catania)",
+     "quartiere:Centro Storico (Catania)"
+    ]
+   ]
+  }
+ }
+}

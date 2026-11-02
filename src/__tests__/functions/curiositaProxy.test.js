@@ -8,17 +8,20 @@ const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 const CROCIFERI = "La via dei Crociferi (in siciliano strata o via di li Crucìfiri) a Catania è una monumentale direttrice stradale realizzata nel XVIII secolo. Essa ha inizio in piazza San Francesco d’Assisi e vi si accede passando sotto l'arco di San Benedetto.\n== Descrizione ==\nLa strada, contornata da chiese, monasteri e poche abitazioni civili, è un esempio di unità dell'architettura barocca. Nel breve spazio di circa 410 metri sono presenti ben quattro chiese.";
 const GIUSTA = "Via dei Crociferi fu realizzata nel XVIII secolo. Nei suoi 410 metri ci sono quattro chiese.";
 
-let env, handler, righe, rpcLog, scritture, narratore, revisore, rete, osmGiu;
+let env, handler, righe, rpcLog, scritture, narratore, revisore, rete, osmGiu, googleGiu, googleCentro, zone, zoneScritture;
 
 beforeEach(async () => {
     vi.resetAllMocks();
-    env = { OPENAI_API_KEY: 'sk-test', SUPABASE_URL: 'http://supabase.test', SUPABASE_SERVICE_ROLE_KEY: 'service-role-test', SUPABASE_ANON_KEY: 'anon-test', AI_QUOTA_IP_SALT: 'sale' };
+    env = { OPENAI_API_KEY: 'sk-test', SUPABASE_URL: 'http://supabase.test', SUPABASE_SERVICE_ROLE_KEY: 'service-role-test', SUPABASE_ANON_KEY: 'anon-test', AI_QUOTA_IP_SALT: 'sale', GOOGLE_MAPS_API_KEY: 'AIza-test-chiave' };
     vi.stubGlobal('Deno', { env: { get: (k) => env[k] } });
-    righe = new Map(); rpcLog = []; scritture = []; narratore = [GIUSTA]; revisore = 'sì'; rete = []; osmGiu = false;
+    righe = new Map(); rpcLog = []; scritture = []; narratore = [GIUSTA]; revisore = 'sì'; rete = []; osmGiu = false; googleGiu = false; googleCentro = false; zone = new Map(); zoneScritture = [];
     globalThis.__edgeSupabaseFactory = () => ({
         auth: { getUser: async () => ({ data: { user: null }, error: { status: 401 } }) },
         rpc: async (name) => { rpcLog.push(name); return name === 'racconto_consuma' ? { data: true, error: null } : { data: null, error: { message: 'x' } }; },
-        from: () => ({
+        from: (tabella) => tabella === 'places_cache' ? ({
+            select: () => ({ eq: (_c, k) => ({ maybeSingle: async () => ({ data: zone.has(k) ? { data: zone.get(k) } : null, error: null }) }) }),
+            upsert: async (r) => { zoneScritture.push(r); zone.set(r.cache_key, r.data); return { error: null }; },
+        }) : ({
             select: () => ({
                 in: async (_c, chiavi) => ({ data: chiavi.filter(k => righe.has(k)).map(k => righe.get(k)), error: null }),
                 eq: () => ({ maybeSingle: async () => ({ data: null }) }),
@@ -39,7 +42,20 @@ beforeEach(async () => {
                 : (narratore.shift() ?? GIUSTA);
             return ok({ choices: [{ message: { content: testo } }], usage: { prompt_tokens: 10, completion_tokens: 10 } });
         }
+        if (u.hostname === 'maps.googleapis.com') {
+            if (googleGiu) return ok({ status: 'REQUEST_DENIED', error_message: 'secret', results: [] });
+            if (googleCentro) return ok({ status: 'OK', results: [
+                { types: ['route'], address_components: [{ long_name: 'Via Crociferi', types: ['route'] }, { long_name: 'Catania', types: ['locality'] }] },
+                { types: ['neighborhood', 'political'], address_components: [{ long_name: 'Centro', types: ['neighborhood'] }] },
+            ] });
+            return ok({ status: 'OK', results: [
+                { types: ['route'], address_components: [{ long_name: 'Via Crociferi', types: ['route'] }, { long_name: 'Catania', types: ['locality'] }] },
+                { types: ['neighborhood', 'political'], address_components: [{ long_name: 'Giudecca', types: ['neighborhood'] }] },
+                { types: ['political', 'sublocality', 'sublocality_level_1'], address_components: [{ long_name: 'Centro storico', types: ['sublocality_level_1'] }] },
+            ] });
+        }
         if (osmGiu && /nominatim|photon/.test(u.hostname)) return new Response('{}', { status: 403 });
+        if (u.hostname === 'photon.komoot.io') return ok({ features: [{ properties: { type: 'street', name: 'Via Crociferi', district: 'Centro storico', city: 'Catania' } }] });
         if (u.hostname === 'nominatim.openstreetmap.org') return ok({ address: { road: 'Via Crociferi', neighbourhood: 'Giudecca', suburb: 'Centro storico', city: 'Catania' } });
         if (p.list === 'geosearch') return ok({ query: { geosearch: [{ pageid: 443726, title: 'Via dei Crociferi', dist: 4 }] } });
         if (p.generator === 'search') {
@@ -111,23 +127,103 @@ describe('curiosità del cammino sul proxy', () => {
         expect(curiosita.esito).toBe('nessuna');
         expect(openai() - n).toBe(0); // il quartiere non ha testo: senza fonti, nessuna chiamata
     });
-    it('Nominatim e Photon non rispondono: restano le vie a pochi passi (geosearch), il motivo nella risposta', async () => {
-        osmGiu = true;
+    it('Google, Photon e Nominatim non rispondono: restano le vie a pochi passi (geosearch), il motivo nella risposta', async () => {
+        osmGiu = true; googleGiu = true;
         const { curiosita } = await (await chiedi()).json();
         expect(curiosita).toMatchObject({ esito: 'passata', chiave: 'curiosita-itwiki-443726' });
         const r2 = await (await chiedi({ escludi: ['curiosita-itwiki-443726'] })).json();
         expect(r2.code).toBe('CURIOSITA_FONTI');
-        expect(r2.diagnosi).toEqual(['nominatim 403', 'photon 403']);
+        expect(r2.diagnosi).toEqual(['google 200 REQUEST_DENIED', 'photon 403', 'nominatim 403']);
+        expect(JSON.stringify(r2)).not.toContain('AIza'); // la chiave non esce mai
     });
-    it('l\'indirizzo dal telefono vale come quello di Nominatim (e il server non chiama Nominatim); la voce si verifica lo stesso', async () => {
-        osmGiu = true;
+    it('l\'indirizzo dal telefono (riserva) vale come quello di Google (e il server non chiama né Google né Nominatim); la voce si verifica lo stesso', async () => {
+        osmGiu = true; googleGiu = true;
         const { curiosita } = await (await chiedi({ escludi: ['curiosita-itwiki-443726'], indirizzo: { road: 'Via Crociferi', suburb: 'Centro storico', city: 'Catania' } })).json();
-        expect(rete.filter(h => /nominatim|photon/.test(h))).toEqual([]);
+        expect(rete.filter(h => /nominatim|photon|googleapis/.test(h))).toEqual([]);
         expect(curiosita.esito).toBe('nessuna'); // il Centro storico ha la voce ma senza testo: niente inventato
         expect(righe.has('curiosita-itwiki-3')).toBe(true);
         // un nome che non ha una voce vicina non porta da nessuna parte
         const r = await (await chiedi({ escludi: ['curiosita-itwiki-443726'], indirizzo: { road: 'Via Inventata', city: 'Catania' } })).json();
         expect(r.curiosita?.chiave).toBeUndefined();
+    });
+    it('GEOCODING-LANCIO: la prima richiesta di una zona chiede a Google (una volta), solo Google; niente Nominatim né Photon', async () => {
+        const { curiosita } = await (await chiedi()).json();
+        expect(curiosita.richieste).toMatchObject({ google: 1, photon: 0, nominatim: 0 });
+        expect(curiosita.richieste.wikipedia).toBeGreaterThan(0);
+        expect(rete.filter(h => /nominatim|photon/.test(h))).toEqual([]);
+        const g = fetch.mock.calls.map(([u]) => String(u)).find(u => u.includes('googleapis'));
+        expect(new URL(g).searchParams.get('latlng')).toMatch(/^37\.5055,15\.0853\d*$/); // il centro della cella, non il punto esatto
+        expect(new URL(g).searchParams.get('result_type')).toBe('route|neighborhood|sublocality');
+    });
+    it('GEOCODING-LANCIO: la stessa zona (cella di ~100 m) la seconda volta non chiede niente fuori: zero Google, zero Wikipedia per le fonti', async () => {
+        await chiedi();
+        const prima = fetch.mock.calls.length;
+        const { curiosita } = await (await chiedi({ lat: 37.50530, lng: 15.08495 })).json(); // altro utente, ~35 m più in là
+        expect(curiosita).toMatchObject({ esito: 'passata', cached: true, chiave: 'curiosita-itwiki-443726', memoria: 'zona' });
+        expect(curiosita.richieste).toEqual({ google: 0, photon: 0, nominatim: 0, wikipedia: 0 });
+        expect(fetch.mock.calls.length).toBe(prima);
+    });
+    it('GEOCODING-LANCIO: la memoria è nella tabella condivisa e ha solo voci di Wikipedia, mai i nomi di Google; un\'altra istanza la rilegge', async () => {
+        await chiedi();
+        expect(zoneScritture).toHaveLength(1);
+        expect(zoneScritture[0].cache_key).toMatch(/^curiosita-cella:v1:\d+:\d+$/);
+        const dentro = JSON.stringify(zoneScritture[0].data);
+        expect(dentro).toContain('curiosita-itwiki-443726');
+        expect(dentro).not.toContain('Giudecca'); // il quartiere di Google non si tiene
+        // istanza nuova (la memoria dell'istanza è vuota), la tabella ha la cella
+        vi.resetModules(); globalThis.__edgeHandler = undefined;
+        await import('../../../supabase/functions/openai-proxy/index.ts');
+        handler = globalThis.__edgeHandler;
+        const prima = fetch.mock.calls.length;
+        const { curiosita } = await (await chiedi()).json();
+        expect(curiosita).toMatchObject({ esito: 'passata', memoria: 'zona' });
+        expect(fetch.mock.calls.length).toBe(prima);
+    });
+    it('GEOCODING-LANCIO: un\'altra zona chiede di nuovo; una memoria scaduta o rovinata si ignora', async () => {
+        await chiedi();
+        const r = await (await chiedi({ lat: 37.5095, lng: 15.0848 })).json();
+        expect(r.curiosita.richieste.google).toBe(1);
+        const chiave = zoneScritture[0].cache_key;
+        const nota = zone.get(chiave);
+        vi.resetModules(); globalThis.__edgeHandler = undefined;
+        await import('../../../supabase/functions/openai-proxy/index.ts');
+        handler = globalThis.__edgeHandler;
+        zone.set(chiave, { ...nota, t: Date.now() - 8 * 24 * 3600 * 1000 });
+        expect((await (await chiedi()).json()).curiosita.richieste.google).toBe(1);
+        vi.resetModules(); globalThis.__edgeHandler = undefined;
+        await import('../../../supabase/functions/openai-proxy/index.ts');
+        handler = globalThis.__edgeHandler;
+        zone.set(chiave, { v: 'v1', t: Date.now(), luoghi: [{ pageid: 'x' }] });
+        expect((await (await chiedi()).json()).curiosita.richieste.google).toBe(1);
+    });
+    it('GEOCODING-LANCIO: se Google non risponde, Photon (riserva) e il risultato incompleto non si ricorda', async () => {
+        googleGiu = true;
+        const { curiosita } = await (await chiedi()).json();
+        expect(curiosita).toMatchObject({ esito: 'passata', chiave: 'curiosita-itwiki-443726' });
+        expect(curiosita.richieste).toMatchObject({ google: 1, photon: 1, nominatim: 0 });
+        osmGiu = true; // anche le riserve giù: errore di fonte, nessuna memoria di un errore
+        zoneScritture.length = 0; zone.clear();
+        vi.resetModules(); globalThis.__edgeHandler = undefined;
+        await import('../../../supabase/functions/openai-proxy/index.ts');
+        handler = globalThis.__edgeHandler;
+        const r2 = await (await chiedi({ escludi: ['curiosita-itwiki-443726'] })).json();
+        expect(r2.code).toBe('CURIOSITA_FONTI');
+        expect(zoneScritture).toHaveLength(0);
+    });
+    it('GEOCODING-LANCIO: i quartieri di Google sono più larghi (Catania: «Centro»): senza una voce di quartiere, UNA richiesta a Photon per i soli nomi dei quartieri', async () => {
+        googleCentro = true;
+        const r = await (await chiedi({ escludi: ['curiosita-itwiki-443726'] })).json();
+        expect(r.curiosita.richieste).toMatchObject({ google: 1, photon: 1, nominatim: 0 });
+        expect(r.curiosita.luoghi).toEqual(expect.arrayContaining(['quartiere:Centro Storico (Catania)']));
+        // con il quartiere già trovato da Google, Photon non serve
+        googleCentro = false;
+        const r2 = await (await chiedi({ lat: 37.52, lng: 15.1, escludi: ['curiosita-itwiki-443726'] })).json();
+        expect(r2.curiosita.richieste.photon).toBe(0);
+    });
+    it('GEOCODING-LANCIO: senza la chiave di Google sul server, si va alle riserve', async () => {
+        delete env.GOOGLE_MAPS_API_KEY;
+        const { curiosita } = await (await chiedi()).json();
+        expect(curiosita.richieste).toMatchObject({ google: 0, photon: 1 });
     });
     it('posizione non valida: 400; un racconto non può usare una chiave di curiosità', async () => {
         expect((await chiedi({ lat: 'x' })).status).toBe(400);

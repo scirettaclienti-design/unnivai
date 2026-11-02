@@ -2,8 +2,9 @@
 // coordinate) e la prima richiesta al narratore. 0 $, nessuna rete: Nominatim e Wikipedia sono finti, con pezzi veri letti il 02/11/2026.
 import { describe, it, expect, vi } from 'vitest';
 import { createHash } from 'node:crypto';
+import { kmFra } from '../../../supabase/functions/openai-proxy/cityKnowledge.ts';
 import {
-    leggiIndirizzo, leggiPhoton, indirizzoDi, indirizzoDaClient, luoghiVicini, stessoLuogo, paroleProprie, eUnaTappa, testoDelLuogo, STRADA, RAGGIO_VIA_KM, RAGGIO_QUARTIERE_KM, UA_CURIOSITA,
+    leggiIndirizzo, leggiPhoton, leggiGoogle, cellaDi, luoghiDaMemoria, indirizzoDi, indirizzoDaClient, luoghiVicini, stessoLuogo, paroleProprie, eUnaTappa, testoDelLuogo, STRADA, RAGGIO_VIA_KM, RAGGIO_QUARTIERE_KM, UA_CURIOSITA,
 } from '../../../supabase/functions/openai-proxy/curiositaFonti.ts';
 import {
     SYSTEM_CURIOSITA, messaggiCuriosita, VERSIONE_CURIOSITA, chiaveCuriosita, eChiaveCuriosita, curiositaInCacheValida,
@@ -47,11 +48,51 @@ describe('i nomi di OpenStreetMap', () => {
         expect(leggiIndirizzo({ suburb: 'Roma', city: 'Roma' }).quartieri).toEqual([]);
         expect(leggiIndirizzo(null)).toEqual({ via: null, quartieri: [], citta: null });
     });
-    it('Nominatim e Photon giù: «errore», non «nessun posto»; il motivo è lo stato HTTP', async () => {
+    it('Google, Photon e Nominatim giù: «errore», non «nessun posto»; il motivo è lo stato HTTP', async () => {
         const diagnosi = [];
         expect(await indirizzoDi(37.5, 15.08, rete({ falliscono: ['nominatim'] }), diagnosi)).toBe('errore');
-        expect(diagnosi[0]).toBe('nominatim 503');
-        expect(diagnosi[1]).toMatch(/^photon/);
+        expect(diagnosi[0]).toMatch(/^photon/);
+        expect(diagnosi[1]).toBe('nominatim 503');
+    });
+    it('Google (geocoding inverso): la strada, i quartieri, la città; mai un municipio; la chiave solo nella richiesta', async () => {
+        const rispostaTrastevere = { status: 'OK', results: [
+            { types: ['route'], address_components: [{ long_name: '15-1', types: ['street_number'] }, { long_name: 'Via di San Cosimato', types: ['route'] }, { long_name: 'Roma', types: ['locality', 'political'] }] },
+            { types: ['neighborhood', 'political'], address_components: [{ long_name: 'Trastevere', types: ['neighborhood', 'political'] }, { long_name: 'Roma', types: ['locality'] }] },
+            { types: ['political', 'sublocality', 'sublocality_level_1'], address_components: [{ long_name: 'Municipio Roma I', types: ['political'] }, { long_name: 'Roma', types: ['locality'] }] },
+        ] };
+        expect(leggiGoogle(rispostaTrastevere)).toEqual({ via: 'Via di San Cosimato', quartieri: ['Trastevere'], citta: 'Roma' });
+        expect(leggiGoogle({ status: 'ZERO_RESULTS', results: [] })).toEqual({ via: null, quartieri: [], citta: null });
+        expect(leggiGoogle(null)).toEqual({ via: null, quartieri: [], citta: null });
+        const f = vi.fn(async () => ({ ok: true, status: 200, json: async () => rispostaTrastevere }));
+        const diagnosi = [];
+        expect(await indirizzoDi(41.8886, 12.4698, f, diagnosi, 'AIza-x')).toEqual({ via: 'Via di San Cosimato', quartieri: ['Trastevere'], citta: 'Roma' });
+        expect(f).toHaveBeenCalledTimes(1); // una sola richiesta, nessuna riserva
+        const u = new URL(String(f.mock.calls[0][0]));
+        expect(u.hostname).toBe('maps.googleapis.com');
+        expect(u.searchParams.get('result_type')).toBe('route|neighborhood|sublocality');
+        expect(diagnosi).toEqual([]);
+        // Google nega: la diagnosi dice lo stato, mai la chiave
+        const nega = vi.fn(async (url) => new URL(String(url)).hostname === 'maps.googleapis.com'
+            ? { ok: true, status: 200, json: async () => ({ status: 'OVER_QUERY_LIMIT', error_message: 'AIza-x' }) }
+            : { ok: false, status: 503, json: async () => ({}) });
+        const d2 = [];
+        expect(await indirizzoDi(41.8886, 12.4698, nega, d2, 'AIza-x')).toBe('errore');
+        expect(d2).toEqual(['google 200 OVER_QUERY_LIMIT', 'photon 503', 'nominatim 503']);
+        expect(JSON.stringify(d2)).not.toContain('AIza');
+    });
+    it('la cella di ~100 m: stessa chiave e stesso centro per i punti vicini, chiavi diverse lontano; la memoria vale 7 giorni', () => {
+        const a = cellaDi(41.88861, 12.46982), b = cellaDi(41.88899, 12.46999), c = cellaDi(41.8901, 12.4698);
+        expect(b.chiave).toBe(a.chiave); expect({ lat: b.lat, lng: b.lng }).toEqual({ lat: a.lat, lng: a.lng });
+        expect(c.chiave).not.toBe(a.chiave);
+        expect(kmFra({ lat: 41.88861, lng: 12.46982 }, a) * 1000).toBeLessThan(110);
+        const ora = Date.now();
+        const l = { chiave: 'curiosita-itwiki-5', pageid: 5, titolo: 'Via X', url: 'https://it.wikipedia.org/wiki/Via_X', distanzaM: 3, tipo: 'via', trovata: 'indirizzo' };
+        expect(luoghiDaMemoria({ v: 'v1', t: ora, luoghi: [l] }, ora)).toEqual([l]);
+        expect(luoghiDaMemoria({ v: 'v1', t: ora, luoghi: [] }, ora)).toEqual([]);
+        expect(luoghiDaMemoria({ v: 'v1', t: ora - 8 * 24 * 3600 * 1000, luoghi: [l] }, ora)).toBeNull();
+        expect(luoghiDaMemoria({ v: 'v0', t: ora, luoghi: [l] }, ora)).toBeNull();
+        expect(luoghiDaMemoria({ v: 'v1', t: ora, luoghi: [{ ...l, chiave: 'altra' }] }, ora)).toBeNull();
+        expect(luoghiDaMemoria('x', ora)).toBeNull();
     });
     it('l\'indirizzo dal telefono: solo i campi noti, solo stringhe corte', () => {
         expect(indirizzoDaClient({ road: 'Via Crociferi', suburb: 'Centro storico', city: 'Catania', house_number: '7', x: { y: 1 } })).toEqual({ via: 'Via Crociferi', quartieri: ['Centro storico'], citta: 'Catania' });
@@ -60,16 +101,15 @@ describe('i nomi di OpenStreetMap', () => {
         expect(indirizzoDaClient(['Via Roma'])).toBeNull();
         expect(indirizzoDaClient(null)).toBeNull();
     });
-    it('Nominatim giù: i nomi da Photon (stessi dati OpenStreetMap)', async () => {
+    it('senza Google: i nomi da Photon (stessi dati OpenStreetMap), Nominatim non si chiama', async () => {
         const f = vi.fn(async (url) => {
             const u = new URL(String(url));
-            if (u.hostname === 'nominatim.openstreetmap.org') return { ok: false, status: 403, json: async () => ({}) };
             expect(u.hostname).toBe('photon.komoot.io');
             return { ok: true, status: 200, json: async () => ({ features: [{ properties: { type: 'street', name: "Vicolo di Sant'Agata", locality: 'Trastevere', district: 'Municipio Roma I', city: 'Roma' } }] }) };
         });
         const diagnosi = [];
         expect(await indirizzoDi(41.8899, 12.4735, f, diagnosi)).toEqual({ via: "Vicolo di Sant'Agata", quartieri: ['Trastevere'], citta: 'Roma' });
-        expect(diagnosi).toEqual(['nominatim 403']);
+        expect(diagnosi).toEqual([]);
         expect(leggiPhoton({ type: 'house', street: 'Via Etnea', locality: 'San Berillo', city: 'Catania' })).toEqual({ via: 'Via Etnea', quartieri: ['San Berillo'], citta: 'Catania' });
     });
 });

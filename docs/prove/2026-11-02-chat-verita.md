@@ -1,7 +1,7 @@
 # CHAT-VERITA — la chat con la guida non inventa (02/11/2026)
 
 Cartella `/Users/mac2023ivanosciretta/unnivai-chat` (verificata con `pwd`), ramo `chat/verita` da `origin/main` (`79ca161`).
-**Il deploy di `openai-proxy` è preparato ma non fatto: aspetta il «sì» di Ivano (§ 7).** Fino al deploy l'app pubblicata chiama un percorso (`dv.purpose = 'chat'`) che il proxy di oggi non conosce: vedi § 7, punto 1.
+**Il deploy di `openai-proxy` è preparato ma non fatto: aspetta il «sì» di Ivano (§ 7).** **Aggiornamento: deploy fatto nella coda del 03/11 (openai-proxy v46), misura dal vero in § 9.** Fino al deploy l'app pubblicata chiama un percorso (`dv.purpose = 'chat'`) che il proxy di oggi non conosce: vedi § 7, punto 1.
 
 ## 1. Diagnosi: la chat di oggi
 
@@ -207,3 +207,51 @@ Dal Mac si paga un passaggio di rete in più per ogni chiamata ai modelli; in pr
 - **I nomi nell'interfaccia:** il cassetto si chiama ancora «Assistente DoveVai», «AI Guide», «DoveVai AI», con i colori di prima. È lavoro della corsia estetica.
 - **La chat si apre solo dal badge del meteo sulla mappa.** Nessun nuovo punto di ingresso (niente funzioni non chieste).
 - **Niente streaming:** vedi § 5, proposta 3.
+
+## 9. Deploy e misura dal vero (03/11)
+
+Fatto nella coda notturna, il 02/11 fra le 18:30 e le 20:00 UTC. Grezzi: `docs/prove/dati/2026-11-03-*`. Schermate: `docs/prove/schermate/chat-verita/`.
+
+**Prima del deploy.** Era attiva openai-proxy v44: file uguali a `eda9b67`, né OSPITE-GIRO né CHAT-VERITA. Una POST con `dv.purpose = 'chat'` rispondeva **400 `MODEL_NOT_ALLOWED`**.
+
+**Deploy.**
+- Da un worktree staccato su `origin/main`, dopo CI verde, con `supabase functions deploy openai-proxy --project-ref ahecpiwsdhghkndncejb --no-verify-jwt --use-api`.
+- **v45** da `bf6983e`, poi **v46** da `85460eb`, dopo le due correzioni qui sotto (PR #16).
+- La versione attiva, scaricata, ha 11 file su 11 uguali a main.
+- Nessuna migrazione, nessun secret.
+
+**OSPITE-GIRO è pubblicato ma inerte.** Gli accessi anonimi sono spenti:
+- `signup` senza email risponde 422 `anonymous_provider_disabled`;
+- «Prova un giro, senza account» dice «non disponibile».
+
+Gli utenti registrati passano da `ai_quota_consume` come prima.
+
+**Due correzioni trovate dal vero** (PR #16, `85460eb`):
+1. **`prossima: null` diventava 0.** Fuori dalla navigazione la guida diceva «è la tua prossima tappa» senza sapere dove sei: 7 frasi su 20 risposte. Ora null resta null. Test in `chat.test.js`.
+2. **Senza giro il telefono mandava `centro: null`.** Così il server non cercava i luoghi nominati nella domanda. Ora manda il centro della mappa.
+
+**Collaudo completo**, dopo v45 e dopo v46: **stessi esiti del 31/10**.
+- Punti 1–6, 8–13: ok.
+- Punto 5: 10 schede, 9 «passato» e 1 «scartato» in `place_racconti`, come il 31/10.
+- Punto 7: ok con l'account. Da ospite cade, ed è atteso finché gli accessi anonimi sono spenti.
+
+**Tempi dal client** (`POST` come `chatGuidaService`, account di prova, giro di Catania, risposta intera). 20 domande del banco su v45: 10 sul giro, 5 trappole, 5 libere.
+- **mediana 5,5 s**, p90 10,2 s, massimo 12,2 s, 3 su 20 sotto i 4 s;
+- sul server: mediana 4,9 s;
+- le 8 domande toccate dalla correzione, su v46: mediana 7,5 s, valori fra 3,7 e 12,7 s.
+
+Le risposte senza riscrittura stanno fra 3,3 e 5,9 s. Le riscritte e le «oneste» (7 su 28) costano 8–13 s.
+
+Più lenta del banco (4,06 s) perché **in produzione il revisore è Sonnet 5.5**: i log dicono `claude-sonnet-5-5+claude-sonnet-5-5`, e il secret `ANTHROPIC_MODEL_REVISORE` esiste dal 02/11 alle 10:33 UTC. La riga P4 di LANCIO va riguardata.
+
+**WebKit iPhone 14 sul sito, mappa senza giro:**
+- badge del meteo → chat → *Cosa c'è in piazza del Duomo?*;
+- «Controllo le fonti…», poi la risposta (3,8 s, verificata, tutta nella voce di Wikipedia);
+- «Fonti lette: Piazza del Duomo (Catania)».
+
+**Costo AI:** 32 richieste alla chat, **0,445 $** (tetto 0,50 $), cioè 0,014 $ a risposta. Collaudi esclusi.
+
+**Aperti, per Ivano:**
+- **Con un giro sulla mappa la chat non si apre**: il badge del meteo, unico ingresso, sparisce quando c'è un percorso. Proposta: un tasto «Chiedi alla guida» nella panoramica e in navigazione.
+- **Luoghi nominati senza coordinate su it.wikipedia** (Fontana dell'Elefante) restano senza fonte. Proposta: coordinate da Wikidata.
+- **Il tempo è sopra i 4 s.**

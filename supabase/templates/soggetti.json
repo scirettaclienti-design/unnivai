@@ -10,5 +10,9 @@
   "recovery": {
     "file": "password.html",
     "oggetto": "Reimposta la password di Unnivai"
+  },
+  "email_change": {
+    "file": "codice.html",
+    "oggetto": "Il tuo codice per Unnivai"
   }
 }

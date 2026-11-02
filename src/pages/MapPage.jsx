@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useUserContext } from '../hooks/useUserContext';
+import { useAuth } from '../context/AuthContext';
+import { isOspite, segnaGiroDiProva, secondoGiroDaOspite, chiediRegistrazione } from '../lib/ospite';
 import { useCity } from '../context/CityContext';
 import { resolveMapCenter, resolveCenterStatus } from '../lib/mapCenter';
 import UnnivaiMap from '../components/UnnivaiMap';
@@ -317,6 +319,9 @@ const MapPage = () => {
     const navigate = useNavigate();
     const { city, lat, lng, isLoading: userContextLoading } = useUserContext();
     const { isManual } = useCity();
+    // OSPITE-GIRO: l'account anonimo del giro di prova
+    const { user: utente } = useAuth();
+    const ospite = isOspite(utente);
     const queryClient = useQueryClient();
 
     // nav-camera — nella mappa del giro la mappa da comandare la dice il contenitore (`onMapAttiva`: durante la dissolvenza una che comanda tutte e due)
@@ -769,6 +774,11 @@ const MapPage = () => {
     }, [selectedPOI, city]);
 
     const tourData = activeTourData || location.state?.tourData;
+    // OSPITE-GIRO: il giro di prova arriva alla fine → il prossimo giro diverso propone l'account
+    useEffect(() => {
+        if (isSummaryModalOpen && ospite) segnaGiroDiProva(utente?.id, tourData?.id || tourData?.tourId || null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSummaryModalOpen, ospite]);
     // CURIOSITÀ-QUARTIERI: lo stato parte con la navigazione del giro (le curiosità già dette e l'ora dell'ultima restano sul telefono per il giro)
     const chiaveGiroCuriosita = tourData ? String(tourData.id ?? tourData.title ?? '') : '';
     useEffect(() => {
@@ -1491,6 +1501,11 @@ const MapPage = () => {
      */
     const handleStartNavigationReal = (ripresa = null) => {
         console.log('[DVAI-Nav] handleStartNavigationReal:', ripresa ? 'ripresa del giro' : 'click Avvia');
+        // OSPITE-GIRO — il giro di prova è fatto e questo è un altro giro: il prossimo parte dall'account.
+        if (!ripresa && secondoGiroDaOspite(utente, tourData?.id || tourData?.tourId || null)) {
+            chiediRegistrazione('secondo');
+            return;
+        }
         // GIRO-LONTANO — da più di 20 km dalla prossima tappa niente navigazione verso un punto a centinaia di km: lo si dice e la panoramica resta.
         // Senza posizione si parte come sempre (NAV-1: si segnano le tappe a mano); se il primo segnale arriva da lontano, ci si ferma lì (sotto).
         const prossimaAllAvvio = primaTappa((activeRoute || []).filter(s => !(ripresa?.completedSteps || []).includes(s.id) && !(ripresa?.skippedSteps || []).includes(s.id))) || primaTappa(activeRoute);
@@ -2686,6 +2701,8 @@ const MapPage = () => {
                         nota={chiusoPrima ? NAV_TESTI.FINE_FIN_DOVE(fatte.length, activeRoute.length) : null}
                         onChiudi={() => setIsSummaryModalOpen(false)}
                         onMete={() => { setIsSummaryModalOpen(false); navigate('/profile'); }}
+                        ospite={ospite}
+                        onSalva={() => chiediRegistrazione('fine')}
                         onCondividi={() => {
                             if (navigator.share) navigator.share({ title: 'Il mio giro', text: testoCondivisione }).catch(() => {});
                             else navigator.clipboard?.writeText(testoCondivisione).catch(() => {});

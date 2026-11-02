@@ -9,6 +9,8 @@ import RoleGuard from './components/RoleGuard';
 import ErrorBoundary from './components/ErrorBoundary';
 import ToastProvider from './components/ToastProvider';
 import GiroInCorso from './components/GiroInCorso';
+// OSPITE-GIRO: l'invito a creare l'account (fine giro, secondo giro, salvataggio), uno solo per tutta l'app
+import RegistrazioneOspite from './components/RegistrazioneOspite';
 // Gate K — Guard che redirige rotte V2/V3 (Guide/Business/BecomeGuide) a
 // /dashboard-user con toast onesto "Disponibile prossimamente."
 import V1LockedGuard from './components/V1LockedGuard';
@@ -206,6 +208,7 @@ function App() {
               </Suspense>
               {/* NAV-1: un giro in corso si propone all'apertura dell'app */}
               <GiroInCorso />
+              <RegistrazioneOspite />
             </ErrorBoundary>
           </Router>
         </CityProvider>

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Flag, Store, ArrowRight, User, Mail, Lock, Briefcase, CheckCircle, Compass, ChevronLeft, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { LoginSchema, SignupSchema, EmailSchema, validateForm } from '../lib/validationSchemas';
 import { erroreAuthItaliano } from '../lib/erroriAuth';
+import ProvaSenzaAccount from '../components/ProvaSenzaAccount';
 
 // Gate K — In V1 il selettore ruolo mostra SOLO "Viaggiatore".
 // Le opzioni "Sono una Guida" e "Ho un'Attività" sono commentate ma restano nel
@@ -268,6 +269,9 @@ const Login = () => {
                                     Accedi →
                                 </button>
                             </motion.p>
+
+                            {/* OSPITE-GIRO: un giro completo senza account; l'account si propone dopo */}
+                            <ProvaSenzaAccount className="mt-6" />
                         </motion.div>
                     ) : (
                         /* ===== AUTH FORM ===== */

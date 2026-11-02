@@ -17,7 +17,7 @@ import { useAILearning } from '../hooks/useAILearning';
 import { resolveFoodPrefs, foodPrefsFingerprint } from '@/lib/foodPrefs';
 import { placesDiscoveryService, PlacesSearchError } from '@/services/placesDiscoveryService';
 import { MESSAGGIO_TECNICO, TASTO_RIPROVA } from '@/lib/esitoVuoto';
-import { giornoEFasciaPerTe, leggiPerTe, salvaPerTe, fasciaDnaEffettiva, registraFasciaDna } from '@/lib/perTeSalvato';
+import { giornoEFasciaPerTe, leggiPerTe, salvaPerTe, ultimoPerTe, fasciaDnaEffettiva, registraFasciaDna } from '@/lib/perTeSalvato';
 import { fasciaDna } from '@/lib/fasciaDna';
 
 // Gate INTERESSI-VERI — tre esiti diversi, tre testi diversi:
@@ -297,6 +297,11 @@ const DashboardUser = () => {
                     // Gate INTERESSI-VERI — quota esaurita non e' "non trovo".
                     // TROINA-FIX — e nemmeno un altro guasto: prima si inghiottiva e la home diceva «non trovo luoghi verificati».
                     console.warn('[Per Te] generateHomeTours errore:', err.message);
+                    // OSPITE-GIRO — l'ospite ha usato i suoi Per Te: resta l'ultimo (se c'e'), senza errore.
+                    if (err?.codiceServer === 'OSPITE_PER_TE_USATO') {
+                        const ultimo = ultimoPerTe(utenteId);
+                        if (ultimo) return ultimo;
+                    }
                     throw err;
                 }
                 // Google aveva luoghi ma il narratore e' caduto: errore, non stato vuoto.

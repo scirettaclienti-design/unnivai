@@ -25,6 +25,11 @@
  * contato per hash SHA-256 di (AI_QUOTA_IP_SALT + IP). L'IP in chiaro non esce
  * da questa funzione. JWT presente ma non valido → 401.
  *
+ * OSPITE-GIRO — JWT valido di un account anonimo (`is_anonymous`) → 'ospite': le generazioni passano da
+ * public.ai_quota_ospite (per account: 1 giro 'itinerary' e 2 Per Te 'home_tours', per sempre; per IP
+ * AI_OSPITE_IP_DAILY_CAP al giorno, difetto 10; tutti gli ospiti AI_OSPITI_DAILY_CAP al giorno, difetto 100;
+ * poi il tetto globale), il contorno da ai_quota_consume come 'user' (OSPITE_AUX al giorno).
+ *
  * Guasti di OpenAI (Gate P8b): errore HTTP, risposta illeggibile, rete o
  * timeout → una riga di log (status, error.code, error.type, messaggio breve
  * ripulito: mai la chiave, mai il prompt, mai dati dell'utente), risposta al
@@ -81,6 +86,10 @@ const LIMITS = {
   guest: { generation: 5,  aux: 15 },
 } as const;
 const GLOBAL_CAP_DEFAULT = 1000;
+// OSPITE-GIRO — l'account anonimo del giro di prova: generazioni per account (per sempre) e contorno al giorno.
+const OSPITE = { giri: 1, perTe: 2, aux: 30 } as const;
+const OSPITE_IP_CAP_DEFAULT = 10;    // generazioni di ospiti per IP al giorno (secret AI_OSPITE_IP_DAILY_CAP)
+const OSPITI_CAP_DEFAULT = 100;      // generazioni di tutti gli ospiti al giorno (secret AI_OSPITI_DAILY_CAP)
 // Tetto globale giornaliero sulle chiamate di contorno (tutti gli ospiti e gli utenti insieme): impedisce che molti sconosciuti, ognuno
 // sotto il proprio limite, facciano salire i costi. Secret AI_GLOBAL_DAILY_CAP_CONTORNO.
 const GLOBAL_CAP_CONTORNO_DEFAULT = 2000;
@@ -95,6 +104,11 @@ const MSG_USER_LIMIT   = 'Per oggi hai usato tutti i tuoi percorsi. Domani se ne
 const MSG_GLOBAL_LIMIT = 'Oggi Unnivai ha raggiunto il limite di percorsi. Domani se ne aprono altri.';
 const MSG_GLOBAL_CONTORNO = 'Oggi Unnivai ha raggiunto il limite di richieste. Domani riparte tutto.';
 const MSG_BODY_TOO_LARGE = 'La richiesta è troppo grande.';
+// OSPITE-GIRO — i limiti del giro di prova (da rivedere con Ivano). Il client apre l'invito a registrarsi.
+const MSG_OSPITE_GIRO   = "Il giro di prova l'hai fatto. Il prossimo parte dal tuo account.";
+const MSG_OSPITE_PER_TE = 'Per Te si rinnova con il tuo account.';
+const MSG_OSPITE_IP     = 'Da questa rete oggi sono partiti già molti giri di prova. Con il tuo account parti adesso.';
+const MSG_OSPITI        = 'Per oggi i giri di prova sono finiti. Con il tuo account parti adesso, oppure riprova domani.';
 // Gate P8b — guasto di OpenAI (credito, troppe richieste, errore, nessuna risposta).
 const MSG_ENGINE_DOWN  = 'Il motore si è fermato un attimo. Riprova tra qualche minuto.';
 
@@ -122,6 +136,16 @@ function globalCap(): number {
   if (Number.isInteger(n) && n >= 0) return n;
   console.warn(`[openai-proxy] AI_GLOBAL_DAILY_CAP non valido (${raw}), uso ${GLOBAL_CAP_DEFAULT}`);
   return GLOBAL_CAP_DEFAULT;
+}
+
+/** Un tetto da secret: intero >= 0, altrimenti il difetto. Letto a ogni richiesta. */
+function tettoDaSecret(nome: string, difetto: number): number {
+  const raw = Deno.env.get(nome);
+  if (raw === undefined || raw === '') return difetto;
+  const n = Number(raw);
+  if (Number.isInteger(n) && n >= 0) return n;
+  console.warn(`[openai-proxy] ${nome} non valido (${raw}), uso ${difetto}`);
+  return difetto;
 }
 
 /** Letto a ogni richiesta: tetto globale giornaliero delle chiamate di contorno. */
@@ -194,7 +218,16 @@ class HttpError extends Error {
   }
 }
 
-type Subject = { kind: 'user' | 'guest'; id: string };
+// 'ospite' = account anonimo (OSPITE-GIRO): id vero dal JWT + hash dell'IP per il tetto per rete.
+type Subject = { kind: 'user' | 'guest'; id: string } | { kind: 'ospite'; id: string; ip: string };
+
+async function hashIp(req: Request): Promise<string> {
+  const salt = Deno.env.get('AI_QUOTA_IP_SALT');
+  if (!salt) throw new Error('AI_QUOTA_IP_SALT non configurato');
+  const ip = clientIp(req);
+  if (!ip) throw new Error('IP del client non determinabile');
+  return await sha256Hex(`${salt}:${ip}`);
+}
 
 // deno-lint-ignore no-explicit-any
 async function resolveSubject(req: Request, sb: any): Promise<Subject> {
@@ -204,7 +237,10 @@ async function resolveSubject(req: Request, sb: any): Promise<Subject> {
 
   if (token && token !== anonKey) {
     const { data, error } = await sb.auth.getUser(token);
-    if (data?.user?.id && !error) return { kind: 'user', id: data.user.id };
+    if (data?.user?.id && !error) {
+      if (data.user.is_anonymous === true) return { kind: 'ospite', id: data.user.id, ip: await hashIp(req) };
+      return { kind: 'user', id: data.user.id };
+    }
     const status = Number(error?.status);
     if (status >= 400 && status < 500) {
       throw new HttpError(401, { error: 'Sessione non valida', code: 'INVALID_TOKEN' });
@@ -212,11 +248,57 @@ async function resolveSubject(req: Request, sb: any): Promise<Subject> {
     throw new Error(`verifica JWT fallita: ${error?.message ?? 'sconosciuto'}`);
   }
 
-  const salt = Deno.env.get('AI_QUOTA_IP_SALT');
-  if (!salt) throw new Error('AI_QUOTA_IP_SALT non configurato');
-  const ip = clientIp(req);
-  if (!ip) throw new Error('IP del client non determinabile');
-  return { kind: 'guest', id: await sha256Hex(`${salt}:${ip}`) };
+  return { kind: 'guest', id: await hashIp(req) };
+}
+
+/**
+ * Il controllo di quota di una chiamata (fail-closed: un errore qui = OpenAI non si chiama).
+ * Ospite: generazione → ai_quota_ospite; contorno → ai_quota_consume come 'user' con il limite dell'ospite.
+ */
+// deno-lint-ignore no-explicit-any
+async function consumaQuota(sb: any, subject: Subject, meta: Meta): Promise<Record<string, unknown>> {
+  if (esenteDaiTetti(subject)) return { allowed: true, reason: 'unlimited_env' };
+  let risposta;
+  if (subject.kind === 'ospite' && meta.purpose === 'generation') {
+    risposta = await sb.rpc('ai_quota_ospite', {
+      p_user: subject.id, p_ip_hash: subject.ip, p_ticket: meta.ticket, p_ticket_kind: meta.kind,
+      p_giri: OSPITE.giri, p_per_te: OSPITE.perTe,
+      p_ip_cap: tettoDaSecret('AI_OSPITE_IP_DAILY_CAP', OSPITE_IP_CAP_DEFAULT),
+      p_ospiti_cap: tettoDaSecret('AI_OSPITI_DAILY_CAP', OSPITI_CAP_DEFAULT),
+      p_global_cap: globalCap(),
+    });
+  } else {
+    const kind = subject.kind === 'ospite' ? 'user' : subject.kind;
+    const limite = subject.kind === 'ospite' ? OSPITE.aux : LIMITS[subject.kind][meta.purpose];
+    risposta = await sb.rpc('ai_quota_consume', {
+      p_subject_kind: kind,
+      p_subject: subject.id,
+      p_purpose: meta.purpose,
+      p_ticket: meta.purpose === 'generation' ? meta.ticket : null,
+      p_ticket_kind: meta.purpose === 'generation' ? meta.kind : null,
+      p_limit: limite,
+      p_global_cap: globalCap(),
+      p_aux_global_cap: globalCapContorno(),
+    });
+  }
+  const { data, error } = risposta;
+  if (error) throw new Error(`controllo quota: ${error.message ?? error}`);
+  if (!data || typeof data.allowed !== 'boolean') throw new Error('controllo quota: risposta non valida');
+  return data;
+}
+
+/** La risposta a una quota rifiutata (stessa forma per giri, contorno e lista della città). */
+function rifiutoQuota(quota: Record<string, unknown>): Response {
+  switch (quota.reason) {
+    case 'global': return json(429, { error: MSG_GLOBAL_LIMIT, code: 'GLOBAL_QUOTA_EXCEEDED' });
+    case 'global_aux': return json(429, { error: MSG_GLOBAL_CONTORNO, code: 'GLOBAL_AUX_QUOTA_EXCEEDED' });
+    case 'ticket': return json(403, { error: 'Biglietto di generazione esaurito o non tuo', code: 'TICKET_INVALID' });
+    case 'ospite_giro': return json(429, { error: MSG_OSPITE_GIRO, code: 'OSPITE_GIRO_USATO' });
+    case 'ospite_per_te': return json(429, { error: MSG_OSPITE_PER_TE, code: 'OSPITE_PER_TE_USATO' });
+    case 'ospite_ip': return json(429, { error: MSG_OSPITE_IP, code: 'OSPITE_IP_LIMITE' });
+    case 'ospiti': return json(429, { error: MSG_OSPITI, code: 'OSPITI_LIMITE' });
+    default: return json(429, { error: MSG_USER_LIMIT, code: 'QUOTA_EXCEEDED', remaining: 0 });
+  }
 }
 
 type Meta = { purpose: 'generation'; ticket: string; kind: string } | { purpose: 'aux' };
@@ -343,17 +425,8 @@ async function handleCityList(req: Request, dv: Record<string, any>): Promise<Re
   // Prima lista del giorno per questa città: quota di contorno (fail-closed, come le altre chiamate).
   try {
     const subject = await resolveSubject(req, sb);
-    if (!esenteDaiTetti(subject)) {
-      const { data, error } = await sb.rpc('ai_quota_consume', {
-        p_subject_kind: subject.kind, p_subject: subject.id, p_purpose: 'aux', p_ticket: null, p_ticket_kind: null,
-        p_limit: LIMITS[subject.kind].aux, p_global_cap: globalCap(), p_aux_global_cap: globalCapContorno(),
-      });
-      if (error) throw new Error(`ai_quota_consume: ${error.message ?? error}`);
-      if (!data?.allowed) {
-        if (data?.reason === 'global_aux') return json(429, { error: MSG_GLOBAL_CONTORNO, code: 'GLOBAL_AUX_QUOTA_EXCEEDED' });
-        return json(429, { error: MSG_USER_LIMIT, code: 'QUOTA_EXCEEDED' });
-      }
-    }
+    const quota = await consumaQuota(sb, subject, { purpose: 'aux' });
+    if (!quota.allowed) return rifiutoQuota(quota);
   } catch (err) {
     if (err instanceof HttpError) return json(err.status, err.body);
     console.error('[openai-proxy] lista città: controllo quota fallito:', scrubLogText(err));
@@ -931,41 +1004,14 @@ serve(async (req: Request) => {
     });
 
     subject = await resolveSubject(req, sb);
-    if (esenteDaiTetti(subject)) {
-      quota = { allowed: true, reason: 'unlimited_env' };
-    } else {
-      const { data, error } = await sb.rpc('ai_quota_consume', {
-        p_subject_kind: subject.kind,
-        p_subject: subject.id,
-        p_purpose: meta.purpose,
-        p_ticket: meta.purpose === 'generation' ? meta.ticket : null,
-        p_ticket_kind: meta.purpose === 'generation' ? meta.kind : null,
-        p_limit: LIMITS[subject.kind][meta.purpose],
-        p_global_cap: globalCap(),
-        p_aux_global_cap: globalCapContorno(),
-      });
-      if (error) throw new Error(`ai_quota_consume: ${error.message ?? error}`);
-      if (!data || typeof data.allowed !== 'boolean') throw new Error('ai_quota_consume: risposta non valida');
-      quota = data;
-    }
+    quota = await consumaQuota(sb, subject, meta);
   } catch (err) {
     if (err instanceof HttpError) return json(err.status, err.body);
     console.error('[openai-proxy] controllo quota fallito, OpenAI non chiamato:', String(err));
     return json(503, { error: 'Controllo quota non disponibile, riprova tra poco.', code: 'QUOTA_CHECK_FAILED' });
   }
 
-  if (!quota.allowed) {
-    if (quota.reason === 'global') {
-      return json(429, { error: MSG_GLOBAL_LIMIT, code: 'GLOBAL_QUOTA_EXCEEDED' });
-    }
-    if (quota.reason === 'global_aux') {
-      return json(429, { error: MSG_GLOBAL_CONTORNO, code: 'GLOBAL_AUX_QUOTA_EXCEEDED' });
-    }
-    if (quota.reason === 'ticket') {
-      return json(403, { error: 'Biglietto di generazione esaurito o non tuo', code: 'TICKET_INVALID' });
-    }
-    return json(429, { error: MSG_USER_LIMIT, code: 'QUOTA_EXCEEDED', remaining: 0 });
-  }
+  if (!quota.allowed) return rifiutoQuota(quota);
 
   const asked = Number(openAiPayload.max_tokens);
   openAiPayload.max_tokens = Number.isFinite(asked) && asked > 0
@@ -988,11 +1034,13 @@ serve(async (req: Request) => {
     let refunded = false;
     if (meta.purpose === 'generation' && sb && subject) {
       try {
-        const { data, error } = await sb.rpc('ai_quota_refund', {
-          p_subject_kind: subject.kind,
-          p_subject: subject.id,
-          p_ticket: meta.ticket,
-        });
+        const { data, error } = subject.kind === 'ospite'
+          ? await sb.rpc('ai_quota_ospite_rimborso', { p_user: subject.id, p_ip_hash: subject.ip, p_ticket: meta.ticket })
+          : await sb.rpc('ai_quota_refund', {
+              p_subject_kind: subject.kind,
+              p_subject: subject.id,
+              p_ticket: meta.ticket,
+            });
         if (error) throw new Error(error.message ?? String(error));
         refunded = data?.refunded === true;
       } catch (err) {

@@ -160,6 +160,23 @@ export const MODELLI_AUTH = {
             piede: ["Non l'hai chiesta tu? Ignora questa email: la password resta quella di adesso.", apriUnnivai],
         }),
     },
+    // OSPITE-GIRO — chi ha fatto il giro di prova crea l'account: Supabase aggiunge l'email all'account anonimo
+    // (cambio email) e manda il codice di 6 cifre, che si scrive nell'app. Nessun link: l'utente resta dov'è.
+    email_change: {
+        file: 'codice.html',
+        oggetto: 'Il tuo codice per Unnivai',
+        html: guscio({
+            titolo: 'Il tuo codice',
+            anteprima: `Scrivilo nell'app per creare l'account. Vale ${DURATA_LINK}.`,
+            paragrafi: [
+                'Stai creando il tuo account Unnivai con {{ .NewEmail }}.',
+                "Scrivi questo codice nell'app:",
+                `<span style="display:inline-block;font-family:${FONT};font-size:32px;font-weight:800;letter-spacing:6px;">{{ .Token }}</span>`,
+            ],
+            dopoPulsante: [`Il codice vale ${DURATA_LINK} e funziona una volta.`],
+            piede: ["Non l'hai chiesto tu? Ignora questa email: senza codice l'account non si crea.", apriUnnivai],
+        }),
+    },
 } as const;
 
 export type EmailComposta = { oggetto: string; html: string; testo: string };

@@ -490,6 +490,9 @@ Capacitor 8.5.3 (`capacitor.config.json`: `it.unnivai.app`, «Unnivai», `webDir
 - **Niente funzioni nuove non chieste**: se qualcosa sembra servire, si propone nel report.
 - **Ogni task che tocca navigazione o racconti chiude ripetendo i punti di `scripts/prova-nav/collaudo-sito.webkit.mjs` che lo riguardano** (`node scripts/prova-nav/collaudo-sito.webkit.mjs 1,2,3`) e riporta gli esiti nel report del task.
 - **La conferma di Ivano su iPhone vero serve solo per voce, audio, GPS reale e rete.** Tutto il resto si prova con test, banco e WebKit, senza chiedergli di verificare.
+- **Ogni task aggiorna la sua riga in `docs/LANCIO.md` prima del merge** (stato, commit o report che lo prova) e ricalcola il conteggio «X su Y fatte» in cima.
+- **Vietato `gh pr merge --admin`**: si unisce solo con CI verde e protezioni rispettate.
+- **Dal 1/12 nessun deploy delle funzioni senza Ivano.**
 
 ### City Data Flow
 

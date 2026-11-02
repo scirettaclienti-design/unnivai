@@ -20,7 +20,7 @@ Tutti gli script con `/DoveVai/i` (scripts/prova-*, collaudo-sito, ecc.) ora usa
 ## Prove
 - Suite 258 file / 3214 test verdi; lint 0 errori; build ok; `banco:guardia` 12/12, nessun ❌ nuovo (3 già noti).
 - Test nuovo `src/__tests__/components/appNativaProssimamente.test.jsx`: con Capacitor nativo simulato la barra non ha Foto, `V1LockedGuard` e `SoloWeb` rimandano alla home; sul web restano Foto, `/prossimamente/guide` e le pagine; controllo sul sorgente che link Landing/Dashboard/Profilo e rotte siano dietro `isAppNativa`.
-- Collaudo sul sito pubblicato: vedi sezione in fondo (aggiunta dopo il merge).
+- Dopo il merge (`065161b`): CI su main verde, Vercel READY (il sito serve `<title>Unnivai | Esplora l'Italia Autentica`).
 
 ## Costo AI
 0 (nessuna chiamata AI a pagamento prima del collaudo).
@@ -34,3 +34,7 @@ Tutti gli script con `/DoveVai/i` (scripts/prova-*, collaudo-sito, ecc.) ora usa
 
 ## Da provare su iPhone
 Aprire l'app: nome Unnivai in caricamento e Login; nella barra in basso solo Home, Esplora, Profilo; nessuna card o link «Presto / Guide»; il profilo senza «Vedi tutte» sulle foto.
+
+## Esito sul sito pubblicato (dopo il merge)
+- `curl https://unnivai.vercel.app` e `/login`: `<title>Unnivai | Esplora l'Italia Autentica`. WebKit: Login e Landing mostrano «UNNIVAI», nessun «DoveVai» nel testo.
+- `node scripts/prova-nav/collaudo-sito.webkit.mjs` (account di prova, WebKit iPhone 14): punti 1-6 e 8-13 passati; punto 7 con l'account passato, da ospite non passa (accessi anonimi spenti nel pannello Supabase, atteso come nei collaudi del 02 e 03/11). Il controllo del titolo accetta Unnivai e non ha fermato la prova. Costo AI: le generazioni solite del collaudo con l'account di prova (nessun contatore); il lavoro del task in sé 0 $.

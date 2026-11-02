@@ -804,7 +804,7 @@ export default function QuickPathPage() {
             }
             // Gate P8b — il motore si e' fermato (OpenAI o proxy): testo fisso.
             if (isAiEngineError(err)) {
-                setGenerationError({ reason: 'engine', detail: err.kind });
+                setGenerationError({ reason: 'engine', detail: err.kind, message: err.userMessage });
                 setGenerationStatus('error-engine');
                 return;
             }
@@ -1157,7 +1157,7 @@ export default function QuickPathPage() {
 
                             {generationStatus === 'error-engine' && (
                                 <div data-engine-error className="bg-obsidian-card border border-obsidian-border rounded-[28px] p-8 text-center max-w-md mx-auto shadow-2xl">
-                                    <h3 className="text-2xl font-bold text-obsidian-primary mb-8">{AI_ENGINE_MESSAGE}</h3>
+                                    <h3 className="text-2xl font-bold text-obsidian-primary mb-8">{generationError?.message || AI_ENGINE_MESSAGE}</h3>
                                     <button
                                         onClick={() => { setGenerationStatus('idle'); generateItinerary(selectedGroup); }}
                                         className="px-6 py-3.5 bg-brand-orange hover:bg-brand-orange-hover text-obsidian-bg rounded-xl font-bold transition-colors w-full sm:w-auto shadow-md shadow-brand-orange/20 cursor-pointer"

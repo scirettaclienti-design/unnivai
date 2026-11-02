@@ -5,6 +5,7 @@
  * di oggi e con «Perché sei qui adesso». Un racconto passato si tiene sul telefono 30 giorni, così lo stesso posto non richiama il server.
  */
 import { supabase } from '../lib/supabase';
+import { consensoAiDato } from '../lib/consensoAi';
 import { isLocaleStop } from './factsService';
 
 const CHIAVE = 'dvai_racconti_v1';
@@ -42,6 +43,7 @@ async function chiediAlServer(stop, citta) {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !anonKey) return null;
+    if (!(await consensoAiDato())) return null; // ACCOUNT-PRIVACY: senza consenso non parte (nessun racconto)
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_RACCONTO_MS);
     try {

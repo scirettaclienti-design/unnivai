@@ -8,6 +8,7 @@ import { MapPin, Flag, Store, ArrowRight, User, Mail, Lock, Briefcase, CheckCirc
 import { LoginSchema, SignupSchema, EmailSchema, validateForm } from '../lib/validationSchemas';
 import { erroreAuthItaliano } from '../lib/erroriAuth';
 import ProvaSenzaAccount from '../components/ProvaSenzaAccount';
+import LinkLegali from '../components/LinkLegali';
 
 // Gate K — In V1 il selettore ruolo mostra SOLO "Viaggiatore".
 // Le opzioni "Sono una Guida" e "Ho un'Attività" sono commentate ma restano nel
@@ -532,6 +533,8 @@ const Login = () => {
                         </motion.div>
                     )}
                 </AnimatePresence>
+                {/* ACCOUNT-PRIVACY — privacy e termini: pubbliche, visibili in ogni vista del login */}
+                <LinkLegali className="mt-6" />
             </div>
         </div>
     );

@@ -5,6 +5,7 @@
  * `richiediCuriosita` non lancia mai: senza curiosità (nessuna fonte, scartata, rete, tetto) restituisce null e il cammino resta in silenzio.
  */
 import { supabase } from '../lib/supabase';
+import { consensoAiDato } from '../lib/consensoAi';
 
 export const TIMEOUT_CURIOSITA_MS = 45_000;
 export const TIMEOUT_INDIRIZZO_MS = 8_000;
@@ -45,6 +46,7 @@ export async function richiediCuriosita({ lat, lng, citta = '', escludi = [], ta
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     if (!supabaseUrl || !anonKey || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    if (!(await consensoAiDato())) return null; // ACCOUNT-PRIVACY: senza consenso non parte, nemmeno la richiesta di via e quartiere
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_CURIOSITA_MS);
     try {

@@ -329,7 +329,7 @@ export default function AIItineraryPage() {
                 });
             } else if (isAiEngineError(error)) {
                 // Gate P8b — OpenAI ha rifiutato o non ha risposto: testo fisso.
-                toast({ title: AI_ENGINE_MESSAGE, type: 'warning', duration: 6000 });
+                toast({ title: error?.userMessage || AI_ENGINE_MESSAGE, type: 'warning', duration: 6000 });
             } else {
                 // TROINA-FIX — rete, timeout, risposta vuota: il messaggio tecnico col tasto «Riprova»
                 setErroreTecnico(true);
@@ -405,7 +405,7 @@ export default function AIItineraryPage() {
             if (err?.code === 'QUOTA_EXCEEDED') {
                 toast({ title: err.userMessage || QUOTA_USER_MESSAGE, type: 'info', duration: 5000 });
             } else if (isAiEngineError(err)) {
-                toast({ title: AI_ENGINE_MESSAGE, type: 'warning', duration: 6000 });
+                toast({ title: err.userMessage || AI_ENGINE_MESSAGE, type: 'warning', duration: 6000 });
             }
         } finally {
             setIsGenerating(false);

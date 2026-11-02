@@ -21,6 +21,8 @@ import { leggiGiriSalvati, rimuoviGiroSalvato, giroSalvatoComeTour } from "../li
 import { QuickPathSummary } from "../components/Map/QuickPathSummary";
 import { useModificaGiro } from "../hooks/useModificaGiro";
 import { isOspite, TESTI_OSPITE } from "../lib/ospite";
+import LinkLegali from "../components/LinkLegali";
+import EliminaAccount from "../components/EliminaAccount";
 
 // Stati di `guide_requests`, presi dal CHECK reale sul DB (verificato il
 // 04/09/2026 su information_schema, non a memoria):
@@ -929,6 +931,10 @@ export default function ProfilePage() {
                     userId={userId}
                     userName={firstName || 'Utente'}
                 />
+
+                {/* ACCOUNT-PRIVACY — privacy, termini ed eliminazione dell'account */}
+                <LinkLegali className="mt-8" />
+                <EliminaAccount />
 
                 {/* MERGE-3 — la versione in produzione: commit e data del build */}
                 <p data-versione className="text-center text-[11px] text-obsidian-secondary/80 pt-6 pb-2">{VERSIONE_APP}</p>

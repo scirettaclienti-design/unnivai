@@ -5,6 +5,7 @@ import ProvaSenzaAccount from '../components/ProvaSenzaAccount';
 import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Globe, Compass, Users, MapPin, Star, Play, X, ChevronRight, ChevronLeft, Search, Brain, MessageCircle, CheckCircle, Clock, Navigation, Sparkles, Wifi, Battery, Signal } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import LinkLegali from '../components/LinkLegali';
 
 const CITIES = ['Roma', 'Venezia', 'Firenze', 'Napoli', 'Milano'];
 
@@ -753,6 +754,7 @@ const Landing = () => {
                         Presto: persone del posto in carne e ossa
                         <ArrowRight className="w-3 h-3" />
                     </Link>
+                    <LinkLegali className="mt-2" />
                 </div>
             </motion.section>
 

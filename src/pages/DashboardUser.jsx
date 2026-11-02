@@ -29,7 +29,7 @@ import { fasciaDna } from '@/lib/fasciaDna';
 const experiencesErrorText = (err) => {
     if (err?.code === 'QUOTA_EXCEEDED' && err?.userMessage) return err.userMessage;
     // Gate P8b — OpenAI ha rifiutato o non ha risposto.
-    if (isAiEngineError(err)) return AI_ENGINE_MESSAGE;
+    if (isAiEngineError(err)) return err.userMessage || AI_ENGINE_MESSAGE;
     return MESSAGGIO_TECNICO;
 };
 import { normalizeTour } from '@/services/tourShape';

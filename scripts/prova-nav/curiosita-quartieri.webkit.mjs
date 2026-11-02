@@ -3,6 +3,7 @@
  *   node scripts/prova-nav/curiosita-quartieri.webkit.mjs [trastevere,monti,catania]
  * - Il sito (CURIOSITA_BASE, difetto unnivai.vercel.app) e openai-proxy pubblicato: le curiosità sono quelle vere del server.
  * - Il percorso a piedi: Google Directions WALKING fra le tappe, calcolato dentro la pagina con la libreria della mappa.
+ * - L'indirizzo (via, quartiere) lo chiede il telefono a Nominatim, come nell'app.
  * - Il tempo: orologio della pagina finto (page.clock), un passo di 25 m ogni 20 s (1,25 m/s), così 35 minuti di cammino durano pochi minuti
  *   e la regola dei 10 minuti si vede intera. Prima di ogni passo si aspettano le richieste al proxy in volo (il loro tempo massimo è un timer).
  * - La voce: le richieste di audio (`dv.purpose = 'voce'`) rispondono 503, come senza credito OpenAI; parla la «voce del browser», finta, che dura
@@ -116,6 +117,11 @@ async function giro(nome, statePath) {
     const reg = { curiosita: [], errori: [] };
     let inVolo = 0;
     page.on('pageerror', e => reg.errori.push(String(e?.message || e).slice(0, 160)));
+    // anche l'indirizzo che il telefono chiede a Nominatim prima della curiosità è «in volo» (il suo tempo massimo è un timer della pagina)
+    const osm = (r) => /nominatim\.openstreetmap\.org\/reverse/.test(r.url()) && /zoom=17/.test(r.url());
+    page.on('request', r => { if (osm(r)) inVolo += 1; });
+    page.on('requestfinished', r => { if (osm(r)) inVolo -= 1; });
+    page.on('requestfailed', r => { if (osm(r)) inVolo -= 1; });
     await page.route('**/functions/v1/openai-proxy', async (route) => {
         let dv = null; try { dv = route.request().postDataJSON()?.dv; } catch { /* */ }
         if (dv?.purpose === 'voce') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'voce finta: prova', code: 'VOCE_NON_DISPONIBILE' }) });

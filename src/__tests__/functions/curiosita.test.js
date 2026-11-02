@@ -3,7 +3,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createHash } from 'node:crypto';
 import {
-    leggiIndirizzo, leggiPhoton, indirizzoDi, luoghiVicini, stessoLuogo, paroleProprie, eUnaTappa, testoDelLuogo, STRADA, RAGGIO_VIA_KM, RAGGIO_QUARTIERE_KM, UA_CURIOSITA,
+    leggiIndirizzo, leggiPhoton, indirizzoDi, indirizzoDaClient, luoghiVicini, stessoLuogo, paroleProprie, eUnaTappa, testoDelLuogo, STRADA, RAGGIO_VIA_KM, RAGGIO_QUARTIERE_KM, UA_CURIOSITA,
 } from '../../../supabase/functions/openai-proxy/curiositaFonti.ts';
 import {
     SYSTEM_CURIOSITA, messaggiCuriosita, VERSIONE_CURIOSITA, chiaveCuriosita, eChiaveCuriosita, curiositaInCacheValida,
@@ -52,6 +52,13 @@ describe('i nomi di OpenStreetMap', () => {
         expect(await indirizzoDi(37.5, 15.08, rete({ falliscono: ['nominatim'] }), diagnosi)).toBe('errore');
         expect(diagnosi[0]).toBe('nominatim 503');
         expect(diagnosi[1]).toMatch(/^photon/);
+    });
+    it('l\'indirizzo dal telefono: solo i campi noti, solo stringhe corte', () => {
+        expect(indirizzoDaClient({ road: 'Via Crociferi', suburb: 'Centro storico', city: 'Catania', house_number: '7', x: { y: 1 } })).toEqual({ via: 'Via Crociferi', quartieri: ['Centro storico'], citta: 'Catania' });
+        expect(indirizzoDaClient({ road: 'x'.repeat(81) })).toBeNull();
+        expect(indirizzoDaClient('Via Roma')).toBeNull();
+        expect(indirizzoDaClient(['Via Roma'])).toBeNull();
+        expect(indirizzoDaClient(null)).toBeNull();
     });
     it('Nominatim giù: i nomi da Photon (stessi dati OpenStreetMap)', async () => {
         const f = vi.fn(async (url) => {

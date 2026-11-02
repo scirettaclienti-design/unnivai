@@ -95,10 +95,14 @@ async function nuovo(inizio, { ospite = false } = {}) {
         if (dv?.purpose === 'racconto') reg.racconto.push({ nome: dv.nome, place_id: dv.place_id });
         if (dv?.purpose === 'curiosita') reg.curiosita.push({ lat: dv.lat, lng: dv.lng, stato: null });
     });
+    page.on('request', r => { if (/nominatim\.openstreetmap\.org\/reverse.*zoom=17/.test(r.url())) reg.curiosita.push({ osm: true, stato: null, url: r.url() }); });
+    const finito = (r, stato) => { if (!/nominatim\.openstreetmap\.org\/reverse.*zoom=17/.test(r.url())) return; const q = reg.curiosita.find(x => x.osm && x.stato == null && x.url === r.url()); if (q) q.stato = stato; };
+    page.on('requestfinished', r => finito(r, 'ok'));
+    page.on('requestfailed', r => finito(r, 'errore'));
     page.on('response', async r => {
         if (!/functions\/v1\/openai-proxy/.test(r.url()) || r.request().method() !== 'POST') return;
         let dv = null; try { dv = r.request().postDataJSON()?.dv; } catch { /* */ }
-        if (dv?.purpose === 'curiosita') { const q = reg.curiosita.find(x => x.stato == null); if (q) q.stato = r.status(); return; }
+        if (dv?.purpose === 'curiosita') { const q = reg.curiosita.find(x => !x.osm && x.stato == null); if (q) q.stato = r.status(); return; }
         if (dv?.purpose !== 'racconto') return;
         const corpo = await r.json().catch(() => null);
         const x = reg.racconto.find(q => q.place_id === dv.place_id && q.stato == null);

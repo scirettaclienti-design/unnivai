@@ -60,7 +60,7 @@ import {
 } from './racconto.ts';
 import { cercaWikipedia, allargaWikipedia, descrizioneGoogleDa } from './raccontoFonti.ts';
 import { VERSIONE_CURIOSITA, messaggiCuriosita, curiositaInCacheValida, eChiaveCuriosita } from './curiosita.ts';
-import { indirizzoDi, luoghiVicini, testoDelLuogo, eUnaTappa, type Luogo } from './curiositaFonti.ts';
+import { indirizzoDi, indirizzoDaClient, luoghiVicini, testoDelLuogo, eUnaTappa, type Luogo } from './curiositaFonti.ts';
 import {
   MODELLO_VOCE, VOCE_PREDEFINITA, BUCKET_VOCE, voceValida, testoValido, chiaveAudio, percorsoAudio, corpoVoce, tettoNuovi, costoStimatoUsd,
 } from './voce.ts';
@@ -748,8 +748,11 @@ async function handleCuriosita(req: Request, dv: Record<string, any>): Promise<R
   const nessuna = (motivo: string, extra: Record<string, unknown> = {}) => json(200, { curiosita: { esito: 'nessuna', motivo, ...extra } });
 
   // i nomi della via e del quartiere (Nominatim, poi Photon); senza, restano le vie e piazze a pochi passi (geosearch)
+  // Nominatim rifiuta le richieste da qui (403, misurato su v42): i nomi arrivano dal telefono (`dv.indirizzo`, campi di OpenStreetMap) e servono
+  // solo a scegliere la voce, che si verifica comunque per nome e coordinate; senza, si prova da qui.
   const diagnosi: string[] = [];
-  const trovato = await indirizzoDi(lat, lng, fetchW, diagnosi);
+  const dalTelefono = indirizzoDaClient(dv.indirizzo);
+  const trovato = dalTelefono ?? await indirizzoDi(lat, lng, fetchW, diagnosi);
   if (diagnosi.length) console.warn(`[openai-proxy] curiosità: indirizzo ${diagnosi.join(' ; ')}`);
   const ind = trovato === 'errore' ? { via: null, quartieri: [], citta: null } : trovato;
   const cittaUsata = citta || ind.citta || '';

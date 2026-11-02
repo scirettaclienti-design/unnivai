@@ -63,6 +63,15 @@ export function leggiIndirizzo(a: any): Indirizzo {
     return { via: typeof via === 'string' && via.trim() ? via.trim() : null, quartieri, citta };
 }
 
+/** L'indirizzo mandato dal telefono (campi di Nominatim): solo stringhe corte dei campi noti; altrimenti null. */
+const CAMPI_CLIENT = ['road', 'pedestrian', 'square', 'footway', 'neighbourhood', 'quarter', 'suburb', 'city_district', 'city', 'town', 'village'];
+export function indirizzoDaClient(x: unknown): Indirizzo | null {
+    if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
+    const a: Record<string, string> = {};
+    for (const c of CAMPI_CLIENT) { const v = (x as Record<string, unknown>)[c]; if (typeof v === 'string' && v.trim() && v.length <= 80) a[c] = v.trim(); }
+    return Object.keys(a).length ? leggiIndirizzo(a) : null;
+}
+
 /** I nomi di Photon (komoot, dati OpenStreetMap): la strada e la località/il distretto. Stesse regole di `leggiIndirizzo`. */
 // deno-lint-ignore no-explicit-any
 export function leggiPhoton(p: any): Indirizzo {

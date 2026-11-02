@@ -119,6 +119,16 @@ describe('curiosità del cammino sul proxy', () => {
         expect(r2.code).toBe('CURIOSITA_FONTI');
         expect(r2.diagnosi).toEqual(['nominatim 403', 'photon 403']);
     });
+    it('l\'indirizzo dal telefono vale come quello di Nominatim (e il server non chiama Nominatim); la voce si verifica lo stesso', async () => {
+        osmGiu = true;
+        const { curiosita } = await (await chiedi({ escludi: ['curiosita-itwiki-443726'], indirizzo: { road: 'Via Crociferi', suburb: 'Centro storico', city: 'Catania' } })).json();
+        expect(rete.filter(h => /nominatim|photon/.test(h))).toEqual([]);
+        expect(curiosita.esito).toBe('nessuna'); // il Centro storico ha la voce ma senza testo: niente inventato
+        expect(righe.has('curiosita-itwiki-3')).toBe(true);
+        // un nome che non ha una voce vicina non porta da nessuna parte
+        const r = await (await chiedi({ escludi: ['curiosita-itwiki-443726'], indirizzo: { road: 'Via Inventata', city: 'Catania' } })).json();
+        expect(r.curiosita?.chiave).toBeUndefined();
+    });
     it('posizione non valida: 400; un racconto non può usare una chiave di curiosità', async () => {
         expect((await chiedi({ lat: 'x' })).status).toBe(400);
         const r = await handler(new Request('http://edge.test/functions/v1/openai-proxy', {

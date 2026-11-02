@@ -40,9 +40,9 @@ try {
     });
     page.on('response', async (r) => { if (/rest\/v1\/saved_tours/.test(r.url()) && r.request().method() === 'POST') esito.console.push(`POST saved_tours → ${r.status()}`); });
     await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai: niente credenziali.');
+    if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai: niente credenziali.');
     await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai al login: niente credenziali.');
+    if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai al login: niente credenziali.');
     await page.getByText('Accedi →').click();
     await page.getByPlaceholder('Email').fill(env.TEST_ACCOUNT_EMAIL);
     await page.getByPlaceholder('Password').fill(env.TEST_ACCOUNT_PASSWORD);

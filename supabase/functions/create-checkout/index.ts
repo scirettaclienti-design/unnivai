@@ -77,7 +77,7 @@ serve(async (req: Request) => {
   const stripeBody = new URLSearchParams({
     'payment_method_types[0]':            'card',
     'line_items[0][price_data][currency]': 'eur',
-    'line_items[0][price_data][product_data][name]': tourTitle ?? 'Tour DoveVai',
+    'line_items[0][price_data][product_data][name]': tourTitle ?? 'Tour Unnivai',
     'line_items[0][price_data][unit_amount]': String(Math.round(totalAmount * 100)),
     'line_items[0][quantity]':             '1',
     'mode':                                'payment',

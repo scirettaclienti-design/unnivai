@@ -91,7 +91,7 @@ export default function BookingModal({ tourId, tourTitle, price, guideId, onClos
                 body: JSON.stringify({
                     bookingId:   bookingResult?.bookingId,  // se il DB ritorna l'id
                     guideId:     guideId ?? null,
-                    tourTitle:   tourTitle ?? 'Tour DoveVai',
+                    tourTitle:   tourTitle ?? 'Tour Unnivai',
                     totalAmount: totalPrice,
                 }),
             });

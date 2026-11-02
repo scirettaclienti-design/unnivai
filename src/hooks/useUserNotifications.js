@@ -63,7 +63,7 @@ export function buildTimeAwarePrompt(city, userName, slot, weatherHint = 'solegg
     return `Sei un esperto locale di ${city}. È ${slotDescriptions[slot]}, condizioni meteo: ${weatherHint}.${indoorNote}
 Scrivi UN breve consiglio (max 140 caratteri) per ${userName || 'il viaggiatore'} suggerendo SOLO attività adatte a questo orario: ${slotSuggestions[slot]}.
 NON suggerire il sole di notte, NON suggerire ristoranti la mattina presto.
-Aggiungi un hashtag #DoveVAI alla fine.
+Aggiungi un hashtag #Unnivai alla fine.
 
 Formato JSON:
 {

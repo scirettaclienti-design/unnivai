@@ -90,7 +90,7 @@ try {
     await passo('0-titolo', async () => {
         await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
         const titolo = await page.title();
-        if (!/DoveVai/i.test(titolo)) throw new Error(`titolo «${titolo}» non DoveVai`);
+        if (!/Unnivai|DoveVai/i.test(titolo)) throw new Error(`titolo «${titolo}» non DoveVai`);
         return { ok: true, titolo };
     });
 

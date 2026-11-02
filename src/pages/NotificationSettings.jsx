@@ -111,7 +111,7 @@ export default function NotificationSettings() {
                     <Row label="Messaggi chat"              settingKey="chatMessages"    icon={Bell}    desc="Guide e utenti" />
                     <Row label="Consigli AI"                settingKey="aiTips"          icon={Bell}    desc="Suggerimenti personalizzati" />
                     <Row label="Promemoria tour"            settingKey="tourReminders"   icon={Bell}    desc="24h prima del tour" />
-                    <Row label="Promozioni"                 settingKey="promotions"      icon={BellOff} desc="Offerte e novità DoveVai" />
+                    <Row label="Promozioni"                 settingKey="promotions"      icon={BellOff} desc="Offerte e novità Unnivai" />
                 </motion.div>
 
                 <button

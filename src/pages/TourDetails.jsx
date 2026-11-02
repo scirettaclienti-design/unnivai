@@ -536,7 +536,7 @@ export default function TourDetailsPage() {
         if (!tour?.guide_id) return;
 
         // Se abbiamo già un nome/avatar "reale", non fare nulla
-        const genericNames = ['DoveVai Guide', 'Guida locale'];
+        const genericNames = ['DoveVai Guide', 'Unnivai Guide', 'Guida locale'];
         const hasRealName = tour.guide && !genericNames.includes(tour.guide);
         const hasRealAvatar = tour.guideAvatar && tour.guideAvatar !== '🤖';
         if (hasRealName && hasRealAvatar) return;

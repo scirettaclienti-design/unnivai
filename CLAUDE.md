@@ -46,13 +46,13 @@ Soglie e prezzi in `scripts/banco/banco.config.json`. Si rilancia dopo ogni modi
 **Si lavora solo da `unni <modello>` nell'app Terminale** (`~/bin/unni`, alias `unni` e `dv` in `~/.zshrc`; modelli `sonnet|opus|fable`): apre Claude Code in `~/unnivai-1b` dopo aver mostrato cartella, ramo, stato rispetto a GitHub e commit in produzione su unnivai.vercel.app. La cartella «unnivai ricresa» è archiviata: non si apre più.
 
 **Porta e titolo verificati prima di inserire credenziali.** Sulla 5173 gira spesso un'altra
-app locale (aispace): `npm run dev` con strictPort fallisce e la pagina che risponde non e'
-DoveVai. Il 10-11/10 le credenziali dell'account di prova sono finite nel login di aispace
+app locale (aispace): `npm run dev` con strictPort fallisce e la pagina che risponde non e
+Unnivai (o DoveVai). Il 10-11/10 le credenziali dell'account di prova sono finite nel login di aispace
 (password poi ruotata). Prima di ogni prova nel browser:
 1. scegli una porta libera (`lsof -iTCP:<porta> -sTCP:LISTEN` vuoto) e avvia
    `npx vite --port <porta> --strictPort`;
 2. controlla che chi ascolta su quella porta sia il vite di questo repo (`lsof -p <pid> | grep cwd`);
-3. apri la pagina e verifica che il titolo contenga "DoveVai";
+3. apri la pagina e verifica che il titolo contenga "Unnivai" (fino al deploy del cambio nome, anche "DoveVai");
 4. solo allora inserisci le credenziali. Se un punto fallisce, fermati: niente credenziali.
 
 ## Environment Variables
@@ -72,7 +72,7 @@ Le variabili che il browser deve leggere hanno il prefisso `VITE_` (`import.meta
 
 ## Architecture Overview
 
-**DoveVai** is a mobile-first React 19 + Vite SPA for Italian tourism. It connects travellers (esploratori), local guides, and businesses. The UI language is Italian.
+**Unnivai** (ex DoveVai; nomi interni dvai_*, DOVEVAI_* restano) is a mobile-first React 19 + Vite SPA for Italian tourism. It connects travellers (esploratori), local guides, and businesses. The UI language is Italian.
 
 ### Provider Stack (outermost → innermost)
 ```

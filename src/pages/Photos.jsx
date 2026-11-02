@@ -12,7 +12,7 @@ import BottomNavigation from "../components/BottomNavigation";
 export default function PhotosPage() {
     const features = [
         { icon: Image, title: "Galleria immersiva", desc: "Griglia e feed delle tue avventure" },
-        { icon: Heart, title: "Like e commenti", desc: "Connettiti con la community DoveVAI" },
+        { icon: Heart, title: "Like e commenti", desc: "Connettiti con la community Unnivai" },
         { icon: Share2, title: "Condivisione social", desc: "Instagram, Facebook, WhatsApp" },
         { icon: Tag, title: "Tag automatici", desc: "Luoghi e tour taggati dall'AI" },
     ];

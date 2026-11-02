@@ -70,7 +70,7 @@ done
 npm run build
 node scripts/controlla-chiavi.mjs --dist
 npx cap sync ios
-grep -q "<title>DoveVai" ios/App/App/public/index.html || { echo "La pagina impacchettata non è DoveVai: mi fermo."; exit 3; }
+grep -qE "<title>(Unnivai|DoveVai)" ios/App/App/public/index.html || { echo "La pagina impacchettata non è DoveVai: mi fermo."; exit 3; }
 
 # --- 3. Simulatore -----------------------------------------------------------------------------------
 if [ -z "$SIM_NOME" ]; then
@@ -115,7 +115,7 @@ xcrun simctl io "$UDID" screenshot "$OUT/01-avvio.png"
 
 # Controllo prima delle credenziali: l'app in esecuzione è Unnivai e la sua pagina è DoveVai.
 CONT="$(xcrun simctl get_app_container "$UDID" "$BUNDLE_ID" app)"
-grep -q "<title>DoveVai" "$CONT/public/index.html" || { echo "L'app installata non contiene la pagina DoveVai: niente credenziali."; exit 6; }
+grep -qE "<title>(Unnivai|DoveVai)" "$CONT/public/index.html" || { echo "L'app installata non contiene la pagina DoveVai: niente credenziali."; exit 6; }
 xcrun simctl spawn "$UDID" launchctl list | grep -q "UIKitApplication:$BUNDLE_ID" || { echo "Unnivai non risulta in esecuzione: niente credenziali."; exit 6; }
 nota "Controllo app: $BUNDLE_ID in esecuzione, pagina DoveVai"
 

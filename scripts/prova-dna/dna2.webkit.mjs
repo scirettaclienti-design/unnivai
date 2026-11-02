@@ -21,12 +21,12 @@ try {
     await p0.goto(BASE, { waitUntil: 'domcontentloaded' });
     const titolo = await p0.title();
     await c0.close();
-    if (!/DoveVai/i.test(titolo)) throw new Error(`Titolo non DoveVai (${titolo}): niente credenziali.`);
+    if (!/Unnivai|DoveVai/i.test(titolo)) throw new Error(`Titolo non DoveVai (${titolo}): niente credenziali.`);
 
     const ctx = await browser.newContext({ ...devices['iPhone 13'] });
     const page = await ctx.newPage();
     await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai al login: niente credenziali.');
+    if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai al login: niente credenziali.');
     await page.getByText('Accedi →').click();
     await page.getByPlaceholder('Email').fill(env.TEST_ACCOUNT_EMAIL);
     await page.getByPlaceholder('Password').fill(env.TEST_ACCOUNT_PASSWORD);

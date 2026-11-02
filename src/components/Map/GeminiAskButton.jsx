@@ -25,7 +25,7 @@ export const GeminiAskButton = ({ onClick, isVisible = true }) => {
                         {/* Tooltip */}
                         <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none flex items-center">
                             <div className="bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl whitespace-nowrap shadow-xl">
-                                Assistente DoveVai
+                                Assistente Unnivai
                             </div>
                             <div className="w-2 h-2 bg-gray-900 rotate-45 -ml-1" />
                         </div>

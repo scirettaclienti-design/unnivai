@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
         return (
             <div className="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center">
                 <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <div className="text-xl font-bold text-gray-700 animate-pulse">Loading DoveVai...</div>
+                <div className="text-xl font-bold text-gray-700 animate-pulse">Loading Unnivai...</div>
             </div>
         );
     }

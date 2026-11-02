@@ -263,7 +263,7 @@ export default function NotificationsPage() {
                 body: JSON.stringify({
                     requestId:   selectedNotification.actionData.request_id,
                     guideId:     selectedNotification.actionData.guide_id,
-                    tourTitle:   selectedNotification.title ?? 'Tour DoveVai',
+                    tourTitle:   selectedNotification.title ?? 'Tour Unnivai',
                     totalAmount,
                 }),
             });

@@ -245,6 +245,6 @@ describe('P6 — copy senza promesse che il codice non mantiene', () => {
         expect(src).not.toContain('hanno appena ricevuto');
         expect(src).not.toContain('Le guide locali su');
         expect(src).not.toContain('Ti contatteranno presto');
-        expect(src).toContain('È visibile alle guide registrate su DoveVAI. Se una guida la prende in carico, la proposta ti arriva qui.');
+        expect(src).toContain('È visibile alle guide registrate su Unnivai. Se una guida la prende in carico, la proposta ti arriva qui.');
     });
 });

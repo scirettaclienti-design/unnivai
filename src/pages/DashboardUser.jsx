@@ -36,6 +36,7 @@ import { normalizeTour } from '@/services/tourShape';
 import { displayedTourMinutes, formatEstimate, etichettaGiornata } from '@/lib/tourTiming';
 import { resolveCityCenter, CityCenterUnresolvedError } from '@/services/cityCenterService';
 import TourCover from '@/components/TourCover';
+import { isAppNativa } from '../lib/appNativa';
 // 🧠 AI-POWERED EXPERIENCE GENERATOR (REAL POI DISCOVERY)
 
 // Theme-aware fallback images (city-neutral, topic-relevant).
@@ -635,6 +636,8 @@ const DashboardUser = () => {
                         </Link>
                     </div>
 
+                    {!isAppNativa() && (
+                    <>
                     {/* Gate W — Card Guide Locali SUBORDINATA visivamente sulla scala */}
                     <Link to="/prossimamente/guide" className="block opacity-75 hover:opacity-100 transition-opacity">
                         <motion.div
@@ -660,6 +663,8 @@ const DashboardUser = () => {
                             <ChevronRight className="w-4 h-4 text-obsidian-secondary group-hover:translate-x-0.5 transition-transform" />
                         </motion.div>
                     </Link>
+                    </>
+                    )}
 
                 </section>
 
@@ -830,7 +835,7 @@ const DashboardUser = () => {
                                     </div>
                                     <h3 className="text-2xl font-bold text-obsidian-primary mb-2">Richiesta inviata</h3>
                                     <p className="text-obsidian-secondary text-sm mb-8 leading-relaxed px-4">
-                                        È visibile alle guide registrate su DoveVAI. Se una guida la prende in carico, la proposta ti arriva qui.
+                                        È visibile alle guide registrate su Unnivai. Se una guida la prende in carico, la proposta ti arriva qui.
                                     </p>
                                     <button
                                         onClick={() => {

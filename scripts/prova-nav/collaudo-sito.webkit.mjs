@@ -71,14 +71,14 @@ async function controllaTitolo() {
     await p.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
     const titolo = await p.title();
     await ctx.close();
-    if (!/DoveVai/i.test(titolo)) throw new Error(`titolo «${titolo}» non DoveVai: niente credenziali`);
+    if (!/Unnivai|DoveVai/i.test(titolo)) throw new Error(`titolo «${titolo}» non DoveVai: niente credenziali`);
 }
 async function accedi() {
     if (!env.TEST_ACCOUNT_EMAIL || !env.TEST_ACCOUNT_PASSWORD) throw new Error('mancano le credenziali di prova in .env.local');
     const ctx = await browser.newContext({ ...IPHONE, locale: 'it-IT', timezoneId: 'Europe/Rome' });
     const p = await ctx.newPage();
     await p.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await p.title())) throw new Error('titolo non DoveVai: niente credenziali');
+    if (!/Unnivai|DoveVai/i.test(await p.title())) throw new Error('titolo non DoveVai: niente credenziali');
     await p.getByText('Accedi →').click();
     await p.getByPlaceholder('Email').fill(env.TEST_ACCOUNT_EMAIL);
     await p.getByPlaceholder('Password').fill(env.TEST_ACCOUNT_PASSWORD);

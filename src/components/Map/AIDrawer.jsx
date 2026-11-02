@@ -71,7 +71,7 @@ export const AIDrawer = ({ isOpen, onClose, selectedPOI, activeCity, tappe = [],
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-gray-900 leading-none">Assistente DoveVai</h3>
+                                    <h3 className="font-bold text-gray-900 leading-none">Assistente Unnivai</h3>
                                     <p className="text-[10px] text-purple-600 font-bold uppercase tracking-wider mt-1">AI Guide</p>
                                 </div>
                             </div>
@@ -102,7 +102,7 @@ export const AIDrawer = ({ isOpen, onClose, selectedPOI, activeCity, tappe = [],
                                         {msg.role === 'assistant' && (
                                             <div className="flex items-center gap-1.5 mb-1.5 opacity-60">
                                                 <Bot size={10} />
-                                                <span className="text-[9px] uppercase tracking-widest font-bold">DoveVai AI</span>
+                                                <span className="text-[9px] uppercase tracking-widest font-bold">Unnivai AI</span>
                                             </div>
                                         )}
                                         {msg.content}

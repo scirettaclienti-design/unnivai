@@ -14,11 +14,11 @@ const stops = c.tours[0].stops.map(s => ({ title: s.title, latitude: s.lat, long
 const browser = await webkit.launch();
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'apertura-'));
 try {
-    { const c0 = await browser.newContext(); const p = await c0.newPage(); await p.goto(BASE, { waitUntil: 'domcontentloaded' }); const t = await p.title(); await c0.close(); if (!/DoveVai/i.test(t)) throw new Error('Titolo non DoveVai: niente credenziali.'); }
+    { const c0 = await browser.newContext(); const p = await c0.newPage(); await p.goto(BASE, { waitUntil: 'domcontentloaded' }); const t = await p.title(); await c0.close(); if (!/Unnivai|DoveVai/i.test(t)) throw new Error('Titolo non DoveVai: niente credenziali.'); }
     const ctx0 = await browser.newContext({ ...devices['iPhone 13'] });
     const p0 = await ctx0.newPage();
     await p0.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await p0.title())) throw new Error('Titolo non DoveVai al login: niente credenziali.');
+    if (!/Unnivai|DoveVai/i.test(await p0.title())) throw new Error('Titolo non DoveVai al login: niente credenziali.');
     await p0.getByText('Accedi →').click();
     await p0.getByPlaceholder('Email').fill(env.TEST_ACCOUNT_EMAIL);
     await p0.getByPlaceholder('Password').fill(env.TEST_ACCOUNT_PASSWORD);

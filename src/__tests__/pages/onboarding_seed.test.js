@@ -40,7 +40,7 @@ const gotoInterests = () => clickByText('Iniziamo!');
 // interessi → dieta → a tavola → pronto (P7b: due schermate in piu', saltabili)
 const gotoReady = () => { clickByText('Continua'); clickByText('Continua'); clickByText('Continua'); };
 // pronto → salva (handleComplete)
-const finish = () => clickByText('Entra in DoveVAI');
+const finish = () => clickByText('Entra in Unnivai');
 
 beforeEach(() => {
     localStorage.clear();

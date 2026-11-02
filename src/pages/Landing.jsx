@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } fr
 import { ArrowRight, Globe, Compass, Users, MapPin, Star, Play, X, ChevronRight, ChevronLeft, Search, Brain, MessageCircle, CheckCircle, Clock, Navigation, Sparkles, Wifi, Battery, Signal } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import LinkLegali from '../components/LinkLegali';
+import { isAppNativa } from '../lib/appNativa';
 
 const CITIES = ['Roma', 'Venezia', 'Firenze', 'Napoli', 'Milano'];
 
@@ -162,7 +163,7 @@ const Step2Phone = ({ active }) => {
                     </div>
                     <div className="flex-1">
                         <div className="flex items-center gap-1.5">
-                            <span className="text-amber-400 text-[11px] font-bold">AI DoveVai</span>
+                            <span className="text-amber-400 text-[11px] font-bold">AI Unnivai</span>
                             {active && (
                                 <motion.div className="flex gap-0.5 items-center">
                                     {[0, 1, 2].map(i => (
@@ -347,7 +348,7 @@ const HowItWorksModal = ({ onClose }) => {
                             <Compass className="w-4 h-4 text-obsidian-bg" />
                         </div>
                         <div>
-                            <span className="text-obsidian-primary font-bold text-sm">Come funziona DoveVai</span>
+                            <span className="text-obsidian-primary font-bold text-sm">Come funziona Unnivai</span>
                             <div className="flex gap-1 mt-1">
                                 {STEPS.map((_, i) => (
                                     <div key={i} className="relative h-0.5 flex-1 bg-obsidian-raised rounded-full overflow-hidden cursor-pointer" onClick={() => goTo(i)}>
@@ -614,7 +615,7 @@ const Landing = () => {
                         <div className="w-9 h-9 bg-brand-orange rounded-xl flex items-center justify-center shadow-lg">
                             <Compass className="w-5 h-5 text-obsidian-bg" />
                         </div>
-                        <span className="font-bold text-xl tracking-tight text-obsidian-primary">DOVEVAI</span>
+                        <span className="font-bold text-xl tracking-tight text-obsidian-primary">UNNIVAI</span>
                     </div>
                     <div className="flex items-center gap-4">
                         <Link to="/login" className="text-sm font-semibold text-obsidian-secondary hover:text-obsidian-primary transition-colors">Accedi</Link>
@@ -749,11 +750,13 @@ const Landing = () => {
                     anti-fake no-v2-features-in-copy) — la feature V2 e' annunciata
                     nella pagina /prossimamente/guide, non promessa a parole qui. */}
                 <div className="mt-8 text-center">
+                    {!isAppNativa() && (
                     <Link to="/prossimamente/guide" className="text-obsidian-secondary hover:text-obsidian-primary text-sm transition-colors inline-flex items-center gap-1.5">
                         <span className="text-terracotta-400">◇</span>
                         Presto: persone del posto in carne e ossa
                         <ArrowRight className="w-3 h-3" />
                     </Link>
+                    )}
                     <LinkLegali className="mt-2" />
                 </div>
             </motion.section>

@@ -49,7 +49,7 @@ async function controllaPorta(browser) {
     await page.goto(BASE, { waitUntil: 'domcontentloaded' });
     const titolo = await page.title();
     await ctx.close();
-    if (!/DoveVai/i.test(titolo)) throw new Error(`La pagina su ${BASE} non è DoveVai (titolo: ${titolo}): niente credenziali.`);
+    if (!/Unnivai|DoveVai/i.test(titolo)) throw new Error(`La pagina su ${BASE} non è DoveVai (titolo: ${titolo}): niente credenziali.`);
 }
 async function accedi(browser) {
     const statePath = path.join(TMP, 'sessione.json');
@@ -57,7 +57,7 @@ async function accedi(browser) {
     const ctx = await browser.newContext({ ...devices['iPhone 13'] });
     const page = await ctx.newPage();
     await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai sulla pagina di accesso: niente credenziali.');
+    if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai sulla pagina di accesso: niente credenziali.');
     await page.getByText('Accedi →').click();
     await page.getByPlaceholder('Email').fill(env.TEST_ACCOUNT_EMAIL);
     await page.getByPlaceholder('Password').fill(env.TEST_ACCOUNT_PASSWORD);

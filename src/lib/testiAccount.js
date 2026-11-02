@@ -155,16 +155,16 @@ export const PRIVACY = {
                 {
                     nome: 'Posizione (GPS del telefono)',
                     parte: 'La tua posizione, solo se dai il permesso (sull\'iPhone «Durante l\'uso»). Serve a trovare la città, a partire da dove sei e a guidarti passo passo.',
-                    verso: 'Resta sul telefono. Le sue coordinate partono, senza il tuo nome, verso i servizi della riga qui sotto: Google (luoghi e mappa), Open-Meteo (meteo), OpenStreetMap/Nominatim (via e quartiere) e, per il testo, Anthropic.',
+                    verso: 'Resta sul telefono. Le sue coordinate partono, senza il tuo nome, verso i servizi della riga qui sotto: Google (luoghi, mappa, via e quartiere), Open-Meteo (meteo), OpenStreetMap/Nominatim (solo se Google non risponde) e, per il testo, Anthropic.',
                     perche: 'Per trovare luoghi vicini, calcolare il percorso, dirti il meteo, raccontarti la via.',
                     resta: 'Sul telefono, nel browser (localStorage), finché esci dall\'account o cancelli i dati del sito. Sui nostri server non salviamo il tuo percorso. Se neghi il permesso, l\'app usa la città che scegli o una posizione approssimativa dall\'indirizzo IP (vedi ipapi.co).',
                 },
                 {
                     nome: 'Google: luoghi, foto e mappa',
-                    parte: 'Ricerche di luoghi (nome, tipo, coordinate del centro del giro) dai nostri server tramite places-proxy; la mappa e le foto dei luoghi si caricano dal tuo telefono da Google, che vede il tuo indirizzo IP e l\'area che guardi. Google converte anche coordinate in nome della città.',
+                    parte: 'Ricerche di luoghi (nome, tipo, coordinate del centro del giro) dai nostri server tramite places-proxy; la mappa e le foto dei luoghi si caricano dal tuo telefono da Google, che vede il tuo indirizzo IP e l\'area che guardi. Google converte anche coordinate in nome della città, in via e in quartiere (per le curiosità, dai nostri server, a zone di circa 100 metri).',
                     verso: 'Google (Maps, Places, Geocoding).',
                     perche: 'Per mostrare la mappa, trovare e verificare i luoghi, orari e foto.',
-                    resta: 'Le risposte delle ricerche stanno 24 ore nella nostra cache condivisa, senza alcun dato personale. Presso Google valgono le sue regole.',
+                    resta: 'Le risposte delle ricerche stanno 24 ore nella nostra cache condivisa, senza alcun dato personale. Di via e quartiere non teniamo il testo di Google: ricordiamo per zona solo la voce di Wikipedia già verificata, 7 giorni. Presso Google valgono le sue regole.',
                 },
                 {
                     nome: 'Anthropic (Claude): i testi',
@@ -189,7 +189,7 @@ export const PRIVACY = {
                 },
                 {
                     nome: 'Nominatim e Photon (OpenStreetMap)',
-                    parte: 'Le coordinate del telefono, per ottenere via e quartiere; gli indirizzi che digiti nella ricerca.',
+                    parte: 'Gli indirizzi che digiti nella ricerca; le coordinate del telefono solo se Google non riesce a dirci via e quartiere.',
                     verso: 'nominatim.openstreetmap.org dal telefono; photon.komoot.io dai nostri server come ripiego.',
                     perche: 'Per dirti dove sei e raccontarti la via.',
                     resta: 'Non conserviamo le risposte legate a te. Presso OpenStreetMap valgono le sue regole.',

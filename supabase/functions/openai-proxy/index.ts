@@ -67,7 +67,7 @@ import { cercaWikipedia, allargaWikipedia, descrizioneGoogleDa } from './raccont
 import { fontiChat, luoghiDaCercare, rispondiInChat, leggiRichiestaChat, VERSIONE_CHAT, type FonteLuogo } from './chat.ts';
 import { fontiDiTappa, luoghiNominati } from './chatFonti.ts';
 import { VERSIONE_CURIOSITA, messaggiCuriosita, curiositaInCacheValida, eChiaveCuriosita } from './curiosita.ts';
-import { indirizzoDi, indirizzoDaClient, luoghiVicini, testoDelLuogo, eUnaTappa, type Luogo } from './curiositaFonti.ts';
+import { indirizzoDaClient, luoghiVicini, luoghiDellaZona, contaRichieste, testoDelLuogo, eUnaTappa, type Luogo, type MemoriaCelle } from './curiositaFonti.ts';
 import {
   MODELLO_VOCE, VOCE_PREDEFINITA, BUCKET_VOCE, voceValida, testoValido, chiaveAudio, percorsoAudio, corpoVoce, tettoNuovi, costoStimatoUsd,
 } from './voce.ts';
@@ -863,6 +863,35 @@ async function handleChat(req: Request, dv: Record<string, any>): Promise<Respon
 }
 
 /**
+ * La memoria per zona delle curiosità: prima l'istanza della funzione (un Map con scadenza), poi `public.places_cache` (la tabella che
+ * places-proxy usa già, condivisa, scrivibile solo dal server: nessuna migrazione, chiavi `curiosita-cella:…` che non toccano quelle di
+ * places-proxy). Ci sono solo voci di Wikipedia verificate; la scadenza la controlla `luoghiDaMemoria` (7 giorni). Ogni errore = nessuna memoria.
+ */
+const memoriaIstanza = new Map<string, unknown>();
+// deno-lint-ignore no-explicit-any
+function memoriaCelle(sb: any): MemoriaCelle {
+  return {
+    leggi: async (chiave) => {
+      if (memoriaIstanza.has(chiave)) return memoriaIstanza.get(chiave);
+      try {
+        const { data, error } = await sb.from('places_cache').select('data').eq('cache_key', chiave).maybeSingle();
+        if (error || !data?.data) return null;
+        memoriaIstanza.set(chiave, data.data);
+        return data.data;
+      } catch (_e) { return null; }
+    },
+    scrivi: async (chiave, valore) => {
+      if (memoriaIstanza.size > 500) memoriaIstanza.clear();
+      memoriaIstanza.set(chiave, valore);
+      try {
+        const { error } = await sb.from('places_cache').upsert({ cache_key: chiave, data: valore, created_at: new Date().toISOString() }, { onConflict: 'cache_key' });
+        if (error) console.warn('[openai-proxy] curiosità: memoria zona non salvata:', scrubLogText(error.message));
+      } catch (_e) { /* la memoria non blocca mai la risposta */ }
+    },
+  };
+}
+
+/**
  * CURIOSITÀ DEL CAMMINO — `dv.purpose = 'curiosita'`, con `dv.lat`, `dv.lng`, `dv.citta`, `dv.escludi` (le chiavi già dette in questo giro) e
  * `dv.tappe` (i nomi delle tappe del giro: una tappa ha il suo racconto, non è una curiosità). Restituisce
  * { curiosita: { esito: 'passata', testo, chiave, luogo, tipo, fonte: { titolo, url }, cached } } oppure { curiosita: { esito: 'nessuna', motivo } }.
@@ -892,23 +921,34 @@ async function handleCuriosita(req: Request, dv: Record<string, any>): Promise<R
     return json(503, { error: 'Curiosità non disponibile', code: 'CURIOSITA_NON_DISPONIBILE' });
   }
   const t0 = Date.now();
-  const fetchW = (u: string, init?: Record<string, unknown>) => fetch(u, init as RequestInit);
+  const contata = contaRichieste((u: string, init?: Record<string, unknown>) => fetch(u, init as RequestInit));
+  const fetchW = contata.fetch;
+  const memoria = memoriaCelle(sb);
   const nessuna = (motivo: string, extra: Record<string, unknown> = {}) => json(200, { curiosita: { esito: 'nessuna', motivo, ...extra } });
 
-  // i nomi della via e del quartiere (Nominatim, poi Photon); senza, restano le vie e piazze a pochi passi (geosearch)
-  // Nominatim rifiuta le richieste da qui (403, misurato su v42): i nomi arrivano dal telefono (`dv.indirizzo`, campi di OpenStreetMap) e servono
-  // solo a scegliere la voce, che si verifica comunque per nome e coordinate; senza, si prova da qui.
+  // La via e il quartiere: dalla MEMORIA PER ZONA (cella di ~100 m, condivisa) se c'è; altrimenti Google (geocoding inverso con la chiave del
+  // server), e solo se Google non risponde Photon e Nominatim (Nominatim dal server dà 403, misurato su v42). Le voci di Wikipedia si verificano
+  // sempre per nome e coordinate. Se il telefono manda `dv.indirizzo` (riserva, dopo che il server ha detto «fonti non disponibili») si usa quello.
   const diagnosi: string[] = [];
   const dalTelefono = indirizzoDaClient(dv.indirizzo);
-  const trovato = dalTelefono ?? await indirizzoDi(lat, lng, fetchW, diagnosi);
-  if (diagnosi.length) console.warn(`[openai-proxy] curiosità: indirizzo ${diagnosi.join(' ; ')}`);
-  const ind = trovato === 'errore' ? { via: null, quartieri: [], citta: null } : trovato;
+  let luoghi: Luogo[]; let errore: boolean; let ind: { via: string | null; quartieri: string[]; citta: string | null }; let trovatoErrore = false; let daMemoria = false;
+  if (dalTelefono) {
+    ind = dalTelefono;
+    ({ luoghi, errore } = await luoghiVicini({ lat, lng, citta: citta || ind.citta || '' }, ind, fetchW));
+  } else {
+    const z = await luoghiDellaZona({ lat, lng, citta }, fetchW, memoria, Deno.env.get('GOOGLE_MAPS_API_KEY')?.trim() || null, diagnosi);
+    ({ luoghi, errore, daMemoria } = z);
+    trovatoErrore = z.trovato === 'errore';
+    ind = z.ind ?? { via: null, quartieri: [], citta: null };
+  }
   const cittaUsata = citta || ind.citta || '';
-  const { luoghi, errore } = await luoghiVicini({ lat, lng, citta: cittaUsata }, ind, fetchW);
+  const richieste = { ...contata.conteggio };
+  console.log(`[openai-proxy] curiosità: fonti ${daMemoria ? 'memoria-zona' : dalTelefono ? 'telefono' : 'nuove'} richieste google=${richieste.google} photon=${richieste.photon} nominatim=${richieste.nominatim} wikipedia=${richieste.wikipedia}`);
+  if (diagnosi.length) console.warn(`[openai-proxy] curiosità: indirizzo ${diagnosi.join(' ; ')}`);
   const candidati = luoghi.filter((l) => !escludi.includes(l.chiave) && !eUnaTappa(l, tappe, cittaUsata));
-  const elenco = (extra: Record<string, unknown> = {}) => ({ via: ind.via, quartieri: ind.quartieri, luoghi: luoghi.map((l) => `${l.tipo}:${l.titolo}`), ...(diagnosi.length ? { diagnosi } : {}), ...extra });
+  const elenco = (extra: Record<string, unknown> = {}) => ({ via: ind.via, quartieri: ind.quartieri, luoghi: luoghi.map((l) => `${l.tipo}:${l.titolo}`), richieste, ...(daMemoria ? { memoria: 'zona' } : {}), ...(diagnosi.length ? { diagnosi } : {}), ...extra });
   if (!candidati.length) {
-    if (errore || trovato === 'errore') return json(503, { error: 'Fonti non disponibili', code: 'CURIOSITA_FONTI', diagnosi: [...diagnosi, ...(errore ? ['wikipedia'] : [])] });
+    if (errore || trovatoErrore) return json(503, { error: 'Fonti non disponibili', code: 'CURIOSITA_FONTI', richieste, diagnosi: [...diagnosi, ...(errore ? ['wikipedia'] : [])] });
     return nessuna(luoghi.length ? 'già dette' : 'nessuna voce verificata', elenco());
   }
 
@@ -916,7 +956,7 @@ async function handleCuriosita(req: Request, dv: Record<string, any>): Promise<R
   // deno-lint-ignore no-explicit-any
   const inCache = new Map<string, any>((righe || []).map((r: any) => [r.place_id, r]));
   const risposta = (l: Luogo, testo: string, extra: Record<string, unknown> = {}) => json(200, {
-    curiosita: { esito: 'passata', testo, chiave: l.chiave, luogo: l.titolo, tipo: l.tipo, fonte: { titolo: l.titolo, url: l.url }, distanzaM: l.distanzaM, ...extra },
+    curiosita: { esito: 'passata', testo, chiave: l.chiave, luogo: l.titolo, tipo: l.tipo, fonte: { titolo: l.titolo, url: l.url }, distanzaM: l.distanzaM, richieste, ...(daMemoria ? { memoria: 'zona' } : {}), ...extra },
   });
   const salva = async (l: Luogo, riga: Record<string, unknown>) => {
     const { error: e } = await sb.from('place_racconti').upsert({ place_id: l.chiave, versione: VERSIONE_CURIOSITA, created_at: new Date().toISOString(),

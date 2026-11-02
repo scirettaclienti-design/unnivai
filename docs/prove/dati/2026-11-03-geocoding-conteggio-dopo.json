@@ -1,0 +1,227 @@
+{
+ "modo": "dopo",
+ "quando": "2026-11-02T20:32:42.808Z",
+ "giri": {
+  "trastevere / utente 1": {
+   "richiesteAlProxy": 7,
+   "esterne": {
+    "google": 6,
+    "photon": 0,
+    "nominatim": 0,
+    "wikipedia": 23
+   },
+   "totale": 29,
+   "luoghi": [
+    [
+     "via:Lungotevere Raffaello Sanzio",
+     "quartiere:Trastevere"
+    ],
+    [
+     "via:Via della Lungara",
+     "quartiere:Trastevere",
+     "ERRORE"
+    ],
+    [
+     "via:Piazza di Santa Maria in Trastevere",
+     "quartiere:Trastevere"
+    ],
+    [
+     "quartiere:Trastevere"
+    ],
+    [
+     "quartiere:Trastevere"
+    ],
+    [
+     "quartiere:Trastevere"
+    ],
+    [
+     "quartiere:Trastevere"
+    ]
+   ]
+  },
+  "monti / utente 1": {
+   "richiesteAlProxy": 6,
+   "esterne": {
+    "google": 6,
+    "photon": 0,
+    "nominatim": 0,
+    "wikipedia": 24
+   },
+   "totale": 30,
+   "luoghi": [
+    [
+     "via:Via dei Fori Imperiali",
+     "via:Via Alessandrina",
+     "quartiere:Monti (rione di Roma)"
+    ],
+    [
+     "via:Via Quattro Novembre",
+     "via:Largo Magnanapoli",
+     "quartiere:Trevi (rione di Roma)"
+    ],
+    [
+     "via:Largo Magnanapoli",
+     "via:Via Quattro Novembre",
+     "quartiere:Trevi (rione di Roma)"
+    ],
+    [
+     "via:Via Cavour (Roma)",
+     "quartiere:Monti (rione di Roma)"
+    ],
+    [
+     "via:Piazza dell'Esquilino",
+     "quartiere:Monti (rione di Roma)"
+    ],
+    [
+     "quartiere:Monti (rione di Roma)",
+     "ERRORE"
+    ]
+   ]
+  },
+  "catania / utente 1": {
+   "richiesteAlProxy": 5,
+   "esterne": {
+    "google": 5,
+    "photon": 4,
+    "nominatim": 0,
+    "wikipedia": 27
+   },
+   "totale": 36,
+   "luoghi": [
+    [
+     "quartiere:Giudecca di Catania",
+     "quartiere:Centro Storico (Catania)"
+    ],
+    [
+     "via:Via Vittorio Emanuele II (Catania)",
+     "ERRORE"
+    ],
+    [
+     "via:Piazza San Francesco d'Assisi (Catania)",
+     "quartiere:Giudecca di Catania",
+     "quartiere:Centro Storico (Catania)"
+    ],
+    [
+     "quartiere:Civita (Catania)",
+     "quartiere:Centro Storico (Catania)"
+    ],
+    [
+     "via:Piazza Stesicoro",
+     "quartiere:San Berillo (Catania)",
+     "quartiere:Centro Storico (Catania)"
+    ]
+   ]
+  },
+  "trastevere / utente 2": {
+   "richiesteAlProxy": 7,
+   "esterne": {
+    "google": 1,
+    "photon": 0,
+    "nominatim": 0,
+    "wikipedia": 5
+   },
+   "totale": 6,
+   "luoghi": [
+    [
+     "via:Lungotevere Raffaello Sanzio",
+     "quartiere:Trastevere"
+    ],
+    [
+     "via:Via della Lungara",
+     "quartiere:Trastevere",
+     "ERRORE"
+    ],
+    [
+     "via:Piazza di Santa Maria in Trastevere",
+     "quartiere:Trastevere"
+    ],
+    [
+     "quartiere:Trastevere"
+    ],
+    [
+     "quartiere:Trastevere"
+    ],
+    [
+     "quartiere:Trastevere"
+    ],
+    [
+     "quartiere:Trastevere"
+    ]
+   ]
+  },
+  "monti / utente 2": {
+   "richiesteAlProxy": 6,
+   "esterne": {
+    "google": 1,
+    "photon": 0,
+    "nominatim": 0,
+    "wikipedia": 3
+   },
+   "totale": 4,
+   "luoghi": [
+    [
+     "via:Via dei Fori Imperiali",
+     "via:Via Alessandrina",
+     "quartiere:Monti (rione di Roma)"
+    ],
+    [
+     "via:Via Quattro Novembre",
+     "via:Largo Magnanapoli",
+     "quartiere:Trevi (rione di Roma)"
+    ],
+    [
+     "via:Largo Magnanapoli",
+     "via:Via Quattro Novembre",
+     "quartiere:Trevi (rione di Roma)"
+    ],
+    [
+     "via:Via Cavour (Roma)",
+     "quartiere:Monti (rione di Roma)"
+    ],
+    [
+     "via:Piazza dell'Esquilino",
+     "quartiere:Monti (rione di Roma)"
+    ],
+    [
+     "quartiere:Monti (rione di Roma)"
+    ]
+   ]
+  },
+  "catania / utente 2": {
+   "richiesteAlProxy": 5,
+   "esterne": {
+    "google": 1,
+    "photon": 1,
+    "nominatim": 0,
+    "wikipedia": 6
+   },
+   "totale": 8,
+   "luoghi": [
+    [
+     "quartiere:Giudecca di Catania",
+     "quartiere:Centro Storico (Catania)"
+    ],
+    [
+     "via:Via Vittorio Emanuele II (Catania)",
+     "via:Piazza del Duomo (Catania)",
+     "quartiere:Giudecca di Catania",
+     "quartiere:Centro Storico (Catania)"
+    ],
+    [
+     "via:Piazza San Francesco d'Assisi (Catania)",
+     "quartiere:Giudecca di Catania",
+     "quartiere:Centro Storico (Catania)"
+    ],
+    [
+     "quartiere:Civita (Catania)",
+     "quartiere:Centro Storico (Catania)"
+    ],
+    [
+     "via:Piazza Stesicoro",
+     "quartiere:San Berillo (Catania)",
+     "quartiere:Centro Storico (Catania)"
+    ]
+   ]
+  }
+ }
+}

@@ -3,7 +3,8 @@
  *   node scripts/prova-nav/curiosita-quartieri.webkit.mjs [trastevere,monti,catania]
  * - Il sito (CURIOSITA_BASE, difetto unnivai.vercel.app) e openai-proxy pubblicato: le curiosità sono quelle vere del server.
  * - Il percorso a piedi: Google Directions WALKING fra le tappe, calcolato dentro la pagina con la libreria della mappa.
- * - L'indirizzo (via, quartiere) lo chiede il telefono a Nominatim, come nell'app.
+ * - L'indirizzo (via, quartiere): dal 03/11 (GEOCODING-LANCIO) lo trova il server (Google, memoria per zona); il telefono chiede Nominatim solo come riserva.
+ *   Le richieste esterne si leggono nelle misure (`esterne`). CURIOSITA_ESITI = file dei risultati.
  * - Il tempo: orologio della pagina finto (page.clock), un passo di 25 m ogni 20 s (1,25 m/s), così 35 minuti di cammino durano pochi minuti
  *   e la regola dei 10 minuti si vede intera. Prima di ogni passo si aspettano le richieste al proxy in volo (il loro tempo massimo è un timer).
  * - La voce: le richieste di audio (`dv.purpose = 'voce'`) rispondono 503, come senza credito OpenAI; parla la «voce del browser», finta, che dura
@@ -114,12 +115,12 @@ async function giro(nome, statePath) {
     await ctx.addInitScript(GPS_FINTO);
     const page = await ctx.newPage();
     await page.clock.install({ time: new Date() });
-    const reg = { curiosita: [], errori: [] };
+    const reg = { curiosita: [], errori: [], nominatimTelefono: 0 };
     let inVolo = 0;
     page.on('pageerror', e => reg.errori.push(String(e?.message || e).slice(0, 160)));
     // anche l'indirizzo che il telefono chiede a Nominatim prima della curiosità è «in volo» (il suo tempo massimo è un timer della pagina)
     const osm = (r) => /nominatim\.openstreetmap\.org\/reverse/.test(r.url()) && /zoom=17/.test(r.url());
-    page.on('request', r => { if (osm(r)) inVolo += 1; });
+    page.on('request', r => { if (osm(r)) { inVolo += 1; reg.nominatimTelefono += 1; } });
     page.on('requestfinished', r => { if (osm(r)) inVolo -= 1; });
     page.on('requestfailed', r => { if (osm(r)) inVolo -= 1; });
     await page.route('**/functions/v1/openai-proxy', async (route) => {
@@ -188,7 +189,7 @@ async function giro(nome, statePath) {
     const fine = await page.evaluate(() => ({ voce: window.__voceRegistro || [], curiosita: window.__curiositaRegistro || [], toast: window.__toast || [], ora: new Date().toISOString() }));
     await page.screenshot({ path: path.join(OUT, `${nome}-fine.png`) }).catch(() => {});
     await ctx.close();
-    return { citta: g.citta, tappe: g.tappe.map(t => t.title), metri, minutiCammino: Math.round((Date.parse(fine.ora) - tInizio) / 60000), inizio: new Date(tInizio).toISOString(), arrivi, ...fine, proxy: reg.curiosita, errori: reg.errori.slice(0, 10) };
+    return { citta: g.citta, tappe: g.tappe.map(t => t.title), metri, minutiCammino: Math.round((Date.parse(fine.ora) - tInizio) / 60000), inizio: new Date(tInizio).toISOString(), arrivi, ...fine, proxy: reg.curiosita, nominatimTelefono: reg.nominatimTelefono, errori: reg.errori.slice(0, 10) };
 }
 
 /** Le misure di un giro: curiosità dette, intervalli, ripetizioni, sovrapposizioni con le frasi di navigazione. */
@@ -217,6 +218,10 @@ function misura(r) {
         curiositaInterrotte: curVoci.filter(v => v.interrotta).length,
         sovrapposizioni,
         attese: Object.entries(r.curiosita.filter(x => x.evento === 'attesa').reduce((o, x) => ({ ...o, [x.motivo]: (o[x.motivo] || 0) + 1 }), {})),
+        // GEOCODING-LANCIO: le richieste esterne. Nominatim dal telefono si vede dal browser; Google, Photon, Nominatim e Wikipedia del server li conta
+        // il server stesso (`richieste` nella risposta, un conteggio per richiesta; con la memoria per zona una richiesta può costare 0).
+        esterne: r.proxy.reduce((o, p) => { const q = p.corpo?.richieste; if (q) for (const k of Object.keys(o)) o[k] += q[k] || 0; return o; }, { google: 0, photon: 0, nominatim: r.nominatimTelefono || 0, wikipedia: 0 }),
+        dallaMemoriaDiZona: r.proxy.filter(p => p.corpo?.memoria === 'zona').length,
         richieste: r.proxy.length, richiesteSenza: r.proxy.filter(p => p.corpo?.esito !== 'passata').length,
         spesaUsd: +r.proxy.reduce((s, p) => s + (Number(p.corpo?.costoUsd) || 0), 0).toFixed(5),
     };

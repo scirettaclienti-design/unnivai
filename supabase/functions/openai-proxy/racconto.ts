@@ -10,15 +10,22 @@
 export const LIMITI = Object.freeze({ frasiMin: 2, frasiMax: 4, carMax: 600, wikipediaMax: 1500, googleMax: 500, fonteMin: 200 });
 export const RISPOSTA_NIENTE = 'NIENTE';
 /** Versione del prompt e del controllo: se cambia, i racconti in cache si riscrivono. */
-export const VERSIONE_RACCONTO = 'r5'; // r5: «7.000» e «settemila» sono un numero solo + la riscrittura scatta anche sugli scarti del controllo automatico
+export const VERSIONE_RACCONTO = 'r6'; // r6 (RACCONTO-FONTI): prompt e controlli di r5; cambia solo come si cercano le fonti di una tappa che ne resta senza
 /**
- * Le versioni precedenti che valgono ancora. r4 e r5 cambiano come si scrive e quando si riscrive, non cosa passa: un racconto r3 o r4 PASSATO ha
- * superato due controlli severi almeno quanto quelli di oggi e resta valido (fino al suo TTL). Un «senza fonti» non dipende dal prompt e vale anch'esso.
- * Si riscrive con r5 solo uno SCARTATO (o una riga senza esito): alla prossima richiesta, senza aspettare i 7 giorni.
+ * Le versioni precedenti che valgono ancora.
+ * - r5: stesso prompt e stessi controlli di r6, e per una tappa che le aveva le stesse fonti: valgono passato e scartato (fino al loro TTL).
+ *   Un r5 «senza fonti» no: in r6 le fonti si cercano anche per coordinate e dentro le voci vicine, quindi si ricerca alla prossima richiesta.
+ * - r3, r4: solo un PASSATO (ha superato due controlli severi almeno quanto quelli di oggi). Scartato o senza fonti si rifanno.
  */
+export const VERSIONI_STESSI_CONTROLLI = Object.freeze(['r5']);
 export const VERSIONI_ANCORA_VALIDE = Object.freeze(['r3', 'r4']);
-export const versioneValida = (riga: { versione?: string | null; esito?: string | null } | null | undefined): boolean =>
-    !!riga && (riga.versione === VERSIONE_RACCONTO || (VERSIONI_ANCORA_VALIDE.includes(String(riga.versione)) && (riga.esito === 'passato' || riga.esito === 'senza-fonti')));
+export const versioneValida = (riga: { versione?: string | null; esito?: string | null } | null | undefined): boolean => {
+    if (!riga) return false;
+    const v = String(riga.versione);
+    if (v === VERSIONE_RACCONTO) return true;
+    if (VERSIONI_STESSI_CONTROLLI.includes(v)) return riga.esito === 'passato' || riga.esito === 'scartato';
+    return VERSIONI_ANCORA_VALIDE.includes(v) && riga.esito === 'passato';
+};
 export const MODELLO_REVISORE = 'claude-haiku-4-5';
 export const TTL_RACCONTO_GIORNI = 30; // come place_facts: il testo di Google non si tiene oltre
 export const TTL_SCARTATO_GIORNI = 7; // un racconto scartato non si riprova a ogni giro (costa), ma dopo una settimana sì

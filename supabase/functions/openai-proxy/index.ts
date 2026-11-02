@@ -58,7 +58,7 @@ import { fornitoreScelto, modelliAnthropicPer, chiamaAnthropicElenco, ErroreAnth
 import {
   VERSIONE_RACCONTO, versioneValida, MODELLO_REVISORE, TTL_RACCONTO_GIORNI, TTL_SCARTATO_GIORNI, haFonti, scriviERivedi, impronta as improntaRacconto,
 } from './racconto.ts';
-import { cercaWikipedia, descrizioneGoogleDa } from './raccontoFonti.ts';
+import { cercaWikipedia, allargaWikipedia, descrizioneGoogleDa } from './raccontoFonti.ts';
 import {
   MODELLO_VOCE, VOCE_PREDEFINITA, BUCKET_VOCE, voceValida, testoValido, chiaveAudio, percorsoAudio, corpoVoce, tettoNuovi, costoStimatoUsd,
 } from './voce.ts';
@@ -594,7 +594,7 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
   });
 
   const { data: gia } = await sb.from('place_racconti').select('esito, testo, motivi, fonti, versione, created_at').eq('place_id', placeId).maybeSingle();
-  if (gia && versioneValida(gia)) { // la versione di oggi, o un r3/r4 passato o senza fonti: uno scartato r3/r4 si riscrive subito con r5
+  if (gia && versioneValida(gia)) { // la versione di oggi, un r5 passato o scartato, un r3/r4 passato: un «senza fonti» di prima si ricerca con r6
     const giorni = (Date.now() - new Date(gia.created_at).getTime()) / 86_400_000;
     if (giorni < (gia.esito === 'passato' ? TTL_RACCONTO_GIORNI : TTL_SCARTATO_GIORNI)) return risposta(gia, { cached: true });
   }
@@ -613,9 +613,18 @@ async function handleRacconto(req: Request, dv: Record<string, any>): Promise<Re
     cercaWikipedia({ nome, citta, lat, lng }, (u, init) => fetch(u, init as RequestInit)).catch(() => ({ fonte: null, errore: true })),
     placesCall({ path: 'place/details', place_id: placeId, fields: 'editorial_summary' }).then(({ body }) => descrizioneGoogleDa(body)).catch(() => ''),
   ]);
-  const wiki = wikiRes.fonte;
-  const fonti = { nome, citta, wikipedia: wiki ? { titolo: wiki.titolo, testo: wiki.testo } : null, google: google ? { testo: google } : null };
-  const fontiUsate = wiki ? [{ fonte: 'wikipedia', titolo: wiki.titolo, url: wiki.url }, ...(google ? [{ fonte: 'google' }] : [])] : (google ? [{ fonte: 'google' }] : []);
+  let wiki = wikiRes.fonte;
+  let fonti = { nome, citta, wikipedia: wiki ? { titolo: wiki.titolo, testo: wiki.testo } : null, google: google ? { testo: google } : null };
+  if (!haFonti(fonti) && !wikiRes.errore) {
+    // RACCONTO-FONTI: la ricerca per nome non basta (voce corta, nome diverso, posto dentro un'altra voce): si allarga, con il posto
+    // verificato per nome e coordinate (raccontoFonti.ts). Le tappe che hanno già le loro fonti non passano di qui e non cambiano.
+    const largo = await allargaWikipedia({ nome, citta, lat, lng }, wiki, (u, init) => fetch(u, init as RequestInit)).catch(() => ({ fonte: null, errore: true }));
+    if (largo.fonte) {
+      wiki = largo.fonte;
+      fonti = { ...fonti, wikipedia: { titolo: wiki.titolo, testo: wiki.testo } };
+    } else if (largo.errore) wikiRes.errore = true; // una strada non ha risposto: «senza fonti» non è una risposta, non si memorizza
+  }
+  const fontiUsate = wiki ? [{ fonte: 'wikipedia', titolo: wiki.titolo, url: wiki.url, ...(wiki.via && wiki.via !== 'nome' ? { via: wiki.via } : {}) }, ...(google ? [{ fonte: 'google' }] : [])] : (google ? [{ fonte: 'google' }] : []);
   const salva = async (riga: Record<string, unknown>) => {
     const { error } = await sb.from('place_racconti').upsert({ place_id: placeId, versione: VERSIONE_RACCONTO, created_at: new Date().toISOString(), ...riga }, { onConflict: 'place_id' });
     if (error) console.error('[openai-proxy] racconto: salvataggio fallito:', scrubLogText(error.message));

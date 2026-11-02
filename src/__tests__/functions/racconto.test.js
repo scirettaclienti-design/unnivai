@@ -209,12 +209,12 @@ describe('direzioni: l\'app non sa da che lato arrivi, quindi il racconto non le
         expect(c.ok).toBe(false);
         expect(c.motivi).toContain('indicazione di direzione');
     });
-    it('il racconto senza direzioni passa; il prompt le vieta (anche in r4 e r5)', () => {
+    it('il racconto senza direzioni passa; il prompt le vieta (anche in r4, r5 e r6)', () => {
         expect(controllaRacconto(BUONO, ELEFANTE).ok).toBe(true);
         expect(SYSTEM_RACCONTO).toMatch(/Mai indicazioni di direzione/);
         expect(SYSTEM_RACCONTO).toMatch(/alle tue spalle/);
         expect(SYSTEM_RACCONTO).toMatch(/«girati», «dall'altra parte»\. L'app non sa da che lato arrivi\./);
-        expect(VERSIONE_RACCONTO).toBe('r5');
+        expect(VERSIONE_RACCONTO).toBe('r6'); // r6 = prompt e controlli di r5, fonti cercate anche per coordinate (RACCONTO-FONTI)
     });
 });
 
@@ -264,17 +264,20 @@ describe('proxy: il secondo controllo e la versione', () => {
         expect(src).toMatch(/chi = 'revisore'/);
         expect(src).toMatch(/\$\{chi\} non disponibile[\s\S]{0,120}RACCONTO_MOTORE/);
     });
-    it('la cache vale per la versione di oggi e per un r3/r4 passato o senza fonti: uno scartato r3/r4 si riscrive subito con r5', () => {
+    it('la cache vale per la versione di oggi, per un r5 passato o scartato e per un r3/r4 passato: scartati r3/r4 e «senza fonti» di prima si rifanno', () => {
         expect(src).toMatch(/gia && versioneValida\(gia\)/);
-        expect(VERSIONE_RACCONTO).toBe('r5');
+        expect(VERSIONE_RACCONTO).toBe('r6');
+        expect(versioneValida({ versione: 'r6', esito: 'passato' })).toBe(true);
+        expect(versioneValida({ versione: 'r6', esito: 'scartato' })).toBe(true); // TTL di 7 giorni, come prima
         expect(versioneValida({ versione: 'r5', esito: 'passato' })).toBe(true);
-        expect(versioneValida({ versione: 'r5', esito: 'scartato' })).toBe(true); // TTL di 7 giorni, come prima
+        expect(versioneValida({ versione: 'r5', esito: 'scartato' })).toBe(true); // stesse fonti, stesso prompt, stessi controlli
+        expect(versioneValida({ versione: 'r5', esito: 'senza-fonti' })).toBe(false); // RACCONTO-FONTI: le fonti si ricercano
         expect(versioneValida({ versione: 'r4', esito: 'passato' })).toBe(true);
-        expect(versioneValida({ versione: 'r4', esito: 'senza-fonti' })).toBe(true);
+        expect(versioneValida({ versione: 'r4', esito: 'senza-fonti' })).toBe(false);
         expect(versioneValida({ versione: 'r4', esito: 'scartato' })).toBe(false); // Elefante, Orto Botanico, Villa Sciarra in produzione
         expect(versioneValida({ versione: 'r4', esito: null })).toBe(false);
         expect(versioneValida({ versione: 'r3', esito: 'passato' })).toBe(true);
-        expect(versioneValida({ versione: 'r3', esito: 'senza-fonti' })).toBe(true);
+        expect(versioneValida({ versione: 'r3', esito: 'senza-fonti' })).toBe(false);
         expect(versioneValida({ versione: 'r3', esito: 'scartato' })).toBe(false);
         expect(versioneValida({ versione: 'r2', esito: 'passato' })).toBe(false);
         expect(versioneValida(null)).toBe(false);

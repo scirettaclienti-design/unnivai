@@ -469,6 +469,16 @@ Fra una tappa e l'altra, a piedi, una curiosità vera della via o del quartiere 
 - **Orari di Crea** (`AiItinerary` passa `posizioneUtente`, null se manca; senza questa opzione nulla cambia: banco, replay, rigenerazione). Senza orario scritto: lontano → domani dalle 9:30 (`resolveTourWindow({ lontano })`, reason `lontano`, etichetta «Domani · 9:30 · cambia», «cambia» riporta alla richiesta); in città → da adesso più il cammino fino alla tappa 1 (`_partenzaDalCammino`: ricalcolo dalla cache con `ritardoMinuti` e `soloCache`, mai una seconda generazione).
 Report: `docs/prove/2026-10-30-giro-lontano.md`.
 
+### Le email: conferma, accesso, password, lista d'attesa (EMAIL-LANCIO)
+
+Fonte unica dei testi e dell'HTML: `supabase/functions/_shared/emailUnnivai.ts`.
+- I tre modelli di Supabase Auth (`supabase/templates/*.html` + `soggetti.json`) si generano con `node --experimental-strip-types scripts/email/genera-modelli.mjs`.
+- Si caricano in produzione con `node scripts/email/carica-modelli.mjs [--invia]`: Management API, solo i 6 campi dei modelli. Mai `supabase config push`: il repo non ha `config.toml`.
+- L'email della lista d'attesa (unnivai.com → `public.waitlist`) la manda l'Edge Function `lista-attesa-email` con l'API di Resend. La chiama il trigger `waitlist_invia_email` (pg_net, solo l'id); una email per riga (`email_inviata_at`), tetto 30 all'ora.
+- Secret: `RESEND_API_KEY`, `LISTA_ATTESA_RISPONDI_A`.
+
+Test di voce e struttura: `src/__tests__/email/modelliEmail.test.js`. Diagnosi, passi di Ivano e prova: `docs/prove/2026-11-02-email-lancio.md`.
+
 ### Regole di lavoro (decise da Ivano)
 
 - **I numeri finali vengono da un giro sul codice finale** (mai da un giro su un commit precedente, né da un replay).

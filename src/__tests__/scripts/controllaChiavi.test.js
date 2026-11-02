@@ -17,6 +17,7 @@ const FINTE = {
     'stripe webhook (whsec_)': 'whsec' + '_' + coda(24),
     'github (ghp_)': 'ghp' + '_' + coda(36),
     'github (github_pat_)': 'github' + '_pat_' + coda(40),
+    'resend (re_)': 're' + '_' + coda(8, 'K') + '_' + coda(24, 'z'),
 };
 const jwt = (role) => {
     const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');

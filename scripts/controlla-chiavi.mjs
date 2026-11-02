@@ -11,7 +11,7 @@
  * nemmeno in parte. Non fa rete e non legge variabili d'ambiente.
  *
  * Cosa cerca (la coda lunga evita i falsi allarmi sui nomi dei prefissi scritti nei documenti):
- *   sk-ant-…, sk-proj-…, sk-… lunghi (OpenAI/altri), sk_live_…, whsec_…, ghp_…, github_pat_…,
+ *   sk-ant-…, sk-proj-…, sk-… lunghi (OpenAI/altri), sk_live_…, whsec_…, ghp_…, github_pat_…, re_… (Resend),
  *   e un JWT Supabase il cui ruolo è service_role (il nome da solo, in una policy SQL o in
  *   un'Edge Function, è legittimo). Nel sito costruito anche la parola service_role: il browser
  *   non deve mai nominarla.
@@ -29,6 +29,8 @@ export const MODELLI = [
     ['stripe webhook (whsec_)', /whsec_[A-Za-z0-9]{16,}/g],
     ['github (ghp_)', /ghp_[A-Za-z0-9]{30,}/g],
     ['github (github_pat_)', /github_pat_[A-Za-z0-9_]{30,}/g],
+    // EMAIL-LANCIO: la chiave di Resend (RESEND_API_KEY) vive solo nei secret di Supabase e in SMTP di Supabase Auth.
+    ['resend (re_)', /(?<![A-Za-z0-9_])re_[A-Za-z0-9]{6,}_[A-Za-z0-9]{16,}/g],
 ];
 const JWT = /eyJ[A-Za-z0-9_-]{8,}\.(eyJ[A-Za-z0-9_-]{8,})\.[A-Za-z0-9_-]{8,}/g;
 const SOLO_NEL_SITO = [['parola service_role', /service_role/g]];

@@ -47,7 +47,7 @@ export const TourSummaryModal = ({ isOpen, onClose, stats, titleName, cityName, 
         // hardcoded (città/km/minuti). I dati mancanti si OMETTONO, non si inventano.
         let text = `Ho appena esplorato "${titleName || 'un tour'}"`;
         if (cityName) text += ` a ${cityName}`;
-        text += ` con DoveVai!`;
+        text += ` con Unnivai!`;
         const detail = [];
         if (stats?.completedCount) detail.push(`${stats.completedCount} tappe`);
         if (stats?.distance) detail.push(stats.distance);

@@ -554,7 +554,7 @@ const saveIntentToCache = (key, data) => {
 // - Il traduttore produce anche `oggetto_umano` (1-3 parole, come lo direbbe una
 //   persona) — usato dal messaggio d'errore onesto quando 0 candidati trovati.
 // C10b3-ter (decisione di Ivano) — negli esempi nessun nome delle citta' del banco (ne' dei loro posti): il banco misura, non suggerisce.
-const INTENT_TRANSLATOR_PROMPT = `Sei il traduttore di intenti di DoveVAI.
+const INTENT_TRANSLATOR_PROMPT = `Sei il traduttore di intenti di Unnivai.
 Il tuo unico compito: leggere una frase in italiano scritta da un turista, e produrre in JSON gli input per una ricerca di luoghi reali su Google Places nella città indicata.
 
 ⚠️ NON generi tappe. NON scrivi descrizioni. NON inventi nomi di posti.
@@ -4790,7 +4790,7 @@ oppure
         }
 
         const systemPrompt = `Sei un esperto di marketing turistico italiano. Analizza la descrizione di un'attività commerciale
-e restituisci un JSON con metadati utili per posizionamento sulla piattaforma DoveVai.
+e restituisci un JSON con metadati utili per posizionamento sulla piattaforma Unnivai.
 Rispondi SOLO con JSON valido, nessun testo aggiuntivo.`;
 
         const userPrompt = `Analizza questa attività e restituisci:

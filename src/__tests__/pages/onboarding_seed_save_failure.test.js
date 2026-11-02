@@ -79,7 +79,7 @@ const gotoReady = (aTavola = null) => {
     if (aTavola?.stile) clickByText(aTavola.stile);
     clickByText('Continua');
 };
-const finish = () => clickByText('Entra in DoveVAI');
+const finish = () => clickByText('Entra in Unnivai');
 
 // welcome → scegli "Storia e arte" → pronto → conferma
 const runWizardToEnd = (aTavola = null) => {
@@ -100,7 +100,7 @@ beforeEach(() => {
 });
 
 describe('Gate SEME (L2) — salvataggio fallito: si blocca e si vede', () => {
-    it('fallimento su "Entra in DoveVAI": niente navigate, niente flag, errore a schermo', async () => {
+    it('fallimento su "Entra in Unnivai": niente navigate, niente flag, errore a schermo', async () => {
         upsertOnboardingSeedMock.mockResolvedValue({ success: false, error: DB_ERROR });
 
         render(createElement(Onboarding));

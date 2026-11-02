@@ -731,7 +731,7 @@ export default function QuickPathPage() {
             const singleStop = !!result?._singleStop;
             const tourDescription = singleStop
                 ? `A ${activeCity} abbiamo trovato un solo posto che vale per questa richiesta. Te lo mostriamo com'è.`
-                : "Esperienza personalizzata generata dal motore AI DoveVAI.";
+                : "Esperienza personalizzata generata dal motore AI Unnivai.";
             const tourData = normalizeTour({
                 id: 'ai-quiz-' + Date.now(),
                 title: dayTitle,
@@ -750,7 +750,7 @@ export default function QuickPathPage() {
                 isAiGenerated: true,
                 tags: ['AI', group?.title, 'QuickPath',
                     mainTitle, selectedSubOption?.title].filter(Boolean),
-                guideBio: "Itinerario cucito su misura dal motore AI DoveVAI.",
+                guideBio: "Itinerario cucito su misura dal motore AI Unnivai.",
                 highlights: [selectedSubOption?.title, activeCity, group?.title].filter(Boolean),
                 included: [],
                 notIncluded: [],

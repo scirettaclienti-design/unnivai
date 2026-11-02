@@ -51,7 +51,7 @@ async function accedi(browser) {
     // durante l'accesso nessun proxy esce: la home che si apre dopo il login non genera niente di vero
     await page.route(/functions\/v1\/(places-proxy|openai-proxy)/, r => { bloccate++; r.fulfill(json({ error: 'bloccato durante l\'accesso' }, 503)); });
     await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await page.title())) throw new Error(`Titolo non DoveVai su ${BASE}/login: niente credenziali.`);
+    if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error(`Titolo non DoveVai su ${BASE}/login: niente credenziali.`);
     await page.getByText('Accedi →').click();
     await page.getByPlaceholder('Email').fill(env.TEST_ACCOUNT_EMAIL);
     await page.getByPlaceholder('Password').fill(env.TEST_ACCOUNT_PASSWORD);
@@ -123,7 +123,7 @@ async function apri(browser, statePath, nome, n) {
         });
     }
     await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai: mi fermo.');
+    if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai: mi fermo.');
     // 40 s di osservazione; il selettore della città, se si apre, si conferma
     for (let i = 0; i < 40; i++) {
         await page.waitForTimeout(1000);

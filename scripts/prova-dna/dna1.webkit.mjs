@@ -60,7 +60,7 @@ try {
     await p0.goto(BASE, { waitUntil: 'domcontentloaded' });
     const titolo = await p0.title();
     await c0.close();
-    if (!/DoveVai/i.test(titolo)) throw new Error(`La pagina su ${BASE} non è DoveVai (titolo: ${titolo}): niente credenziali.`);
+    if (!/Unnivai|DoveVai/i.test(titolo)) throw new Error(`La pagina su ${BASE} non è DoveVai (titolo: ${titolo}): niente credenziali.`);
     esiti.titolo = titolo;
 
     // 2. Accesso con l'account di prova.
@@ -68,7 +68,7 @@ try {
     const ctxL = await browser.newContext({ ...devices['iPhone 13'] });
     const pl = await ctxL.newPage();
     await pl.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await pl.title())) throw new Error('Titolo non DoveVai sulla pagina di accesso: niente credenziali.');
+    if (!/Unnivai|DoveVai/i.test(await pl.title())) throw new Error('Titolo non DoveVai sulla pagina di accesso: niente credenziali.');
     await pl.getByText('Accedi →').click();
     await pl.getByPlaceholder('Email').fill(env.TEST_ACCOUNT_EMAIL);
     await pl.getByPlaceholder('Password').fill(env.TEST_ACCOUNT_PASSWORD);

@@ -15,6 +15,7 @@ import ConsensoAi from './components/ConsensoAi';
 // Gate K — Guard che redirige rotte V2/V3 (Guide/Business/BecomeGuide) a
 // /dashboard-user con toast onesto "Disponibile prossimamente."
 import V1LockedGuard from './components/V1LockedGuard';
+import SoloWeb from './components/SoloWeb';
 // DVAI-022: APIProvider rimosso dal root — caricato SOLO nelle pagine mappa
 // tramite MapAPIWrapper (MapPage, TourBuilder, Explore).
 
@@ -76,7 +77,7 @@ const GlobalLoading = () => (
         <div className="absolute -inset-2 rounded-3xl border-2 border-brand-orange/40 animate-ping" />
       </div>
       <div className="flex flex-col items-center gap-2">
-        <h2 className="text-lg font-bold text-obsidian-primary" style={{ fontFamily: 'Quicksand, sans-serif' }}>DoveVAI</h2>
+        <h2 className="text-lg font-bold text-obsidian-primary" style={{ fontFamily: 'Quicksand, sans-serif' }}>Unnivai</h2>
         <div className="flex gap-1">
           {[0, 1, 2].map(i => (
             <div
@@ -154,7 +155,7 @@ function AnimatedAppRoutes() {
           <Route path="/app/*"           element={<DashboardUser />} />
           {/* DVAI-026: /home → redirect /dashboard-user */}
           <Route path="/home"            element={<Navigate to="/dashboard-user" replace />} />
-          <Route path="/photos"          element={<Photos />} />
+          <Route path="/photos"          element={<SoloWeb><Photos /></SoloWeb>} />
           <Route path="/profile"         element={<Profile />} />
           <Route path="/ai-itinerary"    element={<AiItinerary />} />
           <Route path="/map"             element={<MapPage />} />
@@ -164,16 +165,16 @@ function AnimatedAppRoutes() {
           <Route path="/notification-settings" element={<NotificationSettings />} />
           <Route path="/tour-live"       element={<TourLive />} />
           <Route path="/surprise-tour"   element={<SurpriseTour />} />
-          <Route path="/trending"        element={<Trending />} />
+          <Route path="/trending"        element={<SoloWeb><Trending /></SoloWeb>} />
           {/* Gate W: /become-guide -> pagina Prossimamente guide (era: redirect+toast). */}
           <Route path="/become-guide"    element={<V1LockedGuard kind="guide"><BecomeGuide /></V1LockedGuard>} />
 
           {/* Gate W: schermate "Prossimamente" per V2 Guide, V3 Attivita', Foto.
               Contenuto onesto (che cosa, a chi, quando, cosa fare ora) — sostituisce
               il pattern redirect+toast di V1LockedGuard che rimbalzava a /dashboard-user. */}
-          <Route path="/prossimamente/guide"     element={<Prossimamente kind="guide" />} />
-          <Route path="/prossimamente/attivita"  element={<Prossimamente kind="attivita" />} />
-          <Route path="/prossimamente/foto"      element={<Prossimamente kind="foto" />} />
+          <Route path="/prossimamente/guide"     element={<SoloWeb><Prossimamente kind="guide" /></SoloWeb>} />
+          <Route path="/prossimamente/attivita"  element={<SoloWeb><Prossimamente kind="attivita" /></SoloWeb>} />
+          <Route path="/prossimamente/foto"      element={<SoloWeb><Prossimamente kind="foto" /></SoloWeb>} />
         </Route>
 
         {/* Gate W — GUIDE ROUTES: raggiungibili ma redirette a

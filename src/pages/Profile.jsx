@@ -22,6 +22,10 @@ import { QuickPathSummary } from "../components/Map/QuickPathSummary";
 import { useModificaGiro } from "../hooks/useModificaGiro";
 import { isOspite, TESTI_OSPITE } from "../lib/ospite";
 import LinkLegali from "../components/LinkLegali";
+import { isAppNativa } from "../lib/appNativa";
+
+// /photos e' una pagina «in costruzione»: nell'app nativa il link non c'e'.
+const LinkFoto = ({ children, ...props }) => (isAppNativa() ? null : <Link to="/photos" {...props}>{children}</Link>);
 import EliminaAccount from "../components/EliminaAccount";
 
 // Stati di `guide_requests`, presi dal CHECK reale sul DB (verificato il
@@ -208,7 +212,7 @@ export default function ProfilePage() {
     const shareTour = (platform, tour) => {
         // Livello 1: testo onesto — via l'aggettivo "fantastico" (voce brand) e il
         // rating tour-level (seed non reale, regola O.4). Solo il fatto: cosa e dove.
-        const message = `Ho appena esplorato "${tour.title}" a ${tour.location} con DoveVai!`;
+        const message = `Ho appena esplorato "${tour.title}" a ${tour.location} con Unnivai!`;
         const url = window.location.href;
 
         switch (platform) {
@@ -535,9 +539,9 @@ export default function ProfilePage() {
                                 <span>{tourHistory.length} tour</span>
                                 <span>•</span>
                                 <span>{tourHistory.reduce((total, tour) => total + tour.photos.length, 0)} foto</span>
-                                <Link to="/photos">
+                                <LinkFoto>
                                     <span className="text-obsidian-secondary hover:text-obsidian-primary font-medium cursor-pointer transition-colors">Vedi tutte</span>
-                                </Link>
+                                </LinkFoto>
                             </div>
                         )}
                     </div>
@@ -775,10 +779,10 @@ export default function ProfilePage() {
                                                 <h4 className="font-bold text-obsidian-primary flex items-center">
                                                     Gallery
                                                 </h4>
-                                                <Link to="/photos" className="text-xs font-bold text-obsidian-secondary hover:text-obsidian-primary flex items-center group transition-colors">
+                                                <LinkFoto className="text-xs font-bold text-obsidian-secondary hover:text-obsidian-primary flex items-center group transition-colors">
                                                     Vedi tutte
                                                     <ChevronRight className="w-3 h-3 ml-0.5 group-hover:translate-x-0.5 transition-transform" />
-                                                </Link>
+                                                </LinkFoto>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-3 mb-6">
@@ -818,7 +822,7 @@ export default function ProfilePage() {
 
                                                 {/* "More" Card */}
                                                 {selectedTour.photos.length > 4 && (
-                                                    <Link to="/photos">
+                                                    <LinkFoto>
                                                         <motion.div
                                                             className="relative h-24 bg-obsidian-raised rounded-xl overflow-hidden shadow-sm flex flex-col items-center justify-center cursor-pointer border border-obsidian-border hover:border-brand-orange transition-all group"
                                                             whileHover={{ scale: 1.05 }}
@@ -826,11 +830,11 @@ export default function ProfilePage() {
                                                             <span className="font-bold text-obsidian-primary text-lg group-hover:scale-110 transition-transform">+{selectedTour.photos.length - 4}</span>
                                                             <span className="text-[10px] text-obsidian-secondary">altre foto</span>
                                                         </motion.div>
-                                                    </Link>
+                                                    </LinkFoto>
                                                 )}
                                             </div>
 
-                                            <Link to="/photos">
+                                            <LinkFoto>
                                                 <motion.button
                                                     className="w-full py-3.5 bg-brand-orange text-obsidian-bg rounded-xl text-sm font-bold shadow-lg hover:bg-brand-orange-hover transition-all flex items-center justify-center gap-2 group"
                                                     whileTap={{ scale: 0.98 }}
@@ -838,7 +842,7 @@ export default function ProfilePage() {
                                                     Visualizza Album Completo
                                                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                                 </motion.button>
-                                            </Link>
+                                            </LinkFoto>
                                         </div>
                                     )}
                                 </div>

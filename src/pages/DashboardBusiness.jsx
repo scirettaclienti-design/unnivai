@@ -911,7 +911,7 @@ function TourVisibilityWidget({ businessId, businessName, categoryTags, aiMetada
                     <div className={`h-14 relative flex items-center justify-center ${tier === 'elite' ? 'bg-gradient-to-br from-[#f6d365] to-[#d4af37]' : 'bg-gradient-to-br from-orange-400 to-amber-500'}`}>
                         <Globe className="w-8 h-8 text-white/20" />
                         <div className={`absolute top-2 left-2 text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm ${tier === 'elite' ? 'bg-black/50 text-amber-300 backdrop-blur-sm' : 'bg-orange-600 text-white'}`}>
-                            <Star className="w-2.5 h-2.5 fill-current" /> Partner {tier === 'elite' ? 'Elite' : 'DoveVai'}
+                            <Star className="w-2.5 h-2.5 fill-current" /> Partner {tier === 'elite' ? 'Elite' : 'Unnivai'}
                         </div>
                     </div>
                     <div className="p-3">

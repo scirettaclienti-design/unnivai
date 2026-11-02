@@ -149,7 +149,7 @@ export default function ComingSoonOverlay({
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.8 }}
                 >
-                    DoveVAI · La piattaforma del turismo italiano
+                    Unnivai · La piattaforma del turismo italiano
                 </motion.p>
             </main>
 

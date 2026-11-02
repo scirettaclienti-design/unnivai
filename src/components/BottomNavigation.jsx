@@ -2,6 +2,7 @@ import React from "react";
 import { Home, Compass, User, Camera } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLocation, Link } from "react-router-dom";
+import { isAppNativa } from "../lib/appNativa";
 
 const navItems = [
     { id: 'home', label: 'Home', icon: Home, path: '/dashboard-user' },
@@ -32,7 +33,7 @@ export default function BottomNavigation() {
         >
             <div className="max-w-md mx-auto px-6 py-2.5">
                 <nav className="flex items-center justify-between" aria-label="Navigazione principale">
-                    {navItems.map((item) => {
+                    {navItems.filter((item) => !(item.id === 'photos' && isAppNativa())).map((item) => {
                         const IconComponent = item.icon;
                         const isActive = activeTab === item.id;
 

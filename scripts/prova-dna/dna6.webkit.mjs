@@ -38,7 +38,7 @@ async function accedi(browser) {
     let bloccate = 0;
     await page.route(/functions\/v1\/(places-proxy|openai-proxy)/, r => { bloccate++; r.fulfill(json({ error: 'bloccato durante l\'accesso' }, 503)); });
     await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await page.title())) throw new Error(`Titolo non DoveVai su ${BASE}/login: niente credenziali.`);
+    if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error(`Titolo non DoveVai su ${BASE}/login: niente credenziali.`);
     await page.getByText('Accedi →').click();
     await page.getByPlaceholder('Email').fill(env.TEST_ACCOUNT_EMAIL);
     await page.getByPlaceholder('Password').fill(env.TEST_ACCOUNT_PASSWORD);
@@ -109,7 +109,7 @@ try {
         const page = await ctx.newPage();
         sorveglia(page);
         await page.goto(`${BASE}/profile`, { waitUntil: 'domcontentloaded' });
-        if (!/DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai: mi fermo.');
+        if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai: mi fermo.');
         await page.getByTestId('dna-profilo').waitFor({ timeout: 20000 });
         await page.waitForTimeout(2500);
         const prima = ultime();
@@ -153,7 +153,7 @@ try {
         stato.fase = 'salva';
         await page.clock.setSystemTime(ora('2026-10-15T12:05:00+02:00'));
         await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
-        if (!/DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai: mi fermo.');
+        if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai: mi fermo.');
         await osserva(page, 30);
         const c = await carte(page);
         await page.locator('a[href^="/tour-details/"]').first().click();

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { isAppNativa } from '../lib/appNativa';
 
 /**
  * Gate K → Gate W — V1LockedGuard
@@ -21,5 +22,7 @@ import { Navigate } from 'react-router-dom';
  * Le pagine wrappate tornano attive senza rifare il router.
  */
 export default function V1LockedGuard({ kind = 'guide', children: _children }) {
+    // App nativa: niente schermata «Prossimamente», si torna alla home.
+    if (isAppNativa()) return <Navigate to="/" replace />;
     return <Navigate to={`/prossimamente/${kind}`} replace />;
 }

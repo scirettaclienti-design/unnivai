@@ -148,7 +148,7 @@ const Login = () => {
                     <div className="w-9 h-9 bg-obsidian-card border border-obsidian-border rounded-xl flex items-center justify-center text-brand-orange shadow-sm group-hover:scale-105 transition-transform">
                         <Compass className="w-5 h-5 stroke-[1.75]" />
                     </div>
-                    <span className="font-extrabold text-lg tracking-tight text-obsidian-primary">DOVEVAI</span>
+                    <span className="font-extrabold text-lg tracking-tight text-obsidian-primary">UNNIVAI</span>
                 </Link>
                 {selectedRole && (
                     <button
@@ -182,7 +182,7 @@ const Login = () => {
                                     className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-obsidian-raised border border-obsidian-border text-[11px] font-bold tracking-widest uppercase text-obsidian-secondary mb-4"
                                 >
                                     <span className="w-1.5 h-1.5 bg-brand-orange rounded-full" />
-                                    DoveVai Network
+                                    Unnivai Network
                                 </motion.div>
                                 <motion.h1
                                     initial={{ opacity: 0, y: 15 }}

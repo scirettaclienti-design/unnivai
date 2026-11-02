@@ -460,7 +460,7 @@ export default function DashboardGuide() {
                     </div>
 
                     <p className="text-gray-600 mb-8 leading-relaxed">
-                        Benvenuto in DoveVai! Scegli come vuoi operare. <br />
+                        Benvenuto in Unnivai! Scegli come vuoi operare. <br />
                         <strong>Local Host:</strong> Per appassionati e local expert (Food, Lifestyle). <br />
                         <strong>Guida PRO:</strong> Per guide autorizzate (Storia, Arte, Musei).
                     </p>

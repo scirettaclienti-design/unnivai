@@ -30,7 +30,7 @@ try {
     await p0.goto(BASE, { waitUntil: 'domcontentloaded' });
     const titolo = await p0.title();
     await c0.close();
-    if (!/DoveVai/i.test(titolo)) throw new Error(`La pagina su ${BASE} non è DoveVai (titolo: ${titolo}): niente credenziali.`);
+    if (!/Unnivai|DoveVai/i.test(titolo)) throw new Error(`La pagina su ${BASE} non è DoveVai (titolo: ${titolo}): niente credenziali.`);
     esiti.titolo = titolo;
 
     const ctx = await browser.newContext({ ...devices['iPhone 13'] });
@@ -41,7 +41,7 @@ try {
 
     // A. Email non valida → messaggio dell'app, nessuna richiesta a Supabase.
     await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai sulla pagina di accesso: niente credenziali.');
+    if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error('Titolo non DoveVai sulla pagina di accesso: niente credenziali.');
     await page.getByText('Voglio Esplorare').click();
     await page.getByText('Accedi', { exact: true }).first().click();
     await page.getByPlaceholder('Email').fill('mario@');

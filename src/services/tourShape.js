@@ -509,7 +509,7 @@ export function normalizeTour(raw = {}, opts = {}) {
         // Itinerary derivato (back-compat)
         itinerary,
         // Default guide coerenti
-        guide: raw.guide || (raw.isAiGenerated ? 'Intelligenza DoveVai' : 'DoveVai Guide'),
+        guide: raw.guide || (raw.isAiGenerated ? 'Intelligenza Unnivai' : 'Unnivai Guide'),
         guideAvatar: raw.guideAvatar || (raw.isAiGenerated ? '🤖' : '👋'),
         // City sempre presente
         city,

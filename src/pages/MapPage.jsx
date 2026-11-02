@@ -2582,7 +2582,7 @@ const MapPage = () => {
                             </button>
                             {/* Partner badge */}
                             <div className="absolute top-3 left-3 bg-brand-orange text-obsidian-bg text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md">
-                                <Sparkles size={10} /> Partner DoveVai
+                                <Sparkles size={10} /> Partner Unnivai
                             </div>
                             <div className="absolute bottom-3 left-4">
                                 <h2 className="text-white font-bold text-lg leading-tight">{selectedPartner.name}</h2>
@@ -2694,7 +2694,7 @@ const MapPage = () => {
                 const chiusoPrima = saltate > 0 || fatte.length < activeRoute.length; // «Salta» o «Fine» prima dell'ultima tappa
                 const numeri = numeriDelGiro({ tappe: chiusoPrima ? fatte : tutte, elapsedMs: navElapsedMs, distanzaM: null });
                 const imparato = cosaHoImparato({ fatte: fatte.map(st => ({ categoria: stopCoreCategory(st) })), totale: activeRoute.length, saltate, dnaWeights });
-                const testoCondivisione = `Ho appena fatto un giro${tourData?.city ? ` a ${tourData.city}` : ''} con DoveVai: ${numeri.tappe} tappe${numeri.km ? `, ${numeri.km} km` : ''}.`;
+                const testoCondivisione = `Ho appena fatto un giro${tourData?.city ? ` a ${tourData.city}` : ''} con Unnivai: ${numeri.tappe} tappe${numeri.km ? `, ${numeri.km} km` : ''}.`;
                 return (
                     <FineGiro
                         data={dataDelGiro(new Date())} citta={tourData?.city || null} tappe={tutte} numeri={numeri} imparato={imparato}

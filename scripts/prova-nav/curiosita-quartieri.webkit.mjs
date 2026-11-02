@@ -74,7 +74,7 @@ async function accedi() {
     const ctx = await browser.newContext({ ...IPHONE, locale: 'it-IT', timezoneId: 'Europe/Rome' });
     const p = await ctx.newPage();
     await p.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await p.title())) throw new Error('titolo non DoveVai: niente credenziali');
+    if (!/Unnivai|DoveVai/i.test(await p.title())) throw new Error('titolo non DoveVai: niente credenziali');
     if (!env.TEST_ACCOUNT_EMAIL || !env.TEST_ACCOUNT_PASSWORD) throw new Error('mancano le credenziali di prova');
     await p.getByText('Accedi →').click();
     await p.getByPlaceholder('Email').fill(env.TEST_ACCOUNT_EMAIL);
@@ -139,7 +139,7 @@ async function giro(nome, statePath) {
         } finally { inVolo -= 1; }
     });
     await page.goto(`${BASE}/map`, { waitUntil: 'domcontentloaded' });
-    if (!/DoveVai/i.test(await page.title())) throw new Error('titolo non DoveVai');
+    if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error('titolo non DoveVai');
     await page.evaluate((tour) => {
         const route = tour.steps.map((s, i) => ({ latitude: s.lat, longitude: s.lng, label: s.title, title: s.title, name: s.title, description: s.description, category: 'Punto Mappa', image: null, index: i + 1, type: 'waypoint' }));
         window.history.replaceState({ usr: { route, tourData: tour }, key: 'prova', idx: 0 }, '', '/map');

@@ -205,7 +205,7 @@ export default function Onboarding() {
             {/* Header: Brand & Minimal Step indicator */}
             <header className="w-full max-w-md mx-auto pt-2 flex items-center justify-between z-10">
                 <span className="text-xs font-black tracking-widest uppercase text-obsidian-secondary">
-                    DoveVAI
+                    Unnivai
                 </span>
                 <div className="flex items-center space-x-2" aria-label={`Passo ${step + 1} di ${LAST_STEP + 1}`}>
                     {Array.from({ length: LAST_STEP + 1 }, (_, i) => i).map((i) => (
@@ -465,7 +465,7 @@ export default function Onboarding() {
                                 <div className="w-4 h-4 border-2 border-obsidian-bg border-t-transparent rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    <span>Entra in DoveVAI</span>
+                                    <span>Entra in Unnivai</span>
                                     <ArrowRight className="w-4 h-4 stroke-[2.5]" />
                                 </>
                             )}

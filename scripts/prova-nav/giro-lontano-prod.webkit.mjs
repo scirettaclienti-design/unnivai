@@ -15,7 +15,7 @@ await ctx.clock.install({ time: new Date(process.argv[3] || '2026-10-30T19:30:00
 const env = Object.fromEntries(fs.readFileSync('.env.local', 'utf8').split('\n').map(l => l.match(/^\s*([A-Z_]+)\s*=\s*(.*)\s*$/)).filter(Boolean).map(m => [m[1], m[2].replace(/^["']|["']$/g, '')]));
 const page = await ctx.newPage();
 await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
-if (!/DoveVai/i.test(await page.title())) throw new Error('titolo non DoveVai: niente credenziali');
+if (!/Unnivai|DoveVai/i.test(await page.title())) throw new Error('titolo non DoveVai: niente credenziali');
 await page.getByText('Accedi →').click();
 await page.getByPlaceholder('Email').fill(env.TEST_ACCOUNT_EMAIL);
 await page.getByPlaceholder('Password').fill(env.TEST_ACCOUNT_PASSWORD);
